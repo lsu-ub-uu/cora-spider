@@ -3,3 +3,7 @@
 /test-output/
 /.classpath
 /.project
+/atlassian-ide-plugin.xml
+/spider.iml
+/spider.ipr
+/spider.iws
