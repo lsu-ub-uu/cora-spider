@@ -17,7 +17,7 @@
     
     <properties>
         <testng.version>6.8.8</testng.version>
-        <metadataformat.version>0.0.1-SNAPSHOT</metadataformat.version>
+        <metadataformat.version>0.1-SNAPSHOT</metadataformat.version>
     </properties>
     
     <repositories>
