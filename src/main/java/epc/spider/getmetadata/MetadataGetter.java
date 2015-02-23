@@ -1,7 +1,7 @@
 package epc.spider.getmetadata;
 
 import epc.metadataformat.CoherentMetadata;
-import epc.metadataformat.getmetadata.MetadataStorageGetterInputBoundry;
+import epc.metadataformat.getmetadata.MetadataStorageGetterInputBoundary;
 
 /**
  * MetadataGetter makes it possible to get metadata from inner parts of the
@@ -12,33 +12,33 @@ import epc.metadataformat.getmetadata.MetadataStorageGetterInputBoundry;
  * @since 0.1
  *
  */
-public class MetadataGetter implements MetadataGetterInputBoundry {
+public class MetadataGetter implements MetadataGetterInputBoundary {
 
-	private final MetadataStorageGetterInputBoundry getMetadataInputBoundry;
+	private final MetadataStorageGetterInputBoundary getMetadataInputBoundary;
 
 	/**
 	 * MetadataGetter initializes this MetadataGetter so that it uses the
-	 * provided MetadataStorageGetterInputBoundry to get metadata.
+	 * provided MetadataStorageGetterInputBoundary to get metadata.
 	 * 
-	 * @param metadataStorageGetterInputBoundry
+	 * @param metadataStorageGetterInputBoundary
 	 *            An implementation of the
-	 *            {@link MetadataStorageGetterInputBoundry} interface to provide
+	 *            {@link MetadataStorageGetterInputBoundary} interface to provide
 	 *            implementation for the getter.
 	 */
 	public MetadataGetter(
-			MetadataStorageGetterInputBoundry metadataStorageGetterInputBoundry) {
-		if (null == metadataStorageGetterInputBoundry) {
+			MetadataStorageGetterInputBoundary metadataStorageGetterInputBoundary) {
+		if (null == metadataStorageGetterInputBoundary) {
 			throw new IllegalArgumentException(
-					"getMetadataInputBoundry must not be null");
+					"getMetadataInputBoundary must not be null");
 		}
-		this.getMetadataInputBoundry = metadataStorageGetterInputBoundry;
+		this.getMetadataInputBoundary = metadataStorageGetterInputBoundary;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public CoherentMetadata getAllMetadata() {
-		return getMetadataInputBoundry.getAllMetadata();
+		return getMetadataInputBoundary.getAllMetadata();
 	}
 
 }
