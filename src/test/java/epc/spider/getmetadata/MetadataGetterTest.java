@@ -46,6 +46,7 @@ public class MetadataGetterTest {
 		MetadataStorageGetterInputBoundary metadataStorageGetter = new MetadataStorageGetter(
 				metadataInMemoryStorage);
 		
+		//spider
 		MetadataGetterInputBoundary metadataGetter = new MetadataGetter(
 				metadataStorageGetter);
 
@@ -55,6 +56,6 @@ public class MetadataGetterTest {
 				.getMetadataElements().getMetadataElement("otherId");
 
 		Assert.assertEquals(otherVariable.getDataId(), "otherDataId",
-				"otherDataId should be otherDataId as deffined in the testData");
+				"otherDataId should be otherDataId as defined in the testData");
 	}
 }
