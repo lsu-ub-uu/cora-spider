@@ -58,19 +58,6 @@ public class PostRetrieverInMemoryStorageTest {
 		recordInfo.addChild(new DataAtomic("type", "place"));
 		recordInfo.addChild(new DataAtomic("id", "place:0001"));
 
-		/**
-		 * <pre>
-		 * 		recordInfo
-		 * 			type
-		 * 			id
-		 * 			organisation
-		 * 			user
-		 * 			tsCreated (recordCreatedDate)
-		 * 			list tsUpdated (recordUpdatedDate)
-		 * 			catalog Language
-		 * </pre>
-		 */
-
 		DataGroup dataGroup = new DataGroup("dataId");
 		dataGroup.addChild(recordInfo);
 
@@ -79,5 +66,29 @@ public class PostRetrieverInMemoryStorageTest {
 		DataGroup dataGroupOut = postsInMemory.read("type", "place:0001");
 		assertEquals(dataGroupOut, dataGroup,
 				"dataGroupOut should be the same as dataGroup");
+	}
+	@Test
+	public void testCreateTwoPostsRead() {
+		
+		DataGroup recordInfo = new DataGroup("recordInfo");
+		recordInfo.addChild(new DataAtomic("type", "place"));
+		recordInfo.addChild(new DataAtomic("id", "place:0001"));
+		
+		DataGroup dataGroup = new DataGroup("dataId");
+		dataGroup.addChild(recordInfo);
+		
+		PostRetrieverInMemoryStorage postsInMemory = new PostRetrieverInMemoryStorage();
+		postsInMemory.create("type", "place:0001", dataGroup);
+		postsInMemory.create("type", "place:0002", dataGroup);
+		
+		DataGroup dataGroupOut = postsInMemory.read("type", "place:0001");
+		assertEquals(dataGroupOut, dataGroup,
+				"dataGroupOut should be the same as dataGroup");
+		
+		DataGroup dataGroupOut2 = postsInMemory.read("type", "place:0002");
+		assertEquals(dataGroupOut2, dataGroup,
+				"dataGroupOut2 should be the same as dataGroup");
+		
+		
 	}
 }

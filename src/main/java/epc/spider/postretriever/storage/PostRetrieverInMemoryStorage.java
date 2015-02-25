@@ -11,7 +11,7 @@ public class PostRetrieverInMemoryStorage implements
 
 	public PostRetrieverInMemoryStorage(
 			Map<String, Map<String, DataGroup>> posts) {
-		if(null==posts){
+		if (null == posts) {
 			throw new IllegalArgumentException("posts must not be null");
 		}
 		this.posts = posts;
@@ -32,7 +32,7 @@ public class PostRetrieverInMemoryStorage implements
 
 	private void ensurePostTypeStorageExists(String postType) {
 		if (null == posts.get(postType)) {
-		posts.put(postType, new HashMap<String, DataGroup>());
+			posts.put(postType, new HashMap<String, DataGroup>());
 		}
 	}
 
