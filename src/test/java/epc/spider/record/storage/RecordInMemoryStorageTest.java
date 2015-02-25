@@ -1,4 +1,4 @@
-package epc.spider.postretriever.storage;
+package epc.spider.record.storage;
 
 import static org.testng.Assert.assertEquals;
 
@@ -9,12 +9,15 @@ import org.testng.annotations.Test;
 
 import epc.metadataformat.data.DataAtomic;
 import epc.metadataformat.data.DataGroup;
+import epc.spider.record.storage.RecordInMemoryStorage;
+import epc.spider.record.storage.RecordNotFoundException;
+import epc.spider.testdata.TestDataRecordInMemoryStorage;
 
-public class PostRetrieverInMemoryStorageTest {
+public class RecordInMemoryStorageTest {
 	@Test
 	public void testInitWithData() {
-		Map<String, Map<String, DataGroup>> posts = new HashMap<>();
-		posts.put("place", new HashMap<String, DataGroup>());
+		Map<String, Map<String, DataGroup>> records = new HashMap<>();
+		records.put("place", new HashMap<String, DataGroup>());
 
 		DataGroup recordInfo = new DataGroup("recordInfo");
 		recordInfo.addChild(new DataAtomic("type", "place"));
@@ -36,19 +39,31 @@ public class PostRetrieverInMemoryStorageTest {
 		DataGroup dataGroup = new DataGroup("dataId");
 		dataGroup.addChild(recordInfo);
 
-		posts.get("place").put("place:0001", dataGroup);
+		records.get("place").put("place:0001", dataGroup);
 
-		PostRetrieverInMemoryStorage postsInMemory = new PostRetrieverInMemoryStorage(
-				posts);
-		assertEquals(postsInMemory.read("place", "place:0001"), dataGroup,
+		RecordInMemoryStorage recordsInMemory = new RecordInMemoryStorage(
+				records);
+		assertEquals(recordsInMemory.read("place", "place:0001"), dataGroup,
 				"dataGroup should be the one added on startup");
 
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testInitWithNull() {
-		new PostRetrieverInMemoryStorage(null);
+		new RecordInMemoryStorage(null);
+	}
 
+	@Test(expectedExceptions = RecordNotFoundException.class)
+	public void testReadMissingrecordType() {
+		RecordInMemoryStorage recordsInMemory = new RecordInMemoryStorage();
+		recordsInMemory.read("", "");
+	}
+
+	@Test(expectedExceptions = RecordNotFoundException.class)
+	public void testReadMissingrecordId() {
+		RecordInMemoryStorage recordsInMemory = TestDataRecordInMemoryStorage
+				.createRecordInMemoryStorageWithTestData();
+		recordsInMemory.read("place", "");
 	}
 
 	@Test
@@ -61,34 +76,34 @@ public class PostRetrieverInMemoryStorageTest {
 		DataGroup dataGroup = new DataGroup("dataId");
 		dataGroup.addChild(recordInfo);
 
-		PostRetrieverInMemoryStorage postsInMemory = new PostRetrieverInMemoryStorage();
-		postsInMemory.create("type", "place:0001", dataGroup);
-		DataGroup dataGroupOut = postsInMemory.read("type", "place:0001");
+		RecordInMemoryStorage recordsInMemory = new RecordInMemoryStorage();
+		recordsInMemory.create("type", "place:0001", dataGroup);
+		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
 		assertEquals(dataGroupOut, dataGroup,
 				"dataGroupOut should be the same as dataGroup");
 	}
+
 	@Test
-	public void testCreateTwoPostsRead() {
-		
+	public void testCreateTworecordsRead() {
+
 		DataGroup recordInfo = new DataGroup("recordInfo");
 		recordInfo.addChild(new DataAtomic("type", "place"));
 		recordInfo.addChild(new DataAtomic("id", "place:0001"));
-		
+
 		DataGroup dataGroup = new DataGroup("dataId");
 		dataGroup.addChild(recordInfo);
-		
-		PostRetrieverInMemoryStorage postsInMemory = new PostRetrieverInMemoryStorage();
-		postsInMemory.create("type", "place:0001", dataGroup);
-		postsInMemory.create("type", "place:0002", dataGroup);
-		
-		DataGroup dataGroupOut = postsInMemory.read("type", "place:0001");
+
+		RecordInMemoryStorage recordsInMemory = new RecordInMemoryStorage();
+		recordsInMemory.create("type", "place:0001", dataGroup);
+		recordsInMemory.create("type", "place:0002", dataGroup);
+
+		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
 		assertEquals(dataGroupOut, dataGroup,
 				"dataGroupOut should be the same as dataGroup");
-		
-		DataGroup dataGroupOut2 = postsInMemory.read("type", "place:0002");
+
+		DataGroup dataGroupOut2 = recordsInMemory.read("type", "place:0002");
 		assertEquals(dataGroupOut2, dataGroup,
 				"dataGroupOut2 should be the same as dataGroup");
-		
-		
+
 	}
 }
