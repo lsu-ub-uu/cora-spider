@@ -18,5 +18,5 @@ public interface MetadataGetterInputBoundary {
 	 * 
 	 * @return A CoherentMetadata with all metadata for the entire system
 	 */
-	public CoherentMetadata getAllMetadata();
+	CoherentMetadata getAllMetadata();
 }
