@@ -35,18 +35,20 @@ public class RecordHandler implements RecordInputBoundary {
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(
 				accessType, recordType, readRecord);
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			// throw an exception
+			throw new AuthorizationException("User:" + userId
+					+ " is not authorized to read record:" + recordId
+					+ " of type:" + recordType);
 		}
 		return readRecord;
 	}
 
 	@Override
-	public DataGroup createAndStoreRecord(String userId, String type,
+	public DataGroup createAndStoreRecord(String userId, String recordType,
 			DataGroup record) {
 
 		DataGroup recordInfo = new DataGroup("recordInfo");
 		// id
-		String id = idGenerator.getIdForType(type);
+		String id = idGenerator.getIdForType(recordType);
 		DataAtomic idData = new DataAtomic("id", id);
 		recordInfo.addChild(idData);
 
@@ -61,14 +63,16 @@ public class RecordHandler implements RecordInputBoundary {
 		// calculate permissionKey (leave for later)
 		String accessType = "CREATE";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(
-				accessType, type, record);
+				accessType, recordType, record);
 
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			// throw an exception
+			throw new AuthorizationException("User:" + userId
+					+ " is not authorized to create a record  of type:"
+					+ recordType);
 		}
 
 		// send to storage
-		recordStorageGateway.create(type, id, record);
+		recordStorageGateway.create(recordType, id, record);
 
 		return record;
 	}

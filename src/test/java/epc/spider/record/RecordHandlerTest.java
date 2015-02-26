@@ -14,7 +14,7 @@ import epc.spider.testdata.TestDataRecordInMemoryStorage;
 
 public class RecordHandlerTest {
 	@Test
-	public void testInit() {
+	public void testReadAuthorized() {
 		RecordStorageGateway recordStorage = TestDataRecordInMemoryStorage
 				.createRecordInMemoryStorageWithTestData();
 		AuthorizationInputBoundary authorization = new Authorizator();
@@ -28,6 +28,19 @@ public class RecordHandlerTest {
 
 		Assert.assertEquals(record.getDataId(), "authority",
 				"recordOut.getDataId should be authority");
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void testReadUnauthorized() {
+		RecordStorageGateway recordStorage = TestDataRecordInMemoryStorage
+				.createRecordInMemoryStorageWithTestData();
+		AuthorizationInputBoundary authorization = new Authorizator();
+		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
+		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
+		RecordInputBoundary recordHandler = new RecordHandler(authorization,
+				recordStorage, idGenerator, keyCalculator);
+
+		recordHandler.readRecord("unauthorizedUserId", "place", "place:0001");
 	}
 
 	@Test
@@ -60,5 +73,22 @@ public class RecordHandlerTest {
 		Assert.assertEquals(recordOut, recordRead,
 				"Returned and read record should be the same");
 
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void testCreateRecordUnauthorized() {
+		RecordStorageGateway recordStorage = TestDataRecordInMemoryStorage
+				.createRecordInMemoryStorageWithTestData();
+		AuthorizationInputBoundary authorization = new Authorizator();
+		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
+		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
+
+		RecordInputBoundary recordHandler = new RecordHandler(authorization,
+				recordStorage, idGenerator, keyCalculator);
+
+		DataGroup record = new DataGroup("authority");
+
+		recordHandler
+				.createAndStoreRecord("unauthorizedUserId", "type", record);
 	}
 }
