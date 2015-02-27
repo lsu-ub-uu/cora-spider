@@ -20,7 +20,6 @@
 		<testng.version>6.8.8</testng.version>
 		<metadataformat.version>0.1-SNAPSHOT</metadataformat.version>
 		<beefeater.version>0.1-SNAPSHOT</beefeater.version>
-		<dummy>dummy</dummy>
 	</properties>
 
 	<repositories>
