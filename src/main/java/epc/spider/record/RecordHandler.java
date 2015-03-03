@@ -30,8 +30,8 @@ public class RecordHandler implements RecordInputBoundary {
 			String recordId) {
 		DataGroup readRecord = recordStorageGateway.read(recordType, recordId);
 
-		// calculate permissionKey (leave for later)
-		String accessType = "CREATE";
+		// calculate permissionKey
+		String accessType = "READ";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(
 				accessType, recordType, readRecord);
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
@@ -60,7 +60,7 @@ public class RecordHandler implements RecordInputBoundary {
 
 		// validate
 
-		// calculate permissionKey (leave for later)
+		// calculate permissionKey
 		String accessType = "CREATE";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(
 				accessType, recordType, record);
