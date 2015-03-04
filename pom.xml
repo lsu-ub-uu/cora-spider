@@ -6,8 +6,7 @@
 	<version>0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>spider</name>
-	<url>http://maven.apache.org</url>
+	<name>Spider</name>
 
 	<parent>
 		<groupId>epc.commons</groupId>
@@ -21,6 +20,12 @@
 		<metadataformat.version>0.1-SNAPSHOT</metadataformat.version>
 		<beefeater.version>0.1-SNAPSHOT</beefeater.version>
 	</properties>
+
+	<scm>
+		<connection>scm:git:https://git.epc.ub.uu.se/epc/spider.git</connection>
+		<developerConnection>scm:git:https://git.epc.ub.uu.se/epc/spider.git</developerConnection>
+		<url>https://git.epc.ub.uu.se/epc/spider.git</url>
+	</scm>
 
 	<repositories>
 		<repository>
@@ -47,6 +52,7 @@
 			</snapshots>
 		</repository>
 	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>epc.metadataformat</groupId>
