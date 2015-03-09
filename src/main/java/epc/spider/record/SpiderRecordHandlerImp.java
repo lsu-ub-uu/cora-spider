@@ -2,7 +2,7 @@ package epc.spider.record;
 
 import java.util.Set;
 
-import epc.beefeater.AuthorizationInputBoundary;
+import epc.beefeater.Authorizator;
 import epc.metadataformat.data.DataAtomic;
 import epc.metadataformat.data.DataGroup;
 import epc.spider.record.storage.RecordIdGenerator;
@@ -11,17 +11,17 @@ import epc.spider.record.storage.RecordStorage;
 public class SpiderRecordHandlerImp implements SpiderRecordHandler {
 
 	private RecordStorage recordStorage;
-	private AuthorizationInputBoundary authorization;
+	private Authorizator authorization;
 	private RecordIdGenerator idGenerator;
 	private PermissionKeyCalculator keyCalculator;
 
 	public static SpiderRecordHandlerImp usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(
-			AuthorizationInputBoundary authorization, RecordStorage recordStorage,
+			Authorizator authorization, RecordStorage recordStorage,
 			RecordIdGenerator idGenerator, PermissionKeyCalculator keyCalculator) {
 		return new SpiderRecordHandlerImp(authorization, recordStorage, idGenerator, keyCalculator);
 	}
 
-	private SpiderRecordHandlerImp(AuthorizationInputBoundary authorization,
+	private SpiderRecordHandlerImp(Authorizator authorization,
 			RecordStorage recordStorage, RecordIdGenerator idGenerator,
 			PermissionKeyCalculator keyCalculator) {
 		this.authorization = authorization;

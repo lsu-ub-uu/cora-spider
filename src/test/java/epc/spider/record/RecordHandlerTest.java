@@ -3,8 +3,8 @@ package epc.spider.record;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import epc.beefeater.AuthorizationInputBoundary;
 import epc.beefeater.Authorizator;
+import epc.beefeater.AuthorizatorImp;
 import epc.metadataformat.data.DataAtomic;
 import epc.metadataformat.data.DataGroup;
 import epc.spider.record.storage.RecordIdGenerator;
@@ -17,7 +17,7 @@ public class RecordHandlerTest {
 	public void testReadAuthorized() {
 		RecordStorage recordStorage = TestDataRecordInMemoryStorage
 				.createRecordStorageInMemoryWithTestData();
-		AuthorizationInputBoundary authorization = new Authorizator();
+		Authorizator authorization = new AuthorizatorImp();
 		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
 		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(
@@ -34,7 +34,7 @@ public class RecordHandlerTest {
 	public void testReadUnauthorized() {
 		RecordStorage recordStorage = TestDataRecordInMemoryStorage
 				.createRecordStorageInMemoryWithTestData();
-		AuthorizationInputBoundary authorization = new Authorizator();
+		Authorizator authorization = new AuthorizatorImp();
 		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
 		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(
@@ -47,7 +47,7 @@ public class RecordHandlerTest {
 	public void testCreateRecord() {
 		RecordStorage recordStorage = TestDataRecordInMemoryStorage
 				.createRecordStorageInMemoryWithTestData();
-		AuthorizationInputBoundary authorization = new Authorizator();
+		Authorizator authorization = new AuthorizatorImp();
 		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
 
@@ -79,7 +79,7 @@ public class RecordHandlerTest {
 	public void testCreateRecordUnauthorized() {
 		RecordStorage recordStorage = TestDataRecordInMemoryStorage
 				.createRecordStorageInMemoryWithTestData();
-		AuthorizationInputBoundary authorization = new Authorizator();
+		Authorizator authorization = new AuthorizatorImp();
 		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
 
