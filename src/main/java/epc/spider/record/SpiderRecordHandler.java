@@ -2,7 +2,7 @@ package epc.spider.record;
 
 import epc.metadataformat.data.DataGroup;
 
-public interface RecordInputBoundary {
+public interface SpiderRecordHandler {
 
 	DataGroup readRecord(String userId, String type, String id);
 	

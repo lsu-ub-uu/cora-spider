@@ -5,16 +5,16 @@ import java.util.Map;
 
 import epc.metadataformat.data.DataAtomic;
 import epc.metadataformat.data.DataGroup;
-import epc.spider.record.storage.RecordInMemoryStorage;
+import epc.spider.record.storage.RecordStorageInMemory;
 
 public class TestDataRecordInMemoryStorage {
-	public static RecordInMemoryStorage createRecordInMemoryStorageWithTestData() {
+	public static RecordStorageInMemory createRecordStorageInMemoryWithTestData() {
 		Map<String, Map<String, DataGroup>> records = new HashMap<>();
 		records.put("place", new HashMap<String, DataGroup>());
 
-		DataGroup recordInfo = new DataGroup("recordInfo");
-		recordInfo.addChild(new DataAtomic("type", "place"));
-		recordInfo.addChild(new DataAtomic("id", "place:0001"));
+		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("type", "place"));
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "place:0001"));
 
 		/**
 		 * <pre>
@@ -29,13 +29,12 @@ public class TestDataRecordInMemoryStorage {
 		 * </pre>
 		 */
 
-		DataGroup dataGroup = new DataGroup("authority");
+		DataGroup dataGroup = DataGroup.withDataId("authority");
 		dataGroup.addChild(recordInfo);
 
 		records.get("place").put("place:0001", dataGroup);
 
-		RecordInMemoryStorage recordsInMemory = new RecordInMemoryStorage(
-				records);
+		RecordStorageInMemory recordsInMemory = new RecordStorageInMemory(records);
 		return recordsInMemory;
 	}
 }

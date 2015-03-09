@@ -8,20 +8,20 @@ import epc.beefeater.Authorizator;
 import epc.metadataformat.data.DataAtomic;
 import epc.metadataformat.data.DataGroup;
 import epc.spider.record.storage.RecordIdGenerator;
-import epc.spider.record.storage.RecordStorageGateway;
+import epc.spider.record.storage.RecordStorage;
 import epc.spider.record.storage.TimeStampIdGenerator;
 import epc.spider.testdata.TestDataRecordInMemoryStorage;
 
 public class RecordHandlerTest {
 	@Test
 	public void testReadAuthorized() {
-		RecordStorageGateway recordStorage = TestDataRecordInMemoryStorage
-				.createRecordInMemoryStorageWithTestData();
+		RecordStorage recordStorage = TestDataRecordInMemoryStorage
+				.createRecordStorageInMemoryWithTestData();
 		AuthorizationInputBoundary authorization = new Authorizator();
 		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
-		RecordInputBoundary recordHandler = new RecordHandler(authorization,
-				recordStorage, idGenerator, keyCalculator);
+		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(
+				authorization, recordStorage, idGenerator, keyCalculator);
 
 		DataGroup record = recordHandler.readRecord("userId", "place",
 				"place:0001");
@@ -32,29 +32,29 @@ public class RecordHandlerTest {
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testReadUnauthorized() {
-		RecordStorageGateway recordStorage = TestDataRecordInMemoryStorage
-				.createRecordInMemoryStorageWithTestData();
+		RecordStorage recordStorage = TestDataRecordInMemoryStorage
+				.createRecordStorageInMemoryWithTestData();
 		AuthorizationInputBoundary authorization = new Authorizator();
 		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
-		RecordInputBoundary recordHandler = new RecordHandler(authorization,
-				recordStorage, idGenerator, keyCalculator);
+		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(
+				authorization, recordStorage, idGenerator, keyCalculator);
 
 		recordHandler.readRecord("unauthorizedUserId", "place", "place:0001");
 	}
 
 	@Test
 	public void testCreateRecord() {
-		RecordStorageGateway recordStorage = TestDataRecordInMemoryStorage
-				.createRecordInMemoryStorageWithTestData();
+		RecordStorage recordStorage = TestDataRecordInMemoryStorage
+				.createRecordStorageInMemoryWithTestData();
 		AuthorizationInputBoundary authorization = new Authorizator();
 		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
 
-		RecordInputBoundary recordHandler = new RecordHandler(authorization,
-				recordStorage, idGenerator, keyCalculator);
+		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(
+				authorization, recordStorage, idGenerator, keyCalculator);
 
-		DataGroup record = new DataGroup("authority");
+		DataGroup record = DataGroup.withDataId("authority");
 
 		DataGroup recordOut = recordHandler.createAndStoreRecord("userId",
 				"type", record);
@@ -77,16 +77,16 @@ public class RecordHandlerTest {
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testCreateRecordUnauthorized() {
-		RecordStorageGateway recordStorage = TestDataRecordInMemoryStorage
-				.createRecordInMemoryStorageWithTestData();
+		RecordStorage recordStorage = TestDataRecordInMemoryStorage
+				.createRecordStorageInMemoryWithTestData();
 		AuthorizationInputBoundary authorization = new Authorizator();
 		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
 
-		RecordInputBoundary recordHandler = new RecordHandler(authorization,
-				recordStorage, idGenerator, keyCalculator);
+		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(
+				authorization, recordStorage, idGenerator, keyCalculator);
 
-		DataGroup record = new DataGroup("authority");
+		DataGroup record = DataGroup.withDataId("authority");
 
 		recordHandler
 				.createAndStoreRecord("unauthorizedUserId", "type", record);

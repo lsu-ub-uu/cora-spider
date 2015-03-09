@@ -2,7 +2,7 @@ package epc.spider.record.storage;
 
 import epc.metadataformat.data.DataGroup;
 
-public interface RecordStorageGateway {
+public interface RecordStorage {
 
 	DataGroup read(String recordType, String recordId);
 

@@ -3,14 +3,14 @@ package epc.spider.getmetadata;
 import epc.metadataformat.CoherentMetadata;
 
 /**
- * MetadataGetterInputBoundary provides an interface for the MetadataGetter
+ * SpiderMetadataGetter provides an interface for the SpiderMetadataGetterImp
  * 
  * @author <a href="mailto:olov.mckie@ub.uu.se">Olov McKie</a>
  *
  * @since 0.1
  *
  */
-public interface MetadataGetterInputBoundary {
+public interface SpiderMetadataGetter {
 	/**
 	 * getAllMetadata returns all metadata for the whole system, as a
 	 * CoherentMetadata populated with metadataFormat, Presentation, Collections
