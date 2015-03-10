@@ -20,11 +20,11 @@ public class RecordHandlerTest {
 		Authorizator authorization = new AuthorizatorImp();
 		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
-		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(
-				authorization, recordStorage, idGenerator, keyCalculator);
+		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp
+				.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(authorization,
+						recordStorage, idGenerator, keyCalculator);
 
-		DataGroup record = recordHandler.readRecord("userId", "place",
-				"place:0001");
+		DataGroup record = recordHandler.readRecord("userId", "place", "place:0001");
 
 		Assert.assertEquals(record.getDataId(), "authority",
 				"recordOut.getDataId should be authority");
@@ -37,8 +37,9 @@ public class RecordHandlerTest {
 		Authorizator authorization = new AuthorizatorImp();
 		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
-		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(
-				authorization, recordStorage, idGenerator, keyCalculator);
+		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp
+				.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(authorization,
+						recordStorage, idGenerator, keyCalculator);
 
 		recordHandler.readRecord("unauthorizedUserId", "place", "place:0001");
 	}
@@ -51,27 +52,30 @@ public class RecordHandlerTest {
 		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
 
-		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(
-				authorization, recordStorage, idGenerator, keyCalculator);
+		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp
+				.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(authorization,
+						recordStorage, idGenerator, keyCalculator);
 
 		DataGroup record = DataGroup.withDataId("authority");
 
-		DataGroup recordOut = recordHandler.createAndStoreRecord("userId",
-				"type", record);
+		DataGroup recordOut = recordHandler.createAndStoreRecord("userId", "type", record);
 
 		DataGroup recordInfo = (DataGroup) recordOut.getChildren().stream()
-				.filter(p -> p.getDataId().equals("recordInfo")).findFirst()
-				.get();
+				.filter(p -> p.getDataId().equals("recordInfo")).findFirst().get();
 		DataAtomic recordId = (DataAtomic) recordInfo.getChildren().stream()
 				.filter(p -> p.getDataId().equals("id")).findFirst().get();
 
-		Assert.assertNotNull(recordId.getValue(),
-				"A new record should have an id");
+		Assert.assertNotNull(recordId.getValue(), "A new record should have an id");
 
-		DataGroup recordRead = recordHandler.readRecord("userId", "type",
-				recordId.getValue());
-		Assert.assertEquals(recordOut, recordRead,
-				"Returned and read record should be the same");
+		DataAtomic createdBy = (DataAtomic) recordInfo.getChildren().stream()
+				.filter(p -> p.getDataId().equals("createdBy")).findFirst().get();
+		Assert.assertEquals(createdBy.getValue(), "userId");
+		DataAtomic recordType = (DataAtomic) recordInfo.getChildren().stream()
+				.filter(p -> p.getDataId().equals("recordType")).findFirst().get();
+		Assert.assertEquals(recordType.getValue(), "type");
+
+		DataGroup recordRead = recordHandler.readRecord("userId", "type", recordId.getValue());
+		Assert.assertEquals(recordOut, recordRead, "Returned and read record should be the same");
 
 	}
 
@@ -83,12 +87,12 @@ public class RecordHandlerTest {
 		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
 
-		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(
-				authorization, recordStorage, idGenerator, keyCalculator);
+		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp
+				.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(authorization,
+						recordStorage, idGenerator, keyCalculator);
 
 		DataGroup record = DataGroup.withDataId("authority");
 
-		recordHandler
-				.createAndStoreRecord("unauthorizedUserId", "type", record);
+		recordHandler.createAndStoreRecord("unauthorizedUserId", "type", record);
 	}
 }

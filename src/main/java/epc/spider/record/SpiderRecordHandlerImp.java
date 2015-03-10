@@ -16,14 +16,13 @@ public class SpiderRecordHandlerImp implements SpiderRecordHandler {
 	private PermissionKeyCalculator keyCalculator;
 
 	public static SpiderRecordHandlerImp usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(
-			Authorizator authorization, RecordStorage recordStorage,
-			RecordIdGenerator idGenerator, PermissionKeyCalculator keyCalculator) {
+			Authorizator authorization, RecordStorage recordStorage, RecordIdGenerator idGenerator,
+			PermissionKeyCalculator keyCalculator) {
 		return new SpiderRecordHandlerImp(authorization, recordStorage, idGenerator, keyCalculator);
 	}
 
-	private SpiderRecordHandlerImp(Authorizator authorization,
-			RecordStorage recordStorage, RecordIdGenerator idGenerator,
-			PermissionKeyCalculator keyCalculator) {
+	private SpiderRecordHandlerImp(Authorizator authorization, RecordStorage recordStorage,
+			RecordIdGenerator idGenerator, PermissionKeyCalculator keyCalculator) {
 		this.authorization = authorization;
 		this.recordStorage = recordStorage;
 		this.idGenerator = idGenerator;
@@ -54,6 +53,8 @@ public class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		String id = idGenerator.getIdForType(recordType);
 		DataAtomic idData = DataAtomic.withDataIdAndValue("id", id);
 		recordInfo.addChild(idData);
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("recordType", recordType));
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("createdBy", userId));
 
 		// set more stuff, user, tscreated
 		// set owning organisation
@@ -78,5 +79,4 @@ public class SpiderRecordHandlerImp implements SpiderRecordHandler {
 
 		return record;
 	}
-
 }
