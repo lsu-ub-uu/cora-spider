@@ -11,7 +11,7 @@ import epc.metadataformat.getmetadata.MetadataGetter;
  * @since 0.1
  *
  */
-public class SpiderMetadataGetterImp implements SpiderMetadataGetter {
+public final class SpiderMetadataGetterImp implements SpiderMetadataGetter {
 
 	private final MetadataGetter metadataGetter;
 

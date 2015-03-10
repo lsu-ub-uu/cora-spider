@@ -8,7 +8,7 @@ import epc.metadataformat.data.DataGroup;
 import epc.spider.record.storage.RecordIdGenerator;
 import epc.spider.record.storage.RecordStorage;
 
-public class SpiderRecordHandlerImp implements SpiderRecordHandler {
+public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 
 	private RecordStorage recordStorage;
 	private Authorizator authorization;
