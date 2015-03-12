@@ -3,6 +3,7 @@ package epc.spider.record;
 import java.util.Set;
 
 import epc.beefeater.Authorizator;
+import epc.metadataformat.data.DataGroup;
 import epc.spider.data.SpiderDataAtomic;
 import epc.spider.data.SpiderDataGroup;
 import epc.spider.record.storage.RecordIdGenerator;
@@ -32,7 +33,7 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 
 	@Override
 	public SpiderDataGroup readRecord(String userId, String recordType, String recordId) {
-		SpiderDataGroup readRecord = recordStorage.read(recordType, recordId);
+		DataGroup readRecord = recordStorage.read(recordType, recordId);
 
 		// calculate permissionKey
 		String accessType = "READ";
@@ -42,12 +43,15 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 			throw new AuthorizationException("User:" + userId
 					+ " is not authorized to read record:" + recordId + " of type:" + recordType);
 		}
-		return readRecord;
+
+		SpiderDataGroup record = SpiderDataGroup.fromDataGroup(readRecord);
+		// add links
+		return record;
 	}
 
 	@Override
 	public SpiderDataGroup createAndStoreRecord(String userId, String recordType,
-			SpiderDataGroup record) {
+			SpiderDataGroup spiderRecord) {
 
 		SpiderDataGroup recordInfo = SpiderDataGroup.withDataId("recordInfo");
 		// id
@@ -61,9 +65,11 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		// set owning organisation
 
 		// set recordInfo in record
-		record.addChild(recordInfo);
+		spiderRecord.addChild(recordInfo);
 
 		// validate
+
+		DataGroup record = spiderRecord.toDataGroup();
 
 		// calculate permissionKey
 		String accessType = "CREATE";
@@ -78,6 +84,8 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		// send to storage
 		recordStorage.create(recordType, id, record);
 
-		return record;
+		// add links
+
+		return spiderRecord;
 	}
 }

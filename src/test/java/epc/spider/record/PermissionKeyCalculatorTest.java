@@ -6,14 +6,14 @@ import java.util.Set;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import epc.spider.data.SpiderDataGroup;
+import epc.metadataformat.data.DataGroup;
 
 public class PermissionKeyCalculatorTest {
 	@Test
 	public void testGeneratePermissionKey() {
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
 
-		SpiderDataGroup recordInfo = SpiderDataGroup.withDataId("recordInfo");
+		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
 
 		Set<String> keys = keyCalculator.calculateKeys("READ", "recordType", recordInfo);
 		Optional<String> key = keys.stream().findFirst();

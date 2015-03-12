@@ -7,19 +7,19 @@ import java.util.Map;
 
 import org.testng.annotations.Test;
 
-import epc.spider.data.SpiderDataAtomic;
-import epc.spider.data.SpiderDataGroup;
+import epc.metadataformat.data.DataAtomic;
+import epc.metadataformat.data.DataGroup;
 import epc.spider.testdata.TestDataRecordInMemoryStorage;
 
 public class RecordInMemoryStorageTest {
 	@Test
 	public void testInitWithData() {
-		Map<String, Map<String, SpiderDataGroup>> records = new HashMap<>();
-		records.put("place", new HashMap<String, SpiderDataGroup>());
+		Map<String, Map<String, DataGroup>> records = new HashMap<>();
+		records.put("place", new HashMap<String, DataGroup>());
 
-		SpiderDataGroup recordInfo = SpiderDataGroup.withDataId("recordInfo");
-		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("type", "place"));
-		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("id", "place:0001"));
+		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("type", "place"));
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "place:0001"));
 
 		/**
 		 * <pre>
@@ -34,7 +34,7 @@ public class RecordInMemoryStorageTest {
 		 * </pre>
 		 */
 
-		SpiderDataGroup dataGroup = SpiderDataGroup.withDataId("dataId");
+		DataGroup dataGroup = DataGroup.withDataId("dataId");
 		dataGroup.addChild(recordInfo);
 
 		records.get("place").put("place:0001", dataGroup);
@@ -66,37 +66,37 @@ public class RecordInMemoryStorageTest {
 	@Test
 	public void testCreateRead() {
 
-		SpiderDataGroup recordInfo = SpiderDataGroup.withDataId("recordInfo");
-		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("type", "place"));
-		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("id", "place:0001"));
+		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("type", "place"));
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "place:0001"));
 
-		SpiderDataGroup dataGroup = SpiderDataGroup.withDataId("dataId");
+		DataGroup dataGroup = DataGroup.withDataId("dataId");
 		dataGroup.addChild(recordInfo);
 
 		RecordStorageInMemory recordsInMemory = new RecordStorageInMemory();
 		recordsInMemory.create("type", "place:0001", dataGroup);
-		SpiderDataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
+		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
 		assertEquals(dataGroupOut, dataGroup, "dataGroupOut should be the same as dataGroup");
 	}
 
 	@Test
 	public void testCreateTworecordsRead() {
 
-		SpiderDataGroup recordInfo = SpiderDataGroup.withDataId("recordInfo");
-		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("type", "place"));
-		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("id", "place:0001"));
+		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("type", "place"));
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "place:0001"));
 
-		SpiderDataGroup dataGroup = SpiderDataGroup.withDataId("dataId");
+		DataGroup dataGroup = DataGroup.withDataId("dataId");
 		dataGroup.addChild(recordInfo);
 
 		RecordStorageInMemory recordsInMemory = new RecordStorageInMemory();
 		recordsInMemory.create("type", "place:0001", dataGroup);
 		recordsInMemory.create("type", "place:0002", dataGroup);
 
-		SpiderDataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
+		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
 		assertEquals(dataGroupOut, dataGroup, "dataGroupOut should be the same as dataGroup");
 
-		SpiderDataGroup dataGroupOut2 = recordsInMemory.read("type", "place:0002");
+		DataGroup dataGroupOut2 = recordsInMemory.read("type", "place:0002");
 		assertEquals(dataGroupOut2, dataGroup, "dataGroupOut2 should be the same as dataGroup");
 
 	}

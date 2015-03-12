@@ -76,7 +76,8 @@ public class RecordHandlerTest {
 
 		SpiderDataGroup recordRead = recordHandler
 				.readRecord("userId", "type", recordId.getValue());
-		Assert.assertEquals(recordOut, recordRead, "Returned and read record should be the same");
+		Assert.assertEquals(recordOut.getDataId(), recordRead.getDataId(),
+				"Returned and read record should have the same dataId");
 
 	}
 
