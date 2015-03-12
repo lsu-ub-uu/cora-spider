@@ -1,11 +1,11 @@
 package epc.spider.record.storage;
 
-import epc.metadataformat.data.DataGroup;
+import epc.spider.data.SpiderDataGroup;
 
 public interface RecordStorage {
 
-	DataGroup read(String recordType, String recordId);
+	SpiderDataGroup read(String recordType, String recordId);
 
-	void create(String type, String id, DataGroup record);
+	void create(String type, String id, SpiderDataGroup record);
 
 }

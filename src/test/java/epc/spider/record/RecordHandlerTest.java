@@ -5,8 +5,8 @@ import org.testng.annotations.Test;
 
 import epc.beefeater.Authorizator;
 import epc.beefeater.AuthorizatorImp;
-import epc.metadataformat.data.DataAtomic;
-import epc.metadataformat.data.DataGroup;
+import epc.spider.data.SpiderDataAtomic;
+import epc.spider.data.SpiderDataGroup;
 import epc.spider.record.storage.RecordIdGenerator;
 import epc.spider.record.storage.RecordStorage;
 import epc.spider.record.storage.TimeStampIdGenerator;
@@ -24,7 +24,7 @@ public class RecordHandlerTest {
 				.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(authorization,
 						recordStorage, idGenerator, keyCalculator);
 
-		DataGroup record = recordHandler.readRecord("userId", "place", "place:0001");
+		SpiderDataGroup record = recordHandler.readRecord("userId", "place", "place:0001");
 
 		Assert.assertEquals(record.getDataId(), "authority",
 				"recordOut.getDataId should be authority");
@@ -56,25 +56,26 @@ public class RecordHandlerTest {
 				.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(authorization,
 						recordStorage, idGenerator, keyCalculator);
 
-		DataGroup record = DataGroup.withDataId("authority");
+		SpiderDataGroup record = SpiderDataGroup.withDataId("authority");
 
-		DataGroup recordOut = recordHandler.createAndStoreRecord("userId", "type", record);
+		SpiderDataGroup recordOut = recordHandler.createAndStoreRecord("userId", "type", record);
 
-		DataGroup recordInfo = (DataGroup) recordOut.getChildren().stream()
+		SpiderDataGroup recordInfo = (SpiderDataGroup) recordOut.getChildren().stream()
 				.filter(p -> p.getDataId().equals("recordInfo")).findFirst().get();
-		DataAtomic recordId = (DataAtomic) recordInfo.getChildren().stream()
+		SpiderDataAtomic recordId = (SpiderDataAtomic) recordInfo.getChildren().stream()
 				.filter(p -> p.getDataId().equals("id")).findFirst().get();
 
 		Assert.assertNotNull(recordId.getValue(), "A new record should have an id");
 
-		DataAtomic createdBy = (DataAtomic) recordInfo.getChildren().stream()
+		SpiderDataAtomic createdBy = (SpiderDataAtomic) recordInfo.getChildren().stream()
 				.filter(p -> p.getDataId().equals("createdBy")).findFirst().get();
 		Assert.assertEquals(createdBy.getValue(), "userId");
-		DataAtomic recordType = (DataAtomic) recordInfo.getChildren().stream()
+		SpiderDataAtomic recordType = (SpiderDataAtomic) recordInfo.getChildren().stream()
 				.filter(p -> p.getDataId().equals("recordType")).findFirst().get();
 		Assert.assertEquals(recordType.getValue(), "type");
 
-		DataGroup recordRead = recordHandler.readRecord("userId", "type", recordId.getValue());
+		SpiderDataGroup recordRead = recordHandler
+				.readRecord("userId", "type", recordId.getValue());
 		Assert.assertEquals(recordOut, recordRead, "Returned and read record should be the same");
 
 	}
@@ -91,7 +92,7 @@ public class RecordHandlerTest {
 				.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(authorization,
 						recordStorage, idGenerator, keyCalculator);
 
-		DataGroup record = DataGroup.withDataId("authority");
+		SpiderDataGroup record = SpiderDataGroup.withDataId("authority");
 
 		recordHandler.createAndStoreRecord("unauthorizedUserId", "type", record);
 	}

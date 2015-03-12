@@ -63,7 +63,7 @@ public final class SpiderDataGroup implements SpiderDataElement {
 		return children;
 	}
 
-	public void addAttribute(String dataId, String value) {
+	public void addAttributeByIdWithValue(String dataId, String value) {
 		attributes.put(dataId, value);
 	}
 

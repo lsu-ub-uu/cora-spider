@@ -3,8 +3,8 @@ package epc.spider.record;
 import java.util.Set;
 
 import epc.beefeater.Authorizator;
-import epc.metadataformat.data.DataAtomic;
-import epc.metadataformat.data.DataGroup;
+import epc.spider.data.SpiderDataAtomic;
+import epc.spider.data.SpiderDataGroup;
 import epc.spider.record.storage.RecordIdGenerator;
 import epc.spider.record.storage.RecordStorage;
 
@@ -31,8 +31,8 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 	}
 
 	@Override
-	public DataGroup readRecord(String userId, String recordType, String recordId) {
-		DataGroup readRecord = recordStorage.read(recordType, recordId);
+	public SpiderDataGroup readRecord(String userId, String recordType, String recordId) {
+		SpiderDataGroup readRecord = recordStorage.read(recordType, recordId);
 
 		// calculate permissionKey
 		String accessType = "READ";
@@ -46,15 +46,16 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 	}
 
 	@Override
-	public DataGroup createAndStoreRecord(String userId, String recordType, DataGroup record) {
+	public SpiderDataGroup createAndStoreRecord(String userId, String recordType,
+			SpiderDataGroup record) {
 
-		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
+		SpiderDataGroup recordInfo = SpiderDataGroup.withDataId("recordInfo");
 		// id
 		String id = idGenerator.getIdForType(recordType);
-		DataAtomic idData = DataAtomic.withDataIdAndValue("id", id);
+		SpiderDataAtomic idData = SpiderDataAtomic.withDataIdAndValue("id", id);
 		recordInfo.addChild(idData);
-		recordInfo.addChild(DataAtomic.withDataIdAndValue("recordType", recordType));
-		recordInfo.addChild(DataAtomic.withDataIdAndValue("createdBy", userId));
+		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("recordType", recordType));
+		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("createdBy", userId));
 
 		// set more stuff, user, tscreated
 		// set owning organisation

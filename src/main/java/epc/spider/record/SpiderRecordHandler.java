@@ -1,10 +1,10 @@
 package epc.spider.record;
 
-import epc.metadataformat.data.DataGroup;
+import epc.spider.data.SpiderDataGroup;
 
 public interface SpiderRecordHandler {
 
-	DataGroup readRecord(String userId, String type, String id);
+	SpiderDataGroup readRecord(String userId, String type, String id);
 	
-	DataGroup createAndStoreRecord(String userId, String type, DataGroup record);
+	SpiderDataGroup createAndStoreRecord(String userId, String type, SpiderDataGroup record);
 }

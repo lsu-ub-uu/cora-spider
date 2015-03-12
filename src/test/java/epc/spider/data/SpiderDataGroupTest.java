@@ -29,7 +29,7 @@ public class SpiderDataGroupTest {
 	@Test
 	public void testAddAttribute() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withDataId("dataId");
-		spiderDataGroup.addAttribute("dataId", "value");
+		spiderDataGroup.addAttributeByIdWithValue("dataId", "value");
 		Map<String, String> attributes = spiderDataGroup.getAttributes();
 		String key = attributes.keySet().iterator().next();
 		String value = attributes.get(key);
@@ -51,7 +51,7 @@ public class SpiderDataGroupTest {
 	@Test
 	public void testAddLink() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withDataId("dataId");
-		spiderDataGroup.addAttribute("dataId", "value");
+		spiderDataGroup.addAttributeByIdWithValue("dataId", "value");
 		spiderDataGroup.addChild(SpiderDataAtomic.withDataIdAndValue("childDataId", "childValue"));
 		spiderDataGroup.addLink(SpiderDataGroup.Link.READ);
 
@@ -124,7 +124,7 @@ public class SpiderDataGroupTest {
 	@Test
 	public void testToDataGroupWithAttribute() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withDataId("dataId");
-		spiderDataGroup.addAttribute("dataId", "value");
+		spiderDataGroup.addAttributeByIdWithValue("dataId", "value");
 
 		DataGroup dataGroup = spiderDataGroup.toDataGroup();
 
