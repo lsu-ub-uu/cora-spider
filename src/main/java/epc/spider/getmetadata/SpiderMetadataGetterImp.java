@@ -20,11 +20,11 @@ public final class SpiderMetadataGetterImp implements SpiderMetadataGetter {
 	}
 
 	private SpiderMetadataGetterImp(MetadataGetter metadataGetter) {
-		throwErrorIfConstrucotrArgumentIsNull(metadataGetter);
+		throwErrorIfConstructorArgumentIsNull(metadataGetter);
 		this.metadataGetter = metadataGetter;
 	}
 
-	private void throwErrorIfConstrucotrArgumentIsNull(MetadataGetter metadataGetter) {
+	private void throwErrorIfConstructorArgumentIsNull(MetadataGetter metadataGetter) {
 		if (null == metadataGetter) {
 			throw new IllegalArgumentException("metadataGetter must not be null");
 		}
