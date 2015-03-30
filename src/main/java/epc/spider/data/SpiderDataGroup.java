@@ -17,7 +17,7 @@ public final class SpiderDataGroup implements SpiderDataElement {
 	private String dataId;
 	private Map<String, String> attributes = new HashMap<>();
 	private List<SpiderDataElement> children = new ArrayList<>();
-	private Set<Link> links = new HashSet<>();
+	private Set<Action> actions = new HashSet<>();
 
 	public static SpiderDataGroup withDataId(String dataId) {
 		return new SpiderDataGroup(dataId);
@@ -99,15 +99,11 @@ public final class SpiderDataGroup implements SpiderDataElement {
 		return ((SpiderDataAtomic) child).toDataAtomic();
 	}
 
-	public enum Link {
-		READ, UPDATE, DELETE, RESSURECT, PUBLISH, UNPUBLISH
+	public void addAction(Action action) {
+		actions.add(action);
 	}
 
-	public void addLink(Link link) {
-		links.add(link);
-	}
-
-	public Set<Link> getLinks() {
-		return links;
+	public Set<Action> getActions() {
+		return actions;
 	}
 }

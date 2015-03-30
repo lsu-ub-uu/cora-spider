@@ -4,6 +4,7 @@ import java.util.Set;
 
 import epc.beefeater.Authorizator;
 import epc.metadataformat.data.DataGroup;
+import epc.spider.data.Action;
 import epc.spider.data.SpiderDataAtomic;
 import epc.spider.data.SpiderDataGroup;
 import epc.spider.record.storage.RecordIdGenerator;
@@ -46,6 +47,8 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 
 		SpiderDataGroup record = SpiderDataGroup.fromDataGroup(readRecord);
 		// add links
+		record.addAction(Action.READ);
+		record.addAction(Action.UPDATE);
 		return record;
 	}
 

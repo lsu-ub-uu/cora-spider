@@ -23,7 +23,7 @@ public class SpiderDataGroupTest {
 		assertEquals(spiderDataGroup.getDataId(), "dataId");
 		assertNotNull(spiderDataGroup.getAttributes());
 		assertNotNull(spiderDataGroup.getChildren());
-		assertNotNull(spiderDataGroup.getLinks());
+		assertNotNull(spiderDataGroup.getActions());
 	}
 
 	@Test
@@ -53,12 +53,12 @@ public class SpiderDataGroupTest {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withDataId("dataId");
 		spiderDataGroup.addAttributeByIdWithValue("dataId", "value");
 		spiderDataGroup.addChild(SpiderDataAtomic.withDataIdAndValue("childDataId", "childValue"));
-		spiderDataGroup.addLink(SpiderDataGroup.Link.READ);
+		spiderDataGroup.addAction(Action.READ);
 
-		assertTrue(spiderDataGroup.getLinks().contains(SpiderDataGroup.Link.READ));
-		assertFalse(spiderDataGroup.getLinks().contains(SpiderDataGroup.Link.DELETE));
+		assertTrue(spiderDataGroup.getActions().contains(Action.READ));
+		assertFalse(spiderDataGroup.getActions().contains(Action.DELETE));
 		// small hack to get 100% coverage on enum
-		SpiderDataGroup.Link.valueOf(SpiderDataGroup.Link.READ.toString());
+		Action.valueOf(Action.READ.toString());
 	}
 
 	@Test
