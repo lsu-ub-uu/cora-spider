@@ -61,10 +61,11 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		String id = idGenerator.getIdForType(recordType);
 		SpiderDataAtomic idData = SpiderDataAtomic.withDataIdAndValue("id", id);
 		recordInfo.addChild(idData);
-		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("recordType", recordType));
+		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("type", recordType));
 		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("createdBy", userId));
 
-		// set more stuff, user, tscreated
+		// set more stuff, user, tscreated, status (created, updated, deleted, etc), published
+		// (true, false)
 		// set owning organisation
 
 		// set recordInfo in record
@@ -88,6 +89,8 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		recordStorage.create(recordType, id, record);
 
 		// add links
+		spiderRecord.addAction(Action.READ);
+		spiderRecord.addAction(Action.UPDATE);
 
 		return spiderRecord;
 	}
