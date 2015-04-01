@@ -71,7 +71,7 @@ public class RecordHandlerTest {
 				.filter(p -> p.getDataId().equals("createdBy")).findFirst().get();
 		Assert.assertEquals(createdBy.getValue(), "userId");
 		SpiderDataAtomic recordType = (SpiderDataAtomic) recordInfo.getChildren().stream()
-				.filter(p -> p.getDataId().equals("recordType")).findFirst().get();
+				.filter(p -> p.getDataId().equals("type")).findFirst().get();
 		Assert.assertEquals(recordType.getValue(), "type");
 
 		SpiderDataGroup recordRead = recordHandler
