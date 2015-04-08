@@ -1,6 +1,7 @@
 package epc.spider.record;
 
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import epc.beefeater.Authorizator;
@@ -8,54 +9,44 @@ import epc.beefeater.AuthorizatorImp;
 import epc.spider.data.SpiderDataAtomic;
 import epc.spider.data.SpiderDataGroup;
 import epc.spider.record.storage.RecordIdGenerator;
+import epc.spider.record.storage.RecordNotFoundException;
 import epc.spider.record.storage.RecordStorage;
 import epc.spider.record.storage.TimeStampIdGenerator;
 import epc.spider.testdata.TestDataRecordInMemoryStorage;
 
 public class RecordHandlerTest {
-	@Test
-	public void testReadAuthorized() {
-		RecordStorage recordStorage = TestDataRecordInMemoryStorage
-				.createRecordStorageInMemoryWithTestData();
-		Authorizator authorization = new AuthorizatorImp();
-		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
-		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
-		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp
+	private RecordStorage recordStorage;
+	private Authorizator authorization;
+	private RecordIdGenerator idGenerator;
+	private PermissionKeyCalculator keyCalculator;
+	private SpiderRecordHandler recordHandler;
+
+	@BeforeMethod
+	public void beforeMethod() {
+		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+		authorization = new AuthorizatorImp();
+		idGenerator = new TimeStampIdGenerator();
+		keyCalculator = new RecordPermissionKeyCalculator();
+		recordHandler = SpiderRecordHandlerImp
 				.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(authorization,
 						recordStorage, idGenerator, keyCalculator);
 
-		SpiderDataGroup record = recordHandler.readRecord("userId", "place", "place:0001");
+	}
 
+	@Test
+	public void testReadAuthorized() {
+		SpiderDataGroup record = recordHandler.readRecord("userId", "place", "place:0001");
 		Assert.assertEquals(record.getDataId(), "authority",
 				"recordOut.getDataId should be authority");
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testReadUnauthorized() {
-		RecordStorage recordStorage = TestDataRecordInMemoryStorage
-				.createRecordStorageInMemoryWithTestData();
-		Authorizator authorization = new AuthorizatorImp();
-		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
-		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
-		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp
-				.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(authorization,
-						recordStorage, idGenerator, keyCalculator);
-
 		recordHandler.readRecord("unauthorizedUserId", "place", "place:0001");
 	}
 
 	@Test
 	public void testCreateRecord() {
-		RecordStorage recordStorage = TestDataRecordInMemoryStorage
-				.createRecordStorageInMemoryWithTestData();
-		Authorizator authorization = new AuthorizatorImp();
-		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
-		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
-
-		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp
-				.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(authorization,
-						recordStorage, idGenerator, keyCalculator);
-
 		SpiderDataGroup record = SpiderDataGroup.withDataId("authority");
 
 		SpiderDataGroup recordOut = recordHandler.createAndStoreRecord("userId", "type", record);
@@ -83,18 +74,22 @@ public class RecordHandlerTest {
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testCreateRecordUnauthorized() {
-		RecordStorage recordStorage = TestDataRecordInMemoryStorage
-				.createRecordStorageInMemoryWithTestData();
-		Authorizator authorization = new AuthorizatorImp();
-		RecordIdGenerator idGenerator = new TimeStampIdGenerator();
-		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
-
-		SpiderRecordHandler recordHandler = SpiderRecordHandlerImp
-				.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(authorization,
-						recordStorage, idGenerator, keyCalculator);
-
 		SpiderDataGroup record = SpiderDataGroup.withDataId("authority");
-
 		recordHandler.createAndStoreRecord("unauthorizedUserId", "type", record);
+	}
+
+	@Test
+	public void testDeleteAuthorized() {
+		recordHandler.deleteRecord("userId", "place", "place:0001");
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void testDeleteUnauthorized() {
+		recordHandler.deleteRecord("unauthorizedUserId", "place", "place:0001");
+	}
+
+	@Test(expectedExceptions = RecordNotFoundException.class)
+	public void testDeleteNotFound() {
+		recordHandler.deleteRecord("userId", "place", "place:0001_NOT_FOUND");
 	}
 }

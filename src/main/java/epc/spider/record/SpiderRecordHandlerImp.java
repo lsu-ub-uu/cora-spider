@@ -12,6 +12,7 @@ import epc.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 
+	private static final String USER = "User:";
 	private RecordStorage recordStorage;
 	private Authorizator authorization;
 	private RecordIdGenerator idGenerator;
@@ -41,7 +42,7 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
 				readRecord);
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			throw new AuthorizationException("User:" + userId
+			throw new AuthorizationException(USER + userId
 					+ " is not authorized to read record:" + recordId + " of type:" + recordType);
 		}
 
@@ -49,6 +50,7 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		// add links
 		record.addAction(Action.READ);
 		record.addAction(Action.UPDATE);
+		record.addAction(Action.DELETE);
 		return record;
 	}
 
@@ -72,6 +74,7 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		spiderRecord.addChild(recordInfo);
 
 		// validate
+		// TODO: add validate here
 
 		DataGroup record = spiderRecord.toDataGroup();
 
@@ -81,7 +84,7 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 				record);
 
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			throw new AuthorizationException("User:" + userId
+			throw new AuthorizationException(USER + userId
 					+ " is not authorized to create a record  of type:" + recordType);
 		}
 
@@ -91,7 +94,21 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		// add links
 		spiderRecord.addAction(Action.READ);
 		spiderRecord.addAction(Action.UPDATE);
+		spiderRecord.addAction(Action.DELETE);
 
 		return spiderRecord;
+	}
+
+	@Override
+	public void deleteRecord(String userId, String type, String id) {
+		DataGroup readRecord = recordStorage.read(type, id);
+		// calculate permissionKey
+		String accessType = "DELETE";
+		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, type, readRecord);
+		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
+			throw new AuthorizationException(USER + userId
+					+ " is not authorized to delete record:" + id + " of type:" + type);
+		}
+		recordStorage.deleteByTypeAndId(type, id);
 	}
 }

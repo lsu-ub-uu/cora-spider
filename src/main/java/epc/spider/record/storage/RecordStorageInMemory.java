@@ -31,19 +31,29 @@ public class RecordStorageInMemory implements RecordStorage {
 
 	@Override
 	public DataGroup read(String recordType, String recordId) {
+		ensureRecordExists(recordType, recordId);
+		return records.get(recordType).get(recordId);
+	}
+
+	private void ensureRecordExists(String recordType, String recordId) {
 		if (null == records.get(recordType)) {
 			throw new RecordNotFoundException("No records exists with recordType: " + recordType);
 		}
 		if (null == records.get(recordType).get(recordId)) {
-			throw new RecordNotFoundException("No records exists with recordId: " + recordId);
+			throw new RecordNotFoundException("No record exists with recordId: " + recordId);
 		}
-		return records.get(recordType).get(recordId);
 	}
 
 	private void ensureRecordTypeStorageExists(String recordType) {
 		if (null == records.get(recordType)) {
 			records.put(recordType, new HashMap<String, DataGroup>());
 		}
+	}
+
+	@Override
+	public void deleteByTypeAndId(String recordType, String recordId) {
+		ensureRecordExists(recordType, recordId);
+		records.get(recordType).remove(recordId);
 	}
 
 }

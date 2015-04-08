@@ -1,6 +1,7 @@
 package epc.spider.record.storage;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -98,6 +99,49 @@ public class RecordInMemoryStorageTest {
 
 		DataGroup dataGroupOut2 = recordsInMemory.read("type", "place:0002");
 		assertEquals(dataGroupOut2, dataGroup, "dataGroupOut2 should be the same as dataGroup");
+	}
 
+	@Test
+	public void testDelete() {
+		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("type", "place"));
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "place:0001"));
+
+		DataGroup dataGroup = DataGroup.withDataId("dataId");
+		dataGroup.addChild(recordInfo);
+
+		RecordStorage recordsInMemory = new RecordStorageInMemory();
+		recordsInMemory.create("type", "place:0001", dataGroup);
+		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
+		assertEquals(dataGroupOut, dataGroup, "dataGroupOut should be the same as dataGroup");
+
+		recordsInMemory.deleteByTypeAndId("type", "place:0001");
+
+		boolean recordFound = true;
+		try {
+			recordsInMemory.read("type", "place:0001");
+			recordFound = true;
+
+		} catch (RecordNotFoundException e) {
+			recordFound = false;
+		}
+		assertFalse(recordFound);
+	}
+
+	@Test(expectedExceptions = RecordNotFoundException.class)
+	public void testDeleteNotFound() {
+		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("type", "place"));
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "place:0001"));
+
+		DataGroup dataGroup = DataGroup.withDataId("dataId");
+		dataGroup.addChild(recordInfo);
+
+		RecordStorage recordsInMemory = new RecordStorageInMemory();
+		recordsInMemory.create("type", "place:0001", dataGroup);
+		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
+		assertEquals(dataGroupOut, dataGroup, "dataGroupOut should be the same as dataGroup");
+
+		recordsInMemory.deleteByTypeAndId("type", "place:0001_NOT_FOUND");
 	}
 }
