@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import epc.metadataformat.data.DataGroup;
+import epc.spider.data.SpiderDataGroup;
 
 public class RecordStorageInMemory implements RecordStorage {
 	private Map<String, Map<String, DataGroup>> records = new HashMap<>();
@@ -24,9 +25,17 @@ public class RecordStorageInMemory implements RecordStorage {
 	}
 
 	@Override
-	public void create(String recordType, String recordId, DataGroup dataGroup) {
+	public void create(String recordType, String recordId, DataGroup record) {
 		ensureRecordTypeStorageExists(recordType);
-		records.get(recordType).put(recordId, dataGroup);
+		DataGroup recordIndependentOfEnteredRecord = SpiderDataGroup.fromDataGroup(record)
+				.toDataGroup();
+		records.get(recordType).put(recordId, recordIndependentOfEnteredRecord);
+	}
+
+	private void ensureRecordTypeStorageExists(String recordType) {
+		if (null == records.get(recordType)) {
+			records.put(recordType, new HashMap<String, DataGroup>());
+		}
 	}
 
 	@Override
@@ -44,16 +53,18 @@ public class RecordStorageInMemory implements RecordStorage {
 		}
 	}
 
-	private void ensureRecordTypeStorageExists(String recordType) {
-		if (null == records.get(recordType)) {
-			records.put(recordType, new HashMap<String, DataGroup>());
-		}
-	}
-
 	@Override
 	public void deleteByTypeAndId(String recordType, String recordId) {
 		ensureRecordExists(recordType, recordId);
 		records.get(recordType).remove(recordId);
+	}
+
+	@Override
+	public void update(String type, String id, DataGroup record) {
+		ensureRecordExists(type, id);
+		DataGroup recordIndependentOfEnteredRecord = SpiderDataGroup.fromDataGroup(record)
+				.toDataGroup();
+		records.get(type).put(id, recordIndependentOfEnteredRecord);
 	}
 
 }

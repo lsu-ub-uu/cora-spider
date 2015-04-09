@@ -9,4 +9,6 @@ public interface SpiderRecordHandler {
 	SpiderDataGroup createAndStoreRecord(String userId, String type, SpiderDataGroup record);
 
 	void deleteRecord(String userId, String type, String id);
+
+	SpiderDataGroup updateRecord(String userId, String type, String id, SpiderDataGroup record);
 }

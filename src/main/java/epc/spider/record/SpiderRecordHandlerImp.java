@@ -5,7 +5,9 @@ import java.util.Set;
 import epc.beefeater.Authorizator;
 import epc.metadataformat.data.DataGroup;
 import epc.spider.data.Action;
+import epc.spider.data.DataMissingException;
 import epc.spider.data.SpiderDataAtomic;
+import epc.spider.data.SpiderDataElement;
 import epc.spider.data.SpiderDataGroup;
 import epc.spider.record.storage.RecordIdGenerator;
 import epc.spider.record.storage.RecordStorage;
@@ -35,18 +37,21 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 
 	@Override
 	public SpiderDataGroup readRecord(String userId, String recordType, String recordId) {
-		DataGroup readRecord = recordStorage.read(recordType, recordId);
+		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
 		// calculate permissionKey
 		String accessType = "READ";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
-				readRecord);
+				recordRead);
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			throw new AuthorizationException(USER + userId
-					+ " is not authorized to read record:" + recordId + " of type:" + recordType);
+			throw new AuthorizationException(USER + userId + " is not authorized to read record:"
+					+ recordId + " of type:" + recordType);
 		}
 
-		SpiderDataGroup record = SpiderDataGroup.fromDataGroup(readRecord);
+		// filter data
+		// TODO: filter hidden data if user does not have right to see it
+
+		SpiderDataGroup record = SpiderDataGroup.fromDataGroup(recordRead);
 		// add links
 		record.addAction(Action.READ);
 		record.addAction(Action.UPDATE);
@@ -106,9 +111,63 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		String accessType = "DELETE";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, type, readRecord);
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			throw new AuthorizationException(USER + userId
-					+ " is not authorized to delete record:" + id + " of type:" + type);
+			throw new AuthorizationException(USER + userId + " is not authorized to delete record:"
+					+ id + " of type:" + type);
 		}
 		recordStorage.deleteByTypeAndId(type, id);
+	}
+
+	@Override
+	public SpiderDataGroup updateRecord(String userId, String type, String id,
+			SpiderDataGroup spiderRecord) {
+		SpiderDataGroup recordInfo = extractGroup("recordInfo", spiderRecord);
+		// TODO: check entered type and id are the same as in the entered record
+		String idFromRecord = extractAtomicValue("id", recordInfo);
+		String typeFromRecord = extractAtomicValue("type", recordInfo);
+
+		DataGroup recordRead = recordStorage.read(type, id);
+
+		// calculate permissionKey
+		String accessType = "UPDATE";
+		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, type, recordRead);
+
+		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
+			throw new AuthorizationException(USER + userId
+					+ " is not authorized to update a record  of type:" + type);
+		}
+
+		// validate (including protected data)
+		// TODO: add validate here
+
+		// merge possibly hidden data
+		// TODO: merge incoming data with stored if user does not have right to update some parts
+
+		recordStorage.update(type, id, spiderRecord.toDataGroup());
+
+		// remove old and add new links
+		spiderRecord.getActions().clear();
+		spiderRecord.addAction(Action.READ);
+		spiderRecord.addAction(Action.UPDATE);
+		spiderRecord.addAction(Action.DELETE);
+
+		return spiderRecord;
+	}
+
+	private SpiderDataGroup extractGroup(String groupId, SpiderDataGroup spiderDataGroup) {
+		for (SpiderDataElement spiderDataElement : spiderDataGroup.getChildren()) {
+			if (spiderDataElement.getDataId().equals(groupId)) {
+				return (SpiderDataGroup) spiderDataElement;
+			}
+		}
+		throw new DataMissingException("Requested dataGroup does not exist");
+	}
+
+	private String extractAtomicValue(String atomicId, SpiderDataGroup spiderDataGroup) {
+		for (SpiderDataElement spiderDataElement : spiderDataGroup.getChildren()) {
+			if (spiderDataElement.getDataId().equals(atomicId)) {
+				return ((SpiderDataAtomic) spiderDataElement).getValue();
+			}
+		}
+		throw new DataMissingException("Requested dataAtomic does not exist");
 	}
 }

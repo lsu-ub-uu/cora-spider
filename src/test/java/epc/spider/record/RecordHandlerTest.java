@@ -1,11 +1,14 @@
 package epc.spider.record;
 
+import static org.testng.Assert.assertEquals;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import epc.beefeater.Authorizator;
 import epc.beefeater.AuthorizatorImp;
+import epc.spider.data.DataMissingException;
 import epc.spider.data.SpiderDataAtomic;
 import epc.spider.data.SpiderDataGroup;
 import epc.spider.record.storage.RecordIdGenerator;
@@ -81,6 +84,8 @@ public class RecordHandlerTest {
 	@Test
 	public void testDeleteAuthorized() {
 		recordHandler.deleteRecord("userId", "place", "place:0001");
+
+		// TODO: try to read and make sure it is GOOOOOOne
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
@@ -92,4 +97,81 @@ public class RecordHandlerTest {
 	public void testDeleteNotFound() {
 		recordHandler.deleteRecord("userId", "place", "place:0001_NOT_FOUND");
 	}
+
+	@Test
+	public void testUpdateRecord() {
+		SpiderDataGroup record = SpiderDataGroup.withDataId("authority");
+		record = recordHandler.createAndStoreRecord("userId", "type", record);
+		record.addChild(SpiderDataAtomic.withDataIdAndValue("atomicId", "atomicValue"));
+
+		SpiderDataGroup recordInfo = (SpiderDataGroup) record.getChildren().stream()
+				.filter(p -> p.getDataId().equals("recordInfo")).findFirst().get();
+		SpiderDataAtomic id = (SpiderDataAtomic) recordInfo.getChildren().stream()
+				.filter(p -> p.getDataId().equals("id")).findFirst().get();
+
+		SpiderDataGroup recordUpdated = recordHandler.updateRecord("userId", "type", id.getValue(),
+				record);
+
+		SpiderDataAtomic childOut = (SpiderDataAtomic) recordUpdated.getChildren().get(1);
+		assertEquals(childOut.getValue(), "atomicValue");
+
+		SpiderDataGroup recordRead = recordHandler.readRecord("userId", "type", id.getValue());
+		SpiderDataAtomic childRead = (SpiderDataAtomic) recordRead.getChildren().get(1);
+		assertEquals(childRead.getValue(), "atomicValue");
+
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void testUpdateUnauthorized() {
+		SpiderDataGroup record = SpiderDataGroup.withDataId("authority");
+		recordHandler.createAndStoreRecord("userId", "type", record);
+
+		SpiderDataGroup recordInfo = (SpiderDataGroup) record.getChildren().stream()
+				.filter(p -> p.getDataId().equals("recordInfo")).findFirst().get();
+		SpiderDataAtomic id = (SpiderDataAtomic) recordInfo.getChildren().stream()
+				.filter(p -> p.getDataId().equals("id")).findFirst().get();
+
+		record.addChild(SpiderDataAtomic.withDataIdAndValue("atomicId", "atomicValue"));
+		recordHandler.updateRecord("unauthorizedUserId", "type", id.getValue(), record);
+	}
+
+	@Test(expectedExceptions = RecordNotFoundException.class)
+	public void testUpdateNotFound() {
+		SpiderDataGroup record = SpiderDataGroup.withDataId("authority");
+		SpiderDataGroup recordInfo = SpiderDataGroup.withDataId("recordInfo");
+		SpiderDataAtomic idData = SpiderDataAtomic.withDataIdAndValue("id", "NOT_FOUND");
+		recordInfo.addChild(idData);
+		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("type", "type"));
+		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("createdBy", "userId"));
+		record.addChild(recordInfo);
+		recordHandler.updateRecord("userId", "type", "id", record);
+	}
+
+	@Test(expectedExceptions = DataMissingException.class)
+	public void testUpdateRecordRecordInfoMissing() {
+		SpiderDataGroup record = SpiderDataGroup.withDataId("authority");
+		record = recordHandler.createAndStoreRecord("userId", "type", record);
+
+		SpiderDataGroup recordInfo = (SpiderDataGroup) record.getChildren().stream()
+				.filter(p -> p.getDataId().equals("recordInfo")).findFirst().get();
+		SpiderDataAtomic id = (SpiderDataAtomic) recordInfo.getChildren().stream()
+				.filter(p -> p.getDataId().equals("id")).findFirst().get();
+		record.getChildren().clear();
+		record.addChild(SpiderDataGroup.withDataId("childGroupId"));
+		recordHandler.updateRecord("userId", "type", id.getValue(), record);
+	}
+
+	@Test(expectedExceptions = DataMissingException.class)
+	public void testUpdateRecordRecordInfoContenceMissing() {
+		SpiderDataGroup record = SpiderDataGroup.withDataId("authority");
+		record = recordHandler.createAndStoreRecord("userId", "type", record);
+
+		SpiderDataGroup recordInfo = (SpiderDataGroup) record.getChildren().stream()
+				.filter(p -> p.getDataId().equals("recordInfo")).findFirst().get();
+		SpiderDataAtomic id = (SpiderDataAtomic) recordInfo.getChildren().stream()
+				.filter(p -> p.getDataId().equals("id")).findFirst().get();
+		((SpiderDataGroup) record.getChildren().get(0)).getChildren().clear();
+		recordHandler.updateRecord("userId", "type", id.getValue(), record);
+	}
+
 }

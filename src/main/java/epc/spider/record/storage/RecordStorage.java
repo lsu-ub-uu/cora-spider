@@ -4,10 +4,12 @@ import epc.metadataformat.data.DataGroup;
 
 public interface RecordStorage {
 
-	DataGroup read(String recordType, String recordId);
+	DataGroup read(String type, String id);
 
 	void create(String type, String id, DataGroup record);
 
-	void deleteByTypeAndId(String recordType, String recordId);
+	void deleteByTypeAndId(String type, String id);
+
+	void update(String type, String id, DataGroup record);
 
 }
