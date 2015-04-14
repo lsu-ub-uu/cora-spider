@@ -174,4 +174,41 @@ public class SpiderDataGroupTest {
 				"grandChildDataId", "DataId should be the one set in the child of dataGroup2");
 	}
 
+	@Test
+	public void testExtractGroup() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withDataId("dataId");
+		spiderDataGroup
+				.addChild(SpiderDataAtomic.withDataIdAndValue("atomicDataId", "atomicValue"));
+		SpiderDataGroup dataGroup2 = SpiderDataGroup.withDataId("childDataId");
+		dataGroup2.addChild(SpiderDataGroup.withDataId("grandChildDataId"));
+		spiderDataGroup.addChild(dataGroup2);
+		assertEquals(spiderDataGroup.extractGroup("childDataId"), dataGroup2);
+	}
+
+	@Test(expectedExceptions = DataMissingException.class)
+	public void testExtractGroupNotFound() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withDataId("dataId");
+		spiderDataGroup
+				.addChild(SpiderDataAtomic.withDataIdAndValue("atomicDataId", "atomicValue"));
+		SpiderDataGroup dataGroup2 = SpiderDataGroup.withDataId("childDataId");
+		dataGroup2.addChild(SpiderDataGroup.withDataId("grandChildDataId"));
+		spiderDataGroup.addChild(dataGroup2);
+		spiderDataGroup.extractGroup("childDataId_NOT_FOUND");
+	}
+
+	@Test
+	public void testExtractAtomicValue() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withDataId("dataId");
+		spiderDataGroup
+				.addChild(SpiderDataAtomic.withDataIdAndValue("atomicDataId", "atomicValue"));
+		assertEquals(spiderDataGroup.extractAtomicValue("atomicDataId"), "atomicValue");
+	}
+
+	@Test(expectedExceptions = DataMissingException.class)
+	public void testExtractAtomicValueNotFound() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withDataId("dataId");
+		spiderDataGroup
+				.addChild(SpiderDataAtomic.withDataIdAndValue("atomicDataId", "atomicValue"));
+		spiderDataGroup.extractAtomicValue("atomicDataId_NOT_FOUND");
+	}
 }

@@ -5,9 +5,7 @@ import java.util.Set;
 import epc.beefeater.Authorizator;
 import epc.metadataformat.data.DataGroup;
 import epc.spider.data.Action;
-import epc.spider.data.DataMissingException;
 import epc.spider.data.SpiderDataAtomic;
-import epc.spider.data.SpiderDataElement;
 import epc.spider.data.SpiderDataGroup;
 import epc.spider.record.storage.RecordIdGenerator;
 import epc.spider.record.storage.RecordStorage;
@@ -62,6 +60,8 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 	@Override
 	public SpiderDataGroup createAndStoreRecord(String userId, String recordType,
 			SpiderDataGroup spiderRecord) {
+
+		// TODO: check incoming spiderRecord does not contain a recordInfo
 
 		SpiderDataGroup recordInfo = SpiderDataGroup.withDataId("recordInfo");
 		// id
@@ -120,10 +120,10 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 	@Override
 	public SpiderDataGroup updateRecord(String userId, String type, String id,
 			SpiderDataGroup spiderRecord) {
-		SpiderDataGroup recordInfo = extractGroup("recordInfo", spiderRecord);
+		SpiderDataGroup recordInfo = spiderRecord.extractGroup("recordInfo");
 		// TODO: check entered type and id are the same as in the entered record
-		String idFromRecord = extractAtomicValue("id", recordInfo);
-		String typeFromRecord = extractAtomicValue("type", recordInfo);
+		String idFromRecord = recordInfo.extractAtomicValue("id");
+		String typeFromRecord = recordInfo.extractAtomicValue("type");
 
 		DataGroup recordRead = recordStorage.read(type, id);
 
@@ -151,23 +151,5 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		spiderRecord.addAction(Action.DELETE);
 
 		return spiderRecord;
-	}
-
-	private SpiderDataGroup extractGroup(String groupId, SpiderDataGroup spiderDataGroup) {
-		for (SpiderDataElement spiderDataElement : spiderDataGroup.getChildren()) {
-			if (spiderDataElement.getDataId().equals(groupId)) {
-				return (SpiderDataGroup) spiderDataElement;
-			}
-		}
-		throw new DataMissingException("Requested dataGroup does not exist");
-	}
-
-	private String extractAtomicValue(String atomicId, SpiderDataGroup spiderDataGroup) {
-		for (SpiderDataElement spiderDataElement : spiderDataGroup.getChildren()) {
-			if (spiderDataElement.getDataId().equals(atomicId)) {
-				return ((SpiderDataAtomic) spiderDataElement).getValue();
-			}
-		}
-		throw new DataMissingException("Requested dataAtomic does not exist");
 	}
 }

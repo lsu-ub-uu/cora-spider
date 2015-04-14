@@ -106,4 +106,22 @@ public final class SpiderDataGroup implements SpiderDataElement {
 	public Set<Action> getActions() {
 		return actions;
 	}
+
+	public SpiderDataGroup extractGroup(String groupId) {
+		for (SpiderDataElement spiderDataElement : getChildren()) {
+			if (spiderDataElement.getDataId().equals(groupId)) {
+				return (SpiderDataGroup) spiderDataElement;
+			}
+		}
+		throw new DataMissingException("Requested dataGroup does not exist");
+	}
+
+	public String extractAtomicValue(String atomicId) {
+		for (SpiderDataElement spiderDataElement : getChildren()) {
+			if (spiderDataElement.getDataId().equals(atomicId)) {
+				return ((SpiderDataAtomic) spiderDataElement).getValue();
+			}
+		}
+		throw new DataMissingException("Requested dataAtomic does not exist");
+	}
 }
