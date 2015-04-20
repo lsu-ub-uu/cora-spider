@@ -1,9 +1,7 @@
 package epc.spider.data;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 import java.util.Iterator;
 import java.util.List;
@@ -23,7 +21,6 @@ public class SpiderDataGroupTest {
 		assertEquals(spiderDataGroup.getDataId(), "dataId");
 		assertNotNull(spiderDataGroup.getAttributes());
 		assertNotNull(spiderDataGroup.getChildren());
-		assertNotNull(spiderDataGroup.getActions());
 	}
 
 	@Test
@@ -46,19 +43,6 @@ public class SpiderDataGroupTest {
 		List<SpiderDataElement> children = spiderDataGroup.getChildren();
 		SpiderDataElement childElementOut = children.get(0);
 		assertEquals(childElementOut.getDataId(), "childDataId");
-	}
-
-	@Test
-	public void testAddAction() {
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withDataId("dataId");
-		spiderDataGroup.addAttributeByIdWithValue("dataId", "value");
-		spiderDataGroup.addChild(SpiderDataAtomic.withDataIdAndValue("childDataId", "childValue"));
-		spiderDataGroup.addAction(Action.READ);
-
-		assertTrue(spiderDataGroup.getActions().contains(Action.READ));
-		assertFalse(spiderDataGroup.getActions().contains(Action.DELETE));
-		// small hack to get 100% coverage on enum
-		Action.valueOf(Action.READ.toString());
 	}
 
 	@Test

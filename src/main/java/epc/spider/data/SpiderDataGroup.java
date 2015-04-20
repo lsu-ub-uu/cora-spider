@@ -2,11 +2,9 @@ package epc.spider.data;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import epc.metadataformat.data.DataAtomic;
 import epc.metadataformat.data.DataElement;
@@ -17,7 +15,6 @@ public final class SpiderDataGroup implements SpiderDataElement {
 	private String dataId;
 	private Map<String, String> attributes = new HashMap<>();
 	private List<SpiderDataElement> children = new ArrayList<>();
-	private Set<Action> actions = new HashSet<>();
 
 	public static SpiderDataGroup withDataId(String dataId) {
 		return new SpiderDataGroup(dataId);
@@ -97,14 +94,6 @@ public final class SpiderDataGroup implements SpiderDataElement {
 			return ((SpiderDataGroup) child).toDataGroup();
 		}
 		return ((SpiderDataAtomic) child).toDataAtomic();
-	}
-
-	public void addAction(Action action) {
-		actions.add(action);
-	}
-
-	public Set<Action> getActions() {
-		return actions;
 	}
 
 	public SpiderDataGroup extractGroup(String groupId) {
