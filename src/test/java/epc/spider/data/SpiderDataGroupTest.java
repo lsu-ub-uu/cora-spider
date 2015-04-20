@@ -49,7 +49,7 @@ public class SpiderDataGroupTest {
 	}
 
 	@Test
-	public void testAddLink() {
+	public void testAddAction() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withDataId("dataId");
 		spiderDataGroup.addAttributeByIdWithValue("dataId", "value");
 		spiderDataGroup.addChild(SpiderDataAtomic.withDataIdAndValue("childDataId", "childValue"));

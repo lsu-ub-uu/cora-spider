@@ -7,6 +7,7 @@ import epc.metadataformat.data.DataGroup;
 import epc.spider.data.Action;
 import epc.spider.data.SpiderDataAtomic;
 import epc.spider.data.SpiderDataGroup;
+import epc.spider.data.SpiderDataRecord;
 import epc.spider.record.storage.RecordIdGenerator;
 import epc.spider.record.storage.RecordStorage;
 
@@ -34,7 +35,7 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 	}
 
 	@Override
-	public SpiderDataGroup readRecord(String userId, String recordType, String recordId) {
+	public SpiderDataRecord readRecord(String userId, String recordType, String recordId) {
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
 		// calculate permissionKey
@@ -49,17 +50,20 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		// filter data
 		// TODO: filter hidden data if user does not have right to see it
 
-		SpiderDataGroup record = SpiderDataGroup.fromDataGroup(recordRead);
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(recordRead);
+		// create record
+		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
+
 		// add links
-		record.addAction(Action.READ);
-		record.addAction(Action.UPDATE);
-		record.addAction(Action.DELETE);
-		return record;
+		spiderDataRecord.addAction(Action.READ);
+		spiderDataRecord.addAction(Action.UPDATE);
+		spiderDataRecord.addAction(Action.DELETE);
+		return spiderDataRecord;
 	}
 
 	@Override
-	public SpiderDataGroup createAndStoreRecord(String userId, String recordType,
-			SpiderDataGroup spiderRecord) {
+	public SpiderDataRecord createAndStoreRecord(String userId, String recordType,
+			SpiderDataGroup spiderDataGroup) {
 
 		// TODO: check incoming spiderRecord does not contain a recordInfo
 
@@ -76,12 +80,12 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		// set owning organisation
 
 		// set recordInfo in record
-		spiderRecord.addChild(recordInfo);
+		spiderDataGroup.addChild(recordInfo);
 
 		// validate
 		// TODO: add validate here
 
-		DataGroup record = spiderRecord.toDataGroup();
+		DataGroup record = spiderDataGroup.toDataGroup();
 
 		// calculate permissionKey
 		String accessType = "CREATE";
@@ -96,12 +100,15 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		// send to storage
 		recordStorage.create(recordType, id, record);
 
-		// add links
-		spiderRecord.addAction(Action.READ);
-		spiderRecord.addAction(Action.UPDATE);
-		spiderRecord.addAction(Action.DELETE);
+		// create record
+		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
 
-		return spiderRecord;
+		// add links
+		spiderDataRecord.addAction(Action.READ);
+		spiderDataRecord.addAction(Action.UPDATE);
+		spiderDataRecord.addAction(Action.DELETE);
+
+		return spiderDataRecord;
 	}
 
 	@Override
@@ -118,9 +125,9 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 	}
 
 	@Override
-	public SpiderDataGroup updateRecord(String userId, String type, String id,
-			SpiderDataGroup spiderRecord) {
-		SpiderDataGroup recordInfo = spiderRecord.extractGroup("recordInfo");
+	public SpiderDataRecord updateRecord(String userId, String type, String id,
+			SpiderDataGroup spiderDataGroup) {
+		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup("recordInfo");
 		// TODO: check entered type and id are the same as in the entered record
 		String idFromRecord = recordInfo.extractAtomicValue("id");
 		String typeFromRecord = recordInfo.extractAtomicValue("type");
@@ -142,14 +149,16 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		// merge possibly hidden data
 		// TODO: merge incoming data with stored if user does not have right to update some parts
 
-		recordStorage.update(type, id, spiderRecord.toDataGroup());
+		recordStorage.update(type, id, spiderDataGroup.toDataGroup());
 
-		// remove old and add new links
-		spiderRecord.getActions().clear();
-		spiderRecord.addAction(Action.READ);
-		spiderRecord.addAction(Action.UPDATE);
-		spiderRecord.addAction(Action.DELETE);
+		// create record
+		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
 
-		return spiderRecord;
+		// add links
+		spiderDataRecord.addAction(Action.READ);
+		spiderDataRecord.addAction(Action.UPDATE);
+		spiderDataRecord.addAction(Action.DELETE);
+
+		return spiderDataRecord;
 	}
 }

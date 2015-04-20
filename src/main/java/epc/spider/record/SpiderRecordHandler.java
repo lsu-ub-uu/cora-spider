@@ -1,14 +1,15 @@
 package epc.spider.record;
 
 import epc.spider.data.SpiderDataGroup;
+import epc.spider.data.SpiderDataRecord;
 
 public interface SpiderRecordHandler {
 
-	SpiderDataGroup readRecord(String userId, String type, String id);
+	SpiderDataRecord readRecord(String userId, String type, String id);
 
-	SpiderDataGroup createAndStoreRecord(String userId, String type, SpiderDataGroup record);
+	SpiderDataRecord createAndStoreRecord(String userId, String type, SpiderDataGroup record);
 
 	void deleteRecord(String userId, String type, String id);
 
-	SpiderDataGroup updateRecord(String userId, String type, String id, SpiderDataGroup record);
+	SpiderDataRecord updateRecord(String userId, String type, String id, SpiderDataGroup record);
 }
