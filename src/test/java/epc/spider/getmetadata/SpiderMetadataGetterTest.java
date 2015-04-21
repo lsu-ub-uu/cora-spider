@@ -11,16 +11,19 @@ import epc.metadataformat.TextHolder;
 import epc.metadataformat.TextVariable;
 import epc.metadataformat.getmetadata.MetadataGetter;
 import epc.metadataformat.getmetadata.MetadataGetterImp;
-import epc.metadataformat.storage.MetadataStorageInMemory;
+import epc.metadataformat.presentation.PresentationHolder;
 import epc.metadataformat.storage.MetadataStorage;
+import epc.metadataformat.storage.MetadataStorageInMemory;
 import epc.spider.getmetadata.testdata.TestDataAuthority;
 
 public class SpiderMetadataGetterTest {
 	@Test
 	public void testInit() {
 		MetadataStorage metadataInMemoryStorage = new MetadataStorageInMemory();
-		MetadataGetter metadataStorageGetter = MetadataGetterImp.usingMetadataStorage(metadataInMemoryStorage);
-		SpiderMetadataGetter metadataGetter = SpiderMetadataGetterImp.usingMetadataGetter(metadataStorageGetter);
+		MetadataGetter metadataStorageGetter = MetadataGetterImp
+				.usingMetadataStorage(metadataInMemoryStorage);
+		SpiderMetadataGetter metadataGetter = SpiderMetadataGetterImp
+				.usingMetadataGetter(metadataStorageGetter);
 
 		CoherentMetadata coherentMetadata = metadataGetter.getAllMetadata();
 		assertNotNull(coherentMetadata);
@@ -36,12 +39,18 @@ public class SpiderMetadataGetterTest {
 
 		TextHolder textHolder = new TextHolder();
 		MetadataHolder metadataHolder = TestDataAuthority.createTestAuthorityMetadataHolder();
-		CoherentMetadata coherentMetadata = CoherentMetadata.usingTextHolderAndMetadataHolder(textHolder, metadataHolder);
-		MetadataStorage metadataInMemoryStorage = MetadataStorageInMemory.usingCoherentMetadata(coherentMetadata);
-		MetadataGetter metadataStorageGetter = MetadataGetterImp.usingMetadataStorage(metadataInMemoryStorage);
+		PresentationHolder presentationHolder = new PresentationHolder();
+		CoherentMetadata coherentMetadata = CoherentMetadata
+				.usingTextMetadataPresentationHolders(textHolder, metadataHolder,
+						presentationHolder);
+		MetadataStorage metadataInMemoryStorage = MetadataStorageInMemory
+				.usingCoherentMetadata(coherentMetadata);
+		MetadataGetter metadataStorageGetter = MetadataGetterImp
+				.usingMetadataStorage(metadataInMemoryStorage);
 
 		// spider
-		SpiderMetadataGetter metadataGetter = SpiderMetadataGetterImp.usingMetadataGetter(metadataStorageGetter);
+		SpiderMetadataGetter metadataGetter = SpiderMetadataGetterImp
+				.usingMetadataGetter(metadataStorageGetter);
 
 		CoherentMetadata coherentMetadataOut = metadataGetter.getAllMetadata();
 
