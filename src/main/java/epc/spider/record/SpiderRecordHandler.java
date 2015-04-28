@@ -2,6 +2,7 @@ package epc.spider.record;
 
 import epc.spider.data.SpiderDataGroup;
 import epc.spider.data.SpiderDataRecord;
+import epc.spider.data.SpiderRecordList;
 
 public interface SpiderRecordHandler {
 
@@ -12,4 +13,6 @@ public interface SpiderRecordHandler {
 	void deleteRecord(String userId, String type, String id);
 
 	SpiderDataRecord updateRecord(String userId, String type, String id, SpiderDataGroup record);
+
+	SpiderRecordList readRecordList(String userId, String type);
 }

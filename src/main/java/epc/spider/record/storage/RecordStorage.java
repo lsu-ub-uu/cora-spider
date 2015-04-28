@@ -1,5 +1,7 @@
 package epc.spider.record.storage;
 
+import java.util.Collection;
+
 import epc.metadataformat.data.DataGroup;
 
 public interface RecordStorage {
@@ -11,5 +13,7 @@ public interface RecordStorage {
 	void deleteByTypeAndId(String type, String id);
 
 	void update(String type, String id, DataGroup record);
+
+	Collection<DataGroup> readList(String type);
 
 }

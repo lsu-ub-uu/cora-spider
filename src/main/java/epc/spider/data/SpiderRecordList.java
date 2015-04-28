@@ -36,7 +36,7 @@ public final class SpiderRecordList {
 		this.totalNo = totalNo;
 	}
 
-	public String getTotalNo() {
+	public String getTotalNumberOfTypeInStorage() {
 		return totalNo;
 	}
 

@@ -1,5 +1,7 @@
 package epc.spider.record;
 
+import java.util.Collection;
+
 import epc.metadataformat.data.DataGroup;
 import epc.spider.record.storage.RecordStorage;
 
@@ -29,6 +31,12 @@ public class RecordStorageDeleteSpy implements RecordStorage {
 	public void update(String type, String id, DataGroup record) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public Collection<DataGroup> readList(String type) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

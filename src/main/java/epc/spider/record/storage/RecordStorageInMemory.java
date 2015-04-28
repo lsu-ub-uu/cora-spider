@@ -1,5 +1,6 @@
 package epc.spider.record.storage;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,6 +40,15 @@ public class RecordStorageInMemory implements RecordStorage {
 	}
 
 	@Override
+	public Collection<DataGroup> readList(String type) {
+		Map<String, DataGroup> typeRecords = records.get(type);
+		if (null == typeRecords) {
+			throw new RecordNotFoundException("No records exists with recordType: " + type);
+		}
+		return typeRecords.values();
+	}
+
+	@Override
 	public DataGroup read(String recordType, String recordId) {
 		ensureRecordExists(recordType, recordId);
 		return records.get(recordType).get(recordId);
@@ -66,5 +76,4 @@ public class RecordStorageInMemory implements RecordStorage {
 				.toDataGroup();
 		records.get(type).put(id, recordIndependentOfEnteredRecord);
 	}
-
 }

@@ -1,7 +1,10 @@
 package epc.spider.record;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+
+import java.util.List;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -13,6 +16,7 @@ import epc.spider.data.DataMissingException;
 import epc.spider.data.SpiderDataAtomic;
 import epc.spider.data.SpiderDataGroup;
 import epc.spider.data.SpiderDataRecord;
+import epc.spider.data.SpiderRecordList;
 import epc.spider.record.storage.RecordIdGenerator;
 import epc.spider.record.storage.RecordNotFoundException;
 import epc.spider.record.storage.RecordStorage;
@@ -36,6 +40,25 @@ public class RecordHandlerTest {
 				.usingAuthorizationAndRecordStorageAndIdGeneratorAndKeyCalculator(authorization,
 						recordStorage, idGenerator, keyCalculator);
 
+	}
+
+	@Test
+	public void testReadListAuthorized() {
+		String userId = "userId";
+		String type = "place";
+		SpiderRecordList readRecordList = recordHandler.readRecordList(userId, type);
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1",
+				"Total number of records should be 1");
+		assertEquals(readRecordList.getFromNo(), "0");
+		assertEquals(readRecordList.getToNo(), "1");
+		List<SpiderDataRecord> records = readRecordList.getRecords();
+		SpiderDataRecord spiderDataRecord = records.iterator().next();
+		assertNotNull(spiderDataRecord);
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void testReadListUnauthorized() {
+		recordHandler.readRecordList("unauthorizedUserId", "place");
 	}
 
 	@Test

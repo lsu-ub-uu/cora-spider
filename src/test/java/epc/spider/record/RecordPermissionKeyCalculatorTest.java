@@ -8,7 +8,7 @@ import org.testng.annotations.Test;
 
 import epc.metadataformat.data.DataGroup;
 
-public class PermissionKeyCalculatorTest {
+public class RecordPermissionKeyCalculatorTest {
 	@Test
 	public void testGeneratePermissionKey() {
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
@@ -16,6 +16,15 @@ public class PermissionKeyCalculatorTest {
 		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
 
 		Set<String> keys = keyCalculator.calculateKeys("READ", "recordType", recordInfo);
+		Optional<String> key = keys.stream().findFirst();
+		Assert.assertEquals(key.get(), "READ:RECORDTYPE:SYSTEM:*",
+				"Key should be calculated to match example");
+	}
+
+	@Test
+	public void testCalculateKeyForList() {
+		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
+		Set<String> keys = keyCalculator.calculateKeysForList("READ", "recordType");
 		Optional<String> key = keys.stream().findFirst();
 		Assert.assertEquals(key.get(), "READ:RECORDTYPE:SYSTEM:*",
 				"Key should be calculated to match example");

@@ -1,5 +1,6 @@
 package epc.spider.record;
 
+import java.util.Collection;
 import java.util.Set;
 
 import epc.beefeater.Authorizator;
@@ -8,6 +9,7 @@ import epc.spider.data.Action;
 import epc.spider.data.SpiderDataAtomic;
 import epc.spider.data.SpiderDataGroup;
 import epc.spider.data.SpiderDataRecord;
+import epc.spider.data.SpiderRecordList;
 import epc.spider.record.storage.RecordIdGenerator;
 import epc.spider.record.storage.RecordStorage;
 
@@ -32,6 +34,38 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 		this.idGenerator = idGenerator;
 		this.keyCalculator = keyCalculator;
 
+	}
+
+	@Override
+	public SpiderRecordList readRecordList(String userId, String recordType) {
+
+		// calculate permissionKey
+		String accessType = "READ";
+		Set<String> recordCalculateKeys = keyCalculator
+				.calculateKeysForList(accessType, recordType);
+		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
+			throw new AuthorizationException(USER + userId + " is not authorized to read records"
+					+ "of type:" + recordType);
+		}
+
+		Collection<DataGroup> dataGroupList = recordStorage.readList(recordType);
+
+		SpiderRecordList readRecordList = SpiderRecordList.withContainRecordsOfType(recordType);
+		for (DataGroup dataGroup : dataGroupList) {
+			SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
+			SpiderDataRecord spiderDataRecord = SpiderDataRecord
+					.withSpiderDataGroup(spiderDataGroup);
+			// add links
+			spiderDataRecord.addAction(Action.READ);
+			spiderDataRecord.addAction(Action.UPDATE);
+			spiderDataRecord.addAction(Action.DELETE);
+			readRecordList.addRecord(spiderDataRecord);
+		}
+		readRecordList.setTotalNo(String.valueOf(dataGroupList.size()));
+		readRecordList.setFromNo("0");
+		readRecordList.setToNo(String.valueOf(dataGroupList.size()));
+
+		return readRecordList;
 	}
 
 	@Override
@@ -161,4 +195,5 @@ public final class SpiderRecordHandlerImp implements SpiderRecordHandler {
 
 		return spiderDataRecord;
 	}
+
 }

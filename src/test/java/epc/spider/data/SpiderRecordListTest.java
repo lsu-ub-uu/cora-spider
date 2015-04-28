@@ -29,7 +29,7 @@ public class SpiderRecordListTest {
 	public void testTotalNo() {
 		SpiderRecordList spiderRecordList = SpiderRecordList.withContainRecordsOfType("metadata");
 		spiderRecordList.setTotalNo("2");
-		assertEquals(spiderRecordList.getTotalNo(), "2");
+		assertEquals(spiderRecordList.getTotalNumberOfTypeInStorage(), "2");
 	}
 
 	@Test
