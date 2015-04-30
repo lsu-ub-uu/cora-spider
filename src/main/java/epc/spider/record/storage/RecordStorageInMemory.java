@@ -5,9 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import epc.metadataformat.data.DataGroup;
+import epc.metadataformat.storage.MetadataStorage;
 import epc.spider.data.SpiderDataGroup;
 
-public class RecordStorageInMemory implements RecordStorage {
+public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	private Map<String, Map<String, DataGroup>> records = new HashMap<>();
 
 	public RecordStorageInMemory() {
@@ -76,4 +77,25 @@ public class RecordStorageInMemory implements RecordStorage {
 				.toDataGroup();
 		records.get(type).put(id, recordIndependentOfEnteredRecord);
 	}
+
+	@Override
+	public Collection<DataGroup> getMetadataElements() {
+		return readList("metadata");
+	}
+
+	@Override
+	public Collection<DataGroup> getPresentationElements() {
+		return readList("presentation");
+	}
+
+	@Override
+	public Collection<DataGroup> getTexts() {
+		return readList("text");
+	}
+
+	@Override
+	public Collection<DataGroup> getRecordTypes() {
+		return readList("recordType");
+	}
+
 }
