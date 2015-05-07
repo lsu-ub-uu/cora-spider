@@ -96,6 +96,15 @@ public final class SpiderDataGroup implements SpiderDataElement {
 		return ((SpiderDataAtomic) child).toDataAtomic();
 	}
 
+	public boolean containsChildWithDataId(String dataId) {
+		for (SpiderDataElement dataElement : children) {
+			if (dataElement.getDataId().equals(dataId)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public SpiderDataGroup extractGroup(String groupId) {
 		for (SpiderDataElement spiderDataElement : getChildren()) {
 			if (spiderDataElement.getDataId().equals(groupId)) {

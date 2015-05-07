@@ -15,7 +15,10 @@ public class TestDataRecordInMemoryStorage {
 		addMetadata();
 		addPresentation();
 		addText();
+		records.put("recordType", new HashMap<String, DataGroup>());
 		addRecordType();
+		addRecordTypeRecordType();
+		addRecordTypePlace();
 
 		RecordStorageInMemory recordsInMemory = new RecordStorageInMemory(records);
 		return recordsInMemory;
@@ -53,11 +56,11 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup dataGroup = DataGroup.withDataId(metadata);
 
 		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
-		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "metadata:place"));
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "place"));
 		recordInfo.addChild(DataAtomic.withDataIdAndValue("type", metadata));
 		dataGroup.addChild(recordInfo);
 
-		records.get(metadata).put("metadata:place", dataGroup);
+		records.get(metadata).put("place", dataGroup);
 	}
 
 	private static void addPresentation() {
@@ -66,11 +69,11 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup dataGroup = DataGroup.withDataId(presentation);
 
 		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
-		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", presentation + ":placeView"));
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "placeView"));
 		recordInfo.addChild(DataAtomic.withDataIdAndValue("type", presentation));
 		dataGroup.addChild(recordInfo);
 
-		records.get(presentation).put(presentation + ":placeView", dataGroup);
+		records.get(presentation).put("placeView", dataGroup);
 	}
 
 	private static void addText() {
@@ -79,23 +82,87 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup dataGroup = DataGroup.withDataId(text);
 
 		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
-		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", text + ":placeText"));
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "placeText"));
 		recordInfo.addChild(DataAtomic.withDataIdAndValue("type", text));
 		dataGroup.addChild(recordInfo);
 
-		records.get(text).put(text + ":placeText", dataGroup);
+		records.get(text).put("placeText", dataGroup);
 	}
 
 	private static void addRecordType() {
 		String recordType = "recordType";
-		records.put(recordType, new HashMap<String, DataGroup>());
 		DataGroup dataGroup = DataGroup.withDataId(recordType);
 
 		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
-		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", recordType + ":metadata"));
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "metadata"));
 		recordInfo.addChild(DataAtomic.withDataIdAndValue("type", recordType));
 		dataGroup.addChild(recordInfo);
 
-		records.get(recordType).put(recordType + ":metadata", dataGroup);
+		records.get(recordType).put("metadata", dataGroup);
+	}
+
+	private static void addRecordTypeRecordType() {
+		String recordType = "recordType";
+		DataGroup dataGroup = DataGroup.withDataId(recordType);
+
+		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "recordType"));
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("type", recordType));
+		dataGroup.addChild(recordInfo);
+
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("id", "recordType"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("metadataId", "metadata:recordType"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("presentationViewId",
+				"presentation:pgRecordTypeView"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("presentationFormId",
+				"presentation:pgRecordTypeForm"));
+		dataGroup
+				.addChild(DataAtomic.withDataIdAndValue("newMetadataId", "metadata:recordTypeNew"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("newPresentationFormId",
+				"presentation:pgRecordTypeFormNew"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("listPresentationViewId",
+				"presentation:pgRecordTypeViewList"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("searchMetadataId",
+				"metadata:recordTypeSearch"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("searchPresentationFormId",
+				"presentation:pgRecordTypeSearchForm"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("userSuppliedId", "true"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("permissionKey", "RECORDTYPE_RECORDTYPE"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("selfPresentationViewId",
+				"presentation:pgrecordTypeRecordType"));
+		records.get(recordType).put("recordType", dataGroup);
+
+	}
+
+	private static void addRecordTypePlace() {
+		String recordType = "recordType";
+		DataGroup dataGroup = DataGroup.withDataId(recordType);
+
+		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "place"));
+		recordInfo.addChild(DataAtomic.withDataIdAndValue("type", recordType));
+		dataGroup.addChild(recordInfo);
+
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("id", "place"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("metadataId", "metadata:place"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("presentationViewId",
+				"presentation:pgPlaceView"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("presentationFormId",
+				"presentation:pgPlaceForm"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("newMetadataId", "metadata:placeNew"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("newPresentationFormId",
+				"presentation:pgPlaceFormNew"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("listPresentationViewId",
+				"presentation:pgPlaceViewList"));
+		dataGroup.addChild(DataAtomic
+				.withDataIdAndValue("searchMetadataId", "metadata:placeSearch"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("searchPresentationFormId",
+				"presentation:pgPlaceSearchForm"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("userSuppliedId", "false"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("permissionKey", "RECORDTYPE_PLACE"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("selfPresentationViewId",
+				"presentation:pgPlaceRecordType"));
+		records.get(recordType).put("place", dataGroup);
+
 	}
 }

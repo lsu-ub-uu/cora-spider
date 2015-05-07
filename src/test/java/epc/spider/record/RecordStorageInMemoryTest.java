@@ -3,6 +3,7 @@ package epc.spider.record;
 import static org.testng.Assert.assertEquals;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -49,7 +50,7 @@ public class RecordStorageInMemoryTest {
 		assertEquals(metadataElement.getDataId(), "metadata");
 		DataGroup recordInfo = (DataGroup) metadataElement.getChildren().get(0);
 		DataAtomic id = (DataAtomic) recordInfo.getChildren().get(0);
-		assertEquals(id.getValue(), "metadata:place");
+		assertEquals(id.getValue(), "place");
 	}
 
 	@Test
@@ -59,7 +60,7 @@ public class RecordStorageInMemoryTest {
 		assertEquals(presentationElement.getDataId(), "presentation");
 		DataGroup recordInfo = (DataGroup) presentationElement.getChildren().get(0);
 		DataAtomic id = (DataAtomic) recordInfo.getChildren().get(0);
-		assertEquals(id.getValue(), "presentation:placeView");
+		assertEquals(id.getValue(), "placeView");
 	}
 
 	@Test
@@ -69,17 +70,23 @@ public class RecordStorageInMemoryTest {
 		assertEquals(text.getDataId(), "text");
 		DataGroup recordInfo = (DataGroup) text.getChildren().get(0);
 		DataAtomic id = (DataAtomic) recordInfo.getChildren().get(0);
-		assertEquals(id.getValue(), "text:placeText");
+		assertEquals(id.getValue(), "placeText");
 	}
 
 	@Test
 	public void testGetRecordTypes() {
 		Collection<DataGroup> recordTypes = metadataStorage.getRecordTypes();
-		DataGroup recordType = recordTypes.iterator().next();
+		Iterator<DataGroup> iterator = recordTypes.iterator();
+		DataGroup recordType = iterator.next();
 		assertEquals(recordType.getDataId(), "recordType");
 		DataGroup recordInfo = (DataGroup) recordType.getChildren().get(0);
 		DataAtomic id = (DataAtomic) recordInfo.getChildren().get(0);
-		assertEquals(id.getValue(), "recordType:metadata");
+		assertEquals(id.getValue(), "metadata");
+		recordType = iterator.next();
+		assertEquals(recordType.getDataId(), "recordType");
+		recordInfo = (DataGroup) recordType.getChildren().get(0);
+		id = (DataAtomic) recordInfo.getChildren().get(0);
+		assertEquals(id.getValue(), "recordType");
 	}
 
 }

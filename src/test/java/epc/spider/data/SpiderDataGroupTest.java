@@ -1,7 +1,9 @@
 package epc.spider.data;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 import java.util.Iterator;
 import java.util.List;
@@ -43,6 +45,23 @@ public class SpiderDataGroupTest {
 		List<SpiderDataElement> children = spiderDataGroup.getChildren();
 		SpiderDataElement childElementOut = children.get(0);
 		assertEquals(childElementOut.getDataId(), "childDataId");
+	}
+
+	@Test
+	public void testContainsChildWithId() {
+		SpiderDataGroup dataGroup = SpiderDataGroup.withDataId("dataId");
+		dataGroup.addChild(SpiderDataAtomic.withDataIdAndValue("otherChildId", "otherChildValue"));
+		SpiderDataElement child = SpiderDataAtomic.withDataIdAndValue("childId", "child value");
+		dataGroup.addChild(child);
+		assertTrue(dataGroup.containsChildWithDataId("childId"));
+	}
+
+	@Test
+	public void testContainsChildWithIdNotFound() {
+		DataGroup dataGroup = DataGroup.withDataId("dataId");
+		DataElement child = DataAtomic.withDataIdAndValue("childId", "child value");
+		dataGroup.addChild(child);
+		assertFalse(dataGroup.containsChildWithDataId("childId_NOT_FOUND"));
 	}
 
 	@Test
