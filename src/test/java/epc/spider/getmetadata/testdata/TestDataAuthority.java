@@ -1,9 +1,9 @@
 package epc.spider.getmetadata.testdata;
 
-import epc.metadataformat.MetadataChildReference;
-import epc.metadataformat.MetadataGroup;
-import epc.metadataformat.MetadataHolder;
-import epc.metadataformat.TextVariable;
+import epc.metadataformat.metadata.MetadataChildReference;
+import epc.metadataformat.metadata.MetadataGroup;
+import epc.metadataformat.metadata.MetadataHolder;
+import epc.metadataformat.metadata.TextVariable;
 
 public class TestDataAuthority {
 	public static MetadataHolder createTestAuthorityMetadataHolder() {
@@ -17,7 +17,7 @@ public class TestDataAuthority {
 		metadataHolder.addMetadataElement(otherVariable);
 
 		//authorityGroup
-		MetadataGroup authorityGroup = MetadataGroup.withIdAndDataIdAndTextIdAndDeffTextId("authority", "authorityDataId", "authorityTextId", "authorityDeffTextId");
+		MetadataGroup authorityGroup = MetadataGroup.withIdAndDataIdAndTextIdAndDefTextId("authority", "authorityDataId", "authorityTextId", "authorityDeffTextId");
 		metadataHolder.addMetadataElement(authorityGroup);
 		MetadataChildReference otherReference = MetadataChildReference.withReferenceIdAndRepeatMinAndRepeatMax("otherTextId", 1, MetadataChildReference.UNLIMITED);
 		authorityGroup.addChildReference(otherReference);
