@@ -23,7 +23,7 @@ import epc.spider.record.storage.RecordStorage;
 import epc.spider.record.storage.TimeStampIdGenerator;
 import epc.spider.testdata.TestDataRecordInMemoryStorage;
 
-public class RecordHandlerTest {
+public class SpiderRecordHandlerTest {
 	private RecordStorage recordStorage;
 	private Authorizator authorization;
 	private RecordIdGenerator idGenerator;
