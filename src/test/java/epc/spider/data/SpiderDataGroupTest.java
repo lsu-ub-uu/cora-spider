@@ -58,8 +58,8 @@ public class SpiderDataGroupTest {
 
 	@Test
 	public void testContainsChildWithIdNotFound() {
-		DataGroup dataGroup = DataGroup.withDataId("dataId");
-		DataElement child = DataAtomic.withDataIdAndValue("childId", "child value");
+		SpiderDataGroup dataGroup = SpiderDataGroup.withDataId("dataId");
+		SpiderDataElement child = SpiderDataAtomic.withDataIdAndValue("childId", "child value");
 		dataGroup.addChild(child);
 		assertFalse(dataGroup.containsChildWithDataId("childId_NOT_FOUND"));
 	}

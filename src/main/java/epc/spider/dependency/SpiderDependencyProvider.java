@@ -1,6 +1,7 @@
 package epc.spider.dependency;
 
 import epc.beefeater.Authorizator;
+import epc.metadataformat.validator.DataValidator;
 import epc.spider.record.PermissionKeyCalculator;
 import epc.spider.record.storage.RecordIdGenerator;
 import epc.spider.record.storage.RecordStorage;
@@ -14,5 +15,7 @@ public interface SpiderDependencyProvider {
 	RecordIdGenerator getIdGenerator();
 
 	PermissionKeyCalculator getPermissionKeyCalculator();
+
+	DataValidator getDataValidator();
 
 }

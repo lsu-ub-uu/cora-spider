@@ -9,20 +9,23 @@ public class TestDataAuthority {
 	public static MetadataHolder createTestAuthorityMetadataHolder() {
 
 		MetadataHolder metadataHolder = new MetadataHolder();
-		
-		//otherVariable
+
+		// otherVariable
 		String regularExpression = "((^(([0-1][0-9])|([2][0-3])):[0-5][0-9]$|^$){1}";
-		TextVariable otherVariable = TextVariable.withIdAndDataIdAndTextIdAndDeffTextIdAndRegularExpression("otherId", "otherDataId", "otherTextId", "otherDeffTextId",
-				regularExpression);
+		TextVariable otherVariable = TextVariable
+				.withIdAndDataIdAndTextIdAndDefTextIdAndRegularExpression("otherId", "otherDataId",
+						"otherTextId", "otherDefTextId", regularExpression);
 		metadataHolder.addMetadataElement(otherVariable);
 
-		//authorityGroup
-		MetadataGroup authorityGroup = MetadataGroup.withIdAndDataIdAndTextIdAndDefTextId("authority", "authorityDataId", "authorityTextId", "authorityDeffTextId");
+		// authorityGroup
+		MetadataGroup authorityGroup = MetadataGroup.withIdAndDataIdAndTextIdAndDefTextId(
+				"authority", "authorityDataId", "authorityTextId", "authorityDefTextId");
 		metadataHolder.addMetadataElement(authorityGroup);
-		MetadataChildReference otherReference = MetadataChildReference.withReferenceIdAndRepeatMinAndRepeatMax("otherTextId", 1, MetadataChildReference.UNLIMITED);
+		MetadataChildReference otherReference = MetadataChildReference
+				.withReferenceIdAndRepeatMinAndRepeatMax("otherTextId", 1,
+						MetadataChildReference.UNLIMITED);
 		authorityGroup.addChildReference(otherReference);
-		
-		
+
 		return metadataHolder;
 	}
 
