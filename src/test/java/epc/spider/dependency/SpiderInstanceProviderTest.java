@@ -10,7 +10,10 @@ import java.lang.reflect.Modifier;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import epc.spider.record.SpiderRecordHandler;
+import epc.spider.record.SpiderRecordCreator;
+import epc.spider.record.SpiderRecordDeleter;
+import epc.spider.record.SpiderRecordReader;
+import epc.spider.record.SpiderRecordUpdater;
 
 public class SpiderInstanceProviderTest {
 	@Test
@@ -30,13 +33,47 @@ public class SpiderInstanceProviderTest {
 	}
 
 	@Test
-	public void initMakeSureWeGetMultipleInstancesOfRecordHandler() {
+	public void initMakeSureWeGetMultipleInstancesOfRecordReader() {
 		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
 		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
-		SpiderRecordHandler recordHandler = SpiderInstanceProvider.getSpiderRecordHandler();
-		SpiderRecordHandler recordHandler2 = SpiderInstanceProvider.getSpiderRecordHandler();
-		assertNotNull(recordHandler);
-		assertNotNull(recordHandler2);
-		assertNotSame(recordHandler, recordHandler2);
+		SpiderRecordReader recordReader = SpiderInstanceProvider.getSpiderRecordReader();
+		SpiderRecordReader recordReader2 = SpiderInstanceProvider.getSpiderRecordReader();
+		assertNotNull(recordReader);
+		assertNotNull(recordReader2);
+		assertNotSame(recordReader, recordReader2);
 	}
+
+	@Test
+	public void initMakeSureWeGetMultipleInstancesOfRecordCreator() {
+		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
+		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
+		SpiderRecordCreator recordCreator = SpiderInstanceProvider.getSpiderRecordCreator();
+		SpiderRecordCreator recordCreator2 = SpiderInstanceProvider.getSpiderRecordCreator();
+		assertNotNull(recordCreator);
+		assertNotNull(recordCreator2);
+		assertNotSame(recordCreator, recordCreator2);
+	}
+
+	@Test
+	public void initMakeSureWeGetMultipleInstancesOfRecordUpdater() {
+		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
+		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
+		SpiderRecordUpdater recordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
+		SpiderRecordUpdater recordUpdater2 = SpiderInstanceProvider.getSpiderRecordUpdater();
+		assertNotNull(recordUpdater);
+		assertNotNull(recordUpdater2);
+		assertNotSame(recordUpdater, recordUpdater2);
+	}
+
+	@Test
+	public void initMakeSureWeGetMultipleInstancesOfRecordDeleter() {
+		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
+		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
+		SpiderRecordDeleter recordDeleter = SpiderInstanceProvider.getSpiderRecordDeleter();
+		SpiderRecordDeleter recordDeleter2 = SpiderInstanceProvider.getSpiderRecordDeleter();
+		assertNotNull(recordDeleter);
+		assertNotNull(recordDeleter2);
+		assertNotSame(recordDeleter, recordDeleter2);
+	}
+
 }
