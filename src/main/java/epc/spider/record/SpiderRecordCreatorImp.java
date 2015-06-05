@@ -63,6 +63,7 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 		if (shouldAutogenerateId) {
 			id = idGenerator.getIdForType(recordType);
 			recordInfo = SpiderDataGroup.withDataId(RECORD_INFO);
+			recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("id", id));
 			// set recordInfo in record
 			spiderDataGroup.addChild(recordInfo);
 		} else {
@@ -70,7 +71,6 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 			id = recordInfo.extractAtomicValue("id");
 
 		}
-		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("id", id));
 		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("type", recordType));
 		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("createdBy", userId));
 

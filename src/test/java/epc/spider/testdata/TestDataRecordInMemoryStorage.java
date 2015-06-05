@@ -111,13 +111,12 @@ public class TestDataRecordInMemoryStorage {
 		dataGroup.addChild(recordInfo);
 
 		dataGroup.addChild(DataAtomic.withDataIdAndValue("id", "recordType"));
-		dataGroup.addChild(DataAtomic.withDataIdAndValue("metadataId", "metadata:recordType"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("metadataId", "recordType"));
 		dataGroup.addChild(DataAtomic.withDataIdAndValue("presentationViewId",
 				"presentation:pgRecordTypeView"));
 		dataGroup.addChild(DataAtomic.withDataIdAndValue("presentationFormId",
 				"presentation:pgRecordTypeForm"));
-		dataGroup
-				.addChild(DataAtomic.withDataIdAndValue("newMetadataId", "metadata:recordTypeNew"));
+		dataGroup.addChild(DataAtomic.withDataIdAndValue("newMetadataId", "recordTypeNew"));
 		dataGroup.addChild(DataAtomic.withDataIdAndValue("newPresentationFormId",
 				"presentation:pgRecordTypeFormNew"));
 		dataGroup.addChild(DataAtomic.withDataIdAndValue("listPresentationViewId",

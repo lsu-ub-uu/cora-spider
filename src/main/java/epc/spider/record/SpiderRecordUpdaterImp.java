@@ -5,9 +5,11 @@ import java.util.Set;
 import epc.beefeater.Authorizator;
 import epc.metadataformat.data.DataGroup;
 import epc.metadataformat.validator.DataValidator;
+import epc.metadataformat.validator.ValidationAnswer;
 import epc.spider.data.Action;
 import epc.spider.data.SpiderDataGroup;
 import epc.spider.data.SpiderDataRecord;
+import epc.spider.record.storage.RecordNotFoundException;
 import epc.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
@@ -31,26 +33,45 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 		this.dataValidator = dataValidator;
 		this.recordStorage = recordStorage;
 		this.keyCalculator = keyCalculator;
-
 	}
 
 	@Override
-	public SpiderDataRecord updateRecord(String userId, String type, String id,
+	public SpiderDataRecord updateRecord(String userId, String recordType, String id,
 			SpiderDataGroup spiderDataGroup) {
+		DataGroup recordTypeDataGroup = getRecordType(recordType);
+
+		DataGroup record = spiderDataGroup.toDataGroup();
+
+		String metadataId = recordTypeDataGroup.getFirstAtomicValueWithDataId("metadataId");
+		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, record);
+		if (validationAnswer.dataIsInvalid()) {
+			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
+		}
+
 		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
 		// TODO: check entered type and id are the same as in the entered record
 		String idFromRecord = recordInfo.extractAtomicValue("id");
-		String typeFromRecord = recordInfo.extractAtomicValue("type");
 
-		DataGroup recordRead = recordStorage.read(type, id);
+		if (!id.equals(idFromRecord)) {
+			throw new DataException("Id in data(" + idFromRecord + ") does not match entered id("
+					+ id + ")");
+		}
+		String typeFromRecord = recordInfo.extractAtomicValue("type");
+		if (!recordType.equals(typeFromRecord)) {
+			throw new DataException("Type in data(" + typeFromRecord
+					+ ") does not match entered type(" + recordType + ")");
+		}
+
+		DataGroup recordRead = recordStorage.read(recordType, id);
 
 		// calculate permissionKey
 		String accessType = "UPDATE";
-		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, type, recordRead);
+		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
+				recordRead);
 
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
 			throw new AuthorizationException(USER + userId
-					+ " is not authorized to update a record  of type:" + type);
+					+ " is not authorized to update a record  of type:" + recordType);
 		}
 
 		// validate (including protected data)
@@ -59,7 +80,7 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 		// merge possibly hidden data
 		// TODO: merge incoming data with stored if user does not have right to update some parts
 
-		recordStorage.update(type, id, spiderDataGroup.toDataGroup());
+		recordStorage.update(recordType, id, spiderDataGroup.toDataGroup());
 
 		// create record
 		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
@@ -70,5 +91,13 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 		spiderDataRecord.addAction(Action.DELETE);
 
 		return spiderDataRecord;
+	}
+
+	private DataGroup getRecordType(String recordType) {
+		try {
+			return recordStorage.read("recordType", recordType);
+		} catch (RecordNotFoundException e) {
+			throw new DataException("recordType:" + recordType + " does not exist", e);
+		}
 	}
 }
