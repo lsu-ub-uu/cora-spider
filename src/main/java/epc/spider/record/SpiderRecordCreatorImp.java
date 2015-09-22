@@ -44,7 +44,7 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 	@Override
 	public SpiderDataRecord createAndStoreRecord(String userId, String recordType,
 			SpiderDataGroup spiderDataGroup) {
-		DataGroup recordTypeDataGroup = getRecordType(recordType);
+		DataGroup recordTypeDataGroup = readRecordType(recordType);
 
 		DataGroup record = spiderDataGroup.toDataGroup();
 
@@ -104,7 +104,7 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 		return spiderDataRecord;
 	}
 
-	private DataGroup getRecordType(String recordType) {
+	private DataGroup readRecordType(String recordType) {
 		try {
 			return recordStorage.read("recordType", recordType);
 		} catch (RecordNotFoundException e) {

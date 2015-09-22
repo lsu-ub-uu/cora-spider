@@ -53,10 +53,22 @@ public class SpiderRecordReaderTest {
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1",
 				"Total number of records should be 1");
 		assertEquals(readRecordList.getFromNo(), "0");
-		assertEquals(readRecordList.getToNo(), "1");
+		assertEquals(readRecordList.getToNo(), "0");
 		List<SpiderDataRecord> records = readRecordList.getRecords();
 		SpiderDataRecord spiderDataRecord = records.iterator().next();
 		assertNotNull(spiderDataRecord);
+	}
+
+	@Test
+	public void testReadListAbstractRecordType() {
+		RecordStorageListReaderSpy recordStorageListReaderSpy = new RecordStorageListReaderSpy();
+		SpiderRecordReader recordReader = SpiderRecordReaderImp
+				.usingAuthorizationAndRecordStorageAndKeyCalculator(authorization,
+						recordStorageListReaderSpy, keyCalculator);
+		recordReader.readRecordList("userId", "abstract");
+		
+		Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child1"));
+		Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child2"));
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)

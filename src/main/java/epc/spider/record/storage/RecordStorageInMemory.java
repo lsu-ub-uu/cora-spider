@@ -1,10 +1,12 @@
 package epc.spider.record.storage;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import epc.metadataformat.data.DataGroup;
+import epc.metadataformat.metadata.MetadataTypes;
 import epc.metadataformat.storage.MetadataStorage;
 import epc.spider.data.SpiderDataGroup;
 
@@ -80,7 +82,11 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	@Override
 	public Collection<DataGroup> getMetadataElements() {
-		return readList("metadata");
+		Collection<DataGroup> readDataGroups = new ArrayList<>();
+		for(MetadataTypes metadataType : MetadataTypes.values()){
+			readDataGroups.addAll(readList(metadataType.type));
+		}
+		return readDataGroups;
 	}
 
 	@Override

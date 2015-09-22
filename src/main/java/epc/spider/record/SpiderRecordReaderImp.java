@@ -15,6 +15,7 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 	private Authorizator authorization;
 	private RecordStorage recordStorage;
 	private PermissionKeyCalculator keyCalculator;
+	private SpiderRecordList readRecordList;
 
 	public static SpiderRecordReaderImp usingAuthorizationAndRecordStorageAndKeyCalculator(
 			Authorizator authorization, RecordStorage recordStorage,
@@ -38,8 +39,8 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
 				recordRead);
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			throw new AuthorizationException("User:" + userId
-					+ " is not authorized to read record:" + recordId + " of type:" + recordType);
+			throw new AuthorizationException("User:" + userId + " is not authorized to read record:"
+					+ recordId + " of type:" + recordType);
 		}
 
 		// filter data
@@ -53,25 +54,50 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 
 		// calculate permissionKey
 		String accessType = "READ";
-		Set<String> recordCalculateKeys = keyCalculator
-				.calculateKeysForList(accessType, recordType);
+		Set<String> recordCalculateKeys = keyCalculator.calculateKeysForList(accessType,
+				recordType);
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			throw new AuthorizationException("User:" + userId
-					+ " is not authorized to read records" + "of type:" + recordType);
+			throw new AuthorizationException("User:" + userId + " is not authorized to read records"
+					+ "of type:" + recordType);
+		}
+		readRecordList = SpiderRecordList.withContainRecordsOfType(recordType);
+
+		DataGroup recordTypeDataGroup = recordStorage.read("recordType", recordType);
+		String abstractString = recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract");
+		if ("true".equals(abstractString)) {
+			// find child recordTypes
+			Collection<DataGroup> recordTypes = recordStorage.readList("recordType");
+			for (DataGroup recordTypePossibleChild : recordTypes) {
+				if (recordTypePossibleChild.containsChildWithDataId("parentId")) {
+					String parentId = recordTypePossibleChild
+							.getFirstAtomicValueWithDataId("parentId");
+					if (parentId.equals(recordType)) {
+						// get this recordTypes data from storage
+						String childRecordType = recordTypePossibleChild
+								.getFirstGroupWithDataId("recordInfo")
+								.getFirstAtomicValueWithDataId("id");
+						readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(childRecordType);
+					}
+				}
+			}
 		}
 
-		Collection<DataGroup> dataGroupList = recordStorage.readList(recordType);
+		// loop for children
+		readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(recordType);
 
-		SpiderRecordList readRecordList = SpiderRecordList.withContainRecordsOfType(recordType);
+		readRecordList.setTotalNo(String.valueOf(readRecordList.getRecords().size()));
+		readRecordList.setFromNo("0");
+		readRecordList.setToNo(String.valueOf(readRecordList.getRecords().size()-1));
+
+		return readRecordList;
+	}
+
+	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String recordType) {
+		Collection<DataGroup> dataGroupList = recordStorage.readList(recordType);
 		for (DataGroup dataGroup : dataGroupList) {
 			SpiderDataRecord spiderDataRecord = convertToSpiderDataGroup(dataGroup);
 			readRecordList.addRecord(spiderDataRecord);
 		}
-		readRecordList.setTotalNo(String.valueOf(dataGroupList.size()));
-		readRecordList.setFromNo("0");
-		readRecordList.setToNo(String.valueOf(dataGroupList.size()));
-
-		return readRecordList;
 	}
 
 	private SpiderDataRecord convertToSpiderDataGroup(DataGroup dataGroup) {
