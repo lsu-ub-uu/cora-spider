@@ -107,6 +107,38 @@ public class RecordStorageListReaderSpy implements RecordStorage {
 			dataGroup.addChild(DataAtomic.withDataIdAndValue("parentId", "abstract"));
 			return dataGroup;
 		}
+		if("otherType".equals(id)){
+			String recordType = "recordType";
+			DataGroup dataGroup = DataGroup.withDataId(recordType);
+			
+			DataGroup recordInfo = DataGroup.withDataId("recordInfo");
+			recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "otherType"));
+			recordInfo.addChild(DataAtomic.withDataIdAndValue("type", recordType));
+			dataGroup.addChild(recordInfo);
+			
+			dataGroup.addChild(DataAtomic.withDataIdAndValue("metadataId", "otherType"));
+			dataGroup.addChild(DataAtomic.withDataIdAndValue("presentationViewId",
+					"presentation:pgotherTypeView"));
+			dataGroup.addChild(DataAtomic.withDataIdAndValue("presentationFormId",
+					"presentation:pgotherTypeForm"));
+			dataGroup.addChild(DataAtomic.withDataIdAndValue("newMetadataId", "metadata:otherTypeNew"));
+			dataGroup.addChild(DataAtomic.withDataIdAndValue("newPresentationFormId",
+					"presentation:pgotherTypeFormNew"));
+			dataGroup.addChild(DataAtomic.withDataIdAndValue("listPresentationViewId",
+					"presentation:pgotherTypeViewList"));
+			dataGroup.addChild(DataAtomic
+					.withDataIdAndValue("searchMetadataId", "metadata:otherTypeSearch"));
+			dataGroup.addChild(DataAtomic.withDataIdAndValue("searchPresentationFormId",
+					"presentation:pgotherTypeSearchForm"));
+			dataGroup.addChild(DataAtomic.withDataIdAndValue("userSuppliedId", "true"));
+			dataGroup.addChild(DataAtomic.withDataIdAndValue("permissionKey", "RECORDTYPE_otherType"));
+			dataGroup.addChild(DataAtomic.withDataIdAndValue("selfPresentationViewId",
+					"presentation:pgotherTypeRecordType"));
+			
+			dataGroup.addChild(DataAtomic.withDataIdAndValue("abstract", "false"));
+			dataGroup.addChild(DataAtomic.withDataIdAndValue("parentId", "NOT ABSTRACT"));
+			return dataGroup;
+		}
 		return null;
 	}
 
@@ -136,6 +168,7 @@ public class RecordStorageListReaderSpy implements RecordStorage {
 			recordTypes.add(read("recordType", "abstract"));
 			recordTypes.add(read("recordType", "child1"));
 			recordTypes.add(read("recordType", "child2"));
+			recordTypes.add(read("recordType", "otherType"));
 			return recordTypes;
 		}
 		return new ArrayList<DataGroup>();
