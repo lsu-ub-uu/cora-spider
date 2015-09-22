@@ -25,6 +25,13 @@ public class TestDataRecordInMemoryStorage {
 		addRecordTypeChild2();
 
 		RecordStorageInMemory recordsInMemory = new RecordStorageInMemory(records);
+		
+		records.put("metadataCollectionVariable", new HashMap<String, DataGroup>());
+		records.put("metadataItemCollection", new HashMap<String, DataGroup>());
+		records.put("metadataCollectionItem", new HashMap<String, DataGroup>());
+		records.put("metadataTextVariable", new HashMap<String, DataGroup>());
+		
+		
 		return recordsInMemory;
 	}
 
@@ -83,7 +90,7 @@ public class TestDataRecordInMemoryStorage {
 	private static void addText() {
 		String text = "text";
 		records.put(text, new HashMap<String, DataGroup>());
-		DataGroup dataGroup = DataGroup.withDataId(text);
+		DataGroup dataGroup = DataGroup.withDataId("text");
 
 		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
 		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "placeText"));

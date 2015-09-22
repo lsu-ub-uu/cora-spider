@@ -80,14 +80,13 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 					}
 				}
 			}
+		} else {
+
+			readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(recordType);
 		}
-
-		// loop for children
-		readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(recordType);
-
 		readRecordList.setTotalNo(String.valueOf(readRecordList.getRecords().size()));
 		readRecordList.setFromNo("0");
-		readRecordList.setToNo(String.valueOf(readRecordList.getRecords().size()-1));
+		readRecordList.setToNo(String.valueOf(readRecordList.getRecords().size() - 1));
 
 		return readRecordList;
 	}
