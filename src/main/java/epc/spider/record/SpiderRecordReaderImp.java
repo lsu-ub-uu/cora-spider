@@ -52,57 +52,16 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 	@Override
 	public SpiderRecordList readRecordList(String userId, String recordType) {
 
-		checkUserIsAuthorizedToReadRecordType(userId, recordType);
+		checkUserIsAuthorizedToReadListRecordType(userId, recordType);
 		readRecordList = SpiderRecordList.withContainRecordsOfType(recordType);
 
-		if (recordTypeIsAbstract(recordType)) {
-			addChildrenOfAbstractTypeToReadRecordList(recordType);
-		} else {
-			readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(recordType);
-		}
+		readRecordsOfType(recordType);
 		setFromToInReadRecordList();
 
 		return readRecordList;
 	}
 
-	private void setFromToInReadRecordList() {
-		readRecordList.setTotalNo(String.valueOf(readRecordList.getRecords().size()));
-		readRecordList.setFromNo("0");
-		readRecordList.setToNo(String.valueOf(readRecordList.getRecords().size() - 1));
-	}
-
-	private void addChildrenOfAbstractTypeToReadRecordList(String abstractRecordType) {
-		// find child recordTypes
-		Collection<DataGroup> recordTypes = recordStorage.readList("recordType");
-		
-		for (DataGroup recordTypePossibleChild : recordTypes) {
-			if(isChildOfAbstractRecordType(abstractRecordType, recordTypePossibleChild)) {
-				addChildToReadRecordList(recordTypePossibleChild);
-			}
-		}
-	}
-
-	private boolean isChildOfAbstractRecordType(String abstractRecordType, DataGroup recordTypePossibleChild) {
-		String parentId = "parentId";
-		if (recordTypePossibleChild.containsChildWithDataId(parentId)) {
-			String parentIdValue = recordTypePossibleChild
-					.getFirstAtomicValueWithDataId(parentId);
-			if (parentIdValue.equals(abstractRecordType)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private void addChildToReadRecordList(DataGroup recordTypePossibleChild) {
-		// get this recordTypes data from storage
-		String childRecordType = recordTypePossibleChild
-				.getFirstGroupWithDataId("recordInfo")
-				.getFirstAtomicValueWithDataId("id");
-		readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(childRecordType);
-	}
-
-	private void checkUserIsAuthorizedToReadRecordType(String userId, String recordType) {
+	private void checkUserIsAuthorizedToReadListRecordType(String userId, String recordType) {
 		// calculate permissionKey
 		String accessType = "READ";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeysForList(accessType,
@@ -113,11 +72,48 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 		}
 	}
 
+	private void readRecordsOfType(String recordType) {
+		if (recordTypeIsAbstract(recordType)) {
+			addChildrenOfAbstractTypeToReadRecordList(recordType);
+		} else {
+			readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(recordType);
+		}
+	}
+
 	private boolean recordTypeIsAbstract(String recordType) {
 		DataGroup recordTypeDataGroup = recordStorage.read("recordType", recordType);
 		String abstractString = recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract");
-		boolean recordTypeIsAbstract = "true".equals(abstractString);
-		return recordTypeIsAbstract;
+		return "true".equals(abstractString);
+	}
+
+	private void addChildrenOfAbstractTypeToReadRecordList(String abstractRecordType) {
+		// find child recordTypes
+		Collection<DataGroup> recordTypes = recordStorage.readList("recordType");
+
+		for (DataGroup recordTypePossibleChild : recordTypes) {
+			if (isChildOfAbstractRecordType(abstractRecordType, recordTypePossibleChild)) {
+				addChildToReadRecordList(recordTypePossibleChild);
+			}
+		}
+	}
+
+	private boolean isChildOfAbstractRecordType(String abstractRecordType,
+			DataGroup recordTypePossibleChild) {
+		String parentId = "parentId";
+		if (recordTypePossibleChild.containsChildWithDataId(parentId)) {
+			String parentIdValue = recordTypePossibleChild.getFirstAtomicValueWithDataId(parentId);
+			if (parentIdValue.equals(abstractRecordType)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void addChildToReadRecordList(DataGroup recordTypePossibleChild) {
+		// get this recordTypes data from storage
+		String childRecordType = recordTypePossibleChild.getFirstGroupWithDataId("recordInfo")
+				.getFirstAtomicValueWithDataId("id");
+		readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(childRecordType);
 	}
 
 	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String recordType) {
@@ -136,5 +132,11 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 		spiderDataRecord.addAction(Action.UPDATE);
 		spiderDataRecord.addAction(Action.DELETE);
 		return spiderDataRecord;
+	}
+
+	private void setFromToInReadRecordList() {
+		readRecordList.setTotalNo(String.valueOf(readRecordList.getRecords().size()));
+		readRecordList.setFromNo("0");
+		readRecordList.setToNo(String.valueOf(readRecordList.getRecords().size() - 1));
 	}
 }
