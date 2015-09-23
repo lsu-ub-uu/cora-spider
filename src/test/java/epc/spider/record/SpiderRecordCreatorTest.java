@@ -111,4 +111,15 @@ public class SpiderRecordCreatorTest {
 		SpiderDataGroup record = SpiderDataGroup.withDataId("authority");
 		recordCreator.createAndStoreRecord("userId", "recordType_NOT_EXISTING", record);
 	}
+
+	@Test(expectedExceptions = MisuseException.class)
+	public void testCreateRecordAbstractRecordType() {
+		SpiderRecordCreator recordCreator = SpiderRecordCreatorImp
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculator(
+						authorization, dataValidator, new RecordStorageListReaderSpy(), idGenerator,
+						keyCalculator);
+
+		SpiderDataGroup record = SpiderDataGroup.withDataId("abstract");
+		recordCreator.createAndStoreRecord("userId", "abstract", record);
+	}
 }

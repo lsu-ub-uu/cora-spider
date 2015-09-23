@@ -45,6 +45,10 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 	public SpiderDataRecord createAndStoreRecord(String userId, String recordType,
 			SpiderDataGroup spiderDataGroup) {
 		DataGroup recordTypeDataGroup = getRecordType(recordType);
+		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract"))) {
+			throw new MisuseException(
+					"Data creation on abstract recordType:" + recordType + " is not allowed");
+		}
 
 		DataGroup record = spiderDataGroup.toDataGroup();
 
@@ -74,7 +78,8 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("type", recordType));
 		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("createdBy", userId));
 
-		// set more stuff, user, tscreated, status (created, updated, deleted, etc), published
+		// set more stuff, user, tscreated, status (created, updated, deleted,
+		// etc), published
 		// (true, false)
 		// set owning organisation
 
@@ -86,8 +91,8 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 				record2);
 
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			throw new AuthorizationException(USER + userId
-					+ " is not authorized to create a record  of type:" + recordType);
+			throw new AuthorizationException(
+					USER + userId + " is not authorized to create a record  of type:" + recordType);
 		}
 
 		// send to storage

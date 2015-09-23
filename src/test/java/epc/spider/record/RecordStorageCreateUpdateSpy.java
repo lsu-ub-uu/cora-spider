@@ -23,6 +23,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			group.addChild(DataAtomic.withDataIdAndValue("newMetadataId", "placeNew"));
 			group.addChild(DataAtomic.withDataIdAndValue("metadataId", "place"));
 			group.addChild(DataAtomic.withDataIdAndValue("userSuppliedId", "false"));
+			group.addChild(DataAtomic.withDataIdAndValue("abstract", "false"));
+			
 			return group;
 		}
 		if (type.equals("recordType") && id.equals("typeWithUserGeneratedId")) {
@@ -30,6 +32,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			group.addChild(DataAtomic.withDataIdAndValue("newMetadataId", "placeNew"));
 			group.addChild(DataAtomic.withDataIdAndValue("metadataId", "place"));
 			group.addChild(DataAtomic.withDataIdAndValue("userSuppliedId", "true"));
+			group.addChild(DataAtomic.withDataIdAndValue("abstract", "false"));
 			return group;
 		}
 		return null;
