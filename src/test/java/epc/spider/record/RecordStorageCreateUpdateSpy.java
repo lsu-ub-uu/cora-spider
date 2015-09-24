@@ -9,11 +9,7 @@ import epc.spider.record.storage.RecordStorage;
 public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
 	public DataGroup createRecord;
-	public String createId;
-	public String createType;
 	public DataGroup updateRecord;
-	public String updateId;
-	public String updateType;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -40,8 +36,6 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
 	@Override
 	public void create(String type, String id, DataGroup record) {
-		createType = type;
-		createId = id;
 		createRecord = record;
 	}
 
@@ -53,9 +47,6 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
 	@Override
 	public void update(String type, String id, DataGroup record) {
-		// TODO Auto-generated method stub
-		updateType = type;
-		updateId = id;
 		updateRecord = record;
 	}
 
