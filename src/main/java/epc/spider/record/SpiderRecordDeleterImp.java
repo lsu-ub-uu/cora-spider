@@ -4,6 +4,7 @@ import java.util.Set;
 
 import epc.beefeater.Authorizator;
 import epc.metadataformat.data.DataGroup;
+import epc.spider.record.storage.RecordNotFoundException;
 import epc.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordDeleterImp implements SpiderRecordDeleter {
@@ -26,15 +27,29 @@ public final class SpiderRecordDeleterImp implements SpiderRecordDeleter {
 	}
 
 	@Override
-	public void deleteRecord(String userId, String type, String id) {
-		DataGroup readRecord = recordStorage.read(type, id);
+	public void deleteRecord(String userId, String recordType, String recordId) {
+		DataGroup recordTypeDataGroup = getRecordType(recordType);
+		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract"))) {
+			throw new MisuseException("Deleting record: " + recordId
+					+ " on the abstract recordType:" + recordType + " is not allowed");
+		}
+		DataGroup readRecord = recordStorage.read(recordType, recordId);
 		// calculate permissionKey
 		String accessType = "DELETE";
-		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, type, readRecord);
+		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
+				readRecord);
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
 			throw new AuthorizationException("User:" + userId
-					+ " is not authorized to delete record:" + id + " of type:" + type);
+					+ " is not authorized to delete record:" + recordId + " of type:" + recordType);
 		}
-		recordStorage.deleteByTypeAndId(type, id);
+		recordStorage.deleteByTypeAndId(recordType, recordId);
+	}
+
+	private DataGroup getRecordType(String recordType) {
+		try {
+			return recordStorage.read("recordType", recordType);
+		} catch (RecordNotFoundException e) {
+			throw new DataException("recordType:" + recordType + " does not exist", e);
+		}
 	}
 }

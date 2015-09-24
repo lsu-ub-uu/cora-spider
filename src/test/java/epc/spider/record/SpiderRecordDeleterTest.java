@@ -29,10 +29,10 @@ public class SpiderRecordDeleterTest {
 
 	@Test
 	public void testDeleteAuthorized() {
-		RecordStorageDeleteSpy recordStorage = new RecordStorageDeleteSpy();
+		RecordStorageSpy recordStorage = new RecordStorageSpy();
 		recordDeleter = SpiderRecordDeleterImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
 				authorization, recordStorage, keyCalculator);
-		recordDeleter.deleteRecord("userId", "place", "place:0001");
+		recordDeleter.deleteRecord("userId", "child1", "place:0001");
 		assertTrue(recordStorage.deleteWasCalled);
 	}
 
@@ -44,5 +44,17 @@ public class SpiderRecordDeleterTest {
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testDeleteNotFound() {
 		recordDeleter.deleteRecord("userId", "place", "place:0001_NOT_FOUND");
+	}
+
+	@Test(expectedExceptions = MisuseException.class)
+	public void testDeleteRecordAbstractRecordType() {
+		SpiderRecordDeleter recordDeleter = SpiderRecordDeleterImp
+				.usingAuthorizationAndRecordStorageAndKeyCalculator(authorization,
+						new RecordStorageSpy(), keyCalculator);
+		recordDeleter.deleteRecord("userId", "abstract", "xxx");
+	}
+	@Test(expectedExceptions = DataException.class)
+	public void testReadingDataForANonExistingRecordType(){
+		recordDeleter.deleteRecord("userId", "nonExistingRecordType", "anId");
 	}
 }

@@ -61,12 +61,12 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testReadListAbstractRecordType() {
-		RecordStorageListReaderSpy recordStorageListReaderSpy = new RecordStorageListReaderSpy();
+		RecordStorageSpy recordStorageListReaderSpy = new RecordStorageSpy();
 		SpiderRecordReader recordReader = SpiderRecordReaderImp
 				.usingAuthorizationAndRecordStorageAndKeyCalculator(authorization,
 						recordStorageListReaderSpy, keyCalculator);
 		recordReader.readRecordList("userId", "abstract");
-		
+
 		Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child1"));
 		Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child2"));
 	}
@@ -74,5 +74,17 @@ public class SpiderRecordReaderTest {
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testReadListUnauthorized() {
 		recordReader.readRecordList("unauthorizedUserId", "place");
+	}
+
+	@Test(expectedExceptions = MisuseException.class)
+	public void testReadRecordAbstractRecordType() {
+		SpiderRecordReader recordReader = SpiderRecordReaderImp
+				.usingAuthorizationAndRecordStorageAndKeyCalculator(authorization,
+						new RecordStorageSpy(), keyCalculator);
+		recordReader.readRecord("userId", "abstract", "xxx");
+	}
+	@Test(expectedExceptions = DataException.class)
+	public void testReadingDataForANonExistingRecordType(){
+		recordReader.readRecord("userId", "nonExistingRecordType", "anId");
 	}
 }

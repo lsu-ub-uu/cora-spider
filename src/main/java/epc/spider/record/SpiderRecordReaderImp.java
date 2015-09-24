@@ -9,6 +9,7 @@ import epc.spider.data.Action;
 import epc.spider.data.SpiderDataGroup;
 import epc.spider.data.SpiderDataRecord;
 import epc.spider.data.SpiderRecordList;
+import epc.spider.record.storage.RecordNotFoundException;
 import epc.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordReaderImp implements SpiderRecordReader {
@@ -32,6 +33,11 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 
 	@Override
 	public SpiderDataRecord readRecord(String userId, String recordType, String recordId) {
+		DataGroup recordTypeDataGroup = getRecordType(recordType);
+		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract"))) {
+			throw new MisuseException("Reading record: " + recordId + " on the abstract recordType:"
+					+ recordType + " is not allowed");
+		}
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
 		// calculate permissionKey
@@ -47,6 +53,14 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 		// TODO: filter hidden data if user does not have right to see it
 
 		return convertToSpiderDataGroup(recordRead);
+	}
+
+	private DataGroup getRecordType(String recordType) {
+		try {
+			return recordStorage.read("recordType", recordType);
+		} catch (RecordNotFoundException e) {
+			throw new DataException("recordType:" + recordType + " does not exist", e);
+		}
 	}
 
 	@Override

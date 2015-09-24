@@ -116,7 +116,7 @@ public class SpiderRecordCreatorTest {
 	public void testCreateRecordAbstractRecordType() {
 		SpiderRecordCreator recordCreator = SpiderRecordCreatorImp
 				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculator(
-						authorization, dataValidator, new RecordStorageListReaderSpy(), idGenerator,
+						authorization, dataValidator, new RecordStorageSpy(), idGenerator,
 						keyCalculator);
 
 		SpiderDataGroup record = SpiderDataGroup.withDataId("abstract");

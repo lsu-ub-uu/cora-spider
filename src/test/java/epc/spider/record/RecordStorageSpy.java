@@ -7,9 +7,10 @@ import epc.metadataformat.data.DataAtomic;
 import epc.metadataformat.data.DataGroup;
 import epc.spider.record.storage.RecordStorage;
 
-public class RecordStorageListReaderSpy implements RecordStorage {
+public class RecordStorageSpy implements RecordStorage {
 
 	public Collection<String> readLists = new ArrayList<>();
+	public boolean deleteWasCalled = false;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -150,8 +151,7 @@ public class RecordStorageListReaderSpy implements RecordStorage {
 
 	@Override
 	public void deleteByTypeAndId(String type, String id) {
-		// TODO Auto-generated method stub
-
+		deleteWasCalled = true;
 	}
 
 	@Override

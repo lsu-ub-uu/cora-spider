@@ -39,7 +39,10 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 	public SpiderDataRecord updateRecord(String userId, String recordType, String id,
 			SpiderDataGroup spiderDataGroup) {
 		DataGroup recordTypeDataGroup = getRecordType(recordType);
-
+		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract"))) {
+			throw new MisuseException(
+					"Data update on abstract recordType:" + recordType + " is not allowed");
+		}
 		DataGroup record = spiderDataGroup.toDataGroup();
 
 		String metadataId = recordTypeDataGroup.getFirstAtomicValueWithDataId("metadataId");
