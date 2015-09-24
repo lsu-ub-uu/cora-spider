@@ -39,7 +39,12 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 	public SpiderDataRecord updateRecord(String userId, String recordType, String id,
 			SpiderDataGroup spiderDataGroup) {
 
-		validateRecord(recordType, spiderDataGroup);
+		DataGroup recordTypeDataGroup = getRecordType(recordType);
+		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract"))) {
+			throw new MisuseException(
+					"Data update on abstract recordType:" + recordType + " is not allowed");
+		}
+		validateRecord(recordTypeDataGroup, spiderDataGroup);
 
 		checkRecordTypeAndIdIsSameAsInEnteredRecord(recordType, id, spiderDataGroup);
 
@@ -61,12 +66,7 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 		return spiderDataRecord;
 	}
 
-	private void validateRecord(String recordType, SpiderDataGroup spiderDataGroup) {
-		DataGroup recordTypeDataGroup = getRecordType(recordType);
-		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract"))) {
-			throw new MisuseException(
-					"Data update on abstract recordType:" + recordType + " is not allowed");
-		}
+	private void validateRecord(DataGroup recordTypeDataGroup, SpiderDataGroup spiderDataGroup) {
 		DataGroup record = spiderDataGroup.toDataGroup();
 
 		String metadataId = recordTypeDataGroup.getFirstAtomicValueWithDataId("metadataId");
