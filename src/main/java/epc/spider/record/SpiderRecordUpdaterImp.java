@@ -38,44 +38,12 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 	@Override
 	public SpiderDataRecord updateRecord(String userId, String recordType, String id,
 			SpiderDataGroup spiderDataGroup) {
-		DataGroup recordTypeDataGroup = getRecordType(recordType);
-		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract"))) {
-			throw new MisuseException(
-					"Data update on abstract recordType:" + recordType + " is not allowed");
-		}
-		DataGroup record = spiderDataGroup.toDataGroup();
 
-		String metadataId = recordTypeDataGroup.getFirstAtomicValueWithDataId("metadataId");
-		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, record);
-		if (validationAnswer.dataIsInvalid()) {
-			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
-		}
+		validateRecord(recordType, spiderDataGroup);
 
-		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
-		// TODO: check entered type and id are the same as in the entered record
-		String idFromRecord = recordInfo.extractAtomicValue("id");
+		checkRecordTypeAndIdIsSameAsInEnteredRecord(recordType, id, spiderDataGroup);
 
-		if (!id.equals(idFromRecord)) {
-			throw new DataException("Id in data(" + idFromRecord + ") does not match entered id("
-					+ id + ")");
-		}
-		String typeFromRecord = recordInfo.extractAtomicValue("type");
-		if (!recordType.equals(typeFromRecord)) {
-			throw new DataException("Type in data(" + typeFromRecord
-					+ ") does not match entered type(" + recordType + ")");
-		}
-
-		DataGroup recordRead = recordStorage.read(recordType, id);
-
-		// calculate permissionKey
-		String accessType = "UPDATE";
-		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
-				recordRead);
-
-		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			throw new AuthorizationException(USER + userId
-					+ " is not authorized to update a record  of type:" + recordType);
-		}
+		checkUserIsAuthorisedToUpdate(userId, recordType, id);
 
 		// validate (including protected data)
 		// TODO: add validate here
@@ -88,13 +56,64 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 		// create record
 		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
 
+		addLinks(spiderDataRecord);
+
+		return spiderDataRecord;
+	}
+
+	private void validateRecord(String recordType, SpiderDataGroup spiderDataGroup) {
+		DataGroup recordTypeDataGroup = getRecordType(recordType);
+		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract"))) {
+			throw new MisuseException(
+					"Data update on abstract recordType:" + recordType + " is not allowed");
+		}
+		DataGroup record = spiderDataGroup.toDataGroup();
+
+		String metadataId = recordTypeDataGroup.getFirstAtomicValueWithDataId("metadataId");
+		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, record);
+		if (validationAnswer.dataIsInvalid()) {
+			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
+		}
+	}
+
+	private void checkRecordTypeAndIdIsSameAsInEnteredRecord(String recordType, String id, SpiderDataGroup spiderDataGroup) {
+		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
+
+		String idFromRecord = recordInfo.extractAtomicValue("id");
+		checkValueIsSameAsInEnteredRecord(id, idFromRecord);
+
+		String recordTypeFromRecord = recordInfo.extractAtomicValue("type");
+		checkValueIsSameAsInEnteredRecord(recordType, recordTypeFromRecord);
+	}
+
+	private void checkValueIsSameAsInEnteredRecord(String value, String valueFromRecord) {
+		if (!value.equals(valueFromRecord)) {
+			throw new DataException("Value in data(" + valueFromRecord + ") does not match entered value("
+					+ value + ")");
+		}
+	}
+
+	private void checkUserIsAuthorisedToUpdate(String userId, String recordType, String id) {
+		DataGroup recordRead = recordStorage.read(recordType, id);
+
+		// calculate permissionKey
+		String accessType = "UPDATE";
+		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
+				recordRead);
+
+		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
+			throw new AuthorizationException(USER + userId
+					+ " is not authorized to update a record  of type:" + recordType);
+		}
+	}
+
+	private void addLinks(SpiderDataRecord spiderDataRecord) {
 		// add links
 		spiderDataRecord.addAction(Action.READ);
 		spiderDataRecord.addAction(Action.UPDATE);
 		spiderDataRecord.addAction(Action.DELETE);
-
-		return spiderDataRecord;
 	}
+
 
 	private DataGroup getRecordType(String recordType) {
 		try {
