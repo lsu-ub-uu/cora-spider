@@ -22,6 +22,8 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 	private RecordIdGenerator idGenerator;
 	private PermissionKeyCalculator keyCalculator;
 	private DataValidator dataValidator;
+	private DataGroup recordTypeDefinition;
+	private SpiderDataGroup spiderDataGroup;
 
 	public static SpiderRecordCreatorImp usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculator(
 			Authorizator authorization, DataValidator dataValidator, RecordStorage recordStorage,
@@ -45,50 +47,75 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 	public SpiderDataRecord createAndStoreRecord(String userId, String recordType,
 			SpiderDataGroup spiderDataGroup) {
 
-		DataGroup recordTypeDataGroup = getRecordType(recordType);
-		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract"))) {
-			throw new MisuseException(
-					"Data creation on abstract recordType:" + recordType + " is not allowed");
-		}
-		validateRecord(spiderDataGroup, recordTypeDataGroup);
+		this.spiderDataGroup = spiderDataGroup;
+		recordTypeDefinition = getRecordTypeDefinition(recordType);
 
-		SpiderDataGroup recordInfo = fetchOrCreateRecordInfo(recordType, spiderDataGroup, recordTypeDataGroup);
-		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("type", recordType));
-		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("createdBy", userId));
+		checkNoCreateForAbstractRecordType(recordType);
+		validateDataInRecordAsSpecifiedInMetadata();
 
-		// set more stuff, user, tscreated, status (created, updated, deleted, etc), published
+		ensureCompleteRecordInfo(userId, recordType);
+
+		// set more stuff, user, tscreated, status (created, updated, deleted,
+		// etc), published
 		// (true, false)
 		// set owning organisation
 
-		storeCreatedRecordIfAuthorised(userId, recordType, spiderDataGroup, recordInfo);
-
-		// create record
-		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
-		addLinks(spiderDataRecord);
-
-		return spiderDataRecord;
-	}
-
-
-	private void validateRecord(SpiderDataGroup spiderDataGroup, DataGroup recordTypeDataGroup) {
 		DataGroup record = spiderDataGroup.toDataGroup();
 
-		String metadataId = recordTypeDataGroup.getFirstAtomicValueWithDataId("newMetadataId");
+		checkUserIsAuthorisedToCreateIncomingData(userId, recordType, record);
+
+		// send to storage
+		String id = extractIdFromData();
+		recordStorage.create(recordType, id, record);
+
+		return createDataRecordContainingDataGroup(spiderDataGroup);
+	}
+
+	private String extractIdFromData() {
+		return spiderDataGroup.extractGroup("recordInfo").extractAtomicValue("id");
+
+	}
+
+	private DataGroup getRecordTypeDefinition(String recordType) {
+		try {
+			return recordStorage.read("recordType", recordType);
+		} catch (RecordNotFoundException e) {
+			throw new DataException("recordType:" + recordType + " does not exist", e);
+		}
+	}
+
+	private void checkNoCreateForAbstractRecordType(String recordType) {
+		if (isRecordTypeAbstract()) {
+			throw new MisuseException(
+					"Data creation on abstract recordType:" + recordType + " is not allowed");
+		}
+	}
+
+	private boolean isRecordTypeAbstract() {
+		String abstractInRecordTypeDefinition = recordTypeDefinition
+				.getFirstAtomicValueWithDataId("abstract");
+		return "true".equals(abstractInRecordTypeDefinition);
+	}
+
+	private void validateDataInRecordAsSpecifiedInMetadata() {
+		DataGroup record = spiderDataGroup.toDataGroup();
+
+		String metadataId = recordTypeDefinition.getFirstAtomicValueWithDataId("newMetadataId");
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, record);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
 	}
 
-	private SpiderDataGroup fetchOrCreateRecordInfo(String recordType, SpiderDataGroup spiderDataGroup, DataGroup recordTypeDataGroup) {
-		SpiderDataGroup recordInfo;
-		if (shouldAutoGenerateId(recordTypeDataGroup)) {
-			recordInfo = createRecordInfo(recordType);
-			spiderDataGroup.addChild(recordInfo);
-		} else {
-			recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
+	private void ensureCompleteRecordInfo(String userId, String recordType) {
+		ensureRecordInfoExists(recordType);
+		addUserAndTypeToRecordInfo(userId, recordType);
+	}
+
+	private void ensureRecordInfoExists(String recordType) {
+		if (shouldAutoGenerateId(recordTypeDefinition)) {
+			addRecordInfoToDataGroup(recordType);
 		}
-		return recordInfo;
 	}
 
 	private boolean shouldAutoGenerateId(DataGroup recordTypeDataGroup) {
@@ -96,32 +123,42 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 		return "false".equals(userSuppliedId);
 	}
 
+	private void addRecordInfoToDataGroup(String recordType) {
+		SpiderDataGroup recordInfo = createRecordInfo(recordType);
+		spiderDataGroup.addChild(recordInfo);
+	}
+
+	private void addUserAndTypeToRecordInfo(String userId, String recordType) {
+		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
+		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("type", recordType));
+		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("createdBy", userId));
+	}
+
 	private SpiderDataGroup createRecordInfo(String recordType) {
 		SpiderDataGroup recordInfo = SpiderDataGroup.withDataId(RECORD_INFO);
-		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("id", idGenerator.getIdForType(recordType)));
+		recordInfo.addChild(
+				SpiderDataAtomic.withDataIdAndValue("id", idGenerator.getIdForType(recordType)));
 		return recordInfo;
 	}
 
-	private void storeCreatedRecordIfAuthorised(String userId, String recordType, SpiderDataGroup spiderDataGroup, SpiderDataGroup recordInfo) {
-		DataGroup record = spiderDataGroup.toDataGroup();
-
-		checkUserIsAuthorisedToCreate(userId, recordType, record);
-
-		// send to storage
-		String id = recordInfo.extractAtomicValue("id");
-		recordStorage.create(recordType, id, record);
-	}
-
-	private void checkUserIsAuthorisedToCreate(String userId, String recordType, DataGroup record) {
+	private void checkUserIsAuthorisedToCreateIncomingData(String userId, String recordType,
+			DataGroup record) {
 		// calculate permissionKey
 		String accessType = "CREATE";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
 				record);
 
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			throw new AuthorizationException(USER + userId
-					+ " is not authorized to create a record  of type:" + recordType);
+			throw new AuthorizationException(
+					USER + userId + " is not authorized to create a record  of type:" + recordType);
 		}
+	}
+
+	private SpiderDataRecord createDataRecordContainingDataGroup(SpiderDataGroup spiderDataGroup) {
+		// create record
+		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
+		addLinks(spiderDataRecord);
+		return spiderDataRecord;
 	}
 
 	private void addLinks(SpiderDataRecord spiderDataRecord) {
@@ -131,11 +168,4 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 		spiderDataRecord.addAction(Action.DELETE);
 	}
 
-	private DataGroup getRecordType(String recordType) {
-		try {
-			return recordStorage.read("recordType", recordType);
-		} catch (RecordNotFoundException e) {
-			throw new DataException("recordType:" + recordType + " does not exist", e);
-		}
-	}
 }
