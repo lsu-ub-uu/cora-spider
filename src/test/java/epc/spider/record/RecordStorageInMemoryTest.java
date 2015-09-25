@@ -40,14 +40,14 @@ public class RecordStorageInMemoryTest {
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		String recordType = "place";
 		Collection<DataGroup> recordList = recordStorage.readList(recordType);
-		assertEquals(recordList.iterator().next().getDataId(), "authority");
+		assertEquals(recordList.iterator().next().getNameInData(), "authority");
 	}
 
 	@Test
 	public void testGetMetadataElements() {
 		Collection<DataGroup> metadataElements = metadataStorage.getMetadataElements();
 		DataGroup metadataElement = metadataElements.iterator().next();
-		assertEquals(metadataElement.getDataId(), "metadata");
+		assertEquals(metadataElement.getNameInData(), "metadata");
 		DataGroup recordInfo = (DataGroup) metadataElement.getChildren().get(0);
 		DataAtomic id = (DataAtomic) recordInfo.getChildren().get(0);
 		assertEquals(id.getValue(), "place");
@@ -57,7 +57,7 @@ public class RecordStorageInMemoryTest {
 	public void testGetPresentationElements() {
 		Collection<DataGroup> presentationElements = metadataStorage.getPresentationElements();
 		DataGroup presentationElement = presentationElements.iterator().next();
-		assertEquals(presentationElement.getDataId(), "presentation");
+		assertEquals(presentationElement.getNameInData(), "presentation");
 		DataGroup recordInfo = (DataGroup) presentationElement.getChildren().get(0);
 		DataAtomic id = (DataAtomic) recordInfo.getChildren().get(0);
 		assertEquals(id.getValue(), "placeView");
@@ -67,7 +67,7 @@ public class RecordStorageInMemoryTest {
 	public void testGetTexts() {
 		Collection<DataGroup> texts = metadataStorage.getTexts();
 		DataGroup text = texts.iterator().next();
-		assertEquals(text.getDataId(), "text");
+		assertEquals(text.getNameInData(), "text");
 		DataGroup recordInfo = (DataGroup) text.getChildren().get(0);
 		DataAtomic id = (DataAtomic) recordInfo.getChildren().get(0);
 		assertEquals(id.getValue(), "placeText");
@@ -78,12 +78,12 @@ public class RecordStorageInMemoryTest {
 		Collection<DataGroup> recordTypes = metadataStorage.getRecordTypes();
 		Iterator<DataGroup> iterator = recordTypes.iterator();
 		DataGroup recordType = iterator.next();
-		assertEquals(recordType.getDataId(), "recordType");
+		assertEquals(recordType.getNameInData(), "recordType");
 		DataGroup recordInfo = (DataGroup) recordType.getChildren().get(0);
 		DataAtomic id = (DataAtomic) recordInfo.getChildren().get(0);
 		assertEquals(id.getValue(), "metadata");
 		recordType = iterator.next();
-		assertEquals(recordType.getDataId(), "recordType");
+		assertEquals(recordType.getNameInData(), "recordType");
 		recordInfo = (DataGroup) recordType.getChildren().get(0);
 		id = (DataAtomic) recordInfo.getChildren().get(0);
 		assertEquals(id.getValue(), "recordType");

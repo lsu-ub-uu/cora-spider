@@ -93,14 +93,14 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 
 	private boolean isRecordTypeAbstract() {
 		String abstractInRecordTypeDefinition = recordTypeDefinition
-				.getFirstAtomicValueWithDataId("abstract");
+				.getFirstAtomicValueWithNameInData("abstract");
 		return "true".equals(abstractInRecordTypeDefinition);
 	}
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {
 		DataGroup record = spiderDataGroup.toDataGroup();
 
-		String metadataId = recordTypeDefinition.getFirstAtomicValueWithDataId("newMetadataId");
+		String metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("newMetadataId");
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, record);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
@@ -119,7 +119,7 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 	}
 
 	private boolean shouldAutoGenerateId(DataGroup recordTypeDataGroup) {
-		String userSuppliedId = recordTypeDataGroup.getFirstAtomicValueWithDataId("userSuppliedId");
+		String userSuppliedId = recordTypeDataGroup.getFirstAtomicValueWithNameInData("userSuppliedId");
 		return "false".equals(userSuppliedId);
 	}
 
@@ -130,14 +130,14 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 
 	private void addUserAndTypeToRecordInfo(String userId, String recordType) {
 		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
-		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("type", recordType));
-		recordInfo.addChild(SpiderDataAtomic.withDataIdAndValue("createdBy", userId));
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", recordType));
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("createdBy", userId));
 	}
 
 	private SpiderDataGroup createRecordInfo(String recordType) {
-		SpiderDataGroup recordInfo = SpiderDataGroup.withDataId(RECORD_INFO);
+		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData(RECORD_INFO);
 		recordInfo.addChild(
-				SpiderDataAtomic.withDataIdAndValue("id", idGenerator.getIdForType(recordType)));
+				SpiderDataAtomic.withNameInDataAndValue("id", idGenerator.getIdForType(recordType)));
 		return recordInfo;
 	}
 

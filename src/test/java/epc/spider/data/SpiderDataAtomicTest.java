@@ -9,24 +9,24 @@ import epc.metadataformat.data.DataAtomic;
 public class SpiderDataAtomicTest {
 	@Test
 	public void testInit() {
-		SpiderDataAtomic spiderDataAtomic = SpiderDataAtomic.withDataIdAndValue("dataId", "value");
-		assertEquals(spiderDataAtomic.getDataId(), "dataId");
+		SpiderDataAtomic spiderDataAtomic = SpiderDataAtomic.withNameInDataAndValue("nameInData", "value");
+		assertEquals(spiderDataAtomic.getNameInData(), "nameInData");
 		assertEquals(spiderDataAtomic.getValue(), "value");
 	}
 
 	@Test
 	public void testFromDataAtomic() {
-		DataAtomic dataAtomic = DataAtomic.withDataIdAndValue("dataId", "value");
+		DataAtomic dataAtomic = DataAtomic.withNameInDataAndValue("nameInData", "value");
 		SpiderDataAtomic spiderDataAtomic = SpiderDataAtomic.fromDataAtomic(dataAtomic);
-		assertEquals(spiderDataAtomic.getDataId(), "dataId");
+		assertEquals(spiderDataAtomic.getNameInData(), "nameInData");
 		assertEquals(spiderDataAtomic.getValue(), "value");
 	}
 
 	@Test
 	public void testToDataAtomic() {
-		SpiderDataAtomic spiderDataAtomic = SpiderDataAtomic.withDataIdAndValue("dataId", "value");
+		SpiderDataAtomic spiderDataAtomic = SpiderDataAtomic.withNameInDataAndValue("nameInData", "value");
 		DataAtomic dataAtomic = spiderDataAtomic.toDataAtomic();
-		assertEquals(dataAtomic.getDataId(), "dataId");
+		assertEquals(dataAtomic.getNameInData(), "nameInData");
 		assertEquals(dataAtomic.getValue(), "value");
 	}
 }

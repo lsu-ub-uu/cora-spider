@@ -18,7 +18,7 @@ public class SpiderRecordListTest {
 	@Test
 	public void testAddRecord() {
 		SpiderRecordList spiderRecordList = SpiderRecordList.withContainRecordsOfType("metadata");
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withDataId("spiderDataGroupId");
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("spiderDataGroupId");
 		SpiderDataRecord record = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
 		spiderRecordList.addRecord(record);
 		List<SpiderDataRecord> records = spiderRecordList.getRecords();

@@ -13,13 +13,13 @@ public class TestDataAuthority {
 		// otherVariable
 		String regularExpression = "((^(([0-1][0-9])|([2][0-3])):[0-5][0-9]$|^$){1}";
 		TextVariable otherVariable = TextVariable
-				.withIdAndDataIdAndTextIdAndDefTextIdAndRegularExpression("otherId", "otherDataId",
+				.withIdAndNameInDataAndTextIdAndDefTextIdAndRegularExpression("otherId", "otherNameInData",
 						"otherTextId", "otherDefTextId", regularExpression);
 		metadataHolder.addMetadataElement(otherVariable);
 
 		// authorityGroup
-		MetadataGroup authorityGroup = MetadataGroup.withIdAndDataIdAndTextIdAndDefTextId(
-				"authority", "authorityDataId", "authorityTextId", "authorityDefTextId");
+		MetadataGroup authorityGroup = MetadataGroup.withIdAndNameInDataAndTextIdAndDefTextId(
+				"authority", "authorityNameInData", "authorityTextId", "authorityDefTextId");
 		metadataHolder.addMetadataElement(authorityGroup);
 		MetadataChildReference otherReference = MetadataChildReference
 				.withReferenceIdAndRepeatMinAndRepeatMax("otherTextId", 1,

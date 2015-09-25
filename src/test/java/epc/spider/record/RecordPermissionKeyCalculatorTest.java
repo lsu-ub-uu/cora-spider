@@ -13,7 +13,7 @@ public class RecordPermissionKeyCalculatorTest {
 	public void testGeneratePermissionKey() {
 		PermissionKeyCalculator keyCalculator = new RecordPermissionKeyCalculator();
 
-		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
+		DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
 
 		Set<String> keys = keyCalculator.calculateKeys("READ", "recordType", recordInfo);
 		Optional<String> key = keys.stream().findFirst();

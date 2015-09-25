@@ -10,7 +10,7 @@ public class KeyCalculatorTest implements PermissionKeyCalculator {
 	@Override
 	public Set<String> calculateKeys(String accessType, String recordType, DataGroup record) {
 		Set<String> keys = new HashSet<>();
-		String unit = record.getFirstAtomicValueWithDataId("unit");
+		String unit = record.getFirstAtomicValueWithNameInData("unit");
 		String key = String.join(":", accessType, recordType, "SYSTEM", unit,"*").toUpperCase();
 		keys.add(key);
 		return keys;

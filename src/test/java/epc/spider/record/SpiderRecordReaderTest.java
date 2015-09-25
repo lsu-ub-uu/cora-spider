@@ -36,8 +36,8 @@ public class SpiderRecordReaderTest {
 	public void testReadAuthorized() {
 		SpiderDataRecord record = recordReader.readRecord("userId", "place", "place:0001");
 		SpiderDataGroup groupOut = record.getSpiderDataGroup();
-		Assert.assertEquals(groupOut.getDataId(), "authority",
-				"recordOut.getDataId should be authority");
+		Assert.assertEquals(groupOut.getNameInData(), "authority",
+				"recordOut.getNameInData should be authority");
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)

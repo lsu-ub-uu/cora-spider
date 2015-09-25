@@ -4,11 +4,11 @@ import epc.metadataformat.data.DataAtomic;
 
 public final class SpiderDataAtomic implements SpiderDataElement {
 
-	private String dataId;
+	private String nameInData;
 	private String value;
 
-	private SpiderDataAtomic(String dataId, String value) {
-		this.dataId = dataId;
+	private SpiderDataAtomic(String nameInData, String value) {
+		this.nameInData = nameInData;
 		this.value = value;
 	}
 
@@ -16,18 +16,18 @@ public final class SpiderDataAtomic implements SpiderDataElement {
 		return new SpiderDataAtomic(dataAtomic);
 	}
 
-	public static SpiderDataAtomic withDataIdAndValue(String dataId, String value) {
-		return new SpiderDataAtomic(dataId, value);
+	public static SpiderDataAtomic withNameInDataAndValue(String nameInData, String value) {
+		return new SpiderDataAtomic(nameInData, value);
 	}
 
 	private SpiderDataAtomic(DataAtomic dataAtomic) {
-		dataId = dataAtomic.getDataId();
+		nameInData = dataAtomic.getNameInData();
 		value = dataAtomic.getValue();
 	}
 
 	@Override
-	public String getDataId() {
-		return dataId;
+	public String getNameInData() {
+		return nameInData;
 	}
 
 	public String getValue() {
@@ -35,7 +35,7 @@ public final class SpiderDataAtomic implements SpiderDataElement {
 	}
 
 	public DataAtomic toDataAtomic() {
-		return DataAtomic.withDataIdAndValue(dataId, value);
+		return DataAtomic.withNameInDataAndValue(nameInData, value);
 	}
 
 }

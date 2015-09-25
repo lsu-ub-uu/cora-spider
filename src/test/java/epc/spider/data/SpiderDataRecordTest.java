@@ -17,7 +17,7 @@ public class SpiderDataRecordTest {
 
 	@BeforeMethod
 	public void beforeMethod() {
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withDataId("dataId");
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
 		spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
 	}
 
@@ -48,13 +48,13 @@ public class SpiderDataRecordTest {
 
 	@Test
 	public void testGetSpiderDataGroup() {
-		String dataId = spiderDataRecord.getSpiderDataGroup().getDataId();
-		assertEquals(dataId, "dataId");
+		String nameInData = spiderDataRecord.getSpiderDataGroup().getNameInData();
+		assertEquals(nameInData, "nameInData");
 	}
 
 	@Test
 	public void testSpiderDataGroup() {
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withDataId("dataId");
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
 		spiderDataRecord.setSpiderDataGroup(spiderDataGroup);
 		assertEquals(spiderDataRecord.getSpiderDataGroup(), spiderDataGroup);
 	}
@@ -62,7 +62,7 @@ public class SpiderDataRecordTest {
 	@Test
 	public void testFromDataRecord() {
 		DataRecord dataRecord = new DataRecord();
-		dataRecord.setDataGroup(DataGroup.withDataId("dataId"));
+		dataRecord.setDataGroup(DataGroup.withNameInData("nameInData"));
 		dataRecord.addKey("KEY1");
 		dataRecord.addKey("KEY2");
 
@@ -71,8 +71,8 @@ public class SpiderDataRecordTest {
 		assertTrue(keys.contains("KEY1"));
 		assertTrue(keys.contains("KEY2"));
 
-		String dataId = spiderDataRecord.getSpiderDataGroup().getDataId();
-		assertEquals(dataId, "dataId");
+		String nameInData = spiderDataRecord.getSpiderDataGroup().getNameInData();
+		assertEquals(nameInData, "nameInData");
 	}
 
 	@Test
@@ -80,7 +80,7 @@ public class SpiderDataRecordTest {
 		spiderDataRecord.addKey("KEY1");
 		spiderDataRecord.addKey("KEY2");
 		DataRecord dataRecord = spiderDataRecord.toDataRecord();
-		assertEquals(dataRecord.getDataGroup().getDataId(), "dataId");
+		assertEquals(dataRecord.getDataGroup().getNameInData(), "nameInData");
 		Set<String> keys = dataRecord.getKeys();
 		assertTrue(keys.contains("KEY1"));
 		assertTrue(keys.contains("KEY2"));

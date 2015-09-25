@@ -35,7 +35,7 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 	@Override
 	public SpiderDataRecord readRecord(String userId, String recordType, String recordId) {
 		DataGroup recordTypeDataGroup = getRecordType(recordType);
-		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract"))) {
+		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract"))) {
 			throw new MisuseException("Reading record: " + recordId + " on the abstract recordType:"
 					+ recordType + " is not allowed");
 		}
@@ -97,7 +97,7 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 
 	private boolean recordTypeIsAbstract(String recordType) {
 		DataGroup recordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordType);
-		String abstractString = recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract");
+		String abstractString = recordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract");
 		return "true".equals(abstractString);
 	}
 
@@ -115,8 +115,8 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 	private boolean isChildOfAbstractRecordType(String abstractRecordType,
 			DataGroup recordTypePossibleChild) {
 		String parentId = "parentId";
-		if (recordTypePossibleChild.containsChildWithDataId(parentId)) {
-			String parentIdValue = recordTypePossibleChild.getFirstAtomicValueWithDataId(parentId);
+		if (recordTypePossibleChild.containsChildWithNameInData(parentId)) {
+			String parentIdValue = recordTypePossibleChild.getFirstAtomicValueWithNameInData(parentId);
 			if (parentIdValue.equals(abstractRecordType)) {
 				return true;
 			}
@@ -126,8 +126,8 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 
 	private void addChildToReadRecordList(DataGroup recordTypePossibleChild) {
 		// get this recordTypes data from storage
-		String childRecordType = recordTypePossibleChild.getFirstGroupWithDataId("recordInfo")
-				.getFirstAtomicValueWithDataId("id");
+		String childRecordType = recordTypePossibleChild.getFirstGroupWithNameInData("recordInfo")
+				.getFirstAtomicValueWithNameInData("id");
 		readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(childRecordType);
 	}
 

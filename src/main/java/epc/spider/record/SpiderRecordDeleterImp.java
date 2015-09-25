@@ -29,7 +29,7 @@ public final class SpiderRecordDeleterImp implements SpiderRecordDeleter {
 	@Override
 	public void deleteRecord(String userId, String recordType, String recordId) {
 		DataGroup recordTypeDataGroup = getRecordType(recordType);
-		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithDataId("abstract"))) {
+		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract"))) {
 			throw new MisuseException("Deleting record: " + recordId
 					+ " on the abstract recordType:" + recordType + " is not allowed");
 		}

@@ -51,11 +51,11 @@ public class RecordInMemoryStorageTest {
 
 	private DataGroup createDataGroupWithRecordInfo() {
 
-		DataGroup recordInfo = DataGroup.withDataId("recordInfo");
-		recordInfo.addChild(DataAtomic.withDataIdAndValue("type", "place"));
-		recordInfo.addChild(DataAtomic.withDataIdAndValue("id", "place:0001"));
+		DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
+		recordInfo.addChild(DataAtomic.withNameInDataAndValue("type", "place"));
+		recordInfo.addChild(DataAtomic.withNameInDataAndValue("id", "place:0001"));
 
-		DataGroup dataGroup = DataGroup.withDataId("dataId");
+		DataGroup dataGroup = DataGroup.withNameInData("nameInData");
 		dataGroup.addChild(recordInfo);
 		return dataGroup;
 	}
@@ -84,7 +84,7 @@ public class RecordInMemoryStorageTest {
 
 		recordsInMemory.create("type", "place:0001", dataGroup);
 		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
-		assertEquals(dataGroupOut.getDataId(), dataGroup.getDataId());
+		assertEquals(dataGroupOut.getNameInData(), dataGroup.getNameInData());
 	}
 
 	@Test
@@ -96,16 +96,16 @@ public class RecordInMemoryStorageTest {
 		recordsInMemory.create("type", "place:0002", dataGroup);
 
 		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
-		assertEquals(dataGroupOut.getDataId(), dataGroup.getDataId());
+		assertEquals(dataGroupOut.getNameInData(), dataGroup.getNameInData());
 
 		DataGroup dataGroupOut2 = recordsInMemory.read("type", "place:0002");
-		assertEquals(dataGroupOut2.getDataId(), dataGroup.getDataId());
+		assertEquals(dataGroupOut2.getNameInData(), dataGroup.getNameInData());
 	}
 
 	@Test
 	public void testCreateDataInStorageShouldBeIndependent() {
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
-		dataGroup.addChild(DataAtomic.withDataIdAndValue("childId", "childValue"));
+		dataGroup.addChild(DataAtomic.withNameInDataAndValue("childId", "childValue"));
 		recordsInMemory.create("type", "place:0001", dataGroup);
 
 		dataGroup.getChildren().clear();
@@ -122,7 +122,7 @@ public class RecordInMemoryStorageTest {
 
 		recordsInMemory.create("type", "place:0001", dataGroup);
 		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
-		assertEquals(dataGroupOut.getDataId(), dataGroup.getDataId());
+		assertEquals(dataGroupOut.getNameInData(), dataGroup.getNameInData());
 
 		recordsInMemory.deleteByTypeAndId("type", "place:0001");
 
@@ -143,7 +143,7 @@ public class RecordInMemoryStorageTest {
 
 		recordsInMemory.create("type", "place:0001", dataGroup);
 		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
-		assertEquals(dataGroupOut.getDataId(), dataGroup.getDataId());
+		assertEquals(dataGroupOut.getNameInData(), dataGroup.getNameInData());
 
 		recordsInMemory.deleteByTypeAndId("type", "place:0001_NOT_FOUND");
 	}
@@ -151,14 +151,14 @@ public class RecordInMemoryStorageTest {
 	@Test
 	public void testUpdate() {
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
-		dataGroup.addChild(DataAtomic.withDataIdAndValue("childId", "childValue"));
+		dataGroup.addChild(DataAtomic.withNameInDataAndValue("childId", "childValue"));
 		recordsInMemory.create("type", "place:0001", dataGroup);
 
 		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
 		DataAtomic child = (DataAtomic) dataGroupOut.getChildren().get(1);
 
 		DataGroup dataGroup2 = createDataGroupWithRecordInfo();
-		dataGroup2.addChild(DataAtomic.withDataIdAndValue("childId2", "childValue2"));
+		dataGroup2.addChild(DataAtomic.withNameInDataAndValue("childId2", "childValue2"));
 		recordsInMemory.update("type", "place:0001", dataGroup2);
 
 		DataGroup dataGroupOut2 = recordsInMemory.read("type", "place:0001");
@@ -171,14 +171,14 @@ public class RecordInMemoryStorageTest {
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testUpdateNotFoundType() {
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
-		dataGroup.addChild(DataAtomic.withDataIdAndValue("childId", "childValue"));
+		dataGroup.addChild(DataAtomic.withNameInDataAndValue("childId", "childValue"));
 		recordsInMemory.update("type", "place:0001", dataGroup);
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testUpdateNotFoundId() {
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
-		dataGroup.addChild(DataAtomic.withDataIdAndValue("childId", "childValue"));
+		dataGroup.addChild(DataAtomic.withNameInDataAndValue("childId", "childValue"));
 		recordsInMemory.create("type", "place:0001", dataGroup);
 		recordsInMemory.update("type", "place:0002", dataGroup);
 	}
@@ -186,7 +186,7 @@ public class RecordInMemoryStorageTest {
 	@Test
 	public void testUpdateDataInStorageShouldBeIndependent() {
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
-		dataGroup.addChild(DataAtomic.withDataIdAndValue("childId", "childValue"));
+		dataGroup.addChild(DataAtomic.withNameInDataAndValue("childId", "childValue"));
 		recordsInMemory.create("type", "place:0001", dataGroup);
 		recordsInMemory.update("type", "place:0001", dataGroup);
 

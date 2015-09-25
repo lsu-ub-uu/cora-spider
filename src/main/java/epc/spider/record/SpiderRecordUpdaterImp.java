@@ -64,7 +64,7 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 	}
 
 	private void checkNoUpdateForAbstractRecordType(String recordType) {
-		if ("true".equals(recordTypeDefinition.getFirstAtomicValueWithDataId("abstract"))) {
+		if ("true".equals(recordTypeDefinition.getFirstAtomicValueWithNameInData("abstract"))) {
 			throw new MisuseException(
 					"Data update on abstract recordType:" + recordType + " is not allowed");
 		}
@@ -79,7 +79,7 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata() {
-		String metadataId = recordTypeDefinition.getFirstAtomicValueWithDataId("metadataId");
+		String metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("metadataId");
 		DataGroup dataGroup = spiderDataGroup.toDataGroup();
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, dataGroup);
 		if (validationAnswer.dataIsInvalid()) {

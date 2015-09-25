@@ -12,16 +12,16 @@ import epc.metadataformat.data.DataGroup;
 
 public final class SpiderDataGroup implements SpiderDataElement {
 
-	private String dataId;
+	private String nameInData;
 	private Map<String, String> attributes = new HashMap<>();
 	private List<SpiderDataElement> children = new ArrayList<>();
 
-	public static SpiderDataGroup withDataId(String dataId) {
-		return new SpiderDataGroup(dataId);
+	public static SpiderDataGroup withNameInData(String nameInData) {
+		return new SpiderDataGroup(nameInData);
 	}
 
-	private SpiderDataGroup(String dataId) {
-		this.dataId = dataId;
+	private SpiderDataGroup(String nameInData) {
+		this.nameInData = nameInData;
 	}
 
 	public static SpiderDataGroup fromDataGroup(DataGroup dataGroup) {
@@ -29,7 +29,7 @@ public final class SpiderDataGroup implements SpiderDataElement {
 	}
 
 	private SpiderDataGroup(DataGroup dataGroup) {
-		dataId = dataGroup.getDataId();
+		nameInData = dataGroup.getNameInData();
 		attributes.putAll(dataGroup.getAttributes());
 		convertAndSetChildren(dataGroup);
 	}
@@ -48,8 +48,8 @@ public final class SpiderDataGroup implements SpiderDataElement {
 	}
 
 	@Override
-	public String getDataId() {
-		return dataId;
+	public String getNameInData() {
+		return nameInData;
 	}
 
 	public Map<String, String> getAttributes() {
@@ -60,8 +60,8 @@ public final class SpiderDataGroup implements SpiderDataElement {
 		return children;
 	}
 
-	public void addAttributeByIdWithValue(String dataId, String value) {
-		attributes.put(dataId, value);
+	public void addAttributeByIdWithValue(String nameInData, String value) {
+		attributes.put(nameInData, value);
 	}
 
 	public void addChild(SpiderDataElement dataElement) {
@@ -69,7 +69,7 @@ public final class SpiderDataGroup implements SpiderDataElement {
 	}
 
 	public DataGroup toDataGroup() {
-		DataGroup dataGroup = DataGroup.withDataId(dataId);
+		DataGroup dataGroup = DataGroup.withNameInData(nameInData);
 		addAttributesToDataGroup(dataGroup);
 
 		addChildrenToDataGroup(dataGroup);
@@ -96,9 +96,9 @@ public final class SpiderDataGroup implements SpiderDataElement {
 		return ((SpiderDataAtomic) child).toDataAtomic();
 	}
 
-	public boolean containsChildWithDataId(String dataId) {
+	public boolean containsChildWithNameInData(String nameInData) {
 		for (SpiderDataElement dataElement : children) {
-			if (dataElement.getDataId().equals(dataId)) {
+			if (dataElement.getNameInData().equals(nameInData)) {
 				return true;
 			}
 		}
@@ -107,7 +107,7 @@ public final class SpiderDataGroup implements SpiderDataElement {
 
 	public SpiderDataGroup extractGroup(String groupId) {
 		for (SpiderDataElement spiderDataElement : getChildren()) {
-			if (spiderDataElement.getDataId().equals(groupId)) {
+			if (spiderDataElement.getNameInData().equals(groupId)) {
 				return (SpiderDataGroup) spiderDataElement;
 			}
 		}
@@ -116,7 +116,7 @@ public final class SpiderDataGroup implements SpiderDataElement {
 
 	public String extractAtomicValue(String atomicId) {
 		for (SpiderDataElement spiderDataElement : getChildren()) {
-			if (spiderDataElement.getDataId().equals(atomicId)) {
+			if (spiderDataElement.getNameInData().equals(atomicId)) {
 				return ((SpiderDataAtomic) spiderDataElement).getValue();
 			}
 		}
