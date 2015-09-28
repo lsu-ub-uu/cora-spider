@@ -22,7 +22,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 		this.records = records;
 	}
 
-	private void throwErrorIfConstructorArgumentIsNull(Map<String, Map<String, DataGroup>> records) {
+	private void throwErrorIfConstructorArgumentIsNull(
+			Map<String, Map<String, DataGroup>> records) {
 		if (null == records) {
 			throw new IllegalArgumentException("Records must not be null");
 		}
@@ -31,15 +32,39 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	@Override
 	public void create(String recordType, String recordId, DataGroup record) {
 		ensureRecordTypeStorageExists(recordType);
-		DataGroup recordIndependentOfEnteredRecord = SpiderDataGroup.fromDataGroup(record)
-				.toDataGroup();
-		records.get(recordType).put(recordId, recordIndependentOfEnteredRecord);
+		checkNoConflictOnRecordId(recordType, recordId);
+		DataGroup recordIndependentOfEnteredRecord = createIndependentCopy(record);
+		storeRecordByRecordTypeAndRecordId(recordType, recordId, recordIndependentOfEnteredRecord);
 	}
 
 	private void ensureRecordTypeStorageExists(String recordType) {
-		if (null == records.get(recordType)) {
-			records.put(recordType, new HashMap<String, DataGroup>());
+		if (holderForRecordTypeDoesNotExistInStorage(recordType)) {
+			createHolderForRecordTypeInStorage(recordType);
 		}
+	}
+
+	private boolean holderForRecordTypeDoesNotExistInStorage(String recordType) {
+		return null == records.get(recordType);
+	}
+
+	private void createHolderForRecordTypeInStorage(String recordType) {
+		records.put(recordType, new HashMap<String, DataGroup>());
+	}
+
+	private void checkNoConflictOnRecordId(String recordType, String recordId) {
+		if (null != records.get(recordType).get(recordId)) {
+			throw new RecordConflictException(
+					"Record with recordId: " + recordId + " already exists");
+		}
+	}
+
+	private DataGroup createIndependentCopy(DataGroup record) {
+		return SpiderDataGroup.fromDataGroup(record).toDataGroup();
+	}
+
+	private DataGroup storeRecordByRecordTypeAndRecordId(String recordType, String recordId,
+			DataGroup recordIndependentOfEnteredRecord) {
+		return records.get(recordType).put(recordId, recordIndependentOfEnteredRecord);
 	}
 
 	@Override
@@ -53,12 +78,12 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	@Override
 	public DataGroup read(String recordType, String recordId) {
-		ensureRecordExists(recordType, recordId);
+		checkRecordExists(recordType, recordId);
 		return records.get(recordType).get(recordId);
 	}
 
-	private void ensureRecordExists(String recordType, String recordId) {
-		if (null == records.get(recordType)) {
+	private void checkRecordExists(String recordType, String recordId) {
+		if (holderForRecordTypeDoesNotExistInStorage(recordType)) {
 			throw new RecordNotFoundException("No records exists with recordType: " + recordType);
 		}
 		if (null == records.get(recordType).get(recordId)) {
@@ -68,22 +93,21 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	@Override
 	public void deleteByTypeAndId(String recordType, String recordId) {
-		ensureRecordExists(recordType, recordId);
+		checkRecordExists(recordType, recordId);
 		records.get(recordType).remove(recordId);
 	}
 
 	@Override
 	public void update(String type, String id, DataGroup record) {
-		ensureRecordExists(type, id);
-		DataGroup recordIndependentOfEnteredRecord = SpiderDataGroup.fromDataGroup(record)
-				.toDataGroup();
-		records.get(type).put(id, recordIndependentOfEnteredRecord);
+		checkRecordExists(type, id);
+		DataGroup recordIndependentOfEnteredRecord = createIndependentCopy(record);
+		storeRecordByRecordTypeAndRecordId(type, id, recordIndependentOfEnteredRecord);
 	}
 
 	@Override
 	public Collection<DataGroup> getMetadataElements() {
 		Collection<DataGroup> readDataGroups = new ArrayList<>();
-		for(MetadataTypes metadataType : MetadataTypes.values()){
+		for (MetadataTypes metadataType : MetadataTypes.values()) {
 			readDataGroups.addAll(readList(metadataType.type));
 		}
 		return readDataGroups;

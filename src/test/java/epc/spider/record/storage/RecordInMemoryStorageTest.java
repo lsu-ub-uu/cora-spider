@@ -115,7 +115,12 @@ public class RecordInMemoryStorageTest {
 
 		assertEquals(child.getValue(), "childValue");
 	}
-
+	@Test(expectedExceptions = RecordConflictException.class)
+	public void testCreateConflict() {
+		DataGroup dataGroup = createDataGroupWithRecordInfo();
+		recordsInMemory.create("type", "place1", dataGroup);
+		recordsInMemory.create("type", "place1", dataGroup);
+	}
 	@Test
 	public void testDelete() {
 		DataGroup dataGroup = createDataGroupWithRecordInfo();

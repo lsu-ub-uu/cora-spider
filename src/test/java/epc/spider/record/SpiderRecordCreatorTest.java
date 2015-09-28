@@ -11,6 +11,7 @@ import epc.metadataformat.validator.DataValidator;
 import epc.spider.data.SpiderDataAtomic;
 import epc.spider.data.SpiderDataGroup;
 import epc.spider.data.SpiderDataRecord;
+import epc.spider.record.storage.RecordConflictException;
 import epc.spider.record.storage.RecordIdGenerator;
 import epc.spider.record.storage.RecordStorage;
 import epc.spider.record.storage.TimeStampIdGenerator;
@@ -121,5 +122,19 @@ public class SpiderRecordCreatorTest {
 
 		SpiderDataGroup record = SpiderDataGroup.withNameInData("abstract");
 		recordCreator.createAndStoreRecord("userId", "abstract", record);
+	}
+
+	@Test(expectedExceptions = RecordConflictException.class)
+	public void testCreateRecordDuplicateUserSuppliedId() {
+		SpiderRecordCreator recordCreator = SpiderRecordCreatorImp
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculator(
+						authorization, dataValidator, recordStorage, idGenerator, keyCalculator);
+		SpiderDataGroup record = SpiderDataGroup.withNameInData("place");
+		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
+		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "place"));
+		record.addChild(createRecordInfo);
+
+		recordCreator.createAndStoreRecord("userId", "place", record);
+		recordCreator.createAndStoreRecord("userId", "place", record);
 	}
 }
