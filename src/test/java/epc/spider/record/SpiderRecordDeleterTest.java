@@ -57,4 +57,8 @@ public class SpiderRecordDeleterTest {
 	public void testReadingDataForANonExistingRecordType(){
 		recordDeleter.deleteRecord("userId", "nonExistingRecordType", "anId");
 	}
+	@Test()
+	public void testFake(){
+		recordDeleter.deleteRecord("userId", "nonExistingRecordType", "anId");
+	}
 }
