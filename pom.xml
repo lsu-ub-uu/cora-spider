@@ -2,9 +2,9 @@
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>epc.spider</groupId>
+	<groupId>se.uu.ub.cora.spider</groupId>
 	<artifactId>spider</artifactId>
-	<version>0.1-SNAPSHOT</version>
+	<version>0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Spider</name>
@@ -15,8 +15,8 @@
 		<sonar-plugin.version>2.6</sonar-plugin.version>
 		<sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
 		<testng.version>6.8.8</testng.version>
-		<metadataformat.version>0.1-SNAPSHOT</metadataformat.version>
-		<beefeater.version>0.1-SNAPSHOT</beefeater.version>
+		<metadataformat.version>0.2-SNAPSHOT</metadataformat.version>
+		<beefeater.version>0.2-SNAPSHOT</beefeater.version>
 	</properties>
 
 	<scm>
@@ -139,12 +139,12 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>epc.metadataformat</groupId>
+			<groupId>se.uu.ub.cora.metadataformat</groupId>
 			<artifactId>metadataformat</artifactId>
 			<version>${metadataformat.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>epc.beefeater</groupId>
+			<groupId>se.uu.ub.cora.beefeater</groupId>
 			<artifactId>beefeater</artifactId>
 			<version>${beefeater.version}</version>
 		</dependency>
