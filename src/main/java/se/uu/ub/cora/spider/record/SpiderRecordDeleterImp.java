@@ -4,7 +4,6 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.metadataformat.data.DataGroup;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordDeleterImp implements SpiderRecordDeleter {
@@ -46,10 +45,6 @@ public final class SpiderRecordDeleterImp implements SpiderRecordDeleter {
 	}
 
 	private DataGroup getRecordType(String recordType) {
-		try {
-			return recordStorage.read("recordType", recordType);
-		} catch (RecordNotFoundException e) {
-			throw new DataException("recordType:" + recordType + " does not exist", e);
-		}
+		return recordStorage.read("recordType", recordType);
 	}
 }
