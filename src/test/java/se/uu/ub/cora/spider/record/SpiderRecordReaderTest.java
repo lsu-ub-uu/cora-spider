@@ -14,13 +14,7 @@ import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderRecordList;
-import se.uu.ub.cora.spider.record.AuthorizationException;
-import se.uu.ub.cora.spider.record.DataException;
-import se.uu.ub.cora.spider.record.MisuseException;
-import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
-import se.uu.ub.cora.spider.record.RecordPermissionKeyCalculator;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordReaderImp;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
@@ -90,8 +84,9 @@ public class SpiderRecordReaderTest {
 						new RecordStorageSpy(), keyCalculator);
 		recordReader.readRecord("userId", "abstract", "xxx");
 	}
-	@Test(expectedExceptions = DataException.class)
-	public void testReadingDataForANonExistingRecordType(){
+
+	@Test(expectedExceptions = RecordNotFoundException.class)
+	public void testReadingDataForANonExistingRecordType() {
 		recordReader.readRecord("userId", "nonExistingRecordType", "anId");
 	}
 }

@@ -7,13 +7,6 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
-import se.uu.ub.cora.spider.record.AuthorizationException;
-import se.uu.ub.cora.spider.record.DataException;
-import se.uu.ub.cora.spider.record.MisuseException;
-import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
-import se.uu.ub.cora.spider.record.RecordPermissionKeyCalculator;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleterImp;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
@@ -60,8 +53,9 @@ public class SpiderRecordDeleterTest {
 						new RecordStorageSpy(), keyCalculator);
 		recordDeleter.deleteRecord("userId", "abstract", "xxx");
 	}
-	@Test(expectedExceptions = DataException.class)
-	public void testReadingDataForANonExistingRecordType(){
+
+	@Test(expectedExceptions = RecordNotFoundException.class)
+	public void testReadingDataForANonExistingRecordType() {
 		recordDeleter.deleteRecord("userId", "nonExistingRecordType", "anId");
 	}
 }

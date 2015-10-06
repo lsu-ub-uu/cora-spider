@@ -9,7 +9,6 @@ import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderRecordList;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordReaderImp implements SpiderRecordReader {
@@ -57,11 +56,7 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 	}
 
 	private DataGroup getRecordType(String recordType) {
-		try {
-			return recordStorage.read(RECORD_TYPE, recordType);
-		} catch (RecordNotFoundException e) {
-			throw new DataException("recordType:" + recordType + " does not exist", e);
-		}
+		return recordStorage.read(RECORD_TYPE, recordType);
 	}
 
 	@Override
@@ -116,7 +111,8 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 			DataGroup recordTypePossibleChild) {
 		String parentId = "parentId";
 		if (recordTypePossibleChild.containsChildWithNameInData(parentId)) {
-			String parentIdValue = recordTypePossibleChild.getFirstAtomicValueWithNameInData(parentId);
+			String parentIdValue = recordTypePossibleChild
+					.getFirstAtomicValueWithNameInData(parentId);
 			if (parentIdValue.equals(abstractRecordType)) {
 				return true;
 			}
