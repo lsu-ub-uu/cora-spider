@@ -2,7 +2,7 @@
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>se.uu.ub.cora.spider</groupId>
+	<groupId>se.uu.ub.cora</groupId>
 	<artifactId>spider</artifactId>
 	<version>0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
@@ -139,12 +139,12 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>se.uu.ub.cora.metadataformat</groupId>
+			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>metadataformat</artifactId>
 			<version>${metadataformat.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>se.uu.ub.cora.beefeater</groupId>
+			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>beefeater</artifactId>
 			<version>${beefeater.version}</version>
 		</dependency>
