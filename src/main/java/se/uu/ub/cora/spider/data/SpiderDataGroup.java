@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import se.uu.ub.cora.metadataformat.data.DataAtomic;
 import se.uu.ub.cora.metadataformat.data.DataElement;
 import se.uu.ub.cora.metadataformat.data.DataGroup;
+import se.uu.ub.cora.metadataformat.data.DataRecordLink;
 
 public final class SpiderDataGroup implements SpiderDataElement {
 
@@ -42,7 +43,10 @@ public final class SpiderDataGroup implements SpiderDataElement {
 
 	private SpiderDataElement convertToSpiderEquivalentDataClass(DataElement dataElement) {
 		if (dataElement instanceof DataGroup) {
-			return new SpiderDataGroup((DataGroup) dataElement);
+			return SpiderDataGroup.fromDataGroup((DataGroup) dataElement);
+		}
+		if (dataElement instanceof DataRecordLink) {
+			return SpiderDataRecordLink.fromDataRecordLink((DataRecordLink) dataElement);
 		}
 		return SpiderDataAtomic.fromDataAtomic((DataAtomic) dataElement);
 	}
@@ -92,6 +96,9 @@ public final class SpiderDataGroup implements SpiderDataElement {
 	private DataElement convertToCorrectDataElement(SpiderDataElement child) {
 		if (child instanceof SpiderDataGroup) {
 			return ((SpiderDataGroup) child).toDataGroup();
+		}
+		if (child instanceof SpiderDataRecordLink) {
+			return ((SpiderDataRecordLink) child).toDataRecordLink();
 		}
 		return ((SpiderDataAtomic) child).toDataAtomic();
 	}

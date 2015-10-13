@@ -3,7 +3,9 @@ package se.uu.ub.cora.spider.data;
 import java.util.HashSet;
 import java.util.Set;
 
-public class SpiderDataRecordLink {
+import se.uu.ub.cora.metadataformat.data.DataRecordLink;
+
+public class SpiderDataRecordLink implements SpiderDataElement {
 
 	private String nameInData;
 	private String recordType;
@@ -21,6 +23,13 @@ public class SpiderDataRecordLink {
 		this.recordId = recordId;
 	}
 
+	private SpiderDataRecordLink(DataRecordLink dataRecordLink) {
+		this.nameInData = dataRecordLink.getNameInData();
+		this.recordType = dataRecordLink.getRecordType();
+		this.recordId = dataRecordLink.getRecordId();
+	}
+
+	@Override
 	public String getNameInData() {
 		return nameInData;
 	}
@@ -40,4 +49,14 @@ public class SpiderDataRecordLink {
 	public Set<Action> getActions() {
 		return actions;
 	}
+
+	public DataRecordLink toDataRecordLink() {
+		return DataRecordLink.withNameInDataAndRecordTypeAndRecordId(nameInData, recordType,
+				recordId);
+	}
+
+	public static SpiderDataRecordLink fromDataRecordLink(DataRecordLink dataRecordLink) {
+		return new SpiderDataRecordLink(dataRecordLink);
+	}
+
 }

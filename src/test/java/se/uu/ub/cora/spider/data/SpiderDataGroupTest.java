@@ -15,10 +15,7 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.metadataformat.data.DataAtomic;
 import se.uu.ub.cora.metadataformat.data.DataElement;
 import se.uu.ub.cora.metadataformat.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataMissingException;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataElement;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.metadataformat.data.DataRecordLink;
 
 public class SpiderDataGroupTest {
 	@Test
@@ -54,7 +51,8 @@ public class SpiderDataGroupTest {
 	@Test
 	public void testContainsChildWithId() {
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("nameInData");
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("otherChildId", "otherChildValue"));
+		dataGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("otherChildId", "otherChildValue"));
 		SpiderDataElement child = SpiderDataAtomic.withNameInDataAndValue("childId", "child value");
 		dataGroup.addChild(child);
 		assertTrue(dataGroup.containsChildWithNameInData("childId"));
@@ -97,6 +95,20 @@ public class SpiderDataGroupTest {
 	}
 
 	@Test
+	public void testFromDataGroupWithDataRecordLinkChild() {
+		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
+		dataGroup.addChild(DataRecordLink.withNameInDataAndRecordTypeAndRecordId("childNameInData",
+				"aRecordType", "aRecordId"));
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
+		SpiderDataElement spiderDataElement = spiderDataGroup.getChildren().get(0);
+		assertEquals(spiderDataElement.getNameInData(), "childNameInData");
+
+		SpiderDataRecordLink spiderDataRecordLink = (SpiderDataRecordLink) spiderDataElement;
+		assertEquals(spiderDataRecordLink.getRecordType(), "aRecordType");
+		assertEquals(spiderDataRecordLink.getRecordId(), "aRecordId");
+	}
+
+	@Test
 	public void testFromDataGroupLevelsOfChildren() {
 		DataGroup dataGroup = DataGroup.withNameInData("nameInData");
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
@@ -116,7 +128,8 @@ public class SpiderDataGroupTest {
 				"NameInData should be the one set in dataGroup2");
 
 		Assert.assertEquals(dataGroupChild.getChildren().stream().findAny().get().getNameInData(),
-				"grandChildNameInData", "NameInData should be the one set in the child of dataGroup2");
+				"grandChildNameInData",
+				"NameInData should be the one set in the child of dataGroup2");
 	}
 
 	@Test
@@ -157,35 +170,54 @@ public class SpiderDataGroupTest {
 	}
 
 	@Test
+	public void testToDataGroupWithDataRecordLinkChild() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		SpiderDataElement dataElement = SpiderDataRecordLink.withNameInDataAndRecordTypeAndRecordId(
+				"childNameInData", "aRecordType", "aRecordId");
+		spiderDataGroup.addChild(dataElement);
+
+		DataGroup dataGroup = spiderDataGroup.toDataGroup();
+
+		List<DataElement> children = dataGroup.getChildren();
+		DataElement childElementOut = children.get(0);
+		assertEquals(childElementOut.getNameInData(), "childNameInData");
+		DataRecordLink dataRecordLink = (DataRecordLink) childElementOut;
+		assertEquals(dataRecordLink.getRecordType(), "aRecordType");
+		assertEquals(dataRecordLink.getRecordId(), "aRecordId");
+
+	}
+
+	@Test
 	public void testToDataGroupWithLevelsOfChildren() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		spiderDataGroup
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
+		spiderDataGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
 		SpiderDataGroup dataGroup2 = SpiderDataGroup.withNameInData("childNameInData");
 		dataGroup2.addChild(SpiderDataGroup.withNameInData("grandChildNameInData"));
 		spiderDataGroup.addChild(dataGroup2);
 
 		DataGroup dataGroup = spiderDataGroup.toDataGroup();
 		Iterator<DataElement> iterator = dataGroup.getChildren().iterator();
-		Assert.assertTrue(iterator.hasNext(), "dataGroup should have at least one child");
+		assertTrue(iterator.hasNext(), "dataGroup should have at least one child");
 
 		DataAtomic dataAtomicChild = (DataAtomic) iterator.next();
-		Assert.assertEquals(dataAtomicChild.getNameInData(), "atomicNameInData",
+		assertEquals(dataAtomicChild.getNameInData(), "atomicNameInData",
 				"NameInData should be the one set in the DataAtomic, first child of dataGroup");
 
 		DataGroup dataGroupChild = (DataGroup) iterator.next();
-		Assert.assertEquals(dataGroupChild.getNameInData(), "childNameInData",
+		assertEquals(dataGroupChild.getNameInData(), "childNameInData",
 				"NameInData should be the one set in dataGroup2");
 
-		Assert.assertEquals(dataGroupChild.getChildren().stream().findAny().get().getNameInData(),
-				"grandChildNameInData", "NameInData should be the one set in the child of dataGroup2");
+		assertEquals(dataGroupChild.getChildren().stream().findAny().get().getNameInData(),
+				"grandChildNameInData",
+				"NameInData should be the one set in the child of dataGroup2");
 	}
 
 	@Test
 	public void testExtractGroup() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		spiderDataGroup
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
+		spiderDataGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
 		SpiderDataGroup dataGroup2 = SpiderDataGroup.withNameInData("childNameInData");
 		dataGroup2.addChild(SpiderDataGroup.withNameInData("grandChildNameInData"));
 		spiderDataGroup.addChild(dataGroup2);
@@ -195,8 +227,8 @@ public class SpiderDataGroupTest {
 	@Test(expectedExceptions = DataMissingException.class)
 	public void testExtractGroupNotFound() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		spiderDataGroup
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
+		spiderDataGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
 		SpiderDataGroup dataGroup2 = SpiderDataGroup.withNameInData("childNameInData");
 		dataGroup2.addChild(SpiderDataGroup.withNameInData("grandChildNameInData"));
 		spiderDataGroup.addChild(dataGroup2);
@@ -206,16 +238,16 @@ public class SpiderDataGroupTest {
 	@Test
 	public void testExtractAtomicValue() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		spiderDataGroup
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
+		spiderDataGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
 		assertEquals(spiderDataGroup.extractAtomicValue("atomicNameInData"), "atomicValue");
 	}
 
 	@Test(expectedExceptions = DataMissingException.class)
 	public void testExtractAtomicValueNotFound() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		spiderDataGroup
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
+		spiderDataGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
 		spiderDataGroup.extractAtomicValue("atomicNameInData_NOT_FOUND");
 	}
 }
