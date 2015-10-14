@@ -112,6 +112,15 @@ public final class SpiderDataGroup implements SpiderDataElement {
 		return false;
 	}
 
+	public SpiderDataElement getFirstChildWithNameInData(String nameInData) {
+		for (SpiderDataElement spiderDataElement : getChildren()) {
+			if (spiderDataElement.getNameInData().equals(nameInData)) {
+				return spiderDataElement;
+			}
+		}
+		throw new DataMissingException("Requested child " + nameInData + " does not exist");
+	}
+
 	public SpiderDataGroup extractGroup(String groupId) {
 		for (SpiderDataElement spiderDataElement : getChildren()) {
 			if (spiderDataElement.getNameInData().equals(groupId)) {

@@ -236,6 +236,28 @@ public class SpiderDataGroupTest {
 	}
 
 	@Test
+	public void testGetFirstChildWithNameInData() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		spiderDataGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
+		SpiderDataGroup dataGroup2 = SpiderDataGroup.withNameInData("childNameInData");
+		dataGroup2.addChild(SpiderDataGroup.withNameInData("grandChildNameInData"));
+		spiderDataGroup.addChild(dataGroup2);
+		assertEquals(spiderDataGroup.getFirstChildWithNameInData("childNameInData"), dataGroup2);
+	}
+
+	@Test(expectedExceptions = DataMissingException.class)
+	public void testGetFirstChildWithNameInDataNotFound() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		spiderDataGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
+		SpiderDataGroup dataGroup2 = SpiderDataGroup.withNameInData("childNameInData");
+		dataGroup2.addChild(SpiderDataGroup.withNameInData("grandChildNameInData"));
+		spiderDataGroup.addChild(dataGroup2);
+		spiderDataGroup.getFirstChildWithNameInData("childNameInData_NOT_FOUND");
+	}
+
+	@Test
 	public void testExtractAtomicValue() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
 		spiderDataGroup.addChild(
