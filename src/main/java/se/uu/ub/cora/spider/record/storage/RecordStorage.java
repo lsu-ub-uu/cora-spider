@@ -8,12 +8,16 @@ public interface RecordStorage {
 
 	DataGroup read(String type, String id);
 
-	void create(String type, String id, DataGroup record);
+	void create(String type, String id, DataGroup record, DataGroup linkList);
 
 	void deleteByTypeAndId(String type, String id);
 
 	void update(String type, String id, DataGroup record);
 
 	Collection<DataGroup> readList(String type);
+
+	DataGroup readLinkList(String type, String id);
+
+	DataGroup generateLinkCollectionPointingToRecord(String type, String id);
 
 }

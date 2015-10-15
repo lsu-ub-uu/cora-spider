@@ -52,7 +52,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record) {
+	public void create(String type, String id, DataGroup record, DataGroup linkList) {
 		createRecord = record;
 	}
 
@@ -69,6 +69,18 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
 	@Override
 	public Collection<DataGroup> readList(String type) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataGroup readLinkList(String type, String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataGroup generateLinkCollectionPointingToRecord(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
 	}
