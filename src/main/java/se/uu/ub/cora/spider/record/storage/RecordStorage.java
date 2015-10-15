@@ -18,4 +18,6 @@ public interface RecordStorage {
 
 	DataGroup readLinkList(String type, String id);
 
+	DataGroup generateLinkCollectionPointingToRecord(String type, String id);
+
 }

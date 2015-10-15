@@ -127,7 +127,7 @@ public final class SpiderDataGroup implements SpiderDataElement {
 				return (SpiderDataGroup) spiderDataElement;
 			}
 		}
-		throw new DataMissingException("Requested dataGroup " + groupId + " does not exist");
+		throw new DataMissingException("Requested dataGroup " + groupId + " doesn't exist");
 	}
 
 	public String extractAtomicValue(String atomicId) {

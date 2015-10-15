@@ -8,6 +8,7 @@ import static org.testng.Assert.assertTrue;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -31,10 +32,9 @@ public class SpiderDataGroupTest {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
 		spiderDataGroup.addAttributeByIdWithValue("nameInData", "value");
 		Map<String, String> attributes = spiderDataGroup.getAttributes();
-		String key = attributes.keySet().iterator().next();
-		String value = attributes.get(key);
-		assertEquals(key, "nameInData");
-		assertEquals(value, "value");
+		Entry<String, String> entry = attributes.entrySet().iterator().next();
+		assertEquals(entry.getKey(), "nameInData");
+		assertEquals(entry.getValue(), "value");
 	}
 
 	@Test
@@ -79,10 +79,9 @@ public class SpiderDataGroupTest {
 		dataGroup.addAttributeByIdWithValue("nameInData", "value");
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		Map<String, String> attributes = spiderDataGroup.getAttributes();
-		String key = attributes.keySet().iterator().next();
-		String value = attributes.get(key);
-		assertEquals(key, "nameInData");
-		assertEquals(value, "value");
+		Entry<String, String> entry = attributes.entrySet().iterator().next();
+		assertEquals(entry.getKey(), "nameInData");
+		assertEquals(entry.getValue(), "value");
 	}
 
 	@Test
@@ -149,10 +148,9 @@ public class SpiderDataGroupTest {
 		DataGroup dataGroup = spiderDataGroup.toDataGroup();
 
 		Map<String, String> attributes = dataGroup.getAttributes();
-		String key = attributes.keySet().iterator().next();
-		String value = attributes.get(key);
-		assertEquals(key, "nameInData");
-		assertEquals(value, "value");
+		Entry<String, String> entry = attributes.entrySet().iterator().next();
+		assertEquals(entry.getKey(), "nameInData");
+		assertEquals(entry.getValue(), "value");
 	}
 
 	@Test

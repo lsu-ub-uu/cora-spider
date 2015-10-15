@@ -79,4 +79,10 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		return null;
 	}
 
+	@Override
+	public DataGroup generateLinkCollectionPointingToRecord(String type, String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

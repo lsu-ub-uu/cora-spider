@@ -78,10 +78,59 @@ public class RecordInMemoryStorageTest {
 				"toRecordType", "toRecordId");
 		recordToRecordLink.addChild(to);
 
+		DataGroup recordToRecordLink2 = DataGroup.withNameInData("recordToRecordLink");
+		linkList.addChild(recordToRecordLink2);
+
+		DataRecordLink from2 = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("from",
+				"fromRecordType", "fromRecordId");
+		recordToRecordLink2.addChild(from2);
+
+		DataRecordLink to2 = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("to",
+				"toRecordType", "toRecordId");
+		recordToRecordLink2.addChild(to2);
+
 		recordsInMemory.create("fromRecordType", "fromRecordId", dataGroup, linkList);
 
 		DataGroup readLinkList = recordsInMemory.readLinkList("fromRecordType", "fromRecordId");
-		assertEquals(readLinkList.getChildren().size(), 1);
+		assertEquals(readLinkList.getChildren().size(), 2);
+
+		DataGroup generatedLinksPointToRecord = recordsInMemory
+				.generateLinkCollectionPointingToRecord("toRecordType", "toRecordId");
+		assertEquals(generatedLinksPointToRecord.getChildren().size(), 1);
+
+		DataGroup recordToRecordLinkOut = (DataGroup) generatedLinksPointToRecord.getChildren()
+				.get(0);
+		assertEquals(recordToRecordLinkOut.getNameInData(), "recordToRecordLink");
+		DataRecordLink fromOut = (DataRecordLink) recordToRecordLinkOut
+				.getFirstChildWithNameInData("from");
+		assertEquals(fromOut.getRecordType(), "fromRecordType");
+		assertEquals(fromOut.getRecordId(), "fromRecordId");
+
+		DataRecordLink toOut = (DataRecordLink) recordToRecordLinkOut
+				.getFirstChildWithNameInData("to");
+		assertEquals(toOut.getRecordType(), "toRecordType");
+		assertEquals(toOut.getRecordId(), "toRecordId");
+
+		DataGroup generatedLinksPointToRecord1 = recordsInMemory
+				.generateLinkCollectionPointingToRecord("toRecordType", "toRecordId");
+		assertEquals(generatedLinksPointToRecord1.getChildren().size(), 1);
+		DataGroup generatedLinksPointToRecord2 = recordsInMemory
+				.generateLinkCollectionPointingToRecord("toRecordType", "toRecordId2");
+		assertEquals(generatedLinksPointToRecord2.getChildren().size(), 0);
+		DataGroup generatedLinksPointToRecord3 = recordsInMemory
+				.generateLinkCollectionPointingToRecord("toRecordType2", "toRecordId2");
+		assertEquals(generatedLinksPointToRecord3.getChildren().size(), 0);
+	}
+
+	@Test
+	public void testCreateWithOutLink() {
+		DataGroup dataGroup = createDataGroupWithRecordInfo();
+
+		DataGroup linkList = DataGroup.withNameInData("collectedDataLinks");
+		recordsInMemory.create("fromRecordType", "fromRecordId", dataGroup, linkList);
+
+		DataGroup readLinkList = recordsInMemory.readLinkList("fromRecordType", "fromRecordId");
+		assertEquals(readLinkList.getChildren().size(), 0);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)

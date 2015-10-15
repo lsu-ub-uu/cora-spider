@@ -5,7 +5,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.metadataformat.data.DataRecordLink;
 
-public class SpiderDataRecordLink implements SpiderDataElement {
+public final class SpiderDataRecordLink implements SpiderDataElement {
 
 	private String nameInData;
 	private String recordType;
