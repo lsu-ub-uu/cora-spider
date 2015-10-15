@@ -12,6 +12,7 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 
 public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	private Map<String, Map<String, DataGroup>> records = new HashMap<>();
+	private Map<String, Map<String, DataGroup>> linkListStorage = new HashMap<>();
 
 	public RecordStorageInMemory() {
 		// Make it possible to use default empty record storage
@@ -30,11 +31,12 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public void create(String recordType, String recordId, DataGroup record) {
+	public void create(String recordType, String recordId, DataGroup record, DataGroup linkList) {
 		ensureRecordTypeStorageExists(recordType);
 		checkNoConflictOnRecordId(recordType, recordId);
 		DataGroup recordIndependentOfEnteredRecord = createIndependentCopy(record);
 		storeRecordByRecordTypeAndRecordId(recordType, recordId, recordIndependentOfEnteredRecord);
+		linkListStorage.get(recordType).put(recordId, linkList);
 	}
 
 	private void ensureRecordTypeStorageExists(String recordType) {
@@ -49,6 +51,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private void createHolderForRecordTypeInStorage(String recordType) {
 		records.put(recordType, new HashMap<String, DataGroup>());
+		linkListStorage.put(recordType, new HashMap<String, DataGroup>());
 	}
 
 	private void checkNoConflictOnRecordId(String recordType, String recordId) {
@@ -89,6 +92,12 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 		if (null == records.get(recordType).get(recordId)) {
 			throw new RecordNotFoundException("No record exists with recordId: " + recordId);
 		}
+	}
+
+	@Override
+	public DataGroup readLinkList(String recordType, String recordId) {
+		checkRecordExists(recordType, recordId);
+		return linkListStorage.get(recordType).get(recordId);
 	}
 
 	@Override

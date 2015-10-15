@@ -1,6 +1,7 @@
 package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.metadataformat.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.metadataformat.validator.DataValidator;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
@@ -22,7 +23,8 @@ public final class SpiderInstanceProvider {
 		throw new UnsupportedOperationException();
 	}
 
-	public static void setSpiderDependencyProvider(SpiderDependencyProvider spiderDependencyProvider) {
+	public static void setSpiderDependencyProvider(
+			SpiderDependencyProvider spiderDependencyProvider) {
 		SpiderInstanceProvider.spiderDependencyProvider = spiderDependencyProvider;
 	}
 
@@ -43,11 +45,13 @@ public final class SpiderInstanceProvider {
 		RecordIdGenerator recordIdGenerator = spiderDependencyProvider.getIdGenerator();
 		PermissionKeyCalculator permissionKeyCalculator = spiderDependencyProvider
 				.getPermissionKeyCalculator();
+		DataRecordLinkCollector linkCollector = spiderDependencyProvider
+				.getDataRecordLinkCollector();
 
 		return SpiderRecordCreatorImp
 				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculator(
 						authorizator, dataValidator, recordStorage, recordIdGenerator,
-						permissionKeyCalculator);
+						permissionKeyCalculator, linkCollector);
 	}
 
 	public static SpiderRecordUpdater getSpiderRecordUpdater() {

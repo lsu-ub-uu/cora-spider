@@ -1,6 +1,7 @@
 package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.metadataformat.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.metadataformat.validator.DataValidator;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
@@ -17,5 +18,7 @@ public interface SpiderDependencyProvider {
 	PermissionKeyCalculator getPermissionKeyCalculator();
 
 	DataValidator getDataValidator();
+
+	DataRecordLinkCollector getDataRecordLinkCollector();
 
 }

@@ -11,14 +11,12 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.metadataformat.data.DataAtomic;
 import se.uu.ub.cora.metadataformat.data.DataGroup;
-import se.uu.ub.cora.spider.record.storage.RecordConflictException;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
-import se.uu.ub.cora.spider.record.storage.RecordStorageInMemory;
+import se.uu.ub.cora.metadataformat.data.DataRecordLink;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
 public class RecordInMemoryStorageTest {
 	private RecordStorage recordsInMemory;
+	private DataGroup emptyLinkList = DataGroup.withNameInData("collectedDataLinks");
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -64,6 +62,28 @@ public class RecordInMemoryStorageTest {
 		return dataGroup;
 	}
 
+	@Test
+	public void testCreateWithLink() {
+		DataGroup dataGroup = createDataGroupWithRecordInfo();
+
+		DataGroup linkList = DataGroup.withNameInData("collectedDataLinks");
+		DataGroup recordToRecordLink = DataGroup.withNameInData("recordToRecordLink");
+		linkList.addChild(recordToRecordLink);
+
+		DataRecordLink from = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("from",
+				"fromRecordType", "fromRecordId");
+		recordToRecordLink.addChild(from);
+
+		DataRecordLink to = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("to",
+				"toRecordType", "toRecordId");
+		recordToRecordLink.addChild(to);
+
+		recordsInMemory.create("fromRecordType", "fromRecordId", dataGroup, linkList);
+
+		DataGroup readLinkList = recordsInMemory.readLinkList("fromRecordType", "fromRecordId");
+		assertEquals(readLinkList.getChildren().size(), 1);
+	}
+
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testInitWithNull() {
 		new RecordStorageInMemory(null);
@@ -86,7 +106,7 @@ public class RecordInMemoryStorageTest {
 
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
 
-		recordsInMemory.create("type", "place:0001", dataGroup);
+		recordsInMemory.create("type", "place:0001", dataGroup, emptyLinkList);
 		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
 		assertEquals(dataGroupOut.getNameInData(), dataGroup.getNameInData());
 	}
@@ -96,8 +116,8 @@ public class RecordInMemoryStorageTest {
 
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
 
-		recordsInMemory.create("type", "place:0001", dataGroup);
-		recordsInMemory.create("type", "place:0002", dataGroup);
+		recordsInMemory.create("type", "place:0001", dataGroup, emptyLinkList);
+		recordsInMemory.create("type", "place:0002", dataGroup, emptyLinkList);
 
 		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
 		assertEquals(dataGroupOut.getNameInData(), dataGroup.getNameInData());
@@ -110,7 +130,7 @@ public class RecordInMemoryStorageTest {
 	public void testCreateDataInStorageShouldBeIndependent() {
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue("childId", "childValue"));
-		recordsInMemory.create("type", "place:0001", dataGroup);
+		recordsInMemory.create("type", "place:0001", dataGroup, emptyLinkList);
 
 		dataGroup.getChildren().clear();
 
@@ -119,17 +139,19 @@ public class RecordInMemoryStorageTest {
 
 		assertEquals(child.getValue(), "childValue");
 	}
+
 	@Test(expectedExceptions = RecordConflictException.class)
 	public void testCreateConflict() {
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
-		recordsInMemory.create("type", "place1", dataGroup);
-		recordsInMemory.create("type", "place1", dataGroup);
+		recordsInMemory.create("type", "place1", dataGroup, emptyLinkList);
+		recordsInMemory.create("type", "place1", dataGroup, emptyLinkList);
 	}
+
 	@Test
 	public void testDelete() {
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
 
-		recordsInMemory.create("type", "place:0001", dataGroup);
+		recordsInMemory.create("type", "place:0001", dataGroup, emptyLinkList);
 		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
 		assertEquals(dataGroupOut.getNameInData(), dataGroup.getNameInData());
 
@@ -150,7 +172,7 @@ public class RecordInMemoryStorageTest {
 	public void testDeleteNotFound() {
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
 
-		recordsInMemory.create("type", "place:0001", dataGroup);
+		recordsInMemory.create("type", "place:0001", dataGroup, emptyLinkList);
 		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
 		assertEquals(dataGroupOut.getNameInData(), dataGroup.getNameInData());
 
@@ -161,7 +183,7 @@ public class RecordInMemoryStorageTest {
 	public void testUpdate() {
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue("childId", "childValue"));
-		recordsInMemory.create("type", "place:0001", dataGroup);
+		recordsInMemory.create("type", "place:0001", dataGroup, emptyLinkList);
 
 		DataGroup dataGroupOut = recordsInMemory.read("type", "place:0001");
 		DataAtomic child = (DataAtomic) dataGroupOut.getChildren().get(1);
@@ -188,7 +210,7 @@ public class RecordInMemoryStorageTest {
 	public void testUpdateNotFoundId() {
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue("childId", "childValue"));
-		recordsInMemory.create("type", "place:0001", dataGroup);
+		recordsInMemory.create("type", "place:0001", dataGroup, emptyLinkList);
 		recordsInMemory.update("type", "place:0002", dataGroup);
 	}
 
@@ -196,7 +218,7 @@ public class RecordInMemoryStorageTest {
 	public void testUpdateDataInStorageShouldBeIndependent() {
 		DataGroup dataGroup = createDataGroupWithRecordInfo();
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue("childId", "childValue"));
-		recordsInMemory.create("type", "place:0001", dataGroup);
+		recordsInMemory.create("type", "place:0001", dataGroup, emptyLinkList);
 		recordsInMemory.update("type", "place:0001", dataGroup);
 
 		dataGroup.getChildren().clear();

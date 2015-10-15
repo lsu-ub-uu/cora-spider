@@ -4,6 +4,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.metadataformat.data.DataGroup;
+import se.uu.ub.cora.metadataformat.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.metadataformat.validator.DataValidator;
 import se.uu.ub.cora.metadataformat.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.data.Action;
@@ -24,22 +25,25 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 	private DataValidator dataValidator;
 	private DataGroup recordTypeDefinition;
 	private SpiderDataGroup spiderDataGroup;
+	private DataRecordLinkCollector linkCollector;
 
 	public static SpiderRecordCreatorImp usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculator(
 			Authorizator authorization, DataValidator dataValidator, RecordStorage recordStorage,
-			RecordIdGenerator idGenerator, PermissionKeyCalculator keyCalculator) {
+			RecordIdGenerator idGenerator, PermissionKeyCalculator keyCalculator,
+			DataRecordLinkCollector linkCollector) {
 		return new SpiderRecordCreatorImp(authorization, dataValidator, recordStorage, idGenerator,
-				keyCalculator);
+				keyCalculator, linkCollector);
 	}
 
 	private SpiderRecordCreatorImp(Authorizator authorization, DataValidator dataValidator,
 			RecordStorage recordStorage, RecordIdGenerator idGenerator,
-			PermissionKeyCalculator keyCalculator) {
+			PermissionKeyCalculator keyCalculator, DataRecordLinkCollector linkCollector) {
 		this.authorization = authorization;
 		this.dataValidator = dataValidator;
 		this.recordStorage = recordStorage;
 		this.idGenerator = idGenerator;
 		this.keyCalculator = keyCalculator;
+		this.linkCollector = linkCollector;
 
 	}
 
@@ -60,13 +64,18 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 		// (true, false)
 		// set owning organisation
 
-		DataGroup record = spiderDataGroup.toDataGroup();
+		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
 
-		checkUserIsAuthorisedToCreateIncomingData(userId, recordType, record);
+		checkUserIsAuthorisedToCreateIncomingData(userId, recordType, topLevelDataGroup);
 
 		// send to storage
 		String id = extractIdFromData();
-		recordStorage.create(recordType, id, record);
+
+		String metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("newMetadataId");
+		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
+				recordType, id);
+
+		recordStorage.create(recordType, id, topLevelDataGroup, collectedLinks);
 
 		return createDataRecordContainingDataGroup(spiderDataGroup);
 	}
@@ -119,7 +128,8 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 	}
 
 	private boolean shouldAutoGenerateId(DataGroup recordTypeDataGroup) {
-		String userSuppliedId = recordTypeDataGroup.getFirstAtomicValueWithNameInData("userSuppliedId");
+		String userSuppliedId = recordTypeDataGroup
+				.getFirstAtomicValueWithNameInData("userSuppliedId");
 		return "false".equals(userSuppliedId);
 	}
 
@@ -136,8 +146,8 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 
 	private SpiderDataGroup createRecordInfo(String recordType) {
 		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData(RECORD_INFO);
-		recordInfo.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("id", idGenerator.getIdForType(recordType)));
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id",
+				idGenerator.getIdForType(recordType)));
 		return recordInfo;
 	}
 
