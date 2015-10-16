@@ -17,6 +17,9 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 	private RecordStorage recordStorage;
 	private PermissionKeyCalculator keyCalculator;
 	private SpiderRecordList readRecordList;
+	private String userId;
+	private String recordType;
+	private String recordId;
 
 	public static SpiderRecordReaderImp usingAuthorizationAndRecordStorageAndKeyCalculator(
 			Authorizator authorization, RecordStorage recordStorage,
@@ -33,32 +36,78 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 
 	@Override
 	public SpiderDataRecord readRecord(String userId, String recordType, String recordId) {
-		DataGroup recordTypeDataGroup = getRecordType(recordType);
-		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract"))) {
-			throw new MisuseException("Reading record: " + recordId + " on the abstract recordType:"
-					+ recordType + " is not allowed");
-		}
+		this.userId = userId;
+		this.recordType = recordType;
+		this.recordId = recordId;
+		checkRecordsRecordTypeNotAbstract();
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
-		// calculate permissionKey
-		String accessType = "READ";
-		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
-				recordRead);
-		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			throw new AuthorizationException("User:" + userId + " is not authorized to read record:"
-					+ recordId + " of type:" + recordType);
-		}
+		checkUserIsAuthorisedToReadData(recordRead);
 
 		// filter data
 		// TODO: filter hidden data if user does not have right to see it
 
-		return convertToSpiderDataGroup(recordRead);
+		return convertToSpiderDataRecord(recordRead);
+	}
+
+	private void checkRecordsRecordTypeNotAbstract() {
+		DataGroup recordTypeDataGroup = getRecordType(recordType);
+		if (recordTypeIsAbstract(recordTypeDataGroup)) {
+			throw new MisuseException("Reading for record: " + recordId
+					+ " on the abstract recordType:" + recordType + " is not allowed");
+		}
+	}
+
+	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
+		if (isNotAuthorizedToRead(recordRead)) {
+			throw new AuthorizationException(
+					"User:" + userId + " is not authorized to read for record:" + recordId
+							+ " of type:" + recordType);
+		}
+	}
+
+	private boolean isNotAuthorizedToRead(DataGroup recordRead) {
+		String accessType = "READ";
+		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
+				recordRead);
+		return !authorization.isAuthorized(userId, recordCalculateKeys);
+	}
+
+	private boolean recordTypeIsAbstract(DataGroup recordTypeDataGroup) {
+		return "true".equals(recordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract"));
+	}
+
+	private SpiderDataRecord convertToSpiderDataRecord(DataGroup dataGroup) {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
+		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
+		// add links
+		spiderDataRecord.addAction(Action.READ);
+		spiderDataRecord.addAction(Action.UPDATE);
+		spiderDataRecord.addAction(Action.DELETE);
+		return spiderDataRecord;
 	}
 
 	private DataGroup getRecordType(String recordType) {
 		return recordStorage.read(RECORD_TYPE, recordType);
 	}
 
+	@Override
+	public SpiderDataGroup readIncomingLinks(String userId, String recordType, String recordId) {
+		this.userId = userId;
+		this.recordType = recordType;
+		this.recordId = recordId;
+		checkRecordsRecordTypeNotAbstract();
+		DataGroup recordRead = recordStorage.read(recordType, recordId);
+
+		checkUserIsAuthorisedToReadData(recordRead);
+
+		DataGroup linksPointingToRecord = recordStorage
+				.generateLinkCollectionPointingToRecord(recordType, recordId);
+
+		return SpiderDataGroup.fromDataGroup(linksPointingToRecord);
+	}
+
+	// TODO: move readRecordList to a class of its own
 	@Override
 	public SpiderRecordList readRecordList(String userId, String recordType) {
 
@@ -130,19 +179,9 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String recordType) {
 		Collection<DataGroup> dataGroupList = recordStorage.readList(recordType);
 		for (DataGroup dataGroup : dataGroupList) {
-			SpiderDataRecord spiderDataRecord = convertToSpiderDataGroup(dataGroup);
+			SpiderDataRecord spiderDataRecord = convertToSpiderDataRecord(dataGroup);
 			readRecordList.addRecord(spiderDataRecord);
 		}
-	}
-
-	private SpiderDataRecord convertToSpiderDataGroup(DataGroup dataGroup) {
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
-		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
-		// add links
-		spiderDataRecord.addAction(Action.READ);
-		spiderDataRecord.addAction(Action.UPDATE);
-		spiderDataRecord.addAction(Action.DELETE);
-		return spiderDataRecord;
 	}
 
 	private void setFromToInReadRecordList() {

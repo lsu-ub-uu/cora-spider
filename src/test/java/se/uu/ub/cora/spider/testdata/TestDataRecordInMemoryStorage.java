@@ -2,6 +2,8 @@ package se.uu.ub.cora.spider.testdata;
 
 import se.uu.ub.cora.metadataformat.data.DataAtomic;
 import se.uu.ub.cora.metadataformat.data.DataGroup;
+import se.uu.ub.cora.metadataformat.data.DataRecordLink;
+import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.record.storage.RecordStorageInMemory;
 
 public class TestDataRecordInMemoryStorage {
@@ -9,6 +11,7 @@ public class TestDataRecordInMemoryStorage {
 	public static RecordStorageInMemory createRecordStorageInMemoryWithTestData() {
 		RecordStorageInMemory recordsInMemory = new RecordStorageInMemory();
 		addPlace(recordsInMemory);
+		addSecondPlace(recordsInMemory);
 		addMetadata(recordsInMemory);
 		addPresentation(recordsInMemory);
 		addText(recordsInMemory);
@@ -53,6 +56,28 @@ public class TestDataRecordInMemoryStorage {
 		dataGroup.addChild(recordInfo);
 		recordsInMemory.create("place", "place:0001", dataGroup,
 				DataGroup.withNameInData("collectedLinksList"));
+	}
+
+	private static void addSecondPlace(RecordStorage recordsInMemory) {
+		DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
+		recordInfo.addChild(DataAtomic.withNameInDataAndValue("type", "place"));
+		recordInfo.addChild(DataAtomic.withNameInDataAndValue("id", "place:0002"));
+
+		DataGroup dataGroup = DataGroup.withNameInData("authority");
+		dataGroup.addChild(recordInfo);
+
+		// create link to place:0001
+		DataGroup collectedLinksList = DataGroup.withNameInData("collectedLinksList");
+		DataGroup recordToRecordLink = DataGroup.withNameInData("recordToRecordLink");
+		DataRecordLink from = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("from", "place",
+				"place:0002");
+		recordToRecordLink.addChild(from);
+		DataRecordLink to = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("to", "place",
+				"place:0001");
+		recordToRecordLink.addChild(to);
+
+		collectedLinksList.addChild(recordToRecordLink);
+		recordsInMemory.create("place", "place:0002", dataGroup, collectedLinksList);
 	}
 
 	private static void addMetadata(RecordStorageInMemory recordsInMemory) {

@@ -13,6 +13,7 @@ import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.data.SpiderRecordList;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
@@ -47,14 +48,47 @@ public class SpiderRecordReaderTest {
 	}
 
 	@Test
+	public void testReadIncomingLinks() {
+		SpiderDataGroup linksPointingToRecord = recordReader.readIncomingLinks("userId", "place",
+				"place:0001");
+		assertEquals(linksPointingToRecord.getNameInData(), "incomingRecordLinks");
+		assertEquals(linksPointingToRecord.getChildren().size(), 1);
+		SpiderDataGroup link = (SpiderDataGroup) linksPointingToRecord.getChildren().iterator()
+				.next();
+		assertEquals(link.getNameInData(), "recordToRecordLink");
+		SpiderDataRecordLink from = (SpiderDataRecordLink) link.getFirstChildWithNameInData("from");
+		assertEquals(from.getRecordType(), "place");
+		assertEquals(from.getRecordId(), "place:0002");
+
+		SpiderDataRecordLink to = (SpiderDataRecordLink) link.getFirstChildWithNameInData("to");
+		assertEquals(to.getRecordType(), "place");
+		assertEquals(to.getRecordId(), "place:0001");
+
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void testReadIncomingLinksUnauthorized() {
+		recordReader.readIncomingLinks("unauthorizedUserId", "place", "place:0001");
+	}
+
+	@Test(expectedExceptions = MisuseException.class)
+	public void testReadIncomingLinksAbstractType() {
+		RecordStorageSpy recordStorageListReaderSpy = new RecordStorageSpy();
+		SpiderRecordReader recordReader = SpiderRecordReaderImp
+				.usingAuthorizationAndRecordStorageAndKeyCalculator(authorization,
+						recordStorageListReaderSpy, keyCalculator);
+		recordReader.readIncomingLinks("userId", "abstract", "place:0001");
+	}
+
+	@Test
 	public void testReadListAuthorized() {
 		String userId = "userId";
 		String type = "place";
 		SpiderRecordList readRecordList = recordReader.readRecordList(userId, type);
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1",
-				"Total number of records should be 1");
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "2",
+				"Total number of records should be 2");
 		assertEquals(readRecordList.getFromNo(), "0");
-		assertEquals(readRecordList.getToNo(), "0");
+		assertEquals(readRecordList.getToNo(), "1");
 		List<SpiderDataRecord> records = readRecordList.getRecords();
 		SpiderDataRecord spiderDataRecord = records.iterator().next();
 		assertNotNull(spiderDataRecord);
