@@ -58,6 +58,14 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 		}
 	}
 
+	private DataGroup getRecordType(String recordType) {
+		return recordStorage.read(RECORD_TYPE, recordType);
+	}
+
+	private boolean recordTypeIsAbstract(DataGroup recordTypeDataGroup) {
+		return "true".equals(recordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract"));
+	}
+
 	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
 		if (isNotAuthorizedToRead(recordRead)) {
 			throw new AuthorizationException(
@@ -73,22 +81,18 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 		return !authorization.isAuthorized(userId, recordCalculateKeys);
 	}
 
-	private boolean recordTypeIsAbstract(DataGroup recordTypeDataGroup) {
-		return "true".equals(recordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract"));
-	}
-
 	private SpiderDataRecord convertToSpiderDataRecord(DataGroup dataGroup) {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
-		// add links
-		spiderDataRecord.addAction(Action.READ);
-		spiderDataRecord.addAction(Action.UPDATE);
-		spiderDataRecord.addAction(Action.DELETE);
+		addLinks(spiderDataRecord);
 		return spiderDataRecord;
 	}
 
-	private DataGroup getRecordType(String recordType) {
-		return recordStorage.read(RECORD_TYPE, recordType);
+	private void addLinks(SpiderDataRecord spiderDataRecord) {
+		spiderDataRecord.addAction(Action.READ);
+		spiderDataRecord.addAction(Action.UPDATE);
+		spiderDataRecord.addAction(Action.DELETE);
+		spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
 	}
 
 	@Override

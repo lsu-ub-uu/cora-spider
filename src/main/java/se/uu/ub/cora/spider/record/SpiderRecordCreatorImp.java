@@ -172,10 +172,10 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 	}
 
 	private void addLinks(SpiderDataRecord spiderDataRecord) {
-		// add links
 		spiderDataRecord.addAction(Action.READ);
 		spiderDataRecord.addAction(Action.UPDATE);
 		spiderDataRecord.addAction(Action.DELETE);
+		spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
 	}
 
 }

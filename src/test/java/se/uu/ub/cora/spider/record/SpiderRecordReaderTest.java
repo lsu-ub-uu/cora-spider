@@ -2,6 +2,7 @@ package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 import java.util.List;
 
@@ -11,10 +12,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
-import se.uu.ub.cora.spider.data.SpiderRecordList;
+import se.uu.ub.cora.spider.data.*;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
@@ -104,6 +102,13 @@ public class SpiderRecordReaderTest {
 
 		Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child1"));
 		Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child2"));
+	}
+
+	@Test
+	public void testActionsOnReadRecord(){
+		SpiderDataRecord record = recordReader.readRecord("userId", "place", "place:0001");
+		assertEquals(record.getActions().size(), 4);
+		assertTrue(record.getActions().contains(Action.DELETE));
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)

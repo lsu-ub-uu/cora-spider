@@ -142,6 +142,7 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 		spiderDataRecord.addAction(Action.READ);
 		spiderDataRecord.addAction(Action.UPDATE);
 		spiderDataRecord.addAction(Action.DELETE);
+		spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
 	}
 
 }
