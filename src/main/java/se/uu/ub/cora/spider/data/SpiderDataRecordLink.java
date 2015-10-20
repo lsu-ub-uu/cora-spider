@@ -11,6 +11,7 @@ public final class SpiderDataRecordLink implements SpiderDataElement {
 	private String recordType;
 	private String recordId;
 	private Set<Action> actions = new HashSet<>();
+	private String repeatId;
 
 	public static SpiderDataRecordLink withNameInDataAndRecordTypeAndRecordId(String nameInData,
 			String recordType, String recordId) {
@@ -24,9 +25,10 @@ public final class SpiderDataRecordLink implements SpiderDataElement {
 	}
 
 	private SpiderDataRecordLink(DataRecordLink dataRecordLink) {
-		this.nameInData = dataRecordLink.getNameInData();
-		this.recordType = dataRecordLink.getRecordType();
-		this.recordId = dataRecordLink.getRecordId();
+		nameInData = dataRecordLink.getNameInData();
+		recordType = dataRecordLink.getRecordType();
+		recordId = dataRecordLink.getRecordId();
+		repeatId = dataRecordLink.getRepeatId();
 	}
 
 	@Override
@@ -51,12 +53,22 @@ public final class SpiderDataRecordLink implements SpiderDataElement {
 	}
 
 	public DataRecordLink toDataRecordLink() {
-		return DataRecordLink.withNameInDataAndRecordTypeAndRecordId(nameInData, recordType,
-				recordId);
+		DataRecordLink dataRecordLink = DataRecordLink
+				.withNameInDataAndRecordTypeAndRecordId(nameInData, recordType, recordId);
+		dataRecordLink.setRepeatId(repeatId);
+		return dataRecordLink;
 	}
 
 	public static SpiderDataRecordLink fromDataRecordLink(DataRecordLink dataRecordLink) {
 		return new SpiderDataRecordLink(dataRecordLink);
+	}
+
+	public void setRepeatId(String repeatId) {
+		this.repeatId = repeatId;
+	}
+
+	public String getRepeatId() {
+		return repeatId;
 	}
 
 }

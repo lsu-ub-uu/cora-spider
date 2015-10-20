@@ -28,6 +28,16 @@ public class SpiderDataGroupTest {
 	}
 
 	@Test
+	public void testInitWithRepeatId() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		spiderDataGroup.setRepeatId("hrumph");
+		assertEquals(spiderDataGroup.getNameInData(), "nameInData");
+		assertNotNull(spiderDataGroup.getAttributes());
+		assertNotNull(spiderDataGroup.getChildren());
+		assertEquals(spiderDataGroup.getRepeatId(), "hrumph");
+	}
+
+	@Test
 	public void testAddAttribute() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
 		spiderDataGroup.addAttributeByIdWithValue("nameInData", "value");
@@ -71,6 +81,15 @@ public class SpiderDataGroupTest {
 		DataGroup dataGroup = DataGroup.withNameInData("nameInData");
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		assertEquals(spiderDataGroup.getNameInData(), "nameInData");
+	}
+
+	@Test
+	public void testFromDataGroupWithRepeatId() {
+		DataGroup dataGroup = DataGroup.withNameInData("nameInData");
+		dataGroup.setRepeatId("puh");
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
+		assertEquals(spiderDataGroup.getNameInData(), "nameInData");
+		assertEquals(spiderDataGroup.getRepeatId(), "puh");
 	}
 
 	@Test
@@ -138,6 +157,17 @@ public class SpiderDataGroupTest {
 		assertEquals(dataGroup.getNameInData(), "nameInData");
 		assertNotNull(dataGroup.getAttributes());
 		assertNotNull(dataGroup.getChildren());
+	}
+
+	@Test
+	public void testToDataGroupWithRepeatId() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		spiderDataGroup.setRepeatId("nalle");
+		DataGroup dataGroup = spiderDataGroup.toDataGroup();
+		assertEquals(dataGroup.getNameInData(), "nameInData");
+		assertNotNull(dataGroup.getAttributes());
+		assertNotNull(dataGroup.getChildren());
+		assertEquals(dataGroup.getRepeatId(), "nalle");
 	}
 
 	@Test

@@ -6,6 +6,7 @@ public final class SpiderDataAtomic implements SpiderDataElement {
 
 	private String nameInData;
 	private String value;
+	private String repeatId;
 
 	private SpiderDataAtomic(String nameInData, String value) {
 		this.nameInData = nameInData;
@@ -23,6 +24,7 @@ public final class SpiderDataAtomic implements SpiderDataElement {
 	private SpiderDataAtomic(DataAtomic dataAtomic) {
 		nameInData = dataAtomic.getNameInData();
 		value = dataAtomic.getValue();
+		repeatId = dataAtomic.getRepeatId();
 	}
 
 	@Override
@@ -35,7 +37,17 @@ public final class SpiderDataAtomic implements SpiderDataElement {
 	}
 
 	public DataAtomic toDataAtomic() {
-		return DataAtomic.withNameInDataAndValue(nameInData, value);
+		DataAtomic dataAtomic = DataAtomic.withNameInDataAndValue(nameInData, value);
+		dataAtomic.setRepeatId(repeatId);
+		return dataAtomic;
+	}
+
+	public void setRepeatId(String repeatId) {
+		this.repeatId = repeatId;
+	}
+
+	public String getRepeatId() {
+		return repeatId;
 	}
 
 }

@@ -27,6 +27,15 @@ public class SpiderDataRecordLinkTest {
 	}
 
 	@Test
+	public void testInitWithRepeatId() {
+		spiderRecordLink.setRepeatId("hugh");
+		assertEquals(spiderRecordLink.getNameInData(), "nameInData");
+		assertEquals(spiderRecordLink.getRecordType(), "recordType");
+		assertEquals(spiderRecordLink.getRecordId(), "recordId");
+		assertEquals(spiderRecordLink.getRepeatId(), "hugh");
+	}
+
+	@Test
 	public void testAddAction() {
 		spiderRecordLink.addAction(Action.READ);
 
@@ -46,6 +55,16 @@ public class SpiderDataRecordLinkTest {
 	}
 
 	@Test
+	public void testToDataRecordLinkWithRepeatId() {
+		spiderRecordLink.setRepeatId("essan");
+		DataRecordLink dataRecordLink = spiderRecordLink.toDataRecordLink();
+		assertEquals(dataRecordLink.getNameInData(), "nameInData");
+		assertEquals(dataRecordLink.getRecordType(), "recordType");
+		assertEquals(dataRecordLink.getRecordId(), "recordId");
+		assertEquals(dataRecordLink.getRepeatId(), "essan");
+	}
+
+	@Test
 	public void testFromDataRecordLink() {
 		DataRecordLink dataRecordLink = DataRecordLink
 				.withNameInDataAndRecordTypeAndRecordId("nameInData", "recordType", "recordId");
@@ -54,5 +73,18 @@ public class SpiderDataRecordLinkTest {
 		assertEquals(spiderDataRecordLink.getNameInData(), "nameInData");
 		assertEquals(spiderDataRecordLink.getRecordType(), "recordType");
 		assertEquals(spiderDataRecordLink.getRecordId(), "recordId");
+	}
+
+	@Test
+	public void testFromDataRecordLinkWithRepeatId() {
+		DataRecordLink dataRecordLink = DataRecordLink
+				.withNameInDataAndRecordTypeAndRecordId("nameInData", "recordType", "recordId");
+		dataRecordLink.setRepeatId("roi");
+		SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink
+				.fromDataRecordLink(dataRecordLink);
+		assertEquals(spiderDataRecordLink.getNameInData(), "nameInData");
+		assertEquals(spiderDataRecordLink.getRecordType(), "recordType");
+		assertEquals(spiderDataRecordLink.getRecordId(), "recordId");
+		assertEquals(spiderDataRecordLink.getRepeatId(), "roi");
 	}
 }
