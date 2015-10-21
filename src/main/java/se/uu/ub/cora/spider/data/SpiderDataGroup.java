@@ -35,6 +35,7 @@ public final class SpiderDataGroup implements SpiderDataElement {
 	private String nameInData;
 	private Map<String, String> attributes = new HashMap<>();
 	private List<SpiderDataElement> children = new ArrayList<>();
+	private String repeatId;
 
 	public static SpiderDataGroup withNameInData(String nameInData) {
 		return new SpiderDataGroup(nameInData);
@@ -50,6 +51,7 @@ public final class SpiderDataGroup implements SpiderDataElement {
 
 	private SpiderDataGroup(DataGroup dataGroup) {
 		nameInData = dataGroup.getNameInData();
+		repeatId = dataGroup.getRepeatId();
 		attributes.putAll(dataGroup.getAttributes());
 		convertAndSetChildren(dataGroup);
 	}
@@ -93,6 +95,7 @@ public final class SpiderDataGroup implements SpiderDataElement {
 
 	public DataGroup toDataGroup() {
 		DataGroup dataGroup = DataGroup.withNameInData(nameInData);
+		dataGroup.setRepeatId(repeatId);
 		addAttributesToDataGroup(dataGroup);
 
 		addChildrenToDataGroup(dataGroup);
@@ -156,5 +159,13 @@ public final class SpiderDataGroup implements SpiderDataElement {
 			}
 		}
 		throw new DataMissingException("Requested dataAtomic " + atomicId + " does not exist");
+	}
+
+	public void setRepeatId(String repeatId) {
+		this.repeatId = repeatId;
+	}
+
+	public String getRepeatId() {
+		return repeatId;
 	}
 }
