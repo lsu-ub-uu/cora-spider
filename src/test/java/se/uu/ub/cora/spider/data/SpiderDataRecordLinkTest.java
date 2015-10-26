@@ -7,7 +7,10 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.metadataformat.data.DataGroup;
 import se.uu.ub.cora.metadataformat.data.DataRecordLink;
+
+import javax.xml.crypto.Data;
 
 public class SpiderDataRecordLinkTest {
 	private SpiderDataRecordLink spiderRecordLink;
@@ -33,6 +36,20 @@ public class SpiderDataRecordLinkTest {
 		assertEquals(spiderRecordLink.getRecordType(), "recordType");
 		assertEquals(spiderRecordLink.getRecordId(), "recordId");
 		assertEquals(spiderRecordLink.getRepeatId(), "hugh");
+	}
+
+	@Test
+	public void testInitWithLinkedRepeatId(){
+		spiderRecordLink.setLinkedRepeatId("1");
+		assertEquals(spiderRecordLink.getNameInData(), "nameInData");
+		assertEquals(spiderRecordLink.getLinkedRepeatId(), "1");
+	}
+
+	@Test
+	public void testInitWithLinkedPath(){
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("linkedPathDataGroup");
+		spiderRecordLink.setLinkedPath(spiderDataGroup);
+		assertEquals(spiderRecordLink.getLinkedPath().getNameInData(), "linkedPathDataGroup");
 	}
 
 	@Test
@@ -65,6 +82,22 @@ public class SpiderDataRecordLinkTest {
 	}
 
 	@Test
+	public void testToDataRecordWithLinkedRepeatId(){
+		spiderRecordLink.setLinkedRepeatId("one");
+		DataRecordLink dataRecordLink = spiderRecordLink.toDataRecordLink();
+		assertEquals(dataRecordLink.getLinkedRepeatId(), "one");
+	}
+
+	@Test
+	public void testToDataRecordWithLinkedPath(){
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("linkedPathDataGroup");
+		spiderRecordLink.setLinkedPath(spiderDataGroup);
+		DataRecordLink dataRecordLink = spiderRecordLink.toDataRecordLink();
+		assertEquals(dataRecordLink.getLinkedPath().getNameInData(), "linkedPathDataGroup");
+	}
+
+
+	@Test
 	public void testFromDataRecordLink() {
 		DataRecordLink dataRecordLink = DataRecordLink
 				.withNameInDataAndRecordTypeAndRecordId("nameInData", "recordType", "recordId");
@@ -86,5 +119,21 @@ public class SpiderDataRecordLinkTest {
 		assertEquals(spiderDataRecordLink.getRecordType(), "recordType");
 		assertEquals(spiderDataRecordLink.getRecordId(), "recordId");
 		assertEquals(spiderDataRecordLink.getRepeatId(), "roi");
+	}
+
+	@Test
+	public void testFromDataRecordLinkWithLinkedRepeatId(){
+		DataRecordLink dataRecordLink = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("nameInData", "recordType", "recordId");
+		dataRecordLink.setLinkedRepeatId("linkedOne");
+		SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink.fromDataRecordLink(dataRecordLink);
+		assertEquals(spiderDataRecordLink.getLinkedRepeatId(), "linkedOne");
+	}
+
+	@Test
+	public void testFromDataRecordLinkWithLinkedLinkedPath(){
+		DataRecordLink dataRecordLink = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("nameInData", "recordType", "recordId");
+		dataRecordLink.setLinkedPath(DataGroup.withNameInData("linkedPath"));
+		SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink.fromDataRecordLink(dataRecordLink);
+		assertEquals(spiderDataRecordLink.getLinkedPath().getNameInData(), "linkedPath");
 	}
 }

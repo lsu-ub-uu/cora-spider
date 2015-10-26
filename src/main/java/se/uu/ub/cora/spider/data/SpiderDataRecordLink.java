@@ -31,6 +31,8 @@ public final class SpiderDataRecordLink implements SpiderDataElement {
 	private String recordId;
 	private Set<Action> actions = new HashSet<>();
 	private String repeatId;
+	private String linkedRepeatId;
+	private SpiderDataGroup linkedPath;
 
 	public static SpiderDataRecordLink withNameInDataAndRecordTypeAndRecordId(String nameInData,
 			String recordType, String recordId) {
@@ -48,6 +50,10 @@ public final class SpiderDataRecordLink implements SpiderDataElement {
 		recordType = dataRecordLink.getRecordType();
 		recordId = dataRecordLink.getRecordId();
 		repeatId = dataRecordLink.getRepeatId();
+		linkedRepeatId = dataRecordLink.getLinkedRepeatId();
+		if(dataRecordLink.getLinkedPath() != null){
+			linkedPath = SpiderDataGroup.fromDataGroup(dataRecordLink.getLinkedPath());
+		}
 	}
 
 	@Override
@@ -75,7 +81,15 @@ public final class SpiderDataRecordLink implements SpiderDataElement {
 		DataRecordLink dataRecordLink = DataRecordLink
 				.withNameInDataAndRecordTypeAndRecordId(nameInData, recordType, recordId);
 		dataRecordLink.setRepeatId(repeatId);
+		dataRecordLink.setLinkedRepeatId(linkedRepeatId);
+		addLinkedPathIfItExists(dataRecordLink);
 		return dataRecordLink;
+	}
+
+	private void addLinkedPathIfItExists(DataRecordLink dataRecordLink) {
+		if(linkedPath != null) {
+			dataRecordLink.setLinkedPath(linkedPath.toDataGroup());
+		}
 	}
 
 	public static SpiderDataRecordLink fromDataRecordLink(DataRecordLink dataRecordLink) {
@@ -90,4 +104,19 @@ public final class SpiderDataRecordLink implements SpiderDataElement {
 		return repeatId;
 	}
 
+	public void setLinkedRepeatId(String linkedRepeatId) {
+		this.linkedRepeatId = linkedRepeatId;
+	}
+
+	public String getLinkedRepeatId() {
+		return linkedRepeatId;
+	}
+
+	public void setLinkedPath(SpiderDataGroup linkedPath) {
+		this.linkedPath = linkedPath;
+	}
+
+	public SpiderDataGroup getLinkedPath() {
+		return linkedPath;
+	}
 }
