@@ -51,6 +51,10 @@ public final class SpiderDataRecordLink implements SpiderDataElement {
 		recordId = dataRecordLink.getRecordId();
 		repeatId = dataRecordLink.getRepeatId();
 		linkedRepeatId = dataRecordLink.getLinkedRepeatId();
+		addLinkedPathFromDataRecordLinkIfItExists(dataRecordLink);
+	}
+
+	private void addLinkedPathFromDataRecordLinkIfItExists(DataRecordLink dataRecordLink) {
 		if(dataRecordLink.getLinkedPath() != null){
 			linkedPath = SpiderDataGroup.fromDataGroup(dataRecordLink.getLinkedPath());
 		}
@@ -82,11 +86,11 @@ public final class SpiderDataRecordLink implements SpiderDataElement {
 				.withNameInDataAndRecordTypeAndRecordId(nameInData, recordType, recordId);
 		dataRecordLink.setRepeatId(repeatId);
 		dataRecordLink.setLinkedRepeatId(linkedRepeatId);
-		addLinkedPathIfItExists(dataRecordLink);
+		addLinkedPathToDataRecordLinkIfItExists(dataRecordLink);
 		return dataRecordLink;
 	}
 
-	private void addLinkedPathIfItExists(DataRecordLink dataRecordLink) {
+	private void addLinkedPathToDataRecordLinkIfItExists(DataRecordLink dataRecordLink) {
 		if(linkedPath != null) {
 			dataRecordLink.setLinkedPath(linkedPath.toDataGroup());
 		}
