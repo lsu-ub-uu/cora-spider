@@ -29,7 +29,7 @@ public class TestDataRecordInMemoryStorage {
 				DataGroup.withNameInData("collectedLinksList"));
 		recordsInMemory.create("metadataTextVariable", "dummy1", dummy,
 				DataGroup.withNameInData("collectedLinksList"));
-		recordsInMemory.create("metadataDataToDataLink", "dummy1", dummy,
+		recordsInMemory.create("metadataRecordLink", "dummy1", dummy,
 				DataGroup.withNameInData("collectedLinksList"));
 		return recordsInMemory;
 	}
