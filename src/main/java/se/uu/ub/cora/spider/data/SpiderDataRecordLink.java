@@ -22,7 +22,7 @@ package se.uu.ub.cora.spider.data;
 import java.util.HashSet;
 import java.util.Set;
 
-import se.uu.ub.cora.metadataformat.data.DataRecordLink;
+import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 
 public final class SpiderDataRecordLink implements SpiderDataElement {
 

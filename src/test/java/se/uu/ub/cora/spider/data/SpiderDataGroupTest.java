@@ -13,10 +13,10 @@ import java.util.Map.Entry;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.metadataformat.data.DataAtomic;
-import se.uu.ub.cora.metadataformat.data.DataElement;
-import se.uu.ub.cora.metadataformat.data.DataGroup;
-import se.uu.ub.cora.metadataformat.data.DataRecordLink;
+import se.uu.ub.cora.bookkeeper.data.DataAtomic;
+import se.uu.ub.cora.bookkeeper.data.DataElement;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 
 public class SpiderDataGroupTest {
 	@Test

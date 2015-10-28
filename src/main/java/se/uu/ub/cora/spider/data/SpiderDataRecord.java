@@ -22,7 +22,7 @@ package se.uu.ub.cora.spider.data;
 import java.util.HashSet;
 import java.util.Set;
 
-import se.uu.ub.cora.metadataformat.data.DataRecord;
+import se.uu.ub.cora.bookkeeper.data.DataRecord;
 
 public final class SpiderDataRecord {
 	private Set<String> keys = new HashSet<>();

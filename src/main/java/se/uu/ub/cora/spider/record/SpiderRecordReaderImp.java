@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
-import se.uu.ub.cora.metadataformat.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;

@@ -4,7 +4,7 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.metadataformat.data.DataAttribute;
+import se.uu.ub.cora.bookkeeper.data.DataAttribute;
 import se.uu.ub.cora.spider.data.SpiderDataAttribute;
 
 public class SpiderDataAttributeTest {

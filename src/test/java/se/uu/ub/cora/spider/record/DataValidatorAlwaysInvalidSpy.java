@@ -1,8 +1,8 @@
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.metadataformat.data.DataElement;
-import se.uu.ub.cora.metadataformat.validator.DataValidator;
-import se.uu.ub.cora.metadataformat.validator.ValidationAnswer;
+import se.uu.ub.cora.bookkeeper.data.DataElement;
+import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 
 public class DataValidatorAlwaysInvalidSpy implements DataValidator {
 	public boolean validateDataWasCalled = false;

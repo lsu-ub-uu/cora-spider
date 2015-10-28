@@ -7,8 +7,8 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.metadataformat.data.DataGroup;
-import se.uu.ub.cora.metadataformat.data.DataRecordLink;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 
 public class SpiderDataRecordLinkTest {
 	private SpiderDataRecordLink spiderRecordLink;

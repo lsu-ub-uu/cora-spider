@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.record.storage;
 
 import java.util.Collection;
 
-import se.uu.ub.cora.metadataformat.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public interface RecordStorage {
 

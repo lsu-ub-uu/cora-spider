@@ -6,7 +6,7 @@ import java.util.Set;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.metadataformat.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.record.RecordPermissionKeyCalculator;
 

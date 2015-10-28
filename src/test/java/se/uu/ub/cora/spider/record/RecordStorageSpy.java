@@ -3,8 +3,8 @@ package se.uu.ub.cora.spider.record;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import se.uu.ub.cora.metadataformat.data.DataAtomic;
-import se.uu.ub.cora.metadataformat.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.data.DataAtomic;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class RecordStorageSpy implements RecordStorage {

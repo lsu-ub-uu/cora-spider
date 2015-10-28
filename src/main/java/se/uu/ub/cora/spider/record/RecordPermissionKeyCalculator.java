@@ -22,7 +22,7 @@ package se.uu.ub.cora.spider.record;
 import java.util.HashSet;
 import java.util.Set;
 
-import se.uu.ub.cora.metadataformat.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public class RecordPermissionKeyCalculator implements PermissionKeyCalculator {
 

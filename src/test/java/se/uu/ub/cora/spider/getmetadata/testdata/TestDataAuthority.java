@@ -1,9 +1,9 @@
 package se.uu.ub.cora.spider.getmetadata.testdata;
 
-import se.uu.ub.cora.metadataformat.metadata.MetadataChildReference;
-import se.uu.ub.cora.metadataformat.metadata.MetadataGroup;
-import se.uu.ub.cora.metadataformat.metadata.MetadataHolder;
-import se.uu.ub.cora.metadataformat.metadata.TextVariable;
+import se.uu.ub.cora.bookkeeper.metadata.MetadataChildReference;
+import se.uu.ub.cora.bookkeeper.metadata.MetadataGroup;
+import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
+import se.uu.ub.cora.bookkeeper.metadata.TextVariable;
 
 public class TestDataAuthority {
 	public static MetadataHolder createTestAuthorityMetadataHolder() {

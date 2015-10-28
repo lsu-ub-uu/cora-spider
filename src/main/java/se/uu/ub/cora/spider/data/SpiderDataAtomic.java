@@ -19,7 +19,7 @@
 
 package se.uu.ub.cora.spider.data;
 
-import se.uu.ub.cora.metadataformat.data.DataAtomic;
+import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 
 public final class SpiderDataAtomic implements SpiderDataElement {
 

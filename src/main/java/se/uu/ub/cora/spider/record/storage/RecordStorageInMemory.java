@@ -24,11 +24,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import se.uu.ub.cora.metadataformat.data.DataElement;
-import se.uu.ub.cora.metadataformat.data.DataGroup;
-import se.uu.ub.cora.metadataformat.data.DataRecordLink;
-import se.uu.ub.cora.metadataformat.metadata.MetadataTypes;
-import se.uu.ub.cora.metadataformat.storage.MetadataStorage;
+import se.uu.ub.cora.bookkeeper.data.DataElement;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
+import se.uu.ub.cora.bookkeeper.metadata.MetadataTypes;
+import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 
 public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
