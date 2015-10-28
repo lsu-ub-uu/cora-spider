@@ -55,12 +55,12 @@ public class SpiderRecordReaderTest {
 				.next();
 		assertEquals(link.getNameInData(), "recordToRecordLink");
 		SpiderDataRecordLink from = (SpiderDataRecordLink) link.getFirstChildWithNameInData("from");
-		assertEquals(from.getRecordType(), "place");
-		assertEquals(from.getRecordId(), "place:0002");
+		assertEquals(from.getLinkedRecordType(), "place");
+		assertEquals(from.getLinkedRecordId(), "place:0002");
 
 		SpiderDataRecordLink to = (SpiderDataRecordLink) link.getFirstChildWithNameInData("to");
-		assertEquals(to.getRecordType(), "place");
-		assertEquals(to.getRecordId(), "place:0001");
+		assertEquals(to.getLinkedRecordType(), "place");
+		assertEquals(to.getLinkedRecordId(), "place:0001");
 
 	}
 

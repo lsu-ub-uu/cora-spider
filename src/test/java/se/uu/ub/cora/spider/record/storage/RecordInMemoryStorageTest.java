@@ -70,22 +70,22 @@ public class RecordInMemoryStorageTest {
 		DataGroup recordToRecordLink = DataGroup.withNameInData("recordToRecordLink");
 		linkList.addChild(recordToRecordLink);
 
-		DataRecordLink from = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("from",
+		DataRecordLink from = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("from",
 				"fromRecordType", "fromRecordId");
 		recordToRecordLink.addChild(from);
 
-		DataRecordLink to = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("to",
+		DataRecordLink to = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("to",
 				"toRecordType", "toRecordId");
 		recordToRecordLink.addChild(to);
 
 		DataGroup recordToRecordLink2 = DataGroup.withNameInData("recordToRecordLink");
 		linkList.addChild(recordToRecordLink2);
 
-		DataRecordLink from2 = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("from",
+		DataRecordLink from2 = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("from",
 				"fromRecordType", "fromRecordId");
 		recordToRecordLink2.addChild(from2);
 
-		DataRecordLink to2 = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("to",
+		DataRecordLink to2 = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("to",
 				"toRecordType", "toRecordId");
 		recordToRecordLink2.addChild(to2);
 
@@ -103,13 +103,13 @@ public class RecordInMemoryStorageTest {
 		assertEquals(recordToRecordLinkOut.getNameInData(), "recordToRecordLink");
 		DataRecordLink fromOut = (DataRecordLink) recordToRecordLinkOut
 				.getFirstChildWithNameInData("from");
-		assertEquals(fromOut.getRecordType(), "fromRecordType");
-		assertEquals(fromOut.getRecordId(), "fromRecordId");
+		assertEquals(fromOut.getLinkedRecordType(), "fromRecordType");
+		assertEquals(fromOut.getLinkedRecordId(), "fromRecordId");
 
 		DataRecordLink toOut = (DataRecordLink) recordToRecordLinkOut
 				.getFirstChildWithNameInData("to");
-		assertEquals(toOut.getRecordType(), "toRecordType");
-		assertEquals(toOut.getRecordId(), "toRecordId");
+		assertEquals(toOut.getLinkedRecordType(), "toRecordType");
+		assertEquals(toOut.getLinkedRecordId(), "toRecordId");
 
 		DataGroup generatedLinksPointToRecord1 = recordsInMemory
 				.generateLinkCollectionPointingToRecord("toRecordType", "toRecordId");
