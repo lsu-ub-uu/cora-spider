@@ -125,8 +125,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private Map<String, Map<String, DataGroup>> getStorageForLink(DataGroup link) {
 		DataRecordLink to = (DataRecordLink) link.getFirstChildWithNameInData("to");
-		String toType = to.getRecordType();
-		String toId = to.getRecordId();
+		String toType = to.getLinkedRecordType();
+		String toId = to.getLinkedRecordId();
 
 		ensureLinkStorageForTargetTypeAndId(toType, toId);
 
@@ -153,8 +153,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	private void storeLink(DataGroup link,
 			Map<String, Map<String, DataGroup>> toRecordsMapOfLinks) {
 		DataRecordLink from = (DataRecordLink) link.getFirstChildWithNameInData("from");
-		String fromType = from.getRecordType();
-		String fromId = from.getRecordId();
+		String fromType = from.getLinkedRecordType();
+		String fromId = from.getLinkedRecordId();
 
 		ensureLinkStorageForFromType(toRecordsMapOfLinks, fromType);
 		toRecordsMapOfLinks.get(fromType).put(fromId, link);

@@ -115,15 +115,15 @@ public class SpiderDataGroupTest {
 	@Test
 	public void testFromDataGroupWithDataRecordLinkChild() {
 		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
-		dataGroup.addChild(DataRecordLink.withNameInDataAndRecordTypeAndRecordId("childNameInData",
+		dataGroup.addChild(DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("childNameInData",
 				"aRecordType", "aRecordId"));
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		SpiderDataElement spiderDataElement = spiderDataGroup.getChildren().get(0);
 		assertEquals(spiderDataElement.getNameInData(), "childNameInData");
 
 		SpiderDataRecordLink spiderDataRecordLink = (SpiderDataRecordLink) spiderDataElement;
-		assertEquals(spiderDataRecordLink.getRecordType(), "aRecordType");
-		assertEquals(spiderDataRecordLink.getRecordId(), "aRecordId");
+		assertEquals(spiderDataRecordLink.getLinkedRecordType(), "aRecordType");
+		assertEquals(spiderDataRecordLink.getLinkedRecordId(), "aRecordId");
 	}
 
 	@Test
@@ -200,7 +200,7 @@ public class SpiderDataGroupTest {
 	@Test
 	public void testToDataGroupWithDataRecordLinkChild() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		SpiderDataElement dataElement = SpiderDataRecordLink.withNameInDataAndRecordTypeAndRecordId(
+		SpiderDataElement dataElement = SpiderDataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId(
 				"childNameInData", "aRecordType", "aRecordId");
 		spiderDataGroup.addChild(dataElement);
 
@@ -210,8 +210,8 @@ public class SpiderDataGroupTest {
 		DataElement childElementOut = children.get(0);
 		assertEquals(childElementOut.getNameInData(), "childNameInData");
 		DataRecordLink dataRecordLink = (DataRecordLink) childElementOut;
-		assertEquals(dataRecordLink.getRecordType(), "aRecordType");
-		assertEquals(dataRecordLink.getRecordId(), "aRecordId");
+		assertEquals(dataRecordLink.getLinkedRecordType(), "aRecordType");
+		assertEquals(dataRecordLink.getLinkedRecordId(), "aRecordId");
 
 	}
 

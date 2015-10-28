@@ -69,10 +69,10 @@ public class TestDataRecordInMemoryStorage {
 		// create link to place:0001
 		DataGroup collectedLinksList = DataGroup.withNameInData("collectedLinksList");
 		DataGroup recordToRecordLink = DataGroup.withNameInData("recordToRecordLink");
-		DataRecordLink from = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("from", "place",
+		DataRecordLink from = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("from", "place",
 				"place:0002");
 		recordToRecordLink.addChild(from);
-		DataRecordLink to = DataRecordLink.withNameInDataAndRecordTypeAndRecordId("to", "place",
+		DataRecordLink to = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("to", "place",
 				"place:0001");
 		recordToRecordLink.addChild(to);
 
