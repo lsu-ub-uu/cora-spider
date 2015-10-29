@@ -28,7 +28,6 @@ import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
@@ -90,11 +89,7 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 	}
 
 	private DataGroup getRecordTypeDefinition(String recordType) {
-		try {
-			return recordStorage.read("recordType", recordType);
-		} catch (RecordNotFoundException e) {
-			throw new DataException("recordType:" + recordType + " does not exist", e);
-		}
+		return recordStorage.read("recordType", recordType);
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata() {

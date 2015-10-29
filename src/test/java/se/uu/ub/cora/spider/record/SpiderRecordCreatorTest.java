@@ -15,10 +15,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.record.storage.RecordConflictException;
-import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
-import se.uu.ub.cora.spider.record.storage.TimeStampIdGenerator;
+import se.uu.ub.cora.spider.record.storage.*;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
 public class SpiderRecordCreatorTest {
@@ -142,7 +139,7 @@ public class SpiderRecordCreatorTest {
 		recordCreator.createAndStoreRecord("unauthorizedUserId", "place", record);
 	}
 
-	@Test(expectedExceptions = DataException.class)
+	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testNonExistingRecordType() {
 		SpiderDataGroup record = SpiderDataGroup.withNameInData("authority");
 		recordCreator.createAndStoreRecord("userId", "recordType_NOT_EXISTING", record);

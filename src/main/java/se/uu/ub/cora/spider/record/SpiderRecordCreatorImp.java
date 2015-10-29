@@ -31,7 +31,6 @@ import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
@@ -105,11 +104,7 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 	}
 
 	private DataGroup getRecordTypeDefinition(String recordType) {
-		try {
-			return recordStorage.read("recordType", recordType);
-		} catch (RecordNotFoundException e) {
-			throw new DataException("recordType:" + recordType + " does not exist", e);
-		}
+		return recordStorage.read("recordType", recordType);
 	}
 
 	private void checkNoCreateForAbstractRecordType(String recordType) {
