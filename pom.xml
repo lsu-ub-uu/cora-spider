@@ -36,7 +36,7 @@
 
 	<properties>
 		<bookkeeper.version>0.4-SNAPSHOT</bookkeeper.version>
-		<beefeater.version>0.3-SNAPSHOT</beefeater.version>
+		<beefeater.version>0.4-SNAPSHOT</beefeater.version>
 	</properties>
 
 	<scm>
