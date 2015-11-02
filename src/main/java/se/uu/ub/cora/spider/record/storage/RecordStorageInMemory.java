@@ -231,7 +231,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 		}
 	}
 
-	private boolean linksExistForRecord(String type, String id) {
+	@Override
+	public boolean linksExistForRecord(String type, String id) {
 		return linkStorageForTargetTypeExists(type) && linkStorageForTargetIdExists(type, id);
 	}
 

@@ -111,7 +111,13 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 		spiderDataRecord.addAction(Action.READ);
 		spiderDataRecord.addAction(Action.UPDATE);
 		spiderDataRecord.addAction(Action.DELETE);
-		spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
+		if(incomingLinksExistsForRecord()) {
+			spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
+		}
+	}
+
+	private boolean incomingLinksExistsForRecord() {
+		return recordStorage.linksExistForRecord(recordType, recordId);
 	}
 
 	@Override

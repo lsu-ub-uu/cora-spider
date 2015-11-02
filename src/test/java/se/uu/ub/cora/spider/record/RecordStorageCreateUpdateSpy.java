@@ -82,6 +82,11 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
+	public boolean linksExistForRecord(String type, String id) {
+		return false;
+	}
+
+	@Override
 	public void update(String type, String id, DataGroup record) {
 		updateRecord = record;
 	}
