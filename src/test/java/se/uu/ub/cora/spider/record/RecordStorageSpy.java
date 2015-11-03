@@ -218,6 +218,11 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
+	public boolean linksExistForRecord(String type, String id) {
+		return false;
+	}
+
+	@Override
 	public void update(String type, String id, DataGroup record) {
 		// TODO Auto-generated method stub
 

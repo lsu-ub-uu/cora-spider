@@ -35,9 +35,7 @@ import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 public class SpiderRecordReaderTest {
 	private RecordStorage recordStorage;
@@ -105,6 +103,13 @@ public class SpiderRecordReaderTest {
 		SpiderDataRecord record = recordReader.readRecord("userId", "place", "place:0001");
 		assertEquals(record.getActions().size(), 4);
 		assertTrue(record.getActions().contains(Action.DELETE));
+	}
+
+	@Test
+	public void testActionsOnReadRecordNoIncomingLinks(){
+		SpiderDataRecord record = recordReader.readRecord("userId", "place", "place:0002");
+		assertEquals(record.getActions().size(), 3);
+		assertFalse(record.getActions().contains(Action.READ_INCOMING_LINKS));
 	}
 
 	@Test(expectedExceptions = MisuseException.class)

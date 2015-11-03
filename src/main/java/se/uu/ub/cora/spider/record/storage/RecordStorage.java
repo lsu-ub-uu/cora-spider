@@ -31,6 +31,8 @@ public interface RecordStorage {
 
 	void deleteByTypeAndId(String type, String id);
 
+	boolean linksExistForRecord(String type, String id);
+
 	void update(String type, String id, DataGroup record);
 
 	Collection<DataGroup> readList(String type);
