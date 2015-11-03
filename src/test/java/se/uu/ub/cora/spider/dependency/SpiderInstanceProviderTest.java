@@ -25,10 +25,7 @@ import java.lang.reflect.Modifier;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
+import se.uu.ub.cora.spider.record.*;
 
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNotSame;
@@ -59,6 +56,17 @@ public class SpiderInstanceProviderTest {
 		assertNotNull(recordReader);
 		assertNotNull(recordReader2);
 		assertNotSame(recordReader, recordReader2);
+	}
+
+	@Test
+	public void initMakeSureWeGetMultipleInstancesOfRecordListReader(){
+		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
+		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
+		SpiderRecordListReader recordListReader = SpiderInstanceProvider.getSpiderRecordListReader();
+		SpiderRecordListReader recordListReader2 = SpiderInstanceProvider.getSpiderRecordListReader();
+		assertNotNull(recordListReader);
+		assertNotNull(recordListReader2);
+		assertNotSame(recordListReader, recordListReader2);
 	}
 
 	@Test

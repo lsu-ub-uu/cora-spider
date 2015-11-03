@@ -99,32 +99,6 @@ public class SpiderRecordReaderTest {
 	}
 
 	@Test
-	public void testReadListAuthorized() {
-		String userId = "userId";
-		String type = "place";
-		SpiderRecordList readRecordList = recordReader.readRecordList(userId, type);
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "2",
-				"Total number of records should be 2");
-		assertEquals(readRecordList.getFromNo(), "0");
-		assertEquals(readRecordList.getToNo(), "1");
-		List<SpiderDataRecord> records = readRecordList.getRecords();
-		SpiderDataRecord spiderDataRecord = records.iterator().next();
-		assertNotNull(spiderDataRecord);
-	}
-
-	@Test
-	public void testReadListAbstractRecordType() {
-		RecordStorageSpy recordStorageListReaderSpy = new RecordStorageSpy();
-		SpiderRecordReader recordReader = SpiderRecordReaderImp
-				.usingAuthorizationAndRecordStorageAndKeyCalculator(authorization,
-						recordStorageListReaderSpy, keyCalculator);
-		recordReader.readRecordList("userId", "abstract");
-
-		Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child1"));
-		Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child2"));
-	}
-
-	@Test
 	public void testActionsOnReadRecord(){
 		SpiderDataRecord record = recordReader.readRecord("userId", "place", "place:0001");
 		assertEquals(record.getActions().size(), 4);
@@ -136,11 +110,6 @@ public class SpiderRecordReaderTest {
 		SpiderDataRecord record = recordReader.readRecord("userId", "place", "place:0002");
 		assertEquals(record.getActions().size(), 3);
 		assertFalse(record.getActions().contains(Action.READ_INCOMING_LINKS));
-	}
-
-	@Test(expectedExceptions = AuthorizationException.class)
-	public void testReadListUnauthorized() {
-		recordReader.readRecordList("unauthorizedUserId", "place");
 	}
 
 	@Test(expectedExceptions = MisuseException.class)
