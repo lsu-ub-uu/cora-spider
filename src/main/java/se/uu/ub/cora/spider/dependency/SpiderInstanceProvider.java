@@ -22,15 +22,7 @@ package se.uu.ub.cora.spider.dependency;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
-import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
-import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordCreatorImp;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleterImp;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordReaderImp;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdaterImp;
+import se.uu.ub.cora.spider.record.*;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
@@ -54,6 +46,16 @@ public final class SpiderInstanceProvider {
 				.getPermissionKeyCalculator();
 
 		return SpiderRecordReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
+				authorizator, recordStorage, permissionKeyCalculator);
+	}
+
+	public static SpiderRecordListReader getSpiderRecordListReader() {
+		Authorizator authorizator = spiderDependencyProvider.getAuthorizator();
+		RecordStorage recordStorage = spiderDependencyProvider.getRecordStorage();
+		PermissionKeyCalculator permissionKeyCalculator = spiderDependencyProvider
+				.getPermissionKeyCalculator();
+
+		return SpiderRecordListReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
 				authorizator, recordStorage, permissionKeyCalculator);
 	}
 
@@ -94,5 +96,4 @@ public final class SpiderInstanceProvider {
 		return SpiderRecordDeleterImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
 				authorizator, recordStorage, permissionKeyCalculator);
 	}
-
 }
