@@ -189,7 +189,6 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 		spiderDataRecord.addAction(Action.READ);
 		spiderDataRecord.addAction(Action.UPDATE);
 		spiderDataRecord.addAction(Action.DELETE);
-		spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
 	}
 
 }
