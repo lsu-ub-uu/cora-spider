@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
- * TODO: Class description
  *
  * @author <a href="mailto:madeleine.kennback@ub.uu.se">Madeleine Kennbäck</a>
  * @version $Revision$, $Date$, $Author$
@@ -134,15 +133,26 @@ public class SpiderRecordListReaderImp implements  SpiderRecordListReader{
     private SpiderDataRecord convertToSpiderDataRecord(DataGroup dataGroup) {
         SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
         SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
-        addLinks(spiderDataRecord);
+        addLinks(spiderDataRecord, spiderDataGroup);
+
         return spiderDataRecord;
     }
 
-    private void addLinks(SpiderDataRecord spiderDataRecord) {
+    private void addLinks(SpiderDataRecord spiderDataRecord, SpiderDataGroup spiderDataGroup) {
         spiderDataRecord.addAction(Action.READ);
         spiderDataRecord.addAction(Action.UPDATE);
         spiderDataRecord.addAction(Action.DELETE);
-        spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
+
+        if(incomingLinksExistsForRecord(spiderDataGroup)){
+            spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
+        }
+    }
+
+    private boolean incomingLinksExistsForRecord(SpiderDataGroup spiderDataGroup){
+        SpiderDataGroup recordInfo =  spiderDataGroup.extractGroup("recordInfo");
+        String recordType = recordInfo.extractAtomicValue("type");
+        String recordId = recordInfo.extractAtomicValue("id");
+        return recordStorage.linksExistForRecord(recordType, recordId);
     }
 
     private void setFromToInReadRecordList() {
