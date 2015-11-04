@@ -19,23 +19,23 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.List;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
-import se.uu.ub.cora.spider.data.SpiderRecordList;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
-
-import static org.testng.Assert.*;
 
 public class SpiderRecordReaderTest {
 	private RecordStorage recordStorage;
@@ -99,14 +99,14 @@ public class SpiderRecordReaderTest {
 	}
 
 	@Test
-	public void testActionsOnReadRecord(){
+	public void testActionsOnReadRecord() {
 		SpiderDataRecord record = recordReader.readRecord("userId", "place", "place:0001");
 		assertEquals(record.getActions().size(), 4);
 		assertTrue(record.getActions().contains(Action.DELETE));
 	}
 
 	@Test
-	public void testActionsOnReadRecordNoIncomingLinks(){
+	public void testActionsOnReadRecordNoIncomingLinks() {
 		SpiderDataRecord record = recordReader.readRecord("userId", "place", "place:0002");
 		assertEquals(record.getActions().size(), 3);
 		assertFalse(record.getActions().contains(Action.READ_INCOMING_LINKS));
@@ -123,5 +123,27 @@ public class SpiderRecordReaderTest {
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testReadingDataForANonExistingRecordType() {
 		recordReader.readRecord("userId", "nonExistingRecordType", "anId");
+	}
+
+	@Test
+	public void testReadRecordWithDataRecordLinkHasReadAction() {
+		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+
+		SpiderDataRecord record = recordReader.readRecord("userId", "place", "place:0002");
+
+		assertLinkContainsReadLinkOnly(record);
+	}
+
+	private void assertLinkContainsReadLinkOnly(SpiderDataRecord record) {
+		SpiderDataRecordLink link = getLinkFromRecord(record);
+		assertTrue(link.getActions().contains(Action.READ));
+		assertEquals(link.getActions().size(), 1);
+	}
+
+	private SpiderDataRecordLink getLinkFromRecord(SpiderDataRecord record) {
+		SpiderDataGroup spiderDataGroup = record.getSpiderDataGroup();
+		SpiderDataRecordLink link = (SpiderDataRecordLink) spiderDataGroup
+				.getFirstChildWithNameInData("link");
+		return link;
 	}
 }

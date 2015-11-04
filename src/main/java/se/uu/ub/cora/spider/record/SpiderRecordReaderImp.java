@@ -24,8 +24,10 @@ import java.util.Set;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.Action;
+import se.uu.ub.cora.spider.data.SpiderDataElement;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordReaderImp implements SpiderRecordReader {
@@ -99,16 +101,30 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 
 	private SpiderDataRecord convertToSpiderDataRecord(DataGroup dataGroup) {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
+		addReadActionToDataRecordLinks(spiderDataGroup);
 		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
 		addLinks(spiderDataRecord);
 		return spiderDataRecord;
+	}
+
+	private void addReadActionToDataRecordLinks(SpiderDataGroup spiderDataGroup) {
+		for (SpiderDataElement spiderDataChild : spiderDataGroup.getChildren()) {
+			if (spiderDataChild instanceof SpiderDataRecordLink) {
+				((SpiderDataRecordLink) spiderDataChild).addAction(Action.READ);
+			}
+			// if (spiderDataChild instanceof SpiderDataGroup) {
+			// addReadActionToDataRecordLinks((SpiderDataGroup)
+			// spiderDataChild);
+			// }
+		}
+
 	}
 
 	private void addLinks(SpiderDataRecord spiderDataRecord) {
 		spiderDataRecord.addAction(Action.READ);
 		spiderDataRecord.addAction(Action.UPDATE);
 		spiderDataRecord.addAction(Action.DELETE);
-		if(incomingLinksExistsForRecord()) {
+		if (incomingLinksExistsForRecord()) {
 			spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
 		}
 	}
