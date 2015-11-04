@@ -19,6 +19,12 @@ public final class DataCreator {
 
 	public static DataGroup createRecordTypeWithIdAndUserSuppliedIdAndAbstract(String id,
 			String userSuppliedId, String abstractValue) {
+		return createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId(id, userSuppliedId,
+				abstractValue, null);
+	}
+
+	private static DataGroup createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId(
+			String id, String userSuppliedId, String abstractValue, String parentId) {
 		String idWithCapitalFirst = id.substring(0, 1).toUpperCase() + id.substring(1);
 
 		DataGroup dataGroup = DataGroup.withNameInData(RECORD_TYPE);
@@ -44,7 +50,16 @@ public final class DataCreator {
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue(SELF_PRESENTATION_VIEW_ID,
 				"pg" + idWithCapitalFirst + "Self"));
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue("abstract", abstractValue));
+		if (null != parentId) {
+			dataGroup.addChild(DataAtomic.withNameInDataAndValue("parentId", parentId));
+		}
 		return dataGroup;
+	}
+
+	public static DataGroup createRecordTypeWithIdAndUserSuppliedIdAndParentId(String id,
+			String userSuppliedId, String parentId) {
+		return createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId(id, userSuppliedId,
+				"false", parentId);
 	}
 
 	public static DataGroup createRecordInfoWithRecordTypeAndRecordId(String recordType,
