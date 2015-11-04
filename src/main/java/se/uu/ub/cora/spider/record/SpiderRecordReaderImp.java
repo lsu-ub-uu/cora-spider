@@ -109,15 +109,26 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 
 	private void addReadActionToDataRecordLinks(SpiderDataGroup spiderDataGroup) {
 		for (SpiderDataElement spiderDataChild : spiderDataGroup.getChildren()) {
-			if (spiderDataChild instanceof SpiderDataRecordLink) {
-				((SpiderDataRecordLink) spiderDataChild).addAction(Action.READ);
-			}
-			// if (spiderDataChild instanceof SpiderDataGroup) {
-			// addReadActionToDataRecordLinks((SpiderDataGroup)
-			// spiderDataChild);
-			// }
+			addReadActionToDataRecordLink(spiderDataChild);
 		}
 
+	}
+
+	private void addReadActionToDataRecordLink(SpiderDataElement spiderDataChild) {
+		if (isLink(spiderDataChild)) {
+			((SpiderDataRecordLink) spiderDataChild).addAction(Action.READ);
+		}
+		if (isGroup(spiderDataChild)) {
+			addReadActionToDataRecordLinks((SpiderDataGroup) spiderDataChild);
+		}
+	}
+
+	private boolean isLink(SpiderDataElement spiderDataChild) {
+		return spiderDataChild instanceof SpiderDataRecordLink;
+	}
+
+	private boolean isGroup(SpiderDataElement spiderDataChild) {
+		return spiderDataChild instanceof SpiderDataGroup;
 	}
 
 	private void addLinks(SpiderDataRecord spiderDataRecord) {

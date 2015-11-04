@@ -126,15 +126,22 @@ public class SpiderRecordReaderTest {
 	}
 
 	@Test
-	public void testReadRecordWithDataRecordLinkHasReadAction() {
-		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+	public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
+		SpiderRecordReader recordReader = createRecordReaderWithTestDataForLinkedData();
 
-		SpiderDataRecord record = recordReader.readRecord("userId", "place", "place:0002");
+		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithLinks",
+				"oneLinkTopLevel");
 
-		assertLinkContainsReadLinkOnly(record);
+		assertTopLevelLinkContainsReadActionOnly(record);
 	}
 
-	private void assertLinkContainsReadLinkOnly(SpiderDataRecord record) {
+	private SpiderRecordReader createRecordReaderWithTestDataForLinkedData() {
+		recordStorage = new RecordStorageProvidingDataForDataRecordLinkTests();
+		return SpiderRecordReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
+				authorization, recordStorage, keyCalculator);
+	}
+
+	private void assertTopLevelLinkContainsReadActionOnly(SpiderDataRecord record) {
 		SpiderDataRecordLink link = getLinkFromRecord(record);
 		assertTrue(link.getActions().contains(Action.READ));
 		assertEquals(link.getActions().size(), 1);
@@ -145,5 +152,25 @@ public class SpiderRecordReaderTest {
 		SpiderDataRecordLink link = (SpiderDataRecordLink) spiderDataGroup
 				.getFirstChildWithNameInData("link");
 		return link;
+	}
+
+	@Test
+	public void testReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
+		SpiderRecordReader recordReader = createRecordReaderWithTestDataForLinkedData();
+
+		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithLinks",
+				"oneLinkOneLevelDown");
+
+		assertOneLevelDownLinkContainsReadActionOnly(record);
+	}
+
+	private void assertOneLevelDownLinkContainsReadActionOnly(SpiderDataRecord record) {
+		SpiderDataGroup spiderDataGroup = record.getSpiderDataGroup();
+		SpiderDataGroup spiderDataGroupOneLevelDown = (SpiderDataGroup) spiderDataGroup
+				.getFirstChildWithNameInData("oneLevelDown");
+		SpiderDataRecordLink link = (SpiderDataRecordLink) spiderDataGroupOneLevelDown
+				.getFirstChildWithNameInData("link");
+		assertTrue(link.getActions().contains(Action.READ));
+		assertEquals(link.getActions().size(), 1);
 	}
 }
