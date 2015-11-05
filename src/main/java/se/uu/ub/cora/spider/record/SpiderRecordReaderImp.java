@@ -30,7 +30,7 @@ import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
-public final class SpiderRecordReaderImp implements SpiderRecordReader {
+public final class SpiderRecordReaderImp extends SpiderRecordHandler implements SpiderRecordReader {
 	private static final String RECORD_TYPE = "recordType";
 	private Authorizator authorization;
 	private RecordStorage recordStorage;
