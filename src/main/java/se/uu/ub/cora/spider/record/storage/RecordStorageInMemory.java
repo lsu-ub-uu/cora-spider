@@ -291,9 +291,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	private Map<String, Map<String, DataGroup>> extractToPartOfIncomingLinks(DataRecordLink to) {
 		String toType = to.getLinkedRecordType();
 		String toId = to.getLinkedRecordId();
-		Map<String, Map<String, DataGroup>> toPartOfLinksPointingToRecordStorage = incomingLinks
-				.get(toType).get(toId);
-		return toPartOfLinksPointingToRecordStorage;
+		return incomingLinks.get(toType).get(toId);
 	}
 
 	private void removeLinkAndFromHolderFromIncomingLinks(DataGroup link,
