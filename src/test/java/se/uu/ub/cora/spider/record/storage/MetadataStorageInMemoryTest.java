@@ -17,7 +17,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.record.storage;
 
 import static org.testng.Assert.assertEquals;
 
@@ -29,36 +29,17 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
-import se.uu.ub.cora.spider.record.storage.RecordStorageInMemory;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
-public class RecordStorageInMemoryTest {
+public class MetadataStorageInMemoryTest {
 
-	private RecordStorage recordStorage;
 	private MetadataStorage metadataStorage;
 
 	@BeforeMethod
 	public void BeforeMethod() {
 		RecordStorageInMemory recordStorageInMemory = TestDataRecordInMemoryStorage
 				.createRecordStorageInMemoryWithTestData();
-		recordStorage = recordStorageInMemory;
 		metadataStorage = recordStorageInMemory;
-	}
-
-	@Test(expectedExceptions = RecordNotFoundException.class)
-	public void testReadRecordListNotFound() {
-		String recordType = "place_NOT_FOUND";
-		recordStorage.readList(recordType);
-	}
-
-	@Test
-	public void testReadRecordList() {
-		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		String recordType = "place";
-		Collection<DataGroup> recordList = recordStorage.readList(recordType);
-		assertEquals(recordList.iterator().next().getNameInData(), "authority");
 	}
 
 	@Test

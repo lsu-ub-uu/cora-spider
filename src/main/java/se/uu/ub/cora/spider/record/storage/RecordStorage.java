@@ -33,7 +33,7 @@ public interface RecordStorage {
 
 	boolean linksExistForRecord(String type, String id);
 
-	void update(String type, String id, DataGroup record);
+	void update(String type, String id, DataGroup record, DataGroup linkList);
 
 	Collection<DataGroup> readList(String type);
 

@@ -89,7 +89,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record) {
+	public void update(String type, String id, DataGroup record, DataGroup linkList) {
 		updateRecord = record;
 	}
 
