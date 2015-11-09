@@ -80,8 +80,8 @@ public class SpiderRecordHandler {
 	protected boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {
 		SpiderDataGroup spiderDataGroup = spiderDataRecord.getSpiderDataGroup();
 		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup("recordInfo");
-		String recordType = recordInfo.extractAtomicValue("type");
-		String recordId = recordInfo.extractAtomicValue("id");
-		return recordStorage.linksExistForRecord(recordType, recordId);
+		String recordTypeForThisRecord = recordInfo.extractAtomicValue("type");
+		String recordIdForThisRecord = recordInfo.extractAtomicValue("id");
+		return recordStorage.linksExistForRecord(recordTypeForThisRecord, recordIdForThisRecord);
 	}
 }
