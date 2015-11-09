@@ -33,7 +33,8 @@ import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
-public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
+public final class SpiderRecordCreatorImp extends SpiderRecordHandler
+		implements SpiderRecordCreator {
 	private static final String RECORD_INFO = "recordInfo";
 	private static final String USER = "User:";
 	private RecordStorage recordStorage;
@@ -45,7 +46,7 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 	private SpiderDataGroup spiderDataGroup;
 	private DataRecordLinkCollector linkCollector;
 
-	public static SpiderRecordCreatorImp usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculator(
+	public static SpiderRecordCreatorImp usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
 			Authorizator authorization, DataValidator dataValidator, RecordStorage recordStorage,
 			RecordIdGenerator idGenerator, PermissionKeyCalculator keyCalculator,
 			DataRecordLinkCollector linkCollector) {
@@ -95,12 +96,12 @@ public final class SpiderRecordCreatorImp implements SpiderRecordCreator {
 
 		recordStorage.create(recordType, id, topLevelDataGroup, collectedLinks);
 
+		addReadActionToDataRecordLinks(spiderDataGroup);
 		return createDataRecordContainingDataGroup(spiderDataGroup);
 	}
 
 	private String extractIdFromData() {
 		return spiderDataGroup.extractGroup("recordInfo").extractAtomicValue("id");
-
 	}
 
 	private DataGroup getRecordTypeDefinition(String recordType) {

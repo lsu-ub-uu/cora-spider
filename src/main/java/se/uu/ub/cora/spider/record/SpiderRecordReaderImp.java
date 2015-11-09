@@ -24,10 +24,8 @@ import java.util.Set;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.Action;
-import se.uu.ub.cora.spider.data.SpiderDataElement;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordReaderImp extends SpiderRecordHandler implements SpiderRecordReader {
@@ -105,30 +103,6 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
 		addLinks(spiderDataRecord);
 		return spiderDataRecord;
-	}
-
-	private void addReadActionToDataRecordLinks(SpiderDataGroup spiderDataGroup) {
-		for (SpiderDataElement spiderDataChild : spiderDataGroup.getChildren()) {
-			addReadActionToDataRecordLink(spiderDataChild);
-		}
-
-	}
-
-	private void addReadActionToDataRecordLink(SpiderDataElement spiderDataChild) {
-		if (isLink(spiderDataChild)) {
-			((SpiderDataRecordLink) spiderDataChild).addAction(Action.READ);
-		}
-		if (isGroup(spiderDataChild)) {
-			addReadActionToDataRecordLinks((SpiderDataGroup) spiderDataChild);
-		}
-	}
-
-	private boolean isLink(SpiderDataElement spiderDataChild) {
-		return spiderDataChild instanceof SpiderDataRecordLink;
-	}
-
-	private boolean isGroup(SpiderDataElement spiderDataChild) {
-		return spiderDataChild instanceof SpiderDataGroup;
 	}
 
 	private void addLinks(SpiderDataRecord spiderDataRecord) {

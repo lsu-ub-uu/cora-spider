@@ -17,6 +17,19 @@ public final class SpiderDataCreator {
 	private static final String NEW_METADATA_ID = "newMetadataId";
 	private static final String RECORD_TYPE = "recordType";
 
+	public static SpiderDataGroup createDataGroupWithNameInDataAndRecordInfoWithRecordType(
+			String nameInData, String recordType) {
+		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(nameInData);
+		dataGroup.addChild(createRecordInfoWithRecordType(recordType));
+		return dataGroup;
+	}
+
+	private static SpiderDataGroup createRecordInfoWithRecordType(String recordType) {
+		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", recordType));
+		return recordInfo;
+	}
+
 	public static SpiderDataGroup createRecordTypeWithIdAndUserSuppliedIdAndAbstract(String id,
 			String userSuppliedId, String abstractValue) {
 		return createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId(id, userSuppliedId,
@@ -66,9 +79,9 @@ public final class SpiderDataCreator {
 
 	public static SpiderDataGroup createRecordInfoWithRecordTypeAndRecordId(String recordType,
 			String recordId) {
-		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", recordType));
+		SpiderDataGroup recordInfo = createRecordInfoWithRecordType(recordType);
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", recordId));
 		return recordInfo;
 	}
+
 }
