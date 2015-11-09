@@ -19,9 +19,17 @@
 
 package se.uu.ub.cora.spider.record;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
+import java.util.List;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.spider.data.Action;
@@ -30,10 +38,6 @@ import se.uu.ub.cora.spider.data.SpiderRecordList;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
-import java.util.List;
-
-import static org.testng.Assert.*;
-
 /**
  *
  * @author <a href="mailto:madeleine.kennback@ub.uu.se">Madeleine Kennbäck</a>
@@ -41,62 +45,90 @@ import static org.testng.Assert.*;
  */
 public class SpiderRecordListReaderTest {
 
-    private RecordStorage recordStorage;
-    private Authorizator authorization;
-    private PermissionKeyCalculator keyCalculator;
-    private SpiderRecordListReader recordListReader;
+	private RecordStorage recordStorage;
+	private Authorizator authorization;
+	private PermissionKeyCalculator keyCalculator;
+	private SpiderRecordListReader recordListReader;
 
-    @BeforeMethod
-    public void beforeMethod() {
-        authorization = new AuthorizatorImp();
-        recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-        keyCalculator = new RecordPermissionKeyCalculator();
-        recordListReader = SpiderRecordListReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
-                authorization, recordStorage, keyCalculator);
-    }
+	@BeforeMethod
+	public void beforeMethod() {
+		authorization = new AuthorizatorImp();
+		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+		keyCalculator = new RecordPermissionKeyCalculator();
+		recordListReader = SpiderRecordListReaderImp
+				.usingAuthorizationAndRecordStorageAndKeyCalculator(authorization, recordStorage,
+						keyCalculator);
+	}
 
-    @Test
-    public void testReadListAuthorized() {
-        String userId = "userId";
-        String type = "place";
-        SpiderRecordList readRecordList = recordListReader.readRecordList(userId, type);
-        assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "2",
-                "Total number of records should be 2");
-        assertEquals(readRecordList.getFromNo(), "0");
-        assertEquals(readRecordList.getToNo(), "1");
-        List<SpiderDataRecord> records = readRecordList.getRecords();
-        SpiderDataRecord spiderDataRecord = records.iterator().next();
-        assertNotNull(spiderDataRecord);
-    }
+	@Test
+	public void testReadListAuthorized() {
+		String userId = "userId";
+		String type = "place";
+		SpiderRecordList readRecordList = recordListReader.readRecordList(userId, type);
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "2",
+				"Total number of records should be 2");
+		assertEquals(readRecordList.getFromNo(), "0");
+		assertEquals(readRecordList.getToNo(), "1");
+		List<SpiderDataRecord> records = readRecordList.getRecords();
+		SpiderDataRecord spiderDataRecord = records.iterator().next();
+		assertNotNull(spiderDataRecord);
+	}
 
-    @Test
-    public void testReadListAbstractRecordType() {
-        RecordStorageSpy recordStorageListReaderSpy = new RecordStorageSpy();
-        SpiderRecordListReader recordReader = SpiderRecordListReaderImp
-                .usingAuthorizationAndRecordStorageAndKeyCalculator(authorization,
-                        recordStorageListReaderSpy, keyCalculator);
-        recordReader.readRecordList("userId", "abstract");
+	@Test
+	public void testReadListAbstractRecordType() {
+		RecordStorageSpy recordStorageListReaderSpy = new RecordStorageSpy();
+		SpiderRecordListReader recordReader = SpiderRecordListReaderImp
+				.usingAuthorizationAndRecordStorageAndKeyCalculator(authorization,
+						recordStorageListReaderSpy, keyCalculator);
+		recordReader.readRecordList("userId", "abstract");
 
-        Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child1"));
-        Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child2"));
-    }
+		Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child1"));
+		Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child2"));
+	}
 
-    @Test(expectedExceptions = AuthorizationException.class)
-    public void testReadListUnauthorized() {
-        recordListReader.readRecordList("unauthorizedUserId", "place");
-    }
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void testReadListUnauthorized() {
+		recordListReader.readRecordList("unauthorizedUserId", "place");
+	}
 
-    @Test
-    public void testActionsOnReadRecord(){
-        SpiderRecordList recordList = recordListReader.readRecordList("userId", "place");
-        assertEquals(recordList.getRecords().get(0).getActions().size(), 4);
-        assertTrue(recordList.getRecords().get(0).getActions().contains(Action.DELETE));
-    }
+	@Test
+	public void testActionsOnReadRecord() {
+		SpiderRecordList recordList = recordListReader.readRecordList("userId", "place");
+		assertEquals(recordList.getRecords().get(0).getActions().size(), 4);
+		assertTrue(recordList.getRecords().get(0).getActions().contains(Action.DELETE));
+	}
 
-    @Test
-    public void testActionsOnReadRecordNoIncomingLinks(){
-        SpiderRecordList recordList = recordListReader.readRecordList("userId", "place");
-        assertEquals(recordList.getRecords().get(1).getActions().size(), 3);
-        assertFalse(recordList.getRecords().get(1).getActions().contains(Action.READ_INCOMING_LINKS));
-    }
+	@Test
+	public void testActionsOnReadRecordNoIncomingLinks() {
+		SpiderRecordList recordList = recordListReader.readRecordList("userId", "place");
+		assertEquals(recordList.getRecords().get(1).getActions().size(), 3);
+		assertFalse(
+				recordList.getRecords().get(1).getActions().contains(Action.READ_INCOMING_LINKS));
+	}
+
+	@Test
+	public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
+		SpiderRecordListReader recordListReader = createRecordListReaderWithTestDataForLinkedData();
+
+		SpiderRecordList recordList = recordListReader.readRecordList("userId", "dataWithLinks");
+		SpiderDataRecord record = recordList.getRecords().get(0);
+		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
+	}
+
+	private SpiderRecordListReader createRecordListReaderWithTestDataForLinkedData() {
+		recordStorage = new RecordLinkTestsRecordStorage();
+		return SpiderRecordListReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
+				authorization, recordStorage, keyCalculator);
+	}
+
+	@Test
+	public void testReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
+		SpiderRecordListReader recordListReader = createRecordListReaderWithTestDataForLinkedData();
+
+		SpiderRecordList recordList = recordListReader.readRecordList("userId", "dataWithLinks");
+		SpiderDataRecord record = recordList.getRecords().get(1);
+
+		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
+	}
+
 }

@@ -132,26 +132,13 @@ public class SpiderRecordReaderTest {
 		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithLinks",
 				"oneLinkTopLevel");
 
-		assertTopLevelLinkContainsReadActionOnly(record);
+		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
 	}
 
 	private SpiderRecordReader createRecordReaderWithTestDataForLinkedData() {
-		recordStorage = new RecordStorageProvidingDataForDataRecordLinkTests();
+		recordStorage = new RecordLinkTestsRecordStorage();
 		return SpiderRecordReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
 				authorization, recordStorage, keyCalculator);
-	}
-
-	private void assertTopLevelLinkContainsReadActionOnly(SpiderDataRecord record) {
-		SpiderDataRecordLink link = getLinkFromRecord(record);
-		assertTrue(link.getActions().contains(Action.READ));
-		assertEquals(link.getActions().size(), 1);
-	}
-
-	private SpiderDataRecordLink getLinkFromRecord(SpiderDataRecord record) {
-		SpiderDataGroup spiderDataGroup = record.getSpiderDataGroup();
-		SpiderDataRecordLink link = (SpiderDataRecordLink) spiderDataGroup
-				.getFirstChildWithNameInData("link");
-		return link;
 	}
 
 	@Test
@@ -161,16 +148,7 @@ public class SpiderRecordReaderTest {
 		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithLinks",
 				"oneLinkOneLevelDown");
 
-		assertOneLevelDownLinkContainsReadActionOnly(record);
+		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}
 
-	private void assertOneLevelDownLinkContainsReadActionOnly(SpiderDataRecord record) {
-		SpiderDataGroup spiderDataGroup = record.getSpiderDataGroup();
-		SpiderDataGroup spiderDataGroupOneLevelDown = (SpiderDataGroup) spiderDataGroup
-				.getFirstChildWithNameInData("oneLevelDown");
-		SpiderDataRecordLink link = (SpiderDataRecordLink) spiderDataGroupOneLevelDown
-				.getFirstChildWithNameInData("link");
-		assertTrue(link.getActions().contains(Action.READ));
-		assertEquals(link.getActions().size(), 1);
-	}
 }

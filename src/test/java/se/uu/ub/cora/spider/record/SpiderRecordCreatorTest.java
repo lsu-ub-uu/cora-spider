@@ -31,11 +31,9 @@ import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
-import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.record.storage.RecordConflictException;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
@@ -213,64 +211,32 @@ public class SpiderRecordCreatorTest {
 
 	@Test
 	public void testCreateRecordWithDataRecordLinkHasReadActionTopLevel() {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("dataWithLinks");
-		SpiderDataRecordLink dataRecordLink = SpiderDataRecordLink
-				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("link", "toRecordType",
-						"toRecordId");
-		dataGroup.addChild(dataRecordLink);
+		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator.createDataGroupWithLink();
 
 		SpiderRecordCreator recordCreator = createRecordCreatorWithTestDataForLinkedData();
 		SpiderDataRecord record = recordCreator.createAndStoreRecord("userId", "dataWithLinks",
 				dataGroup);
 
-		assertTopLevelLinkContainsReadActionOnly(record);
+		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
 	}
 
 	private SpiderRecordCreator createRecordCreatorWithTestDataForLinkedData() {
-		recordStorage = new RecordStorageProvidingDataForDataRecordLinkTests();
+		recordStorage = new RecordLinkTestsRecordStorage();
 		return SpiderRecordCreatorImp
 				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
 						linkCollector);
 	}
 
-	private void assertTopLevelLinkContainsReadActionOnly(SpiderDataRecord record) {
-		SpiderDataRecordLink link = getLinkFromRecord(record);
-		assertTrue(link.getActions().contains(Action.READ));
-		assertEquals(link.getActions().size(), 1);
-	}
-
-	private SpiderDataRecordLink getLinkFromRecord(SpiderDataRecord record) {
-		SpiderDataGroup spiderDataGroup = record.getSpiderDataGroup();
-		SpiderDataRecordLink link = (SpiderDataRecordLink) spiderDataGroup
-				.getFirstChildWithNameInData("link");
-		return link;
-	}
-
 	@Test
 	public void testCreateRecordWithDataRecordLinkHasReadActionOneLevelDown() {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("dataWithLinks");
-		SpiderDataGroup oneLevelDown = SpiderDataGroup.withNameInData("oneLevelDown");
-		dataGroup.addChild(oneLevelDown);
-		SpiderDataRecordLink dataRecordLink = SpiderDataRecordLink
-				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("link", "toRecordType",
-						"toRecordId");
-		oneLevelDown.addChild(dataRecordLink);
+		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator
+				.createDataGroupWithLinkOneLevelDown();
 
 		SpiderRecordCreator recordCreator = createRecordCreatorWithTestDataForLinkedData();
 		SpiderDataRecord record = recordCreator.createAndStoreRecord("userId", "dataWithLinks",
 				dataGroup);
 
-		assertOneLevelDownLinkContainsReadActionOnly(record);
-	}
-
-	private void assertOneLevelDownLinkContainsReadActionOnly(SpiderDataRecord record) {
-		SpiderDataGroup spiderDataGroup = record.getSpiderDataGroup();
-		SpiderDataGroup spiderDataGroupOneLevelDown = (SpiderDataGroup) spiderDataGroup
-				.getFirstChildWithNameInData("oneLevelDown");
-		SpiderDataRecordLink link = (SpiderDataRecordLink) spiderDataGroupOneLevelDown
-				.getFirstChildWithNameInData("link");
-		assertTrue(link.getActions().contains(Action.READ));
-		assertEquals(link.getActions().size(), 1);
+		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}
 }
