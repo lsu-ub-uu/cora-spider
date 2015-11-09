@@ -172,7 +172,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		}
 	}
 
-	boolean incomingLinksExistsForRecord() {
+	@Override
+	protected boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {
 		// a record that is being created, can not yet be linked from any other
 		// record
 		return false;
