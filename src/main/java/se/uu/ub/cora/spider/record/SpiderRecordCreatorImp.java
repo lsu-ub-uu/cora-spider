@@ -26,7 +26,6 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
-import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
@@ -37,7 +36,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		implements SpiderRecordCreator {
 	private static final String RECORD_INFO = "recordInfo";
 	private static final String USER = "User:";
-	private RecordStorage recordStorage;
+	// private RecordStorage recordStorage;
 	private Authorizator authorization;
 	private RecordIdGenerator idGenerator;
 	private PermissionKeyCalculator keyCalculator;
@@ -69,9 +68,9 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	@Override
 	public SpiderDataRecord createAndStoreRecord(String userId, String recordType,
 			SpiderDataGroup spiderDataGroup) {
-
+		this.recordType = recordType;
 		this.spiderDataGroup = spiderDataGroup;
-		recordTypeDefinition = getRecordTypeDefinition(recordType);
+		recordTypeDefinition = getRecordTypeDefinition();
 
 		checkNoCreateForAbstractRecordType(recordType);
 		validateDataInRecordAsSpecifiedInMetadata();
@@ -96,16 +95,11 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 		recordStorage.create(recordType, id, topLevelDataGroup, collectedLinks);
 
-		addReadActionToDataRecordLinks(spiderDataGroup);
 		return createDataRecordContainingDataGroup(spiderDataGroup);
 	}
 
 	private String extractIdFromData() {
 		return spiderDataGroup.extractGroup("recordInfo").extractAtomicValue("id");
-	}
-
-	private DataGroup getRecordTypeDefinition(String recordType) {
-		return recordStorage.read("recordType", recordType);
 	}
 
 	private void checkNoCreateForAbstractRecordType(String recordType) {
@@ -180,16 +174,16 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private SpiderDataRecord createDataRecordContainingDataGroup(SpiderDataGroup spiderDataGroup) {
-		// create record
+		addReadActionToDataRecordLinks(spiderDataGroup);
 		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
 		addLinks(spiderDataRecord);
 		return spiderDataRecord;
 	}
 
-	private void addLinks(SpiderDataRecord spiderDataRecord) {
-		spiderDataRecord.addAction(Action.READ);
-		spiderDataRecord.addAction(Action.UPDATE);
-		spiderDataRecord.addAction(Action.DELETE);
+	protected boolean incomingLinksExistsForRecord() {
+		// a record that is being created, can not yet be linked from any other
+		// record
+		return false;
 	}
 
 }
