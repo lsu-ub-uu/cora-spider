@@ -77,6 +77,8 @@ public class SpiderRecordReaderTest {
 		SpiderDataRecordLink from = (SpiderDataRecordLink) link.getFirstChildWithNameInData("from");
 		assertEquals(from.getLinkedRecordType(), "place");
 		assertEquals(from.getLinkedRecordId(), "place:0002");
+		assertEquals(from.getActions().size(), 1);
+		assertTrue(from.getActions().contains(Action.READ));
 
 		SpiderDataRecordLink to = (SpiderDataRecordLink) link.getFirstChildWithNameInData("to");
 		assertEquals(to.getLinkedRecordType(), "place");

@@ -23,8 +23,11 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.data.Action;
+import se.uu.ub.cora.spider.data.SpiderDataElement;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordReaderImp extends SpiderRecordHandler implements SpiderRecordReader {
@@ -102,6 +105,17 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		DataGroup linksPointingToRecord = recordStorage
 				.generateLinkCollectionPointingToRecord(recordType, recordId);
 
-		return SpiderDataGroup.fromDataGroup(linksPointingToRecord);
+		SpiderDataGroup links = SpiderDataGroup.fromDataGroup(linksPointingToRecord);
+		addReadActionToIncomingLinks(links);
+		return links;
+	}
+
+	private void addReadActionToIncomingLinks(SpiderDataGroup links) {
+		for (SpiderDataElement spiderDataElement : links.getChildren()) {
+			SpiderDataGroup spiderDataGroup = (SpiderDataGroup) spiderDataElement;
+			SpiderDataRecordLink spiderRecordLink = (SpiderDataRecordLink) spiderDataGroup
+					.getFirstChildWithNameInData("from");
+			spiderRecordLink.addAction(Action.READ);
+		}
 	}
 }
