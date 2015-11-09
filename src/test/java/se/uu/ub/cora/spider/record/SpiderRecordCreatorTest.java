@@ -248,7 +248,7 @@ public class SpiderRecordCreatorTest {
 	}
 
 	@Test
-	public void testReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
+	public void testCreateRecordWithDataRecordLinkHasReadActionOneLevelDown() {
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("dataWithLinks");
 		SpiderDataGroup oneLevelDown = SpiderDataGroup.withNameInData("oneLevelDown");
 		dataGroup.addChild(oneLevelDown);

@@ -54,4 +54,12 @@ public class SpiderRecordHandler {
 	private boolean isGroup(SpiderDataElement spiderDataChild) {
 		return spiderDataChild instanceof SpiderDataGroup;
 	}
+
+	protected SpiderDataRecord createDataRecordContainingDataGroup(
+			SpiderDataGroup spiderDataGroup) {
+		addReadActionToDataRecordLinks(spiderDataGroup);
+		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
+		addLinks(spiderDataRecord);
+		return spiderDataRecord;
+	}
 }

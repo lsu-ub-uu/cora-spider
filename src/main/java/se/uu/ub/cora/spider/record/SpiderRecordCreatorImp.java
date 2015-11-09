@@ -36,7 +36,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		implements SpiderRecordCreator {
 	private static final String RECORD_INFO = "recordInfo";
 	private static final String USER = "User:";
-	// private RecordStorage recordStorage;
 	private Authorizator authorization;
 	private RecordIdGenerator idGenerator;
 	private PermissionKeyCalculator keyCalculator;
@@ -171,13 +170,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 			throw new AuthorizationException(
 					USER + userId + " is not authorized to create a record  of type:" + recordType);
 		}
-	}
-
-	private SpiderDataRecord createDataRecordContainingDataGroup(SpiderDataGroup spiderDataGroup) {
-		addReadActionToDataRecordLinks(spiderDataGroup);
-		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
-		addLinks(spiderDataRecord);
-		return spiderDataRecord;
 	}
 
 	protected boolean incomingLinksExistsForRecord() {

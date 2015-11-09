@@ -58,7 +58,8 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		// filter data
 		// TODO: filter hidden data if user does not have right to see it
 
-		return convertToSpiderDataRecord(recordRead);
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(recordRead);
+		return createDataRecordContainingDataGroup(spiderDataGroup);
 	}
 
 	private void checkRecordsRecordTypeNotAbstract() {
@@ -86,14 +87,6 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
 				recordRead);
 		return !authorization.isAuthorized(userId, recordCalculateKeys);
-	}
-
-	private SpiderDataRecord convertToSpiderDataRecord(DataGroup dataGroup) {
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
-		addReadActionToDataRecordLinks(spiderDataGroup);
-		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
-		addLinks(spiderDataRecord);
-		return spiderDataRecord;
 	}
 
 	@Override
