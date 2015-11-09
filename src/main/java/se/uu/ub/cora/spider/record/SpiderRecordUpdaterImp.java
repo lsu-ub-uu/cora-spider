@@ -23,6 +23,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.data.Action;
@@ -41,20 +42,23 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 	private DataGroup recordTypeDefinition;
 	private String recordType;
 	private String recordId;
+	private DataRecordLinkCollector linkCollector;
 
-	public static SpiderRecordUpdaterImp usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculator(
+	public static SpiderRecordUpdaterImp usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
 			Authorizator authorization, DataValidator dataValidator, RecordStorage recordStorage,
-			PermissionKeyCalculator keyCalculator) {
+			PermissionKeyCalculator keyCalculator, DataRecordLinkCollector linkCollector) {
 		return new SpiderRecordUpdaterImp(authorization, dataValidator, recordStorage,
-				keyCalculator);
+				keyCalculator, linkCollector);
 	}
 
 	private SpiderRecordUpdaterImp(Authorizator authorization, DataValidator dataValidator,
-			RecordStorage recordStorage, PermissionKeyCalculator keyCalculator) {
+			RecordStorage recordStorage, PermissionKeyCalculator keyCalculator,
+			DataRecordLinkCollector linkCollector) {
 		this.authorization = authorization;
 		this.dataValidator = dataValidator;
 		this.recordStorage = recordStorage;
 		this.keyCalculator = keyCalculator;
+		this.linkCollector = linkCollector;
 	}
 
 	@Override
@@ -79,8 +83,12 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 		// merge possibly hidden data
 		// TODO: merge incoming data with stored if user does not have right to
 		// update some parts
+		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
+		String metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("newMetadataId");
+		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
+				recordType, recordId);
 
-		recordStorage.update(recordType, recordId, spiderDataGroup.toDataGroup());
+		recordStorage.update(recordType, recordId, spiderDataGroup.toDataGroup(), collectedLinks);
 
 		return createDataRecordContainingDataGroup(spiderDataGroup);
 	}
@@ -127,13 +135,13 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 				recordRead);
 
 		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			throw new AuthorizationException(USER + userId
-					+ " is not authorized to update record:" + recordId + "  of type:" + recordType);
+			throw new AuthorizationException(USER + userId + " is not authorized to update record:"
+					+ recordId + "  of type:" + recordType);
 		}
 	}
 
 	private void checkUserIsAuthorisedToStoreIncomingData(String userId,
-														  SpiderDataGroup spiderDataGroup) {
+			SpiderDataGroup spiderDataGroup) {
 		DataGroup incomingData = spiderDataGroup.toDataGroup();
 
 		// calculate permissionKey
@@ -159,7 +167,7 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 		spiderDataRecord.addAction(Action.READ);
 		spiderDataRecord.addAction(Action.UPDATE);
 		spiderDataRecord.addAction(Action.DELETE);
-		if(incomingLinksExistsForRecord()){
+		if (incomingLinksExistsForRecord()) {
 			spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
 		}
 	}

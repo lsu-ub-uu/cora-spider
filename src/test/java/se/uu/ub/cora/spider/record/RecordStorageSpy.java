@@ -31,6 +31,7 @@ public class RecordStorageSpy implements RecordStorage {
 	public Collection<String> readLists = new ArrayList<>();
 	public boolean deleteWasCalled = false;
 	public boolean createWasCalled = false;
+	public boolean updateWasCalled = false;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -75,9 +76,8 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record) {
-		// TODO Auto-generated method stub
-
+	public void update(String type, String id, DataGroup record, DataGroup linkList) {
+		updateWasCalled = true;
 	}
 
 	@Override

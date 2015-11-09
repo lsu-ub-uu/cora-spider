@@ -2,6 +2,7 @@ package se.uu.ub.cora.spider.testdata;
 
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 
 public final class DataCreator {
 	private static final String SELF_PRESENTATION_VIEW_ID = "selfPresentationViewId";
@@ -68,5 +69,23 @@ public final class DataCreator {
 		recordInfo.addChild(DataAtomic.withNameInDataAndValue("type", recordType));
 		recordInfo.addChild(DataAtomic.withNameInDataAndValue("id", recordId));
 		return recordInfo;
+	}
+
+	public static DataGroup createLinkList() {
+		return DataGroup.withNameInData("collectedDataLinks");
+	}
+
+	public static DataGroup createDataRecordLink(String fromRecordType, String fromRecordId,
+			String toRecordType, String toRecordId) {
+		DataGroup recordToRecordLink = DataGroup.withNameInData("recordToRecordLink");
+
+		DataRecordLink from = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId(
+				"from", fromRecordType, fromRecordId);
+		recordToRecordLink.addChild(from);
+
+		DataRecordLink to = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("to",
+				toRecordType, toRecordId);
+		recordToRecordLink.addChild(to);
+		return recordToRecordLink;
 	}
 }

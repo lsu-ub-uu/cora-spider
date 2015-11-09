@@ -33,8 +33,8 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 
 public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	private Map<String, Map<String, DataGroup>> records = new HashMap<>();
-	private Map<String, Map<String, DataGroup>> linkListStorage = new HashMap<>();
-	private Map<String, Map<String, Map<String, Map<String, DataGroup>>>> linkStorage = new HashMap<>();
+	private Map<String, Map<String, DataGroup>> linkLists = new HashMap<>();
+	private Map<String, Map<String, Map<String, Map<String, DataGroup>>>> incomingLinks = new HashMap<>();
 
 	public RecordStorageInMemory() {
 		// Make it possible to use default empty record storage
@@ -54,25 +54,25 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	@Override
 	public void create(String recordType, String recordId, DataGroup record, DataGroup linkList) {
-		ensureRecordTypeStorageExists(recordType);
+		ensureStorageExistsForRecordType(recordType);
 		checkNoConflictOnRecordId(recordType, recordId);
-		storeIndependentRecordByRecordTypeAndId(recordType, recordId, record);
+		storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
 		storeLinks(recordType, recordId, linkList);
 	}
 
-	private void ensureRecordTypeStorageExists(String recordType) {
+	private void ensureStorageExistsForRecordType(String recordType) {
 		if (holderForRecordTypeDoesNotExistInStorage(recordType)) {
 			createHolderForRecordTypeInStorage(recordType);
 		}
 	}
 
 	private boolean holderForRecordTypeDoesNotExistInStorage(String recordType) {
-		return null == records.get(recordType);
+		return !records.containsKey(recordType);
 	}
 
 	private void createHolderForRecordTypeInStorage(String recordType) {
 		records.put(recordType, new HashMap<String, DataGroup>());
-		linkListStorage.put(recordType, new HashMap<String, DataGroup>());
+		linkLists.put(recordType, new HashMap<String, DataGroup>());
 	}
 
 	private void checkNoConflictOnRecordId(String recordType, String recordId) {
@@ -83,10 +83,10 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	private boolean recordWithTypeAndIdAlreadyExists(String recordType, String recordId) {
-		return null != records.get(recordType).get(recordId);
+		return records.get(recordType).containsKey(recordId);
 	}
 
-	private void storeIndependentRecordByRecordTypeAndId(String recordType, String recordId,
+	private void storeIndependentRecordByRecordTypeAndRecordId(String recordType, String recordId,
 			DataGroup record) {
 		DataGroup recordIndependentOfEnteredRecord = createIndependentCopy(record);
 		storeRecordByRecordTypeAndRecordId(recordType, recordId, recordIndependentOfEnteredRecord);
@@ -104,66 +104,67 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	private void storeLinks(String recordType, String recordId, DataGroup linkList) {
 		DataGroup linkListIndependentFromEntered = createIndependentCopy(linkList);
 		storeLinkList(recordType, recordId, linkListIndependentFromEntered);
-		storeLinksForReadingForTargetRecord(linkListIndependentFromEntered);
+		storeLinksInIncomingLinks(linkListIndependentFromEntered);
 	}
 
 	private void storeLinkList(String recordType, String recordId,
 			DataGroup linkListIndependentFromEntered) {
-		linkListStorage.get(recordType).put(recordId, linkListIndependentFromEntered);
+		linkLists.get(recordType).put(recordId, linkListIndependentFromEntered);
 	}
 
-	private void storeLinksForReadingForTargetRecord(DataGroup incomingLinkList) {
+	private void storeLinksInIncomingLinks(DataGroup incomingLinkList) {
 		for (DataElement linkElement : incomingLinkList.getChildren()) {
-			storeLinkForReadingForTargetRecord((DataGroup) linkElement);
+			storeLinkInIncomingLinks((DataGroup) linkElement);
 		}
 	}
 
-	private void storeLinkForReadingForTargetRecord(DataGroup link) {
-		Map<String, Map<String, DataGroup>> toRecordsMapOfLinks = getStorageForLink(link);
-		storeLink(link, toRecordsMapOfLinks);
+	private void storeLinkInIncomingLinks(DataGroup link) {
+		Map<String, Map<String, DataGroup>> toPartOfIncomingLinks = getIncomingLinkStorageForLink(
+				link);
+		storeLinkInIncomingLinks(link, toPartOfIncomingLinks);
 	}
 
-	private Map<String, Map<String, DataGroup>> getStorageForLink(DataGroup link) {
+	private Map<String, Map<String, DataGroup>> getIncomingLinkStorageForLink(DataGroup link) {
 		DataRecordLink to = (DataRecordLink) link.getFirstChildWithNameInData("to");
 		String toType = to.getLinkedRecordType();
 		String toId = to.getLinkedRecordId();
 
-		ensureLinkStorageForTargetTypeAndId(toType, toId);
+		ensureInIncomingLinksHolderForRecordTypeAndRecordId(toType, toId);
 
-		return linkStorage.get(toType).get(toId);
+		return incomingLinks.get(toType).get(toId);
 	}
 
-	private void ensureLinkStorageForTargetTypeAndId(String toType, String toId) {
-		if (isLinkStorageForTargetTypeMissing(toType)) {
-			linkStorage.put(toType, new HashMap<>());
+	private void ensureInIncomingLinksHolderForRecordTypeAndRecordId(String toType, String toId) {
+		if (isIncomingLinksHolderForRecordTypeMissing(toType)) {
+			incomingLinks.put(toType, new HashMap<>());
 		}
-		if (isLinkStorageForTargetIdMissing(toType, toId)) {
-			linkStorage.get(toType).put(toId, new HashMap<>());
+		if (isIncomingLinksHolderForRecordIdMissing(toType, toId)) {
+			incomingLinks.get(toType).put(toId, new HashMap<>());
 		}
 	}
 
-	private boolean isLinkStorageForTargetTypeMissing(String toType) {
-		return !linkStorageForTargetTypeExists(toType);
+	private boolean isIncomingLinksHolderForRecordTypeMissing(String toType) {
+		return !incomingLinkStorageForRecordTypeExists(toType);
 	}
 
-	private boolean isLinkStorageForTargetIdMissing(String toType, String toId) {
-		return !linkStorageForTargetIdExists(toType, toId);
+	private boolean isIncomingLinksHolderForRecordIdMissing(String toType, String toId) {
+		return !incomingLinksHolderForRecordIdExists(toType, toId);
 	}
 
-	private void storeLink(DataGroup link,
-			Map<String, Map<String, DataGroup>> toRecordsMapOfLinks) {
+	private void storeLinkInIncomingLinks(DataGroup link,
+			Map<String, Map<String, DataGroup>> toPartOfIncomingLinks) {
 		DataRecordLink from = (DataRecordLink) link.getFirstChildWithNameInData("from");
 		String fromType = from.getLinkedRecordType();
 		String fromId = from.getLinkedRecordId();
 
-		ensureLinkStorageForFromType(toRecordsMapOfLinks, fromType);
-		toRecordsMapOfLinks.get(fromType).put(fromId, link);
+		ensureIncomingLinksHolderExistsForFromRecordType(toPartOfIncomingLinks, fromType);
+		toPartOfIncomingLinks.get(fromType).put(fromId, link);
 	}
 
-	private void ensureLinkStorageForFromType(
-			Map<String, Map<String, DataGroup>> toRecordsMapOfLinks, String fromType) {
-		if (!toRecordsMapOfLinks.containsKey(fromType)) {
-			toRecordsMapOfLinks.put(fromType, new HashMap<>());
+	private void ensureIncomingLinksHolderExistsForFromRecordType(
+			Map<String, Map<String, DataGroup>> toPartOfIncomingLinks, String fromType) {
+		if (!toPartOfIncomingLinks.containsKey(fromType)) {
+			toPartOfIncomingLinks.put(fromType, new HashMap<>());
 		}
 	}
 
@@ -193,14 +194,28 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	@Override
 	public DataGroup readLinkList(String recordType, String recordId) {
-		checkRecordExists(recordType, recordId);
-		return linkListStorage.get(recordType).get(recordId);
+		if (!linkLists.containsKey(recordType)) {
+			throw new RecordNotFoundException("No linkList exists with recordType: " + recordType);
+		}
+		if (!linkLists.get(recordType).containsKey(recordId)) {
+			throw new RecordNotFoundException("No linkList exists with recordId: " + recordId);
+		}
+		return linkLists.get(recordType).get(recordId);
 	}
 
 	@Override
 	public void deleteByTypeAndId(String recordType, String recordId) {
 		checkRecordExists(recordType, recordId);
+		removeIncomingLinks(recordType, recordId);
+		linkLists.get(recordType).remove(recordId);
+		if (linkLists.get(recordType).isEmpty()) {
+			linkLists.remove(recordType);
+		}
 		records.get(recordType).remove(recordId);
+		if (records.get(recordType).isEmpty()) {
+			records.remove(recordType);
+		}
+
 	}
 
 	@Override
@@ -213,7 +228,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private DataGroup generateLinkCollectionFromStoredLinks(String type, String id) {
 		DataGroup generatedLinkList = DataGroup.withNameInData("incomingRecordLinks");
-		Map<String, Map<String, DataGroup>> linkStorageForRecord = linkStorage.get(type).get(id);
+		Map<String, Map<String, DataGroup>> linkStorageForRecord = incomingLinks.get(type).get(id);
 		addLinksForRecordFromAllRecordTypes(generatedLinkList, linkStorageForRecord);
 		return generatedLinkList;
 	}
@@ -225,7 +240,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 		}
 	}
 
-	private void addLinksForRecordForThisRecordType(DataGroup generatedLinkList, Map<String, DataGroup> mapOfId) {
+	private void addLinksForRecordForThisRecordType(DataGroup generatedLinkList,
+			Map<String, DataGroup> mapOfId) {
 		for (DataGroup dataGroup : mapOfId.values()) {
 			generatedLinkList.addChild(dataGroup);
 		}
@@ -233,21 +249,74 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	@Override
 	public boolean linksExistForRecord(String type, String id) {
-		return linkStorageForTargetTypeExists(type) && linkStorageForTargetIdExists(type, id);
+		return incomingLinkStorageForRecordTypeExists(type)
+				&& incomingLinksHolderForRecordIdExists(type, id);
 	}
 
-	private boolean linkStorageForTargetIdExists(String type, String id) {
-		return linkStorage.get(type).containsKey(id);
+	private boolean incomingLinksHolderForRecordIdExists(String type, String id) {
+		return incomingLinks.get(type).containsKey(id);
 	}
 
-	private boolean linkStorageForTargetTypeExists(String type) {
-		return linkStorage.containsKey(type);
+	private boolean incomingLinkStorageForRecordTypeExists(String type) {
+		return incomingLinks.containsKey(type);
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record) {
-		checkRecordExists(type, id);
-		storeIndependentRecordByRecordTypeAndId(type, id, record);
+	public void update(String recordType, String recordId, DataGroup record, DataGroup linkList) {
+		checkRecordExists(recordType, recordId);
+		removeIncomingLinks(recordType, recordId);
+		storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
+		storeLinks(recordType, recordId, linkList);
+	}
+
+	private void removeIncomingLinks(String recordType, String recordId) {
+		DataGroup oldLinkList = readLinkList(recordType, recordId);
+		for (DataElement linkElement : oldLinkList.getChildren()) {
+			removeIncomingLink(linkElement);
+		}
+	}
+
+	private void removeIncomingLink(DataElement linkElement) {
+		DataGroup link = (DataGroup) linkElement;
+		DataRecordLink recordLinkTo = (DataRecordLink) link.getFirstChildWithNameInData("to");
+
+		Map<String, Map<String, DataGroup>> toPartOfIncomingLinks = extractToPartOfIncomingLinks(
+				recordLinkTo);
+
+		removeLinkAndFromHolderFromIncomingLinks(link, toPartOfIncomingLinks);
+
+		removeToHolderFromIncomingLinks(recordLinkTo, toPartOfIncomingLinks);
+	}
+
+	private Map<String, Map<String, DataGroup>> extractToPartOfIncomingLinks(DataRecordLink to) {
+		String toType = to.getLinkedRecordType();
+		String toId = to.getLinkedRecordId();
+		return incomingLinks.get(toType).get(toId);
+	}
+
+	private void removeLinkAndFromHolderFromIncomingLinks(DataGroup link,
+			Map<String, Map<String, DataGroup>> linksForToPart) {
+		DataRecordLink from = (DataRecordLink) link.getFirstChildWithNameInData("from");
+		String fromType = from.getLinkedRecordType();
+		String fromId = from.getLinkedRecordId();
+
+		linksForToPart.get(fromType).remove(fromId);
+
+		if (linksForToPart.get(fromType).isEmpty()) {
+			linksForToPart.remove(fromType);
+		}
+	}
+
+	private void removeToHolderFromIncomingLinks(DataRecordLink to,
+			Map<String, Map<String, DataGroup>> toPartOfIncomingLinks) {
+		String toType = to.getLinkedRecordType();
+		String toId = to.getLinkedRecordId();
+		if (toPartOfIncomingLinks.isEmpty()) {
+			incomingLinks.get(toType).remove(toId);
+		}
+		if (incomingLinks.get(toType).isEmpty()) {
+			incomingLinks.remove(toType);
+		}
 	}
 
 	@Override
