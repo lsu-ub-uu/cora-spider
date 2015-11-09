@@ -75,7 +75,7 @@ public final class DataCreator {
 		return DataGroup.withNameInData("collectedDataLinks");
 	}
 
-	public static DataGroup createDataRecordLink(String fromRecordType, String fromRecordId,
+	public static DataGroup createRecordToRecordLink(String fromRecordType, String fromRecordId,
 			String toRecordType, String toRecordId) {
 		DataGroup recordToRecordLink = DataGroup.withNameInData("recordToRecordLink");
 

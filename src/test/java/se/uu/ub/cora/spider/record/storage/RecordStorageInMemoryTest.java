@@ -132,10 +132,10 @@ public class RecordStorageInMemoryTest {
 	private DataGroup createLinkListWithTwoLinks(String fromRecordId) {
 		DataGroup linkList = DataCreator.createLinkList();
 
-		linkList.addChild(DataCreator.createDataRecordLink("fromRecordType", fromRecordId,
+		linkList.addChild(DataCreator.createRecordToRecordLink("fromRecordType", fromRecordId,
 				"toRecordType", "toRecordId"));
 
-		linkList.addChild(DataCreator.createDataRecordLink("fromRecordType", fromRecordId,
+		linkList.addChild(DataCreator.createRecordToRecordLink("fromRecordType", fromRecordId,
 				"toRecordType", "toRecordId2"));
 		return linkList;
 	}
@@ -292,9 +292,9 @@ public class RecordStorageInMemoryTest {
 	private DataGroup createLinkListWithLinksForTestingRemoveOfLinks() {
 		DataGroup linkList = DataCreator.createLinkList();
 
-		linkList.addChild(DataCreator.createDataRecordLink("fromRecordType", "fromRecordId",
+		linkList.addChild(DataCreator.createRecordToRecordLink("fromRecordType", "fromRecordId",
 				"toRecordType", "toRecordId"));
-		linkList.addChild(DataCreator.createDataRecordLink("fromRecordType", "fromRecordId2",
+		linkList.addChild(DataCreator.createRecordToRecordLink("fromRecordType", "fromRecordId2",
 				"toRecordType", "toRecordId"));
 		return linkList;
 	}
@@ -381,7 +381,7 @@ public class RecordStorageInMemoryTest {
 	private DataGroup createLinkListWithOneLink(String fromRecordId) {
 		DataGroup linkList = DataCreator.createLinkList();
 
-		linkList.addChild(DataCreator.createDataRecordLink("fromRecordType", fromRecordId,
+		linkList.addChild(DataCreator.createRecordToRecordLink("fromRecordType", fromRecordId,
 				"toRecordType", "toRecordId"));
 
 		return linkList;

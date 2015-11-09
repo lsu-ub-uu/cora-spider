@@ -26,22 +26,19 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
-import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
-public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
+public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
+		implements SpiderRecordUpdater {
 	private static final String RECORD_INFO = "recordInfo";
 	private static final String USER = "User:";
-	private RecordStorage recordStorage;
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
 	private DataValidator dataValidator;
 	private SpiderDataGroup spiderDataGroup;
 	private DataGroup recordTypeDefinition;
-	private String recordType;
-	private String recordId;
 	private DataRecordLinkCollector linkCollector;
 
 	public static SpiderRecordUpdaterImp usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
@@ -100,10 +97,6 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 		}
 	}
 
-	private DataGroup getRecordTypeDefinition() {
-		return recordStorage.read("recordType", recordType);
-	}
-
 	private void validateIncomingDataAsSpecifiedInMetadata() {
 		String metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("metadataId");
 		DataGroup dataGroup = spiderDataGroup.toDataGroup();
@@ -154,26 +147,6 @@ public final class SpiderRecordUpdaterImp implements SpiderRecordUpdater {
 					USER + userId + " is not authorized to store this incoming data for recordType:"
 							+ recordType);
 		}
-	}
-
-	private SpiderDataRecord createDataRecordContainingDataGroup(SpiderDataGroup spiderDataGroup) {
-		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
-
-		addLinks(spiderDataRecord);
-		return spiderDataRecord;
-	}
-
-	private void addLinks(SpiderDataRecord spiderDataRecord) {
-		spiderDataRecord.addAction(Action.READ);
-		spiderDataRecord.addAction(Action.UPDATE);
-		spiderDataRecord.addAction(Action.DELETE);
-		if (incomingLinksExistsForRecord()) {
-			spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
-		}
-	}
-
-	private boolean incomingLinksExistsForRecord() {
-		return recordStorage.linksExistForRecord(recordType, recordId);
 	}
 
 }

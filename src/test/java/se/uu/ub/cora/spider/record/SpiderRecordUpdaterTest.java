@@ -291,4 +291,36 @@ public class SpiderRecordUpdaterTest {
 		recordUpdater.updateRecord("userId", "typeWithUserGeneratedId", "gothenburgRecord1",
 				dataGroup);
 	}
+
+	@Test
+	public void testUpdateRecordWithDataRecordLinkHasReadActionTopLevel() {
+		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator
+				.createSpiderDataGroupWithRecordInfoAndLink();
+
+		SpiderRecordUpdater recordUpdater = createRecordUpdaterWithTestDataForLinkedData();
+		SpiderDataRecord record = recordUpdater.updateRecord("userId", "dataWithLinks",
+				"oneLinkTopLevel", dataGroup);
+
+		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
+	}
+
+	private SpiderRecordUpdater createRecordUpdaterWithTestDataForLinkedData() {
+		recordStorage = new RecordLinkTestsRecordStorage();
+		return SpiderRecordUpdaterImp
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
+						authorization, dataValidator, recordStorage, keyCalculator, linkCollector);
+	}
+
+	@Test
+	public void testUpdateRecordWithDataRecordLinkHasReadActionOneLevelDown() {
+		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator
+				.createDataGroupWithRecordInfoAndLinkOneLevelDown();
+
+		SpiderRecordUpdater recordUpdater = createRecordUpdaterWithTestDataForLinkedData();
+		SpiderDataRecord record = recordUpdater.updateRecord("userId", "dataWithLinks",
+				"oneLinkOneLevelDown", dataGroup);
+
+		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
+	}
+
 }

@@ -23,19 +23,14 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
-public final class SpiderRecordReaderImp implements SpiderRecordReader {
-	private static final String RECORD_TYPE = "recordType";
+public final class SpiderRecordReaderImp extends SpiderRecordHandler implements SpiderRecordReader {
 	private Authorizator authorization;
-	private RecordStorage recordStorage;
 	private PermissionKeyCalculator keyCalculator;
 	private String userId;
-	private String recordType;
-	private String recordId;
 
 	public static SpiderRecordReaderImp usingAuthorizationAndRecordStorageAndKeyCalculator(
 			Authorizator authorization, RecordStorage recordStorage,
@@ -63,19 +58,16 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 		// filter data
 		// TODO: filter hidden data if user does not have right to see it
 
-		return convertToSpiderDataRecord(recordRead);
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(recordRead);
+		return createDataRecordContainingDataGroup(spiderDataGroup);
 	}
 
 	private void checkRecordsRecordTypeNotAbstract() {
-		DataGroup recordTypeDataGroup = getRecordType(recordType);
-		if (recordTypeIsAbstract(recordTypeDataGroup)) {
+		DataGroup recordTypeDefinition = getRecordTypeDefinition();
+		if (recordTypeIsAbstract(recordTypeDefinition)) {
 			throw new MisuseException("Reading for record: " + recordId
 					+ " on the abstract recordType:" + recordType + " is not allowed");
 		}
-	}
-
-	private DataGroup getRecordType(String recordType) {
-		return recordStorage.read(RECORD_TYPE, recordType);
 	}
 
 	private boolean recordTypeIsAbstract(DataGroup recordTypeDataGroup) {
@@ -95,26 +87,6 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
 				recordRead);
 		return !authorization.isAuthorized(userId, recordCalculateKeys);
-	}
-
-	private SpiderDataRecord convertToSpiderDataRecord(DataGroup dataGroup) {
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
-		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
-		addLinks(spiderDataRecord);
-		return spiderDataRecord;
-	}
-
-	private void addLinks(SpiderDataRecord spiderDataRecord) {
-		spiderDataRecord.addAction(Action.READ);
-		spiderDataRecord.addAction(Action.UPDATE);
-		spiderDataRecord.addAction(Action.DELETE);
-		if(incomingLinksExistsForRecord()) {
-			spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
-		}
-	}
-
-	private boolean incomingLinksExistsForRecord() {
-		return recordStorage.linksExistForRecord(recordType, recordId);
 	}
 
 	@Override
