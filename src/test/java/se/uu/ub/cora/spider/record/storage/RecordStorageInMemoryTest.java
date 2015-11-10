@@ -108,6 +108,35 @@ public class RecordStorageInMemoryTest {
 		assertNoGeneratedLinksForRecordTypeAndRecordId("NOT_toRecordType", "toRecordId");
 	}
 
+	@Test
+	public void testCreateGenerateLinksPointToSameRecord() {
+		DataGroup dataGroup = createDataGroupWithRecordInfo();
+		DataGroup linkList = createLinkListWithTwoLinksToSameRecord("fromRecordId");
+		recordStorage.create("fromRecordType", "fromRecordId", dataGroup, linkList);
+
+		DataGroup generatedLinksPointToRecord = recordStorage
+				.generateLinkCollectionPointingToRecord("toRecordType", "toRecordId");
+
+		List<DataElement> generatedLinks = generatedLinksPointToRecord.getChildren();
+		assertEquals(generatedLinks.size(), 2);
+
+		assertRecordLinkIsCorrect((DataGroup) generatedLinks.get(0), "fromRecordType",
+				"fromRecordId", "toRecordType", "toRecordId");
+		assertRecordLinkIsCorrect((DataGroup) generatedLinks.get(1), "fromRecordType",
+				"fromRecordId", "toRecordType", "toRecordId");
+	}
+
+	private DataGroup createLinkListWithTwoLinksToSameRecord(String fromRecordId) {
+		DataGroup linkList = DataCreator.createLinkList();
+
+		linkList.addChild(DataCreator.createRecordToRecordLink("fromRecordType", fromRecordId,
+				"toRecordType", "toRecordId"));
+
+		linkList.addChild(DataCreator.createRecordToRecordLink("fromRecordType", fromRecordId,
+				"toRecordType", "toRecordId"));
+		return linkList;
+	}
+
 	private void assertRecordLinkIsCorrect(DataGroup recordToRecordLink, String fromRecordType,
 			String fromRecordId, String toRecordType, String toRecordId) {
 		assertEquals(recordToRecordLink.getNameInData(), "recordToRecordLink");
