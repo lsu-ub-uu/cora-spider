@@ -24,8 +24,10 @@ import java.util.Set;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.Action;
+import se.uu.ub.cora.spider.data.SpiderData;
 import se.uu.ub.cora.spider.data.SpiderDataElement;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
@@ -93,7 +95,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	@Override
-	public SpiderDataGroup readIncomingLinks(String userId, String recordType, String recordId) {
+	public SpiderDataList readIncomingLinks(String userId, String recordType, String recordId) {
 		this.userId = userId;
 		this.recordType = recordType;
 		this.recordId = recordId;
@@ -105,9 +107,23 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		DataGroup linksPointingToRecord = recordStorage
 				.generateLinkCollectionPointingToRecord(recordType, recordId);
 
+		return convertLinksPointingToRecordToSpiderDataList(linksPointingToRecord);
+	}
+
+	private SpiderDataList convertLinksPointingToRecordToSpiderDataList(
+			DataGroup linksPointingToRecord) {
 		SpiderDataGroup links = SpiderDataGroup.fromDataGroup(linksPointingToRecord);
 		addReadActionToIncomingLinks(links);
-		return links;
+
+		SpiderDataList recordToRecordList = SpiderDataList
+				.withContainDataOfType("recordToRecordLink");
+		recordToRecordList.setFromNo("0");
+		recordToRecordList.setToNo(Integer.toString(links.getChildren().size()));
+		recordToRecordList.setTotalNo(Integer.toString(links.getChildren().size()));
+		for (SpiderDataElement dataElement : links.getChildren()) {
+			recordToRecordList.addData((SpiderData) dataElement);
+		}
+		return recordToRecordList;
 	}
 
 	private void addReadActionToIncomingLinks(SpiderDataGroup links) {

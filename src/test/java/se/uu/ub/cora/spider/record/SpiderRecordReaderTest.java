@@ -31,6 +31,7 @@ import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
@@ -67,11 +68,10 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testReadIncomingLinks() {
-		SpiderDataGroup linksPointingToRecord = recordReader.readIncomingLinks("userId", "place",
+		SpiderDataList linksPointingToRecord = recordReader.readIncomingLinks("userId", "place",
 				"place:0001");
-		assertEquals(linksPointingToRecord.getNameInData(), "incomingRecordLinks");
-		assertEquals(linksPointingToRecord.getChildren().size(), 1);
-		SpiderDataGroup link = (SpiderDataGroup) linksPointingToRecord.getChildren().iterator()
+		assertEquals(linksPointingToRecord.getTotalNumberOfTypeInStorage(), "1");
+		SpiderDataGroup link = (SpiderDataGroup) linksPointingToRecord.getDataList().iterator()
 				.next();
 		assertEquals(link.getNameInData(), "recordToRecordLink");
 		SpiderDataRecordLink from = (SpiderDataRecordLink) link.getFirstChildWithNameInData("from");
