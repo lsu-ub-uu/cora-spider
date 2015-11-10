@@ -17,16 +17,8 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.data;
 
-import se.uu.ub.cora.spider.data.SpiderDataList;
+public interface SpiderData {
 
-/**
- * TODO: Class description
- *
- * @author <a href="mailto:madeleine.kennback@ub.uu.se">Madeleine Kennbäck</a>
- * @version $Revision$, $Date$, $Author$
- */
-public interface SpiderRecordListReader {
-    SpiderDataList readRecordList(String userId, String type);
 }

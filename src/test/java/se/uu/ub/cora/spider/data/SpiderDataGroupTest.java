@@ -19,6 +19,11 @@
 
 package se.uu.ub.cora.spider.data;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -26,15 +31,11 @@ import java.util.Map.Entry;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 public class SpiderDataGroupTest {
 	@Test
@@ -43,6 +44,12 @@ public class SpiderDataGroupTest {
 		assertEquals(spiderDataGroup.getNameInData(), "nameInData");
 		assertNotNull(spiderDataGroup.getAttributes());
 		assertNotNull(spiderDataGroup.getChildren());
+	}
+
+	@Test
+	public void testGroupIsSpiderData() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		assertTrue(spiderDataGroup instanceof SpiderData);
 	}
 
 	@Test
@@ -133,8 +140,8 @@ public class SpiderDataGroupTest {
 	@Test
 	public void testFromDataGroupWithDataRecordLinkChild() {
 		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
-		dataGroup.addChild(DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("childNameInData",
-				"aRecordType", "aRecordId"));
+		dataGroup.addChild(DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId(
+				"childNameInData", "aRecordType", "aRecordId"));
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		SpiderDataElement spiderDataElement = spiderDataGroup.getChildren().get(0);
 		assertEquals(spiderDataElement.getNameInData(), "childNameInData");
@@ -218,8 +225,9 @@ public class SpiderDataGroupTest {
 	@Test
 	public void testToDataGroupWithDataRecordLinkChild() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		SpiderDataElement dataElement = SpiderDataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId(
-				"childNameInData", "aRecordType", "aRecordId");
+		SpiderDataElement dataElement = SpiderDataRecordLink
+				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("childNameInData",
+						"aRecordType", "aRecordId");
 		spiderDataGroup.addChild(dataElement);
 
 		DataGroup dataGroup = spiderDataGroup.toDataGroup();

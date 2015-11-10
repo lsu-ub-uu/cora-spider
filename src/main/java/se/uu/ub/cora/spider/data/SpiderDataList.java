@@ -22,33 +22,33 @@ package se.uu.ub.cora.spider.data;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class SpiderRecordList {
+public final class SpiderDataList {
 
-	private String containRecordsOfType;
-	private List<SpiderDataRecord> records = new ArrayList<>();
+	private String containDataOfType;
+	private List<SpiderData> dataList = new ArrayList<>();
 	private String totalNo;
 	private String fromNo;
 	private String toNo;
 
-	public static SpiderRecordList withContainRecordsOfType(String containRecordsOfType) {
-		return new SpiderRecordList(containRecordsOfType);
+	public static SpiderDataList withContainDataOfType(String containDataOfType) {
+		return new SpiderDataList(containDataOfType);
 	}
 
-	private SpiderRecordList(String containRecordsOfType) {
-		this.containRecordsOfType = containRecordsOfType;
+	private SpiderDataList(String containDataOfType) {
+		this.containDataOfType = containDataOfType;
 	}
 
-	public String getContainRecordsOfType() {
-		return containRecordsOfType;
+	public String getContainDataOfType() {
+		return containDataOfType;
 	}
 
-	public void addRecord(SpiderDataRecord record) {
-		records.add(record);
+	public void addData(SpiderData spiderData) {
+		dataList.add(spiderData);
 
 	}
 
-	public List<SpiderDataRecord> getRecords() {
-		return records;
+	public List<SpiderData> getDataList() {
+		return dataList;
 	}
 
 	public void setTotalNo(String totalNo) {

@@ -26,7 +26,7 @@ import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderRecordList;
+import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 /**
@@ -39,7 +39,7 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 	private static final String RECORD_TYPE = "recordType";
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
-	private SpiderRecordList readRecordList;
+	private SpiderDataList readRecordList;
 
 	public static SpiderRecordListReaderImp usingAuthorizationAndRecordStorageAndKeyCalculator(
 			Authorizator authorization, RecordStorage recordStorage,
@@ -55,10 +55,10 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	@Override
-	public SpiderRecordList readRecordList(String userId, String recordType) {
+	public SpiderDataList readRecordList(String userId, String recordType) {
 
 		checkUserIsAuthorizedToReadListRecordType(userId, recordType);
-		readRecordList = SpiderRecordList.withContainRecordsOfType(recordType);
+		readRecordList = SpiderDataList.withContainDataOfType(recordType);
 
 		readRecordsOfType(recordType);
 		setFromToInReadRecordList();
@@ -128,13 +128,13 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 			SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 			SpiderDataRecord spiderDataRecord = createDataRecordContainingDataGroup(
 					spiderDataGroup);
-			readRecordList.addRecord(spiderDataRecord);
+			readRecordList.addData(spiderDataRecord);
 		}
 	}
 
 	private void setFromToInReadRecordList() {
-		readRecordList.setTotalNo(String.valueOf(readRecordList.getRecords().size()));
+		readRecordList.setTotalNo(String.valueOf(readRecordList.getDataList().size()));
 		readRecordList.setFromNo("0");
-		readRecordList.setToNo(String.valueOf(readRecordList.getRecords().size() - 1));
+		readRecordList.setToNo(String.valueOf(readRecordList.getDataList().size() - 1));
 	}
 }

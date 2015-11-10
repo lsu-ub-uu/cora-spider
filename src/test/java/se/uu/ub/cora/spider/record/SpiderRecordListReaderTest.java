@@ -33,8 +33,9 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.spider.data.Action;
+import se.uu.ub.cora.spider.data.SpiderData;
+import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderRecordList;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
@@ -64,13 +65,13 @@ public class SpiderRecordListReaderTest {
 	public void testReadListAuthorized() {
 		String userId = "userId";
 		String type = "place";
-		SpiderRecordList readRecordList = recordListReader.readRecordList(userId, type);
+		SpiderDataList readRecordList = recordListReader.readRecordList(userId, type);
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "2",
 				"Total number of records should be 2");
 		assertEquals(readRecordList.getFromNo(), "0");
 		assertEquals(readRecordList.getToNo(), "1");
-		List<SpiderDataRecord> records = readRecordList.getRecords();
-		SpiderDataRecord spiderDataRecord = records.iterator().next();
+		List<SpiderData> records = readRecordList.getDataList();
+		SpiderDataRecord spiderDataRecord = (SpiderDataRecord) records.iterator().next();
 		assertNotNull(spiderDataRecord);
 	}
 
@@ -93,25 +94,26 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testActionsOnReadRecord() {
-		SpiderRecordList recordList = recordListReader.readRecordList("userId", "place");
-		assertEquals(recordList.getRecords().get(0).getActions().size(), 4);
-		assertTrue(recordList.getRecords().get(0).getActions().contains(Action.DELETE));
+		SpiderDataList recordList = recordListReader.readRecordList("userId", "place");
+		assertEquals(((SpiderDataRecord) recordList.getDataList().get(0)).getActions().size(), 4);
+		assertTrue(((SpiderDataRecord) recordList.getDataList().get(0)).getActions()
+				.contains(Action.DELETE));
 	}
 
 	@Test
 	public void testActionsOnReadRecordNoIncomingLinks() {
-		SpiderRecordList recordList = recordListReader.readRecordList("userId", "place");
-		assertEquals(recordList.getRecords().get(1).getActions().size(), 3);
-		assertFalse(
-				recordList.getRecords().get(1).getActions().contains(Action.READ_INCOMING_LINKS));
+		SpiderDataList recordList = recordListReader.readRecordList("userId", "place");
+		assertEquals(((SpiderDataRecord) recordList.getDataList().get(1)).getActions().size(), 3);
+		assertFalse(((SpiderDataRecord) recordList.getDataList().get(1)).getActions()
+				.contains(Action.READ_INCOMING_LINKS));
 	}
 
 	@Test
 	public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
 		SpiderRecordListReader recordListReader = createRecordListReaderWithTestDataForLinkedData();
 
-		SpiderRecordList recordList = recordListReader.readRecordList("userId", "dataWithLinks");
-		SpiderDataRecord record = recordList.getRecords().get(0);
+		SpiderDataList recordList = recordListReader.readRecordList("userId", "dataWithLinks");
+		SpiderDataRecord record = (SpiderDataRecord) recordList.getDataList().get(0);
 		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
 	}
 
@@ -125,8 +127,8 @@ public class SpiderRecordListReaderTest {
 	public void testReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
 		SpiderRecordListReader recordListReader = createRecordListReaderWithTestDataForLinkedData();
 
-		SpiderRecordList recordList = recordListReader.readRecordList("userId", "dataWithLinks");
-		SpiderDataRecord record = recordList.getRecords().get(1);
+		SpiderDataList recordList = recordListReader.readRecordList("userId", "dataWithLinks");
+		SpiderDataRecord record = (SpiderDataRecord) recordList.getDataList().get(1);
 
 		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}

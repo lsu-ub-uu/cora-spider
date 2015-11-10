@@ -30,7 +30,7 @@ import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 
-public final class SpiderDataGroup implements SpiderDataElement {
+public final class SpiderDataGroup implements SpiderDataElement, SpiderData {
 
 	private String nameInData;
 	private Map<String, String> attributes = new HashMap<>();

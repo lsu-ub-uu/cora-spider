@@ -24,7 +24,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.data.DataRecord;
 
-public final class SpiderDataRecord {
+public final class SpiderDataRecord implements SpiderData {
 	private Set<String> keys = new HashSet<>();
 	private SpiderDataGroup spiderDataGroup;
 	private Set<Action> actions = new HashSet<>();

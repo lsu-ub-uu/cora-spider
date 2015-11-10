@@ -19,16 +19,17 @@
 
 package se.uu.ub.cora.spider.data;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+
 import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.data.DataRecord;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
 
 public class SpiderDataRecordTest {
 	private SpiderDataRecord spiderDataRecord;
@@ -37,6 +38,11 @@ public class SpiderDataRecordTest {
 	public void beforeMethod() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
 		spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
+	}
+
+	@Test
+	public void testRecordIsSpiderData() {
+		assertTrue(spiderDataRecord instanceof SpiderData);
 	}
 
 	@Test
