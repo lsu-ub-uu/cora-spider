@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record.storage;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -229,39 +230,39 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public DataGroup generateLinkCollectionPointingToRecord(String type, String id) {
+	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
 		if (linksExistForRecord(type, id)) {
 			return generateLinkCollectionFromStoredLinks(type, id);
 		}
-		return DataGroup.withNameInData("incomingRecordLinks");
+		return Collections.emptyList();
 	}
 
-	private DataGroup generateLinkCollectionFromStoredLinks(String type, String id) {
-		DataGroup generatedLinkList = DataGroup.withNameInData("incomingRecordLinks");
+	private Collection<DataGroup> generateLinkCollectionFromStoredLinks(String type, String id) {
+		List<DataGroup> generatedLinkList = new ArrayList<>();
 		Map<String, Map<String, List<DataGroup>>> linkStorageForRecord = incomingLinks.get(type)
 				.get(id);
 		addLinksForRecordFromAllRecordTypes(generatedLinkList, linkStorageForRecord);
 		return generatedLinkList;
 	}
 
-	private void addLinksForRecordFromAllRecordTypes(DataGroup generatedLinkList,
+	private void addLinksForRecordFromAllRecordTypes(List<DataGroup> generatedLinkList,
 			Map<String, Map<String, List<DataGroup>>> linkStorageForRecord) {
 		for (Map<String, List<DataGroup>> mapOfId : linkStorageForRecord.values()) {
 			addLinksForRecordForThisRecordType(generatedLinkList, mapOfId);
 		}
 	}
 
-	private void addLinksForRecordForThisRecordType(DataGroup generatedLinkList,
+	private void addLinksForRecordForThisRecordType(List<DataGroup> generatedLinkList,
 			Map<String, List<DataGroup>> mapOfId) {
 		for (List<DataGroup> recordToRecordLinkList : mapOfId.values()) {
 			addLinksFromRecordToRecordLinkList(generatedLinkList, recordToRecordLinkList);
 		}
 	}
 
-	private void addLinksFromRecordToRecordLinkList(DataGroup generatedLinkList,
+	private void addLinksFromRecordToRecordLinkList(List<DataGroup> generatedLinkList,
 			List<DataGroup> recordToRecordLinkList) {
 		for (DataGroup recordToRecordLink : recordToRecordLinkList) {
-			generatedLinkList.addChild(recordToRecordLink);
+			generatedLinkList.add(recordToRecordLink);
 		}
 	}
 

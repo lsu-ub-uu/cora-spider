@@ -19,13 +19,12 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.Collection;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.Action;
-import se.uu.ub.cora.spider.data.SpiderData;
-import se.uu.ub.cora.spider.data.SpiderDataElement;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
@@ -104,34 +103,41 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 
 		checkUserIsAuthorisedToReadData(recordRead);
 
-		DataGroup linksPointingToRecord = recordStorage
+		Collection<DataGroup> linksPointingToRecord = recordStorage
 				.generateLinkCollectionPointingToRecord(recordType, recordId);
 
 		return convertLinksPointingToRecordToSpiderDataList(linksPointingToRecord);
 	}
 
 	private SpiderDataList convertLinksPointingToRecordToSpiderDataList(
-			DataGroup linksPointingToRecord) {
-		SpiderDataGroup links = SpiderDataGroup.fromDataGroup(linksPointingToRecord);
-		addReadActionToIncomingLinks(links);
+			Collection<DataGroup> dataGroupLinks) {
+		SpiderDataList recordToRecordLinkList = createDataListForRecordToRecordLinks(
+				dataGroupLinks);
+		convertAndAddLinksToLinkList(dataGroupLinks, recordToRecordLinkList);
+		return recordToRecordLinkList;
+	}
 
+	private SpiderDataList createDataListForRecordToRecordLinks(Collection<DataGroup> links) {
 		SpiderDataList recordToRecordList = SpiderDataList
 				.withContainDataOfType("recordToRecordLink");
-		recordToRecordList.setFromNo("0");
-		recordToRecordList.setToNo(Integer.toString(links.getChildren().size()));
-		recordToRecordList.setTotalNo(Integer.toString(links.getChildren().size()));
-		for (SpiderDataElement dataElement : links.getChildren()) {
-			recordToRecordList.addData((SpiderData) dataElement);
-		}
+		recordToRecordList.setFromNo("1");
+		recordToRecordList.setToNo(Integer.toString(links.size()));
+		recordToRecordList.setTotalNo(Integer.toString(links.size()));
 		return recordToRecordList;
 	}
 
-	private void addReadActionToIncomingLinks(SpiderDataGroup links) {
-		for (SpiderDataElement spiderDataElement : links.getChildren()) {
-			SpiderDataGroup spiderDataGroup = (SpiderDataGroup) spiderDataElement;
-			SpiderDataRecordLink spiderRecordLink = (SpiderDataRecordLink) spiderDataGroup
-					.getFirstChildWithNameInData("from");
-			spiderRecordLink.addAction(Action.READ);
+	private void convertAndAddLinksToLinkList(Collection<DataGroup> links,
+			SpiderDataList recordToRecordList) {
+		for (DataGroup dataGroup : links) {
+			SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
+			addReadActionToIncomingLinks(spiderDataGroup);
+			recordToRecordList.addData(spiderDataGroup);
 		}
+	}
+
+	private void addReadActionToIncomingLinks(SpiderDataGroup spiderDataGroup) {
+		SpiderDataRecordLink spiderRecordLink = (SpiderDataRecordLink) spiderDataGroup
+				.getFirstChildWithNameInData("from");
+		spiderRecordLink.addAction(Action.READ);
 	}
 }

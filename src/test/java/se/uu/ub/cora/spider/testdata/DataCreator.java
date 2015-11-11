@@ -71,6 +71,13 @@ public final class DataCreator {
 		return recordInfo;
 	}
 
+	public static DataGroup createDataGroupWithNameInDataAndRecordInfoWithRecordTypeAndRecordId(
+			String nameInData, String recordType, String recordId) {
+		DataGroup dataGroup = DataGroup.withNameInData(nameInData);
+		dataGroup.addChild(createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
+		return dataGroup;
+	}
+
 	public static DataGroup createLinkList() {
 		return DataGroup.withNameInData("collectedDataLinks");
 	}

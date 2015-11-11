@@ -68,7 +68,7 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public DataGroup generateLinkCollectionPointingToRecord(String type, String id) {
+	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -25,8 +25,8 @@ import java.util.Set;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataList;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 /**
@@ -67,7 +67,6 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private void checkUserIsAuthorizedToReadListRecordType(String userId, String recordType) {
-		// calculate permissionKey
 		String accessType = "READ";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeysForList(accessType,
 				recordType);
@@ -92,7 +91,6 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private void addChildrenOfAbstractTypeToReadRecordList(String abstractRecordType) {
-		// find child recordTypes
 		Collection<DataGroup> recordTypes = recordStorage.readList(RECORD_TYPE);
 
 		for (DataGroup recordTypePossibleChild : recordTypes) {
@@ -116,7 +114,6 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private void addChildToReadRecordList(DataGroup recordTypePossibleChild) {
-		// get this recordTypes data from storage
 		String childRecordType = recordTypePossibleChild.getFirstGroupWithNameInData("recordInfo")
 				.getFirstAtomicValueWithNameInData("id");
 		readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(childRecordType);
@@ -134,7 +131,7 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	private void setFromToInReadRecordList() {
 		readRecordList.setTotalNo(String.valueOf(readRecordList.getDataList().size()));
-		readRecordList.setFromNo("0");
-		readRecordList.setToNo(String.valueOf(readRecordList.getDataList().size() - 1));
+		readRecordList.setFromNo("1");
+		readRecordList.setToNo(String.valueOf(readRecordList.getDataList().size()));
 	}
 }

@@ -71,6 +71,8 @@ public class SpiderRecordReaderTest {
 		SpiderDataList linksPointingToRecord = recordReader.readIncomingLinks("userId", "place",
 				"place:0001");
 		assertEquals(linksPointingToRecord.getTotalNumberOfTypeInStorage(), "1");
+		assertEquals(linksPointingToRecord.getFromNo(), "1");
+		assertEquals(linksPointingToRecord.getToNo(), "1");
 		SpiderDataGroup link = (SpiderDataGroup) linksPointingToRecord.getDataList().iterator()
 				.next();
 		assertEquals(link.getNameInData(), "recordToRecordLink");
@@ -78,6 +80,7 @@ public class SpiderRecordReaderTest {
 		assertEquals(from.getLinkedRecordType(), "place");
 		assertEquals(from.getLinkedRecordId(), "place:0002");
 		assertEquals(from.getActions().size(), 1);
+
 		assertTrue(from.getActions().contains(Action.READ));
 
 		SpiderDataRecordLink to = (SpiderDataRecordLink) link.getFirstChildWithNameInData("to");

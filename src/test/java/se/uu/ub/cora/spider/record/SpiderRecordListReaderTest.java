@@ -68,8 +68,8 @@ public class SpiderRecordListReaderTest {
 		SpiderDataList readRecordList = recordListReader.readRecordList(userId, type);
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "2",
 				"Total number of records should be 2");
-		assertEquals(readRecordList.getFromNo(), "0");
-		assertEquals(readRecordList.getToNo(), "1");
+		assertEquals(readRecordList.getFromNo(), "1");
+		assertEquals(readRecordList.getToNo(), "2");
 		List<SpiderData> records = readRecordList.getDataList();
 		SpiderDataRecord spiderDataRecord = (SpiderDataRecord) records.iterator().next();
 		assertNotNull(spiderDataRecord);
