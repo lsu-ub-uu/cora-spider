@@ -42,6 +42,8 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup dummy = DataGroup.withNameInData("dummy");
 		recordsInMemory.create("metadataCollectionVariable", "dummy1", dummy,
 				DataGroup.withNameInData("collectedLinksList"));
+		recordsInMemory.create("metadataCollectionVariableChild", "dummy1", dummy,
+				DataGroup.withNameInData("dummy"));
 		recordsInMemory.create("metadataItemCollection", "dummy1", dummy,
 				DataGroup.withNameInData("collectedLinksList"));
 		recordsInMemory.create("metadataCollectionItem", "dummy1", dummy,
