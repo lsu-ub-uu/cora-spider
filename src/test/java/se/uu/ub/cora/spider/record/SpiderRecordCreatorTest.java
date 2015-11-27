@@ -56,7 +56,7 @@ public class SpiderRecordCreatorTest {
 		dataValidator = new DataValidatorAlwaysValidSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		idGenerator = new TimeStampIdGenerator();
-		keyCalculator = new RecordPermissionKeyCalculator();
+		keyCalculator = new RecordPermissionKeyCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		recordCreator = SpiderRecordCreatorImp
 				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(

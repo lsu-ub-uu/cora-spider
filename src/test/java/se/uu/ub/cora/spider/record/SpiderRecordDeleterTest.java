@@ -19,15 +19,16 @@
 
 package se.uu.ub.cora.spider.record;
 
+import static org.testng.Assert.assertTrue;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
-
-import static org.testng.Assert.assertTrue;
 
 public class SpiderRecordDeleterTest {
 	private RecordStorage recordStorage;
@@ -39,7 +40,7 @@ public class SpiderRecordDeleterTest {
 	public void beforeMethod() {
 		authorization = new AuthorizatorImp();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		keyCalculator = new RecordPermissionKeyCalculator();
+		keyCalculator = new RecordPermissionKeyCalculatorStub();
 		recordDeleter = SpiderRecordDeleterImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
 				authorization, recordStorage, keyCalculator);
 

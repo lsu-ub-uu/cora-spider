@@ -48,7 +48,7 @@ public class SpiderRecordReaderTest {
 	public void beforeMethod() {
 		authorization = new AuthorizatorImp();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		keyCalculator = new RecordPermissionKeyCalculator();
+		keyCalculator = new RecordPermissionKeyCalculatorStub();
 		recordReader = SpiderRecordReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
 				authorization, recordStorage, keyCalculator);
 	}

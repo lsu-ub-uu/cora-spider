@@ -52,7 +52,7 @@ public class SpiderRecordUpdaterTest {
 		authorization = new AuthorizatorImp();
 		dataValidator = new DataValidatorAlwaysValidSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		keyCalculator = new RecordPermissionKeyCalculator();
+		keyCalculator = new RecordPermissionKeyCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		recordUpdater = SpiderRecordUpdaterImp
 				.usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(

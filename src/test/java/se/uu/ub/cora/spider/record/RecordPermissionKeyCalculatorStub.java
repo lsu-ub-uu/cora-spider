@@ -23,8 +23,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 
-public class RecordPermissionKeyCalculator implements PermissionKeyCalculator {
+public class RecordPermissionKeyCalculatorStub implements PermissionKeyCalculator {
 
 	@Override
 	public Set<String> calculateKeys(String accessType, String recordType, DataGroup record) {
