@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
+//import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
@@ -156,15 +156,23 @@ public class RecordStorageInMemoryTest {
 	private void assertRecordLinkIsCorrect(DataGroup recordToRecordLink, String fromRecordType,
 			String fromRecordId, String toRecordType, String toRecordId) {
 		assertEquals(recordToRecordLink.getNameInData(), "recordToRecordLink");
-		DataRecordLink fromOut = (DataRecordLink) recordToRecordLink
-				.getFirstChildWithNameInData("from");
-		assertEquals(fromOut.getLinkedRecordType(), fromRecordType);
-		assertEquals(fromOut.getLinkedRecordId(), fromRecordId);
 
-		DataRecordLink toOut = (DataRecordLink) recordToRecordLink
-				.getFirstChildWithNameInData("to");
-		assertEquals(toOut.getLinkedRecordType(), toRecordType);
-		assertEquals(toOut.getLinkedRecordId(), toRecordId);
+		DataGroup fromOut = recordToRecordLink.getFirstGroupWithNameInData("from");
+
+//		DataRecordLink fromOut = (DataRecordLink) recordToRecordLink
+//				.getFirstChildWithNameInData("from");
+		assertEquals(fromOut.getFirstAtomicValueWithNameInData("linkedRecordType"), fromRecordType);
+//		assertEquals(fromOut.getLinkedRecordType(), fromRecordType);
+		assertEquals(fromOut.getFirstAtomicValueWithNameInData("linkedRecordId"), fromRecordId);
+//		assertEquals(fromOut.getLinkedRecordId(), fromRecordId);
+
+		DataGroup toOut = recordToRecordLink.getFirstGroupWithNameInData("to");
+//		DataRecordLink toOut = (DataRecordLink) recordToRecordLink
+//				.getFirstChildWithNameInData("to");
+		assertEquals(toOut.getFirstAtomicValueWithNameInData("linkedRecordType"), toRecordType);
+//		assertEquals(toOut.getLinkedRecordType(), toRecordType);
+		assertEquals(toOut.getFirstAtomicValueWithNameInData("linkedRecordId"), toRecordId);
+//		assertEquals(toOut.getLinkedRecordId(), toRecordId);
 	}
 
 	private void assertNoGeneratedLinksForRecordTypeAndRecordId(String toRecordType,

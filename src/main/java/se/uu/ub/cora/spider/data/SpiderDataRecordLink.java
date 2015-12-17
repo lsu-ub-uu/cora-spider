@@ -19,10 +19,13 @@
 
 package se.uu.ub.cora.spider.data;
 
+import se.uu.ub.cora.bookkeeper.data.DataAtomic;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
+
 import java.util.HashSet;
 import java.util.Set;
 
-import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
+//import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 
 public final class SpiderDataRecordLink implements SpiderDataElement {
 
@@ -45,18 +48,19 @@ public final class SpiderDataRecordLink implements SpiderDataElement {
 		this.linkedRecordId = linkedRecordId;
 	}
 
-	private SpiderDataRecordLink(DataRecordLink dataRecordLink) {
+	private SpiderDataRecordLink(DataGroup dataRecordLink) {
 		nameInData = dataRecordLink.getNameInData();
-		linkedRecordType = dataRecordLink.getLinkedRecordType();
-		linkedRecordId = dataRecordLink.getLinkedRecordId();
+		linkedRecordType = dataRecordLink.getFirstAtomicValueWithNameInData("linkedRecordType");
+		linkedRecordId = dataRecordLink.getFirstAtomicValueWithNameInData("linkedRecordId");
 		repeatId = dataRecordLink.getRepeatId();
-		linkedRepeatId = dataRecordLink.getLinkedRepeatId();
+		linkedRepeatId = dataRecordLink.getFirstAtomicValueWithNameInData("linkedRepeatId");
 		addLinkedPathFromDataRecordLinkIfItExists(dataRecordLink);
 	}
 
-	private void addLinkedPathFromDataRecordLinkIfItExists(DataRecordLink dataRecordLink) {
-		if(dataRecordLink.getLinkedPath() != null){
-			linkedPath = SpiderDataGroup.fromDataGroup(dataRecordLink.getLinkedPath());
+	private void addLinkedPathFromDataRecordLinkIfItExists(DataGroup dataRecordLink) {
+		if(dataRecordLink.containsChildWithNameInData("linkedPath")){
+//		if(dataRecordLink.getLinkedPath() != null){
+			linkedPath = SpiderDataGroup.fromDataGroup(dataRecordLink.getFirstGroupWithNameInData("linkedPath"));
 		}
 	}
 
@@ -81,22 +85,32 @@ public final class SpiderDataRecordLink implements SpiderDataElement {
 		return actions;
 	}
 
-	public DataRecordLink toDataRecordLink() {
-		DataRecordLink dataRecordLink = DataRecordLink
-				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId(nameInData, linkedRecordType, linkedRecordId);
+	public DataGroup toDataRecordLink() {
+//		DataRecordLink dataRecordLink = DataRecordLink
+//				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId(nameInData, linkedRecordType, linkedRecordId);
+
+		DataGroup dataRecordLink = DataGroup.withNameInData(nameInData);
+		DataAtomic linkedRecordTypeChild = DataAtomic.withNameInDataAndValue("linkedRecordType", linkedRecordType);
+		dataRecordLink.addChild(linkedRecordTypeChild);
+
+		DataAtomic linkedRecordIdChild = DataAtomic.withNameInDataAndValue("linkedRecordId", linkedRecordId);
+		dataRecordLink.addChild(linkedRecordIdChild);
+
+		DataAtomic linkedRepeatIdChild = DataAtomic.withNameInDataAndValue("linkedRepeatId", linkedRepeatId);
+		dataRecordLink.addChild(linkedRepeatIdChild);
+//		dataRecordLink.setLinkedRepeatId(linkedRepeatId);
 		dataRecordLink.setRepeatId(repeatId);
-		dataRecordLink.setLinkedRepeatId(linkedRepeatId);
 		addLinkedPathToDataRecordLinkIfItExists(dataRecordLink);
 		return dataRecordLink;
 	}
 
-	private void addLinkedPathToDataRecordLinkIfItExists(DataRecordLink dataRecordLink) {
+	private void addLinkedPathToDataRecordLinkIfItExists(DataGroup dataRecordLink) {
 		if(linkedPath != null) {
-			dataRecordLink.setLinkedPath(linkedPath.toDataGroup());
+			dataRecordLink.addChild(linkedPath.toDataGroup());
 		}
 	}
 
-	public static SpiderDataRecordLink fromDataRecordLink(DataRecordLink dataRecordLink) {
+	public static SpiderDataRecordLink fromDataRecordLink(DataGroup dataRecordLink) {
 		return new SpiderDataRecordLink(dataRecordLink);
 	}
 

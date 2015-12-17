@@ -24,11 +24,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.data.Action;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataList;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.data.*;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordReaderImp extends SpiderRecordHandler implements SpiderRecordReader {
@@ -136,8 +132,18 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private void addReadActionToIncomingLinks(SpiderDataGroup spiderDataGroup) {
-		SpiderDataRecordLink spiderRecordLink = (SpiderDataRecordLink) spiderDataGroup
-				.getFirstChildWithNameInData("from");
-		spiderRecordLink.addAction(Action.READ);
+//		SpiderDataRecordLink spiderRecordLink = (SpiderDataRecordLink) spiderDataGroup
+//				.getFirstChildWithNameInData("from");
+
+		SpiderDataGroup spiderRecordLink = (SpiderDataGroup) spiderDataGroup.getFirstChildWithNameInData("from");
+
+		SpiderDataGroup actions = SpiderDataGroup.withNameInData("actions");
+		SpiderDataAtomic readAction = SpiderDataAtomic.withNameInDataAndValue("action", "read");
+		readAction.setRepeatId("read");
+		actions.addChild(readAction);
+
+		spiderRecordLink.addChild(actions);
+
+//		spiderRecordLink.addAction(Action.READ);
 	}
 }
