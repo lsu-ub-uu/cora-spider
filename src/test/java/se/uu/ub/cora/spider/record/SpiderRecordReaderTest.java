@@ -29,11 +29,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
-import se.uu.ub.cora.spider.data.Action;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataList;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.data.*;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
@@ -66,28 +62,36 @@ public class SpiderRecordReaderTest {
 		recordReader.readRecord("unauthorizedUserId", "place", "place:0001");
 	}
 
-//	@Test
-//	public void testReadIncomingLinks() {
-//		SpiderDataList linksPointingToRecord = recordReader.readIncomingLinks("userId", "place",
-//				"place:0001");
-//		assertEquals(linksPointingToRecord.getTotalNumberOfTypeInStorage(), "1");
-//		assertEquals(linksPointingToRecord.getFromNo(), "1");
-//		assertEquals(linksPointingToRecord.getToNo(), "1");
-//		SpiderDataGroup link = (SpiderDataGroup) linksPointingToRecord.getDataList().iterator()
-//				.next();
-//		assertEquals(link.getNameInData(), "recordToRecordLink");
+	@Test
+	public void testReadIncomingLinks() {
+		SpiderDataList linksPointingToRecord = recordReader.readIncomingLinks("userId", "place",
+				"place:0001");
+		assertEquals(linksPointingToRecord.getTotalNumberOfTypeInStorage(), "1");
+		assertEquals(linksPointingToRecord.getFromNo(), "1");
+		assertEquals(linksPointingToRecord.getToNo(), "1");
+		SpiderDataGroup link = (SpiderDataGroup) linksPointingToRecord.getDataList().iterator()
+				.next();
+		assertEquals(link.getNameInData(), "recordToRecordLink");
+
+		SpiderDataGroupRecordLink from = (SpiderDataGroupRecordLink) link.getFirstChildWithNameInData("from");
+//		assertEquals(from.getLinkedRecordType(), "place");
+		SpiderDataAtomic linkedRecordType = (SpiderDataAtomic) from.getFirstChildWithNameInData("linkedRecordType");
+		assertEquals(linkedRecordType.getValue(), "place");
+		SpiderDataAtomic linkedRecordId = (SpiderDataAtomic) from.getFirstChildWithNameInData("linkedRecordId");
+//		assertEquals(from.getLinkedRecordId(), "place:0002");
+		assertEquals(linkedRecordId.getValue(), "place:0002");
+		assertEquals(from.getActions().size(), 1);
+
 //		SpiderDataGroup from = (SpiderDataGroup) link.getFirstChildWithNameInData("from");
-////		assertEquals(from.getFirstChildWithNameInData("linkedRecordType"), "place");
-////		assertEquals(from.getFirstChildWithNameInData("linkedRecordId"), "place:0002");
-////		assertEquals(from.getActions().size(), 1);
-////
-////		assertTrue(from.getActions().contains(Action.READ));
-//
-//		SpiderDataRecordLink to = (SpiderDataRecordLink) link.getFirstChildWithNameInData("to");
-//		assertEquals(to.getLinkedRecordType(), "place");
-//		assertEquals(to.getLinkedRecordId(), "place:0001");
-//
-//	}
+//		assertEquals(from.getActions().size(), 1);
+
+		assertTrue(from.getActions().contains(Action.READ));
+
+		SpiderDataRecordLink to = (SpiderDataRecordLink) link.getFirstChildWithNameInData("to");
+		assertEquals(to.getLinkedRecordType(), "place");
+		assertEquals(to.getLinkedRecordId(), "place:0001");
+
+	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testReadIncomingLinksUnauthorized() {

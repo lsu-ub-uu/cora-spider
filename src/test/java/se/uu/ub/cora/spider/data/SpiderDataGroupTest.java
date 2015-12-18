@@ -147,13 +147,12 @@ public class SpiderDataGroupTest {
 		SpiderDataElement spiderDataElement = spiderDataGroup.getChildren().get(0);
 		assertEquals(spiderDataElement.getNameInData(), "childNameInData");
 
-		SpiderDataGroup spiderDataRecordLink = (SpiderDataGroup) spiderDataElement;
-		SpiderDataAtomic linkedRecordType = (SpiderDataAtomic)spiderDataRecordLink.getFirstChildWithNameInData("linkedRecordType");
+		SpiderDataGroupRecordLink spiderDataRecordLink = (SpiderDataGroupRecordLink) spiderDataElement;
+		SpiderDataAtomic linkedRecordType = (SpiderDataAtomic) spiderDataRecordLink.getFirstChildWithNameInData("linkedRecordType");
 		assertEquals(linkedRecordType.getValue(), "aRecordType");
-//		assertEquals(spiderDataRecordLink.getLinkedRecordType(), "aRecordType");
 		SpiderDataAtomic linkedRecordId = (SpiderDataAtomic)spiderDataRecordLink.getFirstChildWithNameInData("linkedRecordId");
 		assertEquals(linkedRecordId.getValue(), "aRecordId");
-//		assertEquals(spiderDataRecordLink.getLinkedRecordId(), "aRecordId");
+
 	}
 
 	private DataGroup createRecordLink() {

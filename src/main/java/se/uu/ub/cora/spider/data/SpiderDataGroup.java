@@ -41,6 +41,8 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 		return new SpiderDataGroup(nameInData);
 	}
 
+	protected SpiderDataGroup(){}
+
 	protected SpiderDataGroup(String nameInData) {
 		this.nameInData = nameInData;
 	}
@@ -49,7 +51,7 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 		return new SpiderDataGroup(dataGroup);
 	}
 
-	private SpiderDataGroup(DataGroup dataGroup) {
+	protected SpiderDataGroup(DataGroup dataGroup) {
 		nameInData = dataGroup.getNameInData();
 		repeatId = dataGroup.getRepeatId();
 		attributes.putAll(dataGroup.getAttributes());
@@ -64,12 +66,22 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 
 	private SpiderDataElement convertToSpiderEquivalentDataClass(DataElement dataElement) {
 		if (dataElement instanceof DataGroup) {
-			return SpiderDataGroup.fromDataGroup((DataGroup) dataElement);
+			DataGroup dataGroup = (DataGroup) dataElement;
+			if(dataGroupIsRecordLink(dataGroup)){
+				return SpiderDataGroupRecordLink.fromDataRecordLink(dataGroup);
+			}
+
+			return SpiderDataGroup.fromDataGroup((dataGroup));
 		}
 //		if (dataElement instanceof DataRecordLink) {
 //			return SpiderDataRecordLink.fromDataRecordLink((DataRecordLink) dataElement);
 //		}
 		return SpiderDataAtomic.fromDataAtomic((DataAtomic) dataElement);
+	}
+
+	private boolean dataGroupIsRecordLink(DataGroup dataGroup) {
+		return dataGroup.containsChildWithNameInData("linkedRecordType") &&
+                dataGroup.containsChildWithNameInData("linkedRecordId");
 	}
 
 	@Override
