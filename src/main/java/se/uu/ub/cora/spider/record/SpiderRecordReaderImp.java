@@ -126,24 +126,14 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 			SpiderDataList recordToRecordList) {
 		for (DataGroup dataGroup : links) {
 			SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
-			addReadActionToIncomingLinks(dataGroup);
+			addReadActionToIncomingLinks(spiderDataGroup);
 			recordToRecordList.addData(spiderDataGroup);
 		}
 	}
 
-	private void addReadActionToIncomingLinks(DataGroup dataGroup) {
-//		SpiderDataRecordLink spiderRecordLink = (SpiderDataRecordLink) spiderDataGroup
-//				.getFirstChildWithNameInData("from");
-		SpiderDataGroupRecordLink spiderRecordLink = SpiderDataGroupRecordLink.fromDataRecordLink((DataGroup) dataGroup.getFirstChildWithNameInData("from"));
-
+	private void addReadActionToIncomingLinks(SpiderDataGroup spiderDataGroup) {
+		SpiderDataGroupRecordLink spiderRecordLink = (SpiderDataGroupRecordLink) spiderDataGroup
+				.getFirstChildWithNameInData("from");
 		spiderRecordLink.addAction(Action.READ);
-//		SpiderDataGroup spiderRecordLink = (SpiderDataGroup) spiderDataGroup.getFirstChildWithNameInData("from");
-
-//		SpiderDataGroup actions = SpiderDataGroup.withNameInData("actions");
-//		SpiderDataAtomic readAction = SpiderDataAtomic.withNameInDataAndValue("action", "read");
-//		readAction.setRepeatId("read");
-//		actions.addChild(readAction);
-//
-//		spiderRecordLink.addChild(actions);
 	}
 }

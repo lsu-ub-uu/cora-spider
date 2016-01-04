@@ -164,8 +164,6 @@ public class SpiderDataGroupTest {
 		DataAtomic linkedRecordId = DataAtomic.withNameInDataAndValue("linkedRecordId", "aRecordId");
 		dataRecordLink.addChild(linkedRecordId);
 
-//		return DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId(
-//				"childNameInData", "aRecordType", "aRecordId");
 		return  dataRecordLink;
 	}
 
@@ -243,10 +241,15 @@ public class SpiderDataGroupTest {
 	@Test
 	public void testToDataGroupWithDataRecordLinkChild() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		SpiderDataElement dataElement = SpiderDataRecordLink
-				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("childNameInData",
-						"aRecordType", "aRecordId");
-		spiderDataGroup.addChild(dataElement);
+
+		SpiderDataGroupRecordLink spiderRecordLink = SpiderDataGroupRecordLink.withNameInData("childNameInData");
+		SpiderDataAtomic linkedRecordType = SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "aRecordType");
+		spiderRecordLink.addChild(linkedRecordType);
+
+		SpiderDataAtomic linkedRecordId = SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "aRecordId");
+		spiderRecordLink.addChild(linkedRecordId);
+
+		spiderDataGroup.addChild(spiderRecordLink);
 
 		DataGroup dataGroup = spiderDataGroup.toDataGroup();
 

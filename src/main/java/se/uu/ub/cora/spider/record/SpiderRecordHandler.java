@@ -20,11 +20,7 @@
 package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.data.Action;
-import se.uu.ub.cora.spider.data.SpiderDataElement;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.data.*;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class SpiderRecordHandler {
@@ -45,7 +41,7 @@ public class SpiderRecordHandler {
 
 	private void addReadActionToDataRecordLink(SpiderDataElement spiderDataChild) {
 		if (isLink(spiderDataChild)) {
-			((SpiderDataRecordLink) spiderDataChild).addAction(Action.READ);
+			((SpiderDataGroupRecordLink) spiderDataChild).addAction(Action.READ);
 		}
 		if (isGroup(spiderDataChild)) {
 			addReadActionToDataRecordLinks((SpiderDataGroup) spiderDataChild);
@@ -53,7 +49,7 @@ public class SpiderRecordHandler {
 	}
 
 	private boolean isLink(SpiderDataElement spiderDataChild) {
-		return spiderDataChild instanceof SpiderDataRecordLink;
+		return spiderDataChild instanceof SpiderDataGroupRecordLink;
 	}
 
 	private boolean isGroup(SpiderDataElement spiderDataChild) {

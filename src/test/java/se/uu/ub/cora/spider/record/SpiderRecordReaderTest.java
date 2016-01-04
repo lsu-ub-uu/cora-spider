@@ -69,27 +69,26 @@ public class SpiderRecordReaderTest {
 		assertEquals(linksPointingToRecord.getTotalNumberOfTypeInStorage(), "1");
 		assertEquals(linksPointingToRecord.getFromNo(), "1");
 		assertEquals(linksPointingToRecord.getToNo(), "1");
+
 		SpiderDataGroup link = (SpiderDataGroup) linksPointingToRecord.getDataList().iterator()
 				.next();
 		assertEquals(link.getNameInData(), "recordToRecordLink");
 
 		SpiderDataGroupRecordLink from = (SpiderDataGroupRecordLink) link.getFirstChildWithNameInData("from");
-//		assertEquals(from.getLinkedRecordType(), "place");
 		SpiderDataAtomic linkedRecordType = (SpiderDataAtomic) from.getFirstChildWithNameInData("linkedRecordType");
-		assertEquals(linkedRecordType.getValue(), "place");
 		SpiderDataAtomic linkedRecordId = (SpiderDataAtomic) from.getFirstChildWithNameInData("linkedRecordId");
-//		assertEquals(from.getLinkedRecordId(), "place:0002");
+
+		assertEquals(linkedRecordType.getValue(), "place");
 		assertEquals(linkedRecordId.getValue(), "place:0002");
 		assertEquals(from.getActions().size(), 1);
-
-//		SpiderDataGroup from = (SpiderDataGroup) link.getFirstChildWithNameInData("from");
-//		assertEquals(from.getActions().size(), 1);
-
 		assertTrue(from.getActions().contains(Action.READ));
 
-		SpiderDataRecordLink to = (SpiderDataRecordLink) link.getFirstChildWithNameInData("to");
-		assertEquals(to.getLinkedRecordType(), "place");
-		assertEquals(to.getLinkedRecordId(), "place:0001");
+		SpiderDataGroupRecordLink to = (SpiderDataGroupRecordLink) link.getFirstChildWithNameInData("to");
+		SpiderDataAtomic toLinkedRecordType = (SpiderDataAtomic) to.getFirstChildWithNameInData("linkedRecordType");
+		SpiderDataAtomic toLinkedRecordId = (SpiderDataAtomic) to.getFirstChildWithNameInData("linkedRecordId");
+
+		assertEquals(toLinkedRecordType.getValue(), "place");
+		assertEquals(toLinkedRecordId.getValue(), "place:0001");
 
 	}
 
@@ -134,30 +133,30 @@ public class SpiderRecordReaderTest {
 		recordReader.readRecord("userId", "nonExistingRecordType", "anId");
 	}
 
-//	@Test
-//	public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
-//		SpiderRecordReader recordReader = createRecordReaderWithTestDataForLinkedData();
-//
-//		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithLinks",
-//				"oneLinkTopLevel");
-//
-//		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
-//	}
-//
-//	private SpiderRecordReader createRecordReaderWithTestDataForLinkedData() {
-//		recordStorage = new RecordLinkTestsRecordStorage();
-//		return SpiderRecordReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
-//				authorization, recordStorage, keyCalculator);
-//	}
+	@Test
+	public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
+		SpiderRecordReader recordReader = createRecordReaderWithTestDataForLinkedData();
 
-//	@Test
-//	public void testReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
-//		SpiderRecordReader recordReader = createRecordReaderWithTestDataForLinkedData();
-//
-//		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithLinks",
-//				"oneLinkOneLevelDown");
-//
-//		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
-//	}
+		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithLinks",
+				"oneLinkTopLevel");
+
+		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
+	}
+
+	private SpiderRecordReader createRecordReaderWithTestDataForLinkedData() {
+		recordStorage = new RecordLinkTestsRecordStorage();
+		return SpiderRecordReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
+				authorization, recordStorage, keyCalculator);
+	}
+
+	@Test
+	public void testReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
+		SpiderRecordReader recordReader = createRecordReaderWithTestDataForLinkedData();
+
+		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithLinks",
+				"oneLinkOneLevelDown");
+
+		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
+	}
 
 }

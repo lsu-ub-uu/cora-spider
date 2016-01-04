@@ -19,8 +19,9 @@
 
 package se.uu.ub.cora.spider.record;
 
+import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.data.SpiderDataGroupRecordLink;
 import se.uu.ub.cora.spider.testdata.SpiderDataCreator;
 
 public class RecordLinkTestsDataCreator {
@@ -29,10 +30,14 @@ public class RecordLinkTestsDataCreator {
 
 	public static SpiderDataGroup createDataGroupWithLink() {
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
-		SpiderDataRecordLink dataRecordLink = SpiderDataRecordLink
-				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("link", "toRecordType",
-						"toRecordId");
-		dataGroup.addChild(dataRecordLink);
+		SpiderDataGroupRecordLink spiderRecordLink = SpiderDataGroupRecordLink.withNameInData("link");
+
+		SpiderDataAtomic linkedRecordType = SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "toRecordType");
+		spiderRecordLink.addChild(linkedRecordType);
+
+		SpiderDataAtomic linkedRecordId = SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "toRecordId");
+		spiderRecordLink.addChild(linkedRecordId);
+		dataGroup.addChild(spiderRecordLink);
 		return dataGroup;
 	}
 
@@ -40,10 +45,16 @@ public class RecordLinkTestsDataCreator {
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
 		SpiderDataGroup oneLevelDown = SpiderDataGroup.withNameInData("oneLevelDown");
 		dataGroup.addChild(oneLevelDown);
-		SpiderDataRecordLink dataRecordLink = SpiderDataRecordLink
-				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("link", "toRecordType",
-						"toRecordId");
-		oneLevelDown.addChild(dataRecordLink);
+
+		SpiderDataGroupRecordLink spiderRecordLink = SpiderDataGroupRecordLink.withNameInData("link");
+
+		SpiderDataAtomic linkedRecordType = SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "toRecordType");
+		spiderRecordLink.addChild(linkedRecordType);
+
+		SpiderDataAtomic linkedRecordId = SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "toRecordId");
+		spiderRecordLink.addChild(linkedRecordId);
+
+		oneLevelDown.addChild(spiderRecordLink);
 		return dataGroup;
 	}
 
