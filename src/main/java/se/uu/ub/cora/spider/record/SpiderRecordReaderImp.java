@@ -132,7 +132,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private void addReadActionToIncomingLinks(SpiderDataGroup spiderDataGroup) {
-		SpiderDataGroupRecordLink spiderRecordLink = (SpiderDataGroupRecordLink) spiderDataGroup
+		SpiderDataRecordLink spiderRecordLink = (SpiderDataRecordLink) spiderDataGroup
 				.getFirstChildWithNameInData("from");
 		spiderRecordLink.addAction(Action.READ);
 	}

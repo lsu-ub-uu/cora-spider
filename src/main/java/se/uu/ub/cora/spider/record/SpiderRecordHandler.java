@@ -41,7 +41,7 @@ public class SpiderRecordHandler {
 
 	private void addReadActionToDataRecordLink(SpiderDataElement spiderDataChild) {
 		if (isLink(spiderDataChild)) {
-			((SpiderDataGroupRecordLink) spiderDataChild).addAction(Action.READ);
+			((SpiderDataRecordLink) spiderDataChild).addAction(Action.READ);
 		}
 		if (isGroup(spiderDataChild)) {
 			addReadActionToDataRecordLinks((SpiderDataGroup) spiderDataChild);
@@ -49,7 +49,7 @@ public class SpiderRecordHandler {
 	}
 
 	private boolean isLink(SpiderDataElement spiderDataChild) {
-		return spiderDataChild instanceof SpiderDataGroupRecordLink;
+		return spiderDataChild instanceof SpiderDataRecordLink;
 	}
 
 	private boolean isGroup(SpiderDataElement spiderDataChild) {

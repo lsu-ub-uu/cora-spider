@@ -26,14 +26,14 @@ import se.uu.ub.cora.spider.data.*;
 
 public class RecordLinkTestsAsserter {
 	public static void assertTopLevelLinkContainsReadActionOnly(SpiderDataRecord record) {
-		SpiderDataGroupRecordLink link = getLinkFromRecord(record);
+		SpiderDataRecordLink link = getLinkFromRecord(record);
 		assertTrue(link.getActions().contains(Action.READ));
 		assertEquals(link.getActions().size(), 1);
 	}
 
-	private static SpiderDataGroupRecordLink getLinkFromRecord(SpiderDataRecord record) {
+	private static SpiderDataRecordLink getLinkFromRecord(SpiderDataRecord record) {
 		SpiderDataGroup spiderDataGroup = record.getSpiderDataGroup();
-		SpiderDataGroupRecordLink link = (SpiderDataGroupRecordLink) spiderDataGroup
+		SpiderDataRecordLink link = (SpiderDataRecordLink) spiderDataGroup
 				.getFirstChildWithNameInData("link");
 		return link;
 	}
@@ -42,7 +42,7 @@ public class RecordLinkTestsAsserter {
 		SpiderDataGroup spiderDataGroup = record.getSpiderDataGroup();
 		SpiderDataGroup spiderDataGroupOneLevelDown = (SpiderDataGroup) spiderDataGroup
 				.getFirstChildWithNameInData("oneLevelDown");
-		SpiderDataGroupRecordLink link = (SpiderDataGroupRecordLink) spiderDataGroupOneLevelDown
+		SpiderDataRecordLink link = (SpiderDataRecordLink) spiderDataGroupOneLevelDown
 				.getFirstChildWithNameInData("link");
 		assertTrue(link.getActions().contains(Action.READ));
 		assertEquals(link.getActions().size(), 1);

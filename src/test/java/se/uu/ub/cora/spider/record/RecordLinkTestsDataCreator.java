@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataGroupRecordLink;
+import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.testdata.SpiderDataCreator;
 
 public class RecordLinkTestsDataCreator {
@@ -30,7 +30,7 @@ public class RecordLinkTestsDataCreator {
 
 	public static SpiderDataGroup createDataGroupWithLink() {
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
-		SpiderDataGroupRecordLink spiderRecordLink = SpiderDataGroupRecordLink.withNameInData("link");
+		SpiderDataRecordLink spiderRecordLink = SpiderDataRecordLink.withNameInData("link");
 
 		SpiderDataAtomic linkedRecordType = SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "toRecordType");
 		spiderRecordLink.addChild(linkedRecordType);
@@ -46,7 +46,7 @@ public class RecordLinkTestsDataCreator {
 		SpiderDataGroup oneLevelDown = SpiderDataGroup.withNameInData("oneLevelDown");
 		dataGroup.addChild(oneLevelDown);
 
-		SpiderDataGroupRecordLink spiderRecordLink = SpiderDataGroupRecordLink.withNameInData("link");
+		SpiderDataRecordLink spiderRecordLink = SpiderDataRecordLink.withNameInData("link");
 
 		SpiderDataAtomic linkedRecordType = SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "toRecordType");
 		spiderRecordLink.addChild(linkedRecordType);

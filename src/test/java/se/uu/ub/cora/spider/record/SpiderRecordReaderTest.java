@@ -74,7 +74,7 @@ public class SpiderRecordReaderTest {
 				.next();
 		assertEquals(link.getNameInData(), "recordToRecordLink");
 
-		SpiderDataGroupRecordLink from = (SpiderDataGroupRecordLink) link.getFirstChildWithNameInData("from");
+		SpiderDataRecordLink from = (SpiderDataRecordLink) link.getFirstChildWithNameInData("from");
 		SpiderDataAtomic linkedRecordType = (SpiderDataAtomic) from.getFirstChildWithNameInData("linkedRecordType");
 		SpiderDataAtomic linkedRecordId = (SpiderDataAtomic) from.getFirstChildWithNameInData("linkedRecordId");
 
@@ -83,7 +83,7 @@ public class SpiderRecordReaderTest {
 		assertEquals(from.getActions().size(), 1);
 		assertTrue(from.getActions().contains(Action.READ));
 
-		SpiderDataGroupRecordLink to = (SpiderDataGroupRecordLink) link.getFirstChildWithNameInData("to");
+		SpiderDataRecordLink to = (SpiderDataRecordLink) link.getFirstChildWithNameInData("to");
 		SpiderDataAtomic toLinkedRecordType = (SpiderDataAtomic) to.getFirstChildWithNameInData("linkedRecordType");
 		SpiderDataAtomic toLinkedRecordId = (SpiderDataAtomic) to.getFirstChildWithNameInData("linkedRecordId");
 

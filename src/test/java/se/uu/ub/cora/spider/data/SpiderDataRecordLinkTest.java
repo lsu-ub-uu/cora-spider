@@ -1,6 +1,5 @@
 package se.uu.ub.cora.spider.data;
 
-import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
@@ -8,13 +7,13 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 import static org.testng.Assert.*;
 
-public class SpiderDataGroupRecordLinkTest {
+public class SpiderDataRecordLinkTest {
 
-    SpiderDataGroupRecordLink spiderRecordLink;
+    SpiderDataRecordLink spiderRecordLink;
 
     @BeforeMethod
     public void setUp() {
-        spiderRecordLink = SpiderDataGroupRecordLink.withNameInData("nameInData");
+        spiderRecordLink = SpiderDataRecordLink.withNameInData("nameInData");
 
         SpiderDataAtomic linkedRecordType = SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "myLinkedRecordType");
         spiderRecordLink.addChild(linkedRecordType);
@@ -80,7 +79,7 @@ public class SpiderDataGroupRecordLinkTest {
 	public void testFromDataRecordLink() {
         DataGroup dataRecordLink = createRecordLinkAsDataGroup();
 
-		SpiderDataGroupRecordLink spiderDataRecordLink = SpiderDataGroupRecordLink
+		SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink
 				.fromDataRecordLink(dataRecordLink);
 
         assertCorrectFromDataRecordLink(spiderDataRecordLink);
@@ -97,7 +96,7 @@ public class SpiderDataGroupRecordLinkTest {
         return dataRecordLink;
     }
 
-    private void assertCorrectFromDataRecordLink(SpiderDataGroupRecordLink spiderDataRecordLink) {
+    private void assertCorrectFromDataRecordLink(SpiderDataRecordLink spiderDataRecordLink) {
         assertEquals(spiderDataRecordLink.getNameInData(), "nameInData");
 
         SpiderDataAtomic convertedRecordType = (SpiderDataAtomic) spiderDataRecordLink.getFirstChildWithNameInData("linkedRecordType");
@@ -112,12 +111,12 @@ public class SpiderDataGroupRecordLinkTest {
         DataGroup dataRecordLink = createRecordLinkAsDataGroup();
         dataRecordLink.setRepeatId("roi");
 
-        SpiderDataGroupRecordLink spiderDataRecordLink = SpiderDataGroupRecordLink
+        SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink
 				.fromDataRecordLink(dataRecordLink);
         assertCorrectFromDataRecordLinkWithRepeatId(spiderDataRecordLink);
 	}
 
-    private void assertCorrectFromDataRecordLinkWithRepeatId(SpiderDataGroupRecordLink spiderDataRecordLink) {
+    private void assertCorrectFromDataRecordLinkWithRepeatId(SpiderDataRecordLink spiderDataRecordLink) {
         assertCorrectFromDataRecordLink(spiderDataRecordLink);
         assertEquals(spiderDataRecordLink.getRepeatId(), "roi");
     }
@@ -128,7 +127,7 @@ public class SpiderDataGroupRecordLinkTest {
         DataAtomic linkedRepeatId = DataAtomic.withNameInDataAndValue("linkedRepeatId", "linkedOne");
         dataRecordLink.addChild(linkedRepeatId);
 
-		SpiderDataGroupRecordLink spiderDataRecordLink = SpiderDataGroupRecordLink.
+		SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink.
                 fromDataRecordLink(dataRecordLink);
         SpiderDataAtomic convertedLinkedRepeatId = (SpiderDataAtomic) spiderDataRecordLink.getFirstChildWithNameInData("linkedRepeatId");
         assertEquals(convertedLinkedRepeatId.getValue(), "linkedOne");
@@ -139,7 +138,7 @@ public class SpiderDataGroupRecordLinkTest {
         DataGroup dataRecordLink = createRecordLinkAsDataGroup();
         dataRecordLink.addChild(DataGroup.withNameInData("linkedPath"));
 
-		SpiderDataGroupRecordLink spiderDataRecordLink = SpiderDataGroupRecordLink.fromDataRecordLink(dataRecordLink);
+		SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink.fromDataRecordLink(dataRecordLink);
 		assertEquals(spiderDataRecordLink.getFirstChildWithNameInData("linkedPath").getNameInData(), "linkedPath");
 	}
 

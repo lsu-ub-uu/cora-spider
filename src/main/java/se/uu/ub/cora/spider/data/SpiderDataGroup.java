@@ -68,7 +68,7 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 		if (dataElement instanceof DataGroup) {
 			DataGroup dataGroup = (DataGroup) dataElement;
 			if(dataGroupIsRecordLink(dataGroup)){
-				return SpiderDataGroupRecordLink.fromDataRecordLink(dataGroup);
+				return SpiderDataRecordLink.fromDataRecordLink(dataGroup);
 			}
 
 			return SpiderDataGroup.fromDataGroup((dataGroup));
@@ -128,8 +128,8 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 	}
 
 	private DataElement convertToCorrectDataElement(SpiderDataElement child) {
-		if (child instanceof SpiderDataGroupRecordLink) {
-			return ((SpiderDataGroupRecordLink) child).toDataGroup();
+		if (child instanceof SpiderDataRecordLink) {
+			return ((SpiderDataRecordLink) child).toDataGroup();
 		}
 		if (child instanceof SpiderDataGroup) {
 			return ((SpiderDataGroup) child).toDataGroup();

@@ -35,8 +35,6 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-
-import javax.xml.crypto.Data;
 //import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 
 public class SpiderDataGroupTest {
@@ -147,7 +145,7 @@ public class SpiderDataGroupTest {
 		SpiderDataElement spiderDataElement = spiderDataGroup.getChildren().get(0);
 		assertEquals(spiderDataElement.getNameInData(), "childNameInData");
 
-		SpiderDataGroupRecordLink spiderDataRecordLink = (SpiderDataGroupRecordLink) spiderDataElement;
+		SpiderDataRecordLink spiderDataRecordLink = (SpiderDataRecordLink) spiderDataElement;
 		SpiderDataAtomic linkedRecordType = (SpiderDataAtomic) spiderDataRecordLink.getFirstChildWithNameInData("linkedRecordType");
 		assertEquals(linkedRecordType.getValue(), "aRecordType");
 		SpiderDataAtomic linkedRecordId = (SpiderDataAtomic)spiderDataRecordLink.getFirstChildWithNameInData("linkedRecordId");
@@ -242,7 +240,7 @@ public class SpiderDataGroupTest {
 	public void testToDataGroupWithDataRecordLinkChild() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
 
-		SpiderDataGroupRecordLink spiderRecordLink = SpiderDataGroupRecordLink.withNameInData("childNameInData");
+		SpiderDataRecordLink spiderRecordLink = SpiderDataRecordLink.withNameInData("childNameInData");
 		SpiderDataAtomic linkedRecordType = SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "aRecordType");
 		spiderRecordLink.addChild(linkedRecordType);
 
