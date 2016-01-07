@@ -41,8 +41,6 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 		return new SpiderDataGroup(nameInData);
 	}
 
-//	protected SpiderDataGroup(){}
-
 	protected SpiderDataGroup(String nameInData) {
 		this.nameInData = nameInData;
 	}
@@ -128,10 +126,10 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 	}
 
 	private DataElement convertToCorrectDataElement(SpiderDataElement child) {
-		if (child instanceof SpiderDataRecordLink) {
-			return ((SpiderDataRecordLink) child).toDataGroup();
-		}
 		if (child instanceof SpiderDataGroup) {
+			if (child instanceof SpiderDataRecordLink) {
+				return ((SpiderDataRecordLink) child).toDataGroup();
+			}
 			return ((SpiderDataGroup) child).toDataGroup();
 		}
 		return ((SpiderDataAtomic) child).toDataAtomic();
