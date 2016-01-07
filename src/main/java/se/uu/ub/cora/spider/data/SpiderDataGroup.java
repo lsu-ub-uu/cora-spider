@@ -28,7 +28,6 @@ import java.util.Map.Entry;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-//import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 
 public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 
@@ -71,9 +70,6 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 
 			return SpiderDataGroup.fromDataGroup((dataGroup));
 		}
-//		if (dataElement instanceof DataRecordLink) {
-//			return SpiderDataRecordLink.fromDataRecordLink((DataRecordLink) dataElement);
-//		}
 		return SpiderDataAtomic.fromDataAtomic((DataAtomic) dataElement);
 	}
 

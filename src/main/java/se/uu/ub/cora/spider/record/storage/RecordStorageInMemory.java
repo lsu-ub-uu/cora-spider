@@ -28,7 +28,6 @@ import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-//import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataTypes;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -128,7 +127,6 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private Map<String, Map<String, List<DataGroup>>> getIncomingLinkStorageForLink(
 			DataGroup link) {
-//		DataRecordLink to = (DataRecordLink) link.getFirstChildWithNameInData("to");
 		DataGroup to = link.getFirstGroupWithNameInData("to");
 		String toType = extractLinkedRecordTypeValue(to);
 		String toId = extractLinkedRecordIdValue(to);
@@ -165,7 +163,6 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private void storeLinkInIncomingLinks(DataGroup link,
 			Map<String, Map<String, List<DataGroup>>> toPartOfIncomingLinks) {
-//		DataRecordLink from = (DataRecordLink) link.getFirstChildWithNameInData("from");
 		DataGroup from = link.getFirstGroupWithNameInData("from");
 		String fromType = extractLinkedRecordTypeValue(from);
 		String fromId = extractLinkedRecordIdValue(from);
@@ -307,7 +304,6 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private void removeIncomingLink(DataElement linkElement) {
 		DataGroup link = (DataGroup) linkElement;
-//		DataRecordLink recordLinkTo = (DataRecordLink) link.getFirstChildWithNameInData("to");
 		DataGroup recordLinkTo = link.getFirstGroupWithNameInData("to");
 
 		Map<String, Map<String, List<DataGroup>>> toPartOfIncomingLinks = extractToPartOfIncomingLinks(
@@ -327,7 +323,6 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private void removeLinkAndFromHolderFromIncomingLinks(DataGroup link,
 			Map<String, Map<String, List<DataGroup>>> linksForToPart) {
-//		DataRecordLink from = (DataRecordLink) link.getFirstChildWithNameInData("from");
 		DataGroup from = link.getFirstGroupWithNameInData("from");
 		String fromType = extractLinkedRecordTypeValue(from);
 		String fromId = extractLinkedRecordIdValue(from);
