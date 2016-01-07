@@ -153,6 +153,18 @@ public class SpiderDataGroupTest {
 
 	}
 
+	@Test
+	public void testFromDataGroupWithNonCompleteDataRecordLinkChild(){
+		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
+
+		DataGroup dataRecordLinkWithNoLinkedRecordId = DataGroup.withNameInData("childNameInData");
+		DataAtomic linkedRecordType = DataAtomic.withNameInDataAndValue("linkedRecordType", "aRecordType");
+		dataRecordLinkWithNoLinkedRecordId.addChild(linkedRecordType);
+
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
+		assertFalse(spiderDataGroup instanceof SpiderDataRecordLink);
+	}
+
 	private DataGroup createRecordLink() {
 		DataGroup dataRecordLink = DataGroup.withNameInData("childNameInData");
 
