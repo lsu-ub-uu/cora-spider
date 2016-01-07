@@ -160,6 +160,7 @@ public class SpiderDataGroupTest {
 		DataGroup dataRecordLinkWithNoLinkedRecordId = DataGroup.withNameInData("childNameInData");
 		DataAtomic linkedRecordType = DataAtomic.withNameInDataAndValue("linkedRecordType", "aRecordType");
 		dataRecordLinkWithNoLinkedRecordId.addChild(linkedRecordType);
+		dataGroup.addChild(dataRecordLinkWithNoLinkedRecordId);
 
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		assertFalse(spiderDataGroup instanceof SpiderDataRecordLink);
