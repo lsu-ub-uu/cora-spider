@@ -28,7 +28,7 @@ import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
+//import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataTypes;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -128,13 +128,22 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private Map<String, Map<String, List<DataGroup>>> getIncomingLinkStorageForLink(
 			DataGroup link) {
-		DataRecordLink to = (DataRecordLink) link.getFirstChildWithNameInData("to");
-		String toType = to.getLinkedRecordType();
-		String toId = to.getLinkedRecordId();
+//		DataRecordLink to = (DataRecordLink) link.getFirstChildWithNameInData("to");
+		DataGroup to = link.getFirstGroupWithNameInData("to");
+		String toType = extractLinkedRecordTypeValue(to);
+		String toId = extractLinkedRecordIdValue(to);
 
 		ensureInIncomingLinksHolderForRecordTypeAndRecordId(toType, toId);
 
 		return incomingLinks.get(toType).get(toId);
+	}
+
+	private String extractLinkedRecordIdValue(DataGroup to) {
+		return to.getFirstAtomicValueWithNameInData("linkedRecordId");
+	}
+
+	private String extractLinkedRecordTypeValue(DataGroup dataGroup) {
+		return dataGroup.getFirstAtomicValueWithNameInData("linkedRecordType");
 	}
 
 	private void ensureInIncomingLinksHolderForRecordTypeAndRecordId(String toType, String toId) {
@@ -156,9 +165,10 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private void storeLinkInIncomingLinks(DataGroup link,
 			Map<String, Map<String, List<DataGroup>>> toPartOfIncomingLinks) {
-		DataRecordLink from = (DataRecordLink) link.getFirstChildWithNameInData("from");
-		String fromType = from.getLinkedRecordType();
-		String fromId = from.getLinkedRecordId();
+//		DataRecordLink from = (DataRecordLink) link.getFirstChildWithNameInData("from");
+		DataGroup from = link.getFirstGroupWithNameInData("from");
+		String fromType = extractLinkedRecordTypeValue(from);
+		String fromId = extractLinkedRecordIdValue(from);
 
 		ensureIncomingLinksHolderExistsForFromRecordType(toPartOfIncomingLinks, fromType);
 
@@ -232,7 +242,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	@Override
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
 		if (linksExistForRecord(type, id)) {
-			return generateLinkCollectionFromStoredLinks(type, id);
+ 			return generateLinkCollectionFromStoredLinks(type, id);
 		}
 		return Collections.emptyList();
 	}
@@ -297,7 +307,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private void removeIncomingLink(DataElement linkElement) {
 		DataGroup link = (DataGroup) linkElement;
-		DataRecordLink recordLinkTo = (DataRecordLink) link.getFirstChildWithNameInData("to");
+//		DataRecordLink recordLinkTo = (DataRecordLink) link.getFirstChildWithNameInData("to");
+		DataGroup recordLinkTo = link.getFirstGroupWithNameInData("to");
 
 		Map<String, Map<String, List<DataGroup>>> toPartOfIncomingLinks = extractToPartOfIncomingLinks(
 				recordLinkTo);
@@ -308,17 +319,18 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	private Map<String, Map<String, List<DataGroup>>> extractToPartOfIncomingLinks(
-			DataRecordLink to) {
-		String toType = to.getLinkedRecordType();
-		String toId = to.getLinkedRecordId();
+			DataGroup to) {
+		String toType = extractLinkedRecordTypeValue(to);
+		String toId = extractLinkedRecordIdValue(to);
 		return incomingLinks.get(toType).get(toId);
 	}
 
 	private void removeLinkAndFromHolderFromIncomingLinks(DataGroup link,
 			Map<String, Map<String, List<DataGroup>>> linksForToPart) {
-		DataRecordLink from = (DataRecordLink) link.getFirstChildWithNameInData("from");
-		String fromType = from.getLinkedRecordType();
-		String fromId = from.getLinkedRecordId();
+//		DataRecordLink from = (DataRecordLink) link.getFirstChildWithNameInData("from");
+		DataGroup from = link.getFirstGroupWithNameInData("from");
+		String fromType = extractLinkedRecordTypeValue(from);
+		String fromId = extractLinkedRecordIdValue(from);
 
 		linksForToPart.get(fromType).remove(fromId);
 
@@ -327,10 +339,10 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 		}
 	}
 
-	private void removeToHolderFromIncomingLinks(DataRecordLink to,
+	private void removeToHolderFromIncomingLinks(DataGroup to,
 			Map<String, Map<String, List<DataGroup>>> toPartOfIncomingLinks) {
-		String toType = to.getLinkedRecordType();
-		String toId = to.getLinkedRecordId();
+		String toType = extractLinkedRecordTypeValue(to);
+		String toId = extractLinkedRecordIdValue(to);
 		if (toPartOfIncomingLinks.isEmpty()) {
 			incomingLinks.get(toType).remove(toId);
 		}

@@ -35,7 +35,7 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
+//import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 
 public class SpiderDataGroupTest {
 	@Test
@@ -140,15 +140,29 @@ public class SpiderDataGroupTest {
 	@Test
 	public void testFromDataGroupWithDataRecordLinkChild() {
 		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
-		dataGroup.addChild(DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId(
-				"childNameInData", "aRecordType", "aRecordId"));
+		dataGroup.addChild(createRecordLink());
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		SpiderDataElement spiderDataElement = spiderDataGroup.getChildren().get(0);
 		assertEquals(spiderDataElement.getNameInData(), "childNameInData");
 
 		SpiderDataRecordLink spiderDataRecordLink = (SpiderDataRecordLink) spiderDataElement;
-		assertEquals(spiderDataRecordLink.getLinkedRecordType(), "aRecordType");
-		assertEquals(spiderDataRecordLink.getLinkedRecordId(), "aRecordId");
+		SpiderDataAtomic linkedRecordType = (SpiderDataAtomic) spiderDataRecordLink.getFirstChildWithNameInData("linkedRecordType");
+		assertEquals(linkedRecordType.getValue(), "aRecordType");
+		SpiderDataAtomic linkedRecordId = (SpiderDataAtomic)spiderDataRecordLink.getFirstChildWithNameInData("linkedRecordId");
+		assertEquals(linkedRecordId.getValue(), "aRecordId");
+
+	}
+
+	private DataGroup createRecordLink() {
+		DataGroup dataRecordLink = DataGroup.withNameInData("childNameInData");
+
+		DataAtomic linkedRecordType = DataAtomic.withNameInDataAndValue("linkedRecordType", "aRecordType");
+		dataRecordLink.addChild(linkedRecordType);
+
+		DataAtomic linkedRecordId = DataAtomic.withNameInDataAndValue("linkedRecordId", "aRecordId");
+		dataRecordLink.addChild(linkedRecordId);
+
+		return  dataRecordLink;
 	}
 
 	@Test
@@ -225,19 +239,24 @@ public class SpiderDataGroupTest {
 	@Test
 	public void testToDataGroupWithDataRecordLinkChild() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		SpiderDataElement dataElement = SpiderDataRecordLink
-				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("childNameInData",
-						"aRecordType", "aRecordId");
-		spiderDataGroup.addChild(dataElement);
+
+		SpiderDataRecordLink spiderRecordLink = SpiderDataRecordLink.withNameInData("childNameInData");
+		SpiderDataAtomic linkedRecordType = SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "aRecordType");
+		spiderRecordLink.addChild(linkedRecordType);
+
+		SpiderDataAtomic linkedRecordId = SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "aRecordId");
+		spiderRecordLink.addChild(linkedRecordId);
+
+		spiderDataGroup.addChild(spiderRecordLink);
 
 		DataGroup dataGroup = spiderDataGroup.toDataGroup();
 
 		List<DataElement> children = dataGroup.getChildren();
 		DataElement childElementOut = children.get(0);
 		assertEquals(childElementOut.getNameInData(), "childNameInData");
-		DataRecordLink dataRecordLink = (DataRecordLink) childElementOut;
-		assertEquals(dataRecordLink.getLinkedRecordType(), "aRecordType");
-		assertEquals(dataRecordLink.getLinkedRecordId(), "aRecordId");
+		DataGroup dataRecordLink = (DataGroup) childElementOut;
+		assertEquals(dataRecordLink.getFirstAtomicValueWithNameInData("linkedRecordType"), "aRecordType");
+		assertEquals(dataRecordLink.getFirstAtomicValueWithNameInData("linkedRecordId"), "aRecordId");
 
 	}
 

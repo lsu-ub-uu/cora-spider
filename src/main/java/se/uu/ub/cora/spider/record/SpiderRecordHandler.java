@@ -20,11 +20,7 @@
 package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.data.Action;
-import se.uu.ub.cora.spider.data.SpiderDataElement;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.data.*;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class SpiderRecordHandler {

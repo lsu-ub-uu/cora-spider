@@ -22,10 +22,7 @@ package se.uu.ub.cora.spider.record;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import se.uu.ub.cora.spider.data.Action;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.data.*;
 
 public class RecordLinkTestsAsserter {
 	public static void assertTopLevelLinkContainsReadActionOnly(SpiderDataRecord record) {

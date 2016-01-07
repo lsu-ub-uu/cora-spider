@@ -29,11 +29,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
-import se.uu.ub.cora.spider.data.Action;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataList;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.data.*;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
@@ -73,19 +69,26 @@ public class SpiderRecordReaderTest {
 		assertEquals(linksPointingToRecord.getTotalNumberOfTypeInStorage(), "1");
 		assertEquals(linksPointingToRecord.getFromNo(), "1");
 		assertEquals(linksPointingToRecord.getToNo(), "1");
+
 		SpiderDataGroup link = (SpiderDataGroup) linksPointingToRecord.getDataList().iterator()
 				.next();
 		assertEquals(link.getNameInData(), "recordToRecordLink");
-		SpiderDataRecordLink from = (SpiderDataRecordLink) link.getFirstChildWithNameInData("from");
-		assertEquals(from.getLinkedRecordType(), "place");
-		assertEquals(from.getLinkedRecordId(), "place:0002");
-		assertEquals(from.getActions().size(), 1);
 
+		SpiderDataRecordLink from = (SpiderDataRecordLink) link.getFirstChildWithNameInData("from");
+		SpiderDataAtomic linkedRecordType = (SpiderDataAtomic) from.getFirstChildWithNameInData("linkedRecordType");
+		SpiderDataAtomic linkedRecordId = (SpiderDataAtomic) from.getFirstChildWithNameInData("linkedRecordId");
+
+		assertEquals(linkedRecordType.getValue(), "place");
+		assertEquals(linkedRecordId.getValue(), "place:0002");
+		assertEquals(from.getActions().size(), 1);
 		assertTrue(from.getActions().contains(Action.READ));
 
 		SpiderDataRecordLink to = (SpiderDataRecordLink) link.getFirstChildWithNameInData("to");
-		assertEquals(to.getLinkedRecordType(), "place");
-		assertEquals(to.getLinkedRecordId(), "place:0001");
+		SpiderDataAtomic toLinkedRecordType = (SpiderDataAtomic) to.getFirstChildWithNameInData("linkedRecordType");
+		SpiderDataAtomic toLinkedRecordId = (SpiderDataAtomic) to.getFirstChildWithNameInData("linkedRecordId");
+
+		assertEquals(toLinkedRecordType.getValue(), "place");
+		assertEquals(toLinkedRecordId.getValue(), "place:0001");
 
 	}
 

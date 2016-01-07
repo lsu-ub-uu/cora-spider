@@ -1,155 +1,145 @@
-/*
- * Copyright 2015 Uppsala University Library
- *
- * This file is part of Cora.
- *
- *     Cora is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     Cora is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package se.uu.ub.cora.spider.data;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 public class SpiderDataRecordLinkTest {
-	private SpiderDataRecordLink spiderRecordLink;
 
-	@BeforeMethod
-	public void setUp() {
-		spiderRecordLink = SpiderDataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("nameInData",
-				"linkedRecordType", "linkedRecordId");
+    SpiderDataRecordLink spiderRecordLink;
 
-	}
+    @BeforeMethod
+    public void setUp() {
+        spiderRecordLink = SpiderDataRecordLink.withNameInData("nameInData");
 
-	@Test
-	public void testInit() {
-		assertEquals(spiderRecordLink.getNameInData(), "nameInData");
-		assertEquals(spiderRecordLink.getLinkedRecordType(), "linkedRecordType");
-		assertEquals(spiderRecordLink.getLinkedRecordId(), "linkedRecordId");
-	}
+        SpiderDataAtomic linkedRecordType = SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "myLinkedRecordType");
+        spiderRecordLink.addChild(linkedRecordType);
 
-	@Test
-	public void testInitWithRepeatId() {
-		spiderRecordLink.setRepeatId("hugh");
-		assertEquals(spiderRecordLink.getNameInData(), "nameInData");
-		assertEquals(spiderRecordLink.getLinkedRecordType(), "linkedRecordType");
-		assertEquals(spiderRecordLink.getLinkedRecordId(), "linkedRecordId");
-		assertEquals(spiderRecordLink.getRepeatId(), "hugh");
-	}
+        SpiderDataAtomic linkedRecordId = SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "myLinkedRecordId");
+        spiderRecordLink.addChild(linkedRecordId);
 
-	@Test
-	public void testInitWithLinkedRepeatId(){
-		spiderRecordLink.setLinkedRepeatId("1");
-		assertEquals(spiderRecordLink.getNameInData(), "nameInData");
-		assertEquals(spiderRecordLink.getLinkedRepeatId(), "1");
-	}
+    }
+    @Test
+    public void testInit(){
+        assertEquals(spiderRecordLink.getNameInData(), "nameInData");
+        assertNotNull(spiderRecordLink.getAttributes());
+        assertNotNull(spiderRecordLink.getChildren());
+        assertEquals(spiderRecordLink.extractAtomicValue("linkedRecordType"), "myLinkedRecordType");
+        assertEquals(spiderRecordLink.extractAtomicValue("linkedRecordId"), "myLinkedRecordId");
+        assertNotNull(spiderRecordLink.getActions());
+    }
 
-	@Test
-	public void testInitWithLinkedPath(){
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("linkedPathDataGroup");
-		spiderRecordLink.setLinkedPath(spiderDataGroup);
-		assertEquals(spiderRecordLink.getLinkedPath().getNameInData(), "linkedPathDataGroup");
-	}
+    @Test
+    public void testInitWithRepeatId() {
+        spiderRecordLink.setRepeatId("hugh");
+        assertEquals(spiderRecordLink.getRepeatId(), "hugh");
+    }
 
-	@Test
-	public void testAddAction() {
-		spiderRecordLink.addAction(Action.READ);
+    @Test
+    public void testInitWithLinkedPath(){
+        SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("linkedPath");
+        spiderRecordLink.addChild(spiderDataGroup);
+        assertNotNull(spiderRecordLink.getFirstChildWithNameInData("linkedPath"));
+    }
 
-		assertTrue(spiderRecordLink.getActions().contains(Action.READ));
-		assertFalse(spiderRecordLink.getActions().contains(Action.DELETE));
-		// small hack to get 100% coverage on enum
-		Action.valueOf(Action.READ.toString());
-	}
+    @Test
+    public void testAddAction() {
+        spiderRecordLink.addAction(Action.READ);
 
-	@Test
+        assertTrue(spiderRecordLink.getActions().contains(Action.READ));
+        assertFalse(spiderRecordLink.getActions().contains(Action.DELETE));
+        // small hack to get 100% coverage on enum
+        Action.valueOf(Action.READ.toString());
+    }
+
+    @Test
 	public void testToDataRecordLink() {
-		DataRecordLink dataRecordLink = spiderRecordLink.toDataRecordLink();
+		DataGroup dataRecordLink = spiderRecordLink.toDataGroup();
 
 		assertEquals(dataRecordLink.getNameInData(), "nameInData");
-		assertEquals(dataRecordLink.getLinkedRecordType(), "linkedRecordType");
-		assertEquals(dataRecordLink.getLinkedRecordId(), "linkedRecordId");
+		assertEquals(dataRecordLink.getFirstAtomicValueWithNameInData("linkedRecordType"), "myLinkedRecordType");
+		assertEquals(dataRecordLink.getFirstAtomicValueWithNameInData("linkedRecordId"), "myLinkedRecordId");
 	}
 
-	@Test
+    @Test
 	public void testToDataRecordLinkWithRepeatId() {
 		spiderRecordLink.setRepeatId("essan");
-		DataRecordLink dataRecordLink = spiderRecordLink.toDataRecordLink();
+		DataGroup dataRecordLink = spiderRecordLink.toDataGroup();
 		assertEquals(dataRecordLink.getNameInData(), "nameInData");
-		assertEquals(dataRecordLink.getLinkedRecordType(), "linkedRecordType");
-		assertEquals(dataRecordLink.getLinkedRecordId(), "linkedRecordId");
+		assertEquals(dataRecordLink.getFirstAtomicValueWithNameInData("linkedRecordType"), "myLinkedRecordType");
+		assertEquals(dataRecordLink.getFirstAtomicValueWithNameInData("linkedRecordId"), "myLinkedRecordId");
 		assertEquals(dataRecordLink.getRepeatId(), "essan");
 	}
 
-	@Test
-	public void testToDataRecordWithLinkedRepeatId(){
-		spiderRecordLink.setLinkedRepeatId("one");
-		DataRecordLink dataRecordLink = spiderRecordLink.toDataRecordLink();
-		assertEquals(dataRecordLink.getLinkedRepeatId(), "one");
-	}
 
-	@Test
-	public void testToDataRecordWithLinkedPath(){
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("linkedPathDataGroup");
-		spiderRecordLink.setLinkedPath(spiderDataGroup);
-		DataRecordLink dataRecordLink = spiderRecordLink.toDataRecordLink();
-		assertEquals(dataRecordLink.getLinkedPath().getNameInData(), "linkedPathDataGroup");
-	}
-
-
-	@Test
+    @Test
 	public void testFromDataRecordLink() {
-		DataRecordLink dataRecordLink = DataRecordLink
-				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("nameInData", "linkedRecordType", "linkedRecordId");
+        DataGroup dataRecordLink = createRecordLinkAsDataGroup();
+
 		SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink
 				.fromDataRecordLink(dataRecordLink);
-		assertEquals(spiderDataRecordLink.getNameInData(), "nameInData");
-		assertEquals(spiderDataRecordLink.getLinkedRecordType(), "linkedRecordType");
-		assertEquals(spiderDataRecordLink.getLinkedRecordId(), "linkedRecordId");
+
+        assertCorrectFromDataRecordLink(spiderDataRecordLink);
 	}
 
-	@Test
+    private DataGroup createRecordLinkAsDataGroup() {
+        DataGroup dataRecordLink = DataGroup.withNameInData("nameInData");
+
+        DataAtomic linkedRecordType = DataAtomic.withNameInDataAndValue("linkedRecordType", "myLinkedRecordType");
+        dataRecordLink.addChild(linkedRecordType);
+
+        DataAtomic linkedRecordId = DataAtomic.withNameInDataAndValue("linkedRecordId", "myLinkedRecordId");
+        dataRecordLink.addChild(linkedRecordId);
+        return dataRecordLink;
+    }
+
+    private void assertCorrectFromDataRecordLink(SpiderDataRecordLink spiderDataRecordLink) {
+        assertEquals(spiderDataRecordLink.getNameInData(), "nameInData");
+
+        SpiderDataAtomic convertedRecordType = (SpiderDataAtomic) spiderDataRecordLink.getFirstChildWithNameInData("linkedRecordType");
+        assertEquals(convertedRecordType.getValue(), "myLinkedRecordType");
+
+        SpiderDataAtomic convertedRecordId = (SpiderDataAtomic) spiderDataRecordLink.getFirstChildWithNameInData("linkedRecordId");
+        assertEquals(convertedRecordId.getValue(), "myLinkedRecordId");
+    }
+
+    @Test
 	public void testFromDataRecordLinkWithRepeatId() {
-		DataRecordLink dataRecordLink = DataRecordLink
-				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("nameInData", "linkedRecordType", "linkedRecordId");
-		dataRecordLink.setRepeatId("roi");
-		SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink
+        DataGroup dataRecordLink = createRecordLinkAsDataGroup();
+        dataRecordLink.setRepeatId("roi");
+
+        SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink
 				.fromDataRecordLink(dataRecordLink);
-		assertEquals(spiderDataRecordLink.getNameInData(), "nameInData");
-		assertEquals(spiderDataRecordLink.getLinkedRecordType(), "linkedRecordType");
-		assertEquals(spiderDataRecordLink.getLinkedRecordId(), "linkedRecordId");
-		assertEquals(spiderDataRecordLink.getRepeatId(), "roi");
+        assertCorrectFromDataRecordLinkWithRepeatId(spiderDataRecordLink);
 	}
+
+    private void assertCorrectFromDataRecordLinkWithRepeatId(SpiderDataRecordLink spiderDataRecordLink) {
+        assertCorrectFromDataRecordLink(spiderDataRecordLink);
+        assertEquals(spiderDataRecordLink.getRepeatId(), "roi");
+    }
 
 	@Test
 	public void testFromDataRecordLinkWithLinkedRepeatId(){
-		DataRecordLink dataRecordLink = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("nameInData", "linkedRecordType", "linkedRecordId");
-		dataRecordLink.setLinkedRepeatId("linkedOne");
-		SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink.fromDataRecordLink(dataRecordLink);
-		assertEquals(spiderDataRecordLink.getLinkedRepeatId(), "linkedOne");
+        DataGroup dataRecordLink = createRecordLinkAsDataGroup();
+        DataAtomic linkedRepeatId = DataAtomic.withNameInDataAndValue("linkedRepeatId", "linkedOne");
+        dataRecordLink.addChild(linkedRepeatId);
+
+		SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink.
+                fromDataRecordLink(dataRecordLink);
+        SpiderDataAtomic convertedLinkedRepeatId = (SpiderDataAtomic) spiderDataRecordLink.getFirstChildWithNameInData("linkedRepeatId");
+        assertEquals(convertedLinkedRepeatId.getValue(), "linkedOne");
 	}
 
 	@Test
 	public void testFromDataRecordLinkWithLinkedLinkedPath(){
-		DataRecordLink dataRecordLink = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("nameInData", "linkedRecordType", "linkedRecordId");
-		dataRecordLink.setLinkedPath(DataGroup.withNameInData("linkedPath"));
+        DataGroup dataRecordLink = createRecordLinkAsDataGroup();
+        dataRecordLink.addChild(DataGroup.withNameInData("linkedPath"));
+
 		SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink.fromDataRecordLink(dataRecordLink);
-		assertEquals(spiderDataRecordLink.getLinkedPath().getNameInData(), "linkedPath");
+		assertEquals(spiderDataRecordLink.getFirstChildWithNameInData("linkedPath").getNameInData(), "linkedPath");
 	}
+
 }

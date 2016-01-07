@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.testdata;
 
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
+//import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.record.storage.RecordStorageInMemory;
 
@@ -70,22 +70,43 @@ public class TestDataRecordInMemoryStorage {
 
 		DataGroup dataGroup = DataGroup.withNameInData("authority");
 		dataGroup.addChild(recordInfo);
-		dataGroup.addChild(DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("link",
-				"place", "place:0001"));
+
+		DataGroup dataRecordLink = DataGroup.withNameInData("link");
+		dataGroup.addChild(dataRecordLink);
+		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0001", dataRecordLink);
+
+//		dataGroup.addChild(DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("link",
+//				"place", "place:0001"));
 
 		DataGroup collectedLinksList = createLinkList();
 		recordsInMemory.create("place", "place:0002", dataGroup, collectedLinksList);
 	}
 
+	private static void addLinkedRecordTypeAndLinkedRecordIdToRecordLink(String linkedRecordTypeString, String linkedRecordIdString, DataGroup dataRecordLink) {
+		DataAtomic linkedRecordType = DataAtomic.withNameInDataAndValue("linkedRecordType", linkedRecordTypeString);
+		dataRecordLink.addChild(linkedRecordType);
+
+
+		DataAtomic linkedRecordId = DataAtomic.withNameInDataAndValue("linkedRecordId", linkedRecordIdString);
+		dataRecordLink.addChild(linkedRecordId);
+	}
+
 	private static DataGroup createLinkList() {
 		DataGroup collectedLinksList = DataGroup.withNameInData("collectedLinksList");
 		DataGroup recordToRecordLink = DataGroup.withNameInData("recordToRecordLink");
-		DataRecordLink from = DataRecordLink
-				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("from", "place", "place:0002");
+
+		DataGroup from = DataGroup.withNameInData("from");
 		recordToRecordLink.addChild(from);
-		DataRecordLink to = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("to",
-				"place", "place:0001");
+		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0002", from);
+//		DataRecordLink from = DataRecordLink
+//				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("from", "place", "place:0002");
+		DataGroup to = DataGroup.withNameInData("to");
 		recordToRecordLink.addChild(to);
+		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0001", to);
+
+//		DataRecordLink to = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("to",
+//				"place", "place:0001");
+//		recordToRecordLink.addChild(to);
 
 		collectedLinksList.addChild(recordToRecordLink);
 		return collectedLinksList;

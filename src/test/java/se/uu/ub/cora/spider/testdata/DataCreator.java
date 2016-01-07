@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.testdata;
 
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
 
 public final class DataCreator {
 	private static final String SELF_PRESENTATION_VIEW_ID = "selfPresentationViewId";
@@ -105,12 +104,24 @@ public final class DataCreator {
 			String toRecordType, String toRecordId) {
 		DataGroup recordToRecordLink = DataGroup.withNameInData("recordToRecordLink");
 
-		DataRecordLink from = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId(
-				"from", fromRecordType, fromRecordId);
+		DataGroup from = DataGroup.withNameInData("from");
 		recordToRecordLink.addChild(from);
 
-		DataRecordLink to = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("to",
-				toRecordType, toRecordId);
+		DataAtomic fromLinkedRecordType = DataAtomic.withNameInDataAndValue("linkedRecordType", fromRecordType);
+		from.addChild(fromLinkedRecordType);
+
+		DataAtomic fromLinkedRecordId = DataAtomic.withNameInDataAndValue("linkedRecordId", fromRecordId);
+		from.addChild(fromLinkedRecordId);
+
+		DataGroup to = DataGroup.withNameInData("to");
+		recordToRecordLink.addChild(to);
+
+		DataAtomic toLinkedRecordType = DataAtomic.withNameInDataAndValue("linkedRecordType", toRecordType);
+		to.addChild(toLinkedRecordType);
+
+		DataAtomic toLinkedRecordId = DataAtomic.withNameInDataAndValue("linkedRecordId", toRecordId);
+		to.addChild(toLinkedRecordId);
+
 		recordToRecordLink.addChild(to);
 		return recordToRecordLink;
 	}
