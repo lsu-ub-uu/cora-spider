@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,7 +19,9 @@
 
 package se.uu.ub.cora.spider.data;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.data.DataRecord;
@@ -27,7 +29,7 @@ import se.uu.ub.cora.bookkeeper.data.DataRecord;
 public final class SpiderDataRecord implements SpiderData {
 	private Set<String> keys = new HashSet<>();
 	private SpiderDataGroup spiderDataGroup;
-	private Set<Action> actions = new HashSet<>();
+	private List<Action> actions = new ArrayList<>();
 
 	public static SpiderDataRecord withSpiderDataGroup(SpiderDataGroup spiderDataGroup) {
 		return new SpiderDataRecord(spiderDataGroup);
@@ -71,7 +73,7 @@ public final class SpiderDataRecord implements SpiderData {
 		actions.add(action);
 	}
 
-	public Set<Action> getActions() {
+	public List<Action> getActions() {
 		return actions;
 	}
 

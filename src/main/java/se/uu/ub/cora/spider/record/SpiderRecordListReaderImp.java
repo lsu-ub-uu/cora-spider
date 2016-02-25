@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -29,11 +29,6 @@ import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
-/**
- *
- * @author <a href="mailto:madeleine.kennback@ub.uu.se">Madeleine Kennbäck</a>
- * @version $Revision$, $Date$, $Author$
- */
 public class SpiderRecordListReaderImp extends SpiderRecordHandler
 		implements SpiderRecordListReader {
 	private static final String RECORD_TYPE = "recordType";
@@ -121,6 +116,7 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String recordType) {
 		Collection<DataGroup> dataGroupList = recordStorage.readList(recordType);
+		this.recordType = recordType;
 		for (DataGroup dataGroup : dataGroupList) {
 			SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 			SpiderDataRecord spiderDataRecord = createDataRecordContainingDataGroup(

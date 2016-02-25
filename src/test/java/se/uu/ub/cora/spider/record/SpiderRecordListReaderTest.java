@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -39,11 +39,6 @@ import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
-/**
- *
- * @author <a href="mailto:madeleine.kennback@ub.uu.se">Madeleine Kennbäck</a>
- * @version $Revision$, $Date$, $Author$
- */
 public class SpiderRecordListReaderTest {
 
 	private RecordStorage recordStorage;
@@ -101,6 +96,19 @@ public class SpiderRecordListReaderTest {
 	}
 
 	@Test
+	public void testActionsOnReadRecordType() {
+		SpiderDataList recordList = recordListReader.readRecordList("userId", "recordType");
+		SpiderDataRecord firstInList = (SpiderDataRecord) recordList.getDataList().get(0);
+		assertEquals(firstInList.getActions().size(), 6);
+		assertTrue(firstInList.getActions().contains(Action.READ));
+		assertTrue(firstInList.getActions().contains(Action.UPDATE));
+		assertTrue(firstInList.getActions().contains(Action.DELETE));
+		assertTrue(firstInList.getActions().contains(Action.CREATE));
+		assertTrue(firstInList.getActions().contains(Action.LIST));
+		assertTrue(firstInList.getActions().contains(Action.SEARCH));
+	}
+
+	@Test
 	public void testActionsOnReadRecordNoIncomingLinks() {
 		SpiderDataList recordList = recordListReader.readRecordList("userId", "place");
 		assertEquals(((SpiderDataRecord) recordList.getDataList().get(1)).getActions().size(), 3);
@@ -108,29 +116,37 @@ public class SpiderRecordListReaderTest {
 				.contains(Action.READ_INCOMING_LINKS));
 	}
 
-//	@Test
-//	public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
-//		SpiderRecordListReader recordListReader = createRecordListReaderWithTestDataForLinkedData();
-//
-//		SpiderDataList recordList = recordListReader.readRecordList("userId", "dataWithLinks");
-//		SpiderDataRecord record = (SpiderDataRecord) recordList.getDataList().get(0);
-//		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
-//	}
-//
-//	private SpiderRecordListReader createRecordListReaderWithTestDataForLinkedData() {
-//		recordStorage = new RecordLinkTestsRecordStorage();
-//		return SpiderRecordListReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
-//				authorization, recordStorage, keyCalculator);
-//	}
+	// @Test
+	// public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
+	// SpiderRecordListReader recordListReader =
+	// createRecordListReaderWithTestDataForLinkedData();
+	//
+	// SpiderDataList recordList = recordListReader.readRecordList("userId",
+	// "dataWithLinks");
+	// SpiderDataRecord record = (SpiderDataRecord)
+	// recordList.getDataList().get(0);
+	// RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
+	// }
+	//
+	// private SpiderRecordListReader
+	// createRecordListReaderWithTestDataForLinkedData() {
+	// recordStorage = new RecordLinkTestsRecordStorage();
+	// return
+	// SpiderRecordListReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
+	// authorization, recordStorage, keyCalculator);
+	// }
 
-//	@Test
-//	public void testReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
-//		SpiderRecordListReader recordListReader = createRecordListReaderWithTestDataForLinkedData();
-//
-//		SpiderDataList recordList = recordListReader.readRecordList("userId", "dataWithLinks");
-//		SpiderDataRecord record = (SpiderDataRecord) recordList.getDataList().get(1);
-//
-//		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
-//	}
+	// @Test
+	// public void testReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
+	// SpiderRecordListReader recordListReader =
+	// createRecordListReaderWithTestDataForLinkedData();
+	//
+	// SpiderDataList recordList = recordListReader.readRecordList("userId",
+	// "dataWithLinks");
+	// SpiderDataRecord record = (SpiderDataRecord)
+	// recordList.getDataList().get(1);
+	//
+	// RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
+	// }
 
 }

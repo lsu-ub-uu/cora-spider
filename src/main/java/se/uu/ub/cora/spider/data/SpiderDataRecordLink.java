@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,36 +18,36 @@
  */
 package se.uu.ub.cora.spider.data;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.util.HashSet;
-import java.util.Set;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public final class SpiderDataRecordLink extends SpiderDataGroup {
 
-    private Set<Action> actions = new HashSet<>();
+	private List<Action> actions = new ArrayList<>();
 
-    private SpiderDataRecordLink(String nameInData) {
-        super(nameInData);
-    }
+	private SpiderDataRecordLink(String nameInData) {
+		super(nameInData);
+	}
 
-    private SpiderDataRecordLink(DataGroup dataRecordLink){
-        super(dataRecordLink);
-    }
+	private SpiderDataRecordLink(DataGroup dataRecordLink) {
+		super(dataRecordLink);
+	}
 
-    public static SpiderDataRecordLink withNameInData(String nameInData) {
-        return new SpiderDataRecordLink(nameInData);
-    }
+	public static SpiderDataRecordLink withNameInData(String nameInData) {
+		return new SpiderDataRecordLink(nameInData);
+	}
 
-    public static SpiderDataRecordLink fromDataRecordLink(DataGroup dataRecordLink) {
-        return new SpiderDataRecordLink(dataRecordLink);
-    }
+	public static SpiderDataRecordLink fromDataRecordLink(DataGroup dataRecordLink) {
+		return new SpiderDataRecordLink(dataRecordLink);
+	}
 
-    public void addAction(Action action) {
-        actions.add(action);
-    }
+	public void addAction(Action action) {
+		actions.add(action);
+	}
 
-    public Set<Action> getActions() {
-        return actions;
-    }
+	public List<Action> getActions() {
+		return actions;
+	}
 }
