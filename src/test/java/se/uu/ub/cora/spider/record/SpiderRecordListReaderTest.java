@@ -115,38 +115,4 @@ public class SpiderRecordListReaderTest {
 		assertFalse(((SpiderDataRecord) recordList.getDataList().get(1)).getActions()
 				.contains(Action.READ_INCOMING_LINKS));
 	}
-
-	// @Test
-	// public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
-	// SpiderRecordListReader recordListReader =
-	// createRecordListReaderWithTestDataForLinkedData();
-	//
-	// SpiderDataList recordList = recordListReader.readRecordList("userId",
-	// "dataWithLinks");
-	// SpiderDataRecord record = (SpiderDataRecord)
-	// recordList.getDataList().get(0);
-	// RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
-	// }
-	//
-	// private SpiderRecordListReader
-	// createRecordListReaderWithTestDataForLinkedData() {
-	// recordStorage = new RecordLinkTestsRecordStorage();
-	// return
-	// SpiderRecordListReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
-	// authorization, recordStorage, keyCalculator);
-	// }
-
-	// @Test
-	// public void testReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
-	// SpiderRecordListReader recordListReader =
-	// createRecordListReaderWithTestDataForLinkedData();
-	//
-	// SpiderDataList recordList = recordListReader.readRecordList("userId",
-	// "dataWithLinks");
-	// SpiderDataRecord record = (SpiderDataRecord)
-	// recordList.getDataList().get(1);
-	//
-	// RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
-	// }
-
 }
