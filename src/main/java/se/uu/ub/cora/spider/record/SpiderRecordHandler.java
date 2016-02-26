@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,7 +20,11 @@
 package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.data.*;
+import se.uu.ub.cora.spider.data.Action;
+import se.uu.ub.cora.spider.data.SpiderDataElement;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class SpiderRecordHandler {
@@ -60,17 +64,30 @@ public class SpiderRecordHandler {
 			SpiderDataGroup spiderDataGroup) {
 		addReadActionToDataRecordLinks(spiderDataGroup);
 		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
-		addLinks(spiderDataRecord);
+		addActions(spiderDataRecord);
 		return spiderDataRecord;
 	}
 
-	protected void addLinks(SpiderDataRecord spiderDataRecord) {
+	protected void addActions(SpiderDataRecord spiderDataRecord) {
 		spiderDataRecord.addAction(Action.READ);
 		spiderDataRecord.addAction(Action.UPDATE);
 		spiderDataRecord.addAction(Action.DELETE);
 		if (incomingLinksExistsForRecord(spiderDataRecord)) {
 			spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
 		}
+		addActionsForRecordType(spiderDataRecord);
+	}
+
+	private void addActionsForRecordType(SpiderDataRecord spiderDataRecord) {
+		if (isRecordType()) {
+			spiderDataRecord.addAction(Action.CREATE);
+			spiderDataRecord.addAction(Action.LIST);
+			spiderDataRecord.addAction(Action.SEARCH);
+		}
+	}
+
+	protected boolean isRecordType() {
+		return recordType.equals(RECORD_TYPE);
 	}
 
 	protected boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {

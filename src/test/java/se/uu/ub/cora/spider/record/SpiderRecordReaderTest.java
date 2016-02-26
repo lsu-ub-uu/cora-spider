@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -29,7 +29,12 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
-import se.uu.ub.cora.spider.data.*;
+import se.uu.ub.cora.spider.data.Action;
+import se.uu.ub.cora.spider.data.SpiderDataAtomic;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataList;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
@@ -75,8 +80,10 @@ public class SpiderRecordReaderTest {
 		assertEquals(link.getNameInData(), "recordToRecordLink");
 
 		SpiderDataRecordLink from = (SpiderDataRecordLink) link.getFirstChildWithNameInData("from");
-		SpiderDataAtomic linkedRecordType = (SpiderDataAtomic) from.getFirstChildWithNameInData("linkedRecordType");
-		SpiderDataAtomic linkedRecordId = (SpiderDataAtomic) from.getFirstChildWithNameInData("linkedRecordId");
+		SpiderDataAtomic linkedRecordType = (SpiderDataAtomic) from
+				.getFirstChildWithNameInData("linkedRecordType");
+		SpiderDataAtomic linkedRecordId = (SpiderDataAtomic) from
+				.getFirstChildWithNameInData("linkedRecordId");
 
 		assertEquals(linkedRecordType.getValue(), "place");
 		assertEquals(linkedRecordId.getValue(), "place:0002");
@@ -84,8 +91,10 @@ public class SpiderRecordReaderTest {
 		assertTrue(from.getActions().contains(Action.READ));
 
 		SpiderDataRecordLink to = (SpiderDataRecordLink) link.getFirstChildWithNameInData("to");
-		SpiderDataAtomic toLinkedRecordType = (SpiderDataAtomic) to.getFirstChildWithNameInData("linkedRecordType");
-		SpiderDataAtomic toLinkedRecordId = (SpiderDataAtomic) to.getFirstChildWithNameInData("linkedRecordId");
+		SpiderDataAtomic toLinkedRecordType = (SpiderDataAtomic) to
+				.getFirstChildWithNameInData("linkedRecordType");
+		SpiderDataAtomic toLinkedRecordId = (SpiderDataAtomic) to
+				.getFirstChildWithNameInData("linkedRecordId");
 
 		assertEquals(toLinkedRecordType.getValue(), "place");
 		assertEquals(toLinkedRecordId.getValue(), "place:0001");
@@ -110,7 +119,23 @@ public class SpiderRecordReaderTest {
 	public void testActionsOnReadRecord() {
 		SpiderDataRecord record = recordReader.readRecord("userId", "place", "place:0001");
 		assertEquals(record.getActions().size(), 4);
+		assertTrue(record.getActions().contains(Action.READ));
+		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
+		assertTrue(record.getActions().contains(Action.READ_INCOMING_LINKS));
+	}
+
+	@Test
+	public void testActionsOnReadRecordType() {
+		SpiderDataRecord record = recordReader.readRecord("userId", "recordType", "recordType");
+		assertEquals(record.getActions().size(), 6);
+		assertTrue(record.getActions().contains(Action.READ));
+		assertTrue(record.getActions().contains(Action.UPDATE));
+		assertTrue(record.getActions().contains(Action.DELETE));
+
+		assertTrue(record.getActions().contains(Action.CREATE));
+		assertTrue(record.getActions().contains(Action.LIST));
+		assertTrue(record.getActions().contains(Action.SEARCH));
 	}
 
 	@Test
