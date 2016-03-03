@@ -37,6 +37,14 @@ public class SpiderRecordHandler {
 		return recordStorage.read(RECORD_TYPE, recordType);
 	}
 
+	protected boolean isRecordTypeAbstract() {
+		DataGroup recordTypeDefinition = getRecordTypeDefinition();
+		String abstractInRecordTypeDefinition = recordTypeDefinition.
+				getFirstAtomicValueWithNameInData("abstract");
+		return "true".equals(abstractInRecordTypeDefinition);
+	}
+
+
 	protected void addReadActionToDataRecordLinks(SpiderDataGroup spiderDataGroup) {
 		for (SpiderDataElement spiderDataChild : spiderDataGroup.getChildren()) {
 			addReadActionToDataRecordLink(spiderDataChild);
@@ -80,15 +88,37 @@ public class SpiderRecordHandler {
 
 	private void addActionsForRecordType(SpiderDataRecord spiderDataRecord) {
 		if (isRecordType()) {
-			spiderDataRecord.addAction(Action.CREATE);
+			possiblyAddCreateAction(spiderDataRecord);
+
 			spiderDataRecord.addAction(Action.LIST);
 			spiderDataRecord.addAction(Action.SEARCH);
 		}
 	}
 
+	private void possiblyAddCreateAction(SpiderDataRecord spiderDataRecord) {
+		String recordId = getRecordIdFromDataRecord(spiderDataRecord);
+		if(!isHandledRecordIdOfTypeAbstract(recordId)) {
+            spiderDataRecord.addAction(Action.CREATE);
+        }
+	}
+
 	protected boolean isRecordType() {
 		return recordType.equals(RECORD_TYPE);
 	}
+
+	private String getRecordIdFromDataRecord(SpiderDataRecord spiderDataRecord) {
+		SpiderDataGroup spiderDataGroup = spiderDataRecord.getSpiderDataGroup();
+		SpiderDataGroup recordInfo = (SpiderDataGroup)spiderDataGroup.getFirstChildWithNameInData("recordInfo");
+		return recordInfo.extractAtomicValue("id");
+	}
+
+	private boolean isHandledRecordIdOfTypeAbstract(String recordId){
+		DataGroup handleRecordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordId);
+		String abstractInRecordTypeDefinition = handleRecordTypeDataGroup.
+				getFirstAtomicValueWithNameInData("abstract");
+		return "true".equals(abstractInRecordTypeDefinition);
+	}
+
 
 	protected boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {
 		SpiderDataGroup spiderDataGroup = spiderDataRecord.getSpiderDataGroup();

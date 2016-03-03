@@ -65,14 +65,15 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	@Override
-	public SpiderDataRecord createAndStoreRecord(String userId, String recordType,
+	public SpiderDataRecord createAndStoreRecord(String userId, String recordTypeToCreate,
 			SpiderDataGroup spiderDataGroup) {
-		this.recordType = recordType;
+		this.recordType = recordTypeToCreate;
 		this.spiderDataGroup = spiderDataGroup;
 		recordTypeDefinition = getRecordTypeDefinition();
 
 		checkNoCreateForAbstractRecordType(recordType);
 		validateDataInRecordAsSpecifiedInMetadata();
+
 
 		ensureCompleteRecordInfo(userId, recordType);
 
@@ -101,17 +102,11 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		return spiderDataGroup.extractGroup("recordInfo").extractAtomicValue("id");
 	}
 
-	private void checkNoCreateForAbstractRecordType(String recordType) {
+	private void checkNoCreateForAbstractRecordType(String recordTypeToCreate) {
 		if (isRecordTypeAbstract()) {
 			throw new MisuseException(
-					"Data creation on abstract recordType:" + recordType + " is not allowed");
+					"Data creation on abstract recordType:" + recordTypeToCreate + " is not allowed");
 		}
-	}
-
-	private boolean isRecordTypeAbstract() {
-		String abstractInRecordTypeDefinition = recordTypeDefinition
-				.getFirstAtomicValueWithNameInData("abstract");
-		return "true".equals(abstractInRecordTypeDefinition);
 	}
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {

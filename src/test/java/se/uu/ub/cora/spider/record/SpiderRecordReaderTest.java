@@ -145,6 +145,12 @@ public class SpiderRecordReaderTest {
 		assertFalse(record.getActions().contains(Action.READ_INCOMING_LINKS));
 	}
 
+	@Test
+	public void testActionsOnReadAbstractRecordType() {
+		SpiderDataRecord record = recordReader.readRecord("userId", "recordType", "abstractAuthority");
+		assertEquals(record.getActions().size(), 5);
+	}
+
 	@Test(expectedExceptions = MisuseException.class)
 	public void testReadRecordAbstractRecordType() {
 		SpiderRecordReader recordReader = SpiderRecordReaderImp
