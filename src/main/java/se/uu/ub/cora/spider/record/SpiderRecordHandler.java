@@ -99,8 +99,8 @@ public class SpiderRecordHandler {
 	}
 
 	private void possiblyAddCreateAction(SpiderDataRecord spiderDataRecord) {
-		String recordId = getRecordIdFromDataRecord(spiderDataRecord);
-		if(!isHandledRecordIdOfTypeAbstract(recordId)) {
+		String handledRecordId = getRecordIdFromDataRecord(spiderDataRecord);
+		if(!isHandledRecordIdOfTypeAbstract(handledRecordId)) {
             spiderDataRecord.addAction(Action.CREATE);
         }
 	}
