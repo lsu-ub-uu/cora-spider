@@ -38,10 +38,13 @@ public class SpiderRecordHandler {
 	}
 
 	protected boolean isRecordTypeAbstract() {
-		DataGroup recordTypeDefinition = getRecordTypeDefinition();
-		String abstractInRecordTypeDefinition = recordTypeDefinition.
-				getFirstAtomicValueWithNameInData("abstract");
+		String abstractInRecordTypeDefinition = getAbstractFromRecordTypeDefinition();
 		return "true".equals(abstractInRecordTypeDefinition);
+	}
+
+	private String getAbstractFromRecordTypeDefinition() {
+		DataGroup recordTypeDefinition = getRecordTypeDefinition();
+		return recordTypeDefinition.getFirstAtomicValueWithNameInData("abstract");
 	}
 
 
@@ -113,10 +116,13 @@ public class SpiderRecordHandler {
 	}
 
 	private boolean isHandledRecordIdOfTypeAbstract(String recordId){
-		DataGroup handleRecordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordId);
-		String abstractInRecordTypeDefinition = handleRecordTypeDataGroup.
-				getFirstAtomicValueWithNameInData("abstract");
+		String abstractInRecordTypeDefinition = getAbstractFromHandledRecord(recordId);
 		return "true".equals(abstractInRecordTypeDefinition);
+	}
+
+	private String getAbstractFromHandledRecord(String recordId) {
+		DataGroup handleRecordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordId);
+		return handleRecordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract");
 	}
 
 

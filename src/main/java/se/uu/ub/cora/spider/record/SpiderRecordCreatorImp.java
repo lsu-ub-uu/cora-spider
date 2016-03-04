@@ -74,7 +74,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		checkNoCreateForAbstractRecordType(recordType);
 		validateDataInRecordAsSpecifiedInMetadata();
 
-
 		ensureCompleteRecordInfo(userId, recordType);
 
 		// set more stuff, user, tscreated, status (created, updated, deleted,

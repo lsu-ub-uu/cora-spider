@@ -146,7 +146,7 @@ public class SpiderRecordReaderTest {
 	}
 
 	@Test
-	public void testActionsOnReadAbstractRecordType() {
+	public void testActionsOnReadAbstractRecordTypeNoCreate() {
 		SpiderDataRecord record = recordReader.readRecord("userId", "recordType", "abstractAuthority");
 		assertEquals(record.getActions().size(), 5);
 	}
