@@ -63,15 +63,10 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private void checkRecordsRecordTypeNotAbstract() {
-		DataGroup recordTypeDefinition = getRecordTypeDefinition();
-		if (recordTypeIsAbstract(recordTypeDefinition)) {
+		if (isRecordTypeAbstract()) {
 			throw new MisuseException("Reading for record: " + recordId
 					+ " on the abstract recordType:" + recordType + " is not allowed");
 		}
-	}
-
-	private boolean recordTypeIsAbstract(DataGroup recordTypeDataGroup) {
-		return "true".equals(recordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract"));
 	}
 
 	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
