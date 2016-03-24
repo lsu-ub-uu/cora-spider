@@ -53,6 +53,8 @@ public class TestDataRecordInMemoryStorage {
 				DataGroup.withNameInData("collectedLinksList"));
 		recordsInMemory.create("metadataRecordLink", "dummy1", dummy,
 				DataGroup.withNameInData("collectedLinksList"));
+		recordsInMemory.create("metadataRecordRelation", "dummyRecordRelation", dummy,
+				DataGroup.withNameInData("collectedLinksList"));
 		return recordsInMemory;
 	}
 
@@ -76,19 +78,21 @@ public class TestDataRecordInMemoryStorage {
 		dataGroup.addChild(dataRecordLink);
 		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0001", dataRecordLink);
 
-//		dataGroup.addChild(DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("link",
-//				"place", "place:0001"));
+		// dataGroup.addChild(DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("link",
+		// "place", "place:0001"));
 
 		DataGroup collectedLinksList = createLinkList();
 		recordsInMemory.create("place", "place:0002", dataGroup, collectedLinksList);
 	}
 
-	private static void addLinkedRecordTypeAndLinkedRecordIdToRecordLink(String linkedRecordTypeString, String linkedRecordIdString, DataGroup dataRecordLink) {
-		DataAtomic linkedRecordType = DataAtomic.withNameInDataAndValue("linkedRecordType", linkedRecordTypeString);
+	private static void addLinkedRecordTypeAndLinkedRecordIdToRecordLink(
+			String linkedRecordTypeString, String linkedRecordIdString, DataGroup dataRecordLink) {
+		DataAtomic linkedRecordType = DataAtomic.withNameInDataAndValue("linkedRecordType",
+				linkedRecordTypeString);
 		dataRecordLink.addChild(linkedRecordType);
 
-
-		DataAtomic linkedRecordId = DataAtomic.withNameInDataAndValue("linkedRecordId", linkedRecordIdString);
+		DataAtomic linkedRecordId = DataAtomic.withNameInDataAndValue("linkedRecordId",
+				linkedRecordIdString);
 		dataRecordLink.addChild(linkedRecordId);
 	}
 
@@ -99,15 +103,17 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup from = DataGroup.withNameInData("from");
 		recordToRecordLink.addChild(from);
 		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0002", from);
-//		DataRecordLink from = DataRecordLink
-//				.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("from", "place", "place:0002");
+		// DataRecordLink from = DataRecordLink
+		// .withNameInDataAndLinkedRecordTypeAndLinkedRecordId("from", "place",
+		// "place:0002");
 		DataGroup to = DataGroup.withNameInData("to");
 		recordToRecordLink.addChild(to);
 		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0001", to);
 
-//		DataRecordLink to = DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("to",
-//				"place", "place:0001");
-//		recordToRecordLink.addChild(to);
+		// DataRecordLink to =
+		// DataRecordLink.withNameInDataAndLinkedRecordTypeAndLinkedRecordId("to",
+		// "place", "place:0001");
+		// recordToRecordLink.addChild(to);
 
 		collectedLinksList.addChild(recordToRecordLink);
 		return collectedLinksList;
@@ -191,8 +197,8 @@ public class TestDataRecordInMemoryStorage {
 	private static void addRecordTypeAbstractAuthority(RecordStorageInMemory recordsInMemory) {
 		String recordType = "recordType";
 
-		DataGroup dataGroup = DataCreator
-				.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("abstractAuthority", "false", "true");
+		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(
+				"abstractAuthority", "false", "true");
 
 		recordsInMemory.create(recordType, "abstractAuthority", dataGroup,
 				DataGroup.withNameInData("collectedLinksList"));
