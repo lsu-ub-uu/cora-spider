@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.data.DataRecord;
 
 public final class SpiderDataRecord implements SpiderData {
@@ -78,8 +79,8 @@ public final class SpiderDataRecord implements SpiderData {
 	}
 
 	public DataRecord toDataRecord() {
-		DataRecord dataRecord = new DataRecord();
-		dataRecord.setDataGroup(spiderDataGroup.toDataGroup());
+		DataGroup dataGroup = spiderDataGroup.toDataGroup();
+		DataRecord dataRecord = DataRecord.withDataGroup(dataGroup);
 		dataRecord.getKeys().addAll(keys);
 		return dataRecord;
 	}
