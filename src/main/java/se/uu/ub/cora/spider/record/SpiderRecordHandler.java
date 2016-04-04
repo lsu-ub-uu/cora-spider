@@ -92,10 +92,15 @@ public class SpiderRecordHandler {
 	private void addActionsForRecordType(SpiderDataRecord spiderDataRecord) {
 		if (isRecordType()) {
 			possiblyAddCreateAction(spiderDataRecord);
+			possiblyAddCreateByUploadAction(spiderDataRecord);
 
 			spiderDataRecord.addAction(Action.LIST);
 			spiderDataRecord.addAction(Action.SEARCH);
 		}
+	}
+
+	protected boolean isRecordType() {
+		return recordType.equals(RECORD_TYPE);
 	}
 
 	private void possiblyAddCreateAction(SpiderDataRecord spiderDataRecord) {
@@ -103,10 +108,6 @@ public class SpiderRecordHandler {
 		if(!isHandledRecordIdOfTypeAbstract(handledRecordId)) {
             spiderDataRecord.addAction(Action.CREATE);
         }
-	}
-
-	protected boolean isRecordType() {
-		return recordType.equals(RECORD_TYPE);
 	}
 
 	private String getRecordIdFromDataRecord(SpiderDataRecord spiderDataRecord) {
@@ -125,6 +126,33 @@ public class SpiderRecordHandler {
 		return handleRecordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract");
 	}
 
+	private void possiblyAddCreateByUploadAction(SpiderDataRecord spiderDataRecord) {
+		String dataRecordRecordId = getRecordIdFromDataRecord(spiderDataRecord);
+		if(isHandledRecordIdBinary(dataRecordRecordId) || isHandledRecordIdBinaryChild(dataRecordRecordId)){
+            spiderDataRecord.addAction(Action.CREATE_BY_UPLOAD);
+        }
+	}
+
+	private boolean isHandledRecordIdBinary(String dataRecordRecordId) {
+		return "binary".equals(dataRecordRecordId);
+	}
+
+	private boolean isHandledRecordIdBinaryChild(String dataRecordRecordId){
+		String refParentId = extractParentId(dataRecordRecordId);
+		return "binary".equals(refParentId);
+	}
+
+	private String extractParentId(String dataRecordRecordId) {
+		DataGroup handledRecordTypeDataGroup = recordStorage.read(RECORD_TYPE, dataRecordRecordId);
+		if(handledRecordHasParent(handledRecordTypeDataGroup)) {
+			return handledRecordTypeDataGroup.getFirstAtomicValueWithNameInData("parentId");
+		}
+		return "";
+	}
+
+	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
+		return handledRecordTypeDataGroup.containsChildWithNameInData("parentId");
+	}
 
 	protected boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {
 		SpiderDataGroup spiderDataGroup = spiderDataRecord.getSpiderDataGroup();
