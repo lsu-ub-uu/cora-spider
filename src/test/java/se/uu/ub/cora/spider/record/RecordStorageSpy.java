@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 
@@ -40,6 +41,10 @@ public class RecordStorageSpy implements RecordStorage {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
 					"true");
 		}
+		if ("abstract2".equals(id)) {
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
+					"true");
+		}
 		if ("child1".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
 					"abstract");
@@ -47,6 +52,14 @@ public class RecordStorageSpy implements RecordStorage {
 		if ("child2".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
 					"abstract");
+		}
+		if ("child1_2".equals(id)) {
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
+					"abstract2");
+		}
+		if ("child2_2".equals(id)) {
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
+					"abstract2");
 		}
 		if ("otherType".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
@@ -88,8 +101,14 @@ public class RecordStorageSpy implements RecordStorage {
 			recordTypes.add(read("recordType", "abstract"));
 			recordTypes.add(read("recordType", "child1"));
 			recordTypes.add(read("recordType", "child2"));
+			recordTypes.add(read("recordType", "abstract2"));
+			recordTypes.add(read("recordType", "child1_2"));
+			recordTypes.add(read("recordType", "child2_2"));
 			recordTypes.add(read("recordType", "otherType"));
 			return recordTypes;
+		}
+		if ("child1_2".equals(type)) {
+			throw new RecordNotFoundException("No records exists with recordType: " + type);
 		}
 		return new ArrayList<DataGroup>();
 	}
@@ -104,6 +123,14 @@ public class RecordStorageSpy implements RecordStorage {
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public boolean recordsExistForRecordType(String type) {
+		if ("child1_2".equals(type)) {
+			return false;
+		}
+		return true;
 	}
 
 }

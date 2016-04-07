@@ -111,7 +111,9 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 	private void addChildToReadRecordList(DataGroup recordTypePossibleChild) {
 		String childRecordType = recordTypePossibleChild.getFirstGroupWithNameInData("recordInfo")
 				.getFirstAtomicValueWithNameInData("id");
-		readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(childRecordType);
+		if (recordStorage.recordsExistForRecordType(childRecordType)) {
+			readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(childRecordType);
+		}
 	}
 
 	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String recordType) {

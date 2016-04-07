@@ -69,7 +69,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			group.addChild(DataAtomic.withNameInDataAndValue("unit", "gothenburg"));
 			return group;
 		}
-		if(type.equals("recordType") && id.equals("recordType")){
+		if (type.equals("recordType") && id.equals("recordType")) {
 			DataGroup group = DataGroup.withNameInData("recordType");
 			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId", "recordTypeNew"));
 			group.addChild(DataAtomic.withNameInDataAndValue("recordInfo", "recordInfo"));
@@ -78,7 +78,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			group.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
 			return group;
 		}
-		if(type.equals("recordType") && id.equals("image")){
+		if (type.equals("recordType") && id.equals("image")) {
 			DataGroup group = DataGroup.withNameInData("recordType");
 			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId", "imageNew"));
 			group.addChild(DataAtomic.withNameInDataAndValue("metadataId", "image"));
@@ -87,7 +87,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			group.addChild(DataAtomic.withNameInDataAndValue("parentId", "binary"));
 			return group;
 		}
-		if(type.equals("recordType") && id.equals("binary")){
+		if (type.equals("recordType") && id.equals("binary")) {
 			DataGroup group = DataGroup.withNameInData("recordType");
 			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId", "binaryNew"));
 			group.addChild(DataAtomic.withNameInDataAndValue("metadataId", "binary"));
@@ -135,6 +135,12 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public boolean recordsExistForRecordType(String type) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }
