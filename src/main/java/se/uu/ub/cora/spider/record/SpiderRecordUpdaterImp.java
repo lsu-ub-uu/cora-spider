@@ -91,7 +91,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void checkNoUpdateForAbstractRecordType() {
-		if ("true".equals(recordTypeDefinition.getFirstAtomicValueWithNameInData("abstract"))) {
+		if (isRecordTypeAbstract()) {
 			throw new MisuseException(
 					"Data update on abstract recordType:" + recordType + " is not allowed");
 		}

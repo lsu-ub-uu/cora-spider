@@ -197,6 +197,15 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
+	public boolean recordsExistForRecordType(String type) {
+		Map<String, DataGroup> typeRecords = records.get(type);
+		if (null == typeRecords) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
 	public DataGroup read(String recordType, String recordId) {
 		checkRecordExists(recordType, recordId);
 		return records.get(recordType).get(recordId);
@@ -239,7 +248,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	@Override
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
 		if (linksExistForRecord(type, id)) {
- 			return generateLinkCollectionFromStoredLinks(type, id);
+			return generateLinkCollectionFromStoredLinks(type, id);
 		}
 		return Collections.emptyList();
 	}
@@ -314,8 +323,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 		removeToHolderFromIncomingLinks(recordLinkTo, toPartOfIncomingLinks);
 	}
 
-	private Map<String, Map<String, List<DataGroup>>> extractToPartOfIncomingLinks(
-			DataGroup to) {
+	private Map<String, Map<String, List<DataGroup>>> extractToPartOfIncomingLinks(DataGroup to) {
 		String toType = extractLinkedRecordTypeValue(to);
 		String toId = extractLinkedRecordIdValue(to);
 		return incomingLinks.get(toType).get(toId);

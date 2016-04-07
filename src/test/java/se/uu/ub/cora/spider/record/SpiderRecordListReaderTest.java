@@ -26,7 +26,6 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.List;
 
-import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -78,8 +77,20 @@ public class SpiderRecordListReaderTest {
 						recordStorageListReaderSpy, keyCalculator);
 		recordReader.readRecordList("userId", "abstract");
 
-		Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child1"));
-		Assert.assertTrue(recordStorageListReaderSpy.readLists.contains("child2"));
+		assertTrue(recordStorageListReaderSpy.readLists.contains("child1"));
+		assertTrue(recordStorageListReaderSpy.readLists.contains("child2"));
+	}
+
+	@Test
+	public void testReadListAbstractRecordTypeNoDataForOneRecordType() {
+		RecordStorageSpy recordStorageListReaderSpy = new RecordStorageSpy();
+		SpiderRecordListReader recordReader = SpiderRecordListReaderImp
+				.usingAuthorizationAndRecordStorageAndKeyCalculator(authorization,
+						recordStorageListReaderSpy, keyCalculator);
+		recordReader.readRecordList("userId", "abstract2");
+
+		assertFalse(recordStorageListReaderSpy.readLists.contains("child1_2"));
+		assertTrue(recordStorageListReaderSpy.readLists.contains("child2_2"));
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
@@ -98,14 +109,26 @@ public class SpiderRecordListReaderTest {
 	@Test
 	public void testActionsOnReadRecordType() {
 		SpiderDataList recordList = recordListReader.readRecordList("userId", "recordType");
-		SpiderDataRecord firstInList = (SpiderDataRecord) recordList.getDataList().get(0);
-		assertEquals(firstInList.getActions().size(), 6);
-		assertTrue(firstInList.getActions().contains(Action.READ));
-		assertTrue(firstInList.getActions().contains(Action.UPDATE));
-		assertTrue(firstInList.getActions().contains(Action.DELETE));
-		assertTrue(firstInList.getActions().contains(Action.CREATE));
-		assertTrue(firstInList.getActions().contains(Action.LIST));
-		assertTrue(firstInList.getActions().contains(Action.SEARCH));
+		SpiderDataRecord firstInListWhichIsImage = (SpiderDataRecord) recordList.getDataList()
+				.get(0);
+		assertEquals(firstInListWhichIsImage.getActions().size(), 7);
+		assertTrue(firstInListWhichIsImage.getActions().contains(Action.READ));
+		assertTrue(firstInListWhichIsImage.getActions().contains(Action.UPDATE));
+		assertTrue(firstInListWhichIsImage.getActions().contains(Action.DELETE));
+		assertTrue(firstInListWhichIsImage.getActions().contains(Action.CREATE));
+		assertTrue(firstInListWhichIsImage.getActions().contains(Action.LIST));
+		assertTrue(firstInListWhichIsImage.getActions().contains(Action.SEARCH));
+		assertTrue(firstInListWhichIsImage.getActions().contains(Action.CREATE_BY_UPLOAD));
+
+		SpiderDataRecord secondInListWhichIsMetadata = (SpiderDataRecord) recordList.getDataList()
+				.get(1);
+		assertEquals(secondInListWhichIsMetadata.getActions().size(), 6);
+		assertTrue(secondInListWhichIsMetadata.getActions().contains(Action.READ));
+		assertTrue(secondInListWhichIsMetadata.getActions().contains(Action.UPDATE));
+		assertTrue(secondInListWhichIsMetadata.getActions().contains(Action.DELETE));
+		assertTrue(secondInListWhichIsMetadata.getActions().contains(Action.CREATE));
+		assertTrue(secondInListWhichIsMetadata.getActions().contains(Action.LIST));
+		assertTrue(secondInListWhichIsMetadata.getActions().contains(Action.SEARCH));
 	}
 
 	@Test

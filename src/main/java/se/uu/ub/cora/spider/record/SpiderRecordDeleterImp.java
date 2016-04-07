@@ -25,8 +25,8 @@ import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
-public final class SpiderRecordDeleterImp implements SpiderRecordDeleter {
-	private RecordStorage recordStorage;
+public final class SpiderRecordDeleterImp extends SpiderRecordHandler
+		implements SpiderRecordDeleter {
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
 
@@ -46,8 +46,8 @@ public final class SpiderRecordDeleterImp implements SpiderRecordDeleter {
 
 	@Override
 	public void deleteRecord(String userId, String recordType, String recordId) {
-		DataGroup recordTypeDataGroup = getRecordType(recordType);
-		if ("true".equals(recordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract"))) {
+		this.recordType = recordType;
+		if (isRecordTypeAbstract()) {
 			throw new MisuseException("Deleting record: " + recordId
 					+ " on the abstract recordType:" + recordType + " is not allowed");
 		}
@@ -61,9 +61,5 @@ public final class SpiderRecordDeleterImp implements SpiderRecordDeleter {
 					+ " is not authorized to delete record:" + recordId + " of type:" + recordType);
 		}
 		recordStorage.deleteByTypeAndId(recordType, recordId);
-	}
-
-	private DataGroup getRecordType(String recordType) {
-		return recordStorage.read("recordType", recordType);
 	}
 }

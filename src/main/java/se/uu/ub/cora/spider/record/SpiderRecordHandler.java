@@ -37,6 +37,17 @@ public class SpiderRecordHandler {
 		return recordStorage.read(RECORD_TYPE, recordType);
 	}
 
+	protected boolean isRecordTypeAbstract() {
+		String abstractInRecordTypeDefinition = getAbstractFromRecordTypeDefinition();
+		return "true".equals(abstractInRecordTypeDefinition);
+	}
+
+	private String getAbstractFromRecordTypeDefinition() {
+		DataGroup recordTypeDefinition = getRecordTypeDefinition();
+		return recordTypeDefinition.getFirstAtomicValueWithNameInData("abstract");
+	}
+
+
 	protected void addReadActionToDataRecordLinks(SpiderDataGroup spiderDataGroup) {
 		for (SpiderDataElement spiderDataChild : spiderDataGroup.getChildren()) {
 			addReadActionToDataRecordLink(spiderDataChild);
@@ -80,7 +91,9 @@ public class SpiderRecordHandler {
 
 	private void addActionsForRecordType(SpiderDataRecord spiderDataRecord) {
 		if (isRecordType()) {
-			spiderDataRecord.addAction(Action.CREATE);
+			possiblyAddCreateAction(spiderDataRecord);
+			possiblyAddCreateByUploadAction(spiderDataRecord);
+
 			spiderDataRecord.addAction(Action.LIST);
 			spiderDataRecord.addAction(Action.SEARCH);
 		}
@@ -88,6 +101,57 @@ public class SpiderRecordHandler {
 
 	protected boolean isRecordType() {
 		return recordType.equals(RECORD_TYPE);
+	}
+
+	private void possiblyAddCreateAction(SpiderDataRecord spiderDataRecord) {
+		String handledRecordId = getRecordIdFromDataRecord(spiderDataRecord);
+		if(!isHandledRecordIdOfTypeAbstract(handledRecordId)) {
+            spiderDataRecord.addAction(Action.CREATE);
+        }
+	}
+
+	private String getRecordIdFromDataRecord(SpiderDataRecord spiderDataRecord) {
+		SpiderDataGroup spiderDataGroup = spiderDataRecord.getSpiderDataGroup();
+		SpiderDataGroup recordInfo = (SpiderDataGroup)spiderDataGroup.getFirstChildWithNameInData("recordInfo");
+		return recordInfo.extractAtomicValue("id");
+	}
+
+	private boolean isHandledRecordIdOfTypeAbstract(String recordId){
+		String abstractInRecordTypeDefinition = getAbstractFromHandledRecord(recordId);
+		return "true".equals(abstractInRecordTypeDefinition);
+	}
+
+	private String getAbstractFromHandledRecord(String recordId) {
+		DataGroup handleRecordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordId);
+		return handleRecordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract");
+	}
+
+	private void possiblyAddCreateByUploadAction(SpiderDataRecord spiderDataRecord) {
+		String dataRecordRecordId = getRecordIdFromDataRecord(spiderDataRecord);
+		if(isHandledRecordIdBinary(dataRecordRecordId) || isHandledRecordIdBinaryChild(dataRecordRecordId)){
+            spiderDataRecord.addAction(Action.CREATE_BY_UPLOAD);
+        }
+	}
+
+	private boolean isHandledRecordIdBinary(String dataRecordRecordId) {
+		return "binary".equals(dataRecordRecordId);
+	}
+
+	private boolean isHandledRecordIdBinaryChild(String dataRecordRecordId){
+		String refParentId = extractParentId(dataRecordRecordId);
+		return "binary".equals(refParentId);
+	}
+
+	private String extractParentId(String dataRecordRecordId) {
+		DataGroup handledRecordTypeDataGroup = recordStorage.read(RECORD_TYPE, dataRecordRecordId);
+		if(handledRecordHasParent(handledRecordTypeDataGroup)) {
+			return handledRecordTypeDataGroup.getFirstAtomicValueWithNameInData("parentId");
+		}
+		return "";
+	}
+
+	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
+		return handledRecordTypeDataGroup.containsChildWithNameInData("parentId");
 	}
 
 	protected boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {

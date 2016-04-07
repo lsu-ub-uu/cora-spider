@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record.storage;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -159,20 +160,12 @@ public class RecordStorageInMemoryTest {
 
 		DataGroup fromOut = recordToRecordLink.getFirstGroupWithNameInData("from");
 
-//		DataRecordLink fromOut = (DataRecordLink) recordToRecordLink
-//				.getFirstChildWithNameInData("from");
 		assertEquals(fromOut.getFirstAtomicValueWithNameInData("linkedRecordType"), fromRecordType);
-//		assertEquals(fromOut.getLinkedRecordType(), fromRecordType);
 		assertEquals(fromOut.getFirstAtomicValueWithNameInData("linkedRecordId"), fromRecordId);
-//		assertEquals(fromOut.getLinkedRecordId(), fromRecordId);
 
 		DataGroup toOut = recordToRecordLink.getFirstGroupWithNameInData("to");
-//		DataRecordLink toOut = (DataRecordLink) recordToRecordLink
-//				.getFirstChildWithNameInData("to");
 		assertEquals(toOut.getFirstAtomicValueWithNameInData("linkedRecordType"), toRecordType);
-//		assertEquals(toOut.getLinkedRecordType(), toRecordType);
 		assertEquals(toOut.getFirstAtomicValueWithNameInData("linkedRecordId"), toRecordId);
-//		assertEquals(toOut.getLinkedRecordId(), toRecordId);
 	}
 
 	private void assertNoGeneratedLinksForRecordTypeAndRecordId(String toRecordType,
@@ -239,6 +232,22 @@ public class RecordStorageInMemoryTest {
 		String recordType = "place";
 		Collection<DataGroup> recordList = recordStorage.readList(recordType);
 		assertEquals(recordList.iterator().next().getNameInData(), "authority");
+	}
+
+	@Test
+	public void testRecordExistsForRecordType() {
+		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+		String recordType = "place";
+		boolean recordsExists = recordStorage.recordsExistForRecordType(recordType);
+		assertTrue(recordsExists);
+	}
+
+	@Test
+	public void testRecordExistsForRecordTypeNonExistingRecordType() {
+		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+		String recordType = "";
+		boolean recordsExists = recordStorage.recordsExistForRecordType(recordType);
+		assertFalse(recordsExists);
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)

@@ -69,6 +69,32 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			group.addChild(DataAtomic.withNameInDataAndValue("unit", "gothenburg"));
 			return group;
 		}
+		if (type.equals("recordType") && id.equals("recordType")) {
+			DataGroup group = DataGroup.withNameInData("recordType");
+			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId", "recordTypeNew"));
+			group.addChild(DataAtomic.withNameInDataAndValue("recordInfo", "recordInfo"));
+			group.addChild(DataAtomic.withNameInDataAndValue("metadataId", "recordType"));
+			group.addChild(DataAtomic.withNameInDataAndValue("userSuppliedId", "true"));
+			group.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
+			return group;
+		}
+		if (type.equals("recordType") && id.equals("image")) {
+			DataGroup group = DataGroup.withNameInData("recordType");
+			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId", "imageNew"));
+			group.addChild(DataAtomic.withNameInDataAndValue("metadataId", "image"));
+			group.addChild(DataAtomic.withNameInDataAndValue("userSuppliedId", "true"));
+			group.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
+			group.addChild(DataAtomic.withNameInDataAndValue("parentId", "binary"));
+			return group;
+		}
+		if (type.equals("recordType") && id.equals("binary")) {
+			DataGroup group = DataGroup.withNameInData("recordType");
+			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId", "binaryNew"));
+			group.addChild(DataAtomic.withNameInDataAndValue("metadataId", "binary"));
+			group.addChild(DataAtomic.withNameInDataAndValue("userSuppliedId", "true"));
+			group.addChild(DataAtomic.withNameInDataAndValue("abstract", "true"));
+			return group;
+		}
 		return null;
 	}
 
@@ -109,6 +135,12 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public boolean recordsExistForRecordType(String type) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

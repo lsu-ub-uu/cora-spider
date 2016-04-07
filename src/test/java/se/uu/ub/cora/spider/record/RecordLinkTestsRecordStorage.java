@@ -92,4 +92,10 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 		return null;
 	}
 
+	@Override
+	public boolean recordsExistForRecordType(String type) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }
