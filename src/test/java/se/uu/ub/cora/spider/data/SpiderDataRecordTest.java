@@ -85,8 +85,8 @@ public class SpiderDataRecordTest {
 
 	@Test
 	public void testFromDataRecord() {
-		DataRecord dataRecord = new DataRecord();
-		dataRecord.setDataGroup(DataGroup.withNameInData("nameInData"));
+		DataGroup dataGroup = DataGroup.withNameInData("nameInData");
+		DataRecord dataRecord = DataRecord.withDataGroup(dataGroup);
 		dataRecord.addKey("KEY1");
 		dataRecord.addKey("KEY2");
 
