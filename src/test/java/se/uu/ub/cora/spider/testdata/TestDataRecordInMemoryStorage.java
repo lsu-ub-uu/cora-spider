@@ -19,7 +19,6 @@
 
 package se.uu.ub.cora.spider.testdata;
 
-import org.omg.CORBA.DATA_CONVERSION;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 //import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
@@ -187,16 +186,20 @@ public class TestDataRecordInMemoryStorage {
 
 	}
 
-	private static void addRecordTypeBinary(RecordStorageInMemory recordsInMemory){
+	private static void addRecordTypeBinary(RecordStorageInMemory recordsInMemory) {
 		String recordType = "recordType";
-		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("binary", "true", "true");
-		recordsInMemory.create(recordType, "binary", dataGroup, DataGroup.withNameInData("collectedLinksList"));
+		DataGroup dataGroup = DataCreator
+				.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("binary", "true", "true");
+		recordsInMemory.create(recordType, "binary", dataGroup,
+				DataGroup.withNameInData("collectedLinksList"));
 	}
 
-	private static void addRecordTypeImage(RecordStorageInMemory recordsInMemory){
+	private static void addRecordTypeImage(RecordStorageInMemory recordsInMemory) {
 		String recordType = "recordType";
-		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "true", "binary");
-		recordsInMemory.create(recordType, "image", dataGroup, DataGroup.withNameInData("collectedLinksList"));
+		DataGroup dataGroup = DataCreator
+				.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "true", "binary");
+		recordsInMemory.create(recordType, "image", dataGroup,
+				DataGroup.withNameInData("collectedLinksList"));
 	}
 
 	private static void addRecordTypePlace(RecordStorageInMemory recordsInMemory) {
