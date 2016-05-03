@@ -34,7 +34,6 @@ import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		implements SpiderRecordCreator {
-	private static final String RECORD_INFO = "recordInfo";
 	private static final String USER = "User:";
 	private Authorizator authorization;
 	private RecordIdGenerator idGenerator;
@@ -92,7 +91,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, id);
 
-		recordStorage.create(recordType, id, topLevelDataGroup, collectedLinks);
+		String dataDivider = extractDataDividerFromData(spiderDataGroup);
+		recordStorage.create(recordType, id, topLevelDataGroup, collectedLinks, dataDivider);
 
 		return createDataRecordContainingDataGroup(spiderDataGroup);
 	}
@@ -103,8 +103,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void checkNoCreateForAbstractRecordType(String recordTypeToCreate) {
 		if (isRecordTypeAbstract()) {
-			throw new MisuseException(
-					"Data creation on abstract recordType:" + recordTypeToCreate + " is not allowed");
+			throw new MisuseException("Data creation on abstract recordType:" + recordTypeToCreate
+					+ " is not allowed");
 		}
 	}
 
@@ -119,13 +119,13 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
-		ensureRecordInfoExists(recordType);
+		ensureIdExists(recordType);
 		addUserAndTypeToRecordInfo(userId, recordType);
 	}
 
-	private void ensureRecordInfoExists(String recordType) {
+	private void ensureIdExists(String recordType) {
 		if (shouldAutoGenerateId(recordTypeDefinition)) {
-			addRecordInfoToDataGroup(recordType);
+			generateAndAddIdToRecordInfo(recordType);
 		}
 	}
 
@@ -135,22 +135,16 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		return "false".equals(userSuppliedId);
 	}
 
-	private void addRecordInfoToDataGroup(String recordType) {
-		SpiderDataGroup recordInfo = createRecordInfo(recordType);
-		spiderDataGroup.addChild(recordInfo);
+	private void generateAndAddIdToRecordInfo(String recordType) {
+		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id",
+				idGenerator.getIdForType(recordType)));
 	}
 
 	private void addUserAndTypeToRecordInfo(String userId, String recordType) {
 		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", recordType));
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("createdBy", userId));
-	}
-
-	private SpiderDataGroup createRecordInfo(String recordType) {
-		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData(RECORD_INFO);
-		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id",
-				idGenerator.getIdForType(recordType)));
-		return recordInfo;
 	}
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String userId, String recordType,

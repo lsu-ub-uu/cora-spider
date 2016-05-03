@@ -17,7 +17,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.spy;
 
 import java.util.Collection;
 
@@ -29,6 +29,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
 	public DataGroup createRecord;
 	public DataGroup updateRecord;
+	public String dataDivider;
 
 	public boolean modifiableLinksExistsForRecord = false;
 
@@ -99,8 +100,10 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, DataGroup linkList) {
+	public void create(String type, String id, DataGroup record, DataGroup linkList,
+			String dataDivider) {
 		createRecord = record;
+		this.dataDivider = dataDivider;
 	}
 
 	@Override
@@ -115,8 +118,10 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, DataGroup linkList) {
+	public void update(String type, String id, DataGroup record, DataGroup linkList,
+			String dataDivider) {
 		updateRecord = record;
+		this.dataDivider = dataDivider;
 	}
 
 	@Override

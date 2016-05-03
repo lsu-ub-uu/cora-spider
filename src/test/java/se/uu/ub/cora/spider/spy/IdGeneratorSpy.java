@@ -17,29 +17,18 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record.storage;
+package se.uu.ub.cora.spider.spy;
 
-import java.util.Collection;
+import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
+public class IdGeneratorSpy implements RecordIdGenerator {
 
-public interface RecordStorage {
+	public boolean getIdForTypeWasCalled = false;
 
-	DataGroup read(String type, String id);
+	@Override
+	public String getIdForType(String type) {
+		getIdForTypeWasCalled = true;
+		return "1";
+	}
 
-	void create(String type, String id, DataGroup record, DataGroup linkList, String dataDivider);
-
-	void deleteByTypeAndId(String type, String id);
-
-	boolean linksExistForRecord(String type, String id);
-
-	void update(String type, String id, DataGroup record, DataGroup linkList, String dataDivider);
-
-	Collection<DataGroup> readList(String type);
-
-	DataGroup readLinkList(String type, String id);
-
-	Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id);
-
-	boolean recordsExistForRecordType(String type);
 }

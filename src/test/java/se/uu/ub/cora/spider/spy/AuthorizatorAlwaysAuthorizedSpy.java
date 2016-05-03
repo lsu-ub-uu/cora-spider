@@ -17,30 +17,20 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.spy;
 
-import java.util.HashSet;
 import java.util.Set;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.beefeater.Authorizator;
 
-public class KeyCalculatorSpy implements PermissionKeyCalculator {
+public class AuthorizatorAlwaysAuthorizedSpy implements Authorizator {
 
-	public boolean calculateKeysWasCalled = false;
-
-	@Override
-	public Set<String> calculateKeys(String accessType, String recordType, DataGroup record) {
-		calculateKeysWasCalled = true;
-		Set<String> keys = new HashSet<>();
-		String key = String.join(":", accessType, recordType.toUpperCase(), "SYSTEM", "*");
-		keys.add(key);
-		return keys;
-	}
+	public boolean authorizedWasCalled = false;
 
 	@Override
-	public Set<String> calculateKeysForList(String accessType, String recordType) {
-		// TODO Auto-generated method stub
-		return null;
+	public boolean isAuthorized(String userId, Set<String> recordCalculateKeys) {
+		authorizedWasCalled = true;
+		return true;
 	}
 
 }

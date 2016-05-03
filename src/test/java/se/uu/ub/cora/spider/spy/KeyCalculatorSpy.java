@@ -17,18 +17,31 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.spy;
 
-import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
+import java.util.HashSet;
+import java.util.Set;
 
-public class IdGeneratorSpy implements RecordIdGenerator {
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 
-	public boolean getIdForTypeWasCalled = false;
+public class KeyCalculatorSpy implements PermissionKeyCalculator {
+
+	public boolean calculateKeysWasCalled = false;
 
 	@Override
-	public String getIdForType(String type) {
-		getIdForTypeWasCalled = true;
-		return "1";
+	public Set<String> calculateKeys(String accessType, String recordType, DataGroup record) {
+		calculateKeysWasCalled = true;
+		Set<String> keys = new HashSet<>();
+		String key = String.join(":", accessType, recordType.toUpperCase(), "SYSTEM", "*");
+		keys.add(key);
+		return keys;
+	}
+
+	@Override
+	public Set<String> calculateKeysForList(String accessType, String recordType) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
