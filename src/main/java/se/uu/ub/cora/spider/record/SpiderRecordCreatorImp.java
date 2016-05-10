@@ -94,7 +94,11 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
 		recordStorage.create(recordType, id, topLevelDataGroup, collectedLinks, dataDivider);
 
-		return createDataRecordContainingDataGroup(spiderDataGroup);
+		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
+				.fromDataGroup(topLevelDataGroup);
+
+		return createDataRecordContainingDataGroup(spiderDataGroupWithActions);
+
 	}
 
 	private String extractIdFromData() {
