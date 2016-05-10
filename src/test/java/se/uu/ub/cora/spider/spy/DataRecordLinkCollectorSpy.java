@@ -17,19 +17,21 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.spy;
 
-import se.uu.ub.cora.bookkeeper.data.DataElement;
-import se.uu.ub.cora.bookkeeper.validator.DataValidator;
-import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 
-public class DataValidatorAlwaysValidSpy implements DataValidator {
-	boolean validateDataWasCalled = false;
+public class DataRecordLinkCollectorSpy implements DataRecordLinkCollector {
+
+	public boolean collectLinksWasCalled = false;
 
 	@Override
-	public ValidationAnswer validateData(String metadataId, DataElement dataGroup) {
-		validateDataWasCalled = true;
-		return new ValidationAnswer();
+	public DataGroup collectLinks(String metadataId, DataGroup dataGroup, String fromRecordType,
+			String fromRecordId) {
+		collectLinksWasCalled = true;
+		DataGroup collectedDataLinks = DataGroup.withNameInData("collectedDataLinks");
+		return collectedDataLinks;
 	}
 
 }

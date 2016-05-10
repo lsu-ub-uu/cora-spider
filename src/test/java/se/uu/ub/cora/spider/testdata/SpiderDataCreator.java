@@ -60,7 +60,8 @@ public final class SpiderDataCreator {
 		String idWithCapitalFirst = id.substring(0, 1).toUpperCase() + id.substring(1);
 
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(RECORD_TYPE);
-		dataGroup.addChild(createRecordInfoWithRecordTypeAndRecordId(RECORD_TYPE, id));
+		dataGroup.addChild(
+				createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(RECORD_TYPE, id, "cora"));
 
 		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue(METADATA_ID, id));
 		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue(PRESENTATION_VIEW_ID,
@@ -96,11 +97,19 @@ public final class SpiderDataCreator {
 				"false", parentId);
 	}
 
-	public static SpiderDataGroup createRecordInfoWithRecordTypeAndRecordId(String recordType,
-			String recordId) {
+	public static SpiderDataGroup createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+			String recordType, String recordId, String dataDivider) {
 		SpiderDataGroup recordInfo = createRecordInfoWithRecordType(recordType);
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", recordId));
+		recordInfo.addChild(createDataDividerWithLinkedRecordId(dataDivider));
 		return recordInfo;
 	}
 
+	private static SpiderDataGroup createDataDividerWithLinkedRecordId(String linkedRecordId) {
+		SpiderDataGroup dataDivider = SpiderDataGroup.withNameInData("dataDivider");
+		dataDivider.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "system"));
+		dataDivider.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", linkedRecordId));
+		return dataDivider;
+	}
 }

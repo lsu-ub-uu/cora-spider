@@ -26,6 +26,7 @@ import java.util.List;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 
 public class RecordLinkTestsRecordStorage implements RecordStorage {
 
@@ -49,7 +50,8 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, DataGroup linkList) {
+	public void create(String type, String id, DataGroup record, DataGroup linkList,
+			String dataDivider) {
 		// TODO Auto-generated method stub
 
 	}
@@ -67,7 +69,8 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, DataGroup linkList) {
+	public void update(String type, String id, DataGroup record, DataGroup linkList,
+			String dataDivider) {
 		// TODO Auto-generated method stub
 
 	}

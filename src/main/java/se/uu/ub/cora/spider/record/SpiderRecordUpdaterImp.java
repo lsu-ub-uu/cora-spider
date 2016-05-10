@@ -32,7 +32,6 @@ import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		implements SpiderRecordUpdater {
-	private static final String RECORD_INFO = "recordInfo";
 	private static final String USER = "User:";
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
@@ -85,7 +84,9 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, recordId);
 
-		recordStorage.update(recordType, recordId, spiderDataGroup.toDataGroup(), collectedLinks);
+		String dataDivider = extractDataDividerFromData(spiderDataGroup);
+		recordStorage.update(recordType, recordId, spiderDataGroup.toDataGroup(), collectedLinks,
+				dataDivider);
 
 		return createDataRecordContainingDataGroup(spiderDataGroup);
 	}
