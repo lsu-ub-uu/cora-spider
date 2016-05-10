@@ -29,6 +29,7 @@ import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class SpiderRecordHandler {
 	private static final String RECORD_TYPE = "recordType";
+	protected static final String RECORD_INFO = "recordInfo";
 	protected RecordStorage recordStorage;
 	protected String recordType;
 	protected String recordId;
@@ -46,7 +47,6 @@ public class SpiderRecordHandler {
 		DataGroup recordTypeDefinition = getRecordTypeDefinition();
 		return recordTypeDefinition.getFirstAtomicValueWithNameInData("abstract");
 	}
-
 
 	protected void addReadActionToDataRecordLinks(SpiderDataGroup spiderDataGroup) {
 		for (SpiderDataElement spiderDataChild : spiderDataGroup.getChildren()) {
@@ -105,18 +105,19 @@ public class SpiderRecordHandler {
 
 	private void possiblyAddCreateAction(SpiderDataRecord spiderDataRecord) {
 		String handledRecordId = getRecordIdFromDataRecord(spiderDataRecord);
-		if(!isHandledRecordIdOfTypeAbstract(handledRecordId)) {
-            spiderDataRecord.addAction(Action.CREATE);
-        }
+		if (!isHandledRecordIdOfTypeAbstract(handledRecordId)) {
+			spiderDataRecord.addAction(Action.CREATE);
+		}
 	}
 
 	private String getRecordIdFromDataRecord(SpiderDataRecord spiderDataRecord) {
 		SpiderDataGroup spiderDataGroup = spiderDataRecord.getSpiderDataGroup();
-		SpiderDataGroup recordInfo = (SpiderDataGroup)spiderDataGroup.getFirstChildWithNameInData("recordInfo");
+		SpiderDataGroup recordInfo = (SpiderDataGroup) spiderDataGroup
+				.getFirstChildWithNameInData(RECORD_INFO);
 		return recordInfo.extractAtomicValue("id");
 	}
 
-	private boolean isHandledRecordIdOfTypeAbstract(String recordId){
+	private boolean isHandledRecordIdOfTypeAbstract(String recordId) {
 		String abstractInRecordTypeDefinition = getAbstractFromHandledRecord(recordId);
 		return "true".equals(abstractInRecordTypeDefinition);
 	}
@@ -128,23 +129,24 @@ public class SpiderRecordHandler {
 
 	private void possiblyAddCreateByUploadAction(SpiderDataRecord spiderDataRecord) {
 		String dataRecordRecordId = getRecordIdFromDataRecord(spiderDataRecord);
-		if(isHandledRecordIdBinary(dataRecordRecordId) || isHandledRecordIdBinaryChild(dataRecordRecordId)){
-            spiderDataRecord.addAction(Action.CREATE_BY_UPLOAD);
-        }
+		if (isHandledRecordIdBinary(dataRecordRecordId)
+				|| isHandledRecordIdBinaryChild(dataRecordRecordId)) {
+			spiderDataRecord.addAction(Action.CREATE_BY_UPLOAD);
+		}
 	}
 
 	private boolean isHandledRecordIdBinary(String dataRecordRecordId) {
 		return "binary".equals(dataRecordRecordId);
 	}
 
-	private boolean isHandledRecordIdBinaryChild(String dataRecordRecordId){
+	private boolean isHandledRecordIdBinaryChild(String dataRecordRecordId) {
 		String refParentId = extractParentId(dataRecordRecordId);
 		return "binary".equals(refParentId);
 	}
 
 	private String extractParentId(String dataRecordRecordId) {
 		DataGroup handledRecordTypeDataGroup = recordStorage.read(RECORD_TYPE, dataRecordRecordId);
-		if(handledRecordHasParent(handledRecordTypeDataGroup)) {
+		if (handledRecordHasParent(handledRecordTypeDataGroup)) {
 			return handledRecordTypeDataGroup.getFirstAtomicValueWithNameInData("parentId");
 		}
 		return "";
@@ -156,9 +158,15 @@ public class SpiderRecordHandler {
 
 	protected boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {
 		SpiderDataGroup spiderDataGroup = spiderDataRecord.getSpiderDataGroup();
-		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup("recordInfo");
+		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
 		String recordTypeForThisRecord = recordInfo.extractAtomicValue("type");
 		String recordIdForThisRecord = recordInfo.extractAtomicValue("id");
 		return recordStorage.linksExistForRecord(recordTypeForThisRecord, recordIdForThisRecord);
+	}
+
+	protected String extractDataDividerFromData(SpiderDataGroup spiderDataGroup) {
+		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
+		SpiderDataGroup dataDivider = recordInfo.extractGroup("dataDivider");
+		return dataDivider.extractAtomicValue("linkedRecordId");
 	}
 }

@@ -36,6 +36,8 @@ import se.uu.ub.cora.spider.data.SpiderData;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.spider.spy.RecordPermissionKeyCalculatorStub;
+import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
 public class SpiderRecordListReaderTest {

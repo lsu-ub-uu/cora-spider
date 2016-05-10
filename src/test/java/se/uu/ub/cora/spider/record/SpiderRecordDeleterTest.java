@@ -28,6 +28,8 @@ import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.spider.spy.RecordPermissionKeyCalculatorStub;
+import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
 public class SpiderRecordDeleterTest {

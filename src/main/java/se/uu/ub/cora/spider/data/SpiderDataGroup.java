@@ -64,7 +64,7 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 	private SpiderDataElement convertToSpiderEquivalentDataClass(DataElement dataElement) {
 		if (dataElement instanceof DataGroup) {
 			DataGroup dataGroup = (DataGroup) dataElement;
-			if(dataGroupIsRecordLink(dataGroup)){
+			if (dataGroupIsRecordLink(dataGroup)) {
 				return SpiderDataRecordLink.fromDataRecordLink(dataGroup);
 			}
 
@@ -74,8 +74,8 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 	}
 
 	private boolean dataGroupIsRecordLink(DataGroup dataGroup) {
-		return dataGroup.containsChildWithNameInData("linkedRecordType") &&
-                dataGroup.containsChildWithNameInData("linkedRecordId");
+		return dataGroup.containsChildWithNameInData("linkedRecordType")
+				&& dataGroup.containsChildWithNameInData("linkedRecordId");
 	}
 
 	@Override

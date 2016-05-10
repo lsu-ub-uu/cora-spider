@@ -31,9 +31,6 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataTypes;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.record.storage.RecordConflictException;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	protected Map<String, Map<String, DataGroup>> records = new HashMap<>();
@@ -57,7 +54,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public void create(String recordType, String recordId, DataGroup record, DataGroup linkList) {
+	public void create(String recordType, String recordId, DataGroup record, DataGroup linkList,
+			String dataDivider) {
 		ensureStorageExistsForRecordType(recordType);
 		checkNoConflictOnRecordId(recordType, recordId);
 		storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
@@ -300,7 +298,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public void update(String recordType, String recordId, DataGroup record, DataGroup linkList) {
+	public void update(String recordType, String recordId, DataGroup record, DataGroup linkList,
+			String dataDivider) {
 		checkRecordExists(recordType, recordId);
 		removeIncomingLinks(recordType, recordId);
 		storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
