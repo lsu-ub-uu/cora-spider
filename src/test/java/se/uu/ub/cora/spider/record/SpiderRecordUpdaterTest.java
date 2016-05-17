@@ -166,25 +166,6 @@ public class SpiderRecordUpdaterTest {
 		assertEquals(recordUpdated.getActions().size(), 3);
 	}
 
-	@Test
-	public void testActionsOnUpdatedRecordTypeImageNoIncomingLinks() {
-		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
-		setRecordUpdaterWithrecordStorage(recordStorage);
-
-		SpiderDataGroup dataGroup = createRecordTypeDataGroupWithIdAndAbstract("image", "false");
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("parentId", "binary"));
-
-		SpiderDataRecord recordUpdated = recordUpdater.updateRecord("userId", "recordType", "image",
-				dataGroup);
-		assertEquals(recordUpdated.getActions().size(), 7);
-		assertReadUpdateDelete(recordUpdated);
-		assertTrue(recordUpdated.getActions().contains(Action.CREATE));
-
-		assertTrue(recordUpdated.getActions().contains(Action.LIST));
-		assertTrue(recordUpdated.getActions().contains(Action.SEARCH));
-		assertTrue(recordUpdated.getActions().contains(Action.CREATE_BY_UPLOAD));
-	}
-
 	private SpiderDataGroup createRecordTypeDataGroupWithIdAndAbstract(String id,
 			String abstractString) {
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("recordType");
@@ -211,8 +192,9 @@ public class SpiderRecordUpdaterTest {
 
 		SpiderDataRecord recordUpdated = recordUpdater.updateRecord("userId", "recordType",
 				"binary", dataGroup);
-		assertEquals(recordUpdated.getActions().size(), 6);
+		assertEquals(recordUpdated.getActions().size(), 7);
 		assertReadUpdateDelete(recordUpdated);
+		assertTrue(recordUpdated.getActions().contains(Action.CREATE));
 
 		assertTrue(recordUpdated.getActions().contains(Action.LIST));
 		assertTrue(recordUpdated.getActions().contains(Action.SEARCH));

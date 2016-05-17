@@ -111,26 +111,27 @@ public class SpiderRecordListReaderTest {
 	@Test
 	public void testActionsOnReadRecordType() {
 		SpiderDataList recordList = recordListReader.readRecordList("userId", "recordType");
-		SpiderDataRecord firstInListWhichIsImage = (SpiderDataRecord) recordList.getDataList()
+		SpiderDataRecord firstInListWhichIsMetadata = (SpiderDataRecord) recordList.getDataList()
 				.get(0);
-		assertEquals(firstInListWhichIsImage.getActions().size(), 7);
-		assertTrue(firstInListWhichIsImage.getActions().contains(Action.READ));
-		assertTrue(firstInListWhichIsImage.getActions().contains(Action.UPDATE));
-		assertTrue(firstInListWhichIsImage.getActions().contains(Action.DELETE));
-		assertTrue(firstInListWhichIsImage.getActions().contains(Action.CREATE));
-		assertTrue(firstInListWhichIsImage.getActions().contains(Action.LIST));
-		assertTrue(firstInListWhichIsImage.getActions().contains(Action.SEARCH));
-		assertTrue(firstInListWhichIsImage.getActions().contains(Action.CREATE_BY_UPLOAD));
+		assertEquals(firstInListWhichIsMetadata.getActions().size(), 6);
+		assertTrue(firstInListWhichIsMetadata.getActions().contains(Action.READ));
+		assertTrue(firstInListWhichIsMetadata.getActions().contains(Action.UPDATE));
+		assertTrue(firstInListWhichIsMetadata.getActions().contains(Action.DELETE));
+		assertTrue(firstInListWhichIsMetadata.getActions().contains(Action.CREATE));
+		assertTrue(firstInListWhichIsMetadata.getActions().contains(Action.LIST));
+		assertTrue(firstInListWhichIsMetadata.getActions().contains(Action.SEARCH));
 
-		SpiderDataRecord secondInListWhichIsMetadata = (SpiderDataRecord) recordList.getDataList()
-				.get(1);
-		assertEquals(secondInListWhichIsMetadata.getActions().size(), 6);
-		assertTrue(secondInListWhichIsMetadata.getActions().contains(Action.READ));
-		assertTrue(secondInListWhichIsMetadata.getActions().contains(Action.UPDATE));
-		assertTrue(secondInListWhichIsMetadata.getActions().contains(Action.DELETE));
-		assertTrue(secondInListWhichIsMetadata.getActions().contains(Action.CREATE));
-		assertTrue(secondInListWhichIsMetadata.getActions().contains(Action.LIST));
-		assertTrue(secondInListWhichIsMetadata.getActions().contains(Action.SEARCH));
+		SpiderDataRecord thirdInListWhichIsBinary = (SpiderDataRecord) recordList.getDataList()
+				.get(3);
+		assertEquals(thirdInListWhichIsBinary.getActions().size(), 7);
+		assertTrue(thirdInListWhichIsBinary.getActions().contains(Action.READ));
+		assertTrue(thirdInListWhichIsBinary.getActions().contains(Action.UPDATE));
+		assertTrue(thirdInListWhichIsBinary.getActions().contains(Action.DELETE));
+		assertTrue(thirdInListWhichIsBinary.getActions().contains(Action.CREATE));
+		assertTrue(thirdInListWhichIsBinary.getActions().contains(Action.LIST));
+		assertTrue(thirdInListWhichIsBinary.getActions().contains(Action.SEARCH));
+		assertTrue(thirdInListWhichIsBinary.getActions().contains(Action.CREATE_BY_UPLOAD));
+
 	}
 
 	@Test

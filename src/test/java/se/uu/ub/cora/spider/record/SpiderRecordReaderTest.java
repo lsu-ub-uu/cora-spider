@@ -156,20 +156,6 @@ public class SpiderRecordReaderTest {
 	@Test
 	public void testActionsOnReadRecordTypeBinary(){
 		SpiderDataRecord record = recordReader.readRecord("userId", "recordType", "binary");
-		assertEquals(record.getActions().size(), 6);
-		assertTrue(record.getActions().contains(Action.READ));
-		assertTrue(record.getActions().contains(Action.UPDATE));
-		assertTrue(record.getActions().contains(Action.DELETE));
-
-		assertTrue(record.getActions().contains(Action.LIST));
-		assertTrue(record.getActions().contains(Action.SEARCH));
-		assertTrue(record.getActions().contains(Action.CREATE_BY_UPLOAD));
-
-	}
-
-	@Test
-	public void testActionsOnReadRecordTypeImage(){
-		SpiderDataRecord record = recordReader.readRecord("userId", "recordType", "image");
 		assertEquals(record.getActions().size(), 7);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
