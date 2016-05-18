@@ -129,31 +129,13 @@ public class SpiderRecordHandler {
 
 	private void possiblyAddCreateByUploadAction(SpiderDataRecord spiderDataRecord) {
 		String dataRecordRecordId = getRecordIdFromDataRecord(spiderDataRecord);
-		if (isHandledRecordIdBinary(dataRecordRecordId)
-				|| isHandledRecordIdBinaryChild(dataRecordRecordId)) {
+		if (isHandledRecordIdBinary(dataRecordRecordId)) {
 			spiderDataRecord.addAction(Action.CREATE_BY_UPLOAD);
 		}
 	}
 
 	private boolean isHandledRecordIdBinary(String dataRecordRecordId) {
 		return "binary".equals(dataRecordRecordId);
-	}
-
-	private boolean isHandledRecordIdBinaryChild(String dataRecordRecordId) {
-		String refParentId = extractParentId(dataRecordRecordId);
-		return "binary".equals(refParentId);
-	}
-
-	private String extractParentId(String dataRecordRecordId) {
-		DataGroup handledRecordTypeDataGroup = recordStorage.read(RECORD_TYPE, dataRecordRecordId);
-		if (handledRecordHasParent(handledRecordTypeDataGroup)) {
-			return handledRecordTypeDataGroup.getFirstAtomicValueWithNameInData("parentId");
-		}
-		return "";
-	}
-
-	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
-		return handledRecordTypeDataGroup.containsChildWithNameInData("parentId");
 	}
 
 	protected boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {
