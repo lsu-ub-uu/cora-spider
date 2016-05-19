@@ -88,7 +88,10 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		recordStorage.update(recordType, recordId, spiderDataGroup.toDataGroup(), collectedLinks,
 				dataDivider);
 
-		return createDataRecordContainingDataGroup(spiderDataGroup);
+		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
+				.fromDataGroup(topLevelDataGroup);
+
+		return createDataRecordContainingDataGroup(spiderDataGroupWithActions);
 	}
 
 	private void checkNoUpdateForAbstractRecordType() {
