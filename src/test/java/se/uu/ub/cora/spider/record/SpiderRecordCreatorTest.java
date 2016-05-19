@@ -253,12 +253,13 @@ public class SpiderRecordCreatorTest {
 	}
 
 	@Test
-	public void testActionsOnCreatedRecordRecordTypeBinary() {
+	public void testActionsOnCreatedRecordRecordTypeImage() {
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
 		setRecordCreatorWithRecordStorage(recordStorage);
 
 		SpiderDataGroup record = DataCreator
-				.createRecordWithNameInDataAndIdAndLinkedRecordId("recordType", "binary", "cora");
+				.createRecordWithNameInDataAndIdAndLinkedRecordId("recordType", "image", "cora");
+		record.addChild(SpiderDataAtomic.withNameInDataAndValue("parentId", "binary"));
 
 		SpiderDataRecord recordOut = recordCreator.createAndStoreRecord("userId", "recordType",
 				record);
