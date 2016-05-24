@@ -103,9 +103,16 @@ public class SpiderRecordListReaderTest {
 	@Test
 	public void testActionsOnReadRecord() {
 		SpiderDataList recordList = recordListReader.readRecordList("userId", "place");
-		assertEquals(((SpiderDataRecord) recordList.getDataList().get(0)).getActions().size(), 4);
-		assertTrue(((SpiderDataRecord) recordList.getDataList().get(0)).getActions()
-				.contains(Action.DELETE));
+
+		SpiderDataRecord recordWithIncomingLinks = (SpiderDataRecord) recordList.getDataList().get(0);
+		assertEquals(recordWithIncomingLinks.getActions().size(), 3);
+		assertTrue(recordWithIncomingLinks.getActions().contains(Action.READ_INCOMING_LINKS));
+		assertFalse(recordWithIncomingLinks.getActions().contains(Action.DELETE));
+
+		SpiderDataRecord recordWithNoIncomingLinks = (SpiderDataRecord) recordList.getDataList().get(1);
+		assertEquals(recordWithNoIncomingLinks.getActions().size(), 3);
+		assertTrue(recordWithNoIncomingLinks.getActions().contains(Action.DELETE));
+		assertFalse(recordWithNoIncomingLinks.getActions().contains(Action.READ_INCOMING_LINKS));
 	}
 
 	@Test

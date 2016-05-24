@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.BeforeMethod;
@@ -49,12 +50,21 @@ public class SpiderRecordDeleterTest {
 	}
 
 	@Test
-	public void testDeleteAuthorized() {
+	public void testDeleteAuthorizedNoIncomingLinks() {
 		RecordStorageSpy recordStorage = new RecordStorageSpy();
 		recordDeleter = SpiderRecordDeleterImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
 				authorization, recordStorage, keyCalculator);
-		recordDeleter.deleteRecord("userId", "child1", "place:0001");
+		recordDeleter.deleteRecord("userId", "child1", "place:0002");
 		assertTrue(recordStorage.deleteWasCalled);
+	}
+
+	@Test(expectedExceptions = MisuseException.class)
+	public void testDeleteAuthorizedWithIncomingLinks() {
+		RecordStorageSpy recordStorage = new RecordStorageSpy();
+		recordDeleter = SpiderRecordDeleterImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
+				authorization, recordStorage, keyCalculator);
+		recordStorage.linksExist = true;
+		recordDeleter.deleteRecord("userId", "child1", "place:0001");
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
