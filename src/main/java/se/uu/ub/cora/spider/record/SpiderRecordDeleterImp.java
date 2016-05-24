@@ -29,6 +29,7 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		implements SpiderRecordDeleter {
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
+	private String userId;
 
 	public static SpiderRecordDeleterImp usingAuthorizationAndRecordStorageAndKeyCalculator(
 			Authorizator authorization, RecordStorage recordStorage,
@@ -46,20 +47,41 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 
 	@Override
 	public void deleteRecord(String userId, String recordType, String recordId) {
+		this.userId = userId;
 		this.recordType = recordType;
+		checkRecordIsNotAbstract(recordType, recordId);
+		checkUserIsAuthorized(recordType, recordId);
+		checkNoIncomingLinksExists(recordType, recordId);
+		recordStorage.deleteByTypeAndId(recordType, recordId);
+	}
+
+	private void checkRecordIsNotAbstract(String recordType, String recordId) {
 		if (isRecordTypeAbstract()) {
 			throw new MisuseException("Deleting record: " + recordId
 					+ " on the abstract recordType:" + recordType + " is not allowed");
 		}
-		DataGroup readRecord = recordStorage.read(recordType, recordId);
-		// calculate permissionKey
-		String accessType = "DELETE";
-		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
-				readRecord);
-		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
+	}
+
+	private void checkUserIsAuthorized(String recordType, String recordId) {
+		if (userIsNotAuthorized(recordType, recordId)) {
 			throw new AuthorizationException("User:" + userId
 					+ " is not authorized to delete record:" + recordId + " of type:" + recordType);
 		}
-		recordStorage.deleteByTypeAndId(recordType, recordId);
 	}
+
+	private boolean userIsNotAuthorized(String recordType, String recordId) {
+		DataGroup readRecord = recordStorage.read(recordType, recordId);
+		String accessType = "DELETE";
+		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
+				readRecord);
+		return !authorization.isAuthorized(userId, recordCalculateKeys);
+	}
+
+	private void checkNoIncomingLinksExists(String recordType, String recordId) {
+		if (recordStorage.linksExistForRecord(recordType, recordId)) {
+			throw new MisuseException("Deleting record: " + recordId
+					+ " is not allowed since other records are linking to it");
+		}
+	}
+
 }

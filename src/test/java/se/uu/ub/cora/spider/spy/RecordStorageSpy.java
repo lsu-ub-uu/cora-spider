@@ -33,6 +33,7 @@ public class RecordStorageSpy implements RecordStorage {
 	public boolean deleteWasCalled = false;
 	public boolean createWasCalled = false;
 	public boolean updateWasCalled = false;
+	public boolean linksExist = false;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -86,7 +87,7 @@ public class RecordStorageSpy implements RecordStorage {
 
 	@Override
 	public boolean linksExistForRecord(String type, String id) {
-		return false;
+		return linksExist;
 	}
 
 	@Override

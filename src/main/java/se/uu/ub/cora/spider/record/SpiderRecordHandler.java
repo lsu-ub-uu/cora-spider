@@ -82,11 +82,22 @@ public class SpiderRecordHandler {
 	protected void addActions(SpiderDataRecord spiderDataRecord) {
 		spiderDataRecord.addAction(Action.READ);
 		spiderDataRecord.addAction(Action.UPDATE);
-		spiderDataRecord.addAction(Action.DELETE);
+
+		possiblyAddDeleteAction(spiderDataRecord);
+		possiblyAddIncomingLinksAction(spiderDataRecord);
+		addActionsForRecordType(spiderDataRecord);
+	}
+
+	private void possiblyAddDeleteAction(SpiderDataRecord spiderDataRecord) {
+		if(!incomingLinksExistsForRecord(spiderDataRecord)){
+			spiderDataRecord.addAction(Action.DELETE);
+		}
+	}
+
+	private void possiblyAddIncomingLinksAction(SpiderDataRecord spiderDataRecord) {
 		if (incomingLinksExistsForRecord(spiderDataRecord)) {
 			spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
 		}
-		addActionsForRecordType(spiderDataRecord);
 	}
 
 	private void addActionsForRecordType(SpiderDataRecord spiderDataRecord) {

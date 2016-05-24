@@ -118,13 +118,21 @@ public class SpiderRecordReaderTest {
 	}
 
 	@Test
-	public void testActionsOnReadRecord() {
+	public void testActionsOnReadRecordWithIncomingLink() {
 		SpiderDataRecord record = recordReader.readRecord("userId", "place", "place:0001");
-		assertEquals(record.getActions().size(), 4);
+		assertEquals(record.getActions().size(), 3);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
-		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.READ_INCOMING_LINKS));
+		assertFalse(record.getActions().contains(Action.DELETE));
+	}
+
+	@Test
+	public void testActionsOnReadRecordWithNoIncomingLink() {
+		SpiderDataRecord record = recordReader.readRecord("userId", "place", "place:0002");
+		assertEquals(record.getActions().size(), 3);
+		assertTrue(record.getActions().contains(Action.DELETE));
+		assertFalse(record.getActions().contains(Action.READ_INCOMING_LINKS));
 	}
 
 	@Test
