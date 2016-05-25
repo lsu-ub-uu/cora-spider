@@ -148,4 +148,9 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		return false;
 	}
 
+	@Override
+	public boolean recordExistsForRecordTypeAndRecordId(String type, String id) {
+		return false;
+	}
+
 }

@@ -209,6 +209,11 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
+	public boolean recordExistsForRecordTypeAndRecordId(String type, String id) {
+		return false;
+	}
+
+	@Override
 	public DataGroup read(String recordType, String recordId) {
 		checkRecordExists(recordType, recordId);
 		return records.get(recordType).get(recordId);

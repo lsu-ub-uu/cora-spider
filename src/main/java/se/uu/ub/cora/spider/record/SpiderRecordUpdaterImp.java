@@ -84,6 +84,8 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, recordId);
 
+		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
 		recordStorage.update(recordType, recordId, spiderDataGroup.toDataGroup(), collectedLinks,
 				dataDivider);

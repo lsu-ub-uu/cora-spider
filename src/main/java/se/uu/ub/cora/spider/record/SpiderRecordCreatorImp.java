@@ -91,6 +91,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, id);
 
+		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
 		recordStorage.create(recordType, id, topLevelDataGroup, collectedLinks, dataDivider);
 

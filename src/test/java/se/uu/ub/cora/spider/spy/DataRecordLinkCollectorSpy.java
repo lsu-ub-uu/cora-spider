@@ -26,11 +26,13 @@ public class DataRecordLinkCollectorSpy implements DataRecordLinkCollector {
 
 	public boolean collectLinksWasCalled = false;
 
+	public DataGroup collectedDataLinks = DataGroup.withNameInData("collectedDataLinks");
+
 	@Override
 	public DataGroup collectLinks(String metadataId, DataGroup dataGroup, String fromRecordType,
 			String fromRecordId) {
 		collectLinksWasCalled = true;
-		DataGroup collectedDataLinks = DataGroup.withNameInData("collectedDataLinks");
+//		DataGroup collectedDataLinks = DataGroup.withNameInData("collectedDataLinks");
 		return collectedDataLinks;
 	}
 

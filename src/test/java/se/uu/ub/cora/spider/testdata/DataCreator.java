@@ -23,6 +23,7 @@ import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 
 public final class DataCreator {
 	private static final String SELF_PRESENTATION_VIEW_ID = "selfPresentationViewId";
@@ -171,5 +172,31 @@ public final class DataCreator {
 		SpiderDataGroup dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
 		createRecordInfo.addChild(dataDivider);
 		return createRecordInfo;
+	}
+
+	public static DataRecordLinkCollectorSpy getDataRecordLinkCollectorSpyWithCollectedLinkAdded() {
+		DataGroup recordToRecordLink = createDataForRecordToRecordLink();
+
+		DataRecordLinkCollectorSpy linkCollector = new DataRecordLinkCollectorSpy();
+		linkCollector.collectedDataLinks.addChild(recordToRecordLink);
+		return linkCollector;
+	}
+
+	public static DataGroup createDataForRecordToRecordLink() {
+		DataGroup recordToRecordLink = DataGroup.withNameInData("recordToRecordLink");
+
+		DataGroup from = DataGroup.withNameInData("from");
+		from.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "dataWithLinks"));
+		from.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "someId"));
+
+		recordToRecordLink.addChild(from);
+
+		DataGroup to = DataGroup.withNameInData("to");
+		to.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "toRecordType"));
+		to.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "toRecordId"));
+		to.addChild(to);
+
+		recordToRecordLink.addChild(to);
+		return recordToRecordLink;
 	}
 }

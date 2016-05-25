@@ -136,4 +136,9 @@ public class RecordStorageSpy implements RecordStorage {
 		return true;
 	}
 
+	@Override
+	public boolean recordExistsForRecordTypeAndRecordId(String type, String id) {
+		return false;
+	}
+
 }

@@ -68,7 +68,7 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 				return SpiderDataRecordLink.fromDataRecordLink(dataGroup);
 			}
 
-			return SpiderDataGroup.fromDataGroup((dataGroup));
+			return SpiderDataGroup.fromDataGroup(dataGroup);
 		}
 		return SpiderDataAtomic.fromDataAtomic((DataAtomic) dataElement);
 	}
