@@ -30,6 +30,9 @@ import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 
 public class RecordLinkTestsRecordStorage implements RecordStorage {
 
+	public boolean recordIdExistsForRecordType = true;
+	public boolean createWasRead = false;
+
 	@Override
 	public DataGroup read(String type, String id) {
 		if (type.equals("recordType")) {
@@ -52,7 +55,7 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	@Override
 	public void create(String type, String id, DataGroup record, DataGroup linkList,
 			String dataDivider) {
-		// TODO Auto-generated method stub
+		createWasRead = true;
 
 	}
 
@@ -99,6 +102,11 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	public boolean recordsExistForRecordType(String type) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public boolean recordExistsForRecordTypeAndRecordId(String type, String id) {
+		return recordIdExistsForRecordType;
 	}
 
 }

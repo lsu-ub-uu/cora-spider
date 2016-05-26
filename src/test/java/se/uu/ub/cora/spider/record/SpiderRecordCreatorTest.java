@@ -25,6 +25,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
+import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
@@ -309,4 +310,44 @@ public class SpiderRecordCreatorTest {
 
 		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}
+
+	@Test(expectedExceptions = DataException.class)
+	public void testLinkedRecordIdDoesNotExist(){
+		RecordLinkTestsRecordStorage recordStorage = new RecordLinkTestsRecordStorage();
+		recordStorage.recordIdExistsForRecordType = false;
+
+		DataRecordLinkCollectorSpy linkCollector =
+				DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
+
+		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator.createDataGroupWithLink();
+		dataGroup.addChild(DataCreator.createRecordInfoWithLinkedRecordId("cora"));
+
+		SpiderRecordCreator recordCreator =
+				getRecordCreatorAndSetRecordStorageAndLinkCollector(recordStorage, linkCollector);
+		recordCreator.createAndStoreRecord("userId", "dataWithLinks",dataGroup);
+	}
+
+	@Test
+	public void testLinkedRecordIdExists(){
+		RecordLinkTestsRecordStorage recordStorage = new RecordLinkTestsRecordStorage();
+		recordStorage.recordIdExistsForRecordType = true;
+
+		DataRecordLinkCollectorSpy linkCollector =
+				DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
+
+		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator.createDataGroupWithLink();
+		dataGroup.addChild(DataCreator.createRecordInfoWithLinkedRecordId("cora"));
+
+		SpiderRecordCreator recordCreator = getRecordCreatorAndSetRecordStorageAndLinkCollector(recordStorage, linkCollector);
+		recordCreator.createAndStoreRecord("userId", "dataWithLinks",dataGroup);
+		assertTrue(recordStorage.createWasRead);
+	}
+
+	private SpiderRecordCreator getRecordCreatorAndSetRecordStorageAndLinkCollector(RecordLinkTestsRecordStorage recordStorage, DataRecordLinkCollectorSpy linkCollector) {
+		return SpiderRecordCreatorImp
+                    .usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+                            authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
+                            linkCollector);
+	}
+
 }

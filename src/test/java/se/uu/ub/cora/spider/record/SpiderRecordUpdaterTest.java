@@ -423,4 +423,21 @@ public class SpiderRecordUpdaterTest {
 		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}
 
+	@Test(expectedExceptions = DataException.class)
+	public void testLinkedRecordIdDoesNotExist(){
+		RecordLinkTestsRecordStorage recordStorage = new RecordLinkTestsRecordStorage();
+		recordStorage.recordIdExistsForRecordType = false;
+
+		DataRecordLinkCollectorSpy linkCollector =
+				DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
+
+		SpiderRecordUpdater recordUpdater = SpiderRecordUpdaterImp
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
+						authorization, dataValidator, recordStorage, keyCalculator, linkCollector);
+
+		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator
+				.createDataGroupWithRecordInfoAndLinkOneLevelDown();
+		recordUpdater.updateRecord("userId", "dataWithLinks",
+				"oneLinkOneLevelDown", dataGroup);
+	}
 }

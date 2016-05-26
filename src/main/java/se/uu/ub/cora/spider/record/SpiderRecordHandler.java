@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
+import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataElement;
@@ -71,6 +72,33 @@ public class SpiderRecordHandler {
 		return spiderDataChild instanceof SpiderDataGroup;
 	}
 
+	protected void checkToPartOfLinkedDataExistsInStorage(DataGroup collectedLinks) {
+		for(DataElement dataElement : collectedLinks.getChildren()){
+			extractToGroupAndCheckDataExistsInStorage((DataGroup) dataElement);
+		}
+	}
+
+	private void extractToGroupAndCheckDataExistsInStorage(DataGroup dataElement) {
+		DataGroup to = extractToGroupFromRecordLink(dataElement);
+		String toRecordId = extractAtomicValueFromGroup("linkedRecordId", to);
+		String toRecordType = extractAtomicValueFromGroup("linkedRecordType", to);
+		checkRecordTypeAndRecordIdExistsInStorage(toRecordId, toRecordType);
+	}
+
+	private String extractAtomicValueFromGroup(String nameInDataToExtract, DataGroup to) {
+		return to.getFirstAtomicValueWithNameInData(nameInDataToExtract);
+	}
+
+	private DataGroup extractToGroupFromRecordLink(DataGroup recordToRecordLink) {
+		return recordToRecordLink.getFirstGroupWithNameInData("to");
+	}
+
+	private void checkRecordTypeAndRecordIdExistsInStorage(String recordId, String recordType) {
+		if(!recordStorage.recordExistsForRecordTypeAndRecordId(recordType, recordId)){
+			throw new DataException("Data is not valid: linkedRecord does not exists in storage for recordType: "
+					+recordType + " and recordId: "+recordId);
+		}
+	}
 	protected SpiderDataRecord createDataRecordContainingDataGroup(
 			SpiderDataGroup spiderDataGroup) {
 		addReadActionToDataRecordLinks(spiderDataGroup);
