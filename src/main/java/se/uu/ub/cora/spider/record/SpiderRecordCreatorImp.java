@@ -42,6 +42,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private DataGroup recordTypeDefinition;
 	private SpiderDataGroup spiderDataGroup;
 	private DataRecordLinkCollector linkCollector;
+	private String metadataId;
 
 	public static SpiderRecordCreatorImp usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
 			Authorizator authorization, DataValidator dataValidator, RecordStorage recordStorage,
@@ -69,6 +70,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		this.recordType = recordTypeToCreate;
 		this.spiderDataGroup = spiderDataGroup;
 		recordTypeDefinition = getRecordTypeDefinition();
+		metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("newMetadataId");
 
 		checkNoCreateForAbstractRecordType(recordType);
 		validateDataInRecordAsSpecifiedInMetadata();
@@ -87,7 +89,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		// send to storage
 		String id = extractIdFromData();
 
-		String metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("newMetadataId");
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, id);
 
@@ -117,7 +118,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private void validateDataInRecordAsSpecifiedInMetadata() {
 		DataGroup record = spiderDataGroup.toDataGroup();
 
-		String metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("newMetadataId");
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, record);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());

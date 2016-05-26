@@ -25,14 +25,17 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 public class DataRecordLinkCollectorSpy implements DataRecordLinkCollector {
 
 	public boolean collectLinksWasCalled = false;
+	public String metadataId = null;
 
 	public DataGroup collectedDataLinks = DataGroup.withNameInData("collectedDataLinks");
 
 	@Override
 	public DataGroup collectLinks(String metadataId, DataGroup dataGroup, String fromRecordType,
 			String fromRecordId) {
+		this.metadataId = metadataId;
 		collectLinksWasCalled = true;
-//		DataGroup collectedDataLinks = DataGroup.withNameInData("collectedDataLinks");
+		// DataGroup collectedDataLinks =
+		// DataGroup.withNameInData("collectedDataLinks");
 		return collectedDataLinks;
 	}
 

@@ -39,6 +39,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private SpiderDataGroup spiderDataGroup;
 	private DataGroup recordTypeDefinition;
 	private DataRecordLinkCollector linkCollector;
+	private String metadataId;
 
 	public static SpiderRecordUpdaterImp usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
 			Authorizator authorization, DataValidator dataValidator, RecordStorage recordStorage,
@@ -64,6 +65,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.recordType = recordType;
 		this.recordId = recordId;
 		recordTypeDefinition = getRecordTypeDefinition();
+		metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("metadataId");
 
 		checkNoUpdateForAbstractRecordType();
 		validateIncomingDataAsSpecifiedInMetadata();
@@ -80,7 +82,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		// TODO: merge incoming data with stored if user does not have right to
 		// update some parts
 		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
-		String metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("newMetadataId");
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, recordId);
 
@@ -104,7 +105,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata() {
-		String metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("metadataId");
 		DataGroup dataGroup = spiderDataGroup.toDataGroup();
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, dataGroup);
 		if (validationAnswer.dataIsInvalid()) {

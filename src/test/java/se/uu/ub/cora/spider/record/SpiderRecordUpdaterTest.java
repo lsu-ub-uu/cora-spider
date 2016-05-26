@@ -95,6 +95,7 @@ public class SpiderRecordUpdaterTest {
 		assertTrue(((RecordStorageSpy) recordStorage).updateWasCalled);
 		assertTrue(((KeyCalculatorSpy) keyCalculator).calculateKeysWasCalled);
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
+		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyType");
 	}
 
 	@Test
@@ -424,12 +425,12 @@ public class SpiderRecordUpdaterTest {
 	}
 
 	@Test(expectedExceptions = DataException.class)
-	public void testLinkedRecordIdDoesNotExist(){
+	public void testLinkedRecordIdDoesNotExist() {
 		RecordLinkTestsRecordStorage recordStorage = new RecordLinkTestsRecordStorage();
 		recordStorage.recordIdExistsForRecordType = false;
 
-		DataRecordLinkCollectorSpy linkCollector =
-				DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
+		DataRecordLinkCollectorSpy linkCollector = DataCreator
+				.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
 
 		SpiderRecordUpdater recordUpdater = SpiderRecordUpdaterImp
 				.usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
@@ -437,7 +438,6 @@ public class SpiderRecordUpdaterTest {
 
 		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator
 				.createDataGroupWithRecordInfoAndLinkOneLevelDown();
-		recordUpdater.updateRecord("userId", "dataWithLinks",
-				"oneLinkOneLevelDown", dataGroup);
+		recordUpdater.updateRecord("userId", "dataWithLinks", "oneLinkOneLevelDown", dataGroup);
 	}
 }

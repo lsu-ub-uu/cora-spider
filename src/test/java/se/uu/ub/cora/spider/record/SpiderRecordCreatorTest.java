@@ -19,13 +19,16 @@
 
 package se.uu.ub.cora.spider.record;
 
-import org.testng.Assert;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
-import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
@@ -51,8 +54,6 @@ import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
-
-import static org.testng.Assert.*;
 
 public class SpiderRecordCreatorTest {
 	private RecordStorage recordStorage;
@@ -101,7 +102,7 @@ public class SpiderRecordCreatorTest {
 		assertTrue(((IdGeneratorSpy) idGenerator).getIdForTypeWasCalled);
 		assertTrue(((KeyCalculatorSpy) keyCalculator).calculateKeysWasCalled);
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
-
+		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyTypeNew");
 	}
 
 	@Test(expectedExceptions = DataException.class)
@@ -312,42 +313,44 @@ public class SpiderRecordCreatorTest {
 	}
 
 	@Test(expectedExceptions = DataException.class)
-	public void testLinkedRecordIdDoesNotExist(){
+	public void testLinkedRecordIdDoesNotExist() {
 		RecordLinkTestsRecordStorage recordStorage = new RecordLinkTestsRecordStorage();
 		recordStorage.recordIdExistsForRecordType = false;
 
-		DataRecordLinkCollectorSpy linkCollector =
-				DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
+		DataRecordLinkCollectorSpy linkCollector = DataCreator
+				.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
 
 		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator.createDataGroupWithLink();
 		dataGroup.addChild(DataCreator.createRecordInfoWithLinkedRecordId("cora"));
 
-		SpiderRecordCreator recordCreator =
-				getRecordCreatorAndSetRecordStorageAndLinkCollector(recordStorage, linkCollector);
-		recordCreator.createAndStoreRecord("userId", "dataWithLinks",dataGroup);
+		SpiderRecordCreator recordCreator = getRecordCreatorAndSetRecordStorageAndLinkCollector(
+				recordStorage, linkCollector);
+		recordCreator.createAndStoreRecord("userId", "dataWithLinks", dataGroup);
 	}
 
 	@Test
-	public void testLinkedRecordIdExists(){
+	public void testLinkedRecordIdExists() {
 		RecordLinkTestsRecordStorage recordStorage = new RecordLinkTestsRecordStorage();
 		recordStorage.recordIdExistsForRecordType = true;
 
-		DataRecordLinkCollectorSpy linkCollector =
-				DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
+		DataRecordLinkCollectorSpy linkCollector = DataCreator
+				.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
 
 		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator.createDataGroupWithLink();
 		dataGroup.addChild(DataCreator.createRecordInfoWithLinkedRecordId("cora"));
 
-		SpiderRecordCreator recordCreator = getRecordCreatorAndSetRecordStorageAndLinkCollector(recordStorage, linkCollector);
-		recordCreator.createAndStoreRecord("userId", "dataWithLinks",dataGroup);
+		SpiderRecordCreator recordCreator = getRecordCreatorAndSetRecordStorageAndLinkCollector(
+				recordStorage, linkCollector);
+		recordCreator.createAndStoreRecord("userId", "dataWithLinks", dataGroup);
 		assertTrue(recordStorage.createWasRead);
 	}
 
-	private SpiderRecordCreator getRecordCreatorAndSetRecordStorageAndLinkCollector(RecordLinkTestsRecordStorage recordStorage, DataRecordLinkCollectorSpy linkCollector) {
+	private SpiderRecordCreator getRecordCreatorAndSetRecordStorageAndLinkCollector(
+			RecordLinkTestsRecordStorage recordStorage, DataRecordLinkCollectorSpy linkCollector) {
 		return SpiderRecordCreatorImp
-                    .usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
-                            authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-                            linkCollector);
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
+						linkCollector);
 	}
 
 }
