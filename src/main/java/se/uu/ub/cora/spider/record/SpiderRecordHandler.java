@@ -29,7 +29,7 @@ import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class SpiderRecordHandler {
-	private static final String RECORD_TYPE = "recordType";
+	protected static final String RECORD_TYPE = "recordType";
 	protected static final String RECORD_INFO = "recordInfo";
 	protected RecordStorage recordStorage;
 	protected String recordType;
@@ -207,5 +207,18 @@ public class SpiderRecordHandler {
 		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
 		SpiderDataGroup dataDivider = recordInfo.extractGroup("dataDivider");
 		return dataDivider.extractAtomicValue("linkedRecordId");
+	}
+
+	protected boolean isChildOfAbstractRecordType(String abstractRecordType,
+												  DataGroup recordTypePossibleChild) {
+		String parentId = "parentId";
+		if (recordTypePossibleChild.containsChildWithNameInData(parentId)) {
+			String parentIdValue = recordTypePossibleChild
+					.getFirstAtomicValueWithNameInData(parentId);
+			if (parentIdValue.equals(abstractRecordType)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

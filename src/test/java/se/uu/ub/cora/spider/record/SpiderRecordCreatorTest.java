@@ -353,4 +353,34 @@ public class SpiderRecordCreatorTest {
 						linkCollector);
 	}
 
+	@Test(expectedExceptions = DataException.class,
+			expectedExceptionsMessageRegExp = "Data is not valid: child does not exist in parent")
+	public void testChildDoesNotExistInParent(){
+
+		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
+		setRecordCreatorWithRecordStorage(recordStorage);
+
+		SpiderDataGroup record = DataCreator.createMetadataGroupWithTwoChildren();
+
+		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId", "testGroup");
+		record.addChild(refParent);
+
+		recordCreator.createAndStoreRecord("userId", "metadataGroup", record);
+	}
+
+	@Test
+	public void testChildWithDifferentIdButSameNameInDataExistInParent(){
+
+		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
+		setRecordCreatorWithRecordStorage(recordStorage);
+
+		SpiderDataGroup dataGroup = DataCreator.createMetadataGroupWithTwoChildren();
+
+		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId", "testGroupWithTwoChildren");
+		dataGroup.addChild(refParent);
+
+		SpiderDataRecord record = recordCreator.createAndStoreRecord("userId", "metadataGroup", dataGroup);
+		assertTrue(recordStorage.createWasCalled);
+	}
+
 }

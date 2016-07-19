@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.Collection;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
@@ -27,9 +28,11 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
+import se.uu.ub.cora.spider.data.SpiderDataElement;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordCreatorImp extends SpiderRecordHandler
@@ -75,6 +78,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		checkNoCreateForAbstractRecordType(recordType);
 		validateDataInRecordAsSpecifiedInMetadata();
 
+		validateInheritanceRules(recordTypeToCreate);
+
 		ensureCompleteRecordInfo(userId, recordType);
 
 		// set more stuff, user, tscreated, status (created, updated, deleted,
@@ -86,7 +91,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 		checkUserIsAuthorisedToCreateIncomingData(userId, recordType, topLevelDataGroup);
 
-		// send to storage
 		String id = extractIdFromData();
 
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
@@ -122,6 +126,84 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
+	}
+
+	private void validateInheritanceRules(String recordTypeToCreate) {
+		if(recordTypeIsMetadataGroup(recordTypeToCreate) && dataGroupHasParent()){
+			ensureAllChildrenExistsInParent();
+		}
+	}
+
+	private boolean recordTypeIsMetadataGroup(String recordTypeToCreate) {
+		return "metadataGroup".equals(recordTypeToCreate);
+	}
+
+	private boolean dataGroupHasParent(){
+		return spiderDataGroup.containsChildWithNameInData("refParentId");
+	}
+
+	private void ensureAllChildrenExistsInParent(){
+		SpiderDataGroup childReferences = (SpiderDataGroup) spiderDataGroup.getFirstChildWithNameInData("childReferences");
+
+		for(SpiderDataElement childReference : childReferences.getChildren()){
+			String childNameInData = getNameInDataFromChildReference(childReference);
+			ensureChildExistInParent(childNameInData);
+		}
+	}
+
+	private void ensureChildExistInParent(String childNameInData) {
+		SpiderDataGroup parentChildReferences = getParentChildReferences();
+		boolean childFound = false;
+		for(SpiderDataElement parentChildReference : parentChildReferences.getChildren()){
+			childFound = isSameNameInData(childNameInData, parentChildReference, childFound);
+        }
+		if(!childFound){
+            throw new DataException("Data is not valid: child does not exist in parent");
+        }
+	}
+
+	private SpiderDataGroup getParentChildReferences() {
+		SpiderDataAtomic refParentId = (SpiderDataAtomic)spiderDataGroup.getFirstChildWithNameInData("refParentId");
+		SpiderDataGroup parent = SpiderDataGroup.fromDataGroup(recordStorage.read("metadataGroup", refParentId.getValue()));
+
+		return (SpiderDataGroup) parent.getFirstChildWithNameInData("childReferences");
+	}
+
+	private boolean isSameNameInData(String childNameInData, SpiderDataElement parentChildReference, boolean childFound) {
+		String parentChildNameInData = getNameInDataFromChildReference(parentChildReference);
+		if(childNameInData.equals(parentChildNameInData)){
+            childFound = true;
+        }
+		return childFound;
+	}
+
+	private String getNameInDataFromChildReference(SpiderDataElement childReference) {
+		SpiderDataGroup childReferenceGroup = (SpiderDataGroup) childReference;
+		String refId = childReferenceGroup.extractAtomicValue("ref");
+//		DataGroup childDataGroup =	recordStorage.read("metadata", refId);
+		DataGroup childDataGroup =	findChildOfUnknownMetadataType(refId);
+		return childDataGroup.getNameInData();
+	}
+
+	private DataGroup findChildOfUnknownMetadataType(String refId){
+		Collection<DataGroup> recordTypes = recordStorage.readList(RECORD_TYPE);
+
+		for (DataGroup recordTypePossibleChild : recordTypes) {
+			if (isChildOfAbstractRecordType("metadata", recordTypePossibleChild)) {
+				DataGroup recordInfo = (DataGroup)recordTypePossibleChild.getFirstChildWithNameInData("recordInfo");
+				String id = recordInfo.getFirstAtomicValueWithNameInData("id");
+				DataGroup childDataGroup = null;
+				try {
+					childDataGroup = recordStorage.read(id, refId);
+				}catch(RecordNotFoundException exception){
+
+				}
+				if(childDataGroup != null){
+					return childDataGroup;
+				}
+			}
+		}
+		throw new DataException("Data is not valid: referenced child does not exist");
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
