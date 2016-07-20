@@ -19,21 +19,24 @@
 
 package se.uu.ub.cora.spider.record;
 
+import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.data.Action;
-import se.uu.ub.cora.spider.data.SpiderDataElement;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.data.*;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
+
+import java.util.Collection;
 
 public class SpiderRecordHandler {
 	protected static final String RECORD_TYPE = "recordType";
 	protected static final String RECORD_INFO = "recordInfo";
+	private static final String PARENT_ID = "parentId"
+			;
 	protected RecordStorage recordStorage;
 	protected String recordType;
 	protected String recordId;
+	protected SpiderDataGroup spiderDataGroup;
 
 	protected DataGroup getRecordTypeDefinition() {
 		return recordStorage.read(RECORD_TYPE, recordType);
@@ -70,6 +73,101 @@ public class SpiderRecordHandler {
 
 	private boolean isGroup(SpiderDataElement spiderDataChild) {
 		return spiderDataChild instanceof SpiderDataGroup;
+	}
+
+	protected void validateInheritanceRules() {
+		if(recordTypeIsMetadataGroup() && dataGroupHasParent()){
+			ensureAllChildrenExistsInParent();
+		}
+	}
+
+	private boolean recordTypeIsMetadataGroup() {
+		return "metadataGroup".equals(recordType);
+	}
+
+	private boolean dataGroupHasParent(){
+		return spiderDataGroup.containsChildWithNameInData("refParentId");
+	}
+
+	private void ensureAllChildrenExistsInParent(){
+		SpiderDataGroup childReferences = (SpiderDataGroup) spiderDataGroup.getFirstChildWithNameInData("childReferences");
+
+		for(SpiderDataElement childReference : childReferences.getChildren()){
+			String childNameInData = getNameInDataFromChildReference(childReference);
+			if(!ensureChildExistInParent(childNameInData)){
+				throw new DataException("Data is not valid: child does not exist in parent");
+			}
+		}
+	}
+
+	protected String getNameInDataFromChildReference(SpiderDataElement childReference) {
+		SpiderDataGroup childReferenceGroup = (SpiderDataGroup) childReference;
+		String refId = childReferenceGroup.extractAtomicValue("ref");
+		DataGroup childDataGroup =	findChildOfUnknownMetadataType(refId);
+
+		DataAtomic nameInData = (DataAtomic) childDataGroup.getFirstChildWithNameInData("nameInData");
+		return nameInData.getValue();
+	}
+
+	protected DataGroup findChildOfUnknownMetadataType(String refId){
+		Collection<DataGroup> recordTypes = recordStorage.readList(RECORD_TYPE);
+
+		for (DataGroup recordTypePossibleChild : recordTypes) {
+			DataGroup childDataGroup = findChildInMetadata(refId, recordTypePossibleChild);
+			if (childDataGroup != null){
+				return childDataGroup;
+			}
+		}
+		throw new DataException("Data is not valid: referenced child does not exist");
+	}
+
+	protected DataGroup findChildInMetadata(String refId, DataGroup recordTypePossibleChild) {
+		DataGroup childDataGroup = null;
+		if (isChildOfAbstractRecordType("metadata", recordTypePossibleChild)) {
+			String id = extractIdFromRecordInfo(recordTypePossibleChild);
+			childDataGroup = tryReadChildFromStorage(refId, id);
+		}
+		return childDataGroup;
+	}
+
+	protected DataGroup tryReadChildFromStorage(String refId, String id) {
+		DataGroup childDataGroup;
+		try {
+			childDataGroup = recordStorage.read(id, refId);
+			return childDataGroup;
+		}catch(RecordNotFoundException exception){
+			return null;
+		}
+	}
+
+	protected boolean isChildOfAbstractRecordType(String abstractRecordType, DataGroup recordTypePossibleChild) {
+		if (handledRecordHasParent(recordTypePossibleChild)) {
+			String parentIdValue = recordTypePossibleChild.getFirstAtomicValueWithNameInData(PARENT_ID);
+			if (parentIdValue.equals(abstractRecordType)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected String extractIdFromRecordInfo(DataGroup recordTypePossibleChild) {
+		DataGroup recordInfo = (DataGroup)recordTypePossibleChild.getFirstChildWithNameInData("recordInfo");
+		return recordInfo.getFirstAtomicValueWithNameInData("id");
+	}
+
+	protected boolean ensureChildExistInParent(String childNameInData) {
+		SpiderDataGroup parentChildReferences = getParentChildReferences();
+		for(SpiderDataElement parentChildReference : parentChildReferences.getChildren()){
+			if(isSameNameInData(childNameInData, parentChildReference)){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected boolean isSameNameInData(String childNameInData, SpiderDataElement parentChildReference) {
+		String parentChildNameInData = getNameInDataFromChildReference(parentChildReference);
+		return childNameInData.equals(parentChildNameInData);
 	}
 
 	protected void checkToPartOfLinkedDataExistsInStorage(DataGroup collectedLinks) {
@@ -150,8 +248,8 @@ public class SpiderRecordHandler {
 	}
 
 	private String getRecordIdFromDataRecord(SpiderDataRecord spiderDataRecord) {
-		SpiderDataGroup spiderDataGroup = spiderDataRecord.getSpiderDataGroup();
-		SpiderDataGroup recordInfo = (SpiderDataGroup) spiderDataGroup
+		SpiderDataGroup topLevelDataGroup = spiderDataRecord.getSpiderDataGroup();
+		SpiderDataGroup recordInfo = (SpiderDataGroup) topLevelDataGroup
 				.getFirstChildWithNameInData(RECORD_INFO);
 		return recordInfo.extractAtomicValue("id");
 	}
@@ -186,18 +284,26 @@ public class SpiderRecordHandler {
 	private String extractParentId(String dataRecordRecordId) {
 		DataGroup handledRecordTypeDataGroup = recordStorage.read(RECORD_TYPE, dataRecordRecordId);
 		if (handledRecordHasParent(handledRecordTypeDataGroup)) {
-			return handledRecordTypeDataGroup.getFirstAtomicValueWithNameInData("parentId");
+			return handledRecordTypeDataGroup.getFirstAtomicValueWithNameInData(PARENT_ID);
 		}
 		return "";
 	}
 
 	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
-		return handledRecordTypeDataGroup.containsChildWithNameInData("parentId");
+		return handledRecordTypeDataGroup.containsChildWithNameInData(PARENT_ID);
 	}
 
+	protected SpiderDataGroup getParentChildReferences() {
+		SpiderDataAtomic refParentId = (SpiderDataAtomic) spiderDataGroup.getFirstChildWithNameInData("refParentId");
+		SpiderDataGroup parent = SpiderDataGroup.fromDataGroup(recordStorage.read("metadataGroup", refParentId.getValue()));
+
+		return (SpiderDataGroup) parent.getFirstChildWithNameInData("childReferences");
+	}
+
+
 	protected boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {
-		SpiderDataGroup spiderDataGroup = spiderDataRecord.getSpiderDataGroup();
-		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
+		SpiderDataGroup topLevelDataGroup = spiderDataRecord.getSpiderDataGroup();
+		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup(RECORD_INFO);
 		String recordTypeForThisRecord = recordInfo.extractAtomicValue("type");
 		String recordIdForThisRecord = recordInfo.extractAtomicValue("id");
 		return recordStorage.linksExistForRecord(recordTypeForThisRecord, recordIdForThisRecord);
@@ -209,16 +315,5 @@ public class SpiderRecordHandler {
 		return dataDivider.extractAtomicValue("linkedRecordId");
 	}
 
-	protected boolean isChildOfAbstractRecordType(String abstractRecordType,
-												  DataGroup recordTypePossibleChild) {
-		String parentId = "parentId";
-		if (recordTypePossibleChild.containsChildWithNameInData(parentId)) {
-			String parentIdValue = recordTypePossibleChild
-					.getFirstAtomicValueWithNameInData(parentId);
-			if (parentIdValue.equals(abstractRecordType)) {
-				return true;
-			}
-		}
-		return false;
-	}
+
 }

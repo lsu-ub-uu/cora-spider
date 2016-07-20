@@ -117,11 +117,13 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			return group;
 		}
 		if (type.equals("metadataGroup") && id.equals("childOne")) {
-			DataGroup group = DataGroup.withNameInData("childOne");
+			DataGroup group = DataGroup.withNameInData("metadata");
+			group.addChild(DataAtomic.withNameInDataAndValue("nameInData", "childOne"));
 			return group;
 		}
 		if (type.equals("metadataGroup") && id.equals("childTwo")) {
-			DataGroup group = DataGroup.withNameInData("childTwo");
+			DataGroup group = DataGroup.withNameInData("metadata");
+			group.addChild(DataAtomic.withNameInDataAndValue("nameInData", "childTwo"));
 			return group;
 		}
 		if (type.equals("metadataGroup") && id.equals("testGroupWithTwoChildren")) {
@@ -146,7 +148,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		if (type.equals("metadataTextVariable") && id.equals("childWithSameNameInDataAsChildTwo")) {
 			//name in data is not same as id to test same scenario as recordInfoGroup/recordInfoNewGroup
 			//different id, same name in data
-			DataGroup group = DataGroup.withNameInData("childTwo");
+			DataGroup group = DataGroup.withNameInData("metadata");
+			group.addChild(DataAtomic.withNameInDataAndValue("nameInData", "childTwo"));
 			return group;
 		}
 		if (type.equals("metadataGroup") && id.equals("childThree")) {

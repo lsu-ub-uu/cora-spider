@@ -178,6 +178,7 @@ public final class DataCreator {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("metadata");
 		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "testNewGroup"));
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "metadataGroup"));
 		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));
 
 		spiderDataGroup.addChild(recordInfo);
