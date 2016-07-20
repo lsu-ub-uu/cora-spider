@@ -25,6 +25,7 @@ import java.util.Collection;
 import se.uu.ub.cora.bookkeeper.data.Data;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class RecordStorageCreateUpdateSpy implements RecordStorage {
@@ -109,13 +110,9 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		}
 		if (type.equals("metadataGroup") && id.equals("testGroup")) {
 			DataGroup group = DataGroup.withNameInData("testGroup");
-			DataGroup childReferences = DataGroup.withNameInData("childReferences");
 
-			DataGroup childReference = DataGroup.withNameInData("childReference");
-			childReference.addChild(DataAtomic.withNameInDataAndValue("ref", "childOne"));
-			childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMin", "1"));
-			childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMax", "1"));
-			childReferences.addChild(childReference);
+			DataGroup childReferences = DataGroup.withNameInData("childReferences");
+			childReferences.addChild(createChildReference("childOne", "1", "1"));
 			group.addChild(childReferences);
 			return group;
 		}
@@ -126,29 +123,44 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		if (type.equals("metadataGroup") && id.equals("childTwo")) {
 			DataGroup group = DataGroup.withNameInData("childTwo");
 			return group;
-		}if (type.equals("metadataGroup") && id.equals("testGroupWithTwoChildren")) {
+		}
+		if (type.equals("metadataGroup") && id.equals("testGroupWithTwoChildren")) {
 			DataGroup group = DataGroup.withNameInData("testGroupWithTwoChildren");
-			DataGroup childReferences = DataGroup.withNameInData("childReferences");
 
-			DataGroup childReference = DataGroup.withNameInData("childReference");
-			childReference.addChild(DataAtomic.withNameInDataAndValue("ref", "childOne"));
-			childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMin", "1"));
-			childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMax", "1"));
-			childReferences.addChild(childReference);
-			DataGroup childReference2 = DataGroup.withNameInData("childReference");
-			childReference2.addChild(DataAtomic.withNameInDataAndValue("ref", "childThree"));
-			childReference2.addChild(DataAtomic.withNameInDataAndValue("repeatMin", "0"));
-			childReference2.addChild(DataAtomic.withNameInDataAndValue("repeatMax", "1"));
-			childReferences.addChild(childReference2);
+			DataGroup childReferences = DataGroup.withNameInData("childReferences");
+			childReferences.addChild(createChildReference("childOne", "1", "1"));
+			childReferences.addChild(createChildReference("childWithSameNameInDataAsChildTwo", "0", "1"));
 			group.addChild(childReferences);
 			return group;
-		}if (type.equals("metadataTextVariable") && id.equals("childThree")) {
+		}
+		if (type.equals("metadataGroup") && id.equals("testGroupWithThreeChildren")) {
+			DataGroup group = DataGroup.withNameInData("testGroupWithTwoChildren");
+
+			DataGroup childReferences = DataGroup.withNameInData("childReferences");
+			childReferences.addChild(createChildReference("childOne", "1", "1"));
+			childReferences.addChild(createChildReference("childTwo", "0", "1"));
+			childReferences.addChild(createChildReference("childThree", "1", "1"));
+			group.addChild(childReferences);
+			return group;
+		}
+		if (type.equals("metadataTextVariable") && id.equals("childWithSameNameInDataAsChildTwo")) {
 			//name in data is not same as id to test same scenario as recordInfoGroup/recordInfoNewGroup
 			//different id, same name in data
 			DataGroup group = DataGroup.withNameInData("childTwo");
 			return group;
 		}
+		if (type.equals("metadataGroup") && id.equals("childThree")) {
+			throw new RecordNotFoundException("No record exists with recordId: childThree");
+		}
 		return null;
+	}
+
+	private DataGroup createChildReference(String refId, String repeatMin, String repeatMax) {
+		DataGroup childReference = DataGroup.withNameInData("childReference");
+		childReference.addChild(DataAtomic.withNameInDataAndValue("ref", refId));
+		childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMin", repeatMin));
+		childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMax", repeatMax));
+		return childReference;
 	}
 
 	@Override

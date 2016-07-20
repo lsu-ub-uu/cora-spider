@@ -383,4 +383,19 @@ public class SpiderRecordCreatorTest {
 		assertTrue(recordStorage.createWasCalled);
 	}
 
+	@Test(expectedExceptions = DataException.class,
+			expectedExceptionsMessageRegExp = "Data is not valid: referenced child does not exist")
+	public void testChildDoesNotExistInStorage(){
+
+		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
+		setRecordCreatorWithRecordStorage(recordStorage);
+
+		SpiderDataGroup record = DataCreator.createMetadataGroupWithThreeChildren();
+
+		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId", "testGroupWithThreeChildren");
+		record.addChild(refParent);
+
+		recordCreator.createAndStoreRecord("userId", "metadataGroup", record);
+	}
+
 }

@@ -155,7 +155,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		SpiderDataGroup parentChildReferences = getParentChildReferences();
 		boolean childFound = false;
 		for(SpiderDataElement parentChildReference : parentChildReferences.getChildren()){
-			childFound = isSameNameInData(childNameInData, parentChildReference, childFound);
+			boolean samNameInData = isSameNameInData(childNameInData, parentChildReference);
+			childFound = samNameInData ? samNameInData : childFound;
         }
 		if(!childFound){
             throw new DataException("Data is not valid: child does not exist in parent");
@@ -169,18 +170,14 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		return (SpiderDataGroup) parent.getFirstChildWithNameInData("childReferences");
 	}
 
-	private boolean isSameNameInData(String childNameInData, SpiderDataElement parentChildReference, boolean childFound) {
+	private boolean isSameNameInData(String childNameInData, SpiderDataElement parentChildReference) {
 		String parentChildNameInData = getNameInDataFromChildReference(parentChildReference);
-		if(childNameInData.equals(parentChildNameInData)){
-            childFound = true;
-        }
-		return childFound;
+		return childNameInData.equals(parentChildNameInData);
 	}
 
 	private String getNameInDataFromChildReference(SpiderDataElement childReference) {
 		SpiderDataGroup childReferenceGroup = (SpiderDataGroup) childReference;
 		String refId = childReferenceGroup.extractAtomicValue("ref");
-//		DataGroup childDataGroup =	recordStorage.read("metadata", refId);
 		DataGroup childDataGroup =	findChildOfUnknownMetadataType(refId);
 		return childDataGroup.getNameInData();
 	}
@@ -189,21 +186,36 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		Collection<DataGroup> recordTypes = recordStorage.readList(RECORD_TYPE);
 
 		for (DataGroup recordTypePossibleChild : recordTypes) {
-			if (isChildOfAbstractRecordType("metadata", recordTypePossibleChild)) {
-				DataGroup recordInfo = (DataGroup)recordTypePossibleChild.getFirstChildWithNameInData("recordInfo");
-				String id = recordInfo.getFirstAtomicValueWithNameInData("id");
-				DataGroup childDataGroup = null;
-				try {
-					childDataGroup = recordStorage.read(id, refId);
-				}catch(RecordNotFoundException exception){
-
-				}
-				if(childDataGroup != null){
-					return childDataGroup;
-				}
+			DataGroup childDataGroup = findChildInMetadata(refId, recordTypePossibleChild);
+			if (childDataGroup != null){
+				return childDataGroup;
 			}
 		}
 		throw new DataException("Data is not valid: referenced child does not exist");
+	}
+
+	private DataGroup findChildInMetadata(String refId, DataGroup recordTypePossibleChild) {
+		DataGroup childDataGroup = null;
+		if (isChildOfAbstractRecordType("metadata", recordTypePossibleChild)) {
+			String id = extractIdFromRecordInfo(recordTypePossibleChild);
+			childDataGroup = tryReadChildFromStorage(refId, id);
+        }
+		return childDataGroup;
+	}
+
+	private String extractIdFromRecordInfo(DataGroup recordTypePossibleChild) {
+		DataGroup recordInfo = (DataGroup)recordTypePossibleChild.getFirstChildWithNameInData("recordInfo");
+		return recordInfo.getFirstAtomicValueWithNameInData("id");
+	}
+
+	private DataGroup tryReadChildFromStorage(String refId, String id) {
+		DataGroup childDataGroup;
+		try {
+            childDataGroup = recordStorage.read(id, refId);
+			return childDataGroup;
+        }catch(RecordNotFoundException exception){
+			return null;
+        }
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {

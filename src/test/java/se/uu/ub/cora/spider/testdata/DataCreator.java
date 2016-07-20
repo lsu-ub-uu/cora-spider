@@ -211,6 +211,15 @@ public final class DataCreator {
 		return childReference;
 	}
 
+	public static SpiderDataGroup createMetadataGroupWithThreeChildren(){
+		SpiderDataGroup spiderDataGroup = createMetadataGroupWithTwoChildren();
+		SpiderDataGroup childReferences = (SpiderDataGroup)
+				spiderDataGroup.getFirstChildWithNameInData("childReferences");
+		childReferences.addChild(createChildReference("childThree", "1", "1"));
+
+		return spiderDataGroup;
+	}
+
 	public static DataRecordLinkCollectorSpy getDataRecordLinkCollectorSpyWithCollectedLinkAdded() {
 		DataGroup recordToRecordLink = createDataForRecordToRecordLink();
 
