@@ -440,4 +440,35 @@ public class SpiderRecordUpdaterTest {
 				.createDataGroupWithRecordInfoAndLinkOneLevelDown();
 		recordUpdater.updateRecord("userId", "dataWithLinks", "oneLinkOneLevelDown", dataGroup);
 	}
+
+	@Test(expectedExceptions = DataException.class,
+			expectedExceptionsMessageRegExp = "Data is not valid: child does not exist in parent")
+	public void testChildReferenceDoesNotExistInParent(){
+		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
+		SpiderRecordUpdater recordUpdater = SpiderRecordUpdaterImp
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
+						authorization, dataValidator, recordStorage, keyCalculator, linkCollector);
+
+		SpiderDataGroup dataGroup = DataCreator.createMetadataGroupWithTwoChildren();
+
+		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId", "testGroup");
+		dataGroup.addChild(refParent);
+
+		recordUpdater.updateRecord("userId", "metadataGroup", "testNewGroup", dataGroup);
+	}
+
+	@Test(expectedExceptions = DataException.class,
+			expectedExceptionsMessageRegExp = "Data is not valid: childItem: thatItem does not exist in parent")
+	public void testCollectionVariableItemDoesNotExistInParent(){
+		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
+		SpiderRecordUpdater recordUpdater = SpiderRecordUpdaterImp
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
+						authorization, dataValidator, recordStorage, keyCalculator, linkCollector);
+
+		SpiderDataGroup dataGroup = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
+
+		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentMissingItemCollectionVar"));
+
+		recordUpdater.updateRecord("userId", "metadataCollectionVariable", "testCollectionVar", dataGroup);
+	}
 }
