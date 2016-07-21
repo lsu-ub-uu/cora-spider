@@ -36,7 +36,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
 	private DataValidator dataValidator;
-	private DataGroup recordTypeDefinition;
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
 
@@ -63,7 +62,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.spiderDataGroup = spiderDataGroup;
 		this.recordType = recordType;
 		this.recordId = recordId;
-		recordTypeDefinition = getRecordTypeDefinition();
+		DataGroup recordTypeDefinition = getRecordTypeDefinition();
 		metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("metadataId");
 
 		checkNoUpdateForAbstractRecordType();

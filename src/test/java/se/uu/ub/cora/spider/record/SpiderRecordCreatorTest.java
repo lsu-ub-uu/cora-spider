@@ -355,7 +355,7 @@ public class SpiderRecordCreatorTest {
 
 	@Test(expectedExceptions = DataException.class,
 			expectedExceptionsMessageRegExp = "Data is not valid: child does not exist in parent")
-	public void testChildDoesNotExistInParent(){
+	public void testMetadataGroupChildDoesNotExistInParent(){
 
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
 		setRecordCreatorWithRecordStorage(recordStorage);
@@ -369,7 +369,7 @@ public class SpiderRecordCreatorTest {
 	}
 
 	@Test
-	public void testChildWithDifferentIdButSameNameInDataExistInParent(){
+	public void testMetadataGroupChildWithDifferentIdButSameNameInDataExistInParent(){
 
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
 		setRecordCreatorWithRecordStorage(recordStorage);
@@ -385,7 +385,7 @@ public class SpiderRecordCreatorTest {
 
 	@Test(expectedExceptions = DataException.class,
 			expectedExceptionsMessageRegExp = "Data is not valid: referenced child does not exist")
-	public void testChildDoesNotExistInStorage(){
+	public void testMetadataGroupChildDoesNotExistInStorage(){
 
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
 		setRecordCreatorWithRecordStorage(recordStorage);
@@ -396,6 +396,32 @@ public class SpiderRecordCreatorTest {
 		record.addChild(refParent);
 
 		recordCreator.createAndStoreRecord("userId", "metadataGroup", record);
+	}
+
+	@Test(expectedExceptions = DataException.class,
+			expectedExceptionsMessageRegExp = "Data is not valid: childItem: thatItem does not exist in parent")
+	public void testCollectionVariableItemDoesNotExistInParent(){
+
+		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
+		setRecordCreatorWithRecordStorage(recordStorage);
+
+		SpiderDataGroup record = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
+		record.addChild(SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentMissingItemCollectionVar"));
+
+		recordCreator.createAndStoreRecord("userId", "metadataCollectionVariable", record);
+	}
+
+	@Test
+	public void testCollectionVariableItemExistInParent(){
+
+		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
+		setRecordCreatorWithRecordStorage(recordStorage);
+
+		SpiderDataGroup record = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
+		record.addChild(SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentCollectionVar"));
+
+		recordCreator.createAndStoreRecord("userId", "metadataCollectionVariable", record);
+		assertTrue(recordStorage.createWasCalled);
 	}
 
 }

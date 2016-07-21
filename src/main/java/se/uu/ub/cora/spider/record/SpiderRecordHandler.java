@@ -27,12 +27,13 @@ import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 import java.util.Collection;
+import java.util.List;
 
 public class SpiderRecordHandler {
 	protected static final String RECORD_TYPE = "recordType";
 	protected static final String RECORD_INFO = "recordInfo";
-	private static final String PARENT_ID = "parentId"
-			;
+	private static final String PARENT_ID = "parentId";
+	private static final String REF_PARENT_ID = "refParentId";
 	protected RecordStorage recordStorage;
 	protected String recordType;
 	protected String recordId;
@@ -78,6 +79,8 @@ public class SpiderRecordHandler {
 	protected void validateInheritanceRules() {
 		if(recordTypeIsMetadataGroup() && dataGroupHasParent()){
 			ensureAllChildrenExistsInParent();
+		}else if(recordTypeIsMetadataCollectionVariable() && dataGroupHasParent()){
+			ensureAllCollectionItemsExistInParent();
 		}
 	}
 
@@ -168,6 +171,54 @@ public class SpiderRecordHandler {
 	protected boolean isSameNameInData(String childNameInData, SpiderDataElement parentChildReference) {
 		String parentChildNameInData = getNameInDataFromChildReference(parentChildReference);
 		return childNameInData.equals(parentChildNameInData);
+	}
+
+	private boolean recordTypeIsMetadataCollectionVariable() {
+		return "metadataCollectionVariable".equals(recordType);
+	}
+
+	private void ensureAllCollectionItemsExistInParent(){
+		DataGroup references = getItemReferences();
+		DataGroup parentReferences = extractParentItemReferences();
+
+		for(DataElement itemReference : references.getChildren()){
+			DataAtomic childItem = (DataAtomic) itemReference;
+			if(!ensureChildItemExistsInParent(childItem, parentReferences)){
+				throw new DataException("Data is not valid: childItem: "+childItem.getValue()+" does not exist in parent");
+			}
+		}
+	}
+
+	private DataGroup getItemReferences() {
+		String refCollectionId = spiderDataGroup.extractAtomicValue("refCollectionId");
+		return readItemCollectionAndExtractCollectionItemReferences(refCollectionId);
+	}
+
+	private DataGroup readItemCollectionAndExtractCollectionItemReferences(String refCollectionId) {
+		DataGroup refCollection = recordStorage.read("metadataItemCollection", refCollectionId);
+		return (DataGroup)refCollection.getFirstChildWithNameInData("collectionItemReferences");
+	}
+
+	private DataGroup extractParentItemReferences() {
+		String refParentId = spiderDataGroup.extractAtomicValue(REF_PARENT_ID);
+		DataGroup parentCollectionVar = recordStorage.read("metadataCollectionVariable", refParentId);
+		String parentRefCollectionId = parentCollectionVar.getFirstAtomicValueWithNameInData("refCollectionId");
+
+		return readItemCollectionAndExtractCollectionItemReferences(parentRefCollectionId);
+	}
+
+	private boolean ensureChildItemExistsInParent(DataAtomic childItem, DataGroup parentReferences){
+		for(DataElement itemReference : parentReferences.getChildren()){
+			DataAtomic parentItem = (DataAtomic) itemReference;
+			if(isParentItemSameAsChildItem(childItem, parentItem)){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isParentItemSameAsChildItem(DataAtomic childItem, DataAtomic parentItem) {
+		return parentItem.getValue().equals(childItem.getValue());
 	}
 
 	protected void checkToPartOfLinkedDataExistsInStorage(DataGroup collectedLinks) {

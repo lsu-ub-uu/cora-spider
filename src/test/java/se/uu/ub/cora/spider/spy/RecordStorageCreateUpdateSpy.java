@@ -101,9 +101,17 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			return group;
 		}
 		if (type.equals("recordType") && id.equals("metadataGroup")) {
-			DataGroup group = DataGroup.withNameInData("metadataGroup");
+			DataGroup group = DataGroup.withNameInData("metadata");
 			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId", "metadataGroupNewGroup"));
 			group.addChild(DataAtomic.withNameInDataAndValue("metadataId", "metadataGroupGroup"));
+			group.addChild(DataAtomic.withNameInDataAndValue("userSuppliedId", "true"));
+			group.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
+			return group;
+		}
+		if (type.equals("recordType") && id.equals("metadataCollectionVariable")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId", "metadataCollectionVariableNewGroup"));
+			group.addChild(DataAtomic.withNameInDataAndValue("metadataId", "metadataCollectionVariableGroup"));
 			group.addChild(DataAtomic.withNameInDataAndValue("userSuppliedId", "true"));
 			group.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
 			return group;
@@ -154,6 +162,46 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		}
 		if (type.equals("metadataGroup") && id.equals("childThree")) {
 			throw new RecordNotFoundException("No record exists with recordId: childThree");
+		}
+		if (id.equals("testItemCollection")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+
+			DataGroup itemReferences = DataGroup.withNameInData("collectionItemReferences");
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thisItem"));
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thatItem"));
+			group.addChild(itemReferences);
+			return group;
+		}
+		if (id.equals("testParentMissingItemCollectionVar")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+
+			group.addChild(DataAtomic.withNameInDataAndValue("refCollectionId", "testParentMissingItemCollection"));
+			return group;
+		}
+		if (id.equals("testParentMissingItemCollection")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+
+			DataGroup itemReferences = DataGroup.withNameInData("collectionItemReferences");
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thisItem"));
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thoseItem"));
+			group.addChild(itemReferences);
+			return group;
+		}
+		if (id.equals("testParentCollectionVar")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+
+			group.addChild(DataAtomic.withNameInDataAndValue("refCollectionId", "testParentItemCollection"));
+			return group;
+		}
+		if (id.equals("testParentItemCollection")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+
+			DataGroup itemReferences = DataGroup.withNameInData("collectionItemReferences");
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thisItem"));
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thatItem"));
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thoseItem"));
+			group.addChild(itemReferences);
+			return group;
 		}
 		return null;
 	}
