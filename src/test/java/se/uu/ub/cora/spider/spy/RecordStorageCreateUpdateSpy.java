@@ -203,6 +203,16 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			group.addChild(itemReferences);
 			return group;
 		}
+		if(type.equals("metadataCollectionItem") && id.equals("thisItem")){
+			DataGroup group = DataGroup.withNameInData("metadata");
+			group.addChild(DataAtomic.withNameInDataAndValue("nameInData", "this"));
+			return group;
+		}
+		if(type.equals("metadataCollectionItem") && id.equals("thatItem")){
+			DataGroup group = DataGroup.withNameInData("metadata");
+			group.addChild(DataAtomic.withNameInDataAndValue("nameInData", "that"));
+			return group;
+		}
 		return null;
 	}
 
