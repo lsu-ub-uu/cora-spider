@@ -74,7 +74,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		checkNoCreateForAbstractRecordType();
 		validateDataInRecordAsSpecifiedInMetadata();
 
-		validateInheritanceRules();
+		validateRules();
 
 		ensureCompleteRecordInfo(userId, recordType);
 

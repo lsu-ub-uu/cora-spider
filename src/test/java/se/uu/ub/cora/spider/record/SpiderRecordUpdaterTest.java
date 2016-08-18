@@ -471,4 +471,18 @@ public class SpiderRecordUpdaterTest {
 
 		recordUpdater.updateRecord("userId", "metadataCollectionVariable", "testCollectionVar", dataGroup);
 	}
+	
+	@Test(expectedExceptions = DataException.class,
+			expectedExceptionsMessageRegExp = "Data is not valid: final value does not exist in collecion")
+	public void testCollectionVariableFinalValueDoesNotExistInCollection(){
+		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
+		SpiderRecordUpdater recordUpdater = SpiderRecordUpdaterImp
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
+						authorization, dataValidator, recordStorage, keyCalculator, linkCollector);
+
+		SpiderDataGroup dataGroup = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
+		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("finalValue", "doesNotExist"));
+
+		recordUpdater.updateRecord("userId", "metadataCollectionVariable", "testCollectionVar", dataGroup);
+	}
 }

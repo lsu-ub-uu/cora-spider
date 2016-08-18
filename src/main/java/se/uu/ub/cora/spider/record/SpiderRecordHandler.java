@@ -76,14 +76,23 @@ public class SpiderRecordHandler {
 		return spiderDataChild instanceof SpiderDataGroup;
 	}
 
-	protected void validateInheritanceRules() {
-		if(recordTypeIsMetadataGroup() && dataGroupHasParent()){
+	protected void validateRules() {
+		if(dataGroupHasParent()){
+			validataInheritanceRules();
+		}
+		if(recordTypeIsMetadataCollectionVariable()){
+			possibleValidateFinalValue();
+		}
+	}
+	
+	private void validataInheritanceRules(){
+		if(recordTypeIsMetadataGroup()){
 			ensureAllChildrenExistsInParent();
-		}else if(recordTypeIsMetadataCollectionVariable() && dataGroupHasParent()){
+		}else if(recordTypeIsMetadataCollectionVariable()){
 			ensureAllCollectionItemsExistInParent();
 		}
 	}
-
+	
 	private boolean recordTypeIsMetadataGroup() {
 		return "metadataGroup".equals(recordType);
 	}
@@ -221,6 +230,33 @@ public class SpiderRecordHandler {
 		return parentItem.getValue().equals(childItem.getValue());
 	}
 
+	private void possibleValidateFinalValue(){
+		if(spiderDataGroup.containsChildWithNameInData("finalValue")){
+			String finalValue = spiderDataGroup.extractAtomicValue("finalValue");
+			if(!validataFinalValue(finalValue)){
+				throw new DataException("Data is not valid: final value does not exist in collecion");
+			}
+		}
+	}
+	
+	private boolean validataFinalValue(String finalValue){
+		DataGroup references = getItemReferences();
+		for(DataElement reference : references.getChildren()){
+			String itemNameInData = extractNameInDataFromReference(reference);	
+			if(finalValue.equals(itemNameInData)){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private String extractNameInDataFromReference(DataElement reference) {
+		DataAtomic itemReference = (DataAtomic) reference;
+		DataGroup collectionItem = recordStorage.read("metadataCollectionItem", itemReference.getValue());
+		String itemNameInData  = collectionItem.getFirstAtomicValueWithNameInData("nameInData");
+		return itemNameInData;
+	}
+	
 	protected void checkToPartOfLinkedDataExistsInStorage(DataGroup collectedLinks) {
 		for(DataElement dataElement : collectedLinks.getChildren()){
 			extractToGroupAndCheckDataExistsInStorage((DataGroup) dataElement);

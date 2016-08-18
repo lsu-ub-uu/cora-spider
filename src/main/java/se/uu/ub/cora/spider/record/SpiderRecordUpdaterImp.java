@@ -68,7 +68,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		checkNoUpdateForAbstractRecordType();
 		validateIncomingDataAsSpecifiedInMetadata();
 
-		validateInheritanceRules();
+		validateRules();
 
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
