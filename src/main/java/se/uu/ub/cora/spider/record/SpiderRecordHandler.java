@@ -27,7 +27,6 @@ import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 import java.util.Collection;
-import java.util.List;
 
 public class SpiderRecordHandler {
 	protected static final String RECORD_TYPE = "recordType";
@@ -233,13 +232,13 @@ public class SpiderRecordHandler {
 	private void possibleValidateFinalValue(){
 		if(spiderDataGroup.containsChildWithNameInData("finalValue")){
 			String finalValue = spiderDataGroup.extractAtomicValue("finalValue");
-			if(!validataFinalValue(finalValue)){
+			if(!validateFinalValue(finalValue)){
 				throw new DataException("Data is not valid: final value does not exist in collecion");
 			}
 		}
 	}
 	
-	private boolean validataFinalValue(String finalValue){
+	private boolean validateFinalValue(String finalValue){
 		DataGroup references = getItemReferences();
 		for(DataElement reference : references.getChildren()){
 			String itemNameInData = extractNameInDataFromReference(reference);	
