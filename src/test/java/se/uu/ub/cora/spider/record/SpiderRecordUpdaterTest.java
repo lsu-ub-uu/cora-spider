@@ -473,7 +473,7 @@ public class SpiderRecordUpdaterTest {
 	}
 	
 	@Test(expectedExceptions = DataException.class,
-			expectedExceptionsMessageRegExp = "Data is not valid: final value does not exist in collecion")
+			expectedExceptionsMessageRegExp = "Data is not valid: final value does not exist in collection")
 	public void testCollectionVariableFinalValueDoesNotExistInCollection(){
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
 		SpiderRecordUpdater recordUpdater = SpiderRecordUpdaterImp
