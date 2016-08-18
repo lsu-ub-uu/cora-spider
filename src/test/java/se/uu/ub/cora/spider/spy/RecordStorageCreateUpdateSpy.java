@@ -279,6 +279,14 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		metadataTextVariable.addChild(DataAtomic.withNameInDataAndValue("parentId", "metadata"));
 		recordTypeList.add(metadataTextVariable);
 
+		DataGroup presentationVar = DataGroup.withNameInData("recordType");
+		DataGroup recordInfoPresentationVar = DataGroup.withNameInData("recordInfo");
+		recordInfoPresentationVar.addChild(DataAtomic.withNameInDataAndValue("id", "presentationVar"));
+		metadataTextVariable.addChild(recordInfoTextVariable);
+
+		presentationVar.addChild(DataAtomic.withNameInDataAndValue("parentId", "presentation"));
+		recordTypeList.add(presentationVar);
+
 		return recordTypeList;
 
 
