@@ -449,4 +449,16 @@ public class SpiderRecordCreatorTest {
 
 		recordCreator.createAndStoreRecord("userId", "metadataCollectionVariable", record);
 	}
+
+	@Test
+	public void testMetadataTypeThatHasNoInheritanceRules(){
+
+		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
+		setRecordCreatorWithRecordStorage(recordStorage);
+
+		SpiderDataGroup record = DataCreator.createMetadataGroupWithRecordLinkAsChild();
+		record.addChild(SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentRecordLink"));
+		recordCreator.createAndStoreRecord("userId", "metadataRecordLink", record);
+		assertTrue(recordStorage.createWasCalled);
+	}
 }

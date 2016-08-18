@@ -217,4 +217,15 @@ public final class DataCreator {
 
 		return spiderDataGroup;
 	}
+
+	public static SpiderDataGroup createMetadataGroupWithRecordLinkAsChild(){
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("metadata");
+		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "testRecordLink"));
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "recordLink"));
+		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));
+		spiderDataGroup.addChild(recordInfo);
+
+		return spiderDataGroup;
+	}
 }

@@ -97,7 +97,7 @@ public class SpiderRecordHandler {
 	}
 
 	private boolean dataGroupHasParent(){
-		return spiderDataGroup.containsChildWithNameInData("refParentId");
+		return spiderDataGroup.containsChildWithNameInData(REF_PARENT_ID);
 	}
 
 	private void ensureAllChildrenExistsInParent(){
@@ -181,7 +181,7 @@ public class SpiderRecordHandler {
 	}
 
 	protected SpiderDataGroup getParentChildReferences() {
-		SpiderDataAtomic refParentId = (SpiderDataAtomic) spiderDataGroup.getFirstChildWithNameInData("refParentId");
+		SpiderDataAtomic refParentId = (SpiderDataAtomic) spiderDataGroup.getFirstChildWithNameInData(REF_PARENT_ID);
 		SpiderDataGroup parent = SpiderDataGroup.fromDataGroup(recordStorage.read("metadataGroup", refParentId.getValue()));
 
 		return (SpiderDataGroup) parent.getFirstChildWithNameInData("childReferences");
