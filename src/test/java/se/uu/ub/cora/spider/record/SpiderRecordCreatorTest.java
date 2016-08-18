@@ -423,9 +423,22 @@ public class SpiderRecordCreatorTest {
 		recordCreator.createAndStoreRecord("userId", "metadataCollectionVariable", record);
 		assertTrue(recordStorage.createWasCalled);
 	}
-	
+
+	@Test
+	public void testCollectionVariableFinalValueExistInCollection(){
+
+		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
+		setRecordCreatorWithRecordStorage(recordStorage);
+
+		SpiderDataGroup record = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
+		record.addChild(SpiderDataAtomic.withNameInDataAndValue("finalValue", "that"));
+
+		recordCreator.createAndStoreRecord("userId", "metadataCollectionVariable", record);
+		assertTrue(recordStorage.createWasCalled);
+	}
+
 	@Test(expectedExceptions = DataException.class,
-			expectedExceptionsMessageRegExp = "Data is not valid: final value does not exist in collecion")
+			expectedExceptionsMessageRegExp = "Data is not valid: final value does not exist in collection")
 	public void testCollectionVariableFinalValueDoesNotExistInCollection(){
 
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
@@ -436,5 +449,4 @@ public class SpiderRecordCreatorTest {
 
 		recordCreator.createAndStoreRecord("userId", "metadataCollectionVariable", record);
 	}
-
 }

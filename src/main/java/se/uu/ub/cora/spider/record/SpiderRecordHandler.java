@@ -77,14 +77,14 @@ public class SpiderRecordHandler {
 
 	protected void validateRules() {
 		if(dataGroupHasParent()){
-			validataInheritanceRules();
+			validateInheritanceRules();
 		}
 		if(recordTypeIsMetadataCollectionVariable()){
-			possibleValidateFinalValue();
+			possiblyValidateFinalValue();
 		}
 	}
 	
-	private void validataInheritanceRules(){
+	private void validateInheritanceRules(){
 		if(recordTypeIsMetadataGroup()){
 			ensureAllChildrenExistsInParent();
 		}else if(recordTypeIsMetadataCollectionVariable()){
@@ -141,16 +141,6 @@ public class SpiderRecordHandler {
 		return childDataGroup;
 	}
 
-	protected DataGroup tryReadChildFromStorage(String refId, String id) {
-		DataGroup childDataGroup;
-		try {
-			childDataGroup = recordStorage.read(id, refId);
-			return childDataGroup;
-		}catch(RecordNotFoundException exception){
-			return null;
-		}
-	}
-
 	protected boolean isChildOfAbstractRecordType(String abstractRecordType, DataGroup recordTypePossibleChild) {
 		if (handledRecordHasParent(recordTypePossibleChild)) {
 			String parentIdValue = recordTypePossibleChild.getFirstAtomicValueWithNameInData(PARENT_ID);
@@ -161,9 +151,23 @@ public class SpiderRecordHandler {
 		return false;
 	}
 
+	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
+		return handledRecordTypeDataGroup.containsChildWithNameInData(PARENT_ID);
+	}
+
 	protected String extractIdFromRecordInfo(DataGroup recordTypePossibleChild) {
 		DataGroup recordInfo = (DataGroup)recordTypePossibleChild.getFirstChildWithNameInData("recordInfo");
 		return recordInfo.getFirstAtomicValueWithNameInData("id");
+	}
+
+	protected DataGroup tryReadChildFromStorage(String refId, String id) {
+		DataGroup childDataGroup;
+		try {
+			childDataGroup = recordStorage.read(id, refId);
+			return childDataGroup;
+		}catch(RecordNotFoundException exception){
+			return null;
+		}
 	}
 
 	protected boolean ensureChildExistInParent(String childNameInData) {
@@ -174,6 +178,13 @@ public class SpiderRecordHandler {
 			}
 		}
 		return false;
+	}
+
+	protected SpiderDataGroup getParentChildReferences() {
+		SpiderDataAtomic refParentId = (SpiderDataAtomic) spiderDataGroup.getFirstChildWithNameInData("refParentId");
+		SpiderDataGroup parent = SpiderDataGroup.fromDataGroup(recordStorage.read("metadataGroup", refParentId.getValue()));
+
+		return (SpiderDataGroup) parent.getFirstChildWithNameInData("childReferences");
 	}
 
 	protected boolean isSameNameInData(String childNameInData, SpiderDataElement parentChildReference) {
@@ -229,15 +240,19 @@ public class SpiderRecordHandler {
 		return parentItem.getValue().equals(childItem.getValue());
 	}
 
-	private void possibleValidateFinalValue(){
-		if(spiderDataGroup.containsChildWithNameInData("finalValue")){
+	private void possiblyValidateFinalValue(){
+		if(hasFinalValue()){
 			String finalValue = spiderDataGroup.extractAtomicValue("finalValue");
 			if(!validateFinalValue(finalValue)){
-				throw new DataException("Data is not valid: final value does not exist in collecion");
+				throw new DataException("Data is not valid: final value does not exist in collection");
 			}
 		}
 	}
-	
+
+	private boolean hasFinalValue() {
+		return spiderDataGroup.containsChildWithNameInData("finalValue");
+	}
+
 	private boolean validateFinalValue(String finalValue){
 		DataGroup references = getItemReferences();
 		for(DataElement reference : references.getChildren()){
@@ -252,8 +267,7 @@ public class SpiderRecordHandler {
 	private String extractNameInDataFromReference(DataElement reference) {
 		DataAtomic itemReference = (DataAtomic) reference;
 		DataGroup collectionItem = recordStorage.read("metadataCollectionItem", itemReference.getValue());
-		String itemNameInData  = collectionItem.getFirstAtomicValueWithNameInData("nameInData");
-		return itemNameInData;
+		return collectionItem.getFirstAtomicValueWithNameInData("nameInData");
 	}
 	
 	protected void checkToPartOfLinkedDataExistsInStorage(DataGroup collectedLinks) {
@@ -374,18 +388,6 @@ public class SpiderRecordHandler {
 		}
 		return "";
 	}
-
-	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
-		return handledRecordTypeDataGroup.containsChildWithNameInData(PARENT_ID);
-	}
-
-	protected SpiderDataGroup getParentChildReferences() {
-		SpiderDataAtomic refParentId = (SpiderDataAtomic) spiderDataGroup.getFirstChildWithNameInData("refParentId");
-		SpiderDataGroup parent = SpiderDataGroup.fromDataGroup(recordStorage.read("metadataGroup", refParentId.getValue()));
-
-		return (SpiderDataGroup) parent.getFirstChildWithNameInData("childReferences");
-	}
-
 
 	protected boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {
 		SpiderDataGroup topLevelDataGroup = spiderDataRecord.getSpiderDataGroup();

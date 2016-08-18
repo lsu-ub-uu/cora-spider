@@ -31,7 +31,6 @@ import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class SpiderRecordListReaderImp extends SpiderRecordHandler
 		implements SpiderRecordListReader {
-//	private static final String RECORD_TYPE = "recordType";
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
 	private SpiderDataList readRecordList;
