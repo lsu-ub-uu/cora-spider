@@ -19,10 +19,13 @@
 
 package se.uu.ub.cora.spider.spy;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
+import se.uu.ub.cora.bookkeeper.data.Data;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class RecordStorageCreateUpdateSpy implements RecordStorage {
@@ -30,6 +33,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	public DataGroup createRecord;
 	public DataGroup updateRecord;
 	public String dataDivider;
+	public boolean createWasCalled = false;
 
 	public boolean modifiableLinksExistsForRecord = false;
 
@@ -96,7 +100,128 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			group.addChild(DataAtomic.withNameInDataAndValue("abstract", "true"));
 			return group;
 		}
+		if (type.equals("recordType") && id.equals("metadataGroup")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId", "metadataGroupNewGroup"));
+			group.addChild(DataAtomic.withNameInDataAndValue("metadataId", "metadataGroupGroup"));
+			group.addChild(DataAtomic.withNameInDataAndValue("userSuppliedId", "true"));
+			group.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
+			return group;
+		}
+		if (type.equals("recordType") && id.equals("metadataCollectionVariable")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId", "metadataCollectionVariableNewGroup"));
+			group.addChild(DataAtomic.withNameInDataAndValue("metadataId", "metadataCollectionVariableGroup"));
+			group.addChild(DataAtomic.withNameInDataAndValue("userSuppliedId", "true"));
+			group.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
+			return group;
+		}
+		if (type.equals("metadataGroup") && id.equals("testGroup")) {
+			DataGroup group = DataGroup.withNameInData("testGroup");
+
+			DataGroup childReferences = DataGroup.withNameInData("childReferences");
+			childReferences.addChild(createChildReference("childOne", "1", "1"));
+			group.addChild(childReferences);
+			return group;
+		}
+		if (type.equals("metadataGroup") && id.equals("childOne")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+			group.addChild(DataAtomic.withNameInDataAndValue("nameInData", "childOne"));
+			return group;
+		}
+		if (type.equals("metadataGroup") && id.equals("childTwo")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+			group.addChild(DataAtomic.withNameInDataAndValue("nameInData", "childTwo"));
+			return group;
+		}
+		if (type.equals("metadataGroup") && id.equals("testGroupWithTwoChildren")) {
+			DataGroup group = DataGroup.withNameInData("testGroupWithTwoChildren");
+
+			DataGroup childReferences = DataGroup.withNameInData("childReferences");
+			childReferences.addChild(createChildReference("childOne", "1", "1"));
+			childReferences.addChild(createChildReference("childWithSameNameInDataAsChildTwo", "0", "1"));
+			group.addChild(childReferences);
+			return group;
+		}
+		if (type.equals("metadataGroup") && id.equals("testGroupWithThreeChildren")) {
+			DataGroup group = DataGroup.withNameInData("testGroupWithTwoChildren");
+
+			DataGroup childReferences = DataGroup.withNameInData("childReferences");
+			childReferences.addChild(createChildReference("childOne", "1", "1"));
+			childReferences.addChild(createChildReference("childTwo", "0", "1"));
+			childReferences.addChild(createChildReference("childThree", "1", "1"));
+			group.addChild(childReferences);
+			return group;
+		}
+		if (type.equals("metadataTextVariable") && id.equals("childWithSameNameInDataAsChildTwo")) {
+			//name in data is not same as id to test same scenario as recordInfoGroup/recordInfoNewGroup
+			//different id, same name in data
+			DataGroup group = DataGroup.withNameInData("metadata");
+			group.addChild(DataAtomic.withNameInDataAndValue("nameInData", "childTwo"));
+			return group;
+		}
+		if (type.equals("metadataGroup") && id.equals("childThree")) {
+			throw new RecordNotFoundException("No record exists with recordId: childThree");
+		}
+		if (id.equals("testItemCollection")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+
+			DataGroup itemReferences = DataGroup.withNameInData("collectionItemReferences");
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thisItem"));
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thatItem"));
+			group.addChild(itemReferences);
+			return group;
+		}
+		if (id.equals("testParentMissingItemCollectionVar")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+
+			group.addChild(DataAtomic.withNameInDataAndValue("refCollectionId", "testParentMissingItemCollection"));
+			return group;
+		}
+		if (id.equals("testParentMissingItemCollection")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+
+			DataGroup itemReferences = DataGroup.withNameInData("collectionItemReferences");
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thisItem"));
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thoseItem"));
+			group.addChild(itemReferences);
+			return group;
+		}
+		if (id.equals("testParentCollectionVar")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+
+			group.addChild(DataAtomic.withNameInDataAndValue("refCollectionId", "testParentItemCollection"));
+			return group;
+		}
+		if (id.equals("testParentItemCollection")) {
+			DataGroup group = DataGroup.withNameInData("metadata");
+
+			DataGroup itemReferences = DataGroup.withNameInData("collectionItemReferences");
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thisItem"));
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thatItem"));
+			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thoseItem"));
+			group.addChild(itemReferences);
+			return group;
+		}
+		if(type.equals("metadataCollectionItem") && id.equals("thisItem")){
+			DataGroup group = DataGroup.withNameInData("metadata");
+			group.addChild(DataAtomic.withNameInDataAndValue("nameInData", "this"));
+			return group;
+		}
+		if(type.equals("metadataCollectionItem") && id.equals("thatItem")){
+			DataGroup group = DataGroup.withNameInData("metadata");
+			group.addChild(DataAtomic.withNameInDataAndValue("nameInData", "that"));
+			return group;
+		}
 		return null;
+	}
+
+	private DataGroup createChildReference(String refId, String repeatMin, String repeatMax) {
+		DataGroup childReference = DataGroup.withNameInData("childReference");
+		childReference.addChild(DataAtomic.withNameInDataAndValue("ref", refId));
+		childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMin", repeatMin));
+		childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMax", repeatMax));
+		return childReference;
 	}
 
 	@Override
@@ -104,6 +229,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			String dataDivider) {
 		createRecord = record;
 		this.dataDivider = dataDivider;
+		createWasCalled = true;
 	}
 
 	@Override
@@ -126,8 +252,28 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
 	@Override
 	public Collection<DataGroup> readList(String type) {
-		// TODO Auto-generated method stub
-		return null;
+		ArrayList<DataGroup> recordTypeList = new ArrayList<>();
+
+		DataGroup metadataGroup = DataGroup.withNameInData("recordType");
+		DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
+		recordInfo.addChild(DataAtomic.withNameInDataAndValue("id", "metadataGroup"));
+		metadataGroup.addChild(recordInfo);
+
+		metadataGroup.addChild(DataAtomic.withNameInDataAndValue("parentId", "metadata"));
+		recordTypeList.add(metadataGroup);
+
+
+		DataGroup metadataTextVariable = DataGroup.withNameInData("recordType");
+		DataGroup recordInfoTextVariable = DataGroup.withNameInData("recordInfo");
+		recordInfoTextVariable.addChild(DataAtomic.withNameInDataAndValue("id", "metadataTextVariable"));
+		metadataTextVariable.addChild(recordInfoTextVariable);
+
+		metadataTextVariable.addChild(DataAtomic.withNameInDataAndValue("parentId", "metadata"));
+		recordTypeList.add(metadataTextVariable);
+
+		return recordTypeList;
+
+
 	}
 
 	@Override
