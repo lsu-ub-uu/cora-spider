@@ -40,7 +40,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private PermissionKeyCalculator keyCalculator;
 	private DataValidator dataValidator;
 	private DataGroup recordTypeDefinition;
-	private SpiderDataGroup spiderDataGroup;
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
 
@@ -72,8 +71,10 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		recordTypeDefinition = getRecordTypeDefinition();
 		metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("newMetadataId");
 
-		checkNoCreateForAbstractRecordType(recordType);
+		checkNoCreateForAbstractRecordType();
 		validateDataInRecordAsSpecifiedInMetadata();
+
+		validateRules();
 
 		ensureCompleteRecordInfo(userId, recordType);
 
@@ -86,12 +87,10 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 		checkUserIsAuthorisedToCreateIncomingData(userId, recordType, topLevelDataGroup);
 
-		// send to storage
 		String id = extractIdFromData();
 
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, id);
-
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
@@ -104,15 +103,15 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	}
 
-	private String extractIdFromData() {
-		return spiderDataGroup.extractGroup("recordInfo").extractAtomicValue("id");
-	}
-
-	private void checkNoCreateForAbstractRecordType(String recordTypeToCreate) {
+	private void checkNoCreateForAbstractRecordType() {
 		if (isRecordTypeAbstract()) {
-			throw new MisuseException("Data creation on abstract recordType:" + recordTypeToCreate
+			throw new MisuseException("Data creation on abstract recordType:" + recordType
 					+ " is not allowed");
 		}
+	}
+
+	private String extractIdFromData() {
+		return spiderDataGroup.extractGroup("recordInfo").extractAtomicValue("id");
 	}
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {

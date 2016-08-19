@@ -31,7 +31,6 @@ import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class SpiderRecordListReaderImp extends SpiderRecordHandler
 		implements SpiderRecordListReader {
-	private static final String RECORD_TYPE = "recordType";
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
 	private SpiderDataList readRecordList;
@@ -93,19 +92,6 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 				addChildToReadRecordList(recordTypePossibleChild);
 			}
 		}
-	}
-
-	private boolean isChildOfAbstractRecordType(String abstractRecordType,
-			DataGroup recordTypePossibleChild) {
-		String parentId = "parentId";
-		if (recordTypePossibleChild.containsChildWithNameInData(parentId)) {
-			String parentIdValue = recordTypePossibleChild
-					.getFirstAtomicValueWithNameInData(parentId);
-			if (parentIdValue.equals(abstractRecordType)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private void addChildToReadRecordList(DataGroup recordTypePossibleChild) {

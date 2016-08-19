@@ -36,8 +36,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
 	private DataValidator dataValidator;
-	private SpiderDataGroup spiderDataGroup;
-	private DataGroup recordTypeDefinition;
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
 
@@ -64,16 +62,20 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.spiderDataGroup = spiderDataGroup;
 		this.recordType = recordType;
 		this.recordId = recordId;
-		recordTypeDefinition = getRecordTypeDefinition();
+		DataGroup recordTypeDefinition = getRecordTypeDefinition();
 		metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("metadataId");
 
 		checkNoUpdateForAbstractRecordType();
 		validateIncomingDataAsSpecifiedInMetadata();
 
+		validateRules();
+
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
+		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
+
 		checkUserIsAuthorisedToUpdate(userId);
-		checkUserIsAuthorisedToStoreIncomingData(userId, spiderDataGroup);
+		checkUserIsAuthorisedToStoreIncomingData(userId, topLevelDataGroup);
 
 		// validate (including protected data)
 		// TODO: add validate here
@@ -81,10 +83,9 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		// merge possibly hidden data
 		// TODO: merge incoming data with stored if user does not have right to
 		// update some parts
-		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
+
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, recordId);
-
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
@@ -140,8 +141,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void checkUserIsAuthorisedToStoreIncomingData(String userId,
-			SpiderDataGroup spiderDataGroup) {
-		DataGroup incomingData = spiderDataGroup.toDataGroup();
+			DataGroup incomingData) {
 
 		// calculate permissionKey
 		String accessType = "UPDATE";
