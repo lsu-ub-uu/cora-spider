@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.dependency;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
@@ -39,5 +40,6 @@ public interface SpiderDependencyProvider {
 	DataValidator getDataValidator();
 
 	DataRecordLinkCollector getDataRecordLinkCollector();
-
+	
+	ExtendedFunctionalityProvider getExtendedFunctionalityProvider();
 }

@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.dependency;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
@@ -60,6 +61,12 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 
 	@Override
 	public DataRecordLinkCollector getDataRecordLinkCollector() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
 		// TODO Auto-generated method stub
 		return null;
 	}
