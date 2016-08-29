@@ -20,11 +20,14 @@
 package se.uu.ub.cora.spider.extended;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
 
 import org.testng.annotations.Test;
+
+import se.uu.ub.cora.spider.metadata.MetadataConsistencyValidator;
 
 public class BaseExtendedFunctionalityProviderTest {
 	@Test
@@ -53,7 +56,7 @@ public class BaseExtendedFunctionalityProviderTest {
 				.getFunctionalityForCreateAfterMetadataValidation(recordType);
 		assertEquals(Collections.emptyList(), functionalityForCreateAfterMetadataValidation);
 	}
-	
+
 	@Test
 	public void testGetFunctionalityForCreateAfterMetadataValidationMetadataGroupAsType() {
 		ExtendedFunctionalityProvider baseExtendedFunctionalityProvider = new BaseExtendedFunctionalityProvider();
@@ -61,6 +64,9 @@ public class BaseExtendedFunctionalityProviderTest {
 		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = baseExtendedFunctionalityProvider
 				.getFunctionalityForCreateAfterMetadataValidation(recordType);
 		assertEquals(1, functionalityForCreateAfterMetadataValidation.size());
+
+		assertTrue(functionalityForCreateAfterMetadataValidation
+				.get(0) instanceof MetadataConsistencyValidator);
 	}
-	
+
 }
