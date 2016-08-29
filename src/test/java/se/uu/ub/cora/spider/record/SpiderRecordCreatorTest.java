@@ -37,6 +37,8 @@ import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.record.storage.RecordConflictException;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
@@ -63,6 +65,7 @@ public class SpiderRecordCreatorTest {
 	private SpiderRecordCreator recordCreator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
+	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -72,10 +75,11 @@ public class SpiderRecordCreatorTest {
 		idGenerator = new TimeStampIdGenerator();
 		keyCalculator = new RecordPermissionKeyCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
+		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		recordCreator = SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 
 	}
 
@@ -89,15 +93,18 @@ public class SpiderRecordCreatorTest {
 		linkCollector = new DataRecordLinkCollectorSpy();
 
 		SpiderRecordCreator recordCreator = SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 		SpiderDataGroup spiderDataGroup = DataCreator
 				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
 		recordCreator.createAndStoreRecord("userId", "spyType", spiderDataGroup);
 
 		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorization).authorizedWasCalled);
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
+		ExtendedFunctionalitySpy extendedFunctionality = (ExtendedFunctionalitySpy) extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation
+				.get(0);
+		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
 		assertTrue(((RecordStorageSpy) recordStorage).createWasCalled);
 		assertTrue(((IdGeneratorSpy) idGenerator).getIdForTypeWasCalled);
 		assertTrue(((KeyCalculatorSpy) keyCalculator).calculateKeysWasCalled);
@@ -109,9 +116,9 @@ public class SpiderRecordCreatorTest {
 	public void testCreateRecordInvalidData() {
 		DataValidator dataValidator = new DataValidatorAlwaysInvalidSpy();
 		SpiderRecordCreator recordCreator = SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
 		recordCreator.createAndStoreRecord("userId", "recordType", spiderDataGroup);
 	}
@@ -192,9 +199,9 @@ public class SpiderRecordCreatorTest {
 	@Test(expectedExceptions = MisuseException.class)
 	public void testCreateRecordAbstractRecordType() {
 		SpiderRecordCreator recordCreator = SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, new RecordStorageSpy(), idGenerator,
-						keyCalculator, linkCollector);
+						keyCalculator, linkCollector, extendedFunctionalityProvider);
 
 		SpiderDataGroup record = SpiderDataGroup.withNameInData("abstract");
 		recordCreator.createAndStoreRecord("userId", "abstract", record);
@@ -203,9 +210,9 @@ public class SpiderRecordCreatorTest {
 	@Test(expectedExceptions = RecordConflictException.class)
 	public void testCreateRecordDuplicateUserSuppliedId() {
 		SpiderRecordCreator recordCreator = SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 
 		SpiderDataGroup record = DataCreator
 				.createRecordWithNameInDataAndIdAndLinkedRecordId("place", "somePlace", "cora");
@@ -252,9 +259,9 @@ public class SpiderRecordCreatorTest {
 
 	private void setRecordCreatorWithRecordStorage(RecordStorageCreateUpdateSpy recordStorage) {
 		recordCreator = SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 	}
 
 	@Test
@@ -294,9 +301,9 @@ public class SpiderRecordCreatorTest {
 	private SpiderRecordCreator createRecordCreatorWithTestDataForLinkedData() {
 		recordStorage = new RecordLinkTestsRecordStorage();
 		return SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 	}
 
 	@Test
@@ -348,84 +355,87 @@ public class SpiderRecordCreatorTest {
 	private SpiderRecordCreator getRecordCreatorAndSetRecordStorageAndLinkCollector(
 			RecordLinkTestsRecordStorage recordStorage, DataRecordLinkCollectorSpy linkCollector) {
 		return SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 	}
 
-	@Test(expectedExceptions = DataException.class,
-			expectedExceptionsMessageRegExp = "Data is not valid: child does not exist in parent")
-	public void testMetadataGroupChildDoesNotExistInParent(){
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: child does not exist in parent")
+	public void testMetadataGroupChildDoesNotExistInParent() {
 
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
 		setRecordCreatorWithRecordStorage(recordStorage);
 
 		SpiderDataGroup record = DataCreator.createMetadataGroupWithTwoChildren();
 
-		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId", "testGroup");
+		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId",
+				"testGroup");
 		record.addChild(refParent);
 
 		recordCreator.createAndStoreRecord("userId", "metadataGroup", record);
 	}
 
 	@Test
-	public void testMetadataGroupChildWithDifferentIdButSameNameInDataExistInParent(){
+	public void testMetadataGroupChildWithDifferentIdButSameNameInDataExistInParent() {
 
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
 		setRecordCreatorWithRecordStorage(recordStorage);
 
 		SpiderDataGroup dataGroup = DataCreator.createMetadataGroupWithTwoChildren();
 
-		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId", "testGroupWithTwoChildren");
+		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId",
+				"testGroupWithTwoChildren");
 		dataGroup.addChild(refParent);
 
-		SpiderDataRecord record = recordCreator.createAndStoreRecord("userId", "metadataGroup", dataGroup);
+		SpiderDataRecord record = recordCreator.createAndStoreRecord("userId", "metadataGroup",
+				dataGroup);
 		assertTrue(recordStorage.createWasCalled);
 	}
 
-	@Test(expectedExceptions = DataException.class,
-			expectedExceptionsMessageRegExp = "Data is not valid: referenced child does not exist")
-	public void testMetadataGroupChildDoesNotExistInStorage(){
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: referenced child does not exist")
+	public void testMetadataGroupChildDoesNotExistInStorage() {
 
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
 		setRecordCreatorWithRecordStorage(recordStorage);
 
 		SpiderDataGroup record = DataCreator.createMetadataGroupWithThreeChildren();
 
-		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId", "testGroupWithThreeChildren");
+		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId",
+				"testGroupWithThreeChildren");
 		record.addChild(refParent);
 
 		recordCreator.createAndStoreRecord("userId", "metadataGroup", record);
 	}
 
-	@Test(expectedExceptions = DataException.class,
-			expectedExceptionsMessageRegExp = "Data is not valid: childItem: thatItem does not exist in parent")
-	public void testCollectionVariableItemDoesNotExistInParent(){
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: childItem: thatItem does not exist in parent")
+	public void testCollectionVariableItemDoesNotExistInParent() {
 
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
 		setRecordCreatorWithRecordStorage(recordStorage);
 
 		SpiderDataGroup record = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
-		record.addChild(SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentMissingItemCollectionVar"));
+		record.addChild(SpiderDataAtomic.withNameInDataAndValue("refParentId",
+				"testParentMissingItemCollectionVar"));
 
 		recordCreator.createAndStoreRecord("userId", "metadataCollectionVariable", record);
 	}
 
 	@Test
-	public void testCollectionVariableItemExistInParent(){
+	public void testCollectionVariableItemExistInParent() {
 
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
 		setRecordCreatorWithRecordStorage(recordStorage);
 
 		SpiderDataGroup record = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
-		record.addChild(SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentCollectionVar"));
+		record.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentCollectionVar"));
 
 		recordCreator.createAndStoreRecord("userId", "metadataCollectionVariable", record);
 		assertTrue(recordStorage.createWasCalled);
 	}
 
 	@Test
-	public void testCollectionVariableFinalValueExistInCollection(){
+	public void testCollectionVariableFinalValueExistInCollection() {
 
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
 		setRecordCreatorWithRecordStorage(recordStorage);
@@ -437,9 +447,8 @@ public class SpiderRecordCreatorTest {
 		assertTrue(recordStorage.createWasCalled);
 	}
 
-	@Test(expectedExceptions = DataException.class,
-			expectedExceptionsMessageRegExp = "Data is not valid: final value does not exist in collection")
-	public void testCollectionVariableFinalValueDoesNotExistInCollection(){
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: final value does not exist in collection")
+	public void testCollectionVariableFinalValueDoesNotExistInCollection() {
 
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
 		setRecordCreatorWithRecordStorage(recordStorage);
@@ -451,13 +460,14 @@ public class SpiderRecordCreatorTest {
 	}
 
 	@Test
-	public void testMetadataTypeThatHasNoInheritanceRules(){
+	public void testMetadataTypeThatHasNoInheritanceRules() {
 
 		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
 		setRecordCreatorWithRecordStorage(recordStorage);
 
 		SpiderDataGroup record = DataCreator.createMetadataGroupWithRecordLinkAsChild();
-		record.addChild(SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentRecordLink"));
+		record.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentRecordLink"));
 		recordCreator.createAndStoreRecord("userId", "metadataRecordLink", record);
 		assertTrue(recordStorage.createWasCalled);
 	}

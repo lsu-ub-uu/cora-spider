@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
@@ -29,6 +30,8 @@ import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
@@ -42,25 +45,28 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private DataGroup recordTypeDefinition;
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
+	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 
-	public static SpiderRecordCreatorImp usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+	public static SpiderRecordCreatorImp usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 			Authorizator authorization, DataValidator dataValidator, RecordStorage recordStorage,
 			RecordIdGenerator idGenerator, PermissionKeyCalculator keyCalculator,
-			DataRecordLinkCollector linkCollector) {
+			DataRecordLinkCollector linkCollector,
+			ExtendedFunctionalityProvider extendedFunctionalityProvider) {
 		return new SpiderRecordCreatorImp(authorization, dataValidator, recordStorage, idGenerator,
-				keyCalculator, linkCollector);
+				keyCalculator, linkCollector, extendedFunctionalityProvider);
 	}
 
 	private SpiderRecordCreatorImp(Authorizator authorization, DataValidator dataValidator,
 			RecordStorage recordStorage, RecordIdGenerator idGenerator,
-			PermissionKeyCalculator keyCalculator, DataRecordLinkCollector linkCollector) {
+			PermissionKeyCalculator keyCalculator, DataRecordLinkCollector linkCollector,
+			ExtendedFunctionalityProvider extendedFunctionalityProvider) {
 		this.authorization = authorization;
 		this.dataValidator = dataValidator;
 		this.recordStorage = recordStorage;
 		this.idGenerator = idGenerator;
 		this.keyCalculator = keyCalculator;
 		this.linkCollector = linkCollector;
-
+		this.extendedFunctionalityProvider = extendedFunctionalityProvider;
 	}
 
 	@Override
@@ -74,6 +80,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		checkNoCreateForAbstractRecordType();
 		validateDataInRecordAsSpecifiedInMetadata();
 
+		useExtendedFunctionality(recordTypeToCreate, spiderDataGroup);
 		validateRules();
 
 		ensureCompleteRecordInfo(userId, recordType);
@@ -105,8 +112,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void checkNoCreateForAbstractRecordType() {
 		if (isRecordTypeAbstract()) {
-			throw new MisuseException("Data creation on abstract recordType:" + recordType
-					+ " is not allowed");
+			throw new MisuseException(
+					"Data creation on abstract recordType:" + recordType + " is not allowed");
 		}
 	}
 
@@ -120,6 +127,15 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, record);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
+		}
+	}
+
+	private void useExtendedFunctionality(String recordTypeToCreate,
+			SpiderDataGroup spiderDataGroup) {
+		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = extendedFunctionalityProvider
+				.getFunctionalityForCreateAfterMetadataValidation(recordTypeToCreate);
+		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
+			extendedFunctionality.useExtendedFunctionality(spiderDataGroup);
 		}
 	}
 

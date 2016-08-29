@@ -80,9 +80,9 @@ public final class SpiderInstanceProvider {
 				.getDataRecordLinkCollector();
 
 		return SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorizator, dataValidator, recordStorage, recordIdGenerator,
-						permissionKeyCalculator, linkCollector);
+						permissionKeyCalculator, linkCollector, null);
 	}
 
 	public static SpiderRecordUpdater getSpiderRecordUpdater() {
