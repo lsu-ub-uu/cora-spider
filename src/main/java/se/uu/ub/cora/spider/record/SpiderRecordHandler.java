@@ -310,6 +310,7 @@ public class SpiderRecordHandler {
 		spiderDataRecord.addAction(Action.UPDATE);
 
 		possiblyAddDeleteAction(spiderDataRecord);
+		possiblyAddUploadAction(spiderDataRecord);
 		possiblyAddIncomingLinksAction(spiderDataRecord);
 		addActionsForRecordType(spiderDataRecord);
 	}
@@ -317,6 +318,14 @@ public class SpiderRecordHandler {
 	private void possiblyAddDeleteAction(SpiderDataRecord spiderDataRecord) {
 		if(!incomingLinksExistsForRecord(spiderDataRecord)){
 			spiderDataRecord.addAction(Action.DELETE);
+		}
+	}
+
+	private void possiblyAddUploadAction(SpiderDataRecord spiderDataRecord) {
+		SpiderDataGroup topLevelDataGroup = spiderDataRecord.getSpiderDataGroup();
+
+		if("binary".equals(topLevelDataGroup.getNameInData())){
+			spiderDataRecord.addAction(Action.UPLOAD);
 		}
 	}
 

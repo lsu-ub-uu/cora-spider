@@ -229,4 +229,13 @@ public class SpiderRecordReaderTest {
 		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}
 
+	@Test
+	public void testActionsOnReadImage(){
+		SpiderDataRecord record = recordReader.readRecord("userId", "image", "image:0001");
+		assertEquals(record.getActions().size(), 4);
+		assertTrue(record.getActions().contains(Action.READ));
+		assertTrue(record.getActions().contains(Action.UPDATE));
+		assertTrue(record.getActions().contains(Action.DELETE));
+		assertTrue(record.getActions().contains(Action.UPLOAD));
+	}
 }
