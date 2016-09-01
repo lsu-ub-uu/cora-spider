@@ -164,21 +164,21 @@ public class SpiderRecordReaderTest {
 	@Test
 	public void testActionsOnReadRecordTypeBinary(){
 		SpiderDataRecord record = recordReader.readRecord("userId", "recordType", "binary");
-		assertEquals(record.getActions().size(), 6);
+		assertEquals(record.getActions().size(), 5);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 
 		assertTrue(record.getActions().contains(Action.LIST));
 		assertTrue(record.getActions().contains(Action.SEARCH));
-		assertTrue(record.getActions().contains(Action.CREATE_BY_UPLOAD));
+		assertFalse(record.getActions().contains(Action.UPLOAD));
 
 	}
 
 	@Test
 	public void testActionsOnReadRecordTypeImage(){
 		SpiderDataRecord record = recordReader.readRecord("userId", "recordType", "image");
-		assertEquals(record.getActions().size(), 7);
+		assertEquals(record.getActions().size(), 6);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
@@ -186,7 +186,7 @@ public class SpiderRecordReaderTest {
 
 		assertTrue(record.getActions().contains(Action.LIST));
 		assertTrue(record.getActions().contains(Action.SEARCH));
-		assertTrue(record.getActions().contains(Action.CREATE_BY_UPLOAD));
+		assertFalse(record.getActions().contains(Action.UPLOAD));
 
 	}
 
@@ -229,4 +229,13 @@ public class SpiderRecordReaderTest {
 		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}
 
+	@Test
+	public void testActionsOnReadImage(){
+		SpiderDataRecord record = recordReader.readRecord("userId", "image", "image:0001");
+		assertEquals(record.getActions().size(), 4);
+		assertTrue(record.getActions().contains(Action.READ));
+		assertTrue(record.getActions().contains(Action.UPDATE));
+		assertTrue(record.getActions().contains(Action.DELETE));
+		assertTrue(record.getActions().contains(Action.UPLOAD));
+	}
 }
