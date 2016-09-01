@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,26 +19,13 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.Set;
+import java.io.InputStream;
 
-import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
 
-public class AuthorisedForUppsala implements Authorizator {
+public interface SpiderUploader {
 
-	@Override
-	public boolean isAuthorized(String userId, Set<String> recordCalculateKeys) {
-
-		// fake uppsala users current keys
-
-		// String key = "UPDATE:RECORD_TYPE:SYSTEM:UNIT:*";
-		String key = "UPDATE:TYPEWITHUSERGENERATEDID:SYSTEM:UPPSALA:*";
-		if (recordCalculateKeys.contains(key)) {
-			return true;
-		}
-		if (recordCalculateKeys.contains("UPLOAD:TYPEWITHUSERGENERATEDID:SYSTEM:UPPSALA:*")) {
-			return true;
-		}
-		return false;
-	}
+	SpiderDataRecord upload(String userId, String type, String id, InputStream inputStream,
+			String fileName);
 
 }

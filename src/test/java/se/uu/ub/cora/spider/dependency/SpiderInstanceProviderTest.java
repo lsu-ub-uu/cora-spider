@@ -19,16 +19,22 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNotSame;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import se.uu.ub.cora.spider.record.*;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNotSame;
+import se.uu.ub.cora.spider.record.SpiderRecordCreator;
+import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
+import se.uu.ub.cora.spider.record.SpiderRecordListReader;
+import se.uu.ub.cora.spider.record.SpiderRecordReader;
+import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
+import se.uu.ub.cora.spider.record.SpiderUploader;
 
 public class SpiderInstanceProviderTest {
 	@Test
@@ -59,11 +65,13 @@ public class SpiderInstanceProviderTest {
 	}
 
 	@Test
-	public void initMakeSureWeGetMultipleInstancesOfRecordListReader(){
+	public void initMakeSureWeGetMultipleInstancesOfRecordListReader() {
 		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
 		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
-		SpiderRecordListReader recordListReader = SpiderInstanceProvider.getSpiderRecordListReader();
-		SpiderRecordListReader recordListReader2 = SpiderInstanceProvider.getSpiderRecordListReader();
+		SpiderRecordListReader recordListReader = SpiderInstanceProvider
+				.getSpiderRecordListReader();
+		SpiderRecordListReader recordListReader2 = SpiderInstanceProvider
+				.getSpiderRecordListReader();
 		assertNotNull(recordListReader);
 		assertNotNull(recordListReader2);
 		assertNotSame(recordListReader, recordListReader2);
@@ -100,6 +108,17 @@ public class SpiderInstanceProviderTest {
 		assertNotNull(recordDeleter);
 		assertNotNull(recordDeleter2);
 		assertNotSame(recordDeleter, recordDeleter2);
+	}
+
+	@Test
+	public void initMakeSureWeGetMultipleInstancesOfUploader() {
+		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
+		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
+		SpiderUploader recordUploader = SpiderInstanceProvider.getSpiderUploader();
+		SpiderUploader recordUploader2 = SpiderInstanceProvider.getSpiderUploader();
+		assertNotNull(recordUploader);
+		assertNotNull(recordUploader2);
+		assertNotSame(recordUploader, recordUploader2);
 	}
 
 }

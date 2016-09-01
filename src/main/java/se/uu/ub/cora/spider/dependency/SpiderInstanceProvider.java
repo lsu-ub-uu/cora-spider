@@ -33,6 +33,8 @@ import se.uu.ub.cora.spider.record.SpiderRecordReader;
 import se.uu.ub.cora.spider.record.SpiderRecordReaderImp;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterImp;
+import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.SpiderUploaderImp;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
@@ -108,5 +110,20 @@ public final class SpiderInstanceProvider {
 
 		return SpiderRecordDeleterImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
 				authorizator, recordStorage, permissionKeyCalculator);
+	}
+
+	public static SpiderUploader getSpiderUploader() {
+		Authorizator authorizator = spiderDependencyProvider.getAuthorizator();
+		DataValidator dataValidator = spiderDependencyProvider.getDataValidator();
+		RecordStorage recordStorage = spiderDependencyProvider.getRecordStorage();
+		PermissionKeyCalculator permissionKeyCalculator = spiderDependencyProvider
+				.getPermissionKeyCalculator();
+		DataRecordLinkCollector linkCollector = spiderDependencyProvider
+				.getDataRecordLinkCollector();
+
+		return SpiderUploaderImp
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
+						authorizator, dataValidator, recordStorage, permissionKeyCalculator,
+						linkCollector);
 	}
 }
