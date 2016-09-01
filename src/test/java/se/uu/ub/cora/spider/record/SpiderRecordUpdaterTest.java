@@ -201,14 +201,14 @@ public class SpiderRecordUpdaterTest {
 
 		SpiderDataRecord recordUpdated = recordUpdater.updateRecord("userId", "recordType", "image",
 				dataGroup);
-		assertEquals(recordUpdated.getActions().size(), 7);
+		assertEquals(recordUpdated.getActions().size(), 6);
 		assertReadUpdateDelete(recordUpdated);
 		assertTrue(recordUpdated.getActions().contains(Action.CREATE));
 
 		assertTrue(recordUpdated.getActions().contains(Action.LIST));
 		assertTrue(recordUpdated.getActions().contains(Action.SEARCH));
-		assertTrue(recordUpdated.getActions().contains(Action.CREATE_BY_UPLOAD));
 		assertTrue(recordUpdated.getActions().contains(Action.DELETE));
+		assertFalse(recordUpdated.getActions().contains(Action.UPLOAD));
 	}
 
 	private SpiderDataGroup createRecordTypeDataGroupWithIdAndAbstract(String id,
@@ -237,12 +237,12 @@ public class SpiderRecordUpdaterTest {
 
 		SpiderDataRecord recordUpdated = recordUpdater.updateRecord("userId", "recordType",
 				"binary", dataGroup);
-		assertEquals(recordUpdated.getActions().size(), 6);
+		assertEquals(recordUpdated.getActions().size(), 5);
 		assertReadUpdateDelete(recordUpdated);
 
 		assertTrue(recordUpdated.getActions().contains(Action.LIST));
 		assertTrue(recordUpdated.getActions().contains(Action.SEARCH));
-		assertTrue(recordUpdated.getActions().contains(Action.CREATE_BY_UPLOAD));
+		assertFalse(recordUpdated.getActions().contains(Action.UPLOAD));
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)

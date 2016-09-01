@@ -120,14 +120,13 @@ public class SpiderRecordListReaderTest {
 		SpiderDataList recordList = recordListReader.readRecordList("userId", "recordType");
 		SpiderDataRecord firstInListWhichIsImage = (SpiderDataRecord) recordList.getDataList()
 				.get(0);
-		assertEquals(firstInListWhichIsImage.getActions().size(), 7);
+		assertEquals(firstInListWhichIsImage.getActions().size(), 6);
 		assertTrue(firstInListWhichIsImage.getActions().contains(Action.READ));
 		assertTrue(firstInListWhichIsImage.getActions().contains(Action.UPDATE));
 		assertTrue(firstInListWhichIsImage.getActions().contains(Action.DELETE));
 		assertTrue(firstInListWhichIsImage.getActions().contains(Action.CREATE));
 		assertTrue(firstInListWhichIsImage.getActions().contains(Action.LIST));
 		assertTrue(firstInListWhichIsImage.getActions().contains(Action.SEARCH));
-		assertTrue(firstInListWhichIsImage.getActions().contains(Action.CREATE_BY_UPLOAD));
 
 		SpiderDataRecord secondInListWhichIsMetadata = (SpiderDataRecord) recordList.getDataList()
 				.get(1);
