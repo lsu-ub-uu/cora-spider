@@ -113,17 +113,6 @@ public final class SpiderInstanceProvider {
 	}
 
 	public static SpiderUploader getSpiderUploader() {
-		Authorizator authorizator = spiderDependencyProvider.getAuthorizator();
-		DataValidator dataValidator = spiderDependencyProvider.getDataValidator();
-		RecordStorage recordStorage = spiderDependencyProvider.getRecordStorage();
-		PermissionKeyCalculator permissionKeyCalculator = spiderDependencyProvider
-				.getPermissionKeyCalculator();
-		DataRecordLinkCollector linkCollector = spiderDependencyProvider
-				.getDataRecordLinkCollector();
-
-		return SpiderUploaderImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
-						authorizator, dataValidator, recordStorage, permissionKeyCalculator,
-						linkCollector);
+		return SpiderUploaderImp.usingDependencyProvider(spiderDependencyProvider);
 	}
 }

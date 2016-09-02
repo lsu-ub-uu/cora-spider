@@ -24,52 +24,69 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.data.DataMissingException;
+import se.uu.ub.cora.spider.data.SpiderDataAtomic;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
 public final class SpiderUploaderImp implements SpiderUploader {
-
+	private static final String RECORD_INFO = "recordInfo";
 	private Authorizator authorization;
-	private DataValidator dataValidator;
+	private RecordIdGenerator idGenerator;
 	private RecordStorage recordStorage;
 	private PermissionKeyCalculator keyCalculator;
-	private DataRecordLinkCollector linkCollector;
+	private StreamStorage streamStorage;
 	private String userId;
 	private String recordType;
 	private String recordId;
 
-	public static SpiderUploaderImp usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
-			Authorizator authorizator, DataValidator dataValidator, RecordStorage recordStorage,
-			PermissionKeyCalculator permissionKeyCalculator,
-			DataRecordLinkCollector linkCollector) {
-		return new SpiderUploaderImp(authorizator, dataValidator, recordStorage,
-				permissionKeyCalculator, linkCollector);
+	public static SpiderUploaderImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new SpiderUploaderImp(dependencyProvider);
 	}
 
-	private SpiderUploaderImp(Authorizator authorization, DataValidator dataValidator,
-			RecordStorage recordStorage, PermissionKeyCalculator keyCalculator,
-			DataRecordLinkCollector linkCollector) {
-		this.authorization = authorization;
-		this.dataValidator = dataValidator;
-		this.recordStorage = recordStorage;
-		this.keyCalculator = keyCalculator;
-		this.linkCollector = linkCollector;
+	private SpiderUploaderImp(SpiderDependencyProvider dependencyProvider) {
+		authorization = dependencyProvider.getAuthorizator();
+		recordStorage = dependencyProvider.getRecordStorage();
+		keyCalculator = dependencyProvider.getPermissionKeyCalculator();
+		idGenerator = dependencyProvider.getIdGenerator();
+		streamStorage = dependencyProvider.getStreamStorage();
 	}
 
 	@Override
-	public SpiderDataRecord upload(String userId, String type, String id, InputStream inputStream,
+	public SpiderDataRecord upload(String userId, String type, String id, InputStream stream,
 			String fileName) {
 		this.userId = userId;
 		this.recordType = type;
 		this.recordId = id;
 		DataGroup recordRead = recordStorage.read(type, id);
 		checkUserIsAuthorisedToUploadData(recordRead);
-		checkStreamIsPresent(inputStream);
+		checkStreamIsPresent(stream);
 		checkFileNameIsPresent(fileName);
-		return null;
+		String streamId = idGenerator.getIdForType(type + "Binary");
+
+		SpiderDataGroup spiderRecordRead = SpiderDataGroup.fromDataGroup(recordRead);
+		String dataDivider = extractDataDividerFromData(spiderRecordRead);
+		streamStorage.store(streamId, dataDivider, stream);
+
+		// - set filename and filesize
+		// - add master stream id to recordRead
+		SpiderDataGroup resourceInfo = SpiderDataGroup.withNameInData("resourceInfo");
+		SpiderDataGroup master = SpiderDataGroup.withNameInData("master");
+		SpiderDataAtomic streamId2 = SpiderDataAtomic.withNameInDataAndValue("streamId", streamId);
+		master.addChild(streamId2);
+		resourceInfo.addChild(master);
+		spiderRecordRead.addChild(resourceInfo);
+
+		// - store recordRead
+		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
+		// - return recordRead
+		return spiderRecordUpdater.updateRecord(userId, type, id, spiderRecordRead);
 	}
 
 	private void checkUserIsAuthorisedToUploadData(DataGroup recordRead) {
@@ -105,5 +122,11 @@ public final class SpiderUploaderImp implements SpiderUploader {
 
 	private boolean fileNameHasNoLength(String fileName) {
 		return fileName.length() == 0;
+	}
+
+	private String extractDataDividerFromData(SpiderDataGroup spiderDataGroup) {
+		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
+		SpiderDataGroup dataDivider = recordInfo.extractGroup("dataDivider");
+		return dataDivider.extractAtomicValue("linkedRecordId");
 	}
 }

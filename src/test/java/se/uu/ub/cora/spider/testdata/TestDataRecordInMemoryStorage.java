@@ -37,6 +37,7 @@ public class TestDataRecordInMemoryStorage {
 		addPresentation(recordsInMemory);
 		addText(recordsInMemory);
 		addRecordType(recordsInMemory);
+		addImageOne(recordsInMemory);
 		addRecordTypeRecordType(recordsInMemory);
 		addRecordTypeBinary(recordsInMemory);
 		addRecordTypeImage(recordsInMemory);
@@ -201,6 +202,13 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup dataGroup = DataCreator
 				.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "true", "binary");
 		recordsInMemory.create(recordType, "image", dataGroup,
+				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+	}
+
+	private static void addImageOne(RecordStorageInMemory recordsInMemory) {
+		DataGroup dataGroup = DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"image", "image:123456789", "image", "cora").toDataGroup();
+		recordsInMemory.create("image", "image:123456789", dataGroup,
 				DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
