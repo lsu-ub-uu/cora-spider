@@ -64,6 +64,13 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		this.userId = userId;
 		this.recordType = type;
 		this.recordId = id;
+		DataGroup recordTypeDefinition = getRecordTypeDefinition();
+		if (!recordTypeDefinition.containsChildWithNameInData("parentId") || !recordTypeDefinition
+				.getFirstAtomicValueWithNameInData("parentId").equals("binary")) {
+			throw new DataException(
+					"It is only possible to upload files to recordTypes that are children of binary");
+		}
+
 		DataGroup recordRead = recordStorage.read(type, id);
 		checkUserIsAuthorisedToUploadData(recordRead);
 		checkStreamIsPresent(stream);
@@ -72,21 +79,35 @@ public final class SpiderUploaderImp implements SpiderUploader {
 
 		SpiderDataGroup spiderRecordRead = SpiderDataGroup.fromDataGroup(recordRead);
 		String dataDivider = extractDataDividerFromData(spiderRecordRead);
-		streamStorage.store(streamId, dataDivider, stream);
+		long fileSize = streamStorage.store(streamId, dataDivider, stream);
 
-		// - set filename and filesize
-		// - add master stream id to recordRead
 		SpiderDataGroup resourceInfo = SpiderDataGroup.withNameInData("resourceInfo");
+		spiderRecordRead.addChild(resourceInfo);
+
 		SpiderDataGroup master = SpiderDataGroup.withNameInData("master");
+		resourceInfo.addChild(master);
+
+		// - add master stream id to recordRead
 		SpiderDataAtomic streamId2 = SpiderDataAtomic.withNameInDataAndValue("streamId", streamId);
 		master.addChild(streamId2);
-		resourceInfo.addChild(master);
-		spiderRecordRead.addChild(resourceInfo);
+
+		// - set filename and filesize
+		SpiderDataAtomic uploadedFileName = SpiderDataAtomic.withNameInDataAndValue("fileName",
+				fileName);
+		master.addChild(uploadedFileName);
+
+		SpiderDataAtomic size = SpiderDataAtomic.withNameInDataAndValue("size",
+				String.valueOf(fileSize));
+		master.addChild(size);
 
 		// - store recordRead
 		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
 		// - return recordRead
 		return spiderRecordUpdater.updateRecord(userId, type, id, spiderRecordRead);
+	}
+
+	private DataGroup getRecordTypeDefinition() {
+		return recordStorage.read("recordType", recordType);
 	}
 
 	private void checkUserIsAuthorisedToUploadData(DataGroup recordRead) {

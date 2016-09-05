@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import se.uu.ub.cora.spider.stream.storage.StreamStorage;
@@ -28,13 +29,28 @@ public class StreamStorageSpy implements StreamStorage {
 	public String streamId;
 	public String dataDivider;
 	public InputStream stream;
+	public long size;
 
 	@Override
-	public void store(String streamId, String dataDivider, InputStream stream) {
+	public long store(String streamId, String dataDivider, InputStream stream) {
 		this.streamId = streamId;
 		this.dataDivider = dataDivider;
 		this.stream = stream;
-
+		byte[] data = new byte[1024];
+		int bytesRead;
+		size = 0;
+		try {
+			bytesRead = stream.read(data);
+			while (bytesRead != -1) {
+				size += bytesRead;
+				bytesRead = stream.read(data);
+			}
+			stream.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return size;
 	}
 
 }

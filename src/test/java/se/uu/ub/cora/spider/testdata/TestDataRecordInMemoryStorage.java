@@ -73,11 +73,15 @@ public class TestDataRecordInMemoryStorage {
 	}
 
 	private static void addSecondPlace(RecordStorage recordsInMemory) {
-		DataGroup recordInfo = DataCreator.createRecordInfoWithRecordTypeAndRecordId("place",
-				"place:0002");
-
-		DataGroup dataGroup = DataGroup.withNameInData("authority");
-		dataGroup.addChild(recordInfo);
+		// DataGroup recordInfo = DataCreator.createRecordInfoWithRecordTypeAndRecordId("place",
+		// "place:0002");
+		DataGroup dataGroup = DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"authority", "place:0002", "place", "cora").toDataGroup();
+		// DataGroup dataGroup =
+		// DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+		// "image", "image:123456789", "image", "cora").toDataGroup();
+		// DataGroup dataGroup = DataGroup.withNameInData("authority");
+		// dataGroup.addChild(recordInfo);
 
 		DataGroup dataRecordLink = DataGroup.withNameInData("link");
 		dataGroup.addChild(dataRecordLink);
