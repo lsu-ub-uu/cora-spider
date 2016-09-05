@@ -44,6 +44,8 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	private String userId;
 	private String recordType;
 	private String recordId;
+	private SpiderDataGroup spiderRecordRead;
+	private String streamId;
 
 	public static SpiderUploaderImp usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
@@ -64,41 +66,19 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		this.userId = userId;
 		this.recordType = type;
 		this.recordId = id;
-		DataGroup recordTypeDefinition = getRecordTypeDefinition();
-		if (!recordTypeDefinition.containsChildWithNameInData("parentId") || !recordTypeDefinition
-				.getFirstAtomicValueWithNameInData("parentId").equals("binary")) {
-			throw new DataException(
-					"It is only possible to upload files to recordTypes that are children of binary");
-		}
+		checkRecordTypeIsChildOfBinary();
 
 		DataGroup recordRead = recordStorage.read(type, id);
+		spiderRecordRead = SpiderDataGroup.fromDataGroup(recordRead);
 		checkUserIsAuthorisedToUploadData(recordRead);
 		checkStreamIsPresent(stream);
 		checkFileNameIsPresent(fileName);
-		String streamId = idGenerator.getIdForType(type + "Binary");
+		streamId = idGenerator.getIdForType(type + "Binary");
 
-		SpiderDataGroup spiderRecordRead = SpiderDataGroup.fromDataGroup(recordRead);
 		String dataDivider = extractDataDividerFromData(spiderRecordRead);
 		long fileSize = streamStorage.store(streamId, dataDivider, stream);
 
-		SpiderDataGroup resourceInfo = SpiderDataGroup.withNameInData("resourceInfo");
-		spiderRecordRead.addChild(resourceInfo);
-
-		SpiderDataGroup master = SpiderDataGroup.withNameInData("master");
-		resourceInfo.addChild(master);
-
-		// - add master stream id to recordRead
-		SpiderDataAtomic streamId2 = SpiderDataAtomic.withNameInDataAndValue("streamId", streamId);
-		master.addChild(streamId2);
-
-		// - set filename and filesize
-		SpiderDataAtomic uploadedFileName = SpiderDataAtomic.withNameInDataAndValue("fileName",
-				fileName);
-		master.addChild(uploadedFileName);
-
-		SpiderDataAtomic size = SpiderDataAtomic.withNameInDataAndValue("size",
-				String.valueOf(fileSize));
-		master.addChild(size);
+		addResourceInfoToMetdataRecord(fileName, fileSize);
 
 		// - store recordRead
 		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
@@ -106,8 +86,22 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		return spiderRecordUpdater.updateRecord(userId, type, id, spiderRecordRead);
 	}
 
+	private void checkRecordTypeIsChildOfBinary() {
+		DataGroup recordTypeDefinition = getRecordTypeDefinition();
+		if (recordTypeIsChildOfBinary(recordTypeDefinition)) {
+			throw new DataException(
+					"It is only possible to upload files to recordTypes that are children of binary");
+		}
+	}
+
 	private DataGroup getRecordTypeDefinition() {
 		return recordStorage.read("recordType", recordType);
+	}
+
+	private boolean recordTypeIsChildOfBinary(DataGroup recordTypeDefinition) {
+		return !recordTypeDefinition.containsChildWithNameInData("parentId")
+				|| !recordTypeDefinition.getFirstAtomicValueWithNameInData("parentId")
+						.equals("binary");
 	}
 
 	private void checkUserIsAuthorisedToUploadData(DataGroup recordRead) {
@@ -149,5 +143,26 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
 		SpiderDataGroup dataDivider = recordInfo.extractGroup("dataDivider");
 		return dataDivider.extractAtomicValue("linkedRecordId");
+	}
+
+	private void addResourceInfoToMetdataRecord(String fileName, long fileSize) {
+		SpiderDataGroup resourceInfo = SpiderDataGroup.withNameInData("resourceInfo");
+		spiderRecordRead.addChild(resourceInfo);
+
+		SpiderDataGroup master = SpiderDataGroup.withNameInData("master");
+		resourceInfo.addChild(master);
+
+		// - add master stream id to recordRead
+		SpiderDataAtomic streamId2 = SpiderDataAtomic.withNameInDataAndValue("streamId", streamId);
+		master.addChild(streamId2);
+
+		// - set filename and filesize
+		SpiderDataAtomic uploadedFileName = SpiderDataAtomic.withNameInDataAndValue("fileName",
+				fileName);
+		master.addChild(uploadedFileName);
+
+		SpiderDataAtomic size = SpiderDataAtomic.withNameInDataAndValue("size",
+				String.valueOf(fileSize));
+		master.addChild(size);
 	}
 }
