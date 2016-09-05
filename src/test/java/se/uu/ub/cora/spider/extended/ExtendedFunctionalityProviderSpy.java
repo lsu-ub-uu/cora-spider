@@ -23,15 +23,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityProvider {
-	public List<ExtendedFunctionality> fetchedFunctionalityForCreateAfterMetadataValidation = new ArrayList<>();
+	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateBeforeMetadataValidation = new ArrayList<>();
+	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateAfterMetadataValidation = new ArrayList<>();
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
+			String recordType) {
+		return createListWithTwoExtendedFunctionalitySpies(
+				fetchedFunctionalityForCreateBeforeMetadataValidation);
+	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateAfterMetadataValidation(
 			String recordType) {
+		return createListWithTwoExtendedFunctionalitySpies(
+				fetchedFunctionalityForCreateAfterMetadataValidation);
+	}
+
+	private List<ExtendedFunctionality> createListWithTwoExtendedFunctionalitySpies(
+			List<ExtendedFunctionalitySpy> fetchedFunctionalityList) {
 		ArrayList<ExtendedFunctionality> listOfExtendedFunctionality = new ArrayList<>();
 		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
 		listOfExtendedFunctionality.add(extendedFunctionalitySpy);
-		fetchedFunctionalityForCreateAfterMetadataValidation.add(extendedFunctionalitySpy);
+		fetchedFunctionalityList.add(extendedFunctionalitySpy);
+		ExtendedFunctionalitySpy extendedFunctionalitySpy2 = new ExtendedFunctionalitySpy();
+		listOfExtendedFunctionality.add(extendedFunctionalitySpy2);
+		fetchedFunctionalityList.add(extendedFunctionalitySpy2);
 		return listOfExtendedFunctionality;
 	}
 

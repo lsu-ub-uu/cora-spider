@@ -1,5 +1,6 @@
 /*
  * Copyright 2016 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -26,6 +27,12 @@ import java.util.List;
 import se.uu.ub.cora.spider.metadata.MetadataConsistencyValidator;
 
 public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityProvider {
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
+			String recordType) {
+		return Collections.emptyList();
+	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateAfterMetadataValidation(

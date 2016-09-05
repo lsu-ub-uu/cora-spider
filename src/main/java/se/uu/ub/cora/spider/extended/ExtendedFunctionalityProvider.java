@@ -1,5 +1,6 @@
 /*
  * Copyright 2016 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -22,5 +23,8 @@ package se.uu.ub.cora.spider.extended;
 import java.util.List;
 
 public interface ExtendedFunctionalityProvider {
+	List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
+			String recordType);
+
 	List<ExtendedFunctionality> getFunctionalityForCreateAfterMetadataValidation(String recordType);
 }

@@ -78,9 +78,10 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("newMetadataId");
 
 		checkNoCreateForAbstractRecordType();
+		useExtendedFunctionalityBeforeMetadataValidation(recordTypeToCreate, spiderDataGroup);
 		validateDataInRecordAsSpecifiedInMetadata();
 
-		useExtendedFunctionality(recordTypeToCreate, spiderDataGroup);
+		useExtendedFunctionalityAfterMetadataValidation(recordTypeToCreate, spiderDataGroup);
 		validateRules();
 
 		ensureCompleteRecordInfo(userId, recordType);
@@ -130,13 +131,25 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		}
 	}
 
-	private void useExtendedFunctionality(String recordTypeToCreate,
+	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
 			SpiderDataGroup spiderDataGroup) {
 		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = extendedFunctionalityProvider
-				.getFunctionalityForCreateAfterMetadataValidation(recordTypeToCreate);
+				.getFunctionalityForCreateBeforeMetadataValidation(recordTypeToCreate);
+		useExtendedFunctionality(spiderDataGroup, functionalityForCreateAfterMetadataValidation);
+	}
+
+	private void useExtendedFunctionality(SpiderDataGroup spiderDataGroup,
+			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
 		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
 			extendedFunctionality.useExtendedFunctionality(spiderDataGroup);
 		}
+	}
+
+	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
+			SpiderDataGroup spiderDataGroup) {
+		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = extendedFunctionalityProvider
+				.getFunctionalityForCreateAfterMetadataValidation(recordTypeToCreate);
+		useExtendedFunctionality(spiderDataGroup, functionalityForCreateAfterMetadataValidation);
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {

@@ -25,48 +25,75 @@ import static org.testng.Assert.assertTrue;
 import java.util.Collections;
 import java.util.List;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.spider.metadata.MetadataConsistencyValidator;
 
 public class BaseExtendedFunctionalityProviderTest {
+	private ExtendedFunctionalityProvider baseExtendedFunctionalityProvider;
+
+	@BeforeMethod
+	public void setUp() {
+		baseExtendedFunctionalityProvider = new BaseExtendedFunctionalityProvider();
+	}
+
+	@Test
+	public void testGetFunctionalityForCreateBeforeMetadataValidationNullAsType() {
+		String recordType = null;
+		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
+				.getFunctionalityForCreateBeforeMetadataValidation(recordType);
+		assertEquals(Collections.emptyList(), eFL);
+	}
+
+	@Test
+	public void testGetFunctionalityForCreateBeforeMetadataValidationEmptyAsType() {
+		String recordType = "";
+		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
+				.getFunctionalityForCreateBeforeMetadataValidation(recordType);
+		assertEquals(Collections.emptyList(), eFL);
+	}
+
+	@Test
+	public void testGetFunctionalityForCreateBeforeMetadataValidationUnknownAsType() {
+		String recordType = "UnknownType";
+		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
+				.getFunctionalityForCreateBeforeMetadataValidation(recordType);
+		assertEquals(Collections.emptyList(), eFL);
+	}
+
 	@Test
 	public void testGetFunctionalityForCreateAfterMetadataValidationNullAsType() {
-		ExtendedFunctionalityProvider baseExtendedFunctionalityProvider = new BaseExtendedFunctionalityProvider();
 		String recordType = null;
-		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = baseExtendedFunctionalityProvider
+		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
 				.getFunctionalityForCreateAfterMetadataValidation(recordType);
-		assertEquals(Collections.emptyList(), functionalityForCreateAfterMetadataValidation);
+		assertEquals(Collections.emptyList(), eFL);
 	}
 
 	@Test
 	public void testGetFunctionalityForCreateAfterMetadataValidationEmptyAsType() {
-		ExtendedFunctionalityProvider baseExtendedFunctionalityProvider = new BaseExtendedFunctionalityProvider();
 		String recordType = "";
-		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = baseExtendedFunctionalityProvider
+		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
 				.getFunctionalityForCreateAfterMetadataValidation(recordType);
-		assertEquals(Collections.emptyList(), functionalityForCreateAfterMetadataValidation);
+		assertEquals(Collections.emptyList(), eFL);
 	}
 
 	@Test
 	public void testGetFunctionalityForCreateAfterMetadataValidationUnknownAsType() {
-		ExtendedFunctionalityProvider baseExtendedFunctionalityProvider = new BaseExtendedFunctionalityProvider();
 		String recordType = "UnknownType";
-		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = baseExtendedFunctionalityProvider
+		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
 				.getFunctionalityForCreateAfterMetadataValidation(recordType);
-		assertEquals(Collections.emptyList(), functionalityForCreateAfterMetadataValidation);
+		assertEquals(Collections.emptyList(), eFL);
 	}
 
 	@Test
 	public void testGetFunctionalityForCreateAfterMetadataValidationMetadataGroupAsType() {
-		ExtendedFunctionalityProvider baseExtendedFunctionalityProvider = new BaseExtendedFunctionalityProvider();
 		String recordType = "metadataGroup";
-		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = baseExtendedFunctionalityProvider
+		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
 				.getFunctionalityForCreateAfterMetadataValidation(recordType);
-		assertEquals(1, functionalityForCreateAfterMetadataValidation.size());
+		assertEquals(1, eFL.size());
 
-		assertTrue(functionalityForCreateAfterMetadataValidation
-				.get(0) instanceof MetadataConsistencyValidator);
+		assertTrue(eFL.get(0) instanceof MetadataConsistencyValidator);
 	}
 
 }

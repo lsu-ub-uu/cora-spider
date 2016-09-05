@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.dependency;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
 import se.uu.ub.cora.spider.record.SpiderRecordCreatorImp;
@@ -78,11 +79,13 @@ public final class SpiderInstanceProvider {
 				.getPermissionKeyCalculator();
 		DataRecordLinkCollector linkCollector = spiderDependencyProvider
 				.getDataRecordLinkCollector();
+		ExtendedFunctionalityProvider extendedFunctionalityProvider = spiderDependencyProvider
+				.getExtendedFunctionalityProvider();
 
 		return SpiderRecordCreatorImp
 				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorizator, dataValidator, recordStorage, recordIdGenerator,
-						permissionKeyCalculator, linkCollector, null);
+						permissionKeyCalculator, linkCollector, extendedFunctionalityProvider);
 	}
 
 	public static SpiderRecordUpdater getSpiderRecordUpdater() {
@@ -93,11 +96,13 @@ public final class SpiderInstanceProvider {
 				.getPermissionKeyCalculator();
 		DataRecordLinkCollector linkCollector = spiderDependencyProvider
 				.getDataRecordLinkCollector();
+		ExtendedFunctionalityProvider extendedFunctionalityProvider = spiderDependencyProvider
+				.getExtendedFunctionalityProvider();
 
 		return SpiderRecordUpdaterImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorizator, dataValidator, recordStorage, permissionKeyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 	}
 
 	public static SpiderRecordDeleter getSpiderRecordDeleter() {

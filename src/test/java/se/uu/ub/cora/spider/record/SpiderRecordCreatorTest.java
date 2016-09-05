@@ -24,6 +24,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
+import java.util.List;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -102,7 +104,7 @@ public class SpiderRecordCreatorTest {
 
 		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorization).authorizedWasCalled);
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
-		ExtendedFunctionalitySpy extendedFunctionality = (ExtendedFunctionalitySpy) extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation
+		ExtendedFunctionalitySpy extendedFunctionality = extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation
 				.get(0);
 		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
 		assertTrue(((RecordStorageSpy) recordStorage).createWasCalled);
@@ -110,6 +112,39 @@ public class SpiderRecordCreatorTest {
 		assertTrue(((KeyCalculatorSpy) keyCalculator).calculateKeysWasCalled);
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyTypeNew");
+	}
+
+	@Test
+	public void testExtendedFunctionallityIsCalled() {
+		authorization = new AuthorizatorAlwaysAuthorizedSpy();
+		dataValidator = new DataValidatorAlwaysValidSpy();
+		recordStorage = new RecordStorageSpy();
+		idGenerator = new IdGeneratorSpy();
+		keyCalculator = new KeyCalculatorSpy();
+		linkCollector = new DataRecordLinkCollectorSpy();
+
+		SpiderRecordCreator recordCreator = SpiderRecordCreatorImp
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
+						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
+						linkCollector, extendedFunctionalityProvider);
+		SpiderDataGroup spiderDataGroup = DataCreator
+				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		recordCreator.createAndStoreRecord("userId", "spyType", spiderDataGroup);
+
+		assertFetchedFunctionalityHasBeenCalled(
+				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeMetadataValidation);
+		assertFetchedFunctionalityHasBeenCalled(
+				extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation);
+	}
+
+	private void assertFetchedFunctionalityHasBeenCalled(
+			List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateAfterMetadataValidation) {
+		ExtendedFunctionalitySpy extendedFunctionality = fetchedFunctionalityForCreateAfterMetadataValidation
+				.get(0);
+		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
+		ExtendedFunctionalitySpy extendedFunctionality2 = fetchedFunctionalityForCreateAfterMetadataValidation
+				.get(0);
+		assertTrue(extendedFunctionality2.extendedFunctionalityHasBeenCalled);
 	}
 
 	@Test(expectedExceptions = DataException.class)

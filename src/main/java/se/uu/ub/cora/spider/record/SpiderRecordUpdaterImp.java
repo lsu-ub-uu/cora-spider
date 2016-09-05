@@ -28,6 +28,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
@@ -38,22 +39,26 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
+	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 
-	public static SpiderRecordUpdaterImp usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
+	public static SpiderRecordUpdaterImp usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 			Authorizator authorization, DataValidator dataValidator, RecordStorage recordStorage,
-			PermissionKeyCalculator keyCalculator, DataRecordLinkCollector linkCollector) {
+			PermissionKeyCalculator keyCalculator, DataRecordLinkCollector linkCollector,
+			ExtendedFunctionalityProvider extendedFunctionalityProvider) {
 		return new SpiderRecordUpdaterImp(authorization, dataValidator, recordStorage,
-				keyCalculator, linkCollector);
+				keyCalculator, linkCollector, extendedFunctionalityProvider);
 	}
 
 	private SpiderRecordUpdaterImp(Authorizator authorization, DataValidator dataValidator,
 			RecordStorage recordStorage, PermissionKeyCalculator keyCalculator,
-			DataRecordLinkCollector linkCollector) {
+			DataRecordLinkCollector linkCollector,
+			ExtendedFunctionalityProvider extendedFunctionalityProvider) {
 		this.authorization = authorization;
 		this.dataValidator = dataValidator;
 		this.recordStorage = recordStorage;
 		this.keyCalculator = keyCalculator;
 		this.linkCollector = linkCollector;
+		this.extendedFunctionalityProvider = extendedFunctionalityProvider;
 	}
 
 	@Override
@@ -140,8 +145,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		}
 	}
 
-	private void checkUserIsAuthorisedToStoreIncomingData(String userId,
-			DataGroup incomingData) {
+	private void checkUserIsAuthorisedToStoreIncomingData(String userId, DataGroup incomingData) {
 
 		// calculate permissionKey
 		String accessType = "UPDATE";
