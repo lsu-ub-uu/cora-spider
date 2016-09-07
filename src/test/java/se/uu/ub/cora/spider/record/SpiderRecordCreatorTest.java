@@ -268,7 +268,7 @@ public class SpiderRecordCreatorTest {
 
 		SpiderDataRecord recordOut = recordCreator.createAndStoreRecord("userId", "recordType",
 				record);
-		assertEquals(recordOut.getActions().size(), 7);
+		assertEquals(recordOut.getActions().size(), 6);
 		assertTrue(recordOut.getActions().contains(Action.READ));
 		assertTrue(recordOut.getActions().contains(Action.UPDATE));
 		assertTrue(recordOut.getActions().contains(Action.DELETE));
@@ -276,7 +276,7 @@ public class SpiderRecordCreatorTest {
 
 		assertTrue(recordOut.getActions().contains(Action.LIST));
 		assertTrue(recordOut.getActions().contains(Action.SEARCH));
-		assertTrue(recordOut.getActions().contains(Action.CREATE_BY_UPLOAD));
+		assertFalse(recordOut.getActions().contains(Action.UPLOAD));
 	}
 
 	@Test
@@ -377,6 +377,21 @@ public class SpiderRecordCreatorTest {
 		SpiderDataGroup dataGroup = DataCreator.createMetadataGroupWithTwoChildren();
 
 		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId", "testGroupWithTwoChildren");
+		dataGroup.addChild(refParent);
+
+		SpiderDataRecord record = recordCreator.createAndStoreRecord("userId", "metadataGroup", dataGroup);
+		assertTrue(recordStorage.createWasCalled);
+	}
+
+	@Test
+	public void testMetadataGroupChildWithOneChild(){
+
+		RecordStorageCreateUpdateSpy recordStorage = new RecordStorageCreateUpdateSpy();
+		setRecordCreatorWithRecordStorage(recordStorage);
+
+		SpiderDataGroup dataGroup = DataCreator.createMetadataGroupWithOneChild();
+
+		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId", "testGroupWithOneChild");
 		dataGroup.addChild(refParent);
 
 		SpiderDataRecord record = recordCreator.createAndStoreRecord("userId", "metadataGroup", dataGroup);
