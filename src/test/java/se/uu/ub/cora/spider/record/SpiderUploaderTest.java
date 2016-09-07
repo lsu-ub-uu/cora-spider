@@ -127,7 +127,7 @@ public class SpiderUploaderTest {
 		String streamId = master.extractAtomicValue("streamId");
 		assertEquals(streamId, streamStorage.streamId);
 
-		String size = master.extractAtomicValue("size");
+		String size = master.extractAtomicValue("fileSize");
 		assertEquals(size, String.valueOf(streamStorage.size));
 
 		String fileName = master.extractAtomicValue("fileName");
