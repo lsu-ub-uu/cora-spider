@@ -25,6 +25,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
 public interface SpiderDependencyProvider {
 
@@ -39,5 +40,7 @@ public interface SpiderDependencyProvider {
 	DataValidator getDataValidator();
 
 	DataRecordLinkCollector getDataRecordLinkCollector();
+
+	StreamStorage getStreamStorage();
 
 }

@@ -101,6 +101,15 @@ public final class DataCreator {
 		return record;
 	}
 
+	public static SpiderDataGroup createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+			String nameInData, String id, String recordType, String linkedRecordId) {
+		SpiderDataGroup record = SpiderDataGroup.withNameInData(nameInData);
+		SpiderDataGroup createRecordInfo = createRecordInfoWithIdAndTypeAndLinkedRecordId(id,
+				recordType, linkedRecordId);
+		record.addChild(createRecordInfo);
+		return record;
+	}
+
 	public static SpiderDataGroup createRecordInfoWithLinkedRecordId(String linkedRecordId) {
 		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
 		SpiderDataGroup dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
@@ -155,7 +164,18 @@ public final class DataCreator {
 		return childReferences;
 	}
 
-	public static SpiderDataGroup createMetadataGroupWithTwoChildren(){
+	public static SpiderDataGroup createRecordInfoWithIdAndTypeAndLinkedRecordId(String id,
+			String recordType, String linkedRecordId) {
+		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
+		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", id));
+		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", recordType));
+
+		SpiderDataGroup dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
+		createRecordInfo.addChild(dataDivider);
+		return createRecordInfo;
+	}
+
+	public static SpiderDataGroup createMetadataGroupWithTwoChildren() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("metadata");
 		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "testNewGroup"));
@@ -169,7 +189,7 @@ public final class DataCreator {
 		return spiderDataGroup;
 	}
 
-	private static SpiderDataGroup createChildReferences(){
+	private static SpiderDataGroup createChildReferences() {
 		SpiderDataGroup childReferences = SpiderDataGroup.withNameInData("childReferences");
 
 		childReferences.addChild(createChildReference("childOne", "1", "1"));
@@ -178,25 +198,28 @@ public final class DataCreator {
 		return childReferences;
 	}
 
-	private static SpiderDataGroup createChildReference(String ref, String repeatMin, String repeatMax) {
+	private static SpiderDataGroup createChildReference(String ref, String repeatMin,
+			String repeatMax) {
 		SpiderDataGroup childReference = SpiderDataGroup.withNameInData("childReference");
 
 		SpiderDataAtomic refAtomic = SpiderDataAtomic.withNameInDataAndValue("ref", ref);
 		childReference.addChild(refAtomic);
 
-		SpiderDataAtomic repeatMinAtomic = SpiderDataAtomic.withNameInDataAndValue("ref", repeatMin);
+		SpiderDataAtomic repeatMinAtomic = SpiderDataAtomic.withNameInDataAndValue("ref",
+				repeatMin);
 		childReference.addChild(repeatMinAtomic);
 
-		SpiderDataAtomic repeatMaxAtomic = SpiderDataAtomic.withNameInDataAndValue("ref", repeatMax);
+		SpiderDataAtomic repeatMaxAtomic = SpiderDataAtomic.withNameInDataAndValue("ref",
+				repeatMax);
 		childReference.addChild(repeatMaxAtomic);
 
 		return childReference;
 	}
 
-	public static SpiderDataGroup createMetadataGroupWithThreeChildren(){
+	public static SpiderDataGroup createMetadataGroupWithThreeChildren() {
 		SpiderDataGroup spiderDataGroup = createMetadataGroupWithTwoChildren();
-		SpiderDataGroup childReferences = (SpiderDataGroup)
-				spiderDataGroup.getFirstChildWithNameInData("childReferences");
+		SpiderDataGroup childReferences = (SpiderDataGroup) spiderDataGroup
+				.getFirstChildWithNameInData("childReferences");
 		childReferences.addChild(createChildReference("childThree", "1", "1"));
 
 		return spiderDataGroup;
@@ -228,19 +251,20 @@ public final class DataCreator {
 		return recordToRecordLink;
 	}
 
-	public static SpiderDataGroup createMetadataGroupWithCollectionVariableAsChild(){
+	public static SpiderDataGroup createMetadataGroupWithCollectionVariableAsChild() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("metadata");
 		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "testCollectionVar"));
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "collectionVariable"));
 		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));
 		spiderDataGroup.addChild(recordInfo);
-		spiderDataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("refCollectionId", "testItemCollection"));
+		spiderDataGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("refCollectionId", "testItemCollection"));
 
 		return spiderDataGroup;
 	}
 
-	public static SpiderDataGroup createMetadataGroupWithRecordLinkAsChild(){
+	public static SpiderDataGroup createMetadataGroupWithRecordLinkAsChild() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("metadata");
 		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "testRecordLink"));

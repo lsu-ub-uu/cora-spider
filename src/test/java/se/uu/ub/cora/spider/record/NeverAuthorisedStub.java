@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,24 +17,17 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.spy;
+package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import java.util.Set;
 
-public class DataRecordLinkCollectorSpy implements DataRecordLinkCollector {
+import se.uu.ub.cora.beefeater.Authorizator;
 
-	public boolean collectLinksWasCalled = false;
-	public String metadataId = null;
-
-	public DataGroup collectedDataLinks = DataGroup.withNameInData("collectedDataLinks");
+public class NeverAuthorisedStub implements Authorizator {
 
 	@Override
-	public DataGroup collectLinks(String metadataId, DataGroup dataGroup, String fromRecordType,
-			String fromRecordId) {
-		this.metadataId = metadataId;
-		collectLinksWasCalled = true;
-		return collectedDataLinks;
+	public boolean isAuthorized(String userId, Set<String> recordCalculateKeys) {
+		return false;
 	}
 
 }

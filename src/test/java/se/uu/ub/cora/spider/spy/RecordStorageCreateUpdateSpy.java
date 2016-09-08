@@ -22,11 +22,11 @@ package se.uu.ub.cora.spider.spy;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import se.uu.ub.cora.bookkeeper.data.Data;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.spider.testdata.DataCreator;
 
 public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
@@ -102,7 +102,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		}
 		if (type.equals("recordType") && id.equals("metadataGroup")) {
 			DataGroup group = DataGroup.withNameInData("metadata");
-			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId", "metadataGroupNewGroup"));
+			group.addChild(
+					DataAtomic.withNameInDataAndValue("newMetadataId", "metadataGroupNewGroup"));
 			group.addChild(DataAtomic.withNameInDataAndValue("metadataId", "metadataGroupGroup"));
 			group.addChild(DataAtomic.withNameInDataAndValue("userSuppliedId", "true"));
 			group.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
@@ -110,16 +111,20 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		}
 		if (type.equals("recordType") && id.equals("metadataCollectionVariable")) {
 			DataGroup group = DataGroup.withNameInData("metadata");
-			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId", "metadataCollectionVariableNewGroup"));
-			group.addChild(DataAtomic.withNameInDataAndValue("metadataId", "metadataCollectionVariableGroup"));
+			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId",
+					"metadataCollectionVariableNewGroup"));
+			group.addChild(DataAtomic.withNameInDataAndValue("metadataId",
+					"metadataCollectionVariableGroup"));
 			group.addChild(DataAtomic.withNameInDataAndValue("userSuppliedId", "true"));
 			group.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
 			return group;
 		}
 		if (type.equals("recordType") && id.equals("metadataRecordLink")) {
 			DataGroup group = DataGroup.withNameInData("metadata");
-			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId", "metadataRecordLinkNewGroup"));
-			group.addChild(DataAtomic.withNameInDataAndValue("metadataId", "metadataRecordLinkGroup"));
+			group.addChild(DataAtomic.withNameInDataAndValue("newMetadataId",
+					"metadataRecordLinkNewGroup"));
+			group.addChild(
+					DataAtomic.withNameInDataAndValue("metadataId", "metadataRecordLinkGroup"));
 			group.addChild(DataAtomic.withNameInDataAndValue("userSuppliedId", "true"));
 			group.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
 			return group;
@@ -155,7 +160,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
 			DataGroup childReferences = DataGroup.withNameInData("childReferences");
 			childReferences.addChild(createChildReference("childOne", "1", "1"));
-			childReferences.addChild(createChildReference("childWithSameNameInDataAsChildTwo", "0", "1"));
+			childReferences
+					.addChild(createChildReference("childWithSameNameInDataAsChildTwo", "0", "1"));
 			group.addChild(childReferences);
 			return group;
 		}
@@ -170,8 +176,9 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			return group;
 		}
 		if (type.equals("metadataTextVariable") && id.equals("childWithSameNameInDataAsChildTwo")) {
-			//name in data is not same as id to test same scenario as recordInfoGroup/recordInfoNewGroup
-			//different id, same name in data
+			// name in data is not same as id to test same scenario as
+			// recordInfoGroup/recordInfoNewGroup
+			// different id, same name in data
 			DataGroup group = DataGroup.withNameInData("metadata");
 			group.addChild(DataAtomic.withNameInDataAndValue("nameInData", "childTwo"));
 			return group;
@@ -191,7 +198,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		if (id.equals("testParentMissingItemCollectionVar")) {
 			DataGroup group = DataGroup.withNameInData("metadata");
 
-			group.addChild(DataAtomic.withNameInDataAndValue("refCollectionId", "testParentMissingItemCollection"));
+			group.addChild(DataAtomic.withNameInDataAndValue("refCollectionId",
+					"testParentMissingItemCollection"));
 			return group;
 		}
 		if (id.equals("testParentMissingItemCollection")) {
@@ -206,7 +214,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		if (id.equals("testParentCollectionVar")) {
 			DataGroup group = DataGroup.withNameInData("metadata");
 
-			group.addChild(DataAtomic.withNameInDataAndValue("refCollectionId", "testParentItemCollection"));
+			group.addChild(DataAtomic.withNameInDataAndValue("refCollectionId",
+					"testParentItemCollection"));
 			return group;
 		}
 		if (id.equals("testParentItemCollection")) {
@@ -219,15 +228,19 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			group.addChild(itemReferences);
 			return group;
 		}
-		if(type.equals("metadataCollectionItem") && id.equals("thisItem")){
+		if (type.equals("metadataCollectionItem") && id.equals("thisItem")) {
 			DataGroup group = DataGroup.withNameInData("metadata");
 			group.addChild(DataAtomic.withNameInDataAndValue("nameInData", "this"));
 			return group;
 		}
-		if(type.equals("metadataCollectionItem") && id.equals("thatItem")){
+		if (type.equals("metadataCollectionItem") && id.equals("thatItem")) {
 			DataGroup group = DataGroup.withNameInData("metadata");
 			group.addChild(DataAtomic.withNameInDataAndValue("nameInData", "that"));
 			return group;
+		}
+		if ("image".equals(type) && "image:123456789".equals(id)) {
+			return DataCreator.createRecordWithNameInDataAndIdAndLinkedRecordId("image",
+					"image:123456789", "cora").toDataGroup();
 		}
 		return null;
 	}
@@ -278,10 +291,10 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		metadataGroup.addChild(DataAtomic.withNameInDataAndValue("parentId", "metadata"));
 		recordTypeList.add(metadataGroup);
 
-
 		DataGroup metadataTextVariable = DataGroup.withNameInData("recordType");
 		DataGroup recordInfoTextVariable = DataGroup.withNameInData("recordInfo");
-		recordInfoTextVariable.addChild(DataAtomic.withNameInDataAndValue("id", "metadataTextVariable"));
+		recordInfoTextVariable
+				.addChild(DataAtomic.withNameInDataAndValue("id", "metadataTextVariable"));
 		metadataTextVariable.addChild(recordInfoTextVariable);
 
 		metadataTextVariable.addChild(DataAtomic.withNameInDataAndValue("parentId", "metadata"));
@@ -289,14 +302,14 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
 		DataGroup presentationVar = DataGroup.withNameInData("recordType");
 		DataGroup recordInfoPresentationVar = DataGroup.withNameInData("recordInfo");
-		recordInfoPresentationVar.addChild(DataAtomic.withNameInDataAndValue("id", "presentationVar"));
+		recordInfoPresentationVar
+				.addChild(DataAtomic.withNameInDataAndValue("id", "presentationVar"));
 		metadataTextVariable.addChild(recordInfoTextVariable);
 
 		presentationVar.addChild(DataAtomic.withNameInDataAndValue("parentId", "presentation"));
 		recordTypeList.add(presentationVar);
 
 		return recordTypeList;
-
 
 	}
 
