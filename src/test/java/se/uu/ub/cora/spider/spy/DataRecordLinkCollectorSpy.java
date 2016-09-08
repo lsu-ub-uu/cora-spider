@@ -34,8 +34,6 @@ public class DataRecordLinkCollectorSpy implements DataRecordLinkCollector {
 			String fromRecordId) {
 		this.metadataId = metadataId;
 		collectLinksWasCalled = true;
-		// DataGroup collectedDataLinks =
-		// DataGroup.withNameInData("collectedDataLinks");
 		return collectedDataLinks;
 	}
 
