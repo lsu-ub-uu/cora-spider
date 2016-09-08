@@ -161,7 +161,7 @@ public final class SpiderUploaderImp implements SpiderUploader {
 				fileName);
 		master.addChild(uploadedFileName);
 
-		SpiderDataAtomic size = SpiderDataAtomic.withNameInDataAndValue("size",
+		SpiderDataAtomic size = SpiderDataAtomic.withNameInDataAndValue("fileSize",
 				String.valueOf(fileSize));
 		master.addChild(size);
 	}

@@ -142,6 +142,28 @@ public final class DataCreator {
 		return createRecordInfo;
 	}
 
+	public static SpiderDataGroup createMetadataGroupWithOneChild(){
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("metadata");
+		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "testNewGroup"));
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "metadataGroup"));
+		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));
+
+		spiderDataGroup.addChild(recordInfo);
+
+		spiderDataGroup.addChild(createChildReference());
+
+		return spiderDataGroup;
+	}
+
+	private static SpiderDataGroup createChildReference(){
+		SpiderDataGroup childReferences = SpiderDataGroup.withNameInData("childReferences");
+
+		childReferences.addChild(createChildReference("childOne", "1", "1"));
+
+		return childReferences;
+	}
+
 	public static SpiderDataGroup createRecordInfoWithIdAndTypeAndLinkedRecordId(String id,
 			String recordType, String linkedRecordId) {
 		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
