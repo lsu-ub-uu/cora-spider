@@ -25,6 +25,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
@@ -61,14 +62,38 @@ public class SpiderDownloaderImp implements SpiderDownloader {
 		this.recordId = id;
 		this.resource = resource;
 
+		checkResourceIsPresent();
+
 		checkRecordTypeIsChildOfBinary();
 
 		DataGroup recordRead = recordStorage.read(type, id);
 		spiderRecordRead = SpiderDataGroup.fromDataGroup(recordRead);
-		checkUserIsAuthorisedToDownloadData(recordRead);
+		checkUserIsAuthorisedToDownloadStream(recordRead);
+
+		SpiderDataGroup resourceInfo = spiderRecordRead.extractGroup("resourceInfo");
+		// TODO: make shure entered resource exists
+		SpiderDataGroup requestedResource = resourceInfo.extractGroup(resource);
+		String streamId = requestedResource.extractAtomicValue("streamId");
+
+		String dataDivider = extractDataDividerFromData(spiderRecordRead);
 
 		// TODO Auto-generated method stub
+		// return streamStorage.read(streamId, dataDivider);
 		return null;
+	}
+
+	private void checkResourceIsPresent() {
+		if (resourceIsNull(resource) || resourceHasNoLength(resource)) {
+			throw new DataMissingException("No resource to download");
+		}
+	}
+
+	private boolean resourceIsNull(String fileName) {
+		return null == fileName;
+	}
+
+	private boolean resourceHasNoLength(String fileName) {
+		return fileName.length() == 0;
 	}
 
 	private void checkRecordTypeIsChildOfBinary() {
@@ -89,24 +114,38 @@ public class SpiderDownloaderImp implements SpiderDownloader {
 						.equals("binary");
 	}
 
-	private void checkUserIsAuthorisedToDownloadData(DataGroup recordRead) {
+	private void checkUserIsAuthorisedToDownloadStream(DataGroup recordRead) {
 		if (isNotAuthorizedToDownload(recordRead)) {
-			throw new AuthorizationException(
-					"User:" + userId + " is not authorized to download for record:" + recordId
-							+ " of type:" + recordType);
+			throwAuthorizationException("download");
 		}
-		if (isNotAuthorizedToMasterResource(recordRead)) {
-			throw new AuthorizationException(
-					"User:" + userId + " is not authorized to download for record:" + recordId
-							+ " of type:" + recordType);
+		if (isNotAuthorizedToResource(recordRead)) {
+			throwAuthorizationException("download resource " + resource);
 		}
 
 	}
 
+	private void throwAuthorizationException(String reason) {
+		throw new AuthorizationException("User:" + userId + " is not authorized to " + reason
+				+ "for record:" + recordId + " of type:" + recordType);
+	}
+
 	private boolean isNotAuthorizedToDownload(DataGroup recordRead) {
-		String accessType = "UPLOAD";
+		return isNotAuthorizedTo("DOWNLOAD", recordRead);
+	}
+
+	private boolean isNotAuthorizedTo(String accessType, DataGroup recordRead) {
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
 				recordRead);
 		return !authorization.isAuthorized(userId, recordCalculateKeys);
+	}
+
+	private boolean isNotAuthorizedToResource(DataGroup recordRead) {
+		return isNotAuthorizedTo(resource.toUpperCase() + "_RESOURCE", recordRead);
+	}
+
+	private String extractDataDividerFromData(SpiderDataGroup spiderDataGroup) {
+		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup("recordInfo");
+		SpiderDataGroup dataDivider = recordInfo.extractGroup("dataDivider");
+		return dataDivider.extractAtomicValue("linkedRecordId");
 	}
 }
