@@ -200,11 +200,11 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup master = DataGroup.withNameInData("master");
 		resourceInfo.addChild(master);
 		DataAtomic streamId = DataAtomic.withNameInDataAndValue("streamId", "123456789");
-		resourceInfo.addChild(streamId);
+		master.addChild(streamId);
 		DataAtomic uploadedFileName = DataAtomic.withNameInDataAndValue("fileName", "adele.png");
-		resourceInfo.addChild(uploadedFileName);
+		master.addChild(uploadedFileName);
 		DataAtomic size = DataAtomic.withNameInDataAndValue("fileSize", "123");
-		resourceInfo.addChild(size);
+		master.addChild(size);
 		recordsInMemory.create("image", "image:123456789", dataGroup,
 				DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}

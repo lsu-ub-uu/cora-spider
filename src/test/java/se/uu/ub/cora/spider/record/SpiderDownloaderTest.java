@@ -26,8 +26,9 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -58,9 +59,7 @@ public class SpiderDownloaderTest {
 		keyCalculator = new RecordPermissionKeyCalculatorStub();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		streamStorage = new StreamStorageSpy();
-
 		setUpDependencyProvider();
-
 	}
 
 	private void setUpDependencyProvider() {
@@ -91,29 +90,15 @@ public class SpiderDownloaderTest {
 		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorizator).authorizedWasCalled);
 	}
 
-	// @Test
+	@Test
 	public void testDownloadStream() {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 		streamStorage.stream = stream;
 
-		OutputStream outputStream = downloader.download("userId", "image", "image:123456789",
+		InputStream inputStream = downloader.download("userId", "image", "image:123456789",
 				"master");
 
-		assertEquals(outputStream, stream);
-
-		// SpiderDataGroup groupUpdated = recordUpdated.getSpiderDataGroup();
-		// SpiderDataGroup resourceInfo = groupUpdated.extractGroup("resourceInfo");
-		// SpiderDataGroup master = resourceInfo.extractGroup("master");
-		//
-		// String streamId = master.extractAtomicValue("streamId");
-		// assertEquals(streamId, streamStorage.streamId);
-		//
-		// String size = master.extractAtomicValue("size");
-		// assertEquals(size, String.valueOf(streamStorage.size));
-		//
-		// String fileName = master.extractAtomicValue("fileName");
-		// assertEquals(fileName, "someFileName");
-
+		assertEquals(inputStream, stream);
 	}
 
 	@Test(expectedExceptions = DataException.class)
@@ -145,34 +130,36 @@ public class SpiderDownloaderTest {
 
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testDownloadResourceDoesNotExistInRecord() {
-		// RecordStorageCreateUpdateSpy recordStorageSpy = new RecordStorageCreateUpdateSpy();
-		// recordStorage = recordStorageSpy;
-		// setUpDependencyProvider();
 		downloader.download("userId", "image", "image:123456789", "NonExistingResource");
-
 	}
-	//
-	// @Test(expectedExceptions = RecordNotFoundException.class)
-	// public void testNonExistingRecordType() {
-	// InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-	// downloader.download("userId", "recordType_NOT_EXISTING", "id", stream, "someFileName");
-	// }
-	//
-	// @Test(expectedExceptions = AuthorizationException.class)
-	// public void testUpdateRecordUserNotAuthorisedToUpdateData() {
-	//
-	// SpiderDownloader downloader = setupWithUserNotAuthorized();
-	// InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-	// downloader.download("userId", "image", "image:123456789", stream, "someFileName");
-	// }
-	//
-	// private SpiderDownloader setupWithUserNotAuthorized() {
-	// authorizator = new NeverAuthorisedStub();
-	// setUpDependencyProvider();
-	//
-	// SpiderDownloader downloader =
-	// SpiderDownloaderImp.usingDependencyProvider(dependencyProvider);
-	// return downloader;
-	// }
 
+	@Test(expectedExceptions = RecordNotFoundException.class)
+	public void testNonExistingRecordType() {
+		downloader.download("userId", "image_NOT_EXISTING", "image:123456789", "master");
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void testUpdateRecordUserNotAuthorisedToDownload() {
+		HashSet<String> notAuthorizedKeys = new HashSet<>();
+		notAuthorizedKeys.add("DOWNLOAD:IMAGE:SYSTEM:*");
+		SpiderDownloader downloader = setupWithUserNotAuthorized(notAuthorizedKeys);
+		downloader.download("userId", "image", "image:123456789", "master");
+	}
+
+	private SpiderDownloader setupWithUserNotAuthorized(Set<String> notAuthorizedKeys) {
+		authorizator = new AlwaysAuthorisedExceptStub();
+		AlwaysAuthorisedExceptStub authorizator2 = (AlwaysAuthorisedExceptStub) authorizator;
+		authorizator2.notAuthorizedForKeys = notAuthorizedKeys;
+		setUpDependencyProvider();
+
+		return SpiderDownloaderImp.usingDependencyProvider(dependencyProvider);
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void testUpdateRecordUserNotAuthorisedToResource() {
+		HashSet<String> notAuthorizedKeys = new HashSet<>();
+		notAuthorizedKeys.add("MASTER_RESOURCE:IMAGE:SYSTEM:*");
+		SpiderDownloader downloader = setupWithUserNotAuthorized(notAuthorizedKeys);
+		downloader.download("userId", "image", "image:123456789", "master");
+	}
 }

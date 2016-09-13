@@ -20,7 +20,7 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
@@ -29,6 +29,7 @@ import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
@@ -56,7 +57,7 @@ public class SpiderDownloaderImp implements SpiderDownloader {
 	}
 
 	@Override
-	public OutputStream download(String userId, String type, String id, String resource) {
+	public InputStream download(String userId, String type, String id, String resource) {
 		this.userId = userId;
 		this.recordType = type;
 		this.recordId = id;
@@ -70,16 +71,23 @@ public class SpiderDownloaderImp implements SpiderDownloader {
 		spiderRecordRead = SpiderDataGroup.fromDataGroup(recordRead);
 		checkUserIsAuthorisedToDownloadStream(recordRead);
 
-		SpiderDataGroup resourceInfo = spiderRecordRead.extractGroup("resourceInfo");
-		// TODO: make shure entered resource exists
-		SpiderDataGroup requestedResource = resourceInfo.extractGroup(resource);
-		String streamId = requestedResource.extractAtomicValue("streamId");
+		String streamId = tryToExtractStreamIdFromResource(resource);
 
 		String dataDivider = extractDataDividerFromData(spiderRecordRead);
 
-		// TODO Auto-generated method stub
-		// return streamStorage.read(streamId, dataDivider);
-		return null;
+		return streamStorage.retrieve(streamId, dataDivider);
+	}
+
+	private String tryToExtractStreamIdFromResource(String resource) {
+		try {
+			SpiderDataGroup resourceInfo = spiderRecordRead.extractGroup("resourceInfo");
+			// TODO: make sure entered resource exists
+			SpiderDataGroup requestedResource = resourceInfo.extractGroup(resource);
+			String streamId = requestedResource.extractAtomicValue("streamId");
+			return streamId;
+		} catch (DataMissingException e) {
+			throw new RecordNotFoundException("resource not found");
+		}
 	}
 
 	private void checkResourceIsPresent() {
@@ -116,17 +124,15 @@ public class SpiderDownloaderImp implements SpiderDownloader {
 
 	private void checkUserIsAuthorisedToDownloadStream(DataGroup recordRead) {
 		if (isNotAuthorizedToDownload(recordRead)) {
-			throwAuthorizationException("download");
+			throw new AuthorizationException("User:" + userId + " is not authorized to "
+					+ "download" + "for record:" + recordId + " of type:" + recordType);
 		}
 		if (isNotAuthorizedToResource(recordRead)) {
-			throwAuthorizationException("download resource " + resource);
+			throw new AuthorizationException(
+					"User:" + userId + " is not authorized to " + ("download resource " + resource)
+							+ "for record:" + recordId + " of type:" + recordType);
 		}
 
-	}
-
-	private void throwAuthorizationException(String reason) {
-		throw new AuthorizationException("User:" + userId + " is not authorized to " + reason
-				+ "for record:" + recordId + " of type:" + recordType);
 	}
 
 	private boolean isNotAuthorizedToDownload(DataGroup recordRead) {

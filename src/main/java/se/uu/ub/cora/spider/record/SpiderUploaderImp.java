@@ -78,11 +78,9 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		String dataDivider = extractDataDividerFromData(spiderRecordRead);
 		long fileSize = streamStorage.store(streamId, dataDivider, stream);
 
-		addResourceInfoToMetdataRecord(fileName, fileSize);
+		addOrReplaceResourceInfoToMetdataRecord(fileName, fileSize);
 
-		// - store recordRead
 		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
-		// - return recordRead
 		return spiderRecordUpdater.updateRecord(userId, type, id, spiderRecordRead);
 	}
 
@@ -145,6 +143,18 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		return dataDivider.extractAtomicValue("linkedRecordId");
 	}
 
+	private void addOrReplaceResourceInfoToMetdataRecord(String fileName, long fileSize) {
+		if (recordAlreadyHasResourceInfo()) {
+			addResourceInfoToMetdataRecord(fileName, fileSize);
+		} else {
+			replaceResourceInfoToMetdataRecord(fileName, fileSize);
+		}
+	}
+
+	private boolean recordAlreadyHasResourceInfo() {
+		return !spiderRecordRead.containsChildWithNameInData("resourceInfo");
+	}
+
 	private void addResourceInfoToMetdataRecord(String fileName, long fileSize) {
 		SpiderDataGroup resourceInfo = SpiderDataGroup.withNameInData("resourceInfo");
 		spiderRecordRead.addChild(resourceInfo);
@@ -164,5 +174,10 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		SpiderDataAtomic size = SpiderDataAtomic.withNameInDataAndValue("fileSize",
 				String.valueOf(fileSize));
 		master.addChild(size);
+	}
+
+	private void replaceResourceInfoToMetdataRecord(String fileName, long fileSize) {
+		spiderRecordRead.removeChild("resourceInfo");
+		addResourceInfoToMetdataRecord(fileName, fileSize);
 	}
 }

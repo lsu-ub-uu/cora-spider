@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,14 +17,22 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.stream.storage;
+package se.uu.ub.cora.spider.record;
 
-import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
-public interface StreamStorage {
+import se.uu.ub.cora.beefeater.Authorizator;
 
-	long store(String streamId, String dataDivider, InputStream stream);
+public class AlwaysAuthorisedExceptStub implements Authorizator {
+	public Set<String> notAuthorizedForKeys = new HashSet<>();
 
-	InputStream retrieve(String streamId, String dataDivider);
+	@Override
+	public boolean isAuthorized(String userId, Set<String> recordCalculateKeys) {
+		if (notAuthorizedForKeys.removeAll(recordCalculateKeys)) {
+			return false;
+		}
+		return true;
+	}
 
 }

@@ -19,10 +19,10 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.io.OutputStream;
+import java.io.InputStream;
 
 public interface SpiderDownloader {
 
-	OutputStream download(String userId, String type, String id, String resource);
+	InputStream download(String userId, String type, String id, String resource);
 
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -173,5 +174,10 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 
 	public String getRepeatId() {
 		return repeatId;
+	}
+
+	public void removeChild(String string) {
+		SpiderDataElement firstChildWithNameInData = getFirstChildWithNameInData(string);
+		children.remove(firstChildWithNameInData);
 	}
 }
