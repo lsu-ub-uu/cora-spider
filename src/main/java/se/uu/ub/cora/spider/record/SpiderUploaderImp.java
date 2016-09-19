@@ -35,6 +35,7 @@ import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
 public final class SpiderUploaderImp implements SpiderUploader {
+	private static final String RESOURCE_INFO = "resourceInfo";
 	private static final String RECORD_INFO = "recordInfo";
 	private Authorizator authorization;
 	private RecordIdGenerator idGenerator;
@@ -47,17 +48,17 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	private SpiderDataGroup spiderRecordRead;
 	private String streamId;
 
-	public static SpiderUploaderImp usingDependencyProvider(
-			SpiderDependencyProvider dependencyProvider) {
-		return new SpiderUploaderImp(dependencyProvider);
-	}
-
 	private SpiderUploaderImp(SpiderDependencyProvider dependencyProvider) {
 		authorization = dependencyProvider.getAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
 		keyCalculator = dependencyProvider.getPermissionKeyCalculator();
 		idGenerator = dependencyProvider.getIdGenerator();
 		streamStorage = dependencyProvider.getStreamStorage();
+	}
+
+	public static SpiderUploaderImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new SpiderUploaderImp(dependencyProvider);
 	}
 
 	@Override
@@ -87,7 +88,7 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	private void checkRecordTypeIsChildOfBinary() {
 		DataGroup recordTypeDefinition = getRecordTypeDefinition();
 		if (recordTypeIsChildOfBinary(recordTypeDefinition)) {
-			throw new DataException(
+			throw new MisuseException(
 					"It is only possible to upload files to recordTypes that are children of binary");
 		}
 	}
@@ -97,9 +98,8 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	}
 
 	private boolean recordTypeIsChildOfBinary(DataGroup recordTypeDefinition) {
-		return !recordTypeDefinition.containsChildWithNameInData("parentId")
-				|| !recordTypeDefinition.getFirstAtomicValueWithNameInData("parentId")
-						.equals("binary");
+		return !recordTypeDefinition.containsChildWithNameInData("parentId") || !"binary"
+				.equals(recordTypeDefinition.getFirstAtomicValueWithNameInData("parentId"));
 	}
 
 	private void checkUserIsAuthorisedToUploadData(DataGroup recordRead) {
@@ -152,11 +152,11 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	}
 
 	private boolean recordAlreadyHasResourceInfo() {
-		return !spiderRecordRead.containsChildWithNameInData("resourceInfo");
+		return !spiderRecordRead.containsChildWithNameInData(RESOURCE_INFO);
 	}
 
 	private void addResourceInfoToMetdataRecord(String fileName, long fileSize) {
-		SpiderDataGroup resourceInfo = SpiderDataGroup.withNameInData("resourceInfo");
+		SpiderDataGroup resourceInfo = SpiderDataGroup.withNameInData(RESOURCE_INFO);
 		spiderRecordRead.addChild(resourceInfo);
 
 		SpiderDataGroup master = SpiderDataGroup.withNameInData("master");
@@ -177,7 +177,7 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	}
 
 	private void replaceResourceInfoToMetdataRecord(String fileName, long fileSize) {
-		spiderRecordRead.removeChild("resourceInfo");
+		spiderRecordRead.removeChild(RESOURCE_INFO);
 		addResourceInfoToMetdataRecord(fileName, fileSize);
 	}
 }

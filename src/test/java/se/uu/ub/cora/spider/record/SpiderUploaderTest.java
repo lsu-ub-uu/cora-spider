@@ -140,14 +140,14 @@ public class SpiderUploaderTest {
 		assertEquals(fileName, "someFileName");
 	}
 
-	@Test(expectedExceptions = DataException.class)
+	@Test(expectedExceptions = MisuseException.class)
 	public void testUploadStreamNotChildOfBinary() {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 
 		uploader.upload("userId", "place", "place:0002", stream, "someFileName");
 	}
 
-	@Test(expectedExceptions = DataException.class)
+	@Test(expectedExceptions = MisuseException.class)
 	public void testUploadStreamNotChildOfBinary2() {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 

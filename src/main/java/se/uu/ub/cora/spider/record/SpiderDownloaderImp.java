@@ -28,7 +28,6 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.stream.storage.StreamStorage;
@@ -45,8 +44,8 @@ public class SpiderDownloaderImp implements SpiderDownloader {
 	private SpiderDataGroup spiderRecordRead;
 
 	public static SpiderDownloader usingDependencyProvider(
-			SpiderDependencyProviderSpy dependencyProvider) {
-		return new SpiderDownloaderImp(dependencyProvider);
+			SpiderDependencyProvider spiderDependencyProvider) {
+		return new SpiderDownloaderImp(spiderDependencyProvider);
 	}
 
 	private SpiderDownloaderImp(SpiderDependencyProvider dependencyProvider) {
@@ -107,7 +106,7 @@ public class SpiderDownloaderImp implements SpiderDownloader {
 	private void checkRecordTypeIsChildOfBinary() {
 		DataGroup recordTypeDefinition = getRecordTypeDefinition();
 		if (recordTypeIsChildOfBinary(recordTypeDefinition)) {
-			throw new DataException(
+			throw new MisuseException(
 					"It is only possible to upload files to recordTypes that are children of binary");
 		}
 	}
