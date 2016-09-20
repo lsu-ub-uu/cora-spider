@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.data;
 
 import java.io.InputStream;
 
-public class SpiderInputStream {
+public final class SpiderInputStream {
 
 	public final String name;
 	public final long size;

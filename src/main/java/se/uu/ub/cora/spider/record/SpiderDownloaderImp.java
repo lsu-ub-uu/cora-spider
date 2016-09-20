@@ -33,7 +33,7 @@ import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
-public class SpiderDownloaderImp implements SpiderDownloader {
+public final class SpiderDownloaderImp implements SpiderDownloader {
 	private static final String RESOURCE_INFO = "resourceInfo";
 	private String userId;
 	private String recordType;
@@ -131,9 +131,9 @@ public class SpiderDownloaderImp implements SpiderDownloader {
 					+ "download" + "for record:" + recordId + " of type:" + recordType);
 		}
 		if (isNotAuthorizedToResource(recordRead)) {
-			throw new AuthorizationException(
-					"User:" + userId + " is not authorized to " + ("download resource " + resourceName)
-							+ "for record:" + recordId + " of type:" + recordType);
+			throw new AuthorizationException("User:" + userId + " is not authorized to "
+					+ ("download resource " + resourceName) + "for record:" + recordId + " of type:"
+					+ recordType);
 		}
 
 	}
