@@ -17,12 +17,25 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.data;
 
-import se.uu.ub.cora.spider.data.SpiderInputStream;
+import static org.testng.Assert.assertEquals;
 
-public interface SpiderDownloader {
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
-	SpiderInputStream download(String userId, String type, String id, String resource);
+import org.testng.annotations.Test;
 
+public class SpiderInputStreamTest {
+	@Test
+	public void testContent() {
+		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
+		SpiderInputStream spiderBinaryStream = SpiderInputStream.withNameSizeInputStream("testName",
+				1234567890, stream);
+
+		assertEquals(spiderBinaryStream.name, "testName");
+		assertEquals(spiderBinaryStream.size, 1234567890);
+		assertEquals(spiderBinaryStream.stream, stream);
+	}
 }

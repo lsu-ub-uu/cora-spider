@@ -17,12 +17,25 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.data;
 
-import se.uu.ub.cora.spider.data.SpiderInputStream;
+import java.io.InputStream;
 
-public interface SpiderDownloader {
+public class SpiderInputStream {
 
-	SpiderInputStream download(String userId, String type, String id, String resource);
+	public final String name;
+	public final long size;
+	public final InputStream stream;
+
+	private SpiderInputStream(String name, long size, InputStream stream) {
+		this.name = name;
+		this.size = size;
+		this.stream = stream;
+	}
+
+	public static SpiderInputStream withNameSizeInputStream(String name, long size,
+			InputStream stream) {
+		return new SpiderInputStream(name, size, stream);
+	}
 
 }

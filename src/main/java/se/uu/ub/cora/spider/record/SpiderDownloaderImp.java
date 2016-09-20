@@ -27,26 +27,23 @@ import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
 public class SpiderDownloaderImp implements SpiderDownloader {
+	private static final String RESOURCE_INFO = "resourceInfo";
 	private String userId;
 	private String recordType;
 	private String recordId;
-	private String resource;
+	private String resourceName;
 	private Authorizator authorization;
 	private RecordStorage recordStorage;
 	private PermissionKeyCalculator keyCalculator;
 	private StreamStorage streamStorage;
 	private SpiderDataGroup spiderRecordRead;
-
-	public static SpiderDownloader usingDependencyProvider(
-			SpiderDependencyProvider spiderDependencyProvider) {
-		return new SpiderDownloaderImp(spiderDependencyProvider);
-	}
 
 	private SpiderDownloaderImp(SpiderDependencyProvider dependencyProvider) {
 		authorization = dependencyProvider.getAuthorizator();
@@ -55,12 +52,17 @@ public class SpiderDownloaderImp implements SpiderDownloader {
 		streamStorage = dependencyProvider.getStreamStorage();
 	}
 
+	public static SpiderDownloader usingDependencyProvider(
+			SpiderDependencyProvider spiderDependencyProvider) {
+		return new SpiderDownloaderImp(spiderDependencyProvider);
+	}
+
 	@Override
-	public InputStream download(String userId, String type, String id, String resource) {
+	public SpiderInputStream download(String userId, String type, String id, String resourceName) {
 		this.userId = userId;
 		this.recordType = type;
 		this.recordId = id;
-		this.resource = resource;
+		this.resourceName = resourceName;
 
 		checkResourceIsPresent();
 
@@ -70,27 +72,30 @@ public class SpiderDownloaderImp implements SpiderDownloader {
 		spiderRecordRead = SpiderDataGroup.fromDataGroup(recordRead);
 		checkUserIsAuthorisedToDownloadStream(recordRead);
 
-		String streamId = tryToExtractStreamIdFromResource(resource);
+		String streamId = tryToExtractStreamIdFromResource(resourceName);
 
-		String dataDivider = extractDataDividerFromData(spiderRecordRead);
+		String dataDivider = extractDataDividerFromData();
 
-		return streamStorage.retrieve(streamId, dataDivider);
+		InputStream stream = streamStorage.retrieve(streamId, dataDivider);
+
+		String name = extractStreamNameFromData();
+		long size = extractStreamSizeFromData();
+		return SpiderInputStream.withNameSizeInputStream(name, size, stream);
+
 	}
 
 	private String tryToExtractStreamIdFromResource(String resource) {
 		try {
-			SpiderDataGroup resourceInfo = spiderRecordRead.extractGroup("resourceInfo");
-			// TODO: make sure entered resource exists
+			SpiderDataGroup resourceInfo = spiderRecordRead.extractGroup(RESOURCE_INFO);
 			SpiderDataGroup requestedResource = resourceInfo.extractGroup(resource);
-			String streamId = requestedResource.extractAtomicValue("streamId");
-			return streamId;
+			return requestedResource.extractAtomicValue("streamId");
 		} catch (DataMissingException e) {
 			throw new RecordNotFoundException("resource not found");
 		}
 	}
 
 	private void checkResourceIsPresent() {
-		if (resourceIsNull(resource) || resourceHasNoLength(resource)) {
+		if (resourceIsNull(resourceName) || resourceHasNoLength(resourceName)) {
 			throw new DataMissingException("No resource to download");
 		}
 	}
@@ -116,9 +121,8 @@ public class SpiderDownloaderImp implements SpiderDownloader {
 	}
 
 	private boolean recordTypeIsChildOfBinary(DataGroup recordTypeDefinition) {
-		return !recordTypeDefinition.containsChildWithNameInData("parentId")
-				|| !recordTypeDefinition.getFirstAtomicValueWithNameInData("parentId")
-						.equals("binary");
+		return !recordTypeDefinition.containsChildWithNameInData("parentId") || !"binary"
+				.equals(recordTypeDefinition.getFirstAtomicValueWithNameInData("parentId"));
 	}
 
 	private void checkUserIsAuthorisedToDownloadStream(DataGroup recordRead) {
@@ -128,7 +132,7 @@ public class SpiderDownloaderImp implements SpiderDownloader {
 		}
 		if (isNotAuthorizedToResource(recordRead)) {
 			throw new AuthorizationException(
-					"User:" + userId + " is not authorized to " + ("download resource " + resource)
+					"User:" + userId + " is not authorized to " + ("download resource " + resourceName)
 							+ "for record:" + recordId + " of type:" + recordType);
 		}
 
@@ -145,12 +149,24 @@ public class SpiderDownloaderImp implements SpiderDownloader {
 	}
 
 	private boolean isNotAuthorizedToResource(DataGroup recordRead) {
-		return isNotAuthorizedTo(resource.toUpperCase() + "_RESOURCE", recordRead);
+		return isNotAuthorizedTo(resourceName.toUpperCase() + "_RESOURCE", recordRead);
 	}
 
-	private String extractDataDividerFromData(SpiderDataGroup spiderDataGroup) {
-		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup("recordInfo");
+	private String extractDataDividerFromData() {
+		SpiderDataGroup recordInfo = spiderRecordRead.extractGroup("recordInfo");
 		SpiderDataGroup dataDivider = recordInfo.extractGroup("dataDivider");
 		return dataDivider.extractAtomicValue("linkedRecordId");
+	}
+
+	private String extractStreamNameFromData() {
+		SpiderDataGroup resourceInfo = spiderRecordRead.extractGroup(RESOURCE_INFO);
+		SpiderDataGroup requestedResource = resourceInfo.extractGroup(resourceName);
+		return requestedResource.extractAtomicValue("fileName");
+	}
+
+	private long extractStreamSizeFromData() {
+		SpiderDataGroup resourceInfo = spiderRecordRead.extractGroup(RESOURCE_INFO);
+		SpiderDataGroup requestedResource = resourceInfo.extractGroup(resourceName);
+		return Long.valueOf(requestedResource.extractAtomicValue("fileSize"));
 	}
 }

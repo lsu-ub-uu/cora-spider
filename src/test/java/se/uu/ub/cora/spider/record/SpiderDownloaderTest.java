@@ -36,6 +36,7 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.spider.data.DataMissingException;
+import se.uu.ub.cora.spider.data.SpiderInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
@@ -95,10 +96,12 @@ public class SpiderDownloaderTest {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 		streamStorage.stream = stream;
 
-		InputStream inputStream = downloader.download("userId", "image", "image:123456789",
+		SpiderInputStream spiderStream = downloader.download("userId", "image", "image:123456789",
 				"master");
 
-		assertEquals(inputStream, stream);
+		assertEquals(spiderStream.stream, stream);
+		assertEquals(spiderStream.name, "adele.png");
+		assertEquals(spiderStream.size, 123);
 	}
 
 	@Test(expectedExceptions = MisuseException.class)
