@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,14 +17,25 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.stream.storage;
+package se.uu.ub.cora.spider.data;
 
 import java.io.InputStream;
 
-public interface StreamStorage {
+public class SpiderInputStream {
 
-	long store(String streamId, String dataDivider, InputStream stream);
+	public final String name;
+	public final long size;
+	public final InputStream stream;
 
-	InputStream retrieve(String streamId, String dataDivider);
+	private SpiderInputStream(String name, long size, InputStream stream) {
+		this.name = name;
+		this.size = size;
+		this.stream = stream;
+	}
+
+	public static SpiderInputStream withNameSizeInputStream(String name, long size,
+			InputStream stream) {
+		return new SpiderInputStream(name, size, stream);
+	}
 
 }

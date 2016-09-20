@@ -1,5 +1,6 @@
 /*
  * Copyright 2016 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -51,6 +52,11 @@ public class StreamStorageSpy implements StreamStorage {
 			e.printStackTrace();
 		}
 		return size;
+	}
+
+	@Override
+	public InputStream retrieve(String streamId, String dataDivider) {
+		return stream;
 	}
 
 }

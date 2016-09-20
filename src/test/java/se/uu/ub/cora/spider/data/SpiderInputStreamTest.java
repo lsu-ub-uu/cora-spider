@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,14 +17,25 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.stream.storage;
+package se.uu.ub.cora.spider.data;
 
+import static org.testng.Assert.assertEquals;
+
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
-public interface StreamStorage {
+import org.testng.annotations.Test;
 
-	long store(String streamId, String dataDivider, InputStream stream);
+public class SpiderInputStreamTest {
+	@Test
+	public void testContent() {
+		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
+		SpiderInputStream spiderBinaryStream = SpiderInputStream.withNameSizeInputStream("testName",
+				1234567890, stream);
 
-	InputStream retrieve(String streamId, String dataDivider);
-
+		assertEquals(spiderBinaryStream.name, "testName");
+		assertEquals(spiderBinaryStream.size, 1234567890);
+		assertEquals(spiderBinaryStream.stream, stream);
+	}
 }

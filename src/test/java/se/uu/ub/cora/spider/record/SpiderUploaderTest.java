@@ -103,7 +103,9 @@ public class SpiderUploaderTest {
 						"spyId", "cora"));
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 
-		uploader.upload("userId", "image", "image:123456789", stream, "someFileName");
+		SpiderDataRecord recordUpdated = uploader.upload("userId", "image", "image:123456789",
+				stream, "someFileName");
+		assertResourceInfoIsCorrect(recordUpdated);
 
 		assertTrue(((RecordStorageSpy) recordStorage).readWasCalled);
 
@@ -120,6 +122,10 @@ public class SpiderUploaderTest {
 
 		assertEquals(streamStorage.stream, stream);
 
+		assertResourceInfoIsCorrect(recordUpdated);
+	}
+
+	private void assertResourceInfoIsCorrect(SpiderDataRecord recordUpdated) {
 		SpiderDataGroup groupUpdated = recordUpdated.getSpiderDataGroup();
 		SpiderDataGroup resourceInfo = groupUpdated.extractGroup("resourceInfo");
 		SpiderDataGroup master = resourceInfo.extractGroup("master");
@@ -132,17 +138,16 @@ public class SpiderUploaderTest {
 
 		String fileName = master.extractAtomicValue("fileName");
 		assertEquals(fileName, "someFileName");
-
 	}
 
-	@Test(expectedExceptions = DataException.class)
+	@Test(expectedExceptions = MisuseException.class)
 	public void testUploadStreamNotChildOfBinary() {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 
 		uploader.upload("userId", "place", "place:0002", stream, "someFileName");
 	}
 
-	@Test(expectedExceptions = DataException.class)
+	@Test(expectedExceptions = MisuseException.class)
 	public void testUploadStreamNotChildOfBinary2() {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 

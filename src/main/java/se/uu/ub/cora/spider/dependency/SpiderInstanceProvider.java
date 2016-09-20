@@ -23,6 +23,8 @@ import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
+import se.uu.ub.cora.spider.record.SpiderDownloader;
+import se.uu.ub.cora.spider.record.SpiderDownloaderImp;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
 import se.uu.ub.cora.spider.record.SpiderRecordCreatorImp;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
@@ -114,5 +116,9 @@ public final class SpiderInstanceProvider {
 
 	public static SpiderUploader getSpiderUploader() {
 		return SpiderUploaderImp.usingDependencyProvider(spiderDependencyProvider);
+	}
+
+	public static SpiderDownloader getSpiderDownloader() {
+		return SpiderDownloaderImp.usingDependencyProvider(spiderDependencyProvider);
 	}
 }

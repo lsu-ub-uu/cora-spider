@@ -29,6 +29,7 @@ import java.lang.reflect.Modifier;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.spider.record.SpiderDownloader;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 import se.uu.ub.cora.spider.record.SpiderRecordListReader;
@@ -119,6 +120,17 @@ public class SpiderInstanceProviderTest {
 		assertNotNull(recordUploader);
 		assertNotNull(recordUploader2);
 		assertNotSame(recordUploader, recordUploader2);
+	}
+
+	@Test
+	public void initMakeSureWeGetMultipleInstancesOfDownloader() {
+		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
+		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
+		SpiderDownloader recordDownloader = SpiderInstanceProvider.getSpiderDownloader();
+		SpiderDownloader recordDownloader2 = SpiderInstanceProvider.getSpiderDownloader();
+		assertNotNull(recordDownloader);
+		assertNotNull(recordDownloader2);
+		assertNotSame(recordDownloader, recordDownloader2);
 	}
 
 }
