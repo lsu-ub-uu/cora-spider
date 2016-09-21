@@ -64,19 +64,31 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 
 	private SpiderDataElement convertToSpiderEquivalentDataClass(DataElement dataElement) {
 		if (dataElement instanceof DataGroup) {
-			DataGroup dataGroup = (DataGroup) dataElement;
-			if (dataGroupIsRecordLink(dataGroup)) {
-				return SpiderDataRecordLink.fromDataRecordLink(dataGroup);
-			}
-
-			return SpiderDataGroup.fromDataGroup(dataGroup);
+			return convertDataGroupElementToSpiderEquivalentDataClass(dataElement);
 		}
 		return SpiderDataAtomic.fromDataAtomic((DataAtomic) dataElement);
+	}
+
+	private SpiderDataElement convertDataGroupElementToSpiderEquivalentDataClass(
+			DataElement dataElement) {
+		DataGroup dataGroup = (DataGroup) dataElement;
+		if (dataGroupIsRecordLink(dataGroup)) {
+			return SpiderDataRecordLink.fromDataRecordLink(dataGroup);
+		}
+		if (dataGroupIsResourceLink(dataGroup)) {
+			return SpiderDataResourceLink.fromDataRecordLink(dataGroup);
+		}
+
+		return SpiderDataGroup.fromDataGroup(dataGroup);
 	}
 
 	private boolean dataGroupIsRecordLink(DataGroup dataGroup) {
 		return dataGroup.containsChildWithNameInData("linkedRecordType")
 				&& dataGroup.containsChildWithNameInData("linkedRecordId");
+	}
+
+	private boolean dataGroupIsResourceLink(DataGroup dataGroup) {
+		return dataGroup.containsChildWithNameInData("streamId");
 	}
 
 	@Override

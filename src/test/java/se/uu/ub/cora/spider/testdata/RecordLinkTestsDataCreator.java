@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.testdata;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.data.SpiderDataResourceLink;
 
 public class RecordLinkTestsDataCreator {
 
@@ -74,6 +75,48 @@ public class RecordLinkTestsDataCreator {
 		dataGroup
 				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 						DATA_WITH_LINKS, "oneLinkOneLevelDown", "cora"));
+		return dataGroup;
+	}
+
+	public static SpiderDataGroup createSpiderDataGroupWithRecordInfoAndResourceLink() {
+		SpiderDataGroup dataGroup = createDataGroupWithResourceLink();
+		dataGroup
+				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+						DATA_WITH_LINKS, "oneResourceLinkTopLevel", "cora"));
+		return dataGroup;
+	}
+
+	public static SpiderDataGroup createDataGroupWithRecordInfoAndResourceLinkOneLevelDown() {
+		SpiderDataGroup dataGroup = createDataGroupWithResourceLinkOneLevelDown();
+		dataGroup
+				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+						DATA_WITH_LINKS, "oneResourceLinkOneLevelDown", "cora"));
+		return dataGroup;
+	}
+
+	public static SpiderDataGroup createDataGroupWithResourceLink() {
+		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
+		SpiderDataResourceLink spiderResourceLink = SpiderDataResourceLink.withNameInData("link");
+
+		SpiderDataAtomic streamId = SpiderDataAtomic.withNameInDataAndValue("streamId",
+				"someStreamId");
+		spiderResourceLink.addChild(streamId);
+		dataGroup.addChild(spiderResourceLink);
+		return dataGroup;
+	}
+
+	public static SpiderDataGroup createDataGroupWithResourceLinkOneLevelDown() {
+		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
+		SpiderDataGroup oneLevelDown = SpiderDataGroup.withNameInData("oneLevelDown");
+		dataGroup.addChild(oneLevelDown);
+
+		SpiderDataResourceLink spiderResourceLink = SpiderDataResourceLink.withNameInData("link");
+
+		SpiderDataAtomic linkedResourceId = SpiderDataAtomic.withNameInDataAndValue("streamId",
+				"someStreamId");
+		spiderResourceLink.addChild(linkedResourceId);
+
+		oneLevelDown.addChild(spiderResourceLink);
 		return dataGroup;
 	}
 

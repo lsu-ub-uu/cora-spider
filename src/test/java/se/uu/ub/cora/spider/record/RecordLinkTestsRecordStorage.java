@@ -49,6 +49,16 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 						.toDataGroup();
 			}
 		}
+		if (type.equals("dataWithResourceLinks")) {
+			if (id.equals("oneResourceLinkTopLevel")) {
+				return RecordLinkTestsDataCreator
+						.createSpiderDataGroupWithRecordInfoAndResourceLink().toDataGroup();
+			}
+			if (id.equals("oneResourceLinkOneLevelDown")) {
+				return RecordLinkTestsDataCreator
+						.createDataGroupWithRecordInfoAndResourceLinkOneLevelDown().toDataGroup();
+			}
+		}
 		return null;
 	}
 

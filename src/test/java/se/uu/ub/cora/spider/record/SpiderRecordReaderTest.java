@@ -157,12 +157,13 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testActionsOnReadAbstractRecordTypeNoCreate() {
-		SpiderDataRecord record = recordReader.readRecord("userId", "recordType", "abstractAuthority");
+		SpiderDataRecord record = recordReader.readRecord("userId", "recordType",
+				"abstractAuthority");
 		assertEquals(record.getActions().size(), 5);
 	}
 
 	@Test
-	public void testActionsOnReadRecordTypeBinary(){
+	public void testActionsOnReadRecordTypeBinary() {
 		SpiderDataRecord record = recordReader.readRecord("userId", "recordType", "binary");
 		assertEquals(record.getActions().size(), 5);
 		assertTrue(record.getActions().contains(Action.READ));
@@ -176,7 +177,7 @@ public class SpiderRecordReaderTest {
 	}
 
 	@Test
-	public void testActionsOnReadRecordTypeImage(){
+	public void testActionsOnReadRecordTypeImage() {
 		SpiderDataRecord record = recordReader.readRecord("userId", "recordType", "image");
 		assertEquals(record.getActions().size(), 6);
 		assertTrue(record.getActions().contains(Action.READ));
@@ -230,7 +231,27 @@ public class SpiderRecordReaderTest {
 	}
 
 	@Test
-	public void testActionsOnReadImage(){
+	public void testReadRecordWithDataResourceLinkHasReadActionTopLevel() {
+		SpiderRecordReader recordReader = createRecordReaderWithTestDataForLinkedData();
+
+		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithResourceLinks",
+				"oneResourceLinkTopLevel");
+
+		RecordLinkTestsAsserter.assertTopLevelResourceLinkContainsReadActionOnly(record);
+	}
+
+	@Test
+	public void testReadRecordWithDataResourceLinkHasReadActionOneLevelDown() {
+		SpiderRecordReader recordReader = createRecordReaderWithTestDataForLinkedData();
+
+		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithResourceLinks",
+				"oneResourceLinkOneLevelDown");
+
+		RecordLinkTestsAsserter.assertOneLevelDownResourceLinkContainsReadActionOnly(record);
+	}
+
+	@Test
+	public void testActionsOnReadImage() {
 		SpiderDataRecord record = recordReader.readRecord("userId", "image", "image:0001");
 		assertEquals(record.getActions().size(), 4);
 		assertTrue(record.getActions().contains(Action.READ));
