@@ -226,6 +226,84 @@ public class SpiderDataGroupTest {
 	}
 
 	@Test
+	public void testFromDataGroupWithDataIncompleteResourceLinkChildMissingStreamId() {
+		DataGroup resourceLink = createResourceLinkNoStreamId();
+		createAndAssertNotResourceLink(resourceLink);
+	}
+
+	private void createAndAssertNotResourceLink(DataGroup resourceLink) {
+		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
+		dataGroup.addChild(resourceLink);
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
+		SpiderDataElement spiderDataElement = spiderDataGroup
+				.getFirstChildWithNameInData("childNameInData");
+		assertFalse(spiderDataElement instanceof SpiderDataResourceLink);
+	}
+
+	private DataGroup createResourceLinkNoStreamId() {
+		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+
+		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
+
+		return dataResourceLink;
+	}
+
+	@Test
+	public void testFromDataGroupWithDataIncompleteResourceLinkChildMissingFilename() {
+		DataGroup resourceLink = createResourceLinkNoFilename();
+		createAndAssertNotResourceLink(resourceLink);
+	}
+
+	private DataGroup createResourceLinkNoFilename() {
+		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
+		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
+
+		return dataResourceLink;
+	}
+
+	@Test
+	public void testFromDataGroupWithDataIncompleteResourceLinkChildMissingFilesize() {
+		DataGroup resourceLink = createResourceLinkNoFilesize();
+		createAndAssertNotResourceLink(resourceLink);
+	}
+
+	private DataGroup createResourceLinkNoFilesize() {
+		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
+		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
+
+		return dataResourceLink;
+	}
+
+	@Test
+	public void testFromDataGroupWithDataIncompleteResourceLinkChildMissingMimeType() {
+		DataGroup resourceLink = createResourceLinkNoMimeType();
+		createAndAssertNotResourceLink(resourceLink);
+	}
+
+	private DataGroup createResourceLinkNoMimeType() {
+		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
+		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType",
+		// "application/pdf"));
+
+		return dataResourceLink;
+	}
+
+	@Test
 	public void testFromDataGroupLevelsOfChildren() {
 		DataGroup dataGroup = DataGroup.withNameInData("nameInData");
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
