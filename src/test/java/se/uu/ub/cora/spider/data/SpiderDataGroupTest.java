@@ -217,8 +217,10 @@ public class SpiderDataGroupTest {
 	private DataGroup createResourceLink() {
 		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
 
-		DataAtomic streamId = DataAtomic.withNameInDataAndValue("streamId", "aStreamId");
-		dataResourceLink.addChild(streamId);
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
 
 		return dataResourceLink;
 	}

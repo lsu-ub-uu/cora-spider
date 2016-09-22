@@ -88,7 +88,10 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 	}
 
 	private boolean dataGroupIsResourceLink(DataGroup dataGroup) {
-		return dataGroup.containsChildWithNameInData("streamId");
+		return dataGroup.containsChildWithNameInData("streamId")
+				&& dataGroup.containsChildWithNameInData("filename")
+				&& dataGroup.containsChildWithNameInData("filesize")
+				&& dataGroup.containsChildWithNameInData("mimeType");
 	}
 
 	@Override

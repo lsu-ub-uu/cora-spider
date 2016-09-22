@@ -96,13 +96,21 @@ public class RecordLinkTestsDataCreator {
 
 	public static SpiderDataGroup createDataGroupWithResourceLink() {
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
+		dataGroup.addChild(createResourceLink());
+		return dataGroup;
+	}
+
+	private static SpiderDataResourceLink createResourceLink() {
 		SpiderDataResourceLink spiderResourceLink = SpiderDataResourceLink.withNameInData("link");
 
-		SpiderDataAtomic streamId = SpiderDataAtomic.withNameInDataAndValue("streamId",
-				"someStreamId");
-		spiderResourceLink.addChild(streamId);
-		dataGroup.addChild(spiderResourceLink);
-		return dataGroup;
+		spiderResourceLink
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("streamId", "someStreamId"));
+		spiderResourceLink
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("filename", "aFileName"));
+		spiderResourceLink.addChild(SpiderDataAtomic.withNameInDataAndValue("filesize", "12345"));
+		spiderResourceLink
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
+		return spiderResourceLink;
 	}
 
 	public static SpiderDataGroup createDataGroupWithResourceLinkOneLevelDown() {
@@ -110,13 +118,8 @@ public class RecordLinkTestsDataCreator {
 		SpiderDataGroup oneLevelDown = SpiderDataGroup.withNameInData("oneLevelDown");
 		dataGroup.addChild(oneLevelDown);
 
-		SpiderDataResourceLink spiderResourceLink = SpiderDataResourceLink.withNameInData("link");
+		oneLevelDown.addChild(createResourceLink());
 
-		SpiderDataAtomic linkedResourceId = SpiderDataAtomic.withNameInDataAndValue("streamId",
-				"someStreamId");
-		spiderResourceLink.addChild(linkedResourceId);
-
-		oneLevelDown.addChild(spiderResourceLink);
 		return dataGroup;
 	}
 
