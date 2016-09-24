@@ -23,7 +23,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import se.uu.ub.cora.spider.data.Action;
-import se.uu.ub.cora.spider.data.SpiderDataElement;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
@@ -61,10 +60,6 @@ public class RecordLinkTestsAsserter {
 
 	private static SpiderDataResourceLink getResourceLinkFromRecord(SpiderDataRecord record) {
 		SpiderDataGroup spiderDataGroup = record.getSpiderDataGroup();
-		// SpiderDataResourceLink link = (SpiderDataResourceLink)
-		// spiderDataGroup
-		// .getFirstChildWithNameInData("link");
-		SpiderDataElement element = spiderDataGroup.getFirstChildWithNameInData("link");
 		SpiderDataResourceLink link = (SpiderDataResourceLink) spiderDataGroup
 				.getFirstChildWithNameInData("link");
 		return link;

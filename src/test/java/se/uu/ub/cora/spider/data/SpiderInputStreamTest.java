@@ -32,10 +32,11 @@ public class SpiderInputStreamTest {
 	public void testContent() {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 		SpiderInputStream spiderBinaryStream = SpiderInputStream.withNameSizeInputStream("testName",
-				1234567890, stream);
+				1234567890, "application/octet-stream", stream);
 
 		assertEquals(spiderBinaryStream.name, "testName");
 		assertEquals(spiderBinaryStream.size, 1234567890);
 		assertEquals(spiderBinaryStream.stream, stream);
+		assertEquals(spiderBinaryStream.mimeType, "application/octet-stream");
 	}
 }

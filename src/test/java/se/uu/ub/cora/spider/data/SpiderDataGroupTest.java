@@ -211,6 +211,7 @@ public class SpiderDataGroupTest {
 		SpiderDataAtomic streamId = (SpiderDataAtomic) spiderDataResourceLink
 				.getFirstChildWithNameInData("streamId");
 		assertEquals(streamId.getValue(), "aStreamId");
+		assertTrue(spiderDataResourceLink instanceof SpiderDataResourceLink);
 
 	}
 

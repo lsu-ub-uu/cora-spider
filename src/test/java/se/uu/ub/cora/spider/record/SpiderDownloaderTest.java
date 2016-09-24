@@ -102,6 +102,7 @@ public class SpiderDownloaderTest {
 		assertEquals(spiderStream.stream, stream);
 		assertEquals(spiderStream.name, "adele.png");
 		assertEquals(spiderStream.size, 123);
+		assertEquals(spiderStream.mimeType, "application/octet-stream");
 	}
 
 	@Test(expectedExceptions = MisuseException.class)

@@ -26,16 +26,18 @@ public final class SpiderInputStream {
 	public final String name;
 	public final long size;
 	public final InputStream stream;
+	public final String mimeType;
 
-	private SpiderInputStream(String name, long size, InputStream stream) {
+	private SpiderInputStream(String name, long size, String mimeType, InputStream stream) {
 		this.name = name;
 		this.size = size;
+		this.mimeType = mimeType;
 		this.stream = stream;
 	}
 
 	public static SpiderInputStream withNameSizeInputStream(String name, long size,
-			InputStream stream) {
-		return new SpiderInputStream(name, size, stream);
+			String mimeType, InputStream stream) {
+		return new SpiderInputStream(name, size, mimeType, stream);
 	}
 
 }

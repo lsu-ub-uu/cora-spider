@@ -201,10 +201,13 @@ public class TestDataRecordInMemoryStorage {
 		resourceInfo.addChild(master);
 		DataAtomic streamId = DataAtomic.withNameInDataAndValue("streamId", "123456789");
 		master.addChild(streamId);
-		DataAtomic uploadedFileName = DataAtomic.withNameInDataAndValue("fileName", "adele.png");
+		DataAtomic uploadedFileName = DataAtomic.withNameInDataAndValue("filename", "adele.png");
 		master.addChild(uploadedFileName);
-		DataAtomic size = DataAtomic.withNameInDataAndValue("fileSize", "123");
+		DataAtomic size = DataAtomic.withNameInDataAndValue("filesize", "123");
 		master.addChild(size);
+		DataAtomic mimeType = DataAtomic.withNameInDataAndValue("mimeType",
+				"application/octet-stream");
+		master.addChild(mimeType);
 		recordsInMemory.create("image", "image:123456789", dataGroup,
 				DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
