@@ -22,5 +22,5 @@ package se.uu.ub.cora.spider.extended;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 
 public interface ExtendedFunctionality {
-	SpiderDataGroup useExtendedFunctionality(SpiderDataGroup spiderDataGroup);
+	void useExtendedFunctionality(SpiderDataGroup spiderDataGroup);
 }

@@ -20,11 +20,8 @@
 
 package se.uu.ub.cora.spider.extended;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import se.uu.ub.cora.spider.metadata.MetadataConsistencyValidator;
 
 public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityProvider {
 
@@ -37,11 +34,6 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateAfterMetadataValidation(
 			String recordType) {
-		if ("metadataGroup".equals(recordType)) {
-			List<ExtendedFunctionality> functionalityList = new ArrayList<>();
-			functionalityList.add(new MetadataConsistencyValidator());
-			return functionalityList;
-		}
 		return Collections.emptyList();
 	}
 
