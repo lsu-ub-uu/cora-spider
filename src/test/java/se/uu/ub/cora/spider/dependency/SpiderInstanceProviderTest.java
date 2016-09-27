@@ -19,8 +19,7 @@
 
 package se.uu.ub.cora.spider.dependency;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNotSame;
+import static org.testng.Assert.assertTrue;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -28,14 +27,6 @@ import java.lang.reflect.Modifier;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import se.uu.ub.cora.spider.record.SpiderDownloader;
-import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordListReader;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
-import se.uu.ub.cora.spider.record.SpiderUploader;
 
 public class SpiderInstanceProviderTest {
 	@Test
@@ -55,82 +46,59 @@ public class SpiderInstanceProviderTest {
 	}
 
 	@Test
-	public void initMakeSureWeGetMultipleInstancesOfRecordReader() {
-		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
-		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
-		SpiderRecordReader recordReader = SpiderInstanceProvider.getSpiderRecordReader();
-		SpiderRecordReader recordReader2 = SpiderInstanceProvider.getSpiderRecordReader();
-		assertNotNull(recordReader);
-		assertNotNull(recordReader2);
-		assertNotSame(recordReader, recordReader2);
+	public void makeSureFactoryCreateIsCalledForRecordReader() {
+		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.getSpiderRecordReader();
+		assertTrue(factory.readerFactoryWasCalled);
 	}
 
 	@Test
-	public void initMakeSureWeGetMultipleInstancesOfRecordListReader() {
-		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
-		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
-		SpiderRecordListReader recordListReader = SpiderInstanceProvider
-				.getSpiderRecordListReader();
-		SpiderRecordListReader recordListReader2 = SpiderInstanceProvider
-				.getSpiderRecordListReader();
-		assertNotNull(recordListReader);
-		assertNotNull(recordListReader2);
-		assertNotSame(recordListReader, recordListReader2);
+	public void makeSureFactoryCreateIsCalledForListRecordReader() {
+		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.getSpiderRecordListReader();
+		assertTrue(factory.listReaderFactoryWasCalled);
 	}
 
 	@Test
-	public void initMakeSureWeGetMultipleInstancesOfRecordCreator() {
-		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
-		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
-		SpiderRecordCreator recordCreator = SpiderInstanceProvider.getSpiderRecordCreator();
-		SpiderRecordCreator recordCreator2 = SpiderInstanceProvider.getSpiderRecordCreator();
-		assertNotNull(recordCreator);
-		assertNotNull(recordCreator2);
-		assertNotSame(recordCreator, recordCreator2);
+	public void makeSureFactoryCreateIsCalledForRecordCreator() {
+		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.getSpiderRecordCreator();
+		assertTrue(factory.creatorFactoryWasCalled);
 	}
 
 	@Test
-	public void initMakeSureWeGetMultipleInstancesOfRecordUpdater() {
-		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
-		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
-		SpiderRecordUpdater recordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
-		SpiderRecordUpdater recordUpdater2 = SpiderInstanceProvider.getSpiderRecordUpdater();
-		assertNotNull(recordUpdater);
-		assertNotNull(recordUpdater2);
-		assertNotSame(recordUpdater, recordUpdater2);
+	public void makeSureFactoryCreateIsCalledForRecordUpdater() {
+		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.getSpiderRecordUpdater();
+		assertTrue(factory.updaterFactoryWasCalled);
 	}
 
 	@Test
-	public void initMakeSureWeGetMultipleInstancesOfRecordDeleter() {
-		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
-		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
-		SpiderRecordDeleter recordDeleter = SpiderInstanceProvider.getSpiderRecordDeleter();
-		SpiderRecordDeleter recordDeleter2 = SpiderInstanceProvider.getSpiderRecordDeleter();
-		assertNotNull(recordDeleter);
-		assertNotNull(recordDeleter2);
-		assertNotSame(recordDeleter, recordDeleter2);
+	public void makeSureFactoryCreateIsCalledForRecordDeleter() {
+		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.getSpiderRecordDeleter();
+		assertTrue(factory.deleterFactoryWasCalled);
 	}
 
 	@Test
-	public void initMakeSureWeGetMultipleInstancesOfUploader() {
-		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
-		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
-		SpiderUploader recordUploader = SpiderInstanceProvider.getSpiderUploader();
-		SpiderUploader recordUploader2 = SpiderInstanceProvider.getSpiderUploader();
-		assertNotNull(recordUploader);
-		assertNotNull(recordUploader2);
-		assertNotSame(recordUploader, recordUploader2);
+	public void makeSureFactoryCreateIsCalledForRecordUploader() {
+		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.getSpiderUploader();
+		assertTrue(factory.uploaderFactoryWasCalled);
 	}
 
 	@Test
-	public void initMakeSureWeGetMultipleInstancesOfDownloader() {
-		SpiderDependencyProvider spiderDependencyProvider = new SpiderDependencyProviderSpy();
-		SpiderInstanceProvider.setSpiderDependencyProvider(spiderDependencyProvider);
-		SpiderDownloader recordDownloader = SpiderInstanceProvider.getSpiderDownloader();
-		SpiderDownloader recordDownloader2 = SpiderInstanceProvider.getSpiderDownloader();
-		assertNotNull(recordDownloader);
-		assertNotNull(recordDownloader2);
-		assertNotSame(recordDownloader, recordDownloader2);
+	public void makeSureFactoryCreateIsCalledForRecordDownloader() {
+		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.getSpiderDownloader();
+		assertTrue(factory.downloaderFactoryWasCalled);
 	}
 
 }

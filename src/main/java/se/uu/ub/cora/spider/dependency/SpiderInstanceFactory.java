@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -27,45 +27,20 @@ import se.uu.ub.cora.spider.record.SpiderRecordReader;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 
-public final class SpiderInstanceProvider {
-	private static SpiderInstanceFactory factory;
+public interface SpiderInstanceFactory {
 
-	private SpiderInstanceProvider() {
-		// not called
-		throw new UnsupportedOperationException();
-	}
+	SpiderRecordReader factorSpiderRecordReader();
 
-	public static void setSpiderInstanceFactory(SpiderInstanceFactory factory) {
-		SpiderInstanceProvider.factory = factory;
+	SpiderRecordListReader factorSpiderRecordListReader();
 
-	}
+	SpiderRecordCreator factorSpiderRecordCreator();
 
-	public static SpiderRecordReader getSpiderRecordReader() {
-		return factory.factorSpiderRecordReader();
-	}
+	SpiderRecordUpdater factorSpiderRecordUpdater();
 
-	public static SpiderRecordListReader getSpiderRecordListReader() {
-		return factory.factorSpiderRecordListReader();
-	}
+	SpiderRecordDeleter factorSpiderRecordDeleter();
 
-	public static SpiderRecordCreator getSpiderRecordCreator() {
-		return factory.factorSpiderRecordCreator();
-	}
+	SpiderUploader factorSpiderUploader();
 
-	public static SpiderRecordUpdater getSpiderRecordUpdater() {
-		return factory.factorSpiderRecordUpdater();
-	}
-
-	public static SpiderRecordDeleter getSpiderRecordDeleter() {
-		return factory.factorSpiderRecordDeleter();
-	}
-
-	public static SpiderUploader getSpiderUploader() {
-		return factory.factorSpiderUploader();
-	}
-
-	public static SpiderDownloader getSpiderDownloader() {
-		return factory.factorSpiderDownloader();
-	}
+	SpiderDownloader factorSpiderDownloader();
 
 }
