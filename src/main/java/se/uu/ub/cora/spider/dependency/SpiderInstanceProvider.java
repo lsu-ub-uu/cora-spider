@@ -24,6 +24,8 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
+import se.uu.ub.cora.spider.record.SpiderDownloader;
+import se.uu.ub.cora.spider.record.SpiderDownloaderImp;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
 import se.uu.ub.cora.spider.record.SpiderRecordCreatorImp;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
@@ -34,6 +36,8 @@ import se.uu.ub.cora.spider.record.SpiderRecordReader;
 import se.uu.ub.cora.spider.record.SpiderRecordReaderImp;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterImp;
+import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.SpiderUploaderImp;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
@@ -113,5 +117,13 @@ public final class SpiderInstanceProvider {
 
 		return SpiderRecordDeleterImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
 				authorizator, recordStorage, permissionKeyCalculator);
+	}
+
+	public static SpiderUploader getSpiderUploader() {
+		return SpiderUploaderImp.usingDependencyProvider(spiderDependencyProvider);
+	}
+
+	public static SpiderDownloader getSpiderDownloader() {
+		return SpiderDownloaderImp.usingDependencyProvider(spiderDependencyProvider);
 	}
 }

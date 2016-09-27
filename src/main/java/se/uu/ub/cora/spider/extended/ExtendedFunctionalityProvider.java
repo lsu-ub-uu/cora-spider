@@ -27,4 +27,11 @@ public interface ExtendedFunctionalityProvider {
 			String recordType);
 
 	List<ExtendedFunctionality> getFunctionalityForCreateAfterMetadataValidation(String recordType);
+
+	List<ExtendedFunctionality> getFunctionalityForCreateBeforeReturn(String recordType);
+
+	List<ExtendedFunctionality> getFunctionalityForUpdateBeforeMetadataValidation(
+			String recordType);
+
+	List<ExtendedFunctionality> getFunctionalityForUpdateAfterMetadataValidation(String recordType);
 }

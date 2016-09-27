@@ -24,51 +24,61 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
+import se.uu.ub.cora.spider.record.SpiderUploader;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
 public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 
+	public RecordStorage recordStorage;
+	public Authorizator authorizator;
+	public PermissionKeyCalculator keyCalculator;
+	public SpiderUploader uploader;
+	public DataValidator dataValidator;
+	public DataRecordLinkCollector linkCollector;
+	public RecordIdGenerator idGenerator;
+	public StreamStorage streamStorage;
+	public ExtendedFunctionalityProvider extendedFunctionalityProvider;
+
 	@Override
 	public Authorizator getAuthorizator() {
-		// TODO Auto-generated method stub
-		return null;
+		return authorizator;
 	}
 
 	@Override
 	public RecordStorage getRecordStorage() {
-		// TODO Auto-generated method stub
-		return null;
+		return recordStorage;
 	}
 
 	@Override
 	public RecordIdGenerator getIdGenerator() {
-		// TODO Auto-generated method stub
-		return null;
+		return idGenerator;
 	}
 
 	@Override
 	public PermissionKeyCalculator getPermissionKeyCalculator() {
-		// TODO Auto-generated method stub
-		return null;
+		return keyCalculator;
 	}
 
 	@Override
 	public DataValidator getDataValidator() {
-		// TODO Auto-generated method stub
-		return null;
+		return dataValidator;
 	}
 
 	@Override
 	public DataRecordLinkCollector getDataRecordLinkCollector() {
-		// TODO Auto-generated method stub
-		return null;
+		return linkCollector;
+	}
+
+	@Override
+	public StreamStorage getStreamStorage() {
+		return streamStorage;
 	}
 
 	@Override
 	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
-		// TODO Auto-generated method stub
-		return null;
+		return extendedFunctionalityProvider;
 	}
 
 }

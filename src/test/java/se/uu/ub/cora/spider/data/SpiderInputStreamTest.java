@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,24 +17,25 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.spy;
+package se.uu.ub.cora.spider.data;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import static org.testng.Assert.assertEquals;
 
-public class DataRecordLinkCollectorSpy implements DataRecordLinkCollector {
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
-	public boolean collectLinksWasCalled = false;
-	public String metadataId = null;
+import org.testng.annotations.Test;
 
-	public DataGroup collectedDataLinks = DataGroup.withNameInData("collectedDataLinks");
+public class SpiderInputStreamTest {
+	@Test
+	public void testContent() {
+		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
+		SpiderInputStream spiderBinaryStream = SpiderInputStream.withNameSizeInputStream("testName",
+				1234567890, stream);
 
-	@Override
-	public DataGroup collectLinks(String metadataId, DataGroup dataGroup, String fromRecordType,
-			String fromRecordId) {
-		this.metadataId = metadataId;
-		collectLinksWasCalled = true;
-		return collectedDataLinks;
+		assertEquals(spiderBinaryStream.name, "testName");
+		assertEquals(spiderBinaryStream.size, 1234567890);
+		assertEquals(spiderBinaryStream.stream, stream);
 	}
-
 }

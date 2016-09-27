@@ -26,6 +26,7 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
 public interface SpiderDependencyProvider {
 
@@ -42,4 +43,6 @@ public interface SpiderDependencyProvider {
 	DataRecordLinkCollector getDataRecordLinkCollector();
 	
 	ExtendedFunctionalityProvider getExtendedFunctionalityProvider();
+	StreamStorage getStreamStorage();
+
 }

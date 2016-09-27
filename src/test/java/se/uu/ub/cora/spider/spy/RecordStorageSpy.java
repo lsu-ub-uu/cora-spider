@@ -30,6 +30,7 @@ import se.uu.ub.cora.spider.testdata.DataCreator;
 public class RecordStorageSpy implements RecordStorage {
 
 	public Collection<String> readLists = new ArrayList<>();
+	public boolean readWasCalled = false;
 	public boolean deleteWasCalled = false;
 	public boolean createWasCalled = false;
 	public boolean updateWasCalled = false;
@@ -37,7 +38,7 @@ public class RecordStorageSpy implements RecordStorage {
 
 	@Override
 	public DataGroup read(String type, String id) {
-
+		readWasCalled = true;
 		if ("abstract".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
 					"true");
@@ -69,6 +70,15 @@ public class RecordStorageSpy implements RecordStorage {
 		if ("spyType".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
 					"false");
+		}
+		if ("recordType".equals(type) && "image".equals(id)) {
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "true",
+					"binary");
+
+		}
+		if ("image".equals(type) && "image:123456789".equals(id)) {
+			return DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("image",
+					"image:123456789", "image", "cora").toDataGroup();
 		}
 		return null;
 	}

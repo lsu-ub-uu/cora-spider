@@ -39,48 +39,26 @@ public class BaseExtendedFunctionalityProviderTest {
 	}
 
 	@Test
-	public void testGetFunctionalityForCreateBeforeMetadataValidationNullAsType() {
-		String recordType = null;
+	public void testGetFunctionalityForCreateBeforeMetadataValidation() {
+		fetchAndAssertCreateBeforeMetadataValidation(null);
+		fetchAndAssertCreateBeforeMetadataValidation("");
+		fetchAndAssertCreateBeforeMetadataValidation("UnknownType");
+	}
+
+	private void fetchAndAssertCreateBeforeMetadataValidation(String recordType) {
 		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
 				.getFunctionalityForCreateBeforeMetadataValidation(recordType);
 		assertEquals(Collections.emptyList(), eFL);
 	}
 
 	@Test
-	public void testGetFunctionalityForCreateBeforeMetadataValidationEmptyAsType() {
-		String recordType = "";
-		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
-				.getFunctionalityForCreateBeforeMetadataValidation(recordType);
-		assertEquals(Collections.emptyList(), eFL);
+	public void testGetFunctionalityForCreateAfterMetadataValidation() {
+		fetchAndAssertCreateAfterMetadataValidation(null);
+		fetchAndAssertCreateAfterMetadataValidation("");
+		fetchAndAssertCreateAfterMetadataValidation("UnkownType");
 	}
 
-	@Test
-	public void testGetFunctionalityForCreateBeforeMetadataValidationUnknownAsType() {
-		String recordType = "UnknownType";
-		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
-				.getFunctionalityForCreateBeforeMetadataValidation(recordType);
-		assertEquals(Collections.emptyList(), eFL);
-	}
-
-	@Test
-	public void testGetFunctionalityForCreateAfterMetadataValidationNullAsType() {
-		String recordType = null;
-		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
-				.getFunctionalityForCreateAfterMetadataValidation(recordType);
-		assertEquals(Collections.emptyList(), eFL);
-	}
-
-	@Test
-	public void testGetFunctionalityForCreateAfterMetadataValidationEmptyAsType() {
-		String recordType = "";
-		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
-				.getFunctionalityForCreateAfterMetadataValidation(recordType);
-		assertEquals(Collections.emptyList(), eFL);
-	}
-
-	@Test
-	public void testGetFunctionalityForCreateAfterMetadataValidationUnknownAsType() {
-		String recordType = "UnknownType";
+	private void fetchAndAssertCreateAfterMetadataValidation(String recordType) {
 		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
 				.getFunctionalityForCreateAfterMetadataValidation(recordType);
 		assertEquals(Collections.emptyList(), eFL);
@@ -94,6 +72,51 @@ public class BaseExtendedFunctionalityProviderTest {
 		assertEquals(1, eFL.size());
 
 		assertTrue(eFL.get(0) instanceof MetadataConsistencyValidator);
+	}
+
+	@Test
+	public void testGetFunctionalityForCreateBeforeReturn() {
+		fetchAndAssertCreateBeforeReturn(null);
+		fetchAndAssertCreateBeforeReturn("");
+		fetchAndAssertCreateBeforeReturn("UnkownType");
+	}
+
+	private void fetchAndAssertCreateBeforeReturn(String recordType) {
+		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
+				.getFunctionalityForCreateBeforeReturn(recordType);
+		assertEquals(Collections.emptyList(), eFL);
+	}
+
+	@Test
+	public void testGetFunctionalityForUpdateBeforeMetadataValidationNullAsType() {
+		fetchAndAssertUpdateBeforeMetadataValidation(null);
+		fetchAndAssertUpdateBeforeMetadataValidation("");
+		fetchAndAssertUpdateBeforeMetadataValidation("UnknownType");
+	}
+
+	private void fetchAndAssertUpdateBeforeMetadataValidation(String recordType) {
+		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
+				.getFunctionalityForUpdateBeforeMetadataValidation(recordType);
+		assertEquals(Collections.emptyList(), eFL);
+	}
+
+	@Test
+	public void testGetFunctionalityForUpdateAfterMetadataValidationNullAsType() {
+		fetchAndAssertUpdateAfterMetadataValidation(null);
+		fetchAndAssertUpdateAfterMetadataValidation("");
+		fetchAndAssertUpdateAfterMetadataValidation("UnknownType");
+	}
+
+	private void fetchAndAssertUpdateAfterMetadataValidation(String recordType) {
+		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
+				.getFunctionalityForUpdateAfterMetadataValidation(recordType);
+		assertEquals(Collections.emptyList(), eFL);
+	}
+
+	@Test
+	public void testGetFunctionalityForUpdateAfterMetadataValidationMetadataGroupAsType() {
+		String recordType = "metadataGroup";
+		fetchAndAssertUpdateAfterMetadataValidation(recordType);
 	}
 
 }

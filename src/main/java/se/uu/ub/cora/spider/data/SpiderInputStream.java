@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,24 +17,25 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.spy;
+package se.uu.ub.cora.spider.data;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import java.io.InputStream;
 
-public class DataRecordLinkCollectorSpy implements DataRecordLinkCollector {
+public final class SpiderInputStream {
 
-	public boolean collectLinksWasCalled = false;
-	public String metadataId = null;
+	public final String name;
+	public final long size;
+	public final InputStream stream;
 
-	public DataGroup collectedDataLinks = DataGroup.withNameInData("collectedDataLinks");
+	private SpiderInputStream(String name, long size, InputStream stream) {
+		this.name = name;
+		this.size = size;
+		this.stream = stream;
+	}
 
-	@Override
-	public DataGroup collectLinks(String metadataId, DataGroup dataGroup, String fromRecordType,
-			String fromRecordId) {
-		this.metadataId = metadataId;
-		collectLinksWasCalled = true;
-		return collectedDataLinks;
+	public static SpiderInputStream withNameSizeInputStream(String name, long size,
+			InputStream stream) {
+		return new SpiderInputStream(name, size, stream);
 	}
 
 }

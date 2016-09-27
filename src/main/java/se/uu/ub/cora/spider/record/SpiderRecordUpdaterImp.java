@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
@@ -28,6 +29,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
@@ -71,7 +73,10 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("metadataId");
 
 		checkNoUpdateForAbstractRecordType();
+		useExtendedFunctionalityBeforeMetadataValidation(recordType, spiderDataGroup);
+
 		validateIncomingDataAsSpecifiedInMetadata();
+		useExtendedFunctionalityAfterMetadataValidation(recordType, spiderDataGroup);
 
 		validateRules();
 
@@ -108,6 +113,27 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 			throw new MisuseException(
 					"Data update on abstract recordType:" + recordType + " is not allowed");
 		}
+	}
+
+	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
+			SpiderDataGroup spiderDataGroup) {
+		List<ExtendedFunctionality> functionalityForUpdateBeforeMetadataValidation = extendedFunctionalityProvider
+				.getFunctionalityForUpdateBeforeMetadataValidation(recordTypeToCreate);
+		useExtendedFunctionality(spiderDataGroup, functionalityForUpdateBeforeMetadataValidation);
+	}
+
+	private void useExtendedFunctionality(SpiderDataGroup spiderDataGroup,
+			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
+		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
+			extendedFunctionality.useExtendedFunctionality(spiderDataGroup);
+		}
+	}
+
+	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
+			SpiderDataGroup spiderDataGroup) {
+		List<ExtendedFunctionality> functionalityForUpdateAfterMetadataValidation = extendedFunctionalityProvider
+				.getFunctionalityForUpdateAfterMetadataValidation(recordTypeToCreate);
+		useExtendedFunctionality(spiderDataGroup, functionalityForUpdateAfterMetadataValidation);
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata() {

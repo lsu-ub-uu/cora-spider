@@ -107,7 +107,11 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
 				.fromDataGroup(topLevelDataGroup);
 
-		return createDataRecordContainingDataGroup(spiderDataGroupWithActions);
+		SpiderDataRecord createDataRecordContainingDataGroup = createDataRecordContainingDataGroup(
+				spiderDataGroupWithActions);
+		useExtendedFunctionalityBeforeReturn(recordTypeToCreate, spiderDataGroupWithActions);
+
+		return createDataRecordContainingDataGroup;
 
 	}
 
@@ -133,9 +137,9 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
 			SpiderDataGroup spiderDataGroup) {
-		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = extendedFunctionalityProvider
+		List<ExtendedFunctionality> functionalityForCreateBeforeMetadataValidation = extendedFunctionalityProvider
 				.getFunctionalityForCreateBeforeMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(spiderDataGroup, functionalityForCreateAfterMetadataValidation);
+		useExtendedFunctionality(spiderDataGroup, functionalityForCreateBeforeMetadataValidation);
 	}
 
 	private void useExtendedFunctionality(SpiderDataGroup spiderDataGroup,
@@ -150,6 +154,13 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = extendedFunctionalityProvider
 				.getFunctionalityForCreateAfterMetadataValidation(recordTypeToCreate);
 		useExtendedFunctionality(spiderDataGroup, functionalityForCreateAfterMetadataValidation);
+	}
+
+	private void useExtendedFunctionalityBeforeReturn(String recordTypeToCreate,
+			SpiderDataGroup spiderDataGroup) {
+		List<ExtendedFunctionality> extendedFunctionalityList = extendedFunctionalityProvider
+				.getFunctionalityForCreateBeforeReturn(recordTypeToCreate);
+		useExtendedFunctionality(spiderDataGroup, extendedFunctionalityList);
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {

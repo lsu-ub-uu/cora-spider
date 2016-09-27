@@ -25,6 +25,9 @@ import java.util.List;
 public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityProvider {
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateBeforeMetadataValidation = new ArrayList<>();
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateAfterMetadataValidation = new ArrayList<>();
+	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForUpdateBeforeMetadataValidation = new ArrayList<>();
+	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForUpdateAfterMetadataValidation = new ArrayList<>();
+	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateBeforeReturn = new ArrayList<>();
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
@@ -40,6 +43,12 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 				fetchedFunctionalityForCreateAfterMetadataValidation);
 	}
 
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeReturn(String recordType) {
+		return createListWithTwoExtendedFunctionalitySpies(
+				fetchedFunctionalityForCreateBeforeReturn);
+	}
+
 	private List<ExtendedFunctionality> createListWithTwoExtendedFunctionalitySpies(
 			List<ExtendedFunctionalitySpy> fetchedFunctionalityList) {
 		ArrayList<ExtendedFunctionality> listOfExtendedFunctionality = new ArrayList<>();
@@ -50,6 +59,20 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 		listOfExtendedFunctionality.add(extendedFunctionalitySpy2);
 		fetchedFunctionalityList.add(extendedFunctionalitySpy2);
 		return listOfExtendedFunctionality;
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeMetadataValidation(
+			String recordType) {
+		return createListWithTwoExtendedFunctionalitySpies(
+				fetchedFunctionalityForUpdateBeforeMetadataValidation);
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterMetadataValidation(
+			String recordType) {
+		return createListWithTwoExtendedFunctionalitySpies(
+				fetchedFunctionalityForUpdateAfterMetadataValidation);
 	}
 
 }

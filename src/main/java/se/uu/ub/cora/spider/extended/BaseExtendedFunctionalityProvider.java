@@ -45,4 +45,21 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 		return Collections.emptyList();
 	}
 
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeReturn(String recordType) {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeMetadataValidation(
+			String recordType) {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterMetadataValidation(
+			String recordType) {
+		return Collections.emptyList();
+	}
+
 }
