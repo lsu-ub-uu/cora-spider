@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.testdata;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.data.SpiderDataResourceLink;
 
 public class RecordLinkTestsDataCreator {
 
@@ -74,6 +75,51 @@ public class RecordLinkTestsDataCreator {
 		dataGroup
 				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 						DATA_WITH_LINKS, "oneLinkOneLevelDown", "cora"));
+		return dataGroup;
+	}
+
+	public static SpiderDataGroup createSpiderDataGroupWithRecordInfoAndResourceLink() {
+		SpiderDataGroup dataGroup = createDataGroupWithResourceLink();
+		dataGroup
+				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+						DATA_WITH_LINKS, "oneResourceLinkTopLevel", "cora"));
+		return dataGroup;
+	}
+
+	public static SpiderDataGroup createDataGroupWithRecordInfoAndResourceLinkOneLevelDown() {
+		SpiderDataGroup dataGroup = createDataGroupWithResourceLinkOneLevelDown();
+		dataGroup
+				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+						DATA_WITH_LINKS, "oneResourceLinkOneLevelDown", "cora"));
+		return dataGroup;
+	}
+
+	public static SpiderDataGroup createDataGroupWithResourceLink() {
+		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
+		dataGroup.addChild(createResourceLink());
+		return dataGroup;
+	}
+
+	private static SpiderDataResourceLink createResourceLink() {
+		SpiderDataResourceLink spiderResourceLink = SpiderDataResourceLink.withNameInData("link");
+
+		spiderResourceLink
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("streamId", "someStreamId"));
+		spiderResourceLink
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("filename", "aFileName"));
+		spiderResourceLink.addChild(SpiderDataAtomic.withNameInDataAndValue("filesize", "12345"));
+		spiderResourceLink
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
+		return spiderResourceLink;
+	}
+
+	public static SpiderDataGroup createDataGroupWithResourceLinkOneLevelDown() {
+		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
+		SpiderDataGroup oneLevelDown = SpiderDataGroup.withNameInData("oneLevelDown");
+		dataGroup.addChild(oneLevelDown);
+
+		oneLevelDown.addChild(createResourceLink());
+
 		return dataGroup;
 	}
 

@@ -162,18 +162,20 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		SpiderDataGroup master = SpiderDataGroup.withNameInData("master");
 		resourceInfo.addChild(master);
 
-		// - add master stream id to recordRead
 		SpiderDataAtomic streamId2 = SpiderDataAtomic.withNameInDataAndValue("streamId", streamId);
 		master.addChild(streamId2);
 
-		// - set filename and filesize
-		SpiderDataAtomic uploadedFileName = SpiderDataAtomic.withNameInDataAndValue("fileName",
+		SpiderDataAtomic uploadedFileName = SpiderDataAtomic.withNameInDataAndValue("filename",
 				fileName);
 		master.addChild(uploadedFileName);
 
-		SpiderDataAtomic size = SpiderDataAtomic.withNameInDataAndValue("fileSize",
+		SpiderDataAtomic size = SpiderDataAtomic.withNameInDataAndValue("filesize",
 				String.valueOf(fileSize));
 		master.addChild(size);
+
+		SpiderDataAtomic mimeType = SpiderDataAtomic.withNameInDataAndValue("mimeType",
+				"application/octet-stream");
+		master.addChild(mimeType);
 	}
 
 	private void replaceResourceInfoToMetdataRecord(String fileName, long fileSize) {

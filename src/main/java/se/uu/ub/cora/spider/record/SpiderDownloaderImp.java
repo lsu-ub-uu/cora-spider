@@ -80,7 +80,7 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 
 		String name = extractStreamNameFromData();
 		long size = extractStreamSizeFromData();
-		return SpiderInputStream.withNameSizeInputStream(name, size, stream);
+		return SpiderInputStream.withNameSizeInputStream(name, size, "application/octet-stream", stream);
 
 	}
 
@@ -161,12 +161,12 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 	private String extractStreamNameFromData() {
 		SpiderDataGroup resourceInfo = spiderRecordRead.extractGroup(RESOURCE_INFO);
 		SpiderDataGroup requestedResource = resourceInfo.extractGroup(resourceName);
-		return requestedResource.extractAtomicValue("fileName");
+		return requestedResource.extractAtomicValue("filename");
 	}
 
 	private long extractStreamSizeFromData() {
 		SpiderDataGroup resourceInfo = spiderRecordRead.extractGroup(RESOURCE_INFO);
 		SpiderDataGroup requestedResource = resourceInfo.extractGroup(resourceName);
-		return Long.valueOf(requestedResource.extractAtomicValue("fileSize"));
+		return Long.valueOf(requestedResource.extractAtomicValue("filesize"));
 	}
 }
