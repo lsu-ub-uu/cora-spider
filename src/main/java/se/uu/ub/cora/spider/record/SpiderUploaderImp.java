@@ -144,18 +144,18 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	}
 
 	private void addOrReplaceResourceInfoToMetdataRecord(String fileName, long fileSize) {
-		if (recordAlreadyHasResourceInfo()) {
-			addResourceInfoToMetdataRecord(fileName, fileSize);
+		if (recordHasNoResourceInfo()) {
+			addResourceInfoToMetadataRecord(fileName, fileSize);
 		} else {
-			replaceResourceInfoToMetdataRecord(fileName, fileSize);
+			replaceResourceInfoToMetadataRecord(fileName, fileSize);
 		}
 	}
 
-	private boolean recordAlreadyHasResourceInfo() {
+	private boolean recordHasNoResourceInfo() {
 		return !spiderRecordRead.containsChildWithNameInData(RESOURCE_INFO);
 	}
 
-	private void addResourceInfoToMetdataRecord(String fileName, long fileSize) {
+	private void addResourceInfoToMetadataRecord(String fileName, long fileSize) {
 		SpiderDataGroup resourceInfo = SpiderDataGroup.withNameInData(RESOURCE_INFO);
 		spiderRecordRead.addChild(resourceInfo);
 
@@ -178,8 +178,8 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		master.addChild(mimeType);
 	}
 
-	private void replaceResourceInfoToMetdataRecord(String fileName, long fileSize) {
+	private void replaceResourceInfoToMetadataRecord(String fileName, long fileSize) {
 		spiderRecordRead.removeChild(RESOURCE_INFO);
-		addResourceInfoToMetdataRecord(fileName, fileSize);
+		addResourceInfoToMetadataRecord(fileName, fileSize);
 	}
 }
