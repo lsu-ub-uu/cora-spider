@@ -197,9 +197,14 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		}
 		if (id.equals("testParentMissingItemCollectionVar")) {
 			DataGroup group = DataGroup.withNameInData("metadata");
-
-			group.addChild(DataAtomic.withNameInDataAndValue("refCollectionId",
-					"testParentMissingItemCollection"));
+			
+			DataGroup refCollection = DataGroup.withNameInData("refCollection");
+			refCollection.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "metadataItemCollection"));
+			refCollection.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "testParentMissingItemCollection"));
+			group.addChild(refCollection);
+			
+//			group.addChild(DataAtomic.withNameInDataAndValue("refCollectionId",
+//					"testParentMissingItemCollection"));
 			return group;
 		}
 		if (id.equals("testParentMissingItemCollection")) {
@@ -213,9 +218,12 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		}
 		if (id.equals("testParentCollectionVar")) {
 			DataGroup group = DataGroup.withNameInData("metadata");
-
-			group.addChild(DataAtomic.withNameInDataAndValue("refCollectionId",
-					"testParentItemCollection"));
+			DataGroup refCollection = DataGroup.withNameInData("refCollection");
+			refCollection.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "metadataItemCollection"));
+			refCollection.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "testParentItemCollection"));
+			group.addChild(refCollection);
+//			group.addChild(DataAtomic.withNameInDataAndValue("refCollectionId",
+//					"testParentItemCollection"));
 			return group;
 		}
 		if (id.equals("testParentItemCollection")) {

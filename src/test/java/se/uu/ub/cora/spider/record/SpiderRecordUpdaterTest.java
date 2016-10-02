@@ -485,7 +485,7 @@ public class SpiderRecordUpdaterTest {
 						authorization, dataValidator, recordStorage, keyCalculator, linkCollector);
 
 		SpiderDataGroup dataGroup = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
-
+		
 		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentMissingItemCollectionVar"));
 
 		recordUpdater.updateRecord("userId", "metadataCollectionVariable", "testCollectionVar", dataGroup);
