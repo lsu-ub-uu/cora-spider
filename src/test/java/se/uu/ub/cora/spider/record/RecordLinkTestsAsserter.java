@@ -22,7 +22,11 @@ package se.uu.ub.cora.spider.record;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import se.uu.ub.cora.spider.data.*;
+import se.uu.ub.cora.spider.data.Action;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.data.SpiderDataResourceLink;
 
 public class RecordLinkTestsAsserter {
 	public static void assertTopLevelLinkContainsReadActionOnly(SpiderDataRecord record) {
@@ -43,6 +47,30 @@ public class RecordLinkTestsAsserter {
 		SpiderDataGroup spiderDataGroupOneLevelDown = (SpiderDataGroup) spiderDataGroup
 				.getFirstChildWithNameInData("oneLevelDown");
 		SpiderDataRecordLink link = (SpiderDataRecordLink) spiderDataGroupOneLevelDown
+				.getFirstChildWithNameInData("link");
+		assertTrue(link.getActions().contains(Action.READ));
+		assertEquals(link.getActions().size(), 1);
+	}
+
+	public static void assertTopLevelResourceLinkContainsReadActionOnly(SpiderDataRecord record) {
+		SpiderDataResourceLink link = getResourceLinkFromRecord(record);
+		assertTrue(link.getActions().contains(Action.READ));
+		assertEquals(link.getActions().size(), 1);
+	}
+
+	private static SpiderDataResourceLink getResourceLinkFromRecord(SpiderDataRecord record) {
+		SpiderDataGroup spiderDataGroup = record.getSpiderDataGroup();
+		SpiderDataResourceLink link = (SpiderDataResourceLink) spiderDataGroup
+				.getFirstChildWithNameInData("link");
+		return link;
+	}
+
+	public static void assertOneLevelDownResourceLinkContainsReadActionOnly(
+			SpiderDataRecord record) {
+		SpiderDataGroup spiderDataGroup = record.getSpiderDataGroup();
+		SpiderDataGroup spiderDataGroupOneLevelDown = (SpiderDataGroup) spiderDataGroup
+				.getFirstChildWithNameInData("oneLevelDown");
+		SpiderDataResourceLink link = (SpiderDataResourceLink) spiderDataGroupOneLevelDown
 				.getFirstChildWithNameInData("link");
 		assertTrue(link.getActions().contains(Action.READ));
 		assertEquals(link.getActions().size(), 1);

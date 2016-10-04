@@ -141,11 +141,14 @@ public class SpiderUploaderTest {
 		String streamId = master.extractAtomicValue("streamId");
 		assertEquals(streamId, streamStorage.streamId);
 
-		String size = master.extractAtomicValue("fileSize");
+		String size = master.extractAtomicValue("filesize");
 		assertEquals(size, String.valueOf(streamStorage.size));
 
-		String fileName = master.extractAtomicValue("fileName");
+		String fileName = master.extractAtomicValue("filename");
 		assertEquals(fileName, "someFileName");
+
+		String mimeType = master.extractAtomicValue("mimeType");
+		assertEquals(mimeType, "application/octet-stream");
 	}
 
 	@Test(expectedExceptions = MisuseException.class)

@@ -171,6 +171,20 @@ public class SpiderDataGroupTest {
 
 	}
 
+	private DataGroup createRecordLink() {
+		DataGroup dataRecordLink = DataGroup.withNameInData("childNameInData");
+
+		DataAtomic linkedRecordType = DataAtomic.withNameInDataAndValue("linkedRecordType",
+				"aRecordType");
+		dataRecordLink.addChild(linkedRecordType);
+
+		DataAtomic linkedRecordId = DataAtomic.withNameInDataAndValue("linkedRecordId",
+				"aRecordId");
+		dataRecordLink.addChild(linkedRecordId);
+
+		return dataRecordLink;
+	}
+
 	@Test
 	public void testFromDataGroupWithNonCompleteDataRecordLinkChild() {
 		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
@@ -185,18 +199,109 @@ public class SpiderDataGroupTest {
 		assertFalse(spiderDataGroup instanceof SpiderDataRecordLink);
 	}
 
-	private DataGroup createRecordLink() {
-		DataGroup dataRecordLink = DataGroup.withNameInData("childNameInData");
+	@Test
+	public void testFromDataGroupWithDataResourceLinkChild() {
+		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
+		dataGroup.addChild(createResourceLink());
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
+		SpiderDataElement spiderDataElement = spiderDataGroup.getChildren().get(0);
+		assertEquals(spiderDataElement.getNameInData(), "childNameInData");
 
-		DataAtomic linkedRecordType = DataAtomic.withNameInDataAndValue("linkedRecordType",
-				"aRecordType");
-		dataRecordLink.addChild(linkedRecordType);
+		SpiderDataResourceLink spiderDataResourceLink = (SpiderDataResourceLink) spiderDataElement;
+		SpiderDataAtomic streamId = (SpiderDataAtomic) spiderDataResourceLink
+				.getFirstChildWithNameInData("streamId");
+		assertEquals(streamId.getValue(), "aStreamId");
+		assertTrue(spiderDataResourceLink instanceof SpiderDataResourceLink);
 
-		DataAtomic linkedRecordId = DataAtomic.withNameInDataAndValue("linkedRecordId",
-				"aRecordId");
-		dataRecordLink.addChild(linkedRecordId);
+	}
 
-		return dataRecordLink;
+	private DataGroup createResourceLink() {
+		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
+
+		return dataResourceLink;
+	}
+
+	@Test
+	public void testFromDataGroupWithDataIncompleteResourceLinkChildMissingStreamId() {
+		DataGroup resourceLink = createResourceLinkNoStreamId();
+		createAndAssertNotResourceLink(resourceLink);
+	}
+
+	private void createAndAssertNotResourceLink(DataGroup resourceLink) {
+		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
+		dataGroup.addChild(resourceLink);
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
+		SpiderDataElement spiderDataElement = spiderDataGroup
+				.getFirstChildWithNameInData("childNameInData");
+		assertFalse(spiderDataElement instanceof SpiderDataResourceLink);
+	}
+
+	private DataGroup createResourceLinkNoStreamId() {
+		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+
+		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
+
+		return dataResourceLink;
+	}
+
+	@Test
+	public void testFromDataGroupWithDataIncompleteResourceLinkChildMissingFilename() {
+		DataGroup resourceLink = createResourceLinkNoFilename();
+		createAndAssertNotResourceLink(resourceLink);
+	}
+
+	private DataGroup createResourceLinkNoFilename() {
+		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
+		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
+
+		return dataResourceLink;
+	}
+
+	@Test
+	public void testFromDataGroupWithDataIncompleteResourceLinkChildMissingFilesize() {
+		DataGroup resourceLink = createResourceLinkNoFilesize();
+		createAndAssertNotResourceLink(resourceLink);
+	}
+
+	private DataGroup createResourceLinkNoFilesize() {
+		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
+		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
+
+		return dataResourceLink;
+	}
+
+	@Test
+	public void testFromDataGroupWithDataIncompleteResourceLinkChildMissingMimeType() {
+		DataGroup resourceLink = createResourceLinkNoMimeType();
+		createAndAssertNotResourceLink(resourceLink);
+	}
+
+	private DataGroup createResourceLinkNoMimeType() {
+		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
+		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
+		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType",
+		// "application/pdf"));
+
+		return dataResourceLink;
 	}
 
 	@Test

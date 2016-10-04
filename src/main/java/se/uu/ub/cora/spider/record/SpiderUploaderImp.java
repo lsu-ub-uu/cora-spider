@@ -144,40 +144,42 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	}
 
 	private void addOrReplaceResourceInfoToMetdataRecord(String fileName, long fileSize) {
-		if (recordAlreadyHasResourceInfo()) {
-			addResourceInfoToMetdataRecord(fileName, fileSize);
+		if (recordHasNoResourceInfo()) {
+			addResourceInfoToMetadataRecord(fileName, fileSize);
 		} else {
-			replaceResourceInfoToMetdataRecord(fileName, fileSize);
+			replaceResourceInfoToMetadataRecord(fileName, fileSize);
 		}
 	}
 
-	private boolean recordAlreadyHasResourceInfo() {
+	private boolean recordHasNoResourceInfo() {
 		return !spiderRecordRead.containsChildWithNameInData(RESOURCE_INFO);
 	}
 
-	private void addResourceInfoToMetdataRecord(String fileName, long fileSize) {
+	private void addResourceInfoToMetadataRecord(String fileName, long fileSize) {
 		SpiderDataGroup resourceInfo = SpiderDataGroup.withNameInData(RESOURCE_INFO);
 		spiderRecordRead.addChild(resourceInfo);
 
 		SpiderDataGroup master = SpiderDataGroup.withNameInData("master");
 		resourceInfo.addChild(master);
 
-		// - add master stream id to recordRead
 		SpiderDataAtomic streamId2 = SpiderDataAtomic.withNameInDataAndValue("streamId", streamId);
 		master.addChild(streamId2);
 
-		// - set filename and filesize
-		SpiderDataAtomic uploadedFileName = SpiderDataAtomic.withNameInDataAndValue("fileName",
+		SpiderDataAtomic uploadedFileName = SpiderDataAtomic.withNameInDataAndValue("filename",
 				fileName);
 		master.addChild(uploadedFileName);
 
-		SpiderDataAtomic size = SpiderDataAtomic.withNameInDataAndValue("fileSize",
+		SpiderDataAtomic size = SpiderDataAtomic.withNameInDataAndValue("filesize",
 				String.valueOf(fileSize));
 		master.addChild(size);
+
+		SpiderDataAtomic mimeType = SpiderDataAtomic.withNameInDataAndValue("mimeType",
+				"application/octet-stream");
+		master.addChild(mimeType);
 	}
 
-	private void replaceResourceInfoToMetdataRecord(String fileName, long fileSize) {
+	private void replaceResourceInfoToMetadataRecord(String fileName, long fileSize) {
 		spiderRecordRead.removeChild(RESOURCE_INFO);
-		addResourceInfoToMetdataRecord(fileName, fileSize);
+		addResourceInfoToMetadataRecord(fileName, fileSize);
 	}
 }

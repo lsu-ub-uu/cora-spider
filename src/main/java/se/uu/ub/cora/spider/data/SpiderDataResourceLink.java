@@ -23,24 +23,24 @@ import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
-public final class SpiderDataRecordLink extends SpiderDataGroup implements SpiderDataLink {
+public final class SpiderDataResourceLink extends SpiderDataGroup implements SpiderDataLink {
 
 	private List<Action> actions = new ArrayList<>();
 
-	private SpiderDataRecordLink(String nameInData) {
+	private SpiderDataResourceLink(String nameInData) {
 		super(nameInData);
 	}
 
-	private SpiderDataRecordLink(DataGroup dataRecordLink) {
-		super(dataRecordLink);
+	private SpiderDataResourceLink(DataGroup dataResourceLink) {
+		super(dataResourceLink);
 	}
 
-	public static SpiderDataRecordLink withNameInData(String nameInData) {
-		return new SpiderDataRecordLink(nameInData);
+	public static SpiderDataResourceLink withNameInData(String nameInData) {
+		return new SpiderDataResourceLink(nameInData);
 	}
 
-	public static SpiderDataRecordLink fromDataRecordLink(DataGroup dataRecordLink) {
-		return new SpiderDataRecordLink(dataRecordLink);
+	public static SpiderDataResourceLink fromDataRecordLink(DataGroup dataResourceLink) {
+		return new SpiderDataResourceLink(dataResourceLink);
 	}
 
 	@Override
