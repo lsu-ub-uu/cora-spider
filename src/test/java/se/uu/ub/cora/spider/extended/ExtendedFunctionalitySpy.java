@@ -25,7 +25,7 @@ public class ExtendedFunctionalitySpy implements ExtendedFunctionality {
 	public boolean extendedFunctionalityHasBeenCalled = false;
 
 	@Override
-	public void useExtendedFunctionality(SpiderDataGroup spiderDataGroup) {
+	public void useExtendedFunctionality(String userId, SpiderDataGroup spiderDataGroup) {
 		extendedFunctionalityHasBeenCalled = true;
 	}
 

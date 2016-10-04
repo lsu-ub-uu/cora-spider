@@ -42,6 +42,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
+	private String userId;
 
 	public static SpiderRecordUpdaterImp usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 			Authorizator authorization, DataValidator dataValidator, RecordStorage recordStorage,
@@ -66,6 +67,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	@Override
 	public SpiderDataRecord updateRecord(String userId, String recordType, String recordId,
 			SpiderDataGroup spiderDataGroup) {
+		this.userId = userId;
 		this.spiderDataGroup = spiderDataGroup;
 		this.recordType = recordType;
 		this.recordId = recordId;
@@ -125,7 +127,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private void useExtendedFunctionality(SpiderDataGroup spiderDataGroup,
 			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
 		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
-			extendedFunctionality.useExtendedFunctionality(spiderDataGroup);
+			extendedFunctionality.useExtendedFunctionality(userId, spiderDataGroup);
 		}
 	}
 
