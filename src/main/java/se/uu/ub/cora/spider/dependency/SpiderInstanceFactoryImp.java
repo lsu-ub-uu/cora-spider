@@ -42,7 +42,7 @@ import se.uu.ub.cora.spider.record.SpiderUploaderImp;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
-public class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
+public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	private SpiderDependencyProvider dependencyProvider;
 
