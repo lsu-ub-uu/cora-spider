@@ -36,6 +36,7 @@ import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class SpiderRecordHandler {
+	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	protected static final String RECORD_TYPE = "recordType";
 	protected static final String RECORD_INFO = "recordInfo";
 	private static final String PARENT_ID = "parentId";
@@ -226,7 +227,9 @@ public class SpiderRecordHandler {
 	}
 
 	private DataGroup getItemReferences() {
-		String refCollectionId = spiderDataGroup.extractAtomicValue("refCollectionId");
+		SpiderDataGroup refCollection = (SpiderDataGroup) spiderDataGroup
+				.getFirstChildWithNameInData("refCollection");
+		String refCollectionId = refCollection.extractAtomicValue(LINKED_RECORD_ID);
 		return readItemCollectionAndExtractCollectionItemReferences(refCollectionId);
 	}
 
@@ -239,9 +242,10 @@ public class SpiderRecordHandler {
 		String refParentId = spiderDataGroup.extractAtomicValue(REF_PARENT_ID);
 		DataGroup parentCollectionVar = recordStorage.read("metadataCollectionVariable",
 				refParentId);
-		String parentRefCollectionId = parentCollectionVar
-				.getFirstAtomicValueWithNameInData("refCollectionId");
-
+		DataGroup parentRefCollection = (DataGroup) parentCollectionVar
+				.getFirstChildWithNameInData("refCollection");
+		String parentRefCollectionId = parentRefCollection.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	
 		return readItemCollectionAndExtractCollectionItemReferences(parentRefCollectionId);
 	}
 
@@ -300,7 +304,7 @@ public class SpiderRecordHandler {
 
 	private void extractToGroupAndCheckDataExistsInStorage(DataGroup dataElement) {
 		DataGroup to = extractToGroupFromRecordLink(dataElement);
-		String toRecordId = extractAtomicValueFromGroup("linkedRecordId", to);
+		String toRecordId = extractAtomicValueFromGroup(LINKED_RECORD_ID, to);
 		String toRecordType = extractAtomicValueFromGroup("linkedRecordType", to);
 		checkRecordTypeAndRecordIdExistsInStorage(toRecordId, toRecordType);
 	}
@@ -418,7 +422,7 @@ public class SpiderRecordHandler {
 	protected String extractDataDividerFromData(SpiderDataGroup spiderDataGroup) {
 		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
 		SpiderDataGroup dataDivider = recordInfo.extractGroup("dataDivider");
-		return dataDivider.extractAtomicValue("linkedRecordId");
+		return dataDivider.extractAtomicValue(LINKED_RECORD_ID);
 	}
 
 }

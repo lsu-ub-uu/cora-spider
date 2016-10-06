@@ -258,10 +258,17 @@ public final class DataCreator {
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "collectionVariable"));
 		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));
 		spiderDataGroup.addChild(recordInfo);
-		spiderDataGroup.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("refCollectionId", "testItemCollection"));
+		spiderDataGroup.addChild(createRefCollectionIdWithLinkedRecordid("testItemCollection"));
 
 		return spiderDataGroup;
+	}
+	
+	public static SpiderDataGroup createRefCollectionIdWithLinkedRecordid(String linkedRecordId) {
+		SpiderDataGroup refCollection = SpiderDataGroup.withNameInData("refCollection");
+		refCollection.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataItemCollection"));
+		refCollection.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", linkedRecordId));
+		return refCollection;
 	}
 
 	public static SpiderDataGroup createMetadataGroupWithRecordLinkAsChild() {
