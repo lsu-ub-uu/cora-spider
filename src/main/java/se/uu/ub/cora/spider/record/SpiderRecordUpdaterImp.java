@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
@@ -28,6 +29,8 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
@@ -38,27 +41,33 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
+	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
+	private String userId;
 
-	public static SpiderRecordUpdaterImp usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollector(
+	public static SpiderRecordUpdaterImp usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 			Authorizator authorization, DataValidator dataValidator, RecordStorage recordStorage,
-			PermissionKeyCalculator keyCalculator, DataRecordLinkCollector linkCollector) {
+			PermissionKeyCalculator keyCalculator, DataRecordLinkCollector linkCollector,
+			ExtendedFunctionalityProvider extendedFunctionalityProvider) {
 		return new SpiderRecordUpdaterImp(authorization, dataValidator, recordStorage,
-				keyCalculator, linkCollector);
+				keyCalculator, linkCollector, extendedFunctionalityProvider);
 	}
 
 	private SpiderRecordUpdaterImp(Authorizator authorization, DataValidator dataValidator,
 			RecordStorage recordStorage, PermissionKeyCalculator keyCalculator,
-			DataRecordLinkCollector linkCollector) {
+			DataRecordLinkCollector linkCollector,
+			ExtendedFunctionalityProvider extendedFunctionalityProvider) {
 		this.authorization = authorization;
 		this.dataValidator = dataValidator;
 		this.recordStorage = recordStorage;
 		this.keyCalculator = keyCalculator;
 		this.linkCollector = linkCollector;
+		this.extendedFunctionalityProvider = extendedFunctionalityProvider;
 	}
 
 	@Override
 	public SpiderDataRecord updateRecord(String userId, String recordType, String recordId,
 			SpiderDataGroup spiderDataGroup) {
+		this.userId = userId;
 		this.spiderDataGroup = spiderDataGroup;
 		this.recordType = recordType;
 		this.recordId = recordId;
@@ -66,7 +75,10 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("metadataId");
 
 		checkNoUpdateForAbstractRecordType();
+		useExtendedFunctionalityBeforeMetadataValidation(recordType, spiderDataGroup);
+
 		validateIncomingDataAsSpecifiedInMetadata();
+		useExtendedFunctionalityAfterMetadataValidation(recordType, spiderDataGroup);
 
 		validateRules();
 
@@ -105,6 +117,27 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		}
 	}
 
+	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
+			SpiderDataGroup spiderDataGroup) {
+		List<ExtendedFunctionality> functionalityForUpdateBeforeMetadataValidation = extendedFunctionalityProvider
+				.getFunctionalityForUpdateBeforeMetadataValidation(recordTypeToCreate);
+		useExtendedFunctionality(spiderDataGroup, functionalityForUpdateBeforeMetadataValidation);
+	}
+
+	private void useExtendedFunctionality(SpiderDataGroup spiderDataGroup,
+			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
+		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
+			extendedFunctionality.useExtendedFunctionality(userId, spiderDataGroup);
+		}
+	}
+
+	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
+			SpiderDataGroup spiderDataGroup) {
+		List<ExtendedFunctionality> functionalityForUpdateAfterMetadataValidation = extendedFunctionalityProvider
+				.getFunctionalityForUpdateAfterMetadataValidation(recordTypeToCreate);
+		useExtendedFunctionality(spiderDataGroup, functionalityForUpdateAfterMetadataValidation);
+	}
+
 	private void validateIncomingDataAsSpecifiedInMetadata() {
 		DataGroup dataGroup = spiderDataGroup.toDataGroup();
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, dataGroup);
@@ -140,8 +173,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		}
 	}
 
-	private void checkUserIsAuthorisedToStoreIncomingData(String userId,
-			DataGroup incomingData) {
+	private void checkUserIsAuthorisedToStoreIncomingData(String userId, DataGroup incomingData) {
 
 		// calculate permissionKey
 		String accessType = "UPDATE";

@@ -37,7 +37,10 @@ import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
@@ -62,6 +65,7 @@ public class SpiderUploaderTest {
 	private DataRecordLinkCollector linkCollector;
 	private RecordIdGenerator idGenerator;
 	private SpiderDependencyProviderSpy dependencyProvider;
+	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -72,6 +76,7 @@ public class SpiderUploaderTest {
 		linkCollector = new DataRecordLinkCollectorSpy();
 		idGenerator = new TimeStampIdGenerator();
 		streamStorage = new StreamStorageSpy();
+		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 
 		setUpDependencyProvider();
 
@@ -86,7 +91,10 @@ public class SpiderUploaderTest {
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.idGenerator = idGenerator;
 		dependencyProvider.streamStorage = streamStorage;
-		SpiderInstanceProvider.setSpiderDependencyProvider(dependencyProvider);
+		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
+		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
+				.usingDependencyProvider(dependencyProvider);
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		uploader = SpiderUploaderImp.usingDependencyProvider(dependencyProvider);
 	}
 

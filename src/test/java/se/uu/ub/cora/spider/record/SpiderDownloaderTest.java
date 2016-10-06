@@ -38,6 +38,8 @@ import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
@@ -69,7 +71,9 @@ public class SpiderDownloaderTest {
 		dependencyProvider.keyCalculator = keyCalculator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.streamStorage = streamStorage;
-		SpiderInstanceProvider.setSpiderDependencyProvider(dependencyProvider);
+		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
+				.usingDependencyProvider(dependencyProvider);
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		downloader = SpiderDownloaderImp.usingDependencyProvider(dependencyProvider);
 	}
 

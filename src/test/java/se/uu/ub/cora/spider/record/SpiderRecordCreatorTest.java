@@ -24,6 +24,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
+import java.util.List;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -37,6 +39,8 @@ import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.record.storage.RecordConflictException;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
@@ -63,6 +67,7 @@ public class SpiderRecordCreatorTest {
 	private SpiderRecordCreator recordCreator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
+	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -72,10 +77,11 @@ public class SpiderRecordCreatorTest {
 		idGenerator = new TimeStampIdGenerator();
 		keyCalculator = new RecordPermissionKeyCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
+		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		recordCreator = SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 
 	}
 
@@ -89,15 +95,18 @@ public class SpiderRecordCreatorTest {
 		linkCollector = new DataRecordLinkCollectorSpy();
 
 		SpiderRecordCreator recordCreator = SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 		SpiderDataGroup spiderDataGroup = DataCreator
 				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
 		recordCreator.createAndStoreRecord("userId", "spyType", spiderDataGroup);
 
 		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorization).authorizedWasCalled);
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
+		ExtendedFunctionalitySpy extendedFunctionality = extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation
+				.get(0);
+		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
 		assertTrue(((RecordStorageSpy) recordStorage).createWasCalled);
 		assertTrue(((IdGeneratorSpy) idGenerator).getIdForTypeWasCalled);
 		assertTrue(((KeyCalculatorSpy) keyCalculator).calculateKeysWasCalled);
@@ -105,13 +114,48 @@ public class SpiderRecordCreatorTest {
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyTypeNew");
 	}
 
+	@Test
+	public void testExtendedFunctionallityIsCalled() {
+		authorization = new AuthorizatorAlwaysAuthorizedSpy();
+		dataValidator = new DataValidatorAlwaysValidSpy();
+		recordStorage = new RecordStorageSpy();
+		idGenerator = new IdGeneratorSpy();
+		keyCalculator = new KeyCalculatorSpy();
+		linkCollector = new DataRecordLinkCollectorSpy();
+
+		SpiderRecordCreator recordCreator = SpiderRecordCreatorImp
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
+						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
+						linkCollector, extendedFunctionalityProvider);
+		SpiderDataGroup spiderDataGroup = DataCreator
+				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		recordCreator.createAndStoreRecord("userId", "spyType", spiderDataGroup);
+
+		assertFetchedFunctionalityHasBeenCalled(
+				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeMetadataValidation);
+		assertFetchedFunctionalityHasBeenCalled(
+				extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation);
+		assertFetchedFunctionalityHasBeenCalled(
+				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeReturn);
+	}
+
+	private void assertFetchedFunctionalityHasBeenCalled(
+			List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateAfterMetadataValidation) {
+		ExtendedFunctionalitySpy extendedFunctionality = fetchedFunctionalityForCreateAfterMetadataValidation
+				.get(0);
+		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
+		ExtendedFunctionalitySpy extendedFunctionality2 = fetchedFunctionalityForCreateAfterMetadataValidation
+				.get(0);
+		assertTrue(extendedFunctionality2.extendedFunctionalityHasBeenCalled);
+	}
+
 	@Test(expectedExceptions = DataException.class)
 	public void testCreateRecordInvalidData() {
 		DataValidator dataValidator = new DataValidatorAlwaysInvalidSpy();
 		SpiderRecordCreator recordCreator = SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
 		recordCreator.createAndStoreRecord("userId", "recordType", spiderDataGroup);
 	}
@@ -192,9 +236,9 @@ public class SpiderRecordCreatorTest {
 	@Test(expectedExceptions = MisuseException.class)
 	public void testCreateRecordAbstractRecordType() {
 		SpiderRecordCreator recordCreator = SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, new RecordStorageSpy(), idGenerator,
-						keyCalculator, linkCollector);
+						keyCalculator, linkCollector, extendedFunctionalityProvider);
 
 		SpiderDataGroup record = SpiderDataGroup.withNameInData("abstract");
 		recordCreator.createAndStoreRecord("userId", "abstract", record);
@@ -203,9 +247,9 @@ public class SpiderRecordCreatorTest {
 	@Test(expectedExceptions = RecordConflictException.class)
 	public void testCreateRecordDuplicateUserSuppliedId() {
 		SpiderRecordCreator recordCreator = SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 
 		SpiderDataGroup record = DataCreator
 				.createRecordWithNameInDataAndIdAndLinkedRecordId("place", "somePlace", "cora");
@@ -252,9 +296,9 @@ public class SpiderRecordCreatorTest {
 
 	private void setRecordCreatorWithRecordStorage(RecordStorageCreateUpdateSpy recordStorage) {
 		recordCreator = SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 	}
 
 	@Test
@@ -294,9 +338,9 @@ public class SpiderRecordCreatorTest {
 	private SpiderRecordCreator createRecordCreatorWithTestDataForLinkedData() {
 		recordStorage = new RecordLinkTestsRecordStorage();
 		return SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 	}
 
 	@Test
@@ -348,9 +392,9 @@ public class SpiderRecordCreatorTest {
 	private SpiderRecordCreator getRecordCreatorAndSetRecordStorageAndLinkCollector(
 			RecordLinkTestsRecordStorage recordStorage, DataRecordLinkCollectorSpy linkCollector) {
 		return SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollector(
+				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
 						authorization, dataValidator, recordStorage, idGenerator, keyCalculator,
-						linkCollector);
+						linkCollector, extendedFunctionalityProvider);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: child does not exist in parent")
