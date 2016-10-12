@@ -27,7 +27,7 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public class SpiderRecordListReaderImp extends SpiderRecordHandler
 		implements SpiderRecordListReader {
@@ -35,17 +35,15 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 	private PermissionKeyCalculator keyCalculator;
 	private SpiderDataList readRecordList;
 
-	public static SpiderRecordListReaderImp usingAuthorizationAndRecordStorageAndKeyCalculator(
-			Authorizator authorization, RecordStorage recordStorage,
-			PermissionKeyCalculator keyCalculator) {
-		return new SpiderRecordListReaderImp(authorization, recordStorage, keyCalculator);
+	public SpiderRecordListReaderImp(SpiderDependencyProvider dependencyProvider) {
+		this.authorization = dependencyProvider.getAuthorizator();
+		this.recordStorage = dependencyProvider.getRecordStorage();
+		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
 	}
 
-	public SpiderRecordListReaderImp(Authorizator authorization, RecordStorage recordStorage,
-			PermissionKeyCalculator keyCalculator) {
-		this.authorization = authorization;
-		this.recordStorage = recordStorage;
-		this.keyCalculator = keyCalculator;
+	public static SpiderRecordListReaderImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new SpiderRecordListReaderImp(dependencyProvider);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -24,25 +24,27 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.data.*;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.spider.data.Action;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataList;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public final class SpiderRecordReaderImp extends SpiderRecordHandler implements SpiderRecordReader {
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
 	private String userId;
 
-	public static SpiderRecordReaderImp usingAuthorizationAndRecordStorageAndKeyCalculator(
-			Authorizator authorization, RecordStorage recordStorage,
-			PermissionKeyCalculator keyCalculator) {
-		return new SpiderRecordReaderImp(authorization, recordStorage, keyCalculator);
+	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider) {
+		this.authorization = dependencyProvider.getAuthorizator();
+		this.recordStorage = dependencyProvider.getRecordStorage();
+		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
 	}
 
-	private SpiderRecordReaderImp(Authorizator authorization, RecordStorage recordStorage,
-			PermissionKeyCalculator keyCalculator) {
-		this.authorization = authorization;
-		this.recordStorage = recordStorage;
-		this.keyCalculator = keyCalculator;
+	public static SpiderRecordReaderImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new SpiderRecordReaderImp(dependencyProvider);
 	}
 
 	@Override

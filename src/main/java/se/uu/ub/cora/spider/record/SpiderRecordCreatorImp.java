@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -30,10 +30,10 @@ import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		implements SpiderRecordCreator {
@@ -48,26 +48,19 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private String userId;
 
-	public static SpiderRecordCreatorImp usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
-			Authorizator authorization, DataValidator dataValidator, RecordStorage recordStorage,
-			RecordIdGenerator idGenerator, PermissionKeyCalculator keyCalculator,
-			DataRecordLinkCollector linkCollector,
-			ExtendedFunctionalityProvider extendedFunctionalityProvider) {
-		return new SpiderRecordCreatorImp(authorization, dataValidator, recordStorage, idGenerator,
-				keyCalculator, linkCollector, extendedFunctionalityProvider);
+	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider) {
+		this.authorization = dependencyProvider.getAuthorizator();
+		this.dataValidator = dependencyProvider.getDataValidator();
+		this.recordStorage = dependencyProvider.getRecordStorage();
+		this.idGenerator = dependencyProvider.getIdGenerator();
+		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
+		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
+		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
-	private SpiderRecordCreatorImp(Authorizator authorization, DataValidator dataValidator,
-			RecordStorage recordStorage, RecordIdGenerator idGenerator,
-			PermissionKeyCalculator keyCalculator, DataRecordLinkCollector linkCollector,
-			ExtendedFunctionalityProvider extendedFunctionalityProvider) {
-		this.authorization = authorization;
-		this.dataValidator = dataValidator;
-		this.recordStorage = recordStorage;
-		this.idGenerator = idGenerator;
-		this.keyCalculator = keyCalculator;
-		this.linkCollector = linkCollector;
-		this.extendedFunctionalityProvider = extendedFunctionalityProvider;
+	public static SpiderRecordCreatorImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new SpiderRecordCreatorImp(dependencyProvider);
 	}
 
 	@Override

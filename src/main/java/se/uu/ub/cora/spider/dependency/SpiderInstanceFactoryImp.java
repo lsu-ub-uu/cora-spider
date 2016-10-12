@@ -1,6 +1,6 @@
 /*
+ * Copyright 2015, 2016 Uppsala University Library
  * Copyright 2016 Olov McKie
- * Copyright 2015 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,11 +20,6 @@
 
 package se.uu.ub.cora.spider.dependency;
 
-import se.uu.ub.cora.beefeater.Authorizator;
-import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.validator.DataValidator;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
-import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.record.SpiderDownloader;
 import se.uu.ub.cora.spider.record.SpiderDownloaderImp;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
@@ -39,8 +34,6 @@ import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterImp;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 import se.uu.ub.cora.spider.record.SpiderUploaderImp;
-import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
@@ -57,70 +50,27 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	@Override
 	public SpiderRecordReader factorSpiderRecordReader() {
-		Authorizator authorizator = dependencyProvider.getAuthorizator();
-		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		PermissionKeyCalculator permissionKeyCalculator = dependencyProvider
-				.getPermissionKeyCalculator();
-
-		return SpiderRecordReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
-				authorizator, recordStorage, permissionKeyCalculator);
+		return SpiderRecordReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
 	public SpiderRecordListReader factorSpiderRecordListReader() {
-		Authorizator authorizator = dependencyProvider.getAuthorizator();
-		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		PermissionKeyCalculator permissionKeyCalculator = dependencyProvider
-				.getPermissionKeyCalculator();
-
-		return SpiderRecordListReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
-				authorizator, recordStorage, permissionKeyCalculator);
+		return SpiderRecordListReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
 	public SpiderRecordCreator factorSpiderRecordCreator() {
-		Authorizator authorizator = dependencyProvider.getAuthorizator();
-		DataValidator dataValidator = dependencyProvider.getDataValidator();
-		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		RecordIdGenerator recordIdGenerator = dependencyProvider.getIdGenerator();
-		PermissionKeyCalculator permissionKeyCalculator = dependencyProvider
-				.getPermissionKeyCalculator();
-		DataRecordLinkCollector linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		ExtendedFunctionalityProvider extendedFunctionalityProvider = dependencyProvider
-				.getExtendedFunctionalityProvider();
-
-		return SpiderRecordCreatorImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndIdGeneratorAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
-						authorizator, dataValidator, recordStorage, recordIdGenerator,
-						permissionKeyCalculator, linkCollector, extendedFunctionalityProvider);
+		return SpiderRecordCreatorImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
 	public SpiderRecordUpdater factorSpiderRecordUpdater() {
-		Authorizator authorizator = dependencyProvider.getAuthorizator();
-		DataValidator dataValidator = dependencyProvider.getDataValidator();
-		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		PermissionKeyCalculator permissionKeyCalculator = dependencyProvider
-				.getPermissionKeyCalculator();
-		DataRecordLinkCollector linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		ExtendedFunctionalityProvider extendedFunctionalityProvider = dependencyProvider
-				.getExtendedFunctionalityProvider();
-
-		return SpiderRecordUpdaterImp
-				.usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
-						authorizator, dataValidator, recordStorage, permissionKeyCalculator,
-						linkCollector, extendedFunctionalityProvider);
+		return SpiderRecordUpdaterImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
 	public SpiderRecordDeleter factorSpiderRecordDeleter() {
-		Authorizator authorizator = dependencyProvider.getAuthorizator();
-		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		PermissionKeyCalculator permissionKeyCalculator = dependencyProvider
-				.getPermissionKeyCalculator();
-
-		return SpiderRecordDeleterImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
-				authorizator, recordStorage, permissionKeyCalculator);
+		return SpiderRecordDeleterImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override

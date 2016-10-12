@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -29,9 +29,9 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		implements SpiderRecordUpdater {
@@ -44,24 +44,19 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private String userId;
 
-	public static SpiderRecordUpdaterImp usingAuthorizationAndDataValidatorAndRecordStorageAndKeyCalculatorAndLinkCollectorAndExtendedFunctionalityProvider(
-			Authorizator authorization, DataValidator dataValidator, RecordStorage recordStorage,
-			PermissionKeyCalculator keyCalculator, DataRecordLinkCollector linkCollector,
-			ExtendedFunctionalityProvider extendedFunctionalityProvider) {
-		return new SpiderRecordUpdaterImp(authorization, dataValidator, recordStorage,
-				keyCalculator, linkCollector, extendedFunctionalityProvider);
+	private SpiderRecordUpdaterImp(SpiderDependencyProvider dependencyProvider) {
+		this.authorization = dependencyProvider.getAuthorizator();
+		this.dataValidator = dependencyProvider.getDataValidator();
+		this.recordStorage = dependencyProvider.getRecordStorage();
+		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
+		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
+		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
-	private SpiderRecordUpdaterImp(Authorizator authorization, DataValidator dataValidator,
-			RecordStorage recordStorage, PermissionKeyCalculator keyCalculator,
-			DataRecordLinkCollector linkCollector,
-			ExtendedFunctionalityProvider extendedFunctionalityProvider) {
-		this.authorization = authorization;
-		this.dataValidator = dataValidator;
-		this.recordStorage = recordStorage;
-		this.keyCalculator = keyCalculator;
-		this.linkCollector = linkCollector;
-		this.extendedFunctionalityProvider = extendedFunctionalityProvider;
+	public static SpiderRecordUpdaterImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new SpiderRecordUpdaterImp(dependencyProvider);
+
 	}
 
 	@Override

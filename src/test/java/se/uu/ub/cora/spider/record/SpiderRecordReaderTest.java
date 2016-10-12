@@ -35,6 +35,10 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.RecordPermissionKeyCalculatorStub;
@@ -43,17 +47,28 @@ import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
 public class SpiderRecordReaderTest {
 	private RecordStorage recordStorage;
-	private Authorizator authorization;
+	private Authorizator authorizator;
 	private PermissionKeyCalculator keyCalculator;
+	private SpiderDependencyProviderSpy dependencyProvider;
 	private SpiderRecordReader recordReader;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		authorization = new AuthorizatorImp();
+		authorizator = new AuthorizatorImp();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new RecordPermissionKeyCalculatorStub();
-		recordReader = SpiderRecordReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
-				authorization, recordStorage, keyCalculator);
+		setUpDependencyProvider();
+	}
+
+	private void setUpDependencyProvider() {
+		dependencyProvider = new SpiderDependencyProviderSpy();
+		dependencyProvider.authorizator = authorizator;
+		dependencyProvider.recordStorage = recordStorage;
+		dependencyProvider.keyCalculator = keyCalculator;
+		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
+				.usingDependencyProvider(dependencyProvider);
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		recordReader = SpiderRecordReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Test
@@ -110,10 +125,9 @@ public class SpiderRecordReaderTest {
 
 	@Test(expectedExceptions = MisuseException.class)
 	public void testReadIncomingLinksAbstractType() {
-		RecordStorageSpy recordStorageListReaderSpy = new RecordStorageSpy();
-		SpiderRecordReader recordReader = SpiderRecordReaderImp
-				.usingAuthorizationAndRecordStorageAndKeyCalculator(authorization,
-						recordStorageListReaderSpy, keyCalculator);
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+
 		recordReader.readIncomingLinks("userId", "abstract", "place:0001");
 	}
 
@@ -193,9 +207,8 @@ public class SpiderRecordReaderTest {
 
 	@Test(expectedExceptions = MisuseException.class)
 	public void testReadRecordAbstractRecordType() {
-		SpiderRecordReader recordReader = SpiderRecordReaderImp
-				.usingAuthorizationAndRecordStorageAndKeyCalculator(authorization,
-						new RecordStorageSpy(), keyCalculator);
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
 		recordReader.readRecord("userId", "abstract", "xxx");
 	}
 
@@ -206,7 +219,8 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
-		SpiderRecordReader recordReader = createRecordReaderWithTestDataForLinkedData();
+		recordStorage = new RecordLinkTestsRecordStorage();
+		setUpDependencyProvider();
 
 		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithLinks",
 				"oneLinkTopLevel");
@@ -214,15 +228,10 @@ public class SpiderRecordReaderTest {
 		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
 	}
 
-	private SpiderRecordReader createRecordReaderWithTestDataForLinkedData() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		return SpiderRecordReaderImp.usingAuthorizationAndRecordStorageAndKeyCalculator(
-				authorization, recordStorage, keyCalculator);
-	}
-
 	@Test
 	public void testReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
-		SpiderRecordReader recordReader = createRecordReaderWithTestDataForLinkedData();
+		recordStorage = new RecordLinkTestsRecordStorage();
+		setUpDependencyProvider();
 
 		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithLinks",
 				"oneLinkOneLevelDown");
@@ -232,7 +241,8 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testReadRecordWithDataResourceLinkHasReadActionTopLevel() {
-		SpiderRecordReader recordReader = createRecordReaderWithTestDataForLinkedData();
+		recordStorage = new RecordLinkTestsRecordStorage();
+		setUpDependencyProvider();
 
 		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithResourceLinks",
 				"oneResourceLinkTopLevel");
@@ -242,7 +252,8 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testReadRecordWithDataResourceLinkHasReadActionOneLevelDown() {
-		SpiderRecordReader recordReader = createRecordReaderWithTestDataForLinkedData();
+		recordStorage = new RecordLinkTestsRecordStorage();
+		setUpDependencyProvider();
 
 		SpiderDataRecord record = recordReader.readRecord("userId", "dataWithResourceLinks",
 				"oneResourceLinkOneLevelDown");
