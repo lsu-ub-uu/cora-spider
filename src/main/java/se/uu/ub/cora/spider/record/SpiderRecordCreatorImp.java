@@ -33,6 +33,8 @@ import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.login.LoginServer;
+import se.uu.ub.cora.spider.login.UserInfo;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 
 public final class SpiderRecordCreatorImp extends SpiderRecordHandler
@@ -46,6 +48,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
+	private LoginServer loginServer;
 	private String userId;
 
 	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider) {
@@ -56,6 +59,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
+		this.loginServer = dependencyProvider.getLoginServer();
 	}
 
 	public static SpiderRecordCreatorImp usingDependencyProvider(
@@ -64,9 +68,12 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	@Override
-	public SpiderDataRecord createAndStoreRecord(String userId, String recordTypeToCreate,
+	public SpiderDataRecord createAndStoreRecord(String authToken, String recordTypeToCreate,
 			SpiderDataGroup spiderDataGroup) {
-		this.userId = userId;
+
+		UserInfo userInfo = loginServer.getLoggedinUserByToken(authToken);
+
+		this.userId = userInfo.userId;
 		this.recordType = recordTypeToCreate;
 		this.spiderDataGroup = spiderDataGroup;
 		recordTypeDefinition = getRecordTypeDefinition();

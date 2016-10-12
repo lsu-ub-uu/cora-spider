@@ -23,6 +23,7 @@ import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.login.LoginServer;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
@@ -40,6 +41,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	public RecordIdGenerator idGenerator;
 	public StreamStorage streamStorage;
 	public ExtendedFunctionalityProvider extendedFunctionalityProvider;
+	public LoginServer loginServer;
 
 	@Override
 	public Authorizator getAuthorizator() {
@@ -79,6 +81,11 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	@Override
 	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
 		return extendedFunctionalityProvider;
+	}
+
+	@Override
+	public LoginServer getLoginServer() {
+		return loginServer;
 	}
 
 }

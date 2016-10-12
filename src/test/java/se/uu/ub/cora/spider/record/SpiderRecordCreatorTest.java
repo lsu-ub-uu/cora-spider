@@ -45,6 +45,7 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
+import se.uu.ub.cora.spider.login.LoginServer;
 import se.uu.ub.cora.spider.record.storage.RecordConflictException;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
@@ -73,6 +74,7 @@ public class SpiderRecordCreatorTest {
 	private DataRecordLinkCollector linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
+	private LoginServer loginServer;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -83,6 +85,7 @@ public class SpiderRecordCreatorTest {
 		keyCalculator = new RecordPermissionKeyCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
+		loginServer = new LoginServerSpy();
 		setUpDependencyProvider();
 	}
 
@@ -95,6 +98,7 @@ public class SpiderRecordCreatorTest {
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.idGenerator = idGenerator;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
+		dependencyProvider.loginServer = loginServer;
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
