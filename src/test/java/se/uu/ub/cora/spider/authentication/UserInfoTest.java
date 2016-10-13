@@ -17,14 +17,19 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.login;
+package se.uu.ub.cora.spider.authentication;
 
-public class UserInfo {
+import static org.testng.Assert.assertEquals;
 
-	public final String userId;
+import org.testng.annotations.Test;
 
-	public UserInfo(String userId) {
-		this.userId = userId;
+public class UserInfoTest {
+	@Test
+	public void testUserInfo() {
+		String idFromLogin = "idFromLogin";
+		String domainFromLogin = "domainFromLogin";
+
+		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain(idFromLogin, domainFromLogin);
+		assertEquals(userInfo.idFromLogin, "idFromLogin");
 	}
-
 }

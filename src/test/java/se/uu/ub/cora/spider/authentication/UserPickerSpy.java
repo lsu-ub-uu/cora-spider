@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,12 +17,17 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.authentication;
 
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
+public class UserPickerSpy implements UserPicker {
 
-public interface SpiderRecordCreator {
-	SpiderDataRecord createAndStoreRecord(String authToken, String type, SpiderDataGroup record);
+	public boolean userPickerWasCalled = false;
+
+	@Override
+	public User pickUser(UserInfo userInfo) {
+		userPickerWasCalled = true;
+		return null;
+
+	}
 
 }

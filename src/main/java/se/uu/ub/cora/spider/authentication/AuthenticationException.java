@@ -17,12 +17,13 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.authentication;
 
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
+public class AuthenticationException extends RuntimeException {
 
-public interface SpiderRecordCreator {
-	SpiderDataRecord createAndStoreRecord(String authToken, String type, SpiderDataGroup record);
+	private static final long serialVersionUID = -7209118389492113349L;
 
+	public AuthenticationException(String message) {
+		super(message);
+	}
 }

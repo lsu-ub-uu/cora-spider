@@ -17,17 +17,22 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.login;
+package se.uu.ub.cora.spider.authentication;
 
-import static org.testng.Assert.assertEquals;
+public class AuthenticatorSpy implements Authenticator {
 
-import org.testng.annotations.Test;
+	public boolean authenticationWasCalled = false;
+	public String authToken;
 
-public class UserInfoTest {
-	@Test
-	public void testUserInfo() {
-		String userId = "userId";
-		UserInfo userInfo = new UserInfo(userId);
-		assertEquals(userInfo.userId, "userId");
+	@Override
+	public UserInfo getLoggedinUserByToken(String authToken) {
+		authenticationWasCalled = true;
+
+		this.authToken = authToken;
+		if ("dummyNonAuthenticatedToken".equals(authToken)) {
+			throw new AuthenticationException("token not valid");
+		}
+		return UserInfo.withLoginIdAndLoginDomain("knownUser", "system");
 	}
+
 }

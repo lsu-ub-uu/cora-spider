@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2015 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,10 +17,16 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.login;
+package se.uu.ub.cora.spider.authentication;
 
-public interface LoginServer {
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
-	UserInfo getLoggedinUserByToken(String authToken);
+public class AuthenticationExceptionTest {
+	@Test
+	public void testInit() {
+		AuthenticationException notAuthenticated = new AuthenticationException("message");
 
+		Assert.assertEquals(notAuthenticated.getMessage(), "message");
+	}
 }

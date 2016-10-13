@@ -22,8 +22,9 @@ package se.uu.ub.cora.spider.dependency;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authentication.UserPicker;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
-import se.uu.ub.cora.spider.login.LoginServer;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
@@ -47,6 +48,8 @@ public interface SpiderDependencyProvider {
 
 	StreamStorage getStreamStorage();
 
-	LoginServer getLoginServer();
+	Authenticator getAuthenticator();
+
+	UserPicker getUserPicker();
 
 }

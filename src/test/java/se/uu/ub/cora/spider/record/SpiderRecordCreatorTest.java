@@ -34,6 +34,11 @@ import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.spider.authentication.AuthenticationException;
+import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.UserPicker;
+import se.uu.ub.cora.spider.authentication.UserPickerSpy;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -45,7 +50,6 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
-import se.uu.ub.cora.spider.login.LoginServer;
 import se.uu.ub.cora.spider.record.storage.RecordConflictException;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
@@ -74,7 +78,8 @@ public class SpiderRecordCreatorTest {
 	private DataRecordLinkCollector linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
-	private LoginServer loginServer;
+	private Authenticator authenticator;
+	private UserPicker userPicker;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -85,7 +90,8 @@ public class SpiderRecordCreatorTest {
 		keyCalculator = new RecordPermissionKeyCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		loginServer = new LoginServerSpy();
+		authenticator = new AuthenticatorSpy();
+		userPicker = new UserPickerSpy();
 		setUpDependencyProvider();
 	}
 
@@ -98,7 +104,8 @@ public class SpiderRecordCreatorTest {
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.idGenerator = idGenerator;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
-		dependencyProvider.loginServer = loginServer;
+		dependencyProvider.authenticator = authenticator;
+		dependencyProvider.userPicker = userPicker;
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
@@ -116,8 +123,10 @@ public class SpiderRecordCreatorTest {
 		setUpDependencyProvider();
 		SpiderDataGroup spiderDataGroup = DataCreator
 				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
-		recordCreator.createAndStoreRecord("userId", "spyType", spiderDataGroup);
+		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", spiderDataGroup);
 
+		assertTrue(((AuthenticatorSpy) authenticator).authenticationWasCalled);
+		assertTrue(((UserPickerSpy) userPicker).userPickerWasCalled);
 		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorizator).authorizedWasCalled);
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
 		ExtendedFunctionalitySpy extendedFunctionality = extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation
@@ -128,6 +137,43 @@ public class SpiderRecordCreatorTest {
 		assertTrue(((KeyCalculatorSpy) keyCalculator).calculateKeysWasCalled);
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyTypeNew");
+	}
+
+	@Test
+	public void testExternalDependenciesAreCalledNoAuthenticationIfNoToken() {
+		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		dataValidator = new DataValidatorAlwaysValidSpy();
+		recordStorage = new RecordStorageSpy();
+		idGenerator = new IdGeneratorSpy();
+		keyCalculator = new KeyCalculatorSpy();
+		linkCollector = new DataRecordLinkCollectorSpy();
+		setUpDependencyProvider();
+		SpiderDataGroup spiderDataGroup = DataCreator
+				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		recordCreator.createAndStoreRecord(null, "spyType", spiderDataGroup);
+
+		assertFalse(((AuthenticatorSpy) authenticator).authenticationWasCalled);
+		assertTrue(((UserPickerSpy) userPicker).userPickerWasCalled);
+		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
+		ExtendedFunctionalitySpy extendedFunctionality = extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation
+				.get(0);
+		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
+		assertTrue(((RecordStorageSpy) recordStorage).createWasCalled);
+		assertTrue(((IdGeneratorSpy) idGenerator).getIdForTypeWasCalled);
+		assertTrue(((KeyCalculatorSpy) keyCalculator).calculateKeysWasCalled);
+		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
+		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyTypeNew");
+	}
+	// assertEquals(((AuthenticatorSpy) authenticator).authToken,
+	// "dummyAuthenticatedToken");
+	// assertTrue(((AuthenticatorSpy) authenticator).authenticationWasCalled);
+
+	@Test(expectedExceptions = AuthenticationException.class)
+	public void testAuthenticationNotAuthenticated() {
+		SpiderDataGroup spiderDataGroup = DataCreator
+				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		recordCreator.createAndStoreRecord("dummyNonAuthenticatedToken", "spyType",
+				spiderDataGroup);
 	}
 
 	@Test

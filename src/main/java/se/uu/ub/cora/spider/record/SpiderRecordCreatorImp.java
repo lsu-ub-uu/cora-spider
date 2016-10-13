@@ -27,14 +27,16 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authentication.User;
+import se.uu.ub.cora.spider.authentication.UserInfo;
+import se.uu.ub.cora.spider.authentication.UserPicker;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
-import se.uu.ub.cora.spider.login.LoginServer;
-import se.uu.ub.cora.spider.login.UserInfo;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 
 public final class SpiderRecordCreatorImp extends SpiderRecordHandler
@@ -48,7 +50,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
-	private LoginServer loginServer;
+	private Authenticator authenticator;
+	private UserPicker userPicker;
 	private String userId;
 
 	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider) {
@@ -59,7 +62,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
-		this.loginServer = dependencyProvider.getLoginServer();
+		this.authenticator = dependencyProvider.getAuthenticator();
+		this.userPicker = dependencyProvider.getUserPicker();
 	}
 
 	public static SpiderRecordCreatorImp usingDependencyProvider(
@@ -71,9 +75,16 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	public SpiderDataRecord createAndStoreRecord(String authToken, String recordTypeToCreate,
 			SpiderDataGroup spiderDataGroup) {
 
-		UserInfo userInfo = loginServer.getLoggedinUserByToken(authToken);
+		// UserInfo userInfo = null;
+		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("guest", "system");
+		if (null != authToken) {
+			userInfo = authenticator.getLoggedinUserByToken(authToken);
+		}
+		User loggedInUser = userPicker.pickUser(userInfo);
+		// this.userId = userInfo.userId;
 
-		this.userId = userInfo.userId;
+		// TODO: we should do a first security check here as soon as we know the
+		// user, based on action(create) and type
 		this.recordType = recordTypeToCreate;
 		this.spiderDataGroup = spiderDataGroup;
 		recordTypeDefinition = getRecordTypeDefinition();
