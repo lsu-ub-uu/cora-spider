@@ -190,8 +190,12 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			DataGroup group = DataGroup.withNameInData("metadata");
 
 			DataGroup itemReferences = DataGroup.withNameInData("collectionItemReferences");
-			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thisItem"));
-			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thatItem"));
+
+			createAndAddItemReference(itemReferences, "thisItem", "one");
+			createAndAddItemReference(itemReferences, "thatItem", "two");
+
+//			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thisItem"));
+//			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thatItem"));
 			group.addChild(itemReferences);
 			return group;
 		}
@@ -211,8 +215,12 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			DataGroup group = DataGroup.withNameInData("metadata");
 
 			DataGroup itemReferences = DataGroup.withNameInData("collectionItemReferences");
-			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thisItem"));
-			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thoseItem"));
+
+			createAndAddItemReference(itemReferences, "thisItem", "one");
+			createAndAddItemReference(itemReferences, "thoseItem", "two");
+//
+//			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thisItem"));
+//			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thoseItem"));
 			group.addChild(itemReferences);
 			return group;
 		}
@@ -230,9 +238,14 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			DataGroup group = DataGroup.withNameInData("metadata");
 
 			DataGroup itemReferences = DataGroup.withNameInData("collectionItemReferences");
-			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thisItem"));
-			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thatItem"));
-			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thoseItem"));
+
+			createAndAddItemReference(itemReferences, "thisItem", "one");
+			createAndAddItemReference(itemReferences, "thatItem", "two");
+			createAndAddItemReference(itemReferences, "thoseItem", "three");
+
+//			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thisItem"));
+//			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thatItem"));
+//			itemReferences.addChild(DataAtomic.withNameInDataAndValue("ref", "thoseItem"));
 			group.addChild(itemReferences);
 			return group;
 		}
@@ -259,6 +272,14 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMin", repeatMin));
 		childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMax", repeatMax));
 		return childReference;
+	}
+
+	private void createAndAddItemReference(DataGroup collectionItemReferences, String linkedRecordId, String repeatId) {
+		DataGroup ref1 = DataGroup.withNameInData("ref");
+		ref1.setRepeatId(repeatId);
+		ref1.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "metadataCollectionItem"));
+		ref1.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", linkedRecordId));
+		collectionItemReferences.addChild(ref1);
 	}
 
 	@Override
