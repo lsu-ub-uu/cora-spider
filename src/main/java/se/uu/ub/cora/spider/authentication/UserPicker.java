@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.authentication;
 
+import se.uu.ub.cora.beefeater.authentication.User;
+
 public interface UserPicker {
 
 	User pickUser(UserInfo userInfo);

@@ -23,12 +23,12 @@ import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authentication.User;
 import se.uu.ub.cora.spider.authentication.UserInfo;
 import se.uu.ub.cora.spider.authentication.UserPicker;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
@@ -81,7 +81,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 			userInfo = authenticator.getLoggedinUserByToken(authToken);
 		}
 		User loggedInUser = userPicker.pickUser(userInfo);
-		// this.userId = userInfo.userId;
+		this.userId = loggedInUser.id;
 
 		// TODO: we should do a first security check here as soon as we know the
 		// user, based on action(create) and type
@@ -106,7 +106,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
 
-		checkUserIsAuthorisedToCreateIncomingData(userId, recordType, topLevelDataGroup);
+		checkUserIsAuthorisedToCreateIncomingData(loggedInUser, recordType, topLevelDataGroup);
 
 		String id = extractIdFromData();
 
@@ -205,14 +205,14 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("createdBy", userId));
 	}
 
-	private void checkUserIsAuthorisedToCreateIncomingData(String userId, String recordType,
+	private void checkUserIsAuthorisedToCreateIncomingData(User logedInUser, String recordType,
 			DataGroup record) {
 		// calculate permissionKey
 		String accessType = "CREATE";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
 				record);
 
-		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
+		if (!authorization.isAuthorized(logedInUser, recordCalculateKeys)) {
 			throw new AuthorizationException(
 					USER + userId + " is not authorized to create a record  of type:" + recordType);
 		}

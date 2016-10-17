@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.authentication;
 
+import se.uu.ub.cora.beefeater.authentication.User;
+
 public class UserPickerSpy implements UserPicker {
 
 	public boolean userPickerWasCalled = false;
@@ -26,8 +28,10 @@ public class UserPickerSpy implements UserPicker {
 	@Override
 	public User pickUser(UserInfo userInfo) {
 		userPickerWasCalled = true;
-		return null;
-
+		User user = new User("12345");
+		user.loginId = userInfo.idFromLogin;
+		user.loginDomain = userInfo.domainFromLogin;
+		return user;
 	}
 
 }

@@ -23,12 +23,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authentication.User;
 
 public class AlwaysAuthorisedExceptStub implements Authorizator {
 	public Set<String> notAuthorizedForKeys = new HashSet<>();
 
 	@Override
-	public boolean isAuthorized(String userId, Set<String> recordCalculateKeys) {
+	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
 		if (notAuthorizedForKeys.removeAll(recordCalculateKeys)) {
 			return false;
 		}
