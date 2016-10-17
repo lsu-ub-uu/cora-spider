@@ -52,7 +52,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private Authenticator authenticator;
 	private UserPicker userPicker;
-	private String userId;
+	private String authToken;
 
 	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.authorization = dependencyProvider.getAuthorizator();
@@ -74,40 +74,47 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	@Override
 	public SpiderDataRecord createAndStoreRecord(String authToken, String recordTypeToCreate,
 			SpiderDataGroup spiderDataGroup) {
-
-		// UserInfo userInfo = null;
-		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("guest", "system");
-		if (null != authToken) {
-			userInfo = authenticator.getLoggedinUserByToken(authToken);
-		}
-		User loggedInUser = userPicker.pickUser(userInfo);
-		this.userId = loggedInUser.id;
-
-		// TODO: we should do a first security check here as soon as we know the
-		// user, based on action(create) and type
+		this.authToken = authToken;
 		this.recordType = recordTypeToCreate;
 		this.spiderDataGroup = spiderDataGroup;
 		recordTypeDefinition = getRecordTypeDefinition();
 		metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("newMetadataId");
 
+		return validateCreateAndStoreRecord();
+
+	}
+
+	private SpiderDataRecord validateCreateAndStoreRecord() {
+
+		User loggedInUser = tryToGetLoggedInUserAuthorizedForCreateOfCurrentRecordType(authToken);
+
 		checkNoCreateForAbstractRecordType();
-		useExtendedFunctionalityBeforeMetadataValidation(recordTypeToCreate, spiderDataGroup);
+
+		useExtendedFunctionalityBeforeMetadataValidation(recordType, spiderDataGroup);
+
 		validateDataInRecordAsSpecifiedInMetadata();
 
-		useExtendedFunctionalityAfterMetadataValidation(recordTypeToCreate, spiderDataGroup);
+		useExtendedFunctionalityAfterMetadataValidation(recordType, spiderDataGroup);
+
 		validateRules();
 
-		ensureCompleteRecordInfo(userId, recordType);
-
-		// set more stuff, user, tscreated, status (created, updated, deleted,
-		// etc), published
-		// (true, false)
-		// set owning organisation
+		ensureCompleteRecordInfo(loggedInUser.id, recordType);
 
 		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
 
 		checkUserIsAuthorisedToCreateIncomingData(loggedInUser, recordType, topLevelDataGroup);
 
+		createRecordInStorage(topLevelDataGroup);
+
+		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
+				.fromDataGroup(topLevelDataGroup);
+
+		useExtendedFunctionalityBeforeReturn(recordType, spiderDataGroupWithActions);
+
+		return createDataRecordContainingDataGroup(spiderDataGroupWithActions);
+	}
+
+	private void createRecordInStorage(DataGroup topLevelDataGroup) {
 		String id = extractIdFromData();
 
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
@@ -115,17 +122,19 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
+
 		recordStorage.create(recordType, id, topLevelDataGroup, collectedLinks, dataDivider);
+	}
 
-		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
-				.fromDataGroup(topLevelDataGroup);
-
-		SpiderDataRecord createDataRecordContainingDataGroup = createDataRecordContainingDataGroup(
-				spiderDataGroupWithActions);
-		useExtendedFunctionalityBeforeReturn(recordTypeToCreate, spiderDataGroupWithActions);
-
-		return createDataRecordContainingDataGroup;
-
+	private User tryToGetLoggedInUserAuthorizedForCreateOfCurrentRecordType(String authToken) {
+		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("guest", "system");
+		if (null != authToken) {
+			userInfo = authenticator.getLoggedinUserByToken(authToken);
+		}
+		User loggedInUser = userPicker.pickUser(userInfo);
+		// TODO: we should do a first security check here as soon as we know the
+		// user, based on action(create) and type
+		return loggedInUser;
 	}
 
 	private void checkNoCreateForAbstractRecordType() {
@@ -158,7 +167,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private void useExtendedFunctionality(SpiderDataGroup spiderDataGroup,
 			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
 		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
-			extendedFunctionality.useExtendedFunctionality(userId, spiderDataGroup);
+			extendedFunctionality.useExtendedFunctionality(authToken, spiderDataGroup);
 		}
 	}
 
@@ -179,6 +188,11 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
 		ensureIdExists(recordType);
 		addUserAndTypeToRecordInfo(userId, recordType);
+		// set more stuff, user, tscreated, status (created, updated, deleted,
+		// etc), published
+		// (true, false)
+		// set owning organisation
+
 	}
 
 	private void ensureIdExists(String recordType) {
@@ -205,16 +219,16 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("createdBy", userId));
 	}
 
-	private void checkUserIsAuthorisedToCreateIncomingData(User logedInUser, String recordType,
+	private void checkUserIsAuthorisedToCreateIncomingData(User loggedInUser, String recordType,
 			DataGroup record) {
 		// calculate permissionKey
 		String accessType = "CREATE";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
 				record);
 
-		if (!authorization.isAuthorized(logedInUser, recordCalculateKeys)) {
-			throw new AuthorizationException(
-					USER + userId + " is not authorized to create a record  of type:" + recordType);
+		if (!authorization.isAuthorized(loggedInUser, recordCalculateKeys)) {
+			throw new AuthorizationException(USER + loggedInUser.id
+					+ " is not authorized to create a record  of type:" + recordType);
 		}
 	}
 

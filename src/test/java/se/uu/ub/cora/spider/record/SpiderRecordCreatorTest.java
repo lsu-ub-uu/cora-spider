@@ -164,12 +164,11 @@ public class SpiderRecordCreatorTest {
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyTypeNew");
 	}
-	// assertEquals(((AuthenticatorSpy) authenticator).authToken,
-	// "dummyAuthenticatedToken");
-	// assertTrue(((AuthenticatorSpy) authenticator).authenticationWasCalled);
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
 		SpiderDataGroup spiderDataGroup = DataCreator
 				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
 		recordCreator.createAndStoreRecord("dummyNonAuthenticatedToken", "spyType",
@@ -187,23 +186,26 @@ public class SpiderRecordCreatorTest {
 		setUpDependencyProvider();
 		SpiderDataGroup spiderDataGroup = DataCreator
 				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
-		recordCreator.createAndStoreRecord("someToken78678567", "spyType", spiderDataGroup);
+		String authToken = "someToken78678567";
+		recordCreator.createAndStoreRecord(authToken, "spyType", spiderDataGroup);
 
-		assertFetchedFunctionalityHasBeenCalled(
+		assertFetchedFunctionalityHasBeenCalled(authToken,
 				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeMetadataValidation);
-		assertFetchedFunctionalityHasBeenCalled(
+		assertFetchedFunctionalityHasBeenCalled(authToken,
 				extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation);
-		assertFetchedFunctionalityHasBeenCalled(
+		assertFetchedFunctionalityHasBeenCalled(authToken,
 				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeReturn);
 	}
 
-	private void assertFetchedFunctionalityHasBeenCalled(
+	private void assertFetchedFunctionalityHasBeenCalled(String authToken,
 			List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateAfterMetadataValidation) {
 		ExtendedFunctionalitySpy extendedFunctionality = fetchedFunctionalityForCreateAfterMetadataValidation
 				.get(0);
+		assertEquals(extendedFunctionality.token, authToken);
 		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
 		ExtendedFunctionalitySpy extendedFunctionality2 = fetchedFunctionalityForCreateAfterMetadataValidation
 				.get(0);
+		assertEquals(extendedFunctionality2.token, authToken);
 		assertTrue(extendedFunctionality2.extendedFunctionalityHasBeenCalled);
 	}
 
