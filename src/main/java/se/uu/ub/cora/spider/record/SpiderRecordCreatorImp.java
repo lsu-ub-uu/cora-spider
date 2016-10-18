@@ -29,8 +29,6 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authentication.UserInfo;
-import se.uu.ub.cora.spider.authentication.UserPicker;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
@@ -42,6 +40,7 @@ import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		implements SpiderRecordCreator {
 	private static final String USER = "User:";
+	private Authenticator authenticator;
 	private Authorizator authorization;
 	private RecordIdGenerator idGenerator;
 	private PermissionKeyCalculator keyCalculator;
@@ -50,11 +49,11 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
-	private Authenticator authenticator;
-	private UserPicker userPicker;
 	private String authToken;
+	private User user;
 
 	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider) {
+		this.authenticator = dependencyProvider.getAuthenticator();
 		this.authorization = dependencyProvider.getAuthorizator();
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
@@ -62,8 +61,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
-		this.authenticator = dependencyProvider.getAuthenticator();
-		this.userPicker = dependencyProvider.getUserPicker();
 	}
 
 	public static SpiderRecordCreatorImp usingDependencyProvider(
@@ -85,9 +82,9 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private SpiderDataRecord validateCreateAndStoreRecord() {
-
-		User loggedInUser = tryToGetLoggedInUserAuthorizedForCreateOfCurrentRecordType(authToken);
-
+		tryToGetActiveUser();
+		// TODO: we should do a first security check here as soon as we know the
+		// user, based on action(create) and type
 		checkNoCreateForAbstractRecordType();
 
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, spiderDataGroup);
@@ -98,11 +95,11 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 		validateRules();
 
-		ensureCompleteRecordInfo(loggedInUser.id, recordType);
+		ensureCompleteRecordInfo(user.id, recordType);
 
 		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
 
-		checkUserIsAuthorisedToCreateIncomingData(loggedInUser, recordType, topLevelDataGroup);
+		checkUserIsAuthorisedToCreateIncomingData(user, recordType, topLevelDataGroup);
 
 		createRecordInStorage(topLevelDataGroup);
 
@@ -112,6 +109,10 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		useExtendedFunctionalityBeforeReturn(recordType, spiderDataGroupWithActions);
 
 		return createDataRecordContainingDataGroup(spiderDataGroupWithActions);
+	}
+
+	private void tryToGetActiveUser() {
+		user = authenticator.tryToGetActiveUser(authToken);
 	}
 
 	private void createRecordInStorage(DataGroup topLevelDataGroup) {
@@ -124,17 +125,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
 
 		recordStorage.create(recordType, id, topLevelDataGroup, collectedLinks, dataDivider);
-	}
-
-	private User tryToGetLoggedInUserAuthorizedForCreateOfCurrentRecordType(String authToken) {
-		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("guest", "system");
-		if (null != authToken) {
-			userInfo = authenticator.getLoggedinUserByToken(authToken);
-		}
-		User loggedInUser = userPicker.pickUser(userInfo);
-		// TODO: we should do a first security check here as soon as we know the
-		// user, based on action(create) and type
-		return loggedInUser;
 	}
 
 	private void checkNoCreateForAbstractRecordType() {

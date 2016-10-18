@@ -23,10 +23,12 @@ import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -36,15 +38,19 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		implements SpiderRecordUpdater {
 	private static final String USER = "User:";
+	private Authenticator authenticator;
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
+	private String authToken;
+	private User user;
 	private String userId;
 
 	private SpiderRecordUpdaterImp(SpiderDependencyProvider dependencyProvider) {
+		this.authenticator = dependencyProvider.getAuthenticator();
 		this.authorization = dependencyProvider.getAuthorizator();
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
@@ -60,15 +66,17 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	@Override
-	public SpiderDataRecord updateRecord(String userId, String recordType, String recordId,
+	public SpiderDataRecord updateRecord(String authToken, String recordType, String recordId,
 			SpiderDataGroup spiderDataGroup) {
-		this.userId = userId;
+		this.authToken = authToken;
 		this.spiderDataGroup = spiderDataGroup;
 		this.recordType = recordType;
 		this.recordId = recordId;
+		tryToGetActiveUser();
 		DataGroup recordTypeDefinition = getRecordTypeDefinition();
 		metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("metadataId");
 
+		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord(userId);
 		checkNoUpdateForAbstractRecordType();
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, spiderDataGroup);
 
@@ -81,7 +89,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
 
-		checkUserIsAuthorisedToUpdate(userId);
 		checkUserIsAuthorisedToStoreIncomingData(userId, topLevelDataGroup);
 
 		// validate (including protected data)
@@ -103,6 +110,10 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 				.fromDataGroup(topLevelDataGroup);
 
 		return createDataRecordContainingDataGroup(spiderDataGroupWithActions);
+	}
+
+	private void tryToGetActiveUser() {
+		user = authenticator.tryToGetActiveUser(authToken);
 	}
 
 	private void checkNoUpdateForAbstractRecordType() {
@@ -155,17 +166,20 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		}
 	}
 
-	private void checkUserIsAuthorisedToUpdate(String userId) {
+	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord(String userId) {
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
-		String accessType = "UPDATE";
-		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
-				recordRead);
-
-		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			throw new AuthorizationException(USER + userId + " is not authorized to update record:"
-					+ recordId + "  of type:" + recordType);
-		}
+		// String accessType = "UPDATE";
+		// Set<String> recordCalculateKeys =
+		// keyCalculator.calculateKeys(accessType, recordType,
+		// recordRead);
+		//
+		// if (!authorization.isAuthorized(user, recordCalculateKeys)) {
+		// throw new AuthorizationException(USER + userId + " is not authorized
+		// to update record:"
+		// + recordId + " of type:" + recordType);
+		// }
+		checkUserIsAuthorisedToStoreIncomingData(userId, recordRead);
 	}
 
 	private void checkUserIsAuthorisedToStoreIncomingData(String userId, DataGroup incomingData) {
@@ -175,7 +189,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
 				incomingData);
 
-		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
+		if (!authorization.isAuthorized(user, recordCalculateKeys)) {
 			throw new AuthorizationException(
 					USER + userId + " is not authorized to store this incoming data for recordType:"
 							+ recordType);

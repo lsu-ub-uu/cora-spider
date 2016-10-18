@@ -26,6 +26,9 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
+import se.uu.ub.cora.spider.authentication.AuthenticationException;
+import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
@@ -38,6 +41,7 @@ import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
 public class SpiderRecordDeleterTest {
 	private RecordStorage recordStorage;
+	private Authenticator authenticator;
 	private Authorizator authorizator;
 	private PermissionKeyCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
@@ -45,6 +49,7 @@ public class SpiderRecordDeleterTest {
 
 	@BeforeMethod
 	public void beforeMethod() {
+		authenticator = new AuthenticatorSpy();
 		authorizator = new AuthorizatorImp();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new RecordPermissionKeyCalculatorStub();
@@ -53,6 +58,7 @@ public class SpiderRecordDeleterTest {
 
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy();
+		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.authorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.keyCalculator = keyCalculator;
@@ -60,6 +66,13 @@ public class SpiderRecordDeleterTest {
 				.usingDependencyProvider(dependencyProvider);
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		recordDeleter = SpiderRecordDeleterImp.usingDependencyProvider(dependencyProvider);
+	}
+
+	@Test(expectedExceptions = AuthenticationException.class)
+	public void testAuthenticationNotAuthenticated() {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+		recordDeleter.deleteRecord("dummyNonAuthenticatedToken", "spyType", "spyId");
 	}
 
 	@Test
@@ -82,6 +95,8 @@ public class SpiderRecordDeleterTest {
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testDeleteUnauthorized() {
+		authorizator = new NeverAuthorisedStub();
+		setUpDependencyProvider();
 		recordDeleter.deleteRecord("unauthorizedUserId", "place", "place:0001");
 	}
 

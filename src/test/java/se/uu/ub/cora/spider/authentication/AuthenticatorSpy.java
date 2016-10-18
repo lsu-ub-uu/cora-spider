@@ -19,20 +19,25 @@
 
 package se.uu.ub.cora.spider.authentication;
 
+import se.uu.ub.cora.beefeater.authentication.User;
+
 public class AuthenticatorSpy implements Authenticator {
 
 	public boolean authenticationWasCalled = false;
 	public String authToken;
 
 	@Override
-	public UserInfo getLoggedinUserByToken(String authToken) {
+	public User tryToGetActiveUser(String authToken) {
 		authenticationWasCalled = true;
 
 		this.authToken = authToken;
 		if ("dummyNonAuthenticatedToken".equals(authToken)) {
 			throw new AuthenticationException("token not valid");
 		}
-		return UserInfo.withLoginIdAndLoginDomain("knownUser", "system");
+		User user = new User("12345");
+		user.loginId = "knownUser";
+		user.loginDomain = "system";
+		return user;
 	}
 
 }

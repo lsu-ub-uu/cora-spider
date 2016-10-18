@@ -24,7 +24,9 @@ import java.io.InputStream;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderInputStream;
@@ -39,13 +41,17 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 	private String recordType;
 	private String recordId;
 	private String resourceName;
+	private Authenticator authenticator;
 	private Authorizator authorization;
 	private RecordStorage recordStorage;
 	private PermissionKeyCalculator keyCalculator;
 	private StreamStorage streamStorage;
 	private SpiderDataGroup spiderRecordRead;
+	private String authToken;
+	private User user;
 
 	private SpiderDownloaderImp(SpiderDependencyProvider dependencyProvider) {
+		this.authenticator = dependencyProvider.getAuthenticator();
 		authorization = dependencyProvider.getAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
 		keyCalculator = dependencyProvider.getPermissionKeyCalculator();
@@ -58,12 +64,14 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 	}
 
 	@Override
-	public SpiderInputStream download(String userId, String type, String id, String resourceName) {
-		this.userId = userId;
+	public SpiderInputStream download(String authToken, String type, String id,
+			String resourceName) {
+		this.authToken = authToken;
 		this.recordType = type;
 		this.recordId = id;
 		this.resourceName = resourceName;
 
+		tryToGetActiveUser();
 		checkResourceIsPresent();
 
 		checkRecordTypeIsChildOfBinary();
@@ -80,8 +88,13 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 
 		String name = extractStreamNameFromData();
 		long size = extractStreamSizeFromData();
-		return SpiderInputStream.withNameSizeInputStream(name, size, "application/octet-stream", stream);
+		return SpiderInputStream.withNameSizeInputStream(name, size, "application/octet-stream",
+				stream);
 
+	}
+
+	private void tryToGetActiveUser() {
+		user = authenticator.tryToGetActiveUser(authToken);
 	}
 
 	private String tryToExtractStreamIdFromResource(String resource) {
@@ -145,7 +158,7 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 	private boolean isNotAuthorizedTo(String accessType, DataGroup recordRead) {
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
 				recordRead);
-		return !authorization.isAuthorized(userId, recordCalculateKeys);
+		return !authorization.isAuthorized(user, recordCalculateKeys);
 	}
 
 	private boolean isNotAuthorizedToResource(DataGroup recordRead) {

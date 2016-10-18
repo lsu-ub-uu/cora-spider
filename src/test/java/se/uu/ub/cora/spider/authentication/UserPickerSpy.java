@@ -24,9 +24,11 @@ import se.uu.ub.cora.beefeater.authentication.User;
 public class UserPickerSpy implements UserPicker {
 
 	public boolean userPickerWasCalled = false;
+	public UserInfo usedUserInfo = null;
 
 	@Override
 	public User pickUser(UserInfo userInfo) {
+		usedUserInfo = userInfo;
 		userPickerWasCalled = true;
 		User user = new User("12345");
 		user.loginId = userInfo.idFromLogin;

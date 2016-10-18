@@ -23,7 +23,9 @@ import java.util.Collection;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
@@ -31,11 +33,15 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public class SpiderRecordListReaderImp extends SpiderRecordHandler
 		implements SpiderRecordListReader {
+	private Authenticator authenticator;
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
 	private SpiderDataList readRecordList;
+	private String authToken;
+	private User user;
 
 	public SpiderRecordListReaderImp(SpiderDependencyProvider dependencyProvider) {
+		this.authenticator = dependencyProvider.getAuthenticator();
 		this.authorization = dependencyProvider.getAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
@@ -47,9 +53,11 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	@Override
-	public SpiderDataList readRecordList(String userId, String recordType) {
+	public SpiderDataList readRecordList(String authToken, String recordType) {
 
-		checkUserIsAuthorizedToReadListRecordType(userId, recordType);
+		this.authToken = authToken;
+		tryToGetActiveUser();
+		checkUserIsAuthorizedToReadListRecordType(recordType);
 		readRecordList = SpiderDataList.withContainDataOfType(recordType);
 
 		readRecordsOfType(recordType);
@@ -58,13 +66,17 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 		return readRecordList;
 	}
 
-	private void checkUserIsAuthorizedToReadListRecordType(String userId, String recordType) {
+	private void tryToGetActiveUser() {
+		user = authenticator.tryToGetActiveUser(authToken);
+	}
+
+	private void checkUserIsAuthorizedToReadListRecordType(String recordType) {
 		String accessType = "READ";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeysForList(accessType,
 				recordType);
-		if (!authorization.isAuthorized(userId, recordCalculateKeys)) {
-			throw new AuthorizationException("User:" + userId + " is not authorized to read records"
-					+ "of type:" + recordType);
+		if (!authorization.isAuthorized(user, recordCalculateKeys)) {
+			throw new AuthorizationException("User:" + user.id
+					+ " is not authorized to read records" + "of type:" + recordType);
 		}
 	}
 

@@ -21,8 +21,26 @@ package se.uu.ub.cora.spider.authentication;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 
-public interface Authenticator {
+public class AuthenticatorImp implements Authenticator {
 
-	User tryToGetActiveUser(String authToken);
+	private UserPicker userPicker;
+
+	public AuthenticatorImp(UserPicker userPicker) {
+		this.userPicker = userPicker;
+	}
+
+	@Override
+	public User tryToGetActiveUser(String authToken) {
+		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("guest", "system");
+		// if (null != authToken) {
+		// userInfo = authenticator.getLoggedinUserByToken(authToken);
+		// }
+		// User loggedInUser = userPicker.pickUser(userInfo);
+		//
+		// return loggedInUser;
+		// TODO Auto-generated method stub
+
+		return userPicker.pickUser(userInfo);
+	}
 
 }

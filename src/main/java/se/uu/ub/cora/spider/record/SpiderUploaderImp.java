@@ -23,7 +23,9 @@ import java.io.InputStream;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -37,6 +39,7 @@ import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 public final class SpiderUploaderImp implements SpiderUploader {
 	private static final String RESOURCE_INFO = "resourceInfo";
 	private static final String RECORD_INFO = "recordInfo";
+	private Authenticator authenticator;
 	private Authorizator authorization;
 	private RecordIdGenerator idGenerator;
 	private RecordStorage recordStorage;
@@ -47,8 +50,11 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	private String recordId;
 	private SpiderDataGroup spiderRecordRead;
 	private String streamId;
+	private String authToken;
+	private User user;
 
 	private SpiderUploaderImp(SpiderDependencyProvider dependencyProvider) {
+		authenticator = dependencyProvider.getAuthenticator();
 		authorization = dependencyProvider.getAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
 		keyCalculator = dependencyProvider.getPermissionKeyCalculator();
@@ -62,11 +68,12 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	}
 
 	@Override
-	public SpiderDataRecord upload(String userId, String type, String id, InputStream stream,
+	public SpiderDataRecord upload(String authToken, String type, String id, InputStream stream,
 			String fileName) {
-		this.userId = userId;
+		this.authToken = authToken;
 		this.recordType = type;
 		this.recordId = id;
+		tryToGetActiveUser();
 		checkRecordTypeIsChildOfBinary();
 
 		DataGroup recordRead = recordStorage.read(type, id);
@@ -83,6 +90,10 @@ public final class SpiderUploaderImp implements SpiderUploader {
 
 		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
 		return spiderRecordUpdater.updateRecord(userId, type, id, spiderRecordRead);
+	}
+
+	private void tryToGetActiveUser() {
+		user = authenticator.tryToGetActiveUser(authToken);
 	}
 
 	private void checkRecordTypeIsChildOfBinary() {
@@ -114,7 +125,7 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		String accessType = "UPLOAD";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
 				recordRead);
-		return !authorization.isAuthorized(userId, recordCalculateKeys);
+		return !authorization.isAuthorized(user, recordCalculateKeys);
 	}
 
 	private void checkStreamIsPresent(InputStream inputStream) {
