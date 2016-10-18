@@ -53,8 +53,7 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		this.authToken = authToken;
 		this.recordType = recordType;
 		tryToGetActiveUser();
-		checkRecordIsNotAbstract(recordType, recordId);
-		checkUserIsAuthorized(recordType, recordId);
+		checkUserIsAuthorizedToDeleteStoredRecord(recordType, recordId);
 		checkNoIncomingLinksExists(recordType, recordId);
 		recordStorage.deleteByTypeAndId(recordType, recordId);
 	}
@@ -63,14 +62,7 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		user = authenticator.tryToGetActiveUser(authToken);
 	}
 
-	private void checkRecordIsNotAbstract(String recordType, String recordId) {
-		if (isRecordTypeAbstract()) {
-			throw new MisuseException("Deleting record: " + recordId
-					+ " on the abstract recordType:" + recordType + " is not allowed");
-		}
-	}
-
-	private void checkUserIsAuthorized(String recordType, String recordId) {
+	private void checkUserIsAuthorizedToDeleteStoredRecord(String recordType, String recordId) {
 		if (userIsNotAuthorized(recordType, recordId)) {
 			throw new AuthorizationException("User:" + userId
 					+ " is not authorized to delete record:" + recordId + " of type:" + recordType);

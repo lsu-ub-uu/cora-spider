@@ -50,16 +50,6 @@ public class SpiderRecordHandler {
 		return recordStorage.read(RECORD_TYPE, recordType);
 	}
 
-	protected boolean isRecordTypeAbstract() {
-		String abstractInRecordTypeDefinition = getAbstractFromRecordTypeDefinition();
-		return "true".equals(abstractInRecordTypeDefinition);
-	}
-
-	private String getAbstractFromRecordTypeDefinition() {
-		DataGroup recordTypeDefinition = getRecordTypeDefinition();
-		return recordTypeDefinition.getFirstAtomicValueWithNameInData("abstract");
-	}
-
 	protected void addReadActionToDataRecordLinks(SpiderDataGroup spiderDataGroup) {
 		for (SpiderDataElement spiderDataChild : spiderDataGroup.getChildren()) {
 			addReadActionToDataRecordLink(spiderDataChild);
@@ -244,8 +234,9 @@ public class SpiderRecordHandler {
 				refParentId);
 		DataGroup parentRefCollection = (DataGroup) parentCollectionVar
 				.getFirstChildWithNameInData("refCollection");
-		String parentRefCollectionId = parentRefCollection.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-	
+		String parentRefCollectionId = parentRefCollection
+				.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+
 		return readItemCollectionAndExtractCollectionItemReferences(parentRefCollectionId);
 	}
 

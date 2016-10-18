@@ -105,13 +105,6 @@ public class SpiderRecordDeleterTest {
 		recordDeleter.deleteRecord("userId", "place", "place:0001_NOT_FOUND");
 	}
 
-	@Test(expectedExceptions = MisuseException.class)
-	public void testDeleteRecordAbstractRecordType() {
-		recordStorage = new RecordStorageSpy();
-		setUpDependencyProvider();
-		recordDeleter.deleteRecord("userId", "abstract", "xxx");
-	}
-
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testReadingDataForANonExistingRecordType() {
 		recordDeleter.deleteRecord("userId", "nonExistingRecordType", "anId");

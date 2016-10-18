@@ -40,6 +40,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	private String userId;
 	private User user;
 	private String authToken;
+	private RecordTypeHandler recordTypeHandler;
 
 	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
@@ -59,6 +60,8 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		this.authToken = authToken;
 		this.recordType = recordType;
 		this.recordId = recordId;
+		recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
+				recordType);
 		tryToGetActiveUser();
 		checkRecordsRecordTypeNotAbstract();
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
@@ -77,7 +80,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private void checkRecordsRecordTypeNotAbstract() {
-		if (isRecordTypeAbstract()) {
+		if (recordTypeHandler.isAbstract()) {
 			throw new MisuseException("Reading for record: " + recordId
 					+ " on the abstract recordType:" + recordType + " is not allowed");
 		}
@@ -100,9 +103,12 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 
 	@Override
 	public SpiderDataList readIncomingLinks(String authToken, String recordType, String recordId) {
+		// TODO: break out this method
 		this.authToken = authToken;
 		this.recordType = recordType;
 		this.recordId = recordId;
+		recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
+				recordType);
 		tryToGetActiveUser();
 		checkRecordsRecordTypeNotAbstract();
 		DataGroup recordRead = recordStorage.read(recordType, recordId);

@@ -45,12 +45,12 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private RecordIdGenerator idGenerator;
 	private PermissionKeyCalculator keyCalculator;
 	private DataValidator dataValidator;
-	private DataGroup recordTypeDefinition;
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private String authToken;
 	private User user;
+	private RecordTypeHandler recordTypeHandler;
 
 	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
@@ -73,9 +73,11 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 			SpiderDataGroup spiderDataGroup) {
 		this.authToken = authToken;
 		this.recordType = recordTypeToCreate;
+
+		recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
+				recordTypeToCreate);
 		this.spiderDataGroup = spiderDataGroup;
-		recordTypeDefinition = getRecordTypeDefinition();
-		metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("newMetadataId");
+		metadataId = recordTypeHandler.getNewMetadataId();
 
 		return validateCreateAndStoreRecord();
 
@@ -128,7 +130,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void checkNoCreateForAbstractRecordType() {
-		if (isRecordTypeAbstract()) {
+		if (recordTypeHandler.isAbstract()) {
 			throw new MisuseException(
 					"Data creation on abstract recordType:" + recordType + " is not allowed");
 		}
@@ -186,15 +188,9 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void ensureIdExists(String recordType) {
-		if (shouldAutoGenerateId(recordTypeDefinition)) {
+		if (recordTypeHandler.shouldAutoGenerateId()) {
 			generateAndAddIdToRecordInfo(recordType);
 		}
-	}
-
-	private boolean shouldAutoGenerateId(DataGroup recordTypeDataGroup) {
-		String userSuppliedId = recordTypeDataGroup
-				.getFirstAtomicValueWithNameInData("userSuppliedId");
-		return "false".equals(userSuppliedId);
 	}
 
 	private void generateAndAddIdToRecordInfo(String recordType) {
