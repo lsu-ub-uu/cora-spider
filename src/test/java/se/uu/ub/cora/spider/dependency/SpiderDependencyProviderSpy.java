@@ -90,9 +90,4 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		return authenticator;
 	}
 
-	@Override
-	public UserPicker getUserPicker() {
-		return userPicker;
-	}
-
 }

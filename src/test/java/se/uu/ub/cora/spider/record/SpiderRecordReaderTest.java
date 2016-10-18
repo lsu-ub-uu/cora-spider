@@ -134,6 +134,13 @@ public class SpiderRecordReaderTest {
 
 	}
 
+	@Test(expectedExceptions = AuthenticationException.class)
+	public void testReadIncomingLinksAuthenticationNotAuthenticated() {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+		recordReader.readIncomingLinks("dummyNonAuthenticatedToken", "place", "place:0001");
+	}
+
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testReadIncomingLinksUnauthorized() {
 		authorizator = new NeverAuthorisedStub();

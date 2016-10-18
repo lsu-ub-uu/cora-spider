@@ -77,7 +77,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("metadataId");
 
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord(userId);
-		checkNoUpdateForAbstractRecordType();
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, spiderDataGroup);
 
 		validateIncomingDataAsSpecifiedInMetadata();
@@ -114,13 +113,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void tryToGetActiveUser() {
 		user = authenticator.tryToGetActiveUser(authToken);
-	}
-
-	private void checkNoUpdateForAbstractRecordType() {
-		if (isRecordTypeAbstract()) {
-			throw new MisuseException(
-					"Data update on abstract recordType:" + recordType + " is not allowed");
-		}
 	}
 
 	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,

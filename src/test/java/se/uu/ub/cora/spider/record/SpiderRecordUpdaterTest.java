@@ -407,15 +407,6 @@ public class SpiderRecordUpdaterTest {
 		recordUpdater.updateRecord("someToken78678567", "recordType", "placeNOT", dataGroup);
 	}
 
-	@Test(expectedExceptions = MisuseException.class)
-	public void testUpdateRecordAbstractRecordType() {
-		recordStorage = new RecordStorageSpy();
-		setUpDependencyProvider();
-
-		SpiderDataGroup record = SpiderDataGroup.withNameInData("abstract");
-		recordUpdater.updateRecord("someToken78678567", "abstract", "xxx", record);
-	}
-
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testUpdateRecordUserNotAuthorisedToStoreIncomingData() {
 		recordStorage = new RecordStorageCreateUpdateSpy();

@@ -99,10 +99,11 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	@Override
-	public SpiderDataList readIncomingLinks(String userId, String recordType, String recordId) {
-		this.userId = userId;
+	public SpiderDataList readIncomingLinks(String authToken, String recordType, String recordId) {
+		this.authToken = authToken;
 		this.recordType = recordType;
 		this.recordId = recordId;
+		tryToGetActiveUser();
 		checkRecordsRecordTypeNotAbstract();
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
