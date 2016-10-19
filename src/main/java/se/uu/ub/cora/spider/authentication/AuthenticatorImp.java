@@ -39,6 +39,9 @@ public class AuthenticatorImp implements Authenticator {
 		//
 		// return loggedInUser;
 		// TODO Auto-generated method stub
+		if ("dummyNonAuthenticatedToken".equals(authToken)) {
+			throw new AuthenticationException("token not valid");
+		}
 
 		return userPicker.pickUser(userInfo);
 	}

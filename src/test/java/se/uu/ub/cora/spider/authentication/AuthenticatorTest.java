@@ -40,15 +40,12 @@ public class AuthenticatorTest {
 		assertEquals(logedInUser.id, "12345");
 	}
 
-	// @Test
-	// public void testAuthenticatedUser() {
-	// UserPickerSpy userPicker = new UserPickerSpy();
-	// Authenticator authenticator = new AuthenticatorImp(userPicker);
-	// String authToken = "someAuthenticatedUserToken";
-	// User logedInUser = authenticator.getLoggedinUserByToken(authToken);
-	// assertTrue(userPicker.userPickerWasCalled);
-	// assertEquals(userPicker.usedUserInfo, expected);
-	// assertEquals(logedInUser.id, "12345");
-	// }
+	@Test(expectedExceptions = AuthenticationException.class)
+	public void testAuthenticatedUser() {
+		UserPickerSpy userPicker = new UserPickerSpy();
+		Authenticator authenticator = new AuthenticatorImp(userPicker);
+		String authToken = "dummyNonAuthenticatedToken";
+		authenticator.tryToGetActiveUser(authToken);
+	}
 
 }

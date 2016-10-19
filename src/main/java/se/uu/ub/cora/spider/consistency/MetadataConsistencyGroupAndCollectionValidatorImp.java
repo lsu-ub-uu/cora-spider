@@ -131,6 +131,9 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 
 	private boolean isChildOfAbstractRecordType(String abstractRecordType,
 			DataGroup recordTypePossibleChild) {
+		if (!recordTypePossibleChild.containsChildWithNameInData(PARENT_ID)) {
+			return false;
+		}
 		String parentIdValue = recordTypePossibleChild.getFirstAtomicValueWithNameInData(PARENT_ID);
 		if (parentIdValue.equals(abstractRecordType)) {
 			return true;
