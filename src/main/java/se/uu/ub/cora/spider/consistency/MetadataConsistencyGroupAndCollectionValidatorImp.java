@@ -24,8 +24,6 @@ import java.util.Collection;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataElement;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
@@ -39,7 +37,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 	private static final String REF_PARENT_ID = "refParentId";
 	private RecordStorage recordStorage;
 	private String recordType;
-	private SpiderDataGroup recordAsSpiderDataGroup;
+	private DataGroup recordAsDataGroup;
 
 	public MetadataConsistencyGroupAndCollectionValidatorImp(RecordStorage recordStorage,
 			String recordType) {
@@ -49,7 +47,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 
 	@Override
 	public void validateRules(SpiderDataGroup recordAsSpiderDataGroup) {
-		this.recordAsSpiderDataGroup = recordAsSpiderDataGroup;
+		recordAsDataGroup = recordAsSpiderDataGroup.toDataGroup();
 		if (dataGroupHasParent()) {
 			validateInheritanceRules();
 		}
@@ -59,7 +57,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 	}
 
 	private boolean dataGroupHasParent() {
-		return recordAsSpiderDataGroup.containsChildWithNameInData(REF_PARENT_ID);
+		return recordAsDataGroup.containsChildWithNameInData(REF_PARENT_ID);
 	}
 
 	private void validateInheritanceRules() {
@@ -76,7 +74,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 
 	private void possiblyValidateFinalValue() {
 		if (hasFinalValue()) {
-			String finalValue = recordAsSpiderDataGroup.extractAtomicValue("finalValue");
+			String finalValue = recordAsDataGroup.extractAtomicValue("finalValue");
 			if (!validateFinalValue(finalValue)) {
 				throw new DataException(
 						"Data is not valid: final value does not exist in collection");
@@ -89,10 +87,10 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 	}
 
 	private void ensureAllChildrenExistsInParent() {
-		SpiderDataGroup childReferences = (SpiderDataGroup) recordAsSpiderDataGroup
+		DataGroup childReferences = (DataGroup) recordAsDataGroup
 				.getFirstChildWithNameInData("childReferences");
 
-		for (SpiderDataElement childReference : childReferences.getChildren()) {
+		for (DataElement childReference : childReferences.getChildren()) {
 			String childNameInData = getNameInDataFromChildReference(childReference);
 			if (!ensureChildExistInParent(childNameInData)) {
 				throw new DataException("Data is not valid: child does not exist in parent");
@@ -100,8 +98,8 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 		}
 	}
 
-	private String getNameInDataFromChildReference(SpiderDataElement childReference) {
-		SpiderDataGroup childReferenceGroup = (SpiderDataGroup) childReference;
+	private String getNameInDataFromChildReference(DataElement childReference) {
+		DataGroup childReferenceGroup = (DataGroup) childReference;
 		String refId = childReferenceGroup.extractAtomicValue("ref");
 		DataGroup childDataGroup = findChildOfUnknownMetadataType(refId);
 
@@ -157,8 +155,8 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 	}
 
 	private boolean ensureChildExistInParent(String childNameInData) {
-		SpiderDataGroup parentChildReferences = getParentChildReferences();
-		for (SpiderDataElement parentChildReference : parentChildReferences.getChildren()) {
+		DataGroup parentChildReferences = getParentChildReferences();
+		for (DataElement parentChildReference : parentChildReferences.getChildren()) {
 			if (isSameNameInData(childNameInData, parentChildReference)) {
 				return true;
 			}
@@ -166,17 +164,15 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 		return false;
 	}
 
-	private SpiderDataGroup getParentChildReferences() {
-		SpiderDataAtomic refParentId = (SpiderDataAtomic) recordAsSpiderDataGroup
+	private DataGroup getParentChildReferences() {
+		DataAtomic refParentId = (DataAtomic) recordAsDataGroup
 				.getFirstChildWithNameInData(REF_PARENT_ID);
-		SpiderDataGroup parent = SpiderDataGroup
-				.fromDataGroup(recordStorage.read("metadataGroup", refParentId.getValue()));
+		DataGroup parent = recordStorage.read("metadataGroup", refParentId.getValue());
 
-		return (SpiderDataGroup) parent.getFirstChildWithNameInData("childReferences");
+		return (DataGroup) parent.getFirstChildWithNameInData("childReferences");
 	}
 
-	private boolean isSameNameInData(String childNameInData,
-			SpiderDataElement parentChildReference) {
+	private boolean isSameNameInData(String childNameInData, DataElement parentChildReference) {
 		String parentChildNameInData = getNameInDataFromChildReference(parentChildReference);
 		return childNameInData.equals(parentChildNameInData);
 	}
@@ -195,7 +191,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 	}
 
 	private DataGroup getItemReferences() {
-		SpiderDataGroup refCollection = (SpiderDataGroup) recordAsSpiderDataGroup
+		DataGroup refCollection = (DataGroup) recordAsDataGroup
 				.getFirstChildWithNameInData("refCollection");
 		String refCollectionId = refCollection.extractAtomicValue(LINKED_RECORD_ID);
 		return readItemCollectionAndExtractCollectionItemReferences(refCollectionId);
@@ -207,7 +203,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 	}
 
 	private DataGroup extractParentItemReferences() {
-		String refParentId = recordAsSpiderDataGroup.extractAtomicValue(REF_PARENT_ID);
+		String refParentId = recordAsDataGroup.extractAtomicValue(REF_PARENT_ID);
 		DataGroup parentCollectionVar = recordStorage.read("metadataCollectionVariable",
 				refParentId);
 		DataGroup parentRefCollection = (DataGroup) parentCollectionVar
@@ -234,7 +230,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 	}
 
 	private boolean hasFinalValue() {
-		return recordAsSpiderDataGroup.containsChildWithNameInData("finalValue");
+		return recordAsDataGroup.containsChildWithNameInData("finalValue");
 	}
 
 	private boolean validateFinalValue(String finalValue) {
