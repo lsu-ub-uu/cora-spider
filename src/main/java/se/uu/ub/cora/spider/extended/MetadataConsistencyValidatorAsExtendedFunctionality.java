@@ -17,10 +17,10 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.metadata;
+package se.uu.ub.cora.spider.extended;
 
+import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidator;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 
 public final class MetadataConsistencyValidatorAsExtendedFunctionality
 		implements ExtendedFunctionality {

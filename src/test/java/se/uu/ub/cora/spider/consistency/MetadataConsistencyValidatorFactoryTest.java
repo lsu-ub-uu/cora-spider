@@ -17,12 +17,15 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.metadata;
+package se.uu.ub.cora.spider.consistency;
 
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.spider.consistency.MetadataConsistencyGroupAndCollectionValidatorImp;
+import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidator;
+import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidatorFactory;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 

@@ -30,7 +30,6 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.metadata.MetadataConsistencyValidatorAsExtendedFunctionality;
 
 public class BaseExtendedFunctionalityProviderTest {
 	private ExtendedFunctionalityProvider baseExtendedFunctionalityProvider;

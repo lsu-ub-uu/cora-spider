@@ -24,9 +24,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidatorFactory;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.metadata.MetadataConsistencyValidatorAsExtendedFunctionality;
-import se.uu.ub.cora.spider.metadata.MetadataConsistencyValidatorFactory;
 
 public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityProvider {
 

@@ -17,13 +17,15 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.metadata;
+package se.uu.ub.cora.spider.extended;
 
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidatorSpy;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.extended.MetadataConsistencyValidatorAsExtendedFunctionality;
 
 public class MetadataConsistencyValidatorAsExtendedFunctionalityTest {
 

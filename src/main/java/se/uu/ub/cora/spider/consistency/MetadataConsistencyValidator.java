@@ -17,17 +17,12 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.metadata;
+package se.uu.ub.cora.spider.consistency;
 
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 
-public class MetadataConsistencyValidatorSpy implements MetadataConsistencyValidator {
+public interface MetadataConsistencyValidator {
 
-	public boolean validationHasBeenCalled = false;
-
-	@Override
-	public void validateRules(SpiderDataGroup recordAsSpiderDataGroup) {
-		validationHasBeenCalled = true;
-	}
+	void validateRules(SpiderDataGroup recordAsSpiderDataGroup);
 
 }
