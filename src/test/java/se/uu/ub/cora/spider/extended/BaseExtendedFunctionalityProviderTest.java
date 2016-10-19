@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.extended;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,12 +28,18 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.metadata.MetadataConsistencyValidatorAsExtendedFunctionality;
+
 public class BaseExtendedFunctionalityProviderTest {
 	private ExtendedFunctionalityProvider baseExtendedFunctionalityProvider;
 
 	@BeforeMethod
 	public void setUp() {
-		baseExtendedFunctionalityProvider = new BaseExtendedFunctionalityProvider();
+		SpiderDependencyProvider dependencyProvider = new SpiderDependencyProviderSpy();
+		baseExtendedFunctionalityProvider = new BaseExtendedFunctionalityProvider(
+				dependencyProvider);
 	}
 
 	@Test
@@ -43,9 +50,9 @@ public class BaseExtendedFunctionalityProviderTest {
 	}
 
 	private void fetchAndAssertCreateBeforeMetadataValidation(String recordType) {
-		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
 				.getFunctionalityForCreateBeforeMetadataValidation(recordType);
-		assertEquals(Collections.emptyList(), eFL);
+		assertEquals(Collections.emptyList(), bEFP);
 	}
 
 	@Test
@@ -55,10 +62,28 @@ public class BaseExtendedFunctionalityProviderTest {
 		fetchAndAssertCreateAfterMetadataValidation("UnkownType");
 	}
 
+	@Test
+	public void testGetAddedFunctionalityForCreateAfterMetadataValidationForMetadataGroup() {
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
+				.getFunctionalityForCreateAfterMetadataValidation("metadataGroup");
+		assertEquals(bEFP.size(), 1);
+		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
+		assertTrue(extendedFunctionality instanceof MetadataConsistencyValidatorAsExtendedFunctionality);
+	}
+
+	@Test
+	public void testGetAddedFunctionalityForCreateAfterMetadataValidationForCollectionVariable() {
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
+				.getFunctionalityForCreateAfterMetadataValidation("metadataCollectionVariable");
+		assertEquals(bEFP.size(), 1);
+		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
+		assertTrue(extendedFunctionality instanceof MetadataConsistencyValidatorAsExtendedFunctionality);
+	}
+
 	private void fetchAndAssertCreateAfterMetadataValidation(String recordType) {
-		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
 				.getFunctionalityForCreateAfterMetadataValidation(recordType);
-		assertEquals(Collections.emptyList(), eFL);
+		assertEquals(Collections.emptyList(), bEFP);
 	}
 
 	@Test
@@ -69,9 +94,9 @@ public class BaseExtendedFunctionalityProviderTest {
 	}
 
 	private void fetchAndAssertCreateBeforeReturn(String recordType) {
-		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
 				.getFunctionalityForCreateBeforeReturn(recordType);
-		assertEquals(Collections.emptyList(), eFL);
+		assertEquals(Collections.emptyList(), bEFP);
 	}
 
 	@Test
@@ -82,9 +107,9 @@ public class BaseExtendedFunctionalityProviderTest {
 	}
 
 	private void fetchAndAssertUpdateBeforeMetadataValidation(String recordType) {
-		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
 				.getFunctionalityForUpdateBeforeMetadataValidation(recordType);
-		assertEquals(Collections.emptyList(), eFL);
+		assertEquals(Collections.emptyList(), bEFP);
 	}
 
 	@Test
@@ -95,9 +120,9 @@ public class BaseExtendedFunctionalityProviderTest {
 	}
 
 	private void fetchAndAssertUpdateAfterMetadataValidation(String recordType) {
-		List<ExtendedFunctionality> eFL = baseExtendedFunctionalityProvider
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
 				.getFunctionalityForUpdateAfterMetadataValidation(recordType);
-		assertEquals(Collections.emptyList(), eFL);
+		assertEquals(Collections.emptyList(), bEFP);
 	}
 
 	@Test

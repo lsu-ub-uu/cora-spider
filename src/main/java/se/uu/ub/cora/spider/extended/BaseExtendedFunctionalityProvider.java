@@ -20,10 +20,21 @@
 
 package se.uu.ub.cora.spider.extended;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.metadata.MetadataConsistencyValidatorAsExtendedFunctionality;
+import se.uu.ub.cora.spider.metadata.MetadataConsistencyValidatorFactory;
+
 public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityProvider {
+
+	protected SpiderDependencyProvider dependencyProvider;
+
+	public BaseExtendedFunctionalityProvider(SpiderDependencyProvider dependencyProvider) {
+		this.dependencyProvider = dependencyProvider;
+	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
@@ -34,7 +45,14 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateAfterMetadataValidation(
 			String recordType) {
-		return Collections.emptyList();
+		List<ExtendedFunctionality> list = new ArrayList<>();
+		if ("metadataGroup".equals(recordType) || "metadataCollectionVariable".equals(recordType)) {
+			MetadataConsistencyValidatorFactory factory = MetadataConsistencyValidatorFactory
+					.usingRecordStorage(dependencyProvider.getRecordStorage());
+			list.add(MetadataConsistencyValidatorAsExtendedFunctionality
+					.usingValidator(factory.factor(recordType)));
+		}
+		return list;
 	}
 
 	@Override

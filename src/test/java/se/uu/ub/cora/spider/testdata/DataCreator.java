@@ -142,7 +142,7 @@ public final class DataCreator {
 		return createRecordInfo;
 	}
 
-	public static SpiderDataGroup createMetadataGroupWithOneChild(){
+	public static SpiderDataGroup createMetadataGroupWithOneChild() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("metadata");
 		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "testNewGroup"));
@@ -156,7 +156,21 @@ public final class DataCreator {
 		return spiderDataGroup;
 	}
 
-	private static SpiderDataGroup createChildReference(){
+	public static SpiderDataGroup createSomeDataGroupWithOneChild() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("someData");
+		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "testNewGroup"));
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "someData"));
+		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));
+
+		spiderDataGroup.addChild(recordInfo);
+
+		spiderDataGroup.addChild(createChildReference());
+
+		return spiderDataGroup;
+	}
+
+	private static SpiderDataGroup createChildReference() {
 		SpiderDataGroup childReferences = SpiderDataGroup.withNameInData("childReferences");
 
 		childReferences.addChild(createChildReference("childOne", "1", "1"));
@@ -262,10 +276,11 @@ public final class DataCreator {
 
 		return spiderDataGroup;
 	}
-	
+
 	public static SpiderDataGroup createRefCollectionIdWithLinkedRecordid(String linkedRecordId) {
 		SpiderDataGroup refCollection = SpiderDataGroup.withNameInData("refCollection");
-		refCollection.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataItemCollection"));
+		refCollection.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType",
+				"metadataItemCollection"));
 		refCollection.addChild(
 				SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", linkedRecordId));
 		return refCollection;

@@ -69,7 +69,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	public SpiderDataRecord updateRecord(String authToken, String recordType, String recordId,
 			SpiderDataGroup spiderDataGroup) {
 		this.authToken = authToken;
-		this.spiderDataGroup = spiderDataGroup;
+		this.recordAsSpiderDataGroup = spiderDataGroup;
 		this.recordType = recordType;
 		this.recordId = recordId;
 		tryToGetActiveUser();
@@ -81,8 +81,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 		validateIncomingDataAsSpecifiedInMetadata();
 		useExtendedFunctionalityAfterMetadataValidation(recordType, spiderDataGroup);
-
-		validateRules();
 
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
@@ -137,7 +135,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata() {
-		DataGroup dataGroup = spiderDataGroup.toDataGroup();
+		DataGroup dataGroup = recordAsSpiderDataGroup.toDataGroup();
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, dataGroup);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
@@ -150,7 +148,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void checkValueIsSameAsInEnteredRecord(String value, String valueToExtract) {
-		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
+		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
 		String valueFromRecord = recordInfo.extractAtomicValue(valueToExtract);
 		if (!value.equals(valueFromRecord)) {
 			throw new DataException("Value in data(" + valueFromRecord
@@ -160,22 +158,10 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord(String userId) {
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
-
-		// String accessType = "UPDATE";
-		// Set<String> recordCalculateKeys =
-		// keyCalculator.calculateKeys(accessType, recordType,
-		// recordRead);
-		//
-		// if (!authorization.isAuthorized(user, recordCalculateKeys)) {
-		// throw new AuthorizationException(USER + userId + " is not authorized
-		// to update record:"
-		// + recordId + " of type:" + recordType);
-		// }
 		checkUserIsAuthorisedToStoreIncomingData(userId, recordRead);
 	}
 
 	private void checkUserIsAuthorisedToStoreIncomingData(String userId, DataGroup incomingData) {
-
 		// calculate permissionKey
 		String accessType = "UPDATE";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
