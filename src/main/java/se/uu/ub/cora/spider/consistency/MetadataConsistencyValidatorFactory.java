@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Olov McKie
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,18 +17,25 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.consistency;
 
-import java.util.Set;
+import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
-import se.uu.ub.cora.beefeater.Authorizator;
-import se.uu.ub.cora.beefeater.authentication.User;
+public final class MetadataConsistencyValidatorFactory {
 
-public class NeverAuthorisedStub implements Authorizator {
+	private RecordStorage recordStorage;
 
-	@Override
-	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
-		return false;
+	private MetadataConsistencyValidatorFactory(RecordStorage recordStorage) {
+		this.recordStorage = recordStorage;
+	}
+
+	public static MetadataConsistencyValidatorFactory usingRecordStorage(
+			RecordStorage recordStorage) {
+		return new MetadataConsistencyValidatorFactory(recordStorage);
+	}
+
+	public MetadataConsistencyValidator factor(String recordType) {
+		return new MetadataConsistencyGroupAndCollectionValidatorImp(recordStorage, recordType);
 	}
 
 }

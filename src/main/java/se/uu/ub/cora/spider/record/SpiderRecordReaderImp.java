@@ -23,7 +23,9 @@ import java.util.Collection;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
@@ -32,11 +34,16 @@ import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public final class SpiderRecordReaderImp extends SpiderRecordHandler implements SpiderRecordReader {
+	private Authenticator authenticator;
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
 	private String userId;
+	private User user;
+	private String authToken;
+	private RecordTypeHandler recordTypeHandler;
 
 	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider) {
+		this.authenticator = dependencyProvider.getAuthenticator();
 		this.authorization = dependencyProvider.getAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
@@ -48,10 +55,14 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	@Override
-	public SpiderDataRecord readRecord(String userId, String recordType, String recordId) {
-		this.userId = userId;
+	public SpiderDataRecord readRecord(String authToken, String recordType, String recordId) {
+
+		this.authToken = authToken;
 		this.recordType = recordType;
 		this.recordId = recordId;
+		recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
+				recordType);
+		tryToGetActiveUser();
 		checkRecordsRecordTypeNotAbstract();
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
@@ -64,8 +75,12 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		return createDataRecordContainingDataGroup(spiderDataGroup);
 	}
 
+	private void tryToGetActiveUser() {
+		user = authenticator.tryToGetActiveUser(authToken);
+	}
+
 	private void checkRecordsRecordTypeNotAbstract() {
-		if (isRecordTypeAbstract()) {
+		if (recordTypeHandler.isAbstract()) {
 			throw new MisuseException("Reading for record: " + recordId
 					+ " on the abstract recordType:" + recordType + " is not allowed");
 		}
@@ -83,14 +98,18 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		String accessType = "READ";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
 				recordRead);
-		return !authorization.isAuthorized(userId, recordCalculateKeys);
+		return !authorization.isAuthorized(user, recordCalculateKeys);
 	}
 
 	@Override
-	public SpiderDataList readIncomingLinks(String userId, String recordType, String recordId) {
-		this.userId = userId;
+	public SpiderDataList readIncomingLinks(String authToken, String recordType, String recordId) {
+		// TODO: break out this method
+		this.authToken = authToken;
 		this.recordType = recordType;
 		this.recordId = recordId;
+		recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
+				recordType);
+		tryToGetActiveUser();
 		checkRecordsRecordTypeNotAbstract();
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 

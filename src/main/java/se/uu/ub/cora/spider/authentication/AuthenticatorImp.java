@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Olov McKie
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,23 +17,33 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.authentication;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 
-public class AlwaysAuthorisedExceptStub implements Authorizator {
-	public Set<String> notAuthorizedForKeys = new HashSet<>();
+public class AuthenticatorImp implements Authenticator {
+
+	private UserPicker userPicker;
+
+	public AuthenticatorImp(UserPicker userPicker) {
+		this.userPicker = userPicker;
+	}
 
 	@Override
-	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
-		if (notAuthorizedForKeys.removeAll(recordCalculateKeys)) {
-			return false;
+	public User tryToGetActiveUser(String authToken) {
+		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("guest", "system");
+		// if (null != authToken) {
+		// userInfo = authenticator.getLoggedinUserByToken(authToken);
+		// }
+		// User loggedInUser = userPicker.pickUser(userInfo);
+		//
+		// return loggedInUser;
+		// TODO Auto-generated method stub
+		if ("dummyNonAuthenticatedToken".equals(authToken)) {
+			throw new AuthenticationException("token not valid");
 		}
-		return true;
+
+		return userPicker.pickUser(userInfo);
 	}
 
 }

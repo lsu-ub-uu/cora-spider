@@ -31,6 +31,9 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
+import se.uu.ub.cora.spider.authentication.AuthenticationException;
+import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderData;
 import se.uu.ub.cora.spider.data.SpiderDataList;
@@ -47,6 +50,7 @@ import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 public class SpiderRecordListReaderTest {
 
 	private RecordStorage recordStorage;
+	private Authenticator authenticator;
 	private Authorizator authorizator;
 	private PermissionKeyCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
@@ -54,6 +58,7 @@ public class SpiderRecordListReaderTest {
 
 	@BeforeMethod
 	public void beforeMethod() {
+		authenticator = new AuthenticatorSpy();
 		authorizator = new AuthorizatorImp();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new RecordPermissionKeyCalculatorStub();
@@ -62,6 +67,7 @@ public class SpiderRecordListReaderTest {
 
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy();
+		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.authorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.keyCalculator = keyCalculator;
@@ -71,9 +77,16 @@ public class SpiderRecordListReaderTest {
 		recordListReader = SpiderRecordListReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
+	@Test(expectedExceptions = AuthenticationException.class)
+	public void testAuthenticationNotAuthenticated() {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+		recordListReader.readRecordList("dummyNonAuthenticatedToken", "spyType");
+	}
+
 	@Test
 	public void testReadListAuthorized() {
-		String userId = "userId";
+		String userId = "someToken78678567";
 		String type = "place";
 		SpiderDataList readRecordList = recordListReader.readRecordList(userId, type);
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "2",
@@ -89,7 +102,7 @@ public class SpiderRecordListReaderTest {
 	public void testReadListAbstractRecordType() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		recordListReader.readRecordList("userId", "abstract");
+		recordListReader.readRecordList("someToken78678567", "abstract");
 
 		assertTrue(((RecordStorageSpy) recordStorage).readLists.contains("child1"));
 		assertTrue(((RecordStorageSpy) recordStorage).readLists.contains("child2"));
@@ -100,19 +113,21 @@ public class SpiderRecordListReaderTest {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
 
-		recordListReader.readRecordList("userId", "abstract2");
+		recordListReader.readRecordList("someToken78678567", "abstract2");
 		assertFalse(((RecordStorageSpy) recordStorage).readLists.contains("child1_2"));
 		assertTrue(((RecordStorageSpy) recordStorage).readLists.contains("child2_2"));
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testReadListUnauthorized() {
-		recordListReader.readRecordList("unauthorizedUserId", "place");
+		authorizator = new NeverAuthorisedStub();
+		setUpDependencyProvider();
+		recordListReader.readRecordList("someToken78678567", "place");
 	}
 
 	@Test
 	public void testActionsOnReadRecord() {
-		SpiderDataList recordList = recordListReader.readRecordList("userId", "place");
+		SpiderDataList recordList = recordListReader.readRecordList("someToken78678567", "place");
 
 		SpiderDataRecord recordWithIncomingLinks = (SpiderDataRecord) recordList.getDataList()
 				.get(0);
@@ -129,7 +144,8 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testActionsOnReadRecordType() {
-		SpiderDataList recordList = recordListReader.readRecordList("userId", "recordType");
+		SpiderDataList recordList = recordListReader.readRecordList("someToken78678567",
+				"recordType");
 		SpiderDataRecord firstInListWhichIsImage = (SpiderDataRecord) recordList.getDataList()
 				.get(0);
 		assertEquals(firstInListWhichIsImage.getActions().size(), 6);
@@ -153,7 +169,7 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testActionsOnReadRecordNoIncomingLinks() {
-		SpiderDataList recordList = recordListReader.readRecordList("userId", "place");
+		SpiderDataList recordList = recordListReader.readRecordList("someToken78678567", "place");
 		assertEquals(((SpiderDataRecord) recordList.getDataList().get(1)).getActions().size(), 3);
 		assertFalse(((SpiderDataRecord) recordList.getDataList().get(1)).getActions()
 				.contains(Action.READ_INCOMING_LINKS));

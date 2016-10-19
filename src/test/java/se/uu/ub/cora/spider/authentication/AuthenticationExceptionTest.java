@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Olov McKie
+ * Copyright 2015 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,18 +17,16 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.authentication;
 
-import java.util.Set;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
-import se.uu.ub.cora.beefeater.Authorizator;
-import se.uu.ub.cora.beefeater.authentication.User;
+public class AuthenticationExceptionTest {
+	@Test
+	public void testInit() {
+		AuthenticationException notAuthenticated = new AuthenticationException("message");
 
-public class NeverAuthorisedStub implements Authorizator {
-
-	@Override
-	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
-		return false;
+		Assert.assertEquals(notAuthenticated.getMessage(), "message");
 	}
-
 }

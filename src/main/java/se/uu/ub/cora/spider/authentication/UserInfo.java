@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Olov McKie
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,18 +17,19 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.authentication;
 
-import java.util.Set;
+public final class UserInfo {
 
-import se.uu.ub.cora.beefeater.Authorizator;
-import se.uu.ub.cora.beefeater.authentication.User;
+	public final String idFromLogin;
+	public final String domainFromLogin;
 
-public class NeverAuthorisedStub implements Authorizator {
-
-	@Override
-	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
-		return false;
+	private UserInfo(String idFromLogin, String domainFromLogin) {
+		this.idFromLogin = idFromLogin;
+		this.domainFromLogin = domainFromLogin;
 	}
 
+	public static UserInfo withLoginIdAndLoginDomain(String idFromLogin, String domainFromLogin) {
+		return new UserInfo(idFromLogin, domainFromLogin);
+	}
 }

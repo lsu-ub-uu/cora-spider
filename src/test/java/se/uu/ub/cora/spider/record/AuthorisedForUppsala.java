@@ -22,11 +22,12 @@ package se.uu.ub.cora.spider.record;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authentication.User;
 
 public class AuthorisedForUppsala implements Authorizator {
 
 	@Override
-	public boolean isAuthorized(String userId, Set<String> recordCalculateKeys) {
+	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
 
 		// fake uppsala users current keys
 

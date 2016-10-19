@@ -22,16 +22,22 @@ package se.uu.ub.cora.spider.record;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		implements SpiderRecordDeleter {
+	private Authenticator authenticator;
 	private Authorizator authorization;
 	private PermissionKeyCalculator keyCalculator;
 	private String userId;
+	private String authToken;
+	private User user;
 
 	private SpiderRecordDeleterImp(SpiderDependencyProvider dependencyProvider) {
+		this.authenticator = dependencyProvider.getAuthenticator();
 		this.authorization = dependencyProvider.getAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
@@ -43,23 +49,20 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	}
 
 	@Override
-	public void deleteRecord(String userId, String recordType, String recordId) {
-		this.userId = userId;
+	public void deleteRecord(String authToken, String recordType, String recordId) {
+		this.authToken = authToken;
 		this.recordType = recordType;
-		checkRecordIsNotAbstract(recordType, recordId);
-		checkUserIsAuthorized(recordType, recordId);
+		tryToGetActiveUser();
+		checkUserIsAuthorizedToDeleteStoredRecord(recordType, recordId);
 		checkNoIncomingLinksExists(recordType, recordId);
 		recordStorage.deleteByTypeAndId(recordType, recordId);
 	}
 
-	private void checkRecordIsNotAbstract(String recordType, String recordId) {
-		if (isRecordTypeAbstract()) {
-			throw new MisuseException("Deleting record: " + recordId
-					+ " on the abstract recordType:" + recordType + " is not allowed");
-		}
+	private void tryToGetActiveUser() {
+		user = authenticator.tryToGetActiveUser(authToken);
 	}
 
-	private void checkUserIsAuthorized(String recordType, String recordId) {
+	private void checkUserIsAuthorizedToDeleteStoredRecord(String recordType, String recordId) {
 		if (userIsNotAuthorized(recordType, recordId)) {
 			throw new AuthorizationException("User:" + userId
 					+ " is not authorized to delete record:" + recordId + " of type:" + recordType);
@@ -71,7 +74,7 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		String accessType = "DELETE";
 		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
 				readRecord);
-		return !authorization.isAuthorized(userId, recordCalculateKeys);
+		return !authorization.isAuthorized(user, recordCalculateKeys);
 	}
 
 	private void checkNoIncomingLinksExists(String recordType, String recordId) {

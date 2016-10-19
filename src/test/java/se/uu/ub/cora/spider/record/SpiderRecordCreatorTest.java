@@ -34,6 +34,9 @@ import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.spider.authentication.AuthenticationException;
+import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -65,6 +68,7 @@ import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
 public class SpiderRecordCreatorTest {
 	private RecordStorage recordStorage;
+	private Authenticator authenticator;
 	private Authorizator authorizator;
 	private RecordIdGenerator idGenerator;
 	private PermissionKeyCalculator keyCalculator;
@@ -76,6 +80,7 @@ public class SpiderRecordCreatorTest {
 
 	@BeforeMethod
 	public void beforeMethod() {
+		authenticator = new AuthenticatorSpy();
 		authorizator = new AuthorizatorImp();
 		dataValidator = new DataValidatorAlwaysValidSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
@@ -88,6 +93,7 @@ public class SpiderRecordCreatorTest {
 
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy();
+		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.authorizator = authorizator;
 		dependencyProvider.dataValidator = dataValidator;
 		dependencyProvider.recordStorage = recordStorage;
@@ -112,8 +118,9 @@ public class SpiderRecordCreatorTest {
 		setUpDependencyProvider();
 		SpiderDataGroup spiderDataGroup = DataCreator
 				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
-		recordCreator.createAndStoreRecord("userId", "spyType", spiderDataGroup);
+		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", spiderDataGroup);
 
+		assertTrue(((AuthenticatorSpy) authenticator).authenticationWasCalled);
 		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorizator).authorizedWasCalled);
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
 		ExtendedFunctionalitySpy extendedFunctionality = extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation
@@ -124,6 +131,16 @@ public class SpiderRecordCreatorTest {
 		assertTrue(((KeyCalculatorSpy) keyCalculator).calculateKeysWasCalled);
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyTypeNew");
+	}
+
+	@Test(expectedExceptions = AuthenticationException.class)
+	public void testAuthenticationNotAuthenticated() {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+		SpiderDataGroup spiderDataGroup = DataCreator
+				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		recordCreator.createAndStoreRecord("dummyNonAuthenticatedToken", "spyType",
+				spiderDataGroup);
 	}
 
 	@Test
@@ -137,23 +154,26 @@ public class SpiderRecordCreatorTest {
 		setUpDependencyProvider();
 		SpiderDataGroup spiderDataGroup = DataCreator
 				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
-		recordCreator.createAndStoreRecord("userId", "spyType", spiderDataGroup);
+		String authToken = "someToken78678567";
+		recordCreator.createAndStoreRecord(authToken, "spyType", spiderDataGroup);
 
-		assertFetchedFunctionalityHasBeenCalled(
+		assertFetchedFunctionalityHasBeenCalled(authToken,
 				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeMetadataValidation);
-		assertFetchedFunctionalityHasBeenCalled(
+		assertFetchedFunctionalityHasBeenCalled(authToken,
 				extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation);
-		assertFetchedFunctionalityHasBeenCalled(
+		assertFetchedFunctionalityHasBeenCalled(authToken,
 				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeReturn);
 	}
 
-	private void assertFetchedFunctionalityHasBeenCalled(
+	private void assertFetchedFunctionalityHasBeenCalled(String authToken,
 			List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateAfterMetadataValidation) {
 		ExtendedFunctionalitySpy extendedFunctionality = fetchedFunctionalityForCreateAfterMetadataValidation
 				.get(0);
+		assertEquals(extendedFunctionality.token, authToken);
 		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
 		ExtendedFunctionalitySpy extendedFunctionality2 = fetchedFunctionalityForCreateAfterMetadataValidation
 				.get(0);
+		assertEquals(extendedFunctionality2.token, authToken);
 		assertTrue(extendedFunctionality2.extendedFunctionalityHasBeenCalled);
 	}
 
@@ -162,7 +182,7 @@ public class SpiderRecordCreatorTest {
 		dataValidator = new DataValidatorAlwaysInvalidSpy();
 		setUpDependencyProvider();
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		recordCreator.createAndStoreRecord("userId", "recordType", spiderDataGroup);
+		recordCreator.createAndStoreRecord("someToken78678567", "recordType", spiderDataGroup);
 	}
 
 	@Test
@@ -172,7 +192,7 @@ public class SpiderRecordCreatorTest {
 		SpiderDataGroup record = DataCreator
 				.createRecordWithNameInDataAndLinkedRecordId("typeWithAutoGeneratedId", "cora");
 
-		SpiderDataRecord recordOut = recordCreator.createAndStoreRecord("userId",
+		SpiderDataRecord recordOut = recordCreator.createAndStoreRecord("someToken78678567",
 				"typeWithAutoGeneratedId", record);
 		SpiderDataGroup groupOut = recordOut.getSpiderDataGroup();
 		SpiderDataGroup recordInfo = groupOut.extractGroup("recordInfo");
@@ -180,7 +200,7 @@ public class SpiderRecordCreatorTest {
 
 		assertNotNull(recordId);
 
-		assertEquals(recordInfo.extractAtomicValue("createdBy"), "userId");
+		assertEquals(recordInfo.extractAtomicValue("createdBy"), "12345");
 		assertEquals(recordInfo.extractAtomicValue("type"), "typeWithAutoGeneratedId");
 
 		DataGroup groupCreated = ((RecordStorageCreateUpdateSpy) recordStorage).createRecord;
@@ -196,14 +216,14 @@ public class SpiderRecordCreatorTest {
 		SpiderDataGroup record = DataCreator.createRecordWithNameInDataAndIdAndLinkedRecordId(
 				"typeWithUserGeneratedId", "somePlace", "cora");
 
-		SpiderDataRecord recordOut = recordCreator.createAndStoreRecord("userId",
+		SpiderDataRecord recordOut = recordCreator.createAndStoreRecord("someToken78678567",
 				"typeWithUserGeneratedId", record);
 		SpiderDataGroup groupOut = recordOut.getSpiderDataGroup();
 		SpiderDataGroup recordInfo = groupOut.extractGroup("recordInfo");
 		String recordId = recordInfo.extractAtomicValue("id");
 		assertNotNull(recordId, "A new record should have an id");
 
-		assertEquals(recordInfo.extractAtomicValue("createdBy"), "userId");
+		assertEquals(recordInfo.extractAtomicValue("createdBy"), "12345");
 		assertEquals(recordInfo.extractAtomicValue("type"), "typeWithUserGeneratedId");
 
 		DataGroup groupCreated = ((RecordStorageCreateUpdateSpy) recordStorage).createRecord;
@@ -219,22 +239,25 @@ public class SpiderRecordCreatorTest {
 		SpiderDataGroup record = DataCreator.createRecordWithNameInDataAndIdAndLinkedRecordId(
 				"typeWithUserGeneratedId", "somePlace", "cora");
 
-		recordCreator.createAndStoreRecord("userId", "typeWithUserGeneratedId", record);
+		recordCreator.createAndStoreRecord("someToken78678567", "typeWithUserGeneratedId", record);
 
 		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).dataDivider, "cora");
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testCreateRecordUnauthorized() {
+		authorizator = new NeverAuthorisedStub();
+		setUpDependencyProvider();
+
 		SpiderDataGroup record = DataCreator
 				.createRecordWithNameInDataAndLinkedRecordId("authority", "cora");
-		recordCreator.createAndStoreRecord("unauthorizedUserId", "place", record);
+		recordCreator.createAndStoreRecord("someToken78678567", "place", record);
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testNonExistingRecordType() {
 		SpiderDataGroup record = SpiderDataGroup.withNameInData("authority");
-		recordCreator.createAndStoreRecord("userId", "recordType_NOT_EXISTING", record);
+		recordCreator.createAndStoreRecord("someToken78678567", "recordType_NOT_EXISTING", record);
 	}
 
 	@Test(expectedExceptions = MisuseException.class)
@@ -243,7 +266,7 @@ public class SpiderRecordCreatorTest {
 		setUpDependencyProvider();
 
 		SpiderDataGroup record = SpiderDataGroup.withNameInData("abstract");
-		recordCreator.createAndStoreRecord("userId", "abstract", record);
+		recordCreator.createAndStoreRecord("someToken78678567", "abstract", record);
 	}
 
 	@Test(expectedExceptions = RecordConflictException.class)
@@ -251,8 +274,8 @@ public class SpiderRecordCreatorTest {
 		SpiderDataGroup record = DataCreator
 				.createRecordWithNameInDataAndIdAndLinkedRecordId("place", "somePlace", "cora");
 
-		recordCreator.createAndStoreRecord("userId", "place", record);
-		recordCreator.createAndStoreRecord("userId", "place", record);
+		recordCreator.createAndStoreRecord("someToken78678567", "place", record);
+		recordCreator.createAndStoreRecord("someToken78678567", "place", record);
 	}
 
 	@Test
@@ -263,7 +286,7 @@ public class SpiderRecordCreatorTest {
 		SpiderDataGroup record = DataCreator
 				.createRecordWithNameInDataAndLinkedRecordId("typeWithAutoGeneratedId", "cora");
 
-		SpiderDataRecord recordOut = recordCreator.createAndStoreRecord("userId",
+		SpiderDataRecord recordOut = recordCreator.createAndStoreRecord("someToken78678567",
 				"typeWithAutoGeneratedId", record);
 		assertEquals(recordOut.getActions().size(), 3);
 		assertTrue(recordOut.getActions().contains(Action.READ));
@@ -280,7 +303,7 @@ public class SpiderRecordCreatorTest {
 		SpiderDataGroup record = DataCreator
 				.createRecordWithNameInDataAndLinkedRecordId("typeWithAutoGeneratedId", "cora");
 
-		SpiderDataRecord recordOut = recordCreator.createAndStoreRecord("userId",
+		SpiderDataRecord recordOut = recordCreator.createAndStoreRecord("someToken78678567",
 				"typeWithAutoGeneratedId", record);
 
 		SpiderDataGroup recordInfo = recordOut.getSpiderDataGroup().extractGroup("recordInfo");
@@ -300,8 +323,8 @@ public class SpiderRecordCreatorTest {
 				.createRecordWithNameInDataAndIdAndLinkedRecordId("recordType", "image", "cora");
 		record.addChild(SpiderDataAtomic.withNameInDataAndValue("parentId", "binary"));
 
-		SpiderDataRecord recordOut = recordCreator.createAndStoreRecord("userId", "recordType",
-				record);
+		SpiderDataRecord recordOut = recordCreator.createAndStoreRecord("someToken78678567",
+				"recordType", record);
 		assertEquals(recordOut.getActions().size(), 6);
 		assertTrue(recordOut.getActions().contains(Action.READ));
 		assertTrue(recordOut.getActions().contains(Action.UPDATE));
@@ -319,8 +342,8 @@ public class SpiderRecordCreatorTest {
 		dataGroup.addChild(DataCreator.createRecordInfoWithLinkedRecordId("cora"));
 
 		SpiderRecordCreator recordCreator = createRecordCreatorWithTestDataForLinkedData();
-		SpiderDataRecord record = recordCreator.createAndStoreRecord("userId", "dataWithLinks",
-				dataGroup);
+		SpiderDataRecord record = recordCreator.createAndStoreRecord("someToken78678567",
+				"dataWithLinks", dataGroup);
 
 		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
 	}
@@ -339,8 +362,8 @@ public class SpiderRecordCreatorTest {
 		dataGroup.addChild(DataCreator.createRecordInfoWithLinkedRecordId("cora"));
 
 		SpiderRecordCreator recordCreator = createRecordCreatorWithTestDataForLinkedData();
-		SpiderDataRecord record = recordCreator.createAndStoreRecord("userId", "dataWithLinks",
-				dataGroup);
+		SpiderDataRecord record = recordCreator.createAndStoreRecord("someToken78678567",
+				"dataWithLinks", dataGroup);
 
 		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}
@@ -356,7 +379,7 @@ public class SpiderRecordCreatorTest {
 		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator.createDataGroupWithLink();
 		dataGroup.addChild(DataCreator.createRecordInfoWithLinkedRecordId("cora"));
 
-		recordCreator.createAndStoreRecord("userId", "dataWithLinks", dataGroup);
+		recordCreator.createAndStoreRecord("someToken78678567", "dataWithLinks", dataGroup);
 	}
 
 	@Test
@@ -369,125 +392,7 @@ public class SpiderRecordCreatorTest {
 		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator.createDataGroupWithLink();
 		dataGroup.addChild(DataCreator.createRecordInfoWithLinkedRecordId("cora"));
 
-		recordCreator.createAndStoreRecord("userId", "dataWithLinks", dataGroup);
+		recordCreator.createAndStoreRecord("someToken78678567", "dataWithLinks", dataGroup);
 		assertTrue(((RecordLinkTestsRecordStorage) recordStorage).createWasRead);
-	}
-
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: child does not exist in parent")
-	public void testMetadataGroupChildDoesNotExistInParent() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
-		SpiderDataGroup record = DataCreator.createMetadataGroupWithTwoChildren();
-
-		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId",
-				"testGroup");
-		record.addChild(refParent);
-
-		recordCreator.createAndStoreRecord("userId", "metadataGroup", record);
-	}
-
-	@Test
-	public void testMetadataGroupChildWithDifferentIdButSameNameInDataExistInParent() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
-		SpiderDataGroup dataGroup = DataCreator.createMetadataGroupWithTwoChildren();
-
-		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId",
-				"testGroupWithTwoChildren");
-		dataGroup.addChild(refParent);
-
-		recordCreator.createAndStoreRecord("userId", "metadataGroup", dataGroup);
-		assertTrue(((RecordStorageCreateUpdateSpy) recordStorage).createWasCalled);
-	}
-
-	@Test
-	public void testMetadataGroupChildWithOneChild() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
-		SpiderDataGroup dataGroup = DataCreator.createMetadataGroupWithOneChild();
-
-		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId",
-				"testGroupWithOneChild");
-		dataGroup.addChild(refParent);
-
-		recordCreator.createAndStoreRecord("userId", "metadataGroup", dataGroup);
-		assertTrue(((RecordStorageCreateUpdateSpy) recordStorage).createWasCalled);
-	}
-
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: referenced child does not exist")
-	public void testMetadataGroupChildDoesNotExistInStorage() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
-		SpiderDataGroup record = DataCreator.createMetadataGroupWithThreeChildren();
-
-		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId",
-				"testGroupWithThreeChildren");
-		record.addChild(refParent);
-
-		recordCreator.createAndStoreRecord("userId", "metadataGroup", record);
-	}
-
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: childItem: thatItem does not exist in parent")
-	public void testCollectionVariableItemDoesNotExistInParent() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
-		SpiderDataGroup record = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
-		record.addChild(SpiderDataAtomic.withNameInDataAndValue("refParentId",
-				"testParentMissingItemCollectionVar"));
-
-		recordCreator.createAndStoreRecord("userId", "metadataCollectionVariable", record);
-	}
-
-	@Test
-	public void testCollectionVariableItemExistInParent() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
-		SpiderDataGroup record = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
-		record.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentCollectionVar"));
-
-		recordCreator.createAndStoreRecord("userId", "metadataCollectionVariable", record);
-		assertTrue(((RecordStorageCreateUpdateSpy) recordStorage).createWasCalled);
-	}
-
-	@Test
-	public void testCollectionVariableFinalValueExistInCollection() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
-		SpiderDataGroup record = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
-		record.addChild(SpiderDataAtomic.withNameInDataAndValue("finalValue", "that"));
-
-		recordCreator.createAndStoreRecord("userId", "metadataCollectionVariable", record);
-		assertTrue(((RecordStorageCreateUpdateSpy) recordStorage).createWasCalled);
-	}
-
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: final value does not exist in collection")
-	public void testCollectionVariableFinalValueDoesNotExistInCollection() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
-		SpiderDataGroup record = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
-		record.addChild(SpiderDataAtomic.withNameInDataAndValue("finalValue", "doesNotExist"));
-
-		recordCreator.createAndStoreRecord("userId", "metadataCollectionVariable", record);
-	}
-
-	@Test
-	public void testMetadataTypeThatHasNoInheritanceRules() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
-		SpiderDataGroup record = DataCreator.createMetadataGroupWithRecordLinkAsChild();
-		record.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentRecordLink"));
-		recordCreator.createAndStoreRecord("userId", "metadataRecordLink", record);
-		assertTrue(((RecordStorageCreateUpdateSpy) recordStorage).createWasCalled);
 	}
 }

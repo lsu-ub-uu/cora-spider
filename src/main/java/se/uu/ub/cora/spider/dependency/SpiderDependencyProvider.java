@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.dependency;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
@@ -41,8 +42,11 @@ public interface SpiderDependencyProvider {
 	DataValidator getDataValidator();
 
 	DataRecordLinkCollector getDataRecordLinkCollector();
-	
+
 	ExtendedFunctionalityProvider getExtendedFunctionalityProvider();
+
 	StreamStorage getStreamStorage();
+
+	Authenticator getAuthenticator();
 
 }

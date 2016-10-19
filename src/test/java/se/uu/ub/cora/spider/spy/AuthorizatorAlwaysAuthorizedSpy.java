@@ -22,13 +22,14 @@ package se.uu.ub.cora.spider.spy;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authentication.User;
 
 public class AuthorizatorAlwaysAuthorizedSpy implements Authorizator {
 
 	public boolean authorizedWasCalled = false;
 
 	@Override
-	public boolean isAuthorized(String userId, Set<String> recordCalculateKeys) {
+	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
 		authorizedWasCalled = true;
 		return true;
 	}

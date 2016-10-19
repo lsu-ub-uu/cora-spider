@@ -19,20 +19,15 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.Collection;
-
-import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.Action;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataElement;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataLink;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.data.SpiderDataResourceLink;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class SpiderRecordHandler {
@@ -40,24 +35,13 @@ public class SpiderRecordHandler {
 	protected static final String RECORD_TYPE = "recordType";
 	protected static final String RECORD_INFO = "recordInfo";
 	private static final String PARENT_ID = "parentId";
-	private static final String REF_PARENT_ID = "refParentId";
 	protected RecordStorage recordStorage;
 	protected String recordType;
 	protected String recordId;
-	protected SpiderDataGroup spiderDataGroup;
+	protected SpiderDataGroup recordAsSpiderDataGroup;
 
 	protected DataGroup getRecordTypeDefinition() {
 		return recordStorage.read(RECORD_TYPE, recordType);
-	}
-
-	protected boolean isRecordTypeAbstract() {
-		String abstractInRecordTypeDefinition = getAbstractFromRecordTypeDefinition();
-		return "true".equals(abstractInRecordTypeDefinition);
-	}
-
-	private String getAbstractFromRecordTypeDefinition() {
-		DataGroup recordTypeDefinition = getRecordTypeDefinition();
-		return recordTypeDefinition.getFirstAtomicValueWithNameInData("abstract");
 	}
 
 	protected void addReadActionToDataRecordLinks(SpiderDataGroup spiderDataGroup) {
@@ -84,74 +68,6 @@ public class SpiderRecordHandler {
 		return spiderDataChild instanceof SpiderDataGroup;
 	}
 
-	protected void validateRules() {
-		if (dataGroupHasParent()) {
-			validateInheritanceRules();
-		}
-		if (recordTypeIsMetadataCollectionVariable()) {
-			possiblyValidateFinalValue();
-		}
-	}
-
-	private void validateInheritanceRules() {
-		if (recordTypeIsMetadataGroup()) {
-			ensureAllChildrenExistsInParent();
-		} else if (recordTypeIsMetadataCollectionVariable()) {
-			ensureAllCollectionItemsExistInParent();
-		}
-	}
-
-	private boolean recordTypeIsMetadataGroup() {
-		return "metadataGroup".equals(recordType);
-	}
-
-	private boolean dataGroupHasParent() {
-		return spiderDataGroup.containsChildWithNameInData(REF_PARENT_ID);
-	}
-
-	private void ensureAllChildrenExistsInParent() {
-		SpiderDataGroup childReferences = (SpiderDataGroup) spiderDataGroup
-				.getFirstChildWithNameInData("childReferences");
-
-		for (SpiderDataElement childReference : childReferences.getChildren()) {
-			String childNameInData = getNameInDataFromChildReference(childReference);
-			if (!ensureChildExistInParent(childNameInData)) {
-				throw new DataException("Data is not valid: child does not exist in parent");
-			}
-		}
-	}
-
-	protected String getNameInDataFromChildReference(SpiderDataElement childReference) {
-		SpiderDataGroup childReferenceGroup = (SpiderDataGroup) childReference;
-		String refId = childReferenceGroup.extractAtomicValue("ref");
-		DataGroup childDataGroup = findChildOfUnknownMetadataType(refId);
-
-		DataAtomic nameInData = (DataAtomic) childDataGroup
-				.getFirstChildWithNameInData("nameInData");
-		return nameInData.getValue();
-	}
-
-	protected DataGroup findChildOfUnknownMetadataType(String refId) {
-		Collection<DataGroup> recordTypes = recordStorage.readList(RECORD_TYPE);
-
-		for (DataGroup recordTypePossibleChild : recordTypes) {
-			DataGroup childDataGroup = findChildInMetadata(refId, recordTypePossibleChild);
-			if (childDataGroup != null) {
-				return childDataGroup;
-			}
-		}
-		throw new DataException("Data is not valid: referenced child does not exist");
-	}
-
-	protected DataGroup findChildInMetadata(String refId, DataGroup recordTypePossibleChild) {
-		DataGroup childDataGroup = null;
-		if (isChildOfAbstractRecordType("metadata", recordTypePossibleChild)) {
-			String id = extractIdFromRecordInfo(recordTypePossibleChild);
-			childDataGroup = tryReadChildFromStorage(refId, id);
-		}
-		return childDataGroup;
-	}
-
 	protected boolean isChildOfAbstractRecordType(String abstractRecordType,
 			DataGroup recordTypePossibleChild) {
 		if (handledRecordHasParent(recordTypePossibleChild)) {
@@ -166,138 +82,6 @@ public class SpiderRecordHandler {
 
 	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
 		return handledRecordTypeDataGroup.containsChildWithNameInData(PARENT_ID);
-	}
-
-	protected String extractIdFromRecordInfo(DataGroup recordTypePossibleChild) {
-		DataGroup recordInfo = (DataGroup) recordTypePossibleChild
-				.getFirstChildWithNameInData("recordInfo");
-		return recordInfo.getFirstAtomicValueWithNameInData("id");
-	}
-
-	protected DataGroup tryReadChildFromStorage(String refId, String id) {
-		DataGroup childDataGroup;
-		try {
-			childDataGroup = recordStorage.read(id, refId);
-			return childDataGroup;
-		} catch (RecordNotFoundException exception) {
-			return null;
-		}
-	}
-
-	protected boolean ensureChildExistInParent(String childNameInData) {
-		SpiderDataGroup parentChildReferences = getParentChildReferences();
-		for (SpiderDataElement parentChildReference : parentChildReferences.getChildren()) {
-			if (isSameNameInData(childNameInData, parentChildReference)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	protected SpiderDataGroup getParentChildReferences() {
-		SpiderDataAtomic refParentId = (SpiderDataAtomic) spiderDataGroup
-				.getFirstChildWithNameInData(REF_PARENT_ID);
-		SpiderDataGroup parent = SpiderDataGroup
-				.fromDataGroup(recordStorage.read("metadataGroup", refParentId.getValue()));
-
-		return (SpiderDataGroup) parent.getFirstChildWithNameInData("childReferences");
-	}
-
-	protected boolean isSameNameInData(String childNameInData,
-			SpiderDataElement parentChildReference) {
-		String parentChildNameInData = getNameInDataFromChildReference(parentChildReference);
-		return childNameInData.equals(parentChildNameInData);
-	}
-
-	private boolean recordTypeIsMetadataCollectionVariable() {
-		return "metadataCollectionVariable".equals(recordType);
-	}
-
-	private void ensureAllCollectionItemsExistInParent() {
-		DataGroup references = getItemReferences();
-		DataGroup parentReferences = extractParentItemReferences();
-
-		for (DataElement itemReference : references.getChildren()) {
-			String childItemId = extractRefItemIdFromRefItemGroup(itemReference);
-			if (!ensureChildItemExistsInParent(childItemId, parentReferences)) {
-				throw new DataException("Data is not valid: childItem: " + childItemId
-						+ " does not exist in parent");
-			}
-		}
-	}
-
-	private DataGroup getItemReferences() {
-		SpiderDataGroup refCollection = (SpiderDataGroup) spiderDataGroup
-				.getFirstChildWithNameInData("refCollection");
-		String refCollectionId = refCollection.extractAtomicValue(LINKED_RECORD_ID);
-		return readItemCollectionAndExtractCollectionItemReferences(refCollectionId);
-	}
-
-	private DataGroup extractParentItemReferences() {
-		String refParentId = spiderDataGroup.extractAtomicValue(REF_PARENT_ID);
-		DataGroup parentCollectionVar = recordStorage.read("metadataCollectionVariable",
-				refParentId);
-		DataGroup parentRefCollection = (DataGroup) parentCollectionVar
-				.getFirstChildWithNameInData("refCollection");
-		String parentRefCollectionId = parentRefCollection.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-
-		return readItemCollectionAndExtractCollectionItemReferences(parentRefCollectionId);
-	}
-
-	private DataGroup readItemCollectionAndExtractCollectionItemReferences(String refCollectionId) {
-		DataGroup refCollection = recordStorage.read("metadataItemCollection", refCollectionId);
-		return (DataGroup) refCollection.getFirstChildWithNameInData("collectionItemReferences");
-	}
-
-	private String extractRefItemIdFromRefItemGroup(DataElement itemReference) {
-		DataGroup childItem = (DataGroup) itemReference;
-		return childItem.getFirstAtomicValueWithNameInData("linkedRecordId");
-	}
-
-	private boolean ensureChildItemExistsInParent(String childItemId,
-			DataGroup parentReferences) {
-		for (DataElement itemReference : parentReferences.getChildren()) {
-			String parentItemId = extractRefItemIdFromRefItemGroup(itemReference);
-			if (isParentItemSameAsChildItem(childItemId, parentItemId)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private boolean isParentItemSameAsChildItem(String childItemId, String parentItem) {
-		return parentItem.equals(childItemId);
-	}
-
-	private void possiblyValidateFinalValue() {
-		if (hasFinalValue()) {
-			String finalValue = spiderDataGroup.extractAtomicValue("finalValue");
-			if (!validateFinalValue(finalValue)) {
-				throw new DataException(
-						"Data is not valid: final value does not exist in collection");
-			}
-		}
-	}
-
-	private boolean hasFinalValue() {
-		return spiderDataGroup.containsChildWithNameInData("finalValue");
-	}
-
-	private boolean validateFinalValue(String finalValue) {
-		DataGroup references = getItemReferences();
-		for (DataElement reference : references.getChildren()) {
-			String itemNameInData = extractNameInDataFromReference(reference);
-			if (finalValue.equals(itemNameInData)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private String extractNameInDataFromReference(DataElement reference) {
-		String itemId = extractRefItemIdFromRefItemGroup(reference);
-		DataGroup collectionItem = recordStorage.read("metadataCollectionItem",	itemId);
-		return collectionItem.getFirstAtomicValueWithNameInData("nameInData");
 	}
 
 	protected void checkToPartOfLinkedDataExistsInStorage(DataGroup collectedLinks) {

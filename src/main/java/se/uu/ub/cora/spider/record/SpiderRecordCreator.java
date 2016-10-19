@@ -23,6 +23,6 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 
 public interface SpiderRecordCreator {
-	SpiderDataRecord createAndStoreRecord(String userId, String type, SpiderDataGroup record);
+	SpiderDataRecord createAndStoreRecord(String authToken, String type, SpiderDataGroup record);
 
 }
