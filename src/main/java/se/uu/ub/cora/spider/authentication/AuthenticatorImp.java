@@ -32,13 +32,6 @@ public class AuthenticatorImp implements Authenticator {
 	@Override
 	public User tryToGetActiveUser(String authToken) {
 		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("guest", "system");
-		// if (null != authToken) {
-		// userInfo = authenticator.getLoggedinUserByToken(authToken);
-		// }
-		// User loggedInUser = userPicker.pickUser(userInfo);
-		//
-		// return loggedInUser;
-		// TODO Auto-generated method stub
 		if ("dummyNonAuthenticatedToken".equals(authToken)) {
 			throw new AuthenticationException("token not valid");
 		}
