@@ -31,11 +31,19 @@ public class AuthenticatorImp implements Authenticator {
 
 	@Override
 	public User tryToGetActiveUser(String authToken) {
-		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("guest", "system");
 		if ("dummyNonAuthenticatedToken".equals(authToken)) {
 			throw new AuthenticationException("token not valid");
 		}
+		if ("dummySystemAdminAuthenticatedToken".equals(authToken)) {
+			UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("systemAdmin", "system");
+			return userPicker.pickUser(userInfo);
+		}
+		if ("dummyUserAuthenticatedToken".equals(authToken)) {
+			UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("user", "system");
+			return userPicker.pickUser(userInfo);
+		}
 
+		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("guest", "system");
 		return userPicker.pickUser(userInfo);
 	}
 

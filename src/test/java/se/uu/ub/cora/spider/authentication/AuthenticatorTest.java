@@ -41,11 +41,35 @@ public class AuthenticatorTest {
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
-	public void testAuthenticatedUser() {
+	public void testNonAuthenticatedUser() {
 		UserPickerSpy userPicker = new UserPickerSpy();
 		Authenticator authenticator = new AuthenticatorImp(userPicker);
 		String authToken = "dummyNonAuthenticatedToken";
 		authenticator.tryToGetActiveUser(authToken);
+	}
+
+	@Test
+	public void testSystemAdmin() {
+		UserPickerSpy userPicker = new UserPickerSpy();
+		Authenticator authenticator = new AuthenticatorImp(userPicker);
+		String authToken = "dummySystemAdminAuthenticatedToken";
+		authenticator.tryToGetActiveUser(authToken);
+		assertTrue(userPicker.userPickerWasCalled);
+		UserInfo usedUserInfo = userPicker.usedUserInfo;
+		assertEquals(usedUserInfo.idFromLogin, "systemAdmin");
+		assertEquals(usedUserInfo.domainFromLogin, "system");
+	}
+
+	@Test
+	public void testUser() {
+		UserPickerSpy userPicker = new UserPickerSpy();
+		Authenticator authenticator = new AuthenticatorImp(userPicker);
+		String authToken = "dummyUserAuthenticatedToken";
+		authenticator.tryToGetActiveUser(authToken);
+		assertTrue(userPicker.userPickerWasCalled);
+		UserInfo usedUserInfo = userPicker.usedUserInfo;
+		assertEquals(usedUserInfo.idFromLogin, "user");
+		assertEquals(usedUserInfo.domainFromLogin, "system");
 	}
 
 }
