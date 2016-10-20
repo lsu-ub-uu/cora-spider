@@ -23,6 +23,7 @@ import se.uu.ub.cora.beefeater.authentication.User;
 
 public class AuthenticatorImp implements Authenticator {
 
+	private static final String SYSTEM = "system";
 	private UserPicker userPicker;
 
 	public AuthenticatorImp(UserPicker userPicker) {
@@ -35,15 +36,15 @@ public class AuthenticatorImp implements Authenticator {
 			throw new AuthenticationException("token not valid");
 		}
 		if ("dummySystemAdminAuthenticatedToken".equals(authToken)) {
-			UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("systemAdmin", "system");
+			UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("systemAdmin", SYSTEM);
 			return userPicker.pickUser(userInfo);
 		}
 		if ("dummyUserAuthenticatedToken".equals(authToken)) {
-			UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("user", "system");
+			UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("user", SYSTEM);
 			return userPicker.pickUser(userInfo);
 		}
 
-		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("guest", "system");
+		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("guest", SYSTEM);
 		return userPicker.pickUser(userInfo);
 	}
 
