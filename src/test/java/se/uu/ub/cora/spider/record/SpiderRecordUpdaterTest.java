@@ -35,6 +35,10 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authorization.AuthorisedForUppsala;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
+import se.uu.ub.cora.spider.authorization.KeyCalculatorStub;
+import se.uu.ub.cora.spider.authorization.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
@@ -410,7 +414,7 @@ public class SpiderRecordUpdaterTest {
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testUpdateRecordUserNotAuthorisedToStoreIncomingData() {
 		recordStorage = new RecordStorageCreateUpdateSpy();
-		keyCalculator = new KeyCalculatorTest();
+		keyCalculator = new KeyCalculatorStub();
 		authorizator = new AuthorisedForUppsala();
 		setUpDependencyProvider();
 
@@ -428,7 +432,7 @@ public class SpiderRecordUpdaterTest {
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testUpdateRecordUserNotAuthorisedToUpdateData() {
 		recordStorage = new RecordStorageCreateUpdateSpy();
-		keyCalculator = new KeyCalculatorTest();
+		keyCalculator = new KeyCalculatorStub();
 		authorizator = new AuthorisedForUppsala();
 		setUpDependencyProvider();
 

@@ -17,27 +17,16 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.authorization;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
-public class KeyCalculatorTest implements PermissionKeyCalculator {
+public interface PermissionKeyCalculator {
 
-	@Override
-	public Set<String> calculateKeys(String accessType, String recordType, DataGroup record) {
-		Set<String> keys = new HashSet<>();
-		String unit = record.getFirstAtomicValueWithNameInData("unit");
-		String key = String.join(":", accessType, recordType, "SYSTEM", unit,"*").toUpperCase();
-		keys.add(key);
-		return keys;
-	}
-	
+	Set<String> calculateKeys(String accessType, String recordType, DataGroup record);
 
-	@Override
-	public Set<String> calculateKeysForList(String accessType, String recordType) {
-		return null;
-	}
+	Set<String> calculateKeysForList(String accessType, String recordType);
+
 }

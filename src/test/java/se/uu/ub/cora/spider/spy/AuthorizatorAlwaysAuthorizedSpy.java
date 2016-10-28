@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.spy;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
@@ -32,6 +34,13 @@ public class AuthorizatorAlwaysAuthorizedSpy implements Authorizator {
 	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
 		authorizedWasCalled = true;
 		return true;
+	}
+
+	@Override
+	public boolean providedRulesSatisfiesRequiredRules(List<Map<String, Set<String>>> userRules,
+			List<Map<String, Set<String>>> dataRules) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

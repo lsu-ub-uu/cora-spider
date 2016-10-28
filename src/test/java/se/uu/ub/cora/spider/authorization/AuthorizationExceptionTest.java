@@ -17,16 +17,18 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.authorization;
 
-import java.util.Set;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 
-public interface PermissionKeyCalculator {
-
-	Set<String> calculateKeys(String accessType, String recordType, DataGroup record);
-
-	Set<String> calculateKeysForList(String accessType, String recordType);
-
+public class AuthorizationExceptionTest {
+	@Test
+	public void testInit() {
+		AuthorizationException notAuthorized= new AuthorizationException("message");
+		
+		Assert.assertEquals(notAuthorized.getMessage(), "message");
+	}
 }

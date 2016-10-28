@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,12 +17,27 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.authorization;
 
-public class AuthorizationException extends RuntimeException{
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-	private static final long serialVersionUID = -2867876073765359936L;
-	public AuthorizationException(String message) {
-		super(message);
+import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authentication.User;
+
+public class NeverAuthorisedStub implements Authorizator {
+
+	@Override
+	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
+		return false;
 	}
+
+	@Override
+	public boolean providedRulesSatisfiesRequiredRules(List<Map<String, Set<String>>> userRules,
+			List<Map<String, Set<String>>> dataRules) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

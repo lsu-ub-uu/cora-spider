@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
+import se.uu.ub.cora.spider.authorization.PermissionKeyCalculator;
 
 public class KeyCalculatorSpy implements PermissionKeyCalculator {
 
