@@ -36,7 +36,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
-import se.uu.ub.cora.spider.authorization.PermissionKeyCalculator;
+import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderData;
 import se.uu.ub.cora.spider.data.SpiderDataList;
@@ -55,7 +55,7 @@ public class SpiderRecordListReaderTest {
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
 	private Authorizator authorizator;
-	private PermissionKeyCalculator keyCalculator;
+	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private SpiderRecordListReader recordListReader;
 

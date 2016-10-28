@@ -101,6 +101,17 @@ public final class DataCreator {
 		return record;
 	}
 
+	public static SpiderDataGroup createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy(
+			String nameInData, String id, String recordType, String linkedRecordId,
+			String createdBy) {
+		SpiderDataGroup record = SpiderDataGroup.withNameInData(nameInData);
+		SpiderDataGroup createRecordInfo = createRecordInfoWithIdAndTypeAndLinkedRecordId(id,
+				recordType, linkedRecordId);
+		record.addChild(createRecordInfo);
+		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("createdBy", createdBy));
+		return record;
+	}
+
 	public static SpiderDataGroup createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
 			String nameInData, String id, String recordType, String linkedRecordId) {
 		SpiderDataGroup record = SpiderDataGroup.withNameInData(nameInData);

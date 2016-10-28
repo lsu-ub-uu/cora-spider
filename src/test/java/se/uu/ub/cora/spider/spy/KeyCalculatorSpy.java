@@ -20,12 +20,14 @@
 package se.uu.ub.cora.spider.spy;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.authorization.PermissionKeyCalculator;
+import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 
-public class KeyCalculatorSpy implements PermissionKeyCalculator {
+public class KeyCalculatorSpy implements PermissionRuleCalculator {
 
 	public boolean calculateKeysWasCalled = false;
 
@@ -40,6 +42,13 @@ public class KeyCalculatorSpy implements PermissionKeyCalculator {
 
 	@Override
 	public Set<String> calculateKeysForList(String accessType, String recordType) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Map<String, Set<String>>> calculateRules(String accessType, String recordType,
+			DataGroup record) {
 		// TODO Auto-generated method stub
 		return null;
 	}

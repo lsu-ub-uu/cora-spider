@@ -24,7 +24,7 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.UserPicker;
-import se.uu.ub.cora.spider.authorization.PermissionKeyCalculator;
+import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
@@ -35,7 +35,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 
 	public RecordStorage recordStorage;
 	public Authorizator authorizator;
-	public PermissionKeyCalculator keyCalculator;
+	public PermissionRuleCalculator keyCalculator;
 	public SpiderUploader uploader;
 	public DataValidator dataValidator;
 	public DataRecordLinkCollector linkCollector;
@@ -61,7 +61,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	}
 
 	@Override
-	public PermissionKeyCalculator getPermissionKeyCalculator() {
+	public PermissionRuleCalculator getPermissionKeyCalculator() {
 		return keyCalculator;
 	}
 

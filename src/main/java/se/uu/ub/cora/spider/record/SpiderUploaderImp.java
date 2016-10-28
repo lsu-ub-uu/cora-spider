@@ -27,7 +27,7 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.PermissionKeyCalculator;
+import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -45,7 +45,7 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	private Authorizator authorization;
 	private RecordIdGenerator idGenerator;
 	private RecordStorage recordStorage;
-	private PermissionKeyCalculator keyCalculator;
+	private PermissionRuleCalculator keyCalculator;
 	private StreamStorage streamStorage;
 	private String userId;
 	private String recordType;
