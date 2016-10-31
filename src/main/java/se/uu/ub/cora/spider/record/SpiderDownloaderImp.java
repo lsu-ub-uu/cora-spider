@@ -21,14 +21,16 @@
 package se.uu.ub.cora.spider.record;
 
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderInputStream;
@@ -44,7 +46,7 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 	private String recordId;
 	private String resourceName;
 	private Authenticator authenticator;
-	private Authorizator authorization;
+	private SpiderAuthorizator spiderAuthorizator;
 	private RecordStorage recordStorage;
 	private PermissionRuleCalculator keyCalculator;
 	private StreamStorage streamStorage;
@@ -54,7 +56,7 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 
 	private SpiderDownloaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
-		authorization = dependencyProvider.getAuthorizator();
+		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
 		keyCalculator = dependencyProvider.getPermissionKeyCalculator();
 		streamStorage = dependencyProvider.getStreamStorage();
@@ -157,10 +159,10 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 		return isNotAuthorizedTo("DOWNLOAD", recordRead);
 	}
 
-	private boolean isNotAuthorizedTo(String accessType, DataGroup recordRead) {
-		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
-				recordRead);
-		return !authorization.isAuthorized(user, recordCalculateKeys);
+	private boolean isNotAuthorizedTo(String action, DataGroup recordRead) {
+		List<Map<String, Set<String>>> requiredRules = keyCalculator.calculateRulesForActionAndRecordTypeAndData(action,
+				recordType, recordRead);
+		return !spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules);
 	}
 
 	private boolean isNotAuthorizedToResource(DataGroup recordRead) {

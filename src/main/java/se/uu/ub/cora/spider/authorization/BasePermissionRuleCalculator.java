@@ -35,32 +35,22 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 	private DataGroup record;
 
 	@Override
-	public Set<String> calculateKeys(String accessType, String recordType, DataGroup record) {
-		// TODO: remove this, user calculateRules instead
-		Set<String> keys = new HashSet<>();
-		String key = String.join(":", accessType, recordType.toUpperCase(), "SYSTEM", "*");
-		keys.add(key);
-		return keys;
-	}
-
-	@Override
-	public Set<String> calculateKeysForList(String accessType, String recordType) {
-		// TODO: remove this, user calculateRules instead
-		Set<String> keys = new HashSet<>();
-		String key = String.join(":", accessType, recordType.toUpperCase(), "SYSTEM", "*");
-		keys.add(key);
-		return keys;
-	}
-
-	@Override
-	public List<Map<String, Set<String>>> calculateRules(String action, String recordType,
-			DataGroup record) {
-		this.record = record;
+	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
+			String recordType) {
 		requiredRules = new ArrayList<Map<String, Set<String>>>();
 		Map<String, Set<String>> requiredRule = createRequiredRule();
 		createRulePart(requiredRule, "action", SYSTEM + action);
 		createRulePart(requiredRule, "recordType", SYSTEM + recordType);
-		// createRulePart(requiredRule, "createdBy", SYSTEM + extractUserId());
+		return requiredRules;
+	}
+
+	@Override
+	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action, String recordType,
+			DataGroup record) {
+		this.record = record;
+		requiredRules = calculateRulesForActionAndRecordType(action, recordType);
+		Map<String, Set<String>> requiredRule = requiredRules.get(0);
+		createRulePart(requiredRule, "createdBy", SYSTEM + extractUserId());
 		return requiredRules;
 	}
 
@@ -82,4 +72,5 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 	private String extractUserId() {
 		return record.extractGroup("recordInfo").extractAtomicValue("createdBy");
 	}
+
 }

@@ -19,7 +19,7 @@
 
 package se.uu.ub.cora.spider.spy;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,29 +27,23 @@ import java.util.Set;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 
-public class RecordPermissionKeyCalculatorStub implements PermissionRuleCalculator {
+public class RuleCalculatorSpy implements PermissionRuleCalculator {
+
+	public boolean calculateKeysWithoutDataWasCalled = false;
+	public boolean calculateKeysForDataWasCalled = false;
 
 	@Override
-	public Set<String> calculateKeys(String accessType, String recordType, DataGroup record) {
-		Set<String> keys = new HashSet<>();
-		String key = String.join(":", accessType, recordType.toUpperCase(), "SYSTEM", "*");
-		keys.add(key);
-		return keys;
+	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
+			String recordType) {
+		calculateKeysWithoutDataWasCalled = true;
+		return new ArrayList<>();
 	}
 
 	@Override
-	public Set<String> calculateKeysForList(String accessType, String recordType) {
-		Set<String> keys = new HashSet<>();
-		String key = String.join(":", accessType, recordType.toUpperCase(), "SYSTEM", "*");
-		keys.add(key);
-		return keys;
-	}
-
-	@Override
-	public List<Map<String, Set<String>>> calculateRules(String accessType, String recordType,
-			DataGroup record) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(
+			String accessType, String recordType, DataGroup record) {
+		calculateKeysForDataWasCalled = true;
+		return new ArrayList<>();
 	}
 
 }

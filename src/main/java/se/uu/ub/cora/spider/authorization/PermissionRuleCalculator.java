@@ -27,11 +27,10 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public interface PermissionRuleCalculator {
 
-	Set<String> calculateKeys(String accessType, String recordType, DataGroup record);
+	List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
+			String recordType);
 
-	Set<String> calculateKeysForList(String accessType, String recordType);
-
-	List<Map<String, Set<String>>> calculateRules(String accessType, String recordType,
-			DataGroup record);
+	List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action,
+			String recordType, DataGroup record);
 
 }

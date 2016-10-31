@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,40 +17,28 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.spy;
+package se.uu.ub.cora.spider.authorization;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
+import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authentication.User;
 
-public class KeyCalculatorSpy implements PermissionRuleCalculator {
-
-	public boolean calculateKeysWasCalled = false;
+public class BeefeaterAuthorizatorAlwaysAuthorizedSpy implements Authorizator {
 
 	@Override
-	public Set<String> calculateKeys(String accessType, String recordType, DataGroup record) {
-		calculateKeysWasCalled = true;
-		Set<String> keys = new HashSet<>();
-		String key = String.join(":", accessType, recordType.toUpperCase(), "SYSTEM", "*");
-		keys.add(key);
-		return keys;
+	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
+		// TODO Auto-generated method stub
+		return true;
 	}
 
 	@Override
-	public Set<String> calculateKeysForList(String accessType, String recordType) {
+	public boolean providedRulesSatisfiesRequiredRules(List<Map<String, Set<String>>> providedRules,
+			List<Map<String, Set<String>>> requiredRules) {
 		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<Map<String, Set<String>>> calculateRules(String accessType, String recordType,
-			DataGroup record) {
-		// TODO Auto-generated method stub
-		return null;
+		return true;
 	}
 
 }

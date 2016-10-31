@@ -41,14 +41,14 @@ public class BasePermissionRuleCalculatorTest {
 	}
 
 	@Test
-	public void test() {
-		String accessType = "create";
+	public void testWithData() {
+		String action = "create";
 		String recordType = "book";
 		DataGroup record = DataCreator
 				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",
 						"myBook", "book", "systemOne", "12345")
 				.toDataGroup();
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator.calculateRules(accessType,
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator.calculateRulesForActionAndRecordTypeAndData(action,
 				recordType, record);
 		assertEquals(requiredRules.size(), 1);
 
@@ -64,5 +64,23 @@ public class BasePermissionRuleCalculatorTest {
 		Set<String> createdByValues = requiredRule.get("createdBy");
 		assertEquals(createdByValues.size(), 1);
 		assertEquals(createdByValues.iterator().next(), "system.12345");
+	}
+
+	@Test
+	public void testWithoutData() {
+		String action = "create";
+		String recordType = "book";
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordType(action, recordType);
+		assertEquals(requiredRules.size(), 1);
+
+		Map<String, Set<String>> requiredRule = requiredRules.get(0);
+		Set<String> actionValues = requiredRule.get("action");
+		assertEquals(actionValues.size(), 1);
+		assertEquals(actionValues.iterator().next(), "system.create");
+
+		Set<String> recordTypeValues = requiredRule.get("recordType");
+		assertEquals(recordTypeValues.size(), 1);
+		assertEquals(recordTypeValues.iterator().next(), "system.book");
 	}
 }

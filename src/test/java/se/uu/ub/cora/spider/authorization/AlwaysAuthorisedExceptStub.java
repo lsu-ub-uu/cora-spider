@@ -24,23 +24,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 
-public class AlwaysAuthorisedExceptStub implements Authorizator {
+public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	public Set<String> notAuthorizedForKeys = new HashSet<>();
 
 	@Override
-	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
-		if (notAuthorizedForKeys.removeAll(recordCalculateKeys)) {
-			return false;
-		}
-		return true;
-	}
-
-	@Override
-	public boolean providedRulesSatisfiesRequiredRules(List<Map<String, Set<String>>> userRules,
-			List<Map<String, Set<String>>> dataRules) {
+	public boolean userSatisfiesRequiredRules(User user,
+			List<Map<String, Set<String>>> requiredRules) {
 		// TODO Auto-generated method stub
 		return false;
 	}

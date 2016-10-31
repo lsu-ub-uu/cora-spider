@@ -20,14 +20,16 @@
 package se.uu.ub.cora.spider.record;
 
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -42,10 +44,10 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	private static final String RESOURCE_INFO = "resourceInfo";
 	private static final String RECORD_INFO = "recordInfo";
 	private Authenticator authenticator;
-	private Authorizator authorization;
+	private SpiderAuthorizator spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
 	private RecordStorage recordStorage;
-	private PermissionRuleCalculator keyCalculator;
+	private PermissionRuleCalculator ruleCalculator;
 	private StreamStorage streamStorage;
 	private String userId;
 	private String recordType;
@@ -57,9 +59,9 @@ public final class SpiderUploaderImp implements SpiderUploader {
 
 	private SpiderUploaderImp(SpiderDependencyProvider dependencyProvider) {
 		authenticator = dependencyProvider.getAuthenticator();
-		authorization = dependencyProvider.getAuthorizator();
+		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
-		keyCalculator = dependencyProvider.getPermissionKeyCalculator();
+		ruleCalculator = dependencyProvider.getPermissionKeyCalculator();
 		idGenerator = dependencyProvider.getIdGenerator();
 		streamStorage = dependencyProvider.getStreamStorage();
 	}
@@ -124,10 +126,10 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	}
 
 	private boolean isNotAuthorizedToUpload(DataGroup recordRead) {
-		String accessType = "UPLOAD";
-		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
-				recordRead);
-		return !authorization.isAuthorized(user, recordCalculateKeys);
+		String action = "UPLOAD";
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator.calculateRulesForActionAndRecordTypeAndData(action,
+				recordType, recordRead);
+		return !spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules);
 	}
 
 	private void checkStreamIsPresent(InputStream inputStream) {

@@ -23,24 +23,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 
-public class AuthorizatorAlwaysAuthorizedSpy implements Authorizator {
+public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 
 	public boolean authorizedWasCalled = false;
 
 	@Override
-	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
+	public boolean userSatisfiesRequiredRules(User user,
+			List<Map<String, Set<String>>> requiredRules) {
 		authorizedWasCalled = true;
 		return true;
-	}
-
-	@Override
-	public boolean providedRulesSatisfiesRequiredRules(List<Map<String, Set<String>>> userRules,
-			List<Map<String, Set<String>>> dataRules) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 
 }

@@ -20,9 +20,9 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
@@ -31,6 +31,7 @@ import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
@@ -43,9 +44,9 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		implements SpiderRecordCreator {
 	private static final String USER = "User:";
 	private Authenticator authenticator;
-	private Authorizator authorization;
+	private SpiderAuthorizator spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
-	private PermissionRuleCalculator keyCalculator;
+	private PermissionRuleCalculator ruleCalculator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
@@ -56,11 +57,11 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
-		this.authorization = dependencyProvider.getAuthorizator();
+		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.idGenerator = dependencyProvider.getIdGenerator();
-		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
+		this.ruleCalculator = dependencyProvider.getPermissionKeyCalculator();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
@@ -206,12 +207,10 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType, DataGroup record) {
-		// calculate permissionKey
-		String accessType = "CREATE";
-		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
-				record);
-
-		if (!authorization.isAuthorized(user, recordCalculateKeys)) {
+		String action = "CREATE";
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator.calculateRulesForActionAndRecordTypeAndData(action,
+				recordType, record);
+		if (!spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules)) {
 			throw new AuthorizationException(USER + user.id
 					+ " is not authorized to create a record  of type:" + recordType);
 		}

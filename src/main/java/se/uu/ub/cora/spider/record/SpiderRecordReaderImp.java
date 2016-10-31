@@ -20,14 +20,16 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
@@ -37,8 +39,8 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public final class SpiderRecordReaderImp extends SpiderRecordHandler implements SpiderRecordReader {
 	private Authenticator authenticator;
-	private Authorizator authorization;
-	private PermissionRuleCalculator keyCalculator;
+	private SpiderAuthorizator spiderAuthorizator;
+	private PermissionRuleCalculator ruleCalculator;
 	private String userId;
 	private User user;
 	private String authToken;
@@ -46,9 +48,9 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 
 	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
-		this.authorization = dependencyProvider.getAuthorizator();
+		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
+		this.ruleCalculator = dependencyProvider.getPermissionKeyCalculator();
 	}
 
 	public static SpiderRecordReaderImp usingDependencyProvider(
@@ -97,10 +99,10 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private boolean isNotAuthorizedToRead(DataGroup recordRead) {
-		String accessType = "READ";
-		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
-				recordRead);
-		return !authorization.isAuthorized(user, recordCalculateKeys);
+		String action = "READ";
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator.calculateRulesForActionAndRecordTypeAndData(action,
+				recordType, recordRead);
+		return !spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules);
 	}
 
 	@Override

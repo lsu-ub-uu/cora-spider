@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,32 +23,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 
-public class AuthorisedForUppsala implements Authorizator {
-
-	@Override
-	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
-
-		// fake uppsala users current keys
-
-		// String key = "UPDATE:RECORD_TYPE:SYSTEM:UNIT:*";
-		String key = "UPDATE:TYPEWITHUSERGENERATEDID:SYSTEM:UPPSALA:*";
-		if (recordCalculateKeys.contains(key)) {
-			return true;
-		}
-		if (recordCalculateKeys.contains("UPLOAD:TYPEWITHUSERGENERATEDID:SYSTEM:UPPSALA:*")) {
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean providedRulesSatisfiesRequiredRules(List<Map<String, Set<String>>> userRules,
-			List<Map<String, Set<String>>> dataRules) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+public interface SpiderAuthorizator {
+	public boolean userSatisfiesRequiredRules(User user,
+			List<Map<String, Set<String>>> requiredRules);
 
 }

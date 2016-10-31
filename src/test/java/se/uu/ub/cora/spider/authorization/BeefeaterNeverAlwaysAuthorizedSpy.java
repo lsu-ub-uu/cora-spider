@@ -17,29 +17,28 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.authentication;
+package se.uu.ub.cora.spider.authorization;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 
-public class AuthenticatorSpy implements Authenticator {
-
-	public boolean authenticationWasCalled = false;
-	public String authToken;
+public class BeefeaterNeverAlwaysAuthorizedSpy implements Authorizator {
 
 	@Override
-	public User tryToGetActiveUser(String authToken) {
-		authenticationWasCalled = true;
+	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
-		this.authToken = authToken;
-		if ("dummyNonAuthenticatedToken".equals(authToken)) {
-			throw new AuthenticationException("token not valid");
-		}
-
-		User user = new User("12345");
-		user.loginId = "knownUser";
-		user.loginDomain = "system";
-		user.roles.add("guest");
-		return user;
+	@Override
+	public boolean providedRulesSatisfiesRequiredRules(List<Map<String, Set<String>>> providedRules,
+			List<Map<String, Set<String>>> requiredRules) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

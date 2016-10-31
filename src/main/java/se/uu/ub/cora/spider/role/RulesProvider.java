@@ -41,16 +41,32 @@ public class RulesProvider {
 	}
 
 	public List<Map<String, Set<String>>> getActiveRules(String roleId) {
-
-		List<Map<String, Set<String>>> listOfRules = new ArrayList<>();
 		DataGroup readRole = recordStorage.read("permissionRole", roleId);
-		if ("active".equals(readRole.extractAtomicValue("activeStatus"))) {
-			List<DataElement> children = readRole.getChildren();
-			Stream<DataElement> permissionRuleLinks = children.stream()
-					.filter(child -> "permissionRuleLink".equals(child.getNameInData()));
-
-			permissionRuleLinks.forEach(rule -> addRuleToListOfRules(rule, listOfRules));
+		if (roleNotFoundInStorage(readRole)) {
+			return new ArrayList<>();
 		}
+		if (roleIsInactive(readRole)) {
+			return new ArrayList<>();
+		}
+
+		return getActiveRulesForRole(readRole);
+	}
+
+	private boolean roleNotFoundInStorage(DataGroup readRole) {
+		return null == readRole;
+	}
+
+	private boolean roleIsInactive(DataGroup readRole) {
+		return !"active".equals(readRole.extractAtomicValue("activeStatus"));
+	}
+
+	private List<Map<String, Set<String>>> getActiveRulesForRole(DataGroup readRole) {
+		List<Map<String, Set<String>>> listOfRules = new ArrayList<>();
+		List<DataElement> children = readRole.getChildren();
+		Stream<DataElement> permissionRuleLinks = children.stream()
+				.filter(child -> "permissionRuleLink".equals(child.getNameInData()));
+
+		permissionRuleLinks.forEach(rule -> addRuleToListOfRules(rule, listOfRules));
 		return listOfRules;
 	}
 
