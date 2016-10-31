@@ -45,8 +45,8 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 	}
 
 	@Override
-	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action, String recordType,
-			DataGroup record) {
+	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action,
+			String recordType, DataGroup record) {
 		this.record = record;
 		requiredRules = calculateRulesForActionAndRecordType(action, recordType);
 		Map<String, Set<String>> requiredRule = requiredRules.get(0);
@@ -70,7 +70,14 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 	}
 
 	private String extractUserId() {
-		return record.extractGroup("recordInfo").extractAtomicValue("createdBy");
+		if (null == record) {
+			System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+			return "missing user or recordInfo";
+		}
+		if (record.containsChildWithNameInData("recordInfo")) {
+			return record.extractGroup("recordInfo").extractAtomicValue("createdBy");
+		}
+		return "missing user or recordInfo";
 	}
 
 }

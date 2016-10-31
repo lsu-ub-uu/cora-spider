@@ -37,6 +37,7 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public class SpiderRecordListReaderImp extends SpiderRecordHandler
 		implements SpiderRecordListReader {
+	private static final String LIST = "list";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private PermissionRuleCalculator ruleCalculator;
@@ -48,7 +49,7 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.ruleCalculator = dependencyProvider.getPermissionKeyCalculator();
+		this.ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
 	}
 
 	public static SpiderRecordListReaderImp usingDependencyProvider(
@@ -61,8 +62,9 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 		this.authToken = authToken;
 		tryToGetActiveUser();
-		// TODO: first check should be list, and we need to check each record
-		checkUserIsAuthorizedToReadListRecordType(recordType);
+		// checkUserIsAuthorizedForActionOnRecordType();
+		// TODO: we need to check each record
+		// checkUserIsAuthorizedToReadListRecordType(recordType);
 		readRecordList = SpiderDataList.withContainDataOfType(recordType);
 
 		readRecordsOfType(recordType);
@@ -75,10 +77,14 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 		user = authenticator.tryToGetActiveUser(authToken);
 	}
 
+	private void checkUserIsAuthorizedForActionOnRecordType() {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, LIST, recordType);
+	}
+
 	private void checkUserIsAuthorizedToReadListRecordType(String recordType) {
-		String action = "LIST";
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator.calculateRulesForActionAndRecordTypeAndData(action,
-				recordType, null);
+		String action = "list";
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordTypeAndData(action, recordType, null);
 		if (!spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules)) {
 			// if (!authorizator.isAuthorized(user, recordCalculateKeys)) {
 			throw new AuthorizationException("User:" + user.id

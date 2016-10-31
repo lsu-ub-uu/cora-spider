@@ -61,7 +61,7 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
-		ruleCalculator = dependencyProvider.getPermissionKeyCalculator();
+		ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
 		idGenerator = dependencyProvider.getIdGenerator();
 		streamStorage = dependencyProvider.getStreamStorage();
 	}

@@ -57,7 +57,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.ruleCalculator = dependencyProvider.getPermissionKeyCalculator();
+		this.ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
@@ -167,8 +167,8 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorisedToStoreIncomingData(DataGroup incomingData) {
 		String action = "update";
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator.calculateRulesForActionAndRecordTypeAndData(action,
-				recordType, incomingData);
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordTypeAndData(action, recordType, incomingData);
 		if (!spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules)) {
 			throw new AuthorizationException(USER + user.id
 					+ " is not authorized to store this incoming data for recordType:"

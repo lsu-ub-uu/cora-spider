@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.authorization;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
@@ -49,7 +50,7 @@ import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 public class SpiderAuthorizatorTest {
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
-	private PermissionRuleCalculator keyCalculator;
+	private PermissionRuleCalculator rulesCalculator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
@@ -60,7 +61,7 @@ public class SpiderAuthorizatorTest {
 		authenticator = new AuthenticatorSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
 		recordStorage = new RecordStorageSpy();
-		keyCalculator = new NoRulesCalculatorStub();
+		rulesCalculator = new NoRulesCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		setUpDependencyProvider();
@@ -71,7 +72,7 @@ public class SpiderAuthorizatorTest {
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.dataValidator = dataValidator;
 		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.keyCalculator = keyCalculator;
+		dependencyProvider.keyCalculator = rulesCalculator;
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
@@ -101,5 +102,34 @@ public class SpiderAuthorizatorTest {
 		List<Map<String, Set<String>>> requiredRules = new ArrayList<>();
 		boolean userAuthorized = spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules);
 		assertFalse(userAuthorized);
+	}
+
+	@Test
+	public void checkUserSatisfiesActionForRecordType() {
+		BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
+				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		User user = new User("someUserId");
+		user.roles.add("guest");
+		String action = "read";
+		String recordType = "someRecordType";
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, action, recordType);
+
+		assertEquals(((NoRulesCalculatorStub) rulesCalculator).action, "read");
+		assertEquals(((NoRulesCalculatorStub) rulesCalculator).recordType, "someRecordType");
+
+		assertTrue(true);
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void checkUserDoesNotSatisfyActionForRecordType() {
+		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
+				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider,
+						new BeefeaterNeverAlwaysAuthorizedSpy());
+		User user = new User("someUserId");
+		user.roles.add("guest");
+		String action = "read";
+		String recordType = "";
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, action, recordType);
 	}
 }

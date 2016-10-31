@@ -29,15 +29,20 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 
 public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 
+	public String action;
+	public String recordType;
+
 	@Override
 	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
 			String recordType) {
+		this.action = action;
+		this.recordType = recordType;
 		return new ArrayList<>();
 	}
 
 	@Override
-	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String accessType, String recordType,
-			DataGroup record) {
+	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action,
+			String recordType, DataGroup record) {
 		return new ArrayList<>();
 	}
 

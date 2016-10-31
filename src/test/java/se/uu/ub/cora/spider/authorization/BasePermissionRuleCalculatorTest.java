@@ -48,8 +48,8 @@ public class BasePermissionRuleCalculatorTest {
 				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",
 						"myBook", "book", "systemOne", "12345")
 				.toDataGroup();
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator.calculateRulesForActionAndRecordTypeAndData(action,
-				recordType, record);
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordTypeAndData(action, recordType, record);
 		assertEquals(requiredRules.size(), 1);
 
 		Map<String, Set<String>> requiredRule = requiredRules.get(0);

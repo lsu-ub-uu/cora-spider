@@ -50,7 +50,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.ruleCalculator = dependencyProvider.getPermissionKeyCalculator();
+		this.ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
 	}
 
 	public static SpiderRecordReaderImp usingDependencyProvider(
@@ -99,9 +99,9 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private boolean isNotAuthorizedToRead(DataGroup recordRead) {
-		String action = "READ";
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator.calculateRulesForActionAndRecordTypeAndData(action,
-				recordType, recordRead);
+		String action = "read";
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordTypeAndData(action, recordType, recordRead);
 		return !spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules);
 	}
 

@@ -42,6 +42,7 @@ import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 
 public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		implements SpiderRecordCreator {
+	private static final String CREATE = "create";
 	private static final String USER = "User:";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -61,7 +62,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.idGenerator = dependencyProvider.getIdGenerator();
-		this.ruleCalculator = dependencyProvider.getPermissionKeyCalculator();
+		this.ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
@@ -88,8 +89,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private SpiderDataRecord validateCreateAndStoreRecord() {
 		tryToGetActiveUser();
-		// TODO: we should do a first security check here as soon as we know the
-		// user, based on action(create) and type
+		checkUserIsAuthorizedForActionOnRecordType();
+
 		checkNoCreateForAbstractRecordType();
 
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordAsSpiderDataGroup);
@@ -116,6 +117,10 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void tryToGetActiveUser() {
 		user = authenticator.tryToGetActiveUser(authToken);
+	}
+
+	private void checkUserIsAuthorizedForActionOnRecordType() {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, CREATE, recordType);
 	}
 
 	private void createRecordInStorage(DataGroup topLevelDataGroup) {
@@ -207,9 +212,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType, DataGroup record) {
-		String action = "CREATE";
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator.calculateRulesForActionAndRecordTypeAndData(action,
-				recordType, record);
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordTypeAndData(CREATE, recordType, record);
 		if (!spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules)) {
 			throw new AuthorizationException(USER + user.id
 					+ " is not authorized to create a record  of type:" + recordType);

@@ -17,33 +17,28 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.authorization;
+package se.uu.ub.cora.spider.record;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 
-public class BeefeaterAuthorizatorAlwaysAuthorizedSpy implements Authorizator {
-
-	public Set<String> recordCalculateKeys;
-	public List<Map<String, Set<String>>> providedRules;
-	public List<Map<String, Set<String>>> requiredRules;
+public class AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType
+		implements SpiderAuthorizator {
 
 	@Override
-	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
-		this.recordCalculateKeys = recordCalculateKeys;
-		return true;
+	public boolean userSatisfiesRequiredRules(User user,
+			List<Map<String, Set<String>>> requiredRules) {
+		return false;
 	}
 
 	@Override
-	public boolean providedRulesSatisfiesRequiredRules(List<Map<String, Set<String>>> providedRules,
-			List<Map<String, Set<String>>> requiredRules) {
-		this.providedRules = providedRules;
-		this.requiredRules = requiredRules;
-		return true;
+	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType) {
+		// authorized
 	}
 
 }

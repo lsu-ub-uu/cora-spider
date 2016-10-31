@@ -29,4 +29,6 @@ public interface SpiderAuthorizator {
 	public boolean userSatisfiesRequiredRules(User user,
 			List<Map<String, Set<String>>> requiredRules);
 
+	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action, String recordType);
+
 }

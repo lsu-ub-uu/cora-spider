@@ -122,7 +122,10 @@ public class SpiderRecordHandler {
 	}
 
 	protected void addActions(SpiderDataRecord spiderDataRecord) {
+		DataGroup dataRecord = spiderDataRecord.getSpiderDataGroup().toDataGroup();
+
 		spiderDataRecord.addAction(Action.READ);
+
 		spiderDataRecord.addAction(Action.UPDATE);
 
 		possiblyAddDeleteAction(spiderDataRecord);

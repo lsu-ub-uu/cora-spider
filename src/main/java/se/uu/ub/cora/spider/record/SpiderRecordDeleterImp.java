@@ -44,7 +44,7 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.ruleCalculator = dependencyProvider.getPermissionKeyCalculator();
+		this.ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
 	}
 
 	public static SpiderRecordDeleterImp usingDependencyProvider(
@@ -75,9 +75,9 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 
 	private boolean userIsNotAuthorized(String recordType, String recordId) {
 		DataGroup readRecord = recordStorage.read(recordType, recordId);
-		String action = "DELETE";
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator.calculateRulesForActionAndRecordTypeAndData(action,
-				recordType, readRecord);
+		String action = "delete";
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordTypeAndData(action, recordType, readRecord);
 		return !spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules);
 	}
 

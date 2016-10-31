@@ -37,4 +37,10 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 		return true;
 	}
 
+	@Override
+	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType) {
+		// always authorized
+	}
+
 }

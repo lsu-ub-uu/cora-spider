@@ -41,6 +41,7 @@ import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
 public final class SpiderDownloaderImp implements SpiderDownloader {
 	private static final String RESOURCE_INFO = "resourceInfo";
+	private static final String DOWNLOAD = "download";
 	private String userId;
 	private String recordType;
 	private String recordId;
@@ -58,7 +59,7 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 		this.authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
-		keyCalculator = dependencyProvider.getPermissionKeyCalculator();
+		keyCalculator = dependencyProvider.getPermissionRuleCalculator();
 		streamStorage = dependencyProvider.getStreamStorage();
 	}
 
@@ -76,6 +77,7 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 		this.resourceName = resourceName;
 
 		tryToGetActiveUser();
+		checkUserIsAuthorizedForActionOnRecordType();
 		checkResourceIsPresent();
 
 		checkRecordTypeIsChildOfBinary();
@@ -95,6 +97,11 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 		return SpiderInputStream.withNameSizeInputStream(name, size, "application/octet-stream",
 				stream);
 
+	}
+
+	private void checkUserIsAuthorizedForActionOnRecordType() {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, DOWNLOAD,
+				recordType + "." + resourceName);
 	}
 
 	private void tryToGetActiveUser() {
@@ -156,12 +163,12 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 	}
 
 	private boolean isNotAuthorizedToDownload(DataGroup recordRead) {
-		return isNotAuthorizedTo("DOWNLOAD", recordRead);
+		return isNotAuthorizedTo("download", recordRead);
 	}
 
 	private boolean isNotAuthorizedTo(String action, DataGroup recordRead) {
-		List<Map<String, Set<String>>> requiredRules = keyCalculator.calculateRulesForActionAndRecordTypeAndData(action,
-				recordType, recordRead);
+		List<Map<String, Set<String>>> requiredRules = keyCalculator
+				.calculateRulesForActionAndRecordTypeAndData(action, recordType, recordRead);
 		return !spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules);
 	}
 

@@ -61,7 +61,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	}
 
 	@Override
-	public PermissionRuleCalculator getPermissionKeyCalculator() {
+	public PermissionRuleCalculator getPermissionRuleCalculator() {
 		return keyCalculator;
 	}
 

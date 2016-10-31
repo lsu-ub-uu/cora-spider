@@ -37,7 +37,7 @@ public interface SpiderDependencyProvider {
 
 	RecordIdGenerator getIdGenerator();
 
-	PermissionRuleCalculator getPermissionKeyCalculator();
+	PermissionRuleCalculator getPermissionRuleCalculator();
 
 	DataValidator getDataValidator();
 

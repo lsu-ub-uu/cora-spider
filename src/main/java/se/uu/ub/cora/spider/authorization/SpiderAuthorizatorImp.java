@@ -27,7 +27,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.role.RulesProvider;
 
@@ -36,15 +36,17 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	private User user;
 	private Authorizator authorizator;
 	private RecordStorage recordStorage;
+	private PermissionRuleCalculator ruleCalculator;
 
-	private SpiderAuthorizatorImp(SpiderDependencyProviderSpy dependencyProvider,
+	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider,
 			Authorizator authorizator) {
 		this.authorizator = authorizator;
-		recordStorage = dependencyProvider.recordStorage;
+		recordStorage = dependencyProvider.getRecordStorage();
+		ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
 	}
 
 	public static SpiderAuthorizatorImp usingSpiderDependencyProviderAndAuthorizator(
-			SpiderDependencyProviderSpy dependencyProvider, Authorizator authorizator) {
+			SpiderDependencyProvider dependencyProvider, Authorizator authorizator) {
 		return new SpiderAuthorizatorImp(dependencyProvider, authorizator);
 	}
 
@@ -69,9 +71,20 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		providedRules.forEach(rule -> {
 			Set<String> userIdValues = new HashSet<>();
 			userIdValues.add("system.");
-			rule.put("userId", userIdValues);
+			rule.put("createdBy", userIdValues);
 		});
 		return providedRules;
 	}
 
+	@Override
+	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType) {
+		List<Map<String, Set<String>>> requiredRulesForActionAndRecordType = ruleCalculator
+				.calculateRulesForActionAndRecordType(action, recordType);
+
+		if (!userSatisfiesRequiredRules(user, requiredRulesForActionAndRecordType)) {
+			throw new AuthorizationException("user:" + user.id
+					+ " is not authorized to create a record  of type:" + recordType);
+		}
+	}
 }
