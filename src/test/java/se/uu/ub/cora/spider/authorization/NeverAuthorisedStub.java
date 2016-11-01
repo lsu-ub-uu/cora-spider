@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public class NeverAuthorisedStub implements SpiderAuthorizator {
 
@@ -37,6 +38,25 @@ public class NeverAuthorisedStub implements SpiderAuthorizator {
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
 		throw new AuthorizationException("never authorized");
+	}
+
+	@Override
+	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String recordType, DataGroup record) {
+		throw new AuthorizationException("never authorized");
+
+	}
+
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String string, DataGroup record) {
+		return false;
+	}
+
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType) {
+		return false;
 	}
 
 }

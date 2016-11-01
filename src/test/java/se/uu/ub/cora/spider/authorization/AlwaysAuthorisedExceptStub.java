@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	public Set<String> notAuthorizedForKeys = new HashSet<>();
@@ -37,9 +38,31 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	}
 
 	@Override
-	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action, String recordType) {
+	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String recordType, DataGroup record) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String string, DataGroup record) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

@@ -130,7 +130,6 @@ public class SpiderRecordCreatorTest {
 		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
 		assertTrue(((RecordStorageSpy) recordStorage).createWasCalled);
 		assertTrue(((IdGeneratorSpy) idGenerator).getIdForTypeWasCalled);
-		assertTrue(((RuleCalculatorSpy) ruleCalculator).calculateKeysForDataWasCalled);
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyTypeNew");
 	}

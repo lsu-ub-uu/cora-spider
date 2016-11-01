@@ -20,15 +20,10 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -38,19 +33,20 @@ import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public final class SpiderRecordReaderImp extends SpiderRecordHandler implements SpiderRecordReader {
+	private static final String READ = "read";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
-	private PermissionRuleCalculator ruleCalculator;
-	private String userId;
 	private User user;
 	private String authToken;
 	private RecordTypeHandler recordTypeHandler;
+	private SpiderDependencyProvider dependencyProvider;
 
 	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider) {
+
+		this.dependencyProvider = dependencyProvider;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
 	}
 
 	public static SpiderRecordReaderImp usingDependencyProvider(
@@ -67,6 +63,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
 				recordType);
 		tryToGetActiveUser();
+		checkUserIsAuthorizedForActionOnRecordType();
 		checkRecordsRecordTypeNotAbstract();
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
@@ -76,11 +73,18 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		// TODO: filter hidden data if user does not have right to see it
 
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(recordRead);
-		return createDataRecordContainingDataGroup(spiderDataGroup);
+		DataGroupToRecordEnhancer recordEnhancer = new DataGroupToRecordEnhancer(dependencyProvider,
+				user, recordType, recordRead);
+		return recordEnhancer.enhance();
+		// return createDataRecordContainingDataGroup(spiderDataGroup);
 	}
 
 	private void tryToGetActiveUser() {
 		user = authenticator.tryToGetActiveUser(authToken);
+	}
+
+	private void checkUserIsAuthorizedForActionOnRecordType() {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
 	}
 
 	private void checkRecordsRecordTypeNotAbstract() {
@@ -91,18 +95,8 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
-		if (isNotAuthorizedToRead(recordRead)) {
-			throw new AuthorizationException(
-					"User:" + userId + " is not authorized to read for record:" + recordId
-							+ " of type:" + recordType);
-		}
-	}
-
-	private boolean isNotAuthorizedToRead(DataGroup recordRead) {
-		String action = "read";
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator
-				.calculateRulesForActionAndRecordTypeAndData(action, recordType, recordRead);
-		return !spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, READ,
+				recordType, recordRead);
 	}
 
 	@Override

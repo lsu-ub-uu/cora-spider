@@ -44,30 +44,6 @@ public class SpiderRecordHandler {
 		return recordStorage.read(RECORD_TYPE, recordType);
 	}
 
-	protected void addReadActionToDataRecordLinks(SpiderDataGroup spiderDataGroup) {
-		for (SpiderDataElement spiderDataChild : spiderDataGroup.getChildren()) {
-			addReadActionToDataRecordLink(spiderDataChild);
-		}
-	}
-
-	private void addReadActionToDataRecordLink(SpiderDataElement spiderDataChild) {
-		if (isLink(spiderDataChild)) {
-			((SpiderDataLink) spiderDataChild).addAction(Action.READ);
-		}
-		if (isGroup(spiderDataChild)) {
-			addReadActionToDataRecordLinks((SpiderDataGroup) spiderDataChild);
-		}
-	}
-
-	private boolean isLink(SpiderDataElement spiderDataChild) {
-		return spiderDataChild instanceof SpiderDataRecordLink
-				|| spiderDataChild instanceof SpiderDataResourceLink;
-	}
-
-	private boolean isGroup(SpiderDataElement spiderDataChild) {
-		return spiderDataChild instanceof SpiderDataGroup;
-	}
-
 	protected boolean isChildOfAbstractRecordType(String abstractRecordType,
 			DataGroup recordTypePossibleChild) {
 		if (handledRecordHasParent(recordTypePossibleChild)) {
@@ -119,6 +95,30 @@ public class SpiderRecordHandler {
 		SpiderDataRecord spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
 		addActions(spiderDataRecord);
 		return spiderDataRecord;
+	}
+
+	private void addReadActionToDataRecordLinks(SpiderDataGroup spiderDataGroup) {
+		for (SpiderDataElement spiderDataChild : spiderDataGroup.getChildren()) {
+			addReadActionToDataRecordLink(spiderDataChild);
+		}
+	}
+
+	private void addReadActionToDataRecordLink(SpiderDataElement spiderDataChild) {
+		if (isLink(spiderDataChild)) {
+			((SpiderDataLink) spiderDataChild).addAction(Action.READ);
+		}
+		if (isGroup(spiderDataChild)) {
+			addReadActionToDataRecordLinks((SpiderDataGroup) spiderDataChild);
+		}
+	}
+
+	private boolean isLink(SpiderDataElement spiderDataChild) {
+		return spiderDataChild instanceof SpiderDataRecordLink
+				|| spiderDataChild instanceof SpiderDataResourceLink;
+	}
+
+	private boolean isGroup(SpiderDataElement spiderDataChild) {
+		return spiderDataChild instanceof SpiderDataGroup;
 	}
 
 	protected void addActions(SpiderDataRecord spiderDataRecord) {

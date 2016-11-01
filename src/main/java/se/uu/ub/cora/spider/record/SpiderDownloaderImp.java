@@ -84,7 +84,7 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 
 		DataGroup recordRead = recordStorage.read(type, id);
 		spiderRecordRead = SpiderDataGroup.fromDataGroup(recordRead);
-		checkUserIsAuthorisedToDownloadStream(recordRead);
+		// checkUserIsAuthorisedToDownloadStream(recordRead);
 
 		String streamId = tryToExtractStreamIdFromResource(resourceName);
 

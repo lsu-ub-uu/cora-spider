@@ -59,10 +59,10 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	@Override
 	public SpiderDataList readRecordList(String authToken, String recordType) {
-
 		this.authToken = authToken;
+		this.recordType = recordType;
 		tryToGetActiveUser();
-		// checkUserIsAuthorizedForActionOnRecordType();
+		checkUserIsAuthorizedForActionOnRecordType();
 		// TODO: we need to check each record
 		// checkUserIsAuthorizedToReadListRecordType(recordType);
 		readRecordList = SpiderDataList.withContainDataOfType(recordType);

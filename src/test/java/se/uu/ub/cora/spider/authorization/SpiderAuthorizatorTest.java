@@ -24,14 +24,12 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -46,6 +44,7 @@ import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.testdata.DataCreator;
 
 public class SpiderAuthorizatorTest {
 	private RecordStorage recordStorage;
@@ -55,9 +54,12 @@ public class SpiderAuthorizatorTest {
 	private DataRecordLinkCollector linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
+	private User user;
 
 	@BeforeMethod
 	public void beforeMethod() {
+		user = new User("someUserId");
+
 		authenticator = new AuthenticatorSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
 		recordStorage = new RecordStorageSpy();
@@ -86,9 +88,8 @@ public class SpiderAuthorizatorTest {
 		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
 				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider,
 						new BeefeaterAuthorizatorAlwaysAuthorizedSpy());
-		User user = new User("someUserId");
-		List<Map<String, Set<String>>> requiredRules = new ArrayList<>();
-		boolean userAuthorized = spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules);
+		boolean userAuthorized = spiderAuthorizator.userSatisfiesRequiredRules(user,
+				new ArrayList<>());
 		assertTrue(userAuthorized);
 	}
 
@@ -97,11 +98,35 @@ public class SpiderAuthorizatorTest {
 		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
 				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider,
 						new BeefeaterNeverAlwaysAuthorizedSpy());
-		User user = new User("someUserId");
-		user.roles.add("guest");
-		List<Map<String, Set<String>>> requiredRules = new ArrayList<>();
-		boolean userAuthorized = spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules);
+		boolean userAuthorized = spiderAuthorizator.userSatisfiesRequiredRules(user,
+				new ArrayList<>());
 		assertFalse(userAuthorized);
+	}
+
+	@Test
+	public void userSatisfiesActionForRecordType() {
+		BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
+				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		String action = "read";
+		String recordType = "book";
+		boolean userAuthorized = spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user,
+				action, recordType);
+		assertTrue(userAuthorized);
+		assertRuleCalculatorIsCalled();
+	}
+
+	@Test
+	public void userDoesNotSatisfyActionForRecordType() {
+		BeefeaterNeverAlwaysAuthorizedSpy authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
+		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
+				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		String action = "read";
+		String recordType = "book";
+		boolean userAuthorized = spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user,
+				action, recordType);
+		assertFalse(userAuthorized);
+		assertRuleCalculatorIsCalled();
 	}
 
 	@Test
@@ -109,16 +134,11 @@ public class SpiderAuthorizatorTest {
 		BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
 				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
-		User user = new User("someUserId");
-		user.roles.add("guest");
 		String action = "read";
-		String recordType = "someRecordType";
+		String recordType = "book";
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, action, recordType);
 
-		assertEquals(((NoRulesCalculatorStub) rulesCalculator).action, "read");
-		assertEquals(((NoRulesCalculatorStub) rulesCalculator).recordType, "someRecordType");
-
-		assertTrue(true);
+		assertRuleCalculatorIsCalled();
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
@@ -126,10 +146,78 @@ public class SpiderAuthorizatorTest {
 		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
 				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider,
 						new BeefeaterNeverAlwaysAuthorizedSpy());
-		User user = new User("someUserId");
-		user.roles.add("guest");
 		String action = "read";
-		String recordType = "";
+		String recordType = "book";
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, action, recordType);
+		assertRuleCalculatorIsCalled();
 	}
+
+	@Test
+	public void userSatisfiesActionForRecord() {
+		BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
+				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		String action = "read";
+		DataGroup record = DataCreator
+				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",
+						"myBook", "book", "systemOne", "12345")
+				.toDataGroup();
+		boolean userAuthorized = spiderAuthorizator
+				.userIsAuthorizedForActionOnRecordTypeAndRecord(user, action, "book", record);
+		assertTrue(userAuthorized);
+		assertRuleCalculatorIsCalled();
+	}
+
+	private void assertRuleCalculatorIsCalled() {
+		assertEquals(((NoRulesCalculatorStub) rulesCalculator).action, "read");
+		assertEquals(((NoRulesCalculatorStub) rulesCalculator).recordType, "book");
+	}
+
+	@Test
+	public void userDoesNotSatisfyActionForRecord() {
+		BeefeaterNeverAlwaysAuthorizedSpy authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
+		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
+				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		String action = "read";
+		DataGroup record = DataCreator
+				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",
+						"myBook", "book", "systemOne", "12345")
+				.toDataGroup();
+		boolean userAuthorized = spiderAuthorizator
+				.userIsAuthorizedForActionOnRecordTypeAndRecord(user, action, "book", record);
+		assertFalse(userAuthorized);
+		assertRuleCalculatorIsCalled();
+	}
+
+	@Test
+	public void checkUserSatisfiesActionForRecord() {
+		BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
+				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		String action = "read";
+		DataGroup record = DataCreator
+				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",
+						"myBook", "book", "systemOne", "12345")
+				.toDataGroup();
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, action, "book",
+				record);
+
+		assertRuleCalculatorIsCalled();
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void checkUserDoesNotSatisfiesActionForRecord() {
+		BeefeaterNeverAlwaysAuthorizedSpy authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
+		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
+				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		String action = "read";
+		DataGroup record = DataCreator
+				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",
+						"myBook", "book", "systemOne", "12345")
+				.toDataGroup();
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, action, "book",
+				record);
+		assertRuleCalculatorIsCalled();
+	}
+
 }

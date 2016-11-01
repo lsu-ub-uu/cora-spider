@@ -31,6 +31,7 @@ public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 
 	public String action;
 	public String recordType;
+	public DataGroup record;
 
 	@Override
 	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
@@ -43,6 +44,9 @@ public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 	@Override
 	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action,
 			String recordType, DataGroup record) {
+		this.action = action;
+		this.recordType = recordType;
+		this.record = record;
 		return new ArrayList<>();
 	}
 

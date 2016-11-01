@@ -20,8 +20,6 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
@@ -29,8 +27,6 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -43,11 +39,9 @@ import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		implements SpiderRecordCreator {
 	private static final String CREATE = "create";
-	private static final String USER = "User:";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
-	private PermissionRuleCalculator ruleCalculator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
@@ -62,7 +56,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.idGenerator = dependencyProvider.getIdGenerator();
-		this.ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
@@ -212,12 +205,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType, DataGroup record) {
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator
-				.calculateRulesForActionAndRecordTypeAndData(CREATE, recordType, record);
-		if (!spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules)) {
-			throw new AuthorizationException(USER + user.id
-					+ " is not authorized to create a record  of type:" + recordType);
-		}
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, CREATE,
+				recordType, record);
 	}
 
 	@Override

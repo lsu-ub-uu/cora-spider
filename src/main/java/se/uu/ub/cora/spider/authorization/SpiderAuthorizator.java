@@ -24,11 +24,22 @@ import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public interface SpiderAuthorizator {
 	public boolean userSatisfiesRequiredRules(User user,
 			List<Map<String, Set<String>>> requiredRules);
 
-	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action, String recordType);
+	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType);
+
+	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String recordType, DataGroup record);
+
+	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String string, DataGroup record);
+
+	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType);
 
 }

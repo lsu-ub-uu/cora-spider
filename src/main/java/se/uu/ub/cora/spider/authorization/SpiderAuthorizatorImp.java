@@ -27,6 +27,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.role.RulesProvider;
@@ -77,14 +78,40 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	@Override
-	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
+	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
 		List<Map<String, Set<String>>> requiredRulesForActionAndRecordType = ruleCalculator
 				.calculateRulesForActionAndRecordType(action, recordType);
 
-		if (!userSatisfiesRequiredRules(user, requiredRulesForActionAndRecordType)) {
+		return userSatisfiesRequiredRules(user, requiredRulesForActionAndRecordType);
+	}
+
+	@Override
+	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType) {
+		if (!userIsAuthorizedForActionOnRecordType(user, action, recordType)) {
 			throw new AuthorizationException("user:" + user.id
 					+ " is not authorized to create a record  of type:" + recordType);
 		}
 	}
+
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String recordType, DataGroup record) {
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordTypeAndData(action, recordType, record);
+
+		return userSatisfiesRequiredRules(user, requiredRules);
+	}
+
+	@Override
+	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String recordType, DataGroup record) {
+		if (!userIsAuthorizedForActionOnRecordTypeAndRecord(user, action, recordType, record)) {
+			throw new AuthorizationException("user:" + user.id
+					+ " is not authorized to create a record  of type:" + recordType);
+		}
+
+	}
+
 }

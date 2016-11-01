@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 
 public class AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType
@@ -39,6 +41,26 @@ public class AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
 		// authorized
+	}
+
+	@Override
+	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String recordType, DataGroup record) {
+		throw new AuthorizationException("not authorized");
+	}
+
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String string, DataGroup record) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

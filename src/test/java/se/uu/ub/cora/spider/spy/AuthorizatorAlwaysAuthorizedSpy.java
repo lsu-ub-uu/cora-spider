@@ -19,16 +19,22 @@
 
 package se.uu.ub.cora.spider.spy;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 
 public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 
 	public boolean authorizedWasCalled = false;
+	public List<User> users = new ArrayList<>();
+	public List<String> actions = new ArrayList<>();
+	public List<String> recordTypes = new ArrayList<>();
+	public List<DataGroup> records = new ArrayList<>();
 
 	@Override
 	public boolean userSatisfiesRequiredRules(User user,
@@ -41,6 +47,33 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
 		// always authorized
+		authorizedWasCalled = true;
+	}
+
+	@Override
+	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String recordType, DataGroup record) {
+		this.users.add(user);
+		this.actions.add(action);
+		this.recordTypes.add(recordType);
+		this.records.add(record);
+		// always authorized
+		authorizedWasCalled = true;
+
+	}
+
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String string, DataGroup record) {
+		authorizedWasCalled = true;
+		return true;
+	}
+
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType) {
+		authorizedWasCalled = true;
+		return true;
 	}
 
 }
