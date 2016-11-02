@@ -28,23 +28,19 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.data.Action;
+import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
@@ -53,10 +49,10 @@ import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
-import se.uu.ub.cora.spider.spy.KeyCalculatorSpy;
-import se.uu.ub.cora.spider.spy.RecordPermissionKeyCalculatorStub;
+import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.spider.testdata.SpiderDataCreator;
@@ -65,21 +61,22 @@ import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 public class SpiderRecordUpdaterTest {
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
-	private Authorizator authorizator;
-	private PermissionKeyCalculator keyCalculator;
+	private SpiderAuthorizator spiderAuthorizator;
+	private PermissionRuleCalculator keyCalculator;
 	private SpiderRecordUpdater recordUpdater;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
+	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		authenticator = new AuthenticatorSpy();
-		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		keyCalculator = new RecordPermissionKeyCalculatorStub();
+		keyCalculator = new NoRulesCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		setUpDependencyProvider();
@@ -88,23 +85,25 @@ public class SpiderRecordUpdaterTest {
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy();
 		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.authorizator = authorizator;
+		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
 		dependencyProvider.dataValidator = dataValidator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.keyCalculator = keyCalculator;
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
-		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
-				.usingDependencyProvider(dependencyProvider);
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		recordUpdater = SpiderRecordUpdaterImp.usingDependencyProvider(dependencyProvider);
+		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
+		// SpiderInstanceFactory factory = SpiderInstanceFactoryImp
+		// .usingDependencyProvider(dependencyProvider);
+		// SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		recordUpdater = SpiderRecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Test
 	public void testExternalDependenciesAreCalled() {
-		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		recordStorage = new RecordStorageSpy();
-		keyCalculator = new KeyCalculatorSpy();
+		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
@@ -113,12 +112,59 @@ public class SpiderRecordUpdaterTest {
 						"spyId", "cora"));
 		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", spiderDataGroup);
 
-		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorizator).authorizedWasCalled);
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
+		assertTrue(authorizatorSpy.authorizedWasCalled);
+
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
 		assertTrue(((RecordStorageSpy) recordStorage).updateWasCalled);
-		assertTrue(((KeyCalculatorSpy) keyCalculator).calculateKeysWasCalled);
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyType");
+
+	}
+
+	@Test
+	public void testRecordEnhancerCalled() {
+		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		recordStorage = new RecordStorageSpy();
+		keyCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		spiderDataGroup.addChild(
+				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
+						"spyId", "cora"));
+		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", spiderDataGroup);
+		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
+		assertEquals(dataGroupToRecordEnhancer.recordType, "spyType");
+		assertEquals(dataGroupToRecordEnhancer.dataGroup.extractGroup("recordInfo")
+				.extractAtomicValue("id"), "spyId");
+	}
+
+	@Test
+	public void testUserIsAuthorizedForPreviousVersionOfData() {
+		recordStorage = new RecordStorageCreateUpdateSpy();
+		setUpDependencyProvider();
+
+		SpiderDataGroup dataGroup = getSpiderDataGroupToUpdate();
+		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("notStoredValue", "hej"));
+
+		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
+				dataGroup);
+
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
+		assertTrue(authorizatorSpy.authorizedWasCalled);
+		assertEquals(authorizatorSpy.actions.get(0), "update");
+		assertEquals(authorizatorSpy.users.get(0).id, "12345");
+		assertEquals(authorizatorSpy.recordTypes.get(0), "typeWithAutoGeneratedId");
+		assertEquals(authorizatorSpy.records.get(0),
+				recordStorage.read("typeWithAutoGeneratedId", "somePlace"));
+		assertFalse(authorizatorSpy.records.get(0).containsChildWithNameInData("notStoredValue"));
+
+		assertEquals(authorizatorSpy.actions.get(1), "update");
+		assertEquals(authorizatorSpy.users.get(1).id, "12345");
+		assertEquals(authorizatorSpy.recordTypes.get(1), "typeWithAutoGeneratedId");
+		assertEquals(
+				authorizatorSpy.records.get(1).getFirstAtomicValueWithNameInData("notStoredValue"),
+				"hej");
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
@@ -134,9 +180,9 @@ public class SpiderRecordUpdaterTest {
 
 	@Test
 	public void testExtendedFunctionallityIsCalled() {
-		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		recordStorage = new RecordStorageSpy();
-		keyCalculator = new KeyCalculatorSpy();
+		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
 		SpiderDataGroup spiderDataGroup = DataCreator
@@ -199,107 +245,6 @@ public class SpiderRecordUpdaterTest {
 				dataGroup);
 
 		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).dataDivider, "cora");
-	}
-
-	@Test
-	public void testActionsOnUpdatedRecordWithIncomingLinks() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-		((RecordStorageCreateUpdateSpy) recordStorage).modifiableLinksExistsForRecord = true;
-
-		SpiderDataGroup dataGroup = getSpiderDataGroupToUpdate();
-		SpiderDataRecord recordUpdated = recordUpdater.updateRecord("someToken78678567",
-				"typeWithAutoGeneratedId", "somePlace", dataGroup);
-		assertEquals(recordUpdated.getActions().size(), 3);
-		assertTrue(recordUpdated.getActions().contains(Action.READ));
-		assertTrue(recordUpdated.getActions().contains(Action.UPDATE));
-		assertTrue(recordUpdated.getActions().contains(Action.READ_INCOMING_LINKS));
-
-		assertFalse(recordUpdated.getActions().contains(Action.DELETE));
-	}
-
-	@Test
-	public void testActionsOnUpdatedRecordInRecordInfo() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-		((RecordStorageCreateUpdateSpy) recordStorage).modifiableLinksExistsForRecord = true;
-
-		SpiderDataGroup dataGroup = getSpiderDataGroupToUpdate();
-		SpiderDataRecord recordUpdated = recordUpdater.updateRecord("someToken78678567",
-				"typeWithAutoGeneratedId", "somePlace", dataGroup);
-
-		SpiderDataGroup recordInfo = recordUpdated.getSpiderDataGroup().extractGroup("recordInfo");
-		SpiderDataRecordLink dataDivider = (SpiderDataRecordLink) recordInfo
-				.extractGroup("dataDivider");
-
-		assertTrue(dataDivider.getActions().contains(Action.READ));
-		assertEquals(dataDivider.getActions().size(), 1);
-	}
-
-	@Test
-	public void testActionsOnUpdatedRecordNoIncomingLinks() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
-		SpiderDataGroup dataGroup = getSpiderDataGroupToUpdate();
-		SpiderDataRecord recordUpdated = recordUpdater.updateRecord("someToken78678567",
-				"typeWithAutoGeneratedId", "somePlace", dataGroup);
-		assertEquals(recordUpdated.getActions().size(), 3);
-		assertReadUpdateDelete(recordUpdated);
-	}
-
-	@Test
-	public void testActionsOnUpdatedRecordTypeImageNoIncomingLinks() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
-		SpiderDataGroup dataGroup = createRecordTypeDataGroupWithIdAndAbstract("image", "false");
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("parentId", "binary"));
-
-		SpiderDataRecord recordUpdated = recordUpdater.updateRecord("someToken78678567",
-				"recordType", "image", dataGroup);
-		assertEquals(recordUpdated.getActions().size(), 6);
-		assertReadUpdateDelete(recordUpdated);
-		assertTrue(recordUpdated.getActions().contains(Action.CREATE));
-
-		assertTrue(recordUpdated.getActions().contains(Action.LIST));
-		assertTrue(recordUpdated.getActions().contains(Action.SEARCH));
-		assertTrue(recordUpdated.getActions().contains(Action.DELETE));
-		assertFalse(recordUpdated.getActions().contains(Action.UPLOAD));
-	}
-
-	private SpiderDataGroup createRecordTypeDataGroupWithIdAndAbstract(String id,
-			String abstractString) {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("recordType");
-		SpiderDataGroup createRecordInfo = DataCreator.createRecordInfoWithIdAndLinkedRecordId(id,
-				"cora");
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "recordType"));
-		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("abstract", abstractString));
-		return dataGroup;
-	}
-
-	private void assertReadUpdateDelete(SpiderDataRecord recordUpdated) {
-		assertTrue(recordUpdated.getActions().contains(Action.READ));
-		assertTrue(recordUpdated.getActions().contains(Action.UPDATE));
-		assertTrue(recordUpdated.getActions().contains(Action.DELETE));
-	}
-
-	@Test
-	public void testActionsOnUpdatedRecordTypeBinaryNoIncomingLinks() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
-		SpiderDataGroup dataGroup = createRecordTypeDataGroupWithIdAndAbstract("binary", "false");
-
-		SpiderDataRecord recordUpdated = recordUpdater.updateRecord("someToken78678567",
-				"recordType", "binary", dataGroup);
-		assertEquals(recordUpdated.getActions().size(), 5);
-		assertReadUpdateDelete(recordUpdated);
-
-		assertTrue(recordUpdated.getActions().contains(Action.LIST));
-		assertTrue(recordUpdated.getActions().contains(Action.SEARCH));
-		assertFalse(recordUpdated.getActions().contains(Action.UPLOAD));
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)
@@ -405,69 +350,6 @@ public class SpiderRecordUpdaterTest {
 		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
 
 		recordUpdater.updateRecord("someToken78678567", "recordType", "placeNOT", dataGroup);
-	}
-
-	@Test(expectedExceptions = AuthorizationException.class)
-	public void testUpdateRecordUserNotAuthorisedToStoreIncomingData() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		keyCalculator = new KeyCalculatorTest();
-		authorizator = new AuthorisedForUppsala();
-		setUpDependencyProvider();
-
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("typeWithUserGeneratedId");
-		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "uppsalaRecord1"));
-		createRecordInfo.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("type", "typeWithUserGeneratedId"));
-		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("unit", "gothenburg"));
-		recordUpdater.updateRecord("someToken78678567", "typeWithUserGeneratedId", "uppsalaRecord1",
-				dataGroup);
-	}
-
-	@Test(expectedExceptions = AuthorizationException.class)
-	public void testUpdateRecordUserNotAuthorisedToUpdateData() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		keyCalculator = new KeyCalculatorTest();
-		authorizator = new AuthorisedForUppsala();
-		setUpDependencyProvider();
-
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("typeWithUserGeneratedId");
-		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		createRecordInfo
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "gothenburgRecord1"));
-		createRecordInfo.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("type", "typeWithUserGeneratedId"));
-		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("unit", "uppsala"));
-		recordUpdater.updateRecord("someToken78678567", "typeWithUserGeneratedId",
-				"gothenburgRecord1", dataGroup);
-	}
-
-	@Test
-	public void testUpdateRecordWithDataRecordLinkHasReadActionTopLevel() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		setUpDependencyProvider();
-		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator
-				.createSpiderDataGroupWithRecordInfoAndLink();
-
-		SpiderDataRecord record = recordUpdater.updateRecord("someToken78678567", "dataWithLinks",
-				"oneLinkTopLevel", dataGroup);
-
-		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
-	}
-
-	@Test
-	public void testUpdateRecordWithDataRecordLinkHasReadActionOneLevelDown() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		setUpDependencyProvider();
-		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator
-				.createDataGroupWithRecordInfoAndLinkOneLevelDown();
-
-		SpiderDataRecord record = recordUpdater.updateRecord("someToken78678567", "dataWithLinks",
-				"oneLinkOneLevelDown", dataGroup);
-
-		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}
 
 	@Test(expectedExceptions = DataException.class)

@@ -61,6 +61,8 @@ public class TestDataRecordInMemoryStorage {
 				DataGroup.withNameInData("collectedLinksList"), dataDivider);
 		recordsInMemory.create("metadataRecordRelation", "dummyRecordRelation", dummy,
 				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+		recordsInMemory.create("permissionRole", "dummyPermissionRole", dummy,
+				DataGroup.withNameInData("collectedLinksList"), dataDivider);
 		return recordsInMemory;
 	}
 

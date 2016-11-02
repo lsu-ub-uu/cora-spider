@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,12 +17,14 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.role;
 
-public class AuthorizationException extends RuntimeException{
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-	private static final long serialVersionUID = -2867876073765359936L;
-	public AuthorizationException(String message) {
-		super(message);
-	}
+public interface RulesProvider {
+
+	List<Map<String, Set<String>>> getActiveRules(String roleId);
+
 }

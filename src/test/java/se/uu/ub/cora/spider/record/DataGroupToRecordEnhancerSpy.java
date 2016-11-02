@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,31 +17,25 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.spy;
+package se.uu.ub.cora.spider.record;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
 
-public class KeyCalculatorSpy implements PermissionKeyCalculator {
+public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 
-	public boolean calculateKeysWasCalled = false;
-
-	@Override
-	public Set<String> calculateKeys(String accessType, String recordType, DataGroup record) {
-		calculateKeysWasCalled = true;
-		Set<String> keys = new HashSet<>();
-		String key = String.join(":", accessType, recordType.toUpperCase(), "SYSTEM", "*");
-		keys.add(key);
-		return keys;
-	}
+	public User user;
+	public String recordType;
+	public DataGroup dataGroup;
 
 	@Override
-	public Set<String> calculateKeysForList(String accessType, String recordType) {
-		// TODO Auto-generated method stub
-		return null;
+	public SpiderDataRecord enhance(User user, String recordType, DataGroup dataGroup) {
+		this.user = user;
+		this.recordType = recordType;
+		this.dataGroup = dataGroup;
+		return SpiderDataRecord.withSpiderDataGroup(SpiderDataGroup.fromDataGroup(dataGroup));
 	}
 
 }

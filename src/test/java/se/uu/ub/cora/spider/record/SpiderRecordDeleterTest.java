@@ -24,42 +24,45 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.beefeater.Authorizator;
-import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
+import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
+import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
-import se.uu.ub.cora.spider.spy.RecordPermissionKeyCalculatorStub;
+import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
+import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
 public class SpiderRecordDeleterTest {
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
-	private Authorizator authorizator;
-	private PermissionKeyCalculator keyCalculator;
+	private SpiderAuthorizator authorizator;
+	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private SpiderRecordDeleter recordDeleter;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		authenticator = new AuthenticatorSpy();
-		authorizator = new AuthorizatorImp();
+		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		keyCalculator = new RecordPermissionKeyCalculatorStub();
+		keyCalculator = new NoRulesCalculatorStub();
 		setUpDependencyProvider();
 	}
 
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy();
 		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.authorizator = authorizator;
+		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.keyCalculator = keyCalculator;
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp

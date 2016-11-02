@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,27 +17,31 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.authorization;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.role.RulesProvider;
 
-public class KeyCalculatorTest implements PermissionKeyCalculator {
+public class RulesProviderSpy implements RulesProvider {
 
-	@Override
-	public Set<String> calculateKeys(String accessType, String recordType, DataGroup record) {
-		Set<String> keys = new HashSet<>();
-		String unit = record.getFirstAtomicValueWithNameInData("unit");
-		String key = String.join(":", accessType, recordType, "SYSTEM", unit,"*").toUpperCase();
-		keys.add(key);
-		return keys;
-	}
-	
+	public String roleId;
 
 	@Override
-	public Set<String> calculateKeysForList(String accessType, String recordType) {
-		return null;
+	public List<Map<String, Set<String>>> getActiveRules(String roleId) {
+		this.roleId = roleId;
+		ArrayList<Map<String, Set<String>>> rules = new ArrayList<>();
+		HashMap<String, Set<String>> rule = new HashMap<>();
+		rules.add(rule);
+		HashSet<String> rulePart = new HashSet<>();
+		rule.put("action", rulePart);
+		rulePart.add("system.read");
+		return rules;
 	}
+
 }

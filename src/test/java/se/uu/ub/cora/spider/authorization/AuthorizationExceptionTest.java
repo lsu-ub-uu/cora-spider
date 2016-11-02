@@ -17,10 +17,12 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.authorization;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 
 public class AuthorizationExceptionTest {
 	@Test

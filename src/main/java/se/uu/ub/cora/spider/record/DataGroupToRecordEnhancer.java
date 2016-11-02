@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,27 +19,12 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.Set;
-
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
 
-public class AuthorisedForUppsala implements Authorizator {
+public interface DataGroupToRecordEnhancer {
 
-	@Override
-	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
-
-		// fake uppsala users current keys
-
-		// String key = "UPDATE:RECORD_TYPE:SYSTEM:UNIT:*";
-		String key = "UPDATE:TYPEWITHUSERGENERATEDID:SYSTEM:UPPSALA:*";
-		if (recordCalculateKeys.contains(key)) {
-			return true;
-		}
-		if (recordCalculateKeys.contains("UPLOAD:TYPEWITHUSERGENERATEDID:SYSTEM:UPPSALA:*")) {
-			return true;
-		}
-		return false;
-	}
+	SpiderDataRecord enhance(User user, String recordType, DataGroup dataGroup);
 
 }

@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.spy;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
@@ -79,6 +80,85 @@ public class RecordStorageSpy implements RecordStorage {
 		if ("image".equals(type) && "image:123456789".equals(id)) {
 			return DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("image",
 					"image:123456789", "image", "cora").toDataGroup();
+		}
+		if ("permissionRole".equals(type) && "guest".equals(id)) {
+			DataGroup permissionRole = DataGroup.withNameInData("permissionRole");
+
+			DataGroup permissionRuleLink = DataGroup.withNameInData("permissionRuleLink");
+			permissionRuleLink.addChild(
+					DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
+			permissionRuleLink.addChild(
+					DataAtomic.withNameInDataAndValue("linkedRecordId", "authorityReader"));
+			permissionRole.addChild(permissionRuleLink);
+
+			DataGroup permissionRuleLink2 = DataGroup.withNameInData("permissionRuleLink");
+			permissionRuleLink2.addChild(
+					DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
+			permissionRuleLink2.addChild(
+					DataAtomic.withNameInDataAndValue("linkedRecordId", "metadataReader"));
+			permissionRole.addChild(permissionRuleLink2);
+
+			permissionRole.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "active"));
+
+			return permissionRole;
+		}
+		if ("permissionRole".equals(type) && "inactive".equals(id)) {
+			DataGroup permissionRole = DataGroup.withNameInData("permissionRole");
+
+			DataGroup permissionRuleLink = DataGroup.withNameInData("permissionRuleLink");
+			permissionRuleLink.addChild(
+					DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
+			permissionRuleLink.addChild(
+					DataAtomic.withNameInDataAndValue("linkedRecordId", "authorityReader"));
+			permissionRole.addChild(permissionRuleLink);
+
+			permissionRole.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
+
+			return permissionRole;
+		}
+		if ("permissionRule".equals(type) && "authorityReader".equals(id)) {
+			DataGroup rule = DataGroup.withNameInData("permissionRule");
+
+			DataGroup permissionRulePart = DataGroup.withNameInData("permissionRulePart");
+			permissionRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
+					"permissionRulePartValue", "system.create", "1"));
+			permissionRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
+					"permissionRulePartValue", "system.read", "2"));
+			permissionRulePart.addAttributeByIdWithValue("type", "action");
+			rule.addChild(permissionRulePart);
+
+			DataGroup permissionRulePart2 = DataGroup.withNameInData("permissionRulePart");
+			permissionRulePart2.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
+					"permissionRulePartValue", "system.person", "1"));
+			permissionRulePart2.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
+					"permissionRulePartValue", "system.place", "2"));
+			permissionRulePart2.addAttributeByIdWithValue("type", "recordType");
+			rule.addChild(permissionRulePart2);
+
+			rule.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "active"));
+			return rule;
+		}
+		if ("permissionRule".equals(type) && "metadataReader".equals(id)) {
+			DataGroup rule = DataGroup.withNameInData("permissionRule");
+
+			DataGroup permissionRulePart = DataGroup.withNameInData("permissionRulePart");
+			permissionRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
+					"permissionRulePartValue", "system.create", "1"));
+			permissionRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
+					"permissionRulePartValue", "system.read", "2"));
+			permissionRulePart.addAttributeByIdWithValue("type", "action");
+			rule.addChild(permissionRulePart);
+
+			DataGroup permissionRulePart2 = DataGroup.withNameInData("permissionRulePart");
+			permissionRulePart2.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
+					"permissionRulePartValue", "system.person", "1"));
+			permissionRulePart2.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
+					"permissionRulePartValue", "system.place", "2"));
+			permissionRulePart2.addAttributeByIdWithValue("type", "recordType");
+			rule.addChild(permissionRulePart2);
+
+			rule.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
+			return rule;
 		}
 		return null;
 	}

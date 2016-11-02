@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,63 +17,50 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.spy;
+package se.uu.ub.cora.spider.record;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 
-public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
-
-	public boolean authorizedWasCalled = false;
-	public List<User> users = new ArrayList<>();
-	public List<String> actions = new ArrayList<>();
-	public List<String> recordTypes = new ArrayList<>();
-	public List<DataGroup> records = new ArrayList<>();
+public class AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType
+		implements SpiderAuthorizator {
 
 	@Override
 	public boolean userSatisfiesRequiredRules(User user,
 			List<Map<String, Set<String>>> requiredRules) {
-		authorizedWasCalled = true;
-		return true;
+		return false;
 	}
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		// always authorized
-		authorizedWasCalled = true;
+		// authorized
 	}
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
 			String recordType, DataGroup record) {
-		this.users.add(user);
-		this.actions.add(action);
-		this.recordTypes.add(recordType);
-		this.records.add(record);
-		// always authorized
-		authorizedWasCalled = true;
-
+		throw new AuthorizationException("not authorized");
 	}
 
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
 			String string, DataGroup record) {
-		authorizedWasCalled = true;
-		return true;
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		authorizedWasCalled = true;
-		return true;
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

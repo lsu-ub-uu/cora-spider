@@ -17,29 +17,29 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.authentication;
+package se.uu.ub.cora.spider.authorization;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
-public class AuthenticatorSpy implements Authenticator {
+public interface SpiderAuthorizator {
+	public boolean userSatisfiesRequiredRules(User user,
+			List<Map<String, Set<String>>> requiredRules);
 
-	public boolean authenticationWasCalled = false;
-	public String authToken;
+	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType);
 
-	@Override
-	public User tryToGetActiveUser(String authToken) {
-		authenticationWasCalled = true;
+	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String recordType, DataGroup record);
 
-		this.authToken = authToken;
-		if ("dummyNonAuthenticatedToken".equals(authToken)) {
-			throw new AuthenticationException("token not valid");
-		}
+	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
+			String string, DataGroup record);
 
-		User user = new User("12345");
-		user.loginId = "knownUser";
-		user.loginDomain = "system";
-		user.roles.add("guest");
-		return user;
-	}
+	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType);
 
 }

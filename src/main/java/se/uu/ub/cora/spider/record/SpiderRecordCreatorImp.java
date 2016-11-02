@@ -20,15 +20,14 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.List;
-import java.util.Set;
 
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
@@ -39,11 +38,10 @@ import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 
 public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		implements SpiderRecordCreator {
-	private static final String USER = "User:";
+	private static final String CREATE = "create";
 	private Authenticator authenticator;
-	private Authorizator authorization;
+	private SpiderAuthorizator spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
-	private PermissionKeyCalculator keyCalculator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
@@ -51,21 +49,24 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private String authToken;
 	private User user;
 	private RecordTypeHandler recordTypeHandler;
+	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 
-	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider) {
+	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider,
+			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
-		this.authorization = dependencyProvider.getAuthorizator();
+		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.idGenerator = dependencyProvider.getIdGenerator();
-		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
-	public static SpiderRecordCreatorImp usingDependencyProvider(
-			SpiderDependencyProvider dependencyProvider) {
-		return new SpiderRecordCreatorImp(dependencyProvider);
+	public static SpiderRecordCreatorImp usingDependencyProviderAndDataGroupToRecordEnhancer(
+			SpiderDependencyProvider dependencyProvider,
+			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		return new SpiderRecordCreatorImp(dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
@@ -85,8 +86,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private SpiderDataRecord validateCreateAndStoreRecord() {
 		tryToGetActiveUser();
-		// TODO: we should do a first security check here as soon as we know the
-		// user, based on action(create) and type
+		checkUserIsAuthorizedForActionOnRecordType();
+
 		checkNoCreateForAbstractRecordType();
 
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordAsSpiderDataGroup);
@@ -108,11 +109,15 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 		useExtendedFunctionalityBeforeReturn(recordType, spiderDataGroupWithActions);
 
-		return createDataRecordContainingDataGroup(spiderDataGroupWithActions);
+		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);
 	}
 
 	private void tryToGetActiveUser() {
 		user = authenticator.tryToGetActiveUser(authToken);
+	}
+
+	private void checkUserIsAuthorizedForActionOnRecordType() {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, CREATE, recordType);
 	}
 
 	private void createRecordInStorage(DataGroup topLevelDataGroup) {
@@ -204,22 +209,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType, DataGroup record) {
-		// calculate permissionKey
-		String accessType = "CREATE";
-		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
-				record);
-
-		if (!authorization.isAuthorized(user, recordCalculateKeys)) {
-			throw new AuthorizationException(USER + user.id
-					+ " is not authorized to create a record  of type:" + recordType);
-		}
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, CREATE,
+				recordType, record);
 	}
-
-	@Override
-	protected boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {
-		// a record that is being created, can not yet be linked from any other
-		// record
-		return false;
-	}
-
 }

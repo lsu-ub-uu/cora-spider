@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Olov McKie
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,22 +17,32 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.authorization;
 
-import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 
-public class AlwaysAuthorisedExceptStub implements Authorizator {
-	public Set<String> notAuthorizedForKeys = new HashSet<>();
+public class BeefeaterAuthorizatorAlwaysAuthorizedSpy implements Authorizator {
+
+	public Set<String> recordCalculateKeys;
+	public List<Map<String, Set<String>>> providedRules;
+	public List<Map<String, Set<String>>> requiredRules;
 
 	@Override
 	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
-		if (notAuthorizedForKeys.removeAll(recordCalculateKeys)) {
-			return false;
-		}
+		this.recordCalculateKeys = recordCalculateKeys;
+		return true;
+	}
+
+	@Override
+	public boolean providedRulesSatisfiesRequiredRules(List<Map<String, Set<String>>> providedRules,
+			List<Map<String, Set<String>>> requiredRules) {
+		this.providedRules = providedRules;
+		this.requiredRules = requiredRules;
 		return true;
 	}
 

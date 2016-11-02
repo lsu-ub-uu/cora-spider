@@ -20,12 +20,11 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.Collection;
-import java.util.Set;
 
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
@@ -34,24 +33,27 @@ import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public final class SpiderRecordReaderImp extends SpiderRecordHandler implements SpiderRecordReader {
+	private static final String READ = "read";
+	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private Authenticator authenticator;
-	private Authorizator authorization;
-	private PermissionKeyCalculator keyCalculator;
-	private String userId;
+	private SpiderAuthorizator spiderAuthorizator;
 	private User user;
 	private String authToken;
 	private RecordTypeHandler recordTypeHandler;
 
-	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider) {
+	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider,
+			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+
+		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
-		this.authorization = dependencyProvider.getAuthorizator();
+		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.keyCalculator = dependencyProvider.getPermissionKeyCalculator();
 	}
 
-	public static SpiderRecordReaderImp usingDependencyProvider(
-			SpiderDependencyProvider dependencyProvider) {
-		return new SpiderRecordReaderImp(dependencyProvider);
+	public static SpiderRecordReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
+			SpiderDependencyProvider dependencyProvider,
+			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		return new SpiderRecordReaderImp(dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
@@ -63,6 +65,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
 				recordType);
 		tryToGetActiveUser();
+		checkUserIsAuthorizedForActionOnRecordType();
 		checkRecordsRecordTypeNotAbstract();
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
@@ -71,12 +74,15 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		// filter data
 		// TODO: filter hidden data if user does not have right to see it
 
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(recordRead);
-		return createDataRecordContainingDataGroup(spiderDataGroup);
+		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
 	}
 
 	private void tryToGetActiveUser() {
 		user = authenticator.tryToGetActiveUser(authToken);
+	}
+
+	private void checkUserIsAuthorizedForActionOnRecordType() {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
 	}
 
 	private void checkRecordsRecordTypeNotAbstract() {
@@ -87,18 +93,8 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
-		if (isNotAuthorizedToRead(recordRead)) {
-			throw new AuthorizationException(
-					"User:" + userId + " is not authorized to read for record:" + recordId
-							+ " of type:" + recordType);
-		}
-	}
-
-	private boolean isNotAuthorizedToRead(DataGroup recordRead) {
-		String accessType = "READ";
-		Set<String> recordCalculateKeys = keyCalculator.calculateKeys(accessType, recordType,
-				recordRead);
-		return !authorization.isAuthorized(user, recordCalculateKeys);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, READ,
+				recordType, recordRead);
 	}
 
 	@Override

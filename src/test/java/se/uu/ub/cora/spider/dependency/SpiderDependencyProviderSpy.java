@@ -19,13 +19,13 @@
 
 package se.uu.ub.cora.spider.dependency;
 
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.UserPicker;
+import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
-import se.uu.ub.cora.spider.record.PermissionKeyCalculator;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
@@ -34,8 +34,8 @@ import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 
 	public RecordStorage recordStorage;
-	public Authorizator authorizator;
-	public PermissionKeyCalculator keyCalculator;
+	public SpiderAuthorizator spiderAuthorizator;
+	public PermissionRuleCalculator keyCalculator;
 	public SpiderUploader uploader;
 	public DataValidator dataValidator;
 	public DataRecordLinkCollector linkCollector;
@@ -46,8 +46,8 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	public UserPicker userPicker;
 
 	@Override
-	public Authorizator getAuthorizator() {
-		return authorizator;
+	public SpiderAuthorizator getSpiderAuthorizator() {
+		return spiderAuthorizator;
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	}
 
 	@Override
-	public PermissionKeyCalculator getPermissionKeyCalculator() {
+	public PermissionRuleCalculator getPermissionRuleCalculator() {
 		return keyCalculator;
 	}
 

@@ -17,16 +17,20 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.authorization;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
-public interface PermissionKeyCalculator {
+public interface PermissionRuleCalculator {
 
-	Set<String> calculateKeys(String accessType, String recordType, DataGroup record);
+	List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
+			String recordType);
 
-	Set<String> calculateKeysForList(String accessType, String recordType);
+	List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action,
+			String recordType, DataGroup record);
 
 }

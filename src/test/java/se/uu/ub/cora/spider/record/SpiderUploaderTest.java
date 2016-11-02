@@ -29,13 +29,15 @@ import java.nio.charset.StandardCharsets;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.beefeater.Authorizator;
-import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
+import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
+import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
@@ -51,8 +53,8 @@ import se.uu.ub.cora.spider.record.storage.TimeStampIdGenerator;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
-import se.uu.ub.cora.spider.spy.KeyCalculatorSpy;
-import se.uu.ub.cora.spider.spy.RecordPermissionKeyCalculatorStub;
+import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
+import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.SpiderDataCreator;
@@ -62,8 +64,8 @@ public class SpiderUploaderTest {
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
 	private StreamStorageSpy streamStorage;
-	private Authorizator authorizator;
-	private PermissionKeyCalculator keyCalculator;
+	private SpiderAuthorizator authorizator;
+	private PermissionRuleCalculator keyCalculator;
 	private SpiderUploader uploader;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
@@ -74,10 +76,10 @@ public class SpiderUploaderTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		authenticator = new AuthenticatorSpy();
-		authorizator = new AuthorizatorImp();
+		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		keyCalculator = new RecordPermissionKeyCalculatorStub();
+		keyCalculator = new NoRulesCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		idGenerator = new TimeStampIdGenerator();
 		streamStorage = new StreamStorageSpy();
@@ -90,7 +92,7 @@ public class SpiderUploaderTest {
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy();
 		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.authorizator = authorizator;
+		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.dataValidator = dataValidator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.keyCalculator = keyCalculator;
@@ -106,9 +108,9 @@ public class SpiderUploaderTest {
 
 	@Test
 	public void testExternalDependenciesAreCalled() {
-		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		// authorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		recordStorage = new RecordStorageSpy();
-		keyCalculator = new KeyCalculatorSpy();
+		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
@@ -124,7 +126,7 @@ public class SpiderUploaderTest {
 		assertTrue(((RecordStorageSpy) recordStorage).readWasCalled);
 
 		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorizator).authorizedWasCalled);
-		assertTrue(((KeyCalculatorSpy) keyCalculator).calculateKeysWasCalled);
+		assertTrue(((RuleCalculatorSpy) keyCalculator).calculateKeysForDataWasCalled);
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
