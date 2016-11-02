@@ -31,14 +31,14 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 
 	private static final String SYSTEM = "system.";
-	private List<Map<String, Set<String>>> requiredRules;
 	private DataGroup record;
 
 	@Override
 	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
 			String recordType) {
-		requiredRules = new ArrayList<Map<String, Set<String>>>();
+		List<Map<String, Set<String>>> requiredRules = new ArrayList<Map<String, Set<String>>>();
 		Map<String, Set<String>> requiredRule = createRequiredRule();
+		requiredRules.add(requiredRule);
 		createRulePart(requiredRule, "action", SYSTEM + action);
 		createRulePart(requiredRule, "recordType", SYSTEM + recordType);
 		return requiredRules;
@@ -48,16 +48,15 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action,
 			String recordType, DataGroup record) {
 		this.record = record;
-		requiredRules = calculateRulesForActionAndRecordType(action, recordType);
+		List<Map<String, Set<String>>> requiredRules = calculateRulesForActionAndRecordType(action,
+				recordType);
 		Map<String, Set<String>> requiredRule = requiredRules.get(0);
 		createRulePart(requiredRule, "createdBy", SYSTEM + extractUserId());
 		return requiredRules;
 	}
 
 	private Map<String, Set<String>> createRequiredRule() {
-		Map<String, Set<String>> requiredRule = new TreeMap<>();
-		requiredRules.add(requiredRule);
-		return requiredRule;
+		return new TreeMap<>();
 	}
 
 	private void createRulePart(Map<String, Set<String>> requiredRule, String key,

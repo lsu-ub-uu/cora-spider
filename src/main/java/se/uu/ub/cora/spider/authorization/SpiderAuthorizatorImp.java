@@ -110,7 +110,5 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 			throw new AuthorizationException("user:" + user.id
 					+ " is not authorized to create a record  of type:" + recordType);
 		}
-
 	}
-
 }
