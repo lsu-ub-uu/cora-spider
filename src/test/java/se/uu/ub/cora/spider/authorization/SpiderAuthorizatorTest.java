@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
@@ -35,9 +36,6 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
@@ -55,10 +53,14 @@ public class SpiderAuthorizatorTest {
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private User user;
+	private RulesProviderSpy rulesProvider;
+	private Authorizator authorizator;
+	private SpiderAuthorizator spiderAuthorizator;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		user = new User("someUserId");
+		user.roles.add("guest");
 
 		authenticator = new AuthenticatorSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
@@ -66,6 +68,7 @@ public class SpiderAuthorizatorTest {
 		rulesCalculator = new NoRulesCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
+		rulesProvider = new RulesProviderSpy();
 		setUpDependencyProvider();
 	}
 
@@ -77,17 +80,24 @@ public class SpiderAuthorizatorTest {
 		dependencyProvider.keyCalculator = rulesCalculator;
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
-		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
-				.usingDependencyProvider(dependencyProvider);
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 
+		spiderAuthorizator = SpiderAuthorizatorImp
+				.usingSpiderDependencyProviderAndAuthorizatorAndRulesProvider(dependencyProvider,
+						authorizator, rulesProvider);
+	}
+
+	@Test
+	public void testRulesProviderCalled() {
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		spiderAuthorizator.userSatisfiesRequiredRules(user, new ArrayList<>());
+		assertEquals(rulesProvider.roleId, "guest");
 	}
 
 	@Test
 	public void testAuthorized() {
-		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
-				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider,
-						new BeefeaterAuthorizatorAlwaysAuthorizedSpy());
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
 		boolean userAuthorized = spiderAuthorizator.userSatisfiesRequiredRules(user,
 				new ArrayList<>());
 		assertTrue(userAuthorized);
@@ -95,9 +105,8 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void testNotAuthorized() {
-		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
-				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider,
-						new BeefeaterNeverAlwaysAuthorizedSpy());
+		authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
 		boolean userAuthorized = spiderAuthorizator.userSatisfiesRequiredRules(user,
 				new ArrayList<>());
 		assertFalse(userAuthorized);
@@ -105,9 +114,8 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void userSatisfiesActionForRecordType() {
-		BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
-		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
-				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
 		String action = "read";
 		String recordType = "book";
 		boolean userAuthorized = spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user,
@@ -118,9 +126,8 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void userDoesNotSatisfyActionForRecordType() {
-		BeefeaterNeverAlwaysAuthorizedSpy authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
-		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
-				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
 		String action = "read";
 		String recordType = "book";
 		boolean userAuthorized = spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user,
@@ -131,9 +138,8 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void checkUserSatisfiesActionForRecordType() {
-		BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
-		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
-				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
 		String action = "read";
 		String recordType = "book";
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, action, recordType);
@@ -143,9 +149,8 @@ public class SpiderAuthorizatorTest {
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void checkUserDoesNotSatisfyActionForRecordType() {
-		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
-				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider,
-						new BeefeaterNeverAlwaysAuthorizedSpy());
+		authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
 		String action = "read";
 		String recordType = "book";
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, action, recordType);
@@ -154,9 +159,8 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void userSatisfiesActionForRecord() {
-		BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
-		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
-				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
 		String action = "read";
 		DataGroup record = DataCreator
 				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",
@@ -175,9 +179,8 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void userDoesNotSatisfyActionForRecord() {
-		BeefeaterNeverAlwaysAuthorizedSpy authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
-		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
-				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
 		String action = "read";
 		DataGroup record = DataCreator
 				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",
@@ -191,9 +194,8 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void checkUserSatisfiesActionForRecord() {
-		BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
-		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
-				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
 		String action = "read";
 		DataGroup record = DataCreator
 				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",
@@ -207,9 +209,8 @@ public class SpiderAuthorizatorTest {
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void checkUserDoesNotSatisfiesActionForRecord() {
-		BeefeaterNeverAlwaysAuthorizedSpy authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
-		SpiderAuthorizator spiderAuthorizator = SpiderAuthorizatorImp
-				.usingSpiderDependencyProviderAndAuthorizator(dependencyProvider, authorizator);
+		authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
 		String action = "read";
 		DataGroup record = DataCreator
 				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",

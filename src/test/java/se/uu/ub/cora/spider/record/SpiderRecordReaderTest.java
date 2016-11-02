@@ -20,7 +20,6 @@
 package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.Assert;
@@ -41,9 +40,6 @@ import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
@@ -58,6 +54,7 @@ public class SpiderRecordReaderTest {
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private SpiderRecordReader recordReader;
+	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -74,10 +71,10 @@ public class SpiderRecordReaderTest {
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.keyCalculator = keyCalculator;
-		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
-				.usingDependencyProvider(dependencyProvider);
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		recordReader = SpiderRecordReaderImp.usingDependencyProvider(dependencyProvider);
+		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
+
+		recordReader = SpiderRecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
@@ -85,6 +82,15 @@ public class SpiderRecordReaderTest {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
 		recordReader.readRecord("dummyNonAuthenticatedToken", "spyType", "spyId");
+	}
+
+	@Test
+	public void testRecordEnhancerCalled() {
+		recordReader.readRecord("someToken78678567", "place", "place:0001");
+		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
+		assertEquals(dataGroupToRecordEnhancer.recordType, "place");
+		assertEquals(dataGroupToRecordEnhancer.dataGroup.extractGroup("recordInfo")
+				.extractAtomicValue("id"), "place:0001");
 	}
 
 	@Test
@@ -159,86 +165,6 @@ public class SpiderRecordReaderTest {
 		recordReader.readIncomingLinks("someToken78678567", "abstract", "place:0001");
 	}
 
-	@Test
-	public void testActionsOnReadRecordWithIncomingLink() {
-		SpiderDataRecord record = recordReader.readRecord("someToken78678567", "place",
-				"place:0001");
-		assertEquals(record.getActions().size(), 3);
-		assertTrue(record.getActions().contains(Action.READ));
-		assertTrue(record.getActions().contains(Action.UPDATE));
-		assertTrue(record.getActions().contains(Action.READ_INCOMING_LINKS));
-		assertFalse(record.getActions().contains(Action.DELETE));
-	}
-
-	@Test
-	public void testActionsOnReadRecordWithNoIncomingLink() {
-		SpiderDataRecord record = recordReader.readRecord("someToken78678567", "place",
-				"place:0002");
-		assertEquals(record.getActions().size(), 3);
-		assertTrue(record.getActions().contains(Action.DELETE));
-		assertFalse(record.getActions().contains(Action.READ_INCOMING_LINKS));
-	}
-
-	@Test
-	public void testActionsOnReadRecordType() {
-		SpiderDataRecord record = recordReader.readRecord("someToken78678567", "recordType",
-				"recordType");
-		assertEquals(record.getActions().size(), 6);
-		assertTrue(record.getActions().contains(Action.READ));
-		assertTrue(record.getActions().contains(Action.UPDATE));
-		assertTrue(record.getActions().contains(Action.DELETE));
-
-		assertTrue(record.getActions().contains(Action.CREATE));
-		assertTrue(record.getActions().contains(Action.LIST));
-		assertTrue(record.getActions().contains(Action.SEARCH));
-	}
-
-	@Test
-	public void testActionsOnReadRecordNoIncomingLinks() {
-		SpiderDataRecord record = recordReader.readRecord("someToken78678567", "place",
-				"place:0002");
-		assertEquals(record.getActions().size(), 3);
-		assertFalse(record.getActions().contains(Action.READ_INCOMING_LINKS));
-	}
-
-	@Test
-	public void testActionsOnReadAbstractRecordTypeNoCreate() {
-		SpiderDataRecord record = recordReader.readRecord("someToken78678567", "recordType",
-				"abstractAuthority");
-		assertEquals(record.getActions().size(), 5);
-	}
-
-	@Test
-	public void testActionsOnReadRecordTypeBinary() {
-		SpiderDataRecord record = recordReader.readRecord("someToken78678567", "recordType",
-				"binary");
-		assertEquals(record.getActions().size(), 5);
-		assertTrue(record.getActions().contains(Action.READ));
-		assertTrue(record.getActions().contains(Action.UPDATE));
-		assertTrue(record.getActions().contains(Action.DELETE));
-
-		assertTrue(record.getActions().contains(Action.LIST));
-		assertTrue(record.getActions().contains(Action.SEARCH));
-		assertFalse(record.getActions().contains(Action.UPLOAD));
-
-	}
-
-	@Test
-	public void testActionsOnReadRecordTypeImage() {
-		SpiderDataRecord record = recordReader.readRecord("someToken78678567", "recordType",
-				"image");
-		assertEquals(record.getActions().size(), 6);
-		assertTrue(record.getActions().contains(Action.READ));
-		assertTrue(record.getActions().contains(Action.UPDATE));
-		assertTrue(record.getActions().contains(Action.DELETE));
-		assertTrue(record.getActions().contains(Action.CREATE));
-
-		assertTrue(record.getActions().contains(Action.LIST));
-		assertTrue(record.getActions().contains(Action.SEARCH));
-		assertFalse(record.getActions().contains(Action.UPLOAD));
-
-	}
-
 	@Test(expectedExceptions = MisuseException.class)
 	public void testReadRecordAbstractRecordType() {
 		recordStorage = new RecordStorageSpy();
@@ -249,60 +175,5 @@ public class SpiderRecordReaderTest {
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testReadingDataForANonExistingRecordType() {
 		recordReader.readRecord("someToken78678567", "nonExistingRecordType", "anId");
-	}
-
-	@Test
-	public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		setUpDependencyProvider();
-
-		SpiderDataRecord record = recordReader.readRecord("someToken78678567", "dataWithLinks",
-				"oneLinkTopLevel");
-
-		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
-	}
-
-	@Test
-	public void testReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		setUpDependencyProvider();
-
-		SpiderDataRecord record = recordReader.readRecord("someToken78678567", "dataWithLinks",
-				"oneLinkOneLevelDown");
-
-		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
-	}
-
-	@Test
-	public void testReadRecordWithDataResourceLinkHasReadActionTopLevel() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		setUpDependencyProvider();
-
-		SpiderDataRecord record = recordReader.readRecord("someToken78678567",
-				"dataWithResourceLinks", "oneResourceLinkTopLevel");
-
-		RecordLinkTestsAsserter.assertTopLevelResourceLinkContainsReadActionOnly(record);
-	}
-
-	@Test
-	public void testReadRecordWithDataResourceLinkHasReadActionOneLevelDown() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		setUpDependencyProvider();
-
-		SpiderDataRecord record = recordReader.readRecord("someToken78678567",
-				"dataWithResourceLinks", "oneResourceLinkOneLevelDown");
-
-		RecordLinkTestsAsserter.assertOneLevelDownResourceLinkContainsReadActionOnly(record);
-	}
-
-	@Test
-	public void testActionsOnReadImage() {
-		SpiderDataRecord record = recordReader.readRecord("someToken78678567", "image",
-				"image:0001");
-		assertEquals(record.getActions().size(), 4);
-		assertTrue(record.getActions().contains(Action.READ));
-		assertTrue(record.getActions().contains(Action.UPDATE));
-		assertTrue(record.getActions().contains(Action.DELETE));
-		assertTrue(record.getActions().contains(Action.UPLOAD));
 	}
 }

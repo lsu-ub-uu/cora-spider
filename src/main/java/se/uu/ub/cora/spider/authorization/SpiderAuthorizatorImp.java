@@ -29,26 +29,26 @@ import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.role.RulesProvider;
 
 public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private User user;
 	private Authorizator authorizator;
-	private RecordStorage recordStorage;
 	private PermissionRuleCalculator ruleCalculator;
+	private RulesProvider rulesProvider;
 
 	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider,
-			Authorizator authorizator) {
+			Authorizator authorizator, RulesProvider rulesProvider) {
 		this.authorizator = authorizator;
-		recordStorage = dependencyProvider.getRecordStorage();
+		this.rulesProvider = rulesProvider;
 		ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
 	}
 
-	public static SpiderAuthorizatorImp usingSpiderDependencyProviderAndAuthorizator(
-			SpiderDependencyProvider dependencyProvider, Authorizator authorizator) {
-		return new SpiderAuthorizatorImp(dependencyProvider, authorizator);
+	public static SpiderAuthorizatorImp usingSpiderDependencyProviderAndAuthorizatorAndRulesProvider(
+			SpiderDependencyProvider dependencyProvider, Authorizator authorizator,
+			RulesProvider rulesProvider) {
+		return new SpiderAuthorizatorImp(dependencyProvider, authorizator, rulesProvider);
 	}
 
 	@Override
@@ -64,7 +64,6 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private List<Map<String, Set<String>>> getActiveRulesForUser() {
-		RulesProvider rulesProvider = new RulesProvider(recordStorage);
 		List<Map<String, Set<String>>> providedRules = new ArrayList<>();
 		user.roles.forEach(roleId -> providedRules.addAll(rulesProvider.getActiveRules(roleId)));
 		// THIS IS A SMALL HACK UNTIL WE HAVE RECORDRELATIONS AND CAN READ FROM

@@ -17,14 +17,25 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.role;
+package se.uu.ub.cora.spider.record;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
 
-public interface RulesProvider {
+public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 
-	List<Map<String, Set<String>>> getActiveRules(String roleId);
+	public User user;
+	public String recordType;
+	public DataGroup dataGroup;
+
+	@Override
+	public SpiderDataRecord enhance(User user, String recordType, DataGroup dataGroup) {
+		this.user = user;
+		this.recordType = recordType;
+		this.dataGroup = dataGroup;
+		return SpiderDataRecord.withSpiderDataGroup(SpiderDataGroup.fromDataGroup(dataGroup));
+	}
 
 }

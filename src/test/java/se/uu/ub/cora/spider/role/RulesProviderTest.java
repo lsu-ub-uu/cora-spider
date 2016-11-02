@@ -35,7 +35,7 @@ public class RulesProviderTest {
 	@Test
 	public void test() {
 		RecordStorage recordStorage = new RecordStorageSpy();
-		RulesProvider rulesProvider = new RulesProvider(recordStorage);
+		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
 		String roleId = "guest";
 		List<Map<String, Set<String>>> rules = rulesProvider.getActiveRules(roleId);
 		assertEquals(rules.size(), 1);
@@ -49,7 +49,7 @@ public class RulesProviderTest {
 	@Test
 	public void testInactiveRole() {
 		RecordStorage recordStorage = new RecordStorageSpy();
-		RulesProvider rulesProvider = new RulesProvider(recordStorage);
+		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
 		String roleId = "inactive";
 		List<Map<String, Set<String>>> rules = rulesProvider.getActiveRules(roleId);
 		assertEquals(rules.size(), 0);
@@ -58,7 +58,7 @@ public class RulesProviderTest {
 	@Test
 	public void testNotFoundRole() {
 		RecordStorage recordStorage = new RecordStorageSpy();
-		RulesProvider rulesProvider = new RulesProvider(recordStorage);
+		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
 		String roleId = "roleNotFoundInStorage";
 		List<Map<String, Set<String>>> rules = rulesProvider.getActiveRules(roleId);
 		assertEquals(rules.size(), 0);

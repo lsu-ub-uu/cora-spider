@@ -20,6 +20,8 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
+import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.SpiderDownloader;
 import se.uu.ub.cora.spider.record.SpiderDownloaderImp;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
@@ -50,22 +52,34 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	@Override
 	public SpiderRecordReader factorSpiderRecordReader() {
-		return SpiderRecordReaderImp.usingDependencyProvider(dependencyProvider);
+		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
+				dependencyProvider);
+		return SpiderRecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
 	public SpiderRecordListReader factorSpiderRecordListReader() {
-		return SpiderRecordListReaderImp.usingDependencyProvider(dependencyProvider);
+		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
+				dependencyProvider);
+		return SpiderRecordListReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
 	public SpiderRecordCreator factorSpiderRecordCreator() {
-		return SpiderRecordCreatorImp.usingDependencyProvider(dependencyProvider);
+		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
+				dependencyProvider);
+		return SpiderRecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
 	public SpiderRecordUpdater factorSpiderRecordUpdater() {
-		return SpiderRecordUpdaterImp.usingDependencyProvider(dependencyProvider);
+		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
+				dependencyProvider);
+		return SpiderRecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override

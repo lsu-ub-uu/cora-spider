@@ -21,15 +21,10 @@
 package se.uu.ub.cora.spider.record;
 
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -42,14 +37,11 @@ import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 public final class SpiderDownloaderImp implements SpiderDownloader {
 	private static final String RESOURCE_INFO = "resourceInfo";
 	private static final String DOWNLOAD = "download";
-	private String userId;
 	private String recordType;
-	private String recordId;
 	private String resourceName;
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private RecordStorage recordStorage;
-	private PermissionRuleCalculator keyCalculator;
 	private StreamStorage streamStorage;
 	private SpiderDataGroup spiderRecordRead;
 	private String authToken;
@@ -59,7 +51,6 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 		this.authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
-		keyCalculator = dependencyProvider.getPermissionRuleCalculator();
 		streamStorage = dependencyProvider.getStreamStorage();
 	}
 
@@ -73,7 +64,6 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 			String resourceName) {
 		this.authToken = authToken;
 		this.recordType = type;
-		this.recordId = id;
 		this.resourceName = resourceName;
 
 		tryToGetActiveUser();
@@ -84,7 +74,6 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 
 		DataGroup recordRead = recordStorage.read(type, id);
 		spiderRecordRead = SpiderDataGroup.fromDataGroup(recordRead);
-		// checkUserIsAuthorisedToDownloadStream(recordRead);
 
 		String streamId = tryToExtractStreamIdFromResource(resourceName);
 
@@ -147,33 +136,6 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 	private boolean recordTypeIsChildOfBinary(DataGroup recordTypeDefinition) {
 		return !recordTypeDefinition.containsChildWithNameInData("parentId") || !"binary"
 				.equals(recordTypeDefinition.getFirstAtomicValueWithNameInData("parentId"));
-	}
-
-	private void checkUserIsAuthorisedToDownloadStream(DataGroup recordRead) {
-		if (isNotAuthorizedToDownload(recordRead)) {
-			throw new AuthorizationException("User:" + userId + " is not authorized to "
-					+ "download" + "for record:" + recordId + " of type:" + recordType);
-		}
-		if (isNotAuthorizedToResource(recordRead)) {
-			throw new AuthorizationException("User:" + userId + " is not authorized to "
-					+ ("download resource " + resourceName) + "for record:" + recordId + " of type:"
-					+ recordType);
-		}
-
-	}
-
-	private boolean isNotAuthorizedToDownload(DataGroup recordRead) {
-		return isNotAuthorizedTo("download", recordRead);
-	}
-
-	private boolean isNotAuthorizedTo(String action, DataGroup recordRead) {
-		List<Map<String, Set<String>>> requiredRules = keyCalculator
-				.calculateRulesForActionAndRecordTypeAndData(action, recordType, recordRead);
-		return !spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules);
-	}
-
-	private boolean isNotAuthorizedToResource(DataGroup recordRead) {
-		return isNotAuthorizedTo(resourceName.toUpperCase() + "_RESOURCE", recordRead);
 	}
 
 	private String extractDataDividerFromData() {

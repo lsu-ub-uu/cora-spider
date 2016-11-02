@@ -46,8 +46,11 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private String authToken;
 	private User user;
 	private String userId;
+	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 
-	private SpiderRecordUpdaterImp(SpiderDependencyProvider dependencyProvider) {
+	private SpiderRecordUpdaterImp(SpiderDependencyProvider dependencyProvider,
+			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.dataValidator = dependencyProvider.getDataValidator();
@@ -56,9 +59,10 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
-	public static SpiderRecordUpdaterImp usingDependencyProvider(
-			SpiderDependencyProvider dependencyProvider) {
-		return new SpiderRecordUpdaterImp(dependencyProvider);
+	public static SpiderRecordUpdaterImp usingDependencyProviderAndDataGroupToRecordEnhancer(
+			SpiderDependencyProvider dependencyProvider,
+			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		return new SpiderRecordUpdaterImp(dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
@@ -101,10 +105,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		recordStorage.update(recordType, recordId, spiderDataGroup.toDataGroup(), collectedLinks,
 				dataDivider);
 
-		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
-				.fromDataGroup(topLevelDataGroup);
-
-		return createDataRecordContainingDataGroup(spiderDataGroupWithActions);
+		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);
 	}
 
 	private User tryToGetActiveUser() {

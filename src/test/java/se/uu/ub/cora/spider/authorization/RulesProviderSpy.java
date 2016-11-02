@@ -17,14 +17,31 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.role;
+package se.uu.ub.cora.spider.authorization;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public interface RulesProvider {
+import se.uu.ub.cora.spider.role.RulesProvider;
 
-	List<Map<String, Set<String>>> getActiveRules(String roleId);
+public class RulesProviderSpy implements RulesProvider {
+
+	public String roleId;
+
+	@Override
+	public List<Map<String, Set<String>>> getActiveRules(String roleId) {
+		this.roleId = roleId;
+		ArrayList<Map<String, Set<String>>> rules = new ArrayList<>();
+		HashMap<String, Set<String>> rule = new HashMap<>();
+		rules.add(rule);
+		HashSet<String> rulePart = new HashSet<>();
+		rule.put("action", rulePart);
+		rulePart.add("system.read");
+		return rules;
+	}
 
 }

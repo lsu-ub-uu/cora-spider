@@ -70,14 +70,7 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 	}
 
 	private String extractUserId() {
-		if (null == record) {
-			System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-			return "missing user or recordInfo";
-		}
-		if (record.containsChildWithNameInData("recordInfo")) {
-			return record.extractGroup("recordInfo").extractAtomicValue("createdBy");
-		}
-		return "missing user or recordInfo";
+		return record.extractGroup("recordInfo").extractAtomicValue("createdBy");
 	}
 
 }

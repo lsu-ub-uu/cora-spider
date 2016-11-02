@@ -34,24 +34,26 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public final class SpiderRecordReaderImp extends SpiderRecordHandler implements SpiderRecordReader {
 	private static final String READ = "read";
+	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private User user;
 	private String authToken;
 	private RecordTypeHandler recordTypeHandler;
-	private SpiderDependencyProvider dependencyProvider;
 
-	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider) {
+	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider,
+			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 
-		this.dependencyProvider = dependencyProvider;
+		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 	}
 
-	public static SpiderRecordReaderImp usingDependencyProvider(
-			SpiderDependencyProvider dependencyProvider) {
-		return new SpiderRecordReaderImp(dependencyProvider);
+	public static SpiderRecordReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
+			SpiderDependencyProvider dependencyProvider,
+			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		return new SpiderRecordReaderImp(dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
@@ -72,11 +74,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		// filter data
 		// TODO: filter hidden data if user does not have right to see it
 
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(recordRead);
-		DataGroupToRecordEnhancer recordEnhancer = new DataGroupToRecordEnhancer(dependencyProvider,
-				user, recordType, recordRead);
-		return recordEnhancer.enhance();
-		// return createDataRecordContainingDataGroup(spiderDataGroup);
+		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
 	}
 
 	private void tryToGetActiveUser() {

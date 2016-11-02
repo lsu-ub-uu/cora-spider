@@ -20,41 +20,37 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
-public class SpiderRecordListReaderImp extends SpiderRecordHandler
+public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		implements SpiderRecordListReader {
 	private static final String LIST = "list";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
-	private PermissionRuleCalculator ruleCalculator;
 	private SpiderDataList readRecordList;
 	private String authToken;
 	private User user;
+	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 
-	public SpiderRecordListReaderImp(SpiderDependencyProvider dependencyProvider) {
+	private SpiderRecordListReaderImp(SpiderDependencyProvider dependencyProvider,
+			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
 	}
 
-	public static SpiderRecordListReaderImp usingDependencyProvider(
-			SpiderDependencyProvider dependencyProvider) {
-		return new SpiderRecordListReaderImp(dependencyProvider);
+	public static SpiderRecordListReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
+			SpiderDependencyProvider dependencyProvider,
+			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		return new SpiderRecordListReaderImp(dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
@@ -64,7 +60,6 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 		// TODO: we need to check each record
-		// checkUserIsAuthorizedToReadListRecordType(recordType);
 		readRecordList = SpiderDataList.withContainDataOfType(recordType);
 
 		readRecordsOfType(recordType);
@@ -79,17 +74,6 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, LIST, recordType);
-	}
-
-	private void checkUserIsAuthorizedToReadListRecordType(String recordType) {
-		String action = "list";
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator
-				.calculateRulesForActionAndRecordTypeAndData(action, recordType, null);
-		if (!spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules)) {
-			// if (!authorizator.isAuthorized(user, recordCalculateKeys)) {
-			throw new AuthorizationException("User:" + user.id
-					+ " is not authorized to read records" + "of type:" + recordType);
-		}
 	}
 
 	private void readRecordsOfType(String recordType) {
@@ -128,9 +112,8 @@ public class SpiderRecordListReaderImp extends SpiderRecordHandler
 		Collection<DataGroup> dataGroupList = recordStorage.readList(recordType);
 		this.recordType = recordType;
 		for (DataGroup dataGroup : dataGroupList) {
-			SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
-			SpiderDataRecord spiderDataRecord = createDataRecordContainingDataGroup(
-					spiderDataGroup);
+			SpiderDataRecord spiderDataRecord = dataGroupToRecordEnhancer.enhance(user, recordType,
+					dataGroup);
 			readRecordList.addData(spiderDataRecord);
 		}
 	}

@@ -49,8 +49,11 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private String authToken;
 	private User user;
 	private RecordTypeHandler recordTypeHandler;
+	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 
-	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider) {
+	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider,
+			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.dataValidator = dependencyProvider.getDataValidator();
@@ -60,9 +63,10 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
-	public static SpiderRecordCreatorImp usingDependencyProvider(
-			SpiderDependencyProvider dependencyProvider) {
-		return new SpiderRecordCreatorImp(dependencyProvider);
+	public static SpiderRecordCreatorImp usingDependencyProviderAndDataGroupToRecordEnhancer(
+			SpiderDependencyProvider dependencyProvider,
+			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		return new SpiderRecordCreatorImp(dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
@@ -105,7 +109,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 		useExtendedFunctionalityBeforeReturn(recordType, spiderDataGroupWithActions);
 
-		return createDataRecordContainingDataGroup(spiderDataGroupWithActions);
+		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);
 	}
 
 	private void tryToGetActiveUser() {
@@ -208,12 +212,4 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, CREATE,
 				recordType, record);
 	}
-
-	@Override
-	protected boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {
-		// a record that is being created, can not yet be linked from any other
-		// record
-		return false;
-	}
-
 }

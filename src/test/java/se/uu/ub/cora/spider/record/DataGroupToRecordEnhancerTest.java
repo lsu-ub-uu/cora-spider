@@ -48,6 +48,7 @@ public class DataGroupToRecordEnhancerTest {
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private User user;
+	private DataGroupToRecordEnhancer enhancer;
 
 	@BeforeMethod
 	public void setUp() {
@@ -65,6 +66,7 @@ public class DataGroupToRecordEnhancerTest {
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.keyCalculator = keyCalculator;
+		enhancer = new DataGroupToRecordEnhancerImp(dependencyProvider);
 	}
 
 	@Test
@@ -72,9 +74,7 @@ public class DataGroupToRecordEnhancerTest {
 		User user = new User("987654321");
 		String recordType = "place";
 		DataGroup dataGroup = recordStorage.read("place", "place:0001");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				recordType, dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 
 		assertEquals(record.getActions().size(), 3);
 		assertTrue(record.getActions().contains(Action.READ));
@@ -86,9 +86,8 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testAuthorizedToDeleteAndNoIncomingLink() {
 		DataGroup dataGroup = recordStorage.read("place", "place:0002");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				"place", dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		String recordType = "place";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		assertEquals(record.getActions().size(), 3);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
@@ -103,18 +102,16 @@ public class DataGroupToRecordEnhancerTest {
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = recordStorage.read("place", "place:0002");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				"place", dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		String recordType = "place";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		assertEquals(record.getActions().size(), 0);
 	}
 
 	@Test
 	public void testAuthorizedToDeleteAndIncomingLink() {
 		DataGroup dataGroup = recordStorage.read("place", "place:0001");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				"place", dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		String recordType = "place";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		assertEquals(record.getActions().size(), 3);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
@@ -130,9 +127,7 @@ public class DataGroupToRecordEnhancerTest {
 
 		String recordType = "place";
 		DataGroup dataGroup = recordStorage.read("place", "place:0001");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				recordType, dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 
 		assertEquals(record.getActions().size(), 1);
 		assertTrue(record.getActions().contains(Action.READ_INCOMING_LINKS));
@@ -141,9 +136,8 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testActionsOnReadRecordTypeBinary() {
 		DataGroup dataGroup = recordStorage.read("recordType", "binary");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				"recordType", dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		String recordType = "recordType";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		assertEquals(record.getActions().size(), 5);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
@@ -158,9 +152,8 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testActionsOnReadRecordTypeImage() {
 		DataGroup dataGroup = recordStorage.read("recordType", "image");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				"recordType", dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		String recordType = "recordType";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		assertEquals(record.getActions().size(), 6);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
@@ -176,9 +169,8 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testAuthorizedOnReadImage() {
 		DataGroup dataGroup = recordStorage.read("image", "image:0001");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				"image", dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		String recordType = "image";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		assertEquals(record.getActions().size(), 4);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
@@ -191,18 +183,16 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator = new NeverAuthorisedStub();
 		setUpDependencyProvider();
 		DataGroup dataGroup = recordStorage.read("image", "image:0001");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				"image", dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		String recordType = "image";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		assertEquals(record.getActions().size(), 0);
 	}
 
 	@Test
 	public void testAuthorizedOnReadRecordType() {
 		DataGroup dataGroup = recordStorage.read("recordType", "recordType");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				"recordType", dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		String recordType = "recordType";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		assertEquals(record.getActions().size(), 6);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
@@ -218,9 +208,8 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator = new NeverAuthorisedStub();
 		setUpDependencyProvider();
 		DataGroup dataGroup = recordStorage.read("recordType", "recordType");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				"recordType", dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		String recordType = "recordType";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		assertEquals(record.getActions().size(), 0);
 	}
 
@@ -229,9 +218,8 @@ public class DataGroupToRecordEnhancerTest {
 		recordStorage = new RecordLinkTestsRecordStorage();
 		setUpDependencyProvider();
 		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkTopLevel");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				"dataWithLinks", dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		String recordType = "dataWithLinks";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
 	}
 
@@ -241,9 +229,8 @@ public class DataGroupToRecordEnhancerTest {
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkOneLevelDown");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				"dataWithLinks", dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		String recordType = "dataWithLinks";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 
 		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}
@@ -254,9 +241,8 @@ public class DataGroupToRecordEnhancerTest {
 		setUpDependencyProvider();
 		DataGroup dataGroup = recordStorage.read("dataWithResourceLinks",
 				"oneResourceLinkTopLevel");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				"dataWithResourceLinks", dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		String recordType = "dataWithResourceLinks";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 
 		RecordLinkTestsAsserter.assertTopLevelResourceLinkContainsReadActionOnly(record);
 	}
@@ -268,9 +254,8 @@ public class DataGroupToRecordEnhancerTest {
 
 		DataGroup dataGroup = recordStorage.read("dataWithResourceLinks",
 				"oneResourceLinkOneLevelDown");
-		DataGroupToRecordEnhancer enhancer = new DataGroupToRecordEnhancer(dependencyProvider, user,
-				"dataWithResourceLinks", dataGroup);
-		SpiderDataRecord record = enhancer.enhance();
+		String recordType = "dataWithResourceLinks";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 
 		RecordLinkTestsAsserter.assertOneLevelDownResourceLinkContainsReadActionOnly(record);
 	}
