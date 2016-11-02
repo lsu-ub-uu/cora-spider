@@ -53,10 +53,10 @@ import se.uu.ub.cora.spider.record.storage.TimeStampIdGenerator;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
-import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.testdata.SpiderDataCreator;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
@@ -126,7 +126,6 @@ public class SpiderUploaderTest {
 		assertTrue(((RecordStorageSpy) recordStorage).readWasCalled);
 
 		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorizator).authorizedWasCalled);
-		assertTrue(((RuleCalculatorSpy) keyCalculator).calculateKeysForDataWasCalled);
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)

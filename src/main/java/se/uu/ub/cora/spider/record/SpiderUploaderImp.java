@@ -20,15 +20,10 @@
 package se.uu.ub.cora.spider.record;
 
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
@@ -47,11 +42,9 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	private SpiderAuthorizator spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
 	private RecordStorage recordStorage;
-	private PermissionRuleCalculator ruleCalculator;
 	private StreamStorage streamStorage;
 	private String userId;
 	private String recordType;
-	private String recordId;
 	private SpiderDataGroup spiderRecordRead;
 	private String streamId;
 	private String authToken;
@@ -61,7 +54,6 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
-		ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
 		idGenerator = dependencyProvider.getIdGenerator();
 		streamStorage = dependencyProvider.getStreamStorage();
 	}
@@ -76,8 +68,9 @@ public final class SpiderUploaderImp implements SpiderUploader {
 			String fileName) {
 		this.authToken = authToken;
 		this.recordType = type;
-		this.recordId = id;
 		tryToGetActiveUser();
+		checkUserIsAuthorizedForActionOnRecordType();
+
 		checkRecordTypeIsChildOfBinary();
 
 		DataGroup recordRead = recordStorage.read(type, id);
@@ -100,6 +93,10 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		user = authenticator.tryToGetActiveUser(authToken);
 	}
 
+	private void checkUserIsAuthorizedForActionOnRecordType() {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "upload", recordType);
+	}
+
 	private void checkRecordTypeIsChildOfBinary() {
 		DataGroup recordTypeDefinition = getRecordTypeDefinition();
 		if (recordTypeIsChildOfBinary(recordTypeDefinition)) {
@@ -118,18 +115,8 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	}
 
 	private void checkUserIsAuthorisedToUploadData(DataGroup recordRead) {
-		if (isNotAuthorizedToUpload(recordRead)) {
-			throw new AuthorizationException(
-					"User:" + userId + " is not authorized to upload for record:" + recordId
-							+ " of type:" + recordType);
-		}
-	}
-
-	private boolean isNotAuthorizedToUpload(DataGroup recordRead) {
-		String action = "UPLOAD";
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator.calculateRulesForActionAndRecordTypeAndData(action,
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, "upload",
 				recordType, recordRead);
-		return !spiderAuthorizator.userSatisfiesRequiredRules(user, requiredRules);
 	}
 
 	private void checkStreamIsPresent(InputStream inputStream) {
