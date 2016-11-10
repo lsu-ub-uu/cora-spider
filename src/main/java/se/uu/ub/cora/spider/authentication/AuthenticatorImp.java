@@ -44,6 +44,11 @@ public class AuthenticatorImp implements Authenticator {
 			return userPicker.pickUser(userInfo);
 		}
 
+		if ("fitnesseToken".equals(authToken)) {
+			UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("fitnesse", SYSTEM);
+			return userPicker.pickUser(userInfo);
+		}
+
 		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("guest", SYSTEM);
 		return userPicker.pickUser(userInfo);
 	}

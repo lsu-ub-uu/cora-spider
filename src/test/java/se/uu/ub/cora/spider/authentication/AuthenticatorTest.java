@@ -22,54 +22,72 @@ package se.uu.ub.cora.spider.authentication;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 
 public class AuthenticatorTest {
+	private UserPickerSpy userPicker;
+	private Authenticator authenticator;
+	private User logedInUser;
+
+	@BeforeMethod
+	public void setUp() {
+		userPicker = new UserPickerSpy();
+		authenticator = new AuthenticatorImp(userPicker);
+	}
+
 	@Test
 	public void testNoToken() {
-		UserPickerSpy userPicker = new UserPickerSpy();
-		Authenticator authenticator = new AuthenticatorImp(userPicker);
-		String authToken = null;
-		User logedInUser = authenticator.tryToGetActiveUser(authToken);
+		logedInUser = authenticator.tryToGetActiveUser(null);
+		assertPluggedInUserPickerWasUsed();
+		assertUsedUserInfoLoginAndDomain("guest", "system");
+		assertReturnedUserIsFromUserPicker();
+	}
+
+	private void assertPluggedInUserPickerWasUsed() {
 		assertTrue(userPicker.userPickerWasCalled);
+	}
+
+	private void assertUsedUserInfoLoginAndDomain(String expectedLoginId,
+			String expectedLoginDomain) {
 		UserInfo usedUserInfo = userPicker.usedUserInfo;
-		assertEquals(usedUserInfo.idFromLogin, "guest");
-		assertEquals(usedUserInfo.domainFromLogin, "system");
-		assertEquals(logedInUser.id, "12345");
+		assertEquals(usedUserInfo.idFromLogin, expectedLoginId);
+		assertEquals(usedUserInfo.domainFromLogin, expectedLoginDomain);
+	}
+
+	private void assertReturnedUserIsFromUserPicker() {
+		assertEquals(logedInUser, userPicker.returnedUser);
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testNonAuthenticatedUser() {
-		UserPickerSpy userPicker = new UserPickerSpy();
-		Authenticator authenticator = new AuthenticatorImp(userPicker);
-		String authToken = "dummyNonAuthenticatedToken";
-		authenticator.tryToGetActiveUser(authToken);
+		authenticator.tryToGetActiveUser("dummyNonAuthenticatedToken");
 	}
 
 	@Test
 	public void testSystemAdmin() {
-		UserPickerSpy userPicker = new UserPickerSpy();
-		Authenticator authenticator = new AuthenticatorImp(userPicker);
-		String authToken = "dummySystemAdminAuthenticatedToken";
-		authenticator.tryToGetActiveUser(authToken);
-		assertTrue(userPicker.userPickerWasCalled);
-		UserInfo usedUserInfo = userPicker.usedUserInfo;
-		assertEquals(usedUserInfo.idFromLogin, "systemAdmin");
-		assertEquals(usedUserInfo.domainFromLogin, "system");
+		logedInUser = authenticator.tryToGetActiveUser("dummySystemAdminAuthenticatedToken");
+		assertPluggedInUserPickerWasUsed();
+		assertUsedUserInfoLoginAndDomain("systemAdmin", "system");
+		assertReturnedUserIsFromUserPicker();
 	}
 
 	@Test
 	public void testUser() {
-		UserPickerSpy userPicker = new UserPickerSpy();
-		Authenticator authenticator = new AuthenticatorImp(userPicker);
-		String authToken = "dummyUserAuthenticatedToken";
-		authenticator.tryToGetActiveUser(authToken);
-		assertTrue(userPicker.userPickerWasCalled);
-		UserInfo usedUserInfo = userPicker.usedUserInfo;
-		assertEquals(usedUserInfo.idFromLogin, "user");
-		assertEquals(usedUserInfo.domainFromLogin, "system");
+		logedInUser = authenticator.tryToGetActiveUser("dummyUserAuthenticatedToken");
+		assertPluggedInUserPickerWasUsed();
+		assertUsedUserInfoLoginAndDomain("user", "system");
+		assertReturnedUserIsFromUserPicker();
+	}
+
+	@Test
+	public void testFitnesseUser() {
+		logedInUser = authenticator.tryToGetActiveUser("fitnesseToken");
+		assertPluggedInUserPickerWasUsed();
+		assertUsedUserInfoLoginAndDomain("fitnesse", "system");
+		assertReturnedUserIsFromUserPicker();
 	}
 
 }

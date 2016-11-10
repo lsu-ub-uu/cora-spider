@@ -25,6 +25,7 @@ public class UserPickerSpy implements UserPicker {
 
 	public boolean userPickerWasCalled = false;
 	public UserInfo usedUserInfo = null;
+	public User returnedUser = null;
 
 	@Override
 	public User pickUser(UserInfo userInfo) {
@@ -33,6 +34,7 @@ public class UserPickerSpy implements UserPicker {
 		User user = new User("12345");
 		user.loginId = userInfo.idFromLogin;
 		user.loginDomain = userInfo.domainFromLogin;
+		returnedUser = user;
 		return user;
 	}
 
