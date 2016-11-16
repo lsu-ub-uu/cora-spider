@@ -69,7 +69,7 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 	}
 
 	private String extractUserId() {
-		return record.extractGroup("recordInfo").extractAtomicValue("createdBy");
+		return record.getFirstGroupWithNameInData("recordInfo").getFirstAtomicValueWithNameInData("createdBy");
 	}
 
 }

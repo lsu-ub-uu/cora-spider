@@ -42,7 +42,7 @@ public class AuthenticatorTest {
 	public void testNoToken() {
 		logedInUser = authenticator.tryToGetActiveUser(null);
 		assertPluggedInUserPickerWasUsed();
-		assertUsedUserInfoLoginAndDomain("guest", "system");
+		assertUsedUserInfoLoginAndDomain("12345", "system");
 		assertReturnedUserIsFromUserPicker();
 	}
 
@@ -70,7 +70,7 @@ public class AuthenticatorTest {
 	public void testSystemAdmin() {
 		logedInUser = authenticator.tryToGetActiveUser("dummySystemAdminAuthenticatedToken");
 		assertPluggedInUserPickerWasUsed();
-		assertUsedUserInfoLoginAndDomain("systemAdmin", "system");
+		assertUsedUserInfoLoginAndDomain("99999", "system");
 		assertReturnedUserIsFromUserPicker();
 	}
 
@@ -84,9 +84,17 @@ public class AuthenticatorTest {
 
 	@Test
 	public void testFitnesseUser() {
-		logedInUser = authenticator.tryToGetActiveUser("fitnesseToken");
+		logedInUser = authenticator.tryToGetActiveUser("fitnesseUserToken");
 		assertPluggedInUserPickerWasUsed();
-		assertUsedUserInfoLoginAndDomain("fitnesse", "system");
+		assertUsedUserInfoLoginAndDomain("121212", "system");
+		assertReturnedUserIsFromUserPicker();
+	}
+
+	@Test
+	public void testFitnesseAdmin() {
+		logedInUser = authenticator.tryToGetActiveUser("fitnesseAdminToken");
+		assertPluggedInUserPickerWasUsed();
+		assertUsedUserInfoLoginAndDomain("131313", "system");
 		assertReturnedUserIsFromUserPicker();
 	}
 

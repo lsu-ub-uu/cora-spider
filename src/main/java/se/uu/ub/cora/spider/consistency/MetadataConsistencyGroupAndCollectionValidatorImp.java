@@ -86,7 +86,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 
 	protected String getNameInDataFromChildReference(DataElement childReference) {
 		DataGroup childReferenceGroup = (DataGroup) childReference;
-		String refId = childReferenceGroup.extractAtomicValue("ref");
+		String refId = childReferenceGroup.getFirstAtomicValueWithNameInData("ref");
 		DataGroup childDataGroup = findChildOfUnknownMetadataType(refId);
 
 		DataAtomic nameInData = (DataAtomic) childDataGroup
@@ -190,12 +190,12 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 	private DataGroup getItemReferences() {
 		DataGroup refCollection = (DataGroup) recordAsDataGroup
 				.getFirstChildWithNameInData("refCollection");
-		String refCollectionId = refCollection.extractAtomicValue(LINKED_RECORD_ID);
+		String refCollectionId = refCollection.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		return readItemCollectionAndExtractCollectionItemReferences(refCollectionId);
 	}
 
 	private DataGroup extractParentItemReferences() {
-		String refParentId = recordAsDataGroup.extractAtomicValue(REF_PARENT_ID);
+		String refParentId = recordAsDataGroup.getFirstAtomicValueWithNameInData(REF_PARENT_ID);
 		DataGroup parentCollectionVar = recordStorage.read("metadataCollectionVariable",
 				refParentId);
 		DataGroup parentRefCollection = (DataGroup) parentCollectionVar
@@ -232,7 +232,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 
 	private void possiblyValidateFinalValue() {
 		if (hasFinalValue()) {
-			String finalValue = recordAsDataGroup.extractAtomicValue("finalValue");
+			String finalValue = recordAsDataGroup.getFirstAtomicValueWithNameInData("finalValue");
 			if (!validateFinalValue(finalValue)) {
 				throw new DataException(
 						"Data is not valid: final value does not exist in collection");

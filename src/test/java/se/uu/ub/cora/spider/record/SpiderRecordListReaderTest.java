@@ -106,8 +106,8 @@ public class SpiderRecordListReaderTest {
 		recordListReader.readRecordList("someToken78678567", "place");
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
 		assertEquals(dataGroupToRecordEnhancer.recordType, "place");
-		assertEquals(dataGroupToRecordEnhancer.dataGroup.extractGroup("recordInfo")
-				.extractAtomicValue("id"), "place:0002");
+		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
+				.getFirstAtomicValueWithNameInData("id"), "place:0002");
 	}
 
 	@Test

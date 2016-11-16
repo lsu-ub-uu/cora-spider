@@ -36,20 +36,21 @@ public class AuthenticatorImp implements Authenticator {
 			throw new AuthenticationException("token not valid");
 		}
 		if ("dummySystemAdminAuthenticatedToken".equals(authToken)) {
-			UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("systemAdmin", SYSTEM);
-			return userPicker.pickUser(userInfo);
-		}
-		if ("dummyUserAuthenticatedToken".equals(authToken)) {
-			UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("user", SYSTEM);
+			UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("99999", SYSTEM);
 			return userPicker.pickUser(userInfo);
 		}
 
-		if ("fitnesseToken".equals(authToken)) {
-			UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("fitnesse", SYSTEM);
+		if ("fitnesseUserToken".equals(authToken)) {
+			UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("121212", SYSTEM);
 			return userPicker.pickUser(userInfo);
 		}
 
-		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("guest", SYSTEM);
+		if ("fitnesseAdminToken".equals(authToken)) {
+			UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("131313", SYSTEM);
+			return userPicker.pickUser(userInfo);
+		}
+
+		UserInfo userInfo = UserInfo.withLoginIdAndLoginDomain("12345", SYSTEM);
 		return userPicker.pickUser(userInfo);
 	}
 

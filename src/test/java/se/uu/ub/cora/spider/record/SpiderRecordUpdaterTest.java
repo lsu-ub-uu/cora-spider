@@ -135,8 +135,8 @@ public class SpiderRecordUpdaterTest {
 		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", spiderDataGroup);
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
 		assertEquals(dataGroupToRecordEnhancer.recordType, "spyType");
-		assertEquals(dataGroupToRecordEnhancer.dataGroup.extractGroup("recordInfo")
-				.extractAtomicValue("id"), "spyId");
+		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
+				.getFirstAtomicValueWithNameInData("id"), "spyId");
 	}
 
 	@Test

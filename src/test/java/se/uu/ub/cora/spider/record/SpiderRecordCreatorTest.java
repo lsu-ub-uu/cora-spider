@@ -144,8 +144,8 @@ public class SpiderRecordCreatorTest {
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", spiderDataGroup);
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
 		assertEquals(dataGroupToRecordEnhancer.recordType, "spyType");
-		assertEquals(dataGroupToRecordEnhancer.dataGroup.extractGroup("recordInfo")
-				.extractAtomicValue("id"), "1");
+		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
+				.getFirstAtomicValueWithNameInData("id"), "1");
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)

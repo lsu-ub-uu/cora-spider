@@ -58,7 +58,7 @@ public class RulesProviderImp implements RulesProvider {
 	}
 
 	private boolean roleIsInactive(DataGroup readRole) {
-		return !"active".equals(readRole.extractAtomicValue("activeStatus"));
+		return !"active".equals(readRole.getFirstAtomicValueWithNameInData("activeStatus"));
 	}
 
 	private List<Map<String, Set<String>>> getActiveRulesForRole(DataGroup readRole) {
@@ -73,9 +73,9 @@ public class RulesProviderImp implements RulesProvider {
 
 	private void addRuleToListOfRules(DataElement dataElementRule,
 			List<Map<String, Set<String>>> listOfRules) {
-		String linkedRecordId = ((DataGroup) dataElementRule).extractAtomicValue("linkedRecordId");
+		String linkedRecordId = ((DataGroup) dataElementRule).getFirstAtomicValueWithNameInData("linkedRecordId");
 		DataGroup readRule = recordStorage.read("permissionRule", linkedRecordId);
-		if ("active".equals(readRule.extractAtomicValue("activeStatus"))) {
+		if ("active".equals(readRule.getFirstAtomicValueWithNameInData("activeStatus"))) {
 
 			List<DataElement> children = readRule.getChildren();
 			Stream<DataElement> permissionRuleParts = children.stream()
