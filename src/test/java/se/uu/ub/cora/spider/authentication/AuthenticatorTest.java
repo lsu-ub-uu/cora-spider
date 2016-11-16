@@ -75,14 +75,6 @@ public class AuthenticatorTest {
 	}
 
 	@Test
-	public void testUser() {
-		logedInUser = authenticator.tryToGetActiveUser("dummyUserAuthenticatedToken");
-		assertPluggedInUserPickerWasUsed();
-		assertUsedUserInfoLoginAndDomain("user", "system");
-		assertReturnedUserIsFromUserPicker();
-	}
-
-	@Test
 	public void testFitnesseUser() {
 		logedInUser = authenticator.tryToGetActiveUser("fitnesseUserToken");
 		assertPluggedInUserPickerWasUsed();
