@@ -5,6 +5,8 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
+import java.util.Map;
+
 import static org.testng.Assert.*;
 
 public class SpiderDataRecordLinkTest {
@@ -38,6 +40,16 @@ public class SpiderDataRecordLinkTest {
         assertEquals(spiderRecordLink.getRepeatId(), "hugh");
     }
 
+    @Test
+    public void testAddAttribute() {
+        spiderRecordLink = SpiderDataRecordLink.withNameInData("nameInData");
+        spiderRecordLink.addAttributeByIdWithValue("someId", "someValue");
+
+        Map<String, String> attributes = spiderRecordLink.getAttributes();
+        Map.Entry<String, String> entry = attributes.entrySet().iterator().next();
+        assertEquals(entry.getKey(), "someId");
+        assertEquals(entry.getValue(), "someValue");
+    }
     @Test
     public void testInitWithLinkedPath(){
         SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("linkedPath");
@@ -115,6 +127,21 @@ public class SpiderDataRecordLinkTest {
 				.fromDataRecordLink(dataRecordLink);
         assertCorrectFromDataRecordLinkWithRepeatId(spiderDataRecordLink);
 	}
+
+    @Test
+    public void testFromDataGroupWithAttribute() {
+        DataGroup dataRecordLink = createRecordLinkAsDataGroup();
+        dataRecordLink.addAttributeByIdWithValue("nameInData", "value");
+
+        SpiderDataRecordLink spiderDataRecordLink = SpiderDataRecordLink
+                .fromDataRecordLink(dataRecordLink);
+
+        Map<String, String> attributes = spiderDataRecordLink.getAttributes();
+        Map.Entry<String, String> entry = attributes.entrySet().iterator().next();
+        assertEquals(entry.getKey(), "nameInData");
+        assertEquals(entry.getValue(), "value");
+    }
+
 
     private void assertCorrectFromDataRecordLinkWithRepeatId(SpiderDataRecordLink spiderDataRecordLink) {
         assertCorrectFromDataRecordLink(spiderDataRecordLink);
