@@ -79,7 +79,8 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 		for (DataElement childReference : childReferences.getChildren()) {
 			String childNameInData = getNameInDataFromChildReference(childReference);
 			if (!ensureChildExistInParent(childNameInData)) {
-				throw new DataException("Data is not valid: child does not exist in parent");
+				throw new DataException("Data is not valid: childItem: " + childNameInData
+						+ " does not exist in parent");
 			}
 		}
 	}
@@ -103,7 +104,9 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 				return childDataGroup;
 			}
 		}
-		throw new DataException("Data is not valid: referenced child does not exist");
+		throw new DataException(
+				"Data is not valid: referenced child: " + refId + " does not exist");
+
 	}
 
 	protected DataGroup findChildInMetadata(String refId, DataGroup recordTypePossibleChild) {

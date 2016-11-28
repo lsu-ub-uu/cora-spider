@@ -23,6 +23,6 @@ import se.uu.ub.cora.spider.data.SpiderInputStream;
 
 public interface SpiderDownloader {
 
-	SpiderInputStream download(String userId, String type, String id, String resource);
+	SpiderInputStream download(String authToken, String type, String id, String resource);
 
 }
