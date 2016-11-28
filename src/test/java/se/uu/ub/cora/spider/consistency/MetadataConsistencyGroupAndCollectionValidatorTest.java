@@ -24,8 +24,6 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.spider.consistency.MetadataConsistencyGroupAndCollectionValidatorImp;
-import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidator;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.record.DataException;
@@ -51,7 +49,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 				recordType);
 	}
 
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: child does not exist in parent")
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: childItem: childTwo does not exist in parent")
 	public void testMetadataGroupChildDoesNotExistInParent() {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithTwoChildren();
@@ -92,7 +90,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		exceptNoException();
 	}
 
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: referenced child does not exist")
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: referenced child: childThree does not exist")
 	public void testMetadataGroupChildDoesNotExistInStorage() {
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithThreeChildren();
 
