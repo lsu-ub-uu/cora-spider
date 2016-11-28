@@ -25,7 +25,7 @@ import se.uu.ub.cora.spider.data.SpiderDataRecord;
 
 public interface SpiderUploader {
 
-	SpiderDataRecord upload(String userId, String type, String id, InputStream inputStream,
+	SpiderDataRecord upload(String authToken, String type, String id, InputStream inputStream,
 			String fileName);
 
 }

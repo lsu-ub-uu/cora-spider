@@ -24,6 +24,6 @@ import se.uu.ub.cora.spider.data.SpiderDataRecord;
 
 public interface SpiderRecordUpdater {
 
-	SpiderDataRecord updateRecord(String userId, String type, String id, SpiderDataGroup record);
+	SpiderDataRecord updateRecord(String authToken, String type, String id, SpiderDataGroup record);
 
 }

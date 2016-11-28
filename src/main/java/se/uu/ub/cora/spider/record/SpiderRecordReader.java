@@ -24,7 +24,7 @@ import se.uu.ub.cora.spider.data.SpiderDataRecord;
 
 public interface SpiderRecordReader {
 
-	SpiderDataRecord readRecord(String userId, String type, String id);
+	SpiderDataRecord readRecord(String authToken, String type, String id);
 
-	SpiderDataList readIncomingLinks(String userId, String type, String id);
+	SpiderDataList readIncomingLinks(String authToken, String type, String id);
 }

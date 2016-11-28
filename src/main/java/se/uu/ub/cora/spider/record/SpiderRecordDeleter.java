@@ -20,6 +20,6 @@
 package se.uu.ub.cora.spider.record;
 
 public interface SpiderRecordDeleter {
-	void deleteRecord(String userId, String type, String id);
+	void deleteRecord(String authToken, String type, String id);
 
 }
