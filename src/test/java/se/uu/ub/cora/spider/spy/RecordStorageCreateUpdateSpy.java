@@ -291,7 +291,13 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
 	private DataGroup createChildReference(String refId, String repeatMin, String repeatMax) {
 		DataGroup childReference = DataGroup.withNameInData("childReference");
-		childReference.addChild(DataAtomic.withNameInDataAndValue("ref", refId));
+		
+		DataGroup ref = DataGroup.withNameInData("ref");
+		ref.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		ref.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "someDataGroup"));
+		ref.addAttributeByIdWithValue("type", "group");
+		childReference.addChild(ref);
+//		childReference.addChild(DataAtomic.withNameInDataAndValue("ref", refId));
 		childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMin", repeatMin));
 		childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMax", repeatMax));
 		return childReference;

@@ -24,6 +24,7 @@ import java.util.Collection;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
@@ -87,12 +88,28 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 
 	protected String getNameInDataFromChildReference(DataElement childReference) {
 		DataGroup childReferenceGroup = (DataGroup) childReference;
+		
+		try{
 		String refId = childReferenceGroup.getFirstAtomicValueWithNameInData("ref");
 		DataGroup childDataGroup = findChildOfUnknownMetadataType(refId);
 
 		DataAtomic nameInData = (DataAtomic) childDataGroup
 				.getFirstChildWithNameInData("nameInData");
 		return nameInData.getValue();
+		}catch(DataMissingException dme){
+			DataGroup ref = childReferenceGroup.getFirstGroupWithNameInData("ref");
+			String linkedRecordType = ref.getFirstAtomicValueWithNameInData("linkedRecordType");
+			String linkedRecordId = ref.getFirstAtomicValueWithNameInData("linkedRecordId");
+			DataGroup childDataGroup;
+			try{
+			childDataGroup = recordStorage.read(linkedRecordType, linkedRecordId);
+			} catch (RecordNotFoundException exception) {
+				return null;
+			}
+			DataAtomic nameInData = (DataAtomic) childDataGroup
+					.getFirstChildWithNameInData("nameInData");
+			return nameInData.getValue();
+		}
 	}
 
 	protected DataGroup findChildOfUnknownMetadataType(String refId) {

@@ -227,14 +227,23 @@ public final class DataCreator {
 			String repeatMax) {
 		SpiderDataGroup childReference = SpiderDataGroup.withNameInData("childReference");
 
-		SpiderDataAtomic refAtomic = SpiderDataAtomic.withNameInDataAndValue("ref", ref);
-		childReference.addChild(refAtomic);
+//		SpiderDataAtomic refAtomic = SpiderDataAtomic.withNameInDataAndValue("ref", ref);
+//		childReference.addChild(refAtomic);
+		SpiderDataGroup refGroup = SpiderDataGroup.withNameInData("ref");
+		SpiderDataAtomic linkedRecordType = SpiderDataAtomic.withNameInDataAndValue("linkedRecordType",
+				"metadataGroup");
+		refGroup.addChild(linkedRecordType);
+		SpiderDataAtomic linkedRecordId = SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", ref);
+		refGroup.addChild(linkedRecordId);
+		
+		refGroup.addAttributeByIdWithValue("type", "group");
+		childReference.addChild(refGroup);
 
-		SpiderDataAtomic repeatMinAtomic = SpiderDataAtomic.withNameInDataAndValue("ref",
+		SpiderDataAtomic repeatMinAtomic = SpiderDataAtomic.withNameInDataAndValue("repeatMin",
 				repeatMin);
 		childReference.addChild(repeatMinAtomic);
 
-		SpiderDataAtomic repeatMaxAtomic = SpiderDataAtomic.withNameInDataAndValue("ref",
+		SpiderDataAtomic repeatMaxAtomic = SpiderDataAtomic.withNameInDataAndValue("repeatMax",
 				repeatMax);
 		childReference.addChild(repeatMaxAtomic);
 
