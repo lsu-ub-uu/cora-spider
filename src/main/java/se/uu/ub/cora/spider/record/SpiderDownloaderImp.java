@@ -94,7 +94,7 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 	}
 
 	private void tryToGetActiveUser() {
-		user = authenticator.tryToGetActiveUser(authToken);
+		user = authenticator.getUserForToken(authToken);
 	}
 
 	private String tryToExtractStreamIdFromResource(String resource) {

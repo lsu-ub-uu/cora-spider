@@ -23,6 +23,6 @@ import se.uu.ub.cora.beefeater.authentication.User;
 
 public interface Authenticator {
 
-	User tryToGetActiveUser(String authToken);
+	User getUserForToken(String authToken);
 
 }

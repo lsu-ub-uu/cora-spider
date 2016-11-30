@@ -113,7 +113,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void tryToGetActiveUser() {
-		user = authenticator.tryToGetActiveUser(authToken);
+		user = authenticator.getUserForToken(authToken);
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {

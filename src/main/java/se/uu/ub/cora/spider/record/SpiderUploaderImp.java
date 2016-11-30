@@ -90,7 +90,7 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	}
 
 	private void tryToGetActiveUser() {
-		user = authenticator.tryToGetActiveUser(authToken);
+		user = authenticator.getUserForToken(authToken);
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {

@@ -27,7 +27,7 @@ public class AuthenticatorSpy implements Authenticator {
 	public String authToken;
 
 	@Override
-	public User tryToGetActiveUser(String authToken) {
+	public User getUserForToken(String authToken) {
 		authenticationWasCalled = true;
 
 		this.authToken = authToken;
