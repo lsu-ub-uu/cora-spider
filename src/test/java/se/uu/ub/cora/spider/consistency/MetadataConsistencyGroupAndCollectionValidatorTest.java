@@ -90,7 +90,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		exceptNoException();
 	}
 
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: referenced child: childThree does not exist")
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: referenced child:  does not exist")
 	public void testMetadataGroupChildDoesNotExistInStorage() {
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithThreeChildren();
 

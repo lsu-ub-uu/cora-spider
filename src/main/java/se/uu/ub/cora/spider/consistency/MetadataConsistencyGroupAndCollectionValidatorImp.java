@@ -104,7 +104,8 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 			try{
 			childDataGroup = recordStorage.read(linkedRecordType, linkedRecordId);
 			} catch (RecordNotFoundException exception) {
-				return null;
+				throw new DataException(
+						"Data is not valid: referenced child:  does not exist");
 			}
 			DataAtomic nameInData = (DataAtomic) childDataGroup
 					.getFirstChildWithNameInData("nameInData");
