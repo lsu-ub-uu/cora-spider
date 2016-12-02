@@ -24,15 +24,8 @@ import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
-import se.uu.ub.cora.beefeater.authentication.User;
 
 public class BeefeaterNeverAlwaysAuthorizedSpy implements Authorizator {
-
-	@Override
-	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
 	@Override
 	public boolean providedRulesSatisfiesRequiredRules(List<Map<String, Set<String>>> providedRules,

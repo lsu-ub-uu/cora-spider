@@ -24,19 +24,12 @@ import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
-import se.uu.ub.cora.beefeater.authentication.User;
 
 public class BeefeaterAuthorizatorAlwaysAuthorizedSpy implements Authorizator {
 
 	public Set<String> recordCalculateKeys;
 	public List<Map<String, Set<String>>> providedRules;
 	public List<Map<String, Set<String>>> requiredRules;
-
-	@Override
-	public boolean isAuthorized(User user, Set<String> recordCalculateKeys) {
-		this.recordCalculateKeys = recordCalculateKeys;
-		return true;
-	}
 
 	@Override
 	public boolean providedRulesSatisfiesRequiredRules(List<Map<String, Set<String>>> providedRules,
