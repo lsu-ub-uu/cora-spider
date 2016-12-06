@@ -297,7 +297,6 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		ref.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", refId));
 		ref.addAttributeByIdWithValue("type", "group");
 		childReference.addChild(ref);
-//		childReference.addChild(DataAtomic.withNameInDataAndValue("ref", refId));
 		childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMin", repeatMin));
 		childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMax", repeatMax));
 		return childReference;

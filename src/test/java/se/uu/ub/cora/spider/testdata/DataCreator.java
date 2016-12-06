@@ -227,8 +227,6 @@ public final class DataCreator {
 			String repeatMax) {
 		SpiderDataGroup childReference = SpiderDataGroup.withNameInData("childReference");
 
-//		SpiderDataAtomic refAtomic = SpiderDataAtomic.withNameInDataAndValue("ref", ref);
-//		childReference.addChild(refAtomic);
 		SpiderDataGroup refGroup = SpiderDataGroup.withNameInData("ref");
 		SpiderDataAtomic linkedRecordType = SpiderDataAtomic.withNameInDataAndValue("linkedRecordType",
 				"metadataGroup");
