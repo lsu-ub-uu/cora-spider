@@ -41,7 +41,7 @@ public class TestDataAuthority {
 				"authority", "authorityNameInData", "authorityTextId", "authorityDefTextId");
 		metadataHolder.addMetadataElement(authorityGroup);
 		MetadataChildReference otherReference = MetadataChildReference
-				.withReferenceIdAndRepeatMinAndRepeatMax("otherTextId", 1,
+				.withLinkedRecordTypeAndLinkedRecordIdAndRepeatMinAndRepeatMax("metadataTextVariable", "otherTextId", 1,
 						MetadataChildReference.UNLIMITED);
 		authorityGroup.addChildReference(otherReference);
 
