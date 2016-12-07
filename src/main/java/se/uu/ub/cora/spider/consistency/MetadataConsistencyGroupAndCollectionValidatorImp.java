@@ -19,12 +19,10 @@
 
 package se.uu.ub.cora.spider.consistency;
 
-import java.util.Collection;
 
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.bookkeeper.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
@@ -33,8 +31,6 @@ import se.uu.ub.cora.spider.record.storage.RecordStorage;
 public class MetadataConsistencyGroupAndCollectionValidatorImp
 		implements MetadataConsistencyValidator {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
-	private static final String RECORD_TYPE = "recordType";
-	private static final String PARENT_ID = "parentId";
 	private static final String REF_PARENT_ID = "refParentId";
 	private RecordStorage recordStorage;
 	private String recordType;
@@ -91,7 +87,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 		
 		DataGroup ref = childReferenceGroup.getFirstGroupWithNameInData("ref");
 		String linkedRecordType = ref.getFirstAtomicValueWithNameInData("linkedRecordType");
-		String linkedRecordId = ref.getFirstAtomicValueWithNameInData("linkedRecordId");
+		String linkedRecordId = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		DataGroup childDataGroup;
 		try{
 		childDataGroup = recordStorage.read(linkedRecordType, linkedRecordId);
@@ -170,7 +166,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 
 	private String extractRefItemIdFromRefItemGroup(DataElement itemReference) {
 		DataGroup childItem = (DataGroup) itemReference;
-		return childItem.getFirstAtomicValueWithNameInData("linkedRecordId");
+		return childItem.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
 	private boolean ensureChildItemExistsInParent(String childItemId, DataGroup parentReferences) {
