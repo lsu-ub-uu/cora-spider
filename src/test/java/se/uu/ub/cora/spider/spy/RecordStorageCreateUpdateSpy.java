@@ -187,7 +187,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			group.addChild(childReferences);
 			return group;
 		}
-		if (type.equals("metadataTextVariable") && id.equals("childWithSameNameInDataAsChildTwo")) {
+		if (type.equals("metadataGroup") && id.equals("childWithSameNameInDataAsChildTwo")) {
 			// name in data is not same as id to test same scenario as
 			// recordInfoGroup/recordInfoNewGroup
 			// different id, same name in data
@@ -291,7 +291,12 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
 	private DataGroup createChildReference(String refId, String repeatMin, String repeatMax) {
 		DataGroup childReference = DataGroup.withNameInData("childReference");
-		childReference.addChild(DataAtomic.withNameInDataAndValue("ref", refId));
+		
+		DataGroup ref = DataGroup.withNameInData("ref");
+		ref.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		ref.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", refId));
+		ref.addAttributeByIdWithValue("type", "group");
+		childReference.addChild(ref);
 		childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMin", repeatMin));
 		childReference.addChild(DataAtomic.withNameInDataAndValue("repeatMax", repeatMax));
 		return childReference;

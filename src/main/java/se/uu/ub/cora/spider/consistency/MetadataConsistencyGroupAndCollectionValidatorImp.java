@@ -19,7 +19,6 @@
 
 package se.uu.ub.cora.spider.consistency;
 
-import java.util.Collection;
 
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataElement;
@@ -32,8 +31,6 @@ import se.uu.ub.cora.spider.record.storage.RecordStorage;
 public class MetadataConsistencyGroupAndCollectionValidatorImp
 		implements MetadataConsistencyValidator {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
-	private static final String RECORD_TYPE = "recordType";
-	private static final String PARENT_ID = "parentId";
 	private static final String REF_PARENT_ID = "refParentId";
 	private RecordStorage recordStorage;
 	private String recordType;
@@ -87,67 +84,20 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 
 	protected String getNameInDataFromChildReference(DataElement childReference) {
 		DataGroup childReferenceGroup = (DataGroup) childReference;
-		String refId = childReferenceGroup.getFirstAtomicValueWithNameInData("ref");
-		DataGroup childDataGroup = findChildOfUnknownMetadataType(refId);
-
+		
+		DataGroup ref = childReferenceGroup.getFirstGroupWithNameInData("ref");
+		String linkedRecordType = ref.getFirstAtomicValueWithNameInData("linkedRecordType");
+		String linkedRecordId = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataGroup childDataGroup;
+		try{
+		childDataGroup = recordStorage.read(linkedRecordType, linkedRecordId);
+		} catch (RecordNotFoundException exception) {
+			throw new DataException(
+					"Data is not valid: referenced child:  does not exist");
+		}
 		DataAtomic nameInData = (DataAtomic) childDataGroup
 				.getFirstChildWithNameInData("nameInData");
 		return nameInData.getValue();
-	}
-
-	protected DataGroup findChildOfUnknownMetadataType(String refId) {
-		Collection<DataGroup> recordTypes = recordStorage.readList(RECORD_TYPE);
-
-		for (DataGroup recordTypePossibleChild : recordTypes) {
-			DataGroup childDataGroup = findChildInMetadata(refId, recordTypePossibleChild);
-			if (childDataGroup != null) {
-				return childDataGroup;
-			}
-		}
-		throw new DataException(
-				"Data is not valid: referenced child: " + refId + " does not exist");
-
-	}
-
-	protected DataGroup findChildInMetadata(String refId, DataGroup recordTypePossibleChild) {
-		DataGroup childDataGroup = null;
-		if (isChildOfAbstractRecordType("metadata", recordTypePossibleChild)) {
-			String id = extractIdFromRecordInfo(recordTypePossibleChild);
-			childDataGroup = tryReadChildFromStorage(refId, id);
-		}
-		return childDataGroup;
-	}
-
-	protected boolean isChildOfAbstractRecordType(String abstractRecordType,
-			DataGroup recordTypePossibleChild) {
-		if (handledRecordHasParent(recordTypePossibleChild)) {
-			String parentIdValue = recordTypePossibleChild
-					.getFirstAtomicValueWithNameInData(PARENT_ID);
-			if (parentIdValue.equals(abstractRecordType)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
-		return handledRecordTypeDataGroup.containsChildWithNameInData(PARENT_ID);
-	}
-
-	protected String extractIdFromRecordInfo(DataGroup recordTypePossibleChild) {
-		DataGroup recordInfo = (DataGroup) recordTypePossibleChild
-				.getFirstChildWithNameInData("recordInfo");
-		return recordInfo.getFirstAtomicValueWithNameInData("id");
-	}
-
-	protected DataGroup tryReadChildFromStorage(String refId, String id) {
-		DataGroup childDataGroup;
-		try {
-			childDataGroup = recordStorage.read(id, refId);
-			return childDataGroup;
-		} catch (RecordNotFoundException exception) {
-			return null;
-		}
 	}
 
 	protected boolean ensureChildExistInParent(String childNameInData) {
@@ -216,7 +166,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 
 	private String extractRefItemIdFromRefItemGroup(DataElement itemReference) {
 		DataGroup childItem = (DataGroup) itemReference;
-		return childItem.getFirstAtomicValueWithNameInData("linkedRecordId");
+		return childItem.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
 	private boolean ensureChildItemExistsInParent(String childItemId, DataGroup parentReferences) {
