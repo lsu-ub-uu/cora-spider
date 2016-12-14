@@ -44,6 +44,7 @@ import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceFactorySpy2;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
@@ -72,6 +73,7 @@ public class SpiderUploaderTest {
 	private RecordIdGenerator idGenerator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
+	private SpiderInstanceFactory factory;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -84,6 +86,7 @@ public class SpiderUploaderTest {
 		idGenerator = new TimeStampIdGenerator();
 		streamStorage = new StreamStorageSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
+		factory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
 
 		setUpDependencyProvider();
 
@@ -100,15 +103,14 @@ public class SpiderUploaderTest {
 		dependencyProvider.idGenerator = idGenerator;
 		dependencyProvider.streamStorage = streamStorage;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
-		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
-				.usingDependencyProvider(dependencyProvider);
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		uploader = SpiderUploaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Test
 	public void testExternalDependenciesAreCalled() {
-		// authorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		factory = new SpiderInstanceFactorySpy2();
+		setUpDependencyProvider();
 		recordStorage = new RecordStorageSpy();
 		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
@@ -126,6 +128,10 @@ public class SpiderUploaderTest {
 		assertTrue(((RecordStorageSpy) recordStorage).readWasCalled);
 
 		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorizator).authorizedWasCalled);
+
+		assertEquals(((SpiderInstanceFactorySpy2) factory).createdUpdaters.get(0).authToken,
+				"someToken78678567");
+
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
