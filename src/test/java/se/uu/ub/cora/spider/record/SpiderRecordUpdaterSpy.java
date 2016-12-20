@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,29 +17,27 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.authentication;
+package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
 
-public class AuthenticatorSpy implements Authenticator {
+public class SpiderRecordUpdaterSpy implements SpiderRecordUpdater {
 
-	public boolean authenticationWasCalled = false;
 	public String authToken;
+	public String type;
+	public String id;
+	public SpiderDataGroup record;
 
 	@Override
-	public User getUserForToken(String authToken) {
-		authenticationWasCalled = true;
-
+	public SpiderDataRecord updateRecord(String authToken, String type, String id,
+			SpiderDataGroup record) {
 		this.authToken = authToken;
-		if ("dummyNonAuthenticatedToken".equals(authToken)) {
-			throw new AuthenticationException("token not valid");
-		}
-
-		User user = new User("12345");
-		user.loginId = "knownUser";
-		user.loginDomain = "system";
-		user.roles.add("guest");
-		return user;
+		this.type = type;
+		this.id = id;
+		this.record = record;
+		// TODO Auto-generated method stub
+		return SpiderDataRecord.withSpiderDataGroup(record);
 	}
 
 }

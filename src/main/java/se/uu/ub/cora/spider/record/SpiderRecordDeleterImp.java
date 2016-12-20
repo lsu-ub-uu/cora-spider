@@ -55,7 +55,7 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	}
 
 	private void tryToGetActiveUser() {
-		user = authenticator.tryToGetActiveUser(authToken);
+		user = authenticator.getUserForToken(authToken);
 	}
 
 	private void checkUserIsAuthorizedToDeleteStoredRecord(String recordType, String recordId) {

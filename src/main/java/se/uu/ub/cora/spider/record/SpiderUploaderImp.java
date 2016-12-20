@@ -43,7 +43,6 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	private RecordIdGenerator idGenerator;
 	private RecordStorage recordStorage;
 	private StreamStorage streamStorage;
-	private String userId;
 	private String recordType;
 	private SpiderDataGroup spiderRecordRead;
 	private String streamId;
@@ -86,11 +85,11 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		addOrReplaceResourceInfoToMetdataRecord(fileName, fileSize);
 
 		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
-		return spiderRecordUpdater.updateRecord(userId, type, id, spiderRecordRead);
+		return spiderRecordUpdater.updateRecord(authToken, type, id, spiderRecordRead);
 	}
 
 	private void tryToGetActiveUser() {
-		user = authenticator.tryToGetActiveUser(authToken);
+		user = authenticator.getUserForToken(authToken);
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {
