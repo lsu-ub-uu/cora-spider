@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import java.util.Map;
+
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -30,7 +32,7 @@ import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
-public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
+public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	public RecordStorage recordStorage;
 	public SpiderAuthorizator spiderAuthorizator;
@@ -42,6 +44,10 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	public StreamStorage streamStorage;
 	public ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	public Authenticator authenticator;
+
+	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
+		super(initInfo);
+	}
 
 	@Override
 	public SpiderAuthorizator getSpiderAuthorizator() {
@@ -87,5 +93,4 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	public Authenticator getAuthenticator() {
 		return authenticator;
 	}
-
 }

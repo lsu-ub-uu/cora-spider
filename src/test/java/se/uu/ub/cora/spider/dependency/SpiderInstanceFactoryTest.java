@@ -23,6 +23,8 @@ package se.uu.ub.cora.spider.dependency;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNotSame;
 
+import java.util.HashMap;
+
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -39,7 +41,8 @@ public class SpiderInstanceFactoryTest {
 
 	@BeforeTest
 	public void setUp() {
-		SpiderDependencyProvider dependencyProvider = new SpiderDependencyProviderSpy();
+		SpiderDependencyProvider dependencyProvider = new SpiderDependencyProviderSpy(
+				new HashMap<>());
 		factory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
 	}
 

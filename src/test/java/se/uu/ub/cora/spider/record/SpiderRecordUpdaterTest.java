@@ -23,6 +23,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
@@ -83,7 +84,7 @@ public class SpiderRecordUpdaterTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderSpy();
+		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
 		dependencyProvider.dataValidator = dataValidator;

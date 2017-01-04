@@ -27,6 +27,7 @@ import static org.testng.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
@@ -70,7 +71,7 @@ public class SpiderDownloaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderSpy();
+		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.keyCalculator = keyCalculator;

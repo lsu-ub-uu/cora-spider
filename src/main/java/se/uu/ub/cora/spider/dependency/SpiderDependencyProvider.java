@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import java.util.Map;
+
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -29,24 +31,29 @@ import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
-public interface SpiderDependencyProvider {
+public abstract class SpiderDependencyProvider {
+	protected Map<String, String> initInfo;
 
-	SpiderAuthorizator getSpiderAuthorizator();
+	public SpiderDependencyProvider(Map<String, String> initInfo) {
+		this.initInfo = initInfo;
+	}
 
-	RecordStorage getRecordStorage();
+	public abstract SpiderAuthorizator getSpiderAuthorizator();
 
-	RecordIdGenerator getIdGenerator();
+	public abstract RecordStorage getRecordStorage();
 
-	PermissionRuleCalculator getPermissionRuleCalculator();
+	public abstract RecordIdGenerator getIdGenerator();
 
-	DataValidator getDataValidator();
+	public abstract PermissionRuleCalculator getPermissionRuleCalculator();
 
-	DataRecordLinkCollector getDataRecordLinkCollector();
+	public abstract DataValidator getDataValidator();
 
-	ExtendedFunctionalityProvider getExtendedFunctionalityProvider();
+	public abstract DataRecordLinkCollector getDataRecordLinkCollector();
 
-	StreamStorage getStreamStorage();
+	public abstract ExtendedFunctionalityProvider getExtendedFunctionalityProvider();
 
-	Authenticator getAuthenticator();
+	public abstract StreamStorage getStreamStorage();
+
+	public abstract Authenticator getAuthenticator();
 
 }

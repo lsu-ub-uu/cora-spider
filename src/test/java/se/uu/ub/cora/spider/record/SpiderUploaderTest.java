@@ -25,6 +25,7 @@ import static org.testng.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -93,7 +94,7 @@ public class SpiderUploaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderSpy();
+		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.dataValidator = dataValidator;

@@ -23,6 +23,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
@@ -36,7 +37,8 @@ public class BaseExtendedFunctionalityProviderTest {
 
 	@BeforeMethod
 	public void setUp() {
-		SpiderDependencyProvider dependencyProvider = new SpiderDependencyProviderSpy();
+		SpiderDependencyProvider dependencyProvider = new SpiderDependencyProviderSpy(
+				new HashMap<>());
 		baseExtendedFunctionalityProvider = new BaseExtendedFunctionalityProvider(
 				dependencyProvider);
 	}
@@ -67,7 +69,8 @@ public class BaseExtendedFunctionalityProviderTest {
 				.getFunctionalityForCreateAfterMetadataValidation("metadataGroup");
 		assertEquals(bEFP.size(), 1);
 		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
-		assertTrue(extendedFunctionality instanceof MetadataConsistencyValidatorAsExtendedFunctionality);
+		assertTrue(
+				extendedFunctionality instanceof MetadataConsistencyValidatorAsExtendedFunctionality);
 	}
 
 	@Test
@@ -76,7 +79,8 @@ public class BaseExtendedFunctionalityProviderTest {
 				.getFunctionalityForCreateAfterMetadataValidation("metadataCollectionVariable");
 		assertEquals(bEFP.size(), 1);
 		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
-		assertTrue(extendedFunctionality instanceof MetadataConsistencyValidatorAsExtendedFunctionality);
+		assertTrue(
+				extendedFunctionality instanceof MetadataConsistencyValidatorAsExtendedFunctionality);
 	}
 
 	private void fetchAndAssertCreateAfterMetadataValidation(String recordType) {

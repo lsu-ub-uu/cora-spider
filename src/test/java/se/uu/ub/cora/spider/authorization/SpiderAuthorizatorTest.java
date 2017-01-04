@@ -24,6 +24,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -73,7 +74,7 @@ public class SpiderAuthorizatorTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderSpy();
+		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.dataValidator = dataValidator;
 		dependencyProvider.recordStorage = recordStorage;
