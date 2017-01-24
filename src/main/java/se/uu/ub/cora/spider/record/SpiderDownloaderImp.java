@@ -135,7 +135,12 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 
 	private boolean recordTypeIsChildOfBinary(DataGroup recordTypeDefinition) {
 		return !recordTypeDefinition.containsChildWithNameInData("parentId") || !"binary"
-				.equals(recordTypeDefinition.getFirstAtomicValueWithNameInData("parentId"));
+				.equals(getParentId(recordTypeDefinition));
+	}
+
+	private String getParentId(DataGroup recordTypeDefinition) {
+		DataGroup parentIdGroup = recordTypeDefinition.getFirstGroupWithNameInData("parentId");
+		return parentIdGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	private String extractDataDividerFromData() {

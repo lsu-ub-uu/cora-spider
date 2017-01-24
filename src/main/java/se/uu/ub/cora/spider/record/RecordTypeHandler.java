@@ -50,7 +50,8 @@ public final class RecordTypeHandler {
 	}
 
 	public String getNewMetadataId() {
-		return recordType.getFirstAtomicValueWithNameInData("newMetadataId");
+		DataGroup newMetadataGroup = recordType.getFirstGroupWithNameInData("newMetadataId");
+		return newMetadataGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 }

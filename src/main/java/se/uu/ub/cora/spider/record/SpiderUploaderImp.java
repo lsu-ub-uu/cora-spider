@@ -110,7 +110,12 @@ public final class SpiderUploaderImp implements SpiderUploader {
 
 	private boolean recordTypeIsChildOfBinary(DataGroup recordTypeDefinition) {
 		return !recordTypeDefinition.containsChildWithNameInData("parentId") || !"binary"
-				.equals(recordTypeDefinition.getFirstAtomicValueWithNameInData("parentId"));
+				.equals(getParentId(recordTypeDefinition));
+	}
+
+	private String getParentId(DataGroup recordTypeDefinition) {
+		DataGroup parentIdGroup = recordTypeDefinition.getFirstGroupWithNameInData("parentId");
+		return parentIdGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	private void checkUserIsAuthorisedToUploadData(DataGroup recordRead) {
