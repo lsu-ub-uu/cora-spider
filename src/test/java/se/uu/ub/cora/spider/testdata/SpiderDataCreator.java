@@ -105,7 +105,7 @@ public final class SpiderDataCreator {
 		return recordInfo;
 	}
 
-	private static SpiderDataGroup createDataDividerWithLinkedRecordId(String linkedRecordId) {
+	public static SpiderDataGroup createDataDividerWithLinkedRecordId(String linkedRecordId) {
 		SpiderDataGroup dataDivider = SpiderDataGroup.withNameInData("dataDivider");
 		dataDivider.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "system"));
 		dataDivider.addChild(

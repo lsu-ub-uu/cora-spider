@@ -48,12 +48,21 @@ public class BaseExtendedFunctionalityProviderTest {
 		fetchAndAssertCreateBeforeMetadataValidation(null);
 		fetchAndAssertCreateBeforeMetadataValidation("");
 		fetchAndAssertCreateBeforeMetadataValidation("UnknownType");
+		fetchAndAssertCreateBeforeMetadataValidationForAppToken();
 	}
 
 	private void fetchAndAssertCreateBeforeMetadataValidation(String recordType) {
 		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
 				.getFunctionalityForCreateBeforeMetadataValidation(recordType);
 		assertEquals(Collections.emptyList(), bEFP);
+	}
+
+	private void fetchAndAssertCreateBeforeMetadataValidationForAppToken() {
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
+				.getFunctionalityForCreateBeforeMetadataValidation("appToken");
+		assertEquals(bEFP.size(), 1);
+		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
+		assertTrue(extendedFunctionality instanceof AppTokenEnhancerAsExtendedFunctionality);
 	}
 
 	@Test
@@ -94,12 +103,21 @@ public class BaseExtendedFunctionalityProviderTest {
 		fetchAndAssertCreateBeforeReturn(null);
 		fetchAndAssertCreateBeforeReturn("");
 		fetchAndAssertCreateBeforeReturn("UnkownType");
+		fetchAndAssertCreateBeforeReturnForAppToken();
 	}
 
 	private void fetchAndAssertCreateBeforeReturn(String recordType) {
 		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
 				.getFunctionalityForCreateBeforeReturn(recordType);
 		assertEquals(Collections.emptyList(), bEFP);
+	}
+
+	private void fetchAndAssertCreateBeforeReturnForAppToken() {
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
+				.getFunctionalityForCreateBeforeReturn("appToken");
+		assertEquals(bEFP.size(), 1);
+		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
+		assertTrue(extendedFunctionality instanceof UserUpdaterForAppTokenAsExtendedFunctionality);
 	}
 
 	@Test

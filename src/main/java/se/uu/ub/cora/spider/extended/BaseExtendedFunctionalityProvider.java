@@ -38,7 +38,11 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
 			String recordType) {
-		return Collections.emptyList();
+		List<ExtendedFunctionality> list = new ArrayList<>();
+		if ("appToken".equals(recordType)) {
+			list.add(new AppTokenEnhancerAsExtendedFunctionality());
+		}
+		return list;
 	}
 
 	@Override
@@ -56,7 +60,12 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeReturn(String recordType) {
-		return Collections.emptyList();
+		List<ExtendedFunctionality> list = new ArrayList<>();
+		if ("appToken".equals(recordType)) {
+			list.add(UserUpdaterForAppTokenAsExtendedFunctionality
+					.usingSpiderDependencyProvider(dependencyProvider));
+		}
+		return list;
 	}
 
 	@Override

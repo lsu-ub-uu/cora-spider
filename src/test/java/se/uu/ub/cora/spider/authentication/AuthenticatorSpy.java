@@ -34,6 +34,14 @@ public class AuthenticatorSpy implements Authenticator {
 		if ("dummyNonAuthenticatedToken".equals(authToken)) {
 			throw new AuthenticationException("token not valid");
 		}
+		if ("dummy1Token".equals(authToken)) {
+			User user = new User("dummy1");
+			user.loginId = "knownUser";
+			user.loginDomain = "system";
+			user.roles.add("guest");
+			return user;
+
+		}
 
 		User user = new User("12345");
 		user.loginId = "knownUser";
