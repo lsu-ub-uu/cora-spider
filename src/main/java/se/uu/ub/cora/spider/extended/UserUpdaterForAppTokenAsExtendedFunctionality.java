@@ -116,7 +116,9 @@ public final class UserUpdaterForAppTokenAsExtendedFunctionality implements Exte
 	}
 
 	private boolean userRecordTypeIsParentToRecord(DataGroup recordTypePossibleChild) {
-		return "user".equals(recordTypePossibleChild.getFirstAtomicValueWithNameInData(PARENT_ID));
+		DataGroup parent = recordTypePossibleChild.getFirstGroupWithNameInData(PARENT_ID);
+
+		return "user".equals(parent.getFirstAtomicValueWithNameInData("linkedRecordId"));
 	}
 
 	private SpiderDataGroup createUserAppTokenGroup(SpiderDataGroup appTokenDataGroup) {
