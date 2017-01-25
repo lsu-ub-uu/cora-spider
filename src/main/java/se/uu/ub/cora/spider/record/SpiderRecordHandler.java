@@ -41,8 +41,7 @@ public class SpiderRecordHandler {
 	protected boolean isChildOfAbstractRecordType(String abstractRecordType,
 			DataGroup recordTypePossibleChild) {
 		if (handledRecordHasParent(recordTypePossibleChild)) {
-			String parentIdValue = recordTypePossibleChild
-					.getFirstAtomicValueWithNameInData(PARENT_ID);
+			String parentIdValue = extractParentId(recordTypePossibleChild);
 			if (parentIdValue.equals(abstractRecordType)) {
 				return true;
 			}
@@ -52,6 +51,11 @@ public class SpiderRecordHandler {
 
 	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
 		return handledRecordTypeDataGroup.containsChildWithNameInData(PARENT_ID);
+	}
+
+	private String extractParentId(DataGroup recordTypePossibleChild) {
+		DataGroup parentIdGroup = recordTypePossibleChild.getFirstGroupWithNameInData(PARENT_ID);
+		return parentIdGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	protected void checkToPartOfLinkedDataExistsInStorage(DataGroup collectedLinks) {

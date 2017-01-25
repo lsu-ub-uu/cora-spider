@@ -76,7 +76,8 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		checkUserIsAuthorizedForActionOnRecordType();
 
 		DataGroup recordTypeDefinition = getRecordTypeDefinition();
-		metadataId = recordTypeDefinition.getFirstAtomicValueWithNameInData("metadataId");
+		DataGroup metadataIdGroup = recordTypeDefinition.getFirstGroupWithNameInData("metadataId");
+		metadataId = metadataIdGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, spiderDataGroup);

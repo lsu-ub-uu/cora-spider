@@ -112,7 +112,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		DataGroup handledRecordTypeDataGroup = dependencyProvider.getRecordStorage()
 				.read(RECORD_TYPE, dataRecordRecordId);
 		if (handledRecordHasParent(handledRecordTypeDataGroup)) {
-			return handledRecordTypeDataGroup.getFirstAtomicValueWithNameInData(PARENT_ID);
+			DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData(PARENT_ID);
+			return parentGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 		}
 		return "";
 	}
