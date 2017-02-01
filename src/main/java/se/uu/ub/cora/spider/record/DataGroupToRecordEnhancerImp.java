@@ -39,6 +39,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private SpiderDependencyProvider dependencyProvider;
 	private User user;
 	private String recordType;
+	private String handledRecordId;
 
 	public DataGroupToRecordEnhancerImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -51,9 +52,16 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		this.dataGroup = dataGroup;
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		record = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
+		handledRecordId = getRecordIdFromDataRecord(record);
 		addActions();
 		addReadActionToDataRecordLinks(spiderDataGroup);
 		return record;
+	}
+
+	private String getRecordIdFromDataRecord(SpiderDataRecord spiderDataRecord) {
+		SpiderDataGroup topLevelDataGroup = spiderDataRecord.getSpiderDataGroup();
+		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
+		return recordInfo.extractAtomicValue("id");
 	}
 
 	protected void addActions() {
@@ -80,9 +88,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		SpiderDataGroup topLevelDataGroup = spiderDataRecord.getSpiderDataGroup();
 		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
 		String recordTypeForThisRecord = recordInfo.extractAtomicValue("type");
-		String recordIdForThisRecord = recordInfo.extractAtomicValue("id");
 		return dependencyProvider.getRecordStorage().linksExistForRecord(recordTypeForThisRecord,
-				recordIdForThisRecord);
+				handledRecordId);
 	}
 
 	private boolean userIsAuthorizedForAction(String action) {
@@ -137,31 +144,29 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void possiblyAddCreateAction(SpiderDataRecord spiderDataRecord) {
-		String handledRecordId = getRecordIdFromDataRecord(spiderDataRecord);
 		if (!isHandledRecordIdOfTypeAbstract(handledRecordId)
-				&& userIsAuthorizedForAction("create")) {
+				&& userIsAuthorizedForActionOnRecordType("create", handledRecordId)) {
 			spiderDataRecord.addAction(Action.CREATE);
 		}
 	}
 
+	private boolean userIsAuthorizedForActionOnRecordType(String action, String recordType) {
+		return dependencyProvider.getSpiderAuthorizator()
+				.userIsAuthorizedForActionOnRecordTypeAndRecord(user, action, recordType,
+						dataGroup);
+	}
+
 	private void possiblyAddListAction(SpiderDataRecord spiderDataRecord) {
-		if (userIsAuthorizedForAction("list")) {
+		if (userIsAuthorizedForActionOnRecordType("list", handledRecordId)) {
 
 			spiderDataRecord.addAction(Action.LIST);
 		}
 	}
 
 	private void possiblyAddSearchAction(SpiderDataRecord spiderDataRecord) {
-		if (userIsAuthorizedForAction("search")) {
+		if (userIsAuthorizedForActionOnRecordType("search", handledRecordId)) {
 			spiderDataRecord.addAction(Action.SEARCH);
 		}
-	}
-
-	private String getRecordIdFromDataRecord(SpiderDataRecord spiderDataRecord) {
-		SpiderDataGroup topLevelDataGroup = spiderDataRecord.getSpiderDataGroup();
-		SpiderDataGroup recordInfo = (SpiderDataGroup) topLevelDataGroup
-				.getFirstChildWithNameInData("recordInfo");
-		return recordInfo.extractAtomicValue("id");
 	}
 
 	private boolean isHandledRecordIdOfTypeAbstract(String recordId) {

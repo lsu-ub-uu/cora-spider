@@ -172,7 +172,7 @@ public class SpiderDownloaderTest {
 	private SpiderDownloader setupWithUserNotAuthorized(Set<String> notAuthorizedKeys) {
 		authorizator = new AlwaysAuthorisedExceptStub();
 		AlwaysAuthorisedExceptStub authorizator2 = (AlwaysAuthorisedExceptStub) authorizator;
-		authorizator2.notAuthorizedForKeys = notAuthorizedKeys;
+		// authorizator2.notAuthorizedForRecordTypes = notAuthorizedKeys;
 		setUpDependencyProvider();
 
 		return SpiderDownloaderImp.usingDependencyProvider(dependencyProvider);
