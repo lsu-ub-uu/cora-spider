@@ -219,7 +219,7 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordsExistForRecordType(String type) {
+	public boolean recordsExistForRecordTypeOrAbstract(String type) {
 		if ("child1_2".equals(type)) {
 			return false;
 		}
@@ -227,7 +227,7 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForRecordTypeAndRecordId(String type, String id) {
+	public boolean recordExistsForRecordTypeOrAbstractAndRecordId(String type, String id) {
 		return false;
 	}
 

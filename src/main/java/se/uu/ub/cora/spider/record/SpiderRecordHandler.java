@@ -80,7 +80,7 @@ public class SpiderRecordHandler {
 	}
 
 	private void checkRecordTypeAndRecordIdExistsInStorage(String recordId, String recordType) {
-		if (!recordStorage.recordExistsForRecordTypeAndRecordId(recordType, recordId)) {
+		if (!recordStorage.recordExistsForRecordTypeOrAbstractAndRecordId(recordType, recordId)) {
 			throw new DataException(
 					"Data is not valid: linkedRecord does not exists in storage for recordType: "
 							+ recordType + " and recordId: " + recordId);

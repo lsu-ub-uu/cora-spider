@@ -405,13 +405,13 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordsExistForRecordType(String type) {
+	public boolean recordsExistForRecordTypeOrAbstract(String type) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean recordExistsForRecordTypeAndRecordId(String type, String id) {
+	public boolean recordExistsForRecordTypeOrAbstractAndRecordId(String type, String id) {
 		return false;
 	}
 
