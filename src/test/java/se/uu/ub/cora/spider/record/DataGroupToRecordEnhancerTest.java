@@ -24,6 +24,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -32,6 +34,7 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -165,7 +168,6 @@ public class DataGroupToRecordEnhancerTest {
 		assertTrue(record.getActions().contains(Action.SEARCH));
 
 		assertFalse(record.getActions().contains(Action.UPLOAD));
-
 	}
 
 	@Test
@@ -193,6 +195,30 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testAuthorizedOnReadRecordType() {
 		DataGroup dataGroup = recordStorage.read("recordType", "recordType");
+		String recordType = "recordType";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
+		assertEquals(record.getActions().size(), 6);
+		assertTrue(record.getActions().contains(Action.READ));
+		assertTrue(record.getActions().contains(Action.UPDATE));
+		assertTrue(record.getActions().contains(Action.DELETE));
+
+		assertTrue(record.getActions().contains(Action.CREATE));
+		assertTrue(record.getActions().contains(Action.LIST));
+		assertTrue(record.getActions().contains(Action.SEARCH));
+	}
+
+	@Test
+	public void testAuthorizedOnReadRecordTypePlaceWithNoCreateOnRecordTypeRecordType() {
+		authorizator = new AlwaysAuthorisedExceptStub();
+		Set<String> actions = new HashSet<>();
+		actions.add("create");
+		actions.add("list");
+		actions.add("search");
+		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
+				.put("recordType", actions);
+		setUpDependencyProvider();
+
+		DataGroup dataGroup = recordStorage.read("recordType", "place");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		assertEquals(record.getActions().size(), 6);

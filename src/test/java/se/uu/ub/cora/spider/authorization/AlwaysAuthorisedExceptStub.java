@@ -1,5 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
+ * Copyright 2017 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,7 +20,7 @@
 
 package se.uu.ub.cora.spider.authorization;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +29,7 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
-	public Set<String> notAuthorizedForKeys = new HashSet<>();
+	public Map<String, Set<String>> notAuthorizedForRecordTypeAndActions = new HashMap<>();
 
 	@Override
 	public boolean userSatisfiesRequiredRules(User user,
@@ -53,16 +54,23 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String string, DataGroup record) {
-		// TODO Auto-generated method stub
-		return false;
+			String recordType, DataGroup record) {
+		if (notAuthorizedForRecordTypeAndAction(action, recordType)) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean notAuthorizedForRecordTypeAndAction(String action, String recordType) {
+		return notAuthorizedForRecordTypeAndActions.containsKey(recordType)
+				&& notAuthorizedForRecordTypeAndActions.get(recordType).contains(action);
 	}
 
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 }

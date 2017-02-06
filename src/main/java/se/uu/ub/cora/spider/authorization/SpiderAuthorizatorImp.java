@@ -70,7 +70,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		// USER, will be needed for userId, organisation, etc
 		providedRules.forEach(rule -> {
 			Set<String> userIdValues = new HashSet<>();
-			userIdValues.add("system.");
+			userIdValues.add("system.*");
 			rule.put("createdBy", userIdValues);
 		});
 		return providedRules;
