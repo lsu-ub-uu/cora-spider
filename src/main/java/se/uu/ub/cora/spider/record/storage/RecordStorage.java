@@ -41,7 +41,7 @@ public interface RecordStorage {
 
 	Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id);
 
-	boolean recordsExistForRecordTypeOrAbstract(String type);
+	boolean recordsExistForRecordType(String type);
 
 	boolean recordExistsForRecordTypeOrAbstractAndRecordId(String type, String id);
 }
