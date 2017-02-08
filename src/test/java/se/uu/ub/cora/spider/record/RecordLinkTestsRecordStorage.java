@@ -97,6 +97,11 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
+	public Collection<DataGroup> readAbstractList(String type) {
+		return null;
+	}
+
+	@Override
 	public DataGroup readLinkList(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
@@ -115,7 +120,7 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForRecordTypeOrAbstractAndRecordId(String type, String id) {
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id) {
 		return recordIdExistsForRecordType;
 	}
 

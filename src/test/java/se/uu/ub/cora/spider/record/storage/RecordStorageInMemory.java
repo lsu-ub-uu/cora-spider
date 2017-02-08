@@ -200,6 +200,11 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
+	public Collection<DataGroup> readAbstractList(String type) {
+		return null;
+	}
+
+	@Override
 	public boolean recordsExistForRecordType(String type) {
 		Map<String, DataGroup> typeRecords = records.get(type);
 		if (null == typeRecords) {
@@ -209,7 +214,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public boolean recordExistsForRecordTypeOrAbstractAndRecordId(String type, String id) {
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id) {
 		return false;
 	}
 

@@ -37,11 +37,13 @@ public interface RecordStorage {
 
 	Collection<DataGroup> readList(String type);
 
+	Collection<DataGroup> readAbstractList(String type);
+
 	DataGroup readLinkList(String type, String id);
 
 	Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id);
 
 	boolean recordsExistForRecordType(String type);
 
-	boolean recordExistsForRecordTypeOrAbstractAndRecordId(String type, String id);
+	boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id);
 }
