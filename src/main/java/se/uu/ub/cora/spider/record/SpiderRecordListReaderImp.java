@@ -91,20 +91,14 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private void addChildrenOfAbstractTypeToReadRecordList(String abstractRecordType) {
-		Collection<DataGroup> recordTypes = recordStorage.readList(RECORD_TYPE);
-
-		for (DataGroup recordTypePossibleChild : recordTypes) {
-			if (isChildOfAbstractRecordType(abstractRecordType, recordTypePossibleChild)) {
-				addChildToReadRecordList(recordTypePossibleChild);
-			}
-		}
-	}
-
-	private void addChildToReadRecordList(DataGroup recordTypePossibleChild) {
-		String childRecordType = recordTypePossibleChild.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id");
-		if (recordStorage.recordsExistForRecordType(childRecordType)) {
-			readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(childRecordType);
+		Collection<DataGroup> dataGroupList = recordStorage.readAbstractList(abstractRecordType);
+		for (DataGroup dataGroup : dataGroupList) {
+			DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+			String type = recordInfo.getFirstAtomicValueWithNameInData("type");
+			this.recordType = type;
+			SpiderDataRecord spiderDataRecord = dataGroupToRecordEnhancer.enhance(user, recordType,
+					dataGroup);
+			readRecordList.addData(spiderDataRecord);
 		}
 	}
 
