@@ -28,7 +28,6 @@ public class SpiderRecordHandler {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	protected static final String RECORD_TYPE = "recordType";
 	protected static final String RECORD_INFO = "recordInfo";
-	private static final String PARENT_ID = "parentId";
 	protected RecordStorage recordStorage;
 	protected String recordType;
 	protected String recordId;
