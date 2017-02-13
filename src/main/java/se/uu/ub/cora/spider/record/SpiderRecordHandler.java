@@ -28,7 +28,6 @@ public class SpiderRecordHandler {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	protected static final String RECORD_TYPE = "recordType";
 	protected static final String RECORD_INFO = "recordInfo";
-	private static final String PARENT_ID = "parentId";
 	protected RecordStorage recordStorage;
 	protected String recordType;
 	protected String recordId;
@@ -36,26 +35,6 @@ public class SpiderRecordHandler {
 
 	protected DataGroup getRecordTypeDefinition() {
 		return recordStorage.read(RECORD_TYPE, recordType);
-	}
-
-	protected boolean isChildOfAbstractRecordType(String abstractRecordType,
-			DataGroup recordTypePossibleChild) {
-		if (handledRecordHasParent(recordTypePossibleChild)) {
-			String parentIdValue = extractParentId(recordTypePossibleChild);
-			if (parentIdValue.equals(abstractRecordType)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
-		return handledRecordTypeDataGroup.containsChildWithNameInData(PARENT_ID);
-	}
-
-	private String extractParentId(DataGroup recordTypePossibleChild) {
-		DataGroup parentIdGroup = recordTypePossibleChild.getFirstGroupWithNameInData(PARENT_ID);
-		return parentIdGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	protected void checkToPartOfLinkedDataExistsInStorage(DataGroup collectedLinks) {
@@ -80,7 +59,7 @@ public class SpiderRecordHandler {
 	}
 
 	private void checkRecordTypeAndRecordIdExistsInStorage(String recordId, String recordType) {
-		if (!recordStorage.recordExistsForRecordTypeAndRecordId(recordType, recordId)) {
+		if (!recordStorage.recordExistsForAbstractOrImplementingRecordTypeAndRecordId(recordType, recordId)) {
 			throw new DataException(
 					"Data is not valid: linkedRecord does not exists in storage for recordType: "
 							+ recordType + " and recordId: " + recordId);

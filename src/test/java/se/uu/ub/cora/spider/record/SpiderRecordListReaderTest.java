@@ -38,6 +38,7 @@ import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderData;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
@@ -115,10 +116,19 @@ public class SpiderRecordListReaderTest {
 	public void testReadListAbstractRecordType() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		recordListReader.readRecordList("someToken78678567", "abstract");
+		SpiderDataList spiderDataList = recordListReader.readRecordList("someToken78678567", "abstract");
+		assertEquals(spiderDataList.getTotalNumberOfTypeInStorage(), "2");
 
-		assertTrue(((RecordStorageSpy) recordStorage).readLists.contains("child1"));
-		assertTrue(((RecordStorageSpy) recordStorage).readLists.contains("child2"));
+		String type1 = extractTypeFromChildInListUsingIndex(spiderDataList, 0);
+		assertEquals(type1, "implementing1");
+		String type2 = extractTypeFromChildInListUsingIndex(spiderDataList, 1);
+		assertEquals(type2, "implementing2");
+	}
+
+	private String extractTypeFromChildInListUsingIndex(SpiderDataList spiderDataList, int index) {
+		SpiderDataRecord spiderData1 = (SpiderDataRecord)spiderDataList.getDataList().get(index);
+		SpiderDataGroup spiderDataGroup1 = spiderData1.getSpiderDataGroup();
+		return spiderDataGroup1.extractGroup("recordInfo").extractAtomicValue("type");
 	}
 
 	@Test
@@ -126,9 +136,12 @@ public class SpiderRecordListReaderTest {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
 
-		recordListReader.readRecordList("someToken78678567", "abstract2");
-		assertFalse(((RecordStorageSpy) recordStorage).readLists.contains("child1_2"));
-		assertTrue(((RecordStorageSpy) recordStorage).readLists.contains("child2_2"));
+		SpiderDataList spiderDataList = recordListReader.readRecordList("someToken78678567", "abstract2");
+		assertEquals(spiderDataList.getTotalNumberOfTypeInStorage(), "1");
+
+		String type1 = extractTypeFromChildInListUsingIndex(spiderDataList, 0);
+		assertEquals(type1, "implementing2");
+
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)

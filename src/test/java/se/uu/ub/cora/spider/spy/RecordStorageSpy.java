@@ -207,6 +207,31 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
+	public Collection<DataGroup> readAbstractList(String type) {
+		readLists.add(type);
+		if ("abstract".equals(type)) {
+			ArrayList<DataGroup> records = new ArrayList<>();
+			records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
+
+			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
+			return records;
+		}
+		if ("abstract2".equals(type)) {
+			ArrayList<DataGroup> records = new ArrayList<>();
+
+			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
+			return records;
+		}
+		return new ArrayList<DataGroup>();
+	}
+
+	private DataGroup createChildWithRecordTypeAndRecordId(String recordType, String recordId) {
+		DataGroup child1 = DataGroup.withNameInData(recordId);
+		child1.addChild(DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
+		return child1;
+	}
+
+	@Override
 	public DataGroup readLinkList(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
@@ -227,7 +252,7 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForRecordTypeAndRecordId(String type, String id) {
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id) {
 		return false;
 	}
 

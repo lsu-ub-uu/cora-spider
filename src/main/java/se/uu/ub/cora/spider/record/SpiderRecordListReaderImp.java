@@ -91,30 +91,30 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private void addChildrenOfAbstractTypeToReadRecordList(String abstractRecordType) {
-		Collection<DataGroup> recordTypes = recordStorage.readList(RECORD_TYPE);
-
-		for (DataGroup recordTypePossibleChild : recordTypes) {
-			if (isChildOfAbstractRecordType(abstractRecordType, recordTypePossibleChild)) {
-				addChildToReadRecordList(recordTypePossibleChild);
-			}
-		}
-	}
-
-	private void addChildToReadRecordList(DataGroup recordTypePossibleChild) {
-		String childRecordType = recordTypePossibleChild.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id");
-		if (recordStorage.recordsExistForRecordType(childRecordType)) {
-			readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(childRecordType);
-		}
-	}
-
-	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String recordType) {
-		Collection<DataGroup> dataGroupList = recordStorage.readList(recordType);
-		this.recordType = recordType;
+		Collection<DataGroup> dataGroupList = recordStorage.readAbstractList(abstractRecordType);
 		for (DataGroup dataGroup : dataGroupList) {
-			SpiderDataRecord spiderDataRecord = dataGroupToRecordEnhancer.enhance(user, recordType,
-					dataGroup);
-			readRecordList.addData(spiderDataRecord);
+			String type = extractRecordTypeFromDataGroup(dataGroup);
+			this.recordType = type;
+			enhanceDataGroupAndAddToRecordList(dataGroup);
+		}
+	}
+
+	private String extractRecordTypeFromDataGroup(DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		return recordInfo.getFirstAtomicValueWithNameInData("type");
+	}
+
+	private void enhanceDataGroupAndAddToRecordList(DataGroup dataGroup) {
+		SpiderDataRecord spiderDataRecord = dataGroupToRecordEnhancer.enhance(user, recordType,
+                dataGroup);
+		readRecordList.addData(spiderDataRecord);
+	}
+
+	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String type) {
+		Collection<DataGroup> dataGroupList = recordStorage.readList(type);
+		this.recordType = type;
+		for (DataGroup dataGroup : dataGroupList) {
+			enhanceDataGroupAndAddToRecordList(dataGroup);
 		}
 	}
 
