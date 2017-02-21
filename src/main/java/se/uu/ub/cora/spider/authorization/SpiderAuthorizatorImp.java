@@ -86,7 +86,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	@Override
-	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
+	public void  checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
 		if (!userIsAuthorizedForActionOnRecordType(user, action, recordType)) {
 			throw new AuthorizationException("user:" + user.id
@@ -97,6 +97,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
 			String recordType, DataGroup record) {
+		//TODO: check status for user
+		//read user from storage and check that the user is not inactive
 		List<Map<String, Set<String>>> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndData(action, recordType, record);
 
