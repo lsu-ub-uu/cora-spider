@@ -160,6 +160,24 @@ public class RecordStorageSpy implements RecordStorage {
 			rule.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
 			return rule;
 		}
+		if ("inactiveUserId".equals(id)) {
+			DataGroup user = DataGroup.withNameInData("user");
+			user.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
+			return user;
+		}
+		if ("someUserId".equals(id)) {
+			DataGroup user = DataGroup.withNameInData("user");
+			user.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "active"));
+			DataGroup outerUserRole = DataGroup.withNameInData("userRole");
+			DataGroup innerUserRole = DataGroup.withNameInData("userRole");
+			innerUserRole.addChild(
+					DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRole"));
+			innerUserRole.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "guest"));
+			outerUserRole.addChild(innerUserRole);
+			user.addChild(outerUserRole);
+
+			return user;
+		}
 		return null;
 	}
 
@@ -222,12 +240,31 @@ public class RecordStorageSpy implements RecordStorage {
 			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
 			return records;
 		}
+		if ("users".equals(type)) {
+			ArrayList<DataGroup> records = new ArrayList<>();
+
+			DataGroup inactiveUser = DataGroup.withNameInData("user");
+			inactiveUser.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
+			records.add(inactiveUser);
+
+			DataGroup user = DataGroup.withNameInData("user");
+			user.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "active"));
+			DataGroup outerUserRole = DataGroup.withNameInData("userRole");
+			DataGroup innerUserRole = DataGroup.withNameInData("userRole");
+			innerUserRole.addChild(
+					DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRole"));
+			innerUserRole.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "guest"));
+			outerUserRole.addChild(innerUserRole);
+			user.addChild(outerUserRole);
+			records.add(user);
+		}
 		return new ArrayList<DataGroup>();
 	}
 
 	private DataGroup createChildWithRecordTypeAndRecordId(String recordType, String recordId) {
 		DataGroup child1 = DataGroup.withNameInData(recordId);
-		child1.addChild(DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
+		child1.addChild(
+				DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
 		return child1;
 	}
 
@@ -252,7 +289,8 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id) {
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+			String id) {
 		return false;
 	}
 

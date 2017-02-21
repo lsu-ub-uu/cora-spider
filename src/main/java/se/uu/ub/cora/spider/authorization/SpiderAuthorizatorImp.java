@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.role.RulesProvider;
 
 public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
@@ -37,12 +39,14 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	private Authorizator authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private RulesProvider rulesProvider;
+	private RecordStorage recordStorage;
 
 	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider,
 			Authorizator authorizator, RulesProvider rulesProvider) {
 		this.authorizator = authorizator;
 		this.rulesProvider = rulesProvider;
 		ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
+		recordStorage = dependencyProvider.getRecordStorage();
 	}
 
 	public static SpiderAuthorizatorImp usingSpiderDependencyProviderAndAuthorizatorAndRulesProvider(
@@ -79,14 +83,37 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
+		checkUserIsActive(user);
 		List<Map<String, Set<String>>> requiredRulesForActionAndRecordType = ruleCalculator
 				.calculateRulesForActionAndRecordType(action, recordType);
 
 		return userSatisfiesRequiredRules(user, requiredRulesForActionAndRecordType);
 	}
 
+	private void checkUserIsActive(User user) {
+		Collection<DataGroup> users = recordStorage.readAbstractList("user");
+		DataGroup foundUser = findUserInListOfUsers(user, users);
+
+		String activeStatus = foundUser.getFirstAtomicValueWithNameInData("activeStatus");
+		if ("inactive".equals(activeStatus)) {
+			throw new AuthorizationException("user:" + user.id + " is inactive");
+		}
+	}
+
+	private DataGroup findUserInListOfUsers(User user, Collection<DataGroup> users) {
+		for (DataGroup readUser : users) {
+			DataGroup recordinfo = readUser.getFirstGroupWithNameInData("recordInfo");
+			String id = recordinfo.getFirstAtomicValueWithNameInData("id");
+			if (id.equals(user.id)) {
+				return readUser;
+			}
+
+		}
+		return null;
+	}
+
 	@Override
-	public void  checkUserIsAuthorizedForActionOnRecordType(User user, String action,
+	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
 		if (!userIsAuthorizedForActionOnRecordType(user, action, recordType)) {
 			throw new AuthorizationException("user:" + user.id
@@ -97,8 +124,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
 			String recordType, DataGroup record) {
-		//TODO: check status for user
-		//read user from storage and check that the user is not inactive
+		checkUserIsActive(user);
 		List<Map<String, Set<String>>> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndData(action, recordType, record);
 

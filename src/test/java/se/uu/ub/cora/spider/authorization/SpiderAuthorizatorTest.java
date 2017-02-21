@@ -137,6 +137,18 @@ public class SpiderAuthorizatorTest {
 		assertRuleCalculatorIsCalled();
 	}
 
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void userInactiveAndDoesNotSatisfyActionForRecordType() {
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		String action = "read";
+		String recordType = "book";
+
+		User inactiveUser = new User("inactiveUserId");
+		boolean userAuthorized = spiderAuthorizator
+				.userIsAuthorizedForActionOnRecordType(inactiveUser, action, recordType);
+	}
+
 	@Test
 	public void checkUserSatisfiesActionForRecordType() {
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
@@ -191,6 +203,22 @@ public class SpiderAuthorizatorTest {
 				.userIsAuthorizedForActionOnRecordTypeAndRecord(user, action, "book", record);
 		assertFalse(userAuthorized);
 		assertRuleCalculatorIsCalled();
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void userInactiveAndDoesNotSatisfyActionForRecord() {
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		String action = "read";
+		String recordType = "book";
+		DataGroup record = DataCreator
+				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",
+						"myBook", "book", "systemOne", "12345")
+				.toDataGroup();
+
+		User inactiveUser = new User("inactiveUserId");
+		spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndRecord(inactiveUser, action,
+				recordType, record);
 	}
 
 	@Test
