@@ -168,13 +168,7 @@ public class RecordStorageSpy implements RecordStorage {
 		if ("someUserId".equals(id)) {
 			DataGroup user = DataGroup.withNameInData("user");
 			user.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "active"));
-			DataGroup outerUserRole = DataGroup.withNameInData("userRole");
-			DataGroup innerUserRole = DataGroup.withNameInData("userRole");
-			innerUserRole.addChild(
-					DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRole"));
-			innerUserRole.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "guest"));
-			outerUserRole.addChild(innerUserRole);
-			user.addChild(outerUserRole);
+			addRolesToUser(user);
 
 			return user;
 		}
@@ -243,29 +237,42 @@ public class RecordStorageSpy implements RecordStorage {
 		if ("user".equals(type)) {
 			ArrayList<DataGroup> records = new ArrayList<>();
 
-			DataGroup inactiveUser = DataGroup.withNameInData("user");
-			DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
-			recordInfo.addChild(DataAtomic.withNameInDataAndValue("id", "inactiveUserId"));
-			inactiveUser.addChild(recordInfo);
-			inactiveUser.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
+			DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
 			records.add(inactiveUser);
 
-			DataGroup user = DataGroup.withNameInData("user");
-			DataGroup recordInfo2 = DataGroup.withNameInData("recordInfo");
-			recordInfo2.addChild(DataAtomic.withNameInDataAndValue("id", "someUserId"));
-			user.addChild(recordInfo2);
-			user.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "active"));
-			DataGroup outerUserRole = DataGroup.withNameInData("userRole");
-			DataGroup innerUserRole = DataGroup.withNameInData("userRole");
-			innerUserRole.addChild(
-					DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRole"));
-			innerUserRole.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "guest"));
-			outerUserRole.addChild(innerUserRole);
-			user.addChild(outerUserRole);
+			// DataGroup user = DataGroup.withNameInData("user");
+			// DataGroup recordInfo2 = DataGroup.withNameInData("recordInfo");
+			// recordInfo2.addChild(DataAtomic.withNameInDataAndValue("id",
+			// "someUserId"));
+			// user.addChild(recordInfo2);
+			// user.addChild(DataAtomic.withNameInDataAndValue("activeStatus",
+			// "active"));
+			DataGroup user = createUserWithIdAndActiveStatus("someUserId", "active");
+
+			addRolesToUser(user);
 			records.add(user);
 			return records;
 		}
 		return new ArrayList<DataGroup>();
+	}
+
+	private void addRolesToUser(DataGroup user) {
+		DataGroup outerUserRole = DataGroup.withNameInData("userRole");
+		DataGroup innerUserRole = DataGroup.withNameInData("userRole");
+		innerUserRole
+				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRole"));
+		innerUserRole.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "guest"));
+		outerUserRole.addChild(innerUserRole);
+		user.addChild(outerUserRole);
+	}
+
+	private DataGroup createUserWithIdAndActiveStatus(String userId, String activeStatus) {
+		DataGroup inactiveUser = DataGroup.withNameInData("user");
+		DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
+		recordInfo.addChild(DataAtomic.withNameInDataAndValue("id", userId));
+		inactiveUser.addChild(recordInfo);
+		inactiveUser.addChild(DataAtomic.withNameInDataAndValue("activeStatus", activeStatus));
+		return inactiveUser;
 	}
 
 	private DataGroup createChildWithRecordTypeAndRecordId(String recordType, String recordId) {

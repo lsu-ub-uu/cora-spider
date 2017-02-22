@@ -94,22 +94,29 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		Collection<DataGroup> users = recordStorage.readAbstractList("user");
 		DataGroup foundUser = findUserInListOfUsers(user, users);
 
-		String activeStatus = foundUser.getFirstAtomicValueWithNameInData("activeStatus");
-		if ("inactive".equals(activeStatus)) {
+		if (userIsInactive(foundUser)) {
 			throw new AuthorizationException("user:" + user.id + " is inactive");
 		}
 	}
 
+	private boolean userIsInactive(DataGroup foundUser) {
+		return "inactive".equals(foundUser.getFirstAtomicValueWithNameInData("activeStatus"));
+	}
+
 	private DataGroup findUserInListOfUsers(User user, Collection<DataGroup> users) {
 		for (DataGroup readUser : users) {
-			DataGroup recordInfo = readUser.getFirstGroupWithNameInData("recordInfo");
-			String id = recordInfo.getFirstAtomicValueWithNameInData("id");
+			String id = getIdFromUser(readUser);
 			if (id.equals(user.id)) {
 				return readUser;
 			}
 
 		}
 		throw new AuthorizationException("user:" + user.id + " does not exist");
+	}
+
+	private String getIdFromUser(DataGroup readUser) {
+		DataGroup recordInfo = readUser.getFirstGroupWithNameInData("recordInfo");
+		return recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
 	@Override
