@@ -102,14 +102,14 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private DataGroup findUserInListOfUsers(User user, Collection<DataGroup> users) {
 		for (DataGroup readUser : users) {
-			DataGroup recordinfo = readUser.getFirstGroupWithNameInData("recordInfo");
-			String id = recordinfo.getFirstAtomicValueWithNameInData("id");
+			DataGroup recordInfo = readUser.getFirstGroupWithNameInData("recordInfo");
+			String id = recordInfo.getFirstAtomicValueWithNameInData("id");
 			if (id.equals(user.id)) {
 				return readUser;
 			}
 
 		}
-		return null;
+		throw new AuthorizationException("user:" + user.id + " does not exist");
 	}
 
 	@Override

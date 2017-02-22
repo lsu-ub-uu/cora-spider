@@ -240,14 +240,20 @@ public class RecordStorageSpy implements RecordStorage {
 			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
 			return records;
 		}
-		if ("users".equals(type)) {
+		if ("user".equals(type)) {
 			ArrayList<DataGroup> records = new ArrayList<>();
 
 			DataGroup inactiveUser = DataGroup.withNameInData("user");
+			DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
+			recordInfo.addChild(DataAtomic.withNameInDataAndValue("id", "inactiveUserId"));
+			inactiveUser.addChild(recordInfo);
 			inactiveUser.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
 			records.add(inactiveUser);
 
 			DataGroup user = DataGroup.withNameInData("user");
+			DataGroup recordInfo2 = DataGroup.withNameInData("recordInfo");
+			recordInfo2.addChild(DataAtomic.withNameInDataAndValue("id", "someUserId"));
+			user.addChild(recordInfo2);
 			user.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "active"));
 			DataGroup outerUserRole = DataGroup.withNameInData("userRole");
 			DataGroup innerUserRole = DataGroup.withNameInData("userRole");
@@ -257,6 +263,7 @@ public class RecordStorageSpy implements RecordStorage {
 			outerUserRole.addChild(innerUserRole);
 			user.addChild(outerUserRole);
 			records.add(user);
+			return records;
 		}
 		return new ArrayList<DataGroup>();
 	}
