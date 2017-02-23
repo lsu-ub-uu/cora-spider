@@ -35,6 +35,7 @@ import se.uu.ub.cora.spider.role.RulesProvider;
 
 public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
+	private static final String USER_STRING = "user with id ";
 	private User user;
 	private Authorizator authorizator;
 	private PermissionRuleCalculator ruleCalculator;
@@ -95,7 +96,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		DataGroup foundUser = findUserInListOfUsers(user, users);
 
 		if (userIsInactive(foundUser)) {
-			throw new AuthorizationException("user:" + user.id + " is inactive");
+			throw new AuthorizationException(USER_STRING + user.id + " is inactive");
 		}
 	}
 
@@ -111,7 +112,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 			}
 
 		}
-		throw new AuthorizationException("user:" + user.id + " does not exist");
+		throw new AuthorizationException(USER_STRING + user.id + " does not exist");
 	}
 
 	private String getIdFromUser(DataGroup readUser) {
@@ -123,7 +124,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
 		if (!userIsAuthorizedForActionOnRecordType(user, action, recordType)) {
-			throw new AuthorizationException("user:" + user.id
+			throw new AuthorizationException(USER_STRING + user.id
 					+ " is not authorized to create a record  of type:" + recordType);
 		}
 	}
@@ -142,7 +143,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
 			String recordType, DataGroup record) {
 		if (!userIsAuthorizedForActionOnRecordTypeAndRecord(user, action, recordType, record)) {
-			throw new AuthorizationException("user:" + user.id
+			throw new AuthorizationException(USER_STRING + user.id
 					+ " is not authorized to create a record  of type:" + recordType);
 		}
 	}
