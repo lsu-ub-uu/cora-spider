@@ -160,6 +160,14 @@ public class RecordStorageSpy implements RecordStorage {
 			rule.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
 			return rule;
 		}
+		if ("abstractAuthority".equals(type)) {
+			DataGroup abstractAuthority = DataGroup.withNameInData("abstractAuthority");
+			DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
+			recordInfo.addChild(DataAtomic.withNameInDataAndValue("id", "place001"));
+			abstractAuthority.addChild(recordInfo);
+			return abstractAuthority;
+
+		}
 		return null;
 	}
 
@@ -227,7 +235,8 @@ public class RecordStorageSpy implements RecordStorage {
 
 	private DataGroup createChildWithRecordTypeAndRecordId(String recordType, String recordId) {
 		DataGroup child1 = DataGroup.withNameInData(recordId);
-		child1.addChild(DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
+		child1.addChild(
+				DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
 		return child1;
 	}
 
@@ -252,7 +261,8 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id) {
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+			String id) {
 		return false;
 	}
 
