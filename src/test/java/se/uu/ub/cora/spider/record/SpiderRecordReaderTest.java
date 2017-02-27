@@ -20,11 +20,11 @@
 package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 
-import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -100,8 +100,17 @@ public class SpiderRecordReaderTest {
 		SpiderDataRecord record = recordReader.readRecord("someToken78678567", "place",
 				"place:0001");
 		SpiderDataGroup groupOut = record.getSpiderDataGroup();
-		Assert.assertEquals(groupOut.getNameInData(), "authority",
+		assertEquals(groupOut.getNameInData(), "authority",
 				"recordOut.getNameInData should be authority");
+	}
+
+	@Test
+	public void testReadRecordAbstractRecordType() {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+		SpiderDataRecord readRecord = recordReader.readRecord("someToken78678567",
+				"abstractAuthority", "place:0001");
+		assertNotNull(readRecord);
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
@@ -165,13 +174,6 @@ public class SpiderRecordReaderTest {
 		setUpDependencyProvider();
 
 		recordReader.readIncomingLinks("someToken78678567", "abstract", "place:0001");
-	}
-
-	@Test(expectedExceptions = MisuseException.class)
-	public void testReadRecordAbstractRecordType() {
-		recordStorage = new RecordStorageSpy();
-		setUpDependencyProvider();
-		recordReader.readRecord("someToken78678567", "abstract", "xxx");
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)

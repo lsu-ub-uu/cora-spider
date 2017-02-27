@@ -66,7 +66,6 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 				recordType);
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
-		checkRecordsRecordTypeNotAbstract();
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
 		checkUserIsAuthorisedToReadData(recordRead);

@@ -172,6 +172,14 @@ public class RecordStorageSpy implements RecordStorage {
 
 			return user;
 		}
+		if ("abstractAuthority".equals(type)) {
+			DataGroup abstractAuthority = DataGroup.withNameInData("abstractAuthority");
+			DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
+			recordInfo.addChild(DataAtomic.withNameInDataAndValue("id", "place001"));
+			abstractAuthority.addChild(recordInfo);
+			return abstractAuthority;
+
+		}
 		return null;
 	}
 
