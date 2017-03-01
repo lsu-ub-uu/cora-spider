@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2017 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -74,6 +74,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		possiblyAddDeleteAction(record);
 		possiblyAddIncomingLinksAction(record);
 		possiblyAddUploadAction(record);
+		possiblyAddSearchAction(record);
 		addActionsForRecordType(record);
 	}
 
@@ -135,7 +136,6 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 			possiblyAddCreateAction(spiderDataRecord);
 
 			possiblyAddListAction(spiderDataRecord);
-			possiblyAddSearchAction(spiderDataRecord);
 		}
 	}
 
@@ -164,9 +164,14 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void possiblyAddSearchAction(SpiderDataRecord spiderDataRecord) {
-		if (userIsAuthorizedForActionOnRecordType("search", handledRecordId)) {
+		if (isRecordTypeSearch()
+				&& userIsAuthorizedForActionOnRecordType("search", handledRecordId)) {
 			spiderDataRecord.addAction(Action.SEARCH);
 		}
+	}
+
+	private boolean isRecordTypeSearch() {
+		return "search".equals(recordType);
 	}
 
 	private boolean isHandledRecordIdOfTypeAbstract(String recordId) {
