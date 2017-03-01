@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016 Uppsala University Library
+ * Copyright 2017 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,14 +16,11 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.spider.record;
 
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 import java.util.HashMap;
-import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -35,10 +32,8 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.SpiderData;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
@@ -46,15 +41,14 @@ import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
-public class SpiderRecordListReaderTest {
-
+public class SpiderRecordSearchTest {
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
 	private SpiderAuthorizator authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
-	private SpiderRecordListReader recordListReader;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
+	private SpiderRecordSearch recordSearch;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -63,6 +57,8 @@ public class SpiderRecordListReaderTest {
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
 		setUpDependencyProvider();
+		recordSearch = SpiderRecordSearchImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	private void setUpDependencyProvider() {
@@ -72,79 +68,35 @@ public class SpiderRecordListReaderTest {
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.keyCalculator = keyCalculator;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
-		recordListReader = SpiderRecordListReaderImp
-				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProvider,
-						dataGroupToRecordEnhancer);
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		recordListReader.readRecordList("dummyNonAuthenticatedToken", "spyType");
+		SpiderDataGroup searchData = SpiderDataGroup.withNameInData("search");
+		String searchId = "someSearchId";
+		String authToken = "dummyNonAuthenticatedToken";
+		recordSearch.search(authToken, searchId, searchData);
 	}
 
 	@Test
-	public void testReadListAuthorized() {
-		String userId = "someToken78678567";
-		String type = "place";
-		SpiderDataList readRecordList = recordListReader.readRecordList(userId, type);
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "2",
-				"Total number of records should be 2");
-		assertEquals(readRecordList.getFromNo(), "1");
-		assertEquals(readRecordList.getToNo(), "2");
-		List<SpiderData> records = readRecordList.getDataList();
-		SpiderDataRecord spiderDataRecord = (SpiderDataRecord) records.iterator().next();
-		assertNotNull(spiderDataRecord);
-	}
-
-	@Test
-	public void testRecordEnhancerCalled() {
-		recordListReader.readRecordList("someToken78678567", "place");
-		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
-		assertEquals(dataGroupToRecordEnhancer.recordType, "place");
-		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id"), "place:0002");
-	}
-
-	@Test
-	public void testReadListAbstractRecordType() {
-		recordStorage = new RecordStorageSpy();
-		setUpDependencyProvider();
-		SpiderDataList spiderDataList = recordListReader.readRecordList("someToken78678567",
-				"abstract");
-		assertEquals(spiderDataList.getTotalNumberOfTypeInStorage(), "2");
-
-		String type1 = extractTypeFromChildInListUsingIndex(spiderDataList, 0);
-		assertEquals(type1, "implementing1");
-		String type2 = extractTypeFromChildInListUsingIndex(spiderDataList, 1);
-		assertEquals(type2, "implementing2");
-	}
-
-	private String extractTypeFromChildInListUsingIndex(SpiderDataList spiderDataList, int index) {
-		SpiderDataRecord spiderData1 = (SpiderDataRecord) spiderDataList.getDataList().get(index);
-		SpiderDataGroup spiderDataGroup1 = spiderData1.getSpiderDataGroup();
-		return spiderDataGroup1.extractGroup("recordInfo").extractAtomicValue("type");
-	}
-
-	@Test
-	public void testReadListAbstractRecordTypeNoDataForOneRecordType() {
-		recordStorage = new RecordStorageSpy();
-		setUpDependencyProvider();
-
-		SpiderDataList spiderDataList = recordListReader.readRecordList("someToken78678567",
-				"abstract2");
-		assertEquals(spiderDataList.getTotalNumberOfTypeInStorage(), "1");
-
-		String type1 = extractTypeFromChildInListUsingIndex(spiderDataList, 0);
-		assertEquals(type1, "implementing2");
-
+	public void testReadListAuthenticatedAndAuthorized() {
+		String authToken = "someToken78678567";
+		String searchId = "someSearchId";
+		SpiderDataGroup searchData = SpiderDataGroup.withNameInData("search");
+		SpiderDataList searchResult = recordSearch.search(authToken, searchId, searchData);
+		assertNotNull(searchResult);
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
-	public void testReadListUnauthorized() {
+	public void testReadListAuthenticatedAndUnauthorized() {
 		authorizator = new NeverAuthorisedStub();
 		setUpDependencyProvider();
-		recordListReader.readRecordList("someToken78678567", "place");
+		String authToken = "someToken78678567";
+		String searchId = "someSearchId";
+		SpiderDataGroup searchData = SpiderDataGroup.withNameInData("search");
+		SpiderDataList searchResult = recordSearch.search(authToken, searchId, searchData);
 	}
+
 }
