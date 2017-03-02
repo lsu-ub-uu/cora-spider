@@ -165,7 +165,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void possiblyAddSearchAction(SpiderDataRecord spiderDataRecord) {
 		if (isRecordTypeSearch()
-				&& userIsAuthorizedForActionOnRecordType("search", handledRecordId)) {
+				&& userIsAuthorizedForActionOnRecordType("search", recordType)) {
 			spiderDataRecord.addAction(Action.SEARCH);
 		}
 	}

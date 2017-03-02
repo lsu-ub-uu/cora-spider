@@ -25,6 +25,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
@@ -294,5 +295,10 @@ public class DataGroupToRecordEnhancerTest {
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.SEARCH));
 		assertEquals(record.getActions().size(), 4);
+
+		AuthorizatorAlwaysAuthorizedSpy authorizator = (AuthorizatorAlwaysAuthorizedSpy) this.authorizator;
+		List<String> parameters = authorizator.userIsAuthorizedParameters;
+		assertTrue(parameters.contains("987654321:search:search"));
+
 	}
 }
