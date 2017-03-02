@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2017 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -25,6 +25,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
@@ -143,12 +144,11 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read("recordType", "binary");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-		assertEquals(record.getActions().size(), 5);
+		assertEquals(record.getActions().size(), 4);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.LIST));
-		assertTrue(record.getActions().contains(Action.SEARCH));
 
 		assertFalse(record.getActions().contains(Action.UPLOAD));
 
@@ -159,13 +159,12 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read("recordType", "image");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-		assertEquals(record.getActions().size(), 6);
+		assertEquals(record.getActions().size(), 5);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.CREATE));
 		assertTrue(record.getActions().contains(Action.LIST));
-		assertTrue(record.getActions().contains(Action.SEARCH));
 
 		assertFalse(record.getActions().contains(Action.UPLOAD));
 	}
@@ -197,14 +196,13 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read("recordType", "recordType");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-		assertEquals(record.getActions().size(), 6);
+		assertEquals(record.getActions().size(), 5);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 
 		assertTrue(record.getActions().contains(Action.CREATE));
 		assertTrue(record.getActions().contains(Action.LIST));
-		assertTrue(record.getActions().contains(Action.SEARCH));
 	}
 
 	@Test
@@ -221,14 +219,13 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read("recordType", "place");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-		assertEquals(record.getActions().size(), 6);
+		assertEquals(record.getActions().size(), 5);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 
 		assertTrue(record.getActions().contains(Action.CREATE));
 		assertTrue(record.getActions().contains(Action.LIST));
-		assertTrue(record.getActions().contains(Action.SEARCH));
 	}
 
 	@Test
@@ -288,4 +285,20 @@ public class DataGroupToRecordEnhancerTest {
 		RecordLinkTestsAsserter.assertOneLevelDownResourceLinkContainsReadActionOnly(record);
 	}
 
+	@Test
+	public void testActionsOnReadRecordTypeSearch() {
+		String recordType = "search";
+		DataGroup dataGroup = recordStorage.read(recordType, "aSearchId");
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
+		assertTrue(record.getActions().contains(Action.READ));
+		assertTrue(record.getActions().contains(Action.UPDATE));
+		assertTrue(record.getActions().contains(Action.DELETE));
+		assertTrue(record.getActions().contains(Action.SEARCH));
+		assertEquals(record.getActions().size(), 4);
+
+		AuthorizatorAlwaysAuthorizedSpy authorizator = (AuthorizatorAlwaysAuthorizedSpy) this.authorizator;
+		List<String> parameters = authorizator.userIsAuthorizedParameters;
+		assertTrue(parameters.contains("987654321:search:search"));
+
+	}
 }
