@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.record;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 
-public interface SpiderRecordSearch {
+public interface SpiderRecordSearcher {
 
 	SpiderDataList search(String authToken, String searchId, SpiderDataGroup searchData);
 
