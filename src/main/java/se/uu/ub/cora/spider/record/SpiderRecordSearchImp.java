@@ -30,11 +30,14 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.data.SpiderSearchResult;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class SpiderRecordSearchImp implements SpiderRecordSearcher {
+	private static final String LINKED_RECORD_ID = "linkedRecordId";
+	private static final String READ = "read";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;
@@ -45,6 +48,8 @@ public class SpiderRecordSearchImp implements SpiderRecordSearcher {
 	private RecordStorage recordStorage;
 	private SpiderDataGroup searchData;
 	private RecordSearch recordSearch;
+	private SpiderDataList spiderDataList;
+	private DataGroup searchGroup;
 
 	private SpiderRecordSearchImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -58,8 +63,8 @@ public class SpiderRecordSearchImp implements SpiderRecordSearcher {
 	}
 
 	public static SpiderRecordSearcher usingDependencyProviderAndDataGroupToRecordEnhancer(
-			SpiderDependencyProviderSpy dependencyProvider,
-			DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer) {
+			SpiderDependencyProvider dependencyProvider,
+			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 		return new SpiderRecordSearchImp(dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
@@ -68,50 +73,56 @@ public class SpiderRecordSearchImp implements SpiderRecordSearcher {
 		this.authToken = authToken;
 		this.searchData = searchData;
 		tryToGetActiveUser();
+		searchGroup = readSearchFromStorageUsingId(searchId);
+		List<DataGroup> recordTypeToSearchInGroups = getRecordTypesToSearchInFromSearchGroup();
+		checkUserHasReadAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups);
+		validateIncomingSearchDataAsSpecifiedInSearchGroup();
 
-		// TODO: read search by searchId from storage,
-		DataGroup searchGroup = recordStorage.read("search", searchId);
+		spiderDataList = SpiderDataList.withContainDataOfType("mix");
 
-		// TODO: check that we have READ access on all recordTypeToSearchIn from
-		// stored search
-		List<DataGroup> recordTypeToSearchInGroups = searchGroup
-				.getAllGroupsWithNameInData("recordTypeToSearchIn");
-		recordTypeToSearchInGroups.stream().forEach(this::isAuthorized);
-		// List<String> list =
-		// recordTypeToSearchInGroups.stream().map(this::getLinkedRecordId)
-		// .collect(Collectors.toList());
-		List<String> list = recordTypeToSearchInGroups.stream()
-				.map(group -> group.getFirstAtomicValueWithNameInData("linkedRecordId"))
-				.collect(Collectors.toList());
+		SpiderSearchResult spiderSearchResult = searchUsingSearchDataAndRecordTypeToSearchInGroups(
+				searchData, recordTypeToSearchInGroups);
 
-		// TODO: validate incoming search data against metadataId stored in
-		// search
-		DataGroup metadataGroup = searchGroup.getFirstGroupWithNameInData("metadataId");
-		String metadataGroupIdToValidateAgainst = metadataGroup
-				.getFirstAtomicValueWithNameInData("linkedRecordId");
-		validateIncomingDataAsSpecifiedInMetadata(metadataGroupIdToValidateAgainst);
-
-		// TODO: search
-		Collection<DataGroup> dataGroupList = recordSearch
-				.searchUsingListOfRecordTypesToSearchInAndSearchData(list,
-						searchData.toDataGroup());
+		Collection<DataGroup> dataGroupList = spiderSearchResult.listOfDataGroups;
 
 		// TODO: check read access and enhance records
+		// dataGroupList.stream().forEach(action);
+		// List<SpiderDataRecord> listOfRecords = dataGroupList.stream()
+		// .map(dataGroup ->
+		// enhanceGroupToRecord(dataGroup)).collect(Collectors.toList());
+
+		// listOfRecords.forEach(dataGroup ->
+		// addFilteredAndEnhancedToList(dataGroup));
+		dataGroupList.forEach(this::addFilteredAndEnhancedToList);
 
 		// TODO: return result
 
-		return SpiderDataList.withContainDataOfType("mix");
+		// spiderDataList.
+		return spiderDataList;
 	}
 
-	private String getLinkedRecordId(DataGroup group) {
-		return group.getFirstAtomicValueWithNameInData("linkedRecordId");
+	private void tryToGetActiveUser() {
+		user = authenticator.getUserForToken(authToken);
 	}
 
-	private void isAuthorized(DataGroup group) {
-		// TODO Auto-generated method stub
-		String linkedRecordTypeId = group.getFirstAtomicValueWithNameInData("linkedRecordId");
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "read",
-				linkedRecordTypeId);
+	private DataGroup readSearchFromStorageUsingId(String searchId) {
+		return recordStorage.read("search", searchId);
+	}
+
+	private List<DataGroup> getRecordTypesToSearchInFromSearchGroup() {
+		return searchGroup.getAllGroupsWithNameInData("recordTypeToSearchIn");
+	}
+
+	private void checkUserHasReadAccessOnAllRecordTypesToSearchIn(
+			List<DataGroup> recordTypeToSearchInGroups) {
+		recordTypeToSearchInGroups.stream().forEach(this::isAuthorized);
+	}
+
+	private void validateIncomingSearchDataAsSpecifiedInSearchGroup() {
+		DataGroup metadataGroup = searchGroup.getFirstGroupWithNameInData("metadataId");
+		String metadataGroupIdToValidateAgainst = metadataGroup
+				.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		validateIncomingDataAsSpecifiedInMetadata(metadataGroupIdToValidateAgainst);
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata(
@@ -124,7 +135,43 @@ public class SpiderRecordSearchImp implements SpiderRecordSearcher {
 		}
 	}
 
-	private void tryToGetActiveUser() {
-		user = authenticator.getUserForToken(authToken);
+	private SpiderSearchResult searchUsingSearchDataAndRecordTypeToSearchInGroups(
+			SpiderDataGroup searchData, List<DataGroup> recordTypeToSearchInGroups) {
+		List<String> list = recordTypeToSearchInGroups.stream()
+				// .map(group ->
+				// group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID))
+				// .collect(Collectors.toList());
+				.map(this::getLinkedRecordId).collect(Collectors.toList());
+		SpiderSearchResult spiderSearchResult = recordSearch
+				.searchUsingListOfRecordTypesToSearchInAndSearchData(list,
+						searchData.toDataGroup());
+		return spiderSearchResult;
 	}
+
+	private String getLinkedRecordId(DataGroup group) {
+		return group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	}
+
+	private void addFilteredAndEnhancedToList(DataGroup dataGroup) {
+		String recordType = dataGroup.getFirstGroupWithNameInData("recordInfo")
+				.getFirstAtomicValueWithNameInData("type");
+		spiderDataList.addData(dataGroupToRecordEnhancer.enhance(user, recordType, dataGroup));
+	}
+
+	private SpiderDataRecord enhanceGroupToRecord(DataGroup dataGroup) {
+		return null;
+
+	}
+	// private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
+	// spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user,
+	// READ,
+	// recordType, recordRead);
+	// }
+
+	private void isAuthorized(DataGroup group) {
+		String linkedRecordTypeId = group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ,
+				linkedRecordTypeId);
+	}
+
 }

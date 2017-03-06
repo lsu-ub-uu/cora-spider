@@ -28,6 +28,7 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -141,9 +142,34 @@ public class SpiderRecordSearchTest {
 		String authToken = "someToken78678567";
 		String searchId = "aSearchId";
 		SpiderDataGroup searchData = SpiderDataGroup.withNameInData("search");
-		SpiderDataList searchResult = recordSearcher.search(authToken, searchId, searchData);
-		List<String> list = ((RecordSearchSpy) recordSearch).listOfLists.get(0);
+		recordSearcher.search(authToken, searchId, searchData);
+		RecordSearchSpy recordSearchSpy = (RecordSearchSpy) recordSearch;
+		List<String> list = recordSearchSpy.listOfLists.get(0);
 		assertEquals(list.get(0), "place");
 		assertEquals(list.size(), 1);
+		DataGroup searchData0 = recordSearchSpy.listOfSearchData.get(0);
+		assertEquals(searchData0.getNameInData(), searchData.getNameInData());
+	}
+
+	@Test
+	public void testSearchResultIsEnhancedForEachResult() {
+		String authToken = "someToken78678567";
+		String searchId = "aSearchId";
+		SpiderDataGroup searchData = SpiderDataGroup.withNameInData("search");
+		SpiderDataList searchResult = recordSearcher.search(authToken, searchId, searchData);
+		assertEquals(searchResult.getDataList().size(),
+				dataGroupToRecordEnhancer.enhancedDataGroups.size());
+
+		// SpiderDataRecord spiderDataRecord = (SpiderDataRecord)
+		// searchResult.getDataList().get(0);
+		// assertEquals(spiderDataRecord.getActions().size(),2);
+
+		// RecordSearchSpy recordSearchSpy = (RecordSearchSpy) recordSearch;
+		// List<String> list = recordSearchSpy.listOfLists.get(0);
+		// assertEquals(list.get(0), "place");
+		// assertEquals(list.size(), 1);
+		// DataGroup searchData0 = recordSearchSpy.listOfSearchData.get(0);
+		// assertEquals(searchData0.getNameInData(),
+		// searchData.getNameInData());
 	}
 }

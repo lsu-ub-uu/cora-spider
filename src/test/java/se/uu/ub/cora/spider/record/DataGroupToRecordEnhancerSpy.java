@@ -19,6 +19,9 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -29,9 +32,11 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 	public User user;
 	public String recordType;
 	public DataGroup dataGroup;
+	public List<DataGroup> enhancedDataGroups = new ArrayList<>();
 
 	@Override
 	public SpiderDataRecord enhance(User user, String recordType, DataGroup dataGroup) {
+		enhancedDataGroups.add(dataGroup);
 		this.user = user;
 		this.recordType = recordType;
 		this.dataGroup = dataGroup;
