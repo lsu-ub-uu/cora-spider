@@ -34,7 +34,7 @@ import se.uu.ub.cora.spider.data.SpiderSearchResult;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
-public class SpiderRecordSearcherImp implements SpiderRecordSearcher {
+public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private static final String READ = "read";
 	private Authenticator authenticator;
@@ -67,7 +67,8 @@ public class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	}
 
 	@Override
-	public SpiderDataList search(String authToken, String searchId, SpiderDataGroup spiderSearchData) {
+	public SpiderDataList search(String authToken, String searchId,
+			SpiderDataGroup spiderSearchData) {
 		this.searchData = spiderSearchData.toDataGroup();
 		tryToGetActiveUser(authToken);
 		readSearchDataFromStorage(searchId);
