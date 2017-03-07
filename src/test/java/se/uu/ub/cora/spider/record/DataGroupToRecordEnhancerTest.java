@@ -299,6 +299,24 @@ public class DataGroupToRecordEnhancerTest {
 		AuthorizatorAlwaysAuthorizedSpy authorizator = (AuthorizatorAlwaysAuthorizedSpy) this.authorizator;
 		List<String> parameters = authorizator.userIsAuthorizedParameters;
 		assertTrue(parameters.contains("987654321:search:search"));
+	}
 
+	@Test
+	public void testActionsOnReadRecordTypeSearchNotAutorizedToSearch() {
+		String recordType = "search";
+		DataGroup dataGroup = recordStorage.read(recordType, "aSearchId");
+
+		authorizator = new AlwaysAuthorisedExceptStub();
+		Set<String> actions = new HashSet<>();
+		actions.add("search");
+		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
+				.put(recordType, actions);
+		setUpDependencyProvider();
+
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
+		assertTrue(record.getActions().contains(Action.READ));
+		assertTrue(record.getActions().contains(Action.UPDATE));
+		assertTrue(record.getActions().contains(Action.DELETE));
+		assertEquals(record.getActions().size(), 3);
 	}
 }
