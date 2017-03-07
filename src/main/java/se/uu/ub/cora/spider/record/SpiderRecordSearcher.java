@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2017 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,31 +16,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.spider.record;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.data.SpiderDataList;
 
-public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
+public interface SpiderRecordSearcher {
 
-	public User user;
-	public String recordType;
-	public DataGroup dataGroup;
-	public List<DataGroup> enhancedDataGroups = new ArrayList<>();
-
-	@Override
-	public SpiderDataRecord enhance(User user, String recordType, DataGroup dataGroup) {
-		enhancedDataGroups.add(dataGroup);
-		this.user = user;
-		this.recordType = recordType;
-		this.dataGroup = dataGroup;
-		return SpiderDataRecord.withSpiderDataGroup(SpiderDataGroup.fromDataGroup(dataGroup));
-	}
+	SpiderDataList search(String authToken, String searchId, SpiderDataGroup searchData);
 
 }

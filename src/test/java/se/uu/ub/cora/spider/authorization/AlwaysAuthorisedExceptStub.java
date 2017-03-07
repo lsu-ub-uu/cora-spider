@@ -20,6 +20,7 @@
 
 package se.uu.ub.cora.spider.authorization;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	public Map<String, Set<String>> notAuthorizedForRecordTypeAndActions = new HashMap<>();
+	public List<String> notAuthorizedForIds = new ArrayList<>();
 
 	@Override
 	public boolean userSatisfiesRequiredRules(User user,
@@ -41,29 +43,39 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		// TODO Auto-generated method stub
-
+		if (notAuthorizedForRecordTypeAndAction(recordType, action)) {
+			throw new AuthorizationException("not authorized");
+		}
 	}
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
 			String recordType, DataGroup record) {
-		// TODO Auto-generated method stub
+		if (notAuthorizedForRecordTypeAndAction(recordType, action)) {
+			throw new AuthorizationException("not authorized");
+		}
 
+	}
+
+	private boolean notAuthorizedForRecordTypeAndAction(String recordType, String action) {
+		return notAuthorizedForRecordTypeAndActions.containsKey(recordType)
+				&& notAuthorizedForRecordTypeAndActions.get(recordType).contains(action);
 	}
 
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
 			String recordType, DataGroup record) {
-		if (notAuthorizedForRecordTypeAndAction(action, recordType)) {
+		if (notAuthorizedForRecordTypeAndAction(recordType, action)
+				|| notAuthorizedForRecordId(record)) {
 			return false;
 		}
 		return true;
 	}
 
-	private boolean notAuthorizedForRecordTypeAndAction(String action, String recordType) {
-		return notAuthorizedForRecordTypeAndActions.containsKey(recordType)
-				&& notAuthorizedForRecordTypeAndActions.get(recordType).contains(action);
+	private boolean notAuthorizedForRecordId(DataGroup record) {
+		String recordId = record.getFirstGroupWithNameInData("recordInfo")
+				.getFirstAtomicValueWithNameInData("id");
+		return notAuthorizedForIds.contains(recordId);
 	}
 
 	@Override

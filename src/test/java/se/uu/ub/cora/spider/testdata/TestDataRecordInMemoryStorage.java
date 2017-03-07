@@ -45,6 +45,7 @@ public class TestDataRecordInMemoryStorage {
 		addRecordTypePlace(recordsInMemory);
 		addRecordTypeSearch(recordsInMemory);
 		addSearch(recordsInMemory);
+		addSearchWithTwoRecordTypeToSearchIn(recordsInMemory);
 		addRecordTypeAbstractAuthority(recordsInMemory);
 		addImage(recordsInMemory);
 
@@ -239,7 +240,51 @@ public class TestDataRecordInMemoryStorage {
 				"aSearchId");
 		DataGroup dataGroup = DataGroup.withNameInData("search");
 		dataGroup.addChild(recordInfo);
+
+		DataGroup metadataId = DataGroup.withNameInData("metadataId");
+		metadataId.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		metadataId.addChild(
+				DataAtomic.withNameInDataAndValue("linkedRecordId", "searchResourcesGroup"));
+		dataGroup.addChild(metadataId);
+
+		DataGroup recordTypeToSearchInGroup = DataGroup.withNameInData("recordTypeToSearchIn");
+		dataGroup.addChild(recordTypeToSearchInGroup);
+		recordTypeToSearchInGroup
+				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
+		recordTypeToSearchInGroup
+				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "place"));
 		recordsInMemory.create("search", "aSearchId", dataGroup,
+				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+	}
+
+	private static void addSearchWithTwoRecordTypeToSearchIn(
+			RecordStorageInMemory recordsInMemory) {
+		DataGroup recordInfo = DataCreator.createRecordInfoWithRecordTypeAndRecordId("search",
+				"anotherSearchId");
+
+		DataGroup dataGroup = DataGroup.withNameInData("search");
+		dataGroup.addChild(recordInfo);
+		DataGroup metadataId = DataGroup.withNameInData("metadataId");
+		metadataId.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		metadataId.addChild(
+				DataAtomic.withNameInDataAndValue("linkedRecordId", "searchResourcesGroup"));
+		dataGroup.addChild(metadataId);
+
+		DataGroup recordTypeToSearchInGroup = DataGroup.withNameInData("recordTypeToSearchIn");
+		dataGroup.addChild(recordTypeToSearchInGroup);
+		recordTypeToSearchInGroup
+				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
+		recordTypeToSearchInGroup
+				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "place"));
+
+		DataGroup recordTypeToSearchInGroup2 = DataGroup.withNameInData("recordTypeToSearchIn");
+		dataGroup.addChild(recordTypeToSearchInGroup2);
+		recordTypeToSearchInGroup2
+				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
+		recordTypeToSearchInGroup2
+				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "image"));
+
+		recordsInMemory.create("search", "anotherSearchId", dataGroup,
 				DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 

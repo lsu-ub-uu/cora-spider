@@ -20,9 +20,7 @@
 package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -73,9 +71,6 @@ public class SpiderRecordListReaderTest {
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.keyCalculator = keyCalculator;
-		// SpiderInstanceFactory factory = SpiderInstanceFactoryImp
-		// .usingDependencyProvider(dependencyProvider);
-		// SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordListReader = SpiderRecordListReaderImp
 				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProvider,
@@ -116,7 +111,8 @@ public class SpiderRecordListReaderTest {
 	public void testReadListAbstractRecordType() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		SpiderDataList spiderDataList = recordListReader.readRecordList("someToken78678567", "abstract");
+		SpiderDataList spiderDataList = recordListReader.readRecordList("someToken78678567",
+				"abstract");
 		assertEquals(spiderDataList.getTotalNumberOfTypeInStorage(), "2");
 
 		String type1 = extractTypeFromChildInListUsingIndex(spiderDataList, 0);
@@ -126,7 +122,7 @@ public class SpiderRecordListReaderTest {
 	}
 
 	private String extractTypeFromChildInListUsingIndex(SpiderDataList spiderDataList, int index) {
-		SpiderDataRecord spiderData1 = (SpiderDataRecord)spiderDataList.getDataList().get(index);
+		SpiderDataRecord spiderData1 = (SpiderDataRecord) spiderDataList.getDataList().get(index);
 		SpiderDataGroup spiderDataGroup1 = spiderData1.getSpiderDataGroup();
 		return spiderDataGroup1.extractGroup("recordInfo").extractAtomicValue("type");
 	}
@@ -136,7 +132,8 @@ public class SpiderRecordListReaderTest {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
 
-		SpiderDataList spiderDataList = recordListReader.readRecordList("someToken78678567", "abstract2");
+		SpiderDataList spiderDataList = recordListReader.readRecordList("someToken78678567",
+				"abstract2");
 		assertEquals(spiderDataList.getTotalNumberOfTypeInStorage(), "1");
 
 		String type1 = extractTypeFromChildInListUsingIndex(spiderDataList, 0);
