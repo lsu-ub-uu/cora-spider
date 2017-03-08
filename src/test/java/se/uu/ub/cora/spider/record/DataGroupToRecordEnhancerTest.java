@@ -126,6 +126,22 @@ public class DataGroupToRecordEnhancerTest {
 		assertFalse(record.getActions().contains(Action.DELETE));
 	}
 
+
+	@Test
+	public void testAuthorizedToDeleteAndIncomingLinkToAbstractParent() {
+		DataGroup dataGroup = recordStorage.read("place", "place:0003");
+		String recordType = "place";
+
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
+		assertEquals(record.getActions().size(), 3);
+		assertTrue(record.getActions().contains(Action.READ));
+		assertTrue(record.getActions().contains(Action.UPDATE));
+		assertTrue(record.getActions().contains(Action.READ_INCOMING_LINKS));
+
+		assertFalse(record.getActions().contains(Action.DELETE));
+
+	}
+
 	@Test
 	public void testNotAuthorizedToDeleteAndIncomingLink() {
 		authorizator = new NeverAuthorisedStub();

@@ -89,10 +89,10 @@ public class SpiderRecordListReaderTest {
 		String userId = "someToken78678567";
 		String type = "place";
 		SpiderDataList readRecordList = recordListReader.readRecordList(userId, type);
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "2",
-				"Total number of records should be 2");
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "4",
+				"Total number of records should be 4");
 		assertEquals(readRecordList.getFromNo(), "1");
-		assertEquals(readRecordList.getToNo(), "2");
+		assertEquals(readRecordList.getToNo(), "4");
 		List<SpiderData> records = readRecordList.getDataList();
 		SpiderDataRecord spiderDataRecord = (SpiderDataRecord) records.iterator().next();
 		assertNotNull(spiderDataRecord);
@@ -104,7 +104,7 @@ public class SpiderRecordListReaderTest {
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
 		assertEquals(dataGroupToRecordEnhancer.recordType, "place");
 		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id"), "place:0002");
+				.getFirstAtomicValueWithNameInData("id"), "place:0004");
 	}
 
 	@Test

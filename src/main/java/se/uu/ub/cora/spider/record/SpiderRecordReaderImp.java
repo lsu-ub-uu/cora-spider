@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import se.uu.ub.cora.beefeater.authentication.User;
@@ -110,10 +111,39 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 
 		checkUserIsAuthorisedToReadData(recordRead);
 
+		return collectLinksAndConvertToSpiderDataList();
+	}
+
+	private SpiderDataList collectLinksAndConvertToSpiderDataList() {
+		Collection<DataGroup> links = new ArrayList<>();
+		addLinksPointingToRecord(links);
+		possiblyAddLinksPointingToRecordByParentRecordType(links);
+
+		return convertLinksPointingToRecordToSpiderDataList(links);
+	}
+
+	private void addLinksPointingToRecord(Collection<DataGroup> links) {
 		Collection<DataGroup> linksPointingToRecord = recordStorage
 				.generateLinkCollectionPointingToRecord(recordType, recordId);
+		links.addAll(linksPointingToRecord);
+	}
 
-		return convertLinksPointingToRecordToSpiderDataList(linksPointingToRecord);
+	private void possiblyAddLinksPointingToRecordByParentRecordType(Collection<DataGroup> links) {
+		DataGroup recordTypeDataGroup = getRecordTypeDefinition();
+		if(recordTypeHasParent(recordTypeDataGroup)){
+			String parentId = extractParentId(recordTypeDataGroup);
+			Collection<DataGroup> linksPointingToParentType = recordStorage.generateLinkCollectionPointingToRecord(parentId, recordId);
+			links.addAll(linksPointingToParentType);
+		}
+	}
+
+	private boolean recordTypeHasParent(DataGroup recordTypeDataGroup) {
+		return recordTypeDataGroup.containsChildWithNameInData("parentId");
+	}
+
+	private String extractParentId(DataGroup recordTypeDataGroup) {
+		DataGroup parent = recordTypeDataGroup.getFirstGroupWithNameInData("parentId");
+		return parent.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	private SpiderDataList convertLinksPointingToRecordToSpiderDataList(
