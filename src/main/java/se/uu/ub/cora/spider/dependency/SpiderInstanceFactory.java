@@ -1,5 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
+ * Copyright 2017 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -24,6 +25,7 @@ import se.uu.ub.cora.spider.record.SpiderRecordCreator;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 import se.uu.ub.cora.spider.record.SpiderRecordListReader;
 import se.uu.ub.cora.spider.record.SpiderRecordReader;
+import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 
@@ -42,5 +44,7 @@ public interface SpiderInstanceFactory {
 	SpiderUploader factorSpiderUploader();
 
 	SpiderDownloader factorSpiderDownloader();
+
+	SpiderRecordSearcher factorSpiderRecordSearcher();
 
 }

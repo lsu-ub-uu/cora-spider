@@ -27,6 +27,7 @@ import se.uu.ub.cora.spider.record.SpiderRecordCreator;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 import se.uu.ub.cora.spider.record.SpiderRecordListReader;
 import se.uu.ub.cora.spider.record.SpiderRecordReader;
+import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterSpy;
 import se.uu.ub.cora.spider.record.SpiderUploader;
@@ -39,6 +40,7 @@ public class SpiderInstanceFactorySpy2 implements SpiderInstanceFactory {
 	public boolean deleterFactoryWasCalled = false;
 	public boolean uploaderFactoryWasCalled = false;
 	public boolean downloaderFactoryWasCalled = false;
+	public boolean searcherFactoryWasCalled = false;
 
 	public List<SpiderRecordUpdaterSpy> createdUpdaters = new ArrayList<>();
 
@@ -87,4 +89,9 @@ public class SpiderInstanceFactorySpy2 implements SpiderInstanceFactory {
 		return null;
 	}
 
+	@Override
+	public SpiderRecordSearcher factorSpiderRecordSearcher() {
+		searcherFactoryWasCalled = true;
+		return null;
+	}
 }

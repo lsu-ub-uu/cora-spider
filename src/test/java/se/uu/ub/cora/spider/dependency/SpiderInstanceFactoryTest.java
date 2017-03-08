@@ -33,6 +33,7 @@ import se.uu.ub.cora.spider.record.SpiderRecordCreator;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 import se.uu.ub.cora.spider.record.SpiderRecordListReader;
 import se.uu.ub.cora.spider.record.SpiderRecordReader;
+import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 
@@ -107,5 +108,14 @@ public class SpiderInstanceFactoryTest {
 		assertNotNull(recordDownloader);
 		assertNotNull(recordDownloader2);
 		assertNotSame(recordDownloader, recordDownloader2);
+	}
+
+	@Test
+	public void initMakeSureWeGetMultipleInstancesOfSearcher() {
+		SpiderRecordSearcher recordSearcher = factory.factorSpiderRecordSearcher();
+		SpiderRecordSearcher recordSearcher2 = factory.factorSpiderRecordSearcher();
+		assertNotNull(recordSearcher);
+		assertNotNull(recordSearcher2);
+		assertNotSame(recordSearcher, recordSearcher2);
 	}
 }

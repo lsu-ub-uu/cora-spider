@@ -32,6 +32,8 @@ import se.uu.ub.cora.spider.record.SpiderRecordListReader;
 import se.uu.ub.cora.spider.record.SpiderRecordListReaderImp;
 import se.uu.ub.cora.spider.record.SpiderRecordReader;
 import se.uu.ub.cora.spider.record.SpiderRecordReaderImp;
+import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
+import se.uu.ub.cora.spider.record.SpiderRecordSearcherImp;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterImp;
 import se.uu.ub.cora.spider.record.SpiderUploader;
@@ -95,6 +97,14 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	@Override
 	public SpiderDownloader factorSpiderDownloader() {
 		return SpiderDownloaderImp.usingDependencyProvider(dependencyProvider);
+	}
+
+	@Override
+	public SpiderRecordSearcher factorSpiderRecordSearcher() {
+		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
+				dependencyProvider);
+		return SpiderRecordSearcherImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 }

@@ -24,6 +24,7 @@ import se.uu.ub.cora.spider.record.SpiderRecordCreator;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 import se.uu.ub.cora.spider.record.SpiderRecordListReader;
 import se.uu.ub.cora.spider.record.SpiderRecordReader;
+import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 
@@ -66,6 +67,10 @@ public final class SpiderInstanceProvider {
 
 	public static SpiderDownloader getSpiderDownloader() {
 		return factory.factorSpiderDownloader();
+	}
+
+	public static SpiderRecordSearcher getSpiderRecordSearcher() {
+		return factory.factorSpiderRecordSearcher();
 	}
 
 }

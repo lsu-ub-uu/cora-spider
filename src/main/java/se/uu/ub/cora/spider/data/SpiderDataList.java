@@ -30,12 +30,12 @@ public final class SpiderDataList {
 	private String fromNo;
 	private String toNo;
 
-	public static SpiderDataList withContainDataOfType(String containDataOfType) {
-		return new SpiderDataList(containDataOfType);
-	}
-
 	private SpiderDataList(String containDataOfType) {
 		this.containDataOfType = containDataOfType;
+	}
+
+	public static SpiderDataList withContainDataOfType(String containDataOfType) {
+		return new SpiderDataList(containDataOfType);
 	}
 
 	public String getContainDataOfType() {

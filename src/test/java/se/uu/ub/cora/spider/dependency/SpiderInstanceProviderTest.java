@@ -1,5 +1,6 @@
 /*
  * Copyright 2015 Uppsala University Library
+ * Copyright 2017 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -99,6 +100,14 @@ public class SpiderInstanceProviderTest {
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		SpiderInstanceProvider.getSpiderDownloader();
 		assertTrue(factory.downloaderFactoryWasCalled);
+	}
+
+	@Test
+	public void makeSureFactoryCreateIsCalledForRecordSearcher() {
+		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.getSpiderRecordSearcher();
+		assertTrue(factory.searcherFactoryWasCalled);
 	}
 
 }
