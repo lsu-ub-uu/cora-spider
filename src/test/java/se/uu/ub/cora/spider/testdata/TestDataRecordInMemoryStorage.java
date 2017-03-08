@@ -33,6 +33,8 @@ public class TestDataRecordInMemoryStorage {
 		RecordStorageInMemory recordsInMemory = new RecordStorageInMemory();
 		addPlace(recordsInMemory);
 		addSecondPlace(recordsInMemory);
+		addThirdPlace(recordsInMemory);
+		addFourthPlace(recordsInMemory);
 		addMetadata(recordsInMemory);
 		addPresentation(recordsInMemory);
 		addText(recordsInMemory);
@@ -87,6 +89,38 @@ public class TestDataRecordInMemoryStorage {
 
 		DataGroup collectedLinksList = createLinkList();
 		recordsInMemory.create("place", "place:0002", dataGroup, collectedLinksList, "cora");
+	}
+
+	private static void addThirdPlace(RecordStorage recordsInMemory) {
+		DataGroup dataGroup = DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"authority", "place:0003", "place", "cora").toDataGroup();
+
+		DataGroup collectedLinksList = DataGroup.withNameInData("collectedLinksList");
+		recordsInMemory.create("place", "place:0003", dataGroup, collectedLinksList, "cora");
+	}
+
+	private static void addFourthPlace(RecordStorage recordsInMemory) {
+		DataGroup dataGroup = DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"authority", "place:0004", "place", "cora").toDataGroup();
+
+		DataGroup dataRecordLink = DataGroup.withNameInData("link");
+		dataGroup.addChild(dataRecordLink);
+		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("authority", "place:0003", dataRecordLink);
+
+		DataGroup collectedLinksList = DataGroup.withNameInData("collectedLinksList");
+		DataGroup recordToRecordLink = DataGroup.withNameInData("recordToRecordLink");
+
+		DataGroup from = DataGroup.withNameInData("from");
+		recordToRecordLink.addChild(from);
+		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0004", from);
+		DataGroup to = DataGroup.withNameInData("to");
+		recordToRecordLink.addChild(to);
+		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("authority", "place:0003", to);
+
+		collectedLinksList.addChild(recordToRecordLink);
+
+
+		recordsInMemory.create("place", "place:0004", dataGroup, collectedLinksList, "cora");
 	}
 
 	private static void addLinkedRecordTypeAndLinkedRecordIdToRecordLink(

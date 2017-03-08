@@ -89,8 +89,24 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		SpiderDataGroup topLevelDataGroup = spiderDataRecord.getSpiderDataGroup();
 		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
 		String recordTypeForThisRecord = recordInfo.extractAtomicValue("type");
+
+		return linksExistForRecord(recordTypeForThisRecord) ||
+				incomingLinksExistsForParentToRecordType(recordTypeForThisRecord);
+	}
+
+	private boolean linksExistForRecord(String recordTypeForThisRecord) {
 		return dependencyProvider.getRecordStorage().linksExistForRecord(recordTypeForThisRecord,
 				handledRecordId);
+	}
+
+	private Boolean incomingLinksExistsForParentToRecordType(String recordTypeForThisRecord) {
+		DataGroup recordTypeDataGroup = dependencyProvider.getRecordStorage().read(RECORD_TYPE, recordTypeForThisRecord);
+		if(handledRecordHasParent(recordTypeDataGroup)){
+            String parentId = extractParentId(recordTypeDataGroup);
+            return dependencyProvider.getRecordStorage().linksExistForRecord(parentId,
+                    handledRecordId);
+        }
+		return false;
 	}
 
 	private boolean userIsAuthorizedForAction(String action) {
@@ -112,19 +128,23 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean isHandledRecordIdChildOfBinary(String dataRecordRecordId) {
-		String refParentId = extractParentId(dataRecordRecordId);
+		String refParentId = checkIfRecordTypeHasParentAndExtractParentId(dataRecordRecordId);
 		return "binary".equals(refParentId);
 	}
 
-	private String extractParentId(String dataRecordRecordId) {
+	private String checkIfRecordTypeHasParentAndExtractParentId(String dataRecordRecordId) {
 		DataGroup handledRecordTypeDataGroup = dependencyProvider.getRecordStorage()
 				.read(RECORD_TYPE, dataRecordRecordId);
 		if (handledRecordHasParent(handledRecordTypeDataGroup)) {
-			DataGroup parentGroup = handledRecordTypeDataGroup
-					.getFirstGroupWithNameInData(PARENT_ID);
-			return parentGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+			return extractParentId(handledRecordTypeDataGroup);
 		}
 		return "";
+	}
+
+	private String extractParentId(DataGroup handledRecordTypeDataGroup) {
+		DataGroup parentGroup = handledRecordTypeDataGroup
+                .getFirstGroupWithNameInData(PARENT_ID);
+		return parentGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
