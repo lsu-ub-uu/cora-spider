@@ -19,9 +19,11 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.data.Data;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -110,10 +112,21 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 
 		checkUserIsAuthorisedToReadData(recordRead);
 
+		Collection<DataGroup> links = new ArrayList<>();
+
 		Collection<DataGroup> linksPointingToRecord = recordStorage
 				.generateLinkCollectionPointingToRecord(recordType, recordId);
+		links.addAll(linksPointingToRecord);
 
-		return convertLinksPointingToRecordToSpiderDataList(linksPointingToRecord);
+		DataGroup recordTypeDataGroup = getRecordTypeDefinition();
+		if(recordTypeDataGroup.containsChildWithNameInData("parentId")){
+			DataGroup parent = recordTypeDataGroup.getFirstGroupWithNameInData("parentId");
+			String parentId = parent.getFirstAtomicValueWithNameInData("linkedRecordId");
+			Collection<DataGroup> linksPointingToParentType = recordStorage.generateLinkCollectionPointingToRecord(parentId, recordId);
+			links.addAll(linksPointingToParentType);
+		}
+
+		return convertLinksPointingToRecordToSpiderDataList(links);
 	}
 
 	private SpiderDataList convertLinksPointingToRecordToSpiderDataList(
