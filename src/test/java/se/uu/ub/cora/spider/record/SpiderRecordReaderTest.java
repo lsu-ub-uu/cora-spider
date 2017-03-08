@@ -188,6 +188,16 @@ public class SpiderRecordReaderTest {
 
 	}
 
+	@Test
+	public void testReadIncomingLinksNoParentRecordTypeNoLinks() {
+		SpiderDataList linksPointingToRecord = recordReader.readIncomingLinks("someToken78678567",
+				"search", "aSearchId");
+		assertEquals(linksPointingToRecord.getTotalNumberOfTypeInStorage(), "0");
+		assertEquals(linksPointingToRecord.getFromNo(), "1");
+		assertEquals(linksPointingToRecord.getToNo(), "0");
+
+	}
+
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testReadIncomingLinksAuthenticationNotAuthenticated() {
 		recordStorage = new RecordStorageSpy();
