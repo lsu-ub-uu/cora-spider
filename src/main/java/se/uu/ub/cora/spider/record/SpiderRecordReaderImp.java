@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.data.Data;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -112,21 +111,39 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 
 		checkUserIsAuthorisedToReadData(recordRead);
 
-		Collection<DataGroup> links = new ArrayList<>();
+		return collectLinksAndConvertToSpiderDataList();
+	}
 
+	private SpiderDataList collectLinksAndConvertToSpiderDataList() {
+		Collection<DataGroup> links = new ArrayList<>();
+		addLinksPointingToRecord(links);
+		possiblyAddLinksPointingToRecordByParentRecordType(links);
+
+		return convertLinksPointingToRecordToSpiderDataList(links);
+	}
+
+	private void addLinksPointingToRecord(Collection<DataGroup> links) {
 		Collection<DataGroup> linksPointingToRecord = recordStorage
 				.generateLinkCollectionPointingToRecord(recordType, recordId);
 		links.addAll(linksPointingToRecord);
+	}
 
+	private void possiblyAddLinksPointingToRecordByParentRecordType(Collection<DataGroup> links) {
 		DataGroup recordTypeDataGroup = getRecordTypeDefinition();
-		if(recordTypeDataGroup.containsChildWithNameInData("parentId")){
-			DataGroup parent = recordTypeDataGroup.getFirstGroupWithNameInData("parentId");
-			String parentId = parent.getFirstAtomicValueWithNameInData("linkedRecordId");
+		if(recordTypeHasParent(recordTypeDataGroup)){
+			String parentId = extractParentId(recordTypeDataGroup);
 			Collection<DataGroup> linksPointingToParentType = recordStorage.generateLinkCollectionPointingToRecord(parentId, recordId);
 			links.addAll(linksPointingToParentType);
 		}
+	}
 
-		return convertLinksPointingToRecordToSpiderDataList(links);
+	private boolean recordTypeHasParent(DataGroup recordTypeDataGroup) {
+		return recordTypeDataGroup.containsChildWithNameInData("parentId");
+	}
+
+	private String extractParentId(DataGroup recordTypeDataGroup) {
+		DataGroup parent = recordTypeDataGroup.getFirstGroupWithNameInData("parentId");
+		return parent.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	private SpiderDataList convertLinksPointingToRecordToSpiderDataList(
