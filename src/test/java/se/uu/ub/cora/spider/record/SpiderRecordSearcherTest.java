@@ -118,7 +118,7 @@ public class SpiderRecordSearcherTest {
 	public void testReadListAuthenticatedAndUnauthorizedNoRightToOneRecordTypeToSearchIn() {
 		authorizator = new AlwaysAuthorisedExceptStub();
 		HashSet<String> hashSet = new HashSet<String>();
-		hashSet.add("read");
+		hashSet.add("search");
 		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
 				.put("image", hashSet);
 		setUpDependencyProvider();

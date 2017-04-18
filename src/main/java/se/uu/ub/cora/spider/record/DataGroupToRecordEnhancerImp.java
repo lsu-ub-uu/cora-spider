@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.List;
+
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.Action;
@@ -34,6 +36,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private static final String RECORD_TYPE = "recordType";
 	private static final String PARENT_ID = "parentId";
+	private static final String LINKED_RECORD_ID = "linkedRecordId";
+	private static final String SEARCH = "search";
 	private DataGroup dataGroup;
 	private SpiderDataRecord record;
 	private SpiderDependencyProvider dependencyProvider;
@@ -90,8 +94,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
 		String recordTypeForThisRecord = recordInfo.extractAtomicValue("type");
 
-		return linksExistForRecord(recordTypeForThisRecord) ||
-				incomingLinksExistsForParentToRecordType(recordTypeForThisRecord);
+		return linksExistForRecord(recordTypeForThisRecord)
+				|| incomingLinksExistsForParentToRecordType(recordTypeForThisRecord);
 	}
 
 	private boolean linksExistForRecord(String recordTypeForThisRecord) {
@@ -100,12 +104,13 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private Boolean incomingLinksExistsForParentToRecordType(String recordTypeForThisRecord) {
-		DataGroup recordTypeDataGroup = dependencyProvider.getRecordStorage().read(RECORD_TYPE, recordTypeForThisRecord);
-		if(handledRecordHasParent(recordTypeDataGroup)){
-            String parentId = extractParentId(recordTypeDataGroup);
-            return dependencyProvider.getRecordStorage().linksExistForRecord(parentId,
-                    handledRecordId);
-        }
+		DataGroup recordTypeDataGroup = dependencyProvider.getRecordStorage().read(RECORD_TYPE,
+				recordTypeForThisRecord);
+		if (handledRecordHasParent(recordTypeDataGroup)) {
+			String parentId = extractParentId(recordTypeDataGroup);
+			return dependencyProvider.getRecordStorage().linksExistForRecord(parentId,
+					handledRecordId);
+		}
 		return false;
 	}
 
@@ -142,8 +147,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private String extractParentId(DataGroup handledRecordTypeDataGroup) {
-		DataGroup parentGroup = handledRecordTypeDataGroup
-                .getFirstGroupWithNameInData(PARENT_ID);
+		DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData(PARENT_ID);
 		return parentGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
@@ -184,10 +188,27 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void possiblyAddSearchAction(SpiderDataRecord spiderDataRecord) {
-		if (isRecordTypeSearch()
-				&& userIsAuthorizedForActionOnRecordType("search", recordType)) {
-			spiderDataRecord.addAction(Action.SEARCH);
+		if (isRecordTypeSearch()) {
+			List<DataGroup> recordTypeToSearchInGroups = getRecordTypesToSearchInFromSearchGroup();
+			if (checkUserHasSearchAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups)) {
+				spiderDataRecord.addAction(Action.SEARCH);
+			}
 		}
+	}
+
+	private List<DataGroup> getRecordTypesToSearchInFromSearchGroup() {
+		return dataGroup.getAllGroupsWithNameInData("recordTypeToSearchIn");
+	}
+
+	private boolean checkUserHasSearchAccessOnAllRecordTypesToSearchIn(
+			List<DataGroup> recordTypeToSearchInGroups) {
+		return recordTypeToSearchInGroups.stream().allMatch(this::isAuthorized);
+	}
+
+	private boolean isAuthorized(DataGroup group) {
+		String linkedRecordTypeId = group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		return dependencyProvider.getSpiderAuthorizator()
+				.userIsAuthorizedForActionOnRecordType(user, SEARCH, linkedRecordTypeId);
 	}
 
 	private boolean isRecordTypeSearch() {

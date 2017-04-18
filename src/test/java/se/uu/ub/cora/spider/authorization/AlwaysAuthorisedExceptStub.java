@@ -81,7 +81,9 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		// TODO Auto-generated method stub
+		if (notAuthorizedForRecordTypeAndAction(recordType, action)) {
+			return false;
+		}
 		return true;
 	}
 

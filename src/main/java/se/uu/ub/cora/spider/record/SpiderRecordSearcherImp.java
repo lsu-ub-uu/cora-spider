@@ -37,6 +37,7 @@ import se.uu.ub.cora.spider.record.storage.RecordStorage;
 public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private static final String READ = "read";
+	private static final String SEARCH = "search";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;
@@ -95,18 +96,18 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	}
 
 	private void validateSearchInputForUser() {
-		checkUserHasReadAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups);
+		checkUserHasSearchAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups);
 		validateIncomingSearchDataAsSpecifiedInSearchGroup();
 	}
 
-	private void checkUserHasReadAccessOnAllRecordTypesToSearchIn(
+	private void checkUserHasSearchAccessOnAllRecordTypesToSearchIn(
 			List<DataGroup> recordTypeToSearchInGroups) {
 		recordTypeToSearchInGroups.stream().forEach(this::isAuthorized);
 	}
 
 	private void isAuthorized(DataGroup group) {
 		String linkedRecordTypeId = group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ,
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, SEARCH,
 				linkedRecordTypeId);
 	}
 

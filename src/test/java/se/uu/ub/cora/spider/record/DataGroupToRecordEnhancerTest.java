@@ -126,7 +126,6 @@ public class DataGroupToRecordEnhancerTest {
 		assertFalse(record.getActions().contains(Action.DELETE));
 	}
 
-
 	@Test
 	public void testAuthorizedToDeleteAndIncomingLinkToAbstractParent() {
 		DataGroup dataGroup = recordStorage.read("place", "place:0003");
@@ -314,21 +313,21 @@ public class DataGroupToRecordEnhancerTest {
 
 		AuthorizatorAlwaysAuthorizedSpy authorizator = (AuthorizatorAlwaysAuthorizedSpy) this.authorizator;
 		List<String> parameters = authorizator.userIsAuthorizedParameters;
-		assertTrue(parameters.contains("987654321:search:search"));
+		assertTrue(parameters.contains("987654321:search:place"));
 	}
 
 	@Test
-	public void testActionsOnReadRecordTypeSearchNotAutorizedToSearch() {
+	public void testActionsOnReadRecordTypeSearchWhereWeDoNotHaveSearchOnOneRecordTypeToSearchIn() {
 		String recordType = "search";
-		DataGroup dataGroup = recordStorage.read(recordType, "aSearchId");
-
+		DataGroup dataGroup = recordStorage.read(recordType, "anotherSearchId");
+		//
 		authorizator = new AlwaysAuthorisedExceptStub();
 		Set<String> actions = new HashSet<>();
 		actions.add("search");
 		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
-				.put(recordType, actions);
+				.put("image", actions);
 		setUpDependencyProvider();
-
+		//
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
