@@ -101,12 +101,14 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	private String extractRecordTypeFromDataGroup(DataGroup dataGroup) {
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		return recordInfo.getFirstAtomicValueWithNameInData("type");
+		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
+
+		return typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	private void enhanceDataGroupAndAddToRecordList(DataGroup dataGroup) {
 		SpiderDataRecord spiderDataRecord = dataGroupToRecordEnhancer.enhance(user, recordType,
-                dataGroup);
+				dataGroup);
 		readRecordList.addData(spiderDataRecord);
 	}
 

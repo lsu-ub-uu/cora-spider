@@ -88,10 +88,11 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {
 		SpiderDataGroup topLevelDataGroup = spiderDataRecord.getSpiderDataGroup();
 		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
-		String recordTypeForThisRecord = recordInfo.extractAtomicValue("type");
+		SpiderDataGroup typeGroup = recordInfo.extractGroup("type");
+		String recordTypeForThisRecord = typeGroup.extractAtomicValue("linkedRecordId");
 
-		return linksExistForRecord(recordTypeForThisRecord) ||
-				incomingLinksExistsForParentToRecordType(recordTypeForThisRecord);
+		return linksExistForRecord(recordTypeForThisRecord)
+				|| incomingLinksExistsForParentToRecordType(recordTypeForThisRecord);
 	}
 
 	private boolean linksExistForRecord(String recordTypeForThisRecord) {
@@ -100,12 +101,13 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private Boolean incomingLinksExistsForParentToRecordType(String recordTypeForThisRecord) {
-		DataGroup recordTypeDataGroup = dependencyProvider.getRecordStorage().read(RECORD_TYPE, recordTypeForThisRecord);
-		if(handledRecordHasParent(recordTypeDataGroup)){
-            String parentId = extractParentId(recordTypeDataGroup);
-            return dependencyProvider.getRecordStorage().linksExistForRecord(parentId,
-                    handledRecordId);
-        }
+		DataGroup recordTypeDataGroup = dependencyProvider.getRecordStorage().read(RECORD_TYPE,
+				recordTypeForThisRecord);
+		if (handledRecordHasParent(recordTypeDataGroup)) {
+			String parentId = extractParentId(recordTypeDataGroup);
+			return dependencyProvider.getRecordStorage().linksExistForRecord(parentId,
+					handledRecordId);
+		}
 		return false;
 	}
 
@@ -142,8 +144,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private String extractParentId(DataGroup handledRecordTypeDataGroup) {
-		DataGroup parentGroup = handledRecordTypeDataGroup
-                .getFirstGroupWithNameInData(PARENT_ID);
+		DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData(PARENT_ID);
 		return parentGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
@@ -184,8 +185,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void possiblyAddSearchAction(SpiderDataRecord spiderDataRecord) {
-		if (isRecordTypeSearch()
-				&& userIsAuthorizedForActionOnRecordType("search", recordType)) {
+		if (isRecordTypeSearch() && userIsAuthorizedForActionOnRecordType("search", recordType)) {
 			spiderDataRecord.addAction(Action.SEARCH);
 		}
 	}
