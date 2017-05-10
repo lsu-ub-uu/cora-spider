@@ -19,7 +19,10 @@
 
 package se.uu.ub.cora.spider.spy;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
@@ -33,7 +36,8 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 	public List<String> recordTypes = new ArrayList<>();
 	public List<DataGroup> records = new ArrayList<>();
 
-//	public Map<String, Map<String, Map<String, List<DataGroup>>>> userIsAuthorizedParameters = new HashMap<>();
+	// public Map<String, Map<String, Map<String, List<DataGroup>>>>
+	// userIsAuthorizedParameters = new HashMap<>();
 	public List<String> userIsAuthorizedParameters = new ArrayList<>();
 
 	@Override
@@ -67,7 +71,7 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 			String recordType, DataGroup record) {
 		authorizedWasCalled = true;
 		this.recordTypes.add(recordType);
-		userIsAuthorizedParameters.add(user.id+":"+action+":"+recordType);
+		userIsAuthorizedParameters.add(user.id + ":" + action + ":" + recordType);
 		return true;
 	}
 
@@ -75,6 +79,7 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
 		authorizedWasCalled = true;
+		userIsAuthorizedParameters.add(user.id + ":" + action + ":" + recordType);
 		return true;
 	}
 

@@ -37,13 +37,14 @@ import se.uu.ub.cora.spider.record.storage.RecordStorage;
 public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private static final String READ = "read";
+	private static final String SEARCH = "search";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;
 	private User user;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private RecordStorage recordStorage;
-	private DataGroup searchData;
+	private SpiderDataGroup searchData;
 	private RecordSearch recordSearch;
 	private SpiderDataList spiderDataList;
 	private DataGroup searchMetadata;
@@ -69,7 +70,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	@Override
 	public SpiderDataList search(String authToken, String searchId,
 			SpiderDataGroup spiderSearchData) {
-		this.searchData = spiderSearchData.toDataGroup();
+		this.searchData = spiderSearchData;
 		tryToGetActiveUser(authToken);
 		readSearchDataFromStorage(searchId);
 		validateSearchInputForUser();
@@ -95,18 +96,18 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	}
 
 	private void validateSearchInputForUser() {
-		checkUserHasReadAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups);
+		checkUserHasSearchAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups);
 		validateIncomingSearchDataAsSpecifiedInSearchGroup();
 	}
 
-	private void checkUserHasReadAccessOnAllRecordTypesToSearchIn(
+	private void checkUserHasSearchAccessOnAllRecordTypesToSearchIn(
 			List<DataGroup> recordTypeToSearchInGroups) {
 		recordTypeToSearchInGroups.stream().forEach(this::isAuthorized);
 	}
 
 	private void isAuthorized(DataGroup group) {
 		String linkedRecordTypeId = group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ,
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, SEARCH,
 				linkedRecordTypeId);
 	}
 
@@ -120,7 +121,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private void validateIncomingDataAsSpecifiedInMetadata(
 			String metadataGroupIdToValidateAgainst) {
 		ValidationAnswer validationAnswer = dataValidator
-				.validateData(metadataGroupIdToValidateAgainst, searchData);
+				.validateData(metadataGroupIdToValidateAgainst, searchData.toDataGroup());
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
