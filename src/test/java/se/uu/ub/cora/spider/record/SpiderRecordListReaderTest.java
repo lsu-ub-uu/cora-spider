@@ -124,7 +124,9 @@ public class SpiderRecordListReaderTest {
 	private String extractTypeFromChildInListUsingIndex(SpiderDataList spiderDataList, int index) {
 		SpiderDataRecord spiderData1 = (SpiderDataRecord) spiderDataList.getDataList().get(index);
 		SpiderDataGroup spiderDataGroup1 = spiderData1.getSpiderDataGroup();
-		return spiderDataGroup1.extractGroup("recordInfo").extractAtomicValue("type");
+		SpiderDataGroup recordInfo = spiderDataGroup1.extractGroup("recordInfo");
+		SpiderDataGroup typeGroup = recordInfo.extractGroup("type");
+		return typeGroup.extractAtomicValue("linkedRecordId");
 	}
 
 	@Test

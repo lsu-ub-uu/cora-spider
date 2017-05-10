@@ -92,7 +92,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {
 		SpiderDataGroup topLevelDataGroup = spiderDataRecord.getSpiderDataGroup();
 		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
-		String recordTypeForThisRecord = recordInfo.extractAtomicValue("type");
+		SpiderDataGroup typeGroup = recordInfo.extractGroup("type");
+		String recordTypeForThisRecord = typeGroup.extractAtomicValue("linkedRecordId");
 
 		return linksExistForRecord(recordTypeForThisRecord)
 				|| incomingLinksExistsForParentToRecordType(recordTypeForThisRecord);

@@ -26,7 +26,13 @@ public final class SpiderDataCreator {
 
 	private static SpiderDataGroup createRecordInfoWithRecordType(String recordType) {
 		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", recordType));
+		SpiderDataGroup typeGroup = SpiderDataGroup.withNameInData("type");
+		typeGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
+		typeGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", recordType));
+		recordInfo.addChild(typeGroup);
+		// recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type",
+		// recordType));
 		return recordInfo;
 	}
 

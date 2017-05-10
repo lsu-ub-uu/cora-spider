@@ -204,7 +204,12 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void addUserAndTypeToRecordInfo(String userId, String recordType) {
 		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
-		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", recordType));
+		SpiderDataGroup type = SpiderDataGroup.withNameInData("type");
+		type.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
+		type.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", recordType));
+		// recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type",
+		// recordType));
+		recordInfo.addChild(type);
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("createdBy", userId));
 	}
 
