@@ -93,7 +93,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		SpiderDataGroup topLevelDataGroup = spiderDataRecord.getSpiderDataGroup();
 		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
 		SpiderDataGroup typeGroup = recordInfo.extractGroup("type");
-		String recordTypeForThisRecord = typeGroup.extractAtomicValue("linkedRecordId");
+		String recordTypeForThisRecord = typeGroup.extractAtomicValue(LINKED_RECORD_ID);
 
 		return linksExistForRecord(recordTypeForThisRecord)
 				|| incomingLinksExistsForParentToRecordType(recordTypeForThisRecord);
@@ -149,7 +149,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private String extractParentId(DataGroup handledRecordTypeDataGroup) {
 		DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData(PARENT_ID);
-		return parentGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+		return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
 	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
