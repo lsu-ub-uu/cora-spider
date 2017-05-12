@@ -170,6 +170,10 @@ public class SpiderRecordSearcherTest {
 		assertEquals(searchResult.getDataList().size(),
 				dataGroupToRecordEnhancer.enhancedDataGroups.size());
 		assertEquals(dataGroupToRecordEnhancer.recordType, "place");
+		assertEquals(searchResult.getFromNo(), "0");
+		assertEquals(searchResult.getToNo(), String.valueOf(searchResult.getDataList().size()));
+		assertEquals(searchResult.getTotalNumberOfTypeInStorage(),
+				String.valueOf(searchResult.getDataList().size()));
 	}
 
 	@Test

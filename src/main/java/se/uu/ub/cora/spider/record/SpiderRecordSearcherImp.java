@@ -141,6 +141,9 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		spiderDataList = SpiderDataList.withContainDataOfType("mix");
 		Collection<DataGroup> dataGroupList = spiderSearchResult.listOfDataGroups;
 		dataGroupList.forEach(this::filterEnhanceAndAddToList);
+		spiderDataList.setFromNo("0");
+		spiderDataList.setToNo(String.valueOf(spiderDataList.getDataList().size()));
+		spiderDataList.setTotalNo(String.valueOf(spiderDataList.getDataList().size()));
 		return spiderDataList;
 	}
 
