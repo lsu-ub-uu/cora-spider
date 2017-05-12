@@ -147,17 +147,32 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void checkRecordTypeAndIdIsSameAsInEnteredRecord() {
-		checkValueIsSameAsInEnteredRecord(recordId, "id");
-		checkValueIsSameAsInEnteredRecord(recordType, "type");
+		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
+		checkIdIsSameAsInEnteredRecord(recordInfo);
+		checkTypeIsSameAsInEnteredRecord(recordInfo);
 	}
 
-	private void checkValueIsSameAsInEnteredRecord(String value, String valueToExtract) {
-		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
-		String valueFromRecord = recordInfo.extractAtomicValue(valueToExtract);
-		if (!value.equals(valueFromRecord)) {
-			throw new DataException("Value in data(" + valueFromRecord
+	private void checkIdIsSameAsInEnteredRecord(SpiderDataGroup recordInfo) {
+		String valueFromRecord = recordInfo.extractAtomicValue("id");
+		checkValueIsSameAsValueInEnteredRecord(recordId, valueFromRecord);
+	}
+
+	private void checkValueIsSameAsValueInEnteredRecord(String value,
+			String extractedValueFromRecord) {
+		if (!value.equals(extractedValueFromRecord)) {
+			throw new DataException("Value in data(" + extractedValueFromRecord
 					+ ") does not match entered value(" + value + ")");
 		}
+	}
+
+	private void checkTypeIsSameAsInEnteredRecord(SpiderDataGroup recordInfo) {
+		String type = extractTypeFromRecordInfo(recordInfo);
+		checkValueIsSameAsValueInEnteredRecord(recordType, type);
+	}
+
+	private String extractTypeFromRecordInfo(SpiderDataGroup recordInfo) {
+		SpiderDataGroup typeGroup = recordInfo.extractGroup("type");
+		return typeGroup.extractAtomicValue("linkedRecordId");
 	}
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {

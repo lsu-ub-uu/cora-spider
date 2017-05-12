@@ -148,11 +148,16 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	}
 
 	private void filterEnhanceAndAddToList(DataGroup dataGroup) {
-		String recordType = dataGroup.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("type");
+		String recordType = extractRecordTypeFromRecordInfo(dataGroup);
 		if (isUserAuthorisedToReadData(recordType, dataGroup)) {
 			spiderDataList.addData(dataGroupToRecordEnhancer.enhance(user, recordType, dataGroup));
 		}
+	}
+
+	private String extractRecordTypeFromRecordInfo(DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
+		return typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	private boolean isUserAuthorisedToReadData(String recordType, DataGroup recordRead) {
