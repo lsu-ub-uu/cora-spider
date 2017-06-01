@@ -110,6 +110,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
 				.fromDataGroup(topLevelDataGroup);
 
+		DataGroup searchTerms = searchTermCollector.collectSearchTerms(metadataId, topLevelDataGroup);
+
 		useExtendedFunctionalityBeforeReturn(recordType, spiderDataGroupWithActions);
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);

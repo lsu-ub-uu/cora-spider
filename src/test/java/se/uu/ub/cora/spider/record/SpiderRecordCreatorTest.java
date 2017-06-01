@@ -50,15 +50,7 @@ import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.record.storage.TimeStampIdGenerator;
-import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
-import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
-import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
-import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
-import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
-import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
+import se.uu.ub.cora.spider.spy.*;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
@@ -101,6 +93,7 @@ public class SpiderRecordCreatorTest {
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.idGenerator = idGenerator;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
+		dependencyProvider.searchTermCollector = searchTermCollector;
 		// SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 		// .usingDependencyProvider(dependencyProvider);
 		// SpiderInstanceProvider.setSpiderInstanceFactory(factory);
@@ -132,6 +125,8 @@ public class SpiderRecordCreatorTest {
 		assertTrue(((IdGeneratorSpy) idGenerator).getIdForTypeWasCalled);
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyTypeNew");
+		assertEquals(((DataGroupSearchTermCollectorSpy) searchTermCollector).metadataId, "spyTypeNew");
+		assertTrue(((DataGroupSearchTermCollectorSpy) searchTermCollector).collectSearchTermsWasCalled);
 	}
 
 	@Test
