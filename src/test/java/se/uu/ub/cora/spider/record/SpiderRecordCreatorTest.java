@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.searchtermcollector.DataGroupSearchTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -74,6 +75,7 @@ public class SpiderRecordCreatorTest {
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
+	private DataGroupSearchTermCollector searchTermCollector;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -85,6 +87,7 @@ public class SpiderRecordCreatorTest {
 		ruleCalculator = new NoRulesCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
+		searchTermCollector = new DataGroupSearchTermCollectorSpy();
 		setUpDependencyProvider();
 	}
 
