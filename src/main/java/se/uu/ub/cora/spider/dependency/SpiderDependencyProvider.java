@@ -31,6 +31,7 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.RecordSearch;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.spider.search.RecordIndexer;
 import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
 public abstract class SpiderDependencyProvider {
@@ -61,4 +62,6 @@ public abstract class SpiderDependencyProvider {
 	public abstract RecordSearch getRecordSearch();
 
 	public abstract DataGroupSearchTermCollector getDataGroupSearchTermCollector();
+
+	public abstract RecordIndexer getRecordIndexer();
 }

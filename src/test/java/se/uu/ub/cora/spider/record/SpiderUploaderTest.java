@@ -31,6 +31,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.searchtermcollector.DataGroupSearchTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -52,10 +53,13 @@ import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.record.storage.TimeStampIdGenerator;
+import se.uu.ub.cora.spider.search.RecordIndexer;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
+import se.uu.ub.cora.spider.spy.DataGroupSearchTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
+import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
@@ -71,6 +75,8 @@ public class SpiderUploaderTest {
 	private SpiderUploader uploader;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
+	private DataGroupSearchTermCollector searchTermCollector;
+	private RecordIndexer recordIndexer;
 	private RecordIdGenerator idGenerator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
@@ -86,6 +92,8 @@ public class SpiderUploaderTest {
 		linkCollector = new DataRecordLinkCollectorSpy();
 		idGenerator = new TimeStampIdGenerator();
 		streamStorage = new StreamStorageSpy();
+		searchTermCollector = new DataGroupSearchTermCollectorSpy();
+		recordIndexer = new RecordIndexerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		factory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
 
@@ -103,6 +111,8 @@ public class SpiderUploaderTest {
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.idGenerator = idGenerator;
 		dependencyProvider.streamStorage = streamStorage;
+		dependencyProvider.searchTermCollector = searchTermCollector;
+		dependencyProvider.recordIndexer = recordIndexer;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		uploader = SpiderUploaderImp.usingDependencyProvider(dependencyProvider);
