@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.searchtermcollector.DataGroupSearchTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -46,11 +47,14 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.spider.search.RecordIndexer;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
+import se.uu.ub.cora.spider.spy.DataGroupSearchTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
+import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
@@ -70,6 +74,8 @@ public class SpiderRecordUpdaterTest {
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
+	private DataGroupSearchTermCollector searchTermCollector;
+	private RecordIndexer recordIndexer;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -79,6 +85,8 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
+		searchTermCollector = new DataGroupSearchTermCollectorSpy();
+		recordIndexer = new RecordIndexerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		setUpDependencyProvider();
 	}
@@ -92,6 +100,8 @@ public class SpiderRecordUpdaterTest {
 		dependencyProvider.keyCalculator = keyCalculator;
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
+		dependencyProvider.searchTermCollector = searchTermCollector;
+		dependencyProvider.recordIndexer = recordIndexer;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordUpdater = SpiderRecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
@@ -118,6 +128,15 @@ public class SpiderRecordUpdaterTest {
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyType");
 
+		assertCorrectSearchTermCollectorAndIndexer();
+	}
+
+	private void assertCorrectSearchTermCollectorAndIndexer() {
+		DataGroupSearchTermCollectorSpy searchTermCollectorSpy = (DataGroupSearchTermCollectorSpy) searchTermCollector;
+		assertEquals(searchTermCollectorSpy.metadataId, "spyType");
+		assertTrue(searchTermCollectorSpy.collectSearchTermsWasCalled);
+		assertEquals(((RecordIndexerSpy) recordIndexer).recordIndexData,
+				searchTermCollectorSpy.collectedSearchTerms);
 	}
 
 	@Test

@@ -24,6 +24,7 @@ import java.util.List;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.searchtermcollector.DataGroupSearchTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -33,6 +34,7 @@ import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.search.RecordIndexer;
 
 public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		implements SpiderRecordUpdater {
@@ -47,6 +49,8 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private User user;
 	private String userId;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
+	private DataGroupSearchTermCollector searchTermCollector;
+	private RecordIndexer recordIndexer;
 
 	private SpiderRecordUpdaterImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -56,6 +60,8 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
+		this.searchTermCollector = dependencyProvider.getDataGroupSearchTermCollector();
+		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
@@ -105,6 +111,10 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
 		recordStorage.update(recordType, recordId, spiderDataGroup.toDataGroup(), collectedLinks,
 				dataDivider);
+
+		DataGroup searchTerms = searchTermCollector.collectSearchTerms(metadataId,
+				topLevelDataGroup);
+		recordIndexer.indexData(searchTerms);
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);
 	}

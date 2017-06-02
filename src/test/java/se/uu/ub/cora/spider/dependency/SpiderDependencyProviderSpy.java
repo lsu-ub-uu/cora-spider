@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.dependency;
 import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.searchtermcollector.DataGroupSearchTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -31,6 +32,7 @@ import se.uu.ub.cora.spider.record.RecordSearch;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.spider.search.RecordIndexer;
 import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
 public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
@@ -46,6 +48,8 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	public Authenticator authenticator;
 	public RecordSearch recordSearch;
+	public DataGroupSearchTermCollector searchTermCollector;
+	public RecordIndexer recordIndexer;
 
 	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
 		super(initInfo);
@@ -99,5 +103,15 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	@Override
 	public RecordSearch getRecordSearch() {
 		return recordSearch;
+	}
+
+	@Override
+	public DataGroupSearchTermCollector getDataGroupSearchTermCollector() {
+		return searchTermCollector;
+	}
+
+	@Override
+	public RecordIndexer getRecordIndexer() {
+		return recordIndexer;
 	}
 }
