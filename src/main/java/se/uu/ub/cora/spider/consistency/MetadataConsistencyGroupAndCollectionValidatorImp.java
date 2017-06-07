@@ -111,11 +111,15 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 	}
 
 	protected DataGroup getParentChildReferences() {
-		DataAtomic refParentId = (DataAtomic) recordAsDataGroup
-				.getFirstChildWithNameInData(REF_PARENT_ID);
-		DataGroup parent = recordStorage.read("metadataGroup", refParentId.getValue());
+		String refParentId = extractParentId();
+		DataGroup parent = recordStorage.read("metadataGroup", refParentId);
 
 		return (DataGroup) parent.getFirstChildWithNameInData("childReferences");
+	}
+
+	private String extractParentId() {
+		DataGroup refParentGroup = recordAsDataGroup.getFirstGroupWithNameInData(REF_PARENT_ID);
+		return refParentGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	protected boolean isSameNameInData(String childNameInData, DataElement parentChildReference) {
@@ -148,7 +152,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 	}
 
 	private DataGroup extractParentItemReferences() {
-		String refParentId = recordAsDataGroup.getFirstAtomicValueWithNameInData(REF_PARENT_ID);
+		String refParentId = extractParentId();
 		DataGroup parentCollectionVar = recordStorage.read("metadataCollectionVariable",
 				refParentId);
 		DataGroup parentRefCollection = (DataGroup) parentCollectionVar
