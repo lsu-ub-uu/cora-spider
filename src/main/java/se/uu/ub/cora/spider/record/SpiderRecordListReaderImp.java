@@ -25,6 +25,7 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -109,7 +110,17 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	private void enhanceDataGroupAndAddToRecordList(DataGroup dataGroup) {
 		SpiderDataRecord spiderDataRecord = dataGroupToRecordEnhancer.enhance(user, recordType,
 				dataGroup);
-		readRecordList.addData(spiderDataRecord);
+		if (spiderDataRecord.getActions().contains(Action.READ)) {
+			readRecordList.addData(spiderDataRecord);
+		}
+		// } else {
+		// SpiderDataGroup recordInfo = (SpiderDataGroup)
+		// spiderDataRecord.getSpiderDataGroup()
+		// .getFirstChildWithNameInData("recordInfo");
+		// SpiderDataAtomic id = (SpiderDataAtomic)
+		// recordInfo.getFirstChildWithNameInData("id");
+		// System.out.println(id.getValue());
+		// }
 	}
 
 	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String type) {

@@ -99,6 +99,20 @@ public class SpiderRecordListReaderTest {
 	}
 
 	@Test
+	public void testReadListAuthorizedButNoReadLinks() {
+		dataGroupToRecordEnhancer.addReadAction = false;
+		String userId = "someToken78678567";
+		String type = "place";
+		SpiderDataList readRecordList = recordListReader.readRecordList(userId, type);
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "0",
+				"Total number of records should be ");
+		assertEquals(readRecordList.getFromNo(), "1");
+		assertEquals(readRecordList.getToNo(), "0");
+		List<SpiderData> records = readRecordList.getDataList();
+		assertEquals(records.size(), 0);
+	}
+
+	@Test
 	public void testRecordEnhancerCalled() {
 		recordListReader.readRecordList("someToken78678567", "place");
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
