@@ -53,8 +53,11 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	public void testMetadataGroupChildDoesNotExistInParent() {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithTwoChildren();
+		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testGroup"));
 		recordAsSpiderDataGroup
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("refParentId", "testGroup"));
+				.addChild(refParentId);
 		setUpDependencies();
 		validator.validateRules(recordAsSpiderDataGroup);
 	}
@@ -63,10 +66,10 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	public void testMetadataGroupChildWithDifferentIdButSameNameInDataExistInParent() {
 
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithTwoChildren();
-
-		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId",
-				"testGroupWithTwoChildren");
-		recordAsSpiderDataGroup.addChild(refParent);
+		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testGroupWithTwoChildren"));
+		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
 		exceptNoException();
 	}
@@ -82,10 +85,11 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testMetadataGroupChildWithOneChild() {
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithOneChild();
+		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testGroupWithOneChild"));
 
-		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId",
-				"testGroupWithOneChild");
-		recordAsSpiderDataGroup.addChild(refParent);
+		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
 		exceptNoException();
 	}
@@ -94,9 +98,11 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	public void testMetadataGroupChildDoesNotExistInStorage() {
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithThreeChildren();
 
-		SpiderDataAtomic refParent = SpiderDataAtomic.withNameInDataAndValue("refParentId",
-				"testGroupWithThreeChildren");
-		recordAsSpiderDataGroup.addChild(refParent);
+		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testGroupWithThreeChildren"));
+
+		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
 		validator.validateRules(recordAsSpiderDataGroup);
 	}
@@ -106,8 +112,11 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		recordType = "metadataCollectionVariable";
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
 
-		recordAsSpiderDataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("refParentId",
-				"testParentMissingItemCollectionVar"));
+		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testParentMissingItemCollectionVar"));
+
+		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
 		validator.validateRules(recordAsSpiderDataGroup);
 	}
@@ -117,8 +126,11 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		recordType = "metadataCollectionVariable";
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
 
-		recordAsSpiderDataGroup.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentCollectionVar"));
+		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testParentCollectionVar"));
+
+		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
 		exceptNoException();
 	}
