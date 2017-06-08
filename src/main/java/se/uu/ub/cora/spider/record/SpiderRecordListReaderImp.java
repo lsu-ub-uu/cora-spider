@@ -60,7 +60,6 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		this.recordType = recordType;
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
-		// TODO: we need to check each record
 		readRecordList = SpiderDataList.withContainDataOfType(recordType);
 
 		readRecordsOfType(recordType);
@@ -113,14 +112,6 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		if (spiderDataRecord.getActions().contains(Action.READ)) {
 			readRecordList.addData(spiderDataRecord);
 		}
-		// } else {
-		// SpiderDataGroup recordInfo = (SpiderDataGroup)
-		// spiderDataRecord.getSpiderDataGroup()
-		// .getFirstChildWithNameInData("recordInfo");
-		// SpiderDataAtomic id = (SpiderDataAtomic)
-		// recordInfo.getFirstChildWithNameInData("id");
-		// System.out.println(id.getValue());
-		// }
 	}
 
 	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String type) {
