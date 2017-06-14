@@ -21,5 +21,5 @@ package se.uu.ub.cora.spider.search;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public interface RecordIndexer {
-	void indexData(DataGroup recordIndexData);
+	void indexData(DataGroup recordIndexData, DataGroup record);
 }
