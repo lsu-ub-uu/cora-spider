@@ -36,6 +36,7 @@ public class RecordStorageSpy implements RecordStorage {
 	public boolean createWasCalled = false;
 	public boolean updateWasCalled = false;
 	public boolean linksExist = false;
+	public DataGroup createRecord;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -187,7 +188,7 @@ public class RecordStorageSpy implements RecordStorage {
 	public void create(String type, String id, DataGroup record, DataGroup linkList,
 			String dataDivider) {
 		createWasCalled = true;
-
+		createRecord = record;
 	}
 
 	@Override

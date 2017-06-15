@@ -139,11 +139,11 @@ public class SpiderRecordCreatorTest {
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyTypeNew");
 
-		assertCorrectSearchTermCollectorAndIndexer();
+		assertCorrectSearchTermCollectorAndIndexer(spiderDataGroup);
 
 	}
 
-	private void assertCorrectSearchTermCollectorAndIndexer() {
+	private void assertCorrectSearchTermCollectorAndIndexer(SpiderDataGroup spiderDataGroup) {
 		DataGroupSearchTermCollectorSpy searchTermCollectorSpy = (DataGroupSearchTermCollectorSpy) searchTermCollector;
 		assertEquals(searchTermCollectorSpy.metadataId, "spyTypeNew");
 		assertTrue(searchTermCollectorSpy.collectSearchTermsWasCalled);
@@ -199,6 +199,22 @@ public class SpiderRecordCreatorTest {
 				extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation);
 		assertFetchedFunctionalityHasBeenCalled(authToken,
 				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeReturn);
+	}
+
+	@Test
+	public void testIndexerIsCalled() {
+		recordStorage = new RecordStorageSpy();
+		idGenerator = new IdGeneratorSpy();
+		ruleCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+		SpiderDataGroup spiderDataGroup = DataCreator
+				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		String authToken = "someToken78678567";
+		recordCreator.createAndStoreRecord(authToken, "spyType", spiderDataGroup);
+
+		DataGroup createdRecord = ((RecordStorageSpy) recordStorage).createRecord;
+		DataGroup indexedRecord = ((RecordIndexerSpy) recordIndexer).record;
+		assertEquals(indexedRecord, createdRecord);
 	}
 
 	private void assertFetchedFunctionalityHasBeenCalled(String authToken,

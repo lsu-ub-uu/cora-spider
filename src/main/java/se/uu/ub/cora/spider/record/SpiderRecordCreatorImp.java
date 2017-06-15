@@ -115,7 +115,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 		DataGroup searchTerms = searchTermCollector.collectSearchTerms(metadataId,
 				topLevelDataGroup);
-		recordIndexer.indexData(searchTerms);
+		recordIndexer.indexData(searchTerms, topLevelDataGroup);
 
 		useExtendedFunctionalityBeforeReturn(recordType, spiderDataGroupWithActions);
 

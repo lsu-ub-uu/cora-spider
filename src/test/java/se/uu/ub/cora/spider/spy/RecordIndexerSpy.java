@@ -6,10 +6,12 @@ import se.uu.ub.cora.spider.search.RecordIndexer;
 public class RecordIndexerSpy implements RecordIndexer {
 
 	public DataGroup recordIndexData;
+	public DataGroup record;
 
 	@Override
-	public void indexData(DataGroup recordIndexData) {
+	public void indexData(DataGroup recordIndexData, DataGroup record) {
 		this.recordIndexData = recordIndexData;
+		this.record = record;
 
 	}
 
