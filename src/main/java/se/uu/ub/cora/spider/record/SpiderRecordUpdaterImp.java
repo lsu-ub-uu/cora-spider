@@ -109,12 +109,11 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
-		recordStorage.update(recordType, recordId, spiderDataGroup.toDataGroup(), collectedLinks,
-				dataDivider);
+		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedLinks, dataDivider);
 
 		DataGroup searchTerms = searchTermCollector.collectSearchTerms(metadataId,
 				topLevelDataGroup);
-		recordIndexer.indexData(searchTerms);
+		recordIndexer.indexData(searchTerms, topLevelDataGroup);
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);
 	}

@@ -44,7 +44,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private User user;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private RecordStorage recordStorage;
-	private SpiderDataGroup searchData;
+	private DataGroup searchData;
 	private RecordSearch recordSearch;
 	private SpiderDataList spiderDataList;
 	private DataGroup searchMetadata;
@@ -70,7 +70,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	@Override
 	public SpiderDataList search(String authToken, String searchId,
 			SpiderDataGroup spiderSearchData) {
-		this.searchData = spiderSearchData;
+		this.searchData = spiderSearchData.toDataGroup();
 		tryToGetActiveUser(authToken);
 		readSearchDataFromStorage(searchId);
 		validateSearchInputForUser();
@@ -121,7 +121,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private void validateIncomingDataAsSpecifiedInMetadata(
 			String metadataGroupIdToValidateAgainst) {
 		ValidationAnswer validationAnswer = dataValidator
-				.validateData(metadataGroupIdToValidateAgainst, searchData.toDataGroup());
+				.validateData(metadataGroupIdToValidateAgainst, searchData);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}

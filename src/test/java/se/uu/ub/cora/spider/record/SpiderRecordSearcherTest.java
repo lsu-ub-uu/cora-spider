@@ -29,6 +29,7 @@ import java.util.Set;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -148,7 +149,7 @@ public class SpiderRecordSearcherTest {
 		List<String> list = recordSearchSpy.listOfLists.get(0);
 		assertEquals(list.get(0), "place");
 		assertEquals(list.size(), 1);
-		SpiderDataGroup searchData0 = recordSearchSpy.listOfSearchData.get(0);
+		DataGroup searchData0 = recordSearchSpy.listOfSearchData.get(0);
 		assertEquals(searchData0.getNameInData(), searchData.getNameInData());
 	}
 

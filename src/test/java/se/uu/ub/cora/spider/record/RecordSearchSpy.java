@@ -3,6 +3,7 @@ package se.uu.ub.cora.spider.record;
 import java.util.ArrayList;
 import java.util.List;
 
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderSearchResult;
 import se.uu.ub.cora.spider.testdata.DataCreator;
@@ -10,11 +11,11 @@ import se.uu.ub.cora.spider.testdata.DataCreator;
 public class RecordSearchSpy implements RecordSearch {
 
 	List<List<String>> listOfLists = new ArrayList<>();
-	List<SpiderDataGroup> listOfSearchData = new ArrayList<>();
+	List<DataGroup> listOfSearchData = new ArrayList<>();
 
 	@Override
 	public SpiderSearchResult searchUsingListOfRecordTypesToSearchInAndSearchData(List<String> list,
-			SpiderDataGroup searchData) {
+			DataGroup searchData) {
 		listOfLists.add(list);
 		listOfSearchData.add(searchData);
 
