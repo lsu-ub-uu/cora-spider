@@ -126,7 +126,12 @@ public final class DataCreator {
 		SpiderDataGroup createRecordInfo = createRecordInfoWithIdAndTypeAndLinkedRecordId(id,
 				recordType, linkedRecordId);
 		record.addChild(createRecordInfo);
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("createdBy", createdBy));
+		SpiderDataGroup createdByGroup = SpiderDataGroup.withNameInData("createdBy");
+		createdByGroup
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "user"));
+		createdByGroup
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", createdBy));
+		createRecordInfo.addChild(createdByGroup);
 		return record;
 	}
 
