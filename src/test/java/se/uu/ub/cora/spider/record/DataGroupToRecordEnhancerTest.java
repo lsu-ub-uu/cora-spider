@@ -258,8 +258,6 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		setUpDependencyProvider();
 		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkTopLevel");
 		String recordType = "dataWithLinks";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
@@ -270,8 +268,6 @@ public class DataGroupToRecordEnhancerTest {
 	public void testReadRecordWithDataRecordLinkHasNOReadActionTopLevel() {
 		authorizator = new AlwaysAuthorisedExceptStub();
 		((AlwaysAuthorisedExceptStub)authorizator).notAuthorizedForIds.add("recordLinkNotAuthorized");
-		recordStorage = new RecordLinkTestsRecordStorage();
-		setUpDependencyProvider();
 		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkTopLevelNotAuthorized");
 		String recordType = "dataWithLinks";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
@@ -280,9 +276,6 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		setUpDependencyProvider();
-
 		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkOneLevelDown");
 		String recordType = "dataWithLinks";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
@@ -292,8 +285,6 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testReadRecordWithDataResourceLinkHasReadActionTopLevel() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		setUpDependencyProvider();
 		DataGroup dataGroup = recordStorage.read("dataWithResourceLinks",
 				"oneResourceLinkTopLevel");
 		String recordType = "dataWithResourceLinks";
@@ -304,9 +295,6 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testReadRecordWithDataResourceLinkHasReadActionOneLevelDown() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		setUpDependencyProvider();
-
 		DataGroup dataGroup = recordStorage.read("dataWithResourceLinks",
 				"oneResourceLinkOneLevelDown");
 		String recordType = "dataWithResourceLinks";

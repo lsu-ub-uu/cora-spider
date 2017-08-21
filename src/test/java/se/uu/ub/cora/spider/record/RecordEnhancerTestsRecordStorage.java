@@ -39,10 +39,13 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 	public DataGroup read(String type, String id) {
 		if (type.equals("recordType")) {
 			if("binary".equals(id)){
-				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("binary",
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id,
 						"false", "true");
 			}else if("image".equals(id)){
-				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "false", "binary");
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "false", "binary");
+			}else if(("place".equals(id))){
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "false", "authority");
+
 			}
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("dataWithLinks",
 					"false", "false");
@@ -93,12 +96,9 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 			return DataCreator.createDataGroupWithNameInDataTypeAndId("binary", "image", "image:0001");
 		}
 		if("place".equals(type)){
-			if("place:001".equals(id)){
-				return DataCreator.createDataGroupWithNameInDataTypeAndId("authority", "place", "place:0001");
-			}
-			return DataCreator.createDataGroupWithNameInDataTypeAndId("authority", "place", "place:0002");
+			return DataCreator.createDataGroupWithNameInDataTypeAndId("authority", "place", id);
 		}
-		return null;
+		return DataGroup.withNameInData("someLinkedDataGroup");
 	}
 
 	@Override
@@ -116,8 +116,10 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 
 	@Override
 	public boolean linksExistForRecord(String type, String id) {
-		if("place".equals(type) && id.equals("place:0001")){
-			return true;
+		if("place".equals(type)){
+			if(id.equals("place:0001") || id.equals("place:0003")){
+				return true;
+			}
 		}
 		return false;
 	}

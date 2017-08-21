@@ -238,12 +238,12 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 			String linkedRecordId = ((SpiderDataRecordLink) spiderDataChild).extractAtomicValue("linkedRecordId");
 			String linkedRecordType = ((SpiderDataRecordLink) spiderDataChild).extractAtomicValue("linkedRecordType");
 
-//			DataGroup linkedRecord = dependencyProvider.getRecordStorage().read(linkedRecordType, linkedRecordId);
-//
-//			if(dependencyProvider.getSpiderAuthorizator().userIsAuthorizedForActionOnRecordTypeAndRecord(user, "read", linkedRecordType, linkedRecord)){
+			DataGroup linkedRecord = dependencyProvider.getRecordStorage().read(linkedRecordType, linkedRecordId);
+
+			if(dependencyProvider.getSpiderAuthorizator().userIsAuthorizedForActionOnRecordTypeAndRecord(user, "read", linkedRecordType, linkedRecord)){
 
 			((SpiderDataLink) spiderDataChild).addAction(Action.READ);
-//			}
+			}
 
 		}
 		if (isGroup(spiderDataChild)) {
