@@ -36,6 +36,7 @@ public class TestDataRecordInMemoryStorage {
 		addThirdPlace(recordsInMemory);
 		addFourthPlace(recordsInMemory);
 		addMetadata(recordsInMemory);
+		addMetadataForBinary(recordsInMemory);
 		addPresentation(recordsInMemory);
 		addText(recordsInMemory);
 		addRecordType(recordsInMemory);
@@ -158,6 +159,17 @@ public class TestDataRecordInMemoryStorage {
 				"place");
 		dataGroup.addChild(recordInfo);
 		recordsInMemory.create(metadata, "place", dataGroup,
+				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+	}
+
+	private static void addMetadataForBinary(RecordStorageInMemory recordsInMemory) {
+		String metadata = "metadataGroup";
+		DataGroup dataGroup = DataGroup.withNameInData("metadata");
+
+		DataGroup recordInfo = DataCreator.createRecordInfoWithRecordTypeAndRecordId(metadata,
+				"binary");
+		dataGroup.addChild(recordInfo);
+		recordsInMemory.create(metadata, "binary", dataGroup,
 				DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 

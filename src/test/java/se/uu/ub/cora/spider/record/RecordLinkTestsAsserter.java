@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import se.uu.ub.cora.spider.data.Action;
@@ -74,5 +75,11 @@ public class RecordLinkTestsAsserter {
 				.getFirstChildWithNameInData("link");
 		assertTrue(link.getActions().contains(Action.READ));
 		assertEquals(link.getActions().size(), 1);
+	}
+
+	public static void assertTopLevelLinkDoesNotContainReadAction(SpiderDataRecord record) {
+		SpiderDataRecordLink link = getLinkFromRecord(record);
+		assertFalse(link.getActions().contains(Action.READ));
+		assertEquals(link.getActions().size(), 0);
 	}
 }

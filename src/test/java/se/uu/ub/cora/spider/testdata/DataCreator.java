@@ -344,4 +344,12 @@ public final class DataCreator {
 
 		return spiderDataGroup;
 	}
+
+	public static DataGroup createDataGroupWithNameInDataTypeAndId(String nameInData, String recordType, String recordId) {
+		DataGroup dataGroup = DataGroup.withNameInData(nameInData);
+		DataGroup recordInfo = DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType,
+				recordId);
+		dataGroup.addChild(recordInfo);
+		return dataGroup;
+	}
 }

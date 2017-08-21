@@ -19,20 +19,18 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.data.SpiderData;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.spider.testdata.SpiderDataCreator;
 
-public class RecordLinkTestsRecordStorage implements RecordStorage {
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 
 	public boolean recordIdExistsForRecordType = true;
 	public boolean createWasRead = false;
@@ -40,12 +38,12 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	@Override
 	public DataGroup read(String type, String id) {
 		if (type.equals("recordType")) {
-//			if("binary".equals(id)){
-//				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("binary",
-//						"false", "true");
-//			}else if("image".equals(id)){
-//				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "false", "binary");
-//			}
+			if("binary".equals(id)){
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("binary",
+						"false", "true");
+			}else if("image".equals(id)){
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "false", "binary");
+			}
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("dataWithLinks",
 					"false", "false");
 		}
@@ -54,10 +52,10 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 				return RecordLinkTestsDataCreator.createSpiderDataGroupWithRecordInfoAndLink()
 						.toDataGroup();
 			}
-//			if (id.equals("oneLinkTopLevelNotAuthorized")) {
-//				return RecordLinkTestsDataCreator.createSpiderDataGroupWithRecordInfoAndLinkNotAuthorized()
-//						.toDataGroup();
-//			}
+			if (id.equals("oneLinkTopLevelNotAuthorized")) {
+				return RecordLinkTestsDataCreator.createSpiderDataGroupWithRecordInfoAndLinkNotAuthorized()
+						.toDataGroup();
+			}
 			if (id.equals("oneLinkOneLevelDown")) {
 				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndLinkOneLevelDown()
 						.toDataGroup();
@@ -78,19 +76,28 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 				return RecordLinkTestsDataCreator.createLinkChildAsRecordDataGroup().toDataGroup();
 			}
 		}
-//		if(type.equals("search")){
-//			if("aSearchId".equals(id)) {
-//				return SpiderDataCreator.createSearchWithIdAndRecordTypeToSearchIn("aSearchId", "place").toDataGroup();
-//			}
-//			else if("anotherSearchId".equals(id)) {
-//				return SpiderDataCreator.createSearchWithIdAndRecordTypeToSearchIn("anotherSearchId", "image").toDataGroup();
-//			}
-//		}
-//		if(type.equals("system")){
-//			if(id.equals("cora")){
-//				return DataGroup.withNameInData("system");
-//			}
-//		}
+		if(type.equals("search")){
+			if("aSearchId".equals(id)) {
+				return SpiderDataCreator.createSearchWithIdAndRecordTypeToSearchIn("aSearchId", "place").toDataGroup();
+			}
+			else if("anotherSearchId".equals(id)) {
+				return SpiderDataCreator.createSearchWithIdAndRecordTypeToSearchIn("anotherSearchId", "image").toDataGroup();
+			}
+		}
+		if(type.equals("system")){
+			if(id.equals("cora")){
+				return DataGroup.withNameInData("system");
+			}
+		}
+		if("image".equals(type)){
+			return DataCreator.createDataGroupWithNameInDataTypeAndId("binary", "image", "image:0001");
+		}
+		if("place".equals(type)){
+			if("place:001".equals(id)){
+				return DataCreator.createDataGroupWithNameInDataTypeAndId("authority", "place", "place:0001");
+			}
+			return DataCreator.createDataGroupWithNameInDataTypeAndId("authority", "place", "place:0002");
+		}
 		return null;
 	}
 
@@ -109,7 +116,9 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 
 	@Override
 	public boolean linksExistForRecord(String type, String id) {
-		// TODO Auto-generated method stub
+		if("place".equals(type) && id.equals("place:0001")){
+			return true;
+		}
 		return false;
 	}
 

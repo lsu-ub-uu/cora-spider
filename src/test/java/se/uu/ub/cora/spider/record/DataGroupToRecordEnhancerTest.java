@@ -59,7 +59,8 @@ public class DataGroupToRecordEnhancerTest {
 	@BeforeMethod
 	public void setUp() {
 		user = new User("987654321");
-		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+//		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+		recordStorage = new RecordEnhancerTestsRecordStorage();
 		authenticator = new AuthenticatorSpy();
 		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		keyCalculator = new NoRulesCalculatorStub();
@@ -156,6 +157,8 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testActionsOnReadRecordTypeBinary() {
+//		recordStorage = new RecordLinkTestsRecordStorage();
+//		setUpDependencyProvider();
 		DataGroup dataGroup = recordStorage.read("recordType", "binary");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
@@ -261,6 +264,18 @@ public class DataGroupToRecordEnhancerTest {
 		String recordType = "dataWithLinks";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
+	}
+
+	@Test
+	public void testReadRecordWithDataRecordLinkHasNOReadActionTopLevel() {
+		authorizator = new AlwaysAuthorisedExceptStub();
+		((AlwaysAuthorisedExceptStub)authorizator).notAuthorizedForIds.add("recordLinkNotAuthorized");
+		recordStorage = new RecordLinkTestsRecordStorage();
+		setUpDependencyProvider();
+		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkTopLevelNotAuthorized");
+		String recordType = "dataWithLinks";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
+		RecordLinkTestsAsserter.assertTopLevelLinkDoesNotContainReadAction(record);
 	}
 
 	@Test
