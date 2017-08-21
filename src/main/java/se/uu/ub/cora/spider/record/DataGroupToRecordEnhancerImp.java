@@ -235,14 +235,19 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void addReadActionToDataRecordLink(SpiderDataElement spiderDataChild) {
 		if (isLink(spiderDataChild)) {
-			String linkedRecordId = ((SpiderDataRecordLink) spiderDataChild).extractAtomicValue("linkedRecordId");
-			String linkedRecordType = ((SpiderDataRecordLink) spiderDataChild).extractAtomicValue("linkedRecordType");
 
-			DataGroup linkedRecord = dependencyProvider.getRecordStorage().read(linkedRecordType, linkedRecordId);
+			String linkedRecordId = extractAtomicValueFromLink("linkedRecordId", spiderDataChild);
+			String linkedRecordType = extractAtomicValueFromLink("linkedRecordType",
+					spiderDataChild);
 
-			if(dependencyProvider.getSpiderAuthorizator().userIsAuthorizedForActionOnRecordTypeAndRecord(user, "read", linkedRecordType, linkedRecord)){
+			DataGroup linkedRecord = dependencyProvider.getRecordStorage().read(linkedRecordType,
+					linkedRecordId);
 
-			((SpiderDataLink) spiderDataChild).addAction(Action.READ);
+			if (dependencyProvider.getSpiderAuthorizator()
+					.userIsAuthorizedForActionOnRecordTypeAndRecord(user, "read", linkedRecordType,
+							linkedRecord)) {
+
+				((SpiderDataLink) spiderDataChild).addAction(Action.READ);
 			}
 
 		}
@@ -251,9 +256,24 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		}
 	}
 
+	private String extractAtomicValueFromLink(String valueToExtract,
+			SpiderDataElement spiderDataChild) {
+		if (isRecordLink(spiderDataChild)) {
+			return ((SpiderDataRecordLink) spiderDataChild).extractAtomicValue(valueToExtract);
+		}
+		return ((SpiderDataResourceLink) spiderDataChild).extractAtomicValue(valueToExtract);
+	}
+
 	private boolean isLink(SpiderDataElement spiderDataChild) {
-		return spiderDataChild instanceof SpiderDataRecordLink
-				|| spiderDataChild instanceof SpiderDataResourceLink;
+		return isRecordLink(spiderDataChild) || isResourceLink(spiderDataChild);
+	}
+
+	private boolean isResourceLink(SpiderDataElement spiderDataChild) {
+		return spiderDataChild instanceof SpiderDataResourceLink;
+	}
+
+	private boolean isRecordLink(SpiderDataElement spiderDataChild) {
+		return spiderDataChild instanceof SpiderDataRecordLink;
 	}
 
 	private boolean isGroup(SpiderDataElement spiderDataChild) {

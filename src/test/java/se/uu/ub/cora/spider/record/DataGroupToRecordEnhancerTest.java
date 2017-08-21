@@ -45,7 +45,6 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
-import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
 public class DataGroupToRecordEnhancerTest {
 	private RecordStorage recordStorage;
@@ -59,7 +58,8 @@ public class DataGroupToRecordEnhancerTest {
 	@BeforeMethod
 	public void setUp() {
 		user = new User("987654321");
-//		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+		// recordStorage =
+		// TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		recordStorage = new RecordEnhancerTestsRecordStorage();
 		authenticator = new AuthenticatorSpy();
 		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
@@ -157,8 +157,8 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testActionsOnReadRecordTypeBinary() {
-//		recordStorage = new RecordLinkTestsRecordStorage();
-//		setUpDependencyProvider();
+		// recordStorage = new RecordLinkTestsRecordStorage();
+		// setUpDependencyProvider();
 		DataGroup dataGroup = recordStorage.read("recordType", "binary");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
@@ -265,9 +265,11 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testReadRecordWithDataRecordLinkHasNOReadActionTopLevel() {
+	public void testReadRecordWithDataRecordLinkHasNOReadAction() {
 		authorizator = new AlwaysAuthorisedExceptStub();
-		((AlwaysAuthorisedExceptStub)authorizator).notAuthorizedForIds.add("recordLinkNotAuthorized");
+		setUpDependencyProvider();
+		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForIds
+				.add("recordLinkNotAuthorized");
 		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkTopLevelNotAuthorized");
 		String recordType = "dataWithLinks";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
