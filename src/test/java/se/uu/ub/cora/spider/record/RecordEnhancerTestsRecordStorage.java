@@ -109,7 +109,7 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 		if ("place".equals(type)) {
 			return DataCreator.createDataGroupWithNameInDataTypeAndId("authority", "place", id);
 		}
-		return DataGroup.withNameInData("someLinkedDataGroup");
+		return null;
 	}
 
 	@Override

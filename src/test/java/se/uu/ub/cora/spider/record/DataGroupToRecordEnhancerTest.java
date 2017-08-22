@@ -345,7 +345,8 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkOneLevelDownTargetDoesNotExist");
 		String recordType = "dataWithLinks";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-
+//		TODO: ska testet verkligen vara här? i så fall måste vi ha en authorizator som returnerar det som
+		//den riktiga gör när ett record inte finns
 //		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}
 }
