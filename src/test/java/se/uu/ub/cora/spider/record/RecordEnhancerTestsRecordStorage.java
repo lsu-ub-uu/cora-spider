@@ -49,10 +49,6 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 						.createDataGroupWithNameInDataTypeAndId("authority", "recordType", id);
 				dataGroup.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
 				return dataGroup;
-				// return
-				// DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id,
-				// "false", "authority");
-
 			}
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("dataWithLinks",
 					"false", "false");

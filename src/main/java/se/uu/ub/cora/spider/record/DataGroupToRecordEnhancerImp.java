@@ -105,7 +105,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private Boolean incomingLinksExistsForParentToRecordType(String recordTypeForThisRecord) {
-		DataGroup recordTypeDataGroup = dependencyProvider.getRecordStorage().read(RECORD_TYPE,
+		DataGroup recordTypeDataGroup = readRecordFromStorageByTypeAndId(RECORD_TYPE,
 				recordTypeForThisRecord);
 		if (handledRecordHasParent(recordTypeDataGroup)) {
 			String parentId = extractParentId(recordTypeDataGroup);
@@ -147,13 +147,18 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return "";
 	}
 
-	private String extractParentId(DataGroup handledRecordTypeDataGroup) {
-		DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData(PARENT_ID);
-		return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	private DataGroup readRecordFromStorageByTypeAndId(String linkedRecordType, String linkedRecordId) {
+		return dependencyProvider.getRecordStorage().read(linkedRecordType,
+				linkedRecordId);
 	}
 
 	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
 		return handledRecordTypeDataGroup.containsChildWithNameInData(PARENT_ID);
+	}
+
+	private String extractParentId(DataGroup handledRecordTypeDataGroup) {
+		DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData(PARENT_ID);
+		return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
 	private void addActionsForRecordType(SpiderDataRecord spiderDataRecord) {
@@ -234,46 +239,60 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void addReadActionToDataRecordLink(SpiderDataElement spiderDataChild) {
-		if (isLink(spiderDataChild)) {
+		possiblyAddReadActionIfLink(spiderDataChild);
 
-			String linkedRecordId = extractAtomicValueFromLink("linkedRecordId", spiderDataChild);
-			String linkedRecordType = extractAtomicValueFromLink("linkedRecordType",
-					spiderDataChild);
-
-			DataGroup linkedRecord = dependencyProvider.getRecordStorage().read(linkedRecordType,
-					linkedRecordId);
-
-			if (dependencyProvider.getSpiderAuthorizator()
-					.userIsAuthorizedForActionOnRecordTypeAndRecord(user, "read", linkedRecordType,
-							linkedRecord)) {
-
-				((SpiderDataLink) spiderDataChild).addAction(Action.READ);
-			}
-
-		}
 		if (isGroup(spiderDataChild)) {
 			addReadActionToDataRecordLinks((SpiderDataGroup) spiderDataChild);
 		}
 	}
 
-	private String extractAtomicValueFromLink(String valueToExtract,
-			SpiderDataElement spiderDataChild) {
-		if (isRecordLink(spiderDataChild)) {
-			return ((SpiderDataRecordLink) spiderDataChild).extractAtomicValue(valueToExtract);
+	private void possiblyAddReadActionIfLink(SpiderDataElement spiderDataChild) {
+		if (isLink(spiderDataChild)) {
+			possiblyAddReadAction(spiderDataChild);
 		}
-		return ((SpiderDataResourceLink) spiderDataChild).extractAtomicValue(valueToExtract);
 	}
 
 	private boolean isLink(SpiderDataElement spiderDataChild) {
 		return isRecordLink(spiderDataChild) || isResourceLink(spiderDataChild);
 	}
 
+	private boolean isRecordLink(SpiderDataElement spiderDataChild) {
+		return spiderDataChild instanceof SpiderDataRecordLink;
+	}
+
 	private boolean isResourceLink(SpiderDataElement spiderDataChild) {
 		return spiderDataChild instanceof SpiderDataResourceLink;
 	}
 
-	private boolean isRecordLink(SpiderDataElement spiderDataChild) {
-		return spiderDataChild instanceof SpiderDataRecordLink;
+	private void possiblyAddReadAction(SpiderDataElement spiderDataChild) {
+		if (isAuthorizedToReadLink(spiderDataChild)) {
+            ((SpiderDataLink) spiderDataChild).addAction(Action.READ);
+        }
+	}
+
+	private boolean isAuthorizedToReadLink(SpiderDataElement spiderDataChild) {
+		if(isRecordLink(spiderDataChild)) {
+			return isAuthorizedToReadRecordLink((SpiderDataRecordLink) spiderDataChild);
+		}
+		return isAuthorizedToReadResourceLink();
+	}
+
+	private boolean isAuthorizedToReadRecordLink(SpiderDataRecordLink spiderDataChild) {
+		String linkedRecordType = spiderDataChild.extractAtomicValue("linkedRecordType");
+		String linkedRecordId = spiderDataChild.extractAtomicValue("linkedRecordId");
+		DataGroup linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType, linkedRecordId);
+
+		return userIsAuthorizedToReadRecordTypeAndRecord(linkedRecordType, linkedRecord);
+	}
+
+	private boolean userIsAuthorizedToReadRecordTypeAndRecord(String linkedRecordType, DataGroup linkedRecord) {
+		return dependencyProvider.getSpiderAuthorizator()
+                .userIsAuthorizedForActionOnRecordTypeAndRecord(user, "read", linkedRecordType,
+                        linkedRecord);
+	}
+
+	private boolean isAuthorizedToReadResourceLink() {
+		return userIsAuthorizedToReadRecordTypeAndRecord("image", dataGroup);
 	}
 
 	private boolean isGroup(SpiderDataElement spiderDataChild) {
