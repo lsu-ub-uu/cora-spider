@@ -75,6 +75,25 @@ public class RecordLinkTestsDataCreator {
 		return dataGroup;
 	}
 
+	public static SpiderDataGroup createDataGroupWithLinkOneLevelDownTargetDoesNotExist() {
+		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
+		SpiderDataGroup oneLevelDown = SpiderDataGroup.withNameInData("oneLevelDownTargetDoesNotExist");
+		dataGroup.addChild(oneLevelDown);
+
+		SpiderDataRecordLink spiderRecordLink = SpiderDataRecordLink.withNameInData("link");
+
+		SpiderDataAtomic linkedRecordType = SpiderDataAtomic
+				.withNameInDataAndValue("linkedRecordType", "toRecordType");
+		spiderRecordLink.addChild(linkedRecordType);
+
+		SpiderDataAtomic linkedRecordId = SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
+				"nonExistingRecordId");
+		spiderRecordLink.addChild(linkedRecordId);
+
+		oneLevelDown.addChild(spiderRecordLink);
+		return dataGroup;
+	}
+
 	public static SpiderDataGroup createSpiderDataGroupWithRecordInfoAndLink() {
 		SpiderDataGroup dataGroup = createDataGroupWithLink();
 		dataGroup
@@ -96,6 +115,14 @@ public class RecordLinkTestsDataCreator {
 		dataGroup
 				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 						DATA_WITH_LINKS, "oneLinkOneLevelDown", "cora"));
+		return dataGroup;
+	}
+
+	public static SpiderDataGroup createDataGroupWithRecordInfoAndLinkOneLevelDownTargetDoesNotExist() {
+		SpiderDataGroup dataGroup = createDataGroupWithLinkOneLevelDownTargetDoesNotExist();
+		dataGroup
+				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+						DATA_WITH_LINKS, "oneLinkOneLevelDownTargetDoesNotExist", "cora"));
 		return dataGroup;
 	}
 

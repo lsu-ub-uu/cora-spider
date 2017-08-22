@@ -366,7 +366,7 @@ public class TestDataRecordInMemoryStorage {
 
 	private static void addSystem(RecordStorageInMemory recordsInMemory) {
 		DataGroup dataGroup = DataGroup.withNameInData("system");
-		DataGroup recordInfo = DataCreator.createRecordInfoWithRecordTypeAndRecordId("search",
+		DataGroup recordInfo = DataCreator.createRecordInfoWithRecordTypeAndRecordId("system",
 				"cora");
 		dataGroup.addChild(recordInfo);
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue("systemName", "cora"));

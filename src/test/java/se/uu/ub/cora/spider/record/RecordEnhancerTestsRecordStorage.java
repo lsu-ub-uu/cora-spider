@@ -66,6 +66,10 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndLinkOneLevelDown()
 						.toDataGroup();
 			}
+			if (id.equals("oneLinkOneLevelDownTargetDoesNotExist")) {
+				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndLinkOneLevelDownTargetDoesNotExist()
+						.toDataGroup();
+			}
 		}
 		if (type.equals("dataWithResourceLinks")) {
 			if (id.equals("oneResourceLinkTopLevel")) {

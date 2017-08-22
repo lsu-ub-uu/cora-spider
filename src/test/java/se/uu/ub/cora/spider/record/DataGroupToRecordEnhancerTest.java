@@ -339,4 +339,13 @@ public class DataGroupToRecordEnhancerTest {
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertEquals(record.getActions().size(), 3);
 	}
+
+	@Test
+	public void testReadRecordWithDataRecordLinkTargetDoesNotExist() {
+		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkOneLevelDownTargetDoesNotExist");
+		String recordType = "dataWithLinks";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
+
+//		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
+	}
 }
