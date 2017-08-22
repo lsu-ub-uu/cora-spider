@@ -25,6 +25,7 @@ import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
@@ -67,7 +68,8 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 						.toDataGroup();
 			}
 			if (id.equals("oneLinkOneLevelDownTargetDoesNotExist")) {
-				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndLinkOneLevelDownTargetDoesNotExist()
+				return RecordLinkTestsDataCreator
+						.createDataGroupWithRecordInfoAndLinkOneLevelDownTargetDoesNotExist()
 						.toDataGroup();
 			}
 		}
@@ -108,6 +110,9 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 		}
 		if ("place".equals(type)) {
 			return DataCreator.createDataGroupWithNameInDataTypeAndId("authority", "place", id);
+		}
+		if ("nonExistingRecordId".equals(id)) {
+			throw new RecordNotFoundException("no record with id " + id + " exists");
 		}
 		return null;
 	}

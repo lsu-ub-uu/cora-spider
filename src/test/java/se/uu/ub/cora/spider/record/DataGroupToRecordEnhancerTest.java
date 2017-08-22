@@ -40,7 +40,9 @@ import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.Action;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
@@ -342,11 +344,17 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testReadRecordWithDataRecordLinkTargetDoesNotExist() {
-		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkOneLevelDownTargetDoesNotExist");
+		DataGroup dataGroup = recordStorage.read("dataWithLinks",
+				"oneLinkOneLevelDownTargetDoesNotExist");
 		String recordType = "dataWithLinks";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-//		TODO: ska testet verkligen vara här? i så fall måste vi ha en authorizator som returnerar det som
-		//den riktiga gör när ett record inte finns
-//		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
+
+		SpiderDataGroup spiderDataGroup = record.getSpiderDataGroup();
+		SpiderDataGroup spiderDataGroupOneLevelDown = (SpiderDataGroup) spiderDataGroup
+				.getFirstChildWithNameInData("oneLevelDownTargetDoesNotExist");
+		SpiderDataRecordLink link = (SpiderDataRecordLink) spiderDataGroupOneLevelDown
+				.getFirstChildWithNameInData("link");
+		assertFalse(link.getActions().contains(Action.READ));
+		assertEquals(link.getActions().size(), 0);
 	}
 }

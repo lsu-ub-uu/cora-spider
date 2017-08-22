@@ -31,6 +31,7 @@ import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.data.SpiderDataResourceLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 
 public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
@@ -147,9 +148,9 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return "";
 	}
 
-	private DataGroup readRecordFromStorageByTypeAndId(String linkedRecordType, String linkedRecordId) {
-		return dependencyProvider.getRecordStorage().read(linkedRecordType,
-				linkedRecordId);
+	private DataGroup readRecordFromStorageByTypeAndId(String linkedRecordType,
+			String linkedRecordId) {
+		return dependencyProvider.getRecordStorage().read(linkedRecordType, linkedRecordId);
 	}
 
 	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
@@ -266,12 +267,12 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void possiblyAddReadAction(SpiderDataElement spiderDataChild) {
 		if (isAuthorizedToReadLink(spiderDataChild)) {
-            ((SpiderDataLink) spiderDataChild).addAction(Action.READ);
-        }
+			((SpiderDataLink) spiderDataChild).addAction(Action.READ);
+		}
 	}
 
 	private boolean isAuthorizedToReadLink(SpiderDataElement spiderDataChild) {
-		if(isRecordLink(spiderDataChild)) {
+		if (isRecordLink(spiderDataChild)) {
 			return isAuthorizedToReadRecordLink((SpiderDataRecordLink) spiderDataChild);
 		}
 		return isAuthorizedToReadResourceLink();
@@ -280,15 +281,20 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private boolean isAuthorizedToReadRecordLink(SpiderDataRecordLink spiderDataChild) {
 		String linkedRecordType = spiderDataChild.extractAtomicValue("linkedRecordType");
 		String linkedRecordId = spiderDataChild.extractAtomicValue("linkedRecordId");
-		DataGroup linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType, linkedRecordId);
-
+		DataGroup linkedRecord = null;
+		try {
+			linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType, linkedRecordId);
+		} catch (RecordNotFoundException exception) {
+			return false;
+		}
 		return userIsAuthorizedToReadRecordTypeAndRecord(linkedRecordType, linkedRecord);
 	}
 
-	private boolean userIsAuthorizedToReadRecordTypeAndRecord(String linkedRecordType, DataGroup linkedRecord) {
+	private boolean userIsAuthorizedToReadRecordTypeAndRecord(String linkedRecordType,
+			DataGroup linkedRecord) {
 		return dependencyProvider.getSpiderAuthorizator()
-                .userIsAuthorizedForActionOnRecordTypeAndRecord(user, "read", linkedRecordType,
-                        linkedRecord);
+				.userIsAuthorizedForActionOnRecordTypeAndRecord(user, "read", linkedRecordType,
+						linkedRecord);
 	}
 
 	private boolean isAuthorizedToReadResourceLink() {
