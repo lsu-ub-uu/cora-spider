@@ -40,12 +40,6 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	@Override
 	public DataGroup read(String type, String id) {
 		if (type.equals("recordType")) {
-//			if("binary".equals(id)){
-//				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("binary",
-//						"false", "true");
-//			}else if("image".equals(id)){
-//				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "false", "binary");
-//			}
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("dataWithLinks",
 					"false", "false");
 		}
@@ -54,23 +48,9 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 				return RecordLinkTestsDataCreator.createSpiderDataGroupWithRecordInfoAndLink()
 						.toDataGroup();
 			}
-//			if (id.equals("oneLinkTopLevelNotAuthorized")) {
-//				return RecordLinkTestsDataCreator.createSpiderDataGroupWithRecordInfoAndLinkNotAuthorized()
-//						.toDataGroup();
-//			}
 			if (id.equals("oneLinkOneLevelDown")) {
 				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndLinkOneLevelDown()
 						.toDataGroup();
-			}
-		}
-		if (type.equals("dataWithResourceLinks")) {
-			if (id.equals("oneResourceLinkTopLevel")) {
-				return RecordLinkTestsDataCreator
-						.createSpiderDataGroupWithRecordInfoAndResourceLink().toDataGroup();
-			}
-			if (id.equals("oneResourceLinkOneLevelDown")) {
-				return RecordLinkTestsDataCreator
-						.createDataGroupWithRecordInfoAndResourceLinkOneLevelDown().toDataGroup();
 			}
 		}
 		if(type.equals("toRecordType")){
@@ -78,19 +58,6 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 				return RecordLinkTestsDataCreator.createLinkChildAsRecordDataGroup().toDataGroup();
 			}
 		}
-//		if(type.equals("search")){
-//			if("aSearchId".equals(id)) {
-//				return SpiderDataCreator.createSearchWithIdAndRecordTypeToSearchIn("aSearchId", "place").toDataGroup();
-//			}
-//			else if("anotherSearchId".equals(id)) {
-//				return SpiderDataCreator.createSearchWithIdAndRecordTypeToSearchIn("anotherSearchId", "image").toDataGroup();
-//			}
-//		}
-//		if(type.equals("system")){
-//			if(id.equals("cora")){
-//				return DataGroup.withNameInData("system");
-//			}
-//		}
 		return null;
 	}
 
