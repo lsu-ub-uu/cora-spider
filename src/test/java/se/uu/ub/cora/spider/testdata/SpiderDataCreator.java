@@ -24,7 +24,7 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 
 public final class SpiderDataCreator {
 
-	private static SpiderDataGroup createRecordInfoWithRecordType(String recordType) {
+	public static SpiderDataGroup createRecordInfoWithRecordType(String recordType) {
 		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
 		SpiderDataGroup typeGroup = SpiderDataGroup.withNameInData("type");
 		typeGroup.addChild(
@@ -50,5 +50,18 @@ public final class SpiderDataCreator {
 		dataDivider.addChild(
 				SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", linkedRecordId));
 		return dataDivider;
+	}
+
+	public static SpiderDataGroup createSearchWithIdAndRecordTypeToSearchIn(String id, String idRecordTypeToSearchIn){
+		SpiderDataGroup search = SpiderDataGroup.withNameInData("search");
+		SpiderDataGroup recordInfo = SpiderDataCreator.createRecordInfoWithRecordType("search");
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", id));
+		search.addChild(recordInfo);
+
+		SpiderDataGroup recordTypeToSearchIn = SpiderDataGroup.withNameInData("recordTypeToSearchIn");
+		recordTypeToSearchIn.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
+		recordTypeToSearchIn.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", idRecordTypeToSearchIn));
+		search.addChild(recordTypeToSearchIn);
+		return search;
 	}
 }

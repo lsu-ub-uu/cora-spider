@@ -23,16 +23,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.data.SpiderData;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.spider.testdata.SpiderDataCreator;
 
-public class RecordLinkTestsRecordStorage implements RecordStorage {
+public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 
 	public boolean recordIdExistsForRecordType = true;
 	public boolean createWasRead = false;
@@ -40,12 +39,18 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	@Override
 	public DataGroup read(String type, String id) {
 		if (type.equals("recordType")) {
-//			if("binary".equals(id)){
-//				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("binary",
-//						"false", "true");
-//			}else if("image".equals(id)){
-//				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "false", "binary");
-//			}
+			if ("binary".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
+						"true");
+			} else if ("image".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "false",
+						"binary");
+			} else if (("place".equals(id))) {
+				DataGroup dataGroup = DataCreator
+						.createDataGroupWithNameInDataTypeAndId("authority", "recordType", id);
+				dataGroup.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
+				return dataGroup;
+			}
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("dataWithLinks",
 					"false", "false");
 		}
@@ -54,12 +59,17 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 				return RecordLinkTestsDataCreator.createSpiderDataGroupWithRecordInfoAndLink()
 						.toDataGroup();
 			}
-//			if (id.equals("oneLinkTopLevelNotAuthorized")) {
-//				return RecordLinkTestsDataCreator.createSpiderDataGroupWithRecordInfoAndLinkNotAuthorized()
-//						.toDataGroup();
-//			}
+			if (id.equals("oneLinkTopLevelNotAuthorized")) {
+				return RecordLinkTestsDataCreator
+						.createSpiderDataGroupWithRecordInfoAndLinkNotAuthorized().toDataGroup();
+			}
 			if (id.equals("oneLinkOneLevelDown")) {
 				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndLinkOneLevelDown()
+						.toDataGroup();
+			}
+			if (id.equals("oneLinkOneLevelDownTargetDoesNotExist")) {
+				return RecordLinkTestsDataCreator
+						.createDataGroupWithRecordInfoAndLinkOneLevelDownTargetDoesNotExist()
 						.toDataGroup();
 			}
 		}
@@ -73,24 +83,37 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 						.createDataGroupWithRecordInfoAndResourceLinkOneLevelDown().toDataGroup();
 			}
 		}
-		if(type.equals("toRecordType")){
-			if(id.equals("recordLinkNotAuthorized")){
+		if (type.equals("toRecordType")) {
+			if (id.equals("recordLinkNotAuthorized")) {
 				return RecordLinkTestsDataCreator.createLinkChildAsRecordDataGroup().toDataGroup();
 			}
 		}
-//		if(type.equals("search")){
-//			if("aSearchId".equals(id)) {
-//				return SpiderDataCreator.createSearchWithIdAndRecordTypeToSearchIn("aSearchId", "place").toDataGroup();
-//			}
-//			else if("anotherSearchId".equals(id)) {
-//				return SpiderDataCreator.createSearchWithIdAndRecordTypeToSearchIn("anotherSearchId", "image").toDataGroup();
-//			}
-//		}
-//		if(type.equals("system")){
-//			if(id.equals("cora")){
-//				return DataGroup.withNameInData("system");
-//			}
-//		}
+		if (type.equals("search")) {
+			if ("aSearchId".equals(id)) {
+				return SpiderDataCreator
+						.createSearchWithIdAndRecordTypeToSearchIn("aSearchId", "place")
+						.toDataGroup();
+			} else if ("anotherSearchId".equals(id)) {
+				return SpiderDataCreator
+						.createSearchWithIdAndRecordTypeToSearchIn("anotherSearchId", "image")
+						.toDataGroup();
+			}
+		}
+		if (type.equals("system")) {
+			if (id.equals("cora")) {
+				return DataCreator.createDataGroupWithNameInDataTypeAndId("system", type, id);
+			}
+		}
+		if ("image".equals(type)) {
+			return DataCreator.createDataGroupWithNameInDataTypeAndId("binary", "image",
+					"image:0001");
+		}
+		if ("place".equals(type)) {
+			return DataCreator.createDataGroupWithNameInDataTypeAndId("authority", "place", id);
+		}
+		if ("nonExistingRecordId".equals(id)) {
+			throw new RecordNotFoundException("no record with id " + id + " exists");
+		}
 		return null;
 	}
 
@@ -109,7 +132,11 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 
 	@Override
 	public boolean linksExistForRecord(String type, String id) {
-		// TODO Auto-generated method stub
+		if ("place".equals(type)) {
+			if (id.equals("place:0001") || id.equals("place:0003")) {
+				return true;
+			}
+		}
 		return false;
 	}
 
@@ -152,7 +179,8 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id) {
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+			String id) {
 		return recordIdExistsForRecordType;
 	}
 

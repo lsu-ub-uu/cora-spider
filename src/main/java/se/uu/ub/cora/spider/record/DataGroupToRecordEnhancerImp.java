@@ -31,6 +31,7 @@ import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.data.SpiderDataResourceLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 
 public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
@@ -105,7 +106,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private Boolean incomingLinksExistsForParentToRecordType(String recordTypeForThisRecord) {
-		DataGroup recordTypeDataGroup = dependencyProvider.getRecordStorage().read(RECORD_TYPE,
+		DataGroup recordTypeDataGroup = readRecordFromStorageByTypeAndId(RECORD_TYPE,
 				recordTypeForThisRecord);
 		if (handledRecordHasParent(recordTypeDataGroup)) {
 			String parentId = extractParentId(recordTypeDataGroup);
@@ -147,13 +148,18 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return "";
 	}
 
-	private String extractParentId(DataGroup handledRecordTypeDataGroup) {
-		DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData(PARENT_ID);
-		return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	private DataGroup readRecordFromStorageByTypeAndId(String linkedRecordType,
+			String linkedRecordId) {
+		return dependencyProvider.getRecordStorage().read(linkedRecordType, linkedRecordId);
 	}
 
 	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
 		return handledRecordTypeDataGroup.containsChildWithNameInData(PARENT_ID);
+	}
+
+	private String extractParentId(DataGroup handledRecordTypeDataGroup) {
+		DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData(PARENT_ID);
+		return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
 	private void addActionsForRecordType(SpiderDataRecord spiderDataRecord) {
@@ -234,17 +240,65 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void addReadActionToDataRecordLink(SpiderDataElement spiderDataChild) {
-		if (isLink(spiderDataChild)) {
-			((SpiderDataLink) spiderDataChild).addAction(Action.READ);
-		}
+		possiblyAddReadActionIfLink(spiderDataChild);
+
 		if (isGroup(spiderDataChild)) {
 			addReadActionToDataRecordLinks((SpiderDataGroup) spiderDataChild);
 		}
 	}
 
+	private void possiblyAddReadActionIfLink(SpiderDataElement spiderDataChild) {
+		if (isLink(spiderDataChild)) {
+			possiblyAddReadAction(spiderDataChild);
+		}
+	}
+
 	private boolean isLink(SpiderDataElement spiderDataChild) {
-		return spiderDataChild instanceof SpiderDataRecordLink
-				|| spiderDataChild instanceof SpiderDataResourceLink;
+		return isRecordLink(spiderDataChild) || isResourceLink(spiderDataChild);
+	}
+
+	private boolean isRecordLink(SpiderDataElement spiderDataChild) {
+		return spiderDataChild instanceof SpiderDataRecordLink;
+	}
+
+	private boolean isResourceLink(SpiderDataElement spiderDataChild) {
+		return spiderDataChild instanceof SpiderDataResourceLink;
+	}
+
+	private void possiblyAddReadAction(SpiderDataElement spiderDataChild) {
+		if (isAuthorizedToReadLink(spiderDataChild)) {
+			((SpiderDataLink) spiderDataChild).addAction(Action.READ);
+		}
+	}
+
+	private boolean isAuthorizedToReadLink(SpiderDataElement spiderDataChild) {
+		if (isRecordLink(spiderDataChild)) {
+			return isAuthorizedToReadRecordLink((SpiderDataRecordLink) spiderDataChild);
+		}
+		return isAuthorizedToReadResourceLink();
+	}
+
+	private boolean isAuthorizedToReadRecordLink(SpiderDataRecordLink spiderDataChild) {
+		String linkedRecordType = spiderDataChild.extractAtomicValue("linkedRecordType");
+		String linkedRecordId = spiderDataChild.extractAtomicValue("linkedRecordId");
+		DataGroup linkedRecord = null;
+		try {
+			linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType, linkedRecordId);
+		} catch (RecordNotFoundException exception) {
+			return false;
+		}
+		return userIsAuthorizedToReadRecordTypeAndRecord(linkedRecordType, linkedRecord);
+	}
+
+	private boolean userIsAuthorizedToReadRecordTypeAndRecord(String linkedRecordType,
+			DataGroup linkedRecord) {
+		return dependencyProvider.getSpiderAuthorizator()
+				.userIsAuthorizedForActionOnRecordTypeAndRecord(user, "read", linkedRecordType,
+						linkedRecord);
+	}
+
+	private boolean isAuthorizedToReadResourceLink() {
+		return userIsAuthorizedToReadRecordTypeAndRecord("image", dataGroup);
 	}
 
 	private boolean isGroup(SpiderDataElement spiderDataChild) {
