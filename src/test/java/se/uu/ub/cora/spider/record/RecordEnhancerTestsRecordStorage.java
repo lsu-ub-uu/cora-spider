@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import se.uu.ub.cora.bookkeeper.data.Data;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
@@ -49,6 +50,10 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 				DataGroup dataGroup = DataCreator
 						.createDataGroupWithNameInDataTypeAndId("authority", "recordType", id);
 				dataGroup.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
+				DataGroup parent = DataGroup.withNameInData("parentId");
+				parent.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
+				parent.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "authority"));
+				dataGroup.addChild(parent);
 				return dataGroup;
 			}
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("dataWithLinks",
@@ -133,7 +138,11 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 	@Override
 	public boolean linksExistForRecord(String type, String id) {
 		if ("place".equals(type)) {
-			if (id.equals("place:0001") || id.equals("place:0003")) {
+			if (id.equals("place:0001")) {
+				return true;
+			}
+		}else if("authority".equals(type)){
+			if("place:0003".equals(id)) {
 				return true;
 			}
 		}
