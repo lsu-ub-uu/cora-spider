@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.spider.record.SpiderDownloader;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
+import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
 import se.uu.ub.cora.spider.record.SpiderRecordListReader;
 import se.uu.ub.cora.spider.record.SpiderRecordReader;
 import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
@@ -54,6 +55,17 @@ public class SpiderInstanceFactoryTest {
 		assertNotNull(recordReader);
 		assertNotNull(recordReader2);
 		assertNotSame(recordReader, recordReader2);
+	}
+
+	@Test
+	public void makeSureWeGetMultipleInstancesOfRecordIncomingLinksReader() {
+		SpiderRecordIncomingLinksReader recordIncomingLInksReader = factory
+				.factorSpiderRecordIncomingLinksReader();
+		SpiderRecordIncomingLinksReader recordIncomingLInksReader2 = factory
+				.factorSpiderRecordIncomingLinksReader();
+		assertNotNull(recordIncomingLInksReader);
+		assertNotNull(recordIncomingLInksReader2);
+		assertNotSame(recordIncomingLInksReader, recordIncomingLInksReader2);
 	}
 
 	@Test

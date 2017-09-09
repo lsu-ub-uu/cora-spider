@@ -28,6 +28,8 @@ import se.uu.ub.cora.spider.record.SpiderRecordCreator;
 import se.uu.ub.cora.spider.record.SpiderRecordCreatorImp;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleterImp;
+import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
+import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReaderImp;
 import se.uu.ub.cora.spider.record.SpiderRecordListReader;
 import se.uu.ub.cora.spider.record.SpiderRecordListReaderImp;
 import se.uu.ub.cora.spider.record.SpiderRecordReader;
@@ -105,6 +107,11 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 				dependencyProvider);
 		return SpiderRecordSearcherImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
+	}
+
+	@Override
+	public SpiderRecordIncomingLinksReader factorSpiderRecordIncomingLinksReader() {
+		return SpiderRecordIncomingLinksReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 }

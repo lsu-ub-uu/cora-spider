@@ -11,7 +11,7 @@ import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 		implements SpiderRecordIncomingLinksReader {
@@ -22,14 +22,14 @@ public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 	private RecordTypeHandler recordTypeHandler;
 	private User user;
 
-	public SpiderRecordIncomingLinksReaderImp(SpiderDependencyProviderSpy dependencyProvider) {
+	public SpiderRecordIncomingLinksReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 	}
 
 	public static SpiderRecordIncomingLinksReader usingDependencyProvider(
-			SpiderDependencyProviderSpy dependencyProvider) {
+			SpiderDependencyProvider dependencyProvider) {
 		return new SpiderRecordIncomingLinksReaderImp(dependencyProvider);
 	}
 
