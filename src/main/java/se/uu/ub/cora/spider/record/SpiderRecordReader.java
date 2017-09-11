@@ -25,6 +25,4 @@ public interface SpiderRecordReader {
 
 	SpiderDataRecord readRecord(String authToken, String type, String id);
 
-	// SpiderDataList readIncomingLinks(String authToken, String type, String
-	// id);
 }
