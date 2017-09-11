@@ -55,6 +55,14 @@ public class SpiderInstanceProviderTest {
 	}
 
 	@Test
+	public void makeSureFactoryCreateIsCalledForRecordIncomingLinksReader() {
+		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.getSpiderRecordIncomingLinksReader();
+		assertTrue(factory.incomingLinksReaderFactoryWasCalled);
+	}
+
+	@Test
 	public void makeSureFactoryCreateIsCalledForListRecordReader() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
