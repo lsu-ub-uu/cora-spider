@@ -23,6 +23,7 @@ package se.uu.ub.cora.spider.dependency;
 import se.uu.ub.cora.spider.record.SpiderDownloader;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
+import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
 import se.uu.ub.cora.spider.record.SpiderRecordListReader;
 import se.uu.ub.cora.spider.record.SpiderRecordReader;
 import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
@@ -31,6 +32,7 @@ import se.uu.ub.cora.spider.record.SpiderUploader;
 
 public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	public boolean readerFactoryWasCalled = false;
+	public boolean incomingLinksReaderFactoryWasCalled = false;
 	public boolean listReaderFactoryWasCalled = false;
 	public boolean creatorFactoryWasCalled = false;
 	public boolean updaterFactoryWasCalled = false;
@@ -84,6 +86,12 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	@Override
 	public SpiderRecordSearcher factorSpiderRecordSearcher() {
 		searcherFactoryWasCalled = true;
+		return null;
+	}
+
+	@Override
+	public SpiderRecordIncomingLinksReader factorSpiderRecordIncomingLinksReader() {
+		incomingLinksReaderFactoryWasCalled = true;
 		return null;
 	}
 

@@ -19,12 +19,12 @@
 
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 
 public interface SpiderRecordReader {
 
 	SpiderDataRecord readRecord(String authToken, String type, String id);
 
-	SpiderDataList readIncomingLinks(String authToken, String type, String id);
+	// SpiderDataList readIncomingLinks(String authToken, String type, String
+	// id);
 }
