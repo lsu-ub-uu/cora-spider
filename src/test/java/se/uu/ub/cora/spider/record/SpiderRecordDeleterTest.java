@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -39,8 +40,10 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.spider.search.RecordIndexer;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
+import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 
@@ -51,6 +54,7 @@ public class SpiderRecordDeleterTest {
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private SpiderRecordDeleter recordDeleter;
+	private RecordIndexer recordIndexer;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -58,6 +62,7 @@ public class SpiderRecordDeleterTest {
 		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
+		recordIndexer = new RecordIndexerSpy();
 		setUpDependencyProvider();
 	}
 
@@ -67,6 +72,7 @@ public class SpiderRecordDeleterTest {
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.keyCalculator = keyCalculator;
+		dependencyProvider.recordIndexer = recordIndexer;
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
@@ -87,6 +93,8 @@ public class SpiderRecordDeleterTest {
 
 		recordDeleter.deleteRecord("userId", "child1", "place:0002");
 		assertTrue(((RecordStorageSpy) recordStorage).deleteWasCalled);
+		assertEquals(((RecordIndexerSpy) recordIndexer).type, "child1");
+		assertEquals(((RecordIndexerSpy) recordIndexer).id, "place:0002");
 	}
 
 	@Test(expectedExceptions = MisuseException.class)

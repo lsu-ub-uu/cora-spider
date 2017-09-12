@@ -24,6 +24,7 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.search.RecordIndexer;
 
 public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		implements SpiderRecordDeleter {
@@ -32,11 +33,13 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	private SpiderAuthorizator spiderAuthorizator;
 	private String authToken;
 	private User user;
+	private RecordIndexer recordIndexer;
 
 	private SpiderRecordDeleterImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
+		this.recordIndexer = dependencyProvider.getRecordIndexer();
 	}
 
 	public static SpiderRecordDeleterImp usingDependencyProvider(
@@ -52,6 +55,7 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		checkUserIsAuthorizedToDeleteStoredRecord(recordType, recordId);
 		checkNoIncomingLinksExists(recordType, recordId);
 		recordStorage.deleteByTypeAndId(recordType, recordId);
+		recordIndexer.deleteFromIndex(recordType, recordId);
 	}
 
 	private void tryToGetActiveUser() {

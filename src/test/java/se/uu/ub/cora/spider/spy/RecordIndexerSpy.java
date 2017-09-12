@@ -8,11 +8,20 @@ public class RecordIndexerSpy implements RecordIndexer {
 	public DataGroup recordIndexData;
 	public DataGroup record;
 
+	public String id;
+	public String type;
+
 	@Override
 	public void indexData(DataGroup recordIndexData, DataGroup record) {
 		this.recordIndexData = recordIndexData;
 		this.record = record;
 
+	}
+
+	@Override
+	public void deleteFromIndex(String type, String id) {
+		this.type = type;
+		this.id = id;
 	}
 
 }
