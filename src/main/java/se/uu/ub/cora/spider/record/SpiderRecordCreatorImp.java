@@ -24,7 +24,7 @@ import java.util.List;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.searchtermcollector.DataGroupSearchTermCollector;
+import se.uu.ub.cora.bookkeeper.searchtermcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -52,7 +52,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private User user;
 	private RecordTypeHandler recordTypeHandler;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
-	private DataGroupSearchTermCollector searchTermCollector;
+	private DataGroupTermCollector searchTermCollector;
 	private RecordIndexer recordIndexer;
 
 	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider,
@@ -113,7 +113,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
 				.fromDataGroup(topLevelDataGroup);
 
-		DataGroup searchTerms = searchTermCollector.collectSearchTerms(metadataId,
+		DataGroup searchTerms = searchTermCollector.collectTerms(metadataId,
 				topLevelDataGroup);
 		recordIndexer.indexData(searchTerms, topLevelDataGroup);
 

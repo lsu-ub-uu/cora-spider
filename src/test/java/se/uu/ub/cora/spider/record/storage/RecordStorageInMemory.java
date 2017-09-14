@@ -397,7 +397,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public Collection<DataGroup> getSearchTerms() {
+	public Collection<DataGroup> getCollectTerms() {
 		return null;
 	}
 

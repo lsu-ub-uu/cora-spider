@@ -31,7 +31,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.searchtermcollector.DataGroupSearchTermCollector;
+import se.uu.ub.cora.bookkeeper.searchtermcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -75,7 +75,7 @@ public class SpiderUploaderTest {
 	private SpiderUploader uploader;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
-	private DataGroupSearchTermCollector searchTermCollector;
+	private DataGroupTermCollector searchTermCollector;
 	private RecordIndexer recordIndexer;
 	private RecordIdGenerator idGenerator;
 	private SpiderDependencyProviderSpy dependencyProvider;

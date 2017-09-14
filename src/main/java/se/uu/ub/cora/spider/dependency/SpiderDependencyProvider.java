@@ -22,7 +22,7 @@ package se.uu.ub.cora.spider.dependency;
 import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.searchtermcollector.DataGroupSearchTermCollector;
+import se.uu.ub.cora.bookkeeper.searchtermcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -61,7 +61,7 @@ public abstract class SpiderDependencyProvider {
 
 	public abstract RecordSearch getRecordSearch();
 
-	public abstract DataGroupSearchTermCollector getDataGroupSearchTermCollector();
+	public abstract DataGroupTermCollector getDataGroupSearchTermCollector();
 
 	public abstract RecordIndexer getRecordIndexer();
 }
