@@ -49,7 +49,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private User user;
 	private String userId;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
-	private DataGroupTermCollector searchTermCollector;
+	private DataGroupTermCollector collectTermCollector;
 	private RecordIndexer recordIndexer;
 
 	private SpiderRecordUpdaterImp(SpiderDependencyProvider dependencyProvider,
@@ -60,7 +60,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		this.searchTermCollector = dependencyProvider.getDataGroupSearchTermCollector();
+		this.collectTermCollector = dependencyProvider.getDataGroupSearchTermCollector();
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
@@ -111,9 +111,9 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
 		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedLinks, dataDivider);
 
-		DataGroup searchTerms = searchTermCollector.collectTerms(metadataId,
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId,
 				topLevelDataGroup);
-		recordIndexer.indexData(searchTerms, topLevelDataGroup);
+		recordIndexer.indexData(collectedTerms, topLevelDataGroup);
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);
 	}

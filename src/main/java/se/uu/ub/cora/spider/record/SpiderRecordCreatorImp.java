@@ -52,7 +52,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private User user;
 	private RecordTypeHandler recordTypeHandler;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
-	private DataGroupTermCollector searchTermCollector;
+	private DataGroupTermCollector collectTermCollector;
 	private RecordIndexer recordIndexer;
 
 	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider,
@@ -64,7 +64,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.idGenerator = dependencyProvider.getIdGenerator();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		this.searchTermCollector = dependencyProvider.getDataGroupSearchTermCollector();
+		this.collectTermCollector = dependencyProvider.getDataGroupSearchTermCollector();
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
@@ -113,9 +113,9 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
 				.fromDataGroup(topLevelDataGroup);
 
-		DataGroup searchTerms = searchTermCollector.collectTerms(metadataId,
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId,
 				topLevelDataGroup);
-		recordIndexer.indexData(searchTerms, topLevelDataGroup);
+		recordIndexer.indexData(collectedTerms, topLevelDataGroup);
 
 		useExtendedFunctionalityBeforeReturn(recordType, spiderDataGroupWithActions);
 
