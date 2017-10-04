@@ -76,6 +76,9 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		if (userIsAuthorizedForAction("update")) {
 			record.addAction(Action.UPDATE);
 		}
+		if (userIsAuthorizedForAction("index")) {
+			record.addAction(Action.INDEX);
+		}
 		possiblyAddDeleteAction(record);
 		possiblyAddIncomingLinksAction(record);
 		possiblyAddUploadAction(record);
