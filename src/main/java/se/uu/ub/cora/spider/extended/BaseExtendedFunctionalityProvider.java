@@ -42,6 +42,9 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 		if ("appToken".equals(recordType)) {
 			list.add(new AppTokenEnhancerAsExtendedFunctionality());
 		}
+		if ("workOrder".equals(recordType)) {
+			list.add(new WorkOrderEnhancerAsExtendedFunctionality());
+		}
 		return list;
 	}
 

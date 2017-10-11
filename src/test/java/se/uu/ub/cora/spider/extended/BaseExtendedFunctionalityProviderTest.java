@@ -49,6 +49,8 @@ public class BaseExtendedFunctionalityProviderTest {
 		fetchAndAssertCreateBeforeMetadataValidation("");
 		fetchAndAssertCreateBeforeMetadataValidation("UnknownType");
 		fetchAndAssertCreateBeforeMetadataValidationForAppToken();
+		fetchAndAssertCreateBeforeMetadataValidationForWorkOrder();
+
 	}
 
 	private void fetchAndAssertCreateBeforeMetadataValidation(String recordType) {
@@ -63,6 +65,14 @@ public class BaseExtendedFunctionalityProviderTest {
 		assertEquals(bEFP.size(), 1);
 		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
 		assertTrue(extendedFunctionality instanceof AppTokenEnhancerAsExtendedFunctionality);
+	}
+
+	private void fetchAndAssertCreateBeforeMetadataValidationForWorkOrder() {
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
+				.getFunctionalityForCreateBeforeMetadataValidation("workOrder");
+		assertEquals(bEFP.size(), 1);
+		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
+		assertTrue(extendedFunctionality instanceof WorkOrderEnhancerAsExtendedFunctionality);
 	}
 
 	@Test

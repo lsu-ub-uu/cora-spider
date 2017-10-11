@@ -18,42 +18,59 @@
  */
 package se.uu.ub.cora.spider.extended;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataElement;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
+
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import se.uu.ub.cora.spider.data.SpiderDataAtomic;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
 
 public class WorkOrderEnhancerAsExtendedFunctionalityTest {
 
-    WorkOrderEnhancerAsExtendedFunctionality extendedFunctionality;
+	WorkOrderEnhancerAsExtendedFunctionality extendedFunctionality;
 
-    @BeforeMethod
-    public void setUp() {
-        extendedFunctionality = new WorkOrderEnhancerAsExtendedFunctionality();
-    }
+	@BeforeMethod
+	public void setUp() {
+		extendedFunctionality = new WorkOrderEnhancerAsExtendedFunctionality();
+	}
 
-    @Test
-    public void useExtendedFunctionality() {
-        assertNotNull(extendedFunctionality);
-    }
+	@Test
+	public void useExtendedFunctionality() {
+		assertNotNull(extendedFunctionality);
+	}
 
-    @Test
-    public void testAddRecordInfo(){
-        SpiderDataGroup workOrder = SpiderDataGroup.withNameInData("workOrder");
-        extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+	@Test
+	public void testAddRecordInfo() {
+		SpiderDataGroup workOrder = SpiderDataGroup.withNameInData("workOrder");
+		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
+		SpiderDataGroup recordInfo = (SpiderDataGroup) workOrder
+				.getFirstChildWithNameInData("recordInfo");
+		assertTrue(recordInfo.containsChildWithNameInData("dataDivider"));
+		SpiderDataGroup dataDivider = (SpiderDataGroup) recordInfo
+				.getFirstChildWithNameInData("dataDivider");
+		SpiderDataAtomic linkedRecordType = (SpiderDataAtomic) dataDivider
+				.getFirstChildWithNameInData("linkedRecordType");
+		assertEquals(linkedRecordType.getValue(), "system");
+		SpiderDataAtomic linkedRecordId = (SpiderDataAtomic) dataDivider
+				.getFirstChildWithNameInData("linkedRecordId");
+		assertEquals(linkedRecordId.getValue(), "cora");
+	}
 
-        SpiderDataGroup recordInfo = (SpiderDataGroup) workOrder.getFirstChildWithNameInData("recordInfo");
-        assertTrue(recordInfo.containsChildWithNameInData("dataDivider"));
-        SpiderDataGroup dataDivider = (SpiderDataGroup) recordInfo.getFirstChildWithNameInData("dataDivider");
-        SpiderDataAtomic linkedRecordType = (SpiderDataAtomic) dataDivider.getFirstChildWithNameInData("linkedRecordType");
-        assertEquals(linkedRecordType.getValue(), "system");
-        SpiderDataAtomic linkedRecordId = (SpiderDataAtomic) dataDivider.getFirstChildWithNameInData("linkedRecordId");
-        assertEquals(linkedRecordId.getValue(), "cora");
-    }
+	@Test
+	public void testRecordInfoAlreadyExistsNotReplacedByExtendedFunctionality() {
+		SpiderDataGroup workOrder = SpiderDataGroup.withNameInData("workOrder");
+		workOrder.addChild(SpiderDataGroup.withNameInData("recordInfo"));
+		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+
+		assertEquals(workOrder.getChildren().size(), 1);
+
+		SpiderDataGroup recordInfo = (SpiderDataGroup) workOrder
+				.getFirstChildWithNameInData("recordInfo");
+		assertFalse(recordInfo.containsChildWithNameInData("dataDivider"));
+	}
 }

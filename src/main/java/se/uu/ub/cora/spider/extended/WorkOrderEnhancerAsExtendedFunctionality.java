@@ -23,14 +23,28 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 
 public class WorkOrderEnhancerAsExtendedFunctionality implements ExtendedFunctionality {
 
-   @Override
-    public void useExtendedFunctionality(String authToken, SpiderDataGroup spiderDataGroup) {
-        SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
+	@Override
+	public void useExtendedFunctionality(String authToken, SpiderDataGroup spiderDataGroup) {
+		if (recordInfoIsMissing(spiderDataGroup)) {
+			addRecordInfo(spiderDataGroup);
+		}
+	}
 
-        SpiderDataGroup dataDivider = SpiderDataGroup.withNameInData("dataDivider");
-        dataDivider.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "system"));
-        dataDivider.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "cora"));
-        recordInfo.addChild(dataDivider);
-        spiderDataGroup.addChild(recordInfo);
-    }
+	private boolean recordInfoIsMissing(SpiderDataGroup spiderDataGroup) {
+		return !spiderDataGroup.containsChildWithNameInData("recordInfo");
+	}
+
+	private void addRecordInfo(SpiderDataGroup spiderDataGroup) {
+		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
+		SpiderDataGroup dataDivider = createDataDivider();
+		recordInfo.addChild(dataDivider);
+		spiderDataGroup.addChild(recordInfo);
+	}
+
+	private SpiderDataGroup createDataDivider() {
+		SpiderDataGroup dataDivider = SpiderDataGroup.withNameInData("dataDivider");
+		dataDivider.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "system"));
+		dataDivider.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "cora"));
+		return dataDivider;
+	}
 }
