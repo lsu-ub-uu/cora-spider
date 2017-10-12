@@ -11,10 +11,13 @@ public class RecordIndexerSpy implements RecordIndexer {
 	public String id;
 	public String type;
 
+	public boolean indexDataHasBeenCalled = false;
+
 	@Override
 	public void indexData(DataGroup recordIndexData, DataGroup record) {
 		this.recordIndexData = recordIndexData;
 		this.record = record;
+		indexDataHasBeenCalled = true;
 
 	}
 
