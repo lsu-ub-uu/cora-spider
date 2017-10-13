@@ -102,6 +102,16 @@ public class BaseExtendedFunctionalityProviderTest {
 				extendedFunctionality instanceof MetadataConsistencyValidatorAsExtendedFunctionality);
 	}
 
+	@Test
+	public void testGetAddedFunctionalityForCreateAfterMetadataValidationForWorkOrder() {
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
+				.getFunctionalityForCreateAfterMetadataValidation("workOrder");
+		assertEquals(bEFP.size(), 1);
+		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
+		assertTrue(
+				extendedFunctionality instanceof WorkOrderExecutorAsExtendedFunctionality);
+	}
+
 	private void fetchAndAssertCreateAfterMetadataValidation(String recordType) {
 		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
 				.getFunctionalityForCreateAfterMetadataValidation(recordType);

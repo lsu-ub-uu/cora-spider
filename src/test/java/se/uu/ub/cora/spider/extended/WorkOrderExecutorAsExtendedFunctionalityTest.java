@@ -19,13 +19,19 @@
 package se.uu.ub.cora.spider.extended;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
@@ -35,75 +41,83 @@ import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 
 public class WorkOrderExecutorAsExtendedFunctionalityTest {
 
-	;
+    SpiderDependencyProviderSpy dependencyProvider;
+    WorkOrderExecutorAsExtendedFunctionality extendedFunctionality;
+    DataGroupSearchTermCollectorSpy termCollector;
+    RecordIndexerSpy recordIndexer;
+    AlwaysAuthorisedExceptStub authorizer;
+    AuthenticatorSpy authenticator;
 
-	// @BeforeMethod
-	// public void setUp() {
-	// extendedFunctionality = new WorkOrderExecutorAsExtendedFunctionality();
-	// }
-	//
-	// @Test
-	// public void useExtendedFunctionality() {
-	// assertNotNull(extendedFunctionality);
-	// }
+    @BeforeMethod
+    public void setUp() {
+        dependencyProvider = new SpiderDependencyProviderSpy(
+                new HashMap<>());
+        dependencyProvider.recordIndexer = new RecordIndexerSpy();
+        dependencyProvider.searchTermCollector = new DataGroupSearchTermCollectorSpy();
+        dependencyProvider.recordStorage = new RecordStorageSpy();
+        dependencyProvider.authenticator = new AuthenticatorSpy();
+        dependencyProvider.spiderAuthorizator = new AlwaysAuthorisedExceptStub();
 
-	@Test
-	public void testIndexData() {
-		SpiderDependencyProviderSpy dependencyProvider = new SpiderDependencyProviderSpy(
-				new HashMap<>());
-		dependencyProvider.recordIndexer = new RecordIndexerSpy();
-		dependencyProvider.searchTermCollector = new DataGroupSearchTermCollectorSpy();
-		dependencyProvider.recordStorage = new RecordStorageSpy();
-		// RecordIndexerSpy recordIndexer = new RecordIndexerSpy();
-		// DataGroupSearchTermCollectorSpy termCollector = new
-		// DataGroupSearchTermCollectorSpy();
+        extendedFunctionality = WorkOrderExecutorAsExtendedFunctionality
+                .usingDependencyProvider(dependencyProvider);
+        termCollector = (DataGroupSearchTermCollectorSpy) dependencyProvider
+                .getDataGroupSearchTermCollector();
+        recordIndexer = (RecordIndexerSpy) dependencyProvider.getRecordIndexer();
+        authorizer = (AlwaysAuthorisedExceptStub) dependencyProvider.getSpiderAuthorizator();
+        authenticator = (AuthenticatorSpy) dependencyProvider.getAuthenticator();
 
-		WorkOrderExecutorAsExtendedFunctionality extendedFunctionality = WorkOrderExecutorAsExtendedFunctionality
-				.usingDependencyProvider(dependencyProvider);
+    }
 
-		SpiderDataGroup workOrder = createWorkOrder();
+    @Test
+    public void testIndexData() {
 
-		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
-		DataGroupSearchTermCollectorSpy termCollector = (DataGroupSearchTermCollectorSpy) dependencyProvider
-				.getDataGroupSearchTermCollector();
-		assertTrue(termCollector.collectSearchTermsWasCalled);
-		assertEquals(termCollector.metadataId, "bookGroup");
-		DataGroup recordInfo = termCollector.dataGroup.getFirstGroupWithNameInData("recordInfo");
-		assertEquals(recordInfo.getFirstAtomicValueWithNameInData("id"), "book1");
+        SpiderDataGroup workOrder = createWorkOrderWithRecordTypeAndRecordId("book", "book1");
+        extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
-		RecordIndexerSpy recordIndexer = (RecordIndexerSpy) dependencyProvider.getRecordIndexer();
-		assertTrue(recordIndexer.indexDataHasBeenCalled);
-		DataGroup recordInfo2 = recordIndexer.record.getFirstGroupWithNameInData("recordInfo");
-		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
+        assertTrue(termCollector.collectSearchTermsWasCalled);
+        assertEquals(termCollector.metadataId, "bookGroup");
 
-		// SpiderDataGroup recordInfo = (SpiderDataGroup) workOrder
-		// .getFirstChildWithNameInData("recordInfo");
-		// assertTrue(recordInfo.containsChildWithNameInData("dataDivider"));
-		// SpiderDataGroup dataDivider = (SpiderDataGroup) recordInfo
-		// .getFirstChildWithNameInData("dataDivider");
-		// SpiderDataAtomic linkedRecordType = (SpiderDataAtomic) dataDivider
-		// .getFirstChildWithNameInData("linkedRecordType");
-		// assertEquals(linkedRecordType.getValue(), "system");
-		// SpiderDataAtomic linkedRecordId = (SpiderDataAtomic) dataDivider
-		// .getFirstChildWithNameInData("linkedRecordId");
-		// assertEquals(linkedRecordId.getValue(), "cora");
-	}
+        DataGroup recordInfo = termCollector.dataGroup.getFirstGroupWithNameInData("recordInfo");
+        assertEquals(recordInfo.getFirstAtomicValueWithNameInData("id"), "book1");
 
-	private SpiderDataGroup createWorkOrder() {
-		SpiderDataGroup workOrder = SpiderDataGroup.withNameInData("workOrder");
-		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "someGeneratedId"));
-		workOrder.addChild(recordInfo);
+        assertTrue(recordIndexer.indexDataHasBeenCalled);
+        assertCollectedTermsAreSentToIndex();
+        DataGroup recordInfo2 = recordIndexer.record.getFirstGroupWithNameInData("recordInfo");
+        assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
+    }
 
-		SpiderDataGroup recordType = SpiderDataGroup.withNameInData("recordType");
-		recordType.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
-		recordType.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "book"));
-		workOrder.addChild(recordType);
+    private void assertCollectedTermsAreSentToIndex() {
+        assertEquals(recordIndexer.recordIndexData, termCollector.collectedSearchTerms);
+    }
 
-		workOrder.addChild(SpiderDataAtomic.withNameInDataAndValue("recordId", "book1"));
-		workOrder.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "index"));
-		return workOrder;
-	}
+    @Test
+    public void testIndexDataWithNoRightToIndexRecordType() {
+        Set<String> actions = new HashSet<>();
+        actions.add("index");
+        authorizer.notAuthorizedForRecordTypeAndActions.put("book", actions);
+
+        SpiderDataGroup workOrder = createWorkOrderWithRecordTypeAndRecordId("book", "book1");
+        extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+
+        assertFalse(termCollector.collectSearchTermsWasCalled);
+        assertFalse(recordIndexer.indexDataHasBeenCalled);
+    }
+
+    private SpiderDataGroup createWorkOrderWithRecordTypeAndRecordId(String recordType, String recordId) {
+        SpiderDataGroup workOrder = SpiderDataGroup.withNameInData("workOrder");
+        SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
+        recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "someGeneratedId"));
+        workOrder.addChild(recordInfo);
+
+        SpiderDataGroup recordTypeLink = SpiderDataGroup.withNameInData("recordType");
+        recordTypeLink.addChild(
+                SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
+        recordTypeLink.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", recordType));
+        workOrder.addChild(recordTypeLink);
+
+        workOrder.addChild(SpiderDataAtomic.withNameInDataAndValue("recordId", recordId));
+        workOrder.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "index"));
+        return workOrder;
+    }
 
 }

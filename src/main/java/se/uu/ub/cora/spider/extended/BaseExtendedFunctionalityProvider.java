@@ -58,6 +58,9 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 			list.add(MetadataConsistencyValidatorAsExtendedFunctionality
 					.usingValidator(factory.factor(recordType)));
 		}
+		if("workOrder".equals(recordType)){
+			list.add(WorkOrderExecutorAsExtendedFunctionality.usingDependencyProvider(dependencyProvider));
+		}
 		return list;
 	}
 
