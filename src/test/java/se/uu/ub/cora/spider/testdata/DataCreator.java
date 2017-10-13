@@ -82,7 +82,7 @@ public final class DataCreator {
 		return dataGroup;
 	}
 
-	private static DataGroup createChildWithNamInDataLinkedTypeLinkedId(String nameInData,
+	public static DataGroup createChildWithNamInDataLinkedTypeLinkedId(String nameInData,
 			String linkedRecordType, String id) {
 		DataGroup metadataId = DataGroup.withNameInData(nameInData);
 		metadataId
@@ -345,7 +345,8 @@ public final class DataCreator {
 		return spiderDataGroup;
 	}
 
-	public static DataGroup createDataGroupWithNameInDataTypeAndId(String nameInData, String recordType, String recordId) {
+	public static DataGroup createDataGroupWithNameInDataTypeAndId(String nameInData,
+			String recordType, String recordId) {
 		DataGroup dataGroup = DataGroup.withNameInData(nameInData);
 		DataGroup recordInfo = DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType,
 				recordId);

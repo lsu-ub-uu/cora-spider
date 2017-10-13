@@ -82,6 +82,24 @@ public class RecordStorageSpy implements RecordStorage {
 			return DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("image",
 					"image:123456789", "image", "cora").toDataGroup();
 		}
+		if ("recordType".equals(type) && "book".equals(id)) {
+			DataGroup book = DataGroup.withNameInData("recordType");
+			book.addChild(DataCreator.createChildWithNamInDataLinkedTypeLinkedId("metadataId",
+					"metadataGroup", "bookGroup"));
+			return book;
+
+		}
+		if ("book".equals(type) && "book1".equals(id)) {
+			DataGroup book = DataGroup.withNameInData("book");
+			DataGroup recordInfo = DataCreator
+					.createRecordInfoWithIdAndTypeAndLinkedRecordId("book1", "book", "testSystem")
+					.toDataGroup();
+			book.addChild(recordInfo);
+			// book.addChild(DataCreator.createChildWithNamInDataLinkedTypeLinkedId("metadataId",
+			// "metadataGroup", "bookGroup"));
+			return book;
+
+		}
 		if ("permissionRole".equals(type) && "guest".equals(id)) {
 			DataGroup permissionRole = DataGroup.withNameInData("permissionRole");
 
