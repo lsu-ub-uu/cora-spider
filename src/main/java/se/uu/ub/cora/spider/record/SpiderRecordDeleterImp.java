@@ -69,10 +69,30 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	}
 
 	private void checkNoIncomingLinksExists(String recordType, String recordId) {
-		if (recordStorage.linksExistForRecord(recordType, recordId)) {
+		if (recordStorage.linksExistForRecord(recordType, recordId)
+				|| incomingLinksExistsForParentToRecordType(recordType, recordId)) {
 			throw new MisuseException("Deleting record: " + recordId
 					+ " is not allowed since other records are linking to it");
 		}
+	}
+
+	private Boolean incomingLinksExistsForParentToRecordType(String recordTypeForThisRecord,
+			String recordId) {
+		DataGroup recordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordTypeForThisRecord);
+		if (handledRecordHasParent(recordTypeDataGroup)) {
+			String parentId = extractParentId(recordTypeDataGroup);
+			return recordStorage.linksExistForRecord(parentId, recordId);
+		}
+		return false;
+	}
+
+	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
+		return handledRecordTypeDataGroup.containsChildWithNameInData("parentId");
+	}
+
+	private String extractParentId(DataGroup handledRecordTypeDataGroup) {
+		DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData("parentId");
+		return parentGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 }

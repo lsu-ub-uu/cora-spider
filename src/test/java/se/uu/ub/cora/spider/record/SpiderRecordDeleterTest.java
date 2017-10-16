@@ -106,6 +106,15 @@ public class SpiderRecordDeleterTest {
 		recordDeleter.deleteRecord("userId", "child1", "place:0001");
 	}
 
+	@Test(expectedExceptions = MisuseException.class)
+	public void testAuthorizedToDeleteAndIncomingLinkToAbstractParent() {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+
+		// ((RecordStorageSpy) recordStorage).linksExist = true;
+		recordDeleter.deleteRecord("userId", "place", "place:0003");
+	}
+
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testDeleteUnauthorized() {
 		authorizator = new NeverAuthorisedStub();
