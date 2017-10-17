@@ -50,8 +50,8 @@ public class RecordStorageSpy implements RecordStorage {
 					"true");
 		}
 		if ("child1".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
-					"abstract");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "true",
+					"false");
 		}
 		if ("child2".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
@@ -78,6 +78,17 @@ public class RecordStorageSpy implements RecordStorage {
 					"binary");
 
 		}
+		if (type.equals("recordType") && ("place".equals(id))) {
+			DataGroup dataGroup = DataCreator.createDataGroupWithNameInDataTypeAndId("authority",
+					"recordType", id);
+			dataGroup.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
+			DataGroup parent = DataGroup.withNameInData("parentId");
+			parent.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
+			parent.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "authority"));
+			dataGroup.addChild(parent);
+			return dataGroup;
+		}
+
 		if ("image".equals(type) && "image:123456789".equals(id)) {
 			return DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("image",
 					"image:123456789", "image", "cora").toDataGroup();
@@ -199,6 +210,9 @@ public class RecordStorageSpy implements RecordStorage {
 			return abstractAuthority;
 
 		}
+		if ("place".equals(type)) {
+			return DataCreator.createDataGroupWithNameInDataTypeAndId("authority", "place", id);
+		}
 		return null;
 	}
 
@@ -216,6 +230,15 @@ public class RecordStorageSpy implements RecordStorage {
 
 	@Override
 	public boolean linksExistForRecord(String type, String id) {
+		if ("place".equals(type)) {
+			if (id.equals("place:0001")) {
+				return false;
+			}
+		} else if ("authority".equals(type)) {
+			if ("place:0003".equals(id)) {
+				return true;
+			}
+		}
 		return linksExist;
 	}
 
