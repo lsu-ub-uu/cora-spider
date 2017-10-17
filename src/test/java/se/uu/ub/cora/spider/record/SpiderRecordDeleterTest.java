@@ -111,7 +111,6 @@ public class SpiderRecordDeleterTest {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
 
-		// ((RecordStorageSpy) recordStorage).linksExist = true;
 		recordDeleter.deleteRecord("userId", "place", "place:0003");
 	}
 

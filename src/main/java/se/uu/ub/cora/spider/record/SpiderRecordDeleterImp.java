@@ -76,7 +76,7 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		}
 	}
 
-	private Boolean incomingLinksExistsForParentToRecordType(String recordTypeForThisRecord,
+	private boolean incomingLinksExistsForParentToRecordType(String recordTypeForThisRecord,
 			String recordId) {
 		DataGroup recordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordTypeForThisRecord);
 		if (handledRecordHasParent(recordTypeDataGroup)) {

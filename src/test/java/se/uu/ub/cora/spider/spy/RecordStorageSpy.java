@@ -50,8 +50,8 @@ public class RecordStorageSpy implements RecordStorage {
 					"true");
 		}
 		if ("child1".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
-					"abstract");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "true",
+					"false");
 		}
 		if ("child2".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
