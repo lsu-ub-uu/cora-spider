@@ -135,6 +135,17 @@ public class SpiderRecordListReaderTest {
 		assertEquals(type2, "implementing2");
 	}
 
+	@Test
+	public void testRecordEnhancerCalledForAbstractType() {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+		recordListReader.readRecordList("someToken78678567", "abstract");
+		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
+		assertEquals(dataGroupToRecordEnhancer.recordType, "implementing2");
+		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
+				.getFirstAtomicValueWithNameInData("id"), "child2_2");
+	}
+
 	private String extractTypeFromChildInListUsingIndex(SpiderDataList spiderDataList, int index) {
 		SpiderDataRecord spiderData1 = (SpiderDataRecord) spiderDataList.getDataList().get(index);
 		SpiderDataGroup spiderDataGroup1 = spiderData1.getSpiderDataGroup();

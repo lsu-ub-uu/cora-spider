@@ -19,10 +19,6 @@
 
 package se.uu.ub.cora.spider.extended;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
@@ -30,16 +26,11 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class UserUpdaterForAppTokenAsExtendedFunctionality implements ExtendedFunctionality {
-	private static final String RECORD_TYPE = "recordType";
-	private static final String PARENT_ID = "parentId";
-	private List<String> userRecordTypeNames = new ArrayList<>();
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordStorage recordStorage;
-	private String lastReadUserType;
 
 	private UserUpdaterForAppTokenAsExtendedFunctionality(
 			SpiderDependencyProvider dependencyProvider) {
@@ -54,7 +45,6 @@ public final class UserUpdaterForAppTokenAsExtendedFunctionality implements Exte
 
 	@Override
 	public void useExtendedFunctionality(String authToken, SpiderDataGroup appTokenDataGroup) {
-		populateUserRecordTypeNameList();
 		SpiderDataGroup userAppTokenGroup = createUserAppTokenGroup(appTokenDataGroup);
 
 		User user = getUserFromAuthToken(authToken);
@@ -74,51 +64,7 @@ public final class UserUpdaterForAppTokenAsExtendedFunctionality implements Exte
 	}
 
 	private DataGroup findUser(String userId) {
-		DataGroup user = null;
-		for (String userRecordTypeName : userRecordTypeNames) {
-			lastReadUserType = userRecordTypeName;
-			try {
-				user = recordStorage.read(userRecordTypeName, userId);
-			} catch (RecordNotFoundException e) {
-				// do nothing
-			}
-		}
-		return user;
-	}
-
-	private void populateUserRecordTypeNameList() {
-		Collection<DataGroup> recordTypes = recordStorage.readList(RECORD_TYPE);
-
-		for (DataGroup recordTypePossibleChild : recordTypes) {
-			addChildOfUserToUserRecordTypeNameList(recordTypePossibleChild);
-		}
-	}
-
-	private void addChildOfUserToUserRecordTypeNameList(DataGroup recordTypePossibleChild) {
-		if (isChildOfUserRecordType(recordTypePossibleChild)) {
-			addChildToReadRecordList(recordTypePossibleChild);
-		}
-	}
-
-	private boolean isChildOfUserRecordType(DataGroup recordTypePossibleChild) {
-		return recordHasParent(recordTypePossibleChild)
-				&& userRecordTypeIsParentToRecord(recordTypePossibleChild);
-	}
-
-	private void addChildToReadRecordList(DataGroup recordTypePossibleChild) {
-		String childRecordType = recordTypePossibleChild.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id");
-		userRecordTypeNames.add(childRecordType);
-	}
-
-	private boolean recordHasParent(DataGroup handledRecordTypeDataGroup) {
-		return handledRecordTypeDataGroup.containsChildWithNameInData(PARENT_ID);
-	}
-
-	private boolean userRecordTypeIsParentToRecord(DataGroup recordTypePossibleChild) {
-		DataGroup parent = recordTypePossibleChild.getFirstGroupWithNameInData(PARENT_ID);
-
-		return "user".equals(parent.getFirstAtomicValueWithNameInData("linkedRecordId"));
+		return recordStorage.read("user", userId);
 	}
 
 	private SpiderDataGroup createUserAppTokenGroup(SpiderDataGroup appTokenDataGroup) {
@@ -142,7 +88,11 @@ public final class UserUpdaterForAppTokenAsExtendedFunctionality implements Exte
 
 	private void updateUserInStorage(String authToken, User user,
 			SpiderDataGroup spiderUserDataGroup) {
+		SpiderDataGroup recordInfo = spiderUserDataGroup.extractGroup("recordInfo");
+		SpiderDataGroup type = recordInfo.extractGroup("type");
+		String recordType = type.extractAtomicValue("linkedRecordId");
+
 		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
-		spiderRecordUpdater.updateRecord(authToken, lastReadUserType, user.id, spiderUserDataGroup);
+		spiderRecordUpdater.updateRecord(authToken, recordType, user.id, spiderUserDataGroup);
 	}
 }

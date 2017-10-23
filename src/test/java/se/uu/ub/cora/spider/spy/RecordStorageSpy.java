@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2017 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -37,9 +37,13 @@ public class RecordStorageSpy implements RecordStorage {
 	public boolean updateWasCalled = false;
 	public boolean linksExist = false;
 	public DataGroup createRecord;
+	public String type;
+	public String id;
 
 	@Override
 	public DataGroup read(String type, String id) {
+		this.type = type;
+		this.id = id;
 		readWasCalled = true;
 		if ("abstract".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
@@ -130,6 +134,15 @@ public class RecordStorageSpy implements RecordStorage {
 
 			permissionRole.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "active"));
 
+			DataGroup permissionRuleLink3 = DataGroup.withNameInData("permissionRuleLink");
+			permissionRuleLink3.addChild(
+					DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
+			permissionRuleLink3
+					.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "inactive"));
+			permissionRole.addChild(permissionRuleLink3);
+
+			permissionRole.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "active"));
+
 			return permissionRole;
 		}
 		if ("permissionRole".equals(type) && "inactive".equals(id)) {
@@ -190,6 +203,20 @@ public class RecordStorageSpy implements RecordStorage {
 			rule.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
 			return rule;
 		}
+		if ("permissionRule".equals(type) && "inactive".equals(id)) {
+			DataGroup rule = DataGroup.withNameInData("permissionRule");
+
+			DataGroup permissionRulePart = DataGroup.withNameInData("permissionRulePart");
+			permissionRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
+					"permissionRulePartValue", "system.create", "1"));
+			permissionRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
+					"permissionRulePartValue", "system.read", "2"));
+			permissionRulePart.addAttributeByIdWithValue("type", "action");
+			rule.addChild(permissionRulePart);
+
+			rule.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
+			return rule;
+		}
 		if ("inactiveUserId".equals(id)) {
 			DataGroup user = DataGroup.withNameInData("user");
 			user.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
@@ -202,6 +229,13 @@ public class RecordStorageSpy implements RecordStorage {
 
 			return user;
 		}
+
+		if ("user".equals(type) && "dummy1".equals(id)) {
+			DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(
+					"systemOneUser", "true", "user");
+			return dataGroup;
+		}
+
 		if ("abstractAuthority".equals(type)) {
 			DataGroup abstractAuthority = DataGroup.withNameInData("abstractAuthority");
 			DataGroup recordInfo = DataGroup.withNameInData("recordInfo");

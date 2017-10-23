@@ -20,12 +20,14 @@
 package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -36,6 +38,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -70,7 +73,7 @@ public class SpiderUploaderTest {
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
 	private StreamStorageSpy streamStorage;
-	private SpiderAuthorizator authorizator;
+	private SpiderAuthorizator spiderAuthorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderUploader uploader;
 	private DataValidator dataValidator;
@@ -85,7 +88,7 @@ public class SpiderUploaderTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		authenticator = new AuthenticatorSpy();
-		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
@@ -104,7 +107,7 @@ public class SpiderUploaderTest {
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.spiderAuthorizator = authorizator;
+		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
 		dependencyProvider.dataValidator = dataValidator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.keyCalculator = keyCalculator;
@@ -138,7 +141,7 @@ public class SpiderUploaderTest {
 
 		assertTrue(((RecordStorageSpy) recordStorage).readWasCalled);
 
-		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorizator).authorizedWasCalled);
+		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator).authorizedWasCalled);
 
 		assertEquals(((SpiderInstanceFactorySpy2) factory).createdUpdaters.get(0).authToken,
 				"someToken78678567");
@@ -153,6 +156,44 @@ public class SpiderUploaderTest {
 	}
 
 	@Test
+	public void testUnauthorizedForDownloadOnRecordTypeShouldShouldNotAccessStorage() {
+		recordStorage = new RecordStorageSpy();
+		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
+		HashSet<String> hashSet = new HashSet<String>();
+		hashSet.add("upload");
+		((AlwaysAuthorisedExceptStub) spiderAuthorizator).notAuthorizedForRecordTypeAndActions
+				.put("image", hashSet);
+		setUpDependencyProvider();
+
+		boolean exceptionWasCaught = false;
+		try {
+			InputStream stream = new ByteArrayInputStream(
+					"a string".getBytes(StandardCharsets.UTF_8));
+
+			uploader.upload("someToken78678567", "image", "image:123456789", stream,
+					"someFileName");
+		} catch (Exception e) {
+			assertEquals(e.getClass(), AuthorizationException.class);
+			exceptionWasCaught = true;
+		}
+		assertTrue(exceptionWasCaught);
+		assertFalse(((RecordStorageSpy) recordStorage).readWasCalled);
+		assertFalse(((RecordStorageSpy) recordStorage).updateWasCalled);
+		assertFalse(((RecordStorageSpy) recordStorage).deleteWasCalled);
+		assertFalse(((RecordStorageSpy) recordStorage).createWasCalled);
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void testUnauthorizedForDataInRecord() {
+		spiderAuthorizator = new AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType();
+		setUpDependencyProvider();
+
+		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
+
+		uploader.upload("someToken78678567", "image", "image:123456789", stream, "someFileName");
+	}
+
+	@Test
 	public void testUploadStream() {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 
@@ -161,19 +202,33 @@ public class SpiderUploaderTest {
 
 		assertEquals(streamStorage.stream, stream);
 
+		assertStreamStorageCalledCorrectly(recordUpdated);
 		assertResourceInfoIsCorrect(recordUpdated);
 	}
 
-	private void assertResourceInfoIsCorrect(SpiderDataRecord recordUpdated) {
+	private void assertStreamStorageCalledCorrectly(SpiderDataRecord recordUpdated) {
 		SpiderDataGroup groupUpdated = recordUpdated.getSpiderDataGroup();
+		SpiderDataGroup recordInfo = groupUpdated.extractGroup("recordInfo");
+		SpiderDataGroup dataDivider = recordInfo.extractGroup("dataDivider");
+
 		SpiderDataGroup resourceInfo = groupUpdated.extractGroup("resourceInfo");
 		SpiderDataGroup master = resourceInfo.extractGroup("master");
+
+		String dataDividerRecordId = dataDivider.extractAtomicValue("linkedRecordId");
+		assertEquals(dataDividerRecordId, streamStorage.dataDivider);
 
 		String streamId = master.extractAtomicValue("streamId");
 		assertEquals(streamId, streamStorage.streamId);
 
 		String size = master.extractAtomicValue("filesize");
 		assertEquals(size, String.valueOf(streamStorage.size));
+	}
+
+	private void assertResourceInfoIsCorrect(SpiderDataRecord recordUpdated) {
+		SpiderDataGroup groupUpdated = recordUpdated.getSpiderDataGroup();
+
+		SpiderDataGroup resourceInfo = groupUpdated.extractGroup("resourceInfo");
+		SpiderDataGroup master = resourceInfo.extractGroup("master");
 
 		String fileName = master.extractAtomicValue("filename");
 		assertEquals(fileName, "someFileName");
@@ -248,7 +303,7 @@ public class SpiderUploaderTest {
 	}
 
 	private SpiderUploader setupWithUserNotAuthorized() {
-		authorizator = new NeverAuthorisedStub();
+		spiderAuthorizator = new NeverAuthorisedStub();
 		setUpDependencyProvider();
 
 		SpiderUploader uploader = SpiderUploaderImp.usingDependencyProvider(dependencyProvider);

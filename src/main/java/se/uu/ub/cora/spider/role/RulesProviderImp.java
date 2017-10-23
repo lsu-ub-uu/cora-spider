@@ -73,7 +73,8 @@ public class RulesProviderImp implements RulesProvider {
 
 	private void addRuleToListOfRules(DataElement dataElementRule,
 			List<Map<String, Set<String>>> listOfRules) {
-		String linkedRecordId = ((DataGroup) dataElementRule).getFirstAtomicValueWithNameInData("linkedRecordId");
+		String linkedRecordId = ((DataGroup) dataElementRule)
+				.getFirstAtomicValueWithNameInData("linkedRecordId");
 		DataGroup readRule = recordStorage.read("permissionRule", linkedRecordId);
 		if ("active".equals(readRule.getFirstAtomicValueWithNameInData("activeStatus"))) {
 

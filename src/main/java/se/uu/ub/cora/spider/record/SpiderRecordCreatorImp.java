@@ -80,11 +80,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 			SpiderDataGroup spiderDataGroup) {
 		this.authToken = authToken;
 		this.recordType = recordTypeToCreate;
-
-		recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
-				recordTypeToCreate);
 		this.recordAsSpiderDataGroup = spiderDataGroup;
-		metadataId = recordTypeHandler.getNewMetadataId();
 
 		return validateCreateAndStoreRecord();
 
@@ -93,6 +89,10 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private SpiderDataRecord validateCreateAndStoreRecord() {
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
+
+		recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
+				recordType);
+		metadataId = recordTypeHandler.getNewMetadataId();
 
 		checkNoCreateForAbstractRecordType();
 
@@ -113,8 +113,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
 				.fromDataGroup(topLevelDataGroup);
 
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId,
-				topLevelDataGroup);
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
 		recordIndexer.indexData(collectedTerms, topLevelDataGroup);
 
 		useExtendedFunctionalityBeforeReturn(recordType, spiderDataGroupWithActions);

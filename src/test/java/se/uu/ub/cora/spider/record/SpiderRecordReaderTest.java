@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016 Uppsala University Library
+ * Copyright 2015, 2016, 2017 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 
@@ -108,11 +109,38 @@ public class SpiderRecordReaderTest {
 		assertNotNull(readRecord);
 	}
 
-	@Test(expectedExceptions = AuthorizationException.class)
-	public void testReadUnauthorized() {
+	@Test
+	public void testUnauthorizedForRecordTypeShouldNeverReadFromStorage() {
+		recordStorage = new RecordStorageSpy();
 		authorizator = new NeverAuthorisedStub();
 		setUpDependencyProvider();
-		recordReader.readRecord("unauthorizedUserId", "place", "place:0001");
+
+		boolean exceptionWasCaught = false;
+		try {
+			recordReader.readRecord("unauthorizedUserId", "place", "place:0001");
+		} catch (Exception e) {
+			assertEquals(e.getClass(), AuthorizationException.class);
+			exceptionWasCaught = true;
+		}
+		assertTrue(exceptionWasCaught);
+		assertEquals(((RecordStorageSpy) recordStorage).readWasCalled, false);
+	}
+
+	@Test
+	public void testUnauthorizedForRulesAgainsRecord() {
+		recordStorage = new RecordStorageSpy();
+		authorizator = new AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType();
+		setUpDependencyProvider();
+
+		boolean exceptionWasCaught = false;
+		try {
+			recordReader.readRecord("unauthorizedUserId", "place", "place:0001");
+		} catch (Exception e) {
+			assertEquals(e.getClass(), AuthorizationException.class);
+			exceptionWasCaught = true;
+		}
+		assertTrue(exceptionWasCaught);
+		assertEquals(((RecordStorageSpy) recordStorage).readWasCalled, true);
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)

@@ -138,17 +138,21 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean isHandledRecordIdChildOfBinary(String dataRecordRecordId) {
-		String refParentId = checkIfRecordTypeHasParentAndExtractParentId(dataRecordRecordId);
-		return "binary".equals(refParentId);
-	}
-
-	private String checkIfRecordTypeHasParentAndExtractParentId(String dataRecordRecordId) {
 		DataGroup handledRecordTypeDataGroup = dependencyProvider.getRecordStorage()
 				.read(RECORD_TYPE, dataRecordRecordId);
+		return isHandledRecordTypeChildOfBinary(handledRecordTypeDataGroup);
+	}
+
+	private boolean isHandledRecordTypeChildOfBinary(DataGroup handledRecordTypeDataGroup) {
 		if (handledRecordHasParent(handledRecordTypeDataGroup)) {
-			return extractParentId(handledRecordTypeDataGroup);
+			return recordTypeWithParentIsChildOfBinary(handledRecordTypeDataGroup);
 		}
-		return "";
+		return false;
+	}
+
+	private boolean recordTypeWithParentIsChildOfBinary(DataGroup handledRecordTypeDataGroup) {
+		String refParentId = extractParentId(handledRecordTypeDataGroup);
+		return "binary".equals(refParentId);
 	}
 
 	private DataGroup readRecordFromStorageByTypeAndId(String linkedRecordType,

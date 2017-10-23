@@ -24,6 +24,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
@@ -36,6 +37,8 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
@@ -192,6 +195,35 @@ public class SpiderRecordUpdaterTest {
 						"spyType", "cora");
 		recordUpdater.updateRecord("dummyNonAuthenticatedToken", "spyType", "spyId",
 				spiderDataGroup);
+	}
+
+	@Test
+	public void testUnauthorizedForUpdateOnRecordTypeShouldNotAccessStorage() {
+		recordStorage = new RecordStorageSpy();
+		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
+		HashSet<String> hashSet = new HashSet<String>();
+		hashSet.add("update");
+		((AlwaysAuthorisedExceptStub) spiderAuthorizator).notAuthorizedForRecordTypeAndActions
+				.put("spyType", hashSet);
+		setUpDependencyProvider();
+
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		spiderDataGroup.addChild(
+				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
+						"spyId", "cora"));
+
+		boolean exceptionWasCaught = false;
+		try {
+			recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", spiderDataGroup);
+		} catch (Exception e) {
+			assertEquals(e.getClass(), AuthorizationException.class);
+			exceptionWasCaught = true;
+		}
+		assertTrue(exceptionWasCaught);
+		assertFalse(((RecordStorageSpy) recordStorage).readWasCalled);
+		assertFalse(((RecordStorageSpy) recordStorage).updateWasCalled);
+		assertFalse(((RecordStorageSpy) recordStorage).deleteWasCalled);
+		assertFalse(((RecordStorageSpy) recordStorage).createWasCalled);
 	}
 
 	@Test

@@ -123,7 +123,6 @@ public class TestDataRecordInMemoryStorage {
 
 		collectedLinksList.addChild(recordToRecordLink);
 
-
 		recordsInMemory.create("place", "place:0004", dataGroup, collectedLinksList, "cora");
 	}
 
@@ -252,7 +251,7 @@ public class TestDataRecordInMemoryStorage {
 		dataGroup.addChild(resourceInfo);
 		DataGroup master = DataGroup.withNameInData("master");
 		resourceInfo.addChild(master);
-		DataAtomic streamId = DataAtomic.withNameInDataAndValue("streamId", "123456789");
+		DataAtomic streamId = DataAtomic.withNameInDataAndValue("streamId", "678912345");
 		master.addChild(streamId);
 		DataAtomic uploadedFileName = DataAtomic.withNameInDataAndValue("filename", "adele.png");
 		master.addChild(uploadedFileName);

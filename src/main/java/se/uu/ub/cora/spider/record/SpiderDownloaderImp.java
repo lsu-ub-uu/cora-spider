@@ -67,7 +67,7 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 		this.resourceName = resourceName;
 
 		tryToGetActiveUser();
-		checkUserIsAuthorizedForActionOnRecordType();
+		checkUserIsAuthorizedForActionOnRecordTypeAndResourceName();
 		checkResourceIsPresent();
 
 		checkRecordTypeIsChildOfBinary();
@@ -88,7 +88,7 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 
 	}
 
-	private void checkUserIsAuthorizedForActionOnRecordType() {
+	private void checkUserIsAuthorizedForActionOnRecordTypeAndResourceName() {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, DOWNLOAD,
 				recordType + "." + resourceName);
 	}
@@ -134,8 +134,8 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 	}
 
 	private boolean recordTypeIsChildOfBinary(DataGroup recordTypeDefinition) {
-		return !recordTypeDefinition.containsChildWithNameInData("parentId") || !"binary"
-				.equals(getParentId(recordTypeDefinition));
+		return !recordTypeDefinition.containsChildWithNameInData("parentId")
+				|| !"binary".equals(getParentId(recordTypeDefinition));
 	}
 
 	private String getParentId(DataGroup recordTypeDefinition) {

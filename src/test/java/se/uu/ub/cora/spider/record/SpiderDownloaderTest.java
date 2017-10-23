@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2017 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,6 +21,7 @@
 package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
@@ -28,7 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.Set;
+import java.util.HashSet;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -37,6 +38,7 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderInputStream;
@@ -88,15 +90,36 @@ public class SpiderDownloaderTest {
 		assertNotNull(downloader);
 	}
 
-	// @Test
-	public void testExternalDependenciesAreCalled() {
-		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
+	@Test
+	public void testUnauthorizedForDownloadOnRecordTypeShouldShouldNotAccessStorage() {
 		recordStorage = new RecordStorageSpy();
+		authorizator = new AlwaysAuthorisedExceptStub();
+		HashSet<String> hashSet = new HashSet<String>();
+		hashSet.add("download");
+		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
+				.put("image.master", hashSet);
 		setUpDependencyProvider();
 
-		downloader.download("someToken78678567", "image", "image:123456789", "master");
+		boolean exceptionWasCaught = false;
+		try {
+			downloader.download("someToken78678567", "image", "image:123456789", "master");
+		} catch (Exception e) {
+			assertEquals(e.getClass(), AuthorizationException.class);
+			exceptionWasCaught = true;
+		}
+		assertTrue(exceptionWasCaught);
+		assertFalse(((RecordStorageSpy) recordStorage).readWasCalled);
+		assertFalse(((RecordStorageSpy) recordStorage).updateWasCalled);
+		assertFalse(((RecordStorageSpy) recordStorage).deleteWasCalled);
+		assertFalse(((RecordStorageSpy) recordStorage).createWasCalled);
+	}
 
-		assertTrue(((RecordStorageSpy) recordStorage).readWasCalled);
+	@Test
+	public void testExternalDependenciesAreCalled() {
+		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
+		streamStorage.stream = stream;
+
+		downloader.download("someToken78678567", "image", "image:123456789", "master");
 
 		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorizator).authorizedWasCalled);
 	}
@@ -120,6 +143,17 @@ public class SpiderDownloaderTest {
 		assertEquals(spiderStream.name, "adele.png");
 		assertEquals(spiderStream.size, 123);
 		assertEquals(spiderStream.mimeType, "application/octet-stream");
+	}
+
+	@Test
+	public void testDownloadStreamStorageCalledCorrectly() {
+		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
+		streamStorage.stream = stream;
+
+		downloader.download("someToken78678567", "image", "image:123456789", "master");
+
+		assertEquals(streamStorage.streamId, "678912345");
+		assertEquals(streamStorage.dataDivider, "cora");
 	}
 
 	@Test(expectedExceptions = MisuseException.class)
@@ -158,33 +192,4 @@ public class SpiderDownloaderTest {
 	public void testNonExistingRecordType() {
 		downloader.download("someToken78678567", "image_NOT_EXISTING", "image:123456789", "master");
 	}
-
-	// @Test(expectedExceptions = AuthorizationException.class)
-	// public void testUpdateRecordUserNotAuthorisedToDownload() {
-	// HashSet<String> notAuthorizedKeys = new HashSet<>();
-	// notAuthorizedKeys.add("DOWNLOAD:IMAGE:SYSTEM:*");
-	// SpiderDownloader downloader =
-	// setupWithUserNotAuthorized(notAuthorizedKeys);
-	// downloader.download("someToken78678567", "image", "image:123456789",
-	// "master");
-	// }
-
-	private SpiderDownloader setupWithUserNotAuthorized(Set<String> notAuthorizedKeys) {
-		authorizator = new AlwaysAuthorisedExceptStub();
-		AlwaysAuthorisedExceptStub authorizator2 = (AlwaysAuthorisedExceptStub) authorizator;
-		// authorizator2.notAuthorizedForRecordTypes = notAuthorizedKeys;
-		setUpDependencyProvider();
-
-		return SpiderDownloaderImp.usingDependencyProvider(dependencyProvider);
-	}
-
-	// @Test(expectedExceptions = AuthorizationException.class)
-	// public void testUpdateRecordUserNotAuthorisedToResource() {
-	// HashSet<String> notAuthorizedKeys = new HashSet<>();
-	// notAuthorizedKeys.add("MASTER_RESOURCE:IMAGE:SYSTEM:*");
-	// SpiderDownloader downloader =
-	// setupWithUserNotAuthorized(notAuthorizedKeys);
-	// downloader.download("someToken78678567", "image", "image:123456789",
-	// "master");
-	// }
 }

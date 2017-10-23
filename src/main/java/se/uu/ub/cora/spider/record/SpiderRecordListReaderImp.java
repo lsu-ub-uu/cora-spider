@@ -95,7 +95,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		for (DataGroup dataGroup : dataGroupList) {
 			String type = extractRecordTypeFromDataGroup(dataGroup);
 			this.recordType = type;
-			enhanceDataGroupAndAddToRecordList(dataGroup);
+			enhanceDataGroupAndAddToRecordList(dataGroup, type);
 		}
 	}
 
@@ -106,9 +106,10 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		return typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
-	private void enhanceDataGroupAndAddToRecordList(DataGroup dataGroup) {
-		SpiderDataRecord spiderDataRecord = dataGroupToRecordEnhancer.enhance(user, recordType,
-				dataGroup);
+	private void enhanceDataGroupAndAddToRecordList(DataGroup dataGroup,
+			String recordTypeForRecord) {
+		SpiderDataRecord spiderDataRecord = dataGroupToRecordEnhancer.enhance(user,
+				recordTypeForRecord, dataGroup);
 		if (spiderDataRecord.getActions().contains(Action.READ)) {
 			readRecordList.addData(spiderDataRecord);
 		}
@@ -118,7 +119,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		Collection<DataGroup> dataGroupList = recordStorage.readList(type);
 		this.recordType = type;
 		for (DataGroup dataGroup : dataGroupList) {
-			enhanceDataGroupAndAddToRecordList(dataGroup);
+			enhanceDataGroupAndAddToRecordList(dataGroup, type);
 		}
 	}
 

@@ -56,6 +56,8 @@ public class StreamStorageSpy implements StreamStorage {
 
 	@Override
 	public InputStream retrieve(String streamId, String dataDivider) {
+		this.streamId = streamId;
+		this.dataDivider = dataDivider;
 		return stream;
 	}
 

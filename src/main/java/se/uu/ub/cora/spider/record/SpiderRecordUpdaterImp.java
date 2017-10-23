@@ -111,8 +111,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
 		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedLinks, dataDivider);
 
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId,
-				topLevelDataGroup);
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
 		recordIndexer.indexData(collectedTerms, topLevelDataGroup);
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);
