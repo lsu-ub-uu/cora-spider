@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2017 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -96,6 +96,18 @@ public class SpiderAuthorizatorTest {
 	}
 
 	@Test
+	public void testAuthorizatorCalled() {
+		BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizatorSpy = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		authorizator = authorizatorSpy;
+		setUpDependencyProvider();
+
+		spiderAuthorizator.userSatisfiesRequiredRules(user, new ArrayList<>());
+
+		assertEquals(authorizatorSpy.providedRules.size(),
+				rulesProvider.getActiveRules("anyId").size());
+	}
+
+	@Test
 	public void testAuthorized() {
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
@@ -125,7 +137,6 @@ public class SpiderAuthorizatorTest {
 		assertRuleCalculatorIsCalled();
 	}
 
-
 	private void assertRuleCalculatorIsCalled() {
 		assertEquals(((NoRulesCalculatorStub) rulesCalculator).action, "read");
 		assertEquals(((NoRulesCalculatorStub) rulesCalculator).recordType, "book");
@@ -151,8 +162,7 @@ public class SpiderAuthorizatorTest {
 		String recordType = "book";
 
 		User inactiveUser = new User("inactiveUserId");
-		boolean userAuthorized = spiderAuthorizator
-				.userIsAuthorizedForActionOnRecordType(inactiveUser, action, recordType);
+		spiderAuthorizator.userIsAuthorizedForActionOnRecordType(inactiveUser, action, recordType);
 	}
 
 	@Test
@@ -188,12 +198,9 @@ public class SpiderAuthorizatorTest {
 		assertRuleCalculatorIsCalled();
 	}
 
-
 	private DataGroup createBookRecord() {
-		return DataCreator
-				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",
-						"myBook", "book", "systemOne", "12345")
-				.toDataGroup();
+		return DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy(
+				"book", "myBook", "book", "systemOne", "12345").toDataGroup();
 	}
 
 	@Test
@@ -251,11 +258,10 @@ public class SpiderAuthorizatorTest {
 		String action = "read";
 		DataGroup record = createBookRecord();
 		User nonExistingUser = new User("nonExistingUserId");
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(nonExistingUser, action, "book",
-				record);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(nonExistingUser,
+				action, "book", record);
 
 		assertRuleCalculatorIsCalled();
 	}
-
 
 }

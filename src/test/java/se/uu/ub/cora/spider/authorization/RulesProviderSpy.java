@@ -36,11 +36,19 @@ public class RulesProviderSpy implements RulesProvider {
 	public List<Map<String, Set<String>>> getActiveRules(String roleId) {
 		this.roleId = roleId;
 		ArrayList<Map<String, Set<String>>> rules = new ArrayList<>();
+
 		HashMap<String, Set<String>> rule = new HashMap<>();
 		rules.add(rule);
 		HashSet<String> rulePart = new HashSet<>();
 		rule.put("action", rulePart);
 		rulePart.add("system.read");
+
+		HashMap<String, Set<String>> rule2 = new HashMap<>();
+		rules.add(rule2);
+		HashSet<String> rulePart2 = new HashSet<>();
+		rule2.put("action", rulePart2);
+		rulePart2.add("system.update");
+
 		return rules;
 	}
 

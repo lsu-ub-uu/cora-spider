@@ -62,10 +62,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		this.user = user;
 		List<Map<String, Set<String>>> providedRules = getActiveRulesForUser();
 
-		if (!authorizator.providedRulesSatisfiesRequiredRules(providedRules, requiredRules)) {
-			return false;
-		}
-		return true;
+		return authorizator.providedRulesSatisfiesRequiredRules(providedRules, requiredRules);
 	}
 
 	private List<Map<String, Set<String>>> getActiveRulesForUser() {
@@ -73,6 +70,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		user.roles.forEach(roleId -> providedRules.addAll(rulesProvider.getActiveRules(roleId)));
 		// THIS IS A SMALL HACK UNTIL WE HAVE RECORDRELATIONS AND CAN READ FROM
 		// USER, will be needed for userId, organisation, etc
+
 		providedRules.forEach(rule -> {
 			Set<String> userIdValues = new HashSet<>();
 			userIdValues.add("system.*");
