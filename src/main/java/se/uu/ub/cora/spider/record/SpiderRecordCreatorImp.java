@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
@@ -192,6 +194,12 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
 		ensureIdExists(recordType);
 		addUserAndTypeToRecordInfo(userId, recordType);
+		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
+		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
+		recordInfo.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("tsCreated", currentLocalDateTime));
+		recordInfo.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("tsUpdated", currentLocalDateTime));
 		// set more stuff, user, tscreated, status (created, updated, deleted,
 		// etc), published
 		// (true, false)
@@ -215,11 +223,28 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
 		SpiderDataGroup type = createTypeDataGroup(recordType);
 		recordInfo.addChild(type);
-		SpiderDataGroup createdByGroup = SpiderDataGroup.withNameInData("createdBy");
-		createdByGroup
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "user"));
-		createdByGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", userId));
+		addUserToRecordInfoUsingUserId(recordInfo, userId);
+	}
+
+	private void addUserToRecordInfoUsingUserId(SpiderDataGroup recordInfo, String userId) {
+		SpiderDataGroup createdByGroup = createLinkToUserUsingUserIdAndNameInData(userId,
+				"createdBy");
 		recordInfo.addChild(createdByGroup);
+		SpiderDataGroup updatedByGroup = createLinkToUserUsingUserIdAndNameInData(userId,
+				"updatedBy");
+		recordInfo.addChild(updatedByGroup);
+	}
+
+	private SpiderDataGroup createLinkToUserUsingUserIdAndNameInData(String userId,
+			String nameInData) {
+		SpiderDataGroup createdByGroup = SpiderDataGroup.withNameInData(nameInData);
+		addLinkToUserUsingUserId(createdByGroup, userId);
+		return createdByGroup;
+	}
+
+	private void addLinkToUserUsingUserId(SpiderDataGroup dataGroup, String userId) {
+		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "user"));
+		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", userId));
 	}
 
 	private SpiderDataGroup createTypeDataGroup(String recordType) {
@@ -227,6 +252,11 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		type.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
 		type.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", recordType));
 		return type;
+	}
+
+	private String getLocalTimeDateAsString(LocalDateTime localDateTime) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		return localDateTime.format(formatter);
 	}
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType, DataGroup record) {
