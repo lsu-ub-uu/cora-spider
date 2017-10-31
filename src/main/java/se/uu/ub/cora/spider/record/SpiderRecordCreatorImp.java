@@ -20,7 +20,6 @@
 package se.uu.ub.cora.spider.record;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
@@ -194,12 +193,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
 		ensureIdExists(recordType);
 		addUserAndTypeToRecordInfo(userId, recordType);
-		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
-		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
-		recordInfo.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("tsCreated", currentLocalDateTime));
-		recordInfo.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("tsUpdated", currentLocalDateTime));
+		addTimestampToRecordInfo();
 		// set more stuff, user, tscreated, status (created, updated, deleted,
 		// etc), published
 		// (true, false)
@@ -254,9 +248,13 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		return type;
 	}
 
-	private String getLocalTimeDateAsString(LocalDateTime localDateTime) {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-		return localDateTime.format(formatter);
+	private void addTimestampToRecordInfo() {
+		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
+		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
+		recordInfo.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("tsCreated", currentLocalDateTime));
+		recordInfo.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("tsUpdated", currentLocalDateTime));
 	}
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType, DataGroup record) {
