@@ -43,6 +43,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private static final String TS_UPDATED = "tsUpdated";
 	private static final String UPDATED_BY = "updatedBy";
 	private static final String UPDATE = "update";
+	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;
@@ -87,7 +88,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 		DataGroup recordTypeDefinition = getRecordTypeDefinition();
 		DataGroup metadataIdGroup = recordTypeDefinition.getFirstGroupWithNameInData("metadataId");
-		metadataId = metadataIdGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+		metadataId = metadataIdGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, spiderDataGroup);
@@ -185,7 +186,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private String extractTypeFromRecordInfo(SpiderDataGroup recordInfo) {
 		SpiderDataGroup typeGroup = recordInfo.extractGroup("type");
-		return typeGroup.extractAtomicValue("linkedRecordId");
+		return typeGroup.extractAtomicValue(LINKED_RECORD_ID);
 	}
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
@@ -225,7 +226,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private DataGroup createdUpdatedByLink() {
 		DataGroup updatedBy = DataGroup.withNameInData(UPDATED_BY);
 		updatedBy.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "user"));
-		updatedBy.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", user.id));
+		updatedBy.addChild(DataAtomic.withNameInDataAndValue(LINKED_RECORD_ID, user.id));
 		return updatedBy;
 	}
 
