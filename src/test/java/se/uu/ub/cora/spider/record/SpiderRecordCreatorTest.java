@@ -288,6 +288,41 @@ public class SpiderRecordCreatorTest {
 	}
 
 	@Test
+	public void testCorrectRecordInfoInCreatedRecord() {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+		SpiderDataGroup record = DataCreator.createRecordWithNameInDataAndIdAndLinkedRecordId(
+				"testingRecordInfo", "someId", "cora");
+
+		SpiderDataRecord recordOut = recordCreator.createAndStoreRecord("someToken78678567",
+				"spyType2", record);
+		SpiderDataGroup groupOut = recordOut.getSpiderDataGroup();
+		SpiderDataGroup recordInfo = groupOut.extractGroup("recordInfo");
+		String recordId = recordInfo.extractAtomicValue("id");
+		assertEquals(recordId, "someId");
+
+		assertCorrectUserInfoInRecordInfo(recordInfo);
+
+		assertTrue(recordInfo.containsChildWithNameInData("tsCreated"));
+		assertTrue(recordInfo.containsChildWithNameInData("tsUpdated"));
+		// TODO: check format of tscreated and tsupdated using regex
+
+		SpiderDataGroup typeGroup = recordInfo.extractGroup("type");
+		assertEquals(typeGroup.extractAtomicValue("linkedRecordType"), "recordType");
+		assertEquals(typeGroup.extractAtomicValue("linkedRecordId"), "spyType2");
+	}
+
+	private void assertCorrectUserInfoInRecordInfo(SpiderDataGroup recordInfo) {
+		SpiderDataGroup createdByGroup = recordInfo.extractGroup("createdBy");
+		assertEquals(createdByGroup.extractAtomicValue("linkedRecordType"), "user");
+		assertEquals(createdByGroup.extractAtomicValue("linkedRecordId"), "12345");
+
+		SpiderDataGroup updatedByGroup = recordInfo.extractGroup("updatedBy");
+		assertEquals(updatedByGroup.extractAtomicValue("linkedRecordType"), "user");
+		assertEquals(updatedByGroup.extractAtomicValue("linkedRecordId"), "12345");
+	}
+
+	@Test
 	public void testCreateRecordUserSuppliedId() {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();

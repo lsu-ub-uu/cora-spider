@@ -23,6 +23,8 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +45,9 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
+import se.uu.ub.cora.spider.data.SpiderDataElement;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
@@ -156,6 +160,108 @@ public class SpiderRecordUpdaterTest {
 		assertEquals(dataGroupToRecordEnhancer.recordType, "spyType");
 		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
 				.getFirstAtomicValueWithNameInData("id"), "spyId");
+	}
+
+	@Test
+	public void testCorrectRecordinfoInUpdatedRecord() {
+		recordStorage = new RecordStorageSpy();
+		keyCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		addRecordInfo(spiderDataGroup);
+
+		SpiderDataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
+				"spyId", spiderDataGroup);
+		SpiderDataGroup updatedSpiderDataGroup = updatedRecord.getSpiderDataGroup();
+		SpiderDataGroup updatedRecordInfo = updatedSpiderDataGroup.extractGroup("recordInfo");
+
+		assertCorrectUserInfo(updatedRecordInfo);
+	}
+
+	private void assertCorrectUserInfo(SpiderDataGroup recordInfo) {
+		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(recordInfo, "createdBy", "6789");
+		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(recordInfo, "updatedBy", "12345");
+
+		String tsUpdated = recordInfo.extractAtomicValue("tsUpdated");
+		String tsCreated = recordInfo.extractAtomicValue("tsCreated");
+		assertFalse(tsUpdated.equals(tsCreated));
+
+	}
+
+	private void assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(
+			SpiderDataGroup updatedRecordInfo, String groupNameInData, String linkedRecordId) {
+		SpiderDataGroup createdByGroup = updatedRecordInfo.extractGroup(groupNameInData);
+		assertEquals(createdByGroup.extractAtomicValue("linkedRecordType"), "user");
+		assertEquals(createdByGroup.extractAtomicValue("linkedRecordId"), linkedRecordId);
+	}
+
+	private void addRecordInfo(SpiderDataGroup spiderDataGroup) {
+		SpiderDataGroup recordInfo = SpiderDataCreator
+				.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType", "spyId",
+						"cora");
+		SpiderDataGroup createdBy = createLinkWithNameInDataRecordTypeAndRecordId("createdBy",
+				"user", "6789");
+		recordInfo.addChild(createdBy);
+
+		LocalDateTime tsCreated = LocalDateTime.of(2016, 10, 01, 00, 00, 00);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+		recordInfo.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("tsCreated", tsCreated.format(formatter)));
+		spiderDataGroup.addChild(recordInfo);
+	}
+
+	private SpiderDataGroup createLinkWithNameInDataRecordTypeAndRecordId(String nameInData,
+			String linkedRecordType, String linkedRecordId) {
+		SpiderDataGroup recordLink = SpiderDataGroup.withNameInData(nameInData);
+		recordLink.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", linkedRecordType));
+		recordLink.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", linkedRecordId));
+		return recordLink;
+	}
+
+	@Test
+	public void testCorrectUpdateInfoWhenRecordHasAlreadyBeenUpdated() {
+		recordStorage = new RecordStorageSpy();
+		keyCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		addRecordInfo(spiderDataGroup);
+
+		SpiderDataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
+				"spyId", spiderDataGroup);
+
+		SpiderDataRecord recordAlreadyContainingUpdateInfo = recordUpdater.updateRecord(
+				"someToken78678567", "spyType", "spyId", updatedRecord.getSpiderDataGroup());
+
+		SpiderDataGroup updatedSpiderDataGroup = recordAlreadyContainingUpdateInfo
+				.getSpiderDataGroup();
+		SpiderDataGroup updatedRecordInfo = updatedSpiderDataGroup.extractGroup("recordInfo");
+
+		assertOnlyOneUpdatedBy(updatedRecordInfo);
+
+		assertOnlyOneTsUpdated(updatedRecordInfo);
+	}
+
+	private void assertOnlyOneTsUpdated(SpiderDataGroup updatedRecordInfo) {
+		int numOfTsUpdated = countChildrenWithNameInData(updatedRecordInfo, "tsUpdated");
+		assertEquals(numOfTsUpdated, 1);
+	}
+
+	private int countChildrenWithNameInData(SpiderDataGroup updatedRecordInfo, String nameInData) {
+		int numOfTsUpdated = 0;
+		for (SpiderDataElement spiderDataElement : updatedRecordInfo.getChildren()) {
+			if (nameInData.equals(spiderDataElement.getNameInData())) {
+				numOfTsUpdated++;
+			}
+		}
+		return numOfTsUpdated;
+	}
+
+	private void assertOnlyOneUpdatedBy(SpiderDataGroup updatedRecordInfo) {
+		int numOfUpdatedBy = countChildrenWithNameInData(updatedRecordInfo, "updatedBy");
+		assertEquals(numOfUpdatedBy, 1);
 	}
 
 	@Test

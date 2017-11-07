@@ -19,6 +19,9 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -59,7 +62,8 @@ public class SpiderRecordHandler {
 	}
 
 	private void checkRecordTypeAndRecordIdExistsInStorage(String recordId, String recordType) {
-		if (!recordStorage.recordExistsForAbstractOrImplementingRecordTypeAndRecordId(recordType, recordId)) {
+		if (!recordStorage.recordExistsForAbstractOrImplementingRecordTypeAndRecordId(recordType,
+				recordId)) {
 			throw new DataException(
 					"Data is not valid: linkedRecord does not exists in storage for recordType: "
 							+ recordType + " and recordId: " + recordId);
@@ -72,4 +76,8 @@ public class SpiderRecordHandler {
 		return dataDivider.extractAtomicValue(LINKED_RECORD_ID);
 	}
 
+	protected String getLocalTimeDateAsString(LocalDateTime localDateTime) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		return localDateTime.format(formatter);
+	}
 }

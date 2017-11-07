@@ -19,9 +19,11 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
@@ -38,6 +40,8 @@ import se.uu.ub.cora.spider.search.RecordIndexer;
 
 public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		implements SpiderRecordUpdater {
+	private static final String TS_UPDATED = "tsUpdated";
+	private static final String UPDATED_BY = "updatedBy";
 	private static final String UPDATE = "update";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -107,6 +111,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+		addUpdateInfo(topLevelDataGroup);
 
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
 		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedLinks, dataDivider);
@@ -192,4 +197,36 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, UPDATE,
 				recordType, incomingData);
 	}
+
+	private void addUpdateInfo(DataGroup topLevelDataGroup) {
+		DataGroup recordInfo = topLevelDataGroup.getFirstGroupWithNameInData("recordInfo");
+		setUpdatedBy(recordInfo);
+		setTsUpdated(recordInfo);
+	}
+
+	private void setTsUpdated(DataGroup recordInfo) {
+		removeChildIfExists(recordInfo, TS_UPDATED);
+		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
+		recordInfo.addChild(DataAtomic.withNameInDataAndValue(TS_UPDATED, currentLocalDateTime));
+	}
+
+	private void removeChildIfExists(DataGroup recordInfo, String nameInData) {
+		if (recordInfo.containsChildWithNameInData(nameInData)) {
+			recordInfo.removeFirstChildWithNameInData(nameInData);
+		}
+	}
+
+	private void setUpdatedBy(DataGroup recordInfo) {
+		removeChildIfExists(recordInfo, UPDATED_BY);
+		DataGroup updatedBy = createdUpdatedByLink();
+		recordInfo.addChild(updatedBy);
+	}
+
+	private DataGroup createdUpdatedByLink() {
+		DataGroup updatedBy = DataGroup.withNameInData(UPDATED_BY);
+		updatedBy.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "user"));
+		updatedBy.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", user.id));
+		return updatedBy;
+	}
+
 }

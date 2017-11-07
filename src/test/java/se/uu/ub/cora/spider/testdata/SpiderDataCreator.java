@@ -52,15 +52,19 @@ public final class SpiderDataCreator {
 		return dataDivider;
 	}
 
-	public static SpiderDataGroup createSearchWithIdAndRecordTypeToSearchIn(String id, String idRecordTypeToSearchIn){
+	public static SpiderDataGroup createSearchWithIdAndRecordTypeToSearchIn(String id,
+			String idRecordTypeToSearchIn) {
 		SpiderDataGroup search = SpiderDataGroup.withNameInData("search");
 		SpiderDataGroup recordInfo = SpiderDataCreator.createRecordInfoWithRecordType("search");
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", id));
 		search.addChild(recordInfo);
 
-		SpiderDataGroup recordTypeToSearchIn = SpiderDataGroup.withNameInData("recordTypeToSearchIn");
-		recordTypeToSearchIn.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
-		recordTypeToSearchIn.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", idRecordTypeToSearchIn));
+		SpiderDataGroup recordTypeToSearchIn = SpiderDataGroup
+				.withNameInData("recordTypeToSearchIn");
+		recordTypeToSearchIn.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
+		recordTypeToSearchIn.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", idRecordTypeToSearchIn));
 		search.addChild(recordTypeToSearchIn);
 		return search;
 	}
