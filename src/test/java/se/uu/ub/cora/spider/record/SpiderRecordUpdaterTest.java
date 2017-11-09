@@ -59,6 +59,7 @@ import se.uu.ub.cora.spider.spy.DataGroupSearchTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorForRecordInfoSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
@@ -165,9 +166,10 @@ public class SpiderRecordUpdaterTest {
 	@Test
 	public void testCorrectRecordinfoInUpdatedRecord() {
 		recordStorage = new RecordStorageSpy();
+		dataValidator = new DataValidatorForRecordInfoSpy();
 		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("someRecordDataGroup");
 		addRecordInfo(spiderDataGroup);
 
 		SpiderDataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",

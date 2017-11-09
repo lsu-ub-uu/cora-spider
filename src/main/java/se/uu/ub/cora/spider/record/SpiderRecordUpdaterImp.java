@@ -23,7 +23,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
@@ -31,6 +30,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -93,6 +93,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, spiderDataGroup);
 
+		addUpdateInfo(spiderDataGroup);
 		validateIncomingDataAsSpecifiedInMetadata();
 		useExtendedFunctionalityAfterMetadataValidation(recordType, spiderDataGroup);
 
@@ -112,7 +113,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
-		addUpdateInfo(topLevelDataGroup);
 
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
 		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedLinks, dataDivider);
@@ -199,34 +199,35 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 				recordType, incomingData);
 	}
 
-	private void addUpdateInfo(DataGroup topLevelDataGroup) {
-		DataGroup recordInfo = topLevelDataGroup.getFirstGroupWithNameInData("recordInfo");
+	private void addUpdateInfo(SpiderDataGroup topLevelDataGroup) {
+		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
 		setUpdatedBy(recordInfo);
 		setTsUpdated(recordInfo);
 	}
 
-	private void setTsUpdated(DataGroup recordInfo) {
+	private void setTsUpdated(SpiderDataGroup recordInfo) {
 		removeChildIfExists(recordInfo, TS_UPDATED);
 		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
-		recordInfo.addChild(DataAtomic.withNameInDataAndValue(TS_UPDATED, currentLocalDateTime));
+		recordInfo.addChild(
+				SpiderDataAtomic.withNameInDataAndValue(TS_UPDATED, currentLocalDateTime));
 	}
 
-	private void removeChildIfExists(DataGroup recordInfo, String nameInData) {
+	private void removeChildIfExists(SpiderDataGroup recordInfo, String nameInData) {
 		if (recordInfo.containsChildWithNameInData(nameInData)) {
-			recordInfo.removeFirstChildWithNameInData(nameInData);
+			recordInfo.removeChild(nameInData);
 		}
 	}
 
-	private void setUpdatedBy(DataGroup recordInfo) {
+	private void setUpdatedBy(SpiderDataGroup recordInfo) {
 		removeChildIfExists(recordInfo, UPDATED_BY);
-		DataGroup updatedBy = createdUpdatedByLink();
+		SpiderDataGroup updatedBy = createdUpdatedByLink();
 		recordInfo.addChild(updatedBy);
 	}
 
-	private DataGroup createdUpdatedByLink() {
-		DataGroup updatedBy = DataGroup.withNameInData(UPDATED_BY);
-		updatedBy.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "user"));
-		updatedBy.addChild(DataAtomic.withNameInDataAndValue(LINKED_RECORD_ID, user.id));
+	private SpiderDataGroup createdUpdatedByLink() {
+		SpiderDataGroup updatedBy = SpiderDataGroup.withNameInData(UPDATED_BY);
+		updatedBy.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "user"));
+		updatedBy.addChild(SpiderDataAtomic.withNameInDataAndValue(LINKED_RECORD_ID, user.id));
 		return updatedBy;
 	}
 
