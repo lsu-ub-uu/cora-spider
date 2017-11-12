@@ -187,7 +187,8 @@ public class SpiderRecordUpdaterTest {
 		String tsUpdated = recordInfo.extractAtomicValue("tsUpdated");
 		String tsCreated = recordInfo.extractAtomicValue("tsCreated");
 		assertFalse(tsUpdated.equals(tsCreated));
-
+		assertTrue(tsUpdated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+		assertTrue(tsCreated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
 	}
 
 	private void assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(
@@ -205,9 +206,8 @@ public class SpiderRecordUpdaterTest {
 				"user", "6789");
 		recordInfo.addChild(createdBy);
 
-		LocalDateTime tsCreated = LocalDateTime.of(2016, 10, 01, 00, 00, 00);
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
+		LocalDateTime tsCreated = LocalDateTime.of(2016, 10, 01, 00, 00, 00, 000);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 		recordInfo.addChild(
 				SpiderDataAtomic.withNameInDataAndValue("tsCreated", tsCreated.format(formatter)));
 		spiderDataGroup.addChild(recordInfo);

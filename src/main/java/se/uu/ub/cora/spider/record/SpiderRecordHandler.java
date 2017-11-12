@@ -77,7 +77,7 @@ public class SpiderRecordHandler {
 	}
 
 	protected String getLocalTimeDateAsString(LocalDateTime localDateTime) {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 		return localDateTime.format(formatter);
 	}
 }
