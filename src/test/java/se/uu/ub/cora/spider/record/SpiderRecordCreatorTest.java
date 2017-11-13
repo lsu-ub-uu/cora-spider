@@ -303,9 +303,10 @@ public class SpiderRecordCreatorTest {
 
 		assertCorrectUserInfoInRecordInfo(recordInfo);
 
-		assertTrue(recordInfo.containsChildWithNameInData("tsCreated"));
-		assertTrue(recordInfo.containsChildWithNameInData("tsUpdated"));
-		// TODO: check format of tscreated and tsupdated using regex
+		String tsCreated = recordInfo.extractAtomicValue("tsCreated");
+		String tsUpdated = recordInfo.extractAtomicValue("tsUpdated");
+		assertTrue(tsCreated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+		assertTrue(tsUpdated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
 
 		SpiderDataGroup typeGroup = recordInfo.extractGroup("type");
 		assertEquals(typeGroup.extractAtomicValue("linkedRecordType"), "recordType");
