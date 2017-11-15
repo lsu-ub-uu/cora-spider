@@ -24,18 +24,16 @@ import java.util.Collection;
 import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.data.SpiderData;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
-import se.uu.ub.cora.spider.testdata.SpiderDataCreator;
 
 public class RecordLinkTestsRecordStorage implements RecordStorage {
 
 	public boolean recordIdExistsForRecordType = true;
 	public boolean createWasRead = false;
+	public String type;
+	public String id;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -53,8 +51,8 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 						.toDataGroup();
 			}
 		}
-		if(type.equals("toRecordType")){
-			if(id.equals("recordLinkNotAuthorized")){
+		if (type.equals("toRecordType")) {
+			if (id.equals("recordLinkNotAuthorized")) {
 				return RecordLinkTestsDataCreator.createLinkChildAsRecordDataGroup().toDataGroup();
 			}
 		}
@@ -119,7 +117,10 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id) {
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+			String id) {
+		this.type = type;
+		this.id = id;
 		return recordIdExistsForRecordType;
 	}
 

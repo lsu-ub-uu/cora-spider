@@ -104,6 +104,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		useExtendedFunctionalityAfterMetadataValidation(recordType, recordAsSpiderDataGroup);
 
 		ensureCompleteRecordInfo(user.id, recordType);
+		recordId = extractIdFromData();
 
 		DataGroup topLevelDataGroup = recordAsSpiderDataGroup.toDataGroup();
 
@@ -115,7 +116,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 				.fromDataGroup(topLevelDataGroup);
 
 		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
-		recordIndexer.indexData(collectedTerms, topLevelDataGroup);
+		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
+		recordIndexer.indexData(ids, collectedTerms, topLevelDataGroup);
 
 		useExtendedFunctionalityBeforeReturn(recordType, spiderDataGroupWithActions);
 
@@ -131,15 +133,13 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void createRecordInStorage(DataGroup topLevelDataGroup) {
-		String id = extractIdFromData();
-
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
-				recordType, id);
+				recordType, recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		String dataDivider = extractDataDividerFromData(recordAsSpiderDataGroup);
 
-		recordStorage.create(recordType, id, topLevelDataGroup, collectedLinks, dataDivider);
+		recordStorage.create(recordType, recordId, topLevelDataGroup, collectedLinks, dataDivider);
 	}
 
 	private void checkNoCreateForAbstractRecordType() {

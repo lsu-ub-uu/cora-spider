@@ -27,7 +27,6 @@ import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 
 public final class DataCreator {
 	private static final String SELF_PRESENTATION_VIEW_ID = "selfPresentationViewId";
-	private static final String PERMISSION_KEY = "permissionKey";
 	private static final String USER_SUPPLIED_ID = "userSuppliedId";
 	private static final String SEARCH_PRESENTATION_FORM_ID = "searchPresentationFormId";
 	private static final String SEARCH_METADATA_ID = "searchMetadataId";
@@ -103,8 +102,6 @@ public final class DataCreator {
 		DataGroup typeGroup = DataGroup.withNameInData("type");
 		typeGroup.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
 		typeGroup.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", recordType));
-		// recordInfo.addChild(DataAtomic.withNameInDataAndValue("type",
-		// recordType));
 		recordInfo.addChild(typeGroup);
 		recordInfo.addChild(DataAtomic.withNameInDataAndValue("id", recordId));
 		return recordInfo;

@@ -19,20 +19,26 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public final class RecordTypeHandler {
+	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private DataGroup recordType;
 	private static final String RECORD_TYPE = "recordType";
-
-	private RecordTypeHandler(RecordStorage recordStorage, String id) {
-		recordType = recordStorage.read(RECORD_TYPE, id);
-	}
+	private String id;
 
 	public static RecordTypeHandler usingRecordStorageAndRecordTypeId(RecordStorage recordStorage,
 			String id) {
 		return new RecordTypeHandler(recordStorage, id);
+	}
+
+	private RecordTypeHandler(RecordStorage recordStorage, String id) {
+		this.id = id;
+		recordType = recordStorage.read(RECORD_TYPE, id);
 	}
 
 	public boolean isAbstract() {
@@ -51,7 +57,37 @@ public final class RecordTypeHandler {
 
 	public String getNewMetadataId() {
 		DataGroup newMetadataGroup = recordType.getFirstGroupWithNameInData("newMetadataId");
-		return newMetadataGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+		return newMetadataGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	}
+
+	public String getMetadataId() {
+		DataGroup metadataIdGroup = recordType.getFirstGroupWithNameInData("metadataId");
+		return metadataIdGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	}
+
+	public List<String> createListOfPossibleIdsToThisRecord(String recordId) {
+		List<String> ids = new ArrayList<>();
+		ids.add(id + "_" + recordId);
+		possiblyCreateIdForAbstractType(recordId, recordType, ids);
+		return ids;
+	}
+
+	private void possiblyCreateIdForAbstractType(String recordId, DataGroup recordTypeDefinition,
+			List<String> ids) {
+		if (recordTypeHasAbstractParent(recordTypeDefinition)) {
+			createIdAsAbstractType(recordId, recordTypeDefinition, ids);
+		}
+	}
+
+	private boolean recordTypeHasAbstractParent(DataGroup recordTypeDefinition) {
+		return recordTypeDefinition.containsChildWithNameInData("parentId");
+	}
+
+	private void createIdAsAbstractType(String recordId, DataGroup recordTypeDefinition,
+			List<String> ids) {
+		DataGroup parentGroup = recordTypeDefinition.getFirstGroupWithNameInData("parentId");
+		String abstractParentType = parentGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+		ids.add(abstractParentType + "_" + recordId);
 	}
 
 }

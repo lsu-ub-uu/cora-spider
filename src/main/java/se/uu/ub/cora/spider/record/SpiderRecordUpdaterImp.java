@@ -86,9 +86,9 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
-		DataGroup recordTypeDefinition = getRecordTypeDefinition();
-		DataGroup metadataIdGroup = recordTypeDefinition.getFirstGroupWithNameInData("metadataId");
-		metadataId = metadataIdGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+		metadataId = recordTypeHandler.getMetadataId();
 
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, spiderDataGroup);
@@ -118,7 +118,9 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedLinks, dataDivider);
 
 		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
-		recordIndexer.indexData(collectedTerms, topLevelDataGroup);
+
+		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
+		recordIndexer.indexData(ids, collectedTerms, topLevelDataGroup);
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);
 	}

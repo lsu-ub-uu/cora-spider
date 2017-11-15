@@ -18,10 +18,12 @@
  */
 package se.uu.ub.cora.spider.search;
 
+import java.util.List;
+
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public interface RecordIndexer {
-	void indexData(DataGroup recordIndexData, DataGroup record);
+	void indexData(List<String> ids, DataGroup recordIndexData, DataGroup record);
 
 	void deleteFromIndex(String type, String id);
 }

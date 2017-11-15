@@ -43,6 +43,7 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
@@ -111,9 +112,6 @@ public class SpiderRecordCreatorTest {
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 		dependencyProvider.searchTermCollector = searchTermCollector;
 		dependencyProvider.recordIndexer = recordIndexer;
-		// SpiderInstanceFactory factory = SpiderInstanceFactoryImp
-		// .usingDependencyProvider(dependencyProvider);
-		// SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordCreator = SpiderRecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
@@ -216,8 +214,42 @@ public class SpiderRecordCreatorTest {
 		recordCreator.createAndStoreRecord(authToken, "spyType", spiderDataGroup);
 
 		DataGroup createdRecord = ((RecordStorageSpy) recordStorage).createRecord;
-		DataGroup indexedRecord = ((RecordIndexerSpy) recordIndexer).record;
+		RecordIndexerSpy recordIndexerSpy = (RecordIndexerSpy) recordIndexer;
+		DataGroup indexedRecord = recordIndexerSpy.record;
 		assertEquals(indexedRecord, createdRecord);
+
+		List<String> ids = recordIndexerSpy.ids;
+		assertEquals(ids.get(0), "spyType_1");
+		assertEquals(ids.size(), 1);
+	}
+
+	@Test
+	public void testIndexerIsCalledForChildOfAbstract() {
+		recordStorage = new RecordStorageCreateUpdateSpy();
+		ruleCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+		SpiderDataGroup spiderDataGroup = getSpiderDataGroupForImageToCreate();
+		String authToken = "someToken78678567";
+		recordCreator.createAndStoreRecord(authToken, "image", spiderDataGroup);
+
+		DataGroup createdRecord = ((RecordStorageCreateUpdateSpy) recordStorage).createRecord;
+		RecordIndexerSpy recordIndexerSpy = (RecordIndexerSpy) recordIndexer;
+		DataGroup indexedRecord = recordIndexerSpy.record;
+		assertEquals(indexedRecord, createdRecord);
+
+		List<String> ids = recordIndexerSpy.ids;
+		assertEquals(ids.get(0), "image_someImage");
+		assertEquals(ids.get(1), "binary_someImage");
+		assertEquals(ids.size(), 2);
+	}
+
+	private SpiderDataGroup getSpiderDataGroupForImageToCreate() {
+		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("binary");
+		SpiderDataGroup createRecordInfo = DataCreator
+				.createRecordInfoWithIdAndLinkedRecordId("someImage", "cora");
+		dataGroup.addChild(createRecordInfo);
+		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
+		return dataGroup;
 	}
 
 	private void assertFetchedFunctionalityHasBeenCalled(String authToken,
@@ -452,7 +484,8 @@ public class SpiderRecordCreatorTest {
 	@Test
 	public void testLinkedRecordIdExists() {
 		recordStorage = new RecordLinkTestsRecordStorage();
-		((RecordLinkTestsRecordStorage) recordStorage).recordIdExistsForRecordType = true;
+		RecordLinkTestsRecordStorage recordLinkTestsRecordStorage = (RecordLinkTestsRecordStorage) recordStorage;
+		recordLinkTestsRecordStorage.recordIdExistsForRecordType = true;
 		linkCollector = DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
 		setUpDependencyProvider();
 
@@ -460,6 +493,9 @@ public class SpiderRecordCreatorTest {
 		dataGroup.addChild(DataCreator.createRecordInfoWithLinkedRecordId("cora"));
 
 		recordCreator.createAndStoreRecord("someToken78678567", "dataWithLinks", dataGroup);
-		assertTrue(((RecordLinkTestsRecordStorage) recordStorage).createWasRead);
+		assertTrue(recordLinkTestsRecordStorage.createWasRead);
+
+		assertEquals(recordLinkTestsRecordStorage.type, "toRecordType");
+		assertEquals(recordLinkTestsRecordStorage.id, "toRecordId");
 	}
 }

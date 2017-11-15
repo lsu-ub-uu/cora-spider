@@ -18,6 +18,8 @@
  */
 package se.uu.ub.cora.spider.extended;
 
+import java.util.List;
+
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
@@ -25,6 +27,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.record.RecordTypeHandler;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.search.RecordIndexer;
 
@@ -34,7 +37,9 @@ public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctio
 	private DataGroupTermCollector collectTermCollector;
 	private RecordStorage recordStorage;
 	private SpiderAuthorizator spiderAuthorizator;
-	private	Authenticator authenticator;
+	private Authenticator authenticator;
+	private String recordTypeToIndex;
+	private String recordIdToIndex;
 
 	public WorkOrderExecutorAsExtendedFunctionality(SpiderDependencyProvider dependencyProvider) {
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
@@ -52,26 +57,33 @@ public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctio
 	@Override
 	public void useExtendedFunctionality(String authToken, SpiderDataGroup spiderDataGroup) {
 		DataGroup workOrder = spiderDataGroup.toDataGroup();
-		String recordType = getRecordTypeToIndexFromWorkOrder(workOrder);
-		if(userIsAuthorizedToIndex(authToken, recordType)) {
-			indexData(workOrder, recordType);
+		recordTypeToIndex = getRecordTypeToIndexFromWorkOrder(workOrder);
+		recordIdToIndex = getRecordIdToIndexFromWorkOrder(workOrder);
+		if (userIsAuthorizedToIndex(authToken)) {
+			indexData();
 		}
-	}
-
-	private void indexData(DataGroup workOrder, String recordType) {
-		String metadataId = getMetadataIdFromRecordType(recordType);
-		DataGroup dataToIndex = readRecordToIndexFromStorage(workOrder, recordType);
-		sendToIndex(metadataId, dataToIndex);
-	}
-
-	private boolean userIsAuthorizedToIndex(String authToken, String recordType) {
-		User user = authenticator.getUserForToken(authToken);
-		return spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user, "index", recordType);
 	}
 
 	private String getRecordTypeToIndexFromWorkOrder(DataGroup workOrder) {
 		DataGroup recordTypeLink = workOrder.getFirstGroupWithNameInData("recordType");
 		return recordTypeLink.getFirstAtomicValueWithNameInData("linkedRecordId");
+	}
+
+	private String getRecordIdToIndexFromWorkOrder(DataGroup workOrder) {
+		return workOrder.getFirstAtomicValueWithNameInData("recordId");
+	}
+
+	private boolean userIsAuthorizedToIndex(String authToken) {
+		User user = authenticator.getUserForToken(authToken);
+		return spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user, "index",
+				recordTypeToIndex);
+	}
+
+	private void indexData() {
+		String metadataId = getMetadataIdFromRecordType(recordTypeToIndex);
+		DataGroup dataToIndex = readRecordToIndexFromStorage();
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, dataToIndex);
+		sendToIndex(collectedTerms, dataToIndex);
 	}
 
 	private String getMetadataIdFromRecordType(String recordType) {
@@ -80,13 +92,14 @@ public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctio
 		return metadataIdLink.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
-	private DataGroup readRecordToIndexFromStorage(DataGroup workOrder, String recordType) {
-		return recordStorage.read(recordType,
-				workOrder.getFirstAtomicValueWithNameInData("recordId"));
+	private DataGroup readRecordToIndexFromStorage() {
+		return recordStorage.read(recordTypeToIndex, recordIdToIndex);
 	}
 
-	private void sendToIndex(String metadataId, DataGroup dataToIndex) {
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, dataToIndex);
-		recordIndexer.indexData(collectedTerms, dataToIndex);
+	private void sendToIndex(DataGroup collectedTerms, DataGroup dataToIndex) {
+		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, recordTypeToIndex);
+		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordIdToIndex);
+		recordIndexer.indexData(ids, collectedTerms, dataToIndex);
 	}
 }
