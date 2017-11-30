@@ -53,13 +53,11 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 			String recordType) {
 		List<ExtendedFunctionality> list = new ArrayList<>();
 		if ("metadataGroup".equals(recordType) || "metadataCollectionVariable".equals(recordType)) {
-			MetadataConsistencyValidatorFactory factory = MetadataConsistencyValidatorFactory
-					.usingRecordStorage(dependencyProvider.getRecordStorage());
-			list.add(MetadataConsistencyValidatorAsExtendedFunctionality
-					.usingValidator(factory.factor(recordType)));
+			addConsistencyValidatorToListUsingRecordType(list, recordType);
 		}
-		if("workOrder".equals(recordType)){
-			list.add(WorkOrderExecutorAsExtendedFunctionality.usingDependencyProvider(dependencyProvider));
+		if ("workOrder".equals(recordType)) {
+			list.add(WorkOrderExecutorAsExtendedFunctionality
+					.usingDependencyProvider(dependencyProvider));
 		}
 		return list;
 	}
@@ -83,7 +81,19 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterMetadataValidation(
 			String recordType) {
-		return Collections.emptyList();
+		List<ExtendedFunctionality> list = new ArrayList<>();
+		if ("metadataGroup".equals(recordType) || "metadataCollectionVariable".equals(recordType)) {
+			addConsistencyValidatorToListUsingRecordType(list, recordType);
+		}
+		return list;
+	}
+
+	private void addConsistencyValidatorToListUsingRecordType(List<ExtendedFunctionality> list,
+			String recordType) {
+		MetadataConsistencyValidatorFactory factory = MetadataConsistencyValidatorFactory
+				.usingRecordStorage(dependencyProvider.getRecordStorage());
+		list.add(MetadataConsistencyValidatorAsExtendedFunctionality
+				.usingValidator(factory.factor(recordType)));
 	}
 
 }

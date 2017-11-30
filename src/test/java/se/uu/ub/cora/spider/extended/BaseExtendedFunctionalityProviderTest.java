@@ -108,8 +108,7 @@ public class BaseExtendedFunctionalityProviderTest {
 				.getFunctionalityForCreateAfterMetadataValidation("workOrder");
 		assertEquals(bEFP.size(), 1);
 		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
-		assertTrue(
-				extendedFunctionality instanceof WorkOrderExecutorAsExtendedFunctionality);
+		assertTrue(extendedFunctionality instanceof WorkOrderExecutorAsExtendedFunctionality);
 	}
 
 	private void fetchAndAssertCreateAfterMetadataValidation(String recordType) {
@@ -168,8 +167,21 @@ public class BaseExtendedFunctionalityProviderTest {
 
 	@Test
 	public void testGetFunctionalityForUpdateAfterMetadataValidationMetadataGroupAsType() {
-		String recordType = "metadataGroup";
-		fetchAndAssertUpdateAfterMetadataValidation(recordType);
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
+				.getFunctionalityForUpdateAfterMetadataValidation("metadataGroup");
+		assertEquals(bEFP.size(), 1);
+		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
+		assertTrue(
+				extendedFunctionality instanceof MetadataConsistencyValidatorAsExtendedFunctionality);
 	}
 
+	@Test
+	public void testGetFunctionalityForUpdateAfterMetadataValidationMetadataCollectionVariableAsType() {
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
+				.getFunctionalityForUpdateAfterMetadataValidation("metadataCollectionVariable");
+		assertEquals(bEFP.size(), 1);
+		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
+		assertTrue(
+				extendedFunctionality instanceof MetadataConsistencyValidatorAsExtendedFunctionality);
+	}
 }
