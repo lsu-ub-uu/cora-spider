@@ -68,8 +68,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	}
 
 	@Override
-	public SpiderDataList search(String authToken, String searchId,
-			SpiderDataGroup spiderSearchData) {
+	public SpiderDataList search(String authToken, String searchId, SpiderDataGroup spiderSearchData) {
 		this.searchData = spiderSearchData.toDataGroup();
 		tryToGetActiveUser(authToken);
 		readSearchDataFromStorage(searchId);
@@ -88,7 +87,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	}
 
 	private DataGroup readSearchFromStorageUsingId(String searchId) {
-		return recordStorage.read("search", searchId);
+		return recordStorage.read(SEARCH, searchId);
 	}
 
 	private List<DataGroup> getRecordTypesToSearchInFromSearchGroup() {
@@ -107,8 +106,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 
 	private void isAuthorized(DataGroup group) {
 		String linkedRecordTypeId = group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, SEARCH,
-				linkedRecordTypeId);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, SEARCH, linkedRecordTypeId);
 	}
 
 	private void validateIncomingSearchDataAsSpecifiedInSearchGroup() {
@@ -118,10 +116,9 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		validateIncomingDataAsSpecifiedInMetadata(metadataGroupIdToValidateAgainst);
 	}
 
-	private void validateIncomingDataAsSpecifiedInMetadata(
-			String metadataGroupIdToValidateAgainst) {
-		ValidationAnswer validationAnswer = dataValidator
-				.validateData(metadataGroupIdToValidateAgainst, searchData);
+	private void validateIncomingDataAsSpecifiedInMetadata(String metadataGroupIdToValidateAgainst) {
+		ValidationAnswer validationAnswer = dataValidator.validateData(metadataGroupIdToValidateAgainst,
+				searchData);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
@@ -157,12 +154,12 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private String extractRecordTypeFromRecordInfo(DataGroup dataGroup) {
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
-		return typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+		return typeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
-	private boolean isUserAuthorisedToReadData(String recordType, DataGroup recordRead) {
-		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndRecord(user, READ,
-				recordType, recordRead);
+	private boolean isUserAuthorisedToReadData(String recordType, DataGroup recordFromIndex) {
+		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndRecord(user, READ, recordType,
+				recordFromIndex);
 	}
 
 }

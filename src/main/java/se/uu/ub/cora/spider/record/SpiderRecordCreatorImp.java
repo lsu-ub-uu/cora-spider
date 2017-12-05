@@ -110,15 +110,14 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 		checkUserIsAuthorisedToCreateIncomingData(recordType, topLevelDataGroup);
 
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
 		createRecordInStorage(topLevelDataGroup);
 
-		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
-				.fromDataGroup(topLevelDataGroup);
-
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
 		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
 		recordIndexer.indexData(ids, collectedTerms, topLevelDataGroup);
 
+		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
+				.fromDataGroup(topLevelDataGroup);
 		useExtendedFunctionalityBeforeReturn(recordType, spiderDataGroupWithActions);
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);

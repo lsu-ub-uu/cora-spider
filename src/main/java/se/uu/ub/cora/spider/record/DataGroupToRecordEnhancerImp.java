@@ -87,8 +87,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void possiblyAddDeleteAction(SpiderDataRecord spiderDataRecord) {
-		if (!incomingLinksExistsForRecord(spiderDataRecord)
-				&& userIsAuthorizedForAction("delete")) {
+		if (!incomingLinksExistsForRecord(spiderDataRecord) && userIsAuthorizedForAction("delete")) {
 			spiderDataRecord.addAction(Action.DELETE);
 		}
 	}
@@ -113,16 +112,14 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 				recordTypeForThisRecord);
 		if (handledRecordHasParent(recordTypeDataGroup)) {
 			String parentId = extractParentId(recordTypeDataGroup);
-			return dependencyProvider.getRecordStorage().linksExistForRecord(parentId,
-					handledRecordId);
+			return dependencyProvider.getRecordStorage().linksExistForRecord(parentId, handledRecordId);
 		}
 		return false;
 	}
 
 	private boolean userIsAuthorizedForAction(String action) {
 		return dependencyProvider.getSpiderAuthorizator()
-				.userIsAuthorizedForActionOnRecordTypeAndRecord(user, action, recordType,
-						dataGroup);
+				.userIsAuthorizedForActionOnRecordTypeAndRecord(user, action, recordType, dataGroup);
 	}
 
 	private void possiblyAddIncomingLinksAction(SpiderDataRecord spiderDataRecord) {
@@ -138,8 +135,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean isHandledRecordIdChildOfBinary(String dataRecordRecordId) {
-		DataGroup handledRecordTypeDataGroup = dependencyProvider.getRecordStorage()
-				.read(RECORD_TYPE, dataRecordRecordId);
+		DataGroup handledRecordTypeDataGroup = dependencyProvider.getRecordStorage().read(RECORD_TYPE,
+				dataRecordRecordId);
 		return isHandledRecordTypeChildOfBinary(handledRecordTypeDataGroup);
 	}
 
@@ -155,8 +152,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return "binary".equals(refParentId);
 	}
 
-	private DataGroup readRecordFromStorageByTypeAndId(String linkedRecordType,
-			String linkedRecordId) {
+	private DataGroup readRecordFromStorageByTypeAndId(String linkedRecordType, String linkedRecordId) {
 		return dependencyProvider.getRecordStorage().read(linkedRecordType, linkedRecordId);
 	}
 
@@ -190,8 +186,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private boolean userIsAuthorizedForActionOnRecordType(String action, String recordType) {
 		return dependencyProvider.getSpiderAuthorizator()
-				.userIsAuthorizedForActionOnRecordTypeAndRecord(user, action, recordType,
-						dataGroup);
+				.userIsAuthorizedForActionOnRecordTypeAndRecord(user, action, recordType, dataGroup);
 	}
 
 	private void possiblyAddListAction(SpiderDataRecord spiderDataRecord) {
@@ -221,12 +216,12 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private boolean isAuthorized(DataGroup group) {
 		String linkedRecordTypeId = group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-		return dependencyProvider.getSpiderAuthorizator()
-				.userIsAuthorizedForActionOnRecordType(user, SEARCH, linkedRecordTypeId);
+		return dependencyProvider.getSpiderAuthorizator().userIsAuthorizedForActionOnRecordType(user,
+				SEARCH, linkedRecordTypeId);
 	}
 
 	private boolean isRecordTypeSearch() {
-		return "search".equals(recordType);
+		return SEARCH.equals(recordType);
 	}
 
 	private boolean isHandledRecordIdOfTypeAbstract(String recordId) {
@@ -235,8 +230,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private String getAbstractFromHandledRecord(String recordId) {
-		DataGroup handleRecordTypeDataGroup = dependencyProvider.getRecordStorage()
-				.read(RECORD_TYPE, recordId);
+		DataGroup handleRecordTypeDataGroup = dependencyProvider.getRecordStorage().read(RECORD_TYPE,
+				recordId);
 		return handleRecordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract");
 	}
 
@@ -287,7 +282,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private boolean isAuthorizedToReadRecordLink(SpiderDataRecordLink spiderDataChild) {
 		String linkedRecordType = spiderDataChild.extractAtomicValue("linkedRecordType");
-		String linkedRecordId = spiderDataChild.extractAtomicValue("linkedRecordId");
+		String linkedRecordId = spiderDataChild.extractAtomicValue(LINKED_RECORD_ID);
 		DataGroup linkedRecord = null;
 		try {
 			linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType, linkedRecordId);
@@ -299,9 +294,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private boolean userIsAuthorizedToReadRecordTypeAndRecord(String linkedRecordType,
 			DataGroup linkedRecord) {
-		return dependencyProvider.getSpiderAuthorizator()
-				.userIsAuthorizedForActionOnRecordTypeAndRecord(user, "read", linkedRecordType,
-						linkedRecord);
+		return dependencyProvider.getSpiderAuthorizator().userIsAuthorizedForActionOnRecordTypeAndRecord(
+				user, "read", linkedRecordType, linkedRecord);
 	}
 
 	private boolean isAuthorizedToReadResourceLink() {

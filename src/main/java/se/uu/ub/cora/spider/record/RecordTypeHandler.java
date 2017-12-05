@@ -86,7 +86,7 @@ public final class RecordTypeHandler {
 	private void createIdAsAbstractType(String recordId, DataGroup recordTypeDefinition,
 			List<String> ids) {
 		DataGroup parentGroup = recordTypeDefinition.getFirstGroupWithNameInData("parentId");
-		String abstractParentType = parentGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+		String abstractParentType = parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		ids.add(abstractParentType + "_" + recordId);
 	}
 
