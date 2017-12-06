@@ -38,11 +38,11 @@ public class TestDataAppTokenStorage {
 
 		DataGroup dummyUser1 = DataGroup.withNameInData("user");
 		recordsInMemory.create("systemOneUser", "dummy1", dummyUser1,
-				DataGroup.withNameInData("collectedLinksList"), "systemOne");
+				null, DataGroup.withNameInData("collectedLinksList"), "systemOne");
 
 		DataGroup dummyUser2 = DataGroup.withNameInData("user");
 		recordsInMemory.create("systemTwoUser", "dummy2", dummyUser2,
-				DataGroup.withNameInData("collectedLinksList"), "systemOne");
+				null, DataGroup.withNameInData("collectedLinksList"), "systemOne");
 
 		// DataGroup dummyUser2 = DataGroup.withNameInData("user");
 		// String inactiveUserJson =
@@ -74,7 +74,7 @@ public class TestDataAppTokenStorage {
 
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
 		recordsInMemory.create(recordType, "metadata", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), "cora");
+				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeRecordType(RecordStorageInMemory recordsInMemory) {
@@ -82,7 +82,7 @@ public class TestDataAppTokenStorage {
 		DataGroup dataGroup = DataCreator
 				.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("recordType", "true", "false");
 		recordsInMemory.create(recordType, "recordType", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), "cora");
+				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeImage(RecordStorageInMemory recordsInMemory) {
@@ -90,7 +90,7 @@ public class TestDataAppTokenStorage {
 		DataGroup dataGroup = DataCreator
 				.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "true", "binary");
 		recordsInMemory.create(recordType, "image", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), "cora");
+				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeUser(RecordStorageInMemory recordsInMemory) {
@@ -98,7 +98,7 @@ public class TestDataAppTokenStorage {
 		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("user",
 				"true", "true");
 		recordsInMemory.create(recordType, "user", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), "cora");
+				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeSystemOneUser(RecordStorageInMemory recordsInMemory) {
@@ -106,7 +106,7 @@ public class TestDataAppTokenStorage {
 		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(
 				"systemOneUser", "true", "user");
 		recordsInMemory.create(recordType, "systemOneUser", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), "cora");
+				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeSystemTwoUser(RecordStorageInMemory recordsInMemory) {
@@ -114,7 +114,7 @@ public class TestDataAppTokenStorage {
 		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(
 				"systemTwoUser", "true", "user");
 		recordsInMemory.create(recordType, "systemTwoUser", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), "cora");
+				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeWithParent(RecordStorageInMemory recordsInMemory) {
@@ -122,7 +122,7 @@ public class TestDataAppTokenStorage {
 		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(
 				"systemTwoUser", "true", "user");
 		recordsInMemory.create(recordType, "recordTypeWithParent", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), "cora");
+				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeAppToken(RecordStorageInMemory recordsInMemory) {
@@ -130,7 +130,7 @@ public class TestDataAppTokenStorage {
 		DataGroup dataGroup = DataCreator
 				.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("appToken", "false", "false");
 		recordsInMemory.create(recordType, "appToken", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), "cora");
+				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 
 	}
 }

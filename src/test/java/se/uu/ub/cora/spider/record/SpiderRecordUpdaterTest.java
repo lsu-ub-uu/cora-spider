@@ -143,7 +143,7 @@ public class SpiderRecordUpdaterTest {
 		assertEquals(searchTermCollectorSpy.metadataId, "spyType");
 		assertTrue(searchTermCollectorSpy.collectSearchTermsWasCalled);
 		assertEquals(((RecordIndexerSpy) recordIndexer).recordIndexData,
-				searchTermCollectorSpy.collectedSearchTerms);
+				searchTermCollectorSpy.collectedTerms);
 	}
 
 	@Test

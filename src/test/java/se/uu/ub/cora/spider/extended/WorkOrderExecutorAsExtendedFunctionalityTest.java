@@ -106,7 +106,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 	}
 
 	private void assertCollectedTermsAreSentToIndex() {
-		assertEquals(recordIndexer.recordIndexData, termCollector.collectedSearchTerms);
+		assertEquals(recordIndexer.recordIndexData, termCollector.collectedTerms);
 	}
 
 	@Test

@@ -27,7 +27,8 @@ public interface RecordStorage {
 
 	DataGroup read(String type, String id);
 
-	void create(String type, String id, DataGroup record, DataGroup linkList, String dataDivider);
+	void create(String type, String id, DataGroup record, DataGroup collectedTerms, DataGroup linkList,
+			String dataDivider);
 
 	void deleteByTypeAndId(String type, String id);
 
@@ -35,7 +36,7 @@ public interface RecordStorage {
 
 	void update(String type, String id, DataGroup record, DataGroup linkList, String dataDivider);
 
-	Collection<DataGroup> readList(String type);
+	Collection<DataGroup> readList(String type, DataGroup filter);
 
 	Collection<DataGroup> readAbstractList(String type);
 
@@ -46,4 +47,5 @@ public interface RecordStorage {
 	boolean recordsExistForRecordType(String type);
 
 	boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id);
+
 }
