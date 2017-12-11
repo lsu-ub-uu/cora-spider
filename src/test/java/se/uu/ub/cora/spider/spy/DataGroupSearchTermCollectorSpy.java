@@ -8,13 +8,13 @@ public class DataGroupSearchTermCollectorSpy implements DataGroupTermCollector {
 	public String metadataId = null;
 	public DataGroup dataGroup;
 
-	public DataGroup collectedSearchTerms = DataGroup.withNameInData("collectedDataLinks");
+	public DataGroup collectedTerms = DataGroup.withNameInData("collectedDataLinks");
 
 	@Override
 	public DataGroup collectTerms(String metadataId, DataGroup dataGroup) {
 		this.metadataId = metadataId;
 		this.dataGroup = dataGroup;
 		collectSearchTermsWasCalled = true;
-		return collectedSearchTerms;
+		return collectedTerms;
 	}
 }

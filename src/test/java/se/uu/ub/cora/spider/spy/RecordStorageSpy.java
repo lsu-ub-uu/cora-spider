@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
@@ -39,6 +40,7 @@ public class RecordStorageSpy implements RecordStorage {
 	public DataGroup createRecord;
 	public String type;
 	public String id;
+	public List<DataGroup> filters = new ArrayList<>();
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -46,16 +48,13 @@ public class RecordStorageSpy implements RecordStorage {
 		this.id = id;
 		readWasCalled = true;
 		if ("abstract".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
-					"true");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false", "true");
 		}
 		if ("abstract2".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
-					"true");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false", "true");
 		}
 		if ("child1".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "true",
-					"false");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "true", "false");
 		}
 		if ("child2".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
@@ -74,12 +73,10 @@ public class RecordStorageSpy implements RecordStorage {
 					"NOT_ABSTRACT");
 		}
 		if ("spyType".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
-					"false");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false", "false");
 		}
 		if ("spyType2".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "true",
-					"false");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "true", "false");
 		}
 		if ("recordType".equals(type) && "image".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "true",
@@ -123,24 +120,24 @@ public class RecordStorageSpy implements RecordStorage {
 			DataGroup permissionRole = DataGroup.withNameInData("permissionRole");
 
 			DataGroup permissionRuleLink = DataGroup.withNameInData("permissionRuleLink");
-			permissionRuleLink.addChild(
-					DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
-			permissionRuleLink.addChild(
-					DataAtomic.withNameInDataAndValue("linkedRecordId", "authorityReader"));
+			permissionRuleLink
+					.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
+			permissionRuleLink
+					.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "authorityReader"));
 			permissionRole.addChild(permissionRuleLink);
 
 			DataGroup permissionRuleLink2 = DataGroup.withNameInData("permissionRuleLink");
-			permissionRuleLink2.addChild(
-					DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
-			permissionRuleLink2.addChild(
-					DataAtomic.withNameInDataAndValue("linkedRecordId", "metadataReader"));
+			permissionRuleLink2
+					.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
+			permissionRuleLink2
+					.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "metadataReader"));
 			permissionRole.addChild(permissionRuleLink2);
 
 			permissionRole.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "active"));
 
 			DataGroup permissionRuleLink3 = DataGroup.withNameInData("permissionRuleLink");
-			permissionRuleLink3.addChild(
-					DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
+			permissionRuleLink3
+					.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
 			permissionRuleLink3
 					.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "inactive"));
 			permissionRole.addChild(permissionRuleLink3);
@@ -153,10 +150,10 @@ public class RecordStorageSpy implements RecordStorage {
 			DataGroup permissionRole = DataGroup.withNameInData("permissionRole");
 
 			DataGroup permissionRuleLink = DataGroup.withNameInData("permissionRuleLink");
-			permissionRuleLink.addChild(
-					DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
-			permissionRuleLink.addChild(
-					DataAtomic.withNameInDataAndValue("linkedRecordId", "authorityReader"));
+			permissionRuleLink
+					.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
+			permissionRuleLink
+					.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "authorityReader"));
 			permissionRole.addChild(permissionRuleLink);
 
 			permissionRole.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
@@ -167,18 +164,18 @@ public class RecordStorageSpy implements RecordStorage {
 			DataGroup rule = DataGroup.withNameInData("permissionRule");
 
 			DataGroup permissionRulePart = DataGroup.withNameInData("permissionRulePart");
-			permissionRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
-					"permissionRulePartValue", "system.create", "1"));
-			permissionRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
-					"permissionRulePartValue", "system.read", "2"));
+			permissionRulePart.addChild(DataAtomic
+					.withNameInDataAndValueAndRepeatId("permissionRulePartValue", "system.create", "1"));
+			permissionRulePart.addChild(DataAtomic
+					.withNameInDataAndValueAndRepeatId("permissionRulePartValue", "system.read", "2"));
 			permissionRulePart.addAttributeByIdWithValue("type", "action");
 			rule.addChild(permissionRulePart);
 
 			DataGroup permissionRulePart2 = DataGroup.withNameInData("permissionRulePart");
-			permissionRulePart2.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
-					"permissionRulePartValue", "system.person", "1"));
-			permissionRulePart2.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
-					"permissionRulePartValue", "system.place", "2"));
+			permissionRulePart2.addChild(DataAtomic
+					.withNameInDataAndValueAndRepeatId("permissionRulePartValue", "system.person", "1"));
+			permissionRulePart2.addChild(DataAtomic
+					.withNameInDataAndValueAndRepeatId("permissionRulePartValue", "system.place", "2"));
 			permissionRulePart2.addAttributeByIdWithValue("type", "recordType");
 			rule.addChild(permissionRulePart2);
 
@@ -189,18 +186,18 @@ public class RecordStorageSpy implements RecordStorage {
 			DataGroup rule = DataGroup.withNameInData("permissionRule");
 
 			DataGroup permissionRulePart = DataGroup.withNameInData("permissionRulePart");
-			permissionRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
-					"permissionRulePartValue", "system.create", "1"));
-			permissionRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
-					"permissionRulePartValue", "system.read", "2"));
+			permissionRulePart.addChild(DataAtomic
+					.withNameInDataAndValueAndRepeatId("permissionRulePartValue", "system.create", "1"));
+			permissionRulePart.addChild(DataAtomic
+					.withNameInDataAndValueAndRepeatId("permissionRulePartValue", "system.read", "2"));
 			permissionRulePart.addAttributeByIdWithValue("type", "action");
 			rule.addChild(permissionRulePart);
 
 			DataGroup permissionRulePart2 = DataGroup.withNameInData("permissionRulePart");
-			permissionRulePart2.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
-					"permissionRulePartValue", "system.person", "1"));
-			permissionRulePart2.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
-					"permissionRulePartValue", "system.place", "2"));
+			permissionRulePart2.addChild(DataAtomic
+					.withNameInDataAndValueAndRepeatId("permissionRulePartValue", "system.person", "1"));
+			permissionRulePart2.addChild(DataAtomic
+					.withNameInDataAndValueAndRepeatId("permissionRulePartValue", "system.place", "2"));
 			permissionRulePart2.addAttributeByIdWithValue("type", "recordType");
 			rule.addChild(permissionRulePart2);
 
@@ -211,10 +208,10 @@ public class RecordStorageSpy implements RecordStorage {
 			DataGroup rule = DataGroup.withNameInData("permissionRule");
 
 			DataGroup permissionRulePart = DataGroup.withNameInData("permissionRulePart");
-			permissionRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
-					"permissionRulePartValue", "system.create", "1"));
-			permissionRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
-					"permissionRulePartValue", "system.read", "2"));
+			permissionRulePart.addChild(DataAtomic
+					.withNameInDataAndValueAndRepeatId("permissionRulePartValue", "system.create", "1"));
+			permissionRulePart.addChild(DataAtomic
+					.withNameInDataAndValueAndRepeatId("permissionRulePartValue", "system.read", "2"));
 			permissionRulePart.addAttributeByIdWithValue("type", "action");
 			rule.addChild(permissionRulePart);
 
@@ -235,8 +232,8 @@ public class RecordStorageSpy implements RecordStorage {
 		}
 
 		if ("user".equals(type) && "dummy1".equals(id)) {
-			DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(
-					"systemOneUser", "true", "user");
+			DataGroup dataGroup = DataCreator
+					.createRecordTypeWithIdAndUserSuppliedIdAndParentId("systemOneUser", "true", "user");
 			return dataGroup;
 		}
 
@@ -255,8 +252,8 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, DataGroup linkList,
-			String dataDivider) {
+	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
+			DataGroup linkList, String dataDivider) {
 		createWasCalled = true;
 		createRecord = record;
 	}
@@ -287,8 +284,9 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public Collection<DataGroup> readList(String type) {
+	public Collection<DataGroup> readList(String type, DataGroup filter) {
 		readLists.add(type);
+		filters.add(filter);
 		if ("recordType".equals(type)) {
 			ArrayList<DataGroup> recordTypes = new ArrayList<>();
 			recordTypes.add(read("recordType", "abstract"));
@@ -307,7 +305,7 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public Collection<DataGroup> readAbstractList(String type) {
+	public Collection<DataGroup> readAbstractList(String type, DataGroup filter) {
 		readLists.add(type);
 		if ("abstract".equals(type)) {
 			ArrayList<DataGroup> records = new ArrayList<>();
@@ -347,8 +345,7 @@ public class RecordStorageSpy implements RecordStorage {
 	private void addRolesToUser(DataGroup user) {
 		DataGroup outerUserRole = DataGroup.withNameInData("userRole");
 		DataGroup innerUserRole = DataGroup.withNameInData("userRole");
-		innerUserRole
-				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRole"));
+		innerUserRole.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRole"));
 		innerUserRole.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "guest"));
 		outerUserRole.addChild(innerUserRole);
 		user.addChild(outerUserRole);
@@ -365,8 +362,7 @@ public class RecordStorageSpy implements RecordStorage {
 
 	private DataGroup createChildWithRecordTypeAndRecordId(String recordType, String recordId) {
 		DataGroup child1 = DataGroup.withNameInData(recordId);
-		child1.addChild(
-				DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
+		child1.addChild(DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
 		return child1;
 	}
 
@@ -391,8 +387,7 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
-			String id) {
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id) {
 		return false;
 	}
 

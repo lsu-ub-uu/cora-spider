@@ -42,8 +42,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	private RulesProvider rulesProvider;
 	private RecordStorage recordStorage;
 
-	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider,
-			Authorizator authorizator, RulesProvider rulesProvider) {
+	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider, Authorizator authorizator,
+			RulesProvider rulesProvider) {
 		this.authorizator = authorizator;
 		this.rulesProvider = rulesProvider;
 		ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
@@ -57,8 +57,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	@Override
-	public boolean userSatisfiesRequiredRules(User user,
-			List<Map<String, Set<String>>> requiredRules) {
+	public boolean userSatisfiesRequiredRules(User user, List<Map<String, Set<String>>> requiredRules) {
 		this.user = user;
 		List<Map<String, Set<String>>> providedRules = getActiveRulesForUser();
 
@@ -80,8 +79,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	@Override
-	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
-			String recordType) {
+	public boolean userIsAuthorizedForActionOnRecordType(User user, String action, String recordType) {
 		checkUserIsActive(user);
 		List<Map<String, Set<String>>> requiredRulesForActionAndRecordType = ruleCalculator
 				.calculateRulesForActionAndRecordType(action, recordType);
@@ -90,7 +88,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private void checkUserIsActive(User user) {
-		Collection<DataGroup> users = recordStorage.readAbstractList("user");
+		DataGroup emptyFilter = DataGroup.withNameInData("filter");
+		Collection<DataGroup> users = recordStorage.readAbstractList("user", emptyFilter);
 		DataGroup foundUser = findUserInListOfUsers(user, users);
 
 		if (userIsInactive(foundUser)) {
@@ -119,8 +118,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	@Override
-	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
-			String recordType) {
+	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action, String recordType) {
 		if (!userIsAuthorizedForActionOnRecordType(user, action, recordType)) {
 			throw new AuthorizationException(USER_STRING + user.id
 					+ " is not authorized to create a record  of type:" + recordType);

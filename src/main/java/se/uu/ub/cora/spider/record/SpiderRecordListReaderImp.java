@@ -26,6 +26,7 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.Action;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -55,14 +56,14 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	@Override
-	public SpiderDataList readRecordList(String authToken, String recordType) {
+	public SpiderDataList readRecordList(String authToken, String recordType, SpiderDataGroup filter) {
 		this.authToken = authToken;
 		this.recordType = recordType;
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 		readRecordList = SpiderDataList.withContainDataOfType(recordType);
 
-		readRecordsOfType(recordType);
+		readRecordsOfType(recordType, filter.toDataGroup());
 		setFromToInReadRecordList();
 
 		return readRecordList;
@@ -76,11 +77,11 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, LIST, recordType);
 	}
 
-	private void readRecordsOfType(String recordType) {
+	private void readRecordsOfType(String recordType, DataGroup filter) {
 		if (recordTypeIsAbstract(recordType)) {
 			addChildrenOfAbstractTypeToReadRecordList(recordType);
 		} else {
-			readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(recordType);
+			readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(recordType, filter);
 		}
 	}
 
@@ -91,7 +92,9 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private void addChildrenOfAbstractTypeToReadRecordList(String abstractRecordType) {
-		Collection<DataGroup> dataGroupList = recordStorage.readAbstractList(abstractRecordType);
+		DataGroup emptyFilter = DataGroup.withNameInData("filter");
+		Collection<DataGroup> dataGroupList = recordStorage.readAbstractList(abstractRecordType,
+				emptyFilter);
 		for (DataGroup dataGroup : dataGroupList) {
 			String type = extractRecordTypeFromDataGroup(dataGroup);
 			this.recordType = type;
@@ -106,17 +109,16 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		return typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
-	private void enhanceDataGroupAndAddToRecordList(DataGroup dataGroup,
-			String recordTypeForRecord) {
-		SpiderDataRecord spiderDataRecord = dataGroupToRecordEnhancer.enhance(user,
-				recordTypeForRecord, dataGroup);
+	private void enhanceDataGroupAndAddToRecordList(DataGroup dataGroup, String recordTypeForRecord) {
+		SpiderDataRecord spiderDataRecord = dataGroupToRecordEnhancer.enhance(user, recordTypeForRecord,
+				dataGroup);
 		if (spiderDataRecord.getActions().contains(Action.READ)) {
 			readRecordList.addData(spiderDataRecord);
 		}
 	}
 
-	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String type) {
-		Collection<DataGroup> dataGroupList = recordStorage.readList(type);
+	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String type, DataGroup filter) {
+		Collection<DataGroup> dataGroupList = recordStorage.readList(type, filter);
 		this.recordType = type;
 		for (DataGroup dataGroup : dataGroupList) {
 			enhanceDataGroupAndAddToRecordList(dataGroup, type);

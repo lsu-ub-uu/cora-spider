@@ -60,8 +60,8 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, DataGroup linkList,
-			String dataDivider) {
+	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
+			DataGroup linkList, String dataDivider) {
 		createWasRead = true;
 
 	}
@@ -86,7 +86,7 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public Collection<DataGroup> readList(String type) {
+	public Collection<DataGroup> readList(String type, DataGroup filter) {
 		List<DataGroup> list = new ArrayList<>();
 		list.add(read(type, "oneLinkTopLevel"));
 		list.add(read(type, "oneLinkOneLevelDown"));
@@ -94,7 +94,7 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public Collection<DataGroup> readAbstractList(String type) {
+	public Collection<DataGroup> readAbstractList(String type, DataGroup filter) {
 		return null;
 	}
 
@@ -117,8 +117,7 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
-			String id) {
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id) {
 		this.type = type;
 		this.id = id;
 		return recordIdExistsForRecordType;

@@ -33,6 +33,7 @@ import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 
 public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
+	private DataGroup emptyFilter = DataGroup.withNameInData("filter");
 	protected Map<String, Map<String, DataGroup>> records = new HashMap<>();
 	protected Map<String, Map<String, DataGroup>> linkLists = new HashMap<>();
 	protected Map<String, Map<String, Map<String, Map<String, List<DataGroup>>>>> incomingLinks = new HashMap<>();
@@ -46,16 +47,15 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 		this.records = records;
 	}
 
-	private void throwErrorIfConstructorArgumentIsNull(
-			Map<String, Map<String, DataGroup>> records) {
+	private void throwErrorIfConstructorArgumentIsNull(Map<String, Map<String, DataGroup>> records) {
 		if (null == records) {
 			throw new IllegalArgumentException("Records must not be null");
 		}
 	}
 
 	@Override
-	public void create(String recordType, String recordId, DataGroup record, DataGroup linkList,
-			String dataDivider) {
+	public void create(String recordType, String recordId, DataGroup record, DataGroup collectedTerms,
+			DataGroup linkList, String dataDivider) {
 		ensureStorageExistsForRecordType(recordType);
 		checkNoConflictOnRecordId(recordType, recordId);
 		storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
@@ -79,8 +79,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private void checkNoConflictOnRecordId(String recordType, String recordId) {
 		if (recordWithTypeAndIdAlreadyExists(recordType, recordId)) {
-			throw new RecordConflictException(
-					"Record with recordId: " + recordId + " already exists");
+			throw new RecordConflictException("Record with recordId: " + recordId + " already exists");
 		}
 	}
 
@@ -128,8 +127,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 		storeLinkInIncomingLinks(link, toPartOfIncomingLinks);
 	}
 
-	private Map<String, Map<String, List<DataGroup>>> getIncomingLinkStorageForLink(
-			DataGroup link) {
+	private Map<String, Map<String, List<DataGroup>>> getIncomingLinkStorageForLink(DataGroup link) {
 		DataGroup to = link.getFirstGroupWithNameInData("to");
 		String toType = extractLinkedRecordTypeValue(to);
 		String toId = extractLinkedRecordIdValue(to);
@@ -191,7 +189,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public Collection<DataGroup> readList(String type) {
+	public Collection<DataGroup> readList(String type, DataGroup filter) {
 		Map<String, DataGroup> typeRecords = records.get(type);
 		if (null == typeRecords) {
 			throw new RecordNotFoundException("No records exists with recordType: " + type);
@@ -200,7 +198,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public Collection<DataGroup> readAbstractList(String type) {
+	public Collection<DataGroup> readAbstractList(String type, DataGroup filter) {
 		return null;
 	}
 
@@ -214,8 +212,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
-			String id) {
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id) {
 		return false;
 	}
 
@@ -267,8 +264,7 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private Collection<DataGroup> generateLinkCollectionFromStoredLinks(String type, String id) {
 		List<DataGroup> generatedLinkList = new ArrayList<>();
-		Map<String, Map<String, List<DataGroup>>> linkStorageForRecord = incomingLinks.get(type)
-				.get(id);
+		Map<String, Map<String, List<DataGroup>>> linkStorageForRecord = incomingLinks.get(type).get(id);
 		addLinksForRecordFromAllRecordTypes(generatedLinkList, linkStorageForRecord);
 		return generatedLinkList;
 	}
@@ -377,24 +373,24 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	public Collection<DataGroup> getMetadataElements() {
 		Collection<DataGroup> readDataGroups = new ArrayList<>();
 		for (MetadataTypes metadataType : MetadataTypes.values()) {
-			readDataGroups.addAll(readList(metadataType.type));
+			readDataGroups.addAll(readList(metadataType.type, emptyFilter));
 		}
 		return readDataGroups;
 	}
 
 	@Override
 	public Collection<DataGroup> getPresentationElements() {
-		return readList("presentation");
+		return readList("presentation", emptyFilter);
 	}
 
 	@Override
 	public Collection<DataGroup> getTexts() {
-		return readList("text");
+		return readList("text", emptyFilter);
 	}
 
 	@Override
 	public Collection<DataGroup> getRecordTypes() {
-		return readList("recordType");
+		return readList("recordType", emptyFilter);
 	}
 
 	@Override

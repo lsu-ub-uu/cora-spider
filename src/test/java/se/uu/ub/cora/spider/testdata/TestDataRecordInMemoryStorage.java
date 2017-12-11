@@ -56,21 +56,21 @@ public class TestDataRecordInMemoryStorage {
 
 		DataGroup dummy = DataGroup.withNameInData("dummy");
 		recordsInMemory.create("metadataCollectionVariable", "dummy1", dummy,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 		recordsInMemory.create("metadataCollectionVariableChild", "dummy1", dummy,
-				DataGroup.withNameInData("dummy"), dataDivider);
+				null, DataGroup.withNameInData("dummy"), dataDivider);
 		recordsInMemory.create("metadataItemCollection", "dummy1", dummy,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 		recordsInMemory.create("metadataCollectionItem", "dummy1", dummy,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 		recordsInMemory.create("metadataTextVariable", "dummy1", dummy,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 		recordsInMemory.create("metadataRecordLink", "dummy1", dummy,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 		recordsInMemory.create("metadataRecordRelation", "dummyRecordRelation", dummy,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 		recordsInMemory.create("permissionRole", "dummyPermissionRole", dummy,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 		return recordsInMemory;
 	}
 
@@ -80,7 +80,7 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup dataGroup = DataGroup.withNameInData("authority");
 		dataGroup.addChild(recordInfo);
 		recordsInMemory.create("place", "place:0001", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addSecondPlace(RecordStorage recordsInMemory) {
@@ -92,7 +92,7 @@ public class TestDataRecordInMemoryStorage {
 		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0001", dataRecordLink);
 
 		DataGroup collectedLinksList = createLinkList();
-		recordsInMemory.create("place", "place:0002", dataGroup, collectedLinksList, "cora");
+		recordsInMemory.create("place", "place:0002", dataGroup, null, collectedLinksList, "cora");
 	}
 
 	private static void addThirdPlace(RecordStorage recordsInMemory) {
@@ -100,7 +100,7 @@ public class TestDataRecordInMemoryStorage {
 				"authority", "place:0003", "place", "cora").toDataGroup();
 
 		DataGroup collectedLinksList = DataGroup.withNameInData("collectedLinksList");
-		recordsInMemory.create("place", "place:0003", dataGroup, collectedLinksList, "cora");
+		recordsInMemory.create("place", "place:0003", dataGroup, null, collectedLinksList, "cora");
 	}
 
 	private static void addFourthPlace(RecordStorage recordsInMemory) {
@@ -123,7 +123,7 @@ public class TestDataRecordInMemoryStorage {
 
 		collectedLinksList.addChild(recordToRecordLink);
 
-		recordsInMemory.create("place", "place:0004", dataGroup, collectedLinksList, "cora");
+		recordsInMemory.create("place", "place:0004", dataGroup, null, collectedLinksList, "cora");
 	}
 
 	private static void addLinkedRecordTypeAndLinkedRecordIdToRecordLink(
@@ -160,7 +160,7 @@ public class TestDataRecordInMemoryStorage {
 				"place");
 		dataGroup.addChild(recordInfo);
 		recordsInMemory.create(metadata, "place", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addMetadataForBinary(RecordStorageInMemory recordsInMemory) {
@@ -171,7 +171,7 @@ public class TestDataRecordInMemoryStorage {
 				"binary");
 		dataGroup.addChild(recordInfo);
 		recordsInMemory.create(metadata, "binary", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addPresentation(RecordStorageInMemory recordsInMemory) {
@@ -183,7 +183,7 @@ public class TestDataRecordInMemoryStorage {
 		dataGroup.addChild(recordInfo);
 
 		recordsInMemory.create(presentation, "placeView", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addText(RecordStorageInMemory recordsInMemory) {
@@ -194,7 +194,7 @@ public class TestDataRecordInMemoryStorage {
 				"placeText");
 		dataGroup.addChild(recordInfo);
 		recordsInMemory.create(text, "placeText", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addRecordType(RecordStorageInMemory recordsInMemory) {
@@ -207,7 +207,7 @@ public class TestDataRecordInMemoryStorage {
 
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
 		recordsInMemory.create(recordType, "metadata", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addRecordTypeRecordType(RecordStorageInMemory recordsInMemory) {
@@ -215,7 +215,7 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup dataGroup = DataCreator
 				.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("recordType", "true", "false");
 		recordsInMemory.create(recordType, "recordType", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addRecordTypeRecordTypeAutoGeneratedId(
@@ -224,7 +224,7 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(
 				"recordTypeAutoGeneratedId", "false", "false");
 		recordsInMemory.create(recordType, "recordTypeAutoGeneratedId", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 
 	}
 
@@ -233,7 +233,7 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup dataGroup = DataCreator
 				.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("binary", "true", "true");
 		recordsInMemory.create(recordType, "binary", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addRecordTypeImage(RecordStorageInMemory recordsInMemory) {
@@ -241,7 +241,7 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup dataGroup = DataCreator
 				.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "true", "binary");
 		recordsInMemory.create(recordType, "image", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addImageOne(RecordStorageInMemory recordsInMemory) {
@@ -261,7 +261,7 @@ public class TestDataRecordInMemoryStorage {
 				"application/octet-stream");
 		master.addChild(mimeType);
 		recordsInMemory.create("image", "image:123456789", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addRecordTypePlace(RecordStorageInMemory recordsInMemory) {
@@ -270,7 +270,7 @@ public class TestDataRecordInMemoryStorage {
 				.createRecordTypeWithIdAndUserSuppliedIdAndParentId("place", "false", "authority");
 
 		recordsInMemory.create(recordType, "place", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addRecordTypeSearch(RecordStorageInMemory recordsInMemory) {
@@ -279,7 +279,7 @@ public class TestDataRecordInMemoryStorage {
 				.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("search", "true", "false");
 
 		recordsInMemory.create(recordType, "search", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addSearch(RecordStorageInMemory recordsInMemory) {
@@ -301,7 +301,7 @@ public class TestDataRecordInMemoryStorage {
 		recordTypeToSearchInGroup
 				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "place"));
 		recordsInMemory.create("search", "aSearchId", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addSearchWithTwoRecordTypeToSearchIn(
@@ -332,7 +332,7 @@ public class TestDataRecordInMemoryStorage {
 				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "image"));
 
 		recordsInMemory.create("search", "anotherSearchId", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addRecordTypeAbstractAuthority(RecordStorageInMemory recordsInMemory) {
@@ -342,7 +342,7 @@ public class TestDataRecordInMemoryStorage {
 				"abstractAuthority", "false", "true");
 
 		recordsInMemory.create(recordType, "abstractAuthority", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addImage(RecordStorageInMemory recordsInMemory) {
@@ -351,7 +351,7 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup dataGroup = DataGroup.withNameInData("binary");
 		dataGroup.addChild(recordInfo);
 		recordsInMemory.create("image", "image:0001", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addRecordTypeSystem(RecordStorageInMemory recordsInMemory) {
@@ -360,7 +360,7 @@ public class TestDataRecordInMemoryStorage {
 				.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("system", "true", "false");
 
 		recordsInMemory.create(recordType, "system", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 
 	private static void addSystem(RecordStorageInMemory recordsInMemory) {
@@ -371,6 +371,6 @@ public class TestDataRecordInMemoryStorage {
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue("systemName", "cora"));
 
 		recordsInMemory.create("system", "cora", dataGroup,
-				DataGroup.withNameInData("collectedLinksList"), dataDivider);
+				null, DataGroup.withNameInData("collectedLinksList"), dataDivider);
 	}
 }
