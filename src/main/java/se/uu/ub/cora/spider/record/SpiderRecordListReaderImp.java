@@ -63,7 +63,6 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		checkUserIsAuthorizedForActionOnRecordType();
 		readRecordList = SpiderDataList.withContainDataOfType(recordType);
 
-		// TODO: check filter is valid
 		readRecordsOfType(recordType, filter.toDataGroup());
 		setFromToInReadRecordList();
 
