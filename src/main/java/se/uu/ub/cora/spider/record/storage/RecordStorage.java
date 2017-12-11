@@ -38,7 +38,7 @@ public interface RecordStorage {
 
 	Collection<DataGroup> readList(String type, DataGroup filter);
 
-	Collection<DataGroup> readAbstractList(String type);
+	Collection<DataGroup> readAbstractList(String type, DataGroup filter);
 
 	DataGroup readLinkList(String type, String id);
 
