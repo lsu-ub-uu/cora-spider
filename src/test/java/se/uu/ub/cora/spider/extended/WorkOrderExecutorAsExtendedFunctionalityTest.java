@@ -36,7 +36,7 @@ import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.spy.DataGroupSearchTermCollectorSpy;
+import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
@@ -45,7 +45,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 
 	SpiderDependencyProviderSpy dependencyProvider;
 	WorkOrderExecutorAsExtendedFunctionality extendedFunctionality;
-	DataGroupSearchTermCollectorSpy termCollector;
+	DataGroupTermCollectorSpy termCollector;
 	RecordIndexerSpy recordIndexer;
 	AlwaysAuthorisedExceptStub authorizer;
 	AuthenticatorSpy authenticator;
@@ -54,7 +54,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 	public void setUp() {
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
-		dependencyProvider.searchTermCollector = new DataGroupSearchTermCollectorSpy();
+		dependencyProvider.searchTermCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.recordStorage = new RecordStorageSpy();
 		dependencyProvider.authenticator = new AuthenticatorSpy();
 		dependencyProvider.spiderAuthorizator = new AlwaysAuthorisedExceptStub();
@@ -64,7 +64,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 	private void setUpDependencyProvider() {
 		extendedFunctionality = WorkOrderExecutorAsExtendedFunctionality
 				.usingDependencyProvider(dependencyProvider);
-		termCollector = (DataGroupSearchTermCollectorSpy) dependencyProvider
+		termCollector = (DataGroupTermCollectorSpy) dependencyProvider
 				.getDataGroupSearchTermCollector();
 		recordIndexer = (RecordIndexerSpy) dependencyProvider.getRecordIndexer();
 		authorizer = (AlwaysAuthorisedExceptStub) dependencyProvider.getSpiderAuthorizator();
@@ -76,7 +76,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 		SpiderDataGroup workOrder = createWorkOrderWithRecordTypeAndRecordId("book", "book1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
-		assertTrue(termCollector.collectSearchTermsWasCalled);
+		assertTrue(termCollector.collectTermsWasCalled);
 		assertEquals(termCollector.metadataId, "bookGroup");
 
 		DataGroup recordInfo = termCollector.dataGroup.getFirstGroupWithNameInData("recordInfo");
@@ -118,7 +118,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 		SpiderDataGroup workOrder = createWorkOrderWithRecordTypeAndRecordId("book", "book1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
-		assertFalse(termCollector.collectSearchTermsWasCalled);
+		assertFalse(termCollector.collectTermsWasCalled);
 		assertFalse(recordIndexer.indexDataHasBeenCalled);
 	}
 

@@ -305,8 +305,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public void update(String recordType, String recordId, DataGroup record, DataGroup linkList,
-			String dataDivider) {
+	public void update(String recordType, String recordId, DataGroup record, DataGroup collectedTerms,
+			DataGroup linkList, String dataDivider) {
 		checkRecordExists(recordType, recordId);
 		removeIncomingLinks(recordType, recordId);
 		storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);

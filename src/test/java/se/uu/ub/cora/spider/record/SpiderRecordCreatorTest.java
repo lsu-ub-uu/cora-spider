@@ -56,7 +56,7 @@ import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.record.storage.TimeStampIdGenerator;
 import se.uu.ub.cora.spider.search.RecordIndexer;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
-import se.uu.ub.cora.spider.spy.DataGroupSearchTermCollectorSpy;
+import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
@@ -95,7 +95,7 @@ public class SpiderRecordCreatorTest {
 		ruleCalculator = new NoRulesCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		termCollector = new DataGroupSearchTermCollectorSpy();
+		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
 		setUpDependencyProvider();
 	}
@@ -145,9 +145,9 @@ public class SpiderRecordCreatorTest {
 	}
 
 	private void assertCorrectSearchTermCollectorAndIndexer(SpiderDataGroup spiderDataGroup) {
-		DataGroupSearchTermCollectorSpy searchTermCollectorSpy = (DataGroupSearchTermCollectorSpy) termCollector;
+		DataGroupTermCollectorSpy searchTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
 		assertEquals(searchTermCollectorSpy.metadataId, "spyTypeNew");
-		assertTrue(searchTermCollectorSpy.collectSearchTermsWasCalled);
+		assertTrue(searchTermCollectorSpy.collectTermsWasCalled);
 		assertEquals(((RecordIndexerSpy) recordIndexer).recordIndexData,
 				searchTermCollectorSpy.collectedTerms);
 	}
@@ -402,9 +402,9 @@ public class SpiderRecordCreatorTest {
 
 		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).dataDivider, "cora");
 
-		DataGroupSearchTermCollectorSpy termCollectorSpy = (DataGroupSearchTermCollectorSpy) termCollector;
+		DataGroupTermCollectorSpy termCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
 		assertEquals(termCollectorSpy.metadataId, "place");
-		assertTrue(termCollectorSpy.collectSearchTermsWasCalled);
+		assertTrue(termCollectorSpy.collectTermsWasCalled);
 		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).collectedTerms,
 				termCollectorSpy.collectedTerms);
 	}

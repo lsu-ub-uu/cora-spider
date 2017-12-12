@@ -34,7 +34,7 @@ public interface RecordStorage {
 
 	boolean linksExistForRecord(String type, String id);
 
-	void update(String type, String id, DataGroup record, DataGroup linkList, String dataDivider);
+	void update(String type, String id, DataGroup record, DataGroup collectedTerms, DataGroup linkList, String dataDivider);
 
 	Collection<DataGroup> readList(String type, DataGroup filter);
 

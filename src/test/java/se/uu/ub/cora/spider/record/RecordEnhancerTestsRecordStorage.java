@@ -147,8 +147,8 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, DataGroup linkList,
-			String dataDivider) {
+	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
+			DataGroup linkList, String dataDivider) {
 		// TODO Auto-generated method stub
 
 	}

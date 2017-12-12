@@ -58,7 +58,7 @@ import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.record.storage.TimeStampIdGenerator;
 import se.uu.ub.cora.spider.search.RecordIndexer;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
-import se.uu.ub.cora.spider.spy.DataGroupSearchTermCollectorSpy;
+import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
@@ -95,7 +95,7 @@ public class SpiderUploaderTest {
 		linkCollector = new DataRecordLinkCollectorSpy();
 		idGenerator = new TimeStampIdGenerator();
 		streamStorage = new StreamStorageSpy();
-		searchTermCollector = new DataGroupSearchTermCollectorSpy();
+		searchTermCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		factory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
