@@ -40,8 +40,18 @@ public final class DataCreator {
 
 	public static DataGroup createRecordTypeWithIdAndUserSuppliedIdAndAbstract(String id,
 			String userSuppliedId, String abstractValue) {
-		return createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId(id, userSuppliedId,
-				abstractValue, null);
+		DataGroup createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId = createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId(
+				id, userSuppliedId, abstractValue, null);
+		createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId
+				.addChild(getFilterChild("someFilterId"));
+		return createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId;
+	}
+
+	private static DataGroup getFilterChild(String filterMetadataId) {
+		DataGroup filter = DataGroup.withNameInData("filter");
+		filter.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		filter.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", filterMetadataId));
+		return filter;
 	}
 
 	private static DataGroup createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId(

@@ -25,9 +25,11 @@ import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 
 public class DataValidatorAlwaysValidSpy implements DataValidator {
 	public boolean validateDataWasCalled = false;
+	public String metadataId;
 
 	@Override
 	public ValidationAnswer validateData(String metadataId, DataElement dataGroup) {
+		this.metadataId = metadataId;
 		validateDataWasCalled = true;
 		return new ValidationAnswer();
 	}
