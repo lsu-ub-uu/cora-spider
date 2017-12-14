@@ -38,7 +38,8 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.search.RecordIndexer;
 
-public final class SpiderRecordUpdaterImp extends SpiderRecordHandler implements SpiderRecordUpdater {
+public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
+		implements SpiderRecordUpdater {
 	private static final String TS_UPDATED = "tsUpdated";
 	private static final String UPDATED_BY = "updatedBy";
 	private static final String UPDATE = "update";
@@ -109,15 +110,16 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler implements
 		// TODO: merge incoming data with stored if user does not have right to
 		// update some parts
 
-		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup, recordType,
-				recordId);
+		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
+				recordType, recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
 
 		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
 
-		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedTerms, collectedLinks, dataDivider);
+		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedTerms,
+				collectedLinks, dataDivider);
 
 		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
 		recordIndexer.indexData(ids, collectedTerms, topLevelDataGroup);
@@ -173,7 +175,8 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler implements
 		checkValueIsSameAsValueInEnteredRecord(recordId, valueFromRecord);
 	}
 
-	private void checkValueIsSameAsValueInEnteredRecord(String value, String extractedValueFromRecord) {
+	private void checkValueIsSameAsValueInEnteredRecord(String value,
+			String extractedValueFromRecord) {
 		if (!value.equals(extractedValueFromRecord)) {
 			throw new DataException("Value in data(" + extractedValueFromRecord
 					+ ") does not match entered value(" + value + ")");
@@ -196,8 +199,8 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler implements
 	}
 
 	private void checkUserIsAuthorisedToStoreIncomingData(DataGroup incomingData) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, UPDATE, recordType,
-				incomingData);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, UPDATE,
+				recordType, incomingData);
 	}
 
 	private void addUpdateInfo(SpiderDataGroup topLevelDataGroup) {
@@ -209,7 +212,8 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler implements
 	private void setTsUpdated(SpiderDataGroup recordInfo) {
 		removeChildIfExists(recordInfo, TS_UPDATED);
 		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
-		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue(TS_UPDATED, currentLocalDateTime));
+		recordInfo.addChild(
+				SpiderDataAtomic.withNameInDataAndValue(TS_UPDATED, currentLocalDateTime));
 	}
 
 	private void removeChildIfExists(SpiderDataGroup recordInfo, String nameInData) {
