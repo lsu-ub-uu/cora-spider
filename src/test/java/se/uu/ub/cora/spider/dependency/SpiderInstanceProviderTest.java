@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2018 Uppsala University Library
  * Copyright 2017 Uppsala University Library
  *
  * This file is part of Cora.
@@ -20,11 +20,14 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -118,4 +121,10 @@ public class SpiderInstanceProviderTest {
 		assertTrue(factory.searcherFactoryWasCalled);
 	}
 
+	@Test
+	public void testSetInitInfo() throws Exception {
+		Map<String, String> initInfo = new HashMap<>();
+		SpiderInstanceProvider.setInitInfo(initInfo);
+		assertEquals(SpiderInstanceProvider.getInitInfo(), initInfo);
+	}
 }
