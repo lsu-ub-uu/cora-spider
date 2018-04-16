@@ -205,8 +205,17 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void addUpdateInfo(SpiderDataGroup topLevelDataGroup) {
 		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
-		setUpdatedBy(recordInfo);
-		setTsUpdated(recordInfo);
+		// recordInfo.getAllChildrenByNameInData("updated");
+		SpiderDataGroup updated = SpiderDataGroup.withNameInData("updated");
+		updated.setRepeatId("");
+		recordInfo.addChild(updated);
+		SpiderDataGroup updatedBy = createdUpdatedByLink();
+		updated.addChild(updatedBy);
+		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
+		updated.addChild(SpiderDataAtomic.withNameInDataAndValue(TS_UPDATED, currentLocalDateTime));
+
+		// setUpdatedBy(recordInfo);
+		// setTsUpdated(recordInfo);
 	}
 
 	private void setTsUpdated(SpiderDataGroup recordInfo) {
