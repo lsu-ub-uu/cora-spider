@@ -46,7 +46,6 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataElement;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
@@ -253,30 +252,43 @@ public class SpiderRecordUpdaterTest {
 		SpiderDataGroup updatedSpiderDataGroup = recordAlreadyContainingUpdateInfo
 				.getSpiderDataGroup();
 		SpiderDataGroup updatedRecordInfo = updatedSpiderDataGroup.extractGroup("recordInfo");
-
-		assertOnlyOneUpdatedBy(updatedRecordInfo);
-
-		assertOnlyOneTsUpdated(updatedRecordInfo);
+		List<SpiderDataGroup> updatedGroups = updatedRecordInfo
+				.getAllGroupsWithNameInData("updated");
+		assertEquals(updatedGroups.size(), 2);
 	}
 
-	private void assertOnlyOneTsUpdated(SpiderDataGroup updatedRecordInfo) {
-		int numOfTsUpdated = countChildrenWithNameInData(updatedRecordInfo, "tsUpdated");
-		assertEquals(numOfTsUpdated, 1);
-	}
+	@Test
+	public void testUpdateInfoSetFromPreviousUpdateIsNotReplacedByAlteredData() {
+		recordStorage = new RecordStorageSpy();
+		keyCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		addRecordInfo(spiderDataGroup);
 
-	private int countChildrenWithNameInData(SpiderDataGroup updatedRecordInfo, String nameInData) {
-		int numOfTsUpdated = 0;
-		for (SpiderDataElement spiderDataElement : updatedRecordInfo.getChildren()) {
-			if (nameInData.equals(spiderDataElement.getNameInData())) {
-				numOfTsUpdated++;
-			}
-		}
-		return numOfTsUpdated;
-	}
+		SpiderDataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
+				"spyId", spiderDataGroup);
+		SpiderDataGroup updatedRecordInfo = updatedRecord.getSpiderDataGroup()
+				.extractGroup("recordInfo");
+		SpiderDataGroup firstUpdated = updatedRecordInfo.extractGroup("updated");
+		String correctTsUpdated = firstUpdated.extractAtomicValue("tsUpdated");
 
-	private void assertOnlyOneUpdatedBy(SpiderDataGroup updatedRecordInfo) {
-		int numOfUpdatedBy = countChildrenWithNameInData(updatedRecordInfo, "updatedBy");
-		assertEquals(numOfUpdatedBy, 1);
+		firstUpdated.removeChild("tsUpdated");
+		firstUpdated
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("tsUpdated", "someAlteredValue"));
+
+		SpiderDataRecord recordAlreadyContainingUpdateInfo = recordUpdater.updateRecord(
+				"someToken78678567", "spyType", "spyId", updatedRecord.getSpiderDataGroup());
+
+		SpiderDataGroup updatedSpiderDataGroup = recordAlreadyContainingUpdateInfo
+				.getSpiderDataGroup();
+		SpiderDataGroup updatedRecordInfo2 = updatedSpiderDataGroup.extractGroup("recordInfo");
+		SpiderDataGroup firstUpdated2 = updatedRecordInfo2.extractGroup("updated");
+		String tsUpdated = firstUpdated2.extractAtomicValue("tsUpdated");
+
+		assertEquals(tsUpdated, correctTsUpdated);
+		// List<SpiderDataGroup> updatedGroups = updatedRecordInfo
+		// .getAllGroupsWithNameInData("updated");
+		// assertEquals(updatedGroups.size(), 2);
 	}
 
 	@Test

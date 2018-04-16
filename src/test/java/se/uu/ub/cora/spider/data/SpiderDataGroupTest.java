@@ -498,6 +498,14 @@ public class SpiderDataGroupTest {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
 		spiderDataGroup.addChild(
 				SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
+		addTwoGroupChildrenWithSameNameInData(spiderDataGroup);
+
+		List<SpiderDataGroup> groupsFound = spiderDataGroup
+				.getAllGroupsWithNameInData("childNameInData");
+		assertEquals(groupsFound.size(), 2);
+	}
+
+	private void addTwoGroupChildrenWithSameNameInData(SpiderDataGroup spiderDataGroup) {
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("childNameInData");
 		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("firstName", "someName"));
 		dataGroup.setRepeatId("0");
@@ -506,15 +514,17 @@ public class SpiderDataGroupTest {
 		dataGroup2.addChild(SpiderDataAtomic.withNameInDataAndValue("firstName", "someOtherName"));
 		dataGroup2.setRepeatId("1");
 		spiderDataGroup.addChild(dataGroup2);
+	}
+
+	@Test
+	public void testGetAllGroupsWithNameInDataNoMatches() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		spiderDataGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
 
 		List<SpiderDataGroup> groupsFound = spiderDataGroup
 				.getAllGroupsWithNameInData("childNameInData");
-		// assertNumberOfGroupsFoundIs(1);
-		assertEquals(groupsFound.size(), 2);
-		// assertGroupsFoundAre(child);
+		assertEquals(groupsFound.size(), 0);
 	}
 
-	// private void assertNumberOfGroupsFoundIs(int numberOfGroups) {
-	// assertEquals(groupsFound.size(), numberOfGroups);
-	// }
 }

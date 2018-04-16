@@ -205,10 +205,11 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void addUpdateInfo(SpiderDataGroup topLevelDataGroup) {
 		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
-		// recordInfo.getAllChildrenByNameInData("updated");
+		int numOfUpdated = recordInfo.getAllGroupsWithNameInData("updated").size();
 		SpiderDataGroup updated = SpiderDataGroup.withNameInData("updated");
-		updated.setRepeatId("");
+		updated.setRepeatId(String.valueOf(numOfUpdated + 1));
 		recordInfo.addChild(updated);
+
 		SpiderDataGroup updatedBy = createdUpdatedByLink();
 		updated.addChild(updatedBy);
 		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
