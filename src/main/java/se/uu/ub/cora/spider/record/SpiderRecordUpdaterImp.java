@@ -204,7 +204,19 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void addUpdateInfo(SpiderDataGroup topLevelDataGroup) {
+		DataGroup recordRead = recordStorage.read(recordType, recordId);
 		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
+
+		while (recordInfo.containsChildWithNameInData("updated")) {
+			recordInfo.removeChild("updated");
+		}
+		SpiderDataGroup recordInfoStoredRecord = SpiderDataGroup
+				.fromDataGroup(recordRead.getFirstGroupWithNameInData("recordInfo"));
+		for (SpiderDataGroup updated : recordInfoStoredRecord
+				.getAllGroupsWithNameInData("updated")) {
+			recordInfo.addChild(updated);
+		}
+
 		int numOfUpdated = recordInfo.getAllGroupsWithNameInData("updated").size();
 		SpiderDataGroup updated = SpiderDataGroup.withNameInData("updated");
 		updated.setRepeatId(String.valueOf(numOfUpdated + 1));

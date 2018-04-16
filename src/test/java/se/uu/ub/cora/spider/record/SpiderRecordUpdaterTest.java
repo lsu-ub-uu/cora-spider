@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.time.LocalDateTime;
@@ -64,6 +63,7 @@ import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.RecordStorageUpdateMultipleTimesSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
@@ -177,30 +177,20 @@ public class SpiderRecordUpdaterTest {
 		SpiderDataGroup updatedSpiderDataGroup = updatedRecord.getSpiderDataGroup();
 		SpiderDataGroup updatedRecordInfo = updatedSpiderDataGroup.extractGroup("recordInfo");
 
-		SpiderDataGroup updated = updatedRecordInfo.extractGroup("updated");
-		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(updated, "updatedBy", "12345");
-		String tsUpdated = updated.extractAtomicValue("tsUpdated");
-		assertTrue(tsUpdated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
-		assertFalse(updatedRecordInfo.containsChildWithNameInData("updatedBy"));
-		assertFalse(updatedRecordInfo.containsChildWithNameInData("tsUpdated"));
-
-		String tsCreated = updatedRecordInfo.extractAtomicValue("tsCreated");
-		assertFalse(tsUpdated.equals(tsCreated));
-
-		assertNotNull(updated.getRepeatId());
-
-		// assertCorrectUserInfo(updatedRecordInfo);
+		assertCorrectUserInfo(updatedRecordInfo);
 	}
 
 	private void assertCorrectUserInfo(SpiderDataGroup recordInfo) {
 		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(recordInfo, "createdBy", "6789");
-		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(recordInfo, "updatedBy", "12345");
-
-		String tsUpdated = recordInfo.extractAtomicValue("tsUpdated");
 		String tsCreated = recordInfo.extractAtomicValue("tsCreated");
-		assertFalse(tsUpdated.equals(tsCreated));
-		assertTrue(tsUpdated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
 		assertTrue(tsCreated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+
+		SpiderDataGroup updated = recordInfo.extractGroup("updated");
+
+		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(updated, "updatedBy", "12345");
+		String tsUpdated = updated.extractAtomicValue("tsUpdated");
+		assertTrue(tsUpdated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+		assertFalse(tsUpdated.equals(tsCreated));
 	}
 
 	private void assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(
@@ -237,7 +227,7 @@ public class SpiderRecordUpdaterTest {
 
 	@Test
 	public void testCorrectUpdateInfoWhenRecordHasAlreadyBeenUpdated() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new RecordStorageUpdateMultipleTimesSpy();
 		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
@@ -245,6 +235,8 @@ public class SpiderRecordUpdaterTest {
 
 		SpiderDataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
 				"spyId", spiderDataGroup);
+
+		setUpdatedRecordToReturnOnRead(updatedRecord);
 
 		SpiderDataRecord recordAlreadyContainingUpdateInfo = recordUpdater.updateRecord(
 				"someToken78678567", "spyType", "spyId", updatedRecord.getSpiderDataGroup());
@@ -257,9 +249,14 @@ public class SpiderRecordUpdaterTest {
 		assertEquals(updatedGroups.size(), 2);
 	}
 
+	private void setUpdatedRecordToReturnOnRead(SpiderDataRecord updatedRecord) {
+		RecordStorageUpdateMultipleTimesSpy storageSpy = (RecordStorageUpdateMultipleTimesSpy) recordStorage;
+		storageSpy.recordToReturnOnRead = updatedRecord.getSpiderDataGroup().toDataGroup();
+	}
+
 	@Test
 	public void testUpdateInfoSetFromPreviousUpdateIsNotReplacedByAlteredData() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new RecordStorageUpdateMultipleTimesSpy();
 		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
@@ -267,28 +264,42 @@ public class SpiderRecordUpdaterTest {
 
 		SpiderDataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
 				"spyId", spiderDataGroup);
-		SpiderDataGroup updatedRecordInfo = updatedRecord.getSpiderDataGroup()
-				.extractGroup("recordInfo");
-		SpiderDataGroup firstUpdated = updatedRecordInfo.extractGroup("updated");
+		setUpdatedRecordToReturnOnRead(updatedRecord);
+
+		SpiderDataGroup firstUpdated = getFirstUpdatedInfo(updatedRecord);
 		String correctTsUpdated = firstUpdated.extractAtomicValue("tsUpdated");
 
-		firstUpdated.removeChild("tsUpdated");
-		firstUpdated
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("tsUpdated", "someAlteredValue"));
+		changeUpdatedValue(firstUpdated);
 
 		SpiderDataRecord recordAlreadyContainingUpdateInfo = recordUpdater.updateRecord(
 				"someToken78678567", "spyType", "spyId", updatedRecord.getSpiderDataGroup());
 
-		SpiderDataGroup updatedSpiderDataGroup = recordAlreadyContainingUpdateInfo
-				.getSpiderDataGroup();
-		SpiderDataGroup updatedRecordInfo2 = updatedSpiderDataGroup.extractGroup("recordInfo");
-		SpiderDataGroup firstUpdated2 = updatedRecordInfo2.extractGroup("updated");
+		SpiderDataGroup updatedRecordInfo = getRecordInfo(recordAlreadyContainingUpdateInfo);
+		List<SpiderDataGroup> updatedGroups = updatedRecordInfo.getAllGroupsWithNameInData("updated");
+		assertEquals(updatedGroups.size(), 2);
+
+		SpiderDataGroup firstUpdated2 = updatedRecordInfo.extractGroup("updated");
 		String tsUpdated = firstUpdated2.extractAtomicValue("tsUpdated");
 
 		assertEquals(tsUpdated, correctTsUpdated);
-		// List<SpiderDataGroup> updatedGroups = updatedRecordInfo
-		// .getAllGroupsWithNameInData("updated");
-		// assertEquals(updatedGroups.size(), 2);
+	}
+
+	private SpiderDataGroup getRecordInfo(SpiderDataRecord record) {
+		SpiderDataGroup updatedSpiderDataGroup = record.getSpiderDataGroup();
+		return updatedSpiderDataGroup.extractGroup("recordInfo");
+	}
+
+	private SpiderDataGroup getFirstUpdatedInfo(SpiderDataRecord updatedRecord) {
+		SpiderDataGroup updatedRecordInfo = updatedRecord.getSpiderDataGroup()
+				.extractGroup("recordInfo");
+		SpiderDataGroup firstUpdated = updatedRecordInfo.extractGroup("updated");
+		return firstUpdated;
+	}
+
+	private void changeUpdatedValue(SpiderDataGroup firstUpdated) {
+		firstUpdated.removeChild("tsUpdated");
+		firstUpdated
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("tsUpdated", "someAlteredValue"));
 	}
 
 	@Test
