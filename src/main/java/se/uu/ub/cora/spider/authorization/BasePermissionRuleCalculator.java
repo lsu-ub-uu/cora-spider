@@ -49,6 +49,7 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 			String action, String recordType, DataGroup collectedData) {
 		List<Map<String, Set<String>>> requiredRules = calculateRulesForActionAndRecordType(action,
 				recordType);
+		possiblyCreateRulesForCollectedPermissionTerms(collectedData, requiredRules);
 		return requiredRules;
 	}
 
@@ -82,4 +83,31 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 		return createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
+	private void possiblyCreateRulesForCollectedPermissionTerms(DataGroup collectedData,
+			List<Map<String, Set<String>>> requiredRules) {
+		if (thereAreCollectedPermissionValuesFromData(collectedData)) {
+			createRulesFroCollectedPermissionTerms(collectedData, requiredRules);
+		}
+	}
+
+	private void createRulesFroCollectedPermissionTerms(DataGroup collectedData,
+			List<Map<String, Set<String>>> requiredRules) {
+		Map<String, Set<String>> requiredRule = requiredRules.get(0);
+		DataGroup permission = collectedData.getFirstGroupWithNameInData("permission");
+
+		List<DataGroup> collectedDataTerms = permission
+				.getAllGroupsWithNameInData("collectedDataTerm");
+		for (DataGroup collectedDataTerm : collectedDataTerms) {
+
+			DataGroup extraData = collectedDataTerm.getFirstGroupWithNameInData("extraData");
+			String permissionKey = extraData.getFirstAtomicValueWithNameInData("permissionKey");
+			String value = collectedDataTerm
+					.getFirstAtomicValueWithNameInData("collectTermValue");
+			createRulePart(requiredRule, permissionKey, SYSTEM + value);
+		}
+	}
+
+	private boolean thereAreCollectedPermissionValuesFromData(DataGroup collectedData) {
+		return collectedData.containsChildWithNameInData("permission");
+	}
 }

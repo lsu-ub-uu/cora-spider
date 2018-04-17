@@ -28,12 +28,15 @@ import java.util.Set;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 
 public class BasePermissionRuleCalculatorTest {
 
 	private PermissionRuleCalculator ruleCalculator;
+	private String action = "create";
+	private String recordType = "book";
 
 	@BeforeMethod
 	public void setUp() {
@@ -42,13 +45,12 @@ public class BasePermissionRuleCalculatorTest {
 
 	@Test
 	public void testWithoutData() {
-		String action = "create";
-		String recordType = "book";
 		List<Map<String, Set<String>>> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordType(action, recordType);
 		assertEquals(requiredRules.size(), 1);
 
 		Map<String, Set<String>> requiredRule = requiredRules.get(0);
+		assertEquals(requiredRule.keySet().size(), 2);
 		Set<String> actionValues = requiredRule.get("action");
 		assertEquals(actionValues.size(), 1);
 		assertEquals(actionValues.iterator().next(), "system.create");
@@ -60,8 +62,6 @@ public class BasePermissionRuleCalculatorTest {
 
 	@Test
 	public void testWithData() {
-		String action = "create";
-		String recordType = "book";
 		DataGroup record = DataCreator
 				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",
 						"myBook", "book", "systemOne", "12345")
@@ -86,28 +86,7 @@ public class BasePermissionRuleCalculatorTest {
 
 	@Test
 	public void testWithCollectedDataNoPermissions() {
-		String action = "create";
-		String recordType = "book";
-
 		DataGroup collectedData = DataGroup.withNameInData("collectedData");
-
-		// DataGroup collectedData = collector.collectTerms("bookGroup", book);
-		// assertTrue(collectedData.containsChildWithNameInData("permission"));
-		//
-		// DataGroup permissionTerms =
-		// collectedData.getFirstGroupWithNameInData("permission");
-		// assertEquals(permissionTerms.getAllGroupsWithNameInData("collectedDataTerm").size(),
-		// 1);
-		//
-		// DataGroup collectedDataTerm = permissionTerms
-		// .getAllGroupsWithNameInData("collectedDataTerm").get(0);
-		// assertCollectTermHasRepeatIdAndTermValueAndTermId(collectedDataTerm, "0",
-		// "Kalle Kula",
-		// "namePermissionTerm");
-		// DataGroup extraData =
-		// collectedDataTerm.getFirstGroupWithNameInData("extraData");
-		// assertEquals(extraData.getFirstAtomicValueWithNameInData("permissionKey"),
-		// "PERMISSIONFORNAME");
 
 		List<Map<String, Set<String>>> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
@@ -115,6 +94,34 @@ public class BasePermissionRuleCalculatorTest {
 		assertEquals(requiredRules.size(), 1);
 
 		Map<String, Set<String>> requiredRule = requiredRules.get(0);
+		assertEquals(requiredRule.keySet().size(), 2);
+		Set<String> actionValues = requiredRule.get("action");
+		assertEquals(actionValues.size(), 1);
+		assertEquals(actionValues.iterator().next(), "system.create");
+
+		Set<String> recordTypeValues = requiredRule.get("recordType");
+		assertEquals(recordTypeValues.size(), 1);
+		assertEquals(recordTypeValues.iterator().next(), "system.book");
+	}
+
+	@Test
+	public void testWithCollectedDataOnePermissions() {
+		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup permission = DataGroup.withNameInData("permission");
+		collectedData.addChild(permission);
+
+		DataGroup collectedDataTerm = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
+				"0", "someTermId", "someTermValue", "SOME_PERMISSION_KEY");
+
+		permission.addChild(collectedDataTerm);
+
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
+						collectedData);
+		assertEquals(requiredRules.size(), 1);
+
+		Map<String, Set<String>> requiredRule = requiredRules.get(0);
+		assertEquals(requiredRule.keySet().size(), 3);
 		Set<String> actionValues = requiredRule.get("action");
 		assertEquals(actionValues.size(), 1);
 		assertEquals(actionValues.iterator().next(), "system.create");
@@ -123,9 +130,57 @@ public class BasePermissionRuleCalculatorTest {
 		assertEquals(recordTypeValues.size(), 1);
 		assertEquals(recordTypeValues.iterator().next(), "system.book");
 
-		// Set<String> createdByValues = requiredRule.get("createdBy");
-		// assertEquals(createdByValues.size(), 1);
-		// assertEquals(createdByValues.iterator().next(), "system.12345");
+		Set<String> createdByValues = requiredRule.get("SOME_PERMISSION_KEY");
+		assertEquals(createdByValues.size(), 1);
+		assertEquals(createdByValues.iterator().next(), "system.someTermValue");
+	}
+
+	private DataGroup createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
+			String repeatId, String termId, String termValue, String permissionKey) {
+		DataGroup collectedDataTerm = DataGroup.withNameInData("collectedDataTerm");
+		collectedDataTerm.setRepeatId(repeatId);
+		collectedDataTerm.addChild(DataAtomic.withNameInDataAndValue("collectTermId", termId));
+		collectedDataTerm
+				.addChild(DataAtomic.withNameInDataAndValue("collectTermValue", termValue));
+
+		DataGroup extraData = DataGroup.withNameInData("extraData");
+		collectedDataTerm.addChild(extraData);
+		extraData.addChild(DataAtomic.withNameInDataAndValue("permissionKey", permissionKey));
+		return collectedDataTerm;
+	}
+
+	@Test
+	public void testWithCollectedDataTwoPermissions() {
+		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup permission = DataGroup.withNameInData("permission");
+		collectedData.addChild(permission);
+
+		DataGroup collectedDataTerm = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
+				"0", "someTermId", "someTermValue", "SOME_PERMISSION_KEY");
+		permission.addChild(collectedDataTerm);
+
+		DataGroup collectedDataTerm2 = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
+				"1", "otherTermId", "otherTermValue", "OTHER_PERMISSION_KEY");
+		permission.addChild(collectedDataTerm2);
+
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
+						collectedData);
+		assertEquals(requiredRules.size(), 1);
+
+		Map<String, Set<String>> requiredRule = requiredRules.get(0);
+		assertEquals(requiredRule.keySet().size(), 4);
+		Set<String> actionValues = requiredRule.get("action");
+		assertEquals(actionValues.size(), 1);
+		assertEquals(actionValues.iterator().next(), "system.create");
+
+		Set<String> recordTypeValues = requiredRule.get("recordType");
+		assertEquals(recordTypeValues.size(), 1);
+		assertEquals(recordTypeValues.iterator().next(), "system.book");
+
+		Set<String> createdByValues = requiredRule.get("SOME_PERMISSION_KEY");
+		assertEquals(createdByValues.size(), 1);
+		assertEquals(createdByValues.iterator().next(), "system.someTermValue");
 	}
 
 }
