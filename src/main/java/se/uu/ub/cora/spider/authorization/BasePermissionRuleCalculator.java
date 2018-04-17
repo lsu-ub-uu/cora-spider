@@ -39,8 +39,8 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 		List<Map<String, Set<String>>> requiredRules = new ArrayList<>();
 		Map<String, Set<String>> requiredRule = createRequiredRule();
 		requiredRules.add(requiredRule);
-		createRulePart(requiredRule, "action", SYSTEM + action);
-		createRulePart(requiredRule, "recordType", SYSTEM + recordType);
+		createRulePart(requiredRule, "action", action);
+		createRulePart(requiredRule, "recordType", recordType);
 		return requiredRules;
 	}
 
@@ -60,7 +60,7 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 		List<Map<String, Set<String>>> requiredRules = calculateRulesForActionAndRecordType(action,
 				recordType);
 		Map<String, Set<String>> requiredRule = requiredRules.get(0);
-		createRulePart(requiredRule, "createdBy", SYSTEM + extractUserId());
+		createRulePart(requiredRule, "createdBy", extractUserId());
 		return requiredRules;
 	}
 
@@ -72,7 +72,7 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 			String... values) {
 		Set<String> set = new HashSet<>();
 		for (String value : values) {
-			set.add(value);
+			set.add(SYSTEM + value);
 		}
 		requiredRule.put(key, set);
 	}
@@ -86,25 +86,28 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 	private void possiblyCreateRulesForCollectedPermissionTerms(DataGroup collectedData,
 			List<Map<String, Set<String>>> requiredRules) {
 		if (thereAreCollectedPermissionValuesFromData(collectedData)) {
-			createRulesFroCollectedPermissionTerms(collectedData, requiredRules);
+			DataGroup permission = collectedData.getFirstGroupWithNameInData("permission");
+			createRulesFromCollectedPermissionTerms(permission, requiredRules);
 		}
 	}
 
-	private void createRulesFroCollectedPermissionTerms(DataGroup collectedData,
+	private void createRulesFromCollectedPermissionTerms(DataGroup permission,
 			List<Map<String, Set<String>>> requiredRules) {
 		Map<String, Set<String>> requiredRule = requiredRules.get(0);
-		DataGroup permission = collectedData.getFirstGroupWithNameInData("permission");
 
 		List<DataGroup> collectedDataTerms = permission
 				.getAllGroupsWithNameInData("collectedDataTerm");
 		for (DataGroup collectedDataTerm : collectedDataTerms) {
-
-			DataGroup extraData = collectedDataTerm.getFirstGroupWithNameInData("extraData");
-			String permissionKey = extraData.getFirstAtomicValueWithNameInData("permissionKey");
-			String value = collectedDataTerm
-					.getFirstAtomicValueWithNameInData("collectTermValue");
-			createRulePart(requiredRule, permissionKey, SYSTEM + value);
+			createRuleForCollectedDataTerm(requiredRule, collectedDataTerm);
 		}
+	}
+
+	private void createRuleForCollectedDataTerm(Map<String, Set<String>> requiredRule,
+			DataGroup collectedDataTerm) {
+		DataGroup extraData = collectedDataTerm.getFirstGroupWithNameInData("extraData");
+		String permissionKey = extraData.getFirstAtomicValueWithNameInData("permissionKey");
+		String value = collectedDataTerm.getFirstAtomicValueWithNameInData("collectTermValue");
+		createRulePart(requiredRule, permissionKey, value);
 	}
 
 	private boolean thereAreCollectedPermissionValuesFromData(DataGroup collectedData) {
