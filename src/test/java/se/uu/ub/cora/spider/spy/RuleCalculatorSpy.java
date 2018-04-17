@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -42,6 +42,13 @@ public class RuleCalculatorSpy implements PermissionRuleCalculator {
 	@Override
 	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(
 			String accessType, String recordType, DataGroup record) {
+		calculateKeysForDataWasCalled = true;
+		return new ArrayList<>();
+	}
+
+	@Override
+	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndCollectedData(
+			String action, String recordType, DataGroup collectedData) {
 		calculateKeysForDataWasCalled = true;
 		return new ArrayList<>();
 	}

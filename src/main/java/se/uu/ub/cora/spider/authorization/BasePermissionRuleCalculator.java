@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -36,11 +36,19 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 	@Override
 	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
 			String recordType) {
-		List<Map<String, Set<String>>> requiredRules = new ArrayList<Map<String, Set<String>>>();
+		List<Map<String, Set<String>>> requiredRules = new ArrayList<>();
 		Map<String, Set<String>> requiredRule = createRequiredRule();
 		requiredRules.add(requiredRule);
 		createRulePart(requiredRule, "action", SYSTEM + action);
 		createRulePart(requiredRule, "recordType", SYSTEM + recordType);
+		return requiredRules;
+	}
+
+	@Override
+	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndCollectedData(
+			String action, String recordType, DataGroup collectedData) {
+		List<Map<String, Set<String>>> requiredRules = calculateRulesForActionAndRecordType(action,
+				recordType);
 		return requiredRules;
 	}
 
@@ -61,7 +69,7 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 
 	private void createRulePart(Map<String, Set<String>> requiredRule, String key,
 			String... values) {
-		Set<String> set = new HashSet<String>();
+		Set<String> set = new HashSet<>();
 		for (String value : values) {
 			set.add(value);
 		}

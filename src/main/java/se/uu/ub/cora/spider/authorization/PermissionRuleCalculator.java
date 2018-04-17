@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -32,5 +32,8 @@ public interface PermissionRuleCalculator {
 
 	List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action,
 			String recordType, DataGroup record);
+
+	List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndCollectedData(
+			String action, String recordType, DataGroup collectedData);
 
 }

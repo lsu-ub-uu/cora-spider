@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016 Uppsala University Library
+ * Copyright 2015, 2016, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -32,6 +32,7 @@ public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 	public String action;
 	public String recordType;
 	public DataGroup record;
+	public DataGroup collectedData;
 
 	@Override
 	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
@@ -47,6 +48,15 @@ public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 		this.action = action;
 		this.recordType = recordType;
 		this.record = record;
+		return new ArrayList<>();
+	}
+
+	@Override
+	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndCollectedData(
+			String action, String recordType, DataGroup collectedData) {
+		this.action = action;
+		this.recordType = recordType;
+		this.collectedData = collectedData;
 		return new ArrayList<>();
 	}
 

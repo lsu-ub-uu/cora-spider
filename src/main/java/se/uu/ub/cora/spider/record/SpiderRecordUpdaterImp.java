@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016 Uppsala University Library
+ * Copyright 2015, 2016, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -101,7 +101,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
 
-		checkUserIsAuthorisedToStoreIncomingData(topLevelDataGroup);
+		checkUserIsAuthorisedToUpdateData(topLevelDataGroup);
 
 		// validate (including protected data)
 		// TODO: add validate here
@@ -195,10 +195,12 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
-		checkUserIsAuthorisedToStoreIncomingData(recordRead);
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, recordRead);
+
+		checkUserIsAuthorisedToUpdateData(recordRead);
 	}
 
-	private void checkUserIsAuthorisedToStoreIncomingData(DataGroup incomingData) {
+	private void checkUserIsAuthorisedToUpdateData(DataGroup incomingData) {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, UPDATE,
 				recordType, incomingData);
 	}
