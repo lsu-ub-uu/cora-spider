@@ -20,6 +20,8 @@
 package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,13 +35,27 @@ public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 	public String recordType;
 	public DataGroup record;
 	public DataGroup collectedData;
+	public List<String> calledMethods = new ArrayList<>();
+	public List<Map<String, Set<String>>> returnedRules;
+
+	public NoRulesCalculatorStub() {
+		Set<String> set = new HashSet<>();
+		set.add("noValue");
+
+		Map<String, Set<String>> map = new HashMap<>();
+		map.put("NoRulesCalculator", set);
+
+		returnedRules = new ArrayList<>();
+		returnedRules.add(map);
+	}
 
 	@Override
 	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
 			String recordType) {
 		this.action = action;
 		this.recordType = recordType;
-		return new ArrayList<>();
+		calledMethods.add("calculateRulesForActionAndRecordType");
+		return returnedRules;
 	}
 
 	@Override
@@ -48,7 +64,8 @@ public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 		this.action = action;
 		this.recordType = recordType;
 		this.record = record;
-		return new ArrayList<>();
+		calledMethods.add("calculateRulesForActionAndRecordTypeAndData");
+		return returnedRules;
 	}
 
 	@Override
@@ -57,7 +74,8 @@ public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 		this.action = action;
 		this.recordType = recordType;
 		this.collectedData = collectedData;
-		return new ArrayList<>();
+		calledMethods.add("calculateRulesForActionAndRecordTypeAndCollectedData");
+		return returnedRules;
 	}
 
 }

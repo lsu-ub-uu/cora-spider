@@ -71,7 +71,7 @@ public class SpiderRecordDeleterTest {
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.keyCalculator = keyCalculator;
+		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.recordIndexer = recordIndexer;
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);

@@ -78,7 +78,7 @@ public class SpiderRecordSearcherTest {
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.dataValidator = dataValidator;
 		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.keyCalculator = keyCalculator;
+		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.recordSearch = recordSearch;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordSearcher = SpiderRecordSearcherImp

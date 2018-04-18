@@ -36,14 +36,13 @@ import se.uu.ub.cora.spider.role.RulesProvider;
 public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private static final String USER_STRING = "user with id ";
-	private User user;
 	private Authorizator authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private RulesProvider rulesProvider;
 	private RecordStorage recordStorage;
 
-	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider, Authorizator authorizator,
-			RulesProvider rulesProvider) {
+	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider,
+			Authorizator authorizator, RulesProvider rulesProvider) {
 		this.authorizator = authorizator;
 		this.rulesProvider = rulesProvider;
 		ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
@@ -56,15 +55,14 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		return new SpiderAuthorizatorImp(dependencyProvider, authorizator, rulesProvider);
 	}
 
-	@Override
-	public boolean userSatisfiesRequiredRules(User user, List<Map<String, Set<String>>> requiredRules) {
-		this.user = user;
-		List<Map<String, Set<String>>> providedRules = getActiveRulesForUser();
+	private boolean userSatisfiesRequiredRules(User user,
+			List<Map<String, Set<String>>> requiredRules) {
+		List<Map<String, Set<String>>> providedRules = getActiveRulesForUser(user);
 
 		return authorizator.providedRulesSatisfiesRequiredRules(providedRules, requiredRules);
 	}
 
-	private List<Map<String, Set<String>>> getActiveRulesForUser() {
+	private List<Map<String, Set<String>>> getActiveRulesForUser(User user) {
 		List<Map<String, Set<String>>> providedRules = new ArrayList<>();
 		user.roles.forEach(roleId -> providedRules.addAll(rulesProvider.getActiveRules(roleId)));
 		// THIS IS A SMALL HACK UNTIL WE HAVE RECORDRELATIONS AND CAN READ FROM
@@ -79,7 +77,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	@Override
-	public boolean userIsAuthorizedForActionOnRecordType(User user, String action, String recordType) {
+	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType) {
 		checkUserIsActive(user);
 		List<Map<String, Set<String>>> requiredRulesForActionAndRecordType = ruleCalculator
 				.calculateRulesForActionAndRecordType(action, recordType);
@@ -118,7 +117,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	@Override
-	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action, String recordType) {
+	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType) {
 		if (!userIsAuthorizedForActionOnRecordType(user, action, recordType)) {
 			throw new AuthorizationException(USER_STRING + user.id
 					+ " is not authorized to create a record  of type:" + recordType);
@@ -131,6 +131,9 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		checkUserIsActive(user);
 		List<Map<String, Set<String>>> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndData(action, recordType, record);
+		// List<Map<String, Set<String>>> requiredRules2 = ruleCalculator
+		// .calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
+		// record);
 
 		return userSatisfiesRequiredRules(user, requiredRules);
 	}
@@ -142,6 +145,16 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 			throw new AuthorizationException(USER_STRING + user.id
 					+ " is not authorized to create a record  of type:" + recordType);
 		}
+	}
+
+	@Override
+	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+			String recordType, DataGroup collectedData) {
+		// TODO Auto-generated method stub
+		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
+						collectedData);
+		// userSatisfiesRequiredRules(user, null);
 	}
 
 }

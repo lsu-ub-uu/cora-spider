@@ -74,7 +74,7 @@ public class DataGroupToRecordEnhancerTest {
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.keyCalculator = keyCalculator;
+		dependencyProvider.ruleCalculator = keyCalculator;
 		enhancer = new DataGroupToRecordEnhancerImp(dependencyProvider);
 	}
 

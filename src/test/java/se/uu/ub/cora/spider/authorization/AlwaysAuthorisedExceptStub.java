@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -32,13 +32,6 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	public Map<String, Set<String>> notAuthorizedForRecordTypeAndActions = new HashMap<>();
 	public List<String> notAuthorizedForIds = new ArrayList<>();
-
-	@Override
-	public boolean userSatisfiesRequiredRules(User user,
-			List<Map<String, Set<String>>> requiredRules) {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
@@ -85,6 +78,13 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+			String string, DataGroup collectedData) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

@@ -103,13 +103,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 		checkUserIsAuthorisedToUpdateData(topLevelDataGroup);
 
-		// validate (including protected data)
-		// TODO: add validate here
-
-		// merge possibly hidden data
-		// TODO: merge incoming data with stored if user does not have right to
-		// update some parts
-
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);

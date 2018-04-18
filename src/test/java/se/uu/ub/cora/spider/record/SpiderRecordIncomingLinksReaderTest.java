@@ -51,7 +51,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.keyCalculator = keyCalculator;
+		dependencyProvider.ruleCalculator = keyCalculator;
 
 		incomingLinksReader = SpiderRecordIncomingLinksReaderImp
 				.usingDependencyProvider(dependencyProvider);
