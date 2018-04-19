@@ -164,7 +164,7 @@ public class SpiderRecordUpdaterTest {
 	}
 
 	@Test
-	public void testCorrectRecordinfoInUpdatedRecord() {
+	public void testCorrectRecordInfoInUpdatedRecord() {
 		recordStorage = new RecordStorageSpy();
 		dataValidator = new DataValidatorForRecordInfoSpy();
 		keyCalculator = new RuleCalculatorSpy();
@@ -236,7 +236,7 @@ public class SpiderRecordUpdaterTest {
 		SpiderDataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
 				"spyId", spiderDataGroup);
 
-		setUpdatedRecordToReturnOnRead(updatedRecord);
+		setUpdatedRecordInStorageSpyToReturnOnRead(updatedRecord);
 
 		SpiderDataRecord recordAlreadyContainingUpdateInfo = recordUpdater.updateRecord(
 				"someToken78678567", "spyType", "spyId", updatedRecord.getSpiderDataGroup());
@@ -249,7 +249,7 @@ public class SpiderRecordUpdaterTest {
 		assertEquals(updatedGroups.size(), 2);
 	}
 
-	private void setUpdatedRecordToReturnOnRead(SpiderDataRecord updatedRecord) {
+	private void setUpdatedRecordInStorageSpyToReturnOnRead(SpiderDataRecord updatedRecord) {
 		RecordStorageUpdateMultipleTimesSpy storageSpy = (RecordStorageUpdateMultipleTimesSpy) recordStorage;
 		storageSpy.recordToReturnOnRead = updatedRecord.getSpiderDataGroup().toDataGroup();
 	}
@@ -264,7 +264,7 @@ public class SpiderRecordUpdaterTest {
 
 		SpiderDataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
 				"spyId", spiderDataGroup);
-		setUpdatedRecordToReturnOnRead(updatedRecord);
+		setUpdatedRecordInStorageSpyToReturnOnRead(updatedRecord);
 
 		SpiderDataGroup firstUpdated = getFirstUpdatedInfo(updatedRecord);
 		String correctTsUpdated = firstUpdated.extractAtomicValue("tsUpdated");
