@@ -24,6 +24,10 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -120,7 +124,7 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void testNotAuthorized() {
-		authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
+		authorizator = new BeefeaterNeverAuthorizedSpy();
 		setUpDependencyProvider();
 		boolean userAuthorized = spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user,
 				action, recordType);
@@ -144,7 +148,7 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void userDoesNotSatisfyActionForRecordType() {
-		authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
+		authorizator = new BeefeaterNeverAuthorizedSpy();
 		setUpDependencyProvider();
 		boolean userAuthorized = spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user,
 				action, recordType);
@@ -172,7 +176,7 @@ public class SpiderAuthorizatorTest {
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void checkUserDoesNotSatisfyActionForRecordType() {
-		authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
+		authorizator = new BeefeaterNeverAuthorizedSpy();
 		setUpDependencyProvider();
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, action, recordType);
 		assertRuleCalculatorIsCalled();
@@ -196,7 +200,7 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void userDoesNotSatisfyActionForRecord() {
-		authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
+		authorizator = new BeefeaterNeverAuthorizedSpy();
 		setUpDependencyProvider();
 		DataGroup record = createBookRecord();
 		boolean userAuthorized = spiderAuthorizator
@@ -233,7 +237,7 @@ public class SpiderAuthorizatorTest {
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void checkUserDoesNotSatisfiesActionForRecord() {
-		authorizator = new BeefeaterNeverAlwaysAuthorizedSpy();
+		authorizator = new BeefeaterNeverAuthorizedSpy();
 		setUpDependencyProvider();
 		String action = "read";
 		DataGroup record = createBookRecord();
@@ -253,17 +257,38 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void checkUserSatisfiesActionForCollectedData() {
+		user.roles.add("guest2");
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
 		DataGroup collectedData = DataGroup.withNameInData("collectedData");
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action,
 				"book", collectedData);
 
-		// assertRuleCalculatorIsCalled();
 		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
 				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
-		// assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy)
-		// authorizator).requiredRules,
-		// ((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
+				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+
+		List<Map<String, Set<String>>> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
+
+		Iterator<String> iterator = user.roles.iterator();
+		assertEquals(rulesProvider.roleIds.get(0), iterator.next());
+		assertEquals(providedRules.get(0), rulesProvider.returnedRules.get(0).get(0));
+		assertEquals(providedRules.get(1), rulesProvider.returnedRules.get(0).get(1));
+
+		assertEquals(rulesProvider.roleIds.get(1), iterator.next());
+		assertEquals(providedRules.get(2), rulesProvider.returnedRules.get(1).get(0));
+		assertEquals(providedRules.get(3), rulesProvider.returnedRules.get(1).get(1));
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void checkUserDoesNotSatisfiesActionForCollectedData() {
+		authorizator = new BeefeaterNeverAuthorizedSpy();
+		setUpDependencyProvider();
+
+		user.roles.add("guest2");
+		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action,
+				"book", collectedData);
 	}
 }

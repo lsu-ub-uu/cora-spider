@@ -91,6 +91,10 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 		}
 	}
 
+	private boolean thereAreCollectedPermissionValuesFromData(DataGroup collectedData) {
+		return collectedData.containsChildWithNameInData("permission");
+	}
+
 	private void createRulesFromCollectedPermissionTerms(DataGroup permission,
 			List<Map<String, Set<String>>> requiredRules) {
 		Map<String, Set<String>> requiredRule = requiredRules.get(0);
@@ -110,7 +114,4 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 		createRulePart(requiredRule, permissionKey, value);
 	}
 
-	private boolean thereAreCollectedPermissionValuesFromData(DataGroup collectedData) {
-		return collectedData.containsChildWithNameInData("permission");
-	}
 }

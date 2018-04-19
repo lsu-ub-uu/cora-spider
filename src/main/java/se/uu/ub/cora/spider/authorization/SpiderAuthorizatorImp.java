@@ -150,11 +150,22 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
-		// TODO Auto-generated method stub
+		if (!userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, recordType,
+				collectedData)) {
+			throw new AuthorizationException("");
+		}
+	}
+
+	private boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+			String recordType, DataGroup collectedData) {
 		List<Map<String, Set<String>>> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
 						collectedData);
-		// userSatisfiesRequiredRules(user, null);
+
+		List<Map<String, Set<String>>> providedRules = new ArrayList<>();
+		user.roles.forEach(roleId -> providedRules.addAll(rulesProvider.getActiveRules(roleId)));
+
+		return authorizator.providedRulesSatisfiesRequiredRules(providedRules, requiredRules);
 	}
 
 }

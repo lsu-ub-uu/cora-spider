@@ -25,7 +25,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 
-public class BeefeaterNeverAlwaysAuthorizedSpy implements Authorizator {
+public class BeefeaterNeverAuthorizedSpy implements Authorizator {
 
 	@Override
 	public boolean providedRulesSatisfiesRequiredRules(List<Map<String, Set<String>>> providedRules,

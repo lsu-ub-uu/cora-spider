@@ -31,10 +31,14 @@ import se.uu.ub.cora.spider.role.RulesProvider;
 public class RulesProviderSpy implements RulesProvider {
 
 	public String roleId;
+	public List<String> roleIds = new ArrayList<>();
+	public List<List<Map<String, Set<String>>>> returnedRules = new ArrayList<>();
 
 	@Override
 	public List<Map<String, Set<String>>> getActiveRules(String roleId) {
 		this.roleId = roleId;
+		roleIds.add(roleId);
+
 		ArrayList<Map<String, Set<String>>> rules = new ArrayList<>();
 
 		HashMap<String, Set<String>> rule = new HashMap<>();
@@ -48,6 +52,8 @@ public class RulesProviderSpy implements RulesProvider {
 		HashSet<String> rulePart2 = new HashSet<>();
 		rule2.put("action", rulePart2);
 		rulePart2.add("system.update");
+
+		returnedRules.add(rules);
 
 		return rules;
 	}
