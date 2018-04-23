@@ -61,7 +61,7 @@ public abstract class SpiderDependencyProvider {
 
 	public abstract RecordSearch getRecordSearch();
 
-	public abstract DataGroupTermCollector getDataGroupSearchTermCollector();
+	public abstract DataGroupTermCollector getDataGroupTermCollector();
 
 	public abstract RecordIndexer getRecordIndexer();
 }

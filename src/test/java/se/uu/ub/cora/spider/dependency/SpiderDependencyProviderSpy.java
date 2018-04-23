@@ -106,7 +106,7 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	}
 
 	@Override
-	public DataGroupTermCollector getDataGroupSearchTermCollector() {
+	public DataGroupTermCollector getDataGroupTermCollector() {
 		return searchTermCollector;
 	}
 

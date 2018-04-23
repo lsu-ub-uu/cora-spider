@@ -53,8 +53,7 @@ public class NeverAuthorisedStub implements SpiderAuthorizator {
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String string, DataGroup collectedData) {
-		// TODO Auto-generated method stub
-
+		throw new AuthorizationException("never authorized");
 	}
 
 	@Override

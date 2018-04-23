@@ -65,7 +65,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.idGenerator = dependencyProvider.getIdGenerator();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		this.collectTermCollector = dependencyProvider.getDataGroupSearchTermCollector();
+		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}

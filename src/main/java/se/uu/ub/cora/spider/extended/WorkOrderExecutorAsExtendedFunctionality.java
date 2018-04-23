@@ -43,7 +43,7 @@ public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctio
 
 	public WorkOrderExecutorAsExtendedFunctionality(SpiderDependencyProvider dependencyProvider) {
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
-		this.collectTermCollector = dependencyProvider.getDataGroupSearchTermCollector();
+		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.authenticator = dependencyProvider.getAuthenticator();
