@@ -281,7 +281,8 @@ public class SpiderAuthorizatorTest {
 		assertEquals(providedRules.get(3), rulesProvider.returnedRules.get(1).get(1));
 	}
 
-	@Test(expectedExceptions = AuthorizationException.class)
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "user with id someUserId is not authorized to read a record of type: book")
 	public void checkUserDoesNotSatisfiesActionForCollectedData() {
 		authorizator = new BeefeaterNeverAuthorizedSpy();
 		setUpDependencyProvider();
@@ -290,5 +291,46 @@ public class SpiderAuthorizatorTest {
 		DataGroup collectedData = DataGroup.withNameInData("collectedData");
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action,
 				"book", collectedData);
+	}
+
+	@Test
+	public void userSatisfiesActionForCollectedData() {
+		user.roles.add("guest2");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		boolean authorized = spiderAuthorizator
+				.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, "book",
+						collectedData);
+		assertTrue(authorized);
+
+		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
+				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
+				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+
+		List<Map<String, Set<String>>> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
+
+		Iterator<String> iterator = user.roles.iterator();
+		assertEquals(rulesProvider.roleIds.get(0), iterator.next());
+		assertEquals(providedRules.get(0), rulesProvider.returnedRules.get(0).get(0));
+		assertEquals(providedRules.get(1), rulesProvider.returnedRules.get(0).get(1));
+
+		assertEquals(rulesProvider.roleIds.get(1), iterator.next());
+		assertEquals(providedRules.get(2), rulesProvider.returnedRules.get(1).get(0));
+		assertEquals(providedRules.get(3), rulesProvider.returnedRules.get(1).get(1));
+	}
+
+	@Test
+	public void userDoesNotSatisfiesActionForCollectedData() {
+		authorizator = new BeefeaterNeverAuthorizedSpy();
+		setUpDependencyProvider();
+
+		user.roles.add("guest2");
+		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		boolean authorized = spiderAuthorizator
+				.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, "book",
+						collectedData);
+		assertFalse(authorized);
 	}
 }

@@ -8,7 +8,7 @@ public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
 	public String metadataId = null;
 	public DataGroup dataGroup;
 
-	public DataGroup collectedTerms = DataGroup.withNameInData("collectedDataLinks");
+	public DataGroup collectedTerms = DataGroup.withNameInData("collectedData");
 
 	@Override
 	public DataGroup collectTerms(String metadataId, DataGroup dataGroup) {

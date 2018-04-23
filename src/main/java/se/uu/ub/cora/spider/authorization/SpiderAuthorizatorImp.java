@@ -125,6 +125,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		}
 	}
 
+	@Deprecated
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
 			String recordType, DataGroup record) {
@@ -138,6 +139,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		return userSatisfiesRequiredRules(user, requiredRules);
 	}
 
+	@Deprecated
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
 			String recordType, DataGroup record) {
@@ -152,11 +154,13 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 			String recordType, DataGroup collectedData) {
 		if (!userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, recordType,
 				collectedData)) {
-			throw new AuthorizationException("");
+			throw new AuthorizationException(USER_STRING + user.id + " is not authorized to "
+					+ action + " a record of type: " + recordType);
 		}
 	}
 
-	private boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
 		List<Map<String, Set<String>>> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,

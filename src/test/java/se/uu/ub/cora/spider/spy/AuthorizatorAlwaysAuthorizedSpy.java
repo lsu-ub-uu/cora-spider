@@ -33,6 +33,8 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 	public List<String> actions = new ArrayList<>();
 	public List<String> recordTypes = new ArrayList<>();
 	public List<DataGroup> records = new ArrayList<>();
+	public List<DataGroup> collectedTerms = new ArrayList<>();
+	public List<String> calledMethods = new ArrayList<>();
 
 	public List<String> userIsAuthorizedParameters = new ArrayList<>();
 
@@ -74,9 +76,20 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+			String recordType, DataGroup collectedData) {
+		this.users.add(user);
+		this.actions.add(action);
+		this.recordTypes.add(recordType);
+		this.collectedTerms.add(collectedData);
+		calledMethods.add("checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
+		// always authorized
+	}
+
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String string, DataGroup collectedData) {
 		// TODO Auto-generated method stub
-
+		return false;
 	}
 
 }

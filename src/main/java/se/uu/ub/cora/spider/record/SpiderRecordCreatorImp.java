@@ -39,7 +39,8 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 import se.uu.ub.cora.spider.search.RecordIndexer;
 
-public final class SpiderRecordCreatorImp extends SpiderRecordHandler implements SpiderRecordCreator {
+public final class SpiderRecordCreatorImp extends SpiderRecordHandler
+		implements SpiderRecordCreator {
 	private static final String CREATE = "create";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -107,18 +108,19 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler implements
 
 		DataGroup topLevelDataGroup = recordAsSpiderDataGroup.toDataGroup();
 
-		checkUserIsAuthorisedToCreateIncomingData(recordType, topLevelDataGroup);
-
 		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
-		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup, recordType,
-				recordId);
+		checkUserIsAuthorisedToCreateIncomingData(recordType, collectedTerms);
+
+		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
+				recordType, recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 		createRecordInStorage(topLevelDataGroup, collectedLinks, collectedTerms);
 
 		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
 		recordIndexer.indexData(ids, collectedTerms, topLevelDataGroup);
 
-		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup.fromDataGroup(topLevelDataGroup);
+		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
+				.fromDataGroup(topLevelDataGroup);
 		useExtendedFunctionalityBeforeReturn(recordType, spiderDataGroupWithActions);
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);
@@ -135,8 +137,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler implements
 	private void createRecordInStorage(DataGroup topLevelDataGroup, DataGroup collectedLinks,
 			DataGroup collectedTerms) {
 		String dataDivider = extractDataDividerFromData(recordAsSpiderDataGroup);
-		recordStorage.create(recordType, recordId, topLevelDataGroup, collectedTerms, collectedLinks,
-				dataDivider);
+		recordStorage.create(recordType, recordId, topLevelDataGroup, collectedTerms,
+				collectedLinks, dataDivider);
 	}
 
 	private void checkNoCreateForAbstractRecordType() {
@@ -206,8 +208,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler implements
 
 	private void generateAndAddIdToRecordInfo(String recordType) {
 		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
-		recordInfo.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("id", idGenerator.getIdForType(recordType)));
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id",
+				idGenerator.getIdForType(recordType)));
 	}
 
 	private void addUserAndTypeToRecordInfo(String userId, String recordType) {
@@ -218,13 +220,16 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler implements
 	}
 
 	private void addUserToRecordInfoUsingUserId(SpiderDataGroup recordInfo, String userId) {
-		SpiderDataGroup createdByGroup = createLinkToUserUsingUserIdAndNameInData(userId, "createdBy");
+		SpiderDataGroup createdByGroup = createLinkToUserUsingUserIdAndNameInData(userId,
+				"createdBy");
 		recordInfo.addChild(createdByGroup);
-		SpiderDataGroup updatedByGroup = createLinkToUserUsingUserIdAndNameInData(userId, "updatedBy");
+		SpiderDataGroup updatedByGroup = createLinkToUserUsingUserIdAndNameInData(userId,
+				"updatedBy");
 		recordInfo.addChild(updatedByGroup);
 	}
 
-	private SpiderDataGroup createLinkToUserUsingUserIdAndNameInData(String userId, String nameInData) {
+	private SpiderDataGroup createLinkToUserUsingUserIdAndNameInData(String userId,
+			String nameInData) {
 		SpiderDataGroup createdByGroup = SpiderDataGroup.withNameInData(nameInData);
 		addLinkToUserUsingUserId(createdByGroup, userId);
 		return createdByGroup;
@@ -245,12 +250,15 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler implements
 	private void addTimestampToRecordInfo() {
 		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
 		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
-		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("tsCreated", currentLocalDateTime));
-		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("tsUpdated", currentLocalDateTime));
+		recordInfo.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("tsCreated", currentLocalDateTime));
+		recordInfo.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("tsUpdated", currentLocalDateTime));
 	}
 
-	private void checkUserIsAuthorisedToCreateIncomingData(String recordType, DataGroup record) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, CREATE, recordType,
-				record);
+	private void checkUserIsAuthorisedToCreateIncomingData(String recordType,
+			DataGroup collectedData) {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, CREATE,
+				recordType, collectedData);
 	}
 }

@@ -181,6 +181,10 @@ public class BasePermissionRuleCalculatorTest {
 		Set<String> createdByValues = requiredRule.get("SOME_PERMISSION_KEY");
 		assertEquals(createdByValues.size(), 1);
 		assertEquals(createdByValues.iterator().next(), "system.someTermValue");
+
+		Set<String> createdByValues2 = requiredRule.get("OTHER_PERMISSION_KEY");
+		assertEquals(createdByValues2.size(), 1);
+		assertEquals(createdByValues2.iterator().next(), "system.otherTermValue");
 	}
 
 }

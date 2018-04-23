@@ -30,6 +30,7 @@ public interface PermissionRuleCalculator {
 	List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
 			String recordType);
 
+	@Deprecated
 	List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action,
 			String recordType, DataGroup record);
 

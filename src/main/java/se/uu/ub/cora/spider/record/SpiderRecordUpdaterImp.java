@@ -101,15 +101,14 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
 
-		checkUserIsAuthorisedToUpdateData(topLevelDataGroup);
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
+		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
 
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
-
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
 
 		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedTerms,
 				collectedLinks, dataDivider);
@@ -190,12 +189,12 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, recordRead);
 
-		checkUserIsAuthorisedToUpdateData(recordRead);
+		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
 	}
 
-	private void checkUserIsAuthorisedToUpdateData(DataGroup incomingData) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, UPDATE,
-				recordType, incomingData);
+	private void checkUserIsAuthorisedToUpdateGivenCollectedData(DataGroup collectedTerms) {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, UPDATE,
+				recordType, collectedTerms);
 	}
 
 	private void addUpdateInfo(SpiderDataGroup topLevelDataGroup) {

@@ -56,8 +56,15 @@ public class AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String string, DataGroup collectedData) {
-		// TODO Auto-generated method stub
+		throw new AuthorizationException("not authorized");
 
+	}
+
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+			String string, DataGroup collectedData) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }
