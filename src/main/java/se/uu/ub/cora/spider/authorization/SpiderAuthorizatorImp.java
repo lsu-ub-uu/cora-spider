@@ -132,10 +132,6 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		checkUserIsActive(user);
 		List<Map<String, Set<String>>> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndData(action, recordType, record);
-		// List<Map<String, Set<String>>> requiredRules2 = ruleCalculator
-		// .calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
-		// record);
-
 		return userSatisfiesRequiredRules(user, requiredRules);
 	}
 

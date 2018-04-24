@@ -8,6 +8,8 @@ import java.util.HashMap;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
@@ -23,6 +25,7 @@ import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
+import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
@@ -36,6 +39,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 	private SpiderAuthorizator authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
+	private DataGroupTermCollector termCollector;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -43,6 +47,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
+		termCollector = new DataGroupTermCollectorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -52,6 +57,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.ruleCalculator = keyCalculator;
+		dependencyProvider.searchTermCollector = termCollector;
 
 		incomingLinksReader = SpiderRecordIncomingLinksReaderImp
 				.usingDependencyProvider(dependencyProvider);
@@ -88,7 +94,21 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 		assertEquals(toLinkedRecordType.getValue(), "place");
 		assertEquals(toLinkedRecordId.getValue(), "place:0001");
+		//
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizator);
+		assertEquals(authorizatorSpy.actions.get(0), "read");
+		assertEquals(authorizatorSpy.users.get(0).id, "12345");
+		assertEquals(authorizatorSpy.recordTypes.get(0), "place");
 
+		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
+		assertEquals(dataGroupTermCollectorSpy.metadataId, "place");
+		assertEquals(dataGroupTermCollectorSpy.dataGroup,
+				recordStorage.read("place", "place:0001"));
+
+		assertEquals(authorizatorSpy.calledMethods.get(0),
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
+		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
+		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
 	}
 
 	@Test
