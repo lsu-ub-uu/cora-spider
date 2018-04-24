@@ -35,9 +35,9 @@ public interface SpiderAuthorizator {
 	boolean userIsAuthorizedForActionOnRecordType(User user, String action, String recordType);
 
 	void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String string, DataGroup collectedData);
+			String recordType, DataGroup collectedData);
 
 	boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String string, DataGroup collectedData);
+			String recordType, DataGroup collectedData);
 
 }

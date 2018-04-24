@@ -44,6 +44,8 @@ public class RecordStorageSpy implements RecordStorage {
 	public boolean readListWasCalled = false;
 	private DataGroup child1Place0002 = DataCreator
 			.createDataGroupWithNameInDataTypeAndId("unknown", type, id);
+	private DataGroup authorityPlace0001 = DataCreator
+			.createDataGroupWithNameInDataTypeAndId("abstract", "place", "place001");
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -111,8 +113,13 @@ public class RecordStorageSpy implements RecordStorage {
 			book.addChild(DataCreator.createChildWithNamInDataLinkedTypeLinkedId("metadataId",
 					"metadataGroup", "bookGroup"));
 			return book;
-
 		}
+		if ("recordType".equals(type) && "abstractAuthority".equals(id)) {
+			DataGroup authority = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(
+					"abstractAuthority", "false", "true");
+			return authority;
+		}
+
 		if ("book".equals(type) && "book1".equals(id)) {
 			DataGroup book = DataGroup.withNameInData("book");
 			DataGroup recordInfo = DataCreator
@@ -246,15 +253,11 @@ public class RecordStorageSpy implements RecordStorage {
 		}
 
 		if ("abstractAuthority".equals(type)) {
-			DataGroup abstractAuthority = DataGroup.withNameInData("abstractAuthority");
-			DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
-			recordInfo.addChild(DataAtomic.withNameInDataAndValue("id", "place001"));
-			abstractAuthority.addChild(recordInfo);
-			return abstractAuthority;
+			return authorityPlace0001;
 
 		}
 		if ("place".equals(type)) {
-			return DataCreator.createDataGroupWithNameInDataTypeAndId("authority", "place", id);
+			return authorityPlace0001;
 		}
 		if ("child1".equals(type) && "place:0002".equals(id)) {
 

@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
@@ -33,6 +34,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	private SpiderAuthorizator spiderAuthorizator;
 	private User user;
 	private String authToken;
+	private DataGroupTermCollector collectTermCollector;
 
 	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -41,6 +43,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
+		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 	}
 
 	public static SpiderRecordReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -51,7 +54,6 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 
 	@Override
 	public SpiderDataRecord readRecord(String authToken, String recordType, String recordId) {
-
 		this.authToken = authToken;
 		this.recordType = recordType;
 		this.recordId = recordId;
@@ -60,9 +62,6 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
 		checkUserIsAuthorisedToReadData(recordRead);
-
-		// filter data
-		// TODO: filter hidden data if user does not have right to see it
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
 	}
@@ -76,7 +75,35 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, READ,
-				recordType, recordRead);
+		DataGroup collectedTerms = getCollectedTermsForRecord(recordType, recordRead);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
+				recordType, collectedTerms);
+	}
+
+	private DataGroup getCollectedTermsForRecord(String recordType, DataGroup recordRead) {
+		String metadataId = getMetadataIdFromRecordType(recordType, recordRead);
+		return collectTermCollector.collectTerms(metadataId, recordRead);
+	}
+
+	private String getMetadataIdFromRecordType(String recordType, DataGroup recordRead) {
+		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+		if (recordTypeHandler.isAbstract()) {
+			return getImplementingMetadataId(recordRead);
+		}
+		return recordTypeHandler.getMetadataId();
+	}
+
+	private String getImplementingMetadataId(DataGroup recordRead) {
+		String implementingRecordType = getImplementingRecordType(recordRead);
+		RecordTypeHandler typeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, implementingRecordType);
+		return typeHandler.getMetadataId();
+	}
+
+	private String getImplementingRecordType(DataGroup recordRead) {
+		DataGroup recordInfo = recordRead.getFirstGroupWithNameInData("recordInfo");
+		DataGroup type = recordInfo.getFirstGroupWithNameInData("type");
+		return type.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 }

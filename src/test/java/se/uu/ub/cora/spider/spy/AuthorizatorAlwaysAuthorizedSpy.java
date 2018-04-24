@@ -87,9 +87,13 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String string, DataGroup collectedData) {
+			String recordType, DataGroup collectedData) {
 		// TODO Auto-generated method stub
-		return false;
+		this.collectedTerms.add(collectedData);
+		userIsAuthorizedParameters.add(user.id + ":" + action + ":" + recordType);
+		calledMethods.add("userIsAuthorizedForActionOnRecordTypeAndCollectedData");
+
+		return true;
 	}
 
 }

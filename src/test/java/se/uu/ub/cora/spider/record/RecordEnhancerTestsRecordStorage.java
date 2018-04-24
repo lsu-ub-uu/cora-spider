@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
@@ -45,15 +44,12 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 			} else if ("image".equals(id)) {
 				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "false",
 						"binary");
+			} else if ("recordType".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
+						"true");
 			} else if (("place".equals(id))) {
-				DataGroup dataGroup = DataCreator.createDataGroupWithNameInDataTypeAndId("authority",
-						"recordType", id);
-				dataGroup.addChild(DataAtomic.withNameInDataAndValue("abstract", "false"));
-				DataGroup parent = DataGroup.withNameInData("parentId");
-				parent.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
-				parent.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "authority"));
-				dataGroup.addChild(parent);
-				return dataGroup;
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "false",
+						"authority");
 			}
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("dataWithLinks",
 					"false", "false");
@@ -79,8 +75,8 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 		}
 		if (type.equals("dataWithResourceLinks")) {
 			if (id.equals("oneResourceLinkTopLevel")) {
-				return RecordLinkTestsDataCreator.createSpiderDataGroupWithRecordInfoAndResourceLink()
-						.toDataGroup();
+				return RecordLinkTestsDataCreator
+						.createSpiderDataGroupWithRecordInfoAndResourceLink().toDataGroup();
 			}
 			if (id.equals("oneResourceLinkOneLevelDown")) {
 				return RecordLinkTestsDataCreator
@@ -94,7 +90,8 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 		}
 		if (type.equals("search")) {
 			if ("aSearchId".equals(id)) {
-				return SpiderDataCreator.createSearchWithIdAndRecordTypeToSearchIn("aSearchId", "place")
+				return SpiderDataCreator
+						.createSearchWithIdAndRecordTypeToSearchIn("aSearchId", "place")
 						.toDataGroup();
 			} else if ("anotherSearchId".equals(id)) {
 				return SpiderDataCreator
@@ -108,7 +105,8 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 			}
 		}
 		if ("image".equals(type)) {
-			return DataCreator.createDataGroupWithNameInDataTypeAndId("binary", "image", "image:0001");
+			return DataCreator.createDataGroupWithNameInDataTypeAndId("binary", "image",
+					"image:0001");
 		}
 		if ("place".equals(type)) {
 			return DataCreator.createDataGroupWithNameInDataTypeAndId("authority", "place", id);
@@ -116,7 +114,8 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 		if ("nonExistingRecordId".equals(id)) {
 			throw new RecordNotFoundException("no record with id " + id + " exists");
 		}
-		return null;
+		// return null;
+		return DataCreator.createDataGroupWithNameInDataTypeAndId("noData", type, id);
 	}
 
 	@Override
@@ -185,7 +184,8 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id) {
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+			String id) {
 		return recordIdExistsForRecordType;
 	}
 
