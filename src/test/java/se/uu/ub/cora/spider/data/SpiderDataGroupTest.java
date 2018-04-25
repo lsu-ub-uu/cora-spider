@@ -244,7 +244,8 @@ public class SpiderDataGroupTest {
 	private DataGroup createResourceLinkNoStreamId() {
 		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
 
-		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
+		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId",
+		// "aStreamId"));
 		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
 		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
 		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
@@ -262,7 +263,8 @@ public class SpiderDataGroupTest {
 		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
 
 		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
-		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
+		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename",
+		// "aFileName"));
 		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
 		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
 
@@ -280,7 +282,8 @@ public class SpiderDataGroupTest {
 
 		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
 		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
-		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
+		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize",
+		// "12345"));
 		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
 
 		return dataResourceLink;
@@ -489,4 +492,39 @@ public class SpiderDataGroupTest {
 				SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
 		spiderDataGroup.extractAtomicValue("atomicNameInData_NOT_FOUND");
 	}
+
+	@Test
+	public void testGetAllGroupsWithNameInData() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		spiderDataGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
+		addTwoGroupChildrenWithSameNameInData(spiderDataGroup);
+
+		List<SpiderDataGroup> groupsFound = spiderDataGroup
+				.getAllGroupsWithNameInData("childNameInData");
+		assertEquals(groupsFound.size(), 2);
+	}
+
+	private void addTwoGroupChildrenWithSameNameInData(SpiderDataGroup spiderDataGroup) {
+		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("childNameInData");
+		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("firstName", "someName"));
+		dataGroup.setRepeatId("0");
+		spiderDataGroup.addChild(dataGroup);
+		SpiderDataGroup dataGroup2 = SpiderDataGroup.withNameInData("childNameInData");
+		dataGroup2.addChild(SpiderDataAtomic.withNameInDataAndValue("firstName", "someOtherName"));
+		dataGroup2.setRepeatId("1");
+		spiderDataGroup.addChild(dataGroup2);
+	}
+
+	@Test
+	public void testGetAllGroupsWithNameInDataNoMatches() {
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		spiderDataGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
+
+		List<SpiderDataGroup> groupsFound = spiderDataGroup
+				.getAllGroupsWithNameInData("childNameInData");
+		assertEquals(groupsFound.size(), 0);
+	}
+
 }
