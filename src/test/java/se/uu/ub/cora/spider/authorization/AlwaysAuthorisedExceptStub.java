@@ -41,34 +41,9 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 		}
 	}
 
-	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String recordType, DataGroup record) {
-		if (notAuthorizedForRecordTypeAndAction(recordType, action)) {
-			throw new AuthorizationException("not authorized");
-		}
-
-	}
-
 	private boolean notAuthorizedForRecordTypeAndAction(String recordType, String action) {
 		return notAuthorizedForRecordTypeAndActions.containsKey(recordType)
 				&& notAuthorizedForRecordTypeAndActions.get(recordType).contains(action);
-	}
-
-	@Override
-	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String recordType, DataGroup record) {
-		if (notAuthorizedForRecordTypeAndAction(recordType, action)
-				|| notAuthorizedForRecordId(record)) {
-			return false;
-		}
-		return true;
-	}
-
-	private boolean notAuthorizedForRecordId(DataGroup record) {
-		String recordId = record.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id");
-		return notAuthorizedForIds.contains(recordId);
 	}
 
 	@Override

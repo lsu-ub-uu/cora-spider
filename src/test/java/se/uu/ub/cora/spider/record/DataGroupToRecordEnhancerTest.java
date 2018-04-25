@@ -256,20 +256,20 @@ public class DataGroupToRecordEnhancerTest {
 		actions.add("list");
 		actions.add("search");
 		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
-				.put("recordType", actions);
+				.put("place", actions);
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = recordStorage.read("recordType", "place");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-		assertEquals(record.getActions().size(), 6);
+		assertEquals(record.getActions().size(), 4);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.INDEX));
 
-		assertTrue(record.getActions().contains(Action.CREATE));
-		assertTrue(record.getActions().contains(Action.LIST));
+		assertFalse(record.getActions().contains(Action.CREATE));
+		assertFalse(record.getActions().contains(Action.LIST));
 	}
 
 	@Test

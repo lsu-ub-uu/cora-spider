@@ -46,27 +46,6 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 	}
 
 	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String recordType, DataGroup record) {
-		this.users.add(user);
-		this.actions.add(action);
-		this.recordTypes.add(recordType);
-		this.records.add(record);
-		// always authorized
-		authorizedWasCalled = true;
-
-	}
-
-	@Override
-	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String recordType, DataGroup record) {
-		authorizedWasCalled = true;
-		this.recordTypes.add(recordType);
-		userIsAuthorizedParameters.add(user.id + ":" + action + ":" + recordType);
-		return true;
-	}
-
-	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
 		authorizedWasCalled = true;

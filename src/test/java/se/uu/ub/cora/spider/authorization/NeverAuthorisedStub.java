@@ -32,19 +32,6 @@ public class NeverAuthorisedStub implements SpiderAuthorizator {
 	}
 
 	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String recordType, DataGroup record) {
-		throw new AuthorizationException("never authorized");
-
-	}
-
-	@Override
-	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String string, DataGroup record) {
-		return false;
-	}
-
-	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
 		return false;

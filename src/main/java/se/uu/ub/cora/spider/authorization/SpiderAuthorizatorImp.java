@@ -125,26 +125,6 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		}
 	}
 
-	@Deprecated
-	@Override
-	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String recordType, DataGroup record) {
-		checkUserIsActive(user);
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator
-				.calculateRulesForActionAndRecordTypeAndData(action, recordType, record);
-		return userSatisfiesRequiredRules(user, requiredRules);
-	}
-
-	@Deprecated
-	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String recordType, DataGroup record) {
-		if (!userIsAuthorizedForActionOnRecordTypeAndRecord(user, action, recordType, record)) {
-			throw new AuthorizationException(USER_STRING + user.id
-					+ " is not authorized to create a record  of type:" + recordType);
-		}
-	}
-
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
@@ -158,6 +138,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
+		checkUserIsActive(user);
 		List<Map<String, Set<String>>> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
 						collectedData);

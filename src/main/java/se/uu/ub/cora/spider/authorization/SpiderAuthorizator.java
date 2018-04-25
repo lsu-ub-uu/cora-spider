@@ -26,11 +26,13 @@ public interface SpiderAuthorizator {
 
 	void checkUserIsAuthorizedForActionOnRecordType(User user, String action, String recordType);
 
-	void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String recordType, DataGroup record);
-
-	boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String recordType, DataGroup record);
+	// void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String
+	// action,
+	// String recordType, DataGroup record);
+	//
+	// boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String
+	// action,
+	// String recordType, DataGroup record);
 
 	boolean userIsAuthorizedForActionOnRecordType(User user, String action, String recordType);
 
