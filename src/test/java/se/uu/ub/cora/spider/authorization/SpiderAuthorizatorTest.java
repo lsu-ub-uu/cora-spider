@@ -26,14 +26,13 @@ import static org.testng.Assert.assertTrue;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
@@ -276,7 +275,7 @@ public class SpiderAuthorizatorTest {
 		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
 				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
 
-		List<Map<String, Set<String>>> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
+		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
 
 		Iterator<String> iterator = user.roles.iterator();
 		assertEquals(rulesProvider.roleIds.get(0), iterator.next());
@@ -316,7 +315,7 @@ public class SpiderAuthorizatorTest {
 		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
 				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
 
-		List<Map<String, Set<String>>> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
+		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
 
 		Iterator<String> iterator = user.roles.iterator();
 		assertEquals(rulesProvider.roleIds.get(0), iterator.next());

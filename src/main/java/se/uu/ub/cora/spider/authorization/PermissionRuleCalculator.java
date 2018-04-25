@@ -20,21 +20,19 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
+import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public interface PermissionRuleCalculator {
 
-	List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
-			String recordType);
+	List<Rule> calculateRulesForActionAndRecordType(String action, String recordType);
 
 	@Deprecated
-	List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action,
+	List<Rule> calculateRulesForActionAndRecordTypeAndData(String action,
 			String recordType, DataGroup record);
 
-	List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndCollectedData(
-			String action, String recordType, DataGroup collectedData);
+	List<Rule> calculateRulesForActionAndRecordTypeAndCollectedData(String action,
+			String recordType, DataGroup collectedData);
 
 }

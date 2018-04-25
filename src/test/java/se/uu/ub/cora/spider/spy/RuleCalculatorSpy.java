@@ -21,9 +21,8 @@ package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
+import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 
@@ -33,22 +32,21 @@ public class RuleCalculatorSpy implements PermissionRuleCalculator {
 	public boolean calculateKeysForDataWasCalled = false;
 
 	@Override
-	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
-			String recordType) {
+	public List<Rule> calculateRulesForActionAndRecordType(String action, String recordType) {
 		calculateKeysWithoutDataWasCalled = true;
 		return new ArrayList<>();
 	}
 
 	@Override
-	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(
+	public List<se.uu.ub.cora.beefeater.authorization.Rule> calculateRulesForActionAndRecordTypeAndData(
 			String accessType, String recordType, DataGroup record) {
 		calculateKeysForDataWasCalled = true;
 		return new ArrayList<>();
 	}
 
 	@Override
-	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndCollectedData(
-			String action, String recordType, DataGroup collectedData) {
+	public List<Rule> calculateRulesForActionAndRecordTypeAndCollectedData(String action,
+			String recordType, DataGroup collectedData) {
 		calculateKeysForDataWasCalled = true;
 		return new ArrayList<>();
 	}

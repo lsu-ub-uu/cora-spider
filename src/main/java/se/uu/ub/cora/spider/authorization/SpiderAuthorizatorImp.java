@@ -21,13 +21,12 @@ package se.uu.ub.cora.spider.authorization;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.beefeater.authorization.Rule;
+import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
@@ -55,21 +54,20 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		return new SpiderAuthorizatorImp(dependencyProvider, authorizator, rulesProvider);
 	}
 
-	private boolean userSatisfiesRequiredRules(User user,
-			List<Map<String, Set<String>>> requiredRules) {
-		List<Map<String, Set<String>>> providedRules = getActiveRulesForUser(user);
+	private boolean userSatisfiesRequiredRules(User user, List<Rule> requiredRules) {
+		List<Rule> providedRules = getActiveRulesForUser(user);
 
 		return authorizator.providedRulesSatisfiesRequiredRules(providedRules, requiredRules);
 	}
 
-	private List<Map<String, Set<String>>> getActiveRulesForUser(User user) {
-		List<Map<String, Set<String>>> providedRules = new ArrayList<>();
+	private List<Rule> getActiveRulesForUser(User user) {
+		List<Rule> providedRules = new ArrayList<>();
 		user.roles.forEach(roleId -> providedRules.addAll(rulesProvider.getActiveRules(roleId)));
 		// THIS IS A SMALL HACK UNTIL WE HAVE RECORDRELATIONS AND CAN READ FROM
 		// USER, will be needed for userId, organisation, etc
 
 		providedRules.forEach(rule -> {
-			Set<String> userIdValues = new HashSet<>();
+			RulePartValues userIdValues = new RulePartValues();
 			userIdValues.add("system.*");
 			rule.put("createdBy", userIdValues);
 		});
@@ -80,7 +78,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
 		checkUserIsActive(user);
-		List<Map<String, Set<String>>> requiredRulesForActionAndRecordType = ruleCalculator
+		List<Rule> requiredRulesForActionAndRecordType = ruleCalculator
 				.calculateRulesForActionAndRecordType(action, recordType);
 
 		return userSatisfiesRequiredRules(user, requiredRulesForActionAndRecordType);
@@ -139,11 +137,11 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
 		checkUserIsActive(user);
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
 						collectedData);
 
-		List<Map<String, Set<String>>> providedRules = new ArrayList<>();
+		List<Rule> providedRules = new ArrayList<>();
 		user.roles.forEach(roleId -> providedRules.addAll(rulesProvider.getActiveRules(roleId)));
 
 		return authorizator.providedRulesSatisfiesRequiredRules(providedRules, requiredRules);

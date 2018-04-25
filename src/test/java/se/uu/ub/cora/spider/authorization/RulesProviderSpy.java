@@ -20,36 +20,34 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
+import se.uu.ub.cora.beefeater.authorization.Rule;
+import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.spider.role.RulesProvider;
 
 public class RulesProviderSpy implements RulesProvider {
 
 	public String roleId;
 	public List<String> roleIds = new ArrayList<>();
-	public List<List<Map<String, Set<String>>>> returnedRules = new ArrayList<>();
+	public List<List<Rule>> returnedRules = new ArrayList<>();
 
 	@Override
-	public List<Map<String, Set<String>>> getActiveRules(String roleId) {
+	public List<Rule> getActiveRules(String roleId) {
 		this.roleId = roleId;
 		roleIds.add(roleId);
 
-		ArrayList<Map<String, Set<String>>> rules = new ArrayList<>();
+		ArrayList<Rule> rules = new ArrayList<>();
 
-		HashMap<String, Set<String>> rule = new HashMap<>();
+		Rule rule = new Rule();
 		rules.add(rule);
-		HashSet<String> rulePart = new HashSet<>();
+		RulePartValues rulePart = new RulePartValues();
 		rule.put("action", rulePart);
 		rulePart.add("system.read");
 
-		HashMap<String, Set<String>> rule2 = new HashMap<>();
+		Rule rule2 = new Rule();
 		rules.add(rule2);
-		HashSet<String> rulePart2 = new HashSet<>();
+		RulePartValues rulePart2 = new RulePartValues();
 		rule2.put("action", rulePart2);
 		rulePart2.add("system.update");
 

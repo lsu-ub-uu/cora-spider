@@ -22,12 +22,12 @@ package se.uu.ub.cora.spider.authorization;
 import static org.testng.Assert.assertEquals;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.beefeater.authorization.Rule;
+import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.testdata.DataCreator;
@@ -45,17 +45,17 @@ public class BasePermissionRuleCalculatorTest {
 
 	@Test
 	public void testWithoutData() {
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator
-				.calculateRulesForActionAndRecordType(action, recordType);
+		List<Rule> requiredRules = ruleCalculator.calculateRulesForActionAndRecordType(action,
+				recordType);
 		assertEquals(requiredRules.size(), 1);
 
-		Map<String, Set<String>> requiredRule = requiredRules.get(0);
+		Rule requiredRule = requiredRules.get(0);
 		assertEquals(requiredRule.keySet().size(), 2);
-		Set<String> actionValues = requiredRule.get("action");
+		RulePartValues actionValues = requiredRule.get("action");
 		assertEquals(actionValues.size(), 1);
 		assertEquals(actionValues.iterator().next(), "system.create");
 
-		Set<String> recordTypeValues = requiredRule.get("recordType");
+		RulePartValues recordTypeValues = requiredRule.get("recordType");
 		assertEquals(recordTypeValues.size(), 1);
 		assertEquals(recordTypeValues.iterator().next(), "system.book");
 	}
@@ -66,20 +66,20 @@ public class BasePermissionRuleCalculatorTest {
 				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("book",
 						"myBook", "book", "systemOne", "12345")
 				.toDataGroup();
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndData(action, recordType, record);
 		assertEquals(requiredRules.size(), 1);
 
-		Map<String, Set<String>> requiredRule = requiredRules.get(0);
-		Set<String> actionValues = requiredRule.get("action");
+		Rule requiredRule = requiredRules.get(0);
+		RulePartValues actionValues = requiredRule.get("action");
 		assertEquals(actionValues.size(), 1);
 		assertEquals(actionValues.iterator().next(), "system.create");
 
-		Set<String> recordTypeValues = requiredRule.get("recordType");
+		RulePartValues recordTypeValues = requiredRule.get("recordType");
 		assertEquals(recordTypeValues.size(), 1);
 		assertEquals(recordTypeValues.iterator().next(), "system.book");
 
-		Set<String> createdByValues = requiredRule.get("createdBy");
+		RulePartValues createdByValues = requiredRule.get("createdBy");
 		assertEquals(createdByValues.size(), 1);
 		assertEquals(createdByValues.iterator().next(), "system.12345");
 	}
@@ -88,18 +88,18 @@ public class BasePermissionRuleCalculatorTest {
 	public void testWithCollectedDataNoPermissions() {
 		DataGroup collectedData = DataGroup.withNameInData("collectedData");
 
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
 						collectedData);
 		assertEquals(requiredRules.size(), 1);
 
-		Map<String, Set<String>> requiredRule = requiredRules.get(0);
+		Rule requiredRule = requiredRules.get(0);
 		assertEquals(requiredRule.keySet().size(), 2);
-		Set<String> actionValues = requiredRule.get("action");
+		RulePartValues actionValues = requiredRule.get("action");
 		assertEquals(actionValues.size(), 1);
 		assertEquals(actionValues.iterator().next(), "system.create");
 
-		Set<String> recordTypeValues = requiredRule.get("recordType");
+		RulePartValues recordTypeValues = requiredRule.get("recordType");
 		assertEquals(recordTypeValues.size(), 1);
 		assertEquals(recordTypeValues.iterator().next(), "system.book");
 	}
@@ -115,22 +115,22 @@ public class BasePermissionRuleCalculatorTest {
 
 		permission.addChild(collectedDataTerm);
 
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
 						collectedData);
 		assertEquals(requiredRules.size(), 1);
 
-		Map<String, Set<String>> requiredRule = requiredRules.get(0);
+		Rule requiredRule = requiredRules.get(0);
 		assertEquals(requiredRule.keySet().size(), 3);
-		Set<String> actionValues = requiredRule.get("action");
+		RulePartValues actionValues = requiredRule.get("action");
 		assertEquals(actionValues.size(), 1);
 		assertEquals(actionValues.iterator().next(), "system.create");
 
-		Set<String> recordTypeValues = requiredRule.get("recordType");
+		RulePartValues recordTypeValues = requiredRule.get("recordType");
 		assertEquals(recordTypeValues.size(), 1);
 		assertEquals(recordTypeValues.iterator().next(), "system.book");
 
-		Set<String> createdByValues = requiredRule.get("SOME_PERMISSION_KEY");
+		RulePartValues createdByValues = requiredRule.get("SOME_PERMISSION_KEY");
 		assertEquals(createdByValues.size(), 1);
 		assertEquals(createdByValues.iterator().next(), "system.someTermValue");
 	}
@@ -163,26 +163,26 @@ public class BasePermissionRuleCalculatorTest {
 				"1", "otherTermId", "otherTermValue", "OTHER_PERMISSION_KEY");
 		permission.addChild(collectedDataTerm2);
 
-		List<Map<String, Set<String>>> requiredRules = ruleCalculator
+		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
 						collectedData);
 		assertEquals(requiredRules.size(), 1);
 
-		Map<String, Set<String>> requiredRule = requiredRules.get(0);
+		Rule requiredRule = requiredRules.get(0);
 		assertEquals(requiredRule.keySet().size(), 4);
-		Set<String> actionValues = requiredRule.get("action");
+		RulePartValues actionValues = requiredRule.get("action");
 		assertEquals(actionValues.size(), 1);
 		assertEquals(actionValues.iterator().next(), "system.create");
 
-		Set<String> recordTypeValues = requiredRule.get("recordType");
+		RulePartValues recordTypeValues = requiredRule.get("recordType");
 		assertEquals(recordTypeValues.size(), 1);
 		assertEquals(recordTypeValues.iterator().next(), "system.book");
 
-		Set<String> createdByValues = requiredRule.get("SOME_PERMISSION_KEY");
+		RulePartValues createdByValues = requiredRule.get("SOME_PERMISSION_KEY");
 		assertEquals(createdByValues.size(), 1);
 		assertEquals(createdByValues.iterator().next(), "system.someTermValue");
 
-		Set<String> createdByValues2 = requiredRule.get("OTHER_PERMISSION_KEY");
+		RulePartValues createdByValues2 = requiredRule.get("OTHER_PERMISSION_KEY");
 		assertEquals(createdByValues2.size(), 1);
 		assertEquals(createdByValues2.iterator().next(), "system.otherTermValue");
 	}

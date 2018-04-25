@@ -20,12 +20,10 @@
 package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
+import se.uu.ub.cora.beefeater.authorization.Rule;
+import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 
@@ -36,13 +34,13 @@ public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 	public DataGroup record;
 	public DataGroup collectedData;
 	public List<String> calledMethods = new ArrayList<>();
-	public List<Map<String, Set<String>>> returnedRules;
+	public List<Rule> returnedRules;
 
 	public NoRulesCalculatorStub() {
-		Set<String> set = new HashSet<>();
+		RulePartValues set = new RulePartValues();
 		set.add("noValue");
 
-		Map<String, Set<String>> map = new HashMap<>();
+		Rule map = new Rule();
 		map.put("NoRulesCalculator", set);
 
 		returnedRules = new ArrayList<>();
@@ -50,8 +48,7 @@ public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 	}
 
 	@Override
-	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
-			String recordType) {
+	public List<Rule> calculateRulesForActionAndRecordType(String action, String recordType) {
 		this.action = action;
 		this.recordType = recordType;
 		calledMethods.add("calculateRulesForActionAndRecordType");
@@ -59,8 +56,8 @@ public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 	}
 
 	@Override
-	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action,
-			String recordType, DataGroup record) {
+	public List<se.uu.ub.cora.beefeater.authorization.Rule> calculateRulesForActionAndRecordTypeAndData(
+			String action, String recordType, DataGroup record) {
 		this.action = action;
 		this.recordType = recordType;
 		this.record = record;
@@ -69,8 +66,8 @@ public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 	}
 
 	@Override
-	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndCollectedData(
-			String action, String recordType, DataGroup collectedData) {
+	public List<Rule> calculateRulesForActionAndRecordTypeAndCollectedData(String action,
+			String recordType, DataGroup collectedData) {
 		this.action = action;
 		this.recordType = recordType;
 		this.collectedData = collectedData;
