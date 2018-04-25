@@ -233,6 +233,9 @@ public class RecordStorageSpy implements RecordStorage {
 			rule.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
 			return rule;
 		}
+		if ("permissionRole".equals(type) && "roleNotFoundInStorage".equals(id)) {
+			return null;
+		}
 		if ("inactiveUserId".equals(id)) {
 			DataGroup user = DataGroup.withNameInData("user");
 			user.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
@@ -264,7 +267,9 @@ public class RecordStorageSpy implements RecordStorage {
 			return child1Place0002;
 		}
 
-		return null;
+		DataGroup dataGroupToReturn = DataGroup.withNameInData("someNameInData");
+		dataGroupToReturn.addChild(DataGroup.withNameInData("recordInfo"));
+		return dataGroupToReturn;
 	}
 
 	@Override

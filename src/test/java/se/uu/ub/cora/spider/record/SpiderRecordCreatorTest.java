@@ -336,9 +336,12 @@ public class SpiderRecordCreatorTest {
 		assertCorrectUserInfoInRecordInfo(recordInfo);
 
 		String tsCreated = recordInfo.extractAtomicValue("tsCreated");
-		String tsUpdated = recordInfo.extractAtomicValue("tsUpdated");
 		assertTrue(tsCreated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+
+		SpiderDataGroup updated = recordInfo.extractGroup("updated");
+		String tsUpdated = updated.extractAtomicValue("tsUpdated");
 		assertTrue(tsUpdated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+		assertFalse(recordInfo.containsChildWithNameInData("tsUpdated"));
 
 		SpiderDataGroup typeGroup = recordInfo.extractGroup("type");
 		assertEquals(typeGroup.extractAtomicValue("linkedRecordType"), "recordType");
@@ -350,9 +353,13 @@ public class SpiderRecordCreatorTest {
 		assertEquals(createdByGroup.extractAtomicValue("linkedRecordType"), "user");
 		assertEquals(createdByGroup.extractAtomicValue("linkedRecordId"), "12345");
 
-		SpiderDataGroup updatedByGroup = recordInfo.extractGroup("updatedBy");
+		SpiderDataGroup updated = recordInfo.extractGroup("updated");
+		assertEquals(updated.getRepeatId(), "0");
+		SpiderDataGroup updatedByGroup = updated.extractGroup("updatedBy");
+
 		assertEquals(updatedByGroup.extractAtomicValue("linkedRecordType"), "user");
 		assertEquals(updatedByGroup.extractAtomicValue("linkedRecordId"), "12345");
+		assertFalse(recordInfo.containsChildWithNameInData("updatedBy"));
 	}
 
 	@Test

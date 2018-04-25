@@ -40,6 +40,7 @@ import se.uu.ub.cora.spider.search.RecordIndexer;
 
 public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		implements SpiderRecordUpdater {
+	private static final String UPDATED_STRING = "updated";
 	private static final String TS_UPDATED = "tsUpdated";
 	private static final String UPDATED_BY = "updatedBy";
 	private static final String UPDATE = "update";
@@ -199,30 +200,61 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void addUpdateInfo(SpiderDataGroup topLevelDataGroup) {
 		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
-		setUpdatedBy(recordInfo);
-		setTsUpdated(recordInfo);
+		replaceUpdatedInfoWithInfoFromPreviousRecord(recordInfo);
+		SpiderDataGroup updated = createUpdateInfoForThisUpdate(recordInfo);
+		recordInfo.addChild(updated);
 	}
 
-	private void setTsUpdated(SpiderDataGroup recordInfo) {
-		removeChildIfExists(recordInfo, TS_UPDATED);
-		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
-		recordInfo.addChild(
-				SpiderDataAtomic.withNameInDataAndValue(TS_UPDATED, currentLocalDateTime));
+	private void replaceUpdatedInfoWithInfoFromPreviousRecord(SpiderDataGroup recordInfo) {
+		removeUpdateInfoFromIncomingData(recordInfo);
+		addRecordInfoFromReadData(recordInfo);
 	}
 
-	private void removeChildIfExists(SpiderDataGroup recordInfo, String nameInData) {
-		if (recordInfo.containsChildWithNameInData(nameInData)) {
-			recordInfo.removeChild(nameInData);
+	private void removeUpdateInfoFromIncomingData(SpiderDataGroup recordInfo) {
+		while (recordInfo.containsChildWithNameInData(UPDATED_STRING)) {
+			recordInfo.removeChild(UPDATED_STRING);
 		}
 	}
 
-	private void setUpdatedBy(SpiderDataGroup recordInfo) {
-		removeChildIfExists(recordInfo, UPDATED_BY);
-		SpiderDataGroup updatedBy = createdUpdatedByLink();
-		recordInfo.addChild(updatedBy);
+	private void addRecordInfoFromReadData(SpiderDataGroup recordInfo) {
+		SpiderDataGroup recordInfoStoredRecord = getRecordInfoFromStoredData();
+		List<SpiderDataGroup> updatedGroups = recordInfoStoredRecord
+				.getAllGroupsWithNameInData(UPDATED_STRING);
+		updatedGroups.forEach(recordInfo::addChild);
 	}
 
-	private SpiderDataGroup createdUpdatedByLink() {
+	private SpiderDataGroup getRecordInfoFromStoredData() {
+		DataGroup recordRead = recordStorage.read(recordType, recordId);
+		return SpiderDataGroup
+				.fromDataGroup(recordRead.getFirstGroupWithNameInData("recordInfo"));
+	}
+
+	private SpiderDataGroup createUpdateInfoForThisUpdate(SpiderDataGroup recordInfo) {
+		SpiderDataGroup updated = SpiderDataGroup.withNameInData(UPDATED_STRING);
+		String repeatId = calculateRepeatId(recordInfo);
+		updated.setRepeatId(repeatId);
+
+		setUpdatedBy(updated);
+		setTsUpdated(updated);
+		return updated;
+	}
+
+	private void setUpdatedBy(SpiderDataGroup updated) {
+		SpiderDataGroup updatedBy = createUpdatedByLink();
+		updated.addChild(updatedBy);
+	}
+
+	private void setTsUpdated(SpiderDataGroup updated) {
+		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
+		updated.addChild(SpiderDataAtomic.withNameInDataAndValue(TS_UPDATED, currentLocalDateTime));
+	}
+
+	private String calculateRepeatId(SpiderDataGroup recordInfo) {
+		int numOfUpdated = recordInfo.getAllGroupsWithNameInData(UPDATED_STRING).size();
+		return String.valueOf(numOfUpdated + 1);
+	}
+
+	private SpiderDataGroup createUpdatedByLink() {
 		SpiderDataGroup updatedBy = SpiderDataGroup.withNameInData(UPDATED_BY);
 		updatedBy.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "user"));
 		updatedBy.addChild(SpiderDataAtomic.withNameInDataAndValue(LINKED_RECORD_ID, user.id));

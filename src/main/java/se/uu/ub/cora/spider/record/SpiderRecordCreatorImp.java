@@ -41,6 +41,7 @@ import se.uu.ub.cora.spider.search.RecordIndexer;
 
 public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		implements SpiderRecordCreator {
+	private static final String TS_CREATED = "tsCreated";
 	private static final String CREATE = "create";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -191,13 +192,10 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
 		ensureIdExists(recordType);
-		addUserAndTypeToRecordInfo(userId, recordType);
-		addTimestampToRecordInfo();
-		// set more stuff, user, tscreated, status (created, updated, deleted,
-		// etc), published
-		// (true, false)
-		// set owning organisation
-
+		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
+		addTypeToRecordInfo(recordType, recordInfo);
+		addCreatedInfoToRecordInfoUsingUserId(recordInfo, userId);
+		addUpdatedInfoToRecordInfoUsingUserId(recordInfo, userId);
 	}
 
 	private void ensureIdExists(String recordType) {
@@ -206,26 +204,50 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		}
 	}
 
+	private void addTypeToRecordInfo(String recordType, SpiderDataGroup recordInfo) {
+		SpiderDataGroup type = createTypeDataGroup(recordType);
+		recordInfo.addChild(type);
+	}
+
+	private void addCreatedInfoToRecordInfoUsingUserId(SpiderDataGroup recordInfo, String userId) {
+		SpiderDataGroup createdByGroup = createLinkToUserUsingUserIdAndNameInData(userId,
+				"createdBy");
+		recordInfo.addChild(createdByGroup);
+		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
+		recordInfo.addChild(
+				SpiderDataAtomic.withNameInDataAndValue(TS_CREATED, currentLocalDateTime));
+	}
+
+	private void addUpdatedInfoToRecordInfoUsingUserId(SpiderDataGroup recordInfo, String userId) {
+		SpiderDataGroup updatedGroup = createUpdatedGroup();
+		addUserInfoToUpdatedGroup(userId, updatedGroup);
+		addTimestampToUpdateGroup(recordInfo, updatedGroup);
+		recordInfo.addChild(updatedGroup);
+	}
+
+	private SpiderDataGroup createUpdatedGroup() {
+		SpiderDataGroup updatedGroup = SpiderDataGroup.withNameInData("updated");
+		updatedGroup.setRepeatId("0");
+		return updatedGroup;
+	}
+
+	private void addUserInfoToUpdatedGroup(String userId, SpiderDataGroup updatedGroup) {
+		SpiderDataGroup updatedByGroup = createLinkToUserUsingUserIdAndNameInData(userId,
+				"updatedBy");
+		updatedGroup.addChild(updatedByGroup);
+	}
+
+	private void addTimestampToUpdateGroup(SpiderDataGroup recordInfo,
+			SpiderDataGroup updatedGroup) {
+		String tsCreatedUsedAsFirstTsUpdate = recordInfo.extractAtomicValue(TS_CREATED);
+		updatedGroup.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("tsUpdated", tsCreatedUsedAsFirstTsUpdate));
+	}
+
 	private void generateAndAddIdToRecordInfo(String recordType) {
 		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id",
 				idGenerator.getIdForType(recordType)));
-	}
-
-	private void addUserAndTypeToRecordInfo(String userId, String recordType) {
-		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
-		SpiderDataGroup type = createTypeDataGroup(recordType);
-		recordInfo.addChild(type);
-		addUserToRecordInfoUsingUserId(recordInfo, userId);
-	}
-
-	private void addUserToRecordInfoUsingUserId(SpiderDataGroup recordInfo, String userId) {
-		SpiderDataGroup createdByGroup = createLinkToUserUsingUserIdAndNameInData(userId,
-				"createdBy");
-		recordInfo.addChild(createdByGroup);
-		SpiderDataGroup updatedByGroup = createLinkToUserUsingUserIdAndNameInData(userId,
-				"updatedBy");
-		recordInfo.addChild(updatedByGroup);
 	}
 
 	private SpiderDataGroup createLinkToUserUsingUserIdAndNameInData(String userId,
@@ -245,15 +267,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		type.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
 		type.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", recordType));
 		return type;
-	}
-
-	private void addTimestampToRecordInfo() {
-		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
-		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
-		recordInfo.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("tsCreated", currentLocalDateTime));
-		recordInfo.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("tsUpdated", currentLocalDateTime));
 	}
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType,

@@ -33,7 +33,8 @@ public class DataValidatorForRecordInfoSpy implements DataValidator {
 		ValidationAnswer validationAnswer = new ValidationAnswer();
 		DataGroup dataGroup = (DataGroup) dataElement;
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		if (!recordInfo.containsChildWithNameInData("tsUpdated")) {
+		DataGroup updated = recordInfo.getFirstGroupWithNameInData("updated");
+		if (!updated.containsChildWithNameInData("tsUpdated")) {
 			validationAnswer.addErrorMessage("Data missing tsUpdated");
 		}
 		return validationAnswer;

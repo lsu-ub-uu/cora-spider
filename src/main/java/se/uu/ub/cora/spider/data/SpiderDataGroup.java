@@ -25,6 +25,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataElement;
@@ -36,6 +39,7 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 	private Map<String, String> attributes = new HashMap<>();
 	private List<SpiderDataElement> children = new ArrayList<>();
 	private String repeatId;
+	private Predicate<SpiderDataElement> isDataGroup = dataElement -> dataElement instanceof SpiderDataGroup;
 
 	public static SpiderDataGroup withNameInData(String nameInData) {
 		return new SpiderDataGroup(nameInData);
@@ -194,5 +198,31 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 	public void removeChild(String string) {
 		SpiderDataElement firstChildWithNameInData = getFirstChildWithNameInData(string);
 		children.remove(firstChildWithNameInData);
+	}
+
+	public List<SpiderDataGroup> getAllGroupsWithNameInData(String childNameInData) {
+		return getGroupChildrenWithNameInDataStream(childNameInData).collect(Collectors.toList());
+	}
+
+	private Stream<SpiderDataGroup> getGroupChildrenWithNameInDataStream(String childNameInData) {
+		return getGroupChildrenStream().filter(filterByNameInData(childNameInData))
+				.map(SpiderDataGroup.class::cast);
+	}
+
+	private Stream<SpiderDataElement> getGroupChildrenStream() {
+		return getChildrenStream().filter(isDataGroup);
+	}
+
+	private Stream<SpiderDataElement> getChildrenStream() {
+		return children.stream();
+	}
+
+	private Predicate<SpiderDataElement> filterByNameInData(String childNameInData) {
+		return dataElement -> dataElementsNameInDataIs(dataElement, childNameInData);
+	}
+
+	private boolean dataElementsNameInDataIs(SpiderDataElement dataElement,
+			String childNameInData) {
+		return dataElement.getNameInData().equals(childNameInData);
 	}
 }
