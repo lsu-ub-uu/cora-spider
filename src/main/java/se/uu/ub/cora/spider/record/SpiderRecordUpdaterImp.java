@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016 Uppsala University Library
+ * Copyright 2015, 2016, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -66,7 +66,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		this.collectTermCollector = dependencyProvider.getDataGroupSearchTermCollector();
+		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
@@ -102,22 +102,14 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
 
-		checkUserIsAuthorisedToStoreIncomingData(topLevelDataGroup);
-
-		// validate (including protected data)
-		// TODO: add validate here
-
-		// merge possibly hidden data
-		// TODO: merge incoming data with stored if user does not have right to
-		// update some parts
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
+		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
 
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		String dataDivider = extractDataDividerFromData(spiderDataGroup);
-
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
 
 		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedTerms,
 				collectedLinks, dataDivider);
@@ -196,12 +188,14 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
-		checkUserIsAuthorisedToStoreIncomingData(recordRead);
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, recordRead);
+
+		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
 	}
 
-	private void checkUserIsAuthorisedToStoreIncomingData(DataGroup incomingData) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, UPDATE,
-				recordType, incomingData);
+	private void checkUserIsAuthorisedToUpdateGivenCollectedData(DataGroup collectedTerms) {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, UPDATE,
+				recordType, collectedTerms);
 	}
 
 	private void addUpdateInfo(SpiderDataGroup topLevelDataGroup) {

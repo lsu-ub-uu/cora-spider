@@ -39,7 +39,7 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	public RecordStorage recordStorage;
 	public SpiderAuthorizator spiderAuthorizator;
-	public PermissionRuleCalculator keyCalculator;
+	public PermissionRuleCalculator ruleCalculator;
 	public SpiderUploader uploader;
 	public DataValidator dataValidator;
 	public DataRecordLinkCollector linkCollector;
@@ -72,7 +72,7 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	@Override
 	public PermissionRuleCalculator getPermissionRuleCalculator() {
-		return keyCalculator;
+		return ruleCalculator;
 	}
 
 	@Override
@@ -106,7 +106,7 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	}
 
 	@Override
-	public DataGroupTermCollector getDataGroupSearchTermCollector() {
+	public DataGroupTermCollector getDataGroupTermCollector() {
 		return searchTermCollector;
 	}
 

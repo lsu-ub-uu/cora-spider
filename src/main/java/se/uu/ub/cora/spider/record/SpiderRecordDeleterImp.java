@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -34,12 +35,14 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	private String authToken;
 	private User user;
 	private RecordIndexer recordIndexer;
+	private DataGroupTermCollector collectTermCollector;
 
 	private SpiderRecordDeleterImp(SpiderDependencyProvider dependencyProvider) {
-		this.authenticator = dependencyProvider.getAuthenticator();
-		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
-		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.recordIndexer = dependencyProvider.getRecordIndexer();
+		authenticator = dependencyProvider.getAuthenticator();
+		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
+		recordStorage = dependencyProvider.getRecordStorage();
+		recordIndexer = dependencyProvider.getRecordIndexer();
+		collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 	}
 
 	public static SpiderRecordDeleterImp usingDependencyProvider(
@@ -63,9 +66,23 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	}
 
 	private void checkUserIsAuthorizedToDeleteStoredRecord(String recordType, String recordId) {
+		DataGroup collectedTerms = getCollectedTermsForRecord(recordType, recordId);
+
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, DELETE,
+				recordType, collectedTerms);
+	}
+
+	private DataGroup getCollectedTermsForRecord(String recordType, String recordId) {
 		DataGroup record = recordStorage.read(recordType, recordId);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, DELETE,
-				recordType, record);
+
+		String metadataId = getMetadataIdFromRecordType(recordType);
+		return collectTermCollector.collectTerms(metadataId, record);
+	}
+
+	private String getMetadataIdFromRecordType(String recordType) {
+		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+		return recordTypeHandler.getMetadataId();
 	}
 
 	private void checkNoIncomingLinksExists(String recordType, String recordId) {

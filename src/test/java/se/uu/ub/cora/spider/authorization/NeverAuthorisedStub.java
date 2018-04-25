@@ -1,5 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
+ * Copyright 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,20 +20,10 @@
 
 package se.uu.ub.cora.spider.authorization;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public class NeverAuthorisedStub implements SpiderAuthorizator {
-
-	@Override
-	public boolean userSatisfiesRequiredRules(User user,
-			List<Map<String, Set<String>>> requiredRules) {
-		return false;
-	}
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
@@ -41,21 +32,21 @@ public class NeverAuthorisedStub implements SpiderAuthorizator {
 	}
 
 	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String recordType, DataGroup record) {
-		throw new AuthorizationException("never authorized");
-
-	}
-
-	@Override
-	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String string, DataGroup record) {
+	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
+			String recordType) {
 		return false;
 	}
 
 	@Override
-	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
-			String recordType) {
+	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+			String string, DataGroup collectedData) {
+		throw new AuthorizationException("never authorized");
+	}
+
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+			String string, DataGroup collectedData) {
+		// TODO Auto-generated method stub
 		return false;
 	}
 

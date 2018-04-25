@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016 Uppsala University Library
+ * Copyright 2015, 2016, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,9 +21,9 @@ package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
+import se.uu.ub.cora.beefeater.authorization.Rule;
+import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 
@@ -32,22 +32,37 @@ public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 	public String action;
 	public String recordType;
 	public DataGroup record;
+	public DataGroup collectedData;
+	public List<String> calledMethods = new ArrayList<>();
+	public List<Rule> returnedRules;
 
-	@Override
-	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
-			String recordType) {
-		this.action = action;
-		this.recordType = recordType;
-		return new ArrayList<>();
+	public NoRulesCalculatorStub() {
+		RulePartValues set = new RulePartValues();
+		set.add("noValue");
+
+		Rule map = new Rule();
+		map.put("NoRulesCalculator", set);
+
+		returnedRules = new ArrayList<>();
+		returnedRules.add(map);
 	}
 
 	@Override
-	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action,
-			String recordType, DataGroup record) {
+	public List<Rule> calculateRulesForActionAndRecordType(String action, String recordType) {
 		this.action = action;
 		this.recordType = recordType;
-		this.record = record;
-		return new ArrayList<>();
+		calledMethods.add("calculateRulesForActionAndRecordType");
+		return returnedRules;
+	}
+
+	@Override
+	public List<Rule> calculateRulesForActionAndRecordTypeAndCollectedData(String action,
+			String recordType, DataGroup collectedData) {
+		this.action = action;
+		this.recordType = recordType;
+		this.collectedData = collectedData;
+		calledMethods.add("calculateRulesForActionAndRecordTypeAndCollectedData");
+		return returnedRules;
 	}
 
 }

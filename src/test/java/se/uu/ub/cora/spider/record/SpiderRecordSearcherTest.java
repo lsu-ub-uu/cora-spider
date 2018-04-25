@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -44,6 +45,7 @@ import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
+import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
@@ -60,6 +62,7 @@ public class SpiderRecordSearcherTest {
 	private SpiderRecordSearcher recordSearcher;
 	private DataValidator dataValidator;
 	private RecordSearch recordSearch;
+	private DataGroupTermCollector termCollector;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -69,6 +72,7 @@ public class SpiderRecordSearcherTest {
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
 		recordSearch = new RecordSearchSpy();
+		termCollector = new DataGroupTermCollectorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -78,9 +82,10 @@ public class SpiderRecordSearcherTest {
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.dataValidator = dataValidator;
 		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.keyCalculator = keyCalculator;
+		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.recordSearch = recordSearch;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
+		dependencyProvider.searchTermCollector = termCollector;
 		recordSearcher = SpiderRecordSearcherImp
 				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProvider,
 						dataGroupToRecordEnhancer);
@@ -103,6 +108,18 @@ public class SpiderRecordSearcherTest {
 		SpiderDataGroup searchData = SpiderDataGroup.withNameInData("search");
 		SpiderDataList searchResult = recordSearcher.search(authToken, searchId, searchData);
 		assertNotNull(searchResult);
+
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizator);
+		assertEquals(authorizatorSpy.userIsAuthorizedParameters.get(0), "12345:read:place");
+
+		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
+		assertEquals(dataGroupTermCollectorSpy.metadataId, "place");
+		assertEquals(dataGroupTermCollectorSpy.dataGroup, ((RecordSearchSpy) recordSearch).place44);
+
+		assertEquals(authorizatorSpy.calledMethods.get(0),
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData");
+		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
+		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
@@ -180,7 +197,10 @@ public class SpiderRecordSearcherTest {
 	@Test
 	public void testSearchResultIsFilteredAndEnhancedForEachResult() {
 		authorizator = new AlwaysAuthorisedExceptStub();
-		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForIds.add("image45");
+		Set<String> actions = new HashSet<>();
+		actions.add("read");
+		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
+				.put("binary", actions);
 		setUpDependencyProvider();
 
 		String authToken = "someToken78678567";
@@ -189,16 +209,5 @@ public class SpiderRecordSearcherTest {
 		SpiderDataList searchResult = recordSearcher.search(authToken, searchId, searchData);
 		assertEquals(searchResult.getDataList().size(), 2);
 
-		// SpiderDataRecord spiderDataRecord = (SpiderDataRecord)
-		// searchResult.getDataList().get(0);
-		// assertEquals(spiderDataRecord.getActions().size(),2);
-
-		// RecordSearchSpy recordSearchSpy = (RecordSearchSpy) recordSearch;
-		// List<String> list = recordSearchSpy.listOfLists.get(0);
-		// assertEquals(list.get(0), "place");
-		// assertEquals(list.size(), 1);
-		// DataGroup searchData0 = recordSearchSpy.listOfSearchData.get(0);
-		// assertEquals(searchData0.getNameInData(),
-		// searchData.getNameInData());
 	}
 }

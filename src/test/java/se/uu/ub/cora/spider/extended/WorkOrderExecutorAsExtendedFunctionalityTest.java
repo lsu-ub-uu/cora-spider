@@ -65,7 +65,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 		extendedFunctionality = WorkOrderExecutorAsExtendedFunctionality
 				.usingDependencyProvider(dependencyProvider);
 		termCollector = (DataGroupTermCollectorSpy) dependencyProvider
-				.getDataGroupSearchTermCollector();
+				.getDataGroupTermCollector();
 		recordIndexer = (RecordIndexerSpy) dependencyProvider.getRecordIndexer();
 		authorizer = (AlwaysAuthorisedExceptStub) dependencyProvider.getSpiderAuthorizator();
 		authenticator = (AuthenticatorSpy) dependencyProvider.getAuthenticator();

@@ -80,7 +80,7 @@ public class SpiderRecordListReaderTest {
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.keyCalculator = keyCalculator;
+		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.dataValidator = dataValidator;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordListReader = SpiderRecordListReaderImp

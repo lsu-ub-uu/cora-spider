@@ -66,7 +66,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.idGenerator = dependencyProvider.getIdGenerator();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		this.collectTermCollector = dependencyProvider.getDataGroupSearchTermCollector();
+		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
@@ -109,9 +109,9 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 		DataGroup topLevelDataGroup = recordAsSpiderDataGroup.toDataGroup();
 
-		checkUserIsAuthorisedToCreateIncomingData(recordType, topLevelDataGroup);
-
 		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
+		checkUserIsAuthorisedToCreateIncomingData(recordType, collectedTerms);
+
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
@@ -269,8 +269,9 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		return type;
 	}
 
-	private void checkUserIsAuthorisedToCreateIncomingData(String recordType, DataGroup record) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, CREATE,
-				recordType, record);
+	private void checkUserIsAuthorisedToCreateIncomingData(String recordType,
+			DataGroup collectedData) {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, CREATE,
+				recordType, collectedData);
 	}
 }

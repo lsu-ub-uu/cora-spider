@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,17 +20,15 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
+import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public interface PermissionRuleCalculator {
 
-	List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
-			String recordType);
+	List<Rule> calculateRulesForActionAndRecordType(String action, String recordType);
 
-	List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action,
-			String recordType, DataGroup record);
+	List<Rule> calculateRulesForActionAndRecordTypeAndCollectedData(String action,
+			String recordType, DataGroup collectedData);
 
 }

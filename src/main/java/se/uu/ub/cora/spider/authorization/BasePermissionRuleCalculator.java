@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,58 +20,74 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 
+import se.uu.ub.cora.beefeater.authorization.Rule;
+import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 
 	private static final String SYSTEM = "system.";
-	private DataGroup record;
 
 	@Override
-	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordType(String action,
-			String recordType) {
-		List<Map<String, Set<String>>> requiredRules = new ArrayList<Map<String, Set<String>>>();
-		Map<String, Set<String>> requiredRule = createRequiredRule();
+	public List<Rule> calculateRulesForActionAndRecordType(String action, String recordType) {
+		List<Rule> requiredRules = new ArrayList<>();
+		Rule requiredRule = createRequiredRule();
 		requiredRules.add(requiredRule);
-		createRulePart(requiredRule, "action", SYSTEM + action);
-		createRulePart(requiredRule, "recordType", SYSTEM + recordType);
+		createRulePart(requiredRule, "action", action);
+		createRulePart(requiredRule, "recordType", recordType);
 		return requiredRules;
 	}
 
 	@Override
-	public List<Map<String, Set<String>>> calculateRulesForActionAndRecordTypeAndData(String action,
-			String recordType, DataGroup record) {
-		this.record = record;
-		List<Map<String, Set<String>>> requiredRules = calculateRulesForActionAndRecordType(action,
-				recordType);
-		Map<String, Set<String>> requiredRule = requiredRules.get(0);
-		createRulePart(requiredRule, "createdBy", SYSTEM + extractUserId());
+	public List<Rule> calculateRulesForActionAndRecordTypeAndCollectedData(String action,
+			String recordType, DataGroup collectedData) {
+		List<Rule> requiredRules = calculateRulesForActionAndRecordType(action, recordType);
+		possiblyCreateRulesForCollectedPermissionTerms(collectedData, requiredRules);
 		return requiredRules;
 	}
 
-	private Map<String, Set<String>> createRequiredRule() {
-		return new TreeMap<>();
+	private Rule createRequiredRule() {
+		return new Rule();
 	}
 
-	private void createRulePart(Map<String, Set<String>> requiredRule, String key,
-			String... values) {
-		Set<String> set = new HashSet<String>();
+	private void createRulePart(Rule requiredRule, String key, String... values) {
+		RulePartValues set = new RulePartValues();
 		for (String value : values) {
-			set.add(value);
+			set.add(SYSTEM + value);
 		}
 		requiredRule.put(key, set);
 	}
 
-	private String extractUserId() {
-		DataGroup recordInfo = record.getFirstGroupWithNameInData("recordInfo");
-		DataGroup createdByGroup = recordInfo.getFirstGroupWithNameInData("createdBy");
-		return createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+	private void possiblyCreateRulesForCollectedPermissionTerms(DataGroup collectedData,
+			List<Rule> requiredRules) {
+		if (thereAreCollectedPermissionValuesFromData(collectedData)) {
+			DataGroup permission = collectedData.getFirstGroupWithNameInData("permission");
+			createRulesFromCollectedPermissionTerms(permission, requiredRules);
+		}
+	}
+
+	private boolean thereAreCollectedPermissionValuesFromData(DataGroup collectedData) {
+		return collectedData.containsChildWithNameInData("permission");
+	}
+
+	private void createRulesFromCollectedPermissionTerms(DataGroup permission,
+			List<Rule> requiredRules) {
+		Rule requiredRule = requiredRules.get(0);
+
+		List<DataGroup> collectedDataTerms = permission
+				.getAllGroupsWithNameInData("collectedDataTerm");
+		for (DataGroup collectedDataTerm : collectedDataTerms) {
+			createRuleForCollectedDataTerm(requiredRule, collectedDataTerm);
+		}
+	}
+
+	private void createRuleForCollectedDataTerm(Rule requiredRule, DataGroup collectedDataTerm) {
+		DataGroup extraData = collectedDataTerm.getFirstGroupWithNameInData("extraData");
+		String permissionKey = extraData.getFirstAtomicValueWithNameInData("permissionKey");
+		String value = collectedDataTerm.getFirstAtomicValueWithNameInData("collectTermValue");
+		createRulePart(requiredRule, permissionKey, value);
 	}
 
 }

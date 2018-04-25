@@ -33,6 +33,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
@@ -46,6 +47,7 @@ import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
+import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 
 public class DataGroupToRecordEnhancerTest {
@@ -56,16 +58,16 @@ public class DataGroupToRecordEnhancerTest {
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private User user;
 	private DataGroupToRecordEnhancer enhancer;
+	private DataGroupTermCollector termCollector;
 
 	@BeforeMethod
 	public void setUp() {
 		user = new User("987654321");
-		// recordStorage =
-		// TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		recordStorage = new RecordEnhancerTestsRecordStorage();
 		authenticator = new AuthenticatorSpy();
 		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		keyCalculator = new NoRulesCalculatorStub();
+		termCollector = new DataGroupTermCollectorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -74,7 +76,8 @@ public class DataGroupToRecordEnhancerTest {
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.keyCalculator = keyCalculator;
+		dependencyProvider.ruleCalculator = keyCalculator;
+		dependencyProvider.searchTermCollector = termCollector;
 		enhancer = new DataGroupToRecordEnhancerImp(dependencyProvider);
 	}
 
@@ -223,14 +226,26 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read("recordType", "recordType");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-		assertEquals(record.getActions().size(), 6);
+		assertEquals(record.getActions().size(), 5);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.INDEX));
 
-		assertTrue(record.getActions().contains(Action.CREATE));
 		assertTrue(record.getActions().contains(Action.LIST));
+
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizator);
+		assertEquals(authorizatorSpy.userIsAuthorizedParameters.get(0),
+				"987654321:read:recordType");
+
+		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
+		assertEquals(dataGroupTermCollectorSpy.metadataId, "dataWithLinks");
+		assertEquals(dataGroupTermCollectorSpy.dataGroups.get(0), dataGroup);
+
+		assertEquals(authorizatorSpy.calledMethods.get(0),
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData");
+		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
+		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
 	}
 
 	@Test
@@ -241,20 +256,20 @@ public class DataGroupToRecordEnhancerTest {
 		actions.add("list");
 		actions.add("search");
 		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
-				.put("recordType", actions);
+				.put("place", actions);
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = recordStorage.read("recordType", "place");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-		assertEquals(record.getActions().size(), 6);
+		assertEquals(record.getActions().size(), 4);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.INDEX));
 
-		assertTrue(record.getActions().contains(Action.CREATE));
-		assertTrue(record.getActions().contains(Action.LIST));
+		assertFalse(record.getActions().contains(Action.CREATE));
+		assertFalse(record.getActions().contains(Action.LIST));
 	}
 
 	@Test
@@ -278,9 +293,14 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testReadRecordWithDataRecordLinkHasNOReadAction() {
 		authorizator = new AlwaysAuthorisedExceptStub();
+		Set<String> actions = new HashSet<>();
+		actions.add("create");
+		actions.add("list");
+		actions.add("search");
+		actions.add("read");
+		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
+				.put("toRecordType", actions);
 		setUpDependencyProvider();
-		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForIds
-				.add("recordLinkNotAuthorized");
 		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkTopLevelNotAuthorized");
 		String recordType = "dataWithLinks";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);

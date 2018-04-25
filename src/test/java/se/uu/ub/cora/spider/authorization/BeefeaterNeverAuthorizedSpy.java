@@ -20,16 +20,15 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authorization.Rule;
 
-public class BeefeaterNeverAlwaysAuthorizedSpy implements Authorizator {
+public class BeefeaterNeverAuthorizedSpy implements Authorizator {
 
 	@Override
-	public boolean providedRulesSatisfiesRequiredRules(List<Map<String, Set<String>>> providedRules,
-			List<Map<String, Set<String>>> requiredRules) {
+	public boolean providedRulesSatisfiesRequiredRules(List<Rule> providedRules,
+			List<Rule> requiredRules) {
 		// TODO Auto-generated method stub
 		return false;
 	}

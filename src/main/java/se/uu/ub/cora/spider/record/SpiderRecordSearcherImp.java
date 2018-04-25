@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -49,6 +50,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private SpiderDataList spiderDataList;
 	private DataGroup searchMetadata;
 	private List<DataGroup> recordTypeToSearchInGroups;
+	private DataGroupTermCollector collectTermCollector;
 
 	private SpiderRecordSearcherImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -58,6 +60,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.recordSearch = dependencyProvider.getRecordSearch();
+		collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 
 	}
 
@@ -68,7 +71,8 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	}
 
 	@Override
-	public SpiderDataList search(String authToken, String searchId, SpiderDataGroup spiderSearchData) {
+	public SpiderDataList search(String authToken, String searchId,
+			SpiderDataGroup spiderSearchData) {
 		this.searchData = spiderSearchData.toDataGroup();
 		tryToGetActiveUser(authToken);
 		readSearchDataFromStorage(searchId);
@@ -106,7 +110,8 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 
 	private void isAuthorized(DataGroup group) {
 		String linkedRecordTypeId = group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, SEARCH, linkedRecordTypeId);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, SEARCH,
+				linkedRecordTypeId);
 	}
 
 	private void validateIncomingSearchDataAsSpecifiedInSearchGroup() {
@@ -116,9 +121,10 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		validateIncomingDataAsSpecifiedInMetadata(metadataGroupIdToValidateAgainst);
 	}
 
-	private void validateIncomingDataAsSpecifiedInMetadata(String metadataGroupIdToValidateAgainst) {
-		ValidationAnswer validationAnswer = dataValidator.validateData(metadataGroupIdToValidateAgainst,
-				searchData);
+	private void validateIncomingDataAsSpecifiedInMetadata(
+			String metadataGroupIdToValidateAgainst) {
+		ValidationAnswer validationAnswer = dataValidator
+				.validateData(metadataGroupIdToValidateAgainst, searchData);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
@@ -158,8 +164,21 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	}
 
 	private boolean isUserAuthorisedToReadData(String recordType, DataGroup recordFromIndex) {
-		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndRecord(user, READ, recordType,
-				recordFromIndex);
+		DataGroup collectedTerms = getCollectedTermsForRecord(recordType, recordFromIndex);
+
+		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
+				recordType, collectedTerms);
 	}
 
+	private DataGroup getCollectedTermsForRecord(String recordType, DataGroup recordFromIndex) {
+
+		String metadataId = getMetadataIdFromRecordType(recordType);
+		return collectTermCollector.collectTerms(metadataId, recordFromIndex);
+	}
+
+	private String getMetadataIdFromRecordType(String recordType) {
+		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+		return recordTypeHandler.getMetadataId();
+	}
 }

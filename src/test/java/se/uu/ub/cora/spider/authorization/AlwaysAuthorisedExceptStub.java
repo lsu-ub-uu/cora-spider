@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -34,13 +34,6 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	public List<String> notAuthorizedForIds = new ArrayList<>();
 
 	@Override
-	public boolean userSatisfiesRequiredRules(User user,
-			List<Map<String, Set<String>>> requiredRules) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
 		if (notAuthorizedForRecordTypeAndAction(recordType, action)) {
@@ -48,34 +41,9 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 		}
 	}
 
-	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String recordType, DataGroup record) {
-		if (notAuthorizedForRecordTypeAndAction(recordType, action)) {
-			throw new AuthorizationException("not authorized");
-		}
-
-	}
-
 	private boolean notAuthorizedForRecordTypeAndAction(String recordType, String action) {
 		return notAuthorizedForRecordTypeAndActions.containsKey(recordType)
 				&& notAuthorizedForRecordTypeAndActions.get(recordType).contains(action);
-	}
-
-	@Override
-	public boolean userIsAuthorizedForActionOnRecordTypeAndRecord(User user, String action,
-			String recordType, DataGroup record) {
-		if (notAuthorizedForRecordTypeAndAction(recordType, action)
-				|| notAuthorizedForRecordId(record)) {
-			return false;
-		}
-		return true;
-	}
-
-	private boolean notAuthorizedForRecordId(DataGroup record) {
-		String recordId = record.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id");
-		return notAuthorizedForIds.contains(recordId);
 	}
 
 	@Override
@@ -85,6 +53,19 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+			String recordType, DataGroup collectedData) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+			String recordType, DataGroup collectedData) {
+		return !notAuthorizedForRecordTypeAndAction(recordType, action);
 	}
 
 }

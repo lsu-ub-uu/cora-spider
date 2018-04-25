@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,13 +20,11 @@
 package se.uu.ub.cora.spider.role;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 
+import se.uu.ub.cora.beefeater.authorization.Rule;
+import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
@@ -41,7 +39,7 @@ public class RulesProviderImp implements RulesProvider {
 	}
 
 	@Override
-	public List<Map<String, Set<String>>> getActiveRules(String roleId) {
+	public List<Rule> getActiveRules(String roleId) {
 		DataGroup readRole = recordStorage.read("permissionRole", roleId);
 		if (roleNotFoundInStorage(readRole)) {
 			return new ArrayList<>();
@@ -58,41 +56,85 @@ public class RulesProviderImp implements RulesProvider {
 	}
 
 	private boolean roleIsInactive(DataGroup readRole) {
-		return !"active".equals(readRole.getFirstAtomicValueWithNameInData("activeStatus"));
+		return !ruleIsActive(readRole);
 	}
 
-	private List<Map<String, Set<String>>> getActiveRulesForRole(DataGroup readRole) {
-		List<Map<String, Set<String>>> listOfRules = new ArrayList<>();
+	private List<Rule> getActiveRulesForRole(DataGroup readRole) {
+
+		List<Rule> listOfRules = new ArrayList<>();
 		List<DataElement> children = readRole.getChildren();
 		Stream<DataElement> permissionRuleLinks = children.stream()
 				.filter(child -> "permissionRuleLink".equals(child.getNameInData()));
 
-		permissionRuleLinks.forEach(rule -> addRuleToListOfRules(rule, listOfRules));
+		permissionRuleLinks.forEach(rule -> possiblyAddRuleToListOfRules(rule, listOfRules));
 		return listOfRules;
 	}
 
-	private void addRuleToListOfRules(DataElement dataElementRule,
-			List<Map<String, Set<String>>> listOfRules) {
-		String linkedRecordId = ((DataGroup) dataElementRule)
-				.getFirstAtomicValueWithNameInData("linkedRecordId");
-		DataGroup readRule = recordStorage.read("permissionRule", linkedRecordId);
-		if ("active".equals(readRule.getFirstAtomicValueWithNameInData("activeStatus"))) {
-
-			List<DataElement> children = readRule.getChildren();
-			Stream<DataElement> permissionRuleParts = children.stream()
-					.filter(child -> "permissionRulePart".equals(child.getNameInData()));
-
-			Map<String, Set<String>> rule = new HashMap<>();
-			listOfRules.add(rule);
-			permissionRuleParts.forEach(rulePart -> addRulePartToRule(rulePart, rule));
+	private void possiblyAddRuleToListOfRules(DataElement dataElementRule, List<Rule> listOfRules) {
+		DataGroup readRule = getLinkedRuleFromStorage(dataElementRule);
+		if (ruleIsActive(readRule)) {
+			addRuleToListOfRules(listOfRules, readRule);
 		}
 	}
 
-	private void addRulePartToRule(DataElement rulePart, Map<String, Set<String>> rule) {
-		Set<String> ruleValues = new HashSet<>();
-		List<DataElement> children = ((DataGroup) rulePart).getChildren();
-		children.forEach(ruleValue -> ruleValues.add(((DataAtomic) ruleValue).getValue()));
+	private DataGroup getLinkedRuleFromStorage(DataElement dataElementRule) {
+		String ruleId = ((DataGroup) dataElementRule)
+				.getFirstAtomicValueWithNameInData("linkedRecordId");
+		return recordStorage.read("permissionRule", ruleId);
+	}
+
+	private boolean ruleIsActive(DataGroup readRule) {
+		return "active".equals(readRule.getFirstAtomicValueWithNameInData("activeStatus"));
+	}
+
+	private void addRuleToListOfRules(List<Rule> listOfRules, DataGroup readRule) {
+		Rule rule = new Rule();
+		listOfRules.add(rule);
+
+		addRulePartsToRule(rule, readRule);
+		addTermRulePartToRule(rule, readRule);
+	}
+
+	private void addRulePartsToRule(Rule rule, DataGroup readRule) {
+		List<DataGroup> permissionRuleParts = readRule
+				.getAllGroupsWithNameInData("permissionRulePart");
+		permissionRuleParts.forEach(rulePart -> addRulePartToRule(rulePart, rule));
+	}
+
+	private void addRulePartToRule(DataGroup rulePart, Rule rule) {
+		RulePartValues ruleValues = createRulePartValuesForRulePart(rulePart);
 		rule.put(rulePart.getAttributes().get("type"), ruleValues);
+	}
+
+	private RulePartValues createRulePartValuesForRulePart(DataGroup rulePart) {
+		RulePartValues ruleValues = new RulePartValues();
+		List<DataElement> children = rulePart.getChildren();
+		children.forEach(ruleValue -> ruleValues.add(((DataAtomic) ruleValue).getValue()));
+		return ruleValues;
+	}
+
+	private void addTermRulePartToRule(Rule rule, DataGroup readRule) {
+		List<DataGroup> permissionTermRuleParts = readRule
+				.getAllGroupsWithNameInData("permissionTermRulePart");
+		permissionTermRuleParts.forEach(rulePart -> addTermRulePartToRule(rulePart, rule));
+	}
+
+	private void addTermRulePartToRule(DataGroup ruleTermPart, Rule rule) {
+		RulePartValues ruleValues = new RulePartValues();
+
+		List<DataAtomic> valueChildren = ruleTermPart.getAllDataAtomicsWithNameInData("value");
+		valueChildren.forEach(ruleValue -> ruleValues.add(ruleValue.getValue()));
+
+		String permissionKey = getPermissionKeyForRuleTermPart(ruleTermPart);
+		rule.put(permissionKey, ruleValues);
+	}
+
+	private String getPermissionKeyForRuleTermPart(DataGroup ruleTermPart) {
+		DataGroup internalRule = ruleTermPart.getFirstGroupWithNameInData("rule");
+		String permissionTermId = internalRule.getFirstAtomicValueWithNameInData("linkedRecordId");
+		DataGroup permissionTerm = recordStorage.read("collectPermissionTerm", permissionTermId);
+		DataGroup extraData = permissionTerm.getFirstGroupWithNameInData("extraData");
+		return extraData.getFirstAtomicValueWithNameInData("permissionKey");
 	}
 
 }

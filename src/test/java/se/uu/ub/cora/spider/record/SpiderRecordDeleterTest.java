@@ -27,6 +27,8 @@ import java.util.HashMap;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
@@ -42,6 +44,7 @@ import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.search.RecordIndexer;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
+import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
@@ -55,6 +58,7 @@ public class SpiderRecordDeleterTest {
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private SpiderRecordDeleter recordDeleter;
 	private RecordIndexer recordIndexer;
+	private DataGroupTermCollector termCollector;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -63,6 +67,7 @@ public class SpiderRecordDeleterTest {
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
 		recordIndexer = new RecordIndexerSpy();
+		termCollector = new DataGroupTermCollectorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -71,8 +76,9 @@ public class SpiderRecordDeleterTest {
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.keyCalculator = keyCalculator;
+		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.recordIndexer = recordIndexer;
+		dependencyProvider.searchTermCollector = termCollector;
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
@@ -95,6 +101,30 @@ public class SpiderRecordDeleterTest {
 		assertTrue(((RecordStorageSpy) recordStorage).deleteWasCalled);
 		assertEquals(((RecordIndexerSpy) recordIndexer).type, "child1");
 		assertEquals(((RecordIndexerSpy) recordIndexer).id, "place:0002");
+	}
+
+	@Test
+	public void testDeleteAuthorizedNoIncomingLinks2() {
+		recordStorage = new RecordStorageSpy();
+
+		setUpDependencyProvider();
+
+		recordDeleter.deleteRecord("userId", "child1", "place:0002");
+
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizator);
+		assertEquals(authorizatorSpy.actions.get(0), "delete");
+		assertEquals(authorizatorSpy.users.get(0).id, "12345");
+		assertEquals(authorizatorSpy.recordTypes.get(0), "child1");
+
+		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
+		assertEquals(dataGroupTermCollectorSpy.metadataId, "child1");
+		assertEquals(dataGroupTermCollectorSpy.dataGroup,
+				recordStorage.read("child1", "place:0002"));
+
+		assertEquals(authorizatorSpy.calledMethods.get(0),
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
+		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
+		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
 	}
 
 	@Test(expectedExceptions = MisuseException.class)

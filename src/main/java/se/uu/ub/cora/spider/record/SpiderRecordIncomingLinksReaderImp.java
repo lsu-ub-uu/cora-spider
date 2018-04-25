@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.Action;
@@ -39,11 +40,13 @@ public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 	private String authToken;
 	private RecordTypeHandler recordTypeHandler;
 	private User user;
+	private DataGroupTermCollector collectTermCollector;
 
 	public SpiderRecordIncomingLinksReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
+		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 	}
 
 	public static SpiderRecordIncomingLinksReader usingDependencyProvider(
@@ -79,8 +82,14 @@ public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 	}
 
 	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, READ,
-				recordType, recordRead);
+		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
+				recordType, collectedTerms);
+	}
+
+	private DataGroup getCollectedTermsForRecord(DataGroup recordRead) {
+		String metadataId = recordTypeHandler.getMetadataId();
+		return collectTermCollector.collectTerms(metadataId, recordRead);
 	}
 
 	private SpiderDataList collectLinksAndConvertToSpiderDataList() {

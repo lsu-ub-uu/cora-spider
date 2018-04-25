@@ -106,7 +106,7 @@ public class SpiderRecordCreatorTest {
 		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
 		dependencyProvider.dataValidator = dataValidator;
 		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.keyCalculator = ruleCalculator;
+		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.idGenerator = idGenerator;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
@@ -466,6 +466,28 @@ public class SpiderRecordCreatorTest {
 		SpiderDataGroup record = DataCreator.createRecordWithNameInDataAndLinkedRecordId("place",
 				"cora");
 		recordCreator.createAndStoreRecord("someToken78678567", "place", record);
+	}
+
+	@Test
+	public void testCreateRecordCollectedDataUsedForAuthorization() {
+		recordStorage = new RecordStorageCreateUpdateSpy();
+		setUpDependencyProvider();
+
+		SpiderDataGroup record = DataCreator.createRecordWithNameInDataAndIdAndLinkedRecordId(
+				"typeWithUserGeneratedId", "somePlace", "cora");
+
+		recordCreator.createAndStoreRecord("someToken78678567", "typeWithUserGeneratedId", record);
+
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator);
+		assertEquals(authorizatorSpy.actions.get(0), "create");
+		assertEquals(authorizatorSpy.users.get(0).id, "12345");
+		assertEquals(authorizatorSpy.recordTypes.get(0), "typeWithUserGeneratedId");
+
+		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
+		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
+		assertEquals(authorizatorSpy.calledMethods.get(0),
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
+		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)

@@ -20,11 +20,11 @@
 package se.uu.ub.cora.spider.role;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import se.uu.ub.cora.beefeater.authorization.Rule;
 
 public interface RulesProvider {
 
-	List<Map<String, Set<String>>> getActiveRules(String roleId);
+	List<Rule> getActiveRules(String roleId);
 
 }

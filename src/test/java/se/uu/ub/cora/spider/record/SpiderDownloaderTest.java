@@ -76,7 +76,7 @@ public class SpiderDownloaderTest {
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
-		dependencyProvider.keyCalculator = keyCalculator;
+		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.streamStorage = streamStorage;
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
