@@ -134,8 +134,7 @@ public class RulesProviderImp implements RulesProvider {
 		String permissionTermId = internalRule.getFirstAtomicValueWithNameInData("linkedRecordId");
 		DataGroup permissionTerm = recordStorage.read("collectPermissionTerm", permissionTermId);
 		DataGroup extraData = permissionTerm.getFirstGroupWithNameInData("extraData");
-		String permissionKey = extraData.getFirstAtomicValueWithNameInData("permissionKey");
-		return permissionKey;
+		return extraData.getFirstAtomicValueWithNameInData("permissionKey");
 	}
 
 }
