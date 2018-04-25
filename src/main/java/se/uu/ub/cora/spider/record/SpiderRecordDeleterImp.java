@@ -38,11 +38,11 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	private DataGroupTermCollector collectTermCollector;
 
 	private SpiderRecordDeleterImp(SpiderDependencyProvider dependencyProvider) {
-		this.authenticator = dependencyProvider.getAuthenticator();
-		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
-		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.recordIndexer = dependencyProvider.getRecordIndexer();
-		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
+		authenticator = dependencyProvider.getAuthenticator();
+		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
+		recordStorage = dependencyProvider.getRecordStorage();
+		recordIndexer = dependencyProvider.getRecordIndexer();
+		collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 	}
 
 	public static SpiderRecordDeleterImp usingDependencyProvider(

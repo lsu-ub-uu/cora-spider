@@ -77,13 +77,13 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	protected void addActions() {
-		if (userIsAuthorizedForActionOnRecordType("read", recordType, dataGroup)) {
+		if (userIsAuthorizedForActionOnRecordTypeAndData("read", recordType, dataGroup)) {
 			record.addAction(Action.READ);
 		}
-		if (userIsAuthorizedForActionOnRecordType("update", recordType, dataGroup)) {
+		if (userIsAuthorizedForActionOnRecordTypeAndData("update", recordType, dataGroup)) {
 			record.addAction(Action.UPDATE);
 		}
-		if (userIsAuthorizedForActionOnRecordType("index", recordType, dataGroup)) {
+		if (userIsAuthorizedForActionOnRecordTypeAndData("index", recordType, dataGroup)) {
 			record.addAction(Action.INDEX);
 		}
 		possiblyAddDeleteAction(record);
@@ -95,7 +95,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void possiblyAddDeleteAction(SpiderDataRecord spiderDataRecord) {
 		if (!incomingLinksExistsForRecord(spiderDataRecord)
-				&& userIsAuthorizedForActionOnRecordType("delete", recordType, dataGroup)) {
+				&& userIsAuthorizedForActionOnRecordTypeAndData("delete", recordType, dataGroup)) {
 			spiderDataRecord.addAction(Action.DELETE);
 		}
 	}
@@ -124,7 +124,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return false;
 	}
 
-	private boolean userIsAuthorizedForActionOnRecordType(String action, String recordType,
+	private boolean userIsAuthorizedForActionOnRecordTypeAndData(String action, String recordType,
 			DataGroup dataGroup) {
 		DataGroup collectedTerms = getCollectedTermsForRecord(recordType, dataGroup);
 
@@ -152,7 +152,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void possiblyAddUploadAction(SpiderDataRecord spiderDataRecord) {
 		if (isHandledRecordIdChildOfBinary(recordType)
-				&& userIsAuthorizedForActionOnRecordType("upload", recordType, dataGroup)) {
+				&& userIsAuthorizedForActionOnRecordTypeAndData("upload", recordType, dataGroup)) {
 			spiderDataRecord.addAction(Action.UPLOAD);
 		}
 	}
@@ -202,13 +202,13 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void possiblyAddCreateAction(SpiderDataRecord spiderDataRecord) {
 		if (!isHandledRecordIdOfTypeAbstract(handledRecordId)
-				&& userIsAuthorizedForActionOnRecordType("create", handledRecordId, dataGroup)) {
+				&& userIsAuthorizedForActionOnRecordTypeAndData("create", handledRecordId, dataGroup)) {
 			spiderDataRecord.addAction(Action.CREATE);
 		}
 	}
 
 	private void possiblyAddListAction(SpiderDataRecord spiderDataRecord) {
-		if (userIsAuthorizedForActionOnRecordType("list", handledRecordId, dataGroup)) {
+		if (userIsAuthorizedForActionOnRecordTypeAndData("list", handledRecordId, dataGroup)) {
 
 			spiderDataRecord.addAction(Action.LIST);
 		}
@@ -306,11 +306,11 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		} catch (RecordNotFoundException exception) {
 			return false;
 		}
-		return userIsAuthorizedForActionOnRecordType("read", linkedRecordType, linkedRecord);
+		return userIsAuthorizedForActionOnRecordTypeAndData("read", linkedRecordType, linkedRecord);
 	}
 
 	private boolean isAuthorizedToReadResourceLink() {
-		return userIsAuthorizedForActionOnRecordType("read", "image", dataGroup);
+		return userIsAuthorizedForActionOnRecordTypeAndData("read", "image", dataGroup);
 	}
 
 	private boolean isGroup(SpiderDataElement spiderDataChild) {

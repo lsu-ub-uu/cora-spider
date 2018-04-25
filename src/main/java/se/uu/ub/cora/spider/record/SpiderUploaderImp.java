@@ -23,6 +23,7 @@ import java.io.InputStream;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
@@ -48,6 +49,7 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	private String streamId;
 	private String authToken;
 	private User user;
+	private DataGroupTermCollector collectTermCollector;
 
 	private SpiderUploaderImp(SpiderDependencyProvider dependencyProvider) {
 		authenticator = dependencyProvider.getAuthenticator();
@@ -55,6 +57,7 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		recordStorage = dependencyProvider.getRecordStorage();
 		idGenerator = dependencyProvider.getIdGenerator();
 		streamStorage = dependencyProvider.getStreamStorage();
+		collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 	}
 
 	public static SpiderUploaderImp usingDependencyProvider(
@@ -119,8 +122,22 @@ public final class SpiderUploaderImp implements SpiderUploader {
 	}
 
 	private void checkUserIsAuthorisedToUploadData(DataGroup recordRead) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user, "upload",
-				recordType, recordRead);
+		DataGroup collectedTerms = getCollectedTermsForRecord(recordType, recordRead);
+
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
+				"upload", recordType, collectedTerms);
+	}
+
+	private DataGroup getCollectedTermsForRecord(String recordType, DataGroup recordRead) {
+
+		String metadataId = getMetadataIdFromRecordType(recordType);
+		return collectTermCollector.collectTerms(metadataId, recordRead);
+	}
+
+	private String getMetadataIdFromRecordType(String recordType) {
+		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+		return recordTypeHandler.getMetadataId();
 	}
 
 	private void checkStreamIsPresent(InputStream inputStream) {
