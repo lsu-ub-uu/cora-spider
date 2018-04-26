@@ -250,7 +250,9 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testAuthorizedOnReadRecordTypePlaceWithNoCreateOnRecordTypeRecordType() {
-		authorizator = new AlwaysAuthorisedExceptStub();
+		AlwaysAuthorisedExceptStub authorizatorSpy = new AlwaysAuthorisedExceptStub();
+		authorizator = authorizatorSpy;
+
 		Set<String> actions = new HashSet<>();
 		actions.add("create");
 		actions.add("list");
@@ -270,6 +272,11 @@ public class DataGroupToRecordEnhancerTest {
 
 		assertFalse(record.getActions().contains(Action.CREATE));
 		assertFalse(record.getActions().contains(Action.LIST));
+		assertEquals(authorizatorSpy.calledMethods.get(4),
+				"create:userIsAuthorizedForActionOnRecordType");
+		assertEquals(authorizatorSpy.calledMethods.get(5),
+				"list:userIsAuthorizedForActionOnRecordType");
+
 	}
 
 	@Test

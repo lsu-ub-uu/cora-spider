@@ -50,6 +50,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private SpiderAuthorizator spiderAuthorizator;
 	private RecordStorage recordStorage;
 	private DataGroupTermCollector collectTermCollector;
+	private DataGroup collectedTerms;
 
 	public DataGroupToRecordEnhancerImp(SpiderDependencyProvider dependencyProvider) {
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
@@ -62,6 +63,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		this.user = user;
 		this.recordType = recordType;
 		this.dataGroup = dataGroup;
+		collectedTerms = getCollectedTermsForRecord(recordType, dataGroup);
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		record = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
 		handledRecordId = getRecordIdFromDataRecord(record);
@@ -77,13 +79,13 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	protected void addActions() {
-		if (userIsAuthorizedForActionOnRecordTypeAndData("read", recordType, dataGroup)) {
+		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read", recordType)) {
 			record.addAction(Action.READ);
 		}
-		if (userIsAuthorizedForActionOnRecordTypeAndData("update", recordType, dataGroup)) {
+		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("update", recordType)) {
 			record.addAction(Action.UPDATE);
 		}
-		if (userIsAuthorizedForActionOnRecordTypeAndData("index", recordType, dataGroup)) {
+		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("index", recordType)) {
 			record.addAction(Action.INDEX);
 		}
 		possiblyAddDeleteAction(record);
@@ -93,9 +95,16 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		addActionsForRecordType(record);
 	}
 
+	private boolean userIsAuthorizedForActionOnRecordTypeAndCollectedTerms(String action,
+			String recordType) {
+
+		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
+				action, recordType, collectedTerms);
+	}
+
 	private void possiblyAddDeleteAction(SpiderDataRecord spiderDataRecord) {
 		if (!incomingLinksExistsForRecord(spiderDataRecord)
-				&& userIsAuthorizedForActionOnRecordTypeAndData("delete", recordType, dataGroup)) {
+				&& userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("delete", recordType)) {
 			spiderDataRecord.addAction(Action.DELETE);
 		}
 	}
@@ -124,14 +133,6 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return false;
 	}
 
-	private boolean userIsAuthorizedForActionOnRecordTypeAndData(String action, String recordType,
-			DataGroup dataGroup) {
-		DataGroup collectedTerms = getCollectedTermsForRecord(recordType, dataGroup);
-
-		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				action, recordType, collectedTerms);
-	}
-
 	private DataGroup getCollectedTermsForRecord(String recordType, DataGroup record) {
 
 		String metadataId = getMetadataIdFromRecordType(recordType);
@@ -152,7 +153,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void possiblyAddUploadAction(SpiderDataRecord spiderDataRecord) {
 		if (isHandledRecordIdChildOfBinary(recordType)
-				&& userIsAuthorizedForActionOnRecordTypeAndData("upload", recordType, dataGroup)) {
+				&& userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("upload", recordType)) {
 			spiderDataRecord.addAction(Action.UPLOAD);
 		}
 	}
@@ -202,14 +203,18 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void possiblyAddCreateAction(SpiderDataRecord spiderDataRecord) {
 		if (!isHandledRecordIdOfTypeAbstract(handledRecordId)
-				&& userIsAuthorizedForActionOnRecordTypeAndData("create", handledRecordId, dataGroup)) {
+				&& userIsAuthorizedForActionOnRecordType("create", handledRecordId)) {
 			spiderDataRecord.addAction(Action.CREATE);
 		}
 	}
 
-	private void possiblyAddListAction(SpiderDataRecord spiderDataRecord) {
-		if (userIsAuthorizedForActionOnRecordTypeAndData("list", handledRecordId, dataGroup)) {
+	private boolean userIsAuthorizedForActionOnRecordType(String action, String handledRecordId) {
+		return spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user, action,
+				handledRecordId);
+	}
 
+	private void possiblyAddListAction(SpiderDataRecord spiderDataRecord) {
+		if (userIsAuthorizedForActionOnRecordType("list", handledRecordId)) {
 			spiderDataRecord.addAction(Action.LIST);
 		}
 	}
@@ -309,8 +314,16 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return userIsAuthorizedForActionOnRecordTypeAndData("read", linkedRecordType, linkedRecord);
 	}
 
+	private boolean userIsAuthorizedForActionOnRecordTypeAndData(String action, String recordType,
+			DataGroup dataGroup) {
+		DataGroup linkedRecordCollectedTerms = getCollectedTermsForRecord(recordType, dataGroup);
+
+		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
+				action, recordType, linkedRecordCollectedTerms);
+	}
+
 	private boolean isAuthorizedToReadResourceLink() {
-		return userIsAuthorizedForActionOnRecordTypeAndData("read", "image", dataGroup);
+		return userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read", "image");
 	}
 
 	private boolean isGroup(SpiderDataElement spiderDataChild) {

@@ -32,10 +32,12 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	public Map<String, Set<String>> notAuthorizedForRecordTypeAndActions = new HashMap<>();
 	public List<String> notAuthorizedForIds = new ArrayList<>();
+	public List<String> calledMethods = new ArrayList<>();
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
+		calledMethods.add(action + ":checkUserIsAuthorizedForActionOnRecordType");
 		if (notAuthorizedForRecordTypeAndAction(recordType, action)) {
 			throw new AuthorizationException("not authorized");
 		}
@@ -49,6 +51,7 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
+		calledMethods.add(action + ":userIsAuthorizedForActionOnRecordType");
 		if (notAuthorizedForRecordTypeAndAction(recordType, action)) {
 			return false;
 		}
@@ -58,6 +61,7 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
+		calledMethods.add(action + ":checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
 		// TODO Auto-generated method stub
 
 	}
@@ -65,6 +69,7 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
+		calledMethods.add(action + ":userIsAuthorizedForActionOnRecordTypeAndCollectedData");
 		return !notAuthorizedForRecordTypeAndAction(recordType, action);
 	}
 
