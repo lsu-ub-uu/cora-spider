@@ -56,17 +56,7 @@ import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.record.storage.TimeStampIdGenerator;
 import se.uu.ub.cora.spider.search.RecordIndexer;
-import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
-import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
-import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
-import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
-import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
-import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
-import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
+import se.uu.ub.cora.spider.spy.*;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
@@ -545,6 +535,7 @@ public class SpiderRecordCreatorTest {
 	@Test(expectedExceptions = RecordConflictException.class)
 	public void testCreateRecordDuplicateUserSuppliedId() {
 	//	TODO: lös detta med ett id som inte är autogenererat
+		RecordStorage duplicateStorageSpy = new RecordStorageDuplicateSpy();
 		SpiderDataGroup record = DataCreator
 				.createRecordWithNameInDataAndIdAndLinkedRecordId("place", "somePlace", "cora");
 
