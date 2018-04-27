@@ -200,6 +200,10 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void ensureIdExists(String recordType) {
 		if (recordTypeHandler.shouldAutoGenerateId()) {
+			SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
+			if(recordInfo.containsChildWithNameInData("id")){
+				recordInfo.removeChild("id");
+			}
 			generateAndAddIdToRecordInfo(recordType);
 		}
 	}
