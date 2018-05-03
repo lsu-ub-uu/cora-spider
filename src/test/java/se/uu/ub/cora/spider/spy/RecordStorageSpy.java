@@ -132,6 +132,9 @@ public class RecordStorageSpy implements RecordStorage {
 		if ("permissionRole".equals(type) && "guest".equals(id)) {
 			return createRoleForGuest();
 		}
+		if ("permissionRole".equals(type) && "guestWithPermissionTerm".equals(id)) {
+			return createRoleForGuest();
+		}
 
 		if ("permissionRole".equals(type) && "guestWithPermissionTerms".equals(id)) {
 			DataGroup roleForGuest = createRoleForGuest();
@@ -439,9 +442,33 @@ public class RecordStorageSpy implements RecordStorage {
 
 			addRolesToUser(user);
 			records.add(user);
+
+			DataGroup userWithPermissionTerm = createUserWithIdAndActiveStatus(
+					"userWithPermissionTerm", "active");
+			addRolesToUser(userWithPermissionTerm);
+
+			DataGroup permissionTerm = DataGroup.withNameInData("permissionTermRulePart");
+			DataGroup rule = createLinkWithNameInDataRecordtypeAndRecordId("rule",
+					"collectPermissionTerm", "organisationPermissionTerm");
+			permissionTerm.addChild(rule);
+			permissionTerm.addChild(
+					DataAtomic.withNameInDataAndValueAndRepeatId("value", "system.*", "0"));
+
+			DataGroup userRole = userWithPermissionTerm.getFirstGroupWithNameInData("userRole");
+			userRole.addChild(permissionTerm);
+
+			records.add(userWithPermissionTerm);
 			return records;
 		}
 		return new ArrayList<DataGroup>();
+	}
+
+	private DataGroup createLinkWithNameInDataRecordtypeAndRecordId(String nameInData,
+			String linkedRecordType, String linkedRecordId) {
+		DataGroup link = DataGroup.withNameInData(nameInData);
+		link.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", linkedRecordType));
+		link.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", linkedRecordId));
+		return link;
 	}
 
 	private void addRolesToUser(DataGroup user) {

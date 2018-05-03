@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.authorization;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -286,6 +287,43 @@ public class SpiderAuthorizatorTest {
 		assertEquals(providedRules.get(2), rulesProvider.returnedRules.get(1).get(0));
 		assertEquals(providedRules.get(3), rulesProvider.returnedRules.get(1).get(1));
 	}
+
+	@Test
+	public void checkUserSatisfiesActionForCollectedDataWithPermissionTermForUser() {
+		user = new User("userWithPermissionTerm");
+		user.roles.add("guest");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action,
+				"book", collectedData);
+
+		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
+				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
+				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+
+		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
+
+		Iterator<String> iterator = user.roles.iterator();
+		assertEquals(rulesProvider.roleIds.get(0), iterator.next());
+		Rule firstRule = rulesProvider.returnedRules.get(0).get(0);
+		assertEquals(firstRule.size(), 2);
+		assertNotNull(firstRule.get("action"));
+		assertNotNull(firstRule.get("OWNING_ORGANISATION"));
+		assertEquals(providedRules.get(0), firstRule);
+
+		Rule secondRule = rulesProvider.returnedRules.get(0).get(1);
+		assertEquals(providedRules.get(1), secondRule);
+		assertEquals(secondRule.size(), 2);
+		assertNotNull(secondRule.get("action"));
+		assertNotNull(secondRule.get("OWNING_ORGANISATION"));
+
+	}
+
+	// TODO: test med annan key än OWNING_ORGANISATION
+	// TODO: test med flera roller med permissionTerms
+	// TODO: test med fler än en permissionTerm i en role
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "user with id someUserId is not authorized to read a record of type: book")

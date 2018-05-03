@@ -62,7 +62,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private List<Rule> getActiveRulesForUser(User user) {
 		List<Rule> providedRules = new ArrayList<>();
-		user.roles.forEach(roleId -> providedRules.addAll(rulesProvider.getActiveRules(roleId)));
+		user.roles.forEach(roleId -> addRulesForRole(providedRules, roleId, user));
 		// THIS IS A SMALL HACK UNTIL WE HAVE RECORDRELATIONS AND CAN READ FROM
 		// USER, will be needed for userId, organisation, etc
 
@@ -72,6 +72,40 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 			rule.put("createdBy", userIdValues);
 		});
 		return providedRules;
+	}
+
+	private boolean addRulesForRole(List<Rule> providedRules, String roleId, User user) {
+		List<Rule> activeRules = rulesProvider.getActiveRules(roleId);
+		DataGroup emptyFilter = DataGroup.withNameInData("filter");
+		Collection<DataGroup> users = recordStorage.readAbstractList("user", emptyFilter);
+		DataGroup userAsDataGroup = findUserInListOfUsers(user, users);
+		for (Rule rule : activeRules) {
+
+			for (DataGroup userRole : userAsDataGroup.getAllGroupsWithNameInData("userRole")) {
+				possiblyAddPermissionTermsAsRulePartValues(roleId, rule, userRole);
+			}
+		}
+		return providedRules.addAll(activeRules);
+	}
+
+	private void possiblyAddPermissionTermsAsRulePartValues(String roleId, Rule rule,
+			DataGroup userRole) {
+		if (userRole.containsChildWithNameInData("permissionTermRulePart")) {
+			addPersmissionTermAsRulePartValue(roleId, rule, userRole);
+		}
+	}
+
+	private void addPersmissionTermAsRulePartValue(String roleId, Rule rule, DataGroup userRole) {
+		DataGroup innerUserRole = userRole.getFirstGroupWithNameInData("userRole");
+
+		String idOfCurrentRole = innerUserRole.getFirstAtomicValueWithNameInData("linkedRecordId");
+		if (idOfCurrentRole.equals(roleId)) {
+			RulePartValues rulePartValues = new RulePartValues();
+			DataGroup rulePart = userRole.getFirstGroupWithNameInData("permissionTermRulePart");
+			String rulePartValue = rulePart.getFirstAtomicValueWithNameInData("value");
+			rulePartValues.add(rulePartValue);
+			rule.put("OWNING_ORGANISATION", rulePartValues);
+		}
 	}
 
 	@Override
@@ -142,7 +176,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 						collectedData);
 
 		List<Rule> providedRules = new ArrayList<>();
-		user.roles.forEach(roleId -> providedRules.addAll(rulesProvider.getActiveRules(roleId)));
+		user.roles.forEach(roleId -> addRulesForRole(providedRules, roleId, user));
 
 		return authorizator.providedRulesSatisfiesRequiredRules(providedRules, requiredRules);
 	}
