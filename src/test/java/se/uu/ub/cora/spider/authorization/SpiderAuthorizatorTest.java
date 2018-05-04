@@ -322,8 +322,61 @@ public class SpiderAuthorizatorTest {
 	}
 
 	// TODO: test med annan key än OWNING_ORGANISATION
+
+
+	@Test
+	public void checkUserSatisfiesActionForCollectedDataWithTwoRolesAndPermissionTermsForUser() {
+		user = new User("userWithTwoRolesPermissionTerm");
+		user.roles.add("admin");
+		user.roles.add("guest");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action,
+				"book", collectedData);
+
+		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
+				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
+				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+
+		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
+
+		Iterator<String> iterator = user.roles.iterator();
+		assertEquals(rulesProvider.roleIds.get(0), iterator.next());
+		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
+		Rule firstRule = rulesFromFirstRole.get(0);
+		assertEquals(firstRule.size(), 2);
+		assertNotNull(firstRule.get("action"));
+		assertNotNull(firstRule.get("JOURNAL_ACCESS"));
+		assertEquals(providedRules.get(0), firstRule);
+
+		Rule secondRule = rulesProvider.returnedRules.get(0).get(1);
+		assertEquals(providedRules.get(1), secondRule);
+		assertEquals(secondRule.size(), 2);
+		assertNotNull(secondRule.get("action"));
+		assertNotNull(secondRule.get("JOURNAL_ACCESS"));
+
+		List<Rule> rulesFromSecondRole = rulesProvider.returnedRules.get(1);
+		Rule thirdRule = rulesFromSecondRole.get(0);
+		assertEquals(providedRules.get(2), thirdRule);
+		assertEquals(thirdRule.size(), 2);
+		assertNotNull(thirdRule.get("action"));
+
+		assertNotNull(thirdRule.get("OWNING_ORGANISATION"));
+
+		Rule fourthRule = rulesFromSecondRole.get(1);
+		assertEquals(providedRules.get(3), fourthRule);
+		assertEquals(fourthRule.size(), 2);
+		assertNotNull(fourthRule.get("action"));
+
+		assertNotNull(fourthRule.get("OWNING_ORGANISATION"));
+
+
+	}
 	// TODO: test med flera roller med permissionTerms
 	// TODO: test med fler än en permissionTerm i en role
+	// TODO: test med fler än ett value för permissionTerm?
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "user with id someUserId is not authorized to read a record of type: book")

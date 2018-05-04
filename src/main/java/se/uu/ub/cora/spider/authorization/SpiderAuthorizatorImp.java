@@ -91,20 +91,27 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	private void possiblyAddPermissionTermsAsRulePartValues(String roleId, Rule rule,
 			DataGroup userRole) {
 		if (userRole.containsChildWithNameInData("permissionTermRulePart")) {
-			addPersmissionTermAsRulePartValue(roleId, rule, userRole);
+			addPermissionTermAsRulePartValue(roleId, rule, userRole);
 		}
 	}
 
-	private void addPersmissionTermAsRulePartValue(String roleId, Rule rule, DataGroup userRole) {
+	private void addPermissionTermAsRulePartValue(String roleId, Rule rule, DataGroup userRole) {
 		DataGroup innerUserRole = userRole.getFirstGroupWithNameInData("userRole");
 
 		String idOfCurrentRole = innerUserRole.getFirstAtomicValueWithNameInData("linkedRecordId");
 		if (idOfCurrentRole.equals(roleId)) {
-			RulePartValues rulePartValues = new RulePartValues();
 			DataGroup rulePart = userRole.getFirstGroupWithNameInData("permissionTermRulePart");
+			DataGroup ruleGroup = rulePart.getFirstGroupWithNameInData("rule");
+			String permissionTermId = ruleGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+
+			DataGroup collectPermissionTerm = recordStorage.read("collectPermissionTerm", permissionTermId);
+			DataGroup extraData = collectPermissionTerm.getFirstGroupWithNameInData("extraData");
+			String permissionKey = extraData.getFirstAtomicValueWithNameInData("permissionKey");
+
+			RulePartValues rulePartValues = new RulePartValues();
 			String rulePartValue = rulePart.getFirstAtomicValueWithNameInData("value");
 			rulePartValues.add(rulePartValue);
-			rule.put("OWNING_ORGANISATION", rulePartValues);
+			rule.put(permissionKey, rulePartValues);
 		}
 	}
 
