@@ -24,9 +24,11 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -321,9 +323,6 @@ public class SpiderAuthorizatorTest {
 
 	}
 
-	// TODO: test med annan key än OWNING_ORGANISATION
-
-
 	@Test
 	public void checkUserSatisfiesActionForCollectedDataWithTwoRolesAndPermissionTermsForUser() {
 		user = new User("userWithTwoRolesPermissionTerm");
@@ -342,41 +341,37 @@ public class SpiderAuthorizatorTest {
 
 		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
 
-		Iterator<String> iterator = user.roles.iterator();
-		assertEquals(rulesProvider.roleIds.get(0), iterator.next());
 		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
 		Rule firstRule = rulesFromFirstRole.get(0);
-		assertEquals(firstRule.size(), 2);
-		assertNotNull(firstRule.get("action"));
-		assertNotNull(firstRule.get("JOURNAL_ACCESS"));
 		assertEquals(providedRules.get(0), firstRule);
+		assertEquals(firstRule.size(), 2);
+		assertCorrectKeysInRule(firstRule, Arrays.asList("JOURNAL_ACCESS", "action"));
 
 		Rule secondRule = rulesProvider.returnedRules.get(0).get(1);
 		assertEquals(providedRules.get(1), secondRule);
 		assertEquals(secondRule.size(), 2);
-		assertNotNull(secondRule.get("action"));
-		assertNotNull(secondRule.get("JOURNAL_ACCESS"));
+		assertCorrectKeysInRule(secondRule, Arrays.asList("JOURNAL_ACCESS", "action"));
 
 		List<Rule> rulesFromSecondRole = rulesProvider.returnedRules.get(1);
 		Rule thirdRule = rulesFromSecondRole.get(0);
 		assertEquals(providedRules.get(2), thirdRule);
 		assertEquals(thirdRule.size(), 2);
-		assertNotNull(thirdRule.get("action"));
-
-		assertNotNull(thirdRule.get("OWNING_ORGANISATION"));
+		assertCorrectKeysInRule(thirdRule, Arrays.asList("OWNING_ORGANISATION", "action"));
 
 		Rule fourthRule = rulesFromSecondRole.get(1);
 		assertEquals(providedRules.get(3), fourthRule);
 		assertEquals(fourthRule.size(), 2);
-		assertNotNull(fourthRule.get("action"));
-
-		assertNotNull(fourthRule.get("OWNING_ORGANISATION"));
-
+		assertCorrectKeysInRule(fourthRule, Arrays.asList("OWNING_ORGANISATION", "action"));
 
 	}
-	// TODO: test med flera roller med permissionTerms
+	// TODO: test med flera roller med permissionTerms - yes
 	// TODO: test med fler än en permissionTerm i en role
 	// TODO: test med fler än ett value för permissionTerm?
+
+	private void assertCorrectKeysInRule(Rule firstRule, List<String> expectedKeys) {
+		Set<String> keySet = firstRule.keySet();
+		assertTrue(keySet.containsAll(expectedKeys));
+	}
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "user with id someUserId is not authorized to read a record of type: book")

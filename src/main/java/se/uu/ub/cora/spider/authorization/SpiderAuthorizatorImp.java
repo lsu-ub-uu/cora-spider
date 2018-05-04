@@ -62,7 +62,10 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private List<Rule> getActiveRulesForUser(User user) {
 		List<Rule> providedRules = new ArrayList<>();
-		user.roles.forEach(roleId -> addRulesForRole(providedRules, roleId, user));
+		DataGroup emptyFilter = DataGroup.withNameInData("filter");
+		Collection<DataGroup> users = recordStorage.readAbstractList("user", emptyFilter);
+		DataGroup userAsDataGroup = findUserInListOfUsers(user, users);
+		user.roles.forEach(roleId -> addRulesForRole(providedRules, roleId, userAsDataGroup));
 		// THIS IS A SMALL HACK UNTIL WE HAVE RECORDRELATIONS AND CAN READ FROM
 		// USER, will be needed for userId, organisation, etc
 
@@ -74,11 +77,9 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		return providedRules;
 	}
 
-	private boolean addRulesForRole(List<Rule> providedRules, String roleId, User user) {
+	private boolean addRulesForRole(List<Rule> providedRules, String roleId,
+			DataGroup userAsDataGroup) {
 		List<Rule> activeRules = rulesProvider.getActiveRules(roleId);
-		DataGroup emptyFilter = DataGroup.withNameInData("filter");
-		Collection<DataGroup> users = recordStorage.readAbstractList("user", emptyFilter);
-		DataGroup userAsDataGroup = findUserInListOfUsers(user, users);
 		for (Rule rule : activeRules) {
 
 			for (DataGroup userRole : userAsDataGroup.getAllGroupsWithNameInData("userRole")) {
@@ -100,19 +101,36 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 		String idOfCurrentRole = innerUserRole.getFirstAtomicValueWithNameInData("linkedRecordId");
 		if (idOfCurrentRole.equals(roleId)) {
-			DataGroup rulePart = userRole.getFirstGroupWithNameInData("permissionTermRulePart");
-			DataGroup ruleGroup = rulePart.getFirstGroupWithNameInData("rule");
-			String permissionTermId = ruleGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
-
-			DataGroup collectPermissionTerm = recordStorage.read("collectPermissionTerm", permissionTermId);
-			DataGroup extraData = collectPermissionTerm.getFirstGroupWithNameInData("extraData");
-			String permissionKey = extraData.getFirstAtomicValueWithNameInData("permissionKey");
-
-			RulePartValues rulePartValues = new RulePartValues();
-			String rulePartValue = rulePart.getFirstAtomicValueWithNameInData("value");
-			rulePartValues.add(rulePartValue);
-			rule.put(permissionKey, rulePartValues);
+			createRulePartUsingInfoFromUserRole(rule, userRole);
 		}
+	}
+
+	private void createRulePartUsingInfoFromUserRole(Rule rule, DataGroup userRole) {
+		DataGroup rulePart = userRole.getFirstGroupWithNameInData("permissionTermRulePart");
+		String rulePartValue = rulePart.getFirstAtomicValueWithNameInData("value");
+		String permissionTermId = extractPermissionTermId(rulePart);
+		String permissionKey = extractPermissionKey(permissionTermId);
+
+		createRulePartWithKeyAndValueAndAddToRule(permissionKey, rulePartValue, rule);
+	}
+
+	private void createRulePartWithKeyAndValueAndAddToRule(String permissionKey,
+			String rulePartValue, Rule rule) {
+		RulePartValues rulePartValues = new RulePartValues();
+		rulePartValues.add(rulePartValue);
+		rule.put(permissionKey, rulePartValues);
+	}
+
+	private String extractPermissionTermId(DataGroup rulePart) {
+		DataGroup ruleGroup = rulePart.getFirstGroupWithNameInData("rule");
+		return ruleGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+	}
+
+	private String extractPermissionKey(String permissionTermId) {
+		DataGroup collectPermissionTerm = recordStorage.read("collectPermissionTerm",
+				permissionTermId);
+		DataGroup extraData = collectPermissionTerm.getFirstGroupWithNameInData("extraData");
+		return extraData.getFirstAtomicValueWithNameInData("permissionKey");
 	}
 
 	@Override
@@ -183,7 +201,10 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 						collectedData);
 
 		List<Rule> providedRules = new ArrayList<>();
-		user.roles.forEach(roleId -> addRulesForRole(providedRules, roleId, user));
+		DataGroup emptyFilter = DataGroup.withNameInData("filter");
+		Collection<DataGroup> users = recordStorage.readAbstractList("user", emptyFilter);
+		DataGroup userAsDataGroup = findUserInListOfUsers(user, users);
+		user.roles.forEach(roleId -> addRulesForRole(providedRules, roleId, userAsDataGroup));
 
 		return authorizator.providedRulesSatisfiesRequiredRules(providedRules, requiredRules);
 	}
