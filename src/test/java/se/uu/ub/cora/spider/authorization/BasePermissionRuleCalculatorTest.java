@@ -162,4 +162,52 @@ public class BasePermissionRuleCalculatorTest {
 		assertEquals(createdByValues2.iterator().next(), "system.otherTermValue");
 	}
 
+	@Test
+	public void testWithCollectedDataTwoPermissionsRepeated() {
+		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup permission = DataGroup.withNameInData("permission");
+		collectedData.addChild(permission);
+
+		DataGroup collectedDataTerm = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
+				"0", "someTermId", "someTermValue", "SOME_PERMISSION_KEY");
+		permission.addChild(collectedDataTerm);
+		DataGroup collectedDataTerm1 = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
+				"1", "someTermId", "someTermValue1", "SOME_PERMISSION_KEY");
+		permission.addChild(collectedDataTerm1);
+
+		DataGroup collectedDataTerm2 = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
+				"1", "otherTermId", "otherTermValue", "OTHER_PERMISSION_KEY");
+		permission.addChild(collectedDataTerm2);
+
+		DataGroup collectedDataTerm3 = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
+				"2", "otherTermId", "otherTermValue2", "OTHER_PERMISSION_KEY");
+		permission.addChild(collectedDataTerm3);
+
+		List<Rule> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
+						collectedData);
+		assertEquals(requiredRules.size(), 4);
+
+		// for rules 0-3
+		Rule requiredRule = requiredRules.get(0);
+		assertEquals(requiredRule.keySet().size(), 4);
+		RulePartValues actionValues = requiredRule.get("action");
+		assertEquals(actionValues.size(), 1);
+		assertEquals(actionValues.iterator().next(), "system.create");
+
+		RulePartValues recordTypeValues = requiredRule.get("recordType");
+		assertEquals(recordTypeValues.size(), 1);
+		assertEquals(recordTypeValues.iterator().next(), "system.book");
+
+		RulePartValues createdByValues = requiredRule.get("SOME_PERMISSION_KEY");
+		assertEquals(createdByValues.size(), 1);
+		assertEquals(createdByValues.iterator().next(), "system.someTermValue");
+		// assertEquals(createdByValues.iterator().next(), "system.someTermValue1");
+
+		RulePartValues createdByValues2 = requiredRule.get("OTHER_PERMISSION_KEY");
+		assertEquals(createdByValues2.size(), 1);
+		assertEquals(createdByValues2.iterator().next(), "system.otherTermValue");
+		// assertEquals(createdByValues2.iterator().next(), "system.otherTermValue2");
+	}
+
 }
