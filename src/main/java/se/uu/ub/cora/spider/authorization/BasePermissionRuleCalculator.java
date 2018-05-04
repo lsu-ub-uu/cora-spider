@@ -1,5 +1,6 @@
 /*
  * Copyright 2016, 2018 Uppsala University Library
+ * Copyright 2018 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -23,7 +24,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
@@ -77,52 +77,79 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 				permission);
 	}
 
+	private class RulePart {
+		String key;
+		RulePartValues rulePartValues;
+	}
+
 	private List<Rule> createRulesFromActionAndRecordTypeAndCollectedPermissionTerms(String action,
 			String recordType, DataGroup permission) {
 		List<Rule> requiredRules = new ArrayList<>();
-		// Rule requiredRule = createRequiredRuleWithActionAndRecordType(action,
-		// recordType);
-		// requiredRules.add(requiredRule);
-
-		// should multiple of same data result in more values, or duplicated rules with
-		// one value each (will not scale)
 		List<DataGroup> collectedDataTerms = permission
 				.getAllGroupsWithNameInData("collectedDataTerm");
+
 		Map<String, List<RulePartValues>> sortedRulePartValues = sortCollectedDataTermsByPermissionKey(
 				collectedDataTerms);
-		// for (DataGroup collectedDataTerm : collectedDataTerms) {
-		// createRuleForCollectedDataTerm(requiredRule, collectedDataTerm);
-		// }
-		Set<String> permissionKeys = sortedRulePartValues.keySet();
-		for (String permissionKey : permissionKeys) {
-			List<RulePartValues> list = sortedRulePartValues.get(permissionKey);
-			for (RulePartValues rulePartValues : list) {
-				// create rule
-				Rule requiredRule = createRequiredRuleWithActionAndRecordType(action, recordType);
+		List<String> permissionKeys = new ArrayList<>();
+		permissionKeys.addAll(sortedRulePartValues.keySet());
+
+		List<RulePart> builtRulePartsIn = new ArrayList<>();
+		// action
+		RulePart actionRulePart = new RulePart();
+		actionRulePart.key = "action";
+		RulePartValues actionRulePartValues = new RulePartValues();
+		actionRulePart.rulePartValues = actionRulePartValues;
+		actionRulePartValues.add("system." + action);
+		builtRulePartsIn.add(actionRulePart);
+
+		// recordType
+		RulePart recordTypeRulePart = new RulePart();
+		recordTypeRulePart.key = "recordType";
+		RulePartValues recordTypeRulePartValues = new RulePartValues();
+		recordTypeRulePart.rulePartValues = recordTypeRulePartValues;
+		recordTypeRulePartValues.add("system." + recordType);
+		builtRulePartsIn.add(recordTypeRulePart);
+
+		createRulesRecurse(requiredRules, sortedRulePartValues, permissionKeys, builtRulePartsIn);
+
+		return requiredRules;
+	}
+
+	private void createRulesRecurse(List<Rule> requiredRules,
+			Map<String, List<RulePartValues>> sortedRulePartValues, List<String> permissionKeysIn,
+			List<RulePart> builtRulePartsIn) {
+		List<String> permissionKeys = new ArrayList<>();
+		permissionKeys.addAll(permissionKeysIn);
+		String permissionKey = permissionKeys.remove(0);
+
+		List<RulePartValues> list = sortedRulePartValues.get(permissionKey);
+		for (RulePartValues rulePartValues : list) {
+			List<RulePart> builtRuleParts = new ArrayList<>();
+			builtRuleParts.addAll(builtRulePartsIn);
+			RulePart rulePart = new RulePart();
+			rulePart.key = permissionKey;
+			rulePart.rulePartValues = rulePartValues;
+			builtRuleParts.add(rulePart);
+
+			if (permissionKeys.isEmpty()) {
+				// crate rule
+				// Rule requiredRule = createRequiredRuleWithActionAndRecordType(action,
+				// recordType);
+				Rule requiredRule = new Rule();
 				requiredRules.add(requiredRule);
-				requiredRule.put(permissionKey, rulePartValues);
-
-				// go over all other lists than this permissionKeys list
-				Set<String> permissionKeysInner = sortedRulePartValues.keySet();
-				for (String permissionKeyInner : permissionKeysInner) {
-					if (!permissionKeyInner.equals(permissionKey)) {
-						List<RulePartValues> listInner = sortedRulePartValues.get(permissionKey);
-						for (RulePartValues rulePartValuesInner : listInner) {
-							// add all ruleparts to rule.
-							requiredRule.put(permissionKeyInner, rulePartValuesInner);
-						}
-					}
+				for (RulePart rulePart2 : builtRuleParts) {
+					requiredRule.put(rulePart2.key, rulePart2.rulePartValues);
 				}
-
+			} else {
+				createRulesRecurse(requiredRules, sortedRulePartValues, permissionKeys,
+						builtRuleParts);
 			}
 
 		}
-		return requiredRules;
 	}
 
 	private Map<String, List<RulePartValues>> sortCollectedDataTermsByPermissionKey(
 			List<DataGroup> collectedDataTerms) {
-		// TODO Auto-generated method stub
 		Map<String, List<RulePartValues>> out = new HashMap<>();
 
 		for (DataGroup collectedDataTerm : collectedDataTerms) {
@@ -138,13 +165,6 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 			out.get(permissionKey).add(rulePartValues);
 		}
 		return out;
-	}
-
-	private void createRuleForCollectedDataTerm(Rule requiredRule, DataGroup collectedDataTerm) {
-		DataGroup extraData = collectedDataTerm.getFirstGroupWithNameInData("extraData");
-		String permissionKey = extraData.getFirstAtomicValueWithNameInData("permissionKey");
-		String value = collectedDataTerm.getFirstAtomicValueWithNameInData("collectTermValue");
-		createRulePart(requiredRule, permissionKey, value);
 	}
 
 }
