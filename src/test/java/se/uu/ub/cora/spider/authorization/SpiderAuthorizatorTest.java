@@ -182,76 +182,6 @@ public class SpiderAuthorizatorTest {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, action, recordType);
 		assertRuleCalculatorIsCalled();
 	}
-	//
-	// @Test
-	// public void userSatisfiesActionForRecord() {
-	// authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
-	// setUpDependencyProvider();
-	// DataGroup record = createBookRecord();
-	// boolean userAuthorized = spiderAuthorizator
-	// .userIsAuthorizedForActionOnRecordTypeAndRecord(user, action, "book",
-	// record);
-	// assertTrue(userAuthorized);
-	// assertRuleCalculatorIsCalled();
-	// }
-	//
-	// private DataGroup createBookRecord() {
-	// return
-	// DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy(
-	// "book", "myBook", "book", "systemOne", "12345").toDataGroup();
-	// }
-	//
-	// @Test
-	// public void userDoesNotSatisfyActionForRecord() {
-	// authorizator = new BeefeaterNeverAuthorizedSpy();
-	// setUpDependencyProvider();
-	// DataGroup record = createBookRecord();
-	// boolean userAuthorized = spiderAuthorizator
-	// .userIsAuthorizedForActionOnRecordTypeAndRecord(user, action, "book",
-	// record);
-	// assertFalse(userAuthorized);
-	// assertRuleCalculatorIsCalled();
-	// }
-	//
-	// @Test(expectedExceptions = AuthorizationException.class)
-	// public void userInactiveAndDoesNotSatisfyActionForRecord() {
-	// authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
-	// setUpDependencyProvider();
-	// DataGroup record = createBookRecord();
-	//
-	// User inactiveUser = new User("inactiveUserId");
-	// spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndRecord(inactiveUser,
-	// action,
-	// recordType, record);
-	// }
-	//
-	// @Test
-	// public void checkUserSatisfiesActionForRecord() {
-	// authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
-	// setUpDependencyProvider();
-	// DataGroup record = createBookRecord();
-	// spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user,
-	// action, "book",
-	// record);
-	//
-	// assertRuleCalculatorIsCalled();
-	// assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
-	// .contains("calculateRulesForActionAndRecordTypeAndData"));
-	// assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy)
-	// authorizator).requiredRules,
-	// ((NoRulesCalculatorStub) rulesCalculator).returnedRules);
-	// }
-	//
-	// @Test(expectedExceptions = AuthorizationException.class)
-	// public void checkUserDoesNotSatisfiesActionForRecord() {
-	// authorizator = new BeefeaterNeverAuthorizedSpy();
-	// setUpDependencyProvider();
-	// String action = "read";
-	// DataGroup record = createBookRecord();
-	// spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndRecord(user,
-	// action, "book",
-	// record);
-	// }
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void checkUserDoesNotSatisfiesActionForRecordUserDoesNotExist() {
@@ -309,13 +239,14 @@ public class SpiderAuthorizatorTest {
 
 		Iterator<String> iterator = user.roles.iterator();
 		assertEquals(rulesProvider.roleIds.get(0), iterator.next());
-		Rule firstRule = rulesProvider.returnedRules.get(0).get(0);
+		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
+		Rule firstRule = rulesFromFirstRole.get(0);
 		assertEquals(firstRule.size(), 2);
 		assertNotNull(firstRule.get("action"));
 		assertNotNull(firstRule.get("OWNING_ORGANISATION"));
 		assertEquals(providedRules.get(0), firstRule);
 
-		Rule secondRule = rulesProvider.returnedRules.get(0).get(1);
+		Rule secondRule = rulesFromFirstRole.get(1);
 		assertEquals(providedRules.get(1), secondRule);
 		assertEquals(secondRule.size(), 2);
 		assertNotNull(secondRule.get("action"));
@@ -345,28 +276,28 @@ public class SpiderAuthorizatorTest {
 		Rule firstRule = rulesFromFirstRole.get(0);
 		assertEquals(providedRules.get(0), firstRule);
 		assertEquals(firstRule.size(), 2);
+		assertEquals(firstRule.get("JOURNAL_ACCESS").size(), 2);
 		assertCorrectKeysInRule(firstRule, Arrays.asList("JOURNAL_ACCESS", "action"));
 
-		Rule secondRule = rulesProvider.returnedRules.get(0).get(1);
+		Rule secondRule = rulesFromFirstRole.get(1);
 		assertEquals(providedRules.get(1), secondRule);
 		assertEquals(secondRule.size(), 2);
+		assertEquals(secondRule.get("JOURNAL_ACCESS").size(), 2);
 		assertCorrectKeysInRule(secondRule, Arrays.asList("JOURNAL_ACCESS", "action"));
 
 		List<Rule> rulesFromSecondRole = rulesProvider.returnedRules.get(1);
 		Rule thirdRule = rulesFromSecondRole.get(0);
 		assertEquals(providedRules.get(2), thirdRule);
 		assertEquals(thirdRule.size(), 2);
+		assertEquals(thirdRule.get("OWNING_ORGANISATION").size(), 1);
 		assertCorrectKeysInRule(thirdRule, Arrays.asList("OWNING_ORGANISATION", "action"));
 
 		Rule fourthRule = rulesFromSecondRole.get(1);
 		assertEquals(providedRules.get(3), fourthRule);
 		assertEquals(fourthRule.size(), 2);
+		assertEquals(fourthRule.get("OWNING_ORGANISATION").size(), 1);
 		assertCorrectKeysInRule(fourthRule, Arrays.asList("OWNING_ORGANISATION", "action"));
-
 	}
-	// TODO: test med flera roller med permissionTerms - yes
-	// TODO: test med fler än en permissionTerm i en role
-	// TODO: test med fler än ett value för permissionTerm?
 
 	private void assertCorrectKeysInRule(Rule firstRule, List<String> expectedKeys) {
 		Set<String> keySet = firstRule.keySet();
@@ -411,6 +342,87 @@ public class SpiderAuthorizatorTest {
 		assertEquals(rulesProvider.roleIds.get(1), iterator.next());
 		assertEquals(providedRules.get(2), rulesProvider.returnedRules.get(1).get(0));
 		assertEquals(providedRules.get(3), rulesProvider.returnedRules.get(1).get(1));
+	}
+
+	@Test
+	public void userSatisfiesActionForCollectedDataWithPermissionTermForUser() {
+		user = new User("userWithPermissionTerm");
+		user.roles.add("guest");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		boolean authorized = spiderAuthorizator
+				.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, "book",
+						collectedData);
+		assertTrue(authorized);
+
+		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
+				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
+				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+
+		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
+
+		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
+		Rule firstRule = rulesFromFirstRole.get(0);
+		assertEquals(firstRule.size(), 2);
+		assertNotNull(firstRule.get("action"));
+		assertNotNull(firstRule.get("OWNING_ORGANISATION"));
+		assertEquals(providedRules.get(0), firstRule);
+
+		Rule secondRule = rulesFromFirstRole.get(1);
+		assertEquals(providedRules.get(1), secondRule);
+		assertEquals(secondRule.size(), 2);
+		assertNotNull(secondRule.get("action"));
+		assertNotNull(secondRule.get("OWNING_ORGANISATION"));
+
+	}
+
+	@Test
+	public void userSatisfiesActionForCollectedDataWithPermissionTermWithTwoRolesAndPermissionTermsForUser() {
+		user = new User("userWithTwoRolesPermissionTerm");
+		user.roles.add("admin");
+		user.roles.add("guest");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		boolean authorized = spiderAuthorizator
+				.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, "book",
+						collectedData);
+		assertTrue(authorized);
+
+		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
+				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
+				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
+
+		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
+		Rule firstRule = rulesFromFirstRole.get(0);
+		assertEquals(providedRules.get(0), firstRule);
+		assertEquals(firstRule.size(), 2);
+		assertEquals(firstRule.get("JOURNAL_ACCESS").size(), 2);
+		assertCorrectKeysInRule(firstRule, Arrays.asList("JOURNAL_ACCESS", "action"));
+
+		Rule secondRule = rulesFromFirstRole.get(1);
+		assertEquals(providedRules.get(1), secondRule);
+		assertEquals(secondRule.size(), 2);
+		assertEquals(secondRule.get("JOURNAL_ACCESS").size(), 2);
+		assertCorrectKeysInRule(secondRule, Arrays.asList("JOURNAL_ACCESS", "action"));
+
+		List<Rule> rulesFromSecondRole = rulesProvider.returnedRules.get(1);
+		Rule thirdRule = rulesFromSecondRole.get(0);
+		assertEquals(providedRules.get(2), thirdRule);
+		assertEquals(thirdRule.size(), 2);
+		assertEquals(thirdRule.get("OWNING_ORGANISATION").size(), 1);
+		assertCorrectKeysInRule(thirdRule, Arrays.asList("OWNING_ORGANISATION", "action"));
+
+		Rule fourthRule = rulesFromSecondRole.get(1);
+		assertEquals(providedRules.get(3), fourthRule);
+		assertEquals(fourthRule.size(), 2);
+		assertEquals(fourthRule.get("OWNING_ORGANISATION").size(), 1);
+		assertCorrectKeysInRule(fourthRule, Arrays.asList("OWNING_ORGANISATION", "action"));
+
 	}
 
 	@Test

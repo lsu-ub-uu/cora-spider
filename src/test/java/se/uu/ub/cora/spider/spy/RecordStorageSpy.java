@@ -289,8 +289,7 @@ public class RecordStorageSpy implements RecordStorage {
 		DataGroup collectTerm = DataGroup.withNameInData("collectTerm");
 		DataGroup extraData = DataGroup.withNameInData("extraData");
 		collectTerm.addChild(extraData);
-		extraData.addChild(
-                DataAtomic.withNameInDataAndValue("permissionKey", key));
+		extraData.addChild(DataAtomic.withNameInDataAndValue("permissionKey", key));
 
 		return collectTerm;
 	}
@@ -440,19 +439,22 @@ public class RecordStorageSpy implements RecordStorage {
 			DataGroup userWithPermissionTerm = createUserWithOneRoleWithOnePermission();
 			records.add(userWithPermissionTerm);
 
-			DataGroup userWithTwoRolesAndTwoPermissionTerm = createActiveUserWithIdAndAddDefaultRoles("userWithTwoRolesPermissionTerm");
+			DataGroup userWithTwoRolesAndTwoPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
+					"userWithTwoRolesPermissionTerm");
 			addRoleToUser("admin", userWithTwoRolesAndTwoPermissionTerm);
 
-			List<DataGroup> userRoles = userWithTwoRolesAndTwoPermissionTerm.getAllGroupsWithNameInData("userRole");
+			List<DataGroup> userRoles = userWithTwoRolesAndTwoPermissionTerm
+					.getAllGroupsWithNameInData("userRole");
 
-			DataGroup permissionTerm = createPermissionTermWithIdAndValues("organisationPermissionTerm", "system.*");
+			DataGroup permissionTerm = createPermissionTermWithIdAndValues(
+					"organisationPermissionTerm", "system.*");
 			DataGroup userRole = userRoles.get(0);
 			userRole.addChild(permissionTerm);
 
-			DataGroup permissionTerm2 = createPermissionTermWithIdAndValues("journalPermissionTerm", "system.abc", "system.def");
+			DataGroup permissionTerm2 = createPermissionTermWithIdAndValues("journalPermissionTerm",
+					"system.abc", "system.def");
 			DataGroup userRole2 = userRoles.get(1);
 			userRole2.addChild(permissionTerm2);
-
 
 			records.add(userWithTwoRolesAndTwoPermissionTerm);
 
@@ -462,8 +464,10 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	private DataGroup createUserWithOneRoleWithOnePermission() {
-		DataGroup userWithPermissionTerm = createActiveUserWithIdAndAddDefaultRoles("userWithPermissionTerm");
-		DataGroup permissionTerm = createPermissionTermWithIdAndValues("organisationPermissionTerm", "system.*");
+		DataGroup userWithPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
+				"userWithPermissionTerm");
+		DataGroup permissionTerm = createPermissionTermWithIdAndValues("organisationPermissionTerm",
+				"system.*");
 
 		DataGroup userRole = userWithPermissionTerm.getFirstGroupWithNameInData("userRole");
 		userRole.addChild(permissionTerm);
@@ -471,19 +475,22 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	private DataGroup createActiveUserWithIdAndAddDefaultRoles(String userId) {
-		DataGroup userWithPermissionTerm = createUserWithIdAndActiveStatus(
-                userId, "active");
+		DataGroup userWithPermissionTerm = createUserWithIdAndActiveStatus(userId, "active");
 		addRoleToUser("guest", userWithPermissionTerm);
 		return userWithPermissionTerm;
 	}
 
-	private DataGroup createPermissionTermWithIdAndValues(String permissionTermId, String... value) {
+	private DataGroup createPermissionTermWithIdAndValues(String permissionTermId,
+			String... value) {
 		DataGroup permissionTerm = DataGroup.withNameInData("permissionTermRulePart");
 		DataGroup rule = createLinkWithNameInDataRecordtypeAndRecordId("rule",
-                "collectPermissionTerm", permissionTermId);
+				"collectPermissionTerm", permissionTermId);
 		permissionTerm.addChild(rule);
-		permissionTerm.addChild(
-                DataAtomic.withNameInDataAndValueAndRepeatId("value", value[0], "0"));
+
+		for (int i = 0; i < value.length; i++) {
+			permissionTerm.addChild(DataAtomic.withNameInDataAndValueAndRepeatId("value", value[i],
+					String.valueOf(i)));
+		}
 		return permissionTerm;
 	}
 
