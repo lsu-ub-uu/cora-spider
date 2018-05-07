@@ -122,11 +122,14 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private void possiblyAddPermissionTermAsRulePartValue(String roleId, Rule rule,
 			DataGroup userRole) {
-		String idOfCurrentRole = extractIdOfCurrentRole(userRole);
-		if (idOfCurrentRole.equals(roleId)) {
-			DataGroup rulePart = userRole.getFirstGroupWithNameInData("permissionTermRulePart");
-			createRulePartUsingInfoFromRulePartInUser(rule, rulePart);
+		if (currentRoleMatchesRoleId(userRole, roleId)) {
+			addPermissionTermsAsRulePartValues(rule, userRole);
 		}
+	}
+
+	private boolean currentRoleMatchesRoleId(DataGroup userRole, String roleId) {
+		String idOfCurrentRole = extractIdOfCurrentRole(userRole);
+		return idOfCurrentRole.equals(roleId);
 	}
 
 	private String extractIdOfCurrentRole(DataGroup userRole) {
@@ -134,10 +137,15 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		return innerUserRole.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
+	private void addPermissionTermsAsRulePartValues(Rule rule, DataGroup userRole) {
+		DataGroup rulePart = userRole.getFirstGroupWithNameInData("permissionTermRulePart");
+		createRulePartUsingInfoFromRulePartInUser(rule, rulePart);
+	}
+
 	private void createRulePartUsingInfoFromRulePartInUser(Rule rule, DataGroup rulePartInUser) {
-		String permissionKey = getPermissionKeyUsingRulePart(rulePartInUser);
 		RulePartValues rulePartValues = new RulePartValues();
 		addAllValuesFromRulePartToRulePartValues(rulePartInUser, rulePartValues);
+		String permissionKey = getPermissionKeyUsingRulePart(rulePartInUser);
 		rule.put(permissionKey, rulePartValues);
 	}
 
