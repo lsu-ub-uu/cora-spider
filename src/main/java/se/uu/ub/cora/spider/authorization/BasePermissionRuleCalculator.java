@@ -21,7 +21,6 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,11 +47,19 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 		return requiredRule;
 	}
 
+	private void createRulePart(Rule requiredRule, String key, String... values) {
+		RulePartValues rulePartValues = new RulePartValues();
+		for (String value : values) {
+			rulePartValues.add(SYSTEM + value);
+		}
+		requiredRule.put(key, rulePartValues);
+	}
+
 	@Override
 	public List<Rule> calculateRulesForActionAndRecordTypeAndCollectedData(String action,
 			String recordType, DataGroup collectedData) {
 		if (thereAreCollectedPermissionValuesFromData(collectedData)) {
-			return createRulesForActonAndRecordTypeAndCollectedData(action, recordType,
+			return createRulesForActionAndRecordTypeAndCollectedData(action, recordType,
 					collectedData);
 		}
 		return calculateRulesForActionAndRecordType(action, recordType);
@@ -62,92 +69,49 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 		return collectedData.containsChildWithNameInData("permission");
 	}
 
-	private void createRulePart(Rule requiredRule, String key, String... values) {
-		RulePartValues rulePartValues = new RulePartValues();
-		for (String value : values) {
-			rulePartValues.add(SYSTEM + value);
-		}
-		requiredRule.put(key, rulePartValues);
-	}
-
-	private List<Rule> createRulesForActonAndRecordTypeAndCollectedData(String action,
+	private List<Rule> createRulesForActionAndRecordTypeAndCollectedData(String action,
 			String recordType, DataGroup collectedData) {
-		DataGroup permission = collectedData.getFirstGroupWithNameInData("permission");
-		return createRulesFromActionAndRecordTypeAndCollectedPermissionTerms(action, recordType,
-				permission);
+		Map<String, List<RulePartValues>> sortedRulePartValues = CollectedDataPermissionRulePartExtractor
+				.extractRulePartsSortedByPermissionKeyFromCollectedData(collectedData);
+		return createRulesFromActionAndRecordTypeAndSortedRulePartValues(action, recordType,
+				sortedRulePartValues);
 	}
 
-	private List<Rule> createRulesFromActionAndRecordTypeAndCollectedPermissionTerms(String action,
-			String recordType, DataGroup permission) {
-		List<DataGroup> collectedDataTerms = permission
-				.getAllGroupsWithNameInData("collectedDataTerm");
+	private List<Rule> createRulesFromActionAndRecordTypeAndSortedRulePartValues(String action,
+			String recordType, Map<String, List<RulePartValues>> sortedRulePartValues) {
+		List<String> permissionKeys = createListOfPermissionKeysFromSortedRulePartValues(
+				sortedRulePartValues);
 
-		Map<String, List<RulePartValues>> sortedRulePartValues = sortCollectedDataTermsByPermissionKey(
-				collectedDataTerms);
+		List<RulePart> rulePartList = createRulePartListWithActionAndRecordType(action, recordType);
+
+		return RulesCreator.recursivelyCreateRules(sortedRulePartValues, permissionKeys,
+				rulePartList);
+	}
+
+	private List<String> createListOfPermissionKeysFromSortedRulePartValues(
+			Map<String, List<RulePartValues>> sortedRulePartValues) {
 		List<String> permissionKeys = new ArrayList<>();
 		permissionKeys.addAll(sortedRulePartValues.keySet());
+		return permissionKeys;
+	}
 
-		List<RulePart> builtRulePartsIn = new ArrayList<>();
+	private List<RulePart> createRulePartListWithActionAndRecordType(String action,
+			String recordType) {
+		List<RulePart> rulePartList = new ArrayList<>();
+		addActionToRulePartList(action, rulePartList);
+
+		addRecordTypeToRulePartList(recordType, rulePartList);
+		return rulePartList;
+	}
+
+	private void addActionToRulePartList(String action, List<RulePart> rulePartList) {
 		RulePart actionRulePart = RulePart.withKeyAndValue("action", SYSTEM + action);
-		builtRulePartsIn.add(actionRulePart);
+		rulePartList.add(actionRulePart);
+	}
 
+	private void addRecordTypeToRulePartList(String recordType, List<RulePart> rulePartList) {
 		RulePart recordTypeRulePart = RulePart.withKeyAndValue("recordType", SYSTEM + recordType);
-		builtRulePartsIn.add(recordTypeRulePart);
-
-		return createRulesRecurse(sortedRulePartValues, permissionKeys, builtRulePartsIn);
-
-	}
-
-	private List<Rule> createRulesRecurse(Map<String, List<RulePartValues>> sortedRulePartValues,
-			List<String> permissionKeysIn, List<RulePart> builtRulePartsIn) {
-		List<Rule> requiredRules = new ArrayList<>();
-
-		List<String> permissionKeys = new ArrayList<>();
-		permissionKeys.addAll(permissionKeysIn);
-		String permissionKey = permissionKeys.remove(0);
-
-		List<RulePartValues> list = sortedRulePartValues.get(permissionKey);
-		for (RulePartValues rulePartValues : list) {
-			List<RulePart> builtRuleParts = new ArrayList<>();
-			builtRuleParts.addAll(builtRulePartsIn);
-			RulePart rulePart = RulePart.withKeyAndRulePartValues(permissionKey, rulePartValues);
-			builtRuleParts.add(rulePart);
-
-			if (permissionKeys.isEmpty()) {
-				// crate rule
-				// Rule requiredRule = createRequiredRuleWithActionAndRecordType(action,
-				// recordType);
-				Rule requiredRule = new Rule();
-				requiredRules.add(requiredRule);
-				for (RulePart rulePart2 : builtRuleParts) {
-					requiredRule.put(rulePart2.key, rulePart2.rulePartValues);
-				}
-			} else {
-				requiredRules.addAll(
-						createRulesRecurse(sortedRulePartValues, permissionKeys, builtRuleParts));
-			}
-
-		}
-		return requiredRules;
-	}
-
-	private Map<String, List<RulePartValues>> sortCollectedDataTermsByPermissionKey(
-			List<DataGroup> collectedDataTerms) {
-		Map<String, List<RulePartValues>> out = new HashMap<>();
-
-		for (DataGroup collectedDataTerm : collectedDataTerms) {
-			DataGroup extraData = collectedDataTerm.getFirstGroupWithNameInData("extraData");
-			String permissionKey = extraData.getFirstAtomicValueWithNameInData("permissionKey");
-			String value = collectedDataTerm.getFirstAtomicValueWithNameInData("collectTermValue");
-
-			RulePartValues rulePartValues = new RulePartValues();
-			rulePartValues.add(SYSTEM + value);
-			if (!out.containsKey(permissionKey)) {
-				out.put(permissionKey, new ArrayList<>());
-			}
-			out.get(permissionKey).add(rulePartValues);
-		}
-		return out;
+		rulePartList.add(recordTypeRulePart);
 	}
 
 }
