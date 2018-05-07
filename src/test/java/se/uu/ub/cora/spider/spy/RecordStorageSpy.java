@@ -132,6 +132,9 @@ public class RecordStorageSpy implements RecordStorage {
 		if ("permissionRole".equals(type) && "guest".equals(id)) {
 			return createRoleForGuest();
 		}
+		if ("permissionRole".equals(type) && "guestWithPermissionTerm".equals(id)) {
+			return createRoleForGuest();
+		}
 
 		if ("permissionRole".equals(type) && "guestWithPermissionTerms".equals(id)) {
 			DataGroup roleForGuest = createRoleForGuest();
@@ -234,25 +237,18 @@ public class RecordStorageSpy implements RecordStorage {
 		}
 
 		if ("collectPermissionTerm".equals(type) && "publishedStatusPermissionTerm".equals(id)) {
-			DataGroup collectTerm = DataGroup.withNameInData("collectTerm");
-
-			DataGroup extraData = DataGroup.withNameInData("extraData");
-			collectTerm.addChild(extraData);
-			extraData.addChild(
-					DataAtomic.withNameInDataAndValue("permissionKey", "PUBLISHED_STATUS"));
-
-			return collectTerm;
+			return createCollectPermissionTermWIthKey("PUBLISHED_STATUS");
 		}
 		if ("collectPermissionTerm".equals(type) && "deletedStatusPermissionTerm".equals(id)) {
-			DataGroup collectTerm = DataGroup.withNameInData("collectTerm");
-
-			DataGroup extraData = DataGroup.withNameInData("extraData");
-			collectTerm.addChild(extraData);
-			extraData
-					.addChild(DataAtomic.withNameInDataAndValue("permissionKey", "DELETED_STATUS"));
-
-			return collectTerm;
+			return createCollectPermissionTermWIthKey("DELETED_STATUS");
 		}
+		if ("collectPermissionTerm".equals(type) && "organisationPermissionTerm".equals(id)) {
+			return createCollectPermissionTermWIthKey("OWNING_ORGANISATION");
+		}
+		if ("collectPermissionTerm".equals(type) && "journalPermissionTerm".equals(id)) {
+			return createCollectPermissionTermWIthKey("JOURNAL_ACCESS");
+		}
+
 		if ("inactiveUserId".equals(id)) {
 			DataGroup user = DataGroup.withNameInData("user");
 			user.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
@@ -261,7 +257,7 @@ public class RecordStorageSpy implements RecordStorage {
 		if ("someUserId".equals(id)) {
 			DataGroup user = DataGroup.withNameInData("user");
 			user.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "active"));
-			addRolesToUser(user);
+			addRoleToUser("guest", user);
 
 			return user;
 		}
@@ -287,6 +283,15 @@ public class RecordStorageSpy implements RecordStorage {
 		DataGroup dataGroupToReturn = DataGroup.withNameInData("someNameInData");
 		dataGroupToReturn.addChild(DataGroup.withNameInData("recordInfo"));
 		return dataGroupToReturn;
+	}
+
+	private DataGroup createCollectPermissionTermWIthKey(String key) {
+		DataGroup collectTerm = DataGroup.withNameInData("collectTerm");
+		DataGroup extraData = DataGroup.withNameInData("extraData");
+		collectTerm.addChild(extraData);
+		extraData.addChild(DataAtomic.withNameInDataAndValue("permissionKey", key));
+
+		return collectTerm;
 	}
 
 	private DataGroup createPermissionTermRulePart(String permissionTermId, String... value) {
@@ -428,30 +433,88 @@ public class RecordStorageSpy implements RecordStorage {
 			DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
 			records.add(inactiveUser);
 
-			// DataGroup user = DataGroup.withNameInData("user");
-			// DataGroup recordInfo2 = DataGroup.withNameInData("recordInfo");
-			// recordInfo2.addChild(DataAtomic.withNameInDataAndValue("id",
-			// "someUserId"));
-			// user.addChild(recordInfo2);
-			// user.addChild(DataAtomic.withNameInDataAndValue("activeStatus",
-			// "active"));
-			DataGroup user = createUserWithIdAndActiveStatus("someUserId", "active");
-
-			addRolesToUser(user);
+			DataGroup user = createActiveUserWithIdAndAddDefaultRoles("someUserId");
 			records.add(user);
+
+			DataGroup userWithPermissionTerm = createUserWithOneRoleWithOnePermission();
+			records.add(userWithPermissionTerm);
+
+			DataGroup userWithTwoRolesAndTwoPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
+					"userWithTwoRolesPermissionTerm");
+			addRoleToUser("admin", userWithTwoRolesAndTwoPermissionTerm);
+
+			List<DataGroup> userRoles = userWithTwoRolesAndTwoPermissionTerm
+					.getAllGroupsWithNameInData("userRole");
+
+			DataGroup permissionTerm = createPermissionTermWithIdAndValues(
+					"organisationPermissionTerm", "system.*");
+			DataGroup userRole = userRoles.get(0);
+			userRole.addChild(permissionTerm);
+
+			DataGroup permissionTerm2 = createPermissionTermWithIdAndValues("journalPermissionTerm",
+					"system.abc", "system.def");
+			DataGroup userRole2 = userRoles.get(1);
+			userRole2.addChild(permissionTerm2);
+
+			records.add(userWithTwoRolesAndTwoPermissionTerm);
+
 			return records;
 		}
 		return new ArrayList<DataGroup>();
 	}
 
-	private void addRolesToUser(DataGroup user) {
+	private DataGroup createUserWithOneRoleWithOnePermission() {
+		DataGroup userWithPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
+				"userWithPermissionTerm");
+		DataGroup permissionTerm = createPermissionTermWithIdAndValues("organisationPermissionTerm",
+				"system.*");
+
+		DataGroup userRole = userWithPermissionTerm.getFirstGroupWithNameInData("userRole");
+		userRole.addChild(permissionTerm);
+		return userWithPermissionTerm;
+	}
+
+	private DataGroup createActiveUserWithIdAndAddDefaultRoles(String userId) {
+		DataGroup userWithPermissionTerm = createUserWithIdAndActiveStatus(userId, "active");
+		addRoleToUser("guest", userWithPermissionTerm);
+		return userWithPermissionTerm;
+	}
+
+	private DataGroup createPermissionTermWithIdAndValues(String permissionTermId,
+			String... value) {
+		DataGroup permissionTerm = DataGroup.withNameInData("permissionTermRulePart");
+		DataGroup rule = createLinkWithNameInDataRecordtypeAndRecordId("rule",
+				"collectPermissionTerm", permissionTermId);
+		permissionTerm.addChild(rule);
+
+		for (int i = 0; i < value.length; i++) {
+			permissionTerm.addChild(DataAtomic.withNameInDataAndValueAndRepeatId("value", value[i],
+					String.valueOf(i)));
+		}
+		return permissionTerm;
+	}
+
+	private DataGroup createLinkWithNameInDataRecordtypeAndRecordId(String nameInData,
+			String linkedRecordType, String linkedRecordId) {
+		DataGroup link = DataGroup.withNameInData(nameInData);
+		link.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", linkedRecordType));
+		link.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", linkedRecordId));
+		return link;
+	}
+
+	private void addRoleToUser(String roleId, DataGroup user) {
+		DataGroup outerUserRole = createUserRoleWithId(roleId);
+		user.addChild(outerUserRole);
+	}
+
+	private DataGroup createUserRoleWithId(String roleId) {
 		DataGroup outerUserRole = DataGroup.withNameInData("userRole");
 		DataGroup innerUserRole = DataGroup.withNameInData("userRole");
 		innerUserRole
 				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRole"));
-		innerUserRole.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "guest"));
+		innerUserRole.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", roleId));
 		outerUserRole.addChild(innerUserRole);
-		user.addChild(outerUserRole);
+		return outerUserRole;
 	}
 
 	private DataGroup createUserWithIdAndActiveStatus(String userId, String activeStatus) {
