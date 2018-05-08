@@ -26,7 +26,7 @@ import java.util.Map;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
-public class CollectedDataPermissionRulePartExtractor {
+public final class CollectedDataPermissionRulePartExtractor {
 	private static final String SYSTEM = "system.";
 	private DataGroup collectedData;
 	private Map<String, List<RulePartValues>> sortedRulePartValues = new HashMap<>();

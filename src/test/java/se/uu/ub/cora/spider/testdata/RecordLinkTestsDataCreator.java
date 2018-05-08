@@ -19,8 +19,10 @@
 
 package se.uu.ub.cora.spider.testdata;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.data.*;
+import se.uu.ub.cora.spider.data.SpiderDataAtomic;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
+import se.uu.ub.cora.spider.data.SpiderDataResourceLink;
 
 public class RecordLinkTestsDataCreator {
 
@@ -77,7 +79,8 @@ public class RecordLinkTestsDataCreator {
 
 	public static SpiderDataGroup createDataGroupWithLinkOneLevelDownTargetDoesNotExist() {
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
-		SpiderDataGroup oneLevelDown = SpiderDataGroup.withNameInData("oneLevelDownTargetDoesNotExist");
+		SpiderDataGroup oneLevelDown = SpiderDataGroup
+				.withNameInData("oneLevelDownTargetDoesNotExist");
 		dataGroup.addChild(oneLevelDown);
 
 		SpiderDataRecordLink spiderRecordLink = SpiderDataRecordLink.withNameInData("link");
@@ -174,7 +177,8 @@ public class RecordLinkTestsDataCreator {
 	public static SpiderDataGroup createLinkChildAsRecordDataGroup() {
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("toRecordType");
 		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "recordLinkNotAuthorized"));
+		recordInfo
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "recordLinkNotAuthorized"));
 
 		SpiderDataGroup type = SpiderDataGroup.withNameInData("type");
 		type.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));

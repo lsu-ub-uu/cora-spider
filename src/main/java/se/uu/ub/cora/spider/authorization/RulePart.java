@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.authorization;
 
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 
-public class RulePart {
+public final class RulePart {
 	String key;
 	RulePartValues rulePartValues;
 

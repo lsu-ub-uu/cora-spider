@@ -24,7 +24,7 @@ import java.util.Map;
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 
-public class RulesCreator {
+public final class RulesCreator {
 
 	private Map<String, List<RulePartValues>> sortedRulePartValues;
 	private List<String> remainingPermissionKeys;
@@ -35,7 +35,7 @@ public class RulesCreator {
 	private RulesCreator(Map<String, List<RulePartValues>> sortedRulePartValues,
 			List<RulePart> builtRuleParts) {
 		this.sortedRulePartValues = sortedRulePartValues;
-		this.collectedRuleParts = builtRuleParts;
+		this.collectedRuleParts = copyRuleParts(builtRuleParts);
 	}
 
 	public static List<Rule> recursivelyCreateRules(
@@ -78,7 +78,13 @@ public class RulesCreator {
 		for (RulePartValues rulePartValues : list) {
 			recursivelyCreateRulesForRulePartValues(rulePartValues);
 		}
-		return requiredRules;
+		return copyRule(requiredRules);
+	}
+
+	private List<Rule> copyRule(List<Rule> rules) {
+		List<Rule> builtRuleParts = new ArrayList<>();
+		builtRuleParts.addAll(rules);
+		return builtRuleParts;
 	}
 
 	private void recursivelyCreateRulesForRulePartValues(RulePartValues rulePartValues) {
