@@ -260,7 +260,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private String getRepeatId(SpiderDataGroup recordInfo) {
-		List<SpiderDataGroup> updatedList = recordInfo.getAllGroupsWithNameInData("updated");
+		List<SpiderDataGroup> updatedList = recordInfo.getAllGroupsWithNameInData(UPDATED_STRING);
 		if(updatedList.isEmpty()){
 			return "0";
 		}
