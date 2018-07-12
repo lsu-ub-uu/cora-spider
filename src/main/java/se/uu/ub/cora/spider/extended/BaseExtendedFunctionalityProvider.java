@@ -26,6 +26,10 @@ import java.util.List;
 
 import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidatorFactory;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 
 public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityProvider {
 
@@ -69,6 +73,12 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 			list.add(UserUpdaterForAppTokenAsExtendedFunctionality
 					.usingSpiderDependencyProvider(dependencyProvider));
 		}
+//		if("workOrder".equals(recordType)){
+//			SpiderInstanceFactory spiderInstanceFactory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
+//			SpiderRecordDeleter spiderRecordDeleter =  spiderInstanceFactory.factorSpiderRecordDeleter();
+//			list.add(WorkOrderDeleterAsExtendedFunctionality
+//					.usingDependencyProviderAndDeleter(dependencyProvider,spiderRecordDeleter));
+//		}
 		return list;
 	}
 

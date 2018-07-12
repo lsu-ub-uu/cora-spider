@@ -33,13 +33,13 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.testdata.DataCreator;
 
 public class WorkOrderExecutorAsExtendedFunctionalityTest {
 
@@ -73,7 +73,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 
 	@Test
 	public void testIndexData() {
-		SpiderDataGroup workOrder = createWorkOrderWithRecordTypeAndRecordId("book", "book1");
+		SpiderDataGroup workOrder = DataCreator.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex("someGeneratedId", "book", "book1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
 		assertTrue(termCollector.collectTermsWasCalled);
@@ -96,7 +96,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 	public void testIndexDataForChildOfAbstract() {
 		dependencyProvider.recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
-		SpiderDataGroup workOrder = createWorkOrderWithRecordTypeAndRecordId("image", "image1");
+		SpiderDataGroup workOrder = DataCreator.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex("someGeneratedId", "image", "image1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
 		List<String> ids = recordIndexer.ids;
@@ -115,30 +115,11 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 		actions.add("index");
 		authorizer.notAuthorizedForRecordTypeAndActions.put("book", actions);
 
-		SpiderDataGroup workOrder = createWorkOrderWithRecordTypeAndRecordId("book", "book1");
+		SpiderDataGroup workOrder = DataCreator.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex("someGeneratedId", "book", "book1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
 		assertFalse(termCollector.collectTermsWasCalled);
 		assertFalse(recordIndexer.indexDataHasBeenCalled);
-	}
-
-	private SpiderDataGroup createWorkOrderWithRecordTypeAndRecordId(String recordType,
-			String recordId) {
-		SpiderDataGroup workOrder = SpiderDataGroup.withNameInData("workOrder");
-		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "someGeneratedId"));
-		workOrder.addChild(recordInfo);
-
-		SpiderDataGroup recordTypeLink = SpiderDataGroup.withNameInData("recordType");
-		recordTypeLink.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
-		recordTypeLink
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", recordType));
-		workOrder.addChild(recordTypeLink);
-
-		workOrder.addChild(SpiderDataAtomic.withNameInDataAndValue("recordId", recordId));
-		workOrder.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "index"));
-		return workOrder;
 	}
 
 }
