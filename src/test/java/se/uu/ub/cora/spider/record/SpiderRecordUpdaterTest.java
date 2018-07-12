@@ -19,10 +19,6 @@
 
 package se.uu.ub.cora.spider.record;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -69,6 +65,8 @@ import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.spider.testdata.SpiderDataCreator;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
+
+import static org.testng.Assert.*;
 
 public class SpiderRecordUpdaterTest {
 	private RecordStorage recordStorage;
@@ -300,6 +298,36 @@ public class SpiderRecordUpdaterTest {
 		firstUpdated.removeChild("tsUpdated");
 		firstUpdated
 				.addChild(SpiderDataAtomic.withNameInDataAndValue("tsUpdated", "someAlteredValue"));
+	}
+
+	//TODO: this is temporary until we've fixed problem in solr with too large jsonRecord
+	@Test
+	public void testNoMoreThanTenUpdates() {
+		recordStorage = new RecordStorageUpdateMultipleTimesSpy();
+		keyCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		addRecordInfo(spiderDataGroup);
+
+		SpiderDataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
+				"spyId", spiderDataGroup);
+
+		for(int i=0; i<10; i++) {
+			setUpdatedRecordInStorageSpyToReturnOnRead(updatedRecord);
+				updatedRecord =recordUpdater.updateRecord(
+						"someToken78678567", "spyType", "spyId", updatedRecord.getSpiderDataGroup());
+		}
+
+		SpiderDataGroup updatedSpiderDataGroup = updatedRecord
+				.getSpiderDataGroup();
+		SpiderDataGroup updatedRecordInfo = updatedSpiderDataGroup.extractGroup("recordInfo");
+		List<SpiderDataGroup> updatedGroups = updatedRecordInfo
+				.getAllGroupsWithNameInData("updated");
+		assertEquals(updatedGroups.size(), 10);
+		SpiderDataGroup secondLast = updatedGroups.get(8);
+		SpiderDataGroup last = updatedGroups.get(9);
+		assertFalse(secondLast.getRepeatId().equals(last.getRepeatId()));
+		assertEquals(last.getRepeatId(), "10");
 	}
 
 	@Test
