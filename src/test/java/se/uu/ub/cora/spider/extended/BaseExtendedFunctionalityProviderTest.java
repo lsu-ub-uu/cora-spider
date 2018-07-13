@@ -31,13 +31,15 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.record.SpiderRecordDeleterImp;
 
 public class BaseExtendedFunctionalityProviderTest {
 	private ExtendedFunctionalityProvider baseExtendedFunctionalityProvider;
+	private	SpiderDependencyProvider dependencyProvider;
 
 	@BeforeMethod
 	public void setUp() {
-		SpiderDependencyProvider dependencyProvider = new SpiderDependencyProviderSpy(
+		dependencyProvider = new SpiderDependencyProviderSpy(
 				new HashMap<>());
 		baseExtendedFunctionalityProvider = new BaseExtendedFunctionalityProvider(
 				dependencyProvider);
@@ -123,6 +125,7 @@ public class BaseExtendedFunctionalityProviderTest {
 		fetchAndAssertCreateBeforeReturn("");
 		fetchAndAssertCreateBeforeReturn("UnkownType");
 		fetchAndAssertCreateBeforeReturnForAppToken();
+		fetchAndAssertCreateBeforeReturnForWorkOrder();
 	}
 
 	private void fetchAndAssertCreateBeforeReturn(String recordType) {
@@ -137,6 +140,16 @@ public class BaseExtendedFunctionalityProviderTest {
 		assertEquals(bEFP.size(), 1);
 		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
 		assertTrue(extendedFunctionality instanceof UserUpdaterForAppTokenAsExtendedFunctionality);
+	}
+
+	private void fetchAndAssertCreateBeforeReturnForWorkOrder() {
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
+				.getFunctionalityForCreateBeforeReturn("workOrder");
+		assertEquals(bEFP.size(), 1);
+		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
+		assertTrue(extendedFunctionality instanceof WorkOrderDeleterAsExtendedFunctionality);
+		WorkOrderDeleterAsExtendedFunctionality woExtendedFunctionality =   (WorkOrderDeleterAsExtendedFunctionality) extendedFunctionality;
+		assertTrue(woExtendedFunctionality.getRecordDeleter() instanceof SpiderRecordDeleterImp);
 	}
 
 	@Test

@@ -73,12 +73,12 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 			list.add(UserUpdaterForAppTokenAsExtendedFunctionality
 					.usingSpiderDependencyProvider(dependencyProvider));
 		}
-//		if("workOrder".equals(recordType)){
-//			SpiderInstanceFactory spiderInstanceFactory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
-//			SpiderRecordDeleter spiderRecordDeleter =  spiderInstanceFactory.factorSpiderRecordDeleter();
-//			list.add(WorkOrderDeleterAsExtendedFunctionality
-//					.usingDependencyProviderAndDeleter(dependencyProvider,spiderRecordDeleter));
-//		}
+		if("workOrder".equals(recordType)){
+			SpiderInstanceFactory spiderInstanceFactory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
+			SpiderRecordDeleter spiderRecordDeleter =  spiderInstanceFactory.factorSpiderRecordDeleter();
+			list.add(WorkOrderDeleterAsExtendedFunctionality
+					.usingDependencyProviderAndDeleter(dependencyProvider,spiderRecordDeleter));
+		}
 		return list;
 	}
 

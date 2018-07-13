@@ -26,6 +26,7 @@ import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 
 public class WorkOrderDeleterAsExtendedFunctionality implements ExtendedFunctionality {
 
+
     private SpiderRecordDeleter recordDeleter;
 
     private WorkOrderDeleterAsExtendedFunctionality(SpiderDependencyProvider dependencyProvider, SpiderRecordDeleter recordDeleter) {
@@ -57,4 +58,8 @@ public class WorkOrderDeleterAsExtendedFunctionality implements ExtendedFunction
         }
     }
 
+    public SpiderRecordDeleter getRecordDeleter() {
+        //needed for test
+        return recordDeleter;
+    }
 }
