@@ -59,9 +59,7 @@ public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctio
 		DataGroup workOrder = spiderDataGroup.toDataGroup();
 		recordTypeToIndex = getRecordTypeToIndexFromWorkOrder(workOrder);
 		recordIdToIndex = getRecordIdToIndexFromWorkOrder(workOrder);
-		if (userIsAuthorizedToIndex(authToken)) {
-			indexData();
-		}
+		indexDataIfUserIsAuthorized(authToken);
 	}
 
 	private String getRecordTypeToIndexFromWorkOrder(DataGroup workOrder) {
@@ -73,6 +71,12 @@ public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctio
 		return workOrder.getFirstAtomicValueWithNameInData("recordId");
 	}
 
+	private void indexDataIfUserIsAuthorized(String authToken) {
+		if (userIsAuthorizedToIndex(authToken)) {
+			indexData();
+		}
+	}
+
 	private boolean userIsAuthorizedToIndex(String authToken) {
 		User user = authenticator.getUserForToken(authToken);
 		return spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user, "index",
@@ -80,20 +84,24 @@ public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctio
 	}
 
 	private void indexData() {
-		String metadataId = getMetadataIdFromRecordType(recordTypeToIndex);
 		DataGroup dataToIndex = readRecordToIndexFromStorage();
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, dataToIndex);
+		DataGroup collectedTerms = getCollectedTerms(dataToIndex);
 		sendToIndex(collectedTerms, dataToIndex);
+	}
+
+	private DataGroup readRecordToIndexFromStorage() {
+		return recordStorage.read(recordTypeToIndex, recordIdToIndex);
+	}
+
+	private DataGroup getCollectedTerms(DataGroup dataToIndex) {
+		String metadataId = getMetadataIdFromRecordType(recordTypeToIndex);
+		return collectTermCollector.collectTerms(metadataId, dataToIndex);
 	}
 
 	private String getMetadataIdFromRecordType(String recordType) {
 		DataGroup readRecordType = recordStorage.read("recordType", recordType);
 		DataGroup metadataIdLink = readRecordType.getFirstGroupWithNameInData("metadataId");
 		return metadataIdLink.getFirstAtomicValueWithNameInData("linkedRecordId");
-	}
-
-	private DataGroup readRecordToIndexFromStorage() {
-		return recordStorage.read(recordTypeToIndex, recordIdToIndex);
 	}
 
 	private void sendToIndex(DataGroup collectedTerms, DataGroup dataToIndex) {

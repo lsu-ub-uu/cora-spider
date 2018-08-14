@@ -74,12 +74,16 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 					.usingSpiderDependencyProvider(dependencyProvider));
 		}
 		if("workOrder".equals(recordType)){
-			SpiderInstanceFactory spiderInstanceFactory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
-			SpiderRecordDeleter spiderRecordDeleter =  spiderInstanceFactory.factorSpiderRecordDeleter();
-			list.add(WorkOrderDeleterAsExtendedFunctionality
-					.usingDependencyProviderAndDeleter(dependencyProvider,spiderRecordDeleter));
+			addDeleteForWorkOrder(list);
 		}
 		return list;
+	}
+
+	private void addDeleteForWorkOrder(List<ExtendedFunctionality> list) {
+		SpiderInstanceFactory spiderInstanceFactory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
+		SpiderRecordDeleter spiderRecordDeleter =  spiderInstanceFactory.factorSpiderRecordDeleter();
+		list.add(WorkOrderDeleterAsExtendedFunctionality
+                .usingDependencyProviderAndDeleter(dependencyProvider,spiderRecordDeleter));
 	}
 
 	@Override
