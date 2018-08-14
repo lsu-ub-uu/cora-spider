@@ -360,4 +360,23 @@ public final class DataCreator {
 		dataGroup.addChild(recordInfo);
 		return dataGroup;
 	}
+
+	public static SpiderDataGroup createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(String id, String recordType,
+																					   String recordId) {
+		SpiderDataGroup workOrder = SpiderDataGroup.withNameInData("workOrder");
+		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
+		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", id));
+		workOrder.addChild(recordInfo);
+
+		SpiderDataGroup recordTypeLink = SpiderDataGroup.withNameInData("recordType");
+		recordTypeLink.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
+		recordTypeLink
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", recordType));
+		workOrder.addChild(recordTypeLink);
+
+		workOrder.addChild(SpiderDataAtomic.withNameInDataAndValue("recordId", recordId));
+		workOrder.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "index"));
+		return workOrder;
+	}
 }
