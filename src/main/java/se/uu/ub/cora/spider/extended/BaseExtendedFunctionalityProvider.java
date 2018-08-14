@@ -28,11 +28,11 @@ import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidatorFactory;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 
 public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityProvider {
 
+	private static final String WORK_ORDER = "workOrder";
 	protected SpiderDependencyProvider dependencyProvider;
 
 	public BaseExtendedFunctionalityProvider(SpiderDependencyProvider dependencyProvider) {
@@ -46,7 +46,7 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 		if ("appToken".equals(recordType)) {
 			list.add(new AppTokenEnhancerAsExtendedFunctionality());
 		}
-		if ("workOrder".equals(recordType)) {
+		if (WORK_ORDER.equals(recordType)) {
 			list.add(new WorkOrderEnhancerAsExtendedFunctionality());
 		}
 		return list;
@@ -59,7 +59,7 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 		if ("metadataGroup".equals(recordType) || "metadataCollectionVariable".equals(recordType)) {
 			addConsistencyValidatorToListUsingRecordType(list, recordType);
 		}
-		if ("workOrder".equals(recordType)) {
+		if (WORK_ORDER.equals(recordType)) {
 			list.add(WorkOrderExecutorAsExtendedFunctionality
 					.usingDependencyProvider(dependencyProvider));
 		}
@@ -73,7 +73,7 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 			list.add(UserUpdaterForAppTokenAsExtendedFunctionality
 					.usingSpiderDependencyProvider(dependencyProvider));
 		}
-		if("workOrder".equals(recordType)){
+		if(WORK_ORDER.equals(recordType)){
 			addDeleteForWorkOrder(list);
 		}
 		return list;
@@ -83,7 +83,7 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 		SpiderInstanceFactory spiderInstanceFactory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
 		SpiderRecordDeleter spiderRecordDeleter =  spiderInstanceFactory.factorSpiderRecordDeleter();
 		list.add(WorkOrderDeleterAsExtendedFunctionality
-                .usingDependencyProviderAndDeleter(dependencyProvider,spiderRecordDeleter));
+                .usingDeleter(spiderRecordDeleter));
 	}
 
 	@Override

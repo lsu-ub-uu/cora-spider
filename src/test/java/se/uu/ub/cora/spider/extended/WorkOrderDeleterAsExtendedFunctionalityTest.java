@@ -22,7 +22,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
-import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
@@ -58,7 +57,7 @@ public class WorkOrderDeleterAsExtendedFunctionalityTest {
 	private void setUpDependencyProvider() {
 		recordDeleter = new SpiderRecordDeleterSpy();
 		extendedFunctionality = WorkOrderDeleterAsExtendedFunctionality
-				.usingDependencyProviderAndDeleter(dependencyProvider, recordDeleter);
+				.usingDeleter(recordDeleter);
 		termCollector = (DataGroupTermCollectorSpy) dependencyProvider
 				.getDataGroupTermCollector();
 		authorizer = (AlwaysAuthorisedExceptStub) dependencyProvider.getSpiderAuthorizator();

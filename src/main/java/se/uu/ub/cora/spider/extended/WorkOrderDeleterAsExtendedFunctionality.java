@@ -20,21 +20,19 @@ package se.uu.ub.cora.spider.extended;
 
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 
-public class WorkOrderDeleterAsExtendedFunctionality implements ExtendedFunctionality {
-
+public final class WorkOrderDeleterAsExtendedFunctionality implements ExtendedFunctionality {
 
     private SpiderRecordDeleter recordDeleter;
 
-    private WorkOrderDeleterAsExtendedFunctionality(SpiderDependencyProvider dependencyProvider, SpiderRecordDeleter recordDeleter) {
+    private WorkOrderDeleterAsExtendedFunctionality(SpiderRecordDeleter recordDeleter) {
         this.recordDeleter = recordDeleter;
     }
 
-    public static WorkOrderDeleterAsExtendedFunctionality usingDependencyProviderAndDeleter(SpiderDependencyProvider dependencyProvider, SpiderRecordDeleter recordDeleter) {
-        return new WorkOrderDeleterAsExtendedFunctionality(dependencyProvider, recordDeleter);
+    public static WorkOrderDeleterAsExtendedFunctionality usingDeleter(SpiderRecordDeleter recordDeleter) {
+        return new WorkOrderDeleterAsExtendedFunctionality(recordDeleter);
     }
 
     @Override
