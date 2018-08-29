@@ -47,7 +47,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private static final String UPDATED_BY = "updatedBy";
 	private static final String UPDATE = "update";
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
-	private static final int MAX_NUMBER_OF_UPDATED = 10;
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;
@@ -223,20 +222,12 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		SpiderDataGroup recordInfoStoredRecord = getRecordInfoFromStoredData();
 		List<SpiderDataGroup> updatedGroups = recordInfoStoredRecord
 				.getAllGroupsWithNameInData(UPDATED_STRING);
-		limitNumberOfUpdatedByPossiblyRemovingFirst(updatedGroups);
 		updatedGroups.forEach(recordInfo::addChild);
-	}
-
-	private void limitNumberOfUpdatedByPossiblyRemovingFirst(List<SpiderDataGroup> updatedGroups) {
-		if(updatedGroups.size() == MAX_NUMBER_OF_UPDATED){
-			updatedGroups.remove(0);
-		}
 	}
 
 	private SpiderDataGroup getRecordInfoFromStoredData() {
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
-		return SpiderDataGroup
-				.fromDataGroup(recordRead.getFirstGroupWithNameInData("recordInfo"));
+		return SpiderDataGroup.fromDataGroup(recordRead.getFirstGroupWithNameInData("recordInfo"));
 	}
 
 	private SpiderDataGroup createUpdateInfoForThisUpdate(SpiderDataGroup recordInfo) {
@@ -261,7 +252,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private String getRepeatId(SpiderDataGroup recordInfo) {
 		List<SpiderDataGroup> updatedList = recordInfo.getAllGroupsWithNameInData(UPDATED_STRING);
-		if(updatedList.isEmpty()){
+		if (updatedList.isEmpty()) {
 			return "0";
 		}
 		return calculateRepeatId(updatedList);
@@ -270,17 +261,16 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private String calculateRepeatId(List<SpiderDataGroup> updatedList) {
 		List<Integer> repeatIds = getAllCurrentRepeatIds(updatedList);
 		Integer max = Collections.max(repeatIds);
-		return String.valueOf(max+1);
+		return String.valueOf(max + 1);
 	}
 
 	private List<Integer> getAllCurrentRepeatIds(List<SpiderDataGroup> updatedList) {
 		List<Integer> repeatIds = new ArrayList<>();
-		for(SpiderDataGroup updated : updatedList){
+		for (SpiderDataGroup updated : updatedList) {
 			repeatIds.add(Integer.valueOf(updated.getRepeatId()));
 		}
 		return repeatIds;
 	}
-
 
 	private SpiderDataGroup createUpdatedByLink() {
 		SpiderDataGroup updatedBy = SpiderDataGroup.withNameInData(UPDATED_BY);
