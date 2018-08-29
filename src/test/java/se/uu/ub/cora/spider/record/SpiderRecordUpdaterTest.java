@@ -304,7 +304,8 @@ public class SpiderRecordUpdaterTest {
 	}
 
 	// TODO: this is temporary until we've fixed problem in solr with too large
-	// jsonRecord
+	// TODONE: the temporary fix is removed and this now tests that more than 10
+	// things are updated
 	@Test
 	public void testMoreThanTenUpdates() {
 		recordStorage = new RecordStorageUpdateMultipleTimesSpy();
@@ -327,7 +328,7 @@ public class SpiderRecordUpdaterTest {
 		List<SpiderDataGroup> updatedGroups = updatedRecordInfo
 				.getAllGroupsWithNameInData("updated");
 		assertEquals(updatedGroups.size(), 11);
-		SpiderDataGroup secondLast = updatedGroups.get(8);
+		SpiderDataGroup secondLast = updatedGroups.get(9);
 		SpiderDataGroup last = updatedGroups.get(10);
 		assertFalse(secondLast.getRepeatId().equals(last.getRepeatId()));
 		assertEquals(last.getRepeatId(), "10");
