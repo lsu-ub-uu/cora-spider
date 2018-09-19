@@ -275,15 +275,17 @@ public class SpiderAuthorizatorTest {
 		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
 		Rule firstRule = rulesFromFirstRole.get(0);
 		assertEquals(providedRules.get(0), firstRule);
-		assertEquals(firstRule.size(), 2);
+		assertEquals(firstRule.size(), 3);
 		assertEquals(firstRule.get("JOURNAL_ACCESS").size(), 2);
-		assertCorrectKeysInRule(firstRule, Arrays.asList("JOURNAL_ACCESS", "action"));
+		assertEquals(firstRule.get("OWNING_ORGANISATION").size(), 1);
+		assertCorrectKeysInRule(firstRule, Arrays.asList("JOURNAL_ACCESS", "OWNING_ORGANISATION", "action"));
 
 		Rule secondRule = rulesFromFirstRole.get(1);
 		assertEquals(providedRules.get(1), secondRule);
-		assertEquals(secondRule.size(), 2);
+		assertEquals(secondRule.size(), 3);
 		assertEquals(secondRule.get("JOURNAL_ACCESS").size(), 2);
-		assertCorrectKeysInRule(secondRule, Arrays.asList("JOURNAL_ACCESS", "action"));
+		assertEquals(secondRule.get("OWNING_ORGANISATION").size(), 1);
+		assertCorrectKeysInRule(secondRule, Arrays.asList("JOURNAL_ACCESS", "OWNING_ORGANISATION", "action"));
 
 		List<Rule> rulesFromSecondRole = rulesProvider.returnedRules.get(1);
 		Rule thirdRule = rulesFromSecondRole.get(0);
@@ -400,15 +402,17 @@ public class SpiderAuthorizatorTest {
 		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
 		Rule firstRule = rulesFromFirstRole.get(0);
 		assertEquals(providedRules.get(0), firstRule);
-		assertEquals(firstRule.size(), 2);
+		assertEquals(firstRule.size(), 3);
 		assertEquals(firstRule.get("JOURNAL_ACCESS").size(), 2);
+		assertEquals(firstRule.get("OWNING_ORGANISATION").size(), 1);
 		assertCorrectKeysInRule(firstRule, Arrays.asList("JOURNAL_ACCESS", "action"));
 
 		Rule secondRule = rulesFromFirstRole.get(1);
 		assertEquals(providedRules.get(1), secondRule);
-		assertEquals(secondRule.size(), 2);
+		assertEquals(secondRule.size(), 3);
 		assertEquals(secondRule.get("JOURNAL_ACCESS").size(), 2);
-		assertCorrectKeysInRule(secondRule, Arrays.asList("JOURNAL_ACCESS", "action"));
+		assertEquals(secondRule.get("OWNING_ORGANISATION").size(), 1);
+		assertCorrectKeysInRule(secondRule, Arrays.asList("JOURNAL_ACCESS", "OWNING_ORGANISATION", "action"));
 
 		List<Rule> rulesFromSecondRole = rulesProvider.returnedRules.get(1);
 		Rule thirdRule = rulesFromSecondRole.get(0);

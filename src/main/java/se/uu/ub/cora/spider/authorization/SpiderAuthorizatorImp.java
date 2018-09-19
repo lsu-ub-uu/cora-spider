@@ -138,8 +138,11 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private void addPermissionTermsAsRulePartValues(Rule rule, DataGroup userRole) {
-		DataGroup rulePart = userRole.getFirstGroupWithNameInData("permissionTermRulePart");
-		createRulePartUsingInfoFromRulePartInUser(rule, rulePart);
+		List<DataGroup> permissionTermRuleParts = userRole.getAllGroupsWithNameInData("permissionTermRulePart");
+		for(DataGroup permissionRulePart : permissionTermRuleParts){
+			createRulePartUsingInfoFromRulePartInUser(rule, permissionRulePart);
+		}
+
 	}
 
 	private void createRulePartUsingInfoFromRulePartInUser(Rule rule, DataGroup rulePartInUser) {
