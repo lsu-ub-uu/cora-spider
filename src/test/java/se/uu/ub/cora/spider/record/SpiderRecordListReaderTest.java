@@ -65,6 +65,10 @@ public class SpiderRecordListReaderTest {
 	private DataValidator dataValidator;
 	private SpiderDataGroup emptyFilter = SpiderDataGroup.withNameInData("filter");
 
+	private static final String SOME_USER_TOKEN = "someToken78678567";
+	private static final String SOME_RECORD_TYPE = "place";
+
+
 	@BeforeMethod
 	public void beforeMethod() {
 		authenticator = new AuthenticatorSpy();
@@ -125,6 +129,21 @@ public class SpiderRecordListReaderTest {
 		SpiderDataRecord spiderDataRecord = (SpiderDataRecord) records.iterator().next();
 		assertNotNull(spiderDataRecord);
 	}
+
+//	@Test
+//	public void testReadListPageOne() {
+//		SpiderDataGroup pagingFilter = createNonEmptyFilter();
+//		pagingFilter.addAttributeByIdWithValue("pageSize", "2");
+//		pagingFilter.addAttributeByIdWithValue("page","1");
+//		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, pagingFilter);
+//		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "4",
+//				"Total number of records should be 4");
+//		assertEquals(readRecordList.getFromNo(), "1");
+//		assertEquals(readRecordList.getToNo(), "2");
+//		List<SpiderData> records = readRecordList.getDataList();
+//		SpiderDataRecord spiderDataRecord = (SpiderDataRecord) records.iterator().next();
+//		assertNotNull(spiderDataRecord);
+//	}
 
 	@Test
 	public void testReadListFilterIsPassedOnToStorage() {

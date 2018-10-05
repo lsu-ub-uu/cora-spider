@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -27,12 +27,18 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
-public class SpiderSearchResultTest {
+public class SpiderReadResultTest {
 	@Test
-	public void test() {
-		SpiderSearchResult searchResult = new SpiderSearchResult();
+	public void testListOfDataGroups() {
+		SpiderReadResult searchResult = new SpiderReadResult();
 		List<DataGroup> listOfDataGroups = new ArrayList<>();
 		searchResult.listOfDataGroups = listOfDataGroups;
 		assertEquals(searchResult.listOfDataGroups, listOfDataGroups);
+	}
+	@Test
+	public void testTotalNumberOfMatches() {
+		SpiderReadResult searchResult = new SpiderReadResult();
+		searchResult.totalNumberOfMatches = 0;
+		assertEquals(searchResult.totalNumberOfMatches,0);
 	}
 }

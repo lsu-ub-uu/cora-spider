@@ -25,6 +25,7 @@ import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.data.SpiderReadResult;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.testdata.DataCreator;
@@ -94,7 +95,9 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 	}
 
 	@Override
-	public Collection<DataGroup> readList(String type, DataGroup filter) {
+	public SpiderReadResult readList(String type, DataGroup filter) {
+		SpiderReadResult spiderReadResult = new SpiderReadResult();
+		spiderReadResult.listOfDataGroups = new ArrayList<>();
 		readListWasCalled = true;
 		readLists.add(type);
 		filters.add(filter);
@@ -107,29 +110,34 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 			recordTypes.add(read("recordType", "child1_2"));
 			recordTypes.add(read("recordType", "child2_2"));
 			recordTypes.add(read("recordType", "otherType"));
-			return recordTypes;
+			spiderReadResult.listOfDataGroups = recordTypes;
+			return spiderReadResult;
 		}
 		if ("child1_2".equals(type)) {
 			throw new RecordNotFoundException("No records exists with recordType: " + type);
 		}
-		return new ArrayList<DataGroup>();
+		return spiderReadResult;
 	}
 
 	@Override
-	public Collection<DataGroup> readAbstractList(String type, DataGroup filter) {
+	public SpiderReadResult readAbstractList(String type, DataGroup filter) {
+		SpiderReadResult spiderReadResult = new SpiderReadResult();
+		spiderReadResult.listOfDataGroups = new ArrayList<>();
 		readLists.add(type);
 		if ("abstract".equals(type)) {
 			ArrayList<DataGroup> records = new ArrayList<>();
 			records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
 
 			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-			return records;
+			spiderReadResult.listOfDataGroups = records;
+			return spiderReadResult;
 		}
 		if ("abstract2".equals(type)) {
 			ArrayList<DataGroup> records = new ArrayList<>();
 
 			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-			return records;
+			spiderReadResult.listOfDataGroups = records;
+			return spiderReadResult;
 		}
 		if ("user".equals(type)) {
 			ArrayList<DataGroup> records = new ArrayList<>();
@@ -148,9 +156,10 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 
 			addRolesToUser(user);
 			records.add(user);
-			return records;
+			spiderReadResult.listOfDataGroups = records;
+			return spiderReadResult;
 		}
-		return new ArrayList<DataGroup>();
+		return spiderReadResult;
 	}
 
 	private void addRolesToUser(DataGroup user) {

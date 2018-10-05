@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.record.storage;
 import java.util.Collection;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.data.SpiderReadResult;
 
 public interface RecordStorage {
 
@@ -36,9 +37,9 @@ public interface RecordStorage {
 
 	void update(String type, String id, DataGroup record, DataGroup collectedTerms, DataGroup linkList, String dataDivider);
 
-	Collection<DataGroup> readList(String type, DataGroup filter);
+    SpiderReadResult readList(String type, DataGroup filter);
 
-	Collection<DataGroup> readAbstractList(String type, DataGroup filter);
+    SpiderReadResult readAbstractList(String type, DataGroup filter);
 
 	DataGroup readLinkList(String type, String id);
 

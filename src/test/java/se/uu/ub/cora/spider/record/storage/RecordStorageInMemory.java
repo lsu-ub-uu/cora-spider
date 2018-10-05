@@ -31,6 +31,7 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataTypes;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderReadResult;
 
 public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	private DataGroup emptyFilter = DataGroup.withNameInData("filter");
@@ -189,16 +190,18 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public Collection<DataGroup> readList(String type, DataGroup filter) {
+	public SpiderReadResult readList(String type, DataGroup filter) {
 		Map<String, DataGroup> typeRecords = records.get(type);
 		if (null == typeRecords) {
 			throw new RecordNotFoundException("No records exists with recordType: " + type);
 		}
-		return typeRecords.values();
+		SpiderReadResult spiderReadResult = new SpiderReadResult();
+		spiderReadResult.listOfDataGroups = new ArrayList<>(typeRecords.values());
+		return spiderReadResult;
 	}
 
 	@Override
-	public Collection<DataGroup> readAbstractList(String type, DataGroup filter) {
+	public SpiderReadResult readAbstractList(String type, DataGroup filter) {
 		return null;
 	}
 
@@ -373,24 +376,24 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	public Collection<DataGroup> getMetadataElements() {
 		Collection<DataGroup> readDataGroups = new ArrayList<>();
 		for (MetadataTypes metadataType : MetadataTypes.values()) {
-			readDataGroups.addAll(readList(metadataType.type, emptyFilter));
+			readDataGroups.addAll(readList(metadataType.type, emptyFilter).listOfDataGroups);
 		}
 		return readDataGroups;
 	}
 
 	@Override
 	public Collection<DataGroup> getPresentationElements() {
-		return readList("presentation", emptyFilter);
+		return readList("presentation", emptyFilter).listOfDataGroups;
 	}
 
 	@Override
 	public Collection<DataGroup> getTexts() {
-		return readList("text", emptyFilter);
+		return readList("text", emptyFilter).listOfDataGroups;
 	}
 
 	@Override
 	public Collection<DataGroup> getRecordTypes() {
-		return readList("recordType", emptyFilter);
+		return readList("recordType", emptyFilter).listOfDataGroups;
 	}
 
 	@Override

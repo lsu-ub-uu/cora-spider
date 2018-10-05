@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,11 +19,11 @@
 package se.uu.ub.cora.spider.data;
 
 import java.util.List;
-
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
-public final class SpiderSearchResult {
+public final class SpiderReadResult {
 
+	public long totalNumberOfMatches;
 	public List<DataGroup> listOfDataGroups;
 
 }

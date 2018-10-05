@@ -31,7 +31,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
-import se.uu.ub.cora.spider.data.SpiderSearchResult;
+import se.uu.ub.cora.spider.data.SpiderReadResult;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
@@ -77,8 +77,8 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		tryToGetActiveUser(authToken);
 		readSearchDataFromStorage(searchId);
 		validateSearchInputForUser();
-		SpiderSearchResult searchResult = searchUsingValidatedInput();
-		return filterAndEnahanceSearchResult(searchResult);
+		SpiderReadResult searchResult = searchUsingValidatedInput();
+		return filterAndEnhanceSearchResult(searchResult);
 	}
 
 	private void tryToGetActiveUser(String authToken) {
@@ -130,7 +130,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		}
 	}
 
-	private SpiderSearchResult searchUsingValidatedInput() {
+	private SpiderReadResult searchUsingValidatedInput() {
 		List<String> list = recordTypeToSearchInGroups.stream().map(this::getLinkedRecordId)
 				.collect(Collectors.toList());
 		return recordSearch.searchUsingListOfRecordTypesToSearchInAndSearchData(list, searchData);
@@ -140,13 +140,14 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		return group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
-	private SpiderDataList filterAndEnahanceSearchResult(SpiderSearchResult spiderSearchResult) {
+	private SpiderDataList filterAndEnhanceSearchResult(SpiderReadResult spiderSearchResult) {
 		spiderDataList = SpiderDataList.withContainDataOfType("mix");
 		Collection<DataGroup> dataGroupList = spiderSearchResult.listOfDataGroups;
 		dataGroupList.forEach(this::filterEnhanceAndAddToList);
-		spiderDataList.setFromNo("0");
-		spiderDataList.setToNo(String.valueOf(spiderDataList.getDataList().size()));
-		spiderDataList.setTotalNo(String.valueOf(spiderDataList.getDataList().size()));
+		int fromNo = 0;
+		spiderDataList.setFromNo(String.valueOf(fromNo + 1));
+		spiderDataList.setToNo(String.valueOf(fromNo + spiderDataList.getDataList().size()));
+		spiderDataList.setTotalNo(String.valueOf(spiderSearchResult.totalNumberOfMatches));
 		return spiderDataList;
 	}
 

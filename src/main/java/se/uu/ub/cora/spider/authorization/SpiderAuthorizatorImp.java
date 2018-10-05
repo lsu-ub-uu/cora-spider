@@ -85,7 +85,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private DataGroup getUserAsDataGroup(User user) {
 		DataGroup emptyFilter = DataGroup.withNameInData(FILTER);
-		Collection<DataGroup> users = recordStorage.readAbstractList("user", emptyFilter);
+		Collection<DataGroup> users = recordStorage.readAbstractList("user", emptyFilter).listOfDataGroups;
 		return findUserInListOfUsers(user, users);
 	}
 
@@ -188,7 +188,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private void checkUserIsActive(User user) {
 		DataGroup emptyFilter = DataGroup.withNameInData(FILTER);
-		Collection<DataGroup> users = recordStorage.readAbstractList("user", emptyFilter);
+		Collection<DataGroup> users = recordStorage.readAbstractList("user", emptyFilter).listOfDataGroups;
 		DataGroup foundUser = findUserInListOfUsers(user, users);
 
 		if (userIsInactive(foundUser)) {
