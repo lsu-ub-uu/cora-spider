@@ -43,6 +43,8 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
     private User user;
     private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
     private DataValidator dataValidator;
+    private int requestedStartPositionOfRead = 1;
+    private int requestedNumberOfRowsToRead = 100;
 
     private SpiderRecordListReaderImp(SpiderDependencyProvider dependencyProvider,
                                       DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -62,20 +64,40 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
     @Override
     public SpiderDataList readRecordList(String authToken, String recordType,
                                          SpiderDataGroup filter) {
+        validateActiveUserWithPermissionsOnRecordType(authToken, recordType);
+
+        readRecordList = SpiderDataList.withContainDataOfType(recordType);
+        DataGroup recordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordType);
+        DataGroup filterAsDataGroup = filter.toDataGroup();
+        extractRequestedReadWindowInformationFromFilter(filterAsDataGroup);
+        validateFilterIfNotEmpty(filter, recordType, recordTypeDataGroup);
+        readRecordsOfType(recordType, filterAsDataGroup, recordTypeDataGroup);
+        setFromToInReadRecordList();
+
+        return readRecordList;
+    }
+
+    private void validateActiveUserWithPermissionsOnRecordType(String authToken, String recordType) {
         this.authToken = authToken;
         this.recordType = recordType;
 
         tryToGetActiveUser();
         checkUserIsAuthorizedForActionOnRecordType();
+    }
 
-        readRecordList = SpiderDataList.withContainDataOfType(recordType);
-        DataGroup recordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordType);
+    private int getStartFromSearchDataAsInteger(DataGroup searchData) {
+        String start = searchData.getFirstAtomicValueWithNameInDataOrDefault("start","1");
+        return Integer.valueOf(start);
+    }
 
-        validateFilterIfNotEmpty(filter, recordType, recordTypeDataGroup);
-        readRecordsOfType(recordType, filter.toDataGroup(), recordTypeDataGroup);
-        setFromToInReadRecordList();
+    private int getRowsFromSearchDataAsInteger(DataGroup searchData) {
+        String rows = searchData.getFirstAtomicValueWithNameInDataOrDefault("rows","100");
+        return Integer.valueOf(rows);
+    }
 
-        return readRecordList;
+    private void extractRequestedReadWindowInformationFromFilter(DataGroup filter) {
+        requestedStartPositionOfRead = getStartFromSearchDataAsInteger(filter);
+        requestedNumberOfRowsToRead = getRowsFromSearchDataAsInteger(filter);
     }
 
     private void tryToGetActiveUser() {
@@ -179,7 +201,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 
     private void setFromToInReadRecordList() {
         readRecordList.setTotalNo(String.valueOf(readRecordList.getDataList().size()));
-        readRecordList.setFromNo("1");
-        readRecordList.setToNo(String.valueOf(readRecordList.getDataList().size()));
+        readRecordList.setFromNo(String.valueOf(requestedStartPositionOfRead));
+        readRecordList.setToNo(String.valueOf(requestedStartPositionOfRead - 1 + readRecordList.getDataList().size()));
     }
 }

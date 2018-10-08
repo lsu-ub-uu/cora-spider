@@ -59,7 +59,6 @@ public class SpiderRecordListReaderTest {
 	private Authenticator authenticator;
 	private SpiderAuthorizator authorizator;
 	private PermissionRuleCalculator keyCalculator;
-	private SpiderDependencyProviderSpy dependencyProvider;
 	private SpiderRecordListReader recordListReader;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private DataValidator dataValidator;
@@ -80,7 +79,7 @@ public class SpiderRecordListReaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
+		SpiderDependencyProviderSpy dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
@@ -99,7 +98,7 @@ public class SpiderRecordListReaderTest {
 		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		recordListReader.readRecordList("someToken78678567", "place", createNonEmptyFilter());
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, createNonEmptyFilter());
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
 		assertTrue(authorizatorSpy.authorizedWasCalled);
@@ -118,9 +117,7 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListAuthorized() {
-		String userId = "someToken78678567";
-		String type = "place";
-		SpiderDataList readRecordList = recordListReader.readRecordList(userId, type, emptyFilter);
+		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "4",
 				"Total number of records should be 4");
 		assertEquals(readRecordList.getFromNo(), "1");
@@ -156,10 +153,7 @@ public class SpiderRecordListReaderTest {
 		part.addChild(SpiderDataAtomic.withNameInDataAndValue("key", "someKey"));
 		part.addChild(SpiderDataAtomic.withNameInDataAndValue("value", "someValue"));
 
-		String userId = "someToken78678567";
-		String type = "place";
-
-		recordListReader.readRecordList(userId, type, filter);
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, filter);
 
 		DataGroup filterFromStorage = ((RecordStorageSpy) recordStorage).filters.get(0);
 		assertEquals(filterFromStorage.getNameInData(), "filter");
@@ -168,25 +162,22 @@ public class SpiderRecordListReaderTest {
 		assertEquals(extractedPart.getFirstAtomicValueWithNameInData("value"), "someValue");
 	}
 
+
 	@Test
 	public void testReadListAuthorizedButNoReadLinks() {
 		dataGroupToRecordEnhancer.addReadAction = false;
-		String userId = "someToken78678567";
-		String type = "place";
-		SpiderDataList readRecordList = recordListReader.readRecordList(userId, type, emptyFilter);
+		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "0",
 				"Total number of records should be ");
-		assertEquals(readRecordList.getFromNo(), "1");
-		assertEquals(readRecordList.getToNo(), "0");
 		List<SpiderData> records = readRecordList.getDataList();
 		assertEquals(records.size(), 0);
 	}
 
 	@Test
 	public void testRecordEnhancerCalled() {
-		recordListReader.readRecordList("someToken78678567", "place", emptyFilter);
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
-		assertEquals(dataGroupToRecordEnhancer.recordType, "place");
+		assertEquals(dataGroupToRecordEnhancer.recordType, SOME_RECORD_TYPE);
 		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
 				.getFirstAtomicValueWithNameInData("id"), "place:0004");
 	}
@@ -195,7 +186,7 @@ public class SpiderRecordListReaderTest {
 	public void testReadListAbstractRecordType() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		SpiderDataList spiderDataList = recordListReader.readRecordList("someToken78678567",
+		SpiderDataList spiderDataList = recordListReader.readRecordList(SOME_USER_TOKEN,
 				"abstract", emptyFilter);
 		assertEquals(spiderDataList.getTotalNumberOfTypeInStorage(), "2");
 
@@ -209,7 +200,7 @@ public class SpiderRecordListReaderTest {
 	public void testRecordEnhancerCalledForAbstractType() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		recordListReader.readRecordList("someToken78678567", "abstract", emptyFilter);
+		recordListReader.readRecordList(SOME_USER_TOKEN, "abstract", emptyFilter);
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
 		assertEquals(dataGroupToRecordEnhancer.recordType, "implementing2");
 		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
@@ -229,7 +220,7 @@ public class SpiderRecordListReaderTest {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
 
-		SpiderDataList spiderDataList = recordListReader.readRecordList("someToken78678567",
+		SpiderDataList spiderDataList = recordListReader.readRecordList(SOME_USER_TOKEN,
 				"abstract2", emptyFilter);
 		assertEquals(spiderDataList.getTotalNumberOfTypeInStorage(), "1");
 
@@ -242,21 +233,19 @@ public class SpiderRecordListReaderTest {
 	public void testReadListUnauthorized() {
 		authorizator = new NeverAuthorisedStub();
 		setUpDependencyProvider();
-		recordListReader.readRecordList("someToken78678567", "place", emptyFilter);
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 	}
 
 	@Test(expectedExceptions = DataException.class)
 	public void testReadListAuthenticatedAndAuthorizedInvalidData() {
 		dataValidator = new DataValidatorAlwaysInvalidSpy();
 		setUpDependencyProvider();
-		recordListReader.readRecordList("someToken78678567", "place", createNonEmptyFilter());
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, createNonEmptyFilter());
 	}
 
 	@Test
 	public void testReadListCorrectFilterMetadataIsRead() {
-		String userId = "someToken78678567";
-		String type = "place";
-		recordListReader.readRecordList(userId, type, createNonEmptyFilter());
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, createNonEmptyFilter());
 
 		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
 		assertEquals(dataValidatorSpy.metadataId, "placeFilterGroup");
@@ -266,7 +255,7 @@ public class SpiderRecordListReaderTest {
 	public void testReadListAuthenticatedAndAuthorizedNoFilterMetadataNonEmptyFilter() {
 		setUpDependencyProvider();
 		SpiderDataGroup filter = createNonEmptyFilter();
-		recordListReader.readRecordList("someToken78678567", "image", filter);
+		recordListReader.readRecordList(SOME_USER_TOKEN, "image", filter);
 	}
 
 	private SpiderDataGroup createNonEmptyFilter() {
@@ -279,8 +268,10 @@ public class SpiderRecordListReaderTest {
 	@Test
 	public void testReadListAuthenticatedAndAuthorizedNoFilterMetadataEmptyFilter() {
 		setUpDependencyProvider();
-		SpiderDataList readRecordList = recordListReader.readRecordList("someToken78678567",
+		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
 				"image", emptyFilter);
+		assertEquals(readRecordList.getFromNo(), "1");
 		assertEquals(readRecordList.getToNo(), "2");
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "2");
 	}
 }

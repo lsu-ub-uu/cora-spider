@@ -51,7 +51,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private DataGroup searchMetadata;
 	private List<DataGroup> recordTypeToSearchInGroups;
 	private DataGroupTermCollector collectTermCollector;
-
+	private int startRow = 1;
 	private SpiderRecordSearcherImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
@@ -77,8 +77,14 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		tryToGetActiveUser(authToken);
 		readSearchDataFromStorage(searchId);
 		validateSearchInputForUser();
+		storeStartRowValueOrSetDefault();
 		SpiderReadResult searchResult = searchUsingValidatedInput();
 		return filterAndEnhanceSearchResult(searchResult);
+	}
+
+	private void storeStartRowValueOrSetDefault() {
+		String start = searchData.getFirstAtomicValueWithNameInDataOrDefault("start", "1");
+		startRow = Integer.parseInt(start);
 	}
 
 	private void tryToGetActiveUser(String authToken) {
@@ -144,9 +150,9 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		spiderDataList = SpiderDataList.withContainDataOfType("mix");
 		Collection<DataGroup> dataGroupList = spiderSearchResult.listOfDataGroups;
 		dataGroupList.forEach(this::filterEnhanceAndAddToList);
-		int fromNo = 0;
-		spiderDataList.setFromNo(String.valueOf(fromNo + 1));
-		spiderDataList.setToNo(String.valueOf(fromNo + spiderDataList.getDataList().size()));
+
+		spiderDataList.setFromNo(String.valueOf(startRow));
+		spiderDataList.setToNo(String.valueOf(startRow - 1 + spiderDataList.getDataList().size()));
 		spiderDataList.setTotalNo(String.valueOf(spiderSearchResult.totalNumberOfMatches));
 		return spiderDataList;
 	}
