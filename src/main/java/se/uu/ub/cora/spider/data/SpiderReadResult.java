@@ -19,10 +19,12 @@
 package se.uu.ub.cora.spider.data;
 
 import java.util.List;
+
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public final class SpiderReadResult {
 
+	public long start;
 	public long totalNumberOfMatches;
 	public List<DataGroup> listOfDataGroups;
 

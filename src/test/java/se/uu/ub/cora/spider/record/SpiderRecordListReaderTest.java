@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016 Uppsala University Library
+ * Copyright 2015, 2016, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -22,13 +22,17 @@ package se.uu.ub.cora.spider.record;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
@@ -62,14 +66,14 @@ public class SpiderRecordListReaderTest {
 	private SpiderRecordListReader recordListReader;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private DataValidator dataValidator;
-	private SpiderDataGroup emptyFilter = SpiderDataGroup.withNameInData("filter");
+	private SpiderDataGroup emptyFilter;
 
 	private static final String SOME_USER_TOKEN = "someToken78678567";
 	private static final String SOME_RECORD_TYPE = "place";
 
-
 	@BeforeMethod
 	public void beforeMethod() {
+		emptyFilter = SpiderDataGroup.withNameInData("filter");
 		authenticator = new AuthenticatorSpy();
 		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
@@ -79,7 +83,8 @@ public class SpiderRecordListReaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		SpiderDependencyProviderSpy dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
+		SpiderDependencyProviderSpy dependencyProvider = new SpiderDependencyProviderSpy(
+				new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
@@ -93,19 +98,64 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testExternalDependenciesAreCalled() {
-		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		recordStorage = new RecordStorageSpy();
 		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, createNonEmptyFilter());
+		SpiderDataGroup nonEmptyFilter = createNonEmptyFilter();
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
 		assertTrue(authorizatorSpy.authorizedWasCalled);
 
-		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
-		assertTrue(((RecordStorageSpy) recordStorage).readListWasCalled);
+		DataValidatorAlwaysValidSpy dataValidatorAlwaysValidSpy = (DataValidatorAlwaysValidSpy) dataValidator;
+		assertTrue(dataValidatorAlwaysValidSpy.validateDataWasCalled);
 
+		assertDataGroupEquality(dataValidatorAlwaysValidSpy.dataGroup,
+				nonEmptyFilter.toDataGroup());
+
+		assertTrue(((RecordStorageSpy) recordStorage).readListWasCalled);
+	}
+
+	@Test
+	public void testFilterValidationIsCalledCorrectlyWithOtherFilter() {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+		SpiderDataGroup filter = SpiderDataGroup.withNameInData("filter2");
+		SpiderDataGroup part = SpiderDataGroup.withNameInData("part");
+		filter.addChild(part);
+
+		SpiderDataGroup nonEmptyFilter = filter;
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+
+		DataGroup dataGroup = ((DataValidatorAlwaysValidSpy) dataValidator).dataGroup;
+		assertDataGroupEquality(dataGroup, nonEmptyFilter.toDataGroup());
+	}
+
+	@Test
+	public void testFilterValidationIsCalledCorrectlyForStart() {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+
+		emptyFilter.addChild(SpiderDataAtomic.withNameInDataAndValue("start", "1"));
+
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+
+		DataGroup dataGroup = ((DataValidatorAlwaysValidSpy) dataValidator).dataGroup;
+		assertDataGroupEquality(dataGroup, emptyFilter.toDataGroup());
+	}
+
+	@Test
+	public void testFilterValidationIsCalledCorrectlyForRows() {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+
+		emptyFilter.addChild(SpiderDataAtomic.withNameInDataAndValue("rows", "1"));
+
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+
+		DataGroup dataGroup = ((DataValidatorAlwaysValidSpy) dataValidator).dataGroup;
+		assertDataGroupEquality(dataGroup, emptyFilter.toDataGroup());
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
@@ -117,7 +167,8 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListAuthorized() {
-		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
+				SOME_RECORD_TYPE, emptyFilter);
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "4",
 				"Total number of records should be 4");
 		assertEquals(readRecordList.getFromNo(), "1");
@@ -127,20 +178,50 @@ public class SpiderRecordListReaderTest {
 		assertNotNull(spiderDataRecord);
 	}
 
-//	@Test
-//	public void testReadListPageOne() {
-//		SpiderDataGroup pagingFilter = createNonEmptyFilter();
-//		pagingFilter.addAttributeByIdWithValue("pageSize", "2");
-//		pagingFilter.addAttributeByIdWithValue("page","1");
-//		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, pagingFilter);
-//		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "4",
-//				"Total number of records should be 4");
-//		assertEquals(readRecordList.getFromNo(), "1");
-//		assertEquals(readRecordList.getToNo(), "2");
-//		List<SpiderData> records = readRecordList.getDataList();
-//		SpiderDataRecord spiderDataRecord = (SpiderDataRecord) records.iterator().next();
-//		assertNotNull(spiderDataRecord);
-//	}
+	@Test
+	public void testReadListReturnedStartIsFromStorage() {
+		recordStorage = new RecordStorageResultListCreatorSpy();
+		setUpDependencyProvider();
+		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
+		recordStorageSpy.start = 3;
+		recordStorageSpy.totalNumberOfMatches = 0;
+		List<DataGroup> list = new ArrayList<>();
+
+		recordStorageSpy.listOfDataGroups = list;
+
+		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
+				SOME_RECORD_TYPE, emptyFilter);
+		assertEquals(readRecordList.getFromNo(), "3");
+		assertEquals(readRecordList.getToNo(), "765");
+		// assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "4");
+		// List<SpiderData> records = readRecordList.getDataList();
+		// SpiderDataRecord spiderDataRecord = (SpiderDataRecord)
+		// records.iterator().next();
+		// assertNotNull(spiderDataRecord);
+	}
+
+	@Test
+	public void testReadAbstractListReturnedStartIsFromStorage() {
+		recordStorage = new RecordStorageResultListCreatorSpy();
+		setUpDependencyProvider();
+		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
+		recordStorageSpy.abstractString = "true";
+		recordStorageSpy.start = 3;
+		recordStorageSpy.totalNumberOfMatches = 765;
+		List<DataGroup> list = new ArrayList<>();
+
+		recordStorageSpy.listOfDataGroups = list;
+
+		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
+				SOME_RECORD_TYPE, emptyFilter);
+		assertEquals(readRecordList.getFromNo(), "3");
+		// assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "4");
+		// assertEquals(readRecordList.getToNo(), "4");
+		// List<SpiderData> records = readRecordList.getDataList();
+		// SpiderDataRecord spiderDataRecord = (SpiderDataRecord)
+		// records.iterator().next();
+		// assertNotNull(spiderDataRecord);
+	}
 
 	@Test
 	public void testReadListFilterIsPassedOnToStorage() {
@@ -162,11 +243,11 @@ public class SpiderRecordListReaderTest {
 		assertEquals(extractedPart.getFirstAtomicValueWithNameInData("value"), "someValue");
 	}
 
-
 	@Test
 	public void testReadListAuthorizedButNoReadLinks() {
 		dataGroupToRecordEnhancer.addReadAction = false;
-		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
+				SOME_RECORD_TYPE, emptyFilter);
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "0",
 				"Total number of records should be ");
 		List<SpiderData> records = readRecordList.getDataList();
@@ -186,8 +267,8 @@ public class SpiderRecordListReaderTest {
 	public void testReadListAbstractRecordType() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		SpiderDataList spiderDataList = recordListReader.readRecordList(SOME_USER_TOKEN,
-				"abstract", emptyFilter);
+		SpiderDataList spiderDataList = recordListReader.readRecordList(SOME_USER_TOKEN, "abstract",
+				emptyFilter);
 		assertEquals(spiderDataList.getTotalNumberOfTypeInStorage(), "2");
 
 		String type1 = extractTypeFromChildInListUsingIndex(spiderDataList, 0);
@@ -268,10 +349,58 @@ public class SpiderRecordListReaderTest {
 	@Test
 	public void testReadListAuthenticatedAndAuthorizedNoFilterMetadataEmptyFilter() {
 		setUpDependencyProvider();
-		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
-				"image", emptyFilter);
+		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, "image",
+				emptyFilter);
 		assertEquals(readRecordList.getFromNo(), "1");
 		assertEquals(readRecordList.getToNo(), "2");
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "2");
+	}
+
+	private void assertDataGroupEquality(DataGroup actual, DataGroup expected) {
+		assertEquals(actual.getNameInData(), expected.getNameInData());
+		var actualAtomicChildren = actual.getChildren().stream()
+				.filter(elem -> elem instanceof DataAtomic).map(elem -> (DataAtomic) elem)
+				.collect(Collectors.toList());
+		var expectedAtomicChildren = expected.getChildren().stream()
+				.filter(elem -> elem instanceof DataAtomic).map(elem -> (DataAtomic) elem)
+				.collect(Collectors.toList());
+		if (actualAtomicChildren.size() == expectedAtomicChildren.size()) {
+			if (!actualAtomicChildren.isEmpty()) {
+				for (int idx = 0; idx < actualAtomicChildren.size(); idx++) {
+					assertDataAtomicEquality(actualAtomicChildren.get(idx),
+							expectedAtomicChildren.get(idx));
+				}
+			}
+		} else {
+			fail();
+		}
+
+		var actualGroupChildren = actual.getChildren().stream()
+				.filter(elem -> elem instanceof DataGroup).map(elem -> (DataGroup) elem)
+				.collect(Collectors.toList());
+		var expectedGroupChildren = expected.getChildren().stream()
+				.filter(elem -> elem instanceof DataGroup).map(elem -> (DataGroup) elem)
+				.collect(Collectors.toList());
+
+		if (actualGroupChildren.size() == expectedGroupChildren.size()) {
+			if (!actualGroupChildren.isEmpty()) {
+				for (int idx = 0; idx < actualAtomicChildren.size(); idx++) {
+					assertDataGroupEquality(actualGroupChildren.get(idx),
+							expectedGroupChildren.get(idx));
+				}
+			}
+		} else {
+			fail();
+		}
+
+		assertEquals(actual.getRepeatId(), expected.getRepeatId());
+		assertEquals(actual.getAttributes(), expected.getAttributes());
+	}
+
+	private void assertDataAtomicEquality(DataAtomic actual, DataAtomic expected) {
+		assertEquals(actual.getNameInData(), expected.getNameInData());
+		assertEquals(actual.getValue(), expected.getValue());
+		assertEquals(actual.getRepeatId(), expected.getRepeatId());
+		assertEquals(actual.getAttributes(), expected.getAttributes());
 	}
 }
