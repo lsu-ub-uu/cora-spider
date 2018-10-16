@@ -45,7 +45,6 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	private User user;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataValidator dataValidator;
-	private int requestedStartPositionOfRead = 1;
 	private SpiderReadResult readResult;
 
 	private SpiderRecordListReaderImp(SpiderDependencyProvider dependencyProvider,
@@ -73,6 +72,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		DataGroup filterAsDataGroup = filter.toDataGroup();
 		validateFilterIfNotEmpty(filter, recordType, recordTypeDataGroup);
 		readRecordsOfType(recordType, filterAsDataGroup, recordTypeDataGroup);
+		readRecordList.setTotalNo(String.valueOf(readResult.totalNumberOfMatches));
 		setFromToInReadRecordList();
 
 		return readRecordList;
@@ -190,9 +190,25 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private void setFromToInReadRecordList() {
+		if (resultContainsRecords()) {
+			setFromToValuesForReturnedRecords();
+		} else {
+			setFromToValuesToZeroForResultWithoutRecords();
+		}
+	}
+
+	private boolean resultContainsRecords() {
+		return !readRecordList.getDataList().isEmpty();
+	}
+
+	private void setFromToValuesForReturnedRecords() {
 		readRecordList.setFromNo(String.valueOf(readResult.start));
-		readRecordList.setTotalNo(String.valueOf(readRecordList.getDataList().size()));
-		readRecordList.setToNo(String
-				.valueOf(requestedStartPositionOfRead - 1 + readRecordList.getDataList().size()));
+		readRecordList.setToNo(
+				String.valueOf(readResult.start - 1 + readRecordList.getDataList().size()));
+	}
+
+	private void setFromToValuesToZeroForResultWithoutRecords() {
+		readRecordList.setFromNo("0");
+		readRecordList.setToNo("0");
 	}
 }

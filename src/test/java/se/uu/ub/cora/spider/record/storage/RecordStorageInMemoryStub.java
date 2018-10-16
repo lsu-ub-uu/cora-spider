@@ -201,6 +201,7 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 		SpiderReadResult spiderReadResult = new SpiderReadResult();
 		spiderReadResult.start = 1;
 		spiderReadResult.listOfDataGroups = new ArrayList<>(typeRecords.values());
+		spiderReadResult.totalNumberOfMatches = 177;
 		return spiderReadResult;
 	}
 

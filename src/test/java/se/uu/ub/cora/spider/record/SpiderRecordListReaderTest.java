@@ -169,8 +169,7 @@ public class SpiderRecordListReaderTest {
 	public void testReadListAuthorized() {
 		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
 				SOME_RECORD_TYPE, emptyFilter);
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "4",
-				"Total number of records should be 4");
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
 		assertEquals(readRecordList.getFromNo(), "1");
 		assertEquals(readRecordList.getToNo(), "4");
 		List<SpiderData> records = readRecordList.getDataList();
@@ -179,25 +178,73 @@ public class SpiderRecordListReaderTest {
 	}
 
 	@Test
-	public void testReadListReturnedStartIsFromStorage() {
+	public void testReadListReturnedNumbersAreFromStorage() {
 		recordStorage = new RecordStorageResultListCreatorSpy();
 		setUpDependencyProvider();
 		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
 		recordStorageSpy.start = 3;
-		recordStorageSpy.totalNumberOfMatches = 0;
+		recordStorageSpy.totalNumberOfMatches = 1500;
 		List<DataGroup> list = new ArrayList<>();
-
+		list.add(DataGroup.withNameInData("someName"));
 		recordStorageSpy.listOfDataGroups = list;
 
 		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
 				SOME_RECORD_TYPE, emptyFilter);
+
 		assertEquals(readRecordList.getFromNo(), "3");
-		assertEquals(readRecordList.getToNo(), "765");
-		// assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "4");
-		// List<SpiderData> records = readRecordList.getDataList();
-		// SpiderDataRecord spiderDataRecord = (SpiderDataRecord)
-		// records.iterator().next();
-		// assertNotNull(spiderDataRecord);
+		assertEquals(readRecordList.getToNo(), "3");
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1500");
+	}
+
+	@Test
+	public void testReadListReturnedOtherNumbersAreFromStorage() {
+		recordStorage = new RecordStorageResultListCreatorSpy();
+		setUpDependencyProvider();
+		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
+		recordStorageSpy.start = 50;
+		recordStorageSpy.totalNumberOfMatches = 1300;
+		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(50);
+
+		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
+				SOME_RECORD_TYPE, emptyFilter);
+
+		assertEquals(readRecordList.getFromNo(), "50");
+		assertEquals(readRecordList.getToNo(), "99");
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1300");
+	}
+
+	@Test
+	public void testReadListReturnedNoMatches() {
+		recordStorage = new RecordStorageResultListCreatorSpy();
+		setUpDependencyProvider();
+		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
+		recordStorageSpy.start = 0;
+		recordStorageSpy.totalNumberOfMatches = 0;
+		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(0);
+
+		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
+				SOME_RECORD_TYPE, emptyFilter);
+
+		assertEquals(readRecordList.getFromNo(), "0");
+		assertEquals(readRecordList.getToNo(), "0");
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "0");
+	}
+
+	@Test
+	public void testReadListReturnedNoMatchesButHasMatches() {
+		recordStorage = new RecordStorageResultListCreatorSpy();
+		setUpDependencyProvider();
+		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
+		recordStorageSpy.start = 0;
+		recordStorageSpy.totalNumberOfMatches = 15;
+		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(0);
+
+		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
+				SOME_RECORD_TYPE, emptyFilter);
+
+		assertEquals(readRecordList.getFromNo(), "0");
+		assertEquals(readRecordList.getToNo(), "0");
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "15");
 	}
 
 	@Test
@@ -208,19 +255,32 @@ public class SpiderRecordListReaderTest {
 		recordStorageSpy.abstractString = "true";
 		recordStorageSpy.start = 3;
 		recordStorageSpy.totalNumberOfMatches = 765;
-		List<DataGroup> list = new ArrayList<>();
-
-		recordStorageSpy.listOfDataGroups = list;
+		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(3);
 
 		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
 				SOME_RECORD_TYPE, emptyFilter);
+
 		assertEquals(readRecordList.getFromNo(), "3");
-		// assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "4");
-		// assertEquals(readRecordList.getToNo(), "4");
-		// List<SpiderData> records = readRecordList.getDataList();
-		// SpiderDataRecord spiderDataRecord = (SpiderDataRecord)
-		// records.iterator().next();
-		// assertNotNull(spiderDataRecord);
+		assertEquals(readRecordList.getToNo(), "5");
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "765");
+	}
+
+	private List<DataGroup> createListOfDummyDataGroups(int numberOfGroups) {
+		List<DataGroup> list = new ArrayList<>();
+		for (int i = 0; i < numberOfGroups; i++) {
+			list.add(createDataGroupWithRecordInfo());
+		}
+		return list;
+	}
+
+	private DataGroup createDataGroupWithRecordInfo() {
+		DataGroup dataGroup = DataGroup.withNameInData("someName");
+		DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
+		dataGroup.addChild(recordInfo);
+		DataGroup typeGroup = DataGroup.withNameInData("type");
+		recordInfo.addChild(typeGroup);
+		typeGroup.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "someType"));
+		return dataGroup;
 	}
 
 	@Test
@@ -248,8 +308,7 @@ public class SpiderRecordListReaderTest {
 		dataGroupToRecordEnhancer.addReadAction = false;
 		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
 				SOME_RECORD_TYPE, emptyFilter);
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "0",
-				"Total number of records should be ");
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
 		List<SpiderData> records = readRecordList.getDataList();
 		assertEquals(records.size(), 0);
 	}
@@ -269,7 +328,7 @@ public class SpiderRecordListReaderTest {
 		setUpDependencyProvider();
 		SpiderDataList spiderDataList = recordListReader.readRecordList(SOME_USER_TOKEN, "abstract",
 				emptyFilter);
-		assertEquals(spiderDataList.getTotalNumberOfTypeInStorage(), "2");
+		assertEquals(spiderDataList.getTotalNumberOfTypeInStorage(), "199");
 
 		String type1 = extractTypeFromChildInListUsingIndex(spiderDataList, 0);
 		assertEquals(type1, "implementing1");
@@ -303,7 +362,7 @@ public class SpiderRecordListReaderTest {
 
 		SpiderDataList spiderDataList = recordListReader.readRecordList(SOME_USER_TOKEN,
 				"abstract2", emptyFilter);
-		assertEquals(spiderDataList.getTotalNumberOfTypeInStorage(), "1");
+		assertEquals(spiderDataList.getTotalNumberOfTypeInStorage(), "199");
 
 		String type1 = extractTypeFromChildInListUsingIndex(spiderDataList, 0);
 		assertEquals(type1, "implementing2");
@@ -353,7 +412,7 @@ public class SpiderRecordListReaderTest {
 				emptyFilter);
 		assertEquals(readRecordList.getFromNo(), "1");
 		assertEquals(readRecordList.getToNo(), "2");
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "2");
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
 	}
 
 	private void assertDataGroupEquality(DataGroup actual, DataGroup expected) {
