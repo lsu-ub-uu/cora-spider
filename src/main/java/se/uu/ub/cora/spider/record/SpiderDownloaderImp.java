@@ -22,30 +22,22 @@ package se.uu.ub.cora.spider.record;
 
 import java.io.InputStream;
 
-import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
-public final class SpiderDownloaderImp implements SpiderDownloader {
+public final class SpiderDownloaderImp extends SpiderBinary implements SpiderDownloader {
 	private static final String RESOURCE_INFO = "resourceInfo";
 	private static final String DOWNLOAD = "download";
-	private String recordType;
 	private String resourceName;
-	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
-	private RecordStorage recordStorage;
 	private StreamStorage streamStorage;
 	private SpiderDataGroup spiderRecordRead;
-	private String authToken;
-	private User user;
 
 	private SpiderDownloaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
@@ -77,7 +69,7 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 
 		String streamId = tryToExtractStreamIdFromResource(resourceName);
 
-		String dataDivider = extractDataDividerFromData();
+		String dataDivider = extractDataDividerFromData(spiderRecordRead);
 
 		InputStream stream = streamStorage.retrieve(streamId, dataDivider);
 
@@ -91,10 +83,6 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 	private void checkUserIsAuthorizedForActionOnRecordTypeAndResourceName() {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, DOWNLOAD,
 				recordType + "." + resourceName);
-	}
-
-	private void tryToGetActiveUser() {
-		user = authenticator.getUserForToken(authToken);
 	}
 
 	private String tryToExtractStreamIdFromResource(String resource) {
@@ -119,34 +107,6 @@ public final class SpiderDownloaderImp implements SpiderDownloader {
 
 	private boolean resourceHasNoLength(String fileName) {
 		return fileName.length() == 0;
-	}
-
-	private void checkRecordTypeIsChildOfBinary() {
-		DataGroup recordTypeDefinition = getRecordTypeDefinition();
-		if (recordTypeIsChildOfBinary(recordTypeDefinition)) {
-			throw new MisuseException(
-					"It is only possible to upload files to recordTypes that are children of binary");
-		}
-	}
-
-	private DataGroup getRecordTypeDefinition() {
-		return recordStorage.read("recordType", recordType);
-	}
-
-	private boolean recordTypeIsChildOfBinary(DataGroup recordTypeDefinition) {
-		return !recordTypeDefinition.containsChildWithNameInData("parentId")
-				|| !"binary".equals(getParentId(recordTypeDefinition));
-	}
-
-	private String getParentId(DataGroup recordTypeDefinition) {
-		DataGroup parentIdGroup = recordTypeDefinition.getFirstGroupWithNameInData("parentId");
-		return parentIdGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
-	}
-
-	private String extractDataDividerFromData() {
-		SpiderDataGroup recordInfo = spiderRecordRead.extractGroup("recordInfo");
-		SpiderDataGroup dataDivider = recordInfo.extractGroup("dataDivider");
-		return dataDivider.extractAtomicValue("linkedRecordId");
 	}
 
 	private String extractStreamNameFromData() {

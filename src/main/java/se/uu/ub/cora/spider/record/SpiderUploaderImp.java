@@ -21,10 +21,8 @@ package se.uu.ub.cora.spider.record;
 
 import java.io.InputStream;
 
-import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
@@ -33,22 +31,15 @@ import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.stream.storage.StreamStorage;
 
-public final class SpiderUploaderImp implements SpiderUploader {
+public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploader {
 	private static final String RESOURCE_INFO = "resourceInfo";
-	private static final String RECORD_INFO = "recordInfo";
-	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
-	private RecordStorage recordStorage;
 	private StreamStorage streamStorage;
-	private String recordType;
 	private SpiderDataGroup spiderRecordRead;
 	private String streamId;
-	private String authToken;
-	private User user;
 	private DataGroupTermCollector collectTermCollector;
 
 	private SpiderUploaderImp(SpiderDependencyProvider dependencyProvider) {
@@ -91,45 +82,17 @@ public final class SpiderUploaderImp implements SpiderUploader {
 		return spiderRecordUpdater.updateRecord(authToken, type, id, spiderRecordRead);
 	}
 
-	private void tryToGetActiveUser() {
-		user = authenticator.getUserForToken(authToken);
-	}
-
 	private void checkUserIsAuthorizedForActionOnRecordType() {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "upload", recordType);
 	}
 
-	private void checkRecordTypeIsChildOfBinary() {
-		DataGroup recordTypeDefinition = getRecordTypeDefinition();
-		if (recordTypeIsChildOfBinary(recordTypeDefinition)) {
-			throw new MisuseException(
-					"It is only possible to upload files to recordTypes that are children of binary");
-		}
-	}
-
-	private DataGroup getRecordTypeDefinition() {
-		return recordStorage.read("recordType", recordType);
-	}
-
-	private boolean recordTypeIsChildOfBinary(DataGroup recordTypeDefinition) {
-		return !recordTypeDefinition.containsChildWithNameInData("parentId")
-				|| !"binary".equals(getParentId(recordTypeDefinition));
-	}
-
-	private String getParentId(DataGroup recordTypeDefinition) {
-		DataGroup parentIdGroup = recordTypeDefinition.getFirstGroupWithNameInData("parentId");
-		return parentIdGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
-	}
-
 	private void checkUserIsAuthorisedToUploadData(DataGroup recordRead) {
 		DataGroup collectedTerms = getCollectedTermsForRecord(recordType, recordRead);
-
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
 				"upload", recordType, collectedTerms);
 	}
 
 	private DataGroup getCollectedTermsForRecord(String recordType, DataGroup recordRead) {
-
 		String metadataId = getMetadataIdFromRecordType(recordType);
 		return collectTermCollector.collectTerms(metadataId, recordRead);
 	}
@@ -158,12 +121,6 @@ public final class SpiderUploaderImp implements SpiderUploader {
 
 	private boolean fileNameHasNoLength(String fileName) {
 		return fileName.length() == 0;
-	}
-
-	private String extractDataDividerFromData(SpiderDataGroup spiderDataGroup) {
-		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup(RECORD_INFO);
-		SpiderDataGroup dataDivider = recordInfo.extractGroup("dataDivider");
-		return dataDivider.extractAtomicValue("linkedRecordId");
 	}
 
 	private void addOrReplaceResourceInfoToMetdataRecord(String fileName, long fileSize) {
