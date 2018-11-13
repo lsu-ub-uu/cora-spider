@@ -67,6 +67,7 @@ public class SpiderRecordListReaderTest {
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private DataValidator dataValidator;
 	private SpiderDataGroup emptyFilter;
+	private SpiderDataGroup exampleFilter;
 
 	private static final String SOME_USER_TOKEN = "someToken78678567";
 	private static final String SOME_RECORD_TYPE = "place";
@@ -74,6 +75,7 @@ public class SpiderRecordListReaderTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		emptyFilter = SpiderDataGroup.withNameInData("filter");
+		exampleFilter = SpiderDataGroup.withNameInData("filter");
 		authenticator = new AuthenticatorSpy();
 		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
@@ -137,12 +139,12 @@ public class SpiderRecordListReaderTest {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
 
-		emptyFilter.addChild(SpiderDataAtomic.withNameInDataAndValue("start", "1"));
+		exampleFilter.addChild(SpiderDataAtomic.withNameInDataAndValue("start", "1"));
 
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, exampleFilter);
 
 		DataGroup dataGroup = ((DataValidatorAlwaysValidSpy) dataValidator).dataGroup;
-		assertDataGroupEquality(dataGroup, emptyFilter.toDataGroup());
+		assertDataGroupEquality(dataGroup, exampleFilter.toDataGroup());
 	}
 
 	@Test
@@ -150,12 +152,12 @@ public class SpiderRecordListReaderTest {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
 
-		emptyFilter.addChild(SpiderDataAtomic.withNameInDataAndValue("rows", "1"));
+		exampleFilter.addChild(SpiderDataAtomic.withNameInDataAndValue("rows", "1"));
 
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, exampleFilter);
 
 		DataGroup dataGroup = ((DataValidatorAlwaysValidSpy) dataValidator).dataGroup;
-		assertDataGroupEquality(dataGroup, emptyFilter.toDataGroup());
+		assertDataGroupEquality(dataGroup, exampleFilter.toDataGroup());
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
@@ -169,6 +171,7 @@ public class SpiderRecordListReaderTest {
 	public void testReadListAuthorized() {
 		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
 				SOME_RECORD_TYPE, emptyFilter);
+		assertEquals(readRecordList.getContainDataOfType(), SOME_RECORD_TYPE);
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
 		assertEquals(readRecordList.getFromNo(), "1");
 		assertEquals(readRecordList.getToNo(), "4");
@@ -391,7 +394,8 @@ public class SpiderRecordListReaderTest {
 		assertEquals(dataValidatorSpy.metadataId, "placeFilterGroup");
 	}
 
-	@Test(expectedExceptions = DataException.class)
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "No filter exists for recordType: image")
 	public void testReadListAuthenticatedAndAuthorizedNoFilterMetadataNonEmptyFilter() {
 		setUpDependencyProvider();
 		SpiderDataGroup filter = createNonEmptyFilter();

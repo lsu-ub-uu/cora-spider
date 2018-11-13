@@ -65,7 +65,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	@Override
 	public SpiderDataList readRecordList(String authToken, String recordType,
 			SpiderDataGroup filter) {
-		validateActiveUserWithPermissionsOnRecordType(authToken, recordType);
+		ensureActiveUserHasListPermissionUsingAuthTokenAndRecordType(authToken, recordType);
 
 		readRecordList = SpiderDataList.withContainDataOfType(recordType);
 		DataGroup recordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordType);
@@ -78,7 +78,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		return readRecordList;
 	}
 
-	private void validateActiveUserWithPermissionsOnRecordType(String authToken,
+	private void ensureActiveUserHasListPermissionUsingAuthTokenAndRecordType(String authToken,
 			String recordType) {
 		this.authToken = authToken;
 		this.recordType = recordType;
