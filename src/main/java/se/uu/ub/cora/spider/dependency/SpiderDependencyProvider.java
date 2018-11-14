@@ -44,17 +44,19 @@ public abstract class SpiderDependencyProvider {
 		try {
 			tryToInitialize();
 		} catch (InvocationTargetException e) {
-			throwRuntimeExceptionWithRootCauseForInvocationException(e);
+			throw new RuntimeException(createInvocationErrorExceptionMessage(e));
 		} catch (Exception e) {
-			throw new RuntimeException(
-					"Error starting " + getImplementingClassName() + ": " + e.getMessage());
+			throw new RuntimeException(createExceptionMessage(e));
 		}
 	}
 
-	private void throwRuntimeExceptionWithRootCauseForInvocationException(
-			InvocationTargetException e) {
-		throw new RuntimeException("Error starting " + getImplementingClassName() + ": "
-				+ e.getTargetException().getMessage());
+	private String createInvocationErrorExceptionMessage(InvocationTargetException e) {
+		return "Error starting " + getImplementingClassName() + ": "
+				+ e.getTargetException().getMessage();
+	}
+
+	private String createExceptionMessage(Exception e) {
+		return "Error starting " + getImplementingClassName() + ": " + e.getMessage();
 	}
 
 	private String getImplementingClassName() {
