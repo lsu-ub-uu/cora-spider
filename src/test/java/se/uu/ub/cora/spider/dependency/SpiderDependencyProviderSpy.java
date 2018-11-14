@@ -114,4 +114,16 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public RecordIndexer getRecordIndexer() {
 		return recordIndexer;
 	}
+
+	@Override
+	protected void tryToInitialize() throws Exception {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void readInitInfo() {
+		// TODO Auto-generated method stub
+
+	}
 }

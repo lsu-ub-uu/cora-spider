@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
@@ -39,7 +40,30 @@ public abstract class SpiderDependencyProvider {
 
 	public SpiderDependencyProvider(Map<String, String> initInfo) {
 		this.initInfo = initInfo;
+		readInitInfo();
+		try {
+			tryToInitialize();
+		} catch (InvocationTargetException e) {
+			throwRuntimeExceptionWithRootCauseForInvocationException(e);
+		} catch (Exception e) {
+			throw new RuntimeException(
+					"Error starting " + getImplementingClassName() + ": " + e.getMessage());
+		}
 	}
+
+	private void throwRuntimeExceptionWithRootCauseForInvocationException(
+			InvocationTargetException e) {
+		throw new RuntimeException("Error starting " + getImplementingClassName() + ": "
+				+ e.getTargetException().getMessage());
+	}
+
+	private String getImplementingClassName() {
+		return this.getClass().getSimpleName();
+	}
+
+	protected abstract void tryToInitialize() throws Exception;
+
+	protected abstract void readInitInfo();
 
 	public abstract SpiderAuthorizator getSpiderAuthorizator();
 
