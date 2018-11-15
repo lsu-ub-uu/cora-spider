@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.extended;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
+import java.util.Collections;
 import java.util.HashMap;
 
 import org.testng.annotations.BeforeMethod;
@@ -64,7 +65,7 @@ public class UserUpdaterForAppTokenAsExtendedFunctionalityTest {
 		spiderInstanceFactory = new SpiderInstanceFactorySpy2();
 		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
 
-		dependencyProvider = new SpiderDependencyProviderSpy(null);
+		dependencyProvider = new SpiderDependencyProviderSpy(Collections.emptyMap());
 		authenticator = new AuthenticatorSpy();
 		// recordStorage =
 		// TestDataAppTokenStorage.createRecordStorageInMemoryWithTestData();

@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
@@ -50,6 +51,8 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public RecordSearch recordSearch;
 	public DataGroupTermCollector searchTermCollector;
 	public RecordIndexer recordIndexer;
+	public boolean readInitInfoWasCalled;
+	public boolean tryToInitializeWasCalled;
 
 	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
 		super(initInfo);
@@ -114,4 +117,26 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public RecordIndexer getRecordIndexer() {
 		return recordIndexer;
 	}
+
+	@Override
+	protected void tryToInitialize() throws Exception {
+		tryToInitializeWasCalled = true;
+		if (initInfo.containsKey("runtimeException")) {
+			throw new RuntimeException(initInfo.get("runtimeException"));
+		}
+		if (initInfo.containsKey("invocationTargetException")) {
+			throw new InvocationTargetException(
+					new RuntimeException(initInfo.get("invocationTargetException")));
+		}
+	}
+
+	@Override
+	protected void readInitInfo() {
+		readInitInfoWasCalled = true;
+	}
+
+	public String getInitInfoFromParent(String key) {
+		return initInfo.get(key);
+	}
+
 }
