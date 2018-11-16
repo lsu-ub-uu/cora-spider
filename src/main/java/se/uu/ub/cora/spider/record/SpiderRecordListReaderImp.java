@@ -203,8 +203,8 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	private void setFromToValuesForReturnedRecords() {
 		readRecordList.setFromNo(String.valueOf(readResult.start));
-		readRecordList.setToNo(
-				String.valueOf(readResult.start - 1 + readRecordList.getDataList().size()));
+		readRecordList
+				.setToNo(String.valueOf(readResult.start + readRecordList.getDataList().size()));
 	}
 
 	private void setFromToValuesToZeroForResultWithoutRecords() {

@@ -174,7 +174,7 @@ public class SpiderRecordListReaderTest {
 		assertEquals(readRecordList.getContainDataOfType(), SOME_RECORD_TYPE);
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
 		assertEquals(readRecordList.getFromNo(), "1");
-		assertEquals(readRecordList.getToNo(), "4");
+		assertEquals(readRecordList.getToNo(), "5");
 		List<SpiderData> records = readRecordList.getDataList();
 		SpiderDataRecord spiderDataRecord = (SpiderDataRecord) records.iterator().next();
 		assertNotNull(spiderDataRecord);
@@ -195,7 +195,7 @@ public class SpiderRecordListReaderTest {
 				SOME_RECORD_TYPE, emptyFilter);
 
 		assertEquals(readRecordList.getFromNo(), "3");
-		assertEquals(readRecordList.getToNo(), "3");
+		assertEquals(readRecordList.getToNo(), "4");
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1500");
 	}
 
@@ -212,7 +212,7 @@ public class SpiderRecordListReaderTest {
 				SOME_RECORD_TYPE, emptyFilter);
 
 		assertEquals(readRecordList.getFromNo(), "50");
-		assertEquals(readRecordList.getToNo(), "99");
+		assertEquals(readRecordList.getToNo(), "100");
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1300");
 	}
 
@@ -231,6 +231,23 @@ public class SpiderRecordListReaderTest {
 		assertEquals(readRecordList.getFromNo(), "0");
 		assertEquals(readRecordList.getToNo(), "0");
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "0");
+	}
+
+	@Test
+	public void testReadListReturnedOneMatches() {
+		recordStorage = new RecordStorageResultListCreatorSpy();
+		setUpDependencyProvider();
+		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
+		recordStorageSpy.start = 0;
+		recordStorageSpy.totalNumberOfMatches = 1;
+		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(1);
+
+		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
+				SOME_RECORD_TYPE, emptyFilter);
+
+		assertEquals(readRecordList.getFromNo(), "0");
+		assertEquals(readRecordList.getToNo(), "1");
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1");
 	}
 
 	@Test
@@ -264,7 +281,7 @@ public class SpiderRecordListReaderTest {
 				SOME_RECORD_TYPE, emptyFilter);
 
 		assertEquals(readRecordList.getFromNo(), "3");
-		assertEquals(readRecordList.getToNo(), "5");
+		assertEquals(readRecordList.getToNo(), "6");
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "765");
 	}
 
@@ -415,7 +432,7 @@ public class SpiderRecordListReaderTest {
 		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, "image",
 				emptyFilter);
 		assertEquals(readRecordList.getFromNo(), "1");
-		assertEquals(readRecordList.getToNo(), "2");
+		assertEquals(readRecordList.getToNo(), "3");
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
 	}
 
