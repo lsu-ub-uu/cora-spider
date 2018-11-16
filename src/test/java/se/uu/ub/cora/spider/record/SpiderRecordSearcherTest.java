@@ -29,7 +29,6 @@ import java.util.Set;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
@@ -108,8 +107,26 @@ public class SpiderRecordSearcherTest {
 	}
 
 	@Test
+	public void testDefaultFromNoSetToOne() {
+		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID,
+				someSearchData);
+		assertEquals(searchResult.getFromNo(), "1");
+	}
+
+	@Test
+	public void testStartRowReadFromInput() throws Exception {
+		someSearchData.addChild(SpiderDataAtomic.withNameInDataAndValue("start", "2"));
+
+		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID,
+				someSearchData);
+
+		assertEquals(searchResult.getFromNo(), "2");
+	}
+
+	@Test
 	public void testReadListAuthenticatedAndAuthorized() {
-		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
+		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID,
+				someSearchData);
 		assertNotNull(searchResult);
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizationService);
@@ -172,7 +189,8 @@ public class SpiderRecordSearcherTest {
 				.put("recordType", actions);
 		setUpDependencyProvider();
 
-		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
+		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID,
+				someSearchData);
 		assertEquals(searchResult.getDataList().size(),
 				dataGroupToRecordEnhancer.enhancedDataGroups.size());
 		assertEquals(dataGroupToRecordEnhancer.recordType, "place");
@@ -191,7 +209,8 @@ public class SpiderRecordSearcherTest {
 				.put("binary", actions);
 		setUpDependencyProvider();
 
-		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, ANOTHER_SEARCH_ID, someSearchData);
+		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, ANOTHER_SEARCH_ID,
+				someSearchData);
 		int numberOfMatchesFetched = searchResult.getDataList().size();
 		assertEquals(numberOfMatchesFetched, 2);
 		assertEquals(searchResult.getFromNo(), "1");
@@ -206,7 +225,8 @@ public class SpiderRecordSearcherTest {
 
 		setUpDependencyProvider();
 
-		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
+		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID,
+				someSearchData);
 
 		assertEquals(searchResult.getTotalNumberOfTypeInStorage(), String.valueOf(searchMatches));
 	}
@@ -219,25 +239,30 @@ public class SpiderRecordSearcherTest {
 
 		setUpDependencyProvider();
 
-		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
+		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID,
+				someSearchData);
 
 		assertEquals(searchResult.getTotalNumberOfTypeInStorage(), String.valueOf(searchMatches));
 	}
 
-//	@Test
-//	public void testSearchWithLimitsOnResponse() {
-//		long searchMatches = Long.MAX_VALUE;
-//		authorizationService = new AlwaysAuthorisedExceptStub();
-//		((RecordSearchSpy) recordSearch).totalNumberOfMatches = searchMatches;
-//		setUpDependencyProvider();
-//
-//		String rowsToRead = "20";
-//		someSearchData.addChild(SpiderDataAtomic.withNameInDataAndValue("rows", rowsToRead));
-//
-//		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
-//		assertEquals(searchResult.getFromNo(), "1");
-//		assertEquals(searchResult.getToNo(), rowsToRead);
-//		assertEquals(searchResult.getDataList().size(), Integer.parseInt(rowsToRead));
-//		assertEquals(searchResult.getTotalNumberOfTypeInStorage(), String.valueOf(searchMatches));
-//	}
+	// @Test
+	// public void testSearchWithLimitsOnResponse() {
+	// long searchMatches = Long.MAX_VALUE;
+	// authorizationService = new AlwaysAuthorisedExceptStub();
+	// ((RecordSearchSpy) recordSearch).totalNumberOfMatches = searchMatches;
+	// setUpDependencyProvider();
+	//
+	// String rowsToRead = "20";
+	// someSearchData.addChild(SpiderDataAtomic.withNameInDataAndValue("rows",
+	// rowsToRead));
+	//
+	// SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN,
+	// A_SEARCH_ID, someSearchData);
+	// assertEquals(searchResult.getFromNo(), "1");
+	// assertEquals(searchResult.getToNo(), rowsToRead);
+	// assertEquals(searchResult.getDataList().size(),
+	// Integer.parseInt(rowsToRead));
+	// assertEquals(searchResult.getTotalNumberOfTypeInStorage(),
+	// String.valueOf(searchMatches));
+	// }
 }

@@ -33,30 +33,31 @@ import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderReadResult;
 
-public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
+public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage {
 	private DataGroup emptyFilter = DataGroup.withNameInData("filter");
 	protected Map<String, Map<String, DataGroup>> records = new HashMap<>();
 	protected Map<String, Map<String, DataGroup>> linkLists = new HashMap<>();
 	protected Map<String, Map<String, Map<String, Map<String, List<DataGroup>>>>> incomingLinks = new HashMap<>();
 
-	public RecordStorageInMemory() {
+	public RecordStorageInMemoryStub() {
 		// Make it possible to use default empty record storage
 	}
 
-	public RecordStorageInMemory(Map<String, Map<String, DataGroup>> records) {
+	public RecordStorageInMemoryStub(Map<String, Map<String, DataGroup>> records) {
 		throwErrorIfConstructorArgumentIsNull(records);
 		this.records = records;
 	}
 
-	private void throwErrorIfConstructorArgumentIsNull(Map<String, Map<String, DataGroup>> records) {
+	private void throwErrorIfConstructorArgumentIsNull(
+			Map<String, Map<String, DataGroup>> records) {
 		if (null == records) {
 			throw new IllegalArgumentException("Records must not be null");
 		}
 	}
 
 	@Override
-	public void create(String recordType, String recordId, DataGroup record, DataGroup collectedTerms,
-			DataGroup linkList, String dataDivider) {
+	public void create(String recordType, String recordId, DataGroup record,
+			DataGroup collectedTerms, DataGroup linkList, String dataDivider) {
 		ensureStorageExistsForRecordType(recordType);
 		checkNoConflictOnRecordId(recordType, recordId);
 		storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
@@ -80,7 +81,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private void checkNoConflictOnRecordId(String recordType, String recordId) {
 		if (recordWithTypeAndIdAlreadyExists(recordType, recordId)) {
-			throw new RecordConflictException("Record with recordId: " + recordId + " already exists");
+			throw new RecordConflictException(
+					"Record with recordId: " + recordId + " already exists");
 		}
 	}
 
@@ -128,7 +130,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 		storeLinkInIncomingLinks(link, toPartOfIncomingLinks);
 	}
 
-	private Map<String, Map<String, List<DataGroup>>> getIncomingLinkStorageForLink(DataGroup link) {
+	private Map<String, Map<String, List<DataGroup>>> getIncomingLinkStorageForLink(
+			DataGroup link) {
 		DataGroup to = link.getFirstGroupWithNameInData("to");
 		String toType = extractLinkedRecordTypeValue(to);
 		String toId = extractLinkedRecordIdValue(to);
@@ -196,13 +199,18 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 			throw new RecordNotFoundException("No records exists with recordType: " + type);
 		}
 		SpiderReadResult spiderReadResult = new SpiderReadResult();
+		spiderReadResult.start = 1;
 		spiderReadResult.listOfDataGroups = new ArrayList<>(typeRecords.values());
+		spiderReadResult.totalNumberOfMatches = 177;
 		return spiderReadResult;
 	}
 
 	@Override
 	public SpiderReadResult readAbstractList(String type, DataGroup filter) {
-		return null;
+		SpiderReadResult spiderReadResult = new SpiderReadResult();
+		spiderReadResult.start = 1;
+		// spiderReadResult.listOfDataGroups = new ArrayList<>(typeRecords.values());
+		return spiderReadResult;
 	}
 
 	@Override
@@ -215,7 +223,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type, String id) {
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+			String id) {
 		return false;
 	}
 
@@ -267,7 +276,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 
 	private Collection<DataGroup> generateLinkCollectionFromStoredLinks(String type, String id) {
 		List<DataGroup> generatedLinkList = new ArrayList<>();
-		Map<String, Map<String, List<DataGroup>>> linkStorageForRecord = incomingLinks.get(type).get(id);
+		Map<String, Map<String, List<DataGroup>>> linkStorageForRecord = incomingLinks.get(type)
+				.get(id);
 		addLinksForRecordFromAllRecordTypes(generatedLinkList, linkStorageForRecord);
 		return generatedLinkList;
 	}
@@ -308,8 +318,8 @@ public class RecordStorageInMemory implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public void update(String recordType, String recordId, DataGroup record, DataGroup collectedTerms,
-			DataGroup linkList, String dataDivider) {
+	public void update(String recordType, String recordId, DataGroup record,
+			DataGroup collectedTerms, DataGroup linkList, String dataDivider) {
 		checkRecordExists(recordType, recordId);
 		removeIncomingLinks(recordType, recordId);
 		storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);

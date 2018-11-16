@@ -28,17 +28,25 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public class SpiderReadResultTest {
+
+	private SpiderReadResult searchResult = new SpiderReadResult();
+
 	@Test
 	public void testListOfDataGroups() {
-		SpiderReadResult searchResult = new SpiderReadResult();
 		List<DataGroup> listOfDataGroups = new ArrayList<>();
 		searchResult.listOfDataGroups = listOfDataGroups;
 		assertEquals(searchResult.listOfDataGroups, listOfDataGroups);
 	}
+
 	@Test
 	public void testTotalNumberOfMatches() {
-		SpiderReadResult searchResult = new SpiderReadResult();
 		searchResult.totalNumberOfMatches = 0;
-		assertEquals(searchResult.totalNumberOfMatches,0);
+		assertEquals(searchResult.totalNumberOfMatches, 0);
+	}
+
+	@Test
+	public void testStart() {
+		searchResult.start = 0;
+		assertEquals(searchResult.start, 0);
 	}
 }

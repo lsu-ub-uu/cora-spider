@@ -157,7 +157,8 @@ public class SpiderAuthorizatorTest {
 		assertRuleCalculatorIsCalled();
 	}
 
-	@Test(expectedExceptions = AuthorizationException.class)
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "user with id inactiveUserId is inactive")
 	public void userInactiveAndDoesNotSatisfyActionForRecordType() {
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
@@ -175,7 +176,8 @@ public class SpiderAuthorizatorTest {
 		assertRuleCalculatorIsCalled();
 	}
 
-	@Test(expectedExceptions = AuthorizationException.class)
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "user with id someUserId is not authorized to create a record  of type:book")
 	public void checkUserDoesNotSatisfyActionForRecordType() {
 		authorizator = new BeefeaterNeverAuthorizedSpy();
 		setUpDependencyProvider();
@@ -183,7 +185,8 @@ public class SpiderAuthorizatorTest {
 		assertRuleCalculatorIsCalled();
 	}
 
-	@Test(expectedExceptions = AuthorizationException.class)
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "user with id nonExistingUserId does not exist")
 	public void checkUserDoesNotSatisfiesActionForRecordUserDoesNotExist() {
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
@@ -192,6 +195,18 @@ public class SpiderAuthorizatorTest {
 		DataGroup collectedData = DataGroup.withNameInData("collectedData");
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(
 				nonExistingUser, action, "book", collectedData);
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "user with id inactiveUserId is inactive")
+	public void userInactiveForActionOnRecordTypeAndCollectedData() {
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+
+		User inactiveUser = new User("inactiveUserId");
+		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(inactiveUser,
+				action, "book", collectedData);
 	}
 
 	@Test
@@ -278,32 +293,33 @@ public class SpiderAuthorizatorTest {
 		assertEquals(firstRule.size(), 3);
 		assertEquals(firstRule.get("JOURNAL_ACCESS").size(), 2);
 		assertEquals(firstRule.get("OWNING_ORGANISATION").size(), 1);
-		assertCorrectKeysInRule(firstRule, Arrays.asList("JOURNAL_ACCESS", "OWNING_ORGANISATION", "action"));
+		assertRuleContainsAllKeys(firstRule, "JOURNAL_ACCESS", "OWNING_ORGANISATION", "action");
 
 		Rule secondRule = rulesFromFirstRole.get(1);
 		assertEquals(providedRules.get(1), secondRule);
 		assertEquals(secondRule.size(), 3);
 		assertEquals(secondRule.get("JOURNAL_ACCESS").size(), 2);
 		assertEquals(secondRule.get("OWNING_ORGANISATION").size(), 1);
-		assertCorrectKeysInRule(secondRule, Arrays.asList("JOURNAL_ACCESS", "OWNING_ORGANISATION", "action"));
+		assertRuleContainsAllKeys(secondRule, "JOURNAL_ACCESS", "OWNING_ORGANISATION", "action");
 
 		List<Rule> rulesFromSecondRole = rulesProvider.returnedRules.get(1);
 		Rule thirdRule = rulesFromSecondRole.get(0);
 		assertEquals(providedRules.get(2), thirdRule);
 		assertEquals(thirdRule.size(), 2);
 		assertEquals(thirdRule.get("OWNING_ORGANISATION").size(), 1);
-		assertCorrectKeysInRule(thirdRule, Arrays.asList("OWNING_ORGANISATION", "action"));
+		assertRuleContainsAllKeys(thirdRule, "OWNING_ORGANISATION", "action");
 
 		Rule fourthRule = rulesFromSecondRole.get(1);
 		assertEquals(providedRules.get(3), fourthRule);
 		assertEquals(fourthRule.size(), 2);
 		assertEquals(fourthRule.get("OWNING_ORGANISATION").size(), 1);
-		assertCorrectKeysInRule(fourthRule, Arrays.asList("OWNING_ORGANISATION", "action"));
+		assertRuleContainsAllKeys(fourthRule, "OWNING_ORGANISATION", "action");
 	}
 
-	private void assertCorrectKeysInRule(Rule firstRule, List<String> expectedKeys) {
-		Set<String> keySet = firstRule.keySet();
-		assertTrue(keySet.containsAll(expectedKeys));
+	private void assertRuleContainsAllKeys(Rule rule, String... expectedKeys) {
+		List<String> expectedKeysList = Arrays.asList(expectedKeys);
+		Set<String> ruleKeySet = rule.keySet();
+		assertTrue(ruleKeySet.containsAll(expectedKeysList));
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
@@ -405,27 +421,27 @@ public class SpiderAuthorizatorTest {
 		assertEquals(firstRule.size(), 3);
 		assertEquals(firstRule.get("JOURNAL_ACCESS").size(), 2);
 		assertEquals(firstRule.get("OWNING_ORGANISATION").size(), 1);
-		assertCorrectKeysInRule(firstRule, Arrays.asList("JOURNAL_ACCESS", "action"));
+		assertRuleContainsAllKeys(firstRule, "JOURNAL_ACCESS", "action");
 
 		Rule secondRule = rulesFromFirstRole.get(1);
 		assertEquals(providedRules.get(1), secondRule);
 		assertEquals(secondRule.size(), 3);
 		assertEquals(secondRule.get("JOURNAL_ACCESS").size(), 2);
 		assertEquals(secondRule.get("OWNING_ORGANISATION").size(), 1);
-		assertCorrectKeysInRule(secondRule, Arrays.asList("JOURNAL_ACCESS", "OWNING_ORGANISATION", "action"));
+		assertRuleContainsAllKeys(secondRule, "JOURNAL_ACCESS", "OWNING_ORGANISATION", "action");
 
 		List<Rule> rulesFromSecondRole = rulesProvider.returnedRules.get(1);
 		Rule thirdRule = rulesFromSecondRole.get(0);
 		assertEquals(providedRules.get(2), thirdRule);
 		assertEquals(thirdRule.size(), 2);
 		assertEquals(thirdRule.get("OWNING_ORGANISATION").size(), 1);
-		assertCorrectKeysInRule(thirdRule, Arrays.asList("OWNING_ORGANISATION", "action"));
+		assertRuleContainsAllKeys(thirdRule, "OWNING_ORGANISATION", "action");
 
 		Rule fourthRule = rulesFromSecondRole.get(1);
 		assertEquals(providedRules.get(3), fourthRule);
 		assertEquals(fourthRule.size(), 2);
 		assertEquals(fourthRule.get("OWNING_ORGANISATION").size(), 1);
-		assertCorrectKeysInRule(fourthRule, Arrays.asList("OWNING_ORGANISATION", "action"));
+		assertRuleContainsAllKeys(fourthRule, "OWNING_ORGANISATION", "action");
 
 	}
 

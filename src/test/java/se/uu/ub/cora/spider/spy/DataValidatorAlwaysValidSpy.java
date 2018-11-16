@@ -20,16 +20,19 @@
 package se.uu.ub.cora.spider.spy;
 
 import se.uu.ub.cora.bookkeeper.data.DataElement;
+import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 
 public class DataValidatorAlwaysValidSpy implements DataValidator {
 	public boolean validateDataWasCalled = false;
 	public String metadataId;
+	public DataGroup dataGroup;
 
 	@Override
 	public ValidationAnswer validateData(String metadataId, DataElement dataGroup) {
 		this.metadataId = metadataId;
+		this.dataGroup = (DataGroup) dataGroup;
 		validateDataWasCalled = true;
 		return new ValidationAnswer();
 	}

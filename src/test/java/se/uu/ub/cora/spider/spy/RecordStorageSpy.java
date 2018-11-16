@@ -413,12 +413,14 @@ public class RecordStorageSpy implements RecordStorage {
 		}
 		SpiderReadResult spiderReadResult = new SpiderReadResult();
 		spiderReadResult.listOfDataGroups = new ArrayList<>();
+		spiderReadResult.totalNumberOfMatches = 199;
 		return spiderReadResult;
 	}
 
 	@Override
 	public SpiderReadResult readAbstractList(String type, DataGroup filter) {
 		SpiderReadResult spiderReadResult = new SpiderReadResult();
+		spiderReadResult.totalNumberOfMatches = 199;
 		spiderReadResult.listOfDataGroups = new ArrayList<>();
 		readLists.add(type);
 		if ("abstract".equals(type)) {
@@ -460,14 +462,13 @@ public class RecordStorageSpy implements RecordStorage {
 			DataGroup userRole = userRoles.get(0);
 			userRole.addChild(permissionTerm);
 
-
 			DataGroup permissionTerm2 = createPermissionTermWithIdAndValues("journalPermissionTerm",
 					"system.abc", "system.def");
 			DataGroup userRole2 = userRoles.get(1);
 			userRole2.addChild(permissionTerm2);
 
-			DataGroup permissionTerm2_role2 = createPermissionTermWithIdAndValues("organisationPermissionTerm",
-					"system.*");
+			DataGroup permissionTerm2_role2 = createPermissionTermWithIdAndValues(
+					"organisationPermissionTerm", "system.*");
 			userRole2.addChild(permissionTerm2_role2);
 
 			records.add(userWithTwoRolesAndTwoPermissionTerm);

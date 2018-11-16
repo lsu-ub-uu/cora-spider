@@ -29,6 +29,7 @@ import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.spider.data.SpiderReadResult;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.role.RulesProvider;
@@ -85,18 +86,19 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private DataGroup getUserAsDataGroup(User user) {
 		DataGroup emptyFilter = DataGroup.withNameInData(FILTER);
-		Collection<DataGroup> users = recordStorage.readAbstractList("user", emptyFilter).listOfDataGroups;
-		return findUserInListOfUsers(user, users);
+		SpiderReadResult result = recordStorage.readAbstractList("user", emptyFilter);
+		Collection<DataGroup> allUsers = result.listOfDataGroups;
+		return findUserInListOfUsers(user, allUsers);
 	}
 
-	private boolean addRulesForRole(List<Rule> providedRules, String roleId,
+	private void addRulesForRole(List<Rule> providedRules, String roleId,
 			DataGroup userAsDataGroup) {
 		List<Rule> activeRulesFromRole = rulesProvider.getActiveRules(roleId);
 		List<DataGroup> userRolesFromUserDataGroup = userAsDataGroup
 				.getAllGroupsWithNameInData("userRole");
 		possiblyAddPermisionTermValuesToAllRules(roleId, activeRulesFromRole,
 				userRolesFromUserDataGroup);
-		return providedRules.addAll(activeRulesFromRole);
+		providedRules.addAll(activeRulesFromRole);
 	}
 
 	private void possiblyAddPermisionTermValuesToAllRules(String roleId,
@@ -138,8 +140,9 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private void addPermissionTermsAsRulePartValues(Rule rule, DataGroup userRole) {
-		List<DataGroup> permissionTermRuleParts = userRole.getAllGroupsWithNameInData("permissionTermRulePart");
-		for(DataGroup permissionRulePart : permissionTermRuleParts){
+		List<DataGroup> permissionTermRuleParts = userRole
+				.getAllGroupsWithNameInData("permissionTermRulePart");
+		for (DataGroup permissionRulePart : permissionTermRuleParts) {
 			createRulePartUsingInfoFromRulePartInUser(rule, permissionRulePart);
 		}
 
@@ -187,11 +190,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private void checkUserIsActive(User user) {
-		DataGroup emptyFilter = DataGroup.withNameInData(FILTER);
-		Collection<DataGroup> users = recordStorage.readAbstractList("user", emptyFilter).listOfDataGroups;
-		DataGroup foundUser = findUserInListOfUsers(user, users);
-
-		if (userIsInactive(foundUser)) {
+		DataGroup dataGroupUser = getUserAsDataGroup(user);
+		if (userIsInactive(dataGroupUser)) {
 			throw new AuthorizationException(USER_STRING + user.id + " is inactive");
 		}
 	}

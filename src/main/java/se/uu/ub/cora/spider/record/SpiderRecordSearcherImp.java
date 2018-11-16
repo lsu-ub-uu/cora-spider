@@ -52,6 +52,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private List<DataGroup> recordTypeToSearchInGroups;
 	private DataGroupTermCollector collectTermCollector;
 	private int startRow = 1;
+
 	private SpiderRecordSearcherImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;

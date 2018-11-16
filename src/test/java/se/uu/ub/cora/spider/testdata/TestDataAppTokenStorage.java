@@ -21,12 +21,12 @@ package se.uu.ub.cora.spider.testdata;
 
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.record.storage.RecordStorageInMemory;
+import se.uu.ub.cora.spider.record.storage.RecordStorageInMemoryStub;
 
 public class TestDataAppTokenStorage {
 
-	public static RecordStorageInMemory createRecordStorageInMemoryWithTestData() {
-		RecordStorageInMemory recordsInMemory = new RecordStorageInMemory();
+	public static RecordStorageInMemoryStub createRecordStorageInMemoryWithTestData() {
+		RecordStorageInMemoryStub recordsInMemory = new RecordStorageInMemoryStub();
 		addRecordType(recordsInMemory);
 		addRecordTypeRecordType(recordsInMemory);
 		addRecordTypeUser(recordsInMemory);
@@ -64,7 +64,7 @@ public class TestDataAppTokenStorage {
 		return recordsInMemory;
 	}
 
-	private static void addRecordType(RecordStorageInMemory recordsInMemory) {
+	private static void addRecordType(RecordStorageInMemoryStub recordsInMemory) {
 		String recordType = "recordType";
 		DataGroup dataGroup = DataGroup.withNameInData(recordType);
 
@@ -77,7 +77,7 @@ public class TestDataAppTokenStorage {
 				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
-	private static void addRecordTypeRecordType(RecordStorageInMemory recordsInMemory) {
+	private static void addRecordTypeRecordType(RecordStorageInMemoryStub recordsInMemory) {
 		String recordType = "recordType";
 		DataGroup dataGroup = DataCreator
 				.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("recordType", "true", "false");
@@ -85,7 +85,7 @@ public class TestDataAppTokenStorage {
 				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
-	private static void addRecordTypeImage(RecordStorageInMemory recordsInMemory) {
+	private static void addRecordTypeImage(RecordStorageInMemoryStub recordsInMemory) {
 		String recordType = "recordType";
 		DataGroup dataGroup = DataCreator
 				.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "true", "binary");
@@ -93,7 +93,7 @@ public class TestDataAppTokenStorage {
 				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
-	private static void addRecordTypeUser(RecordStorageInMemory recordsInMemory) {
+	private static void addRecordTypeUser(RecordStorageInMemoryStub recordsInMemory) {
 		String recordType = "recordType";
 		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("user",
 				"true", "true");
@@ -101,7 +101,7 @@ public class TestDataAppTokenStorage {
 				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
-	private static void addRecordTypeSystemOneUser(RecordStorageInMemory recordsInMemory) {
+	private static void addRecordTypeSystemOneUser(RecordStorageInMemoryStub recordsInMemory) {
 		String recordType = "recordType";
 		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(
 				"systemOneUser", "true", "user");
@@ -109,7 +109,7 @@ public class TestDataAppTokenStorage {
 				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
-	private static void addRecordTypeSystemTwoUser(RecordStorageInMemory recordsInMemory) {
+	private static void addRecordTypeSystemTwoUser(RecordStorageInMemoryStub recordsInMemory) {
 		String recordType = "recordType";
 		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(
 				"systemTwoUser", "true", "user");
@@ -117,7 +117,7 @@ public class TestDataAppTokenStorage {
 				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
-	private static void addRecordTypeWithParent(RecordStorageInMemory recordsInMemory) {
+	private static void addRecordTypeWithParent(RecordStorageInMemoryStub recordsInMemory) {
 		String recordType = "recordType";
 		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(
 				"systemTwoUser", "true", "user");
@@ -125,7 +125,7 @@ public class TestDataAppTokenStorage {
 				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
 
-	private static void addRecordTypeAppToken(RecordStorageInMemory recordsInMemory) {
+	private static void addRecordTypeAppToken(RecordStorageInMemoryStub recordsInMemory) {
 		String recordType = "recordType";
 		DataGroup dataGroup = DataCreator
 				.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("appToken", "false", "false");
