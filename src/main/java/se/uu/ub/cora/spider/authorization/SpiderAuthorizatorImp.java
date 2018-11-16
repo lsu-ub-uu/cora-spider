@@ -91,14 +91,14 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		return findUserInListOfUsers(user, allUsers);
 	}
 
-	private boolean addRulesForRole(List<Rule> providedRules, String roleId,
+	private void addRulesForRole(List<Rule> providedRules, String roleId,
 			DataGroup userAsDataGroup) {
 		List<Rule> activeRulesFromRole = rulesProvider.getActiveRules(roleId);
 		List<DataGroup> userRolesFromUserDataGroup = userAsDataGroup
 				.getAllGroupsWithNameInData("userRole");
 		possiblyAddPermisionTermValuesToAllRules(roleId, activeRulesFromRole,
 				userRolesFromUserDataGroup);
-		return providedRules.addAll(activeRulesFromRole);
+		providedRules.addAll(activeRulesFromRole);
 	}
 
 	private void possiblyAddPermisionTermValuesToAllRules(String roleId,
