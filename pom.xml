@@ -25,18 +25,18 @@
 	<parent>
 		<groupId>se.uu.ub.cora</groupId>
 		<artifactId>cora-parent</artifactId>
-        <version>0.7-SNAPSHOT</version>
+        <version>0.8-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>spider</artifactId>
-    <version>0.15-SNAPSHOT</version>
+    <version>0.16-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Spider</name>
 
 	<properties>
-        <bookkeeper.version>0.12-SNAPSHOT</bookkeeper.version>
-		<beefeater.version>0.7-SNAPSHOT</beefeater.version>
+        <bookkeeper.version>0.13-SNAPSHOT</bookkeeper.version>
+		<beefeater.version>0.8-SNAPSHOT</beefeater.version>
 	</properties>
 
 	<scm>
