@@ -25,24 +25,24 @@
 	<parent>
 		<groupId>se.uu.ub.cora</groupId>
 		<artifactId>cora-parent</artifactId>
-        <version>0.8-SNAPSHOT</version>
+        <version>0.8.6</version>
 	</parent>
 
 	<artifactId>spider</artifactId>
-    <version>0.16-SNAPSHOT</version>
+    <version>0.16.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Spider</name>
 
 	<properties>
-        <bookkeeper.version>0.13-SNAPSHOT</bookkeeper.version>
-		<beefeater.version>0.8-SNAPSHOT</beefeater.version>
+        <bookkeeper.version>0.13.0</bookkeeper.version>
+		<beefeater.version>0.8.0</beefeater.version>
 	</properties>
 
 	<scm>
-		<connection>scm:git:https://github.com/lsu-ub-uu/spider.git</connection>
-		<developerConnection>scm:git:https://github.com/lsu-ub-uu/spider.git</developerConnection>
-		<url>https://github.com/lsu-ub-uu/spider.git</url>
+		<connection>scm:git:https://github.com/lsu-ub-uu/cora-spider.git</connection>
+		<developerConnection>scm:git:https://github.com/lsu-ub-uu/cora-spider.git</developerConnection>
+		<url>https://github.com/lsu-ub-uu/cora-spider.git</url>
 	</scm>
 
 	<dependencies>
