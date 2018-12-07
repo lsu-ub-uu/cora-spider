@@ -14,12 +14,10 @@
   ~     GNU General Public License for more details.
   ~
   ~     You should have received a copy of the GNU General Public License
-  ~     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
+  ~     along with Cora.  If not, see <http://www.gnu.org/licenses />.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -29,7 +27,7 @@
 	</parent>
 
 	<artifactId>spider</artifactId>
-    <version>0.16.0-SNAPSHOT</version>
+    <version>0.16.0</version>
 	<packaging>jar</packaging>
 
 	<name>Spider</name>
@@ -43,7 +41,8 @@
 		<connection>scm:git:https://github.com/lsu-ub-uu/cora-spider.git</connection>
 		<developerConnection>scm:git:https://github.com/lsu-ub-uu/cora-spider.git</developerConnection>
 		<url>https://github.com/lsu-ub-uu/cora-spider.git</url>
-	</scm>
+	  <tag>spider-0.16.0</tag>
+  </scm>
 
 	<dependencies>
 		<dependency>
