@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -80,7 +80,7 @@ public class TestDataAppTokenStorage {
 	private static void addRecordTypeRecordType(RecordStorageInMemoryStub recordsInMemory) {
 		String recordType = "recordType";
 		DataGroup dataGroup = DataCreator
-				.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("recordType", "true", "false");
+				.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead("recordType", "true", "false", "false");
 		recordsInMemory.create(recordType, "recordType", dataGroup,
 				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
@@ -95,8 +95,8 @@ public class TestDataAppTokenStorage {
 
 	private static void addRecordTypeUser(RecordStorageInMemoryStub recordsInMemory) {
 		String recordType = "recordType";
-		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("user",
-				"true", "true");
+		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead("user",
+				"true", "true", "false");
 		recordsInMemory.create(recordType, "user", dataGroup,
 				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 	}
@@ -128,7 +128,7 @@ public class TestDataAppTokenStorage {
 	private static void addRecordTypeAppToken(RecordStorageInMemoryStub recordsInMemory) {
 		String recordType = "recordType";
 		DataGroup dataGroup = DataCreator
-				.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("appToken", "false", "false");
+				.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead("appToken", "false", "false", "false");
 		recordsInMemory.create(recordType, "appToken", dataGroup,
 				null, DataGroup.withNameInData("collectedLinksList"), "cora");
 

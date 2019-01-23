@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -88,6 +88,11 @@ public final class RecordTypeHandler {
 		DataGroup parentGroup = recordTypeDefinition.getFirstGroupWithNameInData("parentId");
 		String abstractParentType = parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		ids.add(abstractParentType + "_" + recordId);
+	}
+
+	public boolean isPublicForRead() {
+		String isPublic = recordType.getFirstAtomicValueWithNameInData("public");
+		return "true".equals(isPublic);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -22,6 +22,8 @@ package se.uu.ub.cora.spider.record;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderReadResult;
@@ -35,29 +37,48 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 
 	public boolean recordIdExistsForRecordType = true;
 	public boolean createWasRead = false;
+	public String publicReadForToRecordType = "false";
+
+	public List<String> readList = new ArrayList<>();
+	public Map<String, Integer> readNumberMap = new TreeMap<>();
 
 	@Override
 	public DataGroup read(String type, String id) {
+		String readKey = type + ":" + id;
+		readList.add(readKey);
+		if (!readNumberMap.containsKey(readKey)) {
+			readNumberMap.put(readKey, 1);
+		} else {
+			readNumberMap.put(readKey, readNumberMap.get(readKey) + 1);
+		}
+
 		if (type.equals("recordType")) {
 			if ("binary".equals(id)) {
-				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
-						"true");
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+						id, "false", "true", "false");
 			} else if ("image".equals(id)) {
 				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "false",
 						"binary");
 			} else if ("recordType".equals(id)) {
-				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
-						"true");
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+						id, "false", "true", "false");
 			} else if (("place".equals(id))) {
 				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "false",
 						"authority");
+			} else if (("toRecordType".equals(id))) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+						id, "false", "true", publicReadForToRecordType);
 			}
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract("dataWithLinks",
-					"false", "false");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+					"dataWithLinks", "false", "false", "false");
 		}
 		if (type.equals("dataWithLinks")) {
 			if (id.equals("oneLinkTopLevel")) {
 				return RecordLinkTestsDataCreator.createSpiderDataGroupWithRecordInfoAndLink()
+						.toDataGroup();
+			}
+			if (id.equals("twoLinksTopLevel")) {
+				return RecordLinkTestsDataCreator.createSpiderDataGroupWithRecordInfoAndTwoLinks()
 						.toDataGroup();
 			}
 			if (id.equals("oneLinkTopLevelNotAuthorized")) {

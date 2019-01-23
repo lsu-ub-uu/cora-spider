@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2017 Uppsala University Library
+ * Copyright 2016, 2017, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,7 +19,9 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
@@ -51,6 +53,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private RecordStorage recordStorage;
 	private DataGroupTermCollector collectTermCollector;
 	private DataGroup collectedTerms;
+	private Map<String, RecordTypeHandler> cachedRecordTypeHandlers = new HashMap<>();
 
 	public DataGroupToRecordEnhancerImp(SpiderDependencyProvider dependencyProvider) {
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
@@ -140,8 +143,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private String getMetadataIdFromRecordType(String recordType) {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
-				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+		RecordTypeHandler recordTypeHandler = getRecordTypeHandlerForRecordType(recordType);
 		return recordTypeHandler.getMetadataId();
 	}
 
@@ -192,7 +194,6 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private void addActionsForRecordType(SpiderDataRecord spiderDataRecord) {
 		if (isRecordType()) {
 			possiblyAddCreateAction(spiderDataRecord);
-
 			possiblyAddListAction(spiderDataRecord);
 		}
 	}
@@ -305,6 +306,9 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private boolean isAuthorizedToReadRecordLink(SpiderDataRecordLink spiderDataChild) {
 		String linkedRecordType = spiderDataChild.extractAtomicValue("linkedRecordType");
 		String linkedRecordId = spiderDataChild.extractAtomicValue(LINKED_RECORD_ID);
+		if (isPublicRecordType(linkedRecordType)) {
+			return true;
+		}
 		DataGroup linkedRecord = null;
 		try {
 			linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType, linkedRecordId);
@@ -312,6 +316,28 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 			return false;
 		}
 		return userIsAuthorizedForActionOnRecordTypeAndData("read", linkedRecordType, linkedRecord);
+	}
+
+	private boolean isPublicRecordType(String linkedRecordType) {
+		RecordTypeHandler recordTypeHandler = getRecordTypeHandlerForRecordType(linkedRecordType);
+		return recordTypeHandler.isPublicForRead();
+	}
+
+	private RecordTypeHandler getRecordTypeHandlerForRecordType(String recordType) {
+		if (recordTypeHandlerForRecordTypeNotYetLoaded(recordType)) {
+			loadRecordTypeHandlerForRecordType(recordType);
+		}
+		return cachedRecordTypeHandlers.get(recordType);
+	}
+
+	private boolean recordTypeHandlerForRecordTypeNotYetLoaded(String recordType) {
+		return !cachedRecordTypeHandlers.containsKey(recordType);
+	}
+
+	private void loadRecordTypeHandlerForRecordType(String recordType) {
+		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+		cachedRecordTypeHandlers.put(recordType, recordTypeHandler);
 	}
 
 	private boolean userIsAuthorizedForActionOnRecordTypeAndData(String action, String recordType,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2017 Uppsala University Library
+ * Copyright 2016, 2017, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -22,6 +22,9 @@ package se.uu.ub.cora.spider.record;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertRecordStorageWasCalledOnlyOnceForReadKey;
+import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertRecordStorageWasNOTCalledForReadKey;
+import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevelTwoLinksContainReadActionOnly;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,13 +48,12 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 
 public class DataGroupToRecordEnhancerTest {
-	private RecordStorage recordStorage;
+	private RecordEnhancerTestsRecordStorage recordStorage;
 	private Authenticator authenticator;
 	private SpiderAuthorizator authorizator;
 	private PermissionRuleCalculator keyCalculator;
@@ -395,4 +397,34 @@ public class DataGroupToRecordEnhancerTest {
 		assertFalse(link.getActions().contains(Action.READ));
 		assertEquals(link.getActions().size(), 0);
 	}
+
+	@Test
+	public void testLinkIsNotReadWhenRecordTypeIsPublic() {
+		recordStorage.publicReadForToRecordType = "true";
+
+		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkTopLevelNotAuthorized");
+		String recordType = "dataWithLinks";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
+
+		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
+		assertRecordStorageWasNOTCalledForReadKey(recordStorage,
+				"toRecordType:recordLinkNotAuthorized");
+		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "recordType:toRecordType");
+	}
+
+	@Test
+	public void testRecordTypeForLinkIsOnlyReadOnce() {
+		recordStorage.publicReadForToRecordType = "true";
+
+		DataGroup dataGroup = recordStorage.read("dataWithLinks", "twoLinksTopLevel");
+		String recordType = "dataWithLinks";
+		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
+
+		assertTopLevelTwoLinksContainReadActionOnly(record);
+
+		assertRecordStorageWasNOTCalledForReadKey(recordStorage,
+				"toRecordType:recordLinkNotAuthorized");
+		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "recordType:toRecordType");
+	}
+
 }

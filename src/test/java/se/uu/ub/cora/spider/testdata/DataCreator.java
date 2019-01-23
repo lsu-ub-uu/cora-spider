@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -38,13 +38,12 @@ public final class DataCreator {
 	private static final String NEW_METADATA_ID = "newMetadataId";
 	private static final String RECORD_TYPE = "recordType";
 
-	public static DataGroup createRecordTypeWithIdAndUserSuppliedIdAndAbstract(String id,
-			String userSuppliedId, String abstractValue) {
-		DataGroup createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId = createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId(
-				id, userSuppliedId, abstractValue, null);
-		createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId
-				.addChild(getFilterChild("someFilterId"));
-		return createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId;
+	public static DataGroup createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+			String id, String userSuppliedId, String abstractValue, String publicRead) {
+		DataGroup dataGroup = createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentIdAndPublicRead(
+				id, userSuppliedId, abstractValue, null, publicRead);
+		dataGroup.addChild(getFilterChild("someFilterId"));
+		return dataGroup;
 	}
 
 	private static DataGroup getFilterChild(String filterMetadataId) {
@@ -54,8 +53,9 @@ public final class DataCreator {
 		return filter;
 	}
 
-	private static DataGroup createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId(
-			String id, String userSuppliedId, String abstractValue, String parentId) {
+	public static DataGroup createRecordTypeWithIdAndUserSuppliedId(String id,
+			String userSuppliedId) {
+		// TODO Auto-generated method stub
 		String idWithCapitalFirst = id.substring(0, 1).toUpperCase() + id.substring(1);
 
 		DataGroup dataGroup = DataGroup.withNameInData(RECORD_TYPE);
@@ -83,7 +83,15 @@ public final class DataCreator {
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue(USER_SUPPLIED_ID, userSuppliedId));
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue(SELF_PRESENTATION_VIEW_ID,
 				"pg" + idWithCapitalFirst + "Self"));
+		return dataGroup;
+	}
+
+	private static DataGroup createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentIdAndPublicRead(
+			String id, String userSuppliedId, String abstractValue, String parentId,
+			String publicRead) {
+		DataGroup dataGroup = createRecordTypeWithIdAndUserSuppliedId(id, userSuppliedId);
 		dataGroup.addChild(DataAtomic.withNameInDataAndValue("abstract", abstractValue));
+		dataGroup.addChild(DataAtomic.withNameInDataAndValue("public", publicRead));
 		if (null != parentId) {
 			dataGroup.addChild(
 					createChildWithNamInDataLinkedTypeLinkedId("parentId", "recordType", parentId));
@@ -102,8 +110,8 @@ public final class DataCreator {
 
 	public static DataGroup createRecordTypeWithIdAndUserSuppliedIdAndParentId(String id,
 			String userSuppliedId, String parentId) {
-		return createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentId(id, userSuppliedId,
-				"false", parentId);
+		return createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndParentIdAndPublicRead(id,
+				userSuppliedId, "false", parentId, "false");
 	}
 
 	public static DataGroup createRecordInfoWithRecordTypeAndRecordId(String recordType,
@@ -361,8 +369,8 @@ public final class DataCreator {
 		return dataGroup;
 	}
 
-	public static SpiderDataGroup createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(String id, String recordType,
-																					   String recordId) {
+	public static SpiderDataGroup createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(String id,
+			String recordType, String recordId) {
 		SpiderDataGroup workOrder = SpiderDataGroup.withNameInData("workOrder");
 		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
 		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", id));
@@ -379,4 +387,5 @@ public final class DataCreator {
 		workOrder.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "index"));
 		return workOrder;
 	}
+
 }
