@@ -91,8 +91,11 @@ public final class RecordTypeHandler {
 	}
 
 	public boolean isPublicForRead() {
-		String isPublic = recordType.getFirstAtomicValueWithNameInData("public");
-		return "true".equals(isPublic);
+		if (recordType.containsChildWithNameInData("public")) {
+			String isPublic = recordType.getFirstAtomicValueWithNameInData("public");
+			return "true".equals(isPublic);
+		}
+		return false;
 	}
 
 }

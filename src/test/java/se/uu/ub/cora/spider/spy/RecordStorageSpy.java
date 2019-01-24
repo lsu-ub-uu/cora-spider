@@ -97,6 +97,21 @@ public class RecordStorageSpy implements RecordStorage {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedId("publicReadType", "true");
 
 		}
+		if ("public".equals(id)) {
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+					"false", "true", "true");
+		}
+		if ("notPublic".equals(id)) {
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+					"false", "true", "false");
+		}
+		if ("publicMissing".equals(id)) {
+			DataGroup publicValueIsMissing = DataCreator
+					.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id, "false",
+							"true", "false");
+			publicValueIsMissing.removeFirstChildWithNameInData("public");
+			return publicValueIsMissing;
+		}
 		if ("recordType".equals(type) && "image".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "true",
 					"binary");
