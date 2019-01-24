@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016 Uppsala University Library
+ * Copyright 2015, 2016, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -35,6 +35,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	private User user;
 	private String authToken;
 	private DataGroupTermCollector collectTermCollector;
+	private RecordTypeHandler recordTypeHandler;
 
 	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -61,6 +62,8 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		checkUserIsAuthorizedForActionOnRecordType();
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
+		setRecordTypeHandlerForCurrentRecord(recordType, recordRead);
+
 		checkUserIsAuthorisedToReadData(recordRead);
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
@@ -74,31 +77,18 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
 	}
 
-	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
-		DataGroup collectedTerms = getCollectedTermsForRecord(recordType, recordRead);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
-				recordType, collectedTerms);
+	private void setRecordTypeHandlerForCurrentRecord(String recordType, DataGroup recordRead) {
+		recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
+				recordType);
+		setImplementingRecordTypeHandlerIfAbstract(recordRead);
 	}
 
-	private DataGroup getCollectedTermsForRecord(String recordType, DataGroup recordRead) {
-		String metadataId = getMetadataIdFromRecordType(recordType, recordRead);
-		return collectTermCollector.collectTerms(metadataId, recordRead);
-	}
-
-	private String getMetadataIdFromRecordType(String recordType, DataGroup recordRead) {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
-				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+	private void setImplementingRecordTypeHandlerIfAbstract(DataGroup recordRead) {
 		if (recordTypeHandler.isAbstract()) {
-			return getImplementingMetadataId(recordRead);
+			String implementingRecordType = getImplementingRecordType(recordRead);
+			recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
+					implementingRecordType);
 		}
-		return recordTypeHandler.getMetadataId();
-	}
-
-	private String getImplementingMetadataId(DataGroup recordRead) {
-		String implementingRecordType = getImplementingRecordType(recordRead);
-		RecordTypeHandler typeHandler = RecordTypeHandler
-				.usingRecordStorageAndRecordTypeId(recordStorage, implementingRecordType);
-		return typeHandler.getMetadataId();
 	}
 
 	private String getImplementingRecordType(DataGroup recordRead) {
@@ -106,4 +96,26 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		DataGroup type = recordInfo.getFirstGroupWithNameInData("type");
 		return type.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
+
+	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
+		if (!recordTypeHandler.isPublicForRead()) {
+			checkUserIsAuthorisedToReadNonPublicData(recordRead);
+		}
+	}
+
+	private void checkUserIsAuthorisedToReadNonPublicData(DataGroup recordRead) {
+		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
+				READ, recordType, collectedTerms);
+	}
+
+	private DataGroup getCollectedTermsForRecord(DataGroup recordRead) {
+		String metadataId = getMetadataIdFromRecordType();
+		return collectTermCollector.collectTerms(metadataId, recordRead);
+	}
+
+	private String getMetadataIdFromRecordType() {
+		return recordTypeHandler.getMetadataId();
+	}
+
 }

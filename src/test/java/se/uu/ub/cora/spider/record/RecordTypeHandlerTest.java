@@ -76,4 +76,28 @@ public class RecordTypeHandlerTest {
 				.usingRecordStorageAndRecordTypeId(recordStorage, id);
 		assertEquals(recordTypeHandler.getNewMetadataId(), "otherTypeNew");
 	}
+
+	@Test
+	public void testPublic() {
+		String id = "public";
+		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, id);
+		assertTrue(recordTypeHandler.isPublicForRead());
+	}
+
+	@Test
+	public void testNotPublic() {
+		String id = "notPublic";
+		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, id);
+		assertFalse(recordTypeHandler.isPublicForRead());
+	}
+
+	@Test
+	public void testPublicMissing() {
+		String id = "publicMissing";
+		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, id);
+		assertFalse(recordTypeHandler.isPublicForRead());
+	}
 }

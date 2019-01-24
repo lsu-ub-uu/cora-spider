@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -190,5 +190,15 @@ public class SpiderRecordReaderTest {
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testReadingDataForANonExistingRecordType() {
 		recordReader.readRecord("someToken78678567", "nonExistingRecordType", "anId");
+	}
+
+	@Test
+	public void testReadPublicRecordType() throws Exception {
+		recordStorage = new RecordStorageSpy();
+		authorizator = new AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType();
+		setUpDependencyProvider();
+		// publicReadType
+		recordReader.readRecord("unauthorizedUserId", "publicReadType", "publicReadType:0001");
+
 	}
 }

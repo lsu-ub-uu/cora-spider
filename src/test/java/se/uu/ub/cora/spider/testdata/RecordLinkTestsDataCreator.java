@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -31,6 +31,13 @@ public class RecordLinkTestsDataCreator {
 	public static SpiderDataGroup createDataGroupWithLink() {
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
 
+		SpiderDataRecordLink spiderRecordLink = createLink();
+
+		dataGroup.addChild(spiderRecordLink);
+		return dataGroup;
+	}
+
+	private static SpiderDataRecordLink createLink() {
 		SpiderDataRecordLink spiderRecordLink = SpiderDataRecordLink.withNameInData("link");
 		SpiderDataAtomic linkedRecordType = SpiderDataAtomic
 				.withNameInDataAndValue("linkedRecordType", "toRecordType");
@@ -38,9 +45,7 @@ public class RecordLinkTestsDataCreator {
 		SpiderDataAtomic linkedRecordId = SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
 				"toRecordId");
 		spiderRecordLink.addChild(linkedRecordId);
-
-		dataGroup.addChild(spiderRecordLink);
-		return dataGroup;
+		return spiderRecordLink;
 	}
 
 	public static SpiderDataGroup createDataGroupWithLinkNotAuthorized() {
@@ -103,6 +108,23 @@ public class RecordLinkTestsDataCreator {
 				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 						DATA_WITH_LINKS, "oneLinkTopLevel", "cora"));
 		return dataGroup;
+	}
+
+	public static SpiderDataGroup createSpiderDataGroupWithRecordInfoAndTwoLinks() {
+		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
+		dataGroup
+				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+						DATA_WITH_LINKS, "towLinksTopLevel", "cora"));
+
+		SpiderDataRecordLink spiderRecordLink = createLink();
+		spiderRecordLink.setRepeatId("one");
+		dataGroup.addChild(spiderRecordLink);
+
+		SpiderDataRecordLink spiderRecordLink2 = createLink();
+		spiderRecordLink2.setRepeatId("two");
+		dataGroup.addChild(spiderRecordLink2);
+		return dataGroup;
+
 	}
 
 	public static SpiderDataGroup createSpiderDataGroupWithRecordInfoAndLinkNotAuthorized() {

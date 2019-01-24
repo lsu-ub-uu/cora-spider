@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Uppsala University Library
+ * Copyright 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -51,8 +51,8 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 		this.id = id;
 		readWasCalled = true;
 		if ("spyType".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
-					"false");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id, "false",
+					"false", "false");
 		}
 		if (recordToReturnOnRead != null) {
 			return recordToReturnOnRead;

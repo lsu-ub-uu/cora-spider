@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2017 Uppsala University Library
+ * Copyright 2015, 2017, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -54,16 +54,16 @@ public class RecordStorageSpy implements RecordStorage {
 		this.id = id;
 		readWasCalled = true;
 		if ("abstract".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
-					"true");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+					"false", "true", "false");
 		}
 		if ("abstract2".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
-					"true");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+					"false", "true", "false");
 		}
 		if ("child1".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "true",
-					"false");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+					"true", "false", "false");
 		}
 		if ("child2".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
@@ -82,12 +82,35 @@ public class RecordStorageSpy implements RecordStorage {
 					"NOT_ABSTRACT");
 		}
 		if ("spyType".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "false",
-					"false");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+					"false", "false", "false");
 		}
 		if ("spyType2".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(id, "true",
-					"false");
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+					"true", "false", "false");
+		}
+		if ("recordType".equals(type) && "publicReadType".equals(id)) {
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+					"true", "false", "true");
+		}
+		if ("publicReadType".equals(type)) {
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedId("publicReadType", "true");
+
+		}
+		if ("public".equals(id)) {
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+					"false", "true", "true");
+		}
+		if ("notPublic".equals(id)) {
+			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+					"false", "true", "false");
+		}
+		if ("publicMissing".equals(id)) {
+			DataGroup publicValueIsMissing = DataCreator
+					.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id, "false",
+							"true", "false");
+			publicValueIsMissing.removeFirstChildWithNameInData("public");
+			return publicValueIsMissing;
 		}
 		if ("recordType".equals(type) && "image".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "true",
@@ -116,8 +139,9 @@ public class RecordStorageSpy implements RecordStorage {
 			return book;
 		}
 		if ("recordType".equals(type) && "abstractAuthority".equals(id)) {
-			DataGroup authority = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstract(
-					"abstractAuthority", "false", "true");
+			DataGroup authority = DataCreator
+					.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+							"abstractAuthority", "false", "true", "false");
 			return authority;
 		}
 

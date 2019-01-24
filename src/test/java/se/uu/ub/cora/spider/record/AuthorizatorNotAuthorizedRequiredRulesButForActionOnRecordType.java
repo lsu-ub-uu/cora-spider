@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2018 Uppsala University Library
+ * Copyright 2016, 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -36,8 +36,7 @@ public class AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	@Override
@@ -50,7 +49,6 @@ public class AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String string, DataGroup collectedData) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 

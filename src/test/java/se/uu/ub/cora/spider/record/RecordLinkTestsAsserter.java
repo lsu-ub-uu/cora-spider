@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,6 +23,10 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
@@ -41,6 +45,25 @@ public class RecordLinkTestsAsserter {
 		SpiderDataRecordLink link = (SpiderDataRecordLink) spiderDataGroup
 				.getFirstChildWithNameInData("link");
 		return link;
+	}
+
+	public static void assertTopLevelTwoLinksContainReadActionOnly(SpiderDataRecord record) {
+		List<SpiderDataRecordLink> links = getLinksFromRecord(record);
+		for (SpiderDataRecordLink link : links) {
+			assertTrue(link.getActions().contains(Action.READ));
+			assertEquals(link.getActions().size(), 1);
+		}
+		assertEquals(links.size(), 2);
+	}
+
+	private static List<SpiderDataRecordLink> getLinksFromRecord(SpiderDataRecord record) {
+		SpiderDataGroup spiderDataGroup = record.getSpiderDataGroup();
+		List<SpiderDataGroup> links = spiderDataGroup.getAllGroupsWithNameInData("link");
+		List<SpiderDataRecordLink> links2 = new ArrayList<SpiderDataRecordLink>();
+		for (SpiderDataGroup spiderDataGroup2 : links) {
+			links2.add((SpiderDataRecordLink) spiderDataGroup2);
+		}
+		return links2;
 	}
 
 	public static void assertOneLevelDownLinkContainsReadActionOnly(SpiderDataRecord record) {
@@ -81,5 +104,18 @@ public class RecordLinkTestsAsserter {
 		SpiderDataRecordLink link = getLinkFromRecord(record);
 		assertFalse(link.getActions().contains(Action.READ));
 		assertEquals(link.getActions().size(), 0);
+	}
+
+	public static void assertRecordStorageWasNOTCalledForReadKey(
+			RecordEnhancerTestsRecordStorage recordStorage, String readKey) {
+		Map<String, Integer> readNumberMap = recordStorage.readNumberMap;
+		assertFalse(readNumberMap.containsKey(readKey));
+	}
+
+	public static void assertRecordStorageWasCalledOnlyOnceForReadKey(
+			RecordEnhancerTestsRecordStorage recordStorage, String readKey) {
+		Map<String, Integer> readNumberMap = recordStorage.readNumberMap;
+		Integer actual = readNumberMap.get(readKey);
+		assertEquals(actual.intValue(), 1);
 	}
 }
