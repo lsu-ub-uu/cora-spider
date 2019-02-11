@@ -24,6 +24,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -33,6 +34,8 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
@@ -50,7 +53,10 @@ import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageForValidateDataSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
+import se.uu.ub.cora.spider.testdata.SpiderDataCreator;
 
 public class SpiderRecordValidatorTest {
 	private RecordStorage recordStorage;
@@ -62,7 +68,6 @@ public class SpiderRecordValidatorTest {
 	private DataRecordLinkCollector linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
-	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private DataGroupTermCollector termCollector;
 	private RecordIndexer recordIndexer;
 
@@ -72,8 +77,6 @@ public class SpiderRecordValidatorTest {
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
 		recordStorage = new RecordStorageSpy();
-		// recordStorage =
-		// TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		ruleCalculator = new NoRulesCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
@@ -93,15 +96,53 @@ public class SpiderRecordValidatorTest {
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 		dependencyProvider.searchTermCollector = termCollector;
 		dependencyProvider.recordIndexer = recordIndexer;
-		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
-		recordValidator = SpiderRecordValidatorImp
-				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProvider,
-						dataGroupToRecordEnhancer);
+		recordValidator = SpiderRecordValidatorImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Test
-	public void testValidateRecordInvalidData() {
-		dataValidator = new DataValidatorAlwaysInvalidSpy();
+	public void testExternalDependenciesAreCalledForCreate() {
+		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		recordStorage = new RecordStorageForValidateDataSpy();
+		ruleCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		spiderDataGroup.addChild(
+				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
+						"spyId", "cora"));
+		recordValidator.validateRecord("someToken78678567", "place", "create", spiderDataGroup);
+
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
+		assertTrue(authorizatorSpy.authorizedWasCalled);
+
+		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
+		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "placeNew");
+
+	}
+
+	@Test
+	public void testExternalDependenciesAreCalledForUpdate() {
+		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		recordStorage = new RecordStorageForValidateDataSpy();
+		ruleCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		spiderDataGroup.addChild(
+				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
+						"spyId", "cora"));
+		recordValidator.validateRecord("someToken78678567", "place", "update", spiderDataGroup);
+
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
+		assertTrue(authorizatorSpy.authorizedWasCalled);
+
+		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
+		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "place");
+
+	}
+
+	@Test
+	public void testValidatRecordDataValidDataForCreate() {
 		recordStorage = new RecordStorageForValidateDataSpy();
 		setUpDependencyProvider();
 
@@ -112,13 +153,16 @@ public class SpiderRecordValidatorTest {
 		dataGroup.addChild(createRecordInfo);
 		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
 
-		assertFalse(recordValidator.validateRecord("someToken78678567", "place", "place:001",
-				dataGroup));
-		assertTrue(((DataValidatorAlwaysInvalidSpy) dataValidator).validateDataWasCalled);
+		assertTrue(
+				recordValidator.validateRecord("someToken78678567", "place", "create", dataGroup));
+
+		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
+		assertTrue(dataValidatorSpy.validateDataWasCalled);
+		assertEquals(dataValidatorSpy.metadataId, "placeNew");
 	}
 
 	@Test
-	public void testValidatenRecordDataValidDataForUpdate() {
+	public void testValidatRecordDataValidDataForUpdate() {
 		recordStorage = new RecordStorageForValidateDataSpy();
 		setUpDependencyProvider();
 
@@ -138,7 +182,8 @@ public class SpiderRecordValidatorTest {
 	}
 
 	@Test
-	public void testValidatenRecordDataValidDataForCreate() {
+	public void testValidateRecordInvalidData() {
+		dataValidator = new DataValidatorAlwaysInvalidSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();
 		setUpDependencyProvider();
 
@@ -149,52 +194,51 @@ public class SpiderRecordValidatorTest {
 		dataGroup.addChild(createRecordInfo);
 		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
 
-		assertTrue(
+		assertFalse(
 				recordValidator.validateRecord("someToken78678567", "place", "create", dataGroup));
-
-		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
-		assertTrue(dataValidatorSpy.validateDataWasCalled);
-		assertEquals(dataValidatorSpy.metadataId, "placeNew");
+		assertTrue(((DataValidatorAlwaysInvalidSpy) dataValidator).validateDataWasCalled);
 	}
 
-	// @Test
-	// public void testExternalDependenciesAreCalled() {
-	// spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
-	// recordStorage = new RecordStorageSpy();
-	// ruleCalculator = new RuleCalculatorSpy();
-	// setUpDependencyProvider();
-	//
-	// SpiderDataGroup spiderDataGroup =
-	// SpiderDataGroup.withNameInData("nameInData");
-	// spiderDataGroup.addChild(
-	// SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
-	// "spyId", "cora"));
-	// recordUpdater.updateRecord("someToken78678567", "spyType", "spyId",
-	// spiderDataGroup);
-	//
-	// AuthorizatorAlwaysAuthorizedSpy authorizatorSpy =
-	// (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
-	// assertTrue(authorizatorSpy.authorizedWasCalled);
-	//
-	// assertTrue(((DataValidatorAlwaysValidSpy)
-	// dataValidator).validateDataWasCalled);
-	// assertTrue(((RecordStorageSpy) recordStorage).updateWasCalled);
-	// assertTrue(((DataRecordLinkCollectorSpy)
-	// linkCollector).collectLinksWasCalled);
-	// assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId,
-	// "spyType");
-	//
-	// assertCorrectSearchTermCollectorAndIndexer();
-	// }
-	//
-	// private void assertCorrectSearchTermCollectorAndIndexer() {
-	// DataGroupTermCollectorSpy searchTermCollectorSpy =
-	// (DataGroupTermCollectorSpy) termCollector;
-	// assertEquals(searchTermCollectorSpy.metadataId, "spyType");
-	// assertTrue(searchTermCollectorSpy.collectTermsWasCalled);
-	// assertEquals(((RecordIndexerSpy) recordIndexer).recordIndexData,
-	// searchTermCollectorSpy.collectedTerms);
-	// }
+	@Test(expectedExceptions = DataException.class)
+	public void testLinkedRecordIdDoesNotExist() {
+		recordStorage = new RecordLinkTestsRecordStorage();
+		linkCollector = DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
+		setUpDependencyProvider();
+
+		((RecordLinkTestsRecordStorage) recordStorage).recordIdExistsForRecordType = false;
+
+		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator
+				.createDataGroupWithRecordInfoAndLinkOneLevelDown();
+		recordValidator.validateRecord("someToken78678567", "dataWithLinks", "create", dataGroup);
+	}
+
+	@Test
+	public void testUnauthorizedForUpdateOnRecordTypeShouldNotValidateData() {
+		recordStorage = new RecordStorageSpy();
+		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
+		HashSet<String> hashSet = new HashSet<String>();
+		hashSet.add("validate");
+		((AlwaysAuthorisedExceptStub) spiderAuthorizator).notAuthorizedForRecordTypeAndActions
+				.put("spyType", hashSet);
+		setUpDependencyProvider();
+
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		spiderDataGroup.addChild(
+				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
+						"spyId", "cora"));
+
+		boolean exceptionWasCaught = false;
+		try {
+			recordValidator.validateRecord("someToken78678567", "spyType", "spyId",
+					spiderDataGroup);
+		} catch (Exception e) {
+			assertEquals(e.getClass(), AuthorizationException.class);
+			exceptionWasCaught = true;
+		}
+		assertTrue(exceptionWasCaught);
+		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
+		assertFalse(dataValidatorSpy.validateDataWasCalled);
+	}
 	//
 	// @Test
 	// public void testRecordEnhancerCalled() {

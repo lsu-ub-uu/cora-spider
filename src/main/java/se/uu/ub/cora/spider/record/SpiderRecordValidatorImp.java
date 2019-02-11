@@ -24,7 +24,6 @@ import java.util.List;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -33,45 +32,32 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
-import se.uu.ub.cora.spider.search.RecordIndexer;
 
 public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		implements SpiderRecordValidator {
-	private static final String UPDATED_STRING = "updated";
-	private static final String TS_UPDATED = "tsUpdated";
-	private static final String UPDATED_BY = "updatedBy";
-	private static final String UPDATE = "update";
+	private static final String VALIDATE = "validate";
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
-	// private String metadataId;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private String authToken;
 	private User user;
 	private String userId;
-	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
-	private DataGroupTermCollector collectTermCollector;
-	private RecordIndexer recordIndexer;
 
-	private SpiderRecordValidatorImp(SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
+	private SpiderRecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
-		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
-	public static SpiderRecordValidatorImp usingDependencyProviderAndDataGroupToRecordEnhancer(
-			SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-		return new SpiderRecordValidatorImp(dependencyProvider, dataGroupToRecordEnhancer);
+	public static SpiderRecordValidatorImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new SpiderRecordValidatorImp(dependencyProvider);
 	}
 
 	@Override
@@ -80,27 +66,19 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		this.authToken = authToken;
 		this.recordAsSpiderDataGroup = spiderDataGroup;
 		this.recordType = recordType;
-		// this.recordId = actionToPerform;
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
 		String metadataId = getMetadataIdFromActionToPerform(recordType, actionToPerform);
+
+		// TODO:check if record exists if actionToPerform = update
+
+		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
+		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
+				recordType, recordId);
+		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+
 		return validateIncomingDataAsSpecifiedInMetadata(metadataId);
-		// useExtendedFunctionalityAfterMetadataValidation(recordType, spiderDataGroup);
-		//
-		// checkRecordTypeAndIdIsSameAsInEnteredRecord();
-
-		// DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
-		//
-		// DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId,
-		// topLevelDataGroup);
-		// checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
-		//
-		// DataGroup collectedLinks = linkCollector.collectLinks(metadataId,
-		// topLevelDataGroup,
-		// recordType, recordId);
-		// checkToPartOfLinkedDataExistsInStorage(collectedLinks);
-
 	}
 
 	private String getMetadataIdFromActionToPerform(String recordType, String actionToPerform) {
@@ -118,7 +96,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, UPDATE, recordType);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, VALIDATE, recordType);
 	}
 
 	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
