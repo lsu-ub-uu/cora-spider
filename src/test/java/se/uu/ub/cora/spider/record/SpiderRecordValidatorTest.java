@@ -42,6 +42,7 @@ import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.search.RecordIndexer;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
@@ -76,7 +77,7 @@ public class SpiderRecordValidatorTest {
 		authenticator = new AuthenticatorSpy();
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new RecordStorageForValidateDataSpy();
 		ruleCalculator = new NoRulesCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
@@ -110,18 +111,20 @@ public class SpiderRecordValidatorTest {
 		spiderDataGroup.addChild(
 				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
 						"spyId", "cora"));
-		recordValidator.validateRecord("someToken78678567", "place", "create", spiderDataGroup);
+		recordValidator.validateRecord("someToken78678567", "place", spiderDataGroup, "create");
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
 		assertTrue(authorizatorSpy.authorizedWasCalled);
 
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "placeNew");
+		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).recordType, "place");
+		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).recordId, null);
 
 	}
 
 	@Test
-	public void testExternalDependenciesAreCalledForUpdate() {
+	public void testExternalDependenciesAreCalledForUpdateUsesMetadataId() {
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();
 		ruleCalculator = new RuleCalculatorSpy();
@@ -131,34 +134,41 @@ public class SpiderRecordValidatorTest {
 		spiderDataGroup.addChild(
 				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
 						"spyId", "cora"));
-		recordValidator.validateRecord("someToken78678567", "place", "update", spiderDataGroup);
+		recordValidator.validateRecord("someToken78678567", "place", spiderDataGroup, "update");
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
 		assertTrue(authorizatorSpy.authorizedWasCalled);
 
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "place");
+		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).recordType, "place");
+		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).recordId, "spyId");
 
 	}
 
 	@Test
-	public void testValidatRecordDataValidDataForCreate() {
+	public void testValidatRecordDataValidDataForCreateUsesNewMetadataId() {
 		recordStorage = new RecordStorageForValidateDataSpy();
 		setUpDependencyProvider();
 
+		SpiderDataGroup dataGroup = createDataGroupPlace();
+		ValidationResult validationResult = recordValidator.validateRecord("someToken78678567",
+				"place", dataGroup, "create");
+		assertTrue(validationResult.isValid());
+
+		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
+		assertTrue(dataValidatorSpy.validateDataWasCalled);
+		assertEquals(dataValidatorSpy.metadataId, "placeNew");
+	}
+
+	private SpiderDataGroup createDataGroupPlace() {
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("typeWithUserGeneratedId");
 		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
 		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "place"));
 		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "recordType"));
 		dataGroup.addChild(createRecordInfo);
 		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
-
-		assertTrue(
-				recordValidator.validateRecord("someToken78678567", "place", "create", dataGroup));
-
-		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
-		assertTrue(dataValidatorSpy.validateDataWasCalled);
-		assertEquals(dataValidatorSpy.metadataId, "placeNew");
+		return dataGroup;
 	}
 
 	@Test
@@ -166,15 +176,10 @@ public class SpiderRecordValidatorTest {
 		recordStorage = new RecordStorageForValidateDataSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("typeWithUserGeneratedId");
-		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "place"));
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "recordType"));
-		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
-
-		assertTrue(
-				recordValidator.validateRecord("someToken78678567", "place", "update", dataGroup));
+		SpiderDataGroup dataGroup = createDataGroupPlace();
+		ValidationResult validationResult = recordValidator.validateRecord("someToken78678567",
+				"place", dataGroup, "update");
+		assertTrue(validationResult.isValid());
 
 		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
 		assertTrue(dataValidatorSpy.validateDataWasCalled);
@@ -187,15 +192,10 @@ public class SpiderRecordValidatorTest {
 		recordStorage = new RecordStorageForValidateDataSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("typeWithUserGeneratedId");
-		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "place"));
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "recordType"));
-		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
-
-		assertFalse(
-				recordValidator.validateRecord("someToken78678567", "place", "create", dataGroup));
+		SpiderDataGroup dataGroup = createDataGroupPlace();
+		ValidationResult validationResult = recordValidator.validateRecord("someToken78678567",
+				"place", dataGroup, "create");
+		assertFalse(validationResult.isValid());
 		assertTrue(((DataValidatorAlwaysInvalidSpy) dataValidator).validateDataWasCalled);
 	}
 
@@ -209,11 +209,11 @@ public class SpiderRecordValidatorTest {
 
 		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator
 				.createDataGroupWithRecordInfoAndLinkOneLevelDown();
-		recordValidator.validateRecord("someToken78678567", "dataWithLinks", "create", dataGroup);
+		recordValidator.validateRecord("someToken78678567", "dataWithLinks", dataGroup, "create");
 	}
 
 	@Test
-	public void testUnauthorizedForUpdateOnRecordTypeShouldNotValidateData() {
+	public void testUnauthorizedForValidateOnRecordTypeShouldNotValidateData() {
 		recordStorage = new RecordStorageSpy();
 		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
 		HashSet<String> hashSet = new HashSet<String>();
@@ -229,8 +229,8 @@ public class SpiderRecordValidatorTest {
 
 		boolean exceptionWasCaught = false;
 		try {
-			recordValidator.validateRecord("someToken78678567", "spyType", "spyId",
-					spiderDataGroup);
+			recordValidator.validateRecord("someToken78678567", "spyType", spiderDataGroup,
+					"update");
 		} catch (Exception e) {
 			assertEquals(e.getClass(), AuthorizationException.class);
 			exceptionWasCaught = true;
@@ -239,144 +239,11 @@ public class SpiderRecordValidatorTest {
 		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
 		assertFalse(dataValidatorSpy.validateDataWasCalled);
 	}
-	//
-	// @Test
-	// public void testRecordEnhancerCalled() {
-	// spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
-	// recordStorage = new RecordStorageSpy();
-	// ruleCalculator = new RuleCalculatorSpy();
-	// setUpDependencyProvider();
-	// SpiderDataGroup spiderDataGroup =
-	// SpiderDataGroup.withNameInData("nameInData");
-	// spiderDataGroup.addChild(
-	// SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
-	// "spyId", "cora"));
-	// recordUpdater.updateRecord("someToken78678567", "spyType", "spyId",
-	// spiderDataGroup);
-	// assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
-	// assertEquals(dataGroupToRecordEnhancer.recordType, "spyType");
-	// assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
-	// .getFirstAtomicValueWithNameInData("id"), "spyId");
-	// }
 
-	// @Test(expectedExceptions = AuthenticationException.class)
-	// public void testAuthenticationNotAuthenticated() {
-	// recordStorage = new RecordStorageSpy();
-	// setUpDependencyProvider();
-	// SpiderDataGroup spiderDataGroup = DataCreator
-	// .createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("nameInData",
-	// "spyId",
-	// "spyType", "cora");
-	// recordUpdater.updateRecord("dummyNonAuthenticatedToken", "spyType", "spyId",
-	// spiderDataGroup);
-	// }
-
-	private SpiderDataGroup getSpiderDataGroupToUpdate() {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("typeWithUserGeneratedId");
-		SpiderDataGroup createRecordInfo = DataCreator
-				.createRecordInfoWithIdAndLinkedRecordId("somePlace", "cora");
-		SpiderDataGroup typeGroup = SpiderDataGroup.withNameInData("type");
-		typeGroup.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
-		typeGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
-				"typeWithAutoGeneratedId"));
-		createRecordInfo.addChild(typeGroup);
-		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
-		return dataGroup;
+	@Test(expectedExceptions = RecordNotFoundException.class)
+	public void testNonExistingRecordType() {
+		SpiderDataGroup dataGroup = createDataGroupPlace();
+		recordValidator.validateRecord("someToken78678567", "recordType_NOT_EXISTING", dataGroup,
+				"update");
 	}
-
-	// @Test(expectedExceptions = DataMissingException.class)
-	// public void testUpdateRecordRecordInfoMissing() {
-	// recordStorage = new RecordStorageCreateUpdateSpy();
-	// setUpDependencyProvider();
-	//
-	// SpiderDataGroup group = SpiderDataGroup.withNameInData("authority");
-	// recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId",
-	// "place", group);
-	// }
-	//
-	// @Test(expectedExceptions = DataMissingException.class)
-	// public void testUpdateRecordRecordInfoContentMissing() {
-	// recordStorage = new RecordStorageCreateUpdateSpy();
-	// setUpDependencyProvider();
-	//
-	// SpiderDataGroup group = SpiderDataGroup.withNameInData("authority");
-	// SpiderDataGroup createRecordInfo =
-	// SpiderDataGroup.withNameInData("recordInfo");
-	// group.addChild(createRecordInfo);
-	// recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId",
-	// "place", group);
-	// }
-
-	// @Test(expectedExceptions = RecordNotFoundException.class)
-	// public void testNonExistingRecordType() {
-	// SpiderDataGroup record = SpiderDataGroup.withNameInData("authority");
-	// recordUpdater.updateRecord("someToken78678567", "recordType_NOT_EXISTING",
-	// "id", record);
-	// }
-
-	// @Test(expectedExceptions = DataException.class)
-	// public void testUpdateRecordIncomingDataTypesDoNotMatch() {
-	// recordStorage = new RecordStorageCreateUpdateSpy();
-	// setUpDependencyProvider();
-	//
-	// SpiderDataGroup dataGroup = SpiderDataGroup
-	// .withNameInData("typeWithUserGeneratedId_NOT_THE_SAME");
-	// SpiderDataGroup createRecordInfo =
-	// SpiderDataGroup.withNameInData("recordInfo");
-	// createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id",
-	// "place"));
-	// SpiderDataGroup typeGroup = SpiderDataGroup.withNameInData("type");
-	// typeGroup.addChild(
-	// SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
-	// typeGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
-	// "recordType"));
-	// createRecordInfo.addChild(typeGroup);
-	// dataGroup.addChild(createRecordInfo);
-	// dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId",
-	// "atomicValue"));
-	//
-	// recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId",
-	// "place",
-	// dataGroup);
-	// }
-
-	// @Test(expectedExceptions = DataException.class)
-	// public void testUpdateRecordIncomingDataIdDoNotMatch() {
-	// recordStorage = new RecordStorageCreateUpdateSpy();
-	// setUpDependencyProvider();
-	//
-	// SpiderDataGroup dataGroup = SpiderDataGroup
-	// .withNameInData("typeWithUserGeneratedId_NOT_THE_SAME");
-	// SpiderDataGroup createRecordInfo =
-	// SpiderDataGroup.withNameInData("recordInfo");
-	// createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id",
-	// "place"));
-	// createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type",
-	// "recordType"));
-	// dataGroup.addChild(createRecordInfo);
-	// dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId",
-	// "atomicValue"));
-	//
-	// recordUpdater.updateRecord("someToken78678567", "recordType", "placeNOT",
-	// dataGroup);
-	// }
-
-	// @Test(expectedExceptions = DataException.class)
-	// public void testLinkedRecordIdDoesNotExist() {
-	// recordStorage = new RecordLinkTestsRecordStorage();
-	// linkCollector =
-	// DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
-	// setUpDependencyProvider();
-	//
-	// ((RecordLinkTestsRecordStorage) recordStorage).recordIdExistsForRecordType =
-	// false;
-	//
-	// SpiderDataGroup dataGroup = RecordLinkTestsDataCreator
-	// .createDataGroupWithRecordInfoAndLinkOneLevelDown();
-	// recordUpdater.updateRecord("someToken78678567", "dataWithLinks",
-	// "oneLinkOneLevelDown",
-	// dataGroup);
-	// }
 }

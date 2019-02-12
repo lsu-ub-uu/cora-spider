@@ -19,8 +19,6 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.List;
-
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
@@ -30,21 +28,16 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 
 public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		implements SpiderRecordValidator {
 	private static final String VALIDATE = "validate";
-	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
-	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private String authToken;
 	private User user;
-	private String userId;
 
 	private SpiderRecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
@@ -52,7 +45,6 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
 	public static SpiderRecordValidatorImp usingDependencyProvider(
@@ -61,34 +53,23 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 	}
 
 	@Override
-	public boolean validateRecord(String authToken, String recordType, String actionToPerform,
-			SpiderDataGroup spiderDataGroup) {
+	public ValidationResult validateRecord(String authToken, String recordType,
+			SpiderDataGroup spiderDataGroup, String actionToPerform) {
 		this.authToken = authToken;
 		this.recordAsSpiderDataGroup = spiderDataGroup;
 		this.recordType = recordType;
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
-		String metadataId = getMetadataIdFromActionToPerform(recordType, actionToPerform);
+		String recordIdOrNullIfCreate = extractRecordIdIfUpdate(actionToPerform);
 
-		// TODO:check if record exists if actionToPerform = update
+		ensureRecordExistWhenActionToPerformIsUpdate(actionToPerform, recordIdOrNullIfCreate);
 
-		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
-		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
-				recordType, recordId);
-		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+		String metadataId = getMetadataIdUsingActionToPerform(actionToPerform);
+		ensureLinksExist(recordIdOrNullIfCreate, metadataId);
 
 		return validateIncomingDataAsSpecifiedInMetadata(metadataId);
-	}
 
-	private String getMetadataIdFromActionToPerform(String recordType, String actionToPerform) {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
-				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
-
-		if ("create".equals(actionToPerform)) {
-			return recordTypeHandler.getNewMetadataId();
-		}
-		return recordTypeHandler.getMetadataId();
 	}
 
 	private User tryToGetActiveUser() {
@@ -99,65 +80,62 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, VALIDATE, recordType);
 	}
 
-	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
-			SpiderDataGroup spiderDataGroup) {
-		List<ExtendedFunctionality> functionalityForUpdateBeforeMetadataValidation = extendedFunctionalityProvider
-				.getFunctionalityForUpdateBeforeMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(spiderDataGroup, functionalityForUpdateBeforeMetadataValidation);
+	private String extractRecordIdIfUpdate(String actionToPerform) {
+		return "update".equals(actionToPerform) ? extractIdFromData() : null;
 	}
 
-	private void useExtendedFunctionality(SpiderDataGroup spiderDataGroup,
-			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
-		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
-			extendedFunctionality.useExtendedFunctionality(userId, spiderDataGroup);
+	private String extractIdFromData() {
+		return recordAsSpiderDataGroup.extractGroup("recordInfo").extractAtomicValue("id");
+	}
+
+	private void ensureRecordExistWhenActionToPerformIsUpdate(String actionToPerform,
+			String recordIdToUse) {
+		if ("update".equals(actionToPerform)) {
+			recordStorage.read(recordType, recordIdToUse);
 		}
 	}
 
-	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
-			SpiderDataGroup spiderDataGroup) {
-		List<ExtendedFunctionality> functionalityForUpdateAfterMetadataValidation = extendedFunctionalityProvider
-				.getFunctionalityForUpdateAfterMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(spiderDataGroup, functionalityForUpdateAfterMetadataValidation);
+	private String getMetadataIdUsingActionToPerform(String actionToPerform) {
+		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+
+		if ("create".equals(actionToPerform)) {
+			return recordTypeHandler.getNewMetadataId();
+		}
+		return recordTypeHandler.getMetadataId();
 	}
 
-	private boolean validateIncomingDataAsSpecifiedInMetadata(String metadataId) {
+	private void ensureLinksExist(String recordIdToUse, String metadataId) {
+		DataGroup topLevelDataGroup = recordAsSpiderDataGroup.toDataGroup();
+		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
+				recordType, recordIdToUse);
+		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+	}
+
+	private ValidationResult validateIncomingDataAsSpecifiedInMetadata(String metadataId) {
 		DataGroup dataGroup = recordAsSpiderDataGroup.toDataGroup();
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, dataGroup);
-		return validationAnswer.dataIsValid();
+		return createValidationResult(validationAnswer);
 	}
 
-	private void checkRecordTypeAndIdIsSameAsInEnteredRecord() {
-		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
-		checkIdIsSameAsInEnteredRecord(recordInfo);
-		checkTypeIsSameAsInEnteredRecord(recordInfo);
+	private ValidationResult createValidationResult(ValidationAnswer validationAnswer) {
+		ValidationResult validationResult = new ValidationResult();
+		possiblyAddErrorMessages(validationAnswer, validationResult);
+		return validationResult;
 	}
 
-	private void checkIdIsSameAsInEnteredRecord(SpiderDataGroup recordInfo) {
-		String valueFromRecord = recordInfo.extractAtomicValue("id");
-		checkValueIsSameAsValueInEnteredRecord(recordId, valueFromRecord);
-	}
-
-	private void checkValueIsSameAsValueInEnteredRecord(String value,
-			String extractedValueFromRecord) {
-		if (!value.equals(extractedValueFromRecord)) {
-			throw new DataException("Value in data(" + extractedValueFromRecord
-					+ ") does not match entered value(" + value + ")");
+	private void possiblyAddErrorMessages(ValidationAnswer validationAnswer,
+			ValidationResult validationResult) {
+		if (validationAnswer.dataIsInvalid()) {
+			addErrorMessages(validationAnswer, validationResult);
 		}
 	}
 
-	private void checkTypeIsSameAsInEnteredRecord(SpiderDataGroup recordInfo) {
-		String type = extractTypeFromRecordInfo(recordInfo);
-		checkValueIsSameAsValueInEnteredRecord(recordType, type);
-	}
-
-	private String extractTypeFromRecordInfo(SpiderDataGroup recordInfo) {
-		SpiderDataGroup typeGroup = recordInfo.extractGroup("type");
-		return typeGroup.extractAtomicValue(LINKED_RECORD_ID);
-	}
-
-	private SpiderDataGroup getRecordInfoFromStoredData() {
-		DataGroup recordRead = recordStorage.read(recordType, recordId);
-		return SpiderDataGroup.fromDataGroup(recordRead.getFirstGroupWithNameInData("recordInfo"));
+	private void addErrorMessages(ValidationAnswer validationAnswer,
+			ValidationResult validationResult) {
+		for (String errorMessage : validationAnswer.getErrorMessages()) {
+			validationResult.addErrorMessage(errorMessage);
+		}
 	}
 
 }

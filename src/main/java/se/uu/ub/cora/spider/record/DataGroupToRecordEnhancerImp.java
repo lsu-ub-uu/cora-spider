@@ -91,6 +91,9 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("index", recordType)) {
 			record.addAction(Action.INDEX);
 		}
+		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("validate", recordType)) {
+			record.addAction(Action.VALIDATE);
+		}
 		possiblyAddDeleteAction(record);
 		possiblyAddIncomingLinksAction(record);
 		possiblyAddUploadAction(record);

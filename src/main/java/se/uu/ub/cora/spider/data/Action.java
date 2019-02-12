@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2017, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,5 +20,5 @@
 package se.uu.ub.cora.spider.data;
 
 public enum Action {
-	READ, UPDATE, DELETE, RESSURECT, PUBLISH, READ_INCOMING_LINKS, UNPUBLISH, CREATE, LIST, SEARCH, UPLOAD, INDEX
+	READ, UPDATE, DELETE, RESSURECT, PUBLISH, READ_INCOMING_LINKS, UNPUBLISH, CREATE, LIST, SEARCH, UPLOAD, INDEX, VALIDATE
 }

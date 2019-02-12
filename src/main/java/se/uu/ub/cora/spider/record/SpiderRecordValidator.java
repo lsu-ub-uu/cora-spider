@@ -22,7 +22,7 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 
 public interface SpiderRecordValidator {
 
-	boolean validateRecord(String authToken, String recordType, String actionToPerform,
-			SpiderDataGroup spiderDataGroup);
+	ValidationResult validateRecord(String authToken, String recordType, SpiderDataGroup spiderDataGroup,
+			String actionToPerform);
 
 }
