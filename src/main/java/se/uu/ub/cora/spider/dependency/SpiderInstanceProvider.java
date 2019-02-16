@@ -29,6 +29,7 @@ import se.uu.ub.cora.spider.record.SpiderRecordListReader;
 import se.uu.ub.cora.spider.record.SpiderRecordReader;
 import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
+import se.uu.ub.cora.spider.record.SpiderRecordValidator;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 
 public final class SpiderInstanceProvider {
@@ -79,6 +80,10 @@ public final class SpiderInstanceProvider {
 
 	public static SpiderRecordIncomingLinksReader getSpiderRecordIncomingLinksReader() {
 		return factory.factorSpiderRecordIncomingLinksReader();
+	}
+
+	public static SpiderRecordValidator getSpiderRecordValidator() {
+		return factory.factorSpiderRecordValidator();
 	}
 
 	public static void setInitInfo(Map<String, String> initInfo) {

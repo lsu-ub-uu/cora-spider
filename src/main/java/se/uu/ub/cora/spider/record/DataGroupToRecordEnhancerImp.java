@@ -91,14 +91,17 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("index", recordType)) {
 			record.addAction(Action.INDEX);
 		}
-		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("validate", recordType)) {
-			record.addAction(Action.VALIDATE);
-		}
 		possiblyAddDeleteAction(record);
 		possiblyAddIncomingLinksAction(record);
 		possiblyAddUploadAction(record);
 		possiblyAddSearchAction(record);
 		addActionsForRecordType(record);
+	}
+
+	private void possiblyAddValidateAction() {
+		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("validate", recordType)) {
+			record.addAction(Action.VALIDATE);
+		}
 	}
 
 	private boolean userIsAuthorizedForActionOnRecordTypeAndCollectedTerms(String action,
@@ -198,6 +201,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		if (isRecordType()) {
 			possiblyAddCreateAction(spiderDataRecord);
 			possiblyAddListAction(spiderDataRecord);
+			possiblyAddValidateAction();
 		}
 	}
 
