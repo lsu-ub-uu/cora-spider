@@ -38,6 +38,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 	private DataRecordLinkCollector linkCollector;
 	private String authToken;
 	private User user;
+	private String metadataToValidate;
 
 	private SpiderRecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
@@ -54,22 +55,14 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 
 	@Override
 	public ValidationResult validateRecord(String authToken, String recordType,
-			SpiderDataGroup spiderDataGroup, String actionToPerform) {
+			SpiderDataGroup validationRecord, SpiderDataGroup recordToValidate) {
 		this.authToken = authToken;
-		this.recordAsSpiderDataGroup = spiderDataGroup;
+		this.recordAsSpiderDataGroup = recordToValidate;
 		this.recordType = recordType;
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
-		String recordIdOrNullIfCreate = extractRecordIdIfUpdate(actionToPerform);
-
-		ensureRecordExistWhenActionToPerformIsUpdate(actionToPerform, recordIdOrNullIfCreate);
-
-		String metadataId = getMetadataIdUsingActionToPerform(actionToPerform);
-		ensureLinksExist(recordIdOrNullIfCreate, metadataId);
-
-		return validateIncomingDataAsSpecifiedInMetadata(metadataId);
-
+		return validateRecordUsingValidationRecord(validationRecord);
 	}
 
 	private User tryToGetActiveUser() {
@@ -80,29 +73,48 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, VALIDATE, recordType);
 	}
 
-	private String extractRecordIdIfUpdate(String actionToPerform) {
-		return "update".equals(actionToPerform) ? extractIdFromData() : null;
+	private ValidationResult validateRecordUsingValidationRecord(SpiderDataGroup validationRecord) {
+		metadataToValidate = validationRecord.extractAtomicValue("metadataToValidate");
+		String metadataId = getMetadataId();
+
+		String recordIdOrNullIfCreate = extractRecordIdIfUpdate();
+		ensureRecordExistWhenActionToPerformIsUpdate(recordIdOrNullIfCreate);
+		possiblyEnsureLinksExist(validationRecord, recordIdOrNullIfCreate, metadataId);
+
+		return validateIncomingDataAsSpecifiedInMetadata(metadataId);
+	}
+
+	private String getMetadataId() {
+		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+		return validateNew() ? recordTypeHandler.getNewMetadataId()
+				: recordTypeHandler.getMetadataId();
+	}
+
+	private boolean validateNew() {
+		return "new".equals(metadataToValidate);
+	}
+
+	private String extractRecordIdIfUpdate() {
+		return "existing".equals(metadataToValidate) ? extractIdFromData() : null;
 	}
 
 	private String extractIdFromData() {
 		return recordAsSpiderDataGroup.extractGroup("recordInfo").extractAtomicValue("id");
 	}
 
-	private void ensureRecordExistWhenActionToPerformIsUpdate(String actionToPerform,
-			String recordIdToUse) {
-		if ("update".equals(actionToPerform)) {
+	private void ensureRecordExistWhenActionToPerformIsUpdate(String recordIdToUse) {
+		if ("existing".equals(metadataToValidate)) {
 			recordStorage.read(recordType, recordIdToUse);
 		}
 	}
 
-	private String getMetadataIdUsingActionToPerform(String actionToPerform) {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
-				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
-
-		if ("create".equals(actionToPerform)) {
-			return recordTypeHandler.getNewMetadataId();
+	private void possiblyEnsureLinksExist(SpiderDataGroup validationRecord,
+			String recordIdOrNullIfCreate, String metadataId) {
+		String validateLinks = validationRecord.extractAtomicValue("validateLinks");
+		if ("true".equals(validateLinks)) {
+			ensureLinksExist(recordIdOrNullIfCreate, metadataId);
 		}
-		return recordTypeHandler.getMetadataId();
 	}
 
 	private void ensureLinksExist(String recordIdToUse, String metadataId) {

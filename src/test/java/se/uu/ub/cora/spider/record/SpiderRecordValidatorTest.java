@@ -107,11 +107,15 @@ public class SpiderRecordValidatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		spiderDataGroup.addChild(
+		SpiderDataGroup recordToValidate = SpiderDataGroup.withNameInData("nameInData");
+		recordToValidate.addChild(
 				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
 						"spyId", "cora"));
-		recordValidator.validateRecord("someToken78678567", "place", spiderDataGroup, "create");
+
+		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+		recordValidator.validateRecord("someToken78678567", "place", validationOrder,
+				recordToValidate);
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
 		assertTrue(authorizatorSpy.authorizedWasCalled);
@@ -123,8 +127,18 @@ public class SpiderRecordValidatorTest {
 
 	}
 
+	private SpiderDataGroup createValidationOrderWithMetadataToValidateAndValidateLinks(
+			String metadataToValidate, String validateLinks) {
+		SpiderDataGroup validationOrder = SpiderDataGroup.withNameInData("validationOrder");
+		validationOrder.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("metadataToValidate", metadataToValidate));
+		validationOrder
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("validateLinks", validateLinks));
+		return validationOrder;
+	}
+
 	@Test
-	public void testExternalDependenciesAreCalledForUpdateUsesMetadataId() {
+	public void testExternalDependenciesAreCalledForUpdate() {
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();
 		ruleCalculator = new RuleCalculatorSpy();
@@ -134,7 +148,10 @@ public class SpiderRecordValidatorTest {
 		spiderDataGroup.addChild(
 				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
 						"spyId", "cora"));
-		recordValidator.validateRecord("someToken78678567", "place", spiderDataGroup, "update");
+		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"existing", "true");
+		recordValidator.validateRecord("someToken78678567", "place", validationOrder,
+				spiderDataGroup);
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
 		assertTrue(authorizatorSpy.authorizedWasCalled);
@@ -147,13 +164,35 @@ public class SpiderRecordValidatorTest {
 	}
 
 	@Test
+	public void testLinkCollectorIsNotCalledWhenValidateLinksIsFalse() {
+		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		recordStorage = new RecordStorageForValidateDataSpy();
+		ruleCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		spiderDataGroup.addChild(
+				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
+						"spyId", "cora"));
+		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"existing", "false");
+		recordValidator.validateRecord("someToken78678567", "place", validationOrder,
+				spiderDataGroup);
+
+		assertFalse(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
+
+	}
+
+	@Test
 	public void testValidatRecordDataValidDataForCreateUsesNewMetadataId() {
 		recordStorage = new RecordStorageForValidateDataSpy();
 		setUpDependencyProvider();
 
 		SpiderDataGroup dataGroup = createDataGroupPlace();
+		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
 		ValidationResult validationResult = recordValidator.validateRecord("someToken78678567",
-				"place", dataGroup, "create");
+				"place", validationOrder, dataGroup);
 		assertTrue(validationResult.isValid());
 
 		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
@@ -177,8 +216,10 @@ public class SpiderRecordValidatorTest {
 		setUpDependencyProvider();
 
 		SpiderDataGroup dataGroup = createDataGroupPlace();
+		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"existing", "true");
 		ValidationResult validationResult = recordValidator.validateRecord("someToken78678567",
-				"place", dataGroup, "update");
+				"place", validationOrder, dataGroup);
 		assertTrue(validationResult.isValid());
 
 		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
@@ -193,8 +234,10 @@ public class SpiderRecordValidatorTest {
 		setUpDependencyProvider();
 
 		SpiderDataGroup dataGroup = createDataGroupPlace();
+		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"existing", "true");
 		ValidationResult validationResult = recordValidator.validateRecord("someToken78678567",
-				"place", dataGroup, "create");
+				"place", validationOrder, dataGroup);
 		assertFalse(validationResult.isValid());
 		assertTrue(((DataValidatorAlwaysInvalidSpy) dataValidator).validateDataWasCalled);
 	}
@@ -209,7 +252,26 @@ public class SpiderRecordValidatorTest {
 
 		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator
 				.createDataGroupWithRecordInfoAndLinkOneLevelDown();
-		recordValidator.validateRecord("someToken78678567", "dataWithLinks", dataGroup, "create");
+		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+		recordValidator.validateRecord("someToken78678567", "dataWithLinks", validationOrder,
+				dataGroup);
+	}
+
+	@Test
+	public void testLinkedRecordIdDoesNotExistDoesNotMatterWhenLinksAreNotChecked() {
+		recordStorage = new RecordLinkTestsRecordStorage();
+		linkCollector = DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
+		setUpDependencyProvider();
+
+		((RecordLinkTestsRecordStorage) recordStorage).recordIdExistsForRecordType = false;
+
+		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator
+				.createDataGroupWithRecordInfoAndLinkOneLevelDown();
+		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "false");
+		recordValidator.validateRecord("someToken78678567", "dataWithLinks", validationOrder,
+				dataGroup);
 	}
 
 	@Test
@@ -226,11 +288,12 @@ public class SpiderRecordValidatorTest {
 		spiderDataGroup.addChild(
 				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
 						"spyId", "cora"));
-
+		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"existing", "true");
 		boolean exceptionWasCaught = false;
 		try {
-			recordValidator.validateRecord("someToken78678567", "spyType", spiderDataGroup,
-					"update");
+			recordValidator.validateRecord("someToken78678567", "spyType", validationOrder,
+					spiderDataGroup);
 		} catch (Exception e) {
 			assertEquals(e.getClass(), AuthorizationException.class);
 			exceptionWasCaught = true;
@@ -243,7 +306,9 @@ public class SpiderRecordValidatorTest {
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testNonExistingRecordType() {
 		SpiderDataGroup dataGroup = createDataGroupPlace();
-		recordValidator.validateRecord("someToken78678567", "recordType_NOT_EXISTING", dataGroup,
-				"update");
+		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"existing", "true");
+		recordValidator.validateRecord("someToken78678567", "recordType_NOT_EXISTING",
+				validationOrder, dataGroup);
 	}
 }

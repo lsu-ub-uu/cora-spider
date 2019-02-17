@@ -96,7 +96,6 @@ public class DataGroupToRecordEnhancerTest {
 
 		assertTrue(record.getActions().contains(Action.READ_INCOMING_LINKS));
 		assertTrue(record.getActions().contains(Action.INDEX));
-		// assertTrue(record.getActions().contains(Action.VALIDATE));
 	}
 
 	@Test
@@ -109,7 +108,6 @@ public class DataGroupToRecordEnhancerTest {
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.INDEX));
-		// assertTrue(record.getActions().contains(Action.VALIDATE));
 
 		assertFalse(record.getActions().contains(Action.READ_INCOMING_LINKS));
 	}
@@ -135,7 +133,6 @@ public class DataGroupToRecordEnhancerTest {
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.READ_INCOMING_LINKS));
 		assertTrue(record.getActions().contains(Action.INDEX));
-		// assertTrue(record.getActions().contains(Action.VALIDATE));
 
 		assertFalse(record.getActions().contains(Action.DELETE));
 	}
@@ -151,7 +148,6 @@ public class DataGroupToRecordEnhancerTest {
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.READ_INCOMING_LINKS));
 		assertTrue(record.getActions().contains(Action.INDEX));
-		// assertTrue(record.getActions().contains(Action.VALIDATE));
 
 		assertFalse(record.getActions().contains(Action.DELETE));
 
@@ -172,8 +168,6 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testActionsOnReadRecordTypeBinary() {
-		// recordStorage = new RecordLinkTestsRecordStorage();
-		// setUpDependencyProvider();
 		DataGroup dataGroup = recordStorage.read("recordType", "binary");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
@@ -217,7 +211,6 @@ public class DataGroupToRecordEnhancerTest {
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.UPLOAD));
 		assertTrue(record.getActions().contains(Action.INDEX));
-		// assertTrue(record.getActions().contains(Action.VALIDATE));
 	}
 
 	@Test
@@ -267,7 +260,6 @@ public class DataGroupToRecordEnhancerTest {
 		actions.add("create");
 		actions.add("list");
 		actions.add("search");
-		// actions.add("validate");
 		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
 				.put("place", actions);
 		setUpDependencyProvider();
@@ -365,7 +357,6 @@ public class DataGroupToRecordEnhancerTest {
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.SEARCH));
 		assertTrue(record.getActions().contains(Action.INDEX));
-		// assertTrue(record.getActions().contains(Action.VALIDATE));
 		assertEquals(record.getActions().size(), 5);
 
 		AuthorizatorAlwaysAuthorizedSpy authorizator = (AuthorizatorAlwaysAuthorizedSpy) this.authorizator;
@@ -390,7 +381,6 @@ public class DataGroupToRecordEnhancerTest {
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.INDEX));
-		// assertTrue(record.getActions().contains(Action.VALIDATE));
 		assertEquals(record.getActions().size(), 4);
 	}
 
