@@ -42,7 +42,6 @@ import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.search.RecordIndexer;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
@@ -238,11 +237,11 @@ public class SpiderRecordValidatorTest {
 				"existing", "true");
 		ValidationResult validationResult = recordValidator.validateRecord("someToken78678567",
 				"place", validationOrder, dataGroup);
-		assertFalse(validationResult.isValid());
+		assertTrue(validationResult.isInvalid());
 		assertTrue(((DataValidatorAlwaysInvalidSpy) dataValidator).validateDataWasCalled);
 	}
 
-	@Test(expectedExceptions = DataException.class)
+	@Test
 	public void testLinkedRecordIdDoesNotExist() {
 		recordStorage = new RecordLinkTestsRecordStorage();
 		linkCollector = DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
@@ -254,8 +253,11 @@ public class SpiderRecordValidatorTest {
 				.createDataGroupWithRecordInfoAndLinkOneLevelDown();
 		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"new", "true");
-		recordValidator.validateRecord("someToken78678567", "dataWithLinks", validationOrder,
-				dataGroup);
+		ValidationResult validationResult = recordValidator.validateRecord("someToken78678567",
+				"dataWithLinks", validationOrder, dataGroup);
+		assertTrue(validationResult.isInvalid());
+		assertEquals(validationResult.getErrorMessages().get(0),
+				"Data is not valid: linkedRecord does not exists in storage for recordType: toRecordType and recordId: toRecordId");
 	}
 
 	@Test
@@ -270,8 +272,9 @@ public class SpiderRecordValidatorTest {
 				.createDataGroupWithRecordInfoAndLinkOneLevelDown();
 		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"new", "false");
-		recordValidator.validateRecord("someToken78678567", "dataWithLinks", validationOrder,
-				dataGroup);
+		ValidationResult validateRecord = recordValidator.validateRecord("someToken78678567",
+				"dataWithLinks", validationOrder, dataGroup);
+		assertTrue(validateRecord.isValid());
 	}
 
 	@Test
@@ -303,12 +306,16 @@ public class SpiderRecordValidatorTest {
 		assertFalse(dataValidatorSpy.validateDataWasCalled);
 	}
 
-	@Test(expectedExceptions = RecordNotFoundException.class)
+	@Test
 	public void testNonExistingRecordType() {
 		SpiderDataGroup dataGroup = createDataGroupPlace();
 		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
-		recordValidator.validateRecord("someToken78678567", "recordType_NOT_EXISTING",
-				validationOrder, dataGroup);
+		ValidationResult validationResult = recordValidator.validateRecord("someToken78678567",
+				"recordType_NOT_EXISTING", validationOrder, dataGroup);
+		assertTrue(validationResult.isInvalid());
+		assertEquals(validationResult.getErrorMessages().get(0),
+				"No records exists with recordType: recordType_NOT_EXISTING and recordId place");
+
 	}
 }

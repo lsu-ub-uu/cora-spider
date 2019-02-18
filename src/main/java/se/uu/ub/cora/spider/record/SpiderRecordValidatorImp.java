@@ -28,6 +28,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 
 public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		implements SpiderRecordValidator {
@@ -39,6 +40,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 	private String authToken;
 	private User user;
 	private String metadataToValidate;
+	private ValidationResult validationResult;
 
 	private SpiderRecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
@@ -62,7 +64,9 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
-		return validateRecordUsingValidationRecord(validationRecord);
+		validationResult = new ValidationResult();
+		validateRecordUsingValidationRecord(validationRecord);
+		return validationResult;
 	}
 
 	private User tryToGetActiveUser() {
@@ -73,15 +77,15 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, VALIDATE, recordType);
 	}
 
-	private ValidationResult validateRecordUsingValidationRecord(SpiderDataGroup validationRecord) {
+	private void validateRecordUsingValidationRecord(SpiderDataGroup validationRecord) {
 		metadataToValidate = validationRecord.extractAtomicValue("metadataToValidate");
 		String metadataId = getMetadataId();
 
 		String recordIdOrNullIfCreate = extractRecordIdIfUpdate();
 		ensureRecordExistWhenActionToPerformIsUpdate(recordIdOrNullIfCreate);
 		possiblyEnsureLinksExist(validationRecord, recordIdOrNullIfCreate, metadataId);
-
-		return validateIncomingDataAsSpecifiedInMetadata(metadataId);
+		// TODO: kolla om recordType stämmer med det som står i validateRecord?
+		validateIncomingDataAsSpecifiedInMetadata(metadataId);
 	}
 
 	private String getMetadataId() {
@@ -105,7 +109,15 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 
 	private void ensureRecordExistWhenActionToPerformIsUpdate(String recordIdToUse) {
 		if ("existing".equals(metadataToValidate)) {
+			checkIfRecordExist(recordIdToUse);
+		}
+	}
+
+	private void checkIfRecordExist(String recordIdToUse) {
+		try {
 			recordStorage.read(recordType, recordIdToUse);
+		} catch (RecordNotFoundException exception) {
+			validationResult.addErrorMessage(exception.getMessage());
 		}
 	}
 
@@ -113,38 +125,39 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 			String recordIdOrNullIfCreate, String metadataId) {
 		String validateLinks = validationRecord.extractAtomicValue("validateLinks");
 		if ("true".equals(validateLinks)) {
-			ensureLinksExist(recordIdOrNullIfCreate, metadataId);
+			ensureLinksExist(recordIdOrNullIfCreate, metadataId, validationResult);
 		}
 	}
 
-	private void ensureLinksExist(String recordIdToUse, String metadataId) {
+	private void ensureLinksExist(String recordIdToUse, String metadataId,
+			ValidationResult validationResult) {
 		DataGroup topLevelDataGroup = recordAsSpiderDataGroup.toDataGroup();
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, recordIdToUse);
-		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+		checkIfLinksExist(validationResult, collectedLinks);
 	}
 
-	private ValidationResult validateIncomingDataAsSpecifiedInMetadata(String metadataId) {
-		DataGroup dataGroup = recordAsSpiderDataGroup.toDataGroup();
-		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, dataGroup);
-		return createValidationResult(validationAnswer);
-	}
-
-	private ValidationResult createValidationResult(ValidationAnswer validationAnswer) {
-		ValidationResult validationResult = new ValidationResult();
-		possiblyAddErrorMessages(validationAnswer, validationResult);
-		return validationResult;
-	}
-
-	private void possiblyAddErrorMessages(ValidationAnswer validationAnswer,
-			ValidationResult validationResult) {
-		if (validationAnswer.dataIsInvalid()) {
-			addErrorMessages(validationAnswer, validationResult);
+	private void checkIfLinksExist(ValidationResult validationResult, DataGroup collectedLinks) {
+		try {
+			checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+		} catch (DataException exception) {
+			validationResult.addErrorMessage(exception.getMessage());
 		}
 	}
 
-	private void addErrorMessages(ValidationAnswer validationAnswer,
-			ValidationResult validationResult) {
+	private void validateIncomingDataAsSpecifiedInMetadata(String metadataId) {
+		DataGroup dataGroup = recordAsSpiderDataGroup.toDataGroup();
+		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, dataGroup);
+		possiblyAddErrorMessages(validationAnswer);
+	}
+
+	private void possiblyAddErrorMessages(ValidationAnswer validationAnswer) {
+		if (validationAnswer.dataIsInvalid()) {
+			addErrorMessages(validationAnswer);
+		}
+	}
+
+	private void addErrorMessages(ValidationAnswer validationAnswer) {
 		for (String errorMessage : validationAnswer.getErrorMessages()) {
 			validationResult.addErrorMessage(errorMessage);
 		}
