@@ -26,12 +26,15 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 
 public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		implements SpiderRecordValidator {
+	private static final String ERROR_MESSAGES = "errorMessages";
 	private static final String VALIDATE = "validate";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -40,7 +43,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 	private String authToken;
 	private User user;
 	private String metadataToValidate;
-	private ValidationResult validationResult;
+	private SpiderDataGroup validationResult;
 
 	private SpiderRecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
@@ -56,7 +59,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 	}
 
 	@Override
-	public ValidationResult validateRecord(String authToken, String recordType,
+	public SpiderDataRecord validateRecord(String authToken, String recordType,
 			SpiderDataGroup validationRecord, SpiderDataGroup recordToValidate) {
 		this.authToken = authToken;
 		this.recordAsSpiderDataGroup = recordToValidate;
@@ -64,9 +67,9 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
-		validationResult = new ValidationResult();
+		validationResult = SpiderDataGroup.withNameInData("validationResult");
 		validateRecordUsingValidationRecord(validationRecord);
-		return validationResult;
+		return SpiderDataRecord.withSpiderDataGroup(validationResult);
 	}
 
 	private User tryToGetActiveUser() {
@@ -84,7 +87,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		String recordIdOrNullIfCreate = extractRecordIdIfUpdate();
 		ensureRecordExistWhenActionToPerformIsUpdate(recordIdOrNullIfCreate);
 		possiblyEnsureLinksExist(validationRecord, recordIdOrNullIfCreate, metadataId);
-		// TODO: kolla om recordType stämmer med det som står i validateRecord?
+
 		validateIncomingDataAsSpecifiedInMetadata(metadataId);
 	}
 
@@ -117,31 +120,59 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		try {
 			recordStorage.read(recordType, recordIdToUse);
 		} catch (RecordNotFoundException exception) {
-			validationResult.addErrorMessage(exception.getMessage());
+			addErrorToValidationResult(exception.getMessage());
 		}
+	}
+
+	private void addErrorToValidationResult(String message) {
+		SpiderDataGroup errorMessages = getErrorMessagesGroup();
+		int repeatId = calculateRepeatId(errorMessages);
+		SpiderDataAtomic error = createErrorWithMessageAndRepeatId(message, repeatId);
+		errorMessages.addChild(error);
+
+	}
+
+	private SpiderDataGroup getErrorMessagesGroup() {
+		ensureErrorMessagesGroupExist();
+		return validationResult.extractGroup(ERROR_MESSAGES);
+	}
+
+	private void ensureErrorMessagesGroupExist() {
+		if (!validationResult.containsChildWithNameInData(ERROR_MESSAGES)) {
+			validationResult.addChild(SpiderDataGroup.withNameInData(ERROR_MESSAGES));
+		}
+	}
+
+	private int calculateRepeatId(SpiderDataGroup errorMessages) {
+		return errorMessages.getChildren().isEmpty() ? 0 : errorMessages.getChildren().size();
+	}
+
+	private SpiderDataAtomic createErrorWithMessageAndRepeatId(String message, int repeatId) {
+		SpiderDataAtomic error = SpiderDataAtomic.withNameInDataAndValue("errorMessage", message);
+		error.setRepeatId(String.valueOf(repeatId));
+		return error;
 	}
 
 	private void possiblyEnsureLinksExist(SpiderDataGroup validationRecord,
 			String recordIdOrNullIfCreate, String metadataId) {
 		String validateLinks = validationRecord.extractAtomicValue("validateLinks");
 		if ("true".equals(validateLinks)) {
-			ensureLinksExist(recordIdOrNullIfCreate, metadataId, validationResult);
+			ensureLinksExist(recordIdOrNullIfCreate, metadataId);
 		}
 	}
 
-	private void ensureLinksExist(String recordIdToUse, String metadataId,
-			ValidationResult validationResult) {
+	private void ensureLinksExist(String recordIdToUse, String metadataId) {
 		DataGroup topLevelDataGroup = recordAsSpiderDataGroup.toDataGroup();
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordType, recordIdToUse);
-		checkIfLinksExist(validationResult, collectedLinks);
+		checkIfLinksExist(collectedLinks);
 	}
 
-	private void checkIfLinksExist(ValidationResult validationResult, DataGroup collectedLinks) {
+	private void checkIfLinksExist(DataGroup collectedLinks) {
 		try {
 			checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 		} catch (DataException exception) {
-			validationResult.addErrorMessage(exception.getMessage());
+			addErrorToValidationResult(exception.getMessage());
 		}
 	}
 
@@ -149,6 +180,11 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		DataGroup dataGroup = recordAsSpiderDataGroup.toDataGroup();
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, dataGroup);
 		possiblyAddErrorMessages(validationAnswer);
+		if (validationResult.containsChildWithNameInData(ERROR_MESSAGES)) {
+			validationResult.addChild(SpiderDataAtomic.withNameInDataAndValue("valid", "false"));
+		} else {
+			validationResult.addChild(SpiderDataAtomic.withNameInDataAndValue("valid", "true"));
+		}
 	}
 
 	private void possiblyAddErrorMessages(ValidationAnswer validationAnswer) {
@@ -159,7 +195,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 
 	private void addErrorMessages(ValidationAnswer validationAnswer) {
 		for (String errorMessage : validationAnswer.getErrorMessages()) {
-			validationResult.addErrorMessage(errorMessage);
+			addErrorToValidationResult(errorMessage);
 		}
 	}
 
