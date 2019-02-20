@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016 Uppsala University Library
+ * Copyright 2015, 2016, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -28,7 +28,7 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 
 public class SpiderRecordHandler {
-	private static final String LINKED_RECORD_ID = "linkedRecordId";
+	protected static final String LINKED_RECORD_ID = "linkedRecordId";
 	protected static final String RECORD_TYPE = "recordType";
 	protected static final String RECORD_INFO = "recordInfo";
 	protected RecordStorage recordStorage;

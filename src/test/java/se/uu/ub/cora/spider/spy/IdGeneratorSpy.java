@@ -24,11 +24,13 @@ import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
 public class IdGeneratorSpy implements RecordIdGenerator {
 
 	public boolean getIdForTypeWasCalled = false;
+	public String generatedId = "";
 
 	@Override
 	public String getIdForType(String type) {
 		getIdForTypeWasCalled = true;
-		return "1";
+		generatedId = "1";
+		return generatedId;
 	}
 
 }
