@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2017, 2018 Uppsala University Library
+ * Copyright 2017, 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -39,7 +39,8 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 			String recordType) {
 		calledMethods.add(action + ":checkUserIsAuthorizedForActionOnRecordType");
 		if (notAuthorizedForRecordTypeAndAction(recordType, action)) {
-			throw new AuthorizationException("not authorized");
+			throw new AuthorizationException(
+					"not authorized for " + action + " on recordType " + recordType);
 		}
 	}
 

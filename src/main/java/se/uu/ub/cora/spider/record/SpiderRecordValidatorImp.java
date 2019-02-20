@@ -65,35 +65,66 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		this.recordAsSpiderDataGroup = recordToValidate;
 		this.recordType = recordType;
 		user = tryToGetActiveUser();
-		checkUserIsAuthorizedForActionOnRecordType();
+		checkValidationRecordIsOkBeforValidation(recordType, validationRecord);
+		return validateRecord(validationRecord);
+	}
+
+	private SpiderDataRecord validateRecord(SpiderDataGroup validationRecord) {
+		SpiderDataGroup recordTypeGroup = validationRecord.extractGroup("recordType");
+		String recordTypeToValidate = recordTypeGroup.extractAtomicValue("linkedRecordId");
+		checkUserIsAuthorizedForValidateOnRecordType(recordTypeToValidate);
 
 		validationResult = SpiderDataGroup.withNameInData("validationResult");
-		validateRecordUsingValidationRecord(validationRecord);
+		validateRecordUsingValidationRecord(validationRecord, recordTypeToValidate);
 		return SpiderDataRecord.withSpiderDataGroup(validationResult);
+	}
+
+	private void checkValidationRecordIsOkBeforValidation(String recordType,
+			SpiderDataGroup validationRecord) {
+		checkUserIsAuthorizedForCreateOnRecordType();
+		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+		String metadataIdForWorkOrder = recordTypeHandler.getNewMetadataId();
+		validateWorkOrderAsSpecifiedInMetadata(validationRecord.toDataGroup(),
+				metadataIdForWorkOrder);
 	}
 
 	private User tryToGetActiveUser() {
 		return authenticator.getUserForToken(authToken);
 	}
 
-	private void checkUserIsAuthorizedForActionOnRecordType() {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, VALIDATE, recordType);
+	private void checkUserIsAuthorizedForCreateOnRecordType() {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "create", recordType);
 	}
 
-	private void validateRecordUsingValidationRecord(SpiderDataGroup validationRecord) {
+	private void validateWorkOrderAsSpecifiedInMetadata(DataGroup dataGroup, String metadataId) {
+		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, dataGroup);
+		if (validationAnswer.dataIsInvalid()) {
+			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
+		}
+	}
+
+	private void checkUserIsAuthorizedForValidateOnRecordType(String recordTypeToValidate) {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, VALIDATE,
+				recordTypeToValidate);
+	}
+
+	private void validateRecordUsingValidationRecord(SpiderDataGroup validationRecord,
+			String recordTypeToValidate) {
 		metadataToValidate = validationRecord.extractAtomicValue("metadataToValidate");
-		String metadataId = getMetadataId();
+		String metadataId = getMetadataId(recordTypeToValidate);
 
 		String recordIdOrNullIfCreate = extractRecordIdIfUpdate();
 		ensureRecordExistWhenActionToPerformIsUpdate(recordIdOrNullIfCreate);
-		possiblyEnsureLinksExist(validationRecord, recordIdOrNullIfCreate, metadataId);
+		possiblyEnsureLinksExist(validationRecord, recordTypeToValidate, recordIdOrNullIfCreate,
+				metadataId);
 
 		validateIncomingDataAsSpecifiedInMetadata(metadataId);
 	}
 
-	private String getMetadataId() {
+	private String getMetadataId(String recordTypeToValidate) {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandler
-				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+				.usingRecordStorageAndRecordTypeId(recordStorage, recordTypeToValidate);
 		return validateNew() ? recordTypeHandler.getNewMetadataId()
 				: recordTypeHandler.getMetadataId();
 	}
@@ -154,17 +185,18 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 	}
 
 	private void possiblyEnsureLinksExist(SpiderDataGroup validationRecord,
-			String recordIdOrNullIfCreate, String metadataId) {
+			String recordTypeToValidate, String recordIdOrNullIfCreate, String metadataId) {
 		String validateLinks = validationRecord.extractAtomicValue("validateLinks");
 		if ("true".equals(validateLinks)) {
-			ensureLinksExist(recordIdOrNullIfCreate, metadataId);
+			ensureLinksExist(recordTypeToValidate, recordIdOrNullIfCreate, metadataId);
 		}
 	}
 
-	private void ensureLinksExist(String recordIdToUse, String metadataId) {
+	private void ensureLinksExist(String recordTypeToValidate, String recordIdToUse,
+			String metadataId) {
 		DataGroup topLevelDataGroup = recordAsSpiderDataGroup.toDataGroup();
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
-				recordType, recordIdToUse);
+				recordTypeToValidate, recordIdToUse);
 		checkIfLinksExist(collectedLinks);
 	}
 

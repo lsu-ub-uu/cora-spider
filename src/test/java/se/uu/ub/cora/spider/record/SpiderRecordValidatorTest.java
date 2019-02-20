@@ -48,8 +48,8 @@ import se.uu.ub.cora.spider.search.RecordIndexer;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorValidExceptSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageForValidateDataSpy;
@@ -114,7 +114,7 @@ public class SpiderRecordValidatorTest {
 
 		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"new", "true");
-		recordValidator.validateRecord("someToken78678567", "text", validationOrder,
+		recordValidator.validateRecord("someToken78678567", "workOrder", validationOrder,
 				recordToValidate);
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
@@ -236,8 +236,9 @@ public class SpiderRecordValidatorTest {
 
 	@Test
 	public void testValidateRecordInvalidData() {
-		dataValidator = new DataValidatorAlwaysInvalidSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();
+		dataValidator = new DataValidatorValidExceptSpy();
+		((DataValidatorValidExceptSpy) dataValidator).notValidForMetadataId.add("text");
 		setUpDependencyProvider();
 
 		SpiderDataGroup dataGroup = createDataGroupPlace();
@@ -248,7 +249,7 @@ public class SpiderRecordValidatorTest {
 		SpiderDataGroup validationResult = validationResultRecord.getSpiderDataGroup();
 		assertEquals(validationResult.extractAtomicValue("valid"), "false");
 
-		assertTrue(((DataValidatorAlwaysInvalidSpy) dataValidator).validateDataWasCalled);
+		assertEquals(((DataValidatorValidExceptSpy) dataValidator).numOfCallsToValidate, 2);
 	}
 
 	@Test
@@ -278,8 +279,9 @@ public class SpiderRecordValidatorTest {
 
 	@Test
 	public void testValidateRecordInvalidDataAndLinksDoesNotExist() {
-		dataValidator = new DataValidatorAlwaysInvalidSpy();
 		recordStorage = new RecordLinkTestsRecordStorage();
+		dataValidator = new DataValidatorValidExceptSpy();
+		((DataValidatorValidExceptSpy) dataValidator).notValidForMetadataId.add("dataWithLinksNew");
 		linkCollector = DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
 		setUpDependencyProvider();
 
@@ -291,7 +293,7 @@ public class SpiderRecordValidatorTest {
 				"new", "true");
 
 		SpiderDataRecord validationResultRecord = recordValidator
-				.validateRecord("someToken78678567", "text", validationOrder, dataGroup);
+				.validateRecord("someToken78678567", "workOrder", validationOrder, dataGroup);
 		SpiderDataGroup validationResult = validationResultRecord.getSpiderDataGroup();
 		assertEquals(validationResult.extractAtomicValue("valid"), "false");
 
@@ -304,7 +306,7 @@ public class SpiderRecordValidatorTest {
 		assertEquals(error.getRepeatId(), "0");
 
 		SpiderDataAtomic error2 = (SpiderDataAtomic) errorMessages.getChildren().get(1);
-		assertEquals(error2.getValue(), "Data always invalid");
+		assertEquals(error2.getValue(), "Data invalid for metadataId dataWithLinksNew");
 		assertEquals(error2.getRepeatId(), "1");
 	}
 
@@ -325,6 +327,57 @@ public class SpiderRecordValidatorTest {
 		SpiderDataGroup validationResult = validationResultRecord.getSpiderDataGroup();
 		assertEquals(validationResult.extractAtomicValue("valid"), "true");
 
+	}
+
+	@Test
+	public void testUnauthorizedForCreateOnWorkorderRecordTypeShouldNotValidate() {
+		recordStorage = new RecordStorageSpy();
+		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
+		HashSet<String> hashSet = new HashSet<String>();
+		hashSet.add("create");
+		((AlwaysAuthorisedExceptStub) spiderAuthorizator).notAuthorizedForRecordTypeAndActions
+				.put("workOrder", hashSet);
+		setUpDependencyProvider();
+
+		SpiderDataGroup dataGroup = createDataGroupPlace();
+		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"existing", "true");
+		changeRecordTypeTo(validationOrder, "spyType");
+		boolean exceptionWasCaught = false;
+		try {
+			recordValidator.validateRecord("someToken78678567", "workOrder", validationOrder,
+					dataGroup);
+		} catch (Exception e) {
+			assertEquals(e.getClass(), AuthorizationException.class);
+			assertEquals(e.getMessage(), "not authorized for create on recordType workOrder");
+			exceptionWasCaught = true;
+		}
+		assertTrue(exceptionWasCaught);
+		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
+		assertFalse(dataValidatorSpy.validateDataWasCalled);
+	}
+
+	@Test
+	public void testInvalidDataForCreateOnWorkorderShouldThrowException() {
+		dataValidator = new DataValidatorValidExceptSpy();
+		recordStorage = new RecordStorageForValidateDataSpy();
+		((DataValidatorValidExceptSpy) dataValidator).notValidForMetadataId.add("workOrderNew");
+		setUpDependencyProvider();
+
+		SpiderDataGroup spiderDataGroup = createDataGroupPlace();
+		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"existing", "true");
+		boolean exceptionWasCaught = false;
+		try {
+			recordValidator.validateRecord("someToken78678567", "workOrder", validationOrder,
+					spiderDataGroup);
+		} catch (Exception e) {
+			assertEquals(e.getClass(), DataException.class);
+			assertEquals(e.getMessage(),
+					"Data is not valid: [Data invalid for metadataId workOrderNew]");
+			exceptionWasCaught = true;
+		}
+		assertTrue(exceptionWasCaught);
 	}
 
 	@Test
@@ -354,7 +407,7 @@ public class SpiderRecordValidatorTest {
 		}
 		assertTrue(exceptionWasCaught);
 		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
-		assertFalse(dataValidatorSpy.validateDataWasCalled);
+		assertEquals(dataValidatorSpy.numOfCallsToValidate, 1);
 	}
 
 	private void changeRecordTypeTo(SpiderDataGroup validationOrder, String recordType) {

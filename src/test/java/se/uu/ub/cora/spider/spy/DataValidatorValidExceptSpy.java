@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,24 +19,28 @@
 
 package se.uu.ub.cora.spider.spy;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import se.uu.ub.cora.bookkeeper.data.DataElement;
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 
-public class DataValidatorAlwaysValidSpy implements DataValidator {
-	public boolean validateDataWasCalled = false;
+public class DataValidatorValidExceptSpy implements DataValidator {
+	public List<String> notValidForMetadataId = new ArrayList<>();
 	public int numOfCallsToValidate = 0;
-	public String metadataId;
-	public DataGroup dataGroup;
+
+	public boolean validateDataWasCalled = false;
 
 	@Override
 	public ValidationAnswer validateData(String metadataId, DataElement dataGroup) {
-		this.metadataId = metadataId;
-		this.dataGroup = (DataGroup) dataGroup;
 		validateDataWasCalled = true;
 		numOfCallsToValidate++;
-		return new ValidationAnswer();
+		ValidationAnswer validationAnswer = new ValidationAnswer();
+		if (notValidForMetadataId.contains(metadataId)) {
+			validationAnswer.addErrorMessage("Data invalid for metadataId " + metadataId);
+		}
+		return validationAnswer;
 	}
 
 }
