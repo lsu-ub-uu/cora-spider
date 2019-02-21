@@ -39,7 +39,7 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	@Override
 	public DataGroup read(String type, String id) {
 		if (type.equals("recordType")) {
-			if ("workOrder".equals(id)) {
+			if ("validationOrder".equals(id)) {
 				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
 						id, "false", "false", "false");
 			}

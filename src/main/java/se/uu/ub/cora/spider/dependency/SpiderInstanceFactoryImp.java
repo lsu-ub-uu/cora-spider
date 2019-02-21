@@ -39,6 +39,7 @@ import se.uu.ub.cora.spider.record.SpiderRecordSearcherImp;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterImp;
 import se.uu.ub.cora.spider.record.SpiderRecordValidator;
+import se.uu.ub.cora.spider.record.SpiderRecordValidatorImp;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 import se.uu.ub.cora.spider.record.SpiderUploaderImp;
 
@@ -117,8 +118,7 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	@Override
 	public SpiderRecordValidator factorSpiderRecordValidator() {
-		// TODO Auto-generated method stub
-		return null;
+		return SpiderRecordValidatorImp.usingDependencyProvider(dependencyProvider);
 	}
 
 }

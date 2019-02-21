@@ -119,7 +119,7 @@ public class SpiderRecordValidatorTest {
 
 		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"new", "true");
-		recordValidator.validateRecord("someToken78678567", "workOrder", validationOrder,
+		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
 				recordToValidate);
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
@@ -161,7 +161,7 @@ public class SpiderRecordValidatorTest {
 						"spyId", "cora"));
 		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
-		recordValidator.validateRecord("someToken78678567", "workOrder", validationOrder,
+		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
 				spiderDataGroup);
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
@@ -187,7 +187,7 @@ public class SpiderRecordValidatorTest {
 						"spyId", "cora"));
 		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "false");
-		recordValidator.validateRecord("someToken78678567", "workOrder", validationOrder,
+		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
 				spiderDataGroup);
 
 		assertFalse(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
@@ -213,12 +213,16 @@ public class SpiderRecordValidatorTest {
 
 	private SpiderDataGroup createDataGroupPlace() {
 		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("typeWithUserGeneratedId");
+		createAndAddRecordInfo(dataGroup);
+		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
+		return dataGroup;
+	}
+
+	private void createAndAddRecordInfo(SpiderDataGroup dataGroup) {
 		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
 		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "place"));
 		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "recordType"));
 		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
-		return dataGroup;
 	}
 
 	@Test
@@ -230,7 +234,7 @@ public class SpiderRecordValidatorTest {
 		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
 		SpiderDataRecord validationResultRecord = recordValidator
-				.validateRecord("someToken78678567", "workOrder", validationOrder, dataGroup);
+				.validateRecord("someToken78678567", "validationOrder", validationOrder, dataGroup);
 		SpiderDataGroup validationResult = validationResultRecord.getSpiderDataGroup();
 		assertEquals(validationResult.extractAtomicValue("valid"), "true");
 
@@ -248,7 +252,7 @@ public class SpiderRecordValidatorTest {
 		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
 		SpiderDataRecord validationResultRecord = recordValidator
-				.validateRecord("someToken78678567", "workOrder", validationOrder, dataGroup);
+				.validateRecord("someToken78678567", "validationOrder", validationOrder, dataGroup);
 		SpiderDataGroup validationResult = validationResultRecord.getSpiderDataGroup();
 		assertEquals(validationResult.extractAtomicValue("valid"), "true");
 
@@ -258,7 +262,7 @@ public class SpiderRecordValidatorTest {
 
 		SpiderDataGroup recordTypeGroup = recordInfo.extractGroup("type");
 		assertEquals(recordTypeGroup.extractAtomicValue("linkedRecordType"), "recordType");
-		assertEquals(recordTypeGroup.extractAtomicValue("linkedRecordId"), "workOrder");
+		assertEquals(recordTypeGroup.extractAtomicValue("linkedRecordId"), "validationOrder");
 
 		String tsCreated = recordInfo.extractAtomicValue("tsCreated");
 		assertTrue(tsCreated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
@@ -281,7 +285,7 @@ public class SpiderRecordValidatorTest {
 		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
 		SpiderDataRecord validationResultRecord = recordValidator
-				.validateRecord("someToken78678567", "workOrder", validationOrder, dataGroup);
+				.validateRecord("someToken78678567", "validationOrder", validationOrder, dataGroup);
 		SpiderDataGroup validationResult = validationResultRecord.getSpiderDataGroup();
 		assertEquals(validationResult.extractAtomicValue("valid"), "false");
 
@@ -329,7 +333,7 @@ public class SpiderRecordValidatorTest {
 				"new", "true");
 
 		SpiderDataRecord validationResultRecord = recordValidator
-				.validateRecord("someToken78678567", "workOrder", validationOrder, dataGroup);
+				.validateRecord("someToken78678567", "validationOrder", validationOrder, dataGroup);
 		SpiderDataGroup validationResult = validationResultRecord.getSpiderDataGroup();
 		assertEquals(validationResult.extractAtomicValue("valid"), "false");
 
@@ -366,13 +370,13 @@ public class SpiderRecordValidatorTest {
 	}
 
 	@Test
-	public void testUnauthorizedForCreateOnWorkorderRecordTypeShouldNotValidate() {
+	public void testUnauthorizedForCreateOnValidationorderRecordTypeShouldNotValidate() {
 		recordStorage = new RecordStorageSpy();
 		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
 		HashSet<String> hashSet = new HashSet<String>();
 		hashSet.add("create");
 		((AlwaysAuthorisedExceptStub) spiderAuthorizator).notAuthorizedForRecordTypeAndActions
-				.put("workOrder", hashSet);
+				.put("validationOrder", hashSet);
 		setUpDependencyProvider();
 
 		SpiderDataGroup dataGroup = createDataGroupPlace();
@@ -381,11 +385,11 @@ public class SpiderRecordValidatorTest {
 		changeRecordTypeTo(validationOrder, "spyType");
 		boolean exceptionWasCaught = false;
 		try {
-			recordValidator.validateRecord("someToken78678567", "workOrder", validationOrder,
+			recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
 					dataGroup);
 		} catch (Exception e) {
 			assertEquals(e.getClass(), AuthorizationException.class);
-			assertEquals(e.getMessage(), "not authorized for create on recordType workOrder");
+			assertEquals(e.getMessage(), "not authorized for create on recordType validationOrder");
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);
@@ -394,10 +398,11 @@ public class SpiderRecordValidatorTest {
 	}
 
 	@Test
-	public void testInvalidDataForCreateOnWorkorderShouldThrowException() {
+	public void testInvalidDataForCreateOnValidationOrderShouldThrowException() {
 		dataValidator = new DataValidatorValidExceptSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();
-		((DataValidatorValidExceptSpy) dataValidator).notValidForMetadataId.add("workOrderNew");
+		((DataValidatorValidExceptSpy) dataValidator).notValidForMetadataId
+				.add("validationOrderNew");
 		setUpDependencyProvider();
 
 		SpiderDataGroup spiderDataGroup = createDataGroupPlace();
@@ -405,12 +410,12 @@ public class SpiderRecordValidatorTest {
 				"existing", "true");
 		boolean exceptionWasCaught = false;
 		try {
-			recordValidator.validateRecord("someToken78678567", "workOrder", validationOrder,
+			recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
 					spiderDataGroup);
 		} catch (Exception e) {
 			assertEquals(e.getClass(), DataException.class);
 			assertEquals(e.getMessage(),
-					"Data is not valid: [Data invalid for metadataId workOrderNew]");
+					"Data is not valid: [Data invalid for metadataId validationOrderNew]");
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);
@@ -435,7 +440,7 @@ public class SpiderRecordValidatorTest {
 		changeRecordTypeTo(validationOrder, "spyType");
 		boolean exceptionWasCaught = false;
 		try {
-			recordValidator.validateRecord("someToken78678567", "workOrder", validationOrder,
+			recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
 					spiderDataGroup);
 		} catch (Exception e) {
 			assertEquals(e.getClass(), AuthorizationException.class);
@@ -456,11 +461,12 @@ public class SpiderRecordValidatorTest {
 	@Test
 	public void testNonExistingRecordType() {
 		SpiderDataGroup dataGroup = createDataGroupPlace();
+
 		SpiderDataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
 		changeRecordTypeTo(validationOrder, "recordType_NOT_EXISTING");
 		SpiderDataRecord validationResultRecord = recordValidator
-				.validateRecord("someToken78678567", "workOrder", validationOrder, dataGroup);
+				.validateRecord("someToken78678567", "validationOrder", validationOrder, dataGroup);
 		SpiderDataGroup validationResult = validationResultRecord.getSpiderDataGroup();
 		assertEquals(validationResult.extractAtomicValue("valid"), "false");
 
