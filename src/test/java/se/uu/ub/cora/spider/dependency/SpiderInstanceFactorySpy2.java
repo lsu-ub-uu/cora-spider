@@ -1,5 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -31,6 +32,7 @@ import se.uu.ub.cora.spider.record.SpiderRecordReader;
 import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterSpy;
+import se.uu.ub.cora.spider.record.SpiderRecordValidator;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 
 public class SpiderInstanceFactorySpy2 implements SpiderInstanceFactory {
@@ -100,6 +102,12 @@ public class SpiderInstanceFactorySpy2 implements SpiderInstanceFactory {
 	@Override
 	public SpiderRecordIncomingLinksReader factorSpiderRecordIncomingLinksReader() {
 		incomingLinksReaderFactoryWasCalled = true;
+		return null;
+	}
+
+	@Override
+	public SpiderRecordValidator factorSpiderRecordValidator() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 }

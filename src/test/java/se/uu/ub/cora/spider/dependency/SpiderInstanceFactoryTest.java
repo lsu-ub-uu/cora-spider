@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.dependency;
 
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNotSame;
+import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 
@@ -36,6 +37,8 @@ import se.uu.ub.cora.spider.record.SpiderRecordListReader;
 import se.uu.ub.cora.spider.record.SpiderRecordReader;
 import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
+import se.uu.ub.cora.spider.record.SpiderRecordValidator;
+import se.uu.ub.cora.spider.record.SpiderRecordValidatorImp;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 
 public class SpiderInstanceFactoryTest {
@@ -129,5 +132,15 @@ public class SpiderInstanceFactoryTest {
 		assertNotNull(recordSearcher);
 		assertNotNull(recordSearcher2);
 		assertNotSame(recordSearcher, recordSearcher2);
+	}
+
+	@Test
+	public void makeSureWeGetMultipleInstancesOfRecordValidator() {
+		SpiderRecordValidator recordValidator = factory.factorSpiderRecordValidator();
+		SpiderRecordValidator recordValidator2 = factory.factorSpiderRecordValidator();
+		assertNotNull(recordValidator);
+		assertNotNull(recordValidator2);
+		assertNotSame(recordValidator, recordValidator2);
+		assertTrue(recordValidator instanceof SpiderRecordValidatorImp);
 	}
 }

@@ -168,17 +168,16 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testActionsOnReadRecordTypeBinary() {
-		// recordStorage = new RecordLinkTestsRecordStorage();
-		// setUpDependencyProvider();
 		DataGroup dataGroup = recordStorage.read("recordType", "binary");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-		assertEquals(record.getActions().size(), 5);
+		assertEquals(record.getActions().size(), 6);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.LIST));
 		assertTrue(record.getActions().contains(Action.INDEX));
+		assertTrue(record.getActions().contains(Action.VALIDATE));
 
 		assertFalse(record.getActions().contains(Action.UPLOAD));
 
@@ -189,13 +188,14 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read("recordType", "image");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-		assertEquals(record.getActions().size(), 6);
+		assertEquals(record.getActions().size(), 7);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.CREATE));
 		assertTrue(record.getActions().contains(Action.LIST));
 		assertTrue(record.getActions().contains(Action.INDEX));
+		assertTrue(record.getActions().contains(Action.VALIDATE));
 
 		assertFalse(record.getActions().contains(Action.UPLOAD));
 	}
@@ -228,11 +228,12 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read("recordType", "recordType");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-		assertEquals(record.getActions().size(), 5);
+		assertEquals(record.getActions().size(), 6);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.INDEX));
+		assertTrue(record.getActions().contains(Action.VALIDATE));
 
 		assertTrue(record.getActions().contains(Action.LIST));
 
@@ -266,11 +267,12 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read("recordType", "place");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-		assertEquals(record.getActions().size(), 4);
+		assertEquals(record.getActions().size(), 5);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.INDEX));
+		assertTrue(record.getActions().contains(Action.VALIDATE));
 
 		assertFalse(record.getActions().contains(Action.CREATE));
 		assertFalse(record.getActions().contains(Action.LIST));

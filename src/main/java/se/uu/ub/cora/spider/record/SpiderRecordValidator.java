@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2017, 2019 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,9 +16,14 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.record;
 
-package se.uu.ub.cora.spider.data;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.SpiderDataRecord;
 
-public enum Action {
-	READ, UPDATE, DELETE, RESSURECT, PUBLISH, READ_INCOMING_LINKS, UNPUBLISH, CREATE, LIST, SEARCH, UPLOAD, INDEX, VALIDATE
+public interface SpiderRecordValidator {
+
+	SpiderDataRecord validateRecord(String authToken, String recordType,
+			SpiderDataGroup validationRecord, SpiderDataGroup recordToValidate);
+
 }

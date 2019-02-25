@@ -98,6 +98,12 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		addActionsForRecordType(record);
 	}
 
+	private void possiblyAddValidateAction() {
+		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("validate", recordType)) {
+			record.addAction(Action.VALIDATE);
+		}
+	}
+
 	private boolean userIsAuthorizedForActionOnRecordTypeAndCollectedTerms(String action,
 			String recordType) {
 
@@ -195,6 +201,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		if (isRecordType()) {
 			possiblyAddCreateAction(spiderDataRecord);
 			possiblyAddListAction(spiderDataRecord);
+			possiblyAddValidateAction();
 		}
 	}
 
