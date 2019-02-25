@@ -38,6 +38,7 @@ import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
@@ -257,6 +258,13 @@ public class SpiderRecordValidatorTest {
 		assertEquals(validationResult.extractAtomicValue("valid"), "true");
 
 		IdGeneratorSpy generatorSpy = (IdGeneratorSpy) idGenerator;
+		assertCorrectRecordInfo(validationResult, generatorSpy);
+
+		assertTrue(validationResultRecord.getActions().contains(Action.READ));
+	}
+
+	private void assertCorrectRecordInfo(SpiderDataGroup validationResult,
+			IdGeneratorSpy generatorSpy) {
 		SpiderDataGroup recordInfo = validationResult.extractGroup("recordInfo");
 		assertEquals(recordInfo.extractAtomicValue("id"), generatorSpy.generatedId);
 
