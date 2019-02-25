@@ -28,6 +28,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
@@ -71,7 +72,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		this.recordAsSpiderDataGroup = recordToValidate;
 		this.recordType = recordType;
 		user = tryToGetActiveUser();
-		checkValidationRecordIsOkBeforValidation(validationRecord);
+		checkValidationRecordIsOkBeforeValidation(validationRecord);
 		return validateRecord(validationRecord);
 	}
 
@@ -79,7 +80,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		return authenticator.getUserForToken(authToken);
 	}
 
-	private void checkValidationRecordIsOkBeforValidation(SpiderDataGroup validationRecord) {
+	private void checkValidationRecordIsOkBeforeValidation(SpiderDataGroup validationRecord) {
 		checkUserIsAuthorizedForCreateOnRecordType();
 		validateWorkOrderAsSpecifiedInMetadata(validationRecord.toDataGroup());
 	}
@@ -110,7 +111,9 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 
 		createValidationResultDataGroup();
 		validateRecordUsingValidationRecord(validationRecord, recordTypeToValidate);
-		return SpiderDataRecord.withSpiderDataGroup(validationResult);
+		SpiderDataRecord record = SpiderDataRecord.withSpiderDataGroup(validationResult);
+		addReadActionToComplyWithRecordStructure(record);
+		return record;
 	}
 
 	private String getRecordTypeToValidate(SpiderDataGroup validationRecord) {
@@ -315,4 +318,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		}
 	}
 
+	private void addReadActionToComplyWithRecordStructure(SpiderDataRecord record) {
+		record.addAction(Action.READ);
+	}
 }
