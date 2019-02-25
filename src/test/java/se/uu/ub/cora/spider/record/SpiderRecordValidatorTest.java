@@ -67,7 +67,7 @@ public class SpiderRecordValidatorTest {
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private PermissionRuleCalculator ruleCalculator;
-	private SpiderRecordValidatorImp recordValidator;
+	private SpiderRecordValidator recordValidator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;

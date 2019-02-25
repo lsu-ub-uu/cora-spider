@@ -40,7 +40,6 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		implements SpiderRecordValidator {
 	private static final String ERROR_MESSAGES = "errorMessages";
 	private static final String VALIDATE = "validate";
-	private static final String TS_CREATED = "tsCreated";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;
@@ -60,7 +59,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		this.idGenerator = dependencyProvider.getIdGenerator();
 	}
 
-	public static SpiderRecordValidatorImp usingDependencyProvider(
+	public static SpiderRecordValidator usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
 		return new SpiderRecordValidatorImp(dependencyProvider);
 	}
@@ -154,44 +153,6 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
 		recordInfo.addChild(
 				SpiderDataAtomic.withNameInDataAndValue(TS_CREATED, currentLocalDateTime));
-	}
-
-	private SpiderDataGroup createLinkToUserUsingUserIdAndNameInData(String userId,
-			String nameInData) {
-		SpiderDataGroup createdByGroup = SpiderDataGroup.withNameInData(nameInData);
-		addLinkToUserUsingUserId(createdByGroup, userId);
-		return createdByGroup;
-	}
-
-	private void addLinkToUserUsingUserId(SpiderDataGroup dataGroup, String userId) {
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "user"));
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", userId));
-	}
-
-	private void addUpdatedInfoToRecordInfoUsingUserId(SpiderDataGroup recordInfo, String userId) {
-		SpiderDataGroup updatedGroup = createUpdatedGroup();
-		addUserInfoToUpdatedGroup(userId, updatedGroup);
-		addTimestampToUpdateGroup(recordInfo, updatedGroup);
-		recordInfo.addChild(updatedGroup);
-	}
-
-	private SpiderDataGroup createUpdatedGroup() {
-		SpiderDataGroup updatedGroup = SpiderDataGroup.withNameInData("updated");
-		updatedGroup.setRepeatId("0");
-		return updatedGroup;
-	}
-
-	private void addUserInfoToUpdatedGroup(String userId, SpiderDataGroup updatedGroup) {
-		SpiderDataGroup updatedByGroup = createLinkToUserUsingUserIdAndNameInData(userId,
-				"updatedBy");
-		updatedGroup.addChild(updatedByGroup);
-	}
-
-	private void addTimestampToUpdateGroup(SpiderDataGroup recordInfo,
-			SpiderDataGroup updatedGroup) {
-		String tsCreatedUsedAsFirstTsUpdate = recordInfo.extractAtomicValue(TS_CREATED);
-		updatedGroup.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("tsUpdated", tsCreatedUsedAsFirstTsUpdate));
 	}
 
 	private void validateRecordUsingValidationRecord(SpiderDataGroup validationRecord,
