@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -26,6 +26,7 @@ import static org.testng.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,6 +39,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -434,6 +436,21 @@ public class SpiderRecordListReaderTest {
 		assertEquals(readRecordList.getFromNo(), "1");
 		assertEquals(readRecordList.getToNo(), "3");
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
+	}
+
+	@Test
+	public void testReadListNotAuthorizedButPublicRecordType() {
+		recordStorage = new RecordStorageSpy();
+		authorizator = new AlwaysAuthorisedExceptStub();
+		AlwaysAuthorisedExceptStub authorisedExceptStub = (AlwaysAuthorisedExceptStub) authorizator;
+		HashSet<String> hashSet = new HashSet<String>();
+		hashSet.add("list");
+
+		authorisedExceptStub.notAuthorizedForRecordTypeAndActions.put("publicReadType", hashSet);
+		setUpDependencyProvider();
+
+		recordListReader.readRecordList("unauthorizedUserId", "publicReadType", emptyFilter);
+		assertTrue(((RecordStorageSpy) recordStorage).readListWasCalled);
 	}
 
 	private void assertDataGroupEquality(DataGroup actual, DataGroup expected) {

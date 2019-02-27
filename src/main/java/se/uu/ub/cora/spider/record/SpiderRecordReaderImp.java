@@ -74,7 +74,12 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
+		RecordTypeHandler recordTypeHandlerForSentInRecordType = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+		if (!recordTypeHandlerForSentInRecordType.isPublicForRead()) {
+			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
+		}
+
 	}
 
 	private void setRecordTypeHandlerForCurrentRecord(String recordType, DataGroup recordRead) {
@@ -105,8 +110,8 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 
 	private void checkUserIsAuthorisedToReadNonPublicData(DataGroup recordRead) {
 		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				READ, recordType, collectedTerms);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
+				recordType, collectedTerms);
 	}
 
 	private DataGroup getCollectedTermsForRecord(DataGroup recordRead) {

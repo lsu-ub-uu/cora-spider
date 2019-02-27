@@ -41,6 +41,7 @@ public class RecordStorageSpy implements RecordStorage {
 	public DataGroup createRecord;
 	public String type;
 	public String id;
+	public int numOfTimesReadWasCalled = 0;
 	public List<DataGroup> filters = new ArrayList<>();
 	public boolean readListWasCalled = false;
 	private DataGroup child1Place0002 = DataCreator
@@ -50,6 +51,7 @@ public class RecordStorageSpy implements RecordStorage {
 
 	@Override
 	public DataGroup read(String type, String id) {
+		numOfTimesReadWasCalled++;
 		this.type = type;
 		this.id = id;
 		readWasCalled = true;
