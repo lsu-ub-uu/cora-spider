@@ -24,6 +24,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -33,6 +34,7 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -154,7 +156,7 @@ public class SpiderRecordReaderTest {
 	}
 
 	@Test
-	public void testUnauthorizedForRecordTypeShouldNeverReadFromStorage() {
+	public void testUnauthorizedForRecordTypeShouldNeverReadRecordFromStorage() {
 		recordStorage = new RecordStorageSpy();
 		authorizator = new NeverAuthorisedStub();
 		setUpDependencyProvider();
@@ -167,7 +169,13 @@ public class SpiderRecordReaderTest {
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);
-		assertEquals(((RecordStorageSpy) recordStorage).readWasCalled, false);
+
+		assertOnlyReadForRecordTypeHandler();
+	}
+
+	private void assertOnlyReadForRecordTypeHandler() {
+		assertEquals(((RecordStorageSpy) recordStorage).type, "recordType");
+		assertEquals(((RecordStorageSpy) recordStorage).numOfTimesReadWasCalled, 1);
 	}
 
 	@Test
@@ -193,12 +201,30 @@ public class SpiderRecordReaderTest {
 	}
 
 	@Test
+	public void testReadNotAuthorizedToReadRecordTypeButPublicRecordType() throws Exception {
+		recordStorage = new RecordStorageSpy();
+		authorizator = new AlwaysAuthorisedExceptStub();
+		AlwaysAuthorisedExceptStub authorisedExceptStub = (AlwaysAuthorisedExceptStub) authorizator;
+		HashSet<String> hashSet = new HashSet<String>();
+		hashSet.add("read");
+
+		authorisedExceptStub.notAuthorizedForRecordTypeAndActions.put("publicReadType", hashSet);
+		setUpDependencyProvider();
+		// publicReadType
+		SpiderDataRecord readRecord = recordReader.readRecord("unauthorizedUserId",
+				"publicReadType", "publicReadType:0001");
+		assertNotNull(readRecord);
+	}
+
+	@Test
 	public void testReadPublicRecordType() throws Exception {
 		recordStorage = new RecordStorageSpy();
 		authorizator = new AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType();
 		setUpDependencyProvider();
 		// publicReadType
-		recordReader.readRecord("unauthorizedUserId", "publicReadType", "publicReadType:0001");
+		SpiderDataRecord readRecord = recordReader.readRecord("unauthorizedUserId",
+				"publicReadType", "publicReadType:0001");
 
+		assertNotNull(readRecord);
 	}
 }

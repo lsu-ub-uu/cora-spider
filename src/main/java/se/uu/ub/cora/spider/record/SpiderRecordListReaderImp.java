@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -88,7 +88,15 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, LIST, recordType);
+		if (listedRecordTypeIsNotPublicRead()) {
+			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, LIST, recordType);
+		}
+	}
+
+	private boolean listedRecordTypeIsNotPublicRead() {
+		RecordTypeHandler recordTypeHandlerForSentInRecordType = RecordTypeHandler
+				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+		return !recordTypeHandlerForSentInRecordType.isPublicForRead();
 	}
 
 	private void tryToGetActiveUser() {
