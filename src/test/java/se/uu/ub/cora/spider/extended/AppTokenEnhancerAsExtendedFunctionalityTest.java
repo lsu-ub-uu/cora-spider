@@ -25,7 +25,7 @@ public class AppTokenEnhancerAsExtendedFunctionalityTest {
 	}
 
 	@Test
-	private void generateAndAddAppToken() {
+	public void generateAndAddAppToken() {
 		SpiderDataGroup minimalGroup = SpiderDataGroup.withNameInData("appToken");
 		extendedFunctionality.useExtendedFunctionality("someToken", minimalGroup);
 		SpiderDataAtomic token = (SpiderDataAtomic) minimalGroup
@@ -34,7 +34,7 @@ public class AppTokenEnhancerAsExtendedFunctionalityTest {
 	}
 
 	@Test
-	private void generateAndAddAppTokenDifferentTokens() {
+	public void generateAndAddAppTokenDifferentTokens() {
 		SpiderDataGroup minimalGroup = SpiderDataGroup.withNameInData("appToken");
 		extendedFunctionality.useExtendedFunctionality("someToken", minimalGroup);
 		SpiderDataAtomic token = (SpiderDataAtomic) minimalGroup
