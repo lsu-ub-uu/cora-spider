@@ -55,6 +55,8 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		this.authToken = authToken;
 		this.recordType = recordType;
 		tryToGetActiveUser();
+		checkUserIsAuthorizedForActionOnRecordType();
+
 		checkUserIsAuthorizedToDeleteStoredRecord(recordType, recordId);
 		checkNoIncomingLinksExists(recordType, recordId);
 		recordStorage.deleteByTypeAndId(recordType, recordId);
@@ -63,6 +65,10 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 
 	private void tryToGetActiveUser() {
 		user = authenticator.getUserForToken(authToken);
+	}
+
+	private void checkUserIsAuthorizedForActionOnRecordType() {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, DELETE, recordType);
 	}
 
 	private void checkUserIsAuthorizedToDeleteStoredRecord(String recordType, String recordId) {

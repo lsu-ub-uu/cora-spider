@@ -151,6 +151,13 @@ public class SpiderRecordDeleterTest {
 		recordDeleter.deleteRecord("unauthorizedUserId", "place", "place:0001");
 	}
 
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void testDeleteUnauthorizedRecodNotFound() {
+		authorizator = new NeverAuthorisedStub();
+		setUpDependencyProvider();
+		recordDeleter.deleteRecord("unauthorizedUserId", "place", "place:0001_NOT_FOUND");
+	}
+
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testDeleteNotFound() {
 		recordDeleter.deleteRecord("userId", "place", "place:0001_NOT_FOUND");
