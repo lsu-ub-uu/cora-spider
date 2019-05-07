@@ -60,8 +60,13 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "false",
 						"binary");
 			} else if ("recordType".equals(id)) {
-				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
-						id, "false", "true", "false");
+				DataGroup dataGroup = DataCreator
+						.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+								"false", "true", "false");
+				DataGroup search = DataGroup.asLinkWithNameInDataTypeAndId("search", "search",
+						"someDefaultSearch");
+				dataGroup.addChild(search);
+				return dataGroup;
 			} else if (("place".equals(id))) {
 				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "false",
 						"authority");
@@ -119,6 +124,9 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 				return SpiderDataCreator
 						.createSearchWithIdAndRecordTypeToSearchIn("anotherSearchId", "image")
 						.toDataGroup();
+			} else if ("someDefaultSearch".equals(id)) {
+				return SpiderDataCreator.createSearchWithIdAndRecordTypeToSearchIn(
+						"someDefaultSearch", "someRecordType").toDataGroup();
 			}
 		}
 		if (type.equals("system")) {

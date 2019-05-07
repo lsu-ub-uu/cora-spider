@@ -33,7 +33,7 @@
 	<name>Spider</name>
 
 	<properties>
-        <bookkeeper.version>1.0.0</bookkeeper.version>
+        <bookkeeper.version>1.1-SNAPSHOT</bookkeeper.version>
 		<beefeater.version>1.0.0</beefeater.version>
 	</properties>
 
