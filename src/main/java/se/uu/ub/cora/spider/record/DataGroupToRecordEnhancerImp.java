@@ -94,7 +94,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		possiblyAddDeleteAction(record);
 		possiblyAddIncomingLinksAction(record);
 		possiblyAddUploadAction(record);
-		possiblyAddSearchAction(record);
+		possiblyAddSearchActionWhenRecordTypeSearch(record);
 		addActionsForRecordType(record);
 	}
 
@@ -202,6 +202,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 			possiblyAddCreateAction(spiderDataRecord);
 			possiblyAddListAction(spiderDataRecord);
 			possiblyAddValidateAction();
+			possiblyAddSearchAction(spiderDataRecord);
 		}
 	}
 
@@ -228,16 +229,37 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void possiblyAddSearchAction(SpiderDataRecord spiderDataRecord) {
+		if (dataGroup.containsChildWithNameInData(SEARCH)) {
+			List<DataGroup> recordTypesToSearchIn = getRecordTypesToSearchInFromLInkedSearch();
+			addSearchActionIfUserHasAccess(spiderDataRecord, recordTypesToSearchIn);
+		}
+	}
+
+	private List<DataGroup> getRecordTypesToSearchInFromLInkedSearch() {
+		DataGroup searchChildInRecordType = dataGroup.getFirstGroupWithNameInData(SEARCH);
+		String searchId = searchChildInRecordType
+				.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataGroup searchGroup = recordStorage.read(SEARCH, searchId);
+		return searchGroup
+				.getAllGroupsWithNameInData("recordTypeToSearchIn");
+	}
+
+	private void possiblyAddSearchActionWhenRecordTypeSearch(SpiderDataRecord spiderDataRecord) {
 		if (isRecordTypeSearch()) {
 			List<DataGroup> recordTypeToSearchInGroups = getRecordTypesToSearchInFromSearchGroup();
-			if (checkUserHasSearchAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups)) {
-				spiderDataRecord.addAction(Action.SEARCH);
-			}
+			addSearchActionIfUserHasAccess(spiderDataRecord, recordTypeToSearchInGroups);
 		}
 	}
 
 	private List<DataGroup> getRecordTypesToSearchInFromSearchGroup() {
 		return dataGroup.getAllGroupsWithNameInData("recordTypeToSearchIn");
+	}
+
+	private void addSearchActionIfUserHasAccess(SpiderDataRecord spiderDataRecord,
+			List<DataGroup> recordTypeToSearchInGroups) {
+		if (checkUserHasSearchAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups)) {
+			spiderDataRecord.addAction(Action.SEARCH);
+		}
 	}
 
 	private boolean checkUserHasSearchAccessOnAllRecordTypesToSearchIn(

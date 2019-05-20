@@ -228,12 +228,13 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read("recordType", "recordType");
 		String recordType = "recordType";
 		SpiderDataRecord record = enhancer.enhance(user, recordType, dataGroup);
-		assertEquals(record.getActions().size(), 6);
+		assertEquals(record.getActions().size(), 7);
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
 		assertTrue(record.getActions().contains(Action.INDEX));
 		assertTrue(record.getActions().contains(Action.VALIDATE));
+		assertTrue(record.getActions().contains(Action.SEARCH));
 
 		assertTrue(record.getActions().contains(Action.LIST));
 
