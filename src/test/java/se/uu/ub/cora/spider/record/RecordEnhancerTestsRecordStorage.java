@@ -63,7 +63,7 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 				DataGroup dataGroup = DataCreator
 						.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
 								"false", "true", "false");
-				DataGroup search = DataGroup.asLinkWithNameInDataTypeAndId("search", "search",
+				DataGroup search = DataGroup.asLinkWithNameInDataAndTypeAndId("search", "search",
 						"someDefaultSearch");
 				dataGroup.addChild(search);
 				return dataGroup;
