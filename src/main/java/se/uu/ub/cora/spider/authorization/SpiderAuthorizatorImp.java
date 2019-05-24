@@ -29,8 +29,8 @@ import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.data.SpiderReadResult;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.role.RulesProvider;
 
@@ -86,9 +86,15 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private DataGroup getUserAsDataGroup(User user) {
 		DataGroup emptyFilter = DataGroup.withNameInData(FILTER);
-		SpiderReadResult result = recordStorage.readAbstractList("user", emptyFilter);
-		Collection<DataGroup> allUsers = result.listOfDataGroups;
-		return findUserInListOfUsers(user, allUsers);
+		// SpiderReadResult result = recordStorage.readAbstractList("user", emptyFilter);
+		try {
+			return recordStorage.read("user", user.id);
+		} catch (RecordNotFoundException e) {
+			throw new AuthorizationException(USER_STRING + user.id + " does not exist");
+		}
+		// Collection<DataGroup> allUsers = result.listOfDataGroups;
+		// return readUser;
+		// return findUserInListOfUsers(user, allUsers);
 	}
 
 	private void addRulesForRole(List<Rule> providedRules, String roleId,

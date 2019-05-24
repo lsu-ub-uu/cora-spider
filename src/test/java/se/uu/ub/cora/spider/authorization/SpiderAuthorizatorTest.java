@@ -47,7 +47,7 @@ import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.RecordStorageForAuthorizatorSpy;
 
 public class SpiderAuthorizatorTest {
 	private RecordStorage recordStorage;
@@ -72,7 +72,7 @@ public class SpiderAuthorizatorTest {
 
 		authenticator = new AuthenticatorSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new RecordStorageForAuthorizatorSpy();
 		rulesCalculator = new NoRulesCalculatorStub();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
