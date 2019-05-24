@@ -20,7 +20,6 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.Authorizator;
@@ -36,7 +35,6 @@ import se.uu.ub.cora.spider.role.RulesProvider;
 
 public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
-	private static final String FILTER = "filter";
 	private static final String USER_STRING = "user with id ";
 	private Authorizator authorizator;
 	private PermissionRuleCalculator ruleCalculator;
@@ -85,16 +83,11 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private DataGroup getUserAsDataGroup(User user) {
-		DataGroup emptyFilter = DataGroup.withNameInData(FILTER);
-		// SpiderReadResult result = recordStorage.readAbstractList("user", emptyFilter);
 		try {
 			return recordStorage.read("user", user.id);
 		} catch (RecordNotFoundException e) {
 			throw new AuthorizationException(USER_STRING + user.id + " does not exist");
 		}
-		// Collection<DataGroup> allUsers = result.listOfDataGroups;
-		// return readUser;
-		// return findUserInListOfUsers(user, allUsers);
 	}
 
 	private void addRulesForRole(List<Rule> providedRules, String roleId,
@@ -204,22 +197,6 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private boolean userIsInactive(DataGroup foundUser) {
 		return "inactive".equals(foundUser.getFirstAtomicValueWithNameInData("activeStatus"));
-	}
-
-	private DataGroup findUserInListOfUsers(User user, Collection<DataGroup> users) {
-		for (DataGroup readUser : users) {
-			String id = getIdFromUser(readUser);
-			if (id.equals(user.id)) {
-				return readUser;
-			}
-
-		}
-		throw new AuthorizationException(USER_STRING + user.id + " does not exist");
-	}
-
-	private String getIdFromUser(DataGroup readUser) {
-		DataGroup recordInfo = readUser.getFirstGroupWithNameInData("recordInfo");
-		return recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
 	@Override

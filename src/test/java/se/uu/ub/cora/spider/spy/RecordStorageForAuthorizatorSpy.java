@@ -28,7 +28,6 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderReadResult;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.storage.RecordStorage;
-import se.uu.ub.cora.spider.testdata.DataCreator;
 
 public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 
@@ -66,7 +65,6 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 		}
 
 		if ("user".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
 			if ("inactiveUserId".equals(id)) {
 				DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId",
 						"inactive");
@@ -110,40 +108,7 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 			if ("nonExistingUserId".equals(id)) {
 				throw new RecordNotFoundException("No record exists with recordId: " + id);
 			}
-			// spiderReadResult.listOfDataGroups = records;
-			// return spiderReadResult;
 		}
-
-		// if ("inactiveUserId".equals(id)) {
-		// DataGroup user = DataGroup.withNameInData("user");
-		// user.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "inactive"));
-		// return user;
-		// }
-		// if ("someUserId".equals(id)) {
-		// DataGroup user = DataGroup.withNameInData("user");
-		// user.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "active"));
-		// addRoleToUser("guest", user);
-		//
-		// return user;
-		// }
-		//
-		// if ("user".equals(type) && "dummy1".equals(id)) {
-		// DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(
-		// "systemOneUser", "true", "user");
-		// return dataGroup;
-		// }
-		//
-		// if ("abstractAuthority".equals(type)) {
-		// return authorityPlace0001;
-		//
-		// }
-		// if ("place".equals(type)) {
-		// return authorityPlace0001;
-		// }
-		// if ("child1".equals(type) && "place:0002".equals(id)) {
-		//
-		// return child1Place0002;
-		// }
 
 		DataGroup dataGroupToReturn = DataGroup.withNameInData("someNameInData");
 		dataGroupToReturn.addChild(DataGroup.withNameInData("recordInfo"));
@@ -157,69 +122,6 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 		extraData.addChild(DataAtomic.withNameInDataAndValue("permissionKey", key));
 
 		return collectTerm;
-	}
-
-	private DataGroup createPermissionTermRulePart(String permissionTermId, String... value) {
-		DataGroup permissionTermRulePart = DataGroup.withNameInData("permissionTermRulePart");
-		DataGroup internalRule = DataGroup.withNameInData("rule");
-		permissionTermRulePart.addChild(internalRule);
-		permissionTermRulePart.setRepeatId("12");
-		internalRule.addChild(
-				DataAtomic.withNameInDataAndValue("linkedRecordType", "collectPermissionTerm"));
-		internalRule
-				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", permissionTermId));
-		for (int idx = 0; idx < value.length; idx++) {
-			permissionTermRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId("value",
-					value[idx], String.valueOf(idx)));
-		}
-		return permissionTermRulePart;
-	}
-
-	private DataGroup createPermissionRulePart(String permissionType, String... value) {
-		DataGroup permissionRulePart = DataGroup.withNameInData("permissionRulePart");
-		for (int idx = 0; idx < value.length; idx++) {
-			permissionRulePart.addChild(DataAtomic.withNameInDataAndValueAndRepeatId(
-					"permissionRulePartValue", value[idx], String.valueOf(idx)));
-		}
-		permissionRulePart.addAttributeByIdWithValue("type", permissionType);
-		return permissionRulePart;
-	}
-
-	private DataGroup createPermissionRuleLink(String linkedId) {
-		DataGroup permissionRuleLink = DataGroup.withNameInData("permissionRuleLink");
-		permissionRuleLink
-				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
-		permissionRuleLink.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", linkedId));
-		return permissionRuleLink;
-	}
-
-	private DataGroup createRoleForGuest() {
-		DataGroup permissionRole = DataGroup.withNameInData("permissionRole");
-
-		DataGroup permissionRuleLink = DataGroup.withNameInData("permissionRuleLink");
-		permissionRuleLink
-				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
-		permissionRuleLink
-				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "authorityReader"));
-		permissionRole.addChild(permissionRuleLink);
-
-		DataGroup permissionRuleLink2 = DataGroup.withNameInData("permissionRuleLink");
-		permissionRuleLink2
-				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
-		permissionRuleLink2
-				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "metadataReader"));
-		permissionRole.addChild(permissionRuleLink2);
-
-		DataGroup permissionRuleLink3 = DataGroup.withNameInData("permissionRuleLink");
-		permissionRuleLink3
-				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRule"));
-		permissionRuleLink3
-				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "inactive"));
-		permissionRole.addChild(permissionRuleLink3);
-
-		permissionRole.addChild(DataAtomic.withNameInDataAndValue("activeStatus", "active"));
-
-		return permissionRole;
 	}
 
 	@Override
@@ -259,22 +161,6 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 		readListWasCalled = true;
 		readLists.add(type);
 		filters.add(filter);
-		// if ("recordType".equals(type)) {
-		// ArrayList<DataGroup> recordTypes = new ArrayList<>();
-		// recordTypes.add(read("recordType", "abstract"));
-		// recordTypes.add(read("recordType", "child1"));
-		// recordTypes.add(read("recordType", "child2"));
-		// recordTypes.add(read("recordType", "abstract2"));
-		// recordTypes.add(read("recordType", "child1_2"));
-		// recordTypes.add(read("recordType", "child2_2"));
-		// recordTypes.add(read("recordType", "otherType"));
-		// SpiderReadResult spiderReadResult = new SpiderReadResult();
-		// spiderReadResult.listOfDataGroups = recordTypes;
-		// return spiderReadResult;
-		// }
-		// if ("child1_2".equals(type)) {
-		// throw new RecordNotFoundException("No records exists with recordType: " + type);
-		// }
 		SpiderReadResult spiderReadResult = new SpiderReadResult();
 		spiderReadResult.listOfDataGroups = new ArrayList<>();
 		spiderReadResult.totalNumberOfMatches = 199;
@@ -287,21 +173,6 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 		spiderReadResult.totalNumberOfMatches = 199;
 		spiderReadResult.listOfDataGroups = new ArrayList<>();
 		readLists.add(type);
-		// if ("abstract".equals(type)) {
-		// ArrayList<DataGroup> records = new ArrayList<>();
-		// records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
-		//
-		// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-		// spiderReadResult.listOfDataGroups = records;
-		// return spiderReadResult;
-		// }
-		// if ("abstract2".equals(type)) {
-		// ArrayList<DataGroup> records = new ArrayList<>();
-		//
-		// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-		// spiderReadResult.listOfDataGroups = records;
-		// return spiderReadResult;
-		// }
 		if ("user".equals(type)) {
 			ArrayList<DataGroup> records = new ArrayList<>();
 
@@ -404,13 +275,6 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 		inactiveUser.addChild(recordInfo);
 		inactiveUser.addChild(DataAtomic.withNameInDataAndValue("activeStatus", activeStatus));
 		return inactiveUser;
-	}
-
-	private DataGroup createChildWithRecordTypeAndRecordId(String recordType, String recordId) {
-		DataGroup child1 = DataGroup.withNameInData(recordId);
-		child1.addChild(
-				DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
-		return child1;
 	}
 
 	@Override
