@@ -20,6 +20,7 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertTrue;
@@ -43,12 +44,26 @@ import se.uu.ub.cora.spider.record.SpiderUploader;
 
 public class SpiderInstanceFactoryTest {
 	private SpiderInstanceFactory factory;
+	private SpiderDependencyProvider dependencyProvider;
 
 	@BeforeTest
 	public void setUp() {
-		SpiderDependencyProvider dependencyProvider = new SpiderDependencyProviderSpy(
-				new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
+
+		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
+		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+		StreamStorageProviderSpy streamStorageProviderSpy = new StreamStorageProviderSpy();
+		dependencyProvider.setStreamStorageProvider(streamStorageProviderSpy);
+		RecordIdGeneratorProviderSpy recordIdGeneratorProviderSpy = new RecordIdGeneratorProviderSpy();
+		dependencyProvider.setRecordIdGeneratorProvider(recordIdGeneratorProviderSpy);
+
 		factory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
+	}
+
+	@Test
+	public void testGetDependencyProviderClassName() {
+		assertEquals(factory.getDependencyProviderClassName(),
+				dependencyProvider.getClass().getName());
 	}
 
 	@Test

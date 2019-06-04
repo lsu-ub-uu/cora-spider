@@ -19,10 +19,11 @@
 
 package se.uu.ub.cora.spider.data;
 
-import org.testng.annotations.Test;
-import se.uu.ub.cora.bookkeeper.data.DataAttribute;
-
 import static org.testng.Assert.assertEquals;
+
+import org.testng.annotations.Test;
+
+import se.uu.ub.cora.bookkeeper.data.DataAttribute;
 
 public class SpiderDataAttributeTest {
 	@Test

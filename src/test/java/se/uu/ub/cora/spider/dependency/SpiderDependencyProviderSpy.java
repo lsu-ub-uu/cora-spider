@@ -31,21 +31,16 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.RecordSearch;
 import se.uu.ub.cora.spider.record.SpiderUploader;
-import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.search.RecordIndexer;
-import se.uu.ub.cora.spider.stream.storage.StreamStorage;
+import se.uu.ub.cora.storage.MetadataStorage;
 
 public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
-	public RecordStorage recordStorage;
 	public SpiderAuthorizator spiderAuthorizator;
 	public PermissionRuleCalculator ruleCalculator;
 	public SpiderUploader uploader;
 	public DataValidator dataValidator;
 	public DataRecordLinkCollector linkCollector;
-	public RecordIdGenerator idGenerator;
-	public StreamStorage streamStorage;
 	public ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	public Authenticator authenticator;
 	public RecordSearch recordSearch;
@@ -64,16 +59,6 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	}
 
 	@Override
-	public RecordStorage getRecordStorage() {
-		return recordStorage;
-	}
-
-	@Override
-	public RecordIdGenerator getIdGenerator() {
-		return idGenerator;
-	}
-
-	@Override
 	public PermissionRuleCalculator getPermissionRuleCalculator() {
 		return ruleCalculator;
 	}
@@ -86,11 +71,6 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	@Override
 	public DataRecordLinkCollector getDataRecordLinkCollector() {
 		return linkCollector;
-	}
-
-	@Override
-	public StreamStorage getStreamStorage() {
-		return streamStorage;
 	}
 
 	@Override
@@ -137,6 +117,10 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	public String getInitInfoFromParent(String key) {
 		return initInfo.get(key);
+	}
+
+	public MetadataStorage getMetadataStorage() {
+		return metadataStorageProvider.getMetadataStorage();
 	}
 
 }

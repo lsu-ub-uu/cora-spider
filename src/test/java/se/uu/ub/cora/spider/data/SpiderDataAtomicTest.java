@@ -19,10 +19,11 @@
 
 package se.uu.ub.cora.spider.data;
 
-import org.testng.annotations.Test;
-import se.uu.ub.cora.bookkeeper.data.DataAtomic;
-
 import static org.testng.Assert.assertEquals;
+
+import org.testng.annotations.Test;
+
+import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 
 public class SpiderDataAtomicTest {
 	@Test

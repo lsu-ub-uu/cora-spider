@@ -34,6 +34,7 @@ import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
@@ -55,7 +56,9 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
 		dependencyProvider.searchTermCollector = new DataGroupTermCollectorSpy();
-		dependencyProvider.recordStorage = new RecordStorageSpy();
+		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
+		recordStorageProviderSpy.recordStorage = new RecordStorageSpy();
+		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 		dependencyProvider.authenticator = new AuthenticatorSpy();
 		dependencyProvider.spiderAuthorizator = new AlwaysAuthorisedExceptStub();
 		setUpDependencyProvider();
@@ -64,8 +67,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 	private void setUpDependencyProvider() {
 		extendedFunctionality = WorkOrderExecutorAsExtendedFunctionality
 				.usingDependencyProvider(dependencyProvider);
-		termCollector = (DataGroupTermCollectorSpy) dependencyProvider
-				.getDataGroupTermCollector();
+		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
 		recordIndexer = (RecordIndexerSpy) dependencyProvider.getRecordIndexer();
 		authorizer = (AlwaysAuthorisedExceptStub) dependencyProvider.getSpiderAuthorizator();
 		authenticator = (AuthenticatorSpy) dependencyProvider.getAuthenticator();
@@ -73,7 +75,9 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 
 	@Test
 	public void testIndexData() {
-		SpiderDataGroup workOrder = DataCreator.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex("someGeneratedId", "book", "book1");
+		SpiderDataGroup workOrder = DataCreator
+				.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex("someGeneratedId", "book",
+						"book1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
 		assertTrue(termCollector.collectTermsWasCalled);
@@ -94,9 +98,13 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 
 	@Test
 	public void testIndexDataForChildOfAbstract() {
-		dependencyProvider.recordStorage = new RecordStorageCreateUpdateSpy();
+		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
+		recordStorageProviderSpy.recordStorage = new RecordStorageCreateUpdateSpy();
+		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 		setUpDependencyProvider();
-		SpiderDataGroup workOrder = DataCreator.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex("someGeneratedId", "image", "image1");
+		SpiderDataGroup workOrder = DataCreator
+				.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex("someGeneratedId", "image",
+						"image1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
 		List<String> ids = recordIndexer.ids;
@@ -115,7 +123,9 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 		actions.add("index");
 		authorizer.notAuthorizedForRecordTypeAndActions.put("book", actions);
 
-		SpiderDataGroup workOrder = DataCreator.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex("someGeneratedId", "book", "book1");
+		SpiderDataGroup workOrder = DataCreator
+				.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex("someGeneratedId", "book",
+						"book1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
 		assertFalse(termCollector.collectTermsWasCalled);

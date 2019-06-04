@@ -29,8 +29,8 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public class RulesProviderTest {
 	@Test

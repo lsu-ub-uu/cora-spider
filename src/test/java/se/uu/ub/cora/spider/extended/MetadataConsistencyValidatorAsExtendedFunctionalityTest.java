@@ -25,7 +25,6 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidatorSpy;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.extended.MetadataConsistencyValidatorAsExtendedFunctionality;
 
 public class MetadataConsistencyValidatorAsExtendedFunctionalityTest {
 

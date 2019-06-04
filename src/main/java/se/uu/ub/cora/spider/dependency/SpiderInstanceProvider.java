@@ -94,4 +94,8 @@ public final class SpiderInstanceProvider {
 		return initInfo;
 	}
 
+	public static String getDependencyProviderClassName() {
+		return factory.getDependencyProviderClassName();
+	}
+
 }

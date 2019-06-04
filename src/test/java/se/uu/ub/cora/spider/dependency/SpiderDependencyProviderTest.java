@@ -37,7 +37,6 @@ public class SpiderDependencyProviderTest {
 		initInfo = new HashMap<>();
 		initInfo.put("someId", "someKey");
 		dependencyProvider = new SpiderDependencyProviderSpy(initInfo);
-
 	}
 
 	@Test
@@ -67,6 +66,38 @@ public class SpiderDependencyProviderTest {
 	public void testStartupThrowsInvocationTargetException() throws Exception {
 		initInfo.put("invocationTargetException", "some invocation target error message");
 		dependencyProvider = new SpiderDependencyProviderSpy(initInfo);
+	}
+
+	@Test
+	public void testSetGetRecordStorage() {
+		RecordStorageProviderSpy recordStorageProvider = new RecordStorageProviderSpy();
+		dependencyProvider.setRecordStorageProvider(recordStorageProvider);
+		assertEquals(dependencyProvider.getRecordStorage(),
+				recordStorageProvider.getRecordStorage());
+	}
+
+	@Test
+	public void testSetGetStreamStorage() {
+		StreamStorageProviderSpy streamStorageProvider = new StreamStorageProviderSpy();
+		dependencyProvider.setStreamStorageProvider(streamStorageProvider);
+		assertEquals(dependencyProvider.getStreamStorage(),
+				streamStorageProvider.getStreamStorage());
+	}
+
+	@Test
+	public void testSetGetRecordIdGenerator() {
+		RecordIdGeneratorProviderSpy recordIdGeneratorProvider = new RecordIdGeneratorProviderSpy();
+		dependencyProvider.setRecordIdGeneratorProvider(recordIdGeneratorProvider);
+		assertEquals(dependencyProvider.getRecordIdGenerator(),
+				recordIdGeneratorProvider.getRecordIdGenerator());
+	}
+
+	@Test
+	public void testSetMetadataStorage() {
+		MetadataStorageProviderSpy metadataStorageProvider = new MetadataStorageProviderSpy();
+		dependencyProvider.setMetadataStorageProvider(metadataStorageProvider);
+		assertEquals(dependencyProvider.getMetadataStorage(),
+				metadataStorageProvider.getMetadataStorage());
 	}
 
 }

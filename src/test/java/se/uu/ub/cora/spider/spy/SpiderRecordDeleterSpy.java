@@ -1,11 +1,11 @@
 package se.uu.ub.cora.spider.spy;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SpiderRecordDeleterSpy implements SpiderRecordDeleter {
 

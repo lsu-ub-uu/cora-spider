@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public final class RecordTypeHandler {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";

@@ -121,4 +121,9 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 		return SpiderRecordValidatorImp.usingDependencyProvider(dependencyProvider);
 	}
 
+	@Override
+	public String getDependencyProviderClassName() {
+		return dependencyProvider.getClass().getName();
+	}
+
 }

@@ -19,7 +19,6 @@
 
 package se.uu.ub.cora.spider.consistency;
 
-import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidator;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 
 public class MetadataConsistencyValidatorSpy implements MetadataConsistencyValidator {

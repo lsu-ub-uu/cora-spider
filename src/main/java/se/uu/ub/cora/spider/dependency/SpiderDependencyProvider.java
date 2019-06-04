@@ -30,13 +30,21 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.RecordSearch;
-import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.search.RecordIndexer;
-import se.uu.ub.cora.spider.stream.storage.StreamStorage;
+import se.uu.ub.cora.storage.MetadataStorageProvider;
+import se.uu.ub.cora.storage.RecordIdGenerator;
+import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
+import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.RecordStorageProvider;
+import se.uu.ub.cora.storage.StreamStorage;
+import se.uu.ub.cora.storage.StreamStorageProvider;
 
 public abstract class SpiderDependencyProvider {
 	protected Map<String, String> initInfo;
+	protected RecordStorageProvider recordStorageProvider;
+	protected StreamStorageProvider streamStorageProvider;
+	protected RecordIdGeneratorProvider recordIdGeneratorProvider;
+	protected MetadataStorageProvider metadataStorageProvider;
 
 	public SpiderDependencyProvider(Map<String, String> initInfo) {
 		this.initInfo = initInfo;
@@ -63,15 +71,40 @@ public abstract class SpiderDependencyProvider {
 		return this.getClass().getSimpleName();
 	}
 
+	public final RecordStorage getRecordStorage() {
+		return recordStorageProvider.getRecordStorage();
+	}
+
+	public final void setRecordStorageProvider(RecordStorageProvider recordStorageProvider) {
+		this.recordStorageProvider = recordStorageProvider;
+	}
+
+	public final StreamStorage getStreamStorage() {
+		return streamStorageProvider.getStreamStorage();
+	}
+
+	public final void setStreamStorageProvider(StreamStorageProvider streamStorageProvider) {
+		this.streamStorageProvider = streamStorageProvider;
+	}
+
+	public final void setRecordIdGeneratorProvider(
+			RecordIdGeneratorProvider recordIdGeneratorProvider) {
+		this.recordIdGeneratorProvider = recordIdGeneratorProvider;
+	}
+
+	public final RecordIdGenerator getRecordIdGenerator() {
+		return recordIdGeneratorProvider.getRecordIdGenerator();
+	}
+
+	public void setMetadataStorageProvider(MetadataStorageProvider metadataStorageProvider) {
+		this.metadataStorageProvider = metadataStorageProvider;
+	}
+
 	protected abstract void tryToInitialize() throws Exception;
 
 	protected abstract void readInitInfo();
 
 	public abstract SpiderAuthorizator getSpiderAuthorizator();
-
-	public abstract RecordStorage getRecordStorage();
-
-	public abstract RecordIdGenerator getIdGenerator();
 
 	public abstract PermissionRuleCalculator getPermissionRuleCalculator();
 
@@ -81,8 +114,6 @@ public abstract class SpiderDependencyProvider {
 
 	public abstract ExtendedFunctionalityProvider getExtendedFunctionalityProvider();
 
-	public abstract StreamStorage getStreamStorage();
-
 	public abstract Authenticator getAuthenticator();
 
 	public abstract RecordSearch getRecordSearch();
@@ -90,4 +121,5 @@ public abstract class SpiderDependencyProvider {
 	public abstract DataGroupTermCollector getDataGroupTermCollector();
 
 	public abstract RecordIndexer getRecordIndexer();
+
 }

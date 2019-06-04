@@ -40,6 +40,14 @@ public class SpiderInstanceProviderTest {
 		Assert.assertTrue(Modifier.isPrivate(constructor.getModifiers()));
 	}
 
+	@Test
+	public void testGetDependencyProviderClassName() {
+		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		assertEquals(SpiderInstanceProvider.getDependencyProviderClassName(),
+				"someDependencyProviderClassNameFromSpy");
+	}
+
 	@Test(expectedExceptions = InvocationTargetException.class)
 	public void testPrivateConstructorInvoke() throws Exception {
 		Constructor<SpiderInstanceProvider> constructor = SpiderInstanceProvider.class

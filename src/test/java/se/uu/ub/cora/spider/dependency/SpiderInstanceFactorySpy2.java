@@ -110,4 +110,10 @@ public class SpiderInstanceFactorySpy2 implements SpiderInstanceFactory {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public String getDependencyProviderClassName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

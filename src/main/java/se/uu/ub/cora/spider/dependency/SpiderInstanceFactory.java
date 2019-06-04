@@ -33,6 +33,8 @@ import se.uu.ub.cora.spider.record.SpiderUploader;
 
 public interface SpiderInstanceFactory {
 
+	String getDependencyProviderClassName();
+
 	SpiderRecordReader factorSpiderRecordReader();
 
 	SpiderRecordIncomingLinksReader factorSpiderRecordIncomingLinksReader();

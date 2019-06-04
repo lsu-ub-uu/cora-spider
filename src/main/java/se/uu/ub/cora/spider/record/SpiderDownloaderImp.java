@@ -29,7 +29,7 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
-import se.uu.ub.cora.spider.stream.storage.StreamStorage;
+import se.uu.ub.cora.storage.StreamStorage;
 
 public final class SpiderDownloaderImp extends SpiderBinary implements SpiderDownloader {
 	private static final String RESOURCE_INFO = "resourceInfo";
