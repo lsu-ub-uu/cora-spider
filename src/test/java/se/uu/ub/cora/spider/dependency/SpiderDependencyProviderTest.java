@@ -46,7 +46,7 @@ import se.uu.ub.cora.storage.StreamStorageProvider;
 public class SpiderDependencyProviderTest {
 
 	private Map<String, String> initInfo;
-	private SpiderDependencyProviderSpy dependencyProvider;
+	private SpiderDependencyProviderTestHelper dependencyProvider;
 	private LoggerFactorySpy loggerFactorySpy;
 	private String testedClassName = "SpiderDependencyProvider";
 
@@ -57,7 +57,7 @@ public class SpiderDependencyProviderTest {
 
 		initInfo = new HashMap<>();
 		initInfo.put("foundKey", "someValue");
-		dependencyProvider = new SpiderDependencyProviderSpy(initInfo);
+		dependencyProvider = new SpiderDependencyProviderTestHelper(initInfo);
 		setPluggedInStorageNormallySetByTheRestModuleStarterImp();
 	}
 
@@ -88,17 +88,17 @@ public class SpiderDependencyProviderTest {
 	}
 
 	@Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = ""
-			+ "Error starting SpiderDependencyProviderSpy: some runtime error message")
+			+ "Error starting SpiderDependencyProviderTestHelper: some runtime error message")
 	public void testStartupThrowsRuntimeException() throws Exception {
 		initInfo.put("runtimeException", "some runtime error message");
-		dependencyProvider = new SpiderDependencyProviderSpy(initInfo);
+		dependencyProvider = new SpiderDependencyProviderTestHelper(initInfo);
 	}
 
 	@Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = ""
-			+ "Error starting SpiderDependencyProviderSpy: some invocation target error message")
+			+ "Error starting SpiderDependencyProviderTestHelper: some invocation target error message")
 	public void testStartupThrowsInvocationTargetException() throws Exception {
 		initInfo.put("invocationTargetException", "some invocation target error message");
-		dependencyProvider = new SpiderDependencyProviderSpy(initInfo);
+		dependencyProvider = new SpiderDependencyProviderTestHelper(initInfo);
 	}
 
 	@Test
@@ -152,17 +152,17 @@ public class SpiderDependencyProviderTest {
 		assertTrue(exceptionCaught);
 		assertEquals(loggerFactorySpy.getNoOfFatalLogMessagesUsingClassName(testedClassName), 1);
 		assertEquals(loggerFactorySpy.getFatalLogMessageUsingClassNameAndNo(testedClassName, 0),
-				"InitInfo in SpiderDependencyProviderSpy must contain: " + key);
+				"InitInfo in SpiderDependencyProviderTestHelper must contain: " + key);
 	}
 
 	@Test(expectedExceptions = SpiderInitializationException.class, expectedExceptionsMessageRegExp = ""
-			+ "InitInfo in SpiderDependencyProviderSpy must contain: nonExistingKey")
+			+ "InitInfo in SpiderDependencyProviderTestHelper must contain: nonExistingKey")
 	public void testEnsureKeyExistsInInitInfoThrowsError() {
 		String key = "nonExistingKey";
 		dependencyProvider.ensureKeyExistsInInitInfo(key);
 		assertEquals(loggerFactorySpy.getNoOfFatalLogMessagesUsingClassName(testedClassName), 1);
 		assertEquals(loggerFactorySpy.getFatalLogMessageUsingClassNameAndNo(testedClassName, 0),
-				"InitInfo in SpiderDependencyProviderSpy must contain: " + key);
+				"InitInfo in SpiderDependencyProviderTestHelper must contain: " + key);
 	}
 
 	@Test

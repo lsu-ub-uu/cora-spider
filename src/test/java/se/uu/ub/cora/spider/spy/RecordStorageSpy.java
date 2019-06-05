@@ -25,12 +25,13 @@ import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.SpiderReadResult;
 
-public class RecordStorageSpy implements RecordStorage {
+public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 
 	public Collection<String> readLists = new ArrayList<>();
 	public boolean readWasCalled = false;
@@ -599,6 +600,36 @@ public class RecordStorageSpy implements RecordStorage {
 	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
 			String id) {
 		return false;
+	}
+
+	@Override
+	public Collection<DataGroup> getMetadataElements() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Collection<DataGroup> getPresentationElements() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Collection<DataGroup> getTexts() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Collection<DataGroup> getRecordTypes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Collection<DataGroup> getCollectTerms() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

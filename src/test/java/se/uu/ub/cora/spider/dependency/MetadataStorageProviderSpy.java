@@ -6,7 +6,7 @@ import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 import se.uu.ub.cora.storage.MetadataStorageProvider;
 
 public class MetadataStorageProviderSpy implements MetadataStorageProvider {
-	private MetadataStorageSpy metadataStorage = new MetadataStorageSpy();
+	public MetadataStorage metadataStorage = new MetadataStorageSpy();
 
 	@Override
 	public int getOrderToSelectImplementionsBy() {
