@@ -33,8 +33,9 @@
 	<name>Spider</name>
 
 	<properties>
-        <storage.version>1.0-SNAPSHOT</storage.version>
-		<bookkeeper.version>1.1.0</bookkeeper.version>
+        <logger.version>1.0.0</logger.version>
+		<storage.version>1.0-SNAPSHOT</storage.version>
+		<bookkeeper.version>1.2-SNAPSHOT</bookkeeper.version>
 		<beefeater.version>1.0.0</beefeater.version>
 	</properties>
 
@@ -46,6 +47,12 @@
   </scm>
 
 	<dependencies>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>logger</artifactId>
+			<version>${logger.version}</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>storage</artifactId>

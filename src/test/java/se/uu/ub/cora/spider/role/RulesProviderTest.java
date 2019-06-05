@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.role;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.List;
@@ -45,6 +46,13 @@ public class RulesProviderTest {
 		assertEquals(actionRulePart.size(), 2);
 		assertTrue(actionRulePart.contains("system.create"));
 		assertTrue(actionRulePart.contains("system.read"));
+	}
+
+	@Test
+	public void testGetRecordStorage() {
+		RecordStorage recordStorage = new RecordStorageSpy();
+		RulesProviderImp rulesProvider = new RulesProviderImp(recordStorage);
+		assertSame(rulesProvider.getRecordStorage(), recordStorage);
 	}
 
 	@Test

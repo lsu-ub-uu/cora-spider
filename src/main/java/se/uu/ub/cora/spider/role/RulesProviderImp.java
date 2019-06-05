@@ -137,4 +137,9 @@ public class RulesProviderImp implements RulesProvider {
 		return extraData.getFirstAtomicValueWithNameInData("permissionKey");
 	}
 
+	public RecordStorage getRecordStorage() {
+		// needed for test
+		return recordStorage;
+	}
+
 }

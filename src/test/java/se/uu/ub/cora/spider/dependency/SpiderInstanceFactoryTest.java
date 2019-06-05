@@ -30,6 +30,8 @@ import java.util.HashMap;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.SpiderDownloader;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
@@ -45,9 +47,12 @@ import se.uu.ub.cora.spider.record.SpiderUploader;
 public class SpiderInstanceFactoryTest {
 	private SpiderInstanceFactory factory;
 	private SpiderDependencyProvider dependencyProvider;
+	private LoggerFactorySpy loggerFactorySpy;
 
 	@BeforeTest
 	public void setUp() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();

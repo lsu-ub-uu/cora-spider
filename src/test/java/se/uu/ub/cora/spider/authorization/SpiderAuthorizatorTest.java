@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.authorization;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -39,11 +40,13 @@ import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
+import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
@@ -65,9 +68,13 @@ public class SpiderAuthorizatorTest {
 
 	private String action = "read";
 	private String recordType = "book";
+	private LoggerFactorySpy loggerFactorySpy;
+	private String testedClassName = "SpiderAuthorizatorImp";
 
 	@BeforeMethod
 	public void beforeMethod() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		user = new User("someUserId");
 		user.roles.add("guest");
 
@@ -97,6 +104,24 @@ public class SpiderAuthorizatorTest {
 		spiderAuthorizator = SpiderAuthorizatorImp
 				.usingSpiderDependencyProviderAndAuthorizatorAndRulesProvider(dependencyProvider,
 						authorizator, rulesProvider);
+	}
+
+	@Test
+	public void testGetDependencyProvider() {
+		setUpDependencyProvider();
+		assertSame(spiderAuthorizator.getDependencyProvider(), dependencyProvider);
+	}
+
+	@Test
+	public void testGetAuthorizator() {
+		setUpDependencyProvider();
+		assertSame(spiderAuthorizator.getAuthorizator(), authorizator);
+	}
+
+	@Test
+	public void testGetRulesProvider() {
+		setUpDependencyProvider();
+		assertSame(spiderAuthorizator.getRulesProvider(), rulesProvider);
 	}
 
 	@Test

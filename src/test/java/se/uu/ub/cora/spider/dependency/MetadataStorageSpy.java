@@ -3,7 +3,7 @@ package se.uu.ub.cora.spider.dependency;
 import java.util.Collection;
 
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.storage.MetadataStorage;
+import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 
 public class MetadataStorageSpy implements MetadataStorage {
 

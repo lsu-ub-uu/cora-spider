@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -32,7 +33,6 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.RecordSearch;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 import se.uu.ub.cora.spider.search.RecordIndexer;
-import se.uu.ub.cora.storage.MetadataStorage;
 
 public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
@@ -54,26 +54,6 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	}
 
 	@Override
-	public SpiderAuthorizator getSpiderAuthorizator() {
-		return spiderAuthorizator;
-	}
-
-	@Override
-	public PermissionRuleCalculator getPermissionRuleCalculator() {
-		return ruleCalculator;
-	}
-
-	@Override
-	public DataValidator getDataValidator() {
-		return dataValidator;
-	}
-
-	@Override
-	public DataRecordLinkCollector getDataRecordLinkCollector() {
-		return linkCollector;
-	}
-
-	@Override
 	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
 		return extendedFunctionalityProvider;
 	}
@@ -86,11 +66,6 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	@Override
 	public RecordSearch getRecordSearch() {
 		return recordSearch;
-	}
-
-	@Override
-	public DataGroupTermCollector getDataGroupTermCollector() {
-		return searchTermCollector;
 	}
 
 	@Override
@@ -121,6 +96,11 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	public MetadataStorage getMetadataStorage() {
 		return metadataStorageProvider.getMetadataStorage();
+	}
+
+	@Override
+	public void ensureKeyExistsInInitInfo(String key) {
+		super.ensureKeyExistsInInitInfo(key);
 	}
 
 }

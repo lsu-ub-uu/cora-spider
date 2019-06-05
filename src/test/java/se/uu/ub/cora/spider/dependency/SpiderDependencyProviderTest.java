@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Uppsala University Library
+ * Copyright 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.dependency;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -27,21 +28,53 @@ import java.util.Map;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.beefeater.AuthorizatorImp;
+import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
+import se.uu.ub.cora.bookkeeper.validator.DataValidatorImp;
+import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
+import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
+import se.uu.ub.cora.spider.log.LoggerFactorySpy;
+import se.uu.ub.cora.spider.role.RulesProviderImp;
+import se.uu.ub.cora.storage.MetadataStorageProvider;
+import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
+import se.uu.ub.cora.storage.RecordStorageProvider;
+import se.uu.ub.cora.storage.StreamStorageProvider;
+
 public class SpiderDependencyProviderTest {
 
 	private Map<String, String> initInfo;
 	private SpiderDependencyProviderSpy dependencyProvider;
+	private LoggerFactorySpy loggerFactorySpy;
+	private String testedClassName = "SpiderDependencyProvider";
 
 	@BeforeMethod
 	public void beforeMethod() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+
 		initInfo = new HashMap<>();
-		initInfo.put("someId", "someKey");
+		initInfo.put("foundKey", "someValue");
 		dependencyProvider = new SpiderDependencyProviderSpy(initInfo);
+		setPluggedInStorageNormallySetByTheRestModuleStarterImp();
+	}
+
+	private void setPluggedInStorageNormallySetByTheRestModuleStarterImp() {
+		RecordStorageProvider recordStorageProvider = new RecordStorageProviderSpy();
+		dependencyProvider.setRecordStorageProvider(recordStorageProvider);
+		StreamStorageProvider streamStorageProvider = new StreamStorageProviderSpy();
+		dependencyProvider.setStreamStorageProvider(streamStorageProvider);
+		RecordIdGeneratorProvider recordIdGeneratorProvider = new RecordIdGeneratorProviderSpy();
+		dependencyProvider.setRecordIdGeneratorProvider(recordIdGeneratorProvider);
+		MetadataStorageProvider metadataStorageProvider = new MetadataStorageProviderSpy();
+		dependencyProvider.setMetadataStorageProvider(metadataStorageProvider);
 	}
 
 	@Test
 	public void testInitInfoIsSetOnStartup() {
-		assertEquals(dependencyProvider.getInitInfoFromParent("someId"), "someKey");
+		assertEquals(dependencyProvider.getInitInfoFromParent("foundKey"), "someValue");
 	}
 
 	@Test
@@ -98,6 +131,82 @@ public class SpiderDependencyProviderTest {
 		dependencyProvider.setMetadataStorageProvider(metadataStorageProvider);
 		assertEquals(dependencyProvider.getMetadataStorage(),
 				metadataStorageProvider.getMetadataStorage());
+	}
+
+	@Test
+	public void testEnsureKeyExistsInInitInfoDoesNotLogInfoForFoundKey() {
+		String key = "foundKey";
+		dependencyProvider.ensureKeyExistsInInitInfo(key);
+		assertEquals(loggerFactorySpy.getNoOfFatalLogMessagesUsingClassName(testedClassName), 0);
+	}
+
+	@Test
+	public void testEnsureKeyExistsInInitInfoLoggsError() {
+		String key = "nonExistingKey";
+		boolean exceptionCaught = false;
+		try {
+			dependencyProvider.ensureKeyExistsInInitInfo(key);
+		} catch (Exception e) {
+			exceptionCaught = true;
+		}
+		assertTrue(exceptionCaught);
+		assertEquals(loggerFactorySpy.getNoOfFatalLogMessagesUsingClassName(testedClassName), 1);
+		assertEquals(loggerFactorySpy.getFatalLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"InitInfo in SpiderDependencyProviderSpy must contain: " + key);
+	}
+
+	@Test(expectedExceptions = SpiderInitializationException.class, expectedExceptionsMessageRegExp = ""
+			+ "InitInfo in SpiderDependencyProviderSpy must contain: nonExistingKey")
+	public void testEnsureKeyExistsInInitInfoThrowsError() {
+		String key = "nonExistingKey";
+		dependencyProvider.ensureKeyExistsInInitInfo(key);
+		assertEquals(loggerFactorySpy.getNoOfFatalLogMessagesUsingClassName(testedClassName), 1);
+		assertEquals(loggerFactorySpy.getFatalLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"InitInfo in SpiderDependencyProviderSpy must contain: " + key);
+	}
+
+	@Test
+	public void testGetSpiderAuthorizator() {
+		SpiderAuthorizatorImp spiderAuthorizator = (SpiderAuthorizatorImp) dependencyProvider
+				.getSpiderAuthorizator();
+		assertTrue(spiderAuthorizator instanceof SpiderAuthorizatorImp);
+		assertSame(spiderAuthorizator.getDependencyProvider(), dependencyProvider);
+		assertTrue(spiderAuthorizator.getAuthorizator() instanceof AuthorizatorImp);
+		RulesProviderImp rulesProvider = (RulesProviderImp) spiderAuthorizator.getRulesProvider();
+		assertTrue(rulesProvider instanceof RulesProviderImp);
+		assertSame(rulesProvider.getRecordStorage(), dependencyProvider.getRecordStorage());
+	}
+
+	@Test
+	public void testGetDataValidator() {
+		DataValidatorImp dataValidator = (DataValidatorImp) dependencyProvider.getDataValidator();
+		assertTrue(dataValidator instanceof DataValidatorImp);
+		assertSame(dataValidator.getMetadataStorage(), dependencyProvider.getMetadataStorage());
+	}
+
+	@Test
+	public void testGetDataRecordLinkCollector() {
+		DataRecordLinkCollectorImp dataRecordLinkCollector = (DataRecordLinkCollectorImp) dependencyProvider
+				.getDataRecordLinkCollector();
+		assertTrue(dataRecordLinkCollector instanceof DataRecordLinkCollectorImp);
+		assertSame(dataRecordLinkCollector.getMetadataStorage(),
+				dependencyProvider.getMetadataStorage());
+	}
+
+	@Test
+	public void testGetDataGroupTermCollector() {
+		DataGroupTermCollectorImp dataGroupTermCollector = (DataGroupTermCollectorImp) dependencyProvider
+				.getDataGroupTermCollector();
+		assertTrue(dataGroupTermCollector instanceof DataGroupTermCollectorImp);
+		assertSame(dataGroupTermCollector.getMetadataStorage(),
+				dependencyProvider.getMetadataStorage());
+	}
+
+	@Test
+	public void testGetPermissionRuleCalculator() {
+		PermissionRuleCalculator permissionRuleCalculator = dependencyProvider
+				.getPermissionRuleCalculator();
+		assertTrue(permissionRuleCalculator instanceof BasePermissionRuleCalculator);
 	}
 
 }

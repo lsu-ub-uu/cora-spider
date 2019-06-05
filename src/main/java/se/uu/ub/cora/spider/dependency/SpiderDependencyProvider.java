@@ -22,14 +22,23 @@ package se.uu.ub.cora.spider.dependency;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
+import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.bookkeeper.validator.DataValidatorImp;
+import se.uu.ub.cora.logger.Logger;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.RecordSearch;
+import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.spider.search.RecordIndexer;
 import se.uu.ub.cora.storage.MetadataStorageProvider;
 import se.uu.ub.cora.storage.RecordIdGenerator;
@@ -45,6 +54,7 @@ public abstract class SpiderDependencyProvider {
 	protected StreamStorageProvider streamStorageProvider;
 	protected RecordIdGeneratorProvider recordIdGeneratorProvider;
 	protected MetadataStorageProvider metadataStorageProvider;
+	private Logger log = LoggerProvider.getLoggerForClass(SpiderDependencyProvider.class);
 
 	public SpiderDependencyProvider(Map<String, String> initInfo) {
 		this.initInfo = initInfo;
@@ -100,25 +110,53 @@ public abstract class SpiderDependencyProvider {
 		this.metadataStorageProvider = metadataStorageProvider;
 	}
 
+	public SpiderAuthorizator getSpiderAuthorizator() {
+		return SpiderAuthorizatorImp.usingSpiderDependencyProviderAndAuthorizatorAndRulesProvider(
+				this, new AuthorizatorImp(), new RulesProviderImp(getRecordStorage()));
+	}
+
+	public DataValidator getDataValidator() {
+		return new DataValidatorImp(metadataStorageProvider.getMetadataStorage());
+	}
+
+	public DataRecordLinkCollector getDataRecordLinkCollector() {
+		return new DataRecordLinkCollectorImp(metadataStorageProvider.getMetadataStorage());
+	}
+
+	public DataGroupTermCollector getDataGroupTermCollector() {
+		return new DataGroupTermCollectorImp(metadataStorageProvider.getMetadataStorage());
+	}
+
+	public PermissionRuleCalculator getPermissionRuleCalculator() {
+		return new BasePermissionRuleCalculator();
+	}
+
+	protected void ensureKeyExistsInInitInfo(String key) {
+		if (keyNotFoundInInitInfo(key)) {
+			loggFatalMessageAndThrowErrorKeyNotFoundInInitInfo(key);
+		}
+	}
+
+	private boolean keyNotFoundInInitInfo(String key) {
+		return !initInfo.containsKey(key);
+	}
+
+	private void loggFatalMessageAndThrowErrorKeyNotFoundInInitInfo(String key) {
+		String simpleName = this.getClass().getSimpleName();
+		String message = "InitInfo in " + simpleName + " must contain: " + key;
+		log.logFatalUsingMessage(message);
+		throw new SpiderInitializationException(message);
+	}
+
 	protected abstract void tryToInitialize() throws Exception;
 
 	protected abstract void readInitInfo();
-
-	public abstract SpiderAuthorizator getSpiderAuthorizator();
-
-	public abstract PermissionRuleCalculator getPermissionRuleCalculator();
-
-	public abstract DataValidator getDataValidator();
-
-	public abstract DataRecordLinkCollector getDataRecordLinkCollector();
 
 	public abstract ExtendedFunctionalityProvider getExtendedFunctionalityProvider();
 
 	public abstract Authenticator getAuthenticator();
 
 	public abstract RecordSearch getRecordSearch();
-
-	public abstract DataGroupTermCollector getDataGroupTermCollector();
 
 	public abstract RecordIndexer getRecordIndexer();
 
