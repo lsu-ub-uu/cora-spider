@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015, 2018 Uppsala University Library
+  ~ Copyright 2015, 2018, 2019 Uppsala University Library
   ~
   ~ This file is part of Cora.
   ~
@@ -34,8 +34,8 @@
 
 	<properties>
         <logger.version>1.0.0</logger.version>
-		<storage.version>1.0-SNAPSHOT</storage.version>
-		<bookkeeper.version>1.2-SNAPSHOT</bookkeeper.version>
+		<storage.version>1.0.0</storage.version>
+		<bookkeeper.version>1.2.0</bookkeeper.version>
 		<beefeater.version>1.0.0</beefeater.version>
 	</properties>
 

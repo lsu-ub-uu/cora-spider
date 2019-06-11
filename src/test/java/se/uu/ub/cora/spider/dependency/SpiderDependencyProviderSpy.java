@@ -63,16 +63,6 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 		return spiderAuthorizator;
 	}
 
-	// @Override
-	// public RecordStorage getRecordStorage() {
-	// return recordStorage;
-	// }
-	//
-	// @Override
-	// public RecordIdGenerator getIdGenerator() {
-	// return idGenerator;
-	// }
-
 	@Override
 	public PermissionRuleCalculator getPermissionRuleCalculator() {
 		return ruleCalculator;
@@ -87,11 +77,6 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public DataRecordLinkCollector getDataRecordLinkCollector() {
 		return linkCollector;
 	}
-
-	// @Override
-	// public StreamStorage getStreamStorage() {
-	// return streamStorage;
-	// }
 
 	@Override
 	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
