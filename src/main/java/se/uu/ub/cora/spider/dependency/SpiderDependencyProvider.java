@@ -133,19 +133,19 @@ public abstract class SpiderDependencyProvider {
 
 	protected void ensureKeyExistsInInitInfo(String key) {
 		if (keyNotFoundInInitInfo(key)) {
-			loggFatalMessageAndThrowErrorKeyNotFoundInInitInfo(key);
+			String message = createErrorMessage(key);
+			log.logFatalUsingMessage(message);
+			throw new SpiderInitializationException(message);
 		}
+	}
+
+	private String createErrorMessage(String key) {
+		String simpleName = this.getClass().getSimpleName();
+		return "InitInfo in " + simpleName + " must contain: " + key;
 	}
 
 	private boolean keyNotFoundInInitInfo(String key) {
 		return !initInfo.containsKey(key);
-	}
-
-	private void loggFatalMessageAndThrowErrorKeyNotFoundInInitInfo(String key) {
-		String simpleName = this.getClass().getSimpleName();
-		String message = "InitInfo in " + simpleName + " must contain: " + key;
-		log.logFatalUsingMessage(message);
-		throw new SpiderInitializationException(message);
 	}
 
 	protected abstract void tryToInitialize() throws Exception;
