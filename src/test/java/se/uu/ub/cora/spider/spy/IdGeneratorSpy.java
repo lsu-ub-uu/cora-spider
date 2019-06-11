@@ -19,7 +19,7 @@
 
 package se.uu.ub.cora.spider.spy;
 
-import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
+import se.uu.ub.cora.storage.RecordIdGenerator;
 
 public class IdGeneratorSpy implements RecordIdGenerator {
 

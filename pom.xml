@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015, 2018 Uppsala University Library
+  ~ Copyright 2015, 2018, 2019 Uppsala University Library
   ~
   ~ This file is part of Cora.
   ~
@@ -33,7 +33,9 @@
 	<name>Spider</name>
 
 	<properties>
-        <bookkeeper.version>1.1.0</bookkeeper.version>
+        <logger.version>1.0.0</logger.version>
+		<storage.version>1.0.0</storage.version>
+		<bookkeeper.version>1.2.0</bookkeeper.version>
 		<beefeater.version>1.0.0</beefeater.version>
 	</properties>
 
@@ -45,6 +47,18 @@
   </scm>
 
 	<dependencies>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>logger</artifactId>
+			<version>${logger.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>storage</artifactId>
+			<version>${storage.version}</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>bookkeeper</artifactId>

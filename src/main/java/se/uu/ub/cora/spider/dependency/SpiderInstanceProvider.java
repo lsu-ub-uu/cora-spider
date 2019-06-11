@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2018 Uppsala University Library
+ * Copyright 2015, 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -92,6 +92,10 @@ public final class SpiderInstanceProvider {
 
 	public static Map<String, String> getInitInfo() {
 		return initInfo;
+	}
+
+	public static String getDependencyProviderClassName() {
+		return factory.getDependencyProviderClassName();
 	}
 
 }

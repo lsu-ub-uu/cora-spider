@@ -21,9 +21,8 @@ package se.uu.ub.cora.spider.testdata;
 
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-//import se.uu.ub.cora.bookkeeper.data.DataRecordLink;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.record.storage.RecordStorageInMemoryStub;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public class TestDataRecordInMemoryStorage {
 

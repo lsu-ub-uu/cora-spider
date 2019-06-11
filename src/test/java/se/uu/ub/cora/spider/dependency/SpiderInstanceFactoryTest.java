@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,6 +20,7 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertTrue;
@@ -29,6 +30,8 @@ import java.util.HashMap;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.SpiderDownloader;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
@@ -43,12 +46,29 @@ import se.uu.ub.cora.spider.record.SpiderUploader;
 
 public class SpiderInstanceFactoryTest {
 	private SpiderInstanceFactory factory;
+	private SpiderDependencyProvider dependencyProvider;
+	private LoggerFactorySpy loggerFactorySpy;
 
 	@BeforeTest
 	public void setUp() {
-		SpiderDependencyProvider dependencyProvider = new SpiderDependencyProviderSpy(
-				new HashMap<>());
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
+
+		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
+		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+		StreamStorageProviderSpy streamStorageProviderSpy = new StreamStorageProviderSpy();
+		dependencyProvider.setStreamStorageProvider(streamStorageProviderSpy);
+		RecordIdGeneratorProviderSpy recordIdGeneratorProviderSpy = new RecordIdGeneratorProviderSpy();
+		dependencyProvider.setRecordIdGeneratorProvider(recordIdGeneratorProviderSpy);
+
 		factory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
+	}
+
+	@Test
+	public void testGetDependencyProviderClassName() {
+		assertEquals(factory.getDependencyProviderClassName(),
+				dependencyProvider.getClass().getName());
 	}
 
 	@Test

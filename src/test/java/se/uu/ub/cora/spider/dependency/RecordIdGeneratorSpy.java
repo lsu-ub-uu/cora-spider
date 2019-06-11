@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,25 +16,18 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.dependency;
 
-package se.uu.ub.cora.spider.record;
+import se.uu.ub.cora.storage.RecordIdGenerator;
 
-import static org.testng.Assert.assertEquals;
+public class RecordIdGeneratorSpy implements RecordIdGenerator {
 
-import org.testng.annotations.Test;
+	public RecordIdGenerator recordIdGenerator;
 
-public class DataExceptionTest {
-	@Test
-	public void testInit() {
-		DataException exception = new DataException("message");
-		assertEquals(exception.getMessage(), "message");
+	@Override
+	public String getIdForType(String type) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
-	@Test
-	public void testInitWithError() {
-		Exception exception = new Exception();
-		DataException dataException = new DataException("message", exception);
-		assertEquals(dataException.getMessage(), "message");
-		assertEquals(dataException.getCause(), exception);
-	}
 }

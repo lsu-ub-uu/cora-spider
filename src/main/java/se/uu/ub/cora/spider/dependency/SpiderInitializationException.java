@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,15 +16,14 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.dependency;
 
-package se.uu.ub.cora.spider.stream.storage;
+public class SpiderInitializationException extends RuntimeException {
 
-import java.io.InputStream;
+	private static final long serialVersionUID = 1106993019564065759L;
 
-public interface StreamStorage {
-
-	long store(String streamId, String dataDivider, InputStream stream);
-
-	InputStream retrieve(String streamId, String dataDivider);
+	public SpiderInitializationException(String message) {
+		super(message);
+	}
 
 }

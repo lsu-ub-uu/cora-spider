@@ -23,7 +23,7 @@ package se.uu.ub.cora.spider.record;
 import java.io.IOException;
 import java.io.InputStream;
 
-import se.uu.ub.cora.spider.stream.storage.StreamStorage;
+import se.uu.ub.cora.storage.StreamStorage;
 
 public class StreamStorageSpy implements StreamStorage {
 

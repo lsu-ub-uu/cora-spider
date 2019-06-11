@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2018 Uppsala University Library
+ * Copyright 2016, 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -28,7 +28,7 @@ import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public class RulesProviderImp implements RulesProvider {
 
@@ -135,6 +135,11 @@ public class RulesProviderImp implements RulesProvider {
 		DataGroup permissionTerm = recordStorage.read("collectPermissionTerm", permissionTermId);
 		DataGroup extraData = permissionTerm.getFirstGroupWithNameInData("extraData");
 		return extraData.getFirstAtomicValueWithNameInData("permissionKey");
+	}
+
+	public RecordStorage getRecordStorage() {
+		// needed for test
+		return recordStorage;
 	}
 
 }

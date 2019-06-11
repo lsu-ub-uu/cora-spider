@@ -103,4 +103,9 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 		return null;
 	}
 
+	@Override
+	public String getDependencyProviderClassName() {
+		return "someDependencyProviderClassNameFromSpy";
+	}
+
 }

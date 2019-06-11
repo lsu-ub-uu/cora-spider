@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2018 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,37 +16,18 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.data;
+package se.uu.ub.cora.spider.dependency;
 
 import static org.testng.Assert.assertEquals;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
-
-public class SpiderReadResultTest {
-
-	private SpiderReadResult searchResult = new SpiderReadResult();
-
+public class SpiderInitializationExceptionTest {
 	@Test
-	public void testListOfDataGroups() {
-		List<DataGroup> listOfDataGroups = new ArrayList<>();
-		searchResult.listOfDataGroups = listOfDataGroups;
-		assertEquals(searchResult.listOfDataGroups, listOfDataGroups);
-	}
+	public void testInit() {
+		SpiderInitializationException notAuthenticated = new SpiderInitializationException(
+				"message");
 
-	@Test
-	public void testTotalNumberOfMatches() {
-		searchResult.totalNumberOfMatches = 0;
-		assertEquals(searchResult.totalNumberOfMatches, 0);
-	}
-
-	@Test
-	public void testStart() {
-		searchResult.start = 0;
-		assertEquals(searchResult.start, 0);
+		assertEquals(notAuthenticated.getMessage(), "message");
 	}
 }

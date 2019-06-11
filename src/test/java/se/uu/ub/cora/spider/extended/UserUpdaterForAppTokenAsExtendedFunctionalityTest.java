@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -35,14 +35,14 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactorySpy2;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterSpy;
-import se.uu.ub.cora.spider.record.storage.RecordIdGenerator;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.SpiderDataCreator;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public class UserUpdaterForAppTokenAsExtendedFunctionalityTest {
 
@@ -51,7 +51,6 @@ public class UserUpdaterForAppTokenAsExtendedFunctionalityTest {
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
-	private RecordIdGenerator idGenerator;
 	private PermissionRuleCalculator ruleCalculator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
@@ -80,10 +79,12 @@ public class UserUpdaterForAppTokenAsExtendedFunctionalityTest {
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
 		dependencyProvider.dataValidator = dataValidator;
-		dependencyProvider.recordStorage = recordStorage;
+		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
+		recordStorageProviderSpy.recordStorage = recordStorage;
+		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.linkCollector = linkCollector;
-		dependencyProvider.idGenerator = idGenerator;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 	}
 

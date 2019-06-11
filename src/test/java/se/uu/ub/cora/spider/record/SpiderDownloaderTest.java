@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2016, 2017 Uppsala University Library
+ * Copyright 2016, 2017, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -42,16 +42,18 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderInputStream;
+import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.dependency.StreamStorageProviderSpy;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderDownloaderTest {
 	private RecordStorage recordStorage;
@@ -77,8 +79,12 @@ public class SpiderDownloaderTest {
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.ruleCalculator = keyCalculator;
-		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.streamStorage = streamStorage;
+		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
+		recordStorageProviderSpy.recordStorage = recordStorage;
+		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+		StreamStorageProviderSpy streamStorageProviderSpy = new StreamStorageProviderSpy();
+		streamStorageProviderSpy.streamStorage = streamStorage;
+		dependencyProvider.setStreamStorageProvider(streamStorageProviderSpy);
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);

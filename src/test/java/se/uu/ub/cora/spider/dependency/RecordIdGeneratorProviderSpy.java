@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2018 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,16 +16,31 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.data;
+package se.uu.ub.cora.spider.dependency;
 
-import java.util.List;
+import java.util.Map;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.storage.RecordIdGenerator;
+import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
 
-public final class SpiderReadResult {
+public class RecordIdGeneratorProviderSpy implements RecordIdGeneratorProvider {
+	public RecordIdGenerator recordIdGenerator = new RecordIdGeneratorSpy();
 
-	public long start;
-	public long totalNumberOfMatches;
-	public List<DataGroup> listOfDataGroups;
+	@Override
+	public int getOrderToSelectImplementionsBy() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void startUsingInitInfo(Map<String, String> initInfo) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public RecordIdGenerator getRecordIdGenerator() {
+		return recordIdGenerator;
+	}
 
 }

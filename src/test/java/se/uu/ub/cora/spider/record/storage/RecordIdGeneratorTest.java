@@ -22,6 +22,8 @@ package se.uu.ub.cora.spider.record.storage;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.storage.RecordIdGenerator;
+
 public class RecordIdGeneratorTest {
 	@Test
 	public void testGenerateId() {

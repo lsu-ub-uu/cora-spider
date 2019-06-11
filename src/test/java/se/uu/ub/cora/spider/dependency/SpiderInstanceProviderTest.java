@@ -1,6 +1,6 @@
 /*
  * Copyright 2015, 2018 Uppsala University Library
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -38,6 +38,14 @@ public class SpiderInstanceProviderTest {
 		Constructor<SpiderInstanceProvider> constructor = SpiderInstanceProvider.class
 				.getDeclaredConstructor();
 		Assert.assertTrue(Modifier.isPrivate(constructor.getModifiers()));
+	}
+
+	@Test
+	public void testGetDependencyProviderClassName() {
+		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		assertEquals(SpiderInstanceProvider.getDependencyProviderClassName(),
+				"someDependencyProviderClassNameFromSpy");
 	}
 
 	@Test(expectedExceptions = InvocationTargetException.class)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,11 +16,32 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.dependency;
 
-package se.uu.ub.cora.spider.record.storage;
+import java.util.Map;
 
-public interface RecordIdGenerator {
+import se.uu.ub.cora.spider.record.StreamStorageSpy;
+import se.uu.ub.cora.storage.StreamStorage;
+import se.uu.ub.cora.storage.StreamStorageProvider;
 
-	String getIdForType(String type);
+public class StreamStorageProviderSpy implements StreamStorageProvider {
+	public StreamStorage streamStorage = new StreamStorageSpy();
+
+	@Override
+	public int getOrderToSelectImplementionsBy() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void startUsingInitInfo(Map<String, String> initInfo) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public StreamStorage getStreamStorage() {
+		return streamStorage;
+	}
 
 }

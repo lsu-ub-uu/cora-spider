@@ -31,8 +31,8 @@ import se.uu.ub.cora.spider.data.Action;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderReadResult;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.storage.SpiderReadResult;
 
 public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		implements SpiderRecordListReader {

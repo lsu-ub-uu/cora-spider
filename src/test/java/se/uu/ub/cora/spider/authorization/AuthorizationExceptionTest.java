@@ -22,8 +22,6 @@ package se.uu.ub.cora.spider.authorization;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.spider.authorization.AuthorizationException;
-
 public class AuthorizationExceptionTest {
 	@Test
 	public void testInit() {

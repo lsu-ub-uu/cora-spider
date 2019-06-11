@@ -28,8 +28,8 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.search.RecordIndexer;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctionality {
 

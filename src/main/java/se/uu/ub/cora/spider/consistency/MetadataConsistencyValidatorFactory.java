@@ -19,7 +19,7 @@
 
 package se.uu.ub.cora.spider.consistency;
 
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public final class MetadataConsistencyValidatorFactory {
 

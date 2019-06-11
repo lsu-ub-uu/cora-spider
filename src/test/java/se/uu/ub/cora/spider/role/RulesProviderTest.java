@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2018 Uppsala University Library
+ * Copyright 2016, 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.role;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.List;
@@ -29,8 +30,8 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public class RulesProviderTest {
 	@Test
@@ -45,6 +46,13 @@ public class RulesProviderTest {
 		assertEquals(actionRulePart.size(), 2);
 		assertTrue(actionRulePart.contains("system.create"));
 		assertTrue(actionRulePart.contains("system.read"));
+	}
+
+	@Test
+	public void testGetRecordStorage() {
+		RecordStorage recordStorage = new RecordStorageSpy();
+		RulesProviderImp rulesProvider = new RulesProviderImp(recordStorage);
+		assertSame(rulesProvider.getRecordStorage(), recordStorage);
 	}
 
 	@Test

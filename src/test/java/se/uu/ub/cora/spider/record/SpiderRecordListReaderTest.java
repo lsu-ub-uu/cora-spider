@@ -49,8 +49,8 @@ import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
@@ -58,6 +58,7 @@ import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderRecordListReaderTest {
 
@@ -91,7 +92,11 @@ public class SpiderRecordListReaderTest {
 				new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
-		dependencyProvider.recordStorage = recordStorage;
+
+		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
+		recordStorageProviderSpy.recordStorage = recordStorage;
+		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+
 		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.dataValidator = dataValidator;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();

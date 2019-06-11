@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -30,8 +30,8 @@ import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.role.RulesProvider;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
@@ -40,9 +40,11 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	private PermissionRuleCalculator ruleCalculator;
 	private RulesProvider rulesProvider;
 	private RecordStorage recordStorage;
+	private SpiderDependencyProvider dependencyProvider;
 
 	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider,
 			Authorizator authorizator, RulesProvider rulesProvider) {
+		this.dependencyProvider = dependencyProvider;
 		this.authorizator = authorizator;
 		this.rulesProvider = rulesProvider;
 		ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
@@ -228,6 +230,21 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 		List<Rule> providedRules = getProvidedRulesForUser(user);
 		return authorizator.providedRulesSatisfiesRequiredRules(providedRules, requiredRules);
+	}
+
+	public SpiderDependencyProvider getDependencyProvider() {
+		// needed for test
+		return dependencyProvider;
+	}
+
+	public Authorizator getAuthorizator() {
+		// needed for test
+		return authorizator;
+	}
+
+	public RulesProvider getRulesProvider() {
+		// needed for test
+		return rulesProvider;
 	}
 
 }

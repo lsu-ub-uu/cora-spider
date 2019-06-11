@@ -27,9 +27,9 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.record.DataException;
-import se.uu.ub.cora.spider.record.storage.RecordStorage;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	private RecordStorage recordStorage;

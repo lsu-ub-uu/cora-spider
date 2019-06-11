@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.record.storage;
 
+import se.uu.ub.cora.storage.RecordIdGenerator;
+
 public class TimeStampIdGenerator implements RecordIdGenerator {
 
 	@Override

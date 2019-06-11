@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -29,18 +29,27 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.spider.dependency.RecordIdGeneratorProviderSpy;
+import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.StreamStorageProviderSpy;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleterImp;
 
 public class BaseExtendedFunctionalityProviderTest {
 	private ExtendedFunctionalityProvider baseExtendedFunctionalityProvider;
-	private	SpiderDependencyProvider dependencyProvider;
+	private SpiderDependencyProvider dependencyProvider;
 
 	@BeforeMethod
 	public void setUp() {
-		dependencyProvider = new SpiderDependencyProviderSpy(
-				new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
+		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
+		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+		StreamStorageProviderSpy streamStorageProviderSpy = new StreamStorageProviderSpy();
+		dependencyProvider.setStreamStorageProvider(streamStorageProviderSpy);
+		RecordIdGeneratorProviderSpy recordIdGeneratorProviderSpy = new RecordIdGeneratorProviderSpy();
+		dependencyProvider.setRecordIdGeneratorProvider(recordIdGeneratorProviderSpy);
+
 		baseExtendedFunctionalityProvider = new BaseExtendedFunctionalityProvider(
 				dependencyProvider);
 	}
@@ -148,7 +157,7 @@ public class BaseExtendedFunctionalityProviderTest {
 		assertEquals(bEFP.size(), 1);
 		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
 		assertTrue(extendedFunctionality instanceof WorkOrderDeleterAsExtendedFunctionality);
-		WorkOrderDeleterAsExtendedFunctionality woExtendedFunctionality =   (WorkOrderDeleterAsExtendedFunctionality) extendedFunctionality;
+		WorkOrderDeleterAsExtendedFunctionality woExtendedFunctionality = (WorkOrderDeleterAsExtendedFunctionality) extendedFunctionality;
 		assertTrue(woExtendedFunctionality.getRecordDeleter() instanceof SpiderRecordDeleterImp);
 	}
 

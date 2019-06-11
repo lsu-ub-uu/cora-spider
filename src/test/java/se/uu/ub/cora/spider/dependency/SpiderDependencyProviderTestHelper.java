@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -32,20 +33,14 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.RecordSearch;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 import se.uu.ub.cora.spider.search.RecordIndexer;
-import se.uu.ub.cora.storage.RecordIdGenerator;
-import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.StreamStorage;
 
-public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
+public class SpiderDependencyProviderTestHelper extends SpiderDependencyProvider {
 
-	public RecordStorage recordStorage;
 	public SpiderAuthorizator spiderAuthorizator;
 	public PermissionRuleCalculator ruleCalculator;
 	public SpiderUploader uploader;
 	public DataValidator dataValidator;
 	public DataRecordLinkCollector linkCollector;
-	public RecordIdGenerator idGenerator;
-	public StreamStorage streamStorage;
 	public ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	public Authenticator authenticator;
 	public RecordSearch recordSearch;
@@ -54,28 +49,8 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public boolean readInitInfoWasCalled;
 	public boolean tryToInitializeWasCalled;
 
-	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
+	public SpiderDependencyProviderTestHelper(Map<String, String> initInfo) {
 		super(initInfo);
-	}
-
-	@Override
-	public SpiderAuthorizator getSpiderAuthorizator() {
-		return spiderAuthorizator;
-	}
-
-	@Override
-	public PermissionRuleCalculator getPermissionRuleCalculator() {
-		return ruleCalculator;
-	}
-
-	@Override
-	public DataValidator getDataValidator() {
-		return dataValidator;
-	}
-
-	@Override
-	public DataRecordLinkCollector getDataRecordLinkCollector() {
-		return linkCollector;
 	}
 
 	@Override
@@ -91,11 +66,6 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	@Override
 	public RecordSearch getRecordSearch() {
 		return recordSearch;
-	}
-
-	@Override
-	public DataGroupTermCollector getDataGroupTermCollector() {
-		return searchTermCollector;
 	}
 
 	@Override
@@ -122,6 +92,15 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	public String getInitInfoFromParent(String key) {
 		return initInfo.get(key);
+	}
+
+	public MetadataStorage getMetadataStorage() {
+		return metadataStorageProvider.getMetadataStorage();
+	}
+
+	@Override
+	public void ensureKeyExistsInInitInfo(String key) {
+		super.ensureKeyExistsInInitInfo(key);
 	}
 
 }
