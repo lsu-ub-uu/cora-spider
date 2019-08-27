@@ -34,7 +34,7 @@
 
 	<properties>
         <logger.version>1.0.0</logger.version>
-		<storage.version>1.0.0</storage.version>
+		<storage.version>1.1.0</storage.version>
 		<bookkeeper.version>1.2.0</bookkeeper.version>
 		<beefeater.version>1.0.0</beefeater.version>
 	</properties>
