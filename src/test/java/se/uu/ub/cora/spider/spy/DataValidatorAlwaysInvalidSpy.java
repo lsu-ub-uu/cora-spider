@@ -19,9 +19,9 @@
 
 package se.uu.ub.cora.spider.spy;
 
-import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.data.DataElement;
 
 public class DataValidatorAlwaysInvalidSpy implements DataValidator {
 	public boolean validateDataWasCalled = false;

@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.data.DataGroup;
 
 public final class CollectedDataPermissionRulePartExtractor {
 	private static final String SYSTEM = "system.";

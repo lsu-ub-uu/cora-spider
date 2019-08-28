@@ -19,8 +19,8 @@
 
 package se.uu.ub.cora.spider.spy;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.data.DataGroup;
 
 public class DataRecordLinkCollectorSpy implements DataRecordLinkCollector {
 

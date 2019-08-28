@@ -19,10 +19,10 @@
 
 package se.uu.ub.cora.spider.spy;
 
-import se.uu.ub.cora.bookkeeper.data.DataElement;
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataGroup;
 
 public class DataValidatorForRecordInfoSpy implements DataValidator {
 	public boolean validateDataWasCalled = false;

@@ -22,7 +22,7 @@ package se.uu.ub.cora.spider.authorization;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.data.DataGroup;
 
 public interface PermissionRuleCalculator {
 

@@ -19,8 +19,8 @@
 
 package se.uu.ub.cora.spider.testdata;
 
-import se.uu.ub.cora.bookkeeper.data.DataAtomic;
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.record.storage.RecordStorageInMemoryStub;
 
 public class TestDataAppTokenStorage {

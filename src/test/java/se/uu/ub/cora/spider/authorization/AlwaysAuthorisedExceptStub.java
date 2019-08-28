@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.data.DataGroup;
 
 public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	public Map<String, Set<String>> notAuthorizedForRecordTypeAndActions = new HashMap<>();

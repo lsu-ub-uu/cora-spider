@@ -23,7 +23,7 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.data.DataAtomic;
+import se.uu.ub.cora.data.DataAtomic;
 
 public class SpiderDataAtomicTest {
 	@Test

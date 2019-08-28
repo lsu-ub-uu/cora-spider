@@ -23,10 +23,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -84,7 +84,10 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	}
 
 	private void storeStartRowValueOrSetDefault() {
-		String start = searchData.getFirstAtomicValueWithNameInDataOrDefault("start", "1");
+		String start = "1";
+		if (searchData.containsChildWithNameInData("start")) {
+			start = searchData.getFirstAtomicValueWithNameInData("start");
+		}
 		startRow = Integer.parseInt(start);
 	}
 

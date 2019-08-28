@@ -23,7 +23,7 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.data.DataAttribute;
+import se.uu.ub.cora.data.DataAttribute;
 
 public class SpiderDataAttributeTest {
 	@Test
