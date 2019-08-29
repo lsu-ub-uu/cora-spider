@@ -3,11 +3,11 @@ package se.uu.ub.cora.spider.record;
 import java.util.Collection;
 import java.util.List;
 
-import se.uu.ub.cora.bookkeeper.data.DataAtomic;
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.SpiderReadResult;
+import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageResultListCreatorSpy implements RecordStorage {
 
@@ -55,12 +55,12 @@ public class RecordStorageResultListCreatorSpy implements RecordStorage {
 	}
 
 	@Override
-	public SpiderReadResult readList(String type, DataGroup filter) {
+	public StorageReadResult readList(String type, DataGroup filter) {
 		return createSpiderReadResult();
 	}
 
-	private SpiderReadResult createSpiderReadResult() {
-		SpiderReadResult srr = new SpiderReadResult();
+	private StorageReadResult createSpiderReadResult() {
+		StorageReadResult srr = new StorageReadResult();
 		srr.start = start;
 		srr.totalNumberOfMatches = totalNumberOfMatches;
 		srr.listOfDataGroups = listOfDataGroups;
@@ -68,7 +68,7 @@ public class RecordStorageResultListCreatorSpy implements RecordStorage {
 	}
 
 	@Override
-	public SpiderReadResult readAbstractList(String type, DataGroup filter) {
+	public StorageReadResult readAbstractList(String type, DataGroup filter) {
 		return createSpiderReadResult();
 	}
 

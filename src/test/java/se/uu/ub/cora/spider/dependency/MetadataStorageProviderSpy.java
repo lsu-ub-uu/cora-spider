@@ -20,7 +20,7 @@ package se.uu.ub.cora.spider.dependency;
 
 import java.util.Map;
 
-import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
+import se.uu.ub.cora.storage.MetadataStorage;
 import se.uu.ub.cora.storage.MetadataStorageProvider;
 
 public class MetadataStorageProviderSpy implements MetadataStorageProvider {

@@ -22,9 +22,9 @@ package se.uu.ub.cora.spider.spy;
 import java.util.ArrayList;
 import java.util.List;
 
-import se.uu.ub.cora.bookkeeper.data.DataElement;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.data.DataElement;
 
 public class DataValidatorValidExceptSpy implements DataValidator {
 	public List<String> notValidForMetadataId = new ArrayList<>();

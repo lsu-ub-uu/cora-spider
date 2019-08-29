@@ -22,8 +22,8 @@ package se.uu.ub.cora.spider.record;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import se.uu.ub.cora.bookkeeper.data.DataElement;
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.storage.RecordStorage;

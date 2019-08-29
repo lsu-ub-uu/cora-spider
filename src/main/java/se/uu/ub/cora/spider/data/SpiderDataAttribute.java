@@ -19,7 +19,7 @@
 
 package se.uu.ub.cora.spider.data;
 
-import se.uu.ub.cora.bookkeeper.data.DataAttribute;
+import se.uu.ub.cora.data.DataAttribute;
 
 public final class SpiderDataAttribute implements SpiderDataElement {
 

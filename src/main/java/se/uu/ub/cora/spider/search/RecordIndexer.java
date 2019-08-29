@@ -20,7 +20,7 @@ package se.uu.ub.cora.spider.search;
 
 import java.util.List;
 
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
+import se.uu.ub.cora.data.DataGroup;
 
 public interface RecordIndexer {
 	void indexData(List<String> ids, DataGroup recordIndexData, DataGroup record);

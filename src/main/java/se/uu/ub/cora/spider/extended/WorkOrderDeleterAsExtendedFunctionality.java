@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.extended;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
+import se.uu.ub.cora.storage.RecordNotFoundException;
 
 public final class WorkOrderDeleterAsExtendedFunctionality implements ExtendedFunctionality {
 

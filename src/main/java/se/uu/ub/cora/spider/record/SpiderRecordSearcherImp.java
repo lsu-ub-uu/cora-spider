@@ -23,17 +23,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.SpiderReadResult;
+import se.uu.ub.cora.storage.StorageReadResult;
 
 public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
@@ -79,12 +79,15 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		readSearchDataFromStorage(searchId);
 		validateSearchInputForUser();
 		storeStartRowValueOrSetDefault();
-		SpiderReadResult searchResult = searchUsingValidatedInput();
+		StorageReadResult searchResult = searchUsingValidatedInput();
 		return filterAndEnhanceSearchResult(searchResult);
 	}
 
 	private void storeStartRowValueOrSetDefault() {
-		String start = searchData.getFirstAtomicValueWithNameInDataOrDefault("start", "1");
+		String start = "1";
+		if (searchData.containsChildWithNameInData("start")) {
+			start = searchData.getFirstAtomicValueWithNameInData("start");
+		}
 		startRow = Integer.parseInt(start);
 	}
 
@@ -137,7 +140,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		}
 	}
 
-	private SpiderReadResult searchUsingValidatedInput() {
+	private StorageReadResult searchUsingValidatedInput() {
 		List<String> list = recordTypeToSearchInGroups.stream().map(this::getLinkedRecordId)
 				.collect(Collectors.toList());
 		return recordSearch.searchUsingListOfRecordTypesToSearchInAndSearchData(list, searchData);
@@ -147,7 +150,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		return group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
-	private SpiderDataList filterAndEnhanceSearchResult(SpiderReadResult spiderSearchResult) {
+	private SpiderDataList filterAndEnhanceSearchResult(StorageReadResult spiderSearchResult) {
 		spiderDataList = SpiderDataList.withContainDataOfType("mix");
 		Collection<DataGroup> dataGroupList = spiderSearchResult.listOfDataGroups;
 		dataGroupList.forEach(this::filterEnhanceAndAddToList);
