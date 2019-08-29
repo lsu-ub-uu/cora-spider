@@ -24,7 +24,7 @@ import java.util.List;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.testdata.DataCreator;
-import se.uu.ub.cora.storage.SpiderReadResult;
+import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordSearchSpy implements RecordSearch {
 
@@ -37,12 +37,12 @@ public class RecordSearchSpy implements RecordSearch {
     public long totalNumberOfMatches = 1;
 
     @Override
-    public SpiderReadResult searchUsingListOfRecordTypesToSearchInAndSearchData(List<String> list,
+    public StorageReadResult searchUsingListOfRecordTypesToSearchInAndSearchData(List<String> list,
                                                                                   DataGroup searchData) {
         listOfLists.add(list);
         listOfSearchData.add(searchData);
 
-        SpiderReadResult spiderSearchResult = new SpiderReadResult();
+        StorageReadResult spiderSearchResult = new StorageReadResult();
         spiderSearchResult.listOfDataGroups = new ArrayList<>();
         spiderSearchResult.listOfDataGroups.add(place44);
         spiderSearchResult.totalNumberOfMatches = totalNumberOfMatches;

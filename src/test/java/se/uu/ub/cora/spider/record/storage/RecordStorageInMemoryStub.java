@@ -26,13 +26,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import se.uu.ub.cora.bookkeeper.metadata.MetadataTypes;
-import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.storage.MetadataStorage;
+import se.uu.ub.cora.storage.MetadataTypes;
+import se.uu.ub.cora.storage.RecordConflictException;
+import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.SpiderReadResult;
+import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage {
 	private DataGroup emptyFilter = DataGroup.withNameInData("filter");
@@ -194,12 +196,12 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 	}
 
 	@Override
-	public SpiderReadResult readList(String type, DataGroup filter) {
+	public StorageReadResult readList(String type, DataGroup filter) {
 		Map<String, DataGroup> typeRecords = records.get(type);
 		if (null == typeRecords) {
 			throw new RecordNotFoundException("No records exists with recordType: " + type);
 		}
-		SpiderReadResult spiderReadResult = new SpiderReadResult();
+		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.start = 1;
 		spiderReadResult.listOfDataGroups = new ArrayList<>(typeRecords.values());
 		spiderReadResult.totalNumberOfMatches = 177;
@@ -207,8 +209,8 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 	}
 
 	@Override
-	public SpiderReadResult readAbstractList(String type, DataGroup filter) {
-		SpiderReadResult spiderReadResult = new SpiderReadResult();
+	public StorageReadResult readAbstractList(String type, DataGroup filter) {
+		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.start = 1;
 		// spiderReadResult.listOfDataGroups = new ArrayList<>(typeRecords.values());
 		return spiderReadResult;

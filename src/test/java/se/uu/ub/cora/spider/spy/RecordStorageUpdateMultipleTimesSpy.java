@@ -25,10 +25,10 @@ import java.util.List;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.SpiderReadResult;
+import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 
@@ -95,8 +95,8 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 	}
 
 	@Override
-	public SpiderReadResult readList(String type, DataGroup filter) {
-		SpiderReadResult spiderReadResult = new SpiderReadResult();
+	public StorageReadResult readList(String type, DataGroup filter) {
+		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.listOfDataGroups = new ArrayList<>();
 		readListWasCalled = true;
 		readLists.add(type);
@@ -120,8 +120,8 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 	}
 
 	@Override
-	public SpiderReadResult readAbstractList(String type, DataGroup filter) {
-		SpiderReadResult spiderReadResult = new SpiderReadResult();
+	public StorageReadResult readAbstractList(String type, DataGroup filter) {
+		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.listOfDataGroups = new ArrayList<>();
 		readLists.add(type);
 		if ("abstract".equals(type)) {

@@ -21,11 +21,11 @@ package se.uu.ub.cora.spider.record;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.storage.SpiderReadResult;
+import se.uu.ub.cora.storage.StorageReadResult;
 
 public interface RecordSearch {
 
-	SpiderReadResult searchUsingListOfRecordTypesToSearchInAndSearchData(List<String> list,
+	StorageReadResult searchUsingListOfRecordTypesToSearchInAndSearchData(List<String> list,
 			DataGroup searchData);
 
 }

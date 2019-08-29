@@ -24,10 +24,10 @@ import java.util.Collection;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.SpiderReadResult;
+import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
@@ -386,7 +386,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public SpiderReadResult readList(String type, DataGroup filter) {
+	public StorageReadResult readList(String type, DataGroup filter) {
 		ArrayList<DataGroup> recordTypeList = new ArrayList<>();
 
 		DataGroup metadataGroup = DataGroup.withNameInData("recordType");
@@ -440,14 +440,14 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		// presentationVar.addChild(DataAtomic.withNameInDataAndValue("parentId",
 		// "presentation"));
 		recordTypeList.add(presentationVar);
-		SpiderReadResult spiderReadResult = new SpiderReadResult();
+		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.listOfDataGroups = recordTypeList;
 		return spiderReadResult;
 
 	}
 
 	@Override
-	public SpiderReadResult readAbstractList(String type, DataGroup filter) {
+	public StorageReadResult readAbstractList(String type, DataGroup filter) {
 		return null;
 	}
 

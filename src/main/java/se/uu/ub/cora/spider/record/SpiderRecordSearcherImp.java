@@ -33,7 +33,7 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.SpiderReadResult;
+import se.uu.ub.cora.storage.StorageReadResult;
 
 public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
@@ -79,7 +79,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		readSearchDataFromStorage(searchId);
 		validateSearchInputForUser();
 		storeStartRowValueOrSetDefault();
-		SpiderReadResult searchResult = searchUsingValidatedInput();
+		StorageReadResult searchResult = searchUsingValidatedInput();
 		return filterAndEnhanceSearchResult(searchResult);
 	}
 
@@ -140,7 +140,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		}
 	}
 
-	private SpiderReadResult searchUsingValidatedInput() {
+	private StorageReadResult searchUsingValidatedInput() {
 		List<String> list = recordTypeToSearchInGroups.stream().map(this::getLinkedRecordId)
 				.collect(Collectors.toList());
 		return recordSearch.searchUsingListOfRecordTypesToSearchInAndSearchData(list, searchData);
@@ -150,7 +150,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		return group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
-	private SpiderDataList filterAndEnhanceSearchResult(SpiderReadResult spiderSearchResult) {
+	private SpiderDataList filterAndEnhanceSearchResult(StorageReadResult spiderSearchResult) {
 		spiderDataList = SpiderDataList.withContainDataOfType("mix");
 		Collection<DataGroup> dataGroupList = spiderSearchResult.listOfDataGroups;
 		dataGroupList.forEach(this::filterEnhanceAndAddToList);

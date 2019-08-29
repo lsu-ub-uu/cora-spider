@@ -23,13 +23,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import se.uu.ub.cora.bookkeeper.storage.MetadataStorage;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.record.storage.RecordNotFoundException;
 import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.storage.MetadataStorage;
+import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.SpiderReadResult;
+import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 
@@ -418,7 +418,7 @@ public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public SpiderReadResult readList(String type, DataGroup filter) {
+	public StorageReadResult readList(String type, DataGroup filter) {
 		readListWasCalled = true;
 		readLists.add(type);
 		filters.add(filter);
@@ -431,22 +431,22 @@ public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 			recordTypes.add(read("recordType", "child1_2"));
 			recordTypes.add(read("recordType", "child2_2"));
 			recordTypes.add(read("recordType", "otherType"));
-			SpiderReadResult spiderReadResult = new SpiderReadResult();
+			StorageReadResult spiderReadResult = new StorageReadResult();
 			spiderReadResult.listOfDataGroups = recordTypes;
 			return spiderReadResult;
 		}
 		if ("child1_2".equals(type)) {
 			throw new RecordNotFoundException("No records exists with recordType: " + type);
 		}
-		SpiderReadResult spiderReadResult = new SpiderReadResult();
+		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.listOfDataGroups = new ArrayList<>();
 		spiderReadResult.totalNumberOfMatches = 199;
 		return spiderReadResult;
 	}
 
 	@Override
-	public SpiderReadResult readAbstractList(String type, DataGroup filter) {
-		SpiderReadResult spiderReadResult = new SpiderReadResult();
+	public StorageReadResult readAbstractList(String type, DataGroup filter) {
+		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.totalNumberOfMatches = 199;
 		spiderReadResult.listOfDataGroups = new ArrayList<>();
 		readLists.add(type);

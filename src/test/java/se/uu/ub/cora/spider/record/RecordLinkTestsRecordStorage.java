@@ -27,7 +27,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.SpiderReadResult;
+import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordLinkTestsRecordStorage implements RecordStorage {
 
@@ -91,17 +91,17 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public SpiderReadResult readList(String type, DataGroup filter) {
+	public StorageReadResult readList(String type, DataGroup filter) {
 		List<DataGroup> list = new ArrayList<>();
 		list.add(read(type, "oneLinkTopLevel"));
 		list.add(read(type, "oneLinkOneLevelDown"));
-		SpiderReadResult spiderReadResult = new SpiderReadResult();
+		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.listOfDataGroups = list;
 		return spiderReadResult;
 	}
 
 	@Override
-	public SpiderReadResult readAbstractList(String type, DataGroup filter) {
+	public StorageReadResult readAbstractList(String type, DataGroup filter) {
 		return null;
 	}
 
