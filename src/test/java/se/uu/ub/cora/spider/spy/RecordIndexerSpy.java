@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.search.RecordIndexer;
+import se.uu.ub.cora.search.RecordIndexer;
 
 public class RecordIndexerSpy implements RecordIndexer {
 

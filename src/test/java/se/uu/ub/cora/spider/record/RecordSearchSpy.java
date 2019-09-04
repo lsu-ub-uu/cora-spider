@@ -22,43 +22,44 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.search.RecordSearch;
+import se.uu.ub.cora.search.SearchResult;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.testdata.DataCreator;
-import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordSearchSpy implements RecordSearch {
 
-    List<List<String>> listOfLists = new ArrayList<>();
-    List<DataGroup> listOfSearchData = new ArrayList<>();
-    public DataGroup place44 = DataCreator
-            .createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("place", "place44",
-                    "place", "systemOne", "someUserId")
-            .toDataGroup();
-    public long totalNumberOfMatches = 1;
+	List<List<String>> listOfLists = new ArrayList<>();
+	List<DataGroup> listOfSearchData = new ArrayList<>();
+	public DataGroup place44 = DataCreator
+			.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("place", "place44",
+					"place", "systemOne", "someUserId")
+			.toDataGroup();
+	public long totalNumberOfMatches = 1;
 
-    @Override
-    public StorageReadResult searchUsingListOfRecordTypesToSearchInAndSearchData(List<String> list,
-                                                                                  DataGroup searchData) {
-        listOfLists.add(list);
-        listOfSearchData.add(searchData);
+	@Override
+	public SearchResult searchUsingListOfRecordTypesToSearchInAndSearchData(List<String> list,
+			DataGroup searchData) {
+		listOfLists.add(list);
+		listOfSearchData.add(searchData);
 
-        StorageReadResult spiderSearchResult = new StorageReadResult();
-        spiderSearchResult.listOfDataGroups = new ArrayList<>();
-        spiderSearchResult.listOfDataGroups.add(place44);
-        spiderSearchResult.totalNumberOfMatches = totalNumberOfMatches;
+		SearchResult spiderSearchResult = new SearchResult();
+		spiderSearchResult.listOfDataGroups = new ArrayList<>();
+		spiderSearchResult.listOfDataGroups.add(place44);
+		spiderSearchResult.totalNumberOfMatches = totalNumberOfMatches;
 
-        if (list.contains("image")) {
-            SpiderDataGroup image44 = DataCreator
-                    .createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("image",
-                            "image44", "image", "systemOne", "someUserId");
-            spiderSearchResult.listOfDataGroups.add(image44.toDataGroup());
+		if (list.contains("image")) {
+			SpiderDataGroup image44 = DataCreator
+					.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("image",
+							"image44", "image", "systemOne", "someUserId");
+			spiderSearchResult.listOfDataGroups.add(image44.toDataGroup());
 
-            SpiderDataGroup image45 = DataCreator
-                    .createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("binary",
-                            "binary45", "binary", "systemOne", "someUserId");
-            spiderSearchResult.listOfDataGroups.add(image45.toDataGroup());
-        }
-        return spiderSearchResult;
-    }
+			SpiderDataGroup image45 = DataCreator
+					.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("binary",
+							"binary45", "binary", "systemOne", "someUserId");
+			spiderSearchResult.listOfDataGroups.add(image45.toDataGroup());
+		}
+		return spiderSearchResult;
+	}
 
 }
