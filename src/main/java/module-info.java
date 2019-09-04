@@ -13,5 +13,4 @@ module se.uu.ub.cora.spider {
 	exports se.uu.ub.cora.spider.extended;
 	exports se.uu.ub.cora.spider.record;
 	exports se.uu.ub.cora.spider.role;
-	// exports se.uu.ub.cora.spider.search;
 }
