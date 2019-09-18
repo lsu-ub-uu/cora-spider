@@ -19,13 +19,18 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.List;
+
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 
 public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		implements SpiderRecordDeleter {
@@ -36,6 +41,8 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	private User user;
 	private RecordIndexer recordIndexer;
 	private DataGroupTermCollector collectTermCollector;
+	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
+	private DataGroup dataGroupReadFromStorage;
 
 	private SpiderRecordDeleterImp(SpiderDependencyProvider dependencyProvider) {
 		authenticator = dependencyProvider.getAuthenticator();
@@ -43,6 +50,7 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		recordStorage = dependencyProvider.getRecordStorage();
 		recordIndexer = dependencyProvider.getRecordIndexer();
 		collectTermCollector = dependencyProvider.getDataGroupTermCollector();
+		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
 	public static SpiderRecordDeleterImp usingDependencyProvider(
@@ -56,9 +64,12 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		this.recordType = recordType;
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
+		dataGroupReadFromStorage = recordStorage.read(recordType, recordId);
 
 		checkUserIsAuthorizedToDeleteStoredRecord(recordType, recordId);
 		checkNoIncomingLinksExists(recordType, recordId);
+
+		useExtendedFunctionalityBeforeDelete(recordType);
 		recordStorage.deleteByTypeAndId(recordType, recordId);
 		recordIndexer.deleteFromIndex(recordType, recordId);
 	}
@@ -72,14 +83,14 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	}
 
 	private void checkUserIsAuthorizedToDeleteStoredRecord(String recordType, String recordId) {
-		DataGroup collectedTerms = getCollectedTermsForRecord(recordType, recordId);
+		DataGroup collectedTerms = getCollectedTermsForRecord(recordType);
 
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, DELETE,
 				recordType, collectedTerms);
 	}
 
-	private DataGroup getCollectedTermsForRecord(String recordType, String recordId) {
-		DataGroup record = recordStorage.read(recordType, recordId);
+	private DataGroup getCollectedTermsForRecord(String recordType) {
+		DataGroup record = dataGroupReadFromStorage;
 
 		String metadataId = getMetadataIdFromRecordType(recordType);
 		return collectTermCollector.collectTerms(metadataId, record);
@@ -116,6 +127,20 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	private String extractParentId(DataGroup handledRecordTypeDataGroup) {
 		DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData("parentId");
 		return parentGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+	}
+
+	private void useExtendedFunctionalityBeforeDelete(String recordType) {
+		SpiderDataGroup readDataGroup = SpiderDataGroup.fromDataGroup(dataGroupReadFromStorage);
+		List<ExtendedFunctionality> functionalityBeforeDelete = extendedFunctionalityProvider
+				.getFunctionalityBeforeDelete(recordType);
+		useExtendedFunctionality(readDataGroup, functionalityBeforeDelete);
+	}
+
+	private void useExtendedFunctionality(SpiderDataGroup readDataGroup,
+			List<ExtendedFunctionality> functionalityBeforeDelete) {
+		for (ExtendedFunctionality extendedFunctionality : functionalityBeforeDelete) {
+			extendedFunctionality.useExtendedFunctionality(authToken, readDataGroup);
+		}
 	}
 
 }

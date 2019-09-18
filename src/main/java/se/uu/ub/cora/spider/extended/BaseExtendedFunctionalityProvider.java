@@ -73,17 +73,17 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 			list.add(UserUpdaterForAppTokenAsExtendedFunctionality
 					.usingSpiderDependencyProvider(dependencyProvider));
 		}
-		if(WORK_ORDER.equals(recordType)){
+		if (WORK_ORDER.equals(recordType)) {
 			addDeleteForWorkOrder(list);
 		}
 		return list;
 	}
 
 	private void addDeleteForWorkOrder(List<ExtendedFunctionality> list) {
-		SpiderInstanceFactory spiderInstanceFactory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
-		SpiderRecordDeleter spiderRecordDeleter =  spiderInstanceFactory.factorSpiderRecordDeleter();
-		list.add(WorkOrderDeleterAsExtendedFunctionality
-                .usingDeleter(spiderRecordDeleter));
+		SpiderInstanceFactory spiderInstanceFactory = SpiderInstanceFactoryImp
+				.usingDependencyProvider(dependencyProvider);
+		SpiderRecordDeleter spiderRecordDeleter = spiderInstanceFactory.factorSpiderRecordDeleter();
+		list.add(WorkOrderDeleterAsExtendedFunctionality.usingDeleter(spiderRecordDeleter));
 	}
 
 	@Override
@@ -108,6 +108,11 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 				.usingRecordStorage(dependencyProvider.getRecordStorage());
 		list.add(MetadataConsistencyValidatorAsExtendedFunctionality
 				.usingValidator(factory.factor(recordType)));
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityBeforeDelete(String recordType) {
+		return Collections.emptyList();
 	}
 
 }

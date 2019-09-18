@@ -41,20 +41,25 @@ public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 	public boolean linksExist = false;
 	public DataGroup createRecord;
 	public String type;
+	public List<String> types = new ArrayList<>();
 	public String id;
+	public List<String> ids = new ArrayList<>();
 	public int numOfTimesReadWasCalled = 0;
 	public List<DataGroup> filters = new ArrayList<>();
 	public boolean readListWasCalled = false;
-	private DataGroup child1Place0002 = DataCreator
-			.createDataGroupWithNameInDataTypeAndId("unknown", type, id);
+	private DataGroup child1Place0002;
 	private DataGroup authorityPlace0001 = DataCreator
 			.createDataGroupWithNameInDataTypeAndId("abstract", "place", "place001");
+	public DataGroup readDataGroup;
 
 	@Override
 	public DataGroup read(String type, String id) {
 		numOfTimesReadWasCalled++;
 		this.type = type;
+		types.add(type);
 		this.id = id;
+		ids.add(id);
+
 		readWasCalled = true;
 		if ("abstract".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
@@ -63,6 +68,12 @@ public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 		if ("abstract2".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
 					"false", "true", "false");
+		}
+		if ("child1".equals(type) && "place:0002".equals(id)) {
+			child1Place0002 = DataCreator.createDataGroupWithNameInDataTypeAndId("unknown", type,
+					id);
+			readDataGroup = child1Place0002;
+			return child1Place0002;
 		}
 		if ("child1".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
@@ -302,10 +313,6 @@ public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 		}
 		if ("place".equals(type)) {
 			return authorityPlace0001;
-		}
-		if ("child1".equals(type) && "place:0002".equals(id)) {
-
-			return child1Place0002;
 		}
 
 		DataGroup dataGroupToReturn = DataGroup.withNameInData("someNameInData");

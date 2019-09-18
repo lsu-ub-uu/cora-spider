@@ -34,4 +34,6 @@ public interface ExtendedFunctionalityProvider {
 			String recordType);
 
 	List<ExtendedFunctionality> getFunctionalityForUpdateAfterMetadataValidation(String recordType);
+
+	List<ExtendedFunctionality> getFunctionalityBeforeDelete(String recordType);
 }

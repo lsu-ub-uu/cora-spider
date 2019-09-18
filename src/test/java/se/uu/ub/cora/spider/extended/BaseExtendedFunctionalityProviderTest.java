@@ -29,19 +29,25 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.RecordIdGeneratorProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.StreamStorageProviderSpy;
+import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleterImp;
 
 public class BaseExtendedFunctionalityProviderTest {
 	private ExtendedFunctionalityProvider baseExtendedFunctionalityProvider;
 	private SpiderDependencyProvider dependencyProvider;
+	private LoggerFactorySpy loggerFactorySpy;
 
 	@BeforeMethod
 	public void setUp() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
@@ -205,5 +211,18 @@ public class BaseExtendedFunctionalityProviderTest {
 		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
 		assertTrue(
 				extendedFunctionality instanceof MetadataConsistencyValidatorAsExtendedFunctionality);
+	}
+
+	@Test
+	public void testGetFunctionalityBeforeDelete() {
+		fetchAndAssertBeforeDelete(null);
+		fetchAndAssertBeforeDelete("");
+		fetchAndAssertBeforeDelete("UnknownType");
+	}
+
+	private void fetchAndAssertBeforeDelete(String recordType) {
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
+				.getFunctionalityBeforeDelete(recordType);
+		assertEquals(bEFP, Collections.emptyList());
 	}
 }
