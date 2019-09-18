@@ -66,7 +66,7 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		checkUserIsAuthorizedForActionOnRecordType();
 		dataGroupReadFromStorage = recordStorage.read(recordType, recordId);
 
-		checkUserIsAuthorizedToDeleteStoredRecord(recordType, recordId);
+		checkUserIsAuthorizedToDeleteStoredRecord(recordType);
 		checkNoIncomingLinksExists(recordType, recordId);
 
 		useExtendedFunctionalityBeforeDelete(recordType);
@@ -82,9 +82,8 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, DELETE, recordType);
 	}
 
-	private void checkUserIsAuthorizedToDeleteStoredRecord(String recordType, String recordId) {
+	private void checkUserIsAuthorizedToDeleteStoredRecord(String recordType) {
 		DataGroup collectedTerms = getCollectedTermsForRecord(recordType);
-
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, DELETE,
 				recordType, collectedTerms);
 	}
