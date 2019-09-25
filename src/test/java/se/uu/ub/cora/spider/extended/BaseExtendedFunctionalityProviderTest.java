@@ -225,4 +225,17 @@ public class BaseExtendedFunctionalityProviderTest {
 				.getFunctionalityBeforeDelete(recordType);
 		assertEquals(bEFP, Collections.emptyList());
 	}
+
+	@Test
+	public void testGetFunctionalityAfterDelete() {
+		fetchAndAssertAfterDelete(null);
+		fetchAndAssertAfterDelete("");
+		fetchAndAssertAfterDelete("UnknownType");
+	}
+
+	private void fetchAndAssertAfterDelete(String recordType) {
+		List<ExtendedFunctionality> bEFP = baseExtendedFunctionalityProvider
+				.getFunctionalityAfterDelete(recordType);
+		assertEquals(bEFP, Collections.emptyList());
+	}
 }

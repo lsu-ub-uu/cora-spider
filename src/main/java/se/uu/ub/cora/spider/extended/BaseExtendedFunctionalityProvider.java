@@ -115,4 +115,9 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 		return Collections.emptyList();
 	}
 
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityAfterDelete(String recordType) {
+		return Collections.emptyList();
+	}
+
 }

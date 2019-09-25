@@ -81,4 +81,10 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 		return createListWithTwoExtendedFunctionalitySpies(fetchedFunctionalityBeforeDelete);
 	}
 
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityAfterDelete(String recordType) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
