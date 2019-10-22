@@ -29,6 +29,7 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolderFromStoragePopulator;
+import se.uu.ub.cora.bookkeeper.termcollector.CollectedDataCreatorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
@@ -159,7 +160,9 @@ public abstract class SpiderDependencyProvider {
 	}
 
 	public DataGroupTermCollector getDataGroupTermCollector() {
-		return new DataGroupTermCollectorImp(metadataStorageProvider.getMetadataStorage(), null);
+		CollectedDataCreatorImp collectedDataCreatorImp = new CollectedDataCreatorImp();
+		return new DataGroupTermCollectorImp(metadataStorageProvider.getMetadataStorage(),
+				collectedDataCreatorImp);
 	}
 
 	public PermissionRuleCalculator getPermissionRuleCalculator() {

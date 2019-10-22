@@ -32,6 +32,7 @@ import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataElement;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
+import se.uu.ub.cora.bookkeeper.termcollector.CollectedDataCreatorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorImp;
@@ -229,6 +230,8 @@ public class SpiderDependencyProviderTest {
 		assertTrue(dataGroupTermCollector instanceof DataGroupTermCollectorImp);
 		assertSame(dataGroupTermCollector.getMetadataStorage(),
 				dependencyProvider.getMetadataStorage());
+		assertTrue(dataGroupTermCollector
+				.getCollectedDataCreator() instanceof CollectedDataCreatorImp);
 	}
 
 	@Test
