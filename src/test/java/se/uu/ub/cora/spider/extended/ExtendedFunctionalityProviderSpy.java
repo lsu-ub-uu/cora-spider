@@ -28,6 +28,7 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForUpdateBeforeMetadataValidation = new ArrayList<>();
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForUpdateAfterMetadataValidation = new ArrayList<>();
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateBeforeReturn = new ArrayList<>();
+	public List<ExtendedFunctionalitySpy> fetchedFunctionalityBeforeDelete = new ArrayList<>();
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
@@ -73,6 +74,17 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 			String recordType) {
 		return createListWithTwoExtendedFunctionalitySpies(
 				fetchedFunctionalityForUpdateAfterMetadataValidation);
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityBeforeDelete(String recordType) {
+		return createListWithTwoExtendedFunctionalitySpies(fetchedFunctionalityBeforeDelete);
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityAfterDelete(String recordType) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

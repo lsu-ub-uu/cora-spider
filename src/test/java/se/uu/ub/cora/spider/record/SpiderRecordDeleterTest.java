@@ -38,11 +38,14 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
@@ -63,6 +66,7 @@ public class SpiderRecordDeleterTest {
 	private RecordIndexer recordIndexer;
 	private DataGroupTermCollector termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
+	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -74,6 +78,7 @@ public class SpiderRecordDeleterTest {
 		keyCalculator = new NoRulesCalculatorStub();
 		recordIndexer = new RecordIndexerSpy();
 		termCollector = new DataGroupTermCollectorSpy();
+		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		setUpDependencyProvider();
 	}
 
@@ -85,7 +90,7 @@ public class SpiderRecordDeleterTest {
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
 		recordStorageProviderSpy.recordStorage = recordStorage;
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
-
+		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.recordIndexer = recordIndexer;
 		dependencyProvider.searchTermCollector = termCollector;
@@ -114,7 +119,7 @@ public class SpiderRecordDeleterTest {
 	}
 
 	@Test
-	public void testDeleteAuthorizedNoIncomingLinks2() {
+	public void testDeleteAuthorizedNoIncomingLinksCheckExternalDependenciesAreCalled() {
 		recordStorage = new RecordStorageSpy();
 
 		setUpDependencyProvider();
@@ -128,13 +133,45 @@ public class SpiderRecordDeleterTest {
 
 		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
 		assertEquals(dataGroupTermCollectorSpy.metadataId, "child1");
-		assertEquals(dataGroupTermCollectorSpy.dataGroup,
-				recordStorage.read("child1", "place:0002"));
+
+		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
+		assertEquals(dataGroupTermCollectorSpy.dataGroup, recordStorageSpy.readDataGroup);
 
 		assertEquals(authorizatorSpy.calledMethods.get(0),
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
 		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
 		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
+
+	}
+
+	@Test
+	public void testExtendedFunctionalityBeforeDelete() {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+		String recordId = "place:0002";
+		String recordType = "child1";
+		recordDeleter.deleteRecord("userId", recordType, recordId);
+
+		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
+		assertEquals(recordStorageSpy.numOfTimesReadWasCalled, 3);
+		assertEquals(recordStorageSpy.types.get(0), recordType);
+		assertEquals(recordStorageSpy.ids.get(0), recordId);
+
+		ExtendedFunctionalitySpy extendedFunctionality = extendedFunctionalityProvider.fetchedFunctionalityBeforeDelete
+				.get(0);
+		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
+		SpiderDataGroup dataGoupSentToExtended = extendedFunctionality.dataGroupSentToExtendedFunctionality;
+		assertCorrectDataInGroupSentToExtended(recordId, recordType, dataGoupSentToExtended);
+
+	}
+
+	private void assertCorrectDataInGroupSentToExtended(String recordId, String recordType,
+			SpiderDataGroup dataGoupSentToExtended) {
+		SpiderDataGroup recordInfo = dataGoupSentToExtended.extractGroup("recordInfo");
+		String id = recordInfo.extractAtomicValue("id");
+		assertEquals(id, recordId);
+		SpiderDataGroup type = recordInfo.extractGroup("type");
+		assertEquals(type.extractAtomicValue("linkedRecordId"), recordType);
 	}
 
 	@Test(expectedExceptions = MisuseException.class)

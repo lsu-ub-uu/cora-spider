@@ -24,10 +24,12 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 public class ExtendedFunctionalitySpy implements ExtendedFunctionality {
 	public boolean extendedFunctionalityHasBeenCalled = false;
 	public String token;
+	public SpiderDataGroup dataGroupSentToExtendedFunctionality;
 
 	@Override
 	public void useExtendedFunctionality(String token, SpiderDataGroup spiderDataGroup) {
 		this.token = token;
+		dataGroupSentToExtendedFunctionality = spiderDataGroup;
 		extendedFunctionalityHasBeenCalled = true;
 	}
 
