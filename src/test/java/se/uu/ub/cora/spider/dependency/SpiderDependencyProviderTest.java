@@ -30,8 +30,12 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
+import se.uu.ub.cora.bookkeeper.metadata.MetadataElement;
+import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
+import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorImp;
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -178,10 +182,35 @@ public class SpiderDependencyProviderTest {
 	}
 
 	@Test
-	public void testGetDataValidator() {
+	public void testDataValidatorHasCorrectDependecies() {
 		DataValidatorImp dataValidator = (DataValidatorImp) dependencyProvider.getDataValidator();
 		assertTrue(dataValidator instanceof DataValidatorImp);
 		assertSame(dataValidator.getMetadataStorage(), dependencyProvider.getMetadataStorage());
+
+		DataValidatorFactoryImp dataValidatorFactory = (DataValidatorFactoryImp) dataValidator
+				.getDataValidatorFactory();
+
+		MetadataStorageSpy metadataStorage = (MetadataStorageSpy) dependencyProvider
+				.getMetadataStorage();
+		assertTrue(metadataStorage.getMetadataElementsWasCalled);
+
+		assertCorrectRecordTypeHolder(dataValidatorFactory, metadataStorage);
+		assertCorrectMetadataHolder(dataValidatorFactory);
+
+	}
+
+	private void assertCorrectMetadataHolder(DataValidatorFactoryImp dataValidatorFactory) {
+		MetadataHolder metadataHolder = dataValidatorFactory.getMetadataHolder();
+
+		MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
+		assertEquals(metadataElement.getId(), "someMetadata1");
+	}
+
+	private void assertCorrectRecordTypeHolder(DataValidatorFactoryImp dataValidatorFactory,
+			MetadataStorageSpy metadataStorage) {
+		Map<String, DataGroup> recordTypeHolder = dataValidatorFactory.getRecordTypeHolder();
+		assertEquals(recordTypeHolder.get("someId1"), metadataStorage.recordTypes.get(0));
+		assertEquals(recordTypeHolder.get("someId2"), metadataStorage.recordTypes.get(1));
 	}
 
 	@Test

@@ -20,15 +20,22 @@
 package se.uu.ub.cora.spider.dependency;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
+import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
+import se.uu.ub.cora.bookkeeper.metadata.MetadataHolderFromStoragePopulator;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
+import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorImp;
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
@@ -40,6 +47,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
+import se.uu.ub.cora.storage.MetadataStorage;
 import se.uu.ub.cora.storage.MetadataStorageProvider;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
@@ -116,7 +124,34 @@ public abstract class SpiderDependencyProvider {
 	}
 
 	public DataValidator getDataValidator() {
-		return new DataValidatorImp(metadataStorageProvider.getMetadataStorage());
+		MetadataStorage metadataStorage = metadataStorageProvider.getMetadataStorage();
+		Map<String, DataGroup> recordTypeHolder = createRecordTypeHolder(
+				metadataStorage.getRecordTypes());
+		MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
+
+		DataValidatorFactory dataValidatorFactory = new DataValidatorFactoryImp(recordTypeHolder,
+				metadataHolder);
+		return new DataValidatorImp(metadataStorage, dataValidatorFactory);
+	}
+
+	private Map<String, DataGroup> createRecordTypeHolder(Collection<DataGroup> recordTypes) {
+		Map<String, DataGroup> recordTypeHolder = new HashMap<>();
+		for (DataGroup dataGroup : recordTypes) {
+			addInfoForRecordTypeToHolder(recordTypeHolder, dataGroup);
+		}
+		return recordTypeHolder;
+	}
+
+	private void addInfoForRecordTypeToHolder(Map<String, DataGroup> recordTypeHolder,
+			DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
+		recordTypeHolder.put(recordId, dataGroup);
+	}
+
+	private MetadataHolder createMetadataHolder(MetadataStorage metadataStorage) {
+		return new MetadataHolderFromStoragePopulator()
+				.createAndPopulateMetadataHolderFromMetadataStorage(metadataStorage);
 	}
 
 	public DataRecordLinkCollector getDataRecordLinkCollector() {
@@ -124,7 +159,7 @@ public abstract class SpiderDependencyProvider {
 	}
 
 	public DataGroupTermCollector getDataGroupTermCollector() {
-		return new DataGroupTermCollectorImp(metadataStorageProvider.getMetadataStorage());
+		return new DataGroupTermCollectorImp(metadataStorageProvider.getMetadataStorage(), null);
 	}
 
 	public PermissionRuleCalculator getPermissionRuleCalculator() {

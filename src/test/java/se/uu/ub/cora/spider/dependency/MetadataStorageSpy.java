@@ -18,17 +18,47 @@
  */
 package se.uu.ub.cora.spider.dependency;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
+import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.storage.MetadataStorage;
 
 public class MetadataStorageSpy implements MetadataStorage {
 
+	public List<DataGroup> recordTypes = new ArrayList<>();
+	public List<DataGroup> metadataElements = new ArrayList<>();
+	public boolean getMetadataElementsWasCalled = false;
+
 	@Override
 	public Collection<DataGroup> getMetadataElements() {
-		// TODO Auto-generated method stub
-		return null;
+		getMetadataElementsWasCalled = true;
+		metadataElements = new ArrayList<>();
+		DataGroup spyDataGroup = createAndAddMetadataGroupToMetedataElementsUsingId(
+				"someMetadata1");
+
+		metadataElements.add(spyDataGroup);
+		return metadataElements;
+	}
+
+	private DataGroup createAndAddMetadataGroupToMetedataElementsUsingId(String id) {
+		DataGroup spyDataGroup = createRecordTypeDataGroup("metadata", id);
+		spyDataGroup.addChild(DataAtomic.withNameInDataAndValue("nameInData", id));
+		spyDataGroup.addAttributeByIdWithValue("type", "textVariable");
+		spyDataGroup.addChild(DataAtomic.withNameInDataAndValue("regEx", "someRegexp"));
+		createAndAddTexts(id, spyDataGroup);
+		return spyDataGroup;
+	}
+
+	private void createAndAddTexts(String id, DataGroup spyDataGroup) {
+		DataGroup textId = DataGroup.withNameInData("textId");
+		textId.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", id + "Text"));
+		spyDataGroup.addChild(textId);
+		DataGroup defTextId = DataGroup.withNameInData("defTextId");
+		defTextId.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", id + "DefText"));
+		spyDataGroup.addChild(defTextId);
 	}
 
 	@Override
@@ -45,8 +75,20 @@ public class MetadataStorageSpy implements MetadataStorage {
 
 	@Override
 	public Collection<DataGroup> getRecordTypes() {
-		// TODO Auto-generated method stub
-		return null;
+		recordTypes = new ArrayList<>();
+		DataGroup spyDataGroup = createRecordTypeDataGroup("spyDataGroup", "someId1");
+		recordTypes.add(spyDataGroup);
+		DataGroup spyDataGroup2 = createRecordTypeDataGroup("spyDataGroup", "someId2");
+		recordTypes.add(spyDataGroup2);
+		return recordTypes;
+	}
+
+	private DataGroup createRecordTypeDataGroup(String nameInData, String id) {
+		DataGroup spyDataGroup = DataGroup.withNameInData(nameInData);
+		DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
+		recordInfo.addChild(DataAtomic.withNameInDataAndValue("id", id));
+		spyDataGroup.addChild(recordInfo);
+		return spyDataGroup;
 	}
 
 	@Override
