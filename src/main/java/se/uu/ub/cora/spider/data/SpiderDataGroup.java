@@ -60,7 +60,7 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 		convertAndSetChildren(dataGroup);
 	}
 
-	private void convertAndSetChildren(DataGroup dataGroup) {
+	private final void convertAndSetChildren(DataGroup dataGroup) {
 		for (DataElement dataElement : dataGroup.getChildren()) {
 			children.add(convertToSpiderEquivalentDataClass(dataElement));
 		}
@@ -68,14 +68,13 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 
 	private SpiderDataElement convertToSpiderEquivalentDataClass(DataElement dataElement) {
 		if (dataElement instanceof DataGroup) {
-			return convertDataGroupElementToSpiderEquivalentDataClass(dataElement);
+			return convertDataGroupElementToSpiderEquivalentDataClass((DataGroup) dataElement);
 		}
 		return SpiderDataAtomic.fromDataAtomic((DataAtomic) dataElement);
 	}
 
 	private SpiderDataElement convertDataGroupElementToSpiderEquivalentDataClass(
-			DataElement dataElement) {
-		DataGroup dataGroup = (DataGroup) dataElement;
+			DataGroup dataGroup) {
 		if (dataGroupIsRecordLink(dataGroup)) {
 			return SpiderDataRecordLink.fromDataRecordLink(dataGroup);
 		}

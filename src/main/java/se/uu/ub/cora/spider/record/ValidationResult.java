@@ -25,9 +25,7 @@ public class ValidationResult {
 
 	private List<String> copyErrorMessages() {
 		List<String> errorMessagesOut = new ArrayList<>();
-		for (String message : errorMessages) {
-			errorMessagesOut.add(message);
-		}
+		errorMessagesOut.addAll(errorMessages);
 		return errorMessagesOut;
 	}
 

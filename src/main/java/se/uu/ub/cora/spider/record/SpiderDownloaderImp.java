@@ -118,6 +118,6 @@ public final class SpiderDownloaderImp extends SpiderBinary implements SpiderDow
 	private long extractStreamSizeFromData() {
 		SpiderDataGroup resourceInfo = spiderRecordRead.extractGroup(RESOURCE_INFO);
 		SpiderDataGroup requestedResource = resourceInfo.extractGroup(resourceName);
-		return Long.valueOf(requestedResource.extractAtomicValue("filesize"));
+		return Long.parseLong(requestedResource.extractAtomicValue("filesize"));
 	}
 }

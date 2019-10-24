@@ -207,7 +207,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean isRecordType() {
-		return recordType.equals(RECORD_TYPE);
+		return RECORD_TYPE.equals(recordType);
 	}
 
 	private void possiblyAddCreateAction(SpiderDataRecord spiderDataRecord) {
@@ -240,8 +240,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		String searchId = searchChildInRecordType
 				.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		DataGroup searchGroup = recordStorage.read(SEARCH, searchId);
-		return searchGroup
-				.getAllGroupsWithNameInData("recordTypeToSearchIn");
+		return searchGroup.getAllGroupsWithNameInData("recordTypeToSearchIn");
 	}
 
 	private void possiblyAddSearchActionWhenRecordTypeSearch(SpiderDataRecord spiderDataRecord) {
