@@ -29,6 +29,7 @@ import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class MetadataConsistencyGroupAndCollectionValidatorTest {
@@ -54,10 +55,11 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithTwoChildren();
 		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testGroup"));
-		recordAsSpiderDataGroup
-				.addChild(refParentId);
+		refParentId.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		refParentId
+				.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testGroup"));
+		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
 		validator.validateRules(recordAsSpiderDataGroup);
 	}
@@ -67,8 +69,10 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithTwoChildren();
 		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testGroupWithTwoChildren"));
+		refParentId.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
+				"testGroupWithTwoChildren"));
 		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
 		exceptNoException();
@@ -86,8 +90,10 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	public void testMetadataGroupChildWithOneChild() {
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithOneChild();
 		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testGroupWithOneChild"));
+		refParentId.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testGroupWithOneChild"));
 
 		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
@@ -99,12 +105,33 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithThreeChildren();
 
 		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testGroupWithThreeChildren"));
+		refParentId.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
+				"testGroupWithThreeChildren"));
 
 		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
 		validator.validateRules(recordAsSpiderDataGroup);
+	}
+
+	@Test
+	public void testMetadataGroupChildDoesNotExistInStorageExceptionIsSentAlong() {
+		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithThreeChildren();
+
+		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
+		refParentId.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
+				"testGroupWithThreeChildren"));
+
+		recordAsSpiderDataGroup.addChild(refParentId);
+		setUpDependencies();
+		try {
+			validator.validateRules(recordAsSpiderDataGroup);
+		} catch (Exception e) {
+			assertTrue(e.getCause() instanceof RecordNotFoundException);
+		}
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: childItem: thatItem does not exist in parent")
@@ -113,8 +140,10 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
 
 		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testParentMissingItemCollectionVar"));
+		refParentId.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
+				"testParentMissingItemCollectionVar"));
 
 		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
@@ -127,8 +156,10 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
 
 		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testParentCollectionVar"));
+		refParentId.addChild(
+				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
+				"testParentCollectionVar"));
 
 		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();

@@ -27,7 +27,8 @@ import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
-public class MetadataConsistencyGroupAndCollectionValidatorImp implements MetadataConsistencyValidator {
+public class MetadataConsistencyGroupAndCollectionValidatorImp
+		implements MetadataConsistencyValidator {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private static final String REF_PARENT_ID = "refParentId";
 	private RecordStorage recordStorage;
@@ -90,9 +91,11 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp implements Metada
 		try {
 			childDataGroup = recordStorage.read(linkedRecordType, linkedRecordId);
 		} catch (RecordNotFoundException exception) {
-			throw new DataException("Data is not valid: referenced child:  does not exist");
+			throw new DataException("Data is not valid: referenced child:  does not exist",
+					exception);
 		}
-		DataAtomic nameInData = (DataAtomic) childDataGroup.getFirstChildWithNameInData("nameInData");
+		DataAtomic nameInData = (DataAtomic) childDataGroup
+				.getFirstChildWithNameInData("nameInData");
 		return nameInData.getValue();
 	}
 
@@ -134,8 +137,8 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp implements Metada
 		for (DataElement itemReference : references.getChildren()) {
 			String childItemId = extractRefItemIdFromRefItemGroup(itemReference);
 			if (!ensureChildItemExistsInParent(childItemId, parentReferences)) {
-				throw new DataException(
-						"Data is not valid: childItem: " + childItemId + " does not exist in parent");
+				throw new DataException("Data is not valid: childItem: " + childItemId
+						+ " does not exist in parent");
 			}
 		}
 	}
@@ -149,7 +152,8 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp implements Metada
 
 	private DataGroup extractParentItemReferences() {
 		String refParentId = extractParentId();
-		DataGroup parentCollectionVar = recordStorage.read("metadataCollectionVariable", refParentId);
+		DataGroup parentCollectionVar = recordStorage.read("metadataCollectionVariable",
+				refParentId);
 		DataGroup parentRefCollection = (DataGroup) parentCollectionVar
 				.getFirstChildWithNameInData("refCollection");
 		String parentRefCollectionId = parentRefCollection
@@ -186,7 +190,8 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp implements Metada
 		if (hasFinalValue()) {
 			String finalValue = recordAsDataGroup.getFirstAtomicValueWithNameInData("finalValue");
 			if (!validateFinalValue(finalValue)) {
-				throw new DataException("Data is not valid: final value does not exist in collection");
+				throw new DataException(
+						"Data is not valid: final value does not exist in collection");
 			}
 		}
 	}
