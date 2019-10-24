@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>se.uu.ub.cora</groupId>
 		<artifactId>cora-parent</artifactId>
-        <version>0.9.0</version>
+        <version>1.0.2</version>
 	</parent>
 
 	<artifactId>spider</artifactId>
@@ -33,11 +33,11 @@
 	<name>Spider</name>
 
 	<properties>
-        <logger.version>1.0.0</logger.version>
-		<storage.version>1.3.0</storage.version>
-		<search.version>1.0.0</search.version>
-		<bookkeeper.version>2.1.0</bookkeeper.version>
-		<beefeater.version>1.0.0</beefeater.version>
+        <logger.version>2.0.0</logger.version>
+		<storage.version>2.0.0</storage.version>
+		<search.version>2.0.0</search.version>
+		<bookkeeper.version>3.0.0</bookkeeper.version>
+		<beefeater.version>2.0.0</beefeater.version>
 		
 	</properties>
 
