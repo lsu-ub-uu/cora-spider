@@ -99,11 +99,32 @@ public class SpiderDependencyProviderTest {
 		dependencyProvider = new SpiderDependencyProviderTestHelper(initInfo);
 	}
 
+	@Test
+	public void testStartupThrowsRuntimeExceptionInitialExceptionIsSentAlong() throws Exception {
+		initInfo.put("runtimeException", "some runtime error message");
+		try {
+			dependencyProvider = new SpiderDependencyProviderTestHelper(initInfo);
+		} catch (Exception e) {
+			assertTrue(e.getCause() instanceof Exception);
+		}
+	}
+
 	@Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = ""
 			+ "Error starting SpiderDependencyProviderTestHelper: some invocation target error message")
 	public void testStartupThrowsInvocationTargetException() throws Exception {
 		initInfo.put("invocationTargetException", "some invocation target error message");
 		dependencyProvider = new SpiderDependencyProviderTestHelper(initInfo);
+	}
+
+	@Test
+	public void testStartupThrowsInvocationTargetExceptionInitialExceptionIsSentAlong()
+			throws Exception {
+		initInfo.put("invocationTargetException", "some invocation target error message");
+		try {
+			dependencyProvider = new SpiderDependencyProviderTestHelper(initInfo);
+		} catch (Exception e) {
+			assertTrue(e.getCause() instanceof Exception);
+		}
 	}
 
 	@Test

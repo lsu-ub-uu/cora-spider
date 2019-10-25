@@ -71,9 +71,9 @@ public abstract class SpiderDependencyProvider {
 		try {
 			tryToInitialize();
 		} catch (InvocationTargetException e) {
-			throw new RuntimeException(createInvocationErrorExceptionMessage(e));
+			throw new RuntimeException(createInvocationErrorExceptionMessage(e), e);
 		} catch (Exception e) {
-			throw new RuntimeException(createExceptionMessage(e));
+			throw new RuntimeException(createExceptionMessage(e), e);
 		}
 	}
 
