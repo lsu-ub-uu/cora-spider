@@ -55,7 +55,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private String authToken;
 	private User user;
-	private String userId;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataGroupTermCollector collectTermCollector;
 	private RecordIndexer recordIndexer;
@@ -140,7 +139,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private void useExtendedFunctionality(SpiderDataGroup spiderDataGroup,
 			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
 		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
-			extendedFunctionality.useExtendedFunctionality(userId, spiderDataGroup);
+			extendedFunctionality.useExtendedFunctionality(authToken, spiderDataGroup);
 		}
 	}
 

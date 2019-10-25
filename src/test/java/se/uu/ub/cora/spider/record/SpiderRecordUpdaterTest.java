@@ -425,7 +425,7 @@ public class SpiderRecordUpdaterTest {
 	}
 
 	@Test
-	public void testExtendedFunctionallityIsCalled() {
+	public void testExtendedFunctionalityIsCalled() {
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		recordStorage = new RecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
@@ -434,21 +434,23 @@ public class SpiderRecordUpdaterTest {
 		SpiderDataGroup spiderDataGroup = DataCreator
 				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("nameInData", "spyId",
 						"spyType", "cora");
-		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", spiderDataGroup);
+		String authToken = "someToken78678567";
+		recordUpdater.updateRecord(authToken, "spyType", "spyId", spiderDataGroup);
 
-		assertFetchedFunctionalityHasBeenCalled(
+		assertFetchedFunctionalityHasBeenCalled(authToken,
 				extendedFunctionalityProvider.fetchedFunctionalityForUpdateBeforeMetadataValidation);
-		assertFetchedFunctionalityHasBeenCalled(
+		assertFetchedFunctionalityHasBeenCalled(authToken,
 				extendedFunctionalityProvider.fetchedFunctionalityForUpdateAfterMetadataValidation);
 	}
 
-	private void assertFetchedFunctionalityHasBeenCalled(
+	private void assertFetchedFunctionalityHasBeenCalled(String authToken,
 			List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateAfterMetadataValidation) {
 		ExtendedFunctionalitySpy extendedFunctionality = fetchedFunctionalityForCreateAfterMetadataValidation
 				.get(0);
 		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
 		ExtendedFunctionalitySpy extendedFunctionality2 = fetchedFunctionalityForCreateAfterMetadataValidation
 				.get(0);
+		assertEquals(extendedFunctionality2.token, authToken);
 		assertTrue(extendedFunctionality2.extendedFunctionalityHasBeenCalled);
 	}
 
