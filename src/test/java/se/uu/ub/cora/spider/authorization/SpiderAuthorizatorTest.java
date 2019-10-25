@@ -51,6 +51,7 @@ import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordStorageForAuthorizatorSpy;
+import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderAuthorizatorTest {
@@ -225,6 +226,21 @@ public class SpiderAuthorizatorTest {
 		DataGroup collectedData = DataGroup.withNameInData("collectedData");
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(
 				nonExistingUser, action, "book", collectedData);
+	}
+
+	@Test
+	public void checkUserDoesNotSatisfiesActionForRecordUserDoesNotExistInitialExceptionIsSentAlong() {
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		User nonExistingUser = new User("nonExistingUserId");
+
+		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		try {
+			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(
+					nonExistingUser, action, "book", collectedData);
+		} catch (Exception e) {
+			assertTrue(e.getCause() instanceof RecordNotFoundException);
+		}
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""

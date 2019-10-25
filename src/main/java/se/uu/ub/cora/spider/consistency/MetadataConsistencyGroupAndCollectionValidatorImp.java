@@ -135,7 +135,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 		DataGroup parentReferences = extractParentItemReferences();
 
 		for (DataElement itemReference : references.getChildren()) {
-			String childItemId = extractRefItemIdFromRefItemGroup(itemReference);
+			String childItemId = extractRefItemIdFromRefItemGroup((DataGroup) itemReference);
 			if (!ensureChildItemExistsInParent(childItemId, parentReferences)) {
 				throw new DataException("Data is not valid: childItem: " + childItemId
 						+ " does not exist in parent");
@@ -167,14 +167,13 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 		return (DataGroup) refCollection.getFirstChildWithNameInData("collectionItemReferences");
 	}
 
-	private String extractRefItemIdFromRefItemGroup(DataElement itemReference) {
-		DataGroup childItem = (DataGroup) itemReference;
+	private String extractRefItemIdFromRefItemGroup(DataGroup childItem) {
 		return childItem.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
 	private boolean ensureChildItemExistsInParent(String childItemId, DataGroup parentReferences) {
 		for (DataElement itemReference : parentReferences.getChildren()) {
-			String parentItemId = extractRefItemIdFromRefItemGroup(itemReference);
+			String parentItemId = extractRefItemIdFromRefItemGroup((DataGroup) itemReference);
 			if (isParentItemSameAsChildItem(childItemId, parentItemId)) {
 				return true;
 			}
@@ -203,7 +202,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 	private boolean validateFinalValue(String finalValue) {
 		DataGroup references = getItemReferences();
 		for (DataElement reference : references.getChildren()) {
-			String itemNameInData = extractNameInDataFromReference(reference);
+			String itemNameInData = extractNameInDataFromReference((DataGroup) reference);
 			if (finalValue.equals(itemNameInData)) {
 				return true;
 			}
@@ -211,7 +210,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 		return false;
 	}
 
-	private String extractNameInDataFromReference(DataElement reference) {
+	private String extractNameInDataFromReference(DataGroup reference) {
 		String itemId = extractRefItemIdFromRefItemGroup(reference);
 		DataGroup collectionItem = recordStorage.read("metadataCollectionItem", itemId);
 		return collectionItem.getFirstAtomicValueWithNameInData("nameInData");

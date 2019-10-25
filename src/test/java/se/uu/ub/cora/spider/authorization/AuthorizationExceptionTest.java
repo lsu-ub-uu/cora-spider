@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,14 +19,25 @@
 
 package se.uu.ub.cora.spider.authorization;
 
+import static org.testng.Assert.assertEquals;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class AuthorizationExceptionTest {
+
 	@Test
 	public void testInit() {
-		AuthorizationException notAuthorized= new AuthorizationException("message");
-		
+		AuthorizationException notAuthorized = new AuthorizationException("message");
+
 		Assert.assertEquals(notAuthorized.getMessage(), "message");
+	}
+
+	@Test
+	public void testInitWithException() {
+		Exception exception = new Exception();
+		AuthorizationException notAuthorized = new AuthorizationException("message", exception);
+		assertEquals(notAuthorized.getMessage(), "message");
+		assertEquals(notAuthorized.getCause(), exception);
 	}
 }

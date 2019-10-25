@@ -36,6 +36,7 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -52,6 +53,7 @@ import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
+import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
@@ -84,9 +86,12 @@ public class SpiderRecordUpdaterTest {
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private DataGroupTermCollector termCollector;
 	private RecordIndexer recordIndexer;
+	private LoggerFactorySpy loggerFactorySpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		authenticator = new AuthenticatorSpy();
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();

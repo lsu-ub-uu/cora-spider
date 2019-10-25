@@ -199,6 +199,16 @@ public class SpiderDownloaderTest {
 		downloader.download("someToken78678567", "image", "image:123456789", "NonExistingResource");
 	}
 
+	@Test
+	public void testDownloadResourceDoesNotExistInRecordExceptionInitialIsSentAlong() {
+		try {
+			downloader.download("someToken78678567", "image", "image:123456789",
+					"NonExistingResource");
+		} catch (Exception e) {
+			assertTrue(e.getCause() instanceof DataMissingException);
+		}
+	}
+
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testNonExistingRecordType() {
 		downloader.download("someToken78678567", "image_NOT_EXISTING", "image:123456789", "master");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,10 +19,15 @@
 
 package se.uu.ub.cora.spider.authorization;
 
-public class AuthorizationException extends RuntimeException{
+public class AuthorizationException extends RuntimeException {
 
 	private static final long serialVersionUID = -2867876073765359936L;
+
 	public AuthorizationException(String message) {
 		super(message);
+	}
+
+	public AuthorizationException(String message, Exception exception) {
+		super(message, exception);
 	}
 }

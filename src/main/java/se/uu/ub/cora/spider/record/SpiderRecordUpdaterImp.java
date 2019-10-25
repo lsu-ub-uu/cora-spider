@@ -265,7 +265,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private List<Integer> getAllCurrentRepeatIds(List<SpiderDataGroup> updatedList) {
-		List<Integer> repeatIds = new ArrayList<>();
+		List<Integer> repeatIds = new ArrayList<>(updatedList.size());
 		for (SpiderDataGroup updated : updatedList) {
 			repeatIds.add(Integer.valueOf(updated.getRepeatId()));
 		}

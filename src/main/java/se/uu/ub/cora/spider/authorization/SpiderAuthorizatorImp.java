@@ -88,7 +88,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		try {
 			return recordStorage.read("user", user.id);
 		} catch (RecordNotFoundException e) {
-			throw new AuthorizationException(USER_STRING + user.id + " does not exist");
+			throw new AuthorizationException(USER_STRING + user.id + " does not exist", e);
 		}
 	}
 

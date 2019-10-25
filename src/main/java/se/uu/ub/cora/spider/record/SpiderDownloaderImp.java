@@ -91,7 +91,7 @@ public final class SpiderDownloaderImp extends SpiderBinary implements SpiderDow
 			SpiderDataGroup requestedResource = resourceInfo.extractGroup(resource);
 			return requestedResource.extractAtomicValue("streamId");
 		} catch (DataMissingException e) {
-			throw new RecordNotFoundException("resource not found");
+			throw new RecordNotFoundException("resource not found", e);
 		}
 	}
 
