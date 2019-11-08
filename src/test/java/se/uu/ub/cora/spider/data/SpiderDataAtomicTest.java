@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,11 +21,22 @@ package se.uu.ub.cora.spider.data;
 
 import static org.testng.Assert.assertEquals;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataAtomicProvider;
 
 public class SpiderDataAtomicTest {
+
+	private DataAtomicFactorySpy dataAtomicFactory;
+
+	@BeforeMethod
+	public void setUp() {
+		dataAtomicFactory = new DataAtomicFactorySpy();
+		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
+	}
+
 	@Test
 	public void testInit() {
 		SpiderDataAtomic spiderDataAtomic = SpiderDataAtomic.withNameInDataAndValue("nameInData",
@@ -46,7 +57,7 @@ public class SpiderDataAtomicTest {
 
 	@Test
 	public void testFromDataAtomic() {
-		DataAtomic dataAtomic = DataAtomic.withNameInDataAndValue("nameInData", "value");
+		DataAtomic dataAtomic = new DataAtomicSpy("nameInData", "value");
 		SpiderDataAtomic spiderDataAtomic = SpiderDataAtomic.fromDataAtomic(dataAtomic);
 		assertEquals(spiderDataAtomic.getNameInData(), "nameInData");
 		assertEquals(spiderDataAtomic.getValue(), "value");
@@ -54,8 +65,7 @@ public class SpiderDataAtomicTest {
 
 	@Test
 	public void testFromDataAtomicWithRepeatId() {
-		DataAtomic dataAtomic = DataAtomic.withNameInDataAndValue("nameInData", "value");
-		dataAtomic.setRepeatId("two");
+		DataAtomic dataAtomic = new DataAtomicSpy("nameInData", "value", "two");
 		SpiderDataAtomic spiderDataAtomic = SpiderDataAtomic.fromDataAtomic(dataAtomic);
 		assertEquals(spiderDataAtomic.getNameInData(), "nameInData");
 		assertEquals(spiderDataAtomic.getValue(), "value");
@@ -64,21 +74,30 @@ public class SpiderDataAtomicTest {
 
 	@Test
 	public void testToDataAtomic() {
-		SpiderDataAtomic spiderDataAtomic = SpiderDataAtomic.withNameInDataAndValue("nameInData",
-				"value");
+		String nameInData = "someNameInData";
+		String value = "someValue";
+
+		SpiderDataAtomic spiderDataAtomic = SpiderDataAtomic.withNameInDataAndValue(nameInData,
+				value);
 		DataAtomic dataAtomic = spiderDataAtomic.toDataAtomic();
-		assertEquals(dataAtomic.getNameInData(), "nameInData");
-		assertEquals(dataAtomic.getValue(), "value");
+		assertEquals(dataAtomicFactory.nameInData, nameInData);
+		assertEquals(dataAtomicFactory.value, value);
+		assertEquals(dataAtomicFactory.reurnedDataAtomic, dataAtomic);
 	}
 
 	@Test
 	public void testToDataAtomicWithRepeatId() {
-		SpiderDataAtomic spiderDataAtomic = SpiderDataAtomic.withNameInDataAndValue("nameInData",
-				"value");
-		spiderDataAtomic.setRepeatId("tt");
+		String nameInData = "someNameInData";
+		String value = "someValue";
+		String repeatId = "tt";
+
+		SpiderDataAtomic spiderDataAtomic = SpiderDataAtomic.withNameInDataAndValue(nameInData,
+				value);
+		spiderDataAtomic.setRepeatId(repeatId);
+
 		DataAtomic dataAtomic = spiderDataAtomic.toDataAtomic();
-		assertEquals(dataAtomic.getNameInData(), "nameInData");
-		assertEquals(dataAtomic.getValue(), "value");
-		assertEquals(dataAtomic.getRepeatId(), "tt");
+		assertEquals(dataAtomicFactory.nameInData, nameInData);
+		assertEquals(dataAtomicFactory.value, value);
+		assertEquals(dataAtomicFactory.reurnedDataAtomic, dataAtomic);
 	}
 }
