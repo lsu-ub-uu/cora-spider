@@ -43,6 +43,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
@@ -223,7 +224,7 @@ public class SpiderAuthorizatorTest {
 		setUpDependencyProvider();
 		User nonExistingUser = new User("nonExistingUserId");
 
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(
 				nonExistingUser, action, "book", collectedData);
 	}
@@ -234,7 +235,7 @@ public class SpiderAuthorizatorTest {
 		setUpDependencyProvider();
 		User nonExistingUser = new User("nonExistingUserId");
 
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
 		try {
 			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(
 					nonExistingUser, action, "book", collectedData);
@@ -250,7 +251,7 @@ public class SpiderAuthorizatorTest {
 		setUpDependencyProvider();
 
 		User inactiveUser = new User("inactiveUserId");
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(inactiveUser,
 				action, "book", collectedData);
 	}
@@ -260,7 +261,7 @@ public class SpiderAuthorizatorTest {
 		user.roles.add("guest2");
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action,
 				"book", collectedData);
 
@@ -287,7 +288,7 @@ public class SpiderAuthorizatorTest {
 		user.roles.add("guest");
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action,
 				"book", collectedData);
 
@@ -322,7 +323,7 @@ public class SpiderAuthorizatorTest {
 		user.roles.add("guest");
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action,
 				"book", collectedData);
 
@@ -375,7 +376,7 @@ public class SpiderAuthorizatorTest {
 		setUpDependencyProvider();
 
 		user.roles.add("guest2");
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action,
 				"book", collectedData);
 	}
@@ -385,7 +386,7 @@ public class SpiderAuthorizatorTest {
 		user.roles.add("guest2");
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
 		boolean authorized = spiderAuthorizator
 				.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, "book",
 						collectedData);
@@ -414,7 +415,7 @@ public class SpiderAuthorizatorTest {
 		user.roles.add("guest");
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
 		boolean authorized = spiderAuthorizator
 				.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, "book",
 						collectedData);
@@ -449,7 +450,7 @@ public class SpiderAuthorizatorTest {
 		user.roles.add("guest");
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
 		boolean authorized = spiderAuthorizator
 				.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, "book",
 						collectedData);
@@ -497,7 +498,7 @@ public class SpiderAuthorizatorTest {
 		setUpDependencyProvider();
 
 		user.roles.add("guest2");
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
 		boolean authorized = spiderAuthorizator
 				.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, "book",
 						collectedData);

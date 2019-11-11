@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,32 +20,49 @@
 package se.uu.ub.cora.spider.data;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataAttribute;
+import se.uu.ub.cora.data.DataAttributeProvider;
 
 public class SpiderDataAttributeTest {
+
+	private DataAttributeFactorySpy dataAttributeFactory;
+
+	@BeforeMethod
+	public void setUp() {
+		dataAttributeFactory = new DataAttributeFactorySpy();
+		DataAttributeProvider.setDataAttributeFactory(dataAttributeFactory);
+
+	}
+
 	@Test
 	public void testInit() {
-		SpiderDataAttribute spiderDataAttribute = SpiderDataAttribute.withNameInDataAndValue("nameInData", "value");
+		SpiderDataAttribute spiderDataAttribute = SpiderDataAttribute
+				.withNameInDataAndValue("nameInData", "value");
 		assertEquals(spiderDataAttribute.getNameInData(), "nameInData");
 		assertEquals(spiderDataAttribute.getValue(), "value");
 	}
 
 	@Test
 	public void testFromDataAttribute() {
-		DataAttribute dataAttribute = DataAttribute.withNameInDataAndValue("nameInData", "value");
-		SpiderDataAttribute spiderDataAttribute = SpiderDataAttribute.fromDataAttribute(dataAttribute);
+		DataAttribute dataAttribute = new DataAttributeSpy("nameInData", "value");
+		SpiderDataAttribute spiderDataAttribute = SpiderDataAttribute
+				.fromDataAttribute(dataAttribute);
 		assertEquals(spiderDataAttribute.getNameInData(), "nameInData");
 		assertEquals(spiderDataAttribute.getValue(), "value");
 	}
 
 	@Test
 	public void testToDataAttribute() {
-		SpiderDataAttribute spiderDataAttribute = SpiderDataAttribute.withNameInDataAndValue("nameInData", "value");
+		SpiderDataAttribute spiderDataAttribute = SpiderDataAttribute
+				.withNameInDataAndValue("nameInData", "value");
 		DataAttribute dataAttribute = spiderDataAttribute.toDataAttribute();
 		assertEquals(dataAttribute.getNameInData(), "nameInData");
 		assertEquals(dataAttribute.getValue(), "value");
+		assertSame(dataAttribute, dataAttributeFactory.returnedDataAttribute);
 	}
 }

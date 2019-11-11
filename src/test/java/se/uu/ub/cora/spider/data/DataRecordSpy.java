@@ -18,28 +18,34 @@
  */
 package se.uu.ub.cora.spider.data;
 
-import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataAtomicFactory;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-public class DataAtomicFactorySpy implements DataAtomicFactory {
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
 
-	public String nameInData;
-	public String value;
-	public DataAtomic reurnedDataAtomic;
+public class DataRecordSpy implements DataRecord {
 
-	@Override
-	public DataAtomic factorUsingNameInDataAndValue(String nameInData, String value) {
-		this.nameInData = nameInData;
-		this.value = value;
-		reurnedDataAtomic = new DataAtomicSpy(nameInData, value);
-		return reurnedDataAtomic;
+	public DataGroup dataGroup;
+	public Set<String> keys = new LinkedHashSet<>();
+
+	public DataRecordSpy(DataGroup dataGroup) {
+		this.dataGroup = dataGroup;
 	}
 
 	@Override
-	public DataAtomic factorUsingNameInDataAndValueAndRepeatId(String nameInData, String value,
-			String repeatId) {
-		// TODO Auto-generated method stub
-		return null;
+	public DataGroup getDataGroup() {
+		return dataGroup;
+	}
+
+	@Override
+	public void addKey(String key) {
+		keys.add(key);
+	}
+
+	@Override
+	public Set<String> getKeys() {
+		return keys;
 	}
 
 }

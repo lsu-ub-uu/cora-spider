@@ -26,6 +26,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordProvider;
 
 public final class SpiderDataRecord implements SpiderData {
 	private Set<String> keys = new HashSet<>();
@@ -80,7 +81,7 @@ public final class SpiderDataRecord implements SpiderData {
 
 	public DataRecord toDataRecord() {
 		DataGroup dataGroup = spiderDataGroup.toDataGroup();
-		DataRecord dataRecord = DataRecord.withDataGroup(dataGroup);
+		DataRecord dataRecord = DataRecordProvider.getDataRecordWithDataGroup(dataGroup);
 		dataRecord.getKeys().addAll(keys);
 		return dataRecord;
 	}

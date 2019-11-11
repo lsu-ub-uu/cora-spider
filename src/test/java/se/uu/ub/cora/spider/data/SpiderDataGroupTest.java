@@ -30,13 +30,28 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupFactory;
+import se.uu.ub.cora.data.DataGroupProvider;
 
 public class SpiderDataGroupTest {
+	private DataGroupFactory dataGroupFactory;
+	private DataAtomicFactorySpy dataAtomicFactory;
+
+	@BeforeMethod
+	public void setUp() {
+		dataGroupFactory = new DataGroupFactorySpy();
+		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
+		dataAtomicFactory = new DataAtomicFactorySpy();
+		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
+	}
+
 	@Test
 	public void testInit() {
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
@@ -118,14 +133,14 @@ public class SpiderDataGroupTest {
 
 	@Test
 	public void testFromDataGroup() {
-		DataGroup dataGroup = DataGroup.withNameInData("nameInData");
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		assertEquals(spiderDataGroup.getNameInData(), "nameInData");
 	}
 
 	@Test
 	public void testFromDataGroupWithRepeatId() {
-		DataGroup dataGroup = DataGroup.withNameInData("nameInData");
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
 		dataGroup.setRepeatId("puh");
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		assertEquals(spiderDataGroup.getNameInData(), "nameInData");
@@ -134,7 +149,7 @@ public class SpiderDataGroupTest {
 
 	@Test
 	public void testFromDataGroupWithAttribute() {
-		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
+		DataGroup dataGroup = new DataGroupSpy("groupNameInData");
 		dataGroup.addAttributeByIdWithValue("nameInData", "value");
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		Map<String, String> attributes = spiderDataGroup.getAttributes();
@@ -145,8 +160,8 @@ public class SpiderDataGroupTest {
 
 	@Test
 	public void testFromDataGroupWithChild() {
-		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
-		dataGroup.addChild(DataAtomic.withNameInDataAndValue("childNameInData", "atomicValue"));
+		DataGroup dataGroup = new DataGroupSpy("groupNameInData");
+		dataGroup.addChild(new DataAtomicSpy("childNameInData", "atomicValue"));
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		Assert.assertEquals(spiderDataGroup.getChildren().stream().findAny().get().getNameInData(),
 				"childNameInData");
@@ -154,7 +169,7 @@ public class SpiderDataGroupTest {
 
 	@Test
 	public void testFromDataGroupWithDataRecordLinkChild() {
-		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
+		DataGroup dataGroup = new DataGroupSpy("groupNameInData");
 		dataGroup.addChild(createRecordLink());
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		SpiderDataElement spiderDataElement = spiderDataGroup.getChildren().get(0);
@@ -171,14 +186,12 @@ public class SpiderDataGroupTest {
 	}
 
 	private DataGroup createRecordLink() {
-		DataGroup dataRecordLink = DataGroup.withNameInData("childNameInData");
+		DataGroup dataRecordLink = new DataGroupSpy("childNameInData");
 
-		DataAtomic linkedRecordType = DataAtomic.withNameInDataAndValue("linkedRecordType",
-				"aRecordType");
+		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", "aRecordType");
 		dataRecordLink.addChild(linkedRecordType);
 
-		DataAtomic linkedRecordId = DataAtomic.withNameInDataAndValue("linkedRecordId",
-				"aRecordId");
+		DataAtomic linkedRecordId = new DataAtomicSpy("linkedRecordId", "aRecordId");
 		dataRecordLink.addChild(linkedRecordId);
 
 		return dataRecordLink;
@@ -186,11 +199,10 @@ public class SpiderDataGroupTest {
 
 	@Test
 	public void testFromDataGroupWithNonCompleteDataRecordLinkChild() {
-		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
+		DataGroup dataGroup = new DataGroupSpy("groupNameInData");
 
-		DataGroup dataRecordLinkWithNoLinkedRecordId = DataGroup.withNameInData("childNameInData");
-		DataAtomic linkedRecordType = DataAtomic.withNameInDataAndValue("linkedRecordType",
-				"aRecordType");
+		DataGroup dataRecordLinkWithNoLinkedRecordId = new DataGroupSpy("childNameInData");
+		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", "aRecordType");
 		dataRecordLinkWithNoLinkedRecordId.addChild(linkedRecordType);
 		dataGroup.addChild(dataRecordLinkWithNoLinkedRecordId);
 
@@ -200,7 +212,7 @@ public class SpiderDataGroupTest {
 
 	@Test
 	public void testFromDataGroupWithDataResourceLinkChild() {
-		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
+		DataGroup dataGroup = new DataGroupSpy("groupNameInData");
 		dataGroup.addChild(createResourceLink());
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		SpiderDataElement spiderDataElement = spiderDataGroup.getChildren().get(0);
@@ -215,12 +227,12 @@ public class SpiderDataGroupTest {
 	}
 
 	private DataGroup createResourceLink() {
-		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+		DataGroup dataResourceLink = new DataGroupSpy("childNameInData");
 
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
+		dataResourceLink.addChild(new DataAtomicSpy("streamId", "aStreamId"));
+		dataResourceLink.addChild(new DataAtomicSpy("filename", "aFileName"));
+		dataResourceLink.addChild(new DataAtomicSpy("filesize", "12345"));
+		dataResourceLink.addChild(new DataAtomicSpy("mimeType", "application/pdf"));
 
 		return dataResourceLink;
 	}
@@ -232,7 +244,7 @@ public class SpiderDataGroupTest {
 	}
 
 	private void createAndAssertNotResourceLink(DataGroup resourceLink) {
-		DataGroup dataGroup = DataGroup.withNameInData("groupNameInData");
+		DataGroup dataGroup = new DataGroupSpy("groupNameInData");
 		dataGroup.addChild(resourceLink);
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		SpiderDataElement spiderDataElement = spiderDataGroup
@@ -241,13 +253,13 @@ public class SpiderDataGroupTest {
 	}
 
 	private DataGroup createResourceLinkNoStreamId() {
-		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+		DataGroup dataResourceLink = new DataGroupSpy("childNameInData");
 
-		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId",
+		// dataResourceLink.addChild(new DataAtomicSpy("streamId",
 		// "aStreamId"));
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
+		dataResourceLink.addChild(new DataAtomicSpy("filename", "aFileName"));
+		dataResourceLink.addChild(new DataAtomicSpy("filesize", "12345"));
+		dataResourceLink.addChild(new DataAtomicSpy("mimeType", "application/pdf"));
 
 		return dataResourceLink;
 	}
@@ -259,13 +271,13 @@ public class SpiderDataGroupTest {
 	}
 
 	private DataGroup createResourceLinkNoFilename() {
-		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+		DataGroup dataResourceLink = new DataGroupSpy("childNameInData");
 
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
-		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename",
+		dataResourceLink.addChild(new DataAtomicSpy("streamId", "aStreamId"));
+		// dataResourceLink.addChild(new DataAtomicSpy("filename",
 		// "aFileName"));
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
+		dataResourceLink.addChild(new DataAtomicSpy("filesize", "12345"));
+		dataResourceLink.addChild(new DataAtomicSpy("mimeType", "application/pdf"));
 
 		return dataResourceLink;
 	}
@@ -277,13 +289,13 @@ public class SpiderDataGroupTest {
 	}
 
 	private DataGroup createResourceLinkNoFilesize() {
-		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+		DataGroup dataResourceLink = new DataGroupSpy("childNameInData");
 
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
-		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize",
+		dataResourceLink.addChild(new DataAtomicSpy("streamId", "aStreamId"));
+		dataResourceLink.addChild(new DataAtomicSpy("filename", "aFileName"));
+		// dataResourceLink.addChild(new DataAtomicSpy("filesize",
 		// "12345"));
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
+		dataResourceLink.addChild(new DataAtomicSpy("mimeType", "application/pdf"));
 
 		return dataResourceLink;
 	}
@@ -295,12 +307,12 @@ public class SpiderDataGroupTest {
 	}
 
 	private DataGroup createResourceLinkNoMimeType() {
-		DataGroup dataResourceLink = DataGroup.withNameInData("childNameInData");
+		DataGroup dataResourceLink = new DataGroupSpy("childNameInData");
 
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("streamId", "aStreamId"));
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filename", "aFileName"));
-		dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("filesize", "12345"));
-		// dataResourceLink.addChild(DataAtomic.withNameInDataAndValue("mimeType",
+		dataResourceLink.addChild(new DataAtomicSpy("streamId", "aStreamId"));
+		dataResourceLink.addChild(new DataAtomicSpy("filename", "aFileName"));
+		dataResourceLink.addChild(new DataAtomicSpy("filesize", "12345"));
+		// dataResourceLink.addChild(new DataAtomicSpy("mimeType",
 		// "application/pdf"));
 
 		return dataResourceLink;
@@ -308,10 +320,10 @@ public class SpiderDataGroupTest {
 
 	@Test
 	public void testFromDataGroupLevelsOfChildren() {
-		DataGroup dataGroup = DataGroup.withNameInData("nameInData");
-		dataGroup.addChild(DataAtomic.withNameInDataAndValue("atomicNameInData", "atomicValue"));
-		DataGroup dataGroup2 = DataGroup.withNameInData("childNameInData");
-		dataGroup2.addChild(DataGroup.withNameInData("grandChildNameInData"));
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		dataGroup.addChild(new DataAtomicSpy("atomicNameInData", "atomicValue"));
+		DataGroup dataGroup2 = new DataGroupSpy("childNameInData");
+		dataGroup2.addChild(new DataGroupSpy("grandChildNameInData"));
 		dataGroup.addChild(dataGroup2);
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
 		Iterator<SpiderDataElement> iterator = spiderDataGroup.getChildren().iterator();

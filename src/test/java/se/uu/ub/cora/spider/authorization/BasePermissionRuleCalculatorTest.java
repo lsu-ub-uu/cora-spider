@@ -29,8 +29,9 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
-import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 
 public class BasePermissionRuleCalculatorTest {
 
@@ -56,7 +57,7 @@ public class BasePermissionRuleCalculatorTest {
 
 	@Test
 	public void testWithCollectedDataNoPermissions() {
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
 
 		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
@@ -70,8 +71,8 @@ public class BasePermissionRuleCalculatorTest {
 
 	@Test
 	public void testWithCollectedDataOnePermissions() {
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
-		DataGroup permission = DataGroup.withNameInData("permission");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		DataGroup permission = new DataGroupSpy("permission");
 		collectedData.addChild(permission);
 
 		DataGroup collectedDataTerm = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
@@ -93,22 +94,21 @@ public class BasePermissionRuleCalculatorTest {
 
 	private DataGroup createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
 			String repeatId, String termId, String termValue, String permissionKey) {
-		DataGroup collectedDataTerm = DataGroup.withNameInData("collectedDataTerm");
+		DataGroup collectedDataTerm = new DataGroupSpy("collectedDataTerm");
 		collectedDataTerm.setRepeatId(repeatId);
-		collectedDataTerm.addChild(DataAtomic.withNameInDataAndValue("collectTermId", termId));
-		collectedDataTerm
-				.addChild(DataAtomic.withNameInDataAndValue("collectTermValue", termValue));
+		collectedDataTerm.addChild(new DataAtomicSpy("collectTermId", termId));
+		collectedDataTerm.addChild(new DataAtomicSpy("collectTermValue", termValue));
 
-		DataGroup extraData = DataGroup.withNameInData("extraData");
+		DataGroup extraData = new DataGroupSpy("extraData");
 		collectedDataTerm.addChild(extraData);
-		extraData.addChild(DataAtomic.withNameInDataAndValue("permissionKey", permissionKey));
+		extraData.addChild(new DataAtomicSpy("permissionKey", permissionKey));
 		return collectedDataTerm;
 	}
 
 	@Test
 	public void testWithCollectedDataTwoPermissions() {
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
-		DataGroup permission = DataGroup.withNameInData("permission");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		DataGroup permission = new DataGroupSpy("permission");
 		collectedData.addChild(permission);
 
 		DataGroup collectedDataTerm = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
@@ -135,8 +135,8 @@ public class BasePermissionRuleCalculatorTest {
 
 	@Test
 	public void testWithCollectedDataOnePermissionsTwice() {
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
-		DataGroup permission = DataGroup.withNameInData("permission");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		DataGroup permission = new DataGroupSpy("permission");
 		collectedData.addChild(permission);
 
 		DataGroup collectedDataTerm = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
@@ -167,8 +167,8 @@ public class BasePermissionRuleCalculatorTest {
 
 	@Test
 	public void testWithCollectedDataTwoPermissionsRepeated() {
-		DataGroup collectedData = DataGroup.withNameInData("collectedData");
-		DataGroup permission = DataGroup.withNameInData("permission");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		DataGroup permission = new DataGroupSpy("permission");
 		collectedData.addChild(permission);
 
 		DataGroup collectedDataTerm = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(

@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.spider.testdata.SpiderDataCreator;
@@ -63,8 +65,11 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 				DataGroup dataGroup = DataCreator
 						.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
 								"false", "true", "false");
-				DataGroup search = DataGroup.asLinkWithNameInDataAndTypeAndId("search", "search",
-						"someDefaultSearch");
+				DataGroup search = new DataGroupSpy("search");
+				search.addChild(new DataAtomicSpy("linkedRecordType", "search"));
+				search.addChild(new DataAtomicSpy("linkedRecordId", "someDefaultSearch"));
+				// .asLinkWithNameInDataAndTypeAndId("search", "search",
+				// "someDefaultSearch");
 				dataGroup.addChild(search);
 				return dataGroup;
 			} else if (("place".equals(id))) {

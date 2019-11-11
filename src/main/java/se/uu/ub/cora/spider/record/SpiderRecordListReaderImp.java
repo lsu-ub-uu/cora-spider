@@ -25,6 +25,7 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.Action;
@@ -161,7 +162,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private void addChildrenOfAbstractTypeToReadRecordList(String abstractRecordType) {
-		DataGroup emptyFilter = DataGroup.withNameInData(FILTER_STRING);
+		DataGroup emptyFilter = DataGroupProvider.getDataGroupUsingNameInData(FILTER_STRING);
 		readResult = recordStorage.readAbstractList(abstractRecordType, emptyFilter);
 		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
 		for (DataGroup dataGroup : dataGroupList) {

@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.data;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Set;
@@ -29,13 +30,22 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupFactory;
+import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordProvider;
 
 public class SpiderDataRecordTest {
 	private SpiderDataRecord spiderDataRecord;
+	private DataGroupFactory dataGroupFactory;
+	private DataRecordFactorySpy dataRecordFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
+		dataGroupFactory = new DataGroupFactorySpy();
+		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
+		dataRecordFactory = new DataRecordFactorySpy();
+		DataRecordProvider.setDataRecordFactory(dataRecordFactory);
 		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
 		spiderDataRecord = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
 	}
@@ -85,8 +95,8 @@ public class SpiderDataRecordTest {
 
 	@Test
 	public void testFromDataRecord() {
-		DataGroup dataGroup = DataGroup.withNameInData("nameInData");
-		DataRecord dataRecord = DataRecord.withDataGroup(dataGroup);
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		DataRecord dataRecord = new DataRecordSpy(dataGroup);
 		dataRecord.addKey("KEY1");
 		dataRecord.addKey("KEY2");
 
@@ -108,5 +118,6 @@ public class SpiderDataRecordTest {
 		Set<String> keys = dataRecord.getKeys();
 		assertTrue(keys.contains("KEY1"));
 		assertTrue(keys.contains("KEY2"));
+		assertSame(dataRecord, dataRecordFactory.factoredDataRecord);
 	}
 }

@@ -1,3 +1,21 @@
+/*
+ * Copyright 2016 Uppsala University Library
+ *
+ * This file is part of Cora.
+ *
+ *     Cora is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     Cora is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package se.uu.ub.cora.spider.data;
 
 import static org.testng.Assert.assertEquals;
@@ -9,14 +27,23 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupFactory;
+import se.uu.ub.cora.data.DataGroupProvider;
 
 public class SpiderDataResourceLinkTest {
 
 	SpiderDataResourceLink spiderResourceLink;
+	private DataGroupFactory dataGroupFactory;
+	private DataAtomicFactorySpy dataAtomicFactory;
 
 	@BeforeMethod
 	public void setUp() {
+		dataGroupFactory = new DataGroupFactorySpy();
+		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
+		dataAtomicFactory = new DataAtomicFactorySpy();
+		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 		spiderResourceLink = SpiderDataResourceLink.withNameInData("nameInData");
 
 		SpiderDataAtomic streamId = SpiderDataAtomic.withNameInDataAndValue("streamId",
@@ -78,9 +105,9 @@ public class SpiderDataResourceLinkTest {
 	}
 
 	private DataGroup createResourceLinkAsDataGroup() {
-		DataGroup dataRecordLink = DataGroup.withNameInData("nameInData");
+		DataGroup dataRecordLink = new DataGroupSpy("nameInData");
 
-		DataAtomic streamId = DataAtomic.withNameInDataAndValue("streamId", "myStreamId");
+		DataAtomic streamId = new DataAtomicSpy("streamId", "myStreamId");
 		dataRecordLink.addChild(streamId);
 		return dataRecordLink;
 	}

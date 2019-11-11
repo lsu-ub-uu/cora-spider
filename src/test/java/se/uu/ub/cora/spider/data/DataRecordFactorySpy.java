@@ -18,28 +18,18 @@
  */
 package se.uu.ub.cora.spider.data;
 
-import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataAtomicFactory;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordFactory;
 
-public class DataAtomicFactorySpy implements DataAtomicFactory {
+public class DataRecordFactorySpy implements DataRecordFactory {
 
-	public String nameInData;
-	public String value;
-	public DataAtomic reurnedDataAtomic;
-
-	@Override
-	public DataAtomic factorUsingNameInDataAndValue(String nameInData, String value) {
-		this.nameInData = nameInData;
-		this.value = value;
-		reurnedDataAtomic = new DataAtomicSpy(nameInData, value);
-		return reurnedDataAtomic;
-	}
+	public DataRecordSpy factoredDataRecord;
 
 	@Override
-	public DataAtomic factorUsingNameInDataAndValueAndRepeatId(String nameInData, String value,
-			String repeatId) {
-		// TODO Auto-generated method stub
-		return null;
+	public DataRecord factorUsingDataGroup(DataGroup dataGroup) {
+		factoredDataRecord = new DataRecordSpy(dataGroup);
+		return factoredDataRecord;
 	}
 
 }

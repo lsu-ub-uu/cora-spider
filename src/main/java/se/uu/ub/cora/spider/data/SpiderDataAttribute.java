@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.data;
 
 import se.uu.ub.cora.data.DataAttribute;
+import se.uu.ub.cora.data.DataAttributeProvider;
 
 public final class SpiderDataAttribute implements SpiderDataElement {
 
@@ -54,7 +55,7 @@ public final class SpiderDataAttribute implements SpiderDataElement {
 	}
 
 	public DataAttribute toDataAttribute() {
-		return DataAttribute.withNameInDataAndValue(nameInData, value);
+		return DataAttributeProvider.getDataAttributeUsingNameInDataAndValue(nameInData, value);
 	}
 
 }
