@@ -71,7 +71,6 @@ public class SpiderAuthorizatorTest {
 	private String action = "read";
 	private String recordType = "book";
 	private LoggerFactorySpy loggerFactorySpy;
-	private String testedClassName = "SpiderAuthorizatorImp";
 
 	@BeforeMethod
 	public void beforeMethod() {
