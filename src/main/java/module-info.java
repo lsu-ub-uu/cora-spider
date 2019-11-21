@@ -4,7 +4,6 @@ module se.uu.ub.cora.spider {
 	requires transitive se.uu.ub.cora.storage;
 	requires transitive se.uu.ub.cora.search;
 	requires se.uu.ub.cora.logger;
-	requires se.uu.ub.cora.data;
 
 	exports se.uu.ub.cora.spider.authentication;
 	exports se.uu.ub.cora.spider.authorization;
