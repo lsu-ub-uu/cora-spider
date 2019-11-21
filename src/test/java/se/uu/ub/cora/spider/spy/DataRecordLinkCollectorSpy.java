@@ -21,13 +21,14 @@ package se.uu.ub.cora.spider.spy;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 
 public class DataRecordLinkCollectorSpy implements DataRecordLinkCollector {
 
 	public boolean collectLinksWasCalled = false;
 	public String metadataId = null;
 
-	public DataGroup collectedDataLinks = DataGroup.withNameInData("collectedDataLinks");
+	public DataGroup collectedDataLinks = new DataGroupSpy("collectedDataLinks");
 	public String recordType;
 	public String recordId;
 

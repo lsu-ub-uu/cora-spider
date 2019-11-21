@@ -28,6 +28,7 @@ import java.util.Map;
 
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.storage.MetadataStorage;
 import se.uu.ub.cora.storage.MetadataTypes;
@@ -37,7 +38,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage {
-	private DataGroup emptyFilter = DataGroup.withNameInData("filter");
+	private DataGroup emptyFilter = new DataGroupSpy("filter");
 	protected Map<String, Map<String, DataGroup>> records = new HashMap<>();
 	protected Map<String, Map<String, DataGroup>> linkLists = new HashMap<>();
 	protected Map<String, Map<String, Map<String, Map<String, List<DataGroup>>>>> incomingLinks = new HashMap<>();
@@ -250,7 +251,7 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 	public DataGroup readLinkList(String recordType, String recordId) {
 		checkRecordExists(recordType, recordId);
 		if (!linkLists.get(recordType).containsKey(recordId)) {
-			return DataGroup.withNameInData("collectedDataLinks");
+			return new DataGroupSpy("collectedDataLinks");
 		}
 		return linkLists.get(recordType).get(recordId);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,32 +16,36 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.spy;
+package se.uu.ub.cora.spider.data;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.data.DataRecord;
 
-public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
-	public boolean collectTermsWasCalled = false;
-	public String metadataId = null;
+public class DataRecordSpy implements DataRecord {
+
 	public DataGroup dataGroup;
+	public Set<String> keys = new LinkedHashSet<>();
 
-	public DataGroup collectedTerms = new DataGroupSpy("collectedData");
-
-	public List<DataGroup> dataGroups = new ArrayList<>();
+	public DataRecordSpy(DataGroup dataGroup) {
+		this.dataGroup = dataGroup;
+	}
 
 	@Override
-	public DataGroup collectTerms(String metadataId, DataGroup dataGroup) {
-		this.metadataId = metadataId;
-		this.dataGroup = dataGroup;
-		collectTermsWasCalled = true;
-
-		dataGroups.add(dataGroup);
-
-		return collectedTerms;
+	public DataGroup getDataGroup() {
+		return dataGroup;
 	}
+
+	@Override
+	public void addKey(String key) {
+		keys.add(key);
+	}
+
+	@Override
+	public Set<String> getKeys() {
+		return keys;
+	}
+
 }

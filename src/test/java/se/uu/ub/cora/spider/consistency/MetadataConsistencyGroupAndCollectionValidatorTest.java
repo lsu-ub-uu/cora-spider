@@ -24,6 +24,11 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.DataAtomicProvider;
+import se.uu.ub.cora.data.DataGroupFactory;
+import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
+import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.record.DataException;
@@ -37,9 +42,15 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	private MetadataConsistencyValidator validator;
 	private String recordType;
 	private SpiderDataGroup recordAsSpiderDataGroup;
+	private DataGroupFactory dataGroupFactory;
+	private DataAtomicFactorySpy dataAtomicFactory;
 
 	@BeforeMethod
 	public void setUpDefaults() {
+		dataGroupFactory = new DataGroupFactorySpy();
+		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
+		dataAtomicFactory = new DataAtomicFactorySpy();
+		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		recordType = "metadataGroup";
 		recordAsSpiderDataGroup = SpiderDataGroup.withNameInData("nameInData");

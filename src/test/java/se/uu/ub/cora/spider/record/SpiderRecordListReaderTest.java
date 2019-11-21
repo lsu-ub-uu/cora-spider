@@ -35,7 +35,10 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupFactory;
+import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -45,6 +48,10 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.SpiderData;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
@@ -77,11 +84,12 @@ public class SpiderRecordListReaderTest {
 
 	private static final String SOME_USER_TOKEN = "someToken78678567";
 	private static final String SOME_RECORD_TYPE = "place";
+	private DataGroupFactory dataGroupFactory;
+	private DataAtomicFactorySpy dataAtomicFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		loggerFactorySpy = new LoggerFactorySpy();
-		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		setUpFactoriesAndProviders();
 		emptyFilter = SpiderDataGroup.withNameInData("filter");
 		exampleFilter = SpiderDataGroup.withNameInData("filter");
 		authenticator = new AuthenticatorSpy();
@@ -90,6 +98,15 @@ public class SpiderRecordListReaderTest {
 		keyCalculator = new NoRulesCalculatorStub();
 		dataValidator = new DataValidatorAlwaysValidSpy();
 		setUpDependencyProvider();
+	}
+
+	private void setUpFactoriesAndProviders() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataGroupFactory = new DataGroupFactorySpy();
+		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
+		dataAtomicFactory = new DataAtomicFactorySpy();
+		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 	}
 
 	private void setUpDependencyProvider() {
@@ -200,7 +217,7 @@ public class SpiderRecordListReaderTest {
 		recordStorageSpy.start = 3;
 		recordStorageSpy.totalNumberOfMatches = 1500;
 		List<DataGroup> list = new ArrayList<>();
-		list.add(DataGroup.withNameInData("someName"));
+		list.add(new DataGroupSpy("someName"));
 		recordStorageSpy.listOfDataGroups = list;
 
 		SpiderDataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
@@ -306,12 +323,12 @@ public class SpiderRecordListReaderTest {
 	}
 
 	private DataGroup createDataGroupWithRecordInfo() {
-		DataGroup dataGroup = DataGroup.withNameInData("someName");
-		DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
+		DataGroup dataGroup = new DataGroupSpy("someName");
+		DataGroup recordInfo = new DataGroupSpy("recordInfo");
 		dataGroup.addChild(recordInfo);
-		DataGroup typeGroup = DataGroup.withNameInData("type");
+		DataGroup typeGroup = new DataGroupSpy("type");
 		recordInfo.addChild(typeGroup);
-		typeGroup.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", "someType"));
+		typeGroup.addChild(new DataAtomicSpy("linkedRecordId", "someType"));
 		return dataGroup;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2019 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,35 +16,31 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.spider.data;
 
 import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataAtomicProvider;
 
-public final class SpiderDataAtomic implements SpiderDataElement {
+public class DataAtomicSpy implements DataAtomic {
 
-	private String nameInData;
-	private String value;
-	private String repeatId;
+	public String nameInData;
+	public String value;
+	public String repeatId;
 
-	private SpiderDataAtomic(String nameInData, String value) {
+	public DataAtomicSpy(String nameInData, String value) {
 		this.nameInData = nameInData;
 		this.value = value;
 	}
 
-	public static SpiderDataAtomic fromDataAtomic(DataAtomic dataAtomic) {
-		return new SpiderDataAtomic(dataAtomic);
+	public DataAtomicSpy(String nameInData, String value, String repeatId) {
+		this.nameInData = nameInData;
+		this.value = value;
+		this.repeatId = repeatId;
+
 	}
 
-	public static SpiderDataAtomic withNameInDataAndValue(String nameInData, String value) {
-		return new SpiderDataAtomic(nameInData, value);
-	}
-
-	private SpiderDataAtomic(DataAtomic dataAtomic) {
-		nameInData = dataAtomic.getNameInData();
-		value = dataAtomic.getValue();
-		repeatId = dataAtomic.getRepeatId();
+	@Override
+	public String getRepeatId() {
+		return repeatId;
 	}
 
 	@Override
@@ -52,23 +48,15 @@ public final class SpiderDataAtomic implements SpiderDataElement {
 		return nameInData;
 	}
 
+	@Override
 	public String getValue() {
 		return value;
 	}
 
-	public DataAtomic toDataAtomic() {
-		DataAtomic dataAtomic = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(nameInData,
-				value);
-		dataAtomic.setRepeatId(repeatId);
-		return dataAtomic;
-	}
-
+	@Override
 	public void setRepeatId(String repeatId) {
-		this.repeatId = repeatId;
-	}
+		// TODO Auto-generated method stub
 
-	public String getRepeatId() {
-		return repeatId;
 	}
 
 }

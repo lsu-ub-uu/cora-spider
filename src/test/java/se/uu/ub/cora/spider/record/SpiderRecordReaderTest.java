@@ -30,7 +30,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupFactory;
+import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -40,6 +43,8 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
+import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.MetadataStorageProviderSpy;
@@ -65,17 +70,27 @@ public class SpiderRecordReaderTest {
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private DataGroupTermCollector termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
+	private DataGroupFactory dataGroupFactory;
+	private DataAtomicFactorySpy dataAtomicFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		loggerFactorySpy = new LoggerFactorySpy();
-		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		setUpFactoriesAndProviders();
 		authenticator = new AuthenticatorSpy();
 		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
 		termCollector = new DataGroupTermCollectorSpy();
 		setUpDependencyProvider();
+	}
+
+	private void setUpFactoriesAndProviders() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataGroupFactory = new DataGroupFactorySpy();
+		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
+		dataAtomicFactory = new DataAtomicFactorySpy();
+		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 	}
 
 	private void setUpDependencyProvider() {

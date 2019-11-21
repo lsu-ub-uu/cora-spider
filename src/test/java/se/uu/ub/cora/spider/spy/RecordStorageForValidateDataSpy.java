@@ -23,8 +23,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -58,8 +59,8 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 					"No records exists with recordType: " + type + " and recordId " + id);
 		}
 
-		DataGroup dataGroupToReturn = DataGroup.withNameInData("someNameInData");
-		dataGroupToReturn.addChild(DataGroup.withNameInData("recordInfo"));
+		DataGroup dataGroupToReturn = new DataGroupSpy("someNameInData");
+		dataGroupToReturn.addChild(new DataGroupSpy("recordInfo"));
 		return dataGroupToReturn;
 	}
 
@@ -203,23 +204,22 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 
 	private DataGroup createPermissionTermWithIdAndValues(String permissionTermId,
 			String... value) {
-		DataGroup permissionTerm = DataGroup.withNameInData("permissionTermRulePart");
+		DataGroup permissionTerm = new DataGroupSpy("permissionTermRulePart");
 		DataGroup rule = createLinkWithNameInDataRecordtypeAndRecordId("rule",
 				"collectPermissionTerm", permissionTermId);
 		permissionTerm.addChild(rule);
 
 		for (int i = 0; i < value.length; i++) {
-			permissionTerm.addChild(DataAtomic.withNameInDataAndValueAndRepeatId("value", value[i],
-					String.valueOf(i)));
+			permissionTerm.addChild(new DataAtomicSpy("value", value[i], String.valueOf(i)));
 		}
 		return permissionTerm;
 	}
 
 	private DataGroup createLinkWithNameInDataRecordtypeAndRecordId(String nameInData,
 			String linkedRecordType, String linkedRecordId) {
-		DataGroup link = DataGroup.withNameInData(nameInData);
-		link.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", linkedRecordType));
-		link.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", linkedRecordId));
+		DataGroup link = new DataGroupSpy(nameInData);
+		link.addChild(new DataAtomicSpy("linkedRecordType", linkedRecordType));
+		link.addChild(new DataAtomicSpy("linkedRecordId", linkedRecordId));
 		return link;
 	}
 
@@ -229,26 +229,25 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 	}
 
 	private DataGroup createUserRoleWithId(String roleId) {
-		DataGroup outerUserRole = DataGroup.withNameInData("userRole");
-		DataGroup innerUserRole = DataGroup.withNameInData("userRole");
-		innerUserRole
-				.addChild(DataAtomic.withNameInDataAndValue("linkedRecordType", "permissionRole"));
-		innerUserRole.addChild(DataAtomic.withNameInDataAndValue("linkedRecordId", roleId));
+		DataGroup outerUserRole = new DataGroupSpy("userRole");
+		DataGroup innerUserRole = new DataGroupSpy("userRole");
+		innerUserRole.addChild(new DataAtomicSpy("linkedRecordType", "permissionRole"));
+		innerUserRole.addChild(new DataAtomicSpy("linkedRecordId", roleId));
 		outerUserRole.addChild(innerUserRole);
 		return outerUserRole;
 	}
 
 	private DataGroup createUserWithIdAndActiveStatus(String userId, String activeStatus) {
-		DataGroup inactiveUser = DataGroup.withNameInData("user");
-		DataGroup recordInfo = DataGroup.withNameInData("recordInfo");
-		recordInfo.addChild(DataAtomic.withNameInDataAndValue("id", userId));
+		DataGroup inactiveUser = new DataGroupSpy("user");
+		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		recordInfo.addChild(new DataAtomicSpy("id", userId));
 		inactiveUser.addChild(recordInfo);
-		inactiveUser.addChild(DataAtomic.withNameInDataAndValue("activeStatus", activeStatus));
+		inactiveUser.addChild(new DataAtomicSpy("activeStatus", activeStatus));
 		return inactiveUser;
 	}
 
 	private DataGroup createChildWithRecordTypeAndRecordId(String recordType, String recordId) {
-		DataGroup child1 = DataGroup.withNameInData(recordId);
+		DataGroup child1 = new DataGroupSpy(recordId);
 		child1.addChild(
 				DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
 		return child1;

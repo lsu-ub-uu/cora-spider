@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupProvider;
 
 public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 
@@ -119,7 +120,7 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 	}
 
 	public DataGroup toDataGroup() {
-		DataGroup dataGroup = DataGroup.withNameInData(nameInData);
+		DataGroup dataGroup = DataGroupProvider.getDataGroupUsingNameInData(nameInData);
 		dataGroup.setRepeatId(repeatId);
 		addAttributesToDataGroup(dataGroup);
 

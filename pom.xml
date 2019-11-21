@@ -34,9 +34,9 @@
 
 	<properties>
         <logger.version>2.0.0</logger.version>
-		<storage.version>2.1.0</storage.version>
-		<search.version>2.0.0</search.version>
-		<bookkeeper.version>3.0.1</bookkeeper.version>
+		<storage.version>3.0.0</storage.version>
+		<search.version>3.0.0</search.version>
+		<bookkeeper.version>4.0.0</bookkeeper.version>
 		<beefeater.version>2.0.0</beefeater.version>
 		
 	</properties>
