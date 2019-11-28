@@ -19,8 +19,8 @@
 
 package se.uu.ub.cora.spider.extended;
 
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.data.DataGroup;
 
 public interface ExtendedFunctionality {
-	void useExtendedFunctionality(String authToken, SpiderDataGroup spiderDataGroup);
+	void useExtendedFunctionality(String authToken, DataGroup spiderDataGroup);
 }
