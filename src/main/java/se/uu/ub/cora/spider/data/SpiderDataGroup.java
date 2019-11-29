@@ -225,4 +225,31 @@ public class SpiderDataGroup implements SpiderDataElement, SpiderData {
 			String childNameInData) {
 		return dataElement.getNameInData().equals(childNameInData);
 	}
+
+	// TODO: detta ska inte ligga här, tillfällig lösning för att hantera länkbarn
+	// public DataGroup toEnhancedDataGroup() {
+	// DataGroup dataGroup = DataGroupProvider.getDataGroupUsingNameInData(nameInData);
+	// dataGroup.setRepeatId(repeatId);
+	// addAttributesToDataGroup(dataGroup);
+	//
+	// addChildrenToDataGroupWithLinks(dataGroup);
+	//
+	// return dataGroup;
+	// }
+	//
+	// private void addChildrenToDataGroupWithLinks(DataGroup dataGroup) {
+	// for (SpiderDataElement child : children) {
+	// dataGroup.addChild(convertToCorrectDataElementWithLinks(child));
+	// }
+	// }
+	//
+	// private DataElement convertToCorrectDataElementWithLinks(SpiderDataElement child) {
+	// if (child instanceof SpiderDataGroup) {
+	// if (child instanceof SpiderDataRecordLink) {
+	// return ((SpiderDataRecordLink) child).toDataGroup();
+	// }
+	// return ((SpiderDataGroup) child).toDataGroup();
+	// }
+	// return ((SpiderDataAtomic) child).toDataAtomic();
+	// }
 }

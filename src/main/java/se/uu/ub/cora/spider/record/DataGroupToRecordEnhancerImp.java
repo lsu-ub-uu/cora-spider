@@ -66,6 +66,12 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		this.recordType = recordType;
 		this.dataGroup = dataGroup;
 		collectedTerms = getCollectedTermsForRecord(recordType, dataGroup);
+
+		// TODO:ta bort sen, detta är bara tillfälligt för att hantera länkar
+		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
+		DataGroup modifiedDataGroup = spiderDataGroup.toDataGroup();
+		record = DataRecordProvider.getDataRecordWithDataGroup(modifiedDataGroup);
+
 		record = DataRecordProvider.getDataRecordWithDataGroup(dataGroup);
 		handledRecordId = getRecordIdFromDataRecord(record);
 		addActions();
@@ -332,8 +338,12 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean isAuthorizedToReadRecordLink(DataLink spiderDataChild) {
-		String linkedRecordType = spiderDataChild.extractAtomicValue("linkedRecordType");
-		String linkedRecordId = spiderDataChild.extractAtomicValue(LINKED_RECORD_ID);
+		// TODO: inte säker på att de ska kastas till DataGroup, känns som något saknas
+		// antingen metoder i DataLink, eller så ska de vara av en annan typ
+		String linkedRecordType = ((DataGroup) spiderDataChild)
+				.getFirstAtomicValueWithNameInData("linkedRecordType");
+		String linkedRecordId = ((DataGroup) spiderDataChild)
+				.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		if (isPublicRecordType(linkedRecordType)) {
 			return true;
 		}

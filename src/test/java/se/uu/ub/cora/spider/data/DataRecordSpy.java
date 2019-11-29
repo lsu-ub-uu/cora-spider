@@ -18,9 +18,12 @@
  */
 package se.uu.ub.cora.spider.data;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
+import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
 
@@ -28,6 +31,7 @@ public class DataRecordSpy implements DataRecord {
 
 	public DataGroup dataGroup;
 	public Set<String> keys = new LinkedHashSet<>();
+	public List<Action> actions = new ArrayList<>();
 
 	public DataRecordSpy(DataGroup dataGroup) {
 		this.dataGroup = dataGroup;
@@ -46,6 +50,17 @@ public class DataRecordSpy implements DataRecord {
 	@Override
 	public Set<String> getKeys() {
 		return keys;
+	}
+
+	@Override
+	public List<Action> getActions() {
+		return actions;
+	}
+
+	@Override
+	public void addAction(Action action) {
+		actions.add(action);
+
 	}
 
 }
