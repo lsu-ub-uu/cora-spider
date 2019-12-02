@@ -30,9 +30,10 @@ import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.DataRecordProvider;
+import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -313,17 +314,16 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean isLink(DataElement spiderDataChild) {
-		return isRecordLink(spiderDataChild);
-		// || isResourceLink(spiderDataChild);
+		return isRecordLink(spiderDataChild) || isResourceLink(spiderDataChild);
 	}
 
 	private boolean isRecordLink(DataElement spiderDataChild) {
-		return spiderDataChild instanceof DataLink;
+		return spiderDataChild instanceof DataRecordLink;
 	}
 
-	// private boolean isResourceLink(DataElement spiderDataChild) {
-	// return spiderDataChild instanceof SpiderDataResourceLink;
-	// }
+	private boolean isResourceLink(DataElement spiderDataChild) {
+		return spiderDataChild instanceof DataResourceLink;
+	}
 
 	private void possiblyAddReadAction(DataElement spiderDataChild) {
 		if (isAuthorizedToReadLink(spiderDataChild)) {
@@ -392,7 +392,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean isGroup(DataElement spiderDataChild) {
-		return spiderDataChild instanceof SpiderDataGroup;
+		return spiderDataChild instanceof DataGroup;
 	}
 
 }

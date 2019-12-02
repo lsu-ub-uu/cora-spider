@@ -87,8 +87,7 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndLink();
 			}
 			if (id.equals("twoLinksTopLevel")) {
-				return RecordLinkTestsDataCreator.createSpiderDataGroupWithRecordInfoAndTwoLinks()
-						.toDataGroup();
+				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndTwoLinks();
 			}
 			if (id.equals("oneLinkTopLevelNotAuthorized")) {
 				return RecordLinkTestsDataCreator
@@ -100,23 +99,21 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 			}
 			if (id.equals("oneLinkOneLevelDownTargetDoesNotExist")) {
 				return RecordLinkTestsDataCreator
-						.createDataGroupWithRecordInfoAndLinkOneLevelDownTargetDoesNotExist()
-						.toDataGroup();
+						.createDataDataGroupWithRecordInfoAndLinkOneLevelDownTargetDoesNotExist();
 			}
 		}
 		if (type.equals("dataWithResourceLinks")) {
 			if (id.equals("oneResourceLinkTopLevel")) {
-				return RecordLinkTestsDataCreator
-						.createSpiderDataGroupWithRecordInfoAndResourceLink().toDataGroup();
+				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndResourceLink();
 			}
 			if (id.equals("oneResourceLinkOneLevelDown")) {
 				return RecordLinkTestsDataCreator
-						.createDataGroupWithRecordInfoAndResourceLinkOneLevelDown().toDataGroup();
+						.createDataDataGroupWithRecordInfoAndResourceLinkOneLevelDown();
 			}
 		}
 		if (type.equals("toRecordType")) {
 			if (id.equals("recordLinkNotAuthorized")) {
-				return RecordLinkTestsDataCreator.createLinkChildAsRecordDataGroup().toDataGroup();
+				return RecordLinkTestsDataCreator.createLinkChildAsDataRecordDataGroup();
 			}
 		}
 		if (type.equals("search")) {

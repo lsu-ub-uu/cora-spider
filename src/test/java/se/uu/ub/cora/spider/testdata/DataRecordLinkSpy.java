@@ -28,15 +28,15 @@ import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAttribute;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataLink;
+import se.uu.ub.cora.data.DataRecordLink;
 
-public class DataLinkSpy implements DataGroup, DataLink {
+public class DataRecordLinkSpy implements DataGroup, DataRecordLink {
 
 	private String nameInData;
 	public List<DataElement> children = new ArrayList<>();
 	public List<Action> actions = new ArrayList<>();
 
-	public DataLinkSpy(String nameInData) {
+	public DataRecordLinkSpy(String nameInData) {
 		this.nameInData = nameInData;
 	}
 
