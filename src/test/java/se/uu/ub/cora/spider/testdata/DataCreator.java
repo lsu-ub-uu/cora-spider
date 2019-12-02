@@ -102,7 +102,8 @@ public final class DataCreator {
 
 	public static DataGroup createChildWithNamInDataLinkedTypeLinkedId(String nameInData,
 			String linkedRecordType, String id) {
-		DataGroup metadataId = new DataGroupSpy(nameInData);
+		DataLinkSpy metadataId = new DataLinkSpy(nameInData);
+		// DataGroup metadataId = new DataGroupSpy(nameInData);
 		metadataId.addChild(new DataAtomicSpy("linkedRecordType", linkedRecordType));
 		metadataId.addChild(new DataAtomicSpy("linkedRecordId", id));
 		return metadataId;
