@@ -31,8 +31,6 @@ public final class DataCreator2 {
 		typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
 		typeGroup.addChild(new DataAtomicSpy("linkedRecordId", recordType));
 		recordInfo.addChild(typeGroup);
-		// recordInfo.addChild(new DataAtomicSpy("type",
-		// recordType));
 		return recordInfo;
 	}
 
@@ -44,8 +42,41 @@ public final class DataCreator2 {
 		return recordInfo;
 	}
 
+	public static DataGroup createRecordInfoWithIdAndLinkedRecordId(String id,
+			String linkedRecordId) {
+		DataGroup createRecordInfo = new DataGroupSpy("recordInfo");
+		DataGroup dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
+		createRecordInfo.addChild(dataDivider);
+		createRecordInfo.addChild(new DataAtomicSpy("id", id));
+		return createRecordInfo;
+	}
+
+	public static DataGroup createRecordWithNameInDataAndIdAndLinkedRecordId(String nameInData,
+			String id, String linkedRecordId) {
+		DataGroup record = new DataGroupSpy(nameInData);
+		DataGroup createRecordInfo = createRecordInfoWithIdAndLinkedRecordId(id, linkedRecordId);
+		record.addChild(createRecordInfo);
+		return record;
+	}
+
+	// TODO:samordna recordInfos!
+	public static DataGroup createRecordWithNameInDataAndLinkedRecordId(String nameInData,
+			String linkedRecordId) {
+		DataGroup record = new DataGroupSpy(nameInData);
+		DataGroup createRecordInfo = createRecordInfoWithLinkedRecordId(linkedRecordId);
+		record.addChild(createRecordInfo);
+		return record;
+	}
+
+	public static DataGroup createRecordInfoWithLinkedRecordId(String linkedRecordId) {
+		DataGroup createRecordInfo = new DataGroupSpy("recordInfo");
+		DataGroup dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
+		createRecordInfo.addChild(dataDivider);
+		return createRecordInfo;
+	}
+
 	public static DataGroup createDataDividerWithLinkedRecordId(String linkedRecordId) {
-		DataGroup dataDivider = new DataGroupSpy("dataDivider");
+		DataRecordLinkSpy dataDivider = new DataRecordLinkSpy("dataDivider");
 		dataDivider.addChild(new DataAtomicSpy("linkedRecordType", "system"));
 		dataDivider.addChild(new DataAtomicSpy("linkedRecordId", linkedRecordId));
 		return dataDivider;
@@ -63,5 +94,45 @@ public final class DataCreator2 {
 		recordTypeToSearchIn.addChild(new DataAtomicSpy("linkedRecordId", idRecordTypeToSearchIn));
 		search.addChild(recordTypeToSearchIn);
 		return search;
+	}
+
+	public static DataGroup createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+			String nameInData, String id, String recordType, String linkedRecordId) {
+		DataGroup record = new DataGroupSpy(nameInData);
+		DataGroup createRecordInfo = createRecordInfoWithIdAndTypeAndLinkedRecordId(id, recordType,
+				linkedRecordId);
+		record.addChild(createRecordInfo);
+		return record;
+	}
+
+	public static DataGroup createRecordInfoWithIdAndTypeAndLinkedRecordId(String id,
+			String recordType, String linkedRecordId) {
+		DataGroup createRecordInfo = new DataGroupSpy("recordInfo");
+		createRecordInfo.addChild(new DataAtomicSpy("id", id));
+		DataRecordLinkSpy typeGroup = new DataRecordLinkSpy("type");
+		typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
+		typeGroup.addChild(new DataAtomicSpy("linkedRecordId", recordType));
+		createRecordInfo.addChild(typeGroup);
+
+		DataGroup dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
+		createRecordInfo.addChild(dataDivider);
+		return createRecordInfo;
+	}
+
+	public static DataGroup createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(String id,
+			String recordType, String recordId) {
+		DataGroup workOrder = new DataGroupSpy("workOrder");
+		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		recordInfo.addChild(new DataAtomicSpy("id", id));
+		workOrder.addChild(recordInfo);
+
+		DataGroup recordTypeLink = new DataGroupSpy("recordType");
+		recordTypeLink.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
+		recordTypeLink.addChild(new DataAtomicSpy("linkedRecordId", recordType));
+		workOrder.addChild(recordTypeLink);
+
+		workOrder.addChild(new DataAtomicSpy("recordId", recordId));
+		workOrder.addChild(new DataAtomicSpy("type", "index"));
+		return workOrder;
 	}
 }

@@ -64,7 +64,8 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 			DataGroup collectedTerms, DataGroup linkList, String dataDivider) {
 		ensureStorageExistsForRecordType(recordType);
 		checkNoConflictOnRecordId(recordType, recordId);
-		storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
+		// storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
+		storeRecordByRecordTypeAndRecordId(recordType, recordId, record);
 		storeLinks(recordType, recordId, linkList);
 	}
 
@@ -326,7 +327,8 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 			DataGroup collectedTerms, DataGroup linkList, String dataDivider) {
 		checkRecordExists(recordType, recordId);
 		removeIncomingLinks(recordType, recordId);
-		storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
+		// storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
+		storeRecordByRecordTypeAndRecordId(recordType, recordId, record);
 		storeLinks(recordType, recordId, linkList);
 	}
 

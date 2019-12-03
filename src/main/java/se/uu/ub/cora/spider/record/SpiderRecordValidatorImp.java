@@ -68,7 +68,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 	public SpiderDataRecord validateRecord(String authToken, String recordType,
 			SpiderDataGroup validationRecord, SpiderDataGroup recordToValidate) {
 		this.authToken = authToken;
-		this.recordAsSpiderDataGroup = recordToValidate;
+		this.recordAsDataGroup = recordToValidate;
 		this.recordType = recordType;
 		user = tryToGetActiveUser();
 		checkValidationRecordIsOkBeforeValidation(validationRecord);
@@ -185,7 +185,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 	}
 
 	private String extractIdFromData() {
-		return recordAsSpiderDataGroup.extractGroup("recordInfo").extractAtomicValue("id");
+		return recordAsDataGroup.extractGroup("recordInfo").extractAtomicValue("id");
 	}
 
 	private void ensureRecordExistWhenActionToPerformIsUpdate(String recordTypeToValidate,
@@ -242,7 +242,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 
 	private void ensureLinksExist(String recordTypeToValidate, String recordIdToUse,
 			String metadataId) {
-		DataGroup topLevelDataGroup = recordAsSpiderDataGroup.toDataGroup();
+		DataGroup topLevelDataGroup = recordAsDataGroup.toDataGroup();
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
 				recordTypeToValidate, recordIdToUse);
 		checkIfLinksExist(collectedLinks);
@@ -257,7 +257,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata(String metadataId) {
-		DataGroup dataGroup = recordAsSpiderDataGroup.toDataGroup();
+		DataGroup dataGroup = recordAsDataGroup.toDataGroup();
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, dataGroup);
 		possiblyAddErrorMessages(validationAnswer);
 		if (validationResult.containsChildWithNameInData(ERROR_MESSAGES)) {

@@ -19,14 +19,14 @@
 
 package se.uu.ub.cora.spider.consistency;
 
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.data.DataGroup;
 
 public class MetadataConsistencyValidatorSpy implements MetadataConsistencyValidator {
 
 	public boolean validationHasBeenCalled = false;
 
 	@Override
-	public void validateRules(SpiderDataGroup recordAsSpiderDataGroup) {
+	public void validateRules(DataGroup recordAsSpiderDataGroup) {
 		validationHasBeenCalled = true;
 	}
 

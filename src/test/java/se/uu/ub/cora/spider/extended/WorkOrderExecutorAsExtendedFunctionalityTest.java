@@ -30,17 +30,23 @@ import java.util.Set;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupFactory;
+import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
+import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
-import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.spider.testdata.DataCreator2;
 
 public class WorkOrderExecutorAsExtendedFunctionalityTest {
 
@@ -50,9 +56,14 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 	RecordIndexerSpy recordIndexer;
 	AlwaysAuthorisedExceptStub authorizer;
 	AuthenticatorSpy authenticator;
+	private LoggerFactorySpy loggerFactorySpy;
+	private DataGroupFactory dataGroupFactory;
+	private DataAtomicFactorySpy dataAtomicFactory;
 
 	@BeforeMethod
 	public void setUp() {
+		setUpFactoriesAndProviders();
+
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
 		dependencyProvider.searchTermCollector = new DataGroupTermCollectorSpy();
@@ -62,6 +73,15 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 		dependencyProvider.authenticator = new AuthenticatorSpy();
 		dependencyProvider.spiderAuthorizator = new AlwaysAuthorisedExceptStub();
 		setUpDependencyProvider();
+	}
+
+	private void setUpFactoriesAndProviders() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataGroupFactory = new DataGroupFactorySpy();
+		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
+		dataAtomicFactory = new DataAtomicFactorySpy();
+		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 	}
 
 	private void setUpDependencyProvider() {
@@ -75,9 +95,8 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 
 	@Test
 	public void testIndexData() {
-		SpiderDataGroup workOrder = DataCreator
-				.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex("someGeneratedId", "book",
-						"book1");
+		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
+				"someGeneratedId", "book", "book1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
 		assertTrue(termCollector.collectTermsWasCalled);
@@ -102,9 +121,8 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 		recordStorageProviderSpy.recordStorage = new RecordStorageCreateUpdateSpy();
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 		setUpDependencyProvider();
-		SpiderDataGroup workOrder = DataCreator
-				.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex("someGeneratedId", "image",
-						"image1");
+		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
+				"someGeneratedId", "image", "image1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
 		List<String> ids = recordIndexer.ids;
@@ -123,9 +141,8 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 		actions.add("index");
 		authorizer.notAuthorizedForRecordTypeAndActions.put("book", actions);
 
-		SpiderDataGroup workOrder = DataCreator
-				.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex("someGeneratedId", "book",
-						"book1");
+		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
+				"someGeneratedId", "book", "book1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
 		assertFalse(termCollector.collectTermsWasCalled);

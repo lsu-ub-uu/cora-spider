@@ -86,8 +86,8 @@ public class TestDataRecordInMemoryStorage {
 	}
 
 	private static void addSecondPlace(RecordStorage recordsInMemory) {
-		DataGroup dataGroup = DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
-				"authority", "place:0002", "place", "cora").toDataGroup();
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"authority", "place:0002", "place", "cora");
 
 		DataGroup dataRecordLink = new DataGroupSpy("link");
 		dataGroup.addChild(dataRecordLink);
@@ -106,8 +106,8 @@ public class TestDataRecordInMemoryStorage {
 	}
 
 	private static void addFourthPlace(RecordStorage recordsInMemory) {
-		DataGroup dataGroup = DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
-				"authority", "place:0004", "place", "cora").toDataGroup();
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"authority", "place:0004", "place", "cora");
 
 		DataGroup dataRecordLink = new DataGroupSpy("link");
 		dataGroup.addChild(dataRecordLink);

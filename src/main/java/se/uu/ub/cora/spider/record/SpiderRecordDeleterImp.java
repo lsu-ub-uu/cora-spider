@@ -27,7 +27,6 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
@@ -127,13 +126,13 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	}
 
 	private void useExtendedFunctionalityBeforeDelete(String recordType) {
-		SpiderDataGroup readDataGroup = SpiderDataGroup.fromDataGroup(dataGroupReadFromStorage);
+		// SpiderDataGroup readDataGroup = SpiderDataGroup.fromDataGroup(dataGroupReadFromStorage);
 		List<ExtendedFunctionality> functionalityBeforeDelete = extendedFunctionalityProvider
 				.getFunctionalityBeforeDelete(recordType);
-		useExtendedFunctionality(readDataGroup, functionalityBeforeDelete);
+		useExtendedFunctionality(dataGroupReadFromStorage, functionalityBeforeDelete);
 	}
 
-	private void useExtendedFunctionality(SpiderDataGroup readDataGroup,
+	private void useExtendedFunctionality(DataGroup readDataGroup,
 			List<ExtendedFunctionality> functionalityBeforeDelete) {
 		for (ExtendedFunctionality extendedFunctionality : functionalityBeforeDelete) {
 			extendedFunctionality.useExtendedFunctionality(authToken, readDataGroup);

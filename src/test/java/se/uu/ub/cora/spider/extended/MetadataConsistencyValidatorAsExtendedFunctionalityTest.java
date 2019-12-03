@@ -24,7 +24,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidatorSpy;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 
 public class MetadataConsistencyValidatorAsExtendedFunctionalityTest {
 
@@ -33,8 +33,7 @@ public class MetadataConsistencyValidatorAsExtendedFunctionalityTest {
 		MetadataConsistencyValidatorSpy metadataConsistencyValidator = new MetadataConsistencyValidatorSpy();
 		MetadataConsistencyValidatorAsExtendedFunctionality validator = MetadataConsistencyValidatorAsExtendedFunctionality
 				.usingValidator(metadataConsistencyValidator);
-		validator.useExtendedFunctionality("someUserId",
-				SpiderDataGroup.withNameInData("someNameInData"));
+		validator.useExtendedFunctionality("someUserId", new DataGroupSpy("someNameInData"));
 		assertTrue(metadataConsistencyValidator.validationHasBeenCalled);
 	}
 

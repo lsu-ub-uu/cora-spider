@@ -26,6 +26,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.Action;
@@ -64,15 +65,14 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	@Override
-	public SpiderDataList readRecordList(String authToken, String recordType,
-			SpiderDataGroup filter) {
+	public DataList readRecordList(String authToken, String recordType, DataGroup filter) {
 		ensureActiveUserHasListPermissionUsingAuthTokenAndRecordType(authToken, recordType);
 
 		readRecordList = SpiderDataList.withContainDataOfType(recordType);
 		DataGroup recordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordType);
-		DataGroup filterAsDataGroup = filter.toDataGroup();
+		// DataGroup filterAsDataGroup = filter.toDataGroup();
 		validateFilterIfNotEmpty(filter, recordType, recordTypeDataGroup);
-		readRecordsOfType(recordType, filterAsDataGroup, recordTypeDataGroup);
+		readRecordsOfType(recordType, filter, recordTypeDataGroup);
 		readRecordList.setTotalNo(String.valueOf(readResult.totalNumberOfMatches));
 		setFromToInReadRecordList();
 

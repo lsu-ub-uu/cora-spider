@@ -27,13 +27,13 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
@@ -78,17 +78,17 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	@Override
-	public SpiderDataRecord createAndStoreRecord(String authToken, String recordTypeToCreate,
-			SpiderDataGroup spiderDataGroup) {
+	public DataRecord createAndStoreRecord(String authToken, String recordTypeToCreate,
+			DataGroup spiderDataGroup) {
 		this.authToken = authToken;
 		this.recordType = recordTypeToCreate;
-		this.recordAsSpiderDataGroup = spiderDataGroup;
+		this.recordAsDataGroup = spiderDataGroup;
 
 		return validateCreateAndStoreRecord();
 
 	}
 
-	private SpiderDataRecord validateCreateAndStoreRecord() {
+	private DataRecord validateCreateAndStoreRecord() {
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
@@ -98,33 +98,33 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 		checkNoCreateForAbstractRecordType();
 
-		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordAsSpiderDataGroup);
+		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordAsDataGroup);
 
 		validateDataInRecordAsSpecifiedInMetadata();
 
-		useExtendedFunctionalityAfterMetadataValidation(recordType, recordAsSpiderDataGroup);
+		useExtendedFunctionalityAfterMetadataValidation(recordType, recordAsDataGroup);
 
 		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = extractIdFromData();
 
-		DataGroup topLevelDataGroup = recordAsSpiderDataGroup.toDataGroup();
+		// DataGroup topLevelDataGroup = recordAsDataGroup.toDataGroup();
 
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, recordAsDataGroup);
 		checkUserIsAuthorisedToCreateIncomingData(recordType, collectedTerms);
 
-		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
+		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup,
 				recordType, recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
-		createRecordInStorage(topLevelDataGroup, collectedLinks, collectedTerms);
+		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms);
 
 		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
-		recordIndexer.indexData(ids, collectedTerms, topLevelDataGroup);
+		recordIndexer.indexData(ids, collectedTerms, recordAsDataGroup);
 
-		SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
-				.fromDataGroup(topLevelDataGroup);
-		useExtendedFunctionalityBeforeReturn(recordType, spiderDataGroupWithActions);
+		// SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
+		// .fromDataGroup(recordAsDataGroup);
+		useExtendedFunctionalityBeforeReturn(recordType, recordAsDataGroup);
 
-		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);
+		return dataGroupToRecordEnhancer.enhance(user, recordType, recordAsDataGroup);
 	}
 
 	private void tryToGetActiveUser() {
@@ -137,7 +137,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void createRecordInStorage(DataGroup topLevelDataGroup, DataGroup collectedLinks,
 			DataGroup collectedTerms) {
-		String dataDivider = extractDataDividerFromData(recordAsSpiderDataGroup);
+		String dataDivider = extractDataDividerFromData(recordAsDataGroup);
 		recordStorage.create(recordType, recordId, topLevelDataGroup, collectedTerms,
 				collectedLinks, dataDivider);
 	}
@@ -150,26 +150,28 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private String extractIdFromData() {
-		return recordAsSpiderDataGroup.extractGroup("recordInfo").extractAtomicValue("id");
+		return recordAsDataGroup.getFirstGroupWithNameInData("recordInfo")
+				.getFirstAtomicValueWithNameInData("id");
 	}
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {
-		DataGroup record = recordAsSpiderDataGroup.toDataGroup();
+		// DataGroup record = recordAsDataGroup.toDataGroup();
 
-		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, record);
+		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId,
+				recordAsDataGroup);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
 	}
 
 	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
-			SpiderDataGroup spiderDataGroup) {
+			DataGroup spiderDataGroup) {
 		List<ExtendedFunctionality> functionalityForCreateBeforeMetadataValidation = extendedFunctionalityProvider
 				.getFunctionalityForCreateBeforeMetadataValidation(recordTypeToCreate);
 		useExtendedFunctionality(spiderDataGroup, functionalityForCreateBeforeMetadataValidation);
 	}
 
-	private void useExtendedFunctionality(SpiderDataGroup spiderDataGroup,
+	private void useExtendedFunctionality(DataGroup spiderDataGroup,
 			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
 		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
 			extendedFunctionality.useExtendedFunctionality(authToken, spiderDataGroup);
@@ -177,14 +179,14 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
-			SpiderDataGroup spiderDataGroup) {
+			DataGroup spiderDataGroup) {
 		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = extendedFunctionalityProvider
 				.getFunctionalityForCreateAfterMetadataValidation(recordTypeToCreate);
 		useExtendedFunctionality(spiderDataGroup, functionalityForCreateAfterMetadataValidation);
 	}
 
 	private void useExtendedFunctionalityBeforeReturn(String recordTypeToCreate,
-			SpiderDataGroup spiderDataGroup) {
+			DataGroup spiderDataGroup) {
 		List<ExtendedFunctionality> extendedFunctionalityList = extendedFunctionalityProvider
 				.getFunctionalityForCreateBeforeReturn(recordTypeToCreate);
 		useExtendedFunctionality(spiderDataGroup, extendedFunctionalityList);
@@ -192,7 +194,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
 		ensureIdExists(recordType);
-		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
+		DataGroup recordInfo = recordAsDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
 		addTypeToRecordInfo(recordType, recordInfo);
 		addCreatedInfoToRecordInfoUsingUserId(recordInfo, userId);
 		addUpdatedInfoToRecordInfoUsingUserId(recordInfo, userId);
@@ -206,36 +208,37 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void removeIdIfPresentInData() {
-		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
+		DataGroup recordInfo = recordAsDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
 		if (recordInfo.containsChildWithNameInData("id")) {
-			recordInfo.removeChild("id");
+			recordInfo.removeFirstChildWithNameInData("id");
 		}
 	}
 
-	private void addTypeToRecordInfo(String recordType, SpiderDataGroup recordInfo) {
-		SpiderDataGroup type = createTypeDataGroup(recordType);
+	private void addTypeToRecordInfo(String recordType, DataGroup recordInfo) {
+		DataGroup type = createTypeDataGroup(recordType);
 		recordInfo.addChild(type);
 	}
 
-	private void addCreatedInfoToRecordInfoUsingUserId(SpiderDataGroup recordInfo, String userId) {
-		SpiderDataGroup createdByGroup = createLinkToUserUsingUserIdAndNameInData(userId,
-				"createdBy");
+	private void addCreatedInfoToRecordInfoUsingUserId(DataGroup recordInfo, String userId) {
+		DataGroup createdByGroup = createLinkToUserUsingUserIdAndNameInData(userId, "createdBy");
 		recordInfo.addChild(createdByGroup);
 		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
-		recordInfo.addChild(
-				SpiderDataAtomic.withNameInDataAndValue(TS_CREATED, currentLocalDateTime));
+		recordInfo.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_CREATED,
+				currentLocalDateTime));
 	}
 
 	private void generateAndAddIdToRecordInfo(String recordType) {
-		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
-		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id",
+		DataGroup recordInfo = recordAsDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
+		recordInfo.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("id",
 				idGenerator.getIdForType(recordType)));
 	}
 
-	private SpiderDataGroup createTypeDataGroup(String recordType) {
-		SpiderDataGroup type = SpiderDataGroup.withNameInData("type");
-		type.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
-		type.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", recordType));
+	private DataGroup createTypeDataGroup(String recordType) {
+		DataGroup type = DataGroupProvider.getDataGroupUsingNameInData("type");
+		type.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("linkedRecordType",
+				"recordType"));
+		type.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("linkedRecordId",
+				recordType));
 		return type;
 	}
 

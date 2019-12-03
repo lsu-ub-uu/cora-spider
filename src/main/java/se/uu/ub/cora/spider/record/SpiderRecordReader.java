@@ -19,10 +19,10 @@
 
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.data.DataRecord;
 
 public interface SpiderRecordReader {
 
-	SpiderDataRecord readRecord(String authToken, String type, String id);
+	DataRecord readRecord(String authToken, String type, String id);
 
 }

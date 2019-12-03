@@ -40,6 +40,12 @@ public class DataGroupSpy implements DataGroup {
 		this.nameInData = nameInData;
 	}
 
+	public DataGroupSpy(String nameInData, String recordType, String recordId) {
+		this.nameInData = nameInData;
+		addChild(new DataAtomicSpy("linkedRecordType", recordType));
+		addChild(new DataAtomicSpy("linkedRecordId", recordId));
+	}
+
 	@Override
 	public String getRepeatId() {
 		return repeatId;
@@ -153,8 +159,20 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public void removeFirstChildWithNameInData(String childNameInData) {
-		// TODO Auto-generated method stub
+		DataElement foundChild = tryToFindChildToRemove(childNameInData);
+		if (foundChild != null) {
+			children.remove(foundChild);
+		}
+	}
 
+	private DataElement tryToFindChildToRemove(String childNameInData) {
+
+		for (DataElement dataElement : children) {
+			if (childNameInData.equals(dataElement.getNameInData())) {
+				return dataElement;
+			}
+		}
+		return null;
 	}
 
 	@Override

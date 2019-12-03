@@ -22,9 +22,9 @@ package se.uu.ub.cora.spider.record;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public final class SpiderRecordReaderImp extends SpiderRecordHandler implements SpiderRecordReader {
@@ -54,7 +54,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	@Override
-	public SpiderDataRecord readRecord(String authToken, String recordType, String recordId) {
+	public DataRecord readRecord(String authToken, String recordType, String recordId) {
 		this.authToken = authToken;
 		this.recordType = recordType;
 		this.recordId = recordId;

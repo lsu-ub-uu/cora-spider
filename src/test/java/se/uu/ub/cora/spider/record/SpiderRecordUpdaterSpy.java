@@ -19,25 +19,25 @@
 
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.data.DataRecordSpy;
 
 public class SpiderRecordUpdaterSpy implements SpiderRecordUpdater {
 
 	public String authToken;
 	public String type;
 	public String id;
-	public SpiderDataGroup record;
+	public DataGroup record;
 
 	@Override
-	public SpiderDataRecord updateRecord(String authToken, String type, String id,
-			SpiderDataGroup record) {
+	public DataRecord updateRecord(String authToken, String type, String id, DataGroup record) {
 		this.authToken = authToken;
 		this.type = type;
 		this.id = id;
 		this.record = record;
 		// TODO Auto-generated method stub
-		return SpiderDataRecord.withSpiderDataGroup(record);
+		return new DataRecordSpy(record);
 	}
 
 }

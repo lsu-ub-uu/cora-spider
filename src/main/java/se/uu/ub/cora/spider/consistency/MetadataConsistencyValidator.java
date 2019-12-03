@@ -19,10 +19,10 @@
 
 package se.uu.ub.cora.spider.consistency;
 
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.data.DataGroup;
 
 public interface MetadataConsistencyValidator {
 
-	void validateRules(SpiderDataGroup recordAsSpiderDataGroup);
+	void validateRules(DataGroup recordAsSpiderDataGroup);
 
 }

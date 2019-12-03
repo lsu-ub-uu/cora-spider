@@ -135,9 +135,8 @@ public final class DataCreator {
 		return record;
 	}
 
-	public static SpiderDataGroup createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy(
-			String nameInData, String id, String recordType, String linkedRecordId,
-			String createdBy) {
+	public static SpiderDataGroup AndCreatedBy(String nameInData, String id, String recordType,
+			String linkedRecordId, String createdBy) {
 		SpiderDataGroup record = SpiderDataGroup.withNameInData(nameInData);
 		SpiderDataGroup createRecordInfo = createRecordInfoWithIdAndTypeAndLinkedRecordId(id,
 				recordType, linkedRecordId);

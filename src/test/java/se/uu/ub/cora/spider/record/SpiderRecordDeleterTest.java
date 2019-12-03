@@ -44,7 +44,6 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
@@ -176,18 +175,18 @@ public class SpiderRecordDeleterTest {
 		ExtendedFunctionalitySpy extendedFunctionality = extendedFunctionalityProvider.fetchedFunctionalityBeforeDelete
 				.get(0);
 		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
-		SpiderDataGroup dataGoupSentToExtended = extendedFunctionality.dataGroupSentToExtendedFunctionality;
+		DataGroup dataGoupSentToExtended = extendedFunctionality.dataGroupSentToExtendedFunctionality;
 		assertCorrectDataInGroupSentToExtended(recordId, recordType, dataGoupSentToExtended);
 
 	}
 
 	private void assertCorrectDataInGroupSentToExtended(String recordId, String recordType,
-			SpiderDataGroup dataGoupSentToExtended) {
-		SpiderDataGroup recordInfo = dataGoupSentToExtended.extractGroup("recordInfo");
-		String id = recordInfo.extractAtomicValue("id");
+			DataGroup dataGoupSentToExtended) {
+		DataGroup recordInfo = dataGoupSentToExtended.getFirstGroupWithNameInData("recordInfo");
+		String id = recordInfo.getFirstAtomicValueWithNameInData("id");
 		assertEquals(id, recordId);
-		SpiderDataGroup type = recordInfo.extractGroup("type");
-		assertEquals(type.extractAtomicValue("linkedRecordId"), recordType);
+		DataGroup type = recordInfo.getFirstGroupWithNameInData("type");
+		assertEquals(type.getFirstAtomicValueWithNameInData("linkedRecordId"), recordType);
 	}
 
 	@Test(expectedExceptions = MisuseException.class)

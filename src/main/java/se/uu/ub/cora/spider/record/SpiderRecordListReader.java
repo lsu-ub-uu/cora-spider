@@ -19,9 +19,9 @@
 
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataList;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataList;
 
 public interface SpiderRecordListReader {
-	SpiderDataList readRecordList(String authToken, String type, SpiderDataGroup filter);
+	DataList readRecordList(String authToken, String type, DataGroup filter);
 }
