@@ -22,12 +22,13 @@ package se.uu.ub.cora.spider.record;
 import java.io.InputStream;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.storage.RecordIdGenerator;
@@ -38,9 +39,10 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 	private SpiderAuthorizator spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
 	private StreamStorage streamStorage;
-	private SpiderDataGroup spiderRecordRead;
+	// private SpiderDataGroup spiderRecordRead;
 	private String streamId;
 	private DataGroupTermCollector collectTermCollector;
+	private DataGroup recordRead;
 
 	private SpiderUploaderImp(SpiderDependencyProvider dependencyProvider) {
 		authenticator = dependencyProvider.getAuthenticator();
@@ -66,7 +68,7 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 
 		checkRecordTypeIsChildOfBinary();
 
-		DataGroup recordRead = recordStorage.read(type, id);
+		recordRead = recordStorage.read(type, id);
 		// spiderRecordRead = SpiderDataGroup.fromDataGroup(recordRead);
 		checkUserIsAuthorisedToUploadData(recordRead);
 		checkStreamIsPresent(stream);
@@ -132,34 +134,35 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 	}
 
 	private boolean recordHasNoResourceInfo() {
-		return !spiderRecordRead.containsChildWithNameInData(RESOURCE_INFO);
+		return !recordRead.containsChildWithNameInData(RESOURCE_INFO);
 	}
 
 	private void addResourceInfoToMetadataRecord(String fileName, long fileSize) {
-		SpiderDataGroup resourceInfo = SpiderDataGroup.withNameInData(RESOURCE_INFO);
-		spiderRecordRead.addChild(resourceInfo);
+		DataGroup resourceInfo = DataGroupProvider.getDataGroupUsingNameInData(RESOURCE_INFO);
+		recordRead.addChild(resourceInfo);
 
-		SpiderDataGroup master = SpiderDataGroup.withNameInData("master");
+		DataGroup master = DataGroupProvider.getDataGroupUsingNameInData("master");
 		resourceInfo.addChild(master);
 
-		SpiderDataAtomic streamId2 = SpiderDataAtomic.withNameInDataAndValue("streamId", streamId);
+		DataAtomic streamId2 = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("streamId",
+				streamId);
 		master.addChild(streamId2);
 
-		SpiderDataAtomic uploadedFileName = SpiderDataAtomic.withNameInDataAndValue("filename",
-				fileName);
+		DataAtomic uploadedFileName = DataAtomicProvider
+				.getDataAtomicUsingNameInDataAndValue("filename", fileName);
 		master.addChild(uploadedFileName);
 
-		SpiderDataAtomic size = SpiderDataAtomic.withNameInDataAndValue("filesize",
+		DataAtomic size = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("filesize",
 				String.valueOf(fileSize));
 		master.addChild(size);
 
-		SpiderDataAtomic mimeType = SpiderDataAtomic.withNameInDataAndValue("mimeType",
+		DataAtomic mimeType = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("mimeType",
 				"application/octet-stream");
 		master.addChild(mimeType);
 	}
 
 	private void replaceResourceInfoToMetadataRecord(String fileName, long fileSize) {
-		spiderRecordRead.removeChild(RESOURCE_INFO);
+		recordRead.removeFirstChildWithNameInData(RESOURCE_INFO);
 		addResourceInfoToMetadataRecord(fileName, fileSize);
 	}
 }

@@ -18,12 +18,12 @@
  */
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
 
 public interface SpiderRecordValidator {
 
-	SpiderDataRecord validateRecord(String authToken, String recordType,
-			SpiderDataGroup validationRecord, SpiderDataGroup recordToValidate);
+	DataRecord validateRecord(String authToken, String recordType, DataGroup validationRecord,
+			DataGroup recordToValidate);
 
 }

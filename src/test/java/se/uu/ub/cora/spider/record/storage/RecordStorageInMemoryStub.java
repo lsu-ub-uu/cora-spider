@@ -95,11 +95,12 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 		return records.get(recordType).containsKey(recordId);
 	}
 
-	private void storeIndependentRecordByRecordTypeAndRecordId(String recordType, String recordId,
-			DataGroup record) {
-		DataGroup recordIndependentOfEnteredRecord = createIndependentCopy(record);
-		storeRecordByRecordTypeAndRecordId(recordType, recordId, recordIndependentOfEnteredRecord);
-	}
+	// private void storeIndependentRecordByRecordTypeAndRecordId(String recordType, String
+	// recordId,
+	// DataGroup record) {
+	// DataGroup recordIndependentOfEnteredRecord = createIndependentCopy(record);
+	// storeRecordByRecordTypeAndRecordId(recordType, recordId, recordIndependentOfEnteredRecord);
+	// }
 
 	private DataGroup createIndependentCopy(DataGroup record) {
 		return SpiderDataGroup.fromDataGroup(record).toDataGroup();

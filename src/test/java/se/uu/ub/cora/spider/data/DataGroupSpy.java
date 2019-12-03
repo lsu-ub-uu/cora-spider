@@ -77,7 +77,7 @@ public class DataGroupSpy implements DataGroup {
 				}
 			}
 		}
-		return null;
+		throw new DataMissingException("Group not found for childNameInData:" + childNameInData);
 	}
 
 	@Override

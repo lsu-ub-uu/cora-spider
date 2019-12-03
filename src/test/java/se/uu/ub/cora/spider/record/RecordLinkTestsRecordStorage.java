@@ -48,17 +48,16 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 		}
 		if (type.equals("dataWithLinks")) {
 			if (id.equals("oneLinkTopLevel")) {
-				return RecordLinkTestsDataCreator.createSpiderDataGroupWithRecordInfoAndLink()
-						.toDataGroup();
+				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndLink();
 			}
 			if (id.equals("oneLinkOneLevelDown")) {
-				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndLinkOneLevelDown()
-						.toDataGroup();
+				return RecordLinkTestsDataCreator
+						.createDataDataGroupWithRecordInfoAndLinkOneLevelDown();
 			}
 		}
 		if (type.equals("toRecordType")) {
 			if (id.equals("recordLinkNotAuthorized")) {
-				return RecordLinkTestsDataCreator.createLinkChildAsRecordDataGroup().toDataGroup();
+				return RecordLinkTestsDataCreator.createLinkChildAsDataRecordDataGroup();
 			}
 		}
 		return null;

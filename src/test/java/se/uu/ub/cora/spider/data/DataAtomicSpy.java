@@ -55,7 +55,7 @@ public class DataAtomicSpy implements DataAtomic {
 
 	@Override
 	public void setRepeatId(String repeatId) {
-		// TODO Auto-generated method stub
+		this.repeatId = repeatId;
 
 	}
 

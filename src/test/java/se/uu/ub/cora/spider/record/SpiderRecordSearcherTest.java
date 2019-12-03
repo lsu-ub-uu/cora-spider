@@ -31,7 +31,14 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.data.DataAtomicFactory;
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupFactory;
+import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataList;
+import se.uu.ub.cora.data.DataListFactory;
+import se.uu.ub.cora.data.DataListProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
@@ -42,9 +49,10 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataList;
+import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -61,7 +69,7 @@ public class SpiderRecordSearcherTest {
 	private static final String A_SEARCH_ID = "aSearchId";
 	private static final String ANOTHER_SEARCH_ID = "anotherSearchId";
 	private static final String SOME_AUTH_TOKEN = "someToken78678567";
-	private final SpiderDataGroup someSearchData = SpiderDataGroup.withNameInData("search");
+	private final DataGroup someSearchData = new DataGroupSpy("search");
 
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
@@ -73,11 +81,20 @@ public class SpiderRecordSearcherTest {
 	private RecordSearch recordSearch;
 	private DataGroupTermCollector termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
+	private DataGroupFactory dataGroupFactorySpy;
+	private DataAtomicFactory dataAtomicFactorySpy;
+	private DataListFactory dataListFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataGroupFactorySpy = new DataGroupFactorySpy();
+		DataGroupProvider.setDataGroupFactory(dataGroupFactorySpy);
+		dataAtomicFactorySpy = new DataAtomicFactorySpy();
+		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactorySpy);
+		dataListFactory = new DataListFactorySpy();
+		DataListProvider.setDataListFactory(dataListFactory);
 
 		authenticator = new AuthenticatorSpy();
 		authorizationService = new AuthorizatorAlwaysAuthorizedSpy();
@@ -118,25 +135,22 @@ public class SpiderRecordSearcherTest {
 
 	@Test
 	public void testDefaultFromNoSetToOne() {
-		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID,
-				someSearchData);
+		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 		assertEquals(searchResult.getFromNo(), "1");
 	}
 
 	@Test
 	public void testStartRowReadFromInput() throws Exception {
-		someSearchData.addChild(SpiderDataAtomic.withNameInDataAndValue("start", "2"));
+		someSearchData.addChild(new DataAtomicSpy("start", "2"));
 
-		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID,
-				someSearchData);
+		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 
 		assertEquals(searchResult.getFromNo(), "2");
 	}
 
 	@Test
 	public void testReadListAuthenticatedAndAuthorized() {
-		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID,
-				someSearchData);
+		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 		assertNotNull(searchResult);
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizationService);
@@ -199,8 +213,7 @@ public class SpiderRecordSearcherTest {
 				.put("recordType", actions);
 		setUpDependencyProvider();
 
-		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID,
-				someSearchData);
+		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 		assertEquals(searchResult.getDataList().size(),
 				dataGroupToRecordEnhancer.enhancedDataGroups.size());
 		assertEquals(dataGroupToRecordEnhancer.recordType, "place");
@@ -219,7 +232,7 @@ public class SpiderRecordSearcherTest {
 				.put("binary", actions);
 		setUpDependencyProvider();
 
-		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, ANOTHER_SEARCH_ID,
+		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, ANOTHER_SEARCH_ID,
 				someSearchData);
 		int numberOfMatchesFetched = searchResult.getDataList().size();
 		assertEquals(numberOfMatchesFetched, 2);
@@ -235,8 +248,7 @@ public class SpiderRecordSearcherTest {
 
 		setUpDependencyProvider();
 
-		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID,
-				someSearchData);
+		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 
 		assertEquals(searchResult.getTotalNumberOfTypeInStorage(), String.valueOf(searchMatches));
 	}
@@ -249,8 +261,7 @@ public class SpiderRecordSearcherTest {
 
 		setUpDependencyProvider();
 
-		SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID,
-				someSearchData);
+		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 
 		assertEquals(searchResult.getTotalNumberOfTypeInStorage(), String.valueOf(searchMatches));
 	}
@@ -263,10 +274,10 @@ public class SpiderRecordSearcherTest {
 	// setUpDependencyProvider();
 	//
 	// String rowsToRead = "20";
-	// someSearchData.addChild(SpiderDataAtomic.withNameInDataAndValue("rows",
+	// someSearchData.addChild(DataAtomic.withNameInDataAndValue("rows",
 	// rowsToRead));
 	//
-	// SpiderDataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN,
+	// DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN,
 	// A_SEARCH_ID, someSearchData);
 	// assertEquals(searchResult.getFromNo(), "1");
 	// assertEquals(searchResult.getToNo(), rowsToRead);
