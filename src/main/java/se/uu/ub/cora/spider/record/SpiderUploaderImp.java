@@ -23,11 +23,11 @@ import java.io.InputStream;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataAtomic;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.storage.RecordIdGenerator;
@@ -57,7 +57,7 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 	}
 
 	@Override
-	public SpiderDataRecord upload(String authToken, String type, String id, InputStream stream,
+	public DataRecord upload(String authToken, String type, String id, InputStream stream,
 			String fileName) {
 		this.authToken = authToken;
 		this.recordType = type;
@@ -67,19 +67,19 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 		checkRecordTypeIsChildOfBinary();
 
 		DataGroup recordRead = recordStorage.read(type, id);
-		spiderRecordRead = SpiderDataGroup.fromDataGroup(recordRead);
+		// spiderRecordRead = SpiderDataGroup.fromDataGroup(recordRead);
 		checkUserIsAuthorisedToUploadData(recordRead);
 		checkStreamIsPresent(stream);
 		checkFileNameIsPresent(fileName);
 		streamId = idGenerator.getIdForType(type + "Binary");
 
-		String dataDivider = extractDataDividerFromData(spiderRecordRead);
+		String dataDivider = extractDataDividerFromData(recordRead);
 		long fileSize = streamStorage.store(streamId, dataDivider, stream);
 
 		addOrReplaceResourceInfoToMetdataRecord(fileName, fileSize);
 
 		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
-		return spiderRecordUpdater.updateRecord(authToken, type, id, spiderRecordRead);
+		return spiderRecordUpdater.updateRecord(authToken, type, id, recordRead);
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {

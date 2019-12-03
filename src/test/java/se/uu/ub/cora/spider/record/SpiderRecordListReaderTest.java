@@ -41,6 +41,8 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataList;
+import se.uu.ub.cora.data.DataListFactory;
+import se.uu.ub.cora.data.DataListProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
@@ -84,6 +86,7 @@ public class SpiderRecordListReaderTest {
 	private static final String SOME_RECORD_TYPE = "place";
 	private DataGroupFactory dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
+	private DataListFactory dataListFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -105,6 +108,8 @@ public class SpiderRecordListReaderTest {
 		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
 		dataAtomicFactory = new DataAtomicFactorySpy();
 		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
+		dataListFactory = new DataListFactorySpy();
+		DataListProvider.setDataListFactory(dataListFactory);
 	}
 
 	private void setUpDependencyProvider() {

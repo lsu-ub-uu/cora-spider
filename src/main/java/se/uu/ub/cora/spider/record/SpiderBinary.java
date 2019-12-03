@@ -3,7 +3,6 @@ package se.uu.ub.cora.spider.record;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public abstract class SpiderBinary {
@@ -36,10 +35,10 @@ public abstract class SpiderBinary {
 		return parentIdGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
-	protected String extractDataDividerFromData(SpiderDataGroup spiderDataGroup) {
-		SpiderDataGroup recordInfo = spiderDataGroup.extractGroup("recordInfo");
-		SpiderDataGroup dataDivider = recordInfo.extractGroup("dataDivider");
-		return dataDivider.extractAtomicValue("linkedRecordId");
+	protected String extractDataDividerFromData(DataGroup spiderDataGroup) {
+		DataGroup recordInfo = spiderDataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
+		return dataDivider.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	protected void tryToGetActiveUser() {

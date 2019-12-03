@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.data.DataRecordSpy;
@@ -43,9 +44,9 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 		this.dataGroup = dataGroup;
 
 		DataRecord spiderDataGroup = new DataRecordSpy(dataGroup);
-		// if (addReadAction) {
-		// spiderDataGroup.addAction(Action.READ);
-		// }
+		if (addReadAction) {
+			spiderDataGroup.addAction(Action.READ);
+		}
 		return spiderDataGroup;
 	}
 

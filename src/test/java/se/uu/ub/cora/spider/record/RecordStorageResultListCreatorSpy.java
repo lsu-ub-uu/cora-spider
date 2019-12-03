@@ -61,11 +61,11 @@ public class RecordStorageResultListCreatorSpy implements RecordStorage {
 	}
 
 	private StorageReadResult createSpiderReadResult() {
-		StorageReadResult srr = new StorageReadResult();
-		srr.start = start;
-		srr.totalNumberOfMatches = totalNumberOfMatches;
-		srr.listOfDataGroups = listOfDataGroups;
-		return srr;
+		StorageReadResult readResult = new StorageReadResult();
+		readResult.start = start;
+		readResult.totalNumberOfMatches = totalNumberOfMatches;
+		readResult.listOfDataGroups = listOfDataGroups;
+		return readResult;
 	}
 
 	@Override

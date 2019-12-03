@@ -36,6 +36,7 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
@@ -48,7 +49,6 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.RecordIdGeneratorProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
@@ -152,8 +152,8 @@ public class SpiderUploaderTest {
 						"spyId", "cora"));
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 
-		SpiderDataRecord recordUpdated = uploader.upload("someToken78678567", "image",
-				"image:123456789", stream, "someFileName");
+		DataRecord recordUpdated = uploader.upload("someToken78678567", "image", "image:123456789",
+				stream, "someFileName");
 		assertResourceInfoIsCorrect(recordUpdated);
 
 		assertTrue(((RecordStorageSpy) recordStorage).readWasCalled);
@@ -214,8 +214,8 @@ public class SpiderUploaderTest {
 	public void testUploadStream() {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 
-		SpiderDataRecord recordUpdated = uploader.upload("someToken78678567", "image",
-				"image:123456789", stream, "someFileName");
+		DataRecord recordUpdated = uploader.upload("someToken78678567", "image", "image:123456789",
+				stream, "someFileName");
 
 		assertEquals(streamStorage.stream, stream);
 
@@ -238,7 +238,7 @@ public class SpiderUploaderTest {
 		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
 	}
 
-	private void assertStreamStorageCalledCorrectly(SpiderDataRecord recordUpdated) {
+	private void assertStreamStorageCalledCorrectly(DataRecord recordUpdated) {
 		SpiderDataGroup groupUpdated = recordUpdated.getSpiderDataGroup();
 		SpiderDataGroup recordInfo = groupUpdated.extractGroup("recordInfo");
 		SpiderDataGroup dataDivider = recordInfo.extractGroup("dataDivider");
@@ -256,7 +256,7 @@ public class SpiderUploaderTest {
 		assertEquals(size, String.valueOf(streamStorage.size));
 	}
 
-	private void assertResourceInfoIsCorrect(SpiderDataRecord recordUpdated) {
+	private void assertResourceInfoIsCorrect(DataRecord recordUpdated) {
 		SpiderDataGroup groupUpdated = recordUpdated.getSpiderDataGroup();
 
 		SpiderDataGroup resourceInfo = groupUpdated.extractGroup("resourceInfo");

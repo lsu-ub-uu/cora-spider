@@ -25,15 +25,16 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataAtomicProvider;
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
-import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -41,7 +42,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	private RecordStorage recordStorage;
 	private MetadataConsistencyValidator validator;
 	private String recordType;
-	private SpiderDataGroup recordAsSpiderDataGroup;
+	private DataGroup recordAsSpiderDataGroup;
 	private DataGroupFactory dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
 
@@ -53,7 +54,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		recordType = "metadataGroup";
-		recordAsSpiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
+		recordAsSpiderDataGroup = new DataGroupSpy("nameInData");
 	}
 
 	private void setUpDependencies() {
@@ -64,12 +65,10 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: childItem: childTwo does not exist in parent")
 	public void testMetadataGroupChildDoesNotExistInParent() {
 		recordStorage = new RecordStorageCreateUpdateSpy();
-		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithTwoChildren();
-		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
-		refParentId.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
-		refParentId
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testGroup"));
+		recordAsSpiderDataGroup = DataCreator2.createMetadataGroupWithTwoChildren();
+		DataGroup refParentId = new DataGroupSpy("refParentId");
+		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testGroup"));
 		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
 		validator.validateRules(recordAsSpiderDataGroup);
@@ -78,12 +77,10 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testMetadataGroupChildWithDifferentIdButSameNameInDataExistInParent() {
 
-		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithTwoChildren();
-		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
-		refParentId.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
-				"testGroupWithTwoChildren"));
+		recordAsSpiderDataGroup = DataCreator2.createMetadataGroupWithTwoChildren();
+		DataGroup refParentId = new DataGroupSpy("refParentId");
+		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testGroupWithTwoChildren"));
 		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
 		exceptNoException();
@@ -99,12 +96,10 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 
 	@Test
 	public void testMetadataGroupChildWithOneChild() {
-		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithOneChild();
-		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
-		refParentId.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
-		refParentId.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "testGroupWithOneChild"));
+		recordAsSpiderDataGroup = DataCreator2.createMetadataGroupWithOneChild();
+		DataGroup refParentId = new DataGroupSpy("refParentId");
+		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testGroupWithOneChild"));
 
 		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
@@ -113,13 +108,11 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: referenced child:  does not exist")
 	public void testMetadataGroupChildDoesNotExistInStorage() {
-		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithThreeChildren();
+		recordAsSpiderDataGroup = DataCreator2.createMetadataGroupWithThreeChildren();
 
-		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
-		refParentId.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
-				"testGroupWithThreeChildren"));
+		DataGroup refParentId = new DataGroupSpy("refParentId");
+		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testGroupWithThreeChildren"));
 
 		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
@@ -128,13 +121,11 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 
 	@Test
 	public void testMetadataGroupChildDoesNotExistInStorageExceptionIsSentAlong() {
-		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithThreeChildren();
+		recordAsSpiderDataGroup = DataCreator2.createMetadataGroupWithThreeChildren();
 
-		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
-		refParentId.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
-				"testGroupWithThreeChildren"));
+		DataGroup refParentId = new DataGroupSpy("refParentId");
+		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testGroupWithThreeChildren"));
 
 		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
@@ -148,13 +139,12 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: childItem: thatItem does not exist in parent")
 	public void testCollectionVariableItemDoesNotExistInParent() {
 		recordType = "metadataCollectionVariable";
-		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
+		recordAsSpiderDataGroup = DataCreator2.createMetadataGroupWithCollectionVariableAsChild();
 
-		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
+		DataGroup refParentId = new DataGroupSpy("refParentId");
+		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
 		refParentId.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
-				"testParentMissingItemCollectionVar"));
+				new DataAtomicSpy("linkedRecordId", "testParentMissingItemCollectionVar"));
 
 		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
@@ -164,13 +154,11 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testCollectionVariableItemExistInParent() {
 		recordType = "metadataCollectionVariable";
-		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
+		recordAsSpiderDataGroup = DataCreator2.createMetadataGroupWithCollectionVariableAsChild();
 
-		SpiderDataGroup refParentId = SpiderDataGroup.withNameInData("refParentId");
-		refParentId.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "metadataGroup"));
-		refParentId.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
-				"testParentCollectionVar"));
+		DataGroup refParentId = new DataGroupSpy("refParentId");
+		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testParentCollectionVar"));
 
 		recordAsSpiderDataGroup.addChild(refParentId);
 		setUpDependencies();
@@ -180,10 +168,9 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testCollectionVariableFinalValueExistInCollection() {
 		recordType = "metadataCollectionVariable";
-		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
+		recordAsSpiderDataGroup = DataCreator2.createMetadataGroupWithCollectionVariableAsChild();
 
-		recordAsSpiderDataGroup
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("finalValue", "that"));
+		recordAsSpiderDataGroup.addChild(new DataAtomicSpy("finalValue", "that"));
 		setUpDependencies();
 		exceptNoException();
 	}
@@ -191,10 +178,9 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: final value does not exist in collection")
 	public void testCollectionVariableFinalValueDoesNotExistInCollection() {
 		recordType = "metadataCollectionVariable";
-		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithCollectionVariableAsChild();
+		recordAsSpiderDataGroup = DataCreator2.createMetadataGroupWithCollectionVariableAsChild();
 
-		recordAsSpiderDataGroup
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("finalValue", "doesNotExist"));
+		recordAsSpiderDataGroup.addChild(new DataAtomicSpy("finalValue", "doesNotExist"));
 		setUpDependencies();
 		validator.validateRules(recordAsSpiderDataGroup);
 	}
@@ -202,10 +188,9 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testMetadataTypeThatHasNoInheritanceRules() {
 		recordType = "metadataRecordLink";
-		recordAsSpiderDataGroup = DataCreator.createMetadataGroupWithRecordLinkAsChild();
+		recordAsSpiderDataGroup = DataCreator2.createMetadataGroupWithRecordLinkAsChild();
 
-		recordAsSpiderDataGroup.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("refParentId", "testParentRecordLink"));
+		recordAsSpiderDataGroup.addChild(new DataAtomicSpy("refParentId", "testParentRecordLink"));
 		setUpDependencies();
 		exceptNoException();
 	}

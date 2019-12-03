@@ -123,11 +123,11 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	// remove when method can be changed in recordhandler
-	protected String extractDataDividerFromData(DataGroup spiderDataGroup) {
-		DataGroup recordInfo = topDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
-		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
-		return dataDivider.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-	}
+	// protected String extractDataDividerFromData(DataGroup spiderDataGroup) {
+	// DataGroup recordInfo = topDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
+	// DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
+	// return dataDivider.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	// }
 
 	private User tryToGetActiveUser() {
 		return authenticator.getUserForToken(authToken);

@@ -27,12 +27,10 @@ import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataList;
+import se.uu.ub.cora.data.DataListProvider;
+import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.Action;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataList;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.storage.StorageReadResult;
 
@@ -42,7 +40,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	private static final String LIST = "list";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
-	private SpiderDataList readRecordList;
+	private DataList readRecordList;
 	private String authToken;
 	private User user;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
@@ -68,7 +66,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	public DataList readRecordList(String authToken, String recordType, DataGroup filter) {
 		ensureActiveUserHasListPermissionUsingAuthTokenAndRecordType(authToken, recordType);
 
-		readRecordList = SpiderDataList.withContainDataOfType(recordType);
+		readRecordList = DataListProvider.getDataListWithNameOfDataType(recordType);
 		DataGroup recordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordType);
 		// DataGroup filterAsDataGroup = filter.toDataGroup();
 		validateFilterIfNotEmpty(filter, recordType, recordTypeDataGroup);
@@ -104,20 +102,20 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		user = authenticator.getUserForToken(authToken);
 	}
 
-	private void validateFilterIfNotEmpty(SpiderDataGroup filter, String recordType,
+	private void validateFilterIfNotEmpty(DataGroup filter, String recordType,
 			DataGroup recordTypeDataGroup) {
 		if (filterIsNotEmpty(filter)) {
 			validateFilter(filter, recordType, recordTypeDataGroup);
 		}
 	}
 
-	private boolean filterIsNotEmpty(SpiderDataGroup filter) {
+	private boolean filterIsNotEmpty(DataGroup filter) {
 		return filter.containsChildWithNameInData("part")
 				|| filter.containsChildWithNameInData("start")
 				|| filter.containsChildWithNameInData("rows");
 	}
 
-	private void validateFilter(SpiderDataGroup filter, String recordType,
+	private void validateFilter(DataGroup filter, String recordType,
 			DataGroup recordTypeDataGroup) {
 		throwErrorIfRecordTypeHasNoDefinedFilter(recordType, recordTypeDataGroup);
 
@@ -125,10 +123,8 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		validateFilterAsSpecifiedInMetadata(filter, filterMetadataId);
 	}
 
-	private void validateFilterAsSpecifiedInMetadata(SpiderDataGroup filter,
-			String filterMetadataId) {
-		ValidationAnswer validationAnswer = dataValidator.validateData(filterMetadataId,
-				filter.toDataGroup());
+	private void validateFilterAsSpecifiedInMetadata(DataGroup filter, String filterMetadataId) {
+		ValidationAnswer validationAnswer = dataValidator.validateData(filterMetadataId, filter);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
@@ -181,10 +177,10 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	private void enhanceDataGroupAndAddToRecordList(DataGroup dataGroup,
 			String recordTypeForRecord) {
-		SpiderDataRecord spiderDataRecord = dataGroupToRecordEnhancer.enhance(user,
-				recordTypeForRecord, dataGroup);
-		if (spiderDataRecord.getActions().contains(Action.READ)) {
-			readRecordList.addData(spiderDataRecord);
+		DataRecord dataRecord = dataGroupToRecordEnhancer.enhance(user, recordTypeForRecord,
+				dataGroup);
+		if (dataRecord.getActions().contains(se.uu.ub.cora.data.Action.READ)) {
+			readRecordList.addData(dataRecord);
 		}
 	}
 

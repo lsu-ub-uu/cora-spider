@@ -189,8 +189,8 @@ public class SpiderRecordUpdaterTest {
 
 	private void assertUpdatedRepeatIdsInGroupAsListed(DataRecord updatedRecord,
 			String... expectedRepeatIds) {
-		DataGroup updatedDataGroup = updatedRecord.getSpiderDataGroup();
-		DataGroup updatedRecordInfo = updatedDataGroup.extractGroup("recordInfo");
+		DataGroup updatedDataGroup = updatedRecord.getDataGroup();
+		DataGroup updatedRecordInfo = updatedDataGroup.getFirstGroupWithNameInData("recordInfo");
 
 		List<DataGroup> updatedGroups = updatedRecordInfo.getAllGroupsWithNameInData("updated");
 		assertEquals(updatedGroups.size(), expectedRepeatIds.length);

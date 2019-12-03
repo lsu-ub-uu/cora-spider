@@ -26,15 +26,15 @@ import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.search.SearchResult;
 import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.spider.testdata.DataCreator2;
 
 public class RecordSearchSpy implements RecordSearch {
 
 	List<List<String>> listOfLists = new ArrayList<>();
 	List<DataGroup> listOfSearchData = new ArrayList<>();
-	public DataGroup place44 = DataCreator
+	public DataGroup place44 = DataCreator2
 			.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("place", "place44",
-					"place", "systemOne", "someUserId")
-			.toDataGroup();
+					"place", "systemOne", "someUserId");
 	public long totalNumberOfMatches = 1;
 
 	@Override
