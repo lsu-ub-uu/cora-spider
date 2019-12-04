@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,8 +18,23 @@
  */
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.data.DataList;
+import java.util.ArrayList;
+import java.util.List;
 
-public interface SpiderRecordIncomingLinksReader {
-	DataList readIncomingLinks(String authToken, String type, String id);
+import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.copier.DataCopier;
+import se.uu.ub.cora.data.copier.DataCopierFactory;
+
+public class DataCopierFactorySpy implements DataCopierFactory {
+	public List<DataElement> dataElements = new ArrayList<>();
+	public List<DataCopierSpy> factoredDataCopiers = new ArrayList<>();
+
+	@Override
+	public DataCopier factorForDataElement(DataElement dataElement) {
+		dataElements.add(dataElement);
+		DataCopierSpy dataCopier = new DataCopierSpy(dataElement);
+		factoredDataCopiers.add(dataCopier);
+		return dataCopier;
+	}
+
 }

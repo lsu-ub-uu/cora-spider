@@ -23,6 +23,6 @@ import se.uu.ub.cora.data.DataGroup;
 
 public interface MetadataConsistencyValidator {
 
-	void validateRules(DataGroup recordAsSpiderDataGroup);
+	void validateRules(DataGroup recordAsDataGroup);
 
 }

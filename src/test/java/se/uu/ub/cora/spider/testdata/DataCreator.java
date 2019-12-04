@@ -118,7 +118,8 @@ public final class DataCreator {
 	public static DataGroup createRecordInfoWithRecordTypeAndRecordId(String recordType,
 			String recordId) {
 		DataGroup recordInfo = new DataGroupSpy("recordInfo");
-		DataGroup typeGroup = new DataGroupSpy("type");
+		DataRecordLinkSpy typeGroup = new DataRecordLinkSpy("type");
+		// DataGroup typeGroup = new DataGroupSpy("type");
 		typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
 		typeGroup.addChild(new DataAtomicSpy("linkedRecordId", recordType));
 		recordInfo.addChild(typeGroup);

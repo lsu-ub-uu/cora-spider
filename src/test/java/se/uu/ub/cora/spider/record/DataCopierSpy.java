@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,8 +18,28 @@
  */
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.data.DataList;
+import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.copier.DataCopier;
 
-public interface SpiderRecordIncomingLinksReader {
-	DataList readIncomingLinks(String authToken, String type, String id);
+public class DataCopierSpy implements DataCopier {
+
+	private DataElement dataElement;
+
+	public DataCopierSpy(DataElement dataElement) {
+		this.dataElement = dataElement;
+	}
+
+	@Override
+	public DataElement copy() {
+		// if (dataElement instanceof DataRecordLink) {
+		// return dataElement;
+		// return new DataRecordLinkSpy(dataElement.getNameInData());
+		// }
+		// if (dataElement instanceof DataGroup) {
+		return dataElement;
+		// return new DataGroupSpy(dataElement.getNameInData());
+	}
+	// return null;
+	// }
+
 }

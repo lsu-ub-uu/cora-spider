@@ -43,7 +43,6 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 	@Override
 	public void validateRules(DataGroup recordAsDataGroup) {
 		this.recordAsDataGroup = recordAsDataGroup;
-		// recordAsDataGroup = recordAsSpiderDataGroup.toDataGroup();
 		if (dataGroupHasParent()) {
 			validateInheritanceRules();
 		}
