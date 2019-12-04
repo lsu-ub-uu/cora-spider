@@ -24,8 +24,6 @@ import java.util.List;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.search.SearchResult;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 
 public class RecordSearchSpy implements RecordSearch {
@@ -49,15 +47,15 @@ public class RecordSearchSpy implements RecordSearch {
 		spiderSearchResult.totalNumberOfMatches = totalNumberOfMatches;
 
 		if (list.contains("image")) {
-			SpiderDataGroup image44 = DataCreator
+			DataGroup image44 = DataCreator2
 					.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("image",
 							"image44", "image", "systemOne", "someUserId");
-			spiderSearchResult.listOfDataGroups.add(image44.toDataGroup());
+			spiderSearchResult.listOfDataGroups.add(image44);
 
-			SpiderDataGroup image45 = DataCreator
+			DataGroup image45 = DataCreator2
 					.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy("binary",
 							"binary45", "binary", "systemOne", "someUserId");
-			spiderSearchResult.listOfDataGroups.add(image45.toDataGroup());
+			spiderSearchResult.listOfDataGroups.add(image45);
 		}
 		return spiderSearchResult;
 	}

@@ -27,6 +27,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.storage.MetadataStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -143,8 +144,8 @@ public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 		}
 
 		if ("image".equals(type) && "image:123456789".equals(id)) {
-			return DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("image",
-					"image:123456789", "image", "cora").toDataGroup();
+			return DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("image",
+					"image:123456789", "image", "cora");
 		}
 		if ("recordType".equals(type) && "book".equals(id)) {
 			DataGroup book = new DataGroupSpy("recordType");
@@ -161,9 +162,8 @@ public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 
 		if ("book".equals(type) && "book1".equals(id)) {
 			DataGroup book = new DataGroupSpy("book");
-			DataGroup recordInfo = DataCreator
-					.createRecordInfoWithIdAndTypeAndLinkedRecordId("book1", "book", "testSystem")
-					.toDataGroup();
+			DataGroup recordInfo = DataCreator2
+					.createRecordInfoWithIdAndTypeAndLinkedRecordId("book1", "book", "testSystem");
 			book.addChild(recordInfo);
 			return book;
 

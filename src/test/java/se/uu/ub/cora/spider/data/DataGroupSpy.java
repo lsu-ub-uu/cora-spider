@@ -65,7 +65,7 @@ public class DataGroupSpy implements DataGroup {
 				}
 			}
 		}
-		return null;
+		throw new DataMissingException("Atomic value not found for childNameInData:" + nameInData);
 	}
 
 	@Override

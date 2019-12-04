@@ -25,7 +25,7 @@ import java.util.Collection;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
@@ -305,8 +305,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			return group;
 		}
 		if ("image".equals(type) && "image:123456789".equals(id)) {
-			return DataCreator.createRecordWithNameInDataAndIdAndLinkedRecordId("image",
-					"image:123456789", "cora").toDataGroup();
+			return DataCreator2.createRecordWithNameInDataAndIdAndLinkedRecordId("image",
+					"image:123456789", "cora");
 		}
 		DataGroup dataGroupToReturn = new DataGroupSpy("someNameInData");
 		dataGroupToReturn.addChild(new DataGroupSpy("recordInfo"));

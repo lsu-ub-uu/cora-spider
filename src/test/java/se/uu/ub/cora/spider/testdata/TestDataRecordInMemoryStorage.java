@@ -98,8 +98,8 @@ public class TestDataRecordInMemoryStorage {
 	}
 
 	private static void addThirdPlace(RecordStorage recordsInMemory) {
-		DataGroup dataGroup = DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
-				"authority", "place:0003", "place", "cora").toDataGroup();
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"authority", "place:0003", "place", "cora");
 
 		DataGroup collectedLinksList = new DataGroupSpy("collectedLinksList");
 		recordsInMemory.create("place", "place:0003", dataGroup, null, collectedLinksList, "cora");
@@ -257,8 +257,8 @@ public class TestDataRecordInMemoryStorage {
 	}
 
 	private static void addImageOne(RecordStorageInMemoryStub recordsInMemory) {
-		DataGroup dataGroup = DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
-				"image", "image:123456789", "image", "cora").toDataGroup();
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"image", "image:123456789", "image", "cora");
 		DataGroup resourceInfo = new DataGroupSpy("resourceInfo");
 		dataGroup.addChild(resourceInfo);
 		DataGroup master = new DataGroupSpy("master");
