@@ -184,11 +184,10 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		DataGroup spiderDataGroup = new DataGroupSpy("nameInData");
-		spiderDataGroup.addChild(
-				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
-						"spyId", "cora"));
-		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", spiderDataGroup);
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
+		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
 		assertEquals(dataGroupToRecordEnhancer.recordType, "spyType");
 		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
@@ -201,11 +200,11 @@ public class SpiderRecordUpdaterTest {
 		dataValidator = new DataValidatorForRecordInfoSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		DataGroup spiderDataGroup = new DataGroupSpy("someRecordDataGroup");
-		addRecordInfo(spiderDataGroup);
+		DataGroup dataGroup = new DataGroupSpy("someRecordDataGroup");
+		addRecordInfo(dataGroup);
 
 		DataRecord updatedOnce = recordUpdater.updateRecord("someToken78678567", "spyType", "spyId",
-				spiderDataGroup);
+				dataGroup);
 
 		assertUpdatedRepeatIdsInGroupAsListed(updatedOnce, "0");
 		assertCorrectUserInfo(updatedOnce);
@@ -295,29 +294,17 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageUpdateMultipleTimesSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		DataGroup spiderDataGroup = new DataGroupSpy("nameInData");
-		addRecordInfo(spiderDataGroup);
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		addRecordInfo(dataGroup);
 
 		DataRecord updatedOnceRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
-				"spyId", spiderDataGroup);
+				"spyId", dataGroup);
 		assertCorrectUserInfo(updatedOnceRecord);
-
-		DataGroup updatedOnce = updatedOnceRecord.getDataGroup();
-		DataGroup recordInfo = updatedOnce.getFirstGroupWithNameInData("recordInfo");
-
-		// DataGroup secondUpdated = new DataGroupSpy("updated");
-		// secondUpdated.setRepeatId("334");
-		// recordInfo.addChild(secondUpdated);
 
 		updateStorageToReturnDataGroupIncludingUpdateInfo();
 		DataRecord updatedTwice = recordUpdater.updateRecord("someToken78678567", "spyType",
-				"spyId", spiderDataGroup);
+				"spyId", dataGroup);
 		assertUpdatedRepeatIdsInGroupAsListed(updatedTwice, "0", "1");
-	}
-
-	private void setUpdatedRecordInStorageSpyToReturnOnRead(DataRecord updatedRecord) {
-		RecordStorageUpdateMultipleTimesSpy storageSpy = (RecordStorageUpdateMultipleTimesSpy) recordStorage;
-		storageSpy.recordToReturnOnRead = updatedRecord.getDataGroup();
 	}
 
 	@Test
@@ -325,9 +312,9 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageUpdateMultipleTimesSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		DataGroup spiderDataGroup = new DataGroupSpy("nameInData");
-		addRecordInfo(spiderDataGroup);
-		DataGroup recordInfo = spiderDataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		addRecordInfo(dataGroup);
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup updated = new DataGroupSpy("updated");
 		updated.setRepeatId("0");
 		DataRecordLink updatedBy = new DataRecordLinkSpy("updatedBy");
@@ -337,31 +324,13 @@ public class SpiderRecordUpdaterTest {
 
 		updateStorageToReturnDataGroupIncludingUpdateInfo();
 		DataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
-				"spyId", spiderDataGroup);
+				"spyId", dataGroup);
 
 		DataGroup firstUpdated = getFirstUpdatedInfo(updatedRecord);
 		String firstTsUpdated = firstUpdated.getFirstAtomicValueWithNameInData("tsUpdated");
 		String correctTsUpdated = "2014-12-18 20:20:38.346";
 
-		// setUpdatedRecordInStorageSpyToReturnOnRead(updatedRecord);
-
-		// changeUpdatedValue(firstUpdated);
-		// DataRecord recordAlreadyContainingUpdateInfo = recordUpdater.updateRecord(
-		// "someToken78678567", "spyType", "spyId", updatedRecord.getDataGroup());
-		//
-		// DataGroup updatedRecordInfo = getRecordInfo(recordAlreadyContainingUpdateInfo);
-		// List<DataGroup> updatedGroups = updatedRecordInfo.getAllGroupsWithNameInData("updated");
-		// assertEquals(updatedGroups.size(), 2);
-		//
-		// DataGroup firstUpdated2 = updatedRecordInfo.getFirstGroupWithNameInData("updated");
-		// String tsUpdated = firstUpdated2.getFirstAtomicValueWithNameInData("tsUpdated");
-		//
-		// assertEquals(tsUpdated, correctTsUpdated);
-	}
-
-	private DataGroup getRecordInfo(DataRecord record) {
-		DataGroup updatedSpiderDataGroup = record.getDataGroup();
-		return updatedSpiderDataGroup.getFirstGroupWithNameInData("recordInfo");
+		assertEquals(firstTsUpdated, correctTsUpdated);
 	}
 
 	private DataGroup getFirstUpdatedInfo(DataRecord updatedRecord) {
@@ -369,11 +338,6 @@ public class SpiderRecordUpdaterTest {
 				.getFirstGroupWithNameInData("recordInfo");
 		DataGroup firstUpdated = updatedRecordInfo.getFirstGroupWithNameInData("updated");
 		return firstUpdated;
-	}
-
-	private void changeUpdatedValue(DataGroup firstUpdated) {
-		firstUpdated.removeFirstChildWithNameInData("tsUpdated");
-		firstUpdated.addChild(new DataAtomicSpy("tsUpdated", "someAlteredValue"));
 	}
 
 	@Test
@@ -411,11 +375,9 @@ public class SpiderRecordUpdaterTest {
 	public void testAuthenticationNotAuthenticated() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		DataGroup spiderDataGroup = DataCreator2
-				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("nameInData", "spyId",
-						"spyType", "cora");
-		recordUpdater.updateRecord("dummyNonAuthenticatedToken", "spyType", "spyId",
-				spiderDataGroup);
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"nameInData", "spyId", "spyType", "cora");
+		recordUpdater.updateRecord("dummyNonAuthenticatedToken", "spyType", "spyId", dataGroup);
 	}
 
 	@Test
@@ -428,14 +390,13 @@ public class SpiderRecordUpdaterTest {
 				.put("spyType", hashSet);
 		setUpDependencyProvider();
 
-		DataGroup spiderDataGroup = new DataGroupSpy("nameInData");
-		spiderDataGroup.addChild(
-				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
-						"spyId", "cora"));
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
 
 		boolean exceptionWasCaught = false;
 		try {
-			recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", spiderDataGroup);
+			recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 		} catch (Exception e) {
 			assertEquals(e.getClass(), AuthorizationException.class);
 			exceptionWasCaught = true;
@@ -454,11 +415,11 @@ public class SpiderRecordUpdaterTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		DataGroup spiderDataGroup = DataCreator2
+		DataGroup dataGroup = DataCreator2
 				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("nameInData", "spyId",
 						"spyType", "cora");
 		String authToken = "someToken78678567";
-		recordUpdater.updateRecord(authToken, "spyType", "spyId", spiderDataGroup);
+		recordUpdater.updateRecord(authToken, "spyType", "spyId", dataGroup);
 
 		assertFetchedFunctionalityHasBeenCalled(authToken,
 				extendedFunctionalityProvider.fetchedFunctionalityForUpdateBeforeMetadataValidation);

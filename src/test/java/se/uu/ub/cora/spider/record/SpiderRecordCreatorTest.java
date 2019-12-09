@@ -158,9 +158,9 @@ public class SpiderRecordCreatorTest {
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		DataGroup spiderDataGroup = DataCreator2
+		DataGroup dataGroup = DataCreator2
 				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
-		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", spiderDataGroup);
+		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 
 		assertTrue(((AuthenticatorSpy) authenticator).authenticationWasCalled);
 		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator).authorizedWasCalled);
@@ -173,11 +173,11 @@ public class SpiderRecordCreatorTest {
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyTypeNew");
 
-		assertCorrectSearchTermCollectorAndIndexer(spiderDataGroup);
+		assertCorrectSearchTermCollectorAndIndexer(dataGroup);
 
 	}
 
-	private void assertCorrectSearchTermCollectorAndIndexer(DataGroup spiderDataGroup) {
+	private void assertCorrectSearchTermCollectorAndIndexer(DataGroup dataGroup) {
 		DataGroupTermCollectorSpy searchTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
 		assertEquals(searchTermCollectorSpy.metadataId, "spyTypeNew");
 		assertTrue(searchTermCollectorSpy.collectTermsWasCalled);
@@ -194,9 +194,9 @@ public class SpiderRecordCreatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		setUpDependencyProvider();
-		DataGroup spiderDataGroup = DataCreator2
+		DataGroup dataGroup = DataCreator2
 				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
-		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", spiderDataGroup);
+		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
 		assertEquals(dataGroupToRecordEnhancer.recordType, "spyType");
 		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
@@ -207,10 +207,10 @@ public class SpiderRecordCreatorTest {
 	public void testAuthenticationNotAuthenticated() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		DataGroup spiderDataGroup = DataCreator2
+		DataGroup dataGroup = DataCreator2
 				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
 		recordCreator.createAndStoreRecord("dummyNonAuthenticatedToken", "spyType",
-				spiderDataGroup);
+				dataGroup);
 	}
 
 	@Test
@@ -222,10 +222,10 @@ public class SpiderRecordCreatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		setUpDependencyProvider();
-		DataGroup spiderDataGroup = DataCreator2
+		DataGroup dataGroup = DataCreator2
 				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
 		String authToken = "someToken78678567";
-		recordCreator.createAndStoreRecord(authToken, "spyType", spiderDataGroup);
+		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
 
 		assertFetchedFunctionalityHasBeenCalled(authToken,
 				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeMetadataValidation);
@@ -241,10 +241,10 @@ public class SpiderRecordCreatorTest {
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		DataGroup spiderDataGroup = DataCreator2
+		DataGroup dataGroup = DataCreator2
 				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
 		String authToken = "someToken78678567";
-		recordCreator.createAndStoreRecord(authToken, "spyType", spiderDataGroup);
+		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
 
 		DataGroup createdRecord = ((RecordStorageSpy) recordStorage).createRecord;
 		RecordIndexerSpy recordIndexerSpy = (RecordIndexerSpy) recordIndexer;
@@ -261,9 +261,9 @@ public class SpiderRecordCreatorTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		DataGroup spiderDataGroup = getSpiderDataGroupForImageToCreate();
+		DataGroup dataGroup = getSpiderDataGroupForImageToCreate();
 		String authToken = "someToken78678567";
-		recordCreator.createAndStoreRecord(authToken, "image", spiderDataGroup);
+		recordCreator.createAndStoreRecord(authToken, "image", dataGroup);
 
 		DataGroup createdRecord = ((RecordStorageCreateUpdateSpy) recordStorage).createRecord;
 		RecordIndexerSpy recordIndexerSpy = (RecordIndexerSpy) recordIndexer;
@@ -301,8 +301,8 @@ public class SpiderRecordCreatorTest {
 	public void testCreateRecordInvalidData() {
 		dataValidator = new DataValidatorAlwaysInvalidSpy();
 		setUpDependencyProvider();
-		DataGroup spiderDataGroup = new DataGroupSpy("nameInData");
-		recordCreator.createAndStoreRecord("someToken78678567", "recordType", spiderDataGroup);
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		recordCreator.createAndStoreRecord("someToken78678567", "recordType", dataGroup);
 	}
 
 	@Test
@@ -367,8 +367,8 @@ public class SpiderRecordCreatorTest {
 		DataGroup groupOut = recordOut.getDataGroup();
 		DataGroup recordInfo = groupOut.getFirstGroupWithNameInData("recordInfo");
 		int numOfIds = 0;
-		for (DataElement spiderDataElement : recordInfo.getChildren()) {
-			if ("id".equals(spiderDataElement.getNameInData())) {
+		for (DataElement dataElement : recordInfo.getChildren()) {
+			if ("id".equals(dataElement.getNameInData())) {
 				numOfIds++;
 			}
 		}

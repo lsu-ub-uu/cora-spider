@@ -35,8 +35,8 @@ public abstract class SpiderBinary {
 		return parentIdGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
-	protected String extractDataDividerFromData(DataGroup spiderDataGroup) {
-		DataGroup recordInfo = spiderDataGroup.getFirstGroupWithNameInData("recordInfo");
+	protected String extractDataDividerFromData(DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
 		return dataDivider.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}

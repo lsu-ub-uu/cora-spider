@@ -153,10 +153,10 @@ public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 		}
 	}
 
-	private void addReadActionToIncomingLinks(DataGroup spiderDataGroup) {
-		DataRecordLink spiderRecordLink = (DataRecordLink) spiderDataGroup
+	private void addReadActionToIncomingLinks(DataGroup dataGroup) {
+		DataRecordLink recordLink = (DataRecordLink) dataGroup
 				.getFirstChildWithNameInData("from");
-		spiderRecordLink.addAction(se.uu.ub.cora.data.Action.READ);
+		recordLink.addAction(se.uu.ub.cora.data.Action.READ);
 	}
 
 }

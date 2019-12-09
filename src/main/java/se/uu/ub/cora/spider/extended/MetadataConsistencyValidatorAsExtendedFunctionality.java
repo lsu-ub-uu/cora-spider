@@ -37,8 +37,8 @@ public final class MetadataConsistencyValidatorAsExtendedFunctionality
 	}
 
 	@Override
-	public void useExtendedFunctionality(String userId, DataGroup spiderDataGroup) {
-		metadataConsistencyValidator.validateRules(spiderDataGroup);
+	public void useExtendedFunctionality(String userId, DataGroup dataGroup) {
+		metadataConsistencyValidator.validateRules(dataGroup);
 	}
 
 }

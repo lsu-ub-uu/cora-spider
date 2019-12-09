@@ -173,8 +173,8 @@ public class SpiderUploaderTest {
 		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		DataGroup spiderDataGroup = new DataGroupSpy("nameInData");
-		spiderDataGroup.addChild(
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		dataGroup.addChild(
 				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
 						"spyId", "cora"));
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));

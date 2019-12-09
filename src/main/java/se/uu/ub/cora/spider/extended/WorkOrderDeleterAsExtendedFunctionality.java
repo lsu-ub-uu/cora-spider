@@ -37,8 +37,8 @@ public final class WorkOrderDeleterAsExtendedFunctionality implements ExtendedFu
 	}
 
 	@Override
-	public void useExtendedFunctionality(String authToken, DataGroup spiderDataGroup) {
-		DataGroup recordInfo = spiderDataGroup.getFirstGroupWithNameInData("recordInfo");
+	public void useExtendedFunctionality(String authToken, DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		String recordType = extractRecordType(recordInfo);
 		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
 		tryToDeleteRecord(authToken, recordType, recordId);

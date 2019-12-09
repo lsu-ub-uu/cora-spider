@@ -81,9 +81,9 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	@Override
 	public DataRecord updateRecord(String authToken, String recordType, String recordId,
-			DataGroup spiderDataGroup) {
+			DataGroup dataGroup) {
 		this.authToken = authToken;
-		this.topDataGroup = spiderDataGroup;
+		this.topDataGroup = dataGroup;
 		this.recordType = recordType;
 		this.recordId = recordId;
 		user = tryToGetActiveUser();
@@ -94,15 +94,15 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		metadataId = recordTypeHandler.getMetadataId();
 
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
-		useExtendedFunctionalityBeforeMetadataValidation(recordType, spiderDataGroup);
+		useExtendedFunctionalityBeforeMetadataValidation(recordType, dataGroup);
 
 		addUpdateInfo();
 		validateIncomingDataAsSpecifiedInMetadata();
-		useExtendedFunctionalityAfterMetadataValidation(recordType, spiderDataGroup);
+		useExtendedFunctionalityAfterMetadataValidation(recordType, dataGroup);
 
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
-		DataGroup topLevelDataGroup = spiderDataGroup;
+		DataGroup topLevelDataGroup = dataGroup;
 
 		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
@@ -111,7 +111,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 				recordType, recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
-		String dataDivider = extractDataDividerFromData(spiderDataGroup);
+		String dataDivider = extractDataDividerFromData(dataGroup);
 
 		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedTerms,
 				collectedLinks, dataDivider);
@@ -131,28 +131,27 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
-			DataGroup spiderDataGroup) {
+			DataGroup dataGroup) {
 		List<ExtendedFunctionality> functionalityForUpdateBeforeMetadataValidation = extendedFunctionalityProvider
 				.getFunctionalityForUpdateBeforeMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(spiderDataGroup, functionalityForUpdateBeforeMetadataValidation);
+		useExtendedFunctionality(dataGroup, functionalityForUpdateBeforeMetadataValidation);
 	}
 
-	private void useExtendedFunctionality(DataGroup spiderDataGroup,
+	private void useExtendedFunctionality(DataGroup dataGroup,
 			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
 		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
-			extendedFunctionality.useExtendedFunctionality(authToken, spiderDataGroup);
+			extendedFunctionality.useExtendedFunctionality(authToken, dataGroup);
 		}
 	}
 
 	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
-			DataGroup spiderDataGroup) {
+			DataGroup dataGroup) {
 		List<ExtendedFunctionality> functionalityForUpdateAfterMetadataValidation = extendedFunctionalityProvider
 				.getFunctionalityForUpdateAfterMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(spiderDataGroup, functionalityForUpdateAfterMetadataValidation);
+		useExtendedFunctionality(dataGroup, functionalityForUpdateAfterMetadataValidation);
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata() {
-		// DataGroup dataGroup = recordAsSpiderDataGroup;
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, topDataGroup);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());

@@ -72,8 +72,8 @@ public class SpiderRecordHandler {
 		}
 	}
 
-	protected String extractDataDividerFromData(DataGroup spiderDataGroup) {
-		DataGroup recordInfo = spiderDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
+	protected String extractDataDividerFromData(DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData(RECORD_INFO);
 		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
 		return dataDivider.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}

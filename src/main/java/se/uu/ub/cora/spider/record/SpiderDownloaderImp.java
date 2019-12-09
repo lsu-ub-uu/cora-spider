@@ -37,7 +37,6 @@ public final class SpiderDownloaderImp extends SpiderBinary implements SpiderDow
 	private SpiderAuthorizator spiderAuthorizator;
 	private StreamStorage streamStorage;
 	private DataGroup recordRead;
-	// private DataGroup spiderRecordRead;
 
 	private SpiderDownloaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();

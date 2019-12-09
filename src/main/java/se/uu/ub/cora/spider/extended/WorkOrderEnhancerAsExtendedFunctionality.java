@@ -24,21 +24,21 @@ import se.uu.ub.cora.data.DataGroupProvider;
 public class WorkOrderEnhancerAsExtendedFunctionality implements ExtendedFunctionality {
 
 	@Override
-	public void useExtendedFunctionality(String authToken, DataGroup spiderDataGroup) {
-		if (recordInfoIsMissing(spiderDataGroup)) {
-			addRecordInfo(spiderDataGroup);
+	public void useExtendedFunctionality(String authToken, DataGroup dataGroup) {
+		if (recordInfoIsMissing(dataGroup)) {
+			addRecordInfo(dataGroup);
 		}
 	}
 
-	private boolean recordInfoIsMissing(DataGroup spiderDataGroup) {
-		return !spiderDataGroup.containsChildWithNameInData("recordInfo");
+	private boolean recordInfoIsMissing(DataGroup dataGroup) {
+		return !dataGroup.containsChildWithNameInData("recordInfo");
 	}
 
-	private void addRecordInfo(DataGroup spiderDataGroup) {
+	private void addRecordInfo(DataGroup dataGroup) {
 		DataGroup recordInfo = DataGroupProvider.getDataGroupUsingNameInData("recordInfo");
 		DataGroup dataDivider = createDataDivider();
 		recordInfo.addChild(dataDivider);
-		spiderDataGroup.addChild(recordInfo);
+		dataGroup.addChild(recordInfo);
 	}
 
 	private DataGroup createDataDivider() {

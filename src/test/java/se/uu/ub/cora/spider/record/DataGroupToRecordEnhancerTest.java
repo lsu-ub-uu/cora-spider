@@ -421,10 +421,10 @@ public class DataGroupToRecordEnhancerTest {
 		String recordType = "dataWithLinks";
 		DataRecord record = enhancer.enhance(user, recordType, dataGroup);
 
-		DataGroup spiderDataGroup = record.getDataGroup();
-		DataGroup spiderDataGroupOneLevelDown = spiderDataGroup
+		DataGroup recordDataGroup = record.getDataGroup();
+		DataGroup dataGroupOneLevelDown = recordDataGroup
 				.getFirstGroupWithNameInData("oneLevelDownTargetDoesNotExist");
-		DataLink link = (DataLink) spiderDataGroupOneLevelDown.getFirstChildWithNameInData("link");
+		DataLink link = (DataLink) dataGroupOneLevelDown.getFirstChildWithNameInData("link");
 		assertFalse(link.getActions().contains(Action.READ));
 		assertEquals(link.getActions().size(), 0);
 	}

@@ -39,7 +39,6 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 	private SpiderAuthorizator spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
 	private StreamStorage streamStorage;
-	// private SpiderDataGroup spiderRecordRead;
 	private String streamId;
 	private DataGroupTermCollector collectTermCollector;
 	private DataGroup recordRead;
@@ -69,7 +68,6 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 		checkRecordTypeIsChildOfBinary();
 
 		recordRead = recordStorage.read(type, id);
-		// spiderRecordRead = SpiderDataGroup.fromDataGroup(recordRead);
 		checkUserIsAuthorisedToUploadData(recordRead);
 		checkStreamIsPresent(stream);
 		checkFileNameIsPresent(fileName);

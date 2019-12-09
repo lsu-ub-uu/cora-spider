@@ -22,5 +22,5 @@ package se.uu.ub.cora.spider.extended;
 import se.uu.ub.cora.data.DataGroup;
 
 public interface ExtendedFunctionality {
-	void useExtendedFunctionality(String authToken, DataGroup spiderDataGroup);
+	void useExtendedFunctionality(String authToken, DataGroup dataGroup);
 }

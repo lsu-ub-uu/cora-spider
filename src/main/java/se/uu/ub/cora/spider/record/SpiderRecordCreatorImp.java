@@ -79,10 +79,10 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	@Override
 	public DataRecord createAndStoreRecord(String authToken, String recordTypeToCreate,
-			DataGroup spiderDataGroup) {
+			DataGroup dataGroup) {
 		this.authToken = authToken;
 		this.recordType = recordTypeToCreate;
-		this.recordAsDataGroup = spiderDataGroup;
+		this.recordAsDataGroup = dataGroup;
 
 		return validateCreateAndStoreRecord();
 
@@ -107,8 +107,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = extractIdFromData();
 
-		// DataGroup topLevelDataGroup = recordAsDataGroup.toDataGroup();
-
 		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, recordAsDataGroup);
 		checkUserIsAuthorisedToCreateIncomingData(recordType, collectedTerms);
 
@@ -120,8 +118,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
 		recordIndexer.indexData(ids, collectedTerms, recordAsDataGroup);
 
-		// SpiderDataGroup spiderDataGroupWithActions = SpiderDataGroup
-		// .fromDataGroup(recordAsDataGroup);
 		useExtendedFunctionalityBeforeReturn(recordType, recordAsDataGroup);
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, recordAsDataGroup);
@@ -155,8 +151,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {
-		// DataGroup record = recordAsDataGroup.toDataGroup();
-
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId,
 				recordAsDataGroup);
 		if (validationAnswer.dataIsInvalid()) {
@@ -165,31 +159,31 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
-			DataGroup spiderDataGroup) {
+			DataGroup dataGroup) {
 		List<ExtendedFunctionality> functionalityForCreateBeforeMetadataValidation = extendedFunctionalityProvider
 				.getFunctionalityForCreateBeforeMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(spiderDataGroup, functionalityForCreateBeforeMetadataValidation);
+		useExtendedFunctionality(dataGroup, functionalityForCreateBeforeMetadataValidation);
 	}
 
-	private void useExtendedFunctionality(DataGroup spiderDataGroup,
+	private void useExtendedFunctionality(DataGroup dataGroup,
 			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
 		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
-			extendedFunctionality.useExtendedFunctionality(authToken, spiderDataGroup);
+			extendedFunctionality.useExtendedFunctionality(authToken, dataGroup);
 		}
 	}
 
 	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
-			DataGroup spiderDataGroup) {
+			DataGroup dataGroup) {
 		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = extendedFunctionalityProvider
 				.getFunctionalityForCreateAfterMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(spiderDataGroup, functionalityForCreateAfterMetadataValidation);
+		useExtendedFunctionality(dataGroup, functionalityForCreateAfterMetadataValidation);
 	}
 
 	private void useExtendedFunctionalityBeforeReturn(String recordTypeToCreate,
-			DataGroup spiderDataGroup) {
+			DataGroup dataGroup) {
 		List<ExtendedFunctionality> extendedFunctionalityList = extendedFunctionalityProvider
 				.getFunctionalityForCreateBeforeReturn(recordTypeToCreate);
-		useExtendedFunctionality(spiderDataGroup, extendedFunctionalityList);
+		useExtendedFunctionality(dataGroup, extendedFunctionalityList);
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {

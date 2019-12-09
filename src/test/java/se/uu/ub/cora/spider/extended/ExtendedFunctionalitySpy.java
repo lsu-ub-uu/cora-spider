@@ -27,9 +27,9 @@ public class ExtendedFunctionalitySpy implements ExtendedFunctionality {
 	public DataGroup dataGroupSentToExtendedFunctionality;
 
 	@Override
-	public void useExtendedFunctionality(String token, DataGroup spiderDataGroup) {
+	public void useExtendedFunctionality(String token, DataGroup dataGroup) {
 		this.token = token;
-		dataGroupSentToExtendedFunctionality = spiderDataGroup;
+		dataGroupSentToExtendedFunctionality = dataGroup;
 		extendedFunctionalityHasBeenCalled = true;
 	}
 

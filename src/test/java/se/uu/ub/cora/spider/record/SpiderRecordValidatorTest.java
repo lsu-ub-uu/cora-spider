@@ -187,14 +187,14 @@ public class SpiderRecordValidatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		DataGroup spiderDataGroup = new DataGroupSpy("nameInData");
-		spiderDataGroup.addChild(
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		dataGroup.addChild(
 				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
 						"spyId", "cora"));
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
 		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
-				spiderDataGroup);
+				dataGroup);
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
 		assertTrue(authorizatorSpy.authorizedWasCalled);
@@ -213,14 +213,14 @@ public class SpiderRecordValidatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		DataGroup spiderDataGroup = new DataGroupSpy("nameInData");
-		spiderDataGroup.addChild(
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		dataGroup.addChild(
 				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
 						"spyId", "cora"));
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "false");
 		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
-				spiderDataGroup);
+				dataGroup);
 
 		assertFalse(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 	}
@@ -445,13 +445,13 @@ public class SpiderRecordValidatorTest {
 				.add("validationOrderNew");
 		setUpDependencyProvider();
 
-		DataGroup spiderDataGroup = createDataGroupPlace();
+		DataGroup dataGroup = createDataGroupPlace();
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
 		boolean exceptionWasCaught = false;
 		try {
 			recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
-					spiderDataGroup);
+					dataGroup);
 		} catch (Exception e) {
 			assertEquals(e.getClass(), DataException.class);
 			assertEquals(e.getMessage(),
@@ -471,8 +471,8 @@ public class SpiderRecordValidatorTest {
 				.put("spyType", hashSet);
 		setUpDependencyProvider();
 
-		DataGroup spiderDataGroup = new DataGroupSpy("nameInData");
-		spiderDataGroup.addChild(
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		dataGroup.addChild(
 				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
 						"spyId", "cora"));
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
@@ -481,7 +481,7 @@ public class SpiderRecordValidatorTest {
 		boolean exceptionWasCaught = false;
 		try {
 			recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
-					spiderDataGroup);
+					dataGroup);
 		} catch (Exception e) {
 			assertEquals(e.getClass(), AuthorizationException.class);
 			exceptionWasCaught = true;
