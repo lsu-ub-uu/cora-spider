@@ -39,6 +39,8 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataListFactory;
 import se.uu.ub.cora.data.DataListProvider;
+import se.uu.ub.cora.data.copier.DataCopierFactory;
+import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
@@ -84,17 +86,11 @@ public class SpiderRecordSearcherTest {
 	private DataGroupFactory dataGroupFactorySpy;
 	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataListFactory dataListFactory;
+	private DataCopierFactory dataCopierFactorySpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		loggerFactorySpy = new LoggerFactorySpy();
-		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-		dataGroupFactorySpy = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactorySpy);
-		dataAtomicFactorySpy = new DataAtomicFactorySpy();
-		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactorySpy);
-		dataListFactory = new DataListFactorySpy();
-		DataListProvider.setDataListFactory(dataListFactory);
+		setUpFactoriesAndProviders();
 
 		authenticator = new AuthenticatorSpy();
 		authorizationService = new AuthorizatorAlwaysAuthorizedSpy();
@@ -104,6 +100,19 @@ public class SpiderRecordSearcherTest {
 		recordSearch = new RecordSearchSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		setUpDependencyProvider();
+	}
+
+	private void setUpFactoriesAndProviders() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataGroupFactorySpy = new DataGroupFactorySpy();
+		DataGroupProvider.setDataGroupFactory(dataGroupFactorySpy);
+		dataAtomicFactorySpy = new DataAtomicFactorySpy();
+		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactorySpy);
+		dataListFactory = new DataListFactorySpy();
+		DataListProvider.setDataListFactory(dataListFactory);
+		dataCopierFactorySpy = new DataCopierFactorySpy();
+		DataCopierProvider.setDataCopierFactory(dataCopierFactorySpy);
 	}
 
 	private void setUpDependencyProvider() {
