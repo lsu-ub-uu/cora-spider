@@ -99,7 +99,6 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 	private DataGroup createIndependentCopy(DataGroup record) {
 		DataCopier dataGroupCopier = DataCopierProvider.getDataCopierUsingDataElement(record);
 		return (DataGroup) dataGroupCopier.copy();
-		// return SpiderDataGroup.fromDataGroup(record).toDataGroup();
 
 	}
 
@@ -112,7 +111,6 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 		if (linkList.getChildren().size() > 0) {
 			DataGroup linkListIndependentFromEntered = createIndependentCopy(linkList);
 			storeLinkList(recordType, recordId, linkListIndependentFromEntered);
-			// storeLinkList(recordType, recordId, linkList);
 			storeLinksInIncomingLinks(linkListIndependentFromEntered);
 		}
 	}

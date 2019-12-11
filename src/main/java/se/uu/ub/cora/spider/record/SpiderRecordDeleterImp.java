@@ -126,7 +126,6 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	}
 
 	private void useExtendedFunctionalityBeforeDelete(String recordType) {
-		// SpiderDataGroup readDataGroup = SpiderDataGroup.fromDataGroup(dataGroupReadFromStorage);
 		List<ExtendedFunctionality> functionalityBeforeDelete = extendedFunctionalityProvider
 				.getFunctionalityBeforeDelete(recordType);
 		useExtendedFunctionality(dataGroupReadFromStorage, functionalityBeforeDelete);

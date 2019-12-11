@@ -261,7 +261,7 @@ public class SpiderRecordCreatorTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		DataGroup dataGroup = getSpiderDataGroupForImageToCreate();
+		DataGroup dataGroup = getDataGroupForImageToCreate();
 		String authToken = "someToken78678567";
 		recordCreator.createAndStoreRecord(authToken, "image", dataGroup);
 
@@ -276,7 +276,7 @@ public class SpiderRecordCreatorTest {
 		assertEquals(ids.size(), 2);
 	}
 
-	private DataGroup getSpiderDataGroupForImageToCreate() {
+	private DataGroup getDataGroupForImageToCreate() {
 		DataGroup dataGroup = new DataGroupSpy("binary");
 		DataGroup createRecordInfo = DataCreator2
 				.createRecordInfoWithIdAndLinkedRecordId("someImage", "cora");

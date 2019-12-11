@@ -66,7 +66,7 @@ public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 
 		checkUserIsAuthorisedToReadData(recordRead);
 
-		return collectLinksAndConvertToSpiderDataList();
+		return collectLinksAndConvertToDataList();
 	}
 
 	private void tryToGetActiveUser() {
@@ -91,12 +91,12 @@ public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 		return collectTermCollector.collectTerms(metadataId, recordRead);
 	}
 
-	private DataList collectLinksAndConvertToSpiderDataList() {
+	private DataList collectLinksAndConvertToDataList() {
 		Collection<DataGroup> links = new ArrayList<>();
 		addLinksPointingToRecord(links);
 		possiblyAddLinksPointingToRecordByParentRecordType(links);
 
-		return convertLinksPointingToRecordToSpiderDataList(links);
+		return convertLinksPointingToRecordToDataList(links);
 	}
 
 	private void addLinksPointingToRecord(Collection<DataGroup> links) {
@@ -129,7 +129,7 @@ public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 		return parent.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
-	private DataList convertLinksPointingToRecordToSpiderDataList(
+	private DataList convertLinksPointingToRecordToDataList(
 			Collection<DataGroup> dataGroupLinks) {
 		DataList recordToRecordLinkList = createDataListForRecordToRecordLinks(dataGroupLinks);
 		convertAndAddLinksToLinkList(dataGroupLinks, recordToRecordLinkList);

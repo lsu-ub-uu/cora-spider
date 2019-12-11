@@ -26,7 +26,7 @@ public class MetadataConsistencyValidatorSpy implements MetadataConsistencyValid
 	public boolean validationHasBeenCalled = false;
 
 	@Override
-	public void validateRules(DataGroup recordAsSpiderDataGroup) {
+	public void validateRules(DataGroup recordAsDataGroup) {
 		validationHasBeenCalled = true;
 	}
 
