@@ -26,7 +26,7 @@ public class DataListFactorySpy implements DataListFactory {
 	public String nameOfDataType;
 
 	@Override
-	public DataList factorUsingNameOfDataType(String nameOfDataType) {
+	public DataList factorWithContainDataOfType(String nameOfDataType) {
 		this.nameOfDataType = nameOfDataType;
 		return new DataListSpy(nameOfDataType);
 	}
