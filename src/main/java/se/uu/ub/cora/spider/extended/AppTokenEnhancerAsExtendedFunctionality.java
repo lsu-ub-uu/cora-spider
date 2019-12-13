@@ -21,15 +21,17 @@ package se.uu.ub.cora.spider.extended;
 
 import java.util.UUID;
 
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataAtomicProvider;
+import se.uu.ub.cora.data.DataGroup;
 
 public class AppTokenEnhancerAsExtendedFunctionality implements ExtendedFunctionality {
 
 	@Override
-	public void useExtendedFunctionality(String authToken, SpiderDataGroup spiderDataGroup) {
-		SpiderDataAtomic token = SpiderDataAtomic.withNameInDataAndValue("token", generateToken());
-		spiderDataGroup.addChild(token);
+	public void useExtendedFunctionality(String authToken, DataGroup dataGroup) {
+		DataAtomic token = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("token",
+				generateToken());
+		dataGroup.addChild(token);
 	}
 
 	private String generateToken() {

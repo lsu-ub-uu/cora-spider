@@ -19,17 +19,17 @@
 
 package se.uu.ub.cora.spider.extended;
 
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
+import se.uu.ub.cora.data.DataGroup;
 
 public class ExtendedFunctionalitySpy implements ExtendedFunctionality {
 	public boolean extendedFunctionalityHasBeenCalled = false;
 	public String token;
-	public SpiderDataGroup dataGroupSentToExtendedFunctionality;
+	public DataGroup dataGroupSentToExtendedFunctionality;
 
 	@Override
-	public void useExtendedFunctionality(String token, SpiderDataGroup spiderDataGroup) {
+	public void useExtendedFunctionality(String token, DataGroup dataGroup) {
 		this.token = token;
-		dataGroupSentToExtendedFunctionality = spiderDataGroup;
+		dataGroupSentToExtendedFunctionality = dataGroup;
 		extendedFunctionalityHasBeenCalled = true;
 	}
 

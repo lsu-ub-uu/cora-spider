@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,11 +19,11 @@
 
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
 
 public interface SpiderRecordUpdater {
 
-	SpiderDataRecord updateRecord(String authToken, String type, String id, SpiderDataGroup record);
+	DataRecord updateRecord(String authToken, String type, String id, DataGroup record);
 
 }

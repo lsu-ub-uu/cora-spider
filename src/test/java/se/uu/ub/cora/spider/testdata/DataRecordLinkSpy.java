@@ -16,44 +16,50 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.data;
+package se.uu.ub.cora.spider.testdata;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAttribute;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 
-public class DataGroupSpy implements DataGroup {
+public class DataRecordLinkSpy implements DataGroup, DataRecordLink {
 
-	public String nameInData;
+	private String nameInData;
 	public List<DataElement> children = new ArrayList<>();
-	public String repeatId;
-	public Map<String, String> attributes = new HashMap<>();
+	public List<Action> actions = new ArrayList<>();
 
-	public DataGroupSpy(String nameInData) {
+	public DataRecordLinkSpy(String nameInData) {
 		this.nameInData = nameInData;
-	}
-
-	public DataGroupSpy(String nameInData, String recordType, String recordId) {
-		this.nameInData = nameInData;
-		addChild(new DataAtomicSpy("linkedRecordType", recordType));
-		addChild(new DataAtomicSpy("linkedRecordId", recordId));
-	}
-
-	@Override
-	public String getRepeatId() {
-		return repeatId;
 	}
 
 	@Override
 	public String getNameInData() {
 		return nameInData;
+	}
+
+	@Override
+	public String getRepeatId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addAction(Action action) {
+		actions.add(action);
+
+	}
+
+	@Override
+	public List<Action> getActions() {
+		return actions;
 	}
 
 	@Override
@@ -65,7 +71,7 @@ public class DataGroupSpy implements DataGroup {
 				}
 			}
 		}
-		throw new DataMissingException("Atomic value not found for childNameInData:" + nameInData);
+		return null;
 	}
 
 	@Override
@@ -77,13 +83,12 @@ public class DataGroupSpy implements DataGroup {
 				}
 			}
 		}
-		throw new DataMissingException("Group not found for childNameInData:" + childNameInData);
+		return null;
 	}
 
 	@Override
 	public void addChild(DataElement dataElement) {
 		children.add(dataElement);
-
 	}
 
 	@Override
@@ -93,23 +98,19 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public boolean containsChildWithNameInData(String nameInData) {
-		for (DataElement dataElement : children) {
-			if (nameInData.equals(dataElement.getNameInData())) {
-				return true;
-			}
-		}
+		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public void setRepeatId(String repeatId) {
-		this.repeatId = repeatId;
+		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void addAttributeByIdWithValue(String id, String value) {
-		attributes.put(id, value);
+		// TODO Auto-generated method stub
 
 	}
 
@@ -125,59 +126,37 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public List<DataGroup> getAllGroupsWithNameInData(String nameInData) {
-		List<DataGroup> matchingDataGroups = new ArrayList<>();
-		for (DataElement dataElement : children) {
-			if (nameInData.equals(dataElement.getNameInData())
-					&& dataElement instanceof DataGroup) {
-				matchingDataGroups.add((DataGroup) dataElement);
-			}
-		}
-		return matchingDataGroups;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public String getAttribute(String attributeId) {
-		return attributes.get(attributeId);
-	}
-
-	@Override
-	public Map<String, String> getAttributes() {
-		return attributes;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public List<DataAtomic> getAllDataAtomicsWithNameInData(String childNameInData) {
-		List<DataAtomic> matchingDataAtomics = new ArrayList<>();
-		for (DataElement dataElement : children) {
-			if (childNameInData.equals(dataElement.getNameInData())
-					&& dataElement instanceof DataAtomic) {
-				matchingDataAtomics.add((DataAtomic) dataElement);
-			}
-		}
-		return matchingDataAtomics;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public void removeFirstChildWithNameInData(String childNameInData) {
-		DataElement foundChild = tryToFindChildToRemove(childNameInData);
-		if (foundChild != null) {
-			children.remove(foundChild);
-		}
-	}
+		// TODO Auto-generated method stub
 
-	private DataElement tryToFindChildToRemove(String childNameInData) {
-
-		for (DataElement dataElement : children) {
-			if (childNameInData.equals(dataElement.getNameInData())) {
-				return dataElement;
-			}
-		}
-		return null;
 	}
 
 	@Override
 	public Collection<DataGroup> getAllGroupsWithNameInDataAndAttributes(String childNameInData,
 			DataAttribute... childAttributes) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Map<String, String> getAttributes() {
 		// TODO Auto-generated method stub
 		return null;
 	}

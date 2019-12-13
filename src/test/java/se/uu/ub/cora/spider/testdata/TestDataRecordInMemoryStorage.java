@@ -86,10 +86,10 @@ public class TestDataRecordInMemoryStorage {
 	}
 
 	private static void addSecondPlace(RecordStorage recordsInMemory) {
-		DataGroup dataGroup = DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
-				"authority", "place:0002", "place", "cora").toDataGroup();
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"authority", "place:0002", "place", "cora");
 
-		DataGroup dataRecordLink = new DataGroupSpy("link");
+		DataRecordLinkSpy dataRecordLink = new DataRecordLinkSpy("link");
 		dataGroup.addChild(dataRecordLink);
 		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0001", dataRecordLink);
 
@@ -98,16 +98,16 @@ public class TestDataRecordInMemoryStorage {
 	}
 
 	private static void addThirdPlace(RecordStorage recordsInMemory) {
-		DataGroup dataGroup = DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
-				"authority", "place:0003", "place", "cora").toDataGroup();
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"authority", "place:0003", "place", "cora");
 
 		DataGroup collectedLinksList = new DataGroupSpy("collectedLinksList");
 		recordsInMemory.create("place", "place:0003", dataGroup, null, collectedLinksList, "cora");
 	}
 
 	private static void addFourthPlace(RecordStorage recordsInMemory) {
-		DataGroup dataGroup = DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
-				"authority", "place:0004", "place", "cora").toDataGroup();
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"authority", "place:0004", "place", "cora");
 
 		DataGroup dataRecordLink = new DataGroupSpy("link");
 		dataGroup.addChild(dataRecordLink);
@@ -116,10 +116,10 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup collectedLinksList = new DataGroupSpy("collectedLinksList");
 		DataGroup recordToRecordLink = new DataGroupSpy("recordToRecordLink");
 
-		DataGroup from = new DataGroupSpy("from");
+		DataRecordLinkSpy from = new DataRecordLinkSpy("from");
 		recordToRecordLink.addChild(from);
 		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0004", from);
-		DataGroup to = new DataGroupSpy("to");
+		DataRecordLinkSpy to = new DataRecordLinkSpy("to");
 		recordToRecordLink.addChild(to);
 		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("authority", "place:0003", to);
 
@@ -141,10 +141,10 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup collectedLinksList = new DataGroupSpy("collectedLinksList");
 		DataGroup recordToRecordLink = new DataGroupSpy("recordToRecordLink");
 
-		DataGroup from = new DataGroupSpy("from");
+		DataRecordLinkSpy from = new DataRecordLinkSpy("from");
 		recordToRecordLink.addChild(from);
 		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0002", from);
-		DataGroup to = new DataGroupSpy("to");
+		DataRecordLinkSpy to = new DataRecordLinkSpy("to");
 		recordToRecordLink.addChild(to);
 		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0001", to);
 
@@ -257,8 +257,8 @@ public class TestDataRecordInMemoryStorage {
 	}
 
 	private static void addImageOne(RecordStorageInMemoryStub recordsInMemory) {
-		DataGroup dataGroup = DataCreator.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
-				"image", "image:123456789", "image", "cora").toDataGroup();
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"image", "image:123456789", "image", "cora");
 		DataGroup resourceInfo = new DataGroupSpy("resourceInfo");
 		dataGroup.addChild(resourceInfo);
 		DataGroup master = new DataGroupSpy("master");

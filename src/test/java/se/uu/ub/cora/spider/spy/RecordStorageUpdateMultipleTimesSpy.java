@@ -24,9 +24,11 @@ import java.util.Collection;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.spider.testdata.DataRecordLinkSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
@@ -45,6 +47,7 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 	public List<DataGroup> filters = new ArrayList<>();
 	public boolean readListWasCalled = false;
 	public DataGroup recordToReturnOnRead = null;
+	public boolean alreadyCalled = false;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -59,7 +62,17 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 			return recordToReturnOnRead;
 		}
 		DataGroup dataGroupToReturn = new DataGroupSpy("someNameInData");
-		dataGroupToReturn.addChild(new DataGroupSpy("recordInfo"));
+		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
+		dataGroupToReturn.addChild(recordInfo);
+		if (alreadyCalled) {
+			DataGroup updated = new DataGroupSpy("updated");
+			updated.setRepeatId("0");
+			DataRecordLink updatedBy = new DataRecordLinkSpy("updatedBy");
+			updated.addChild(updatedBy);
+			updated.addChild(new DataAtomicSpy("tsUpdated", "2014-12-18 20:20:38.346"));
+
+			recordInfo.addChild(updated);
+		}
 		return dataGroupToReturn;
 	}
 

@@ -18,46 +18,47 @@
  */
 package se.uu.ub.cora.spider.extended;
 
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 
 public final class WorkOrderDeleterAsExtendedFunctionality implements ExtendedFunctionality {
 
-    private SpiderRecordDeleter recordDeleter;
+	private SpiderRecordDeleter recordDeleter;
 
-    private WorkOrderDeleterAsExtendedFunctionality(SpiderRecordDeleter recordDeleter) {
-        this.recordDeleter = recordDeleter;
-    }
+	private WorkOrderDeleterAsExtendedFunctionality(SpiderRecordDeleter recordDeleter) {
+		this.recordDeleter = recordDeleter;
+	}
 
-    public static WorkOrderDeleterAsExtendedFunctionality usingDeleter(SpiderRecordDeleter recordDeleter) {
-        return new WorkOrderDeleterAsExtendedFunctionality(recordDeleter);
-    }
+	public static WorkOrderDeleterAsExtendedFunctionality usingDeleter(
+			SpiderRecordDeleter recordDeleter) {
+		return new WorkOrderDeleterAsExtendedFunctionality(recordDeleter);
+	}
 
-    @Override
-    public void useExtendedFunctionality(String authToken, SpiderDataGroup spiderDataGroup) {
-        SpiderDataGroup recordInfo = spiderDataGroup.extractGroup("recordInfo");
-        String recordType = extractRecordType(recordInfo);
-        String recordId = recordInfo.extractAtomicValue("id");
-        tryToDeleteRecord(authToken, recordType, recordId);
-    }
+	@Override
+	public void useExtendedFunctionality(String authToken, DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		String recordType = extractRecordType(recordInfo);
+		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
+		tryToDeleteRecord(authToken, recordType, recordId);
+	}
 
-    private String extractRecordType(SpiderDataGroup recordInfo) {
-        SpiderDataGroup recordTypeGroup = recordInfo.extractGroup("type");
-        return recordTypeGroup.extractAtomicValue("linkedRecordId");
-    }
+	private String extractRecordType(DataGroup recordInfo) {
+		DataGroup recordTypeGroup = recordInfo.getFirstGroupWithNameInData("type");
+		return recordTypeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+	}
 
-    private void tryToDeleteRecord(String authToken, String recordType, String recordId) {
-        try {
-            recordDeleter.deleteRecord(authToken, recordType, recordId);
-        }catch (AuthorizationException |RecordNotFoundException e){
-            //do nothing
-        }
-    }
+	private void tryToDeleteRecord(String authToken, String recordType, String recordId) {
+		try {
+			recordDeleter.deleteRecord(authToken, recordType, recordId);
+		} catch (AuthorizationException | RecordNotFoundException e) {
+			// do nothing
+		}
+	}
 
-    public SpiderRecordDeleter getRecordDeleter() {
-        //needed for test
-        return recordDeleter;
-    }
+	public SpiderRecordDeleter getRecordDeleter() {
+		// needed for test
+		return recordDeleter;
+	}
 }

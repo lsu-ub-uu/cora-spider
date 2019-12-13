@@ -28,8 +28,9 @@ import java.util.Map;
 
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.copier.DataCopier;
+import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
 import se.uu.ub.cora.storage.MetadataStorage;
 import se.uu.ub.cora.storage.MetadataTypes;
 import se.uu.ub.cora.storage.RecordConflictException;
@@ -64,7 +65,8 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 			DataGroup collectedTerms, DataGroup linkList, String dataDivider) {
 		ensureStorageExistsForRecordType(recordType);
 		checkNoConflictOnRecordId(recordType, recordId);
-		storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
+		// storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
+		storeRecordByRecordTypeAndRecordId(recordType, recordId, record);
 		storeLinks(recordType, recordId, linkList);
 	}
 
@@ -94,14 +96,10 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 		return records.get(recordType).containsKey(recordId);
 	}
 
-	private void storeIndependentRecordByRecordTypeAndRecordId(String recordType, String recordId,
-			DataGroup record) {
-		DataGroup recordIndependentOfEnteredRecord = createIndependentCopy(record);
-		storeRecordByRecordTypeAndRecordId(recordType, recordId, recordIndependentOfEnteredRecord);
-	}
-
 	private DataGroup createIndependentCopy(DataGroup record) {
-		return SpiderDataGroup.fromDataGroup(record).toDataGroup();
+		DataCopier dataGroupCopier = DataCopierProvider.getDataCopierUsingDataElement(record);
+		return (DataGroup) dataGroupCopier.copy();
+
 	}
 
 	protected DataGroup storeRecordByRecordTypeAndRecordId(String recordType, String recordId,
@@ -326,7 +324,8 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 			DataGroup collectedTerms, DataGroup linkList, String dataDivider) {
 		checkRecordExists(recordType, recordId);
 		removeIncomingLinks(recordType, recordId);
-		storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
+		// storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
+		storeRecordByRecordTypeAndRecordId(recordType, recordId, record);
 		storeLinks(recordType, recordId, linkList);
 	}
 

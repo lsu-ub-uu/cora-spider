@@ -27,12 +27,12 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataList;
+import se.uu.ub.cora.data.DataListProvider;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.search.SearchResult;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataList;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -48,7 +48,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private RecordStorage recordStorage;
 	private DataGroup searchData;
 	private RecordSearch recordSearch;
-	private SpiderDataList spiderDataList;
+	private DataList dataList;
 	private DataGroup searchMetadata;
 	private List<DataGroup> recordTypeToSearchInGroups;
 	private DataGroupTermCollector collectTermCollector;
@@ -73,9 +73,8 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	}
 
 	@Override
-	public SpiderDataList search(String authToken, String searchId,
-			SpiderDataGroup spiderSearchData) {
-		this.searchData = spiderSearchData.toDataGroup();
+	public DataList search(String authToken, String searchId, DataGroup spiderSearchData) {
+		this.searchData = spiderSearchData;
 		tryToGetActiveUser(authToken);
 		readSearchDataFromStorage(searchId);
 		validateSearchInputForUser();
@@ -151,21 +150,21 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		return group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
-	private SpiderDataList filterAndEnhanceSearchResult(SearchResult spiderSearchResult) {
-		spiderDataList = SpiderDataList.withContainDataOfType("mix");
+	private DataList filterAndEnhanceSearchResult(SearchResult spiderSearchResult) {
+		dataList = DataListProvider.getDataListWithNameOfDataType("mix");
 		Collection<DataGroup> dataGroupList = spiderSearchResult.listOfDataGroups;
 		dataGroupList.forEach(this::filterEnhanceAndAddToList);
 
-		spiderDataList.setFromNo(String.valueOf(startRow));
-		spiderDataList.setToNo(String.valueOf(startRow - 1 + spiderDataList.getDataList().size()));
-		spiderDataList.setTotalNo(String.valueOf(spiderSearchResult.totalNumberOfMatches));
-		return spiderDataList;
+		dataList.setFromNo(String.valueOf(startRow));
+		dataList.setToNo(String.valueOf(startRow - 1 + dataList.getDataList().size()));
+		dataList.setTotalNo(String.valueOf(spiderSearchResult.totalNumberOfMatches));
+		return dataList;
 	}
 
 	private void filterEnhanceAndAddToList(DataGroup dataGroup) {
 		String recordType = extractRecordTypeFromRecordInfo(dataGroup);
 		if (isUserAuthorisedToReadData(recordType, dataGroup)) {
-			spiderDataList.addData(dataGroupToRecordEnhancer.enhance(user, recordType, dataGroup));
+			dataList.addData(dataGroupToRecordEnhancer.enhance(user, recordType, dataGroup));
 		}
 	}
 

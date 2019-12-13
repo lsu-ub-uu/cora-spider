@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2017, 2019 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,9 +16,30 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.record;
 
-package se.uu.ub.cora.spider.data;
+import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.copier.DataCopier;
 
-public enum Action {
-	READ, UPDATE, DELETE, RESSURECT, PUBLISH, READ_INCOMING_LINKS, UNPUBLISH, CREATE, LIST, SEARCH, UPLOAD, INDEX, VALIDATE
+public class DataCopierSpy implements DataCopier {
+
+	private DataElement dataElement;
+
+	public DataCopierSpy(DataElement dataElement) {
+		this.dataElement = dataElement;
+	}
+
+	@Override
+	public DataElement copy() {
+		// if (dataElement instanceof DataRecordLink) {
+		// return dataElement;
+		// return new DataRecordLinkSpy(dataElement.getNameInData());
+		// }
+		// if (dataElement instanceof DataGroup) {
+		return dataElement;
+		// return new DataGroupSpy(dataElement.getNameInData());
+	}
+	// return null;
+	// }
+
 }

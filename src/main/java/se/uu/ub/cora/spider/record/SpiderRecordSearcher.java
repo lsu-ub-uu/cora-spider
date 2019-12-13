@@ -18,11 +18,11 @@
  */
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataList;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataList;
 
 public interface SpiderRecordSearcher {
 
-	SpiderDataList search(String authToken, String searchId, SpiderDataGroup searchData);
+	DataList search(String authToken, String searchId, DataGroup searchData);
 
 }

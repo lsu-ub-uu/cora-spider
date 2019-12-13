@@ -19,10 +19,10 @@
 
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
 
 public interface SpiderRecordCreator {
-	SpiderDataRecord createAndStoreRecord(String authToken, String type, SpiderDataGroup record);
+	DataRecord createAndStoreRecord(String authToken, String type, DataGroup record);
 
 }

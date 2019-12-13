@@ -25,15 +25,15 @@ import java.util.Map;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.data.Action;
+import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataLink;
+import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.DataRecordProvider;
+import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.Action;
-import se.uu.ub.cora.spider.data.SpiderDataElement;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataLink;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
-import se.uu.ub.cora.spider.data.SpiderDataResourceLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -45,7 +45,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private static final String SEARCH = "search";
 	private DataGroup dataGroup;
-	private SpiderDataRecord record;
+	private DataRecord record;
 	private User user;
 	private String recordType;
 	private String handledRecordId;
@@ -62,23 +62,25 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	@Override
-	public SpiderDataRecord enhance(User user, String recordType, DataGroup dataGroup) {
+	public DataRecord enhance(User user, String recordType, DataGroup dataGroup) {
 		this.user = user;
 		this.recordType = recordType;
 		this.dataGroup = dataGroup;
 		collectedTerms = getCollectedTermsForRecord(recordType, dataGroup);
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.fromDataGroup(dataGroup);
-		record = SpiderDataRecord.withSpiderDataGroup(spiderDataGroup);
+
+		this.dataGroup = dataGroup;
+
+		record = DataRecordProvider.getDataRecordWithDataGroup(dataGroup);
 		handledRecordId = getRecordIdFromDataRecord(record);
 		addActions();
-		addReadActionToDataRecordLinks(spiderDataGroup);
+		addReadActionToDataRecordLinks(dataGroup);
 		return record;
 	}
 
-	private String getRecordIdFromDataRecord(SpiderDataRecord spiderDataRecord) {
-		SpiderDataGroup topLevelDataGroup = spiderDataRecord.getSpiderDataGroup();
-		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
-		return recordInfo.extractAtomicValue("id");
+	private String getRecordIdFromDataRecord(DataRecord dataRecord) {
+		DataGroup topLevelDataGroup = dataRecord.getDataGroup();
+		DataGroup recordInfo = topLevelDataGroup.getFirstGroupWithNameInData("recordInfo");
+		return recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
 	protected void addActions() {
@@ -111,18 +113,19 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 				action, recordType, collectedTerms);
 	}
 
-	private void possiblyAddDeleteAction(SpiderDataRecord spiderDataRecord) {
-		if (!incomingLinksExistsForRecord(spiderDataRecord)
+	private void possiblyAddDeleteAction(DataRecord dataRecord) {
+		if (!incomingLinksExistsForRecord(dataRecord)
 				&& userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("delete", recordType)) {
-			spiderDataRecord.addAction(Action.DELETE);
+			dataRecord.addAction(Action.DELETE);
 		}
 	}
 
-	private boolean incomingLinksExistsForRecord(SpiderDataRecord spiderDataRecord) {
-		SpiderDataGroup topLevelDataGroup = spiderDataRecord.getSpiderDataGroup();
-		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
-		SpiderDataGroup typeGroup = recordInfo.extractGroup("type");
-		String recordTypeForThisRecord = typeGroup.extractAtomicValue(LINKED_RECORD_ID);
+	private boolean incomingLinksExistsForRecord(DataRecord dataRecord) {
+		DataGroup topLevelDataGroup = dataRecord.getDataGroup();
+		DataGroup recordInfo = topLevelDataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
+		String recordTypeForThisRecord = typeGroup
+				.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 
 		return linksExistForRecord(recordTypeForThisRecord)
 				|| incomingLinksExistsForParentToRecordType(recordTypeForThisRecord);
@@ -153,16 +156,16 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return recordTypeHandler.getMetadataId();
 	}
 
-	private void possiblyAddIncomingLinksAction(SpiderDataRecord spiderDataRecord) {
-		if (incomingLinksExistsForRecord(spiderDataRecord)) {
-			spiderDataRecord.addAction(Action.READ_INCOMING_LINKS);
+	private void possiblyAddIncomingLinksAction(DataRecord dataRecord) {
+		if (incomingLinksExistsForRecord(dataRecord)) {
+			dataRecord.addAction(Action.READ_INCOMING_LINKS);
 		}
 	}
 
-	private void possiblyAddUploadAction(SpiderDataRecord spiderDataRecord) {
+	private void possiblyAddUploadAction(DataRecord dataRecord) {
 		if (isHandledRecordIdChildOfBinary(recordType)
 				&& userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("upload", recordType)) {
-			spiderDataRecord.addAction(Action.UPLOAD);
+			dataRecord.addAction(Action.UPLOAD);
 		}
 	}
 
@@ -197,12 +200,12 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
-	private void addActionsForRecordType(SpiderDataRecord spiderDataRecord) {
+	private void addActionsForRecordType(DataRecord dataRecord) {
 		if (isRecordType()) {
-			possiblyAddCreateAction(spiderDataRecord);
-			possiblyAddListAction(spiderDataRecord);
+			possiblyAddCreateAction(dataRecord);
+			possiblyAddListAction(dataRecord);
 			possiblyAddValidateAction();
-			possiblyAddSearchAction(spiderDataRecord);
+			possiblyAddSearchAction(dataRecord);
 		}
 	}
 
@@ -210,10 +213,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return RECORD_TYPE.equals(recordType);
 	}
 
-	private void possiblyAddCreateAction(SpiderDataRecord spiderDataRecord) {
+	private void possiblyAddCreateAction(DataRecord dataRecord) {
 		if (!isHandledRecordIdOfTypeAbstract(handledRecordId)
 				&& userIsAuthorizedForActionOnRecordType("create", handledRecordId)) {
-			spiderDataRecord.addAction(Action.CREATE);
+			dataRecord.addAction(Action.CREATE);
 		}
 	}
 
@@ -222,16 +225,16 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 				handledRecordId);
 	}
 
-	private void possiblyAddListAction(SpiderDataRecord spiderDataRecord) {
+	private void possiblyAddListAction(DataRecord dataRecord) {
 		if (userIsAuthorizedForActionOnRecordType("list", handledRecordId)) {
-			spiderDataRecord.addAction(Action.LIST);
+			dataRecord.addAction(Action.LIST);
 		}
 	}
 
-	private void possiblyAddSearchAction(SpiderDataRecord spiderDataRecord) {
+	private void possiblyAddSearchAction(DataRecord dataRecord) {
 		if (dataGroup.containsChildWithNameInData(SEARCH)) {
 			List<DataGroup> recordTypesToSearchIn = getRecordTypesToSearchInFromLInkedSearch();
-			addSearchActionIfUserHasAccess(spiderDataRecord, recordTypesToSearchIn);
+			addSearchActionIfUserHasAccess(dataRecord, recordTypesToSearchIn);
 		}
 	}
 
@@ -243,10 +246,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return searchGroup.getAllGroupsWithNameInData("recordTypeToSearchIn");
 	}
 
-	private void possiblyAddSearchActionWhenRecordTypeSearch(SpiderDataRecord spiderDataRecord) {
+	private void possiblyAddSearchActionWhenRecordTypeSearch(DataRecord dataRecord) {
 		if (isRecordTypeSearch()) {
 			List<DataGroup> recordTypeToSearchInGroups = getRecordTypesToSearchInFromSearchGroup();
-			addSearchActionIfUserHasAccess(spiderDataRecord, recordTypeToSearchInGroups);
+			addSearchActionIfUserHasAccess(dataRecord, recordTypeToSearchInGroups);
 		}
 	}
 
@@ -254,10 +257,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return dataGroup.getAllGroupsWithNameInData("recordTypeToSearchIn");
 	}
 
-	private void addSearchActionIfUserHasAccess(SpiderDataRecord spiderDataRecord,
+	private void addSearchActionIfUserHasAccess(DataRecord dataRecord,
 			List<DataGroup> recordTypeToSearchInGroups) {
 		if (checkUserHasSearchAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups)) {
-			spiderDataRecord.addAction(Action.SEARCH);
+			dataRecord.addAction(Action.SEARCH);
 		}
 	}
 
@@ -286,54 +289,56 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return handleRecordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract");
 	}
 
-	private void addReadActionToDataRecordLinks(SpiderDataGroup spiderDataGroup) {
-		for (SpiderDataElement spiderDataChild : spiderDataGroup.getChildren()) {
-			addReadActionToDataRecordLink(spiderDataChild);
+	private void addReadActionToDataRecordLinks(DataGroup dataGroup) {
+		for (DataElement dataChild : dataGroup.getChildren()) {
+			addReadActionToDataRecordLink(dataChild);
 		}
 	}
 
-	private void addReadActionToDataRecordLink(SpiderDataElement spiderDataChild) {
-		possiblyAddReadActionIfLink(spiderDataChild);
+	private void addReadActionToDataRecordLink(DataElement dataChild) {
+		possiblyAddReadActionIfLink(dataChild);
 
-		if (isGroup(spiderDataChild)) {
-			addReadActionToDataRecordLinks((SpiderDataGroup) spiderDataChild);
+		if (isGroup(dataChild)) {
+			addReadActionToDataRecordLinks((DataGroup) dataChild);
 		}
 	}
 
-	private void possiblyAddReadActionIfLink(SpiderDataElement spiderDataChild) {
-		if (isLink(spiderDataChild)) {
-			possiblyAddReadAction(spiderDataChild);
+	private void possiblyAddReadActionIfLink(DataElement dataChild) {
+		if (isLink(dataChild)) {
+			possiblyAddReadAction(dataChild);
 		}
 	}
 
-	private boolean isLink(SpiderDataElement spiderDataChild) {
-		return isRecordLink(spiderDataChild) || isResourceLink(spiderDataChild);
+	private boolean isLink(DataElement dataChild) {
+		return isRecordLink(dataChild) || isResourceLink(dataChild);
 	}
 
-	private boolean isRecordLink(SpiderDataElement spiderDataChild) {
-		return spiderDataChild instanceof SpiderDataRecordLink;
+	private boolean isRecordLink(DataElement dataChild) {
+		return dataChild instanceof DataRecordLink;
 	}
 
-	private boolean isResourceLink(SpiderDataElement spiderDataChild) {
-		return spiderDataChild instanceof SpiderDataResourceLink;
+	private boolean isResourceLink(DataElement dataChild) {
+		return dataChild instanceof DataResourceLink;
 	}
 
-	private void possiblyAddReadAction(SpiderDataElement spiderDataChild) {
-		if (isAuthorizedToReadLink(spiderDataChild)) {
-			((SpiderDataLink) spiderDataChild).addAction(Action.READ);
+	private void possiblyAddReadAction(DataElement dataChild) {
+		if (isAuthorizedToReadLink(dataChild)) {
+			((DataLink) dataChild).addAction(Action.READ);
 		}
 	}
 
-	private boolean isAuthorizedToReadLink(SpiderDataElement spiderDataChild) {
-		if (isRecordLink(spiderDataChild)) {
-			return isAuthorizedToReadRecordLink((SpiderDataRecordLink) spiderDataChild);
+	private boolean isAuthorizedToReadLink(DataElement dataChild) {
+		if (isRecordLink(dataChild)) {
+			return isAuthorizedToReadRecordLink((DataLink) dataChild);
 		}
 		return isAuthorizedToReadResourceLink();
 	}
 
-	private boolean isAuthorizedToReadRecordLink(SpiderDataRecordLink spiderDataChild) {
-		String linkedRecordType = spiderDataChild.extractAtomicValue("linkedRecordType");
-		String linkedRecordId = spiderDataChild.extractAtomicValue(LINKED_RECORD_ID);
+	private boolean isAuthorizedToReadRecordLink(DataLink dataChild) {
+		String linkedRecordType = ((DataGroup) dataChild)
+				.getFirstAtomicValueWithNameInData("linkedRecordType");
+		String linkedRecordId = ((DataGroup) dataChild)
+				.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		if (isPublicRecordType(linkedRecordType)) {
 			return true;
 		}
@@ -380,8 +385,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read", "image");
 	}
 
-	private boolean isGroup(SpiderDataElement spiderDataChild) {
-		return spiderDataChild instanceof SpiderDataGroup;
+	private boolean isGroup(DataElement dataChild) {
+		return dataChild instanceof DataGroup;
 	}
 
 }

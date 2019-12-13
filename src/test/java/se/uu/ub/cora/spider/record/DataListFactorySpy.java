@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,14 +16,19 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.record;
 
-package se.uu.ub.cora.spider.data;
+import se.uu.ub.cora.data.DataList;
+import se.uu.ub.cora.data.DataListFactory;
 
-import java.util.List;
+public class DataListFactorySpy implements DataListFactory {
 
-public interface SpiderDataLink {
+	public String nameOfDataType;
 
-	void addAction(Action action);
+	@Override
+	public DataList factorWithContainDataOfType(String nameOfDataType) {
+		this.nameOfDataType = nameOfDataType;
+		return new DataListSpy(nameOfDataType);
+	}
 
-	List<Action> getActions();
 }

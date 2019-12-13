@@ -21,11 +21,11 @@ package se.uu.ub.cora.spider.record;
 
 import java.io.InputStream;
 
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
+import se.uu.ub.cora.data.DataRecord;
 
 public interface SpiderUploader {
 
-	SpiderDataRecord upload(String authToken, String type, String id, InputStream inputStream,
+	DataRecord upload(String authToken, String type, String id, InputStream inputStream,
 			String fileName);
 
 }

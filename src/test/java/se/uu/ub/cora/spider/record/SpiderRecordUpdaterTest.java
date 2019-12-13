@@ -35,7 +35,16 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataAtomicFactory;
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupFactory;
+import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.copier.DataCopierFactory;
+import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
@@ -45,10 +54,11 @@ import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
@@ -67,8 +77,9 @@ import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageUpdateMultipleTimesSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.spider.testdata.DataCreator2;
+import se.uu.ub.cora.spider.testdata.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
-import se.uu.ub.cora.spider.testdata.SpiderDataCreator;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -87,11 +98,13 @@ public class SpiderRecordUpdaterTest {
 	private DataGroupTermCollector termCollector;
 	private RecordIndexer recordIndexer;
 	private LoggerFactorySpy loggerFactorySpy;
+	private DataGroupFactory dataGroupFactorySpy;
+	private DataAtomicFactory dataAtomicFactorySpy;
+	private DataCopierFactory dataCopierFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		loggerFactorySpy = new LoggerFactorySpy();
-		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		setUpFactoriesAndProviders();
 		authenticator = new AuthenticatorSpy();
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
@@ -102,6 +115,17 @@ public class SpiderRecordUpdaterTest {
 		recordIndexer = new RecordIndexerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		setUpDependencyProvider();
+	}
+
+	private void setUpFactoriesAndProviders() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataGroupFactorySpy = new DataGroupFactorySpy();
+		DataGroupProvider.setDataGroupFactory(dataGroupFactorySpy);
+		dataAtomicFactorySpy = new DataAtomicFactorySpy();
+		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactorySpy);
+		dataCopierFactory = new DataCopierFactorySpy();
+		DataCopierProvider.setDataCopierFactory(dataCopierFactory);
 	}
 
 	private void setUpDependencyProvider() {
@@ -129,11 +153,11 @@ public class SpiderRecordUpdaterTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		spiderDataGroup.addChild(
-				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
-						"spyId", "cora"));
-		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", spiderDataGroup);
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
+		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator;
 		assertTrue(authorizatorSpy.authorizedWasCalled);
@@ -160,11 +184,10 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		spiderDataGroup.addChild(
-				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
-						"spyId", "cora"));
-		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", spiderDataGroup);
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
+		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
 		assertEquals(dataGroupToRecordEnhancer.recordType, "spyType");
 		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
@@ -177,77 +200,74 @@ public class SpiderRecordUpdaterTest {
 		dataValidator = new DataValidatorForRecordInfoSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("someRecordDataGroup");
-		addRecordInfo(spiderDataGroup);
+		DataGroup dataGroup = new DataGroupSpy("someRecordDataGroup");
+		addRecordInfo(dataGroup);
 
-		SpiderDataRecord updatedOnce = recordUpdater.updateRecord("someToken78678567", "spyType",
-				"spyId", spiderDataGroup);
+		DataRecord updatedOnce = recordUpdater.updateRecord("someToken78678567", "spyType", "spyId",
+				dataGroup);
 
 		assertUpdatedRepeatIdsInGroupAsListed(updatedOnce, "0");
 		assertCorrectUserInfo(updatedOnce);
 	}
 
-	private void assertUpdatedRepeatIdsInGroupAsListed(SpiderDataRecord updatedRecord,
+	private void assertUpdatedRepeatIdsInGroupAsListed(DataRecord updatedRecord,
 			String... expectedRepeatIds) {
-		SpiderDataGroup updatedDataGroup = updatedRecord.getSpiderDataGroup();
-		SpiderDataGroup updatedRecordInfo = updatedDataGroup.extractGroup("recordInfo");
+		DataGroup updatedDataGroup = updatedRecord.getDataGroup();
+		DataGroup updatedRecordInfo = updatedDataGroup.getFirstGroupWithNameInData("recordInfo");
 
-		List<SpiderDataGroup> updatedGroups = updatedRecordInfo
-				.getAllGroupsWithNameInData("updated");
+		List<DataGroup> updatedGroups = updatedRecordInfo.getAllGroupsWithNameInData("updated");
 		assertEquals(updatedGroups.size(), expectedRepeatIds.length);
 
 		for (int i = 0; i < expectedRepeatIds.length; i++) {
-			SpiderDataGroup updatedGroup = updatedGroups.get(i);
+			DataGroup updatedGroup = updatedGroups.get(i);
 			String repeatId = updatedGroup.getRepeatId();
 			assertEquals(repeatId, expectedRepeatIds[i]);
 		}
 	}
 
-	private void assertCorrectUserInfo(SpiderDataRecord updatedOnce) {
-		SpiderDataGroup updatedOnceDataGroup = updatedOnce.getSpiderDataGroup();
-		SpiderDataGroup updatedOnceRecordInfo = updatedOnceDataGroup.extractGroup("recordInfo");
+	private void assertCorrectUserInfo(DataRecord updatedOnce) {
+		DataGroup updatedOnceDataGroup = updatedOnce.getDataGroup();
+		DataGroup updatedOnceRecordInfo = updatedOnceDataGroup
+				.getFirstGroupWithNameInData("recordInfo");
 		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(updatedOnceRecordInfo, "createdBy",
 				"6789");
-		String tsCreated = updatedOnceRecordInfo.extractAtomicValue("tsCreated");
+		String tsCreated = updatedOnceRecordInfo.getFirstAtomicValueWithNameInData("tsCreated");
 		assertTrue(tsCreated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
 
-		SpiderDataGroup updated = updatedOnceRecordInfo.extractGroup("updated");
+		DataGroup updated = updatedOnceRecordInfo.getFirstGroupWithNameInData("updated");
 
 		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(updated, "updatedBy", "12345");
-		String tsUpdated = updated.extractAtomicValue("tsUpdated");
+		String tsUpdated = updated.getFirstAtomicValueWithNameInData("tsUpdated");
 		assertTrue(tsUpdated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
 		assertFalse(tsUpdated.equals(tsCreated));
 	}
 
-	private void assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(
-			SpiderDataGroup updatedRecordInfo, String groupNameInData, String linkedRecordId) {
-		SpiderDataGroup createdByGroup = updatedRecordInfo.extractGroup(groupNameInData);
-		assertEquals(createdByGroup.extractAtomicValue("linkedRecordType"), "user");
-		assertEquals(createdByGroup.extractAtomicValue("linkedRecordId"), linkedRecordId);
+	private void assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(DataGroup updatedRecordInfo,
+			String groupNameInData, String linkedRecordId) {
+		DataGroup createdByGroup = updatedRecordInfo.getFirstGroupWithNameInData(groupNameInData);
+		assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordType"), "user");
+		assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordId"),
+				linkedRecordId);
 	}
 
-	private void addRecordInfo(SpiderDataGroup spiderDataGroup) {
-		SpiderDataGroup recordInfo = SpiderDataCreator
-				.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType", "spyId",
-						"cora");
-		SpiderDataGroup createdBy = createLinkWithNameInDataRecordTypeAndRecordId("createdBy",
-				"user", "6789");
+	private void addRecordInfo(DataGroup topDataGroup) {
+		DataGroup recordInfo = DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora");
+		DataGroup createdBy = createLinkWithNameInDataRecordTypeAndRecordId("createdBy", "user",
+				"6789");
 		recordInfo.addChild(createdBy);
 
 		LocalDateTime tsCreated = LocalDateTime.of(2016, 10, 01, 00, 00, 00, 000);
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-		recordInfo.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("tsCreated", tsCreated.format(formatter)));
-		spiderDataGroup.addChild(recordInfo);
+		recordInfo.addChild(new DataAtomicSpy("tsCreated", tsCreated.format(formatter)));
+		topDataGroup.addChild(recordInfo);
 	}
 
-	private SpiderDataGroup createLinkWithNameInDataRecordTypeAndRecordId(String nameInData,
+	private DataGroup createLinkWithNameInDataRecordTypeAndRecordId(String nameInData,
 			String linkedRecordType, String linkedRecordId) {
-		SpiderDataGroup recordLink = SpiderDataGroup.withNameInData(nameInData);
-		recordLink.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", linkedRecordType));
-		recordLink.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", linkedRecordId));
+		DataGroup recordLink = new DataGroupSpy(nameInData);
+		recordLink.addChild(new DataAtomicSpy("linkedRecordType", linkedRecordType));
+		recordLink.addChild(new DataAtomicSpy("linkedRecordId", linkedRecordId));
 		return recordLink;
 	}
 
@@ -256,21 +276,17 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageUpdateMultipleTimesSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		addRecordInfo(spiderDataGroup);
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		addRecordInfo(dataGroup);
 
-		SpiderDataRecord updatedOnce = recordUpdater.updateRecord("someToken78678567", "spyType",
-				"spyId", spiderDataGroup);
-		setUpdatedRecordInStorageSpyToReturnOnRead(updatedOnce);
+		updateStorageToReturnDataGroupIncludingUpdateInfo();
+		DataRecord updatedOnce = recordUpdater.updateRecord("someToken78678567", "spyType", "spyId",
+				dataGroup);
+		assertUpdatedRepeatIdsInGroupAsListed(updatedOnce, "0", "1");
+	}
 
-		SpiderDataRecord updatedTwice = recordUpdater.updateRecord("someToken78678567", "spyType",
-				"spyId", updatedOnce.getSpiderDataGroup());
-		assertUpdatedRepeatIdsInGroupAsListed(updatedTwice, "0", "1");
-
-		setUpdatedRecordInStorageSpyToReturnOnRead(updatedTwice);
-		SpiderDataRecord updatedThree = recordUpdater.updateRecord("someToken78678567", "spyType",
-				"spyId", updatedOnce.getSpiderDataGroup());
-		assertUpdatedRepeatIdsInGroupAsListed(updatedThree, "0", "1", "2");
+	private void updateStorageToReturnDataGroupIncludingUpdateInfo() {
+		((RecordStorageUpdateMultipleTimesSpy) recordStorage).alreadyCalled = true;
 	}
 
 	@Test
@@ -278,30 +294,17 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageUpdateMultipleTimesSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		addRecordInfo(spiderDataGroup);
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		addRecordInfo(dataGroup);
 
-		SpiderDataRecord updatedOnceRecord = recordUpdater.updateRecord("someToken78678567",
-				"spyType", "spyId", spiderDataGroup);
+		DataRecord updatedOnceRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
+				"spyId", dataGroup);
 		assertCorrectUserInfo(updatedOnceRecord);
 
-		SpiderDataGroup updatedOnce = updatedOnceRecord.getSpiderDataGroup();
-		SpiderDataGroup recordInfo = updatedOnce.extractGroup("recordInfo");
-
-		SpiderDataGroup secondUpdated = SpiderDataGroup.withNameInData("updated");
-		secondUpdated.setRepeatId("334");
-		recordInfo.addChild(secondUpdated);
-
-		setUpdatedRecordInStorageSpyToReturnOnRead(updatedOnceRecord);
-
-		SpiderDataRecord updatedTwice = recordUpdater.updateRecord("someToken78678567", "spyType",
-				"spyId", spiderDataGroup);
-		assertUpdatedRepeatIdsInGroupAsListed(updatedTwice, "0", "334", "335");
-	}
-
-	private void setUpdatedRecordInStorageSpyToReturnOnRead(SpiderDataRecord updatedRecord) {
-		RecordStorageUpdateMultipleTimesSpy storageSpy = (RecordStorageUpdateMultipleTimesSpy) recordStorage;
-		storageSpy.recordToReturnOnRead = updatedRecord.getSpiderDataGroup().toDataGroup();
+		updateStorageToReturnDataGroupIncludingUpdateInfo();
+		DataRecord updatedTwice = recordUpdater.updateRecord("someToken78678567", "spyType",
+				"spyId", dataGroup);
+		assertUpdatedRepeatIdsInGroupAsListed(updatedTwice, "0", "1");
 	}
 
 	@Test
@@ -309,48 +312,32 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageUpdateMultipleTimesSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		addRecordInfo(spiderDataGroup);
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		addRecordInfo(dataGroup);
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup updated = new DataGroupSpy("updated");
+		updated.setRepeatId("0");
+		DataRecordLink updatedBy = new DataRecordLinkSpy("updatedBy");
+		updated.addChild(updatedBy);
+		updated.addChild(new DataAtomicSpy("tsUpdated", "2010-12-13 20:20:38.346"));
+		recordInfo.addChild(updated);
 
-		SpiderDataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
-				"spyId", spiderDataGroup);
-		setUpdatedRecordInStorageSpyToReturnOnRead(updatedRecord);
+		updateStorageToReturnDataGroupIncludingUpdateInfo();
+		DataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
+				"spyId", dataGroup);
 
-		SpiderDataGroup firstUpdated = getFirstUpdatedInfo(updatedRecord);
-		String correctTsUpdated = firstUpdated.extractAtomicValue("tsUpdated");
+		DataGroup firstUpdated = getFirstUpdatedInfo(updatedRecord);
+		String firstTsUpdated = firstUpdated.getFirstAtomicValueWithNameInData("tsUpdated");
+		String correctTsUpdated = "2014-12-18 20:20:38.346";
 
-		changeUpdatedValue(firstUpdated);
-
-		SpiderDataRecord recordAlreadyContainingUpdateInfo = recordUpdater.updateRecord(
-				"someToken78678567", "spyType", "spyId", updatedRecord.getSpiderDataGroup());
-
-		SpiderDataGroup updatedRecordInfo = getRecordInfo(recordAlreadyContainingUpdateInfo);
-		List<SpiderDataGroup> updatedGroups = updatedRecordInfo
-				.getAllGroupsWithNameInData("updated");
-		assertEquals(updatedGroups.size(), 2);
-
-		SpiderDataGroup firstUpdated2 = updatedRecordInfo.extractGroup("updated");
-		String tsUpdated = firstUpdated2.extractAtomicValue("tsUpdated");
-
-		assertEquals(tsUpdated, correctTsUpdated);
+		assertEquals(firstTsUpdated, correctTsUpdated);
 	}
 
-	private SpiderDataGroup getRecordInfo(SpiderDataRecord record) {
-		SpiderDataGroup updatedSpiderDataGroup = record.getSpiderDataGroup();
-		return updatedSpiderDataGroup.extractGroup("recordInfo");
-	}
-
-	private SpiderDataGroup getFirstUpdatedInfo(SpiderDataRecord updatedRecord) {
-		SpiderDataGroup updatedRecordInfo = updatedRecord.getSpiderDataGroup()
-				.extractGroup("recordInfo");
-		SpiderDataGroup firstUpdated = updatedRecordInfo.extractGroup("updated");
+	private DataGroup getFirstUpdatedInfo(DataRecord updatedRecord) {
+		DataGroup updatedRecordInfo = updatedRecord.getDataGroup()
+				.getFirstGroupWithNameInData("recordInfo");
+		DataGroup firstUpdated = updatedRecordInfo.getFirstGroupWithNameInData("updated");
 		return firstUpdated;
-	}
-
-	private void changeUpdatedValue(SpiderDataGroup firstUpdated) {
-		firstUpdated.removeChild("tsUpdated");
-		firstUpdated
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("tsUpdated", "someAlteredValue"));
 	}
 
 	@Test
@@ -358,8 +345,8 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup dataGroup = getSpiderDataGroupToUpdate();
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("notStoredValue", "hej"));
+		DataGroup dataGroup = getDataGroupToUpdate();
+		dataGroup.addChild(new DataAtomicSpy("notStoredValue", "hej"));
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
 				dataGroup);
@@ -388,11 +375,9 @@ public class SpiderRecordUpdaterTest {
 	public void testAuthenticationNotAuthenticated() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		SpiderDataGroup spiderDataGroup = DataCreator
-				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("nameInData", "spyId",
-						"spyType", "cora");
-		recordUpdater.updateRecord("dummyNonAuthenticatedToken", "spyType", "spyId",
-				spiderDataGroup);
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"nameInData", "spyId", "spyType", "cora");
+		recordUpdater.updateRecord("dummyNonAuthenticatedToken", "spyType", "spyId", dataGroup);
 	}
 
 	@Test
@@ -405,14 +390,13 @@ public class SpiderRecordUpdaterTest {
 				.put("spyType", hashSet);
 		setUpDependencyProvider();
 
-		SpiderDataGroup spiderDataGroup = SpiderDataGroup.withNameInData("nameInData");
-		spiderDataGroup.addChild(
-				SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
-						"spyId", "cora"));
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
 
 		boolean exceptionWasCaught = false;
 		try {
-			recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", spiderDataGroup);
+			recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 		} catch (Exception e) {
 			assertEquals(e.getClass(), AuthorizationException.class);
 			exceptionWasCaught = true;
@@ -431,11 +415,11 @@ public class SpiderRecordUpdaterTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup spiderDataGroup = DataCreator
+		DataGroup dataGroup = DataCreator2
 				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("nameInData", "spyId",
 						"spyType", "cora");
 		String authToken = "someToken78678567";
-		recordUpdater.updateRecord(authToken, "spyType", "spyId", spiderDataGroup);
+		recordUpdater.updateRecord(authToken, "spyType", "spyId", dataGroup);
 
 		assertFetchedFunctionalityHasBeenCalled(authToken,
 				extendedFunctionalityProvider.fetchedFunctionalityForUpdateBeforeMetadataValidation);
@@ -459,7 +443,7 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup dataGroup = getSpiderDataGroupToUpdate();
+		DataGroup dataGroup = getDataGroupToUpdate();
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
 				dataGroup);
@@ -478,7 +462,7 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup dataGroup = getSpiderDataGroupForImageToUpdate();
+		DataGroup dataGroup = getDataGroupForImageToUpdate();
 
 		recordUpdater.updateRecord("someToken78678567", "image", "someImage", dataGroup);
 
@@ -492,32 +476,29 @@ public class SpiderRecordUpdaterTest {
 		assertEquals(ids.size(), 2);
 	}
 
-	private SpiderDataGroup getSpiderDataGroupForImageToUpdate() {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("binary");
-		SpiderDataGroup createRecordInfo = DataCreator
+	private DataGroup getDataGroupForImageToUpdate() {
+		DataGroup dataGroup = new DataGroupSpy("binary");
+		DataGroup createRecordInfo = DataCreator2
 				.createRecordInfoWithIdAndLinkedRecordId("someImage", "cora");
-		SpiderDataGroup typeGroup = SpiderDataGroup.withNameInData("type");
-		typeGroup.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
-		typeGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "image"));
+		DataGroup typeGroup = new DataGroupSpy("type");
+		typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
+		typeGroup.addChild(new DataAtomicSpy("linkedRecordId", "image"));
 		createRecordInfo.addChild(typeGroup);
 		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
+		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
 		return dataGroup;
 	}
 
-	private SpiderDataGroup getSpiderDataGroupToUpdate() {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("typeWithUserGeneratedId");
-		SpiderDataGroup createRecordInfo = DataCreator
+	private DataGroup getDataGroupToUpdate() {
+		DataGroup dataGroup = new DataGroupSpy("typeWithUserGeneratedId");
+		DataGroup createRecordInfo = DataCreator2
 				.createRecordInfoWithIdAndLinkedRecordId("somePlace", "cora");
-		SpiderDataGroup typeGroup = SpiderDataGroup.withNameInData("type");
-		typeGroup.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
-		typeGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
-				"typeWithAutoGeneratedId"));
+		DataGroup typeGroup = new DataGroupSpy("type");
+		typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
+		typeGroup.addChild(new DataAtomicSpy("linkedRecordId", "typeWithAutoGeneratedId"));
 		createRecordInfo.addChild(typeGroup);
 		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
+		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
 		return dataGroup;
 	}
 
@@ -526,7 +507,7 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup dataGroup = getSpiderDataGroupToUpdate();
+		DataGroup dataGroup = getDataGroupToUpdate();
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
 				dataGroup);
@@ -539,7 +520,7 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup dataGroup = getSpiderDataGroupToUpdate();
+		DataGroup dataGroup = getDataGroupToUpdate();
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
 				dataGroup);
@@ -553,13 +534,12 @@ public class SpiderRecordUpdaterTest {
 
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testUpdateNotFound() {
-		SpiderDataGroup record = SpiderDataGroup.withNameInData("authority");
-		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		SpiderDataAtomic idData = SpiderDataAtomic.withNameInDataAndValue("id", "NOT_FOUND");
+		DataGroup record = new DataGroupSpy("authority");
+		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		DataAtomic idData = new DataAtomicSpy("id", "NOT_FOUND");
 		recordInfo.addChild(idData);
-		recordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "recordType"));
-		recordInfo.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("createdBy", "someToken78678567"));
+		recordInfo.addChild(new DataAtomicSpy("type", "recordType"));
+		recordInfo.addChild(new DataAtomicSpy("createdBy", "someToken78678567"));
 		record.addChild(recordInfo);
 		recordUpdater.updateRecord("someToken78678567", "recordType", "NOT_FOUND", record);
 	}
@@ -569,7 +549,7 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup group = SpiderDataGroup.withNameInData("authority");
+		DataGroup group = new DataGroupSpy("authority");
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "place", group);
 	}
 
@@ -578,8 +558,8 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup group = SpiderDataGroup.withNameInData("authority");
-		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
+		DataGroup group = new DataGroupSpy("authority");
+		DataGroup createRecordInfo = new DataGroupSpy("recordInfo");
 		group.addChild(createRecordInfo);
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "place", group);
 	}
@@ -590,12 +570,12 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("typeWithUserGeneratedId");
-		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "place"));
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "recordType"));
+		DataGroup dataGroup = new DataGroupSpy("typeWithUserGeneratedId");
+		DataGroup createRecordInfo = new DataGroupSpy("recordInfo");
+		createRecordInfo.addChild(new DataAtomicSpy("id", "place"));
+		createRecordInfo.addChild(new DataAtomicSpy("type", "recordType"));
 		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
+		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "place",
 				dataGroup);
@@ -603,7 +583,7 @@ public class SpiderRecordUpdaterTest {
 
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testNonExistingRecordType() {
-		SpiderDataGroup record = SpiderDataGroup.withNameInData("authority");
+		DataGroup record = new DataGroupSpy("authority");
 		recordUpdater.updateRecord("someToken78678567", "recordType_NOT_EXISTING", "id", record);
 	}
 
@@ -612,12 +592,12 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("typeWithUserGeneratedId");
-		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "place"));
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "recordType"));
+		DataGroup dataGroup = new DataGroupSpy("typeWithUserGeneratedId");
+		DataGroup createRecordInfo = new DataGroupSpy("recordInfo");
+		createRecordInfo.addChild(new DataAtomicSpy("id", "place"));
+		createRecordInfo.addChild(new DataAtomicSpy("type", "recordType"));
 		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
+		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId",
 				"place_NOT_THE_SAME", dataGroup);
@@ -628,17 +608,15 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup dataGroup = SpiderDataGroup
-				.withNameInData("typeWithUserGeneratedId_NOT_THE_SAME");
-		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "place"));
-		SpiderDataGroup typeGroup = SpiderDataGroup.withNameInData("type");
-		typeGroup.addChild(
-				SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
-		typeGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "recordType"));
+		DataGroup dataGroup = new DataGroupSpy("typeWithUserGeneratedId_NOT_THE_SAME");
+		DataGroup createRecordInfo = new DataGroupSpy("recordInfo");
+		createRecordInfo.addChild(new DataAtomicSpy("id", "place"));
+		DataGroup typeGroup = new DataGroupSpy("type");
+		typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
+		typeGroup.addChild(new DataAtomicSpy("linkedRecordId", "recordType"));
 		createRecordInfo.addChild(typeGroup);
 		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
+		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "place",
 				dataGroup);
@@ -649,13 +627,12 @@ public class SpiderRecordUpdaterTest {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
 
-		SpiderDataGroup dataGroup = SpiderDataGroup
-				.withNameInData("typeWithUserGeneratedId_NOT_THE_SAME");
-		SpiderDataGroup createRecordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "place"));
-		createRecordInfo.addChild(SpiderDataAtomic.withNameInDataAndValue("type", "recordType"));
+		DataGroup dataGroup = new DataGroupSpy("typeWithUserGeneratedId_NOT_THE_SAME");
+		DataGroup createRecordInfo = new DataGroupSpy("recordInfo");
+		createRecordInfo.addChild(new DataAtomicSpy("id", "place"));
+		createRecordInfo.addChild(new DataAtomicSpy("type", "recordType"));
 		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(SpiderDataAtomic.withNameInDataAndValue("atomicId", "atomicValue"));
+		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
 
 		recordUpdater.updateRecord("someToken78678567", "recordType", "placeNOT", dataGroup);
 	}
@@ -668,8 +645,8 @@ public class SpiderRecordUpdaterTest {
 
 		((RecordLinkTestsRecordStorage) recordStorage).recordIdExistsForRecordType = false;
 
-		SpiderDataGroup dataGroup = RecordLinkTestsDataCreator
-				.createDataGroupWithRecordInfoAndLinkOneLevelDown();
+		DataGroup dataGroup = RecordLinkTestsDataCreator
+				.createDataDataGroupWithRecordInfoAndLinkOneLevelDown();
 		recordUpdater.updateRecord("someToken78678567", "dataWithLinks", "oneLinkOneLevelDown",
 				dataGroup);
 	}

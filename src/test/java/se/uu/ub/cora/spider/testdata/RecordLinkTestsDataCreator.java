@@ -19,192 +19,173 @@
 
 package se.uu.ub.cora.spider.testdata;
 
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecordLink;
-import se.uu.ub.cora.spider.data.SpiderDataResourceLink;
+import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataLink;
+import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 
 public class RecordLinkTestsDataCreator {
 
 	private static final String DATA_WITH_LINKS = "dataWithLinks";
 
-	public static SpiderDataGroup createDataGroupWithLink() {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
+	public static DataGroup createDataDataGroupWithLink() {
+		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
 
-		SpiderDataRecordLink spiderRecordLink = createLink();
-
-		dataGroup.addChild(spiderRecordLink);
+		DataLink recordLink = createDataLink();
+		dataGroup.addChild(recordLink);
 		return dataGroup;
 	}
 
-	private static SpiderDataRecordLink createLink() {
-		SpiderDataRecordLink spiderRecordLink = SpiderDataRecordLink.withNameInData("link");
-		SpiderDataAtomic linkedRecordType = SpiderDataAtomic
-				.withNameInDataAndValue("linkedRecordType", "toRecordType");
-		spiderRecordLink.addChild(linkedRecordType);
-		SpiderDataAtomic linkedRecordId = SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
-				"toRecordId");
-		spiderRecordLink.addChild(linkedRecordId);
-		return spiderRecordLink;
+	private static DataRecordLink createDataLink() {
+		DataRecordLinkSpy recordLink = new DataRecordLinkSpy("link");
+		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", "toRecordType");
+		recordLink.addChild(linkedRecordType);
+		DataAtomic linkedRecordId = new DataAtomicSpy("linkedRecordId", "toRecordId");
+		recordLink.addChild(linkedRecordId);
+		return recordLink;
 	}
 
-	public static SpiderDataGroup createDataGroupWithLinkNotAuthorized() {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
+	public static DataGroup createDataDataGroupWithLinkNotAuthorized() {
+		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
 
-		SpiderDataRecordLink spiderRecordLink = SpiderDataRecordLink.withNameInData("link");
-		SpiderDataAtomic linkedRecordType = SpiderDataAtomic
-				.withNameInDataAndValue("linkedRecordType", "toRecordType");
-		spiderRecordLink.addChild(linkedRecordType);
-		SpiderDataAtomic linkedRecordId = SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
-				"recordLinkNotAuthorized");
-		spiderRecordLink.addChild(linkedRecordId);
+		DataRecordLinkSpy recordLink = new DataRecordLinkSpy("link");
+		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", "toRecordType");
+		recordLink.addChild(linkedRecordType);
+		DataAtomic linkedRecordId = new DataAtomicSpy("linkedRecordId", "recordLinkNotAuthorized");
+		recordLink.addChild(linkedRecordId);
 
-		dataGroup.addChild(spiderRecordLink);
+		dataGroup.addChild(recordLink);
 		return dataGroup;
 	}
 
-	public static SpiderDataGroup createDataGroupWithLinkOneLevelDown() {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
-		SpiderDataGroup oneLevelDown = SpiderDataGroup.withNameInData("oneLevelDown");
+	public static DataGroup createDataDataGroupWithLinkOneLevelDown() {
+		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
+		DataGroup oneLevelDown = new DataGroupSpy("oneLevelDown");
 		dataGroup.addChild(oneLevelDown);
 
-		SpiderDataRecordLink spiderRecordLink = SpiderDataRecordLink.withNameInData("link");
+		DataRecordLinkSpy recordLink = new DataRecordLinkSpy("link");
 
-		SpiderDataAtomic linkedRecordType = SpiderDataAtomic
-				.withNameInDataAndValue("linkedRecordType", "toRecordType");
-		spiderRecordLink.addChild(linkedRecordType);
+		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", "toRecordType");
+		recordLink.addChild(linkedRecordType);
 
-		SpiderDataAtomic linkedRecordId = SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
-				"toRecordId");
-		spiderRecordLink.addChild(linkedRecordId);
+		DataAtomic linkedRecordId = new DataAtomicSpy("linkedRecordId", "toRecordId");
+		recordLink.addChild(linkedRecordId);
 
-		oneLevelDown.addChild(spiderRecordLink);
+		oneLevelDown.addChild(recordLink);
 		return dataGroup;
 	}
 
-	public static SpiderDataGroup createDataGroupWithLinkOneLevelDownTargetDoesNotExist() {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
-		SpiderDataGroup oneLevelDown = SpiderDataGroup
-				.withNameInData("oneLevelDownTargetDoesNotExist");
+	public static DataGroup createDataDataGroupWithLinkOneLevelDownTargetDoesNotExist() {
+		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
+		DataGroup oneLevelDown = new DataGroupSpy("oneLevelDownTargetDoesNotExist");
 		dataGroup.addChild(oneLevelDown);
 
-		SpiderDataRecordLink spiderRecordLink = SpiderDataRecordLink.withNameInData("link");
+		DataRecordLinkSpy recordLink = new DataRecordLinkSpy("link");
 
-		SpiderDataAtomic linkedRecordType = SpiderDataAtomic
-				.withNameInDataAndValue("linkedRecordType", "toRecordType");
-		spiderRecordLink.addChild(linkedRecordType);
+		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", "toRecordType");
+		recordLink.addChild(linkedRecordType);
 
-		SpiderDataAtomic linkedRecordId = SpiderDataAtomic.withNameInDataAndValue("linkedRecordId",
-				"nonExistingRecordId");
-		spiderRecordLink.addChild(linkedRecordId);
+		DataAtomic linkedRecordId = new DataAtomicSpy("linkedRecordId", "nonExistingRecordId");
+		recordLink.addChild(linkedRecordId);
 
-		oneLevelDown.addChild(spiderRecordLink);
+		oneLevelDown.addChild(recordLink);
 		return dataGroup;
 	}
 
-	public static SpiderDataGroup createSpiderDataGroupWithRecordInfoAndLink() {
-		SpiderDataGroup dataGroup = createDataGroupWithLink();
-		dataGroup
-				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-						DATA_WITH_LINKS, "oneLinkTopLevel", "cora"));
+	public static DataGroup createDataGroupWithRecordInfoAndLink() {
+		DataGroup dataGroup = createDataDataGroupWithLink();
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				DATA_WITH_LINKS, "oneLinkTopLevel", "cora"));
 		return dataGroup;
 	}
 
-	public static SpiderDataGroup createSpiderDataGroupWithRecordInfoAndTwoLinks() {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
-		dataGroup
-				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-						DATA_WITH_LINKS, "towLinksTopLevel", "cora"));
+	public static DataGroup createDataGroupWithRecordInfoAndTwoLinks() {
+		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				DATA_WITH_LINKS, "towLinksTopLevel", "cora"));
 
-		SpiderDataRecordLink spiderRecordLink = createLink();
-		spiderRecordLink.setRepeatId("one");
-		dataGroup.addChild(spiderRecordLink);
+		DataRecordLinkSpy recordLink = (DataRecordLinkSpy) createDataLink();
+		recordLink.setRepeatId("one");
+		dataGroup.addChild(recordLink);
 
-		SpiderDataRecordLink spiderRecordLink2 = createLink();
-		spiderRecordLink2.setRepeatId("two");
-		dataGroup.addChild(spiderRecordLink2);
+		DataRecordLinkSpy recordLink2 = (DataRecordLinkSpy) createDataLink();
+		recordLink2.setRepeatId("two");
+		dataGroup.addChild(recordLink2);
 		return dataGroup;
 
 	}
 
-	public static SpiderDataGroup createSpiderDataGroupWithRecordInfoAndLinkNotAuthorized() {
-		SpiderDataGroup dataGroup = createDataGroupWithLinkNotAuthorized();
-		dataGroup
-				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-						DATA_WITH_LINKS, "oneLinkTopLevelNotAuthorized", "cora"));
+	public static DataGroup createDataGroupWithRecordInfoAndLinkNotAuthorized() {
+		DataGroup dataGroup = createDataDataGroupWithLinkNotAuthorized();
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				DATA_WITH_LINKS, "oneLinkTopLevelNotAuthorized", "cora"));
 		return dataGroup;
 	}
 
-	public static SpiderDataGroup createDataGroupWithRecordInfoAndLinkOneLevelDown() {
-		SpiderDataGroup dataGroup = createDataGroupWithLinkOneLevelDown();
-		dataGroup
-				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-						DATA_WITH_LINKS, "oneLinkOneLevelDown", "cora"));
+	public static DataGroup createDataDataGroupWithRecordInfoAndLinkOneLevelDown() {
+		DataGroup dataGroup = createDataDataGroupWithLinkOneLevelDown();
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				DATA_WITH_LINKS, "oneLinkOneLevelDown", "cora"));
 		return dataGroup;
 	}
 
-	public static SpiderDataGroup createDataGroupWithRecordInfoAndLinkOneLevelDownTargetDoesNotExist() {
-		SpiderDataGroup dataGroup = createDataGroupWithLinkOneLevelDownTargetDoesNotExist();
-		dataGroup
-				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-						DATA_WITH_LINKS, "oneLinkOneLevelDownTargetDoesNotExist", "cora"));
+	public static DataGroup createDataDataGroupWithRecordInfoAndLinkOneLevelDownTargetDoesNotExist() {
+		DataGroup dataGroup = createDataDataGroupWithLinkOneLevelDownTargetDoesNotExist();
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				DATA_WITH_LINKS, "oneLinkOneLevelDownTargetDoesNotExist", "cora"));
 		return dataGroup;
 	}
 
-	public static SpiderDataGroup createSpiderDataGroupWithRecordInfoAndResourceLink() {
-		SpiderDataGroup dataGroup = createDataGroupWithResourceLink();
-		dataGroup
-				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-						DATA_WITH_LINKS, "oneResourceLinkTopLevel", "cora"));
+	public static DataGroup createDataGroupWithRecordInfoAndResourceLink() {
+		DataGroup dataGroup = createDataDataGroupWithResourceLink();
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				DATA_WITH_LINKS, "oneResourceLinkTopLevel", "cora"));
 		return dataGroup;
 	}
 
-	public static SpiderDataGroup createDataGroupWithRecordInfoAndResourceLinkOneLevelDown() {
-		SpiderDataGroup dataGroup = createDataGroupWithResourceLinkOneLevelDown();
-		dataGroup
-				.addChild(SpiderDataCreator.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-						DATA_WITH_LINKS, "oneResourceLinkOneLevelDown", "cora"));
+	public static DataGroup createDataDataGroupWithRecordInfoAndResourceLinkOneLevelDown() {
+		DataGroup dataGroup = createDataDataGroupWithResourceLinkOneLevelDown();
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				DATA_WITH_LINKS, "oneResourceLinkOneLevelDown", "cora"));
 		return dataGroup;
 	}
 
-	public static SpiderDataGroup createDataGroupWithResourceLink() {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
-		dataGroup.addChild(createResourceLink());
+	public static DataGroup createDataDataGroupWithResourceLink() {
+		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
+		dataGroup.addChild(createDataResourceLink());
 		return dataGroup;
 	}
 
-	private static SpiderDataResourceLink createResourceLink() {
-		SpiderDataResourceLink spiderResourceLink = SpiderDataResourceLink.withNameInData("link");
+	private static DataLink createDataResourceLink() {
+		DataResourceLinkSpy resourceLink = new DataResourceLinkSpy("link");
 
-		spiderResourceLink
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("streamId", "someStreamId"));
-		spiderResourceLink
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("filename", "aFileName"));
-		spiderResourceLink.addChild(SpiderDataAtomic.withNameInDataAndValue("filesize", "12345"));
-		spiderResourceLink
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("mimeType", "application/pdf"));
-		return spiderResourceLink;
+		resourceLink.addChild(new DataAtomicSpy("streamId", "someStreamId"));
+		resourceLink.addChild(new DataAtomicSpy("filename", "aFileName"));
+		resourceLink.addChild(new DataAtomicSpy("filesize", "12345"));
+		resourceLink.addChild(new DataAtomicSpy("mimeType", "application/pdf"));
+		return resourceLink;
 	}
 
-	public static SpiderDataGroup createDataGroupWithResourceLinkOneLevelDown() {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData(DATA_WITH_LINKS);
-		SpiderDataGroup oneLevelDown = SpiderDataGroup.withNameInData("oneLevelDown");
+	public static DataGroup createDataDataGroupWithResourceLinkOneLevelDown() {
+		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
+		DataGroup oneLevelDown = new DataGroupSpy("oneLevelDown");
 		dataGroup.addChild(oneLevelDown);
 
-		oneLevelDown.addChild(createResourceLink());
+		oneLevelDown.addChild(createDataResourceLink());
 
 		return dataGroup;
 	}
 
-	public static SpiderDataGroup createLinkChildAsRecordDataGroup() {
-		SpiderDataGroup dataGroup = SpiderDataGroup.withNameInData("toRecordType");
-		SpiderDataGroup recordInfo = SpiderDataGroup.withNameInData("recordInfo");
-		recordInfo
-				.addChild(SpiderDataAtomic.withNameInDataAndValue("id", "recordLinkNotAuthorized"));
+	public static DataGroup createLinkChildAsDataRecordDataGroup() {
+		DataGroup dataGroup = new DataGroupSpy("toRecordType");
+		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		recordInfo.addChild(new DataAtomicSpy("id", "recordLinkNotAuthorized"));
 
-		SpiderDataGroup type = SpiderDataGroup.withNameInData("type");
-		type.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "recordType"));
-		type.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordId", "toRecordType"));
+		DataGroup type = new DataGroupSpy("type");
+		type.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
+		type.addChild(new DataAtomicSpy("linkedRecordId", "toRecordType"));
 		recordInfo.addChild(type);
 
 		dataGroup.addChild(recordInfo);

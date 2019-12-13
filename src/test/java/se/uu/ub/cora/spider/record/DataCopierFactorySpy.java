@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,12 +16,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.record;
 
-package se.uu.ub.cora.spider.data;
+import java.util.ArrayList;
+import java.util.List;
 
+import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.copier.DataCopier;
+import se.uu.ub.cora.data.copier.DataCopierFactory;
 
-public interface SpiderDataElement {
+public class DataCopierFactorySpy implements DataCopierFactory {
+	public List<DataElement> dataElements = new ArrayList<>();
+	public List<DataCopierSpy> factoredDataCopiers = new ArrayList<>();
 
-	String getNameInData();
+	@Override
+	public DataCopier factorForDataElement(DataElement dataElement) {
+		dataElements.add(dataElement);
+		DataCopierSpy dataCopier = new DataCopierSpy(dataElement);
+		factoredDataCopiers.add(dataCopier);
+		return dataCopier;
+	}
 
 }

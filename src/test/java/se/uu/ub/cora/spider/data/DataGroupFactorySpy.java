@@ -13,8 +13,7 @@ public class DataGroupFactorySpy implements DataGroupFactory {
 	@Override
 	public DataGroup factorAsLinkWithNameInDataTypeAndId(String nameInData, String recordType,
 			String recordId) {
-		// TODO Auto-generated method stub
-		return null;
+		return new DataGroupSpy(nameInData, recordType, recordId);
 	}
 
 }

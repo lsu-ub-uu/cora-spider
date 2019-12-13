@@ -19,8 +19,8 @@
 
 package se.uu.ub.cora.spider.extended;
 
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidator;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
 
 public final class MetadataConsistencyValidatorAsExtendedFunctionality
 		implements ExtendedFunctionality {
@@ -37,8 +37,8 @@ public final class MetadataConsistencyValidatorAsExtendedFunctionality
 	}
 
 	@Override
-	public void useExtendedFunctionality(String userId, SpiderDataGroup spiderDataGroup) {
-		metadataConsistencyValidator.validateRules(spiderDataGroup);
+	public void useExtendedFunctionality(String userId, DataGroup dataGroup) {
+		metadataConsistencyValidator.validateRules(dataGroup);
 	}
 
 }

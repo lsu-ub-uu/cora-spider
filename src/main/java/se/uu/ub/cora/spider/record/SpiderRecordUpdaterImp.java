@@ -29,13 +29,13 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.SpiderDataAtomic;
-import se.uu.ub.cora.spider.data.SpiderDataGroup;
-import se.uu.ub.cora.spider.data.SpiderDataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
@@ -58,6 +58,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataGroupTermCollector collectTermCollector;
 	private RecordIndexer recordIndexer;
+	private DataGroup topDataGroup;
 
 	private SpiderRecordUpdaterImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -79,10 +80,10 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	@Override
-	public SpiderDataRecord updateRecord(String authToken, String recordType, String recordId,
-			SpiderDataGroup spiderDataGroup) {
+	public DataRecord updateRecord(String authToken, String recordType, String recordId,
+			DataGroup dataGroup) {
 		this.authToken = authToken;
-		this.recordAsSpiderDataGroup = spiderDataGroup;
+		this.topDataGroup = dataGroup;
 		this.recordType = recordType;
 		this.recordId = recordId;
 		user = tryToGetActiveUser();
@@ -93,15 +94,15 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		metadataId = recordTypeHandler.getMetadataId();
 
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
-		useExtendedFunctionalityBeforeMetadataValidation(recordType, spiderDataGroup);
+		useExtendedFunctionalityBeforeMetadataValidation(recordType, dataGroup);
 
-		addUpdateInfo(spiderDataGroup);
+		addUpdateInfo();
 		validateIncomingDataAsSpecifiedInMetadata();
-		useExtendedFunctionalityAfterMetadataValidation(recordType, spiderDataGroup);
+		useExtendedFunctionalityAfterMetadataValidation(recordType, dataGroup);
 
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
-		DataGroup topLevelDataGroup = spiderDataGroup.toDataGroup();
+		DataGroup topLevelDataGroup = dataGroup;
 
 		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
@@ -110,7 +111,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 				recordType, recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
-		String dataDivider = extractDataDividerFromData(spiderDataGroup);
+		String dataDivider = extractDataDividerFromData(dataGroup);
 
 		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedTerms,
 				collectedLinks, dataDivider);
@@ -130,42 +131,41 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
-			SpiderDataGroup spiderDataGroup) {
+			DataGroup dataGroup) {
 		List<ExtendedFunctionality> functionalityForUpdateBeforeMetadataValidation = extendedFunctionalityProvider
 				.getFunctionalityForUpdateBeforeMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(spiderDataGroup, functionalityForUpdateBeforeMetadataValidation);
+		useExtendedFunctionality(dataGroup, functionalityForUpdateBeforeMetadataValidation);
 	}
 
-	private void useExtendedFunctionality(SpiderDataGroup spiderDataGroup,
+	private void useExtendedFunctionality(DataGroup dataGroup,
 			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
 		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
-			extendedFunctionality.useExtendedFunctionality(authToken, spiderDataGroup);
+			extendedFunctionality.useExtendedFunctionality(authToken, dataGroup);
 		}
 	}
 
 	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
-			SpiderDataGroup spiderDataGroup) {
+			DataGroup dataGroup) {
 		List<ExtendedFunctionality> functionalityForUpdateAfterMetadataValidation = extendedFunctionalityProvider
 				.getFunctionalityForUpdateAfterMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(spiderDataGroup, functionalityForUpdateAfterMetadataValidation);
+		useExtendedFunctionality(dataGroup, functionalityForUpdateAfterMetadataValidation);
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata() {
-		DataGroup dataGroup = recordAsSpiderDataGroup.toDataGroup();
-		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, dataGroup);
+		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, topDataGroup);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
 	}
 
 	private void checkRecordTypeAndIdIsSameAsInEnteredRecord() {
-		SpiderDataGroup recordInfo = recordAsSpiderDataGroup.extractGroup(RECORD_INFO);
+		DataGroup recordInfo = topDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
 		checkIdIsSameAsInEnteredRecord(recordInfo);
 		checkTypeIsSameAsInEnteredRecord(recordInfo);
 	}
 
-	private void checkIdIsSameAsInEnteredRecord(SpiderDataGroup recordInfo) {
-		String valueFromRecord = recordInfo.extractAtomicValue("id");
+	private void checkIdIsSameAsInEnteredRecord(DataGroup recordInfo) {
+		String valueFromRecord = recordInfo.getFirstAtomicValueWithNameInData("id");
 		checkValueIsSameAsValueInEnteredRecord(recordId, valueFromRecord);
 	}
 
@@ -177,14 +177,14 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		}
 	}
 
-	private void checkTypeIsSameAsInEnteredRecord(SpiderDataGroup recordInfo) {
+	private void checkTypeIsSameAsInEnteredRecord(DataGroup recordInfo) {
 		String type = extractTypeFromRecordInfo(recordInfo);
 		checkValueIsSameAsValueInEnteredRecord(recordType, type);
 	}
 
-	private String extractTypeFromRecordInfo(SpiderDataGroup recordInfo) {
-		SpiderDataGroup typeGroup = recordInfo.extractGroup("type");
-		return typeGroup.extractAtomicValue(LINKED_RECORD_ID);
+	private String extractTypeFromRecordInfo(DataGroup recordInfo) {
+		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
+		return typeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
@@ -199,38 +199,38 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 				recordType, collectedTerms);
 	}
 
-	private void addUpdateInfo(SpiderDataGroup topLevelDataGroup) {
-		SpiderDataGroup recordInfo = topLevelDataGroup.extractGroup("recordInfo");
+	private void addUpdateInfo() {
+		DataGroup recordInfo = topDataGroup.getFirstGroupWithNameInData("recordInfo");
 		replaceUpdatedInfoWithInfoFromPreviousRecord(recordInfo);
-		SpiderDataGroup updated = createUpdateInfoForThisUpdate(recordInfo);
+		DataGroup updated = createUpdateInfoForThisUpdate(recordInfo);
 		recordInfo.addChild(updated);
 	}
 
-	private void replaceUpdatedInfoWithInfoFromPreviousRecord(SpiderDataGroup recordInfo) {
+	private void replaceUpdatedInfoWithInfoFromPreviousRecord(DataGroup recordInfo) {
 		removeUpdateInfoFromIncomingData(recordInfo);
 		addRecordInfoFromReadData(recordInfo);
 	}
 
-	private void removeUpdateInfoFromIncomingData(SpiderDataGroup recordInfo) {
+	private void removeUpdateInfoFromIncomingData(DataGroup recordInfo) {
 		while (recordInfo.containsChildWithNameInData(UPDATED_STRING)) {
-			recordInfo.removeChild(UPDATED_STRING);
+			recordInfo.removeFirstChildWithNameInData(UPDATED_STRING);
 		}
 	}
 
-	private void addRecordInfoFromReadData(SpiderDataGroup recordInfo) {
-		SpiderDataGroup recordInfoStoredRecord = getRecordInfoFromStoredData();
-		List<SpiderDataGroup> updatedGroups = recordInfoStoredRecord
+	private void addRecordInfoFromReadData(DataGroup recordInfo) {
+		DataGroup recordInfoStoredRecord = getRecordInfoFromStoredData();
+		List<DataGroup> updatedGroups = recordInfoStoredRecord
 				.getAllGroupsWithNameInData(UPDATED_STRING);
 		updatedGroups.forEach(recordInfo::addChild);
 	}
 
-	private SpiderDataGroup getRecordInfoFromStoredData() {
+	private DataGroup getRecordInfoFromStoredData() {
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
-		return SpiderDataGroup.fromDataGroup(recordRead.getFirstGroupWithNameInData("recordInfo"));
+		return recordRead.getFirstGroupWithNameInData("recordInfo");
 	}
 
-	private SpiderDataGroup createUpdateInfoForThisUpdate(SpiderDataGroup recordInfo) {
-		SpiderDataGroup updated = SpiderDataGroup.withNameInData(UPDATED_STRING);
+	private DataGroup createUpdateInfoForThisUpdate(DataGroup recordInfo) {
+		DataGroup updated = DataGroupProvider.getDataGroupUsingNameInData(UPDATED_STRING);
 		String repeatId = getRepeatId(recordInfo);
 		updated.setRepeatId(repeatId);
 
@@ -239,42 +239,45 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		return updated;
 	}
 
-	private void setUpdatedBy(SpiderDataGroup updated) {
-		SpiderDataGroup updatedBy = createUpdatedByLink();
+	private void setUpdatedBy(DataGroup updated) {
+		DataGroup updatedBy = createUpdatedByLink();
 		updated.addChild(updatedBy);
 	}
 
-	private void setTsUpdated(SpiderDataGroup updated) {
+	private void setTsUpdated(DataGroup updated) {
 		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
-		updated.addChild(SpiderDataAtomic.withNameInDataAndValue(TS_UPDATED, currentLocalDateTime));
+		updated.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_UPDATED,
+				currentLocalDateTime));
 	}
 
-	private String getRepeatId(SpiderDataGroup recordInfo) {
-		List<SpiderDataGroup> updatedList = recordInfo.getAllGroupsWithNameInData(UPDATED_STRING);
+	private String getRepeatId(DataGroup recordInfo) {
+		List<DataGroup> updatedList = recordInfo.getAllGroupsWithNameInData(UPDATED_STRING);
 		if (updatedList.isEmpty()) {
 			return "0";
 		}
 		return calculateRepeatId(updatedList);
 	}
 
-	private String calculateRepeatId(List<SpiderDataGroup> updatedList) {
+	private String calculateRepeatId(List<DataGroup> updatedList) {
 		List<Integer> repeatIds = getAllCurrentRepeatIds(updatedList);
 		Integer max = Collections.max(repeatIds);
 		return String.valueOf(max + 1);
 	}
 
-	private List<Integer> getAllCurrentRepeatIds(List<SpiderDataGroup> updatedList) {
+	private List<Integer> getAllCurrentRepeatIds(List<DataGroup> updatedList) {
 		List<Integer> repeatIds = new ArrayList<>(updatedList.size());
-		for (SpiderDataGroup updated : updatedList) {
+		for (DataGroup updated : updatedList) {
 			repeatIds.add(Integer.valueOf(updated.getRepeatId()));
 		}
 		return repeatIds;
 	}
 
-	private SpiderDataGroup createUpdatedByLink() {
-		SpiderDataGroup updatedBy = SpiderDataGroup.withNameInData(UPDATED_BY);
-		updatedBy.addChild(SpiderDataAtomic.withNameInDataAndValue("linkedRecordType", "user"));
-		updatedBy.addChild(SpiderDataAtomic.withNameInDataAndValue(LINKED_RECORD_ID, user.id));
+	private DataGroup createUpdatedByLink() {
+		DataGroup updatedBy = DataGroupProvider.getDataGroupUsingNameInData(UPDATED_BY);
+		updatedBy.addChild(DataAtomicProvider
+				.getDataAtomicUsingNameInDataAndValue("linkedRecordType", "user"));
+		updatedBy.addChild(
+				DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(LINKED_RECORD_ID, user.id));
 		return updatedBy;
 	}
 
