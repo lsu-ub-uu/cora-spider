@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -40,6 +41,7 @@ import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactorySpy2;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
@@ -59,20 +61,26 @@ public class UserUpdaterForAppTokenAsExtendedFunctionalityTest {
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 
 	private SpiderInstanceFactorySpy2 spiderInstanceFactory;
+	private LoggerFactorySpy loggerFactorySpy;
 
 	@BeforeMethod
 	public void setUp() {
+		setUpFactoriesAndProviders();
+
 		spiderInstanceFactory = new SpiderInstanceFactorySpy2();
 		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
 
 		dependencyProvider = new SpiderDependencyProviderSpy(Collections.emptyMap());
 		authenticator = new AuthenticatorSpy();
-		// recordStorage =
-		// TestDataAppTokenStorage.createRecordStorageInMemoryWithTestData();
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
 		extendedFunctionality = UserUpdaterForAppTokenAsExtendedFunctionality
 				.usingSpiderDependencyProvider(dependencyProvider);
+	}
+
+	private void setUpFactoriesAndProviders() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 	}
 
 	private void setUpDependencyProvider() {

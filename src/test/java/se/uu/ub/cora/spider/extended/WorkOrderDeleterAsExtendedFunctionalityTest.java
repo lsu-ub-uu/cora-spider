@@ -54,8 +54,8 @@ public class WorkOrderDeleterAsExtendedFunctionalityTest {
 
 	@BeforeMethod
 	public void setUp() {
-		loggerFactorySpy = new LoggerFactorySpy();
-		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+	setUpFactoriesAndProviders();
+
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
 		dependencyProvider.searchTermCollector = new DataGroupTermCollectorSpy();
@@ -67,6 +67,11 @@ public class WorkOrderDeleterAsExtendedFunctionalityTest {
 
 		dependencyProvider.spiderAuthorizator = new AlwaysAuthorisedExceptStub();
 		setUpDependencyProvider();
+	}
+
+	private void setUpFactoriesAndProviders() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 	}
 
 	private void setUpDependencyProvider() {
