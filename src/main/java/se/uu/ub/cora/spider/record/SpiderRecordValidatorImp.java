@@ -248,7 +248,6 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 
 	private void ensureLinksExist(String recordTypeToValidate, String recordIdToUse,
 			String metadataId) {
-		// DataGroup topLevelDataGroup = recordAsDataGroup.toDataGroup();
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup,
 				recordTypeToValidate, recordIdToUse);
 		checkIfLinksExist(collectedLinks);
@@ -263,7 +262,6 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata(String metadataId) {
-		// DataGroup dataGroup = recordAsDataGroup.toDataGroup();
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId,
 				recordAsDataGroup);
 		possiblyAddErrorMessages(validationAnswer);

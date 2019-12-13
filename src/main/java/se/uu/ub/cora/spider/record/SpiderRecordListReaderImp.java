@@ -68,7 +68,6 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 		readRecordList = DataListProvider.getDataListWithNameOfDataType(recordType);
 		DataGroup recordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordType);
-		// DataGroup filterAsDataGroup = filter.toDataGroup();
 		validateFilterIfNotEmpty(filter, recordType, recordTypeDataGroup);
 		readRecordsOfType(recordType, filter, recordTypeDataGroup);
 		readRecordList.setTotalNo(String.valueOf(readResult.totalNumberOfMatches));
