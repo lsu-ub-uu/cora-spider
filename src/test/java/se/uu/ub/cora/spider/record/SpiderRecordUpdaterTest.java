@@ -23,6 +23,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -249,6 +250,17 @@ public class SpiderRecordUpdaterTest {
 		String tsUpdated = updated.getFirstAtomicValueWithNameInData("tsUpdated");
 		assertTrue(tsUpdated.matches(TIMESTAMP_FORMAT));
 		assertFalse(tsUpdated.equals(tsCreated));
+	}
+
+	@Test
+	public void testFormatKeepsNanoZeros() throws Exception {
+		Instant now = Instant.now();
+		int nano = now.getNano();
+		Instant minusNanos = now.minusNanos(nano);
+		SpiderRecordUpdaterImp recordUpdater2 = (SpiderRecordUpdaterImp) recordUpdater;
+		String formattedTS = recordUpdater2.formatInstantKeepingTrailingZeros(minusNanos);
+		assertEquals(formattedTS.substring(20), "000000Z");
+
 	}
 
 	private void assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(DataGroup updatedRecordInfo,

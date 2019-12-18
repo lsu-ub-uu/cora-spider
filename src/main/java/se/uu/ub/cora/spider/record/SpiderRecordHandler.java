@@ -20,6 +20,8 @@
 package se.uu.ub.cora.spider.record;
 
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataElement;
@@ -80,7 +82,12 @@ public class SpiderRecordHandler {
 	}
 
 	protected String getCurrentTimestampAsString() {
-		return Instant.now().toString();
+		return formatInstantKeepingTrailingZeros(Instant.now());
+	}
+
+	protected String formatInstantKeepingTrailingZeros(Instant instant) {
+		DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendInstant(6).toFormatter();
+		return formatter.format(instant);
 	}
 
 	protected void addUpdatedInfoToRecordInfoUsingUserId(DataGroup recordInfo, String userId) {
