@@ -19,7 +19,6 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
@@ -216,9 +215,9 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private void addCreatedInfoToRecordInfoUsingUserId(DataGroup recordInfo, String userId) {
 		DataGroup createdByGroup = createLinkToUserUsingUserIdAndNameInData(userId, "createdBy");
 		recordInfo.addChild(createdByGroup);
-		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
+		String currentTimestamp = getCurrentTimestampAsString();
 		recordInfo.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_CREATED,
-				currentLocalDateTime));
+				currentTimestamp));
 	}
 
 	private void generateAndAddIdToRecordInfo(String recordType) {

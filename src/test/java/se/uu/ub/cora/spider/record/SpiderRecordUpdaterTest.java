@@ -23,8 +23,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -85,6 +83,7 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderRecordUpdaterTest {
+	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -210,6 +209,16 @@ public class SpiderRecordUpdaterTest {
 		assertCorrectUserInfo(updatedOnce);
 	}
 
+	private void addRecordInfo(DataGroup topDataGroup) {
+		DataGroup recordInfo = DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora");
+		DataGroup createdBy = createLinkWithNameInDataRecordTypeAndRecordId("createdBy", "user",
+				"6789");
+		recordInfo.addChild(createdBy);
+		recordInfo.addChild(new DataAtomicSpy("tsCreated", "2016-10-01T00:00:00.000000Z"));
+		topDataGroup.addChild(recordInfo);
+	}
+
 	private void assertUpdatedRepeatIdsInGroupAsListed(DataRecord updatedRecord,
 			String... expectedRepeatIds) {
 		DataGroup updatedDataGroup = updatedRecord.getDataGroup();
@@ -232,13 +241,13 @@ public class SpiderRecordUpdaterTest {
 		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(updatedOnceRecordInfo, "createdBy",
 				"6789");
 		String tsCreated = updatedOnceRecordInfo.getFirstAtomicValueWithNameInData("tsCreated");
-		assertTrue(tsCreated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+		assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
 
 		DataGroup updated = updatedOnceRecordInfo.getFirstGroupWithNameInData("updated");
 
 		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(updated, "updatedBy", "12345");
 		String tsUpdated = updated.getFirstAtomicValueWithNameInData("tsUpdated");
-		assertTrue(tsUpdated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+		assertTrue(tsUpdated.matches(TIMESTAMP_FORMAT));
 		assertFalse(tsUpdated.equals(tsCreated));
 	}
 
@@ -248,19 +257,6 @@ public class SpiderRecordUpdaterTest {
 		assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordType"), "user");
 		assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordId"),
 				linkedRecordId);
-	}
-
-	private void addRecordInfo(DataGroup topDataGroup) {
-		DataGroup recordInfo = DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				"spyType", "spyId", "cora");
-		DataGroup createdBy = createLinkWithNameInDataRecordTypeAndRecordId("createdBy", "user",
-				"6789");
-		recordInfo.addChild(createdBy);
-
-		LocalDateTime tsCreated = LocalDateTime.of(2016, 10, 01, 00, 00, 00, 000);
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-		recordInfo.addChild(new DataAtomicSpy("tsCreated", tsCreated.format(formatter)));
-		topDataGroup.addChild(recordInfo);
 	}
 
 	private DataGroup createLinkWithNameInDataRecordTypeAndRecordId(String nameInData,
@@ -415,9 +411,8 @@ public class SpiderRecordUpdaterTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		DataGroup dataGroup = DataCreator2
-				.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("nameInData", "spyId",
-						"spyType", "cora");
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+				"nameInData", "spyId", "spyType", "cora");
 		String authToken = "someToken78678567";
 		recordUpdater.updateRecord(authToken, "spyType", "spyId", dataGroup);
 

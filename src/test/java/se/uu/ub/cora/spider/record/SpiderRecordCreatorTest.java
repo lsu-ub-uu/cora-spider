@@ -87,6 +87,7 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderRecordCreatorTest {
+	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -398,11 +399,12 @@ public class SpiderRecordCreatorTest {
 		assertCorrectUserInfoInRecordInfo(recordInfo);
 
 		String tsCreated = recordInfo.getFirstAtomicValueWithNameInData("tsCreated");
-		assertTrue(tsCreated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+		// assertEquals(tsCreated, "");
+		assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
 
 		DataGroup updated = recordInfo.getFirstGroupWithNameInData("updated");
 		String tsUpdated = updated.getFirstAtomicValueWithNameInData("tsUpdated");
-		assertTrue(tsUpdated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+		assertTrue(tsUpdated.matches(TIMESTAMP_FORMAT));
 		assertFalse(recordInfo.containsChildWithNameInData("tsUpdated"));
 
 		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
