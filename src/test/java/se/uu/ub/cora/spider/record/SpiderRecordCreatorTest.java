@@ -84,6 +84,7 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderRecordCreatorTest {
+	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -158,8 +159,8 @@ public class SpiderRecordCreatorTest {
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2
-				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
+				"cora");
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 
 		assertTrue(((AuthenticatorSpy) authenticator).authenticationWasCalled);
@@ -194,8 +195,8 @@ public class SpiderRecordCreatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2
-				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
+				"cora");
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
 		assertEquals(dataGroupToRecordEnhancer.recordType, "spyType");
@@ -207,10 +208,9 @@ public class SpiderRecordCreatorTest {
 	public void testAuthenticationNotAuthenticated() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2
-				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
-		recordCreator.createAndStoreRecord("dummyNonAuthenticatedToken", "spyType",
-				dataGroup);
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
+				"cora");
+		recordCreator.createAndStoreRecord("dummyNonAuthenticatedToken", "spyType", dataGroup);
 	}
 
 	@Test
@@ -222,8 +222,8 @@ public class SpiderRecordCreatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2
-				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
+				"cora");
 		String authToken = "someToken78678567";
 		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
 
@@ -241,8 +241,8 @@ public class SpiderRecordCreatorTest {
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2
-				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
+				"cora");
 		String authToken = "someToken78678567";
 		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
 
@@ -392,11 +392,12 @@ public class SpiderRecordCreatorTest {
 		assertCorrectUserInfoInRecordInfo(recordInfo);
 
 		String tsCreated = recordInfo.getFirstAtomicValueWithNameInData("tsCreated");
-		assertTrue(tsCreated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+		// assertEquals(tsCreated, "");
+		assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
 
 		DataGroup updated = recordInfo.getFirstGroupWithNameInData("updated");
 		String tsUpdated = updated.getFirstAtomicValueWithNameInData("tsUpdated");
-		assertTrue(tsUpdated.matches("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
+		assertTrue(tsUpdated.matches(TIMESTAMP_FORMAT));
 		assertFalse(recordInfo.containsChildWithNameInData("tsUpdated"));
 
 		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");

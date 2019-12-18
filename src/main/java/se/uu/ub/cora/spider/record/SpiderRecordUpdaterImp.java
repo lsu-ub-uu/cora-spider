@@ -19,7 +19,6 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -245,7 +244,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void setTsUpdated(DataGroup updated) {
-		String currentLocalDateTime = getLocalTimeDateAsString(LocalDateTime.now());
+		String currentLocalDateTime = getCurrentTimestampAsString();
 		updated.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_UPDATED,
 				currentLocalDateTime));
 	}

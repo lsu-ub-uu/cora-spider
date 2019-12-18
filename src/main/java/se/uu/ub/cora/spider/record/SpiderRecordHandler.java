@@ -19,8 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
 
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataElement;
@@ -78,9 +77,8 @@ public class SpiderRecordHandler {
 		return dataDivider.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
-	protected String getLocalTimeDateAsString(LocalDateTime localDateTime) {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-		return localDateTime.format(formatter);
+	protected String getCurrentTimestampAsString() {
+		return Instant.now().toString();
 	}
 
 	protected void addUpdatedInfoToRecordInfoUsingUserId(DataGroup recordInfo, String userId) {
