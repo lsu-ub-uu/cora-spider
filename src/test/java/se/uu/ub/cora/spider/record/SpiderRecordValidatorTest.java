@@ -40,6 +40,8 @@ import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordFactory;
+import se.uu.ub.cora.data.DataRecordLinkFactory;
+import se.uu.ub.cora.data.DataRecordLinkProvider;
 import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
@@ -93,6 +95,7 @@ public class SpiderRecordValidatorTest {
 	private DataGroupFactory dataGroupFactorySpy;
 	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataRecordFactory dataRecordFactorySpy;
+	private DataRecordLinkFactory dataRecordLinkFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -119,6 +122,8 @@ public class SpiderRecordValidatorTest {
 		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactorySpy);
 		dataRecordFactorySpy = new DataRecordFactorySpy();
 		DataRecordProvider.setDataRecordFactory(dataRecordFactorySpy);
+		dataRecordLinkFactory = new DataRecordLinkFactorySpy();
+		DataRecordLinkProvider.setDataRecordLinkFactory(dataRecordLinkFactory);
 	}
 
 	private void setUpDependencyProvider() {
@@ -188,9 +193,8 @@ public class SpiderRecordValidatorTest {
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = new DataGroupSpy("nameInData");
-		dataGroup.addChild(
-				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
-						"spyId", "cora"));
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
 		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
@@ -214,9 +218,8 @@ public class SpiderRecordValidatorTest {
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = new DataGroupSpy("nameInData");
-		dataGroup.addChild(
-				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
-						"spyId", "cora"));
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "false");
 		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
@@ -472,9 +475,8 @@ public class SpiderRecordValidatorTest {
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = new DataGroupSpy("nameInData");
-		dataGroup.addChild(
-				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
-						"spyId", "cora"));
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
 		changeRecordTypeTo(validationOrder, "spyType");

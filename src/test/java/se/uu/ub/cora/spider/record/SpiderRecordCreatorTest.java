@@ -40,6 +40,9 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.DataRecordLinkFactory;
+import se.uu.ub.cora.data.DataRecordLinkProvider;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
@@ -100,6 +103,7 @@ public class SpiderRecordCreatorTest {
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataGroupFactory dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
+	private DataRecordLinkFactory dataRecordLinkFactory;
 	private DataCopierFactory dataCopierFactory;
 
 	@BeforeMethod
@@ -127,6 +131,8 @@ public class SpiderRecordCreatorTest {
 		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 		dataCopierFactory = new DataCopierFactorySpy();
 		DataCopierProvider.setDataCopierFactory(dataCopierFactory);
+		dataRecordLinkFactory = new DataRecordLinkFactorySpy();
+		DataRecordLinkProvider.setDataRecordLinkFactory(dataRecordLinkFactory);
 	}
 
 	private void setUpDependencyProvider() {
@@ -158,8 +164,8 @@ public class SpiderRecordCreatorTest {
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2
-				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
+				"cora");
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 
 		assertTrue(((AuthenticatorSpy) authenticator).authenticationWasCalled);
@@ -194,8 +200,8 @@ public class SpiderRecordCreatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2
-				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
+				"cora");
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
 		assertEquals(dataGroupToRecordEnhancer.recordType, "spyType");
@@ -207,10 +213,9 @@ public class SpiderRecordCreatorTest {
 	public void testAuthenticationNotAuthenticated() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2
-				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
-		recordCreator.createAndStoreRecord("dummyNonAuthenticatedToken", "spyType",
-				dataGroup);
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
+				"cora");
+		recordCreator.createAndStoreRecord("dummyNonAuthenticatedToken", "spyType", dataGroup);
 	}
 
 	@Test
@@ -222,8 +227,8 @@ public class SpiderRecordCreatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2
-				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
+				"cora");
 		String authToken = "someToken78678567";
 		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
 
@@ -241,8 +246,8 @@ public class SpiderRecordCreatorTest {
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2
-				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
+				"cora");
 		String authToken = "someToken78678567";
 		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
 
@@ -319,7 +324,8 @@ public class SpiderRecordCreatorTest {
 		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
 		assertNotNull(recordId);
 
-		DataGroup createdByGroup = recordInfo.getFirstGroupWithNameInData("createdBy");
+		DataRecordLink createdByGroup = (DataRecordLink) recordInfo
+				.getFirstGroupWithNameInData("createdBy");
 		assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordType"), "user");
 		assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordId"), "12345");
 
@@ -405,13 +411,15 @@ public class SpiderRecordCreatorTest {
 	}
 
 	private void assertCorrectUserInfoInRecordInfo(DataGroup recordInfo) {
-		DataGroup createdByGroup = recordInfo.getFirstGroupWithNameInData("createdBy");
+		DataRecordLink createdByGroup = (DataRecordLink) recordInfo
+				.getFirstGroupWithNameInData("createdBy");
 		assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordType"), "user");
 		assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordId"), "12345");
 
 		DataGroup updated = recordInfo.getFirstGroupWithNameInData("updated");
 		assertEquals(updated.getRepeatId(), "0");
-		DataGroup updatedByGroup = updated.getFirstGroupWithNameInData("updatedBy");
+		DataRecordLink updatedByGroup = (DataRecordLink) updated
+				.getFirstGroupWithNameInData("updatedBy");
 
 		assertEquals(updatedByGroup.getFirstAtomicValueWithNameInData("linkedRecordType"), "user");
 		assertEquals(updatedByGroup.getFirstAtomicValueWithNameInData("linkedRecordId"), "12345");
@@ -433,7 +441,8 @@ public class SpiderRecordCreatorTest {
 		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
 		assertNotNull(recordId, "A new record should have an id");
 
-		DataGroup createdByGroup = recordInfo.getFirstGroupWithNameInData("createdBy");
+		DataRecordLink createdByGroup = (DataRecordLink) recordInfo
+				.getFirstGroupWithNameInData("createdBy");
 		assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordId"), "12345");
 		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
 		assertEquals(typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId"),

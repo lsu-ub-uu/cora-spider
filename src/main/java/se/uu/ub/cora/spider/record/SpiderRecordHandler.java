@@ -26,6 +26,8 @@ import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.DataRecordLinkProvider;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderRecordHandler {
@@ -109,7 +111,8 @@ public class SpiderRecordHandler {
 	}
 
 	protected DataGroup createLinkToUserUsingUserIdAndNameInData(String userId, String nameInData) {
-		DataGroup createdByGroup = DataGroupProvider.getDataGroupUsingNameInData(nameInData);
+		DataRecordLink createdByGroup = DataRecordLinkProvider
+				.getDataRecordLinkUsingNameInData(nameInData);
 		addLinkToUserUsingUserId(createdByGroup, userId);
 		return createdByGroup;
 	}
