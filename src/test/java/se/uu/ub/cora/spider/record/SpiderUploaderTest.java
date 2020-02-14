@@ -43,6 +43,9 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordFactory;
 import se.uu.ub.cora.data.DataRecordProvider;
+import se.uu.ub.cora.data.DataResourceLink;
+import se.uu.ub.cora.data.DataResourceLinkFactory;
+import se.uu.ub.cora.data.DataResourceLinkProvider;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
@@ -64,7 +67,6 @@ import se.uu.ub.cora.spider.dependency.RecordIdGeneratorProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactorySpy2;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.StreamStorageProviderSpy;
@@ -106,6 +108,7 @@ public class SpiderUploaderTest {
 	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataRecordFactory dataRecordFactorySpy;
 	private DataCopierFactory dataCopierFactory;
+	private DataResourceLinkFactory dataResourceLinkFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -121,8 +124,7 @@ public class SpiderUploaderTest {
 		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		factory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
-
+		factory = new SpiderInstanceFactorySpy2();
 		setUpDependencyProvider();
 
 	}
@@ -138,6 +140,8 @@ public class SpiderUploaderTest {
 		DataRecordProvider.setDataRecordFactory(dataRecordFactorySpy);
 		dataCopierFactory = new DataCopierFactorySpy();
 		DataCopierProvider.setDataCopierFactory(dataCopierFactory);
+		dataResourceLinkFactory = new DataResourceLinkFactorySpy();
+		DataResourceLinkProvider.setDataResourceLinkFactory(dataResourceLinkFactory);
 	}
 
 	private void setUpDependencyProvider() {
@@ -174,9 +178,8 @@ public class SpiderUploaderTest {
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = new DataGroupSpy("nameInData");
-		dataGroup.addChild(
-				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
-						"spyId", "cora"));
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 
 		DataRecord recordUpdated = uploader.upload("someToken78678567", "image", "image:123456789",
@@ -240,7 +243,6 @@ public class SpiderUploaderTest {
 	@Test
 	public void testUploadStream() {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-
 		DataRecord recordUpdated = uploader.upload("someToken78678567", "image", "image:123456789",
 				stream, "someFileName");
 
@@ -271,7 +273,8 @@ public class SpiderUploaderTest {
 		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
 
 		DataGroup resourceInfo = groupUpdated.getFirstGroupWithNameInData("resourceInfo");
-		DataGroup master = resourceInfo.getFirstGroupWithNameInData("master");
+		DataResourceLink master = (DataResourceLink) resourceInfo
+				.getFirstGroupWithNameInData("master");
 
 		String dataDividerRecordId = dataDivider
 				.getFirstAtomicValueWithNameInData("linkedRecordId");

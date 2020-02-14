@@ -27,6 +27,8 @@ import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataResourceLink;
+import se.uu.ub.cora.data.DataResourceLinkProvider;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -139,7 +141,8 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 		DataGroup resourceInfo = DataGroupProvider.getDataGroupUsingNameInData(RESOURCE_INFO);
 		recordRead.addChild(resourceInfo);
 
-		DataGroup master = DataGroupProvider.getDataGroupUsingNameInData("master");
+		DataResourceLink master = DataResourceLinkProvider
+				.getDataResourceLinkUsingNameInData("master");
 		resourceInfo.addChild(master);
 
 		DataAtomic streamId2 = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("streamId",
