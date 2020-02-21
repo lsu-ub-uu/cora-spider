@@ -54,6 +54,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private DataGroupTermCollector collectTermCollector;
 	private DataGroup collectedTerms;
 	private Map<String, RecordTypeHandler> cachedRecordTypeHandlers = new HashMap<>();
+	private Map<String, Boolean> smallCache = new HashMap<>();
 
 	public DataGroupToRecordEnhancerImp(SpiderDependencyProvider dependencyProvider) {
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
@@ -342,13 +343,23 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		if (isPublicRecordType(linkedRecordType)) {
 			return true;
 		}
+		if (isCached(linkedRecordType + linkedRecordId)) {
+			return smallCache.get(linkedRecordType + linkedRecordId);
+		}
 		DataGroup linkedRecord = null;
 		try {
 			linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType, linkedRecordId);
 		} catch (RecordNotFoundException exception) {
 			return false;
 		}
-		return userIsAuthorizedForActionOnRecordTypeAndData("read", linkedRecordType, linkedRecord);
+		boolean readAccess = userIsAuthorizedForActionOnRecordTypeAndData("read", linkedRecordType,
+				linkedRecord);
+		smallCache.put(linkedRecordType + linkedRecordId, readAccess);
+		return readAccess;
+	}
+
+	private boolean isCached(String key) {
+		return smallCache.containsKey(key);
 	}
 
 	private boolean isPublicRecordType(String linkedRecordType) {
