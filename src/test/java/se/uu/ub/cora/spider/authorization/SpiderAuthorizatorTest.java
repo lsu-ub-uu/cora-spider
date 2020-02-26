@@ -164,6 +164,17 @@ public class SpiderAuthorizatorTest {
 	}
 
 	@Test
+	public void testUserIsActiveCalledOncePerUser() {
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user, action, recordType);
+		spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user, action, recordType);
+		assertEquals(((RecordStorageForAuthorizatorSpy) recordStorage).userReadNumberOfTimesMap
+				.get(user.id).intValue(), 2);
+		assertEquals(rulesProvider.returnedRules.size(), 1);
+	}
+
+	@Test
 	public void userSatisfiesActionForRecordType() {
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();

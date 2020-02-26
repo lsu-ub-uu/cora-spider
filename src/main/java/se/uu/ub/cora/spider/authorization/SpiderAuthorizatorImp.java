@@ -20,7 +20,11 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
@@ -41,6 +45,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	private RulesProvider rulesProvider;
 	private RecordStorage recordStorage;
 	private SpiderDependencyProvider dependencyProvider;
+	Set<String> cachedActiveUsers = new HashSet<>();
+	Map<String, List<Rule>> cachedProvidedRulesForUser = new HashMap<>();
 
 	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider,
 			Authorizator authorizator, RulesProvider rulesProvider) {
@@ -78,9 +84,14 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private List<Rule> getProvidedRulesForUser(User user) {
+
+		if (cachedProvidedRulesForUser.containsKey(user.id)) {
+			return cachedProvidedRulesForUser.get(user.id);
+		}
 		List<Rule> providedRules = new ArrayList<>();
 		DataGroup userAsDataGroup = getUserAsDataGroup(user);
 		user.roles.forEach(roleId -> addRulesForRole(providedRules, roleId, userAsDataGroup));
+		cachedProvidedRulesForUser.put(user.id, providedRules);
 		return providedRules;
 	}
 
@@ -191,10 +202,15 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private void checkUserIsActive(User user) {
-		DataGroup dataGroupUser = getUserAsDataGroup(user);
-		if (userIsInactive(dataGroupUser)) {
-			throw new AuthorizationException(USER_STRING + user.id + " is inactive");
+		if (!cachedActiveUsers.contains(user.id)) {
+			DataGroup dataGroupUser = getUserAsDataGroup(user);
+			if (userIsInactive(dataGroupUser)) {
+				throw new AuthorizationException(USER_STRING + user.id + " is inactive");
+			} else {
+				cachedActiveUsers.add(user.id);
+			}
 		}
+
 	}
 
 	private boolean userIsInactive(DataGroup foundUser) {

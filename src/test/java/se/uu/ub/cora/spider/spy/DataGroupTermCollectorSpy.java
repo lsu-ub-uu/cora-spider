@@ -19,7 +19,9 @@
 package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
@@ -33,9 +35,16 @@ public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
 	public DataGroup collectedTerms = new DataGroupSpy("collectedData");
 
 	public List<DataGroup> dataGroups = new ArrayList<>();
+	public Map<String, Integer> metadataIdsReadNumberOfTimesMap = new HashMap<>();
 
 	@Override
 	public DataGroup collectTerms(String metadataId, DataGroup dataGroup) {
+		if (!metadataIdsReadNumberOfTimesMap.containsKey(metadataId)) {
+			metadataIdsReadNumberOfTimesMap.put(metadataId, 1);
+		} else {
+			metadataIdsReadNumberOfTimesMap.put(metadataId,
+					metadataIdsReadNumberOfTimesMap.get(metadataId) + 1);
+		}
 		this.metadataId = metadataId;
 		this.dataGroup = dataGroup;
 		collectTermsWasCalled = true;
