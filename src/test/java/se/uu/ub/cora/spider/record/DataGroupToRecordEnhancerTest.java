@@ -25,6 +25,7 @@ import static org.testng.Assert.assertTrue;
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertRecordStorageWasCalledOnlyOnceForReadKey;
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertRecordStorageWasNOTCalledForReadKey;
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevelTwoLinksContainReadActionOnly;
+import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevelTwoLinksDoesNotContainReadAction;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,7 +36,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataAtomicFactory;
 import se.uu.ub.cora.data.DataAtomicProvider;
@@ -62,6 +62,7 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
+import se.uu.ub.cora.spider.spy.SpiderAuthorizorNeverAuthorized;
 
 public class DataGroupToRecordEnhancerTest {
 	private RecordEnhancerTestsRecordStorage recordStorage;
@@ -71,7 +72,7 @@ public class DataGroupToRecordEnhancerTest {
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private User user;
 	private DataGroupToRecordEnhancer enhancer;
-	private DataGroupTermCollector termCollector;
+	private DataGroupTermCollectorSpy termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataGroupFactory dataGroupFactorySpy;
 	private DataAtomicFactory dataAtomicFactorySpy;
@@ -271,7 +272,7 @@ public class DataGroupToRecordEnhancerTest {
 		assertEquals(authorizatorSpy.userIsAuthorizedParameters.get(0),
 				"987654321:read:recordType");
 
-		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
+		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = termCollector;
 		assertEquals(dataGroupTermCollectorSpy.metadataId, "dataWithLinks");
 		assertEquals(dataGroupTermCollectorSpy.dataGroups.get(0), dataGroup);
 
@@ -325,8 +326,8 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
-		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkTopLevel");
 		String recordType = "dataWithLinks";
+		DataGroup dataGroup = recordStorage.read(recordType, "oneLinkTopLevel");
 		DataRecord record = enhancer.enhance(user, recordType, dataGroup);
 		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
 	}
@@ -447,8 +448,8 @@ public class DataGroupToRecordEnhancerTest {
 	public void testRecordTypeForLinkIsOnlyReadOnce() {
 		recordStorage.publicReadForToRecordType = "true";
 
-		DataGroup dataGroup = recordStorage.read("dataWithLinks", "twoLinksTopLevel");
 		String recordType = "dataWithLinks";
+		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
 		DataRecord record = enhancer.enhance(user, recordType, dataGroup);
 
 		assertTopLevelTwoLinksContainReadActionOnly(record);
@@ -456,6 +457,40 @@ public class DataGroupToRecordEnhancerTest {
 		assertRecordStorageWasNOTCalledForReadKey(recordStorage,
 				"toRecordType:recordLinkNotAuthorized");
 		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "recordType:toRecordType");
+	}
+
+	@Test
+	public void testLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord() {
+		String recordType = "dataWithLinks";
+		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
+		DataRecord record = enhancer.enhance(user, recordType, dataGroup);
+
+		assertTopLevelTwoLinksContainReadActionOnly(record);
+		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "toRecordType:toRecordId");
+		assertEquals(termCollector.metadataIdsReadNumberOfTimesMap.get("toRecordType").intValue(),
+				1);
+		Integer authorizedCalledNoOfTimes = ((AuthorizatorAlwaysAuthorizedSpy) authorizator).recordTypeAuthorizedNumberOfTimesMap
+				.get("toRecordType");
+		assertEquals(authorizedCalledNoOfTimes.intValue(), 1);
+	}
+
+	@Test
+	public void testLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord2() {
+		authorizator = new SpiderAuthorizorNeverAuthorized();
+		setUpDependencyProvider();
+
+		String recordType = "dataWithLinks";
+		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
+		DataRecord record = enhancer.enhance(user, recordType, dataGroup);
+
+		assertTopLevelTwoLinksDoesNotContainReadAction(record);
+		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "toRecordType:toRecordId");
+		assertEquals(termCollector.metadataIdsReadNumberOfTimesMap.get("toRecordType").intValue(),
+				1);
+		Integer authorizedCalledNoOfTimes = ((SpiderAuthorizorNeverAuthorized) authorizator).recordTypeAuthorizedNumberOfTimesMap
+				.get("toRecordType");
+		assertEquals(authorizedCalledNoOfTimes.intValue(), 1);
+
 	}
 
 }

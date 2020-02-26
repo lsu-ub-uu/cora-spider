@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2018 Uppsala University Library
+ * Copyright 2016, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,52 +19,34 @@
 
 package se.uu.ub.cora.spider.spy;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 
-public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
-
-	public boolean authorizedWasCalled = false;
-	public List<User> users = new ArrayList<>();
-	public List<String> actions = new ArrayList<>();
-	public List<String> recordTypes = new ArrayList<>();
-	public List<DataGroup> records = new ArrayList<>();
-	public List<DataGroup> collectedTerms = new ArrayList<>();
-	public List<String> calledMethods = new ArrayList<>();
-
-	public List<String> userIsAuthorizedParameters = new ArrayList<>();
+public class SpiderAuthorizorNeverAuthorized implements SpiderAuthorizator {
 	public Map<String, Integer> recordTypeAuthorizedNumberOfTimesMap = new HashMap<>();
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		// always authorized
-		authorizedWasCalled = true;
+		throw new AuthorizationException("not authorized");
 	}
 
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		authorizedWasCalled = true;
-		userIsAuthorizedParameters.add(user.id + ":" + action + ":" + recordType);
-		return true;
+		return false;
 	}
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData) {
-		this.users.add(user);
-		this.actions.add(action);
-		this.recordTypes.add(recordType);
-		this.collectedTerms.add(collectedData);
-		calledMethods.add("checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
-		// always authorized
+			String string, DataGroup collectedData) {
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override
@@ -76,11 +58,7 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 			recordTypeAuthorizedNumberOfTimesMap.put(recordType,
 					recordTypeAuthorizedNumberOfTimesMap.get(recordType) + 1);
 		}
-		this.collectedTerms.add(collectedData);
-		userIsAuthorizedParameters.add(user.id + ":" + action + ":" + recordType);
-		calledMethods.add("userIsAuthorizedForActionOnRecordTypeAndCollectedData");
-
-		return true;
+		return false;
 	}
 
 }

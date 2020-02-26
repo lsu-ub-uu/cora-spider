@@ -54,6 +54,15 @@ public class RecordLinkTestsAsserter {
 		assertEquals(links.size(), 2);
 	}
 
+	public static void assertTopLevelTwoLinksDoesNotContainReadAction(DataRecord record) {
+		List<DataLink> links = getLinksFromRecord(record);
+		for (DataLink link : links) {
+			assertFalse(link.getActions().contains(Action.READ));
+			assertEquals(link.getActions().size(), 0);
+		}
+		assertEquals(links.size(), 2);
+	}
+
 	private static List<DataLink> getLinksFromRecord(DataRecord record) {
 		DataGroup dataGroup = record.getDataGroup();
 		List<DataGroup> links = dataGroup.getAllGroupsWithNameInData("link");
