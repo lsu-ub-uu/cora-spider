@@ -21,7 +21,9 @@ package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -44,6 +46,7 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	public int numOfTimesReadWasCalled = 0;
 	public List<DataGroup> filters = new ArrayList<>();
 	public boolean readListWasCalled = false;
+	public Map<String, Integer> userReadNumberOfTimesMap = new HashMap<>();
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -51,6 +54,12 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 		this.type = type;
 		this.id = id;
 		readWasCalled = true;
+
+		if (!userReadNumberOfTimesMap.containsKey(id)) {
+			userReadNumberOfTimesMap.put(id, 1);
+		} else {
+			userReadNumberOfTimesMap.put(id, userReadNumberOfTimesMap.get(id) + 1);
+		}
 
 		if ("collectPermissionTerm".equals(type) && "publishedStatusPermissionTerm".equals(id)) {
 			return createCollectPermissionTermWIthKey("PUBLISHED_STATUS");
