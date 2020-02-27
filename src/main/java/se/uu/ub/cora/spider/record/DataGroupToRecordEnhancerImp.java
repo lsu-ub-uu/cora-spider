@@ -385,16 +385,13 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private boolean readAuthorizationAndSaveOnCache(String linkedRecordType,
 			String linkedRecordId) {
-		boolean readAccess;
 		DataGroup linkedRecord = null;
 		try {
 			linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType, linkedRecordId);
 		} catch (RecordNotFoundException exception) {
 			return false;
 		}
-		readAccess = userIsAuthorizedForActionOnRecordTypeAndData("read", linkedRecordType,
-				linkedRecord);
-		return readAccess;
+		return userIsAuthorizedForActionOnRecordTypeAndData("read", linkedRecordType, linkedRecord);
 	}
 
 	private boolean userIsAuthorizedForActionOnRecordTypeAndData(String action, String recordType,

@@ -84,10 +84,14 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private List<Rule> getProvidedRulesForUser(User user) {
-
-		if (cachedProvidedRulesForUser.containsKey(user.id)) {
-			return cachedProvidedRulesForUser.get(user.id);
+		List<Rule> cachedProvidedRules = cachedProvidedRulesForUser.get(user.id);
+		if (cachedProvidedRules != null) {
+			return cachedProvidedRules;
 		}
+		return readProvidedRulesForUser(user);
+	}
+
+	private List<Rule> readProvidedRulesForUser(User user) {
 		List<Rule> providedRules = new ArrayList<>();
 		DataGroup userAsDataGroup = getUserAsDataGroup(user);
 		user.roles.forEach(roleId -> addRulesForRole(providedRules, roleId, userAsDataGroup));
