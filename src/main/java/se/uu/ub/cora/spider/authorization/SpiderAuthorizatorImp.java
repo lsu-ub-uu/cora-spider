@@ -29,7 +29,7 @@ import java.util.Set;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.beefeater.authorization.Rule;
-import se.uu.ub.cora.beefeater.authorization.RulePartValues;
+import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -76,9 +76,9 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		// USER, will be needed for userId, organisation, etc
 
 		providedRules.forEach(rule -> {
-			RulePartValues userIdValues = new RulePartValues();
+			RulePartValuesImp userIdValues = new RulePartValuesImp();
 			userIdValues.add("system.*");
-			rule.put("createdBy", userIdValues);
+			rule.addRulePart("createdBy", userIdValues);
 		});
 		return providedRules;
 	}
@@ -165,14 +165,14 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private void createRulePartUsingInfoFromRulePartInUser(Rule rule, DataGroup rulePartInUser) {
-		RulePartValues rulePartValues = new RulePartValues();
+		RulePartValuesImp rulePartValues = new RulePartValuesImp();
 		addAllValuesFromRulePartToRulePartValues(rulePartInUser, rulePartValues);
 		String permissionKey = getPermissionKeyUsingRulePart(rulePartInUser);
-		rule.put(permissionKey, rulePartValues);
+		rule.addRulePart(permissionKey, rulePartValues);
 	}
 
 	private void addAllValuesFromRulePartToRulePartValues(DataGroup rulePart,
-			RulePartValues rulePartValues) {
+			RulePartValuesImp rulePartValues) {
 		for (DataAtomic rulePartValue : rulePart.getAllDataAtomicsWithNameInData("value")) {
 			rulePartValues.add(rulePartValue.getValue());
 		}

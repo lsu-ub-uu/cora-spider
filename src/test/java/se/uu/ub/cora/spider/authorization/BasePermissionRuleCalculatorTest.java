@@ -227,17 +227,17 @@ public class BasePermissionRuleCalculatorTest {
 
 	private void assertCorrectRulePartForRuleAndKeyAndValue(Rule requiredRule, String key,
 			String value) {
-		RulePartValues rulePartValues = requiredRule.get(key);
+		RulePartValues rulePartValues = requiredRule.getRulePartValuesForKey(key);
 		assertEquals(rulePartValues.size(), 1);
 		assertEquals(rulePartValues.iterator().next(), "system." + value);
 	}
 
 	private void assertCorrectActionAndRecordType(Rule requiredRule) {
-		RulePartValues actionValues = requiredRule.get("action");
+		RulePartValues actionValues = requiredRule.getRulePartValuesForKey("action");
 		assertEquals(actionValues.size(), 1);
 		assertEquals(actionValues.iterator().next(), "system." + action);
 
-		RulePartValues recordTypeValues = requiredRule.get("recordType");
+		RulePartValues recordTypeValues = requiredRule.getRulePartValuesForKey("recordType");
 		assertEquals(recordTypeValues.size(), 1);
 		assertEquals(recordTypeValues.iterator().next(), "system." + recordType);
 	}

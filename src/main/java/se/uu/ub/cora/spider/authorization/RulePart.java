@@ -19,24 +19,24 @@
 
 package se.uu.ub.cora.spider.authorization;
 
-import se.uu.ub.cora.beefeater.authorization.RulePartValues;
+import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 
 public final class RulePart {
 	String key;
-	RulePartValues rulePartValues;
+	RulePartValuesImp rulePartValues;
 
-	private RulePart(String key, RulePartValues rulePartValues) {
+	private RulePart(String key, RulePartValuesImp rulePartValues) {
 		this.key = key;
 		this.rulePartValues = rulePartValues;
 	}
 
 	public static RulePart withKeyAndValue(String key, String value) {
-		RulePartValues rulePartValues = new RulePartValues();
+		RulePartValuesImp rulePartValues = new RulePartValuesImp();
 		rulePartValues.add(value);
 		return new RulePart(key, rulePartValues);
 	}
 
-	public static RulePart withKeyAndRulePartValues(String key, RulePartValues rulePartValues) {
+	public static RulePart withKeyAndRulePartValues(String key, RulePartValuesImp rulePartValues) {
 		return new RulePart(key, rulePartValues);
 	}
 }

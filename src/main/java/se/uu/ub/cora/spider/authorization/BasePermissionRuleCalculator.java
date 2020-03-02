@@ -25,7 +25,8 @@ import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
-import se.uu.ub.cora.beefeater.authorization.RulePartValues;
+import se.uu.ub.cora.beefeater.authorization.RuleImp;
+import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.data.DataGroup;
 
 public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
@@ -41,18 +42,18 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 	}
 
 	private Rule createRequiredRuleWithActionAndRecordType(String action, String recordType) {
-		Rule requiredRule = new Rule();
+		Rule requiredRule = new RuleImp();
 		createRulePart(requiredRule, "action", action);
 		createRulePart(requiredRule, "recordType", recordType);
 		return requiredRule;
 	}
 
 	private void createRulePart(Rule requiredRule, String key, String... values) {
-		RulePartValues rulePartValues = new RulePartValues();
+		RulePartValuesImp rulePartValues = new RulePartValuesImp();
 		for (String value : values) {
 			rulePartValues.add(SYSTEM + value);
 		}
-		requiredRule.put(key, rulePartValues);
+		requiredRule.addRulePart(key, rulePartValues);
 	}
 
 	@Override
@@ -71,14 +72,14 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 
 	private List<Rule> createRulesForActionAndRecordTypeAndCollectedData(String action,
 			String recordType, DataGroup collectedData) {
-		Map<String, List<RulePartValues>> sortedRulePartValues = CollectedDataPermissionRulePartExtractor
+		Map<String, List<RulePartValuesImp>> sortedRulePartValues = CollectedDataPermissionRulePartExtractor
 				.extractRulePartsSortedByPermissionKeyFromCollectedData(collectedData);
 		return createRulesFromActionAndRecordTypeAndSortedRulePartValues(action, recordType,
 				sortedRulePartValues);
 	}
 
 	private List<Rule> createRulesFromActionAndRecordTypeAndSortedRulePartValues(String action,
-			String recordType, Map<String, List<RulePartValues>> sortedRulePartValues) {
+			String recordType, Map<String, List<RulePartValuesImp>> sortedRulePartValues) {
 		List<String> permissionKeys = createListOfPermissionKeysFromSortedRulePartValues(
 				sortedRulePartValues);
 
@@ -89,7 +90,7 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 	}
 
 	private List<String> createListOfPermissionKeysFromSortedRulePartValues(
-			Map<String, List<RulePartValues>> sortedRulePartValues) {
+			Map<String, List<RulePartValuesImp>> sortedRulePartValues) {
 		List<String> permissionKeys = new ArrayList<>();
 		permissionKeys.addAll(sortedRulePartValues.keySet());
 		return permissionKeys;

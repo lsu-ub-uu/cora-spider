@@ -313,16 +313,16 @@ public class SpiderAuthorizatorTest {
 		assertEquals(rulesProvider.roleIds.get(0), iterator.next());
 		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
 		Rule firstRule = rulesFromFirstRole.get(0);
-		assertEquals(firstRule.size(), 2);
-		assertNotNull(firstRule.get("action"));
-		assertNotNull(firstRule.get("OWNING_ORGANISATION"));
+		assertEquals(firstRule.getNumberOfRuleParts(), 2);
+		assertNotNull(firstRule.getRulePartValuesForKey("action"));
+		assertNotNull(firstRule.getRulePartValuesForKey("OWNING_ORGANISATION"));
 		assertEquals(providedRules.get(0), firstRule);
 
 		Rule secondRule = rulesFromFirstRole.get(1);
 		assertEquals(providedRules.get(1), secondRule);
-		assertEquals(secondRule.size(), 2);
-		assertNotNull(secondRule.get("action"));
-		assertNotNull(secondRule.get("OWNING_ORGANISATION"));
+		assertEquals(secondRule.getNumberOfRuleParts(), 2);
+		assertNotNull(secondRule.getRulePartValuesForKey("action"));
+		assertNotNull(secondRule.getRulePartValuesForKey("OWNING_ORGANISATION"));
 
 	}
 
@@ -347,29 +347,29 @@ public class SpiderAuthorizatorTest {
 		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
 		Rule firstRule = rulesFromFirstRole.get(0);
 		assertEquals(providedRules.get(0), firstRule);
-		assertEquals(firstRule.size(), 3);
-		assertEquals(firstRule.get("JOURNAL_ACCESS").size(), 2);
-		assertEquals(firstRule.get("OWNING_ORGANISATION").size(), 1);
+		assertEquals(firstRule.getNumberOfRuleParts(), 3);
+		assertEquals(firstRule.getRulePartValuesForKey("JOURNAL_ACCESS").size(), 2);
+		assertEquals(firstRule.getRulePartValuesForKey("OWNING_ORGANISATION").size(), 1);
 		assertRuleContainsAllKeys(firstRule, "JOURNAL_ACCESS", "OWNING_ORGANISATION", "action");
 
 		Rule secondRule = rulesFromFirstRole.get(1);
 		assertEquals(providedRules.get(1), secondRule);
-		assertEquals(secondRule.size(), 3);
-		assertEquals(secondRule.get("JOURNAL_ACCESS").size(), 2);
-		assertEquals(secondRule.get("OWNING_ORGANISATION").size(), 1);
+		assertEquals(secondRule.getNumberOfRuleParts(), 3);
+		assertEquals(secondRule.getRulePartValuesForKey("JOURNAL_ACCESS").size(), 2);
+		assertEquals(secondRule.getRulePartValuesForKey("OWNING_ORGANISATION").size(), 1);
 		assertRuleContainsAllKeys(secondRule, "JOURNAL_ACCESS", "OWNING_ORGANISATION", "action");
 
 		List<Rule> rulesFromSecondRole = rulesProvider.returnedRules.get(1);
 		Rule thirdRule = rulesFromSecondRole.get(0);
 		assertEquals(providedRules.get(2), thirdRule);
-		assertEquals(thirdRule.size(), 2);
-		assertEquals(thirdRule.get("OWNING_ORGANISATION").size(), 1);
+		assertEquals(thirdRule.getNumberOfRuleParts(), 2);
+		assertEquals(thirdRule.getRulePartValuesForKey("OWNING_ORGANISATION").size(), 1);
 		assertRuleContainsAllKeys(thirdRule, "OWNING_ORGANISATION", "action");
 
 		Rule fourthRule = rulesFromSecondRole.get(1);
 		assertEquals(providedRules.get(3), fourthRule);
-		assertEquals(fourthRule.size(), 2);
-		assertEquals(fourthRule.get("OWNING_ORGANISATION").size(), 1);
+		assertEquals(fourthRule.getNumberOfRuleParts(), 2);
+		assertEquals(fourthRule.getRulePartValuesForKey("OWNING_ORGANISATION").size(), 1);
 		assertRuleContainsAllKeys(fourthRule, "OWNING_ORGANISATION", "action");
 	}
 
@@ -440,16 +440,16 @@ public class SpiderAuthorizatorTest {
 
 		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
 		Rule firstRule = rulesFromFirstRole.get(0);
-		assertEquals(firstRule.size(), 2);
-		assertNotNull(firstRule.get("action"));
-		assertNotNull(firstRule.get("OWNING_ORGANISATION"));
+		assertEquals(firstRule.getNumberOfRuleParts(), 2);
+		assertNotNull(firstRule.getRulePartValuesForKey("action"));
+		assertNotNull(firstRule.getRulePartValuesForKey("OWNING_ORGANISATION"));
 		assertEquals(providedRules.get(0), firstRule);
 
 		Rule secondRule = rulesFromFirstRole.get(1);
 		assertEquals(providedRules.get(1), secondRule);
-		assertEquals(secondRule.size(), 2);
-		assertNotNull(secondRule.get("action"));
-		assertNotNull(secondRule.get("OWNING_ORGANISATION"));
+		assertEquals(secondRule.getNumberOfRuleParts(), 2);
+		assertNotNull(secondRule.getRulePartValuesForKey("action"));
+		assertNotNull(secondRule.getRulePartValuesForKey("OWNING_ORGANISATION"));
 
 	}
 
@@ -475,29 +475,29 @@ public class SpiderAuthorizatorTest {
 		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
 		Rule firstRule = rulesFromFirstRole.get(0);
 		assertEquals(providedRules.get(0), firstRule);
-		assertEquals(firstRule.size(), 3);
-		assertEquals(firstRule.get("JOURNAL_ACCESS").size(), 2);
-		assertEquals(firstRule.get("OWNING_ORGANISATION").size(), 1);
+		assertEquals(firstRule.getNumberOfRuleParts(), 3);
+		assertEquals(firstRule.getRulePartValuesForKey("JOURNAL_ACCESS").size(), 2);
+		assertEquals(firstRule.getRulePartValuesForKey("OWNING_ORGANISATION").size(), 1);
 		assertRuleContainsAllKeys(firstRule, "JOURNAL_ACCESS", "action");
 
 		Rule secondRule = rulesFromFirstRole.get(1);
 		assertEquals(providedRules.get(1), secondRule);
-		assertEquals(secondRule.size(), 3);
-		assertEquals(secondRule.get("JOURNAL_ACCESS").size(), 2);
-		assertEquals(secondRule.get("OWNING_ORGANISATION").size(), 1);
+		assertEquals(secondRule.getNumberOfRuleParts(), 3);
+		assertEquals(secondRule.getRulePartValuesForKey("JOURNAL_ACCESS").size(), 2);
+		assertEquals(secondRule.getRulePartValuesForKey("OWNING_ORGANISATION").size(), 1);
 		assertRuleContainsAllKeys(secondRule, "JOURNAL_ACCESS", "OWNING_ORGANISATION", "action");
 
 		List<Rule> rulesFromSecondRole = rulesProvider.returnedRules.get(1);
 		Rule thirdRule = rulesFromSecondRole.get(0);
 		assertEquals(providedRules.get(2), thirdRule);
-		assertEquals(thirdRule.size(), 2);
-		assertEquals(thirdRule.get("OWNING_ORGANISATION").size(), 1);
+		assertEquals(thirdRule.getNumberOfRuleParts(), 2);
+		assertEquals(thirdRule.getRulePartValuesForKey("OWNING_ORGANISATION").size(), 1);
 		assertRuleContainsAllKeys(thirdRule, "OWNING_ORGANISATION", "action");
 
 		Rule fourthRule = rulesFromSecondRole.get(1);
 		assertEquals(providedRules.get(3), fourthRule);
-		assertEquals(fourthRule.size(), 2);
-		assertEquals(fourthRule.get("OWNING_ORGANISATION").size(), 1);
+		assertEquals(fourthRule.getNumberOfRuleParts(), 2);
+		assertEquals(fourthRule.getRulePartValuesForKey("OWNING_ORGANISATION").size(), 1);
 		assertRuleContainsAllKeys(fourthRule, "OWNING_ORGANISATION", "action");
 
 	}

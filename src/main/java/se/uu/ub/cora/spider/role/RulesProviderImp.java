@@ -24,7 +24,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
-import se.uu.ub.cora.beefeater.authorization.RulePartValues;
+import se.uu.ub.cora.beefeater.authorization.RuleImp;
+import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
@@ -88,7 +89,7 @@ public class RulesProviderImp implements RulesProvider {
 	}
 
 	private void addRuleToListOfRules(List<Rule> listOfRules, DataGroup readRule) {
-		Rule rule = new Rule();
+		Rule rule = new RuleImp();
 		listOfRules.add(rule);
 
 		addRulePartsToRule(rule, readRule);
@@ -102,12 +103,12 @@ public class RulesProviderImp implements RulesProvider {
 	}
 
 	private void addRulePartToRule(DataGroup rulePart, Rule rule) {
-		RulePartValues ruleValues = createRulePartValuesForRulePart(rulePart);
-		rule.put(rulePart.getAttributes().get("type"), ruleValues);
+		RulePartValuesImp ruleValues = createRulePartValuesForRulePart(rulePart);
+		rule.addRulePart(rulePart.getAttributes().get("type"), ruleValues);
 	}
 
-	private RulePartValues createRulePartValuesForRulePart(DataGroup rulePart) {
-		RulePartValues ruleValues = new RulePartValues();
+	private RulePartValuesImp createRulePartValuesForRulePart(DataGroup rulePart) {
+		RulePartValuesImp ruleValues = new RulePartValuesImp();
 		List<DataElement> children = rulePart.getChildren();
 		children.forEach(ruleValue -> ruleValues.add(((DataAtomic) ruleValue).getValue()));
 		return ruleValues;
@@ -120,13 +121,13 @@ public class RulesProviderImp implements RulesProvider {
 	}
 
 	private void addTermRulePartToRule(DataGroup ruleTermPart, Rule rule) {
-		RulePartValues ruleValues = new RulePartValues();
+		RulePartValuesImp ruleValues = new RulePartValuesImp();
 
 		List<DataAtomic> valueChildren = ruleTermPart.getAllDataAtomicsWithNameInData("value");
 		valueChildren.forEach(ruleValue -> ruleValues.add(ruleValue.getValue()));
 
 		String permissionKey = getPermissionKeyForRuleTermPart(ruleTermPart);
-		rule.put(permissionKey, ruleValues);
+		rule.addRulePart(permissionKey, ruleValues);
 	}
 
 	private String getPermissionKeyForRuleTermPart(DataGroup ruleTermPart) {
