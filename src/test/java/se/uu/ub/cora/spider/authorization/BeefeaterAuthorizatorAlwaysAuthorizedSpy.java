@@ -39,4 +39,11 @@ public class BeefeaterAuthorizatorAlwaysAuthorizedSpy implements Authorizator {
 		return true;
 	}
 
+	@Override
+	public List<Rule> providedRulesMatchRequiredRules(List<Rule> providedRules,
+			List<Rule> requiredRules) {
+		// TODO Auto-generated method stub
+		return providedRules;
+	}
+
 }
