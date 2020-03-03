@@ -31,6 +31,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.record.RecordTypeHandler;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -53,6 +54,7 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public RecordIndexer recordIndexer;
 	public boolean readInitInfoWasCalled;
 	public boolean tryToInitializeWasCalled;
+	private RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
 
 	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
 		super(initInfo);
@@ -122,6 +124,21 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	public String getInitInfoFromParent(String key) {
 		return initInfo.get(key);
+	}
+
+	@Override
+	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
+		// TODO Auto-generated method stub
+		return recordTypeHandlerSpy;
+	}
+
+	public void setRecordTypeHandlerFlagIsPublicForRead(boolean isPublicForRead) {
+		recordTypeHandlerSpy.isPublicForRead = isPublicForRead;
+
+	}
+
+	public void setRecordTypeHandlerFlagIsAbstract(boolean isAbstract) {
+		recordTypeHandlerSpy.isAbstract = isAbstract;
 	}
 
 }

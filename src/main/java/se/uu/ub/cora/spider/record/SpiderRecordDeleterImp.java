@@ -93,7 +93,7 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	}
 
 	private String getMetadataIdFromRecordType(String recordType) {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
 		return recordTypeHandler.getMetadataId();
 	}

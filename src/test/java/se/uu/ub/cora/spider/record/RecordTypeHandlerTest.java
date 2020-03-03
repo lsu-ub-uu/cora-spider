@@ -40,7 +40,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testAbstract() {
 		String id = "abstract";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, id);
 		assertTrue(recordTypeHandler.isAbstract());
 	}
@@ -48,7 +48,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testNotAbstract() {
 		String id = "spyType";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, id);
 		assertFalse(recordTypeHandler.isAbstract());
 	}
@@ -56,7 +56,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testShouldAutogenerateId() {
 		String id = "spyType";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, id);
 		assertTrue(recordTypeHandler.shouldAutoGenerateId());
 	}
@@ -64,7 +64,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testShouldNotAutogenerateId() {
 		String id = "otherType";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, id);
 		assertFalse(recordTypeHandler.shouldAutoGenerateId());
 	}
@@ -72,7 +72,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testGetNewMetadataId() {
 		String id = "otherType";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, id);
 		assertEquals(recordTypeHandler.getNewMetadataId(), "otherTypeNew");
 	}
@@ -80,7 +80,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testPublic() {
 		String id = "public";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, id);
 		assertTrue(recordTypeHandler.isPublicForRead());
 	}
@@ -88,7 +88,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testNotPublic() {
 		String id = "notPublic";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, id);
 		assertFalse(recordTypeHandler.isPublicForRead());
 	}
@@ -96,7 +96,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testPublicMissing() {
 		String id = "publicMissing";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, id);
 		assertFalse(recordTypeHandler.isPublicForRead());
 	}

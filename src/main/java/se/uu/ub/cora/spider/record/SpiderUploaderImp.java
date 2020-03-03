@@ -100,7 +100,7 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 	}
 
 	private String getMetadataIdFromRecordType(String recordType) {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
 		return recordTypeHandler.getMetadataId();
 	}

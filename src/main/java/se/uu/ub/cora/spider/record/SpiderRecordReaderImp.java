@@ -36,10 +36,12 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	private String authToken;
 	private DataGroupTermCollector collectTermCollector;
 	private RecordTypeHandler recordTypeHandler;
+	private SpiderDependencyProvider dependencyProvider;
 
 	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 
+		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
@@ -59,13 +61,15 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		this.recordType = recordType;
 		this.recordId = recordId;
 		tryToGetActiveUser();
+		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		checkUserIsAuthorizedForActionOnRecordType();
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
-		setRecordTypeHandlerForCurrentRecord(recordType, recordRead);
-
+		setImplementingRecordTypeHandlerIfAbstract(recordRead);
+		// om posten inte har readPartStuff
+		// requiresRecordPartPermission write / readWrite
 		checkUserIsAuthorisedToReadData(recordRead);
-
+		// om posten har readPart stuff
 		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
 	}
 
@@ -77,26 +81,16 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		if (readRecordTypeIsNotPublicRead()) {
 			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
 		}
-
 	}
 
 	private boolean readRecordTypeIsNotPublicRead() {
-		RecordTypeHandler recordTypeHandlerForSentInRecordType = RecordTypeHandler
-				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
-		return !recordTypeHandlerForSentInRecordType.isPublicForRead();
-	}
-
-	private void setRecordTypeHandlerForCurrentRecord(String recordType, DataGroup recordRead) {
-		recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
-				recordType);
-		setImplementingRecordTypeHandlerIfAbstract(recordRead);
+		return !recordTypeHandler.isPublicForRead();
 	}
 
 	private void setImplementingRecordTypeHandlerIfAbstract(DataGroup recordRead) {
 		if (recordTypeHandler.isAbstract()) {
 			String implementingRecordType = getImplementingRecordType(recordRead);
-			recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
-					implementingRecordType);
+			recordTypeHandler = dependencyProvider.getRecordTypeHandler(implementingRecordType);
 		}
 	}
 
@@ -107,7 +101,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
-		if (!recordTypeHandler.isPublicForRead()) {
+		if (readRecordTypeIsNotPublicRead()) {
 			checkUserIsAuthorisedToReadNonPublicData(recordRead);
 		}
 	}

@@ -115,6 +115,7 @@ public class SpiderRecordReaderTest {
 
 		recordReader = SpiderRecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
+
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
@@ -143,6 +144,7 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testReadAuthorized2() {
+		dependencyProvider.setRecordTypeHandlerFlagIsPublicForRead(false);
 		DataRecord record = recordReader.readRecord("someToken78678567", "place", "place:0001");
 		DataGroup groupOut = record.getDataGroup();
 		assertEquals(groupOut.getNameInData(), "authority");
@@ -153,7 +155,8 @@ public class SpiderRecordReaderTest {
 		assertEquals(authorizatorSpy.recordTypes.get(0), "place");
 
 		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
-		assertEquals(dataGroupTermCollectorSpy.metadataId, "place");
+		assertEquals(dataGroupTermCollectorSpy.metadataId,
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
 		assertEquals(dataGroupTermCollectorSpy.dataGroup,
 				recordStorage.read("place", "place:0001"));
 
@@ -167,6 +170,8 @@ public class SpiderRecordReaderTest {
 	public void testReadRecordAbstractRecordType() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
+		dependencyProvider.setRecordTypeHandlerFlagIsPublicForRead(false);
+		dependencyProvider.setRecordTypeHandlerFlagIsAbstract(true);
 		DataRecord readRecord = recordReader.readRecord("someToken78678567", "abstractAuthority",
 				"place:0001");
 		assertNotNull(readRecord);
@@ -177,7 +182,8 @@ public class SpiderRecordReaderTest {
 		assertEquals(authorizatorSpy.recordTypes.get(0), "abstractAuthority");
 
 		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
-		assertEquals(dataGroupTermCollectorSpy.metadataId, "place");
+		assertEquals(dataGroupTermCollectorSpy.metadataId,
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
 		assertEquals(dataGroupTermCollectorSpy.dataGroup,
 				recordStorage.read("abstractAuthority", "place:0001"));
 
@@ -192,6 +198,7 @@ public class SpiderRecordReaderTest {
 		recordStorage = new RecordStorageSpy();
 		authorizator = new NeverAuthorisedStub();
 		setUpDependencyProvider();
+		dependencyProvider.setRecordTypeHandlerFlagIsPublicForRead(false);
 
 		boolean exceptionWasCaught = false;
 		try {
@@ -201,13 +208,7 @@ public class SpiderRecordReaderTest {
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);
-
-		assertOnlyReadForRecordTypeHandler();
-	}
-
-	private void assertOnlyReadForRecordTypeHandler() {
-		assertEquals(((RecordStorageSpy) recordStorage).type, "recordType");
-		assertEquals(((RecordStorageSpy) recordStorage).numOfTimesReadWasCalled, 1);
+		assertEquals(((RecordStorageSpy) recordStorage).numOfTimesReadWasCalled, 0);
 	}
 
 	@Test
@@ -215,6 +216,7 @@ public class SpiderRecordReaderTest {
 		recordStorage = new RecordStorageSpy();
 		authorizator = new AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType();
 		setUpDependencyProvider();
+		dependencyProvider.setRecordTypeHandlerFlagIsPublicForRead(false);
 
 		boolean exceptionWasCaught = false;
 		try {

@@ -42,10 +42,12 @@ import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
+import se.uu.ub.cora.spider.record.RecordTypeHandler;
+import se.uu.ub.cora.spider.record.RecordTypeHandlerImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.storage.MetadataStorageProvider;
 import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
-import se.uu.ub.cora.storage.RecordStorageProvider;
+import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorageProvider;
 
 public class SpiderDependencyProviderTest {
@@ -54,6 +56,7 @@ public class SpiderDependencyProviderTest {
 	private SpiderDependencyProviderTestHelper dependencyProvider;
 	private LoggerFactorySpy loggerFactorySpy;
 	private String testedClassName = "SpiderDependencyProvider";
+	private RecordStorageProviderSpy recordStorageProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -67,7 +70,7 @@ public class SpiderDependencyProviderTest {
 	}
 
 	private void setPluggedInStorageNormallySetByTheRestModuleStarterImp() {
-		RecordStorageProvider recordStorageProvider = new RecordStorageProviderSpy();
+		recordStorageProvider = new RecordStorageProviderSpy();
 		dependencyProvider.setRecordStorageProvider(recordStorageProvider);
 		StreamStorageProvider streamStorageProvider = new StreamStorageProviderSpy();
 		dependencyProvider.setStreamStorageProvider(streamStorageProvider);
@@ -260,6 +263,17 @@ public class SpiderDependencyProviderTest {
 		PermissionRuleCalculator permissionRuleCalculator = dependencyProvider
 				.getPermissionRuleCalculator();
 		assertTrue(permissionRuleCalculator instanceof BasePermissionRuleCalculator);
+	}
+
+	@Test
+	public void testGetRecordTypeHandler() throws Exception {
+		String recordTypeId = "someRecordType";
+		RecordTypeHandlerImp recordTypeHandler = (RecordTypeHandlerImp) ((SpiderDependencyProvider) dependencyProvider)
+				.getRecordTypeHandler(recordTypeId);
+		assertTrue(recordTypeHandler instanceof RecordTypeHandler);
+		assertEquals(recordTypeHandler.getRecordTypeId(), recordTypeId);
+		assertTrue(recordTypeHandler.getRecordStorage() instanceof RecordStorage);
+		assertSame(recordStorageProvider.getRecordStorage(), recordTypeHandler.getRecordStorage());
 	}
 
 }

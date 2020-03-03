@@ -91,7 +91,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
-		recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorage,
 				recordType);
 		metadataId = recordTypeHandler.getNewMetadataId();
 

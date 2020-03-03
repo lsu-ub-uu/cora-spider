@@ -47,6 +47,8 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.record.RecordTypeHandler;
+import se.uu.ub.cora.spider.record.RecordTypeHandlerImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.storage.MetadataStorage;
 import se.uu.ub.cora.storage.MetadataStorageProvider;
@@ -197,5 +199,10 @@ public abstract class SpiderDependencyProvider {
 	public abstract RecordSearch getRecordSearch();
 
 	public abstract RecordIndexer getRecordIndexer();
+
+	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
+		RecordStorage recordStorage = getRecordStorage();
+		return RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorage, recordTypeId);
+	}
 
 }
