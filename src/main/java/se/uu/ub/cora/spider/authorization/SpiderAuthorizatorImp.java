@@ -267,4 +267,10 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		return rulesProvider;
 	}
 
+	@Override
+	public List<String> getCollectedReadRecordPartPermissions() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

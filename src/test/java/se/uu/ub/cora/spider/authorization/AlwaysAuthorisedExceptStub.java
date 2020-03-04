@@ -74,4 +74,10 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 		return !notAuthorizedForRecordTypeAndAction(recordType, action);
 	}
 
+	@Override
+	public List<String> getCollectedReadRecordPartPermissions() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

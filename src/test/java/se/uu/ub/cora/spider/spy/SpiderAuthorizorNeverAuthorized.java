@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.spy;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.beefeater.authentication.User;
@@ -59,6 +60,12 @@ public class SpiderAuthorizorNeverAuthorized implements SpiderAuthorizator {
 					recordTypeAuthorizedNumberOfTimesMap.get(recordType) + 1);
 		}
 		return false;
+	}
+
+	@Override
+	public List<String> getCollectedReadRecordPartPermissions() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

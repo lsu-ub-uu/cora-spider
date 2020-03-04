@@ -26,6 +26,8 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	public boolean isPublicForRead = true;
 	public boolean isAbstract = false;
+	public boolean recordTypeHasReadPartLimitations = false;
+	public String recordPartConstraint = "";
 
 	@Override
 	public boolean isAbstract() {

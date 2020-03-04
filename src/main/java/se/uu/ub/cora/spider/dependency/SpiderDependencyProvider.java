@@ -29,6 +29,7 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolderFromStoragePopulator;
+import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
 import se.uu.ub.cora.bookkeeper.termcollector.CollectedDataCreatorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
@@ -203,6 +204,11 @@ public abstract class SpiderDependencyProvider {
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
 		RecordStorage recordStorage = getRecordStorage();
 		return RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorage, recordTypeId);
+	}
+
+	public RecordPartFilter getRecordPartFilter() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

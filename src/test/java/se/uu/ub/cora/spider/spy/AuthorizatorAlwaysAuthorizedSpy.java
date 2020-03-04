@@ -40,6 +40,7 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 
 	public List<String> userIsAuthorizedParameters = new ArrayList<>();
 	public Map<String, Integer> recordTypeAuthorizedNumberOfTimesMap = new HashMap<>();
+	public boolean collectedReadRecordPartPermissionsHasBeenCalled = false;
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
@@ -81,6 +82,12 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 		calledMethods.add("userIsAuthorizedForActionOnRecordTypeAndCollectedData");
 
 		return true;
+	}
+
+	@Override
+	public List<String> getCollectedReadRecordPartPermissions() {
+		collectedReadRecordPartPermissionsHasBeenCalled = true;
+		return null;
 	}
 
 }

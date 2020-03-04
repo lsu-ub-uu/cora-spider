@@ -49,6 +49,7 @@ import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.dependency.MetadataStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
+import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
@@ -73,6 +74,8 @@ public class SpiderRecordReaderTest {
 	private DataGroupFactory dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
 	private DataCopierFactorySpy dataCopierFactory;
+	private RecordTypeHandlerSpy recordTypeHandlerSpy;
+	private RecordPartFilterSpy recordPartFilter;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -82,6 +85,7 @@ public class SpiderRecordReaderTest {
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
 		termCollector = new DataGroupTermCollectorSpy();
+		recordPartFilter = new RecordPartFilterSpy();
 		setUpDependencyProvider();
 	}
 
@@ -115,6 +119,9 @@ public class SpiderRecordReaderTest {
 
 		recordReader = SpiderRecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
+		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
+
+		dependencyProvider.recordPartFilter = recordPartFilter;
 
 	}
 
@@ -144,7 +151,7 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testReadAuthorized2() {
-		dependencyProvider.setRecordTypeHandlerFlagIsPublicForRead(false);
+		recordTypeHandlerSpy.isPublicForRead = false;
 		DataRecord record = recordReader.readRecord("someToken78678567", "place", "place:0001");
 		DataGroup groupOut = record.getDataGroup();
 		assertEquals(groupOut.getNameInData(), "authority");
@@ -170,8 +177,8 @@ public class SpiderRecordReaderTest {
 	public void testReadRecordAbstractRecordType() {
 		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		dependencyProvider.setRecordTypeHandlerFlagIsPublicForRead(false);
-		dependencyProvider.setRecordTypeHandlerFlagIsAbstract(true);
+		recordTypeHandlerSpy.isPublicForRead = false;
+		recordTypeHandlerSpy.isAbstract = true;
 		DataRecord readRecord = recordReader.readRecord("someToken78678567", "abstractAuthority",
 				"place:0001");
 		assertNotNull(readRecord);
@@ -198,7 +205,7 @@ public class SpiderRecordReaderTest {
 		recordStorage = new RecordStorageSpy();
 		authorizator = new NeverAuthorisedStub();
 		setUpDependencyProvider();
-		dependencyProvider.setRecordTypeHandlerFlagIsPublicForRead(false);
+		recordTypeHandlerSpy.isPublicForRead = false;
 
 		boolean exceptionWasCaught = false;
 		try {
@@ -216,7 +223,7 @@ public class SpiderRecordReaderTest {
 		recordStorage = new RecordStorageSpy();
 		authorizator = new AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType();
 		setUpDependencyProvider();
-		dependencyProvider.setRecordTypeHandlerFlagIsPublicForRead(false);
+		recordTypeHandlerSpy.isPublicForRead = false;
 
 		boolean exceptionWasCaught = false;
 		try {
@@ -260,5 +267,22 @@ public class SpiderRecordReaderTest {
 				"publicReadType:0001");
 
 		assertNotNull(readRecord);
+	}
+
+	@Test
+	public void testRecordHasReadPartConstraints() throws Exception {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
+
+		DataRecord readRecord = recordReader.readRecord("unauthorizedUserId", "publicReadType",
+				"publicReadType:0001");
+
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
+		assertTrue(authorizatorSpy.collectedReadRecordPartPermissionsHasBeenCalled);
+		assertTrue(recordPartFilter.recordPartFilterForReadHasBeenCalled);
+		// List<String> readRecordPartPermissions =
+		// authorizator.lastCollectedReadRecordPartPermissions;
+		// FilterXSpy.lastCalledWith
 	}
 }

@@ -19,7 +19,10 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.List;
+
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
@@ -34,7 +37,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	private SpiderAuthorizator spiderAuthorizator;
 	private User user;
 	private String authToken;
-	private DataGroupTermCollector collectTermCollector;
+	private DataGroupTermCollector dataGroupTermCollector;
 	private RecordTypeHandler recordTypeHandler;
 	private SpiderDependencyProvider dependencyProvider;
 
@@ -46,7 +49,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
+		this.dataGroupTermCollector = dependencyProvider.getDataGroupTermCollector();
 	}
 
 	public static SpiderRecordReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -70,6 +73,16 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		// requiresRecordPartPermission write / readWrite
 		checkUserIsAuthorisedToReadData(recordRead);
 		// om posten har readPart stuff
+		// if(recordTypeHandler.hasRecordPartReadContraint()) {
+		// List<Rule>x = spiderAuthorizator.getCollectedRulesWithRecordPartPermissions();
+		// dataGroupToRecordEnhancer.filterRecorRead(recordRead, x);
+		// }
+
+		List<String> collectedReadRecordPartPermissions = spiderAuthorizator
+				.getCollectedReadRecordPartPermissions();
+
+		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
+		recordPartFilter.filter(recordRead, collectedReadRecordPartPermissions);
 		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
 	}
 
@@ -103,6 +116,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
 		if (readRecordTypeIsNotPublicRead()) {
 			checkUserIsAuthorisedToReadNonPublicData(recordRead);
+
 		}
 	}
 
@@ -114,7 +128,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 
 	private DataGroup getCollectedTermsForRecord(DataGroup recordRead) {
 		String metadataId = getMetadataIdFromRecordType();
-		return collectTermCollector.collectTerms(metadataId, recordRead);
+		return dataGroupTermCollector.collectTerms(metadataId, recordRead);
 	}
 
 	private String getMetadataIdFromRecordType() {

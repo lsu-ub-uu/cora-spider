@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.List;
+
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
@@ -50,6 +52,12 @@ public class AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String string, DataGroup collectedData) {
 		return false;
+	}
+
+	@Override
+	public List<String> getCollectedReadRecordPartPermissions() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

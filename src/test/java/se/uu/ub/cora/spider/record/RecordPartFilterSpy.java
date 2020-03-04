@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2018 Uppsala University Library
+ * Copyright 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,25 +17,20 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.authorization;
+package se.uu.ub.cora.spider.record;
 
 import java.util.List;
 
-import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
 import se.uu.ub.cora.data.DataGroup;
 
-public interface SpiderAuthorizator {
+public class RecordPartFilterSpy implements RecordPartFilter {
 
-	void checkUserIsAuthorizedForActionOnRecordType(User user, String action, String recordType);
+	public boolean recordPartFilterForReadHasBeenCalled = false;
 
-	boolean userIsAuthorizedForActionOnRecordType(User user, String action, String recordType);
-
-	void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData);
-
-	boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData);
-
-	List<String> getCollectedReadRecordPartPermissions();
+	@Override
+	public void filter(DataGroup recordRead, List<String> collectedReadRecordPartPermissions) {
+		recordPartFilterForReadHasBeenCalled = true;
+	}
 
 }
