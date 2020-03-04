@@ -28,6 +28,7 @@ import java.util.List;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
+import se.uu.ub.cora.beefeater.authorization.RuleImp;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -78,7 +79,8 @@ public class RulesProviderTest {
 		assertTrue(actionRulePart2.contains("system.create"));
 		assertTrue(actionRulePart2.contains("system.read"));
 
-		RulePartValues permissionPublishedRulePart = rule2.getRulePartValuesForKey("PUBLISHED_STATUS");
+		RulePartValues permissionPublishedRulePart = rule2
+				.getRulePartValuesForKey("PUBLISHED_STATUS");
 		assertEquals(permissionPublishedRulePart.size(), 1);
 		assertTrue(permissionPublishedRulePart.contains("system.published"));
 	}
@@ -107,7 +109,8 @@ public class RulesProviderTest {
 		assertTrue(actionRulePart2.contains("system.create"));
 		assertTrue(actionRulePart2.contains("system.read"));
 
-		RulePartValues permissionPublishedRulePart = rule2.getRulePartValuesForKey("PUBLISHED_STATUS");
+		RulePartValues permissionPublishedRulePart = rule2
+				.getRulePartValuesForKey("PUBLISHED_STATUS");
 		assertEquals(permissionPublishedRulePart.size(), 1);
 		assertTrue(permissionPublishedRulePart.contains("system.published"));
 
@@ -117,12 +120,14 @@ public class RulesProviderTest {
 		assertTrue(actionRulePart3.contains("system.create"));
 		assertTrue(actionRulePart3.contains("system.read"));
 
-		RulePartValues permissionPublishedRulePart2 = rule3.getRulePartValuesForKey("DELETED_STATUS");
+		RulePartValues permissionPublishedRulePart2 = rule3
+				.getRulePartValuesForKey("DELETED_STATUS");
 		assertEquals(permissionPublishedRulePart2.size(), 2);
 		assertTrue(permissionPublishedRulePart2.contains("system.deleted"));
 		assertTrue(permissionPublishedRulePart2.contains("system.notDeleted"));
 
-		RulePartValues permissionPublishedRulePart3 = rule3.getRulePartValuesForKey("PUBLISHED_STATUS");
+		RulePartValues permissionPublishedRulePart3 = rule3
+				.getRulePartValuesForKey("PUBLISHED_STATUS");
 		assertEquals(permissionPublishedRulePart3.size(), 2);
 		assertTrue(permissionPublishedRulePart3.contains("system.published"));
 		assertTrue(permissionPublishedRulePart3.contains("system.notPublished"));
@@ -145,5 +150,37 @@ public class RulesProviderTest {
 		String roleId = "roleNotFoundInStorage";
 		List<Rule> rules = rulesProvider.getActiveRules(roleId);
 		assertEquals(rules.size(), 0);
+	}
+
+	@Test
+	public void testWithReadRecordPartPermissions() {
+		RecordStorage recordStorage = new RulesRecordStorageSpy();
+		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
+		String roleId = "ruleWithReadRecordPartPermissions";
+		List<Rule> rules = rulesProvider.getActiveRules(roleId);
+		assertEquals(rules.size(), 1);
+		RuleImp rule = (RuleImp) rules.get(0);
+		assertEquals(rule.getReadRecordPartPermissions().size(), 1);
+
+		// RulePartValues actionRulePart = rule.getRulePartValuesForKey("action");
+		// assertEquals(actionRulePart.size(), 2);
+		// assertTrue(actionRulePart.contains("system.create"));
+		// assertTrue(actionRulePart.contains("system.read"));
+
+		// RulePartValues recordTypeRulePart = rule.getRulePartValuesForKey("recordType");
+		// assertEquals(recordTypeRulePart.size(), 2);
+		// assertTrue(recordTypeRulePart.contains("system.person"));
+		// assertTrue(recordTypeRulePart.contains("system.place"));
+		//
+		// Rule rule2 = rules.get(1);
+		// RulePartValues actionRulePart2 = rule2.getRulePartValuesForKey("action");
+		// assertEquals(actionRulePart2.size(), 2);
+		// assertTrue(actionRulePart2.contains("system.create"));
+		// assertTrue(actionRulePart2.contains("system.read"));
+		//
+		// RulePartValues permissionPublishedRulePart =
+		// rule2.getRulePartValuesForKey("PUBLISHED_STATUS");
+		// assertEquals(permissionPublishedRulePart.size(), 1);
+		// assertTrue(permissionPublishedRulePart.contains("system.published"));
 	}
 }

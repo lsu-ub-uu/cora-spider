@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.role;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -42,14 +43,14 @@ public class RulesProviderImp implements RulesProvider {
 	@Override
 	public List<Rule> getActiveRules(String roleId) {
 		DataGroup readRole = recordStorage.read("permissionRole", roleId);
-		if (roleNotFoundInStorage(readRole)) {
-			return new ArrayList<>();
+		if (missingOrInactiveRole(readRole)) {
+			return Collections.emptyList();
 		}
-		if (roleIsInactive(readRole)) {
-			return new ArrayList<>();
-		}
-
 		return getActiveRulesForRole(readRole);
+	}
+
+	private boolean missingOrInactiveRole(DataGroup readRole) {
+		return roleNotFoundInStorage(readRole) || roleIsInactive(readRole);
 	}
 
 	private boolean roleNotFoundInStorage(DataGroup readRole) {
@@ -61,7 +62,6 @@ public class RulesProviderImp implements RulesProvider {
 	}
 
 	private List<Rule> getActiveRulesForRole(DataGroup readRole) {
-
 		List<Rule> listOfRules = new ArrayList<>();
 		List<DataElement> children = readRole.getChildren();
 		Stream<DataElement> permissionRuleLinks = children.stream()
