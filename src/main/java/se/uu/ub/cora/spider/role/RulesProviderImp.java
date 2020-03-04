@@ -94,6 +94,8 @@ public class RulesProviderImp implements RulesProvider {
 
 		addRulePartsToRule(rule, readRule);
 		addTermRulePartToRule(rule, readRule);
+		possiblyAddReadPermissions(rule, readRule);
+		possiblyAddWritePermissions(rule, readRule);
 	}
 
 	private void addRulePartsToRule(Rule rule, DataGroup readRule) {
@@ -118,6 +120,7 @@ public class RulesProviderImp implements RulesProvider {
 		List<DataGroup> permissionTermRuleParts = readRule
 				.getAllGroupsWithNameInData("permissionTermRulePart");
 		permissionTermRuleParts.forEach(rulePart -> addTermRulePartToRule(rulePart, rule));
+
 	}
 
 	private void addTermRulePartToRule(DataGroup ruleTermPart, Rule rule) {
@@ -136,6 +139,34 @@ public class RulesProviderImp implements RulesProvider {
 		DataGroup permissionTerm = recordStorage.read("collectPermissionTerm", permissionTermId);
 		DataGroup extraData = permissionTerm.getFirstGroupWithNameInData("extraData");
 		return extraData.getFirstAtomicValueWithNameInData("permissionKey");
+	}
+
+	private void possiblyAddReadPermissions(Rule rule, DataGroup readRule) {
+		if (readRule.containsChildWithNameInData("readPermissions")) {
+			addReadPermissions(rule, readRule);
+		}
+	}
+
+	private void addReadPermissions(Rule rule, DataGroup readRule) {
+		DataGroup readPermissions = readRule.getFirstGroupWithNameInData("readPermissions");
+		for (DataAtomic readPermission : readPermissions
+				.getAllDataAtomicsWithNameInData("readPermission")) {
+			rule.addReadRecordPartPermissions(readPermission.getValue());
+		}
+	}
+
+	private void possiblyAddWritePermissions(Rule rule, DataGroup readRule) {
+		if (readRule.containsChildWithNameInData("writePermissions")) {
+			addWritePermissions(rule, readRule);
+		}
+	}
+
+	private void addWritePermissions(Rule rule, DataGroup readRule) {
+		DataGroup writePermissions = readRule.getFirstGroupWithNameInData("writePermissions");
+		for (DataAtomic writePermission : writePermissions
+				.getAllDataAtomicsWithNameInData("writePermission")) {
+			rule.addWriteRecordPartPermissions(writePermission.getValue());
+		}
 	}
 
 	public RecordStorage getRecordStorage() {
