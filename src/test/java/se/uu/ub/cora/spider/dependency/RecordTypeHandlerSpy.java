@@ -63,4 +63,18 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		return isPublicForRead;
 	}
 
+	@Override
+	public boolean hasRecordPartReadContraint() {
+		if ("".equals(recordPartConstraint)) {
+			return false;
+		}
+
+		if ("write".equals(recordPartConstraint)) {
+			return false;
+		}
+
+		// readWrite
+		return true;
+	}
+
 }

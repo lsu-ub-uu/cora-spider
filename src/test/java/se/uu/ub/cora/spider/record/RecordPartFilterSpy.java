@@ -23,13 +23,21 @@ import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 
 public class RecordPartFilterSpy implements RecordPartFilter {
 
 	public boolean recordPartFilterForReadHasBeenCalled = false;
+	public List<String> collectedReadRecordPartPermissions;
+	public DataGroup lastRecordFilteredForRead;
 
 	@Override
-	public void filter(DataGroup recordRead, List<String> collectedReadRecordPartPermissions) {
+	public void filterReadRecorPartsUsingPermissions(DataGroup recordRead,
+			List<String> collectedReadRecordPartPermissions) {
+		lastRecordFilteredForRead = recordRead;
+		// recordRead.addChild(new DataAtomicSpy("someExtraStuff", "to"));
+		recordRead = new DataGroupSpy("filteredDataGroup");
+		this.collectedReadRecordPartPermissions = collectedReadRecordPartPermissions;
 		recordPartFilterForReadHasBeenCalled = true;
 	}
 

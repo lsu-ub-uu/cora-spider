@@ -114,4 +114,10 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	public RecordStorage getRecordStorage() {
 		return recordStorage;
 	}
+
+	@Override
+	public boolean hasRecordPartReadContraint() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

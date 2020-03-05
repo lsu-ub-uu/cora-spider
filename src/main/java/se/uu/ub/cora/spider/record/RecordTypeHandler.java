@@ -34,4 +34,6 @@ public interface RecordTypeHandler {
 	List<String> createListOfPossibleIdsToThisRecord(String recordId);
 
 	boolean isPublicForRead();
+
+	boolean hasRecordPartReadContraint();
 }

@@ -52,6 +52,8 @@ public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 	private DataGroup child1Place0002;
 	private DataGroup authorityPlace0001 = DataCreator
 			.createDataGroupWithNameInDataTypeAndId("abstract", "place", "place001");
+	public DataGroup aRecord = DataCreator.createDataGroupWithNameInDataTypeAndId("someType",
+			"someNameInData", "someId");
 	public DataGroup readDataGroup;
 
 	@Override
@@ -63,6 +65,11 @@ public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 		ids.add(id);
 
 		readWasCalled = true;
+
+		if ("someType".equals(type) && "someId".equals(id)) {
+			return aRecord;
+		}
+
 		if ("abstract".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
 					"false", "true", "false");

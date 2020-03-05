@@ -78,12 +78,17 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		// dataGroupToRecordEnhancer.filterRecorRead(recordRead, x);
 		// }
 
-		List<String> collectedReadRecordPartPermissions = spiderAuthorizator
-				.getCollectedReadRecordPartPermissions();
+		if (recordTypeHandler.hasRecordPartReadContraint()) {
+			List<String> usersReadRecordPartPermissions = spiderAuthorizator
+					.getUsersReadRecordPartPermissions();
 
-		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-		recordPartFilter.filter(recordRead, collectedReadRecordPartPermissions);
-		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
+			RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
+			recordPartFilter.filterReadRecorPartsUsingPermissions(recordRead,
+					usersReadRecordPartPermissions);
+		}
+		// return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
+		return dataGroupToRecordEnhancer.enhance(user, recordType,
+				recordStorage.read(recordType, recordId));
 	}
 
 	private void tryToGetActiveUser() {

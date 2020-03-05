@@ -20,7 +20,9 @@
 package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -270,19 +272,37 @@ public class SpiderRecordReaderTest {
 	}
 
 	@Test
+	public void testRecordHasNoPartConstraints() throws Exception {
+		RecordStorageSpy recordStorageSpy = new RecordStorageSpy();
+		recordStorage = recordStorageSpy;
+		setUpDependencyProvider();
+		recordTypeHandlerSpy.recordPartConstraint = "";
+
+		DataRecord readRecord = recordReader.readRecord("someUserId", "someType", "someId");
+
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
+		assertFalse(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
+		assertFalse(recordPartFilter.recordPartFilterForReadHasBeenCalled);
+	}
+
+	@Test
 	public void testRecordHasReadPartConstraints() throws Exception {
-		recordStorage = new RecordStorageSpy();
+		RecordStorageSpy recordStorageSpy = new RecordStorageSpy();
+		recordStorage = recordStorageSpy;
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
 
-		DataRecord readRecord = recordReader.readRecord("unauthorizedUserId", "publicReadType",
-				"publicReadType:0001");
+		DataRecord readRecord = recordReader.readRecord("someUserId", "someType", "someId");
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
-		assertTrue(authorizatorSpy.collectedReadRecordPartPermissionsHasBeenCalled);
+		assertTrue(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
 		assertTrue(recordPartFilter.recordPartFilterForReadHasBeenCalled);
-		// List<String> readRecordPartPermissions =
-		// authorizator.lastCollectedReadRecordPartPermissions;
-		// FilterXSpy.lastCalledWith
+		assertEquals(authorizatorSpy.recordPartReadPermissions,
+				recordPartFilter.collectedReadRecordPartPermissions);
+
+		assertSame(recordStorageSpy.aRecord, recordPartFilter.lastRecordFilteredForRead);
+
+		DataGroup lastEnhancedDataGroup = dataGroupToRecordEnhancer.dataGroup;
+		assertSame(recordPartFilter.lastRecordFilteredForRead, lastEnhancedDataGroup);
 	}
 }

@@ -53,7 +53,7 @@ public class NeverAuthorisedStub implements SpiderAuthorizator {
 	}
 
 	@Override
-	public List<String> getCollectedReadRecordPartPermissions() {
+	public List<String> getUsersReadRecordPartPermissions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
