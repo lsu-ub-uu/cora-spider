@@ -278,7 +278,7 @@ public class SpiderRecordReaderTest {
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.recordPartConstraint = "";
 
-		DataRecord readRecord = recordReader.readRecord("someUserId", "someType", "someId");
+		recordReader.readRecord("someUserId", "someType", "someId");
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
 		assertFalse(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
@@ -292,17 +292,38 @@ public class SpiderRecordReaderTest {
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
 
-		DataRecord readRecord = recordReader.readRecord("someUserId", "someType", "someId");
+		recordReader.readRecord("someUserId", "someType", "someId");
 
+		assertTrue(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
 		assertTrue(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
 		assertTrue(recordPartFilter.recordPartFilterForReadHasBeenCalled);
 		assertEquals(authorizatorSpy.recordPartReadPermissions,
-				recordPartFilter.collectedReadRecordPartPermissions);
-
+				recordPartFilter.recordPartReadPermissions);
 		assertSame(recordStorageSpy.aRecord, recordPartFilter.lastRecordFilteredForRead);
-
 		DataGroup lastEnhancedDataGroup = dataGroupToRecordEnhancer.dataGroup;
-		assertSame(recordPartFilter.lastRecordFilteredForRead, lastEnhancedDataGroup);
+		assertSame(recordPartFilter.returnedDataGroup, lastEnhancedDataGroup);
+	}
+
+	@Test
+	public void testRecordHasReadPartConstraintsFilterParameters() throws Exception {
+		RecordStorageSpy recordStorageSpy = new RecordStorageSpy();
+		recordStorage = recordStorageSpy;
+		setUpDependencyProvider();
+		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
+
+		recordReader.readRecord("someUserId", "someType", "someId");
+
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
+
+		String metadataGroupNamInData = recordTypeHandlerSpy.getMetadataGroup()
+				.getFirstAtomicValueWithNameInData("nameInData");
+		assertEquals(recordPartFilter.groupNameInData, metadataGroupNamInData);
+
+		assertSame(recordPartFilter.recordPartReadPermissions,
+				authorizatorSpy.recordPartReadPermissions);
+		assertEquals(recordPartFilter.recordPartConstraints,
+				recordTypeHandlerSpy.getRecordPartReadConstraints());
+
 	}
 }

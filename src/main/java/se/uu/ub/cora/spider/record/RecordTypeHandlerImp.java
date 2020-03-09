@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -106,6 +107,17 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return false;
 	}
 
+	@Override
+	public Map<String, String> getRecordPartReadConstraints() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataGroup getMetadataGroup() {
+		return recordStorage.read("metadataGroup", getMetadataId());
+	}
+
 	// Only for test
 	public String getRecordTypeId() {
 		return recordTypeId;
@@ -120,4 +132,5 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		// TODO Auto-generated method stub
 		return false;
 	}
+
 }

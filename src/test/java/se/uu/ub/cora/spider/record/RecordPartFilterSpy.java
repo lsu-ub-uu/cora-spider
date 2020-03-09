@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
 import se.uu.ub.cora.data.DataGroup;
@@ -28,17 +29,25 @@ import se.uu.ub.cora.spider.data.DataGroupSpy;
 public class RecordPartFilterSpy implements RecordPartFilter {
 
 	public boolean recordPartFilterForReadHasBeenCalled = false;
-	public List<String> collectedReadRecordPartPermissions;
+	public DataGroupSpy returnedDataGroup;
+	public String groupNameInData;
 	public DataGroup lastRecordFilteredForRead;
+	public Map<String, String> recordPartConstraints;
+	public List<String> recordPartReadPermissions;
 
 	@Override
-	public void filterReadRecorPartsUsingPermissions(DataGroup recordRead,
-			List<String> collectedReadRecordPartPermissions) {
+	public DataGroup filterReadRecordPartsUsingPermissions(String groupNameInData,
+			DataGroup recordRead, Map<String, String> recordPartConstraints,
+			List<String> recordPartReadPermissions) {
+		this.groupNameInData = groupNameInData;
+		this.recordPartConstraints = recordPartConstraints;
+		this.recordPartReadPermissions = recordPartReadPermissions;
 		lastRecordFilteredForRead = recordRead;
 		// recordRead.addChild(new DataAtomicSpy("someExtraStuff", "to"));
 		recordRead = new DataGroupSpy("filteredDataGroup");
-		this.collectedReadRecordPartPermissions = collectedReadRecordPartPermissions;
 		recordPartFilterForReadHasBeenCalled = true;
+		returnedDataGroup = new DataGroupSpy("someDataGroupSpy");
+		return returnedDataGroup;
 	}
 
 }

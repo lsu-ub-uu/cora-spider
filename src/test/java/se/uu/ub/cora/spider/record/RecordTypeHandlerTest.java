@@ -21,16 +21,17 @@ package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
-import se.uu.ub.cora.storage.RecordStorage;
 
 public class RecordTypeHandlerTest {
-	private RecordStorage recordStorage;
+	private RecordStorageSpy recordStorage;
 
 	@BeforeMethod
 	public void setUp() {
@@ -99,5 +100,14 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, id);
 		assertFalse(recordTypeHandler.isPublicForRead());
+	}
+
+	@Test
+	public void testGetMetadataGroup() {
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(recordStorage, "book");
+		DataGroup metadataGroup = recordTypeHandler.getMetadataGroup();
+		assertSame(metadataGroup, recordStorage.readDataGroup);
+
 	}
 }

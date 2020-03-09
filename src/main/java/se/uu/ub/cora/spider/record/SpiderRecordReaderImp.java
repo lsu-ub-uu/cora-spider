@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
@@ -69,26 +70,17 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
 		setImplementingRecordTypeHandlerIfAbstract(recordRead);
-		// om posten inte har readPartStuff
-		// requiresRecordPartPermission write / readWrite
 		checkUserIsAuthorisedToReadData(recordRead);
-		// om posten har readPart stuff
-		// if(recordTypeHandler.hasRecordPartReadContraint()) {
-		// List<Rule>x = spiderAuthorizator.getCollectedRulesWithRecordPartPermissions();
-		// dataGroupToRecordEnhancer.filterRecorRead(recordRead, x);
-		// }
 
 		if (recordTypeHandler.hasRecordPartReadContraint()) {
-			List<String> usersReadRecordPartPermissions = spiderAuthorizator
-					.getUsersReadRecordPartPermissions();
-
-			RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-			recordPartFilter.filterReadRecorPartsUsingPermissions(recordRead,
-					usersReadRecordPartPermissions);
+			return filterDataGroup(recordType, recordRead);
 		}
-		// return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
-		return dataGroupToRecordEnhancer.enhance(user, recordType,
-				recordStorage.read(recordType, recordId));
+		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
+	}
+
+	private String getMetadataGroupNameInData() {
+		DataGroup metadataGroup = recordTypeHandler.getMetadataGroup();
+		return metadataGroup.getFirstAtomicValueWithNameInData("nameInData");
 	}
 
 	private void tryToGetActiveUser() {
@@ -138,6 +130,19 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 
 	private String getMetadataIdFromRecordType() {
 		return recordTypeHandler.getMetadataId();
+	}
+
+	private DataRecord filterDataGroup(String recordType, DataGroup recordRead) {
+		List<String> usersReadRecordPartPermissions = spiderAuthorizator
+				.getUsersReadRecordPartPermissions();
+		Map<String, String> recordPartReadConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
+		String groupNameInData = getMetadataGroupNameInData();
+		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
+		DataGroup recordReadFiltered = recordPartFilter.filterReadRecordPartsUsingPermissions(
+				groupNameInData, recordRead, recordPartReadConstraints,
+				usersReadRecordPartPermissions);
+		return dataGroupToRecordEnhancer.enhance(user, recordType, recordReadFiltered);
 	}
 
 }

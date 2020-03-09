@@ -18,8 +18,13 @@
  */
 package se.uu.ub.cora.spider.dependency;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
 
 public class RecordTypeHandlerSpy implements RecordTypeHandler {
@@ -28,6 +33,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public boolean isAbstract = false;
 	public boolean recordTypeHasReadPartLimitations = false;
 	public String recordPartConstraint = "";
+	public boolean hasRecordPartReadContraintHasBeenCalled = false;
 
 	@Override
 	public boolean isAbstract() {
@@ -65,6 +71,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean hasRecordPartReadContraint() {
+		hasRecordPartReadContraintHasBeenCalled = true;
 		if ("".equals(recordPartConstraint)) {
 			return false;
 		}
@@ -75,6 +82,20 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 		// readWrite
 		return true;
+	}
+
+	@Override
+	public DataGroup getMetadataGroup() {
+		DataGroup metadataDataGroup = new DataGroupSpy("organisationGroup");
+		metadataDataGroup.addChild(new DataAtomicSpy("nameInData", "organisation"));
+		return metadataDataGroup;
+	}
+
+	@Override
+	public Map<String, String> getRecordPartReadConstraints() {
+		HashMap<String, String> constraints = new HashMap<String, String>();
+		constraints.put("someKey", "someValue");
+		return constraints;
 	}
 
 }

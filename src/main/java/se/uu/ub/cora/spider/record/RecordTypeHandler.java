@@ -20,6 +20,9 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.List;
+import java.util.Map;
+
+import se.uu.ub.cora.data.DataGroup;
 
 public interface RecordTypeHandler {
 
@@ -36,4 +39,8 @@ public interface RecordTypeHandler {
 	boolean isPublicForRead();
 
 	boolean hasRecordPartReadContraint();
+
+	DataGroup getMetadataGroup();
+
+	Map<String, String> getRecordPartReadConstraints();
 }
