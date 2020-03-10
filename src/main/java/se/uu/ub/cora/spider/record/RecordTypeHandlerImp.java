@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,11 +28,14 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public final class RecordTypeHandlerImp implements RecordTypeHandler {
+	private static final String RECORD_PART_CONSTRAINT = "recordPartConstraint";
+	private static final String LINKED_RECORD_TYPE = "linkedRecordType";
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private DataGroup recordType;
 	private static final String RECORD_TYPE = "recordType";
 	private String recordTypeId;
 	private RecordStorage recordStorage;
+	private DataGroup metadataGroup;
 
 	public static RecordTypeHandlerImp usingRecordStorageAndRecordTypeId(
 			RecordStorage recordStorage, String recordTypeId) {
@@ -108,14 +112,58 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public Map<String, String> getRecordPartReadConstraints() {
-		// TODO Auto-generated method stub
-		return null;
+	public DataGroup getMetadataGroup() {
+		if (metadataGroup == null) {
+			metadataGroup = recordStorage.read("metadataGroup", getMetadataId());
+		}
+		return metadataGroup;
 	}
 
 	@Override
-	public DataGroup getMetadataGroup() {
-		return recordStorage.read("metadataGroup", getMetadataId());
+	public Map<String, String> getRecordPartReadWriteConstraints() {
+		Map<String, String> constraints = new HashMap<>();
+		for (DataGroup childReference : getAllChildReferences()) {
+			possiblyAddReadWriteConstraint(constraints, childReference);
+		}
+		return constraints;
+	}
+
+	private List<DataGroup> getAllChildReferences() {
+		DataGroup childReferences = getMetadataGroup()
+				.getFirstGroupWithNameInData("childReferences");
+		return childReferences.getAllGroupsWithNameInData("childReference");
+	}
+
+	private void possiblyAddReadWriteConstraint(Map<String, String> constraints,
+			DataGroup childReference) {
+		if (hasReadWriteConstraints(childReference)) {
+			String refNameInData = getRefNameInData(childReference);
+			constraints.put(refNameInData, getRecordPartConstraintValue(childReference));
+		}
+	}
+
+	private boolean hasReadWriteConstraints(DataGroup childReference) {
+		return hasRecordPartConstrains(childReference) && isReadWriteConstraint(childReference);
+	}
+
+	private boolean hasRecordPartConstrains(DataGroup childReference) {
+		return childReference.containsChildWithNameInData(RECORD_PART_CONSTRAINT);
+	}
+
+	private boolean isReadWriteConstraint(DataGroup childReference) {
+		return "readWrite".equals(getRecordPartConstraintValue(childReference));
+	}
+
+	private String getRecordPartConstraintValue(DataGroup childReference) {
+		return childReference.getFirstAtomicValueWithNameInData(RECORD_PART_CONSTRAINT);
+	}
+
+	private String getRefNameInData(DataGroup childReference) {
+		DataGroup ref = childReference.getFirstGroupWithNameInData("ref");
+		String linkedRecordType = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_TYPE);
+		String linkedRecordId = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataGroup metadataRefElement = recordStorage.read(linkedRecordType, linkedRecordId);
+		return metadataRefElement.getFirstAtomicValueWithNameInData("nameInData");
 	}
 
 	// Only for test

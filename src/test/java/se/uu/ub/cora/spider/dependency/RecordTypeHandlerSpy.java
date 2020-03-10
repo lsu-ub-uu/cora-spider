@@ -92,7 +92,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public Map<String, String> getRecordPartReadConstraints() {
+	public Map<String, String> getRecordPartReadWriteConstraints() {
 		HashMap<String, String> constraints = new HashMap<String, String>();
 		constraints.put("someKey", "someValue");
 		return constraints;

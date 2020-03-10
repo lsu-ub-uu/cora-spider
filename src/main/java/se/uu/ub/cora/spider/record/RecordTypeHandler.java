@@ -42,5 +42,5 @@ public interface RecordTypeHandler {
 
 	DataGroup getMetadataGroup();
 
-	Map<String, String> getRecordPartReadConstraints();
+	Map<String, String> getRecordPartReadWriteConstraints();
 }

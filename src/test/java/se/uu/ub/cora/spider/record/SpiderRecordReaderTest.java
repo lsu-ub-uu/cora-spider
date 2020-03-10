@@ -323,7 +323,7 @@ public class SpiderRecordReaderTest {
 		assertSame(recordPartFilter.recordPartReadPermissions,
 				authorizatorSpy.recordPartReadPermissions);
 		assertEquals(recordPartFilter.recordPartConstraints,
-				recordTypeHandlerSpy.getRecordPartReadConstraints());
+				recordTypeHandlerSpy.getRecordPartReadWriteConstraints());
 
 	}
 }

@@ -136,7 +136,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		List<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.getUsersReadRecordPartPermissions();
 		Map<String, String> recordPartReadConstraints = recordTypeHandler
-				.getRecordPartReadConstraints();
+				.getRecordPartReadWriteConstraints();
 		String groupNameInData = getMetadataGroupNameInData();
 		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
 		DataGroup recordReadFiltered = recordPartFilter.filterReadRecordPartsUsingPermissions(
