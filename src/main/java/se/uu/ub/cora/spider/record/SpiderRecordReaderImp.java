@@ -113,7 +113,6 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
 		if (readRecordTypeIsNotPublicRead()) {
 			checkUserIsAuthorisedToReadNonPublicData(recordRead);
-
 		}
 	}
 

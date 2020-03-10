@@ -36,6 +36,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private String recordTypeId;
 	private RecordStorage recordStorage;
 	private DataGroup metadataGroup;
+	private Map<String, String> readWriteConstraints;
 
 	public static RecordTypeHandlerImp usingRecordStorageAndRecordTypeId(
 			RecordStorage recordStorage, String recordTypeId) {
@@ -121,11 +122,17 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	@Override
 	public Map<String, String> getRecordPartReadWriteConstraints() {
-		Map<String, String> constraints = new HashMap<>();
-		for (DataGroup childReference : getAllChildReferences()) {
-			possiblyAddReadWriteConstraint(constraints, childReference);
+		if (readWriteConstraints == null) {
+			collectAllReadWriteConstraints();
 		}
-		return constraints;
+		return readWriteConstraints;
+	}
+
+	private void collectAllReadWriteConstraints() {
+		readWriteConstraints = new HashMap<>();
+		for (DataGroup childReference : getAllChildReferences()) {
+			possiblyAddReadWriteConstraint(readWriteConstraints, childReference);
+		}
 	}
 
 	private List<DataGroup> getAllChildReferences() {
@@ -178,7 +185,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	@Override
 	public boolean hasRecordPartReadContraint() {
 		// TODO Auto-generated method stub
-		return false;
+		return !getRecordPartReadWriteConstraints().isEmpty();
 	}
 
 }

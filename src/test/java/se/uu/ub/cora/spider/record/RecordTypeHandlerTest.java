@@ -149,6 +149,20 @@ public class RecordTypeHandlerTest {
 	}
 
 	@Test
+	public void testGetRecordPartReadConstraintsReturnsSameInstance() {
+		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
+		storageSpy.numberOfChildsWithConstraint = 1;
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
+
+		recordTypeHandler.getRecordPartReadWriteConstraints();
+		recordTypeHandler.getRecordPartReadWriteConstraints();
+		int numOfTimesReadWhenConstraintsOnlyReadOnce = 3;
+		assertEquals(storageSpy.types.size(), numOfTimesReadWhenConstraintsOnlyReadOnce);
+
+	}
+
+	@Test
 	public void testGetRecordPartReadConstraintsTwoReadConstraint() {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
 		storageSpy.numberOfChildsWithConstraint = 2;
@@ -174,6 +188,22 @@ public class RecordTypeHandlerTest {
 		assertEquals(recordPartReadConstraints.get("organisationRoot"), "readWrite");
 		assertEquals(recordPartReadConstraints.get("showInPortal"), "readWrite");
 		assertFalse(recordPartReadConstraints.containsKey("showInDefence"));
+	}
 
+	@Test
+	public void testHasRecordPartReadConstraintsNoConstraints() {
+		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
+		assertFalse(recordTypeHandler.hasRecordPartReadContraint());
+	}
+
+	@Test
+	public void testHasRecordPartReadConstraintsOneConstraints() {
+		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
+		storageSpy.numberOfChildsWithConstraint = 1;
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
+		assertTrue(recordTypeHandler.hasRecordPartReadContraint());
 	}
 }

@@ -1,6 +1,8 @@
 package se.uu.ub.cora.spider.record;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -12,12 +14,14 @@ import se.uu.ub.cora.storage.StorageReadResult;
 public class RecordTypeHandlerStorageSpy implements RecordStorage {
 
 	public String type;
+	public List<String> types = new ArrayList<>();
 	public String id;
 	public int numberOfChildsWithConstraint = 0;
 
 	@Override
 	public DataGroup read(String type, String id) {
 		this.type = type;
+		types.add(type);
 		this.id = id;
 		if ("recordType".equals(type) && "organisation".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedId(id, "true");
