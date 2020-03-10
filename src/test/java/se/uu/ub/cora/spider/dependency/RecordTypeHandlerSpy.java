@@ -70,7 +70,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public boolean hasRecordPartReadContraint() {
+	public boolean hasRecordPartReadConstraint() {
 		hasRecordPartReadContraintHasBeenCalled = true;
 		if ("".equals(recordPartConstraint)) {
 			return false;

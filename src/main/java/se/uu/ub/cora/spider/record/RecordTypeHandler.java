@@ -38,7 +38,7 @@ public interface RecordTypeHandler {
 
 	boolean isPublicForRead();
 
-	boolean hasRecordPartReadContraint();
+	boolean hasRecordPartReadConstraint();
 
 	DataGroup getMetadataGroup();
 

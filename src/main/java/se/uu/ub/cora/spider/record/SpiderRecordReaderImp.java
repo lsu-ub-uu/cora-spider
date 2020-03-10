@@ -72,7 +72,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		setImplementingRecordTypeHandlerIfAbstract(recordRead);
 		checkUserIsAuthorisedToReadData(recordRead);
 
-		if (recordTypeHandler.hasRecordPartReadContraint()) {
+		if (recordTypeHandler.hasRecordPartReadConstraint()) {
 			return filterDataGroup(recordType, recordRead);
 		}
 		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
