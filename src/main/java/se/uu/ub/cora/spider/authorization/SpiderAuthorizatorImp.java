@@ -273,4 +273,10 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		return null;
 	}
 
+	@Override
+	public void checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
+			String action, String recordType, DataGroup collectedData) {
+		// TODO Auto-generated method stub
+	}
+
 }

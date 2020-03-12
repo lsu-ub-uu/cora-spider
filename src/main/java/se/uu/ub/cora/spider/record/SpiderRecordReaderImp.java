@@ -67,20 +67,44 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		tryToGetActiveUser();
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		checkUserIsAuthorizedForActionOnRecordType();
+		return tryToReadRecord(recordType, recordId);
+	}
+
+	private DataRecord tryToReadRecord(String recordType, String recordId) {
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
 		setImplementingRecordTypeHandlerIfAbstract(recordRead);
-		checkUserIsAuthorisedToReadData(recordRead);
-
-		if (recordTypeHandler.hasRecordPartReadConstraint()) {
-			return filterDataGroup(recordType, recordRead);
+		if (isPublicForRead()) {
+			return enhanceRecord(recordType, recordRead);
 		}
+		checkUserIsAuthorisedToReadNonPublicData(recordRead);
+		if (hasRecordPartReadConstraints()) {
+			recordRead = filterDataGroup(recordRead);
+		}
+		return enhanceRecord(recordType, recordRead);
+	}
+
+	private void checkUserIsAuthorisedToReadNonPublicData(DataGroup recordRead) {
+		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
+		if (hasRecordPartReadConstraints()) {
+			spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
+					user, READ, recordType, collectedTerms);
+		} else {
+			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
+					READ, recordType, collectedTerms);
+		}
+	}
+
+	private DataRecord enhanceRecord(String recordType, DataGroup recordRead) {
 		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
 	}
 
-	private String getMetadataGroupNameInData() {
-		DataGroup metadataGroup = recordTypeHandler.getMetadataGroup();
-		return metadataGroup.getFirstAtomicValueWithNameInData("nameInData");
+	private boolean hasRecordPartReadConstraints() {
+		return recordTypeHandler.hasRecordPartReadConstraint();
+	}
+
+	private boolean isPublicForRead() {
+		return recordTypeHandler.isPublicForRead();
 	}
 
 	private void tryToGetActiveUser() {
@@ -88,12 +112,12 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {
-		if (readRecordTypeIsNotPublicRead()) {
+		if (isNotPublicForRead()) {
 			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
 		}
 	}
 
-	private boolean readRecordTypeIsNotPublicRead() {
+	private boolean isNotPublicForRead() {
 		return !recordTypeHandler.isPublicForRead();
 	}
 
@@ -110,36 +134,19 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		return type.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
-	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
-		if (readRecordTypeIsNotPublicRead()) {
-			checkUserIsAuthorisedToReadNonPublicData(recordRead);
-		}
-	}
-
-	private void checkUserIsAuthorisedToReadNonPublicData(DataGroup recordRead) {
-		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
-				recordType, collectedTerms);
-	}
-
 	private DataGroup getCollectedTermsForRecord(DataGroup recordRead) {
-		String metadataId = getMetadataIdFromRecordType();
+		String metadataId = recordTypeHandler.getMetadataId();
 		return dataGroupTermCollector.collectTerms(metadataId, recordRead);
 	}
 
-	private String getMetadataIdFromRecordType() {
-		return recordTypeHandler.getMetadataId();
-	}
-
-	private DataRecord filterDataGroup(String recordType, DataGroup recordRead) {
+	private DataGroup filterDataGroup(DataGroup recordRead) {
 		List<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.getUsersReadRecordPartPermissions();
 		Map<String, String> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadWriteConstraints();
 		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-		DataGroup recordReadFiltered = recordPartFilter.filterReadRecordPartsUsingPermissions(
-				recordRead, recordPartReadConstraints, usersReadRecordPartPermissions);
-		return dataGroupToRecordEnhancer.enhance(user, recordType, recordReadFiltered);
+		return recordPartFilter.filterReadRecordPartsUsingPermissions(recordRead,
+				recordPartReadConstraints, usersReadRecordPartPermissions);
 	}
 
 }

@@ -38,4 +38,7 @@ public interface SpiderAuthorizator {
 
 	List<String> getUsersReadRecordPartPermissions();
 
+	void checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
+			String action, String recordType, DataGroup collectedData);
+
 }

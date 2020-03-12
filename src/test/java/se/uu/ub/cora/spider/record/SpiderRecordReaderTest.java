@@ -154,6 +154,7 @@ public class SpiderRecordReaderTest {
 	@Test
 	public void testReadAuthorized2() {
 		recordTypeHandlerSpy.isPublicForRead = false;
+		recordTypeHandlerSpy.recordPartConstraint = "";
 		DataRecord record = recordReader.readRecord("someToken78678567", "place", "place:0001");
 		DataGroup groupOut = record.getDataGroup();
 		assertEquals(groupOut.getNameInData(), "authority");
@@ -173,6 +174,49 @@ public class SpiderRecordReaderTest {
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
 		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
 		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
+	}
+
+	@Test
+	public void testReadAuthorizedHasRecordPartConstraints() {
+		recordTypeHandlerSpy.isPublicForRead = false;
+		recordTypeHandlerSpy.recordPartConstraint = "write";
+		DataRecord record = recordReader.readRecord("someToken78678567", "place", "place:0001");
+
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizator);
+		assertFalse(authorizatorSpy.calledMethods.isEmpty());
+		assertEquals(authorizatorSpy.calledMethods.get(0),
+				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+
+		assertEquals(authorizatorSpy.users.get(0).id, "12345");
+		assertEquals(authorizatorSpy.actions.get(0), "read");
+		assertEquals(authorizatorSpy.recordTypes.get(0), "place");
+
+		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
+		assertEquals(dataGroupTermCollectorSpy.metadataId,
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
+		assertEquals(dataGroupTermCollectorSpy.dataGroup,
+				recordStorage.read("place", "place:0001"));
+		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
+		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
+	}
+
+	@Test
+	public void testReadHasRecordPartConstraintsNotAuthorized() {
+		authorizator = new AlwaysAuthorisedExceptStub();
+		setUpDependencyProvider();
+		AlwaysAuthorisedExceptStub authorizatorSpy = (AlwaysAuthorisedExceptStub) authorizator;
+		recordTypeHandlerSpy.isPublicForRead = false;
+		recordTypeHandlerSpy.recordPartConstraint = "write";
+		authorizatorSpy.throwExceptionOnCheckUserAuthorization = true;
+		try {
+			recordReader.readRecord("someToken78678567", "place", "place:0001");
+		} catch (Exception e) {
+			int callMethodsSize = authorizatorSpy.calledMethods.size() - 1;
+			assertFalse(authorizatorSpy.calledMethods.isEmpty());
+			assertEquals(authorizatorSpy.calledMethods.get(callMethodsSize),
+					"read:checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+			assertFalse(recordPartFilter.recordPartFilterForReadHasBeenCalled);
+		}
 	}
 
 	@Test
@@ -262,13 +306,16 @@ public class SpiderRecordReaderTest {
 	@Test
 	public void testReadPublicRecordType() throws Exception {
 		recordStorage = new RecordStorageSpy();
-		authorizator = new AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType();
+		AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType authorizatorSpy = new AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType();
 		setUpDependencyProvider();
 		// publicReadType
 		DataRecord readRecord = recordReader.readRecord("unauthorizedUserId", "publicReadType",
 				"publicReadType:0001");
 
 		assertNotNull(readRecord);
+		assertFalse(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
+		assertFalse(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
+		assertFalse(recordPartFilter.recordPartFilterForReadHasBeenCalled);
 	}
 
 	@Test
@@ -291,6 +338,7 @@ public class SpiderRecordReaderTest {
 		recordStorage = recordStorageSpy;
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
+		recordTypeHandlerSpy.isPublicForRead = false;
 
 		recordReader.readRecord("someUserId", "someType", "someId");
 
@@ -311,6 +359,7 @@ public class SpiderRecordReaderTest {
 		recordStorage = recordStorageSpy;
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
+		recordTypeHandlerSpy.isPublicForRead = false;
 
 		recordReader.readRecord("someUserId", "someType", "someId");
 

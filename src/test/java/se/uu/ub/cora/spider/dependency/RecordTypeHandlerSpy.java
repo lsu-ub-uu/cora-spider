@@ -31,7 +31,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	public boolean isPublicForRead = true;
 	public boolean isAbstract = false;
-	public boolean recordTypeHasReadPartLimitations = false;
+	public boolean recordTypeHasReadPartConstraints = false;
 	public String recordPartConstraint = "";
 	public boolean hasRecordPartReadContraintHasBeenCalled = false;
 
@@ -72,16 +72,15 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	@Override
 	public boolean hasRecordPartReadConstraint() {
 		hasRecordPartReadContraintHasBeenCalled = true;
-		if ("".equals(recordPartConstraint)) {
-			return false;
+		if ("readWrite".equals(recordPartConstraint)) {
+			return true;
 		}
 
 		if ("write".equals(recordPartConstraint)) {
-			return false;
+			return true;
 		}
-
-		// readWrite
-		return true;
+		// ""
+		return false;
 	}
 
 	@Override

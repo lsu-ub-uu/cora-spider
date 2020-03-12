@@ -33,6 +33,8 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	public Map<String, Set<String>> notAuthorizedForRecordTypeAndActions = new HashMap<>();
 	public List<String> notAuthorizedForIds = new ArrayList<>();
 	public List<String> calledMethods = new ArrayList<>();
+	public boolean throwExceptionOnCheckUserAuthorization = false;
+	public boolean getUsersReadRecordPartPermissionsHasBeenCalled = false;
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
@@ -76,8 +78,19 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 
 	@Override
 	public List<String> getUsersReadRecordPartPermissions() {
-		// TODO Auto-generated method stub
+		getUsersReadRecordPartPermissionsHasBeenCalled = true;
 		return null;
+	}
+
+	@Override
+	public void checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
+			String action, String recordType, DataGroup collectedData) {
+		calledMethods.add(
+				action + ":checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+		if (throwExceptionOnCheckUserAuthorization) {
+			throw new AuthorizationException(
+					"not authorized for " + action + " on recordType " + recordType);
+		}
 	}
 
 }
