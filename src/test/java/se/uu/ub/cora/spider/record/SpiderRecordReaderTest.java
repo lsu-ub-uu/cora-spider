@@ -318,7 +318,6 @@ public class SpiderRecordReaderTest {
 
 		String metadataGroupNamInData = recordTypeHandlerSpy.getMetadataGroup()
 				.getFirstAtomicValueWithNameInData("nameInData");
-		assertEquals(recordPartFilter.groupNameInData, metadataGroupNamInData);
 
 		assertSame(recordPartFilter.recordPartReadPermissions,
 				authorizatorSpy.recordPartReadPermissions);

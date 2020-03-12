@@ -30,16 +30,13 @@ public class RecordPartFilterSpy implements RecordPartFilter {
 
 	public boolean recordPartFilterForReadHasBeenCalled = false;
 	public DataGroupSpy returnedDataGroup;
-	public String groupNameInData;
 	public DataGroup lastRecordFilteredForRead;
 	public Map<String, String> recordPartConstraints;
 	public List<String> recordPartReadPermissions;
 
 	@Override
-	public DataGroup filterReadRecordPartsUsingPermissions(String groupNameInData,
-			DataGroup recordRead, Map<String, String> recordPartConstraints,
-			List<String> recordPartReadPermissions) {
-		this.groupNameInData = groupNameInData;
+	public DataGroup filterReadRecordPartsUsingPermissions(DataGroup recordRead,
+			Map<String, String> recordPartConstraints, List<String> recordPartReadPermissions) {
 		this.recordPartConstraints = recordPartConstraints;
 		this.recordPartReadPermissions = recordPartReadPermissions;
 		lastRecordFilteredForRead = recordRead;
