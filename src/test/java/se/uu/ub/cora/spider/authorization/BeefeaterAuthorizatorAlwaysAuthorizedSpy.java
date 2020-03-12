@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.authorization;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -30,6 +31,9 @@ public class BeefeaterAuthorizatorAlwaysAuthorizedSpy implements Authorizator {
 	public Set<String> recordCalculateKeys;
 	public List<Rule> providedRules;
 	public List<Rule> requiredRules;
+	public List<Rule> matchedRules;
+
+	public boolean returnEmptyMatchedRules = false;
 
 	@Override
 	public boolean providedRulesSatisfiesRequiredRules(List<Rule> providedRules,
@@ -42,8 +46,13 @@ public class BeefeaterAuthorizatorAlwaysAuthorizedSpy implements Authorizator {
 	@Override
 	public List<Rule> providedRulesMatchRequiredRules(List<Rule> providedRules,
 			List<Rule> requiredRules) {
-		// TODO Auto-generated method stub
-		return providedRules;
+		this.providedRules = providedRules;
+		this.requiredRules = requiredRules;
+		if (returnEmptyMatchedRules) {
+			this.matchedRules = Collections.emptyList();
+		} else {
+			this.matchedRules = this.providedRules;
+		}
+		return matchedRules;
 	}
-
 }

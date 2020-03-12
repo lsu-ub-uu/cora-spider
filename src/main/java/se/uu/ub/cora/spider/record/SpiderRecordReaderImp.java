@@ -64,7 +64,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		this.authToken = authToken;
 		this.recordType = recordType;
 		this.recordId = recordId;
-		tryToGetActiveUser();
+		tryToGetUserWithActiveToken();
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		checkUserIsAuthorizedForActionOnRecordType();
 		return tryToReadRecord(recordType, recordId);
@@ -107,7 +107,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		return recordTypeHandler.isPublicForRead();
 	}
 
-	private void tryToGetActiveUser() {
+	private void tryToGetUserWithActiveToken() {
 		user = authenticator.getUserForToken(authToken);
 	}
 
@@ -148,5 +148,4 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		return recordPartFilter.filterReadRecordPartsUsingPermissions(recordRead,
 				recordPartReadConstraints, usersReadRecordPartPermissions);
 	}
-
 }

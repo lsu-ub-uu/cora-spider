@@ -514,4 +514,181 @@ public class SpiderAuthorizatorTest {
 						collectedData);
 		assertFalse(authorized);
 	}
+
+	// from here
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "user with id nonExistingUserId does not exist")
+	public void checkUserDoesNotSatisfiesActionForRecordUserDoesNotExistCollectingRules() {
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		User nonExistingUser = new User("nonExistingUserId");
+
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
+				nonExistingUser, action, "book", collectedData);
+	}
+
+	@Test
+	public void checkUserDoesNotSatisfiesActionForRecordUserDoesNotExistInitialExceptionIsSentAlongCollectingRules() {
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		User nonExistingUser = new User("nonExistingUserId");
+
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		try {
+			spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
+					nonExistingUser, action, "book", collectedData);
+		} catch (Exception e) {
+			assertTrue(e.getCause() instanceof RecordNotFoundException);
+		}
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "user with id inactiveUserId is inactive")
+	public void userInactiveForActionOnRecordTypeAndCollectedDataCollectingRules() {
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+
+		User inactiveUser = new User("inactiveUserId");
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
+				inactiveUser, action, "book", collectedData);
+	}
+
+	@Test
+	public void userSatisfiesActionForCollectedDataCollectingRules() {
+		user.roles.add("guest2");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+				action, "book", collectedData);
+		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
+				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
+				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+
+		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
+
+		Iterator<String> iterator = user.roles.iterator();
+		assertEquals(rulesProvider.roleIds.get(0), iterator.next());
+		assertEquals(providedRules.get(0), rulesProvider.returnedRules.get(0).get(0));
+		assertEquals(providedRules.get(1), rulesProvider.returnedRules.get(0).get(1));
+
+		assertEquals(rulesProvider.roleIds.get(1), iterator.next());
+		assertEquals(providedRules.get(2), rulesProvider.returnedRules.get(1).get(0));
+		assertEquals(providedRules.get(3), rulesProvider.returnedRules.get(1).get(1));
+
+		assertEquals(spiderAuthorizator.getMatchedRules(),
+				((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).matchedRules);
+	}
+
+	@Test
+	public void userSatisfiesActionForCollectedDataWithPermissionTermForUserCollectingRules() {
+		user = new User("userWithPermissionTerm");
+		user.roles.add("guest");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+				action, "book", collectedData);
+
+		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
+				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
+				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+
+		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
+
+		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
+		Rule firstRule = rulesFromFirstRole.get(0);
+		assertEquals(firstRule.getNumberOfRuleParts(), 2);
+		assertNotNull(firstRule.getRulePartValuesForKey("action"));
+		assertNotNull(firstRule.getRulePartValuesForKey("OWNING_ORGANISATION"));
+		assertEquals(providedRules.get(0), firstRule);
+
+		Rule secondRule = rulesFromFirstRole.get(1);
+		assertEquals(providedRules.get(1), secondRule);
+		assertEquals(secondRule.getNumberOfRuleParts(), 2);
+		assertNotNull(secondRule.getRulePartValuesForKey("action"));
+		assertNotNull(secondRule.getRulePartValuesForKey("OWNING_ORGANISATION"));
+
+	}
+
+	@Test
+	public void userSatisfiesActionForCollectedDataWithPermissionTermWithTwoRolesAndPermissionTermsForUserCollectingRules() {
+		user = new User("userWithTwoRolesPermissionTerm");
+		user.roles.add("admin");
+		user.roles.add("guest");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+				action, "book", collectedData);
+
+		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
+				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
+				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
+
+		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
+		Rule firstRule = rulesFromFirstRole.get(0);
+		assertEquals(providedRules.get(0), firstRule);
+		assertEquals(firstRule.getNumberOfRuleParts(), 3);
+		assertEquals(firstRule.getRulePartValuesForKey("JOURNAL_ACCESS").size(), 2);
+		assertEquals(firstRule.getRulePartValuesForKey("OWNING_ORGANISATION").size(), 1);
+		assertRuleContainsAllKeys(firstRule, "JOURNAL_ACCESS", "action");
+
+		Rule secondRule = rulesFromFirstRole.get(1);
+		assertEquals(providedRules.get(1), secondRule);
+		assertEquals(secondRule.getNumberOfRuleParts(), 3);
+		assertEquals(secondRule.getRulePartValuesForKey("JOURNAL_ACCESS").size(), 2);
+		assertEquals(secondRule.getRulePartValuesForKey("OWNING_ORGANISATION").size(), 1);
+		assertRuleContainsAllKeys(secondRule, "JOURNAL_ACCESS", "OWNING_ORGANISATION", "action");
+
+		List<Rule> rulesFromSecondRole = rulesProvider.returnedRules.get(1);
+		Rule thirdRule = rulesFromSecondRole.get(0);
+		assertEquals(providedRules.get(2), thirdRule);
+		assertEquals(thirdRule.getNumberOfRuleParts(), 2);
+		assertEquals(thirdRule.getRulePartValuesForKey("OWNING_ORGANISATION").size(), 1);
+		assertRuleContainsAllKeys(thirdRule, "OWNING_ORGANISATION", "action");
+
+		Rule fourthRule = rulesFromSecondRole.get(1);
+		assertEquals(providedRules.get(3), fourthRule);
+		assertEquals(fourthRule.getNumberOfRuleParts(), 2);
+		assertEquals(fourthRule.getRulePartValuesForKey("OWNING_ORGANISATION").size(), 1);
+		assertRuleContainsAllKeys(fourthRule, "OWNING_ORGANISATION", "action");
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "user with id userWithTwoRolesPermissionTerm is not authorized to read a record of type: book")
+	public void testEmptyMatchedRulesGivesNoAuthorzation() throws Exception {
+		user = new User("userWithTwoRolesPermissionTerm");
+		user.roles.add("admin");
+		user.roles.add("guest");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator;
+		authorizatorSpy.returnEmptyMatchedRules = true;
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+				action, "book", collectedData);
+	}
+
+	@Test
+	public void testEmptyUsersReadRecordPartPermissions() throws Exception {
+		user = new User("userWithTwoRolesPermissionTerm");
+		user.roles.add("admin");
+		user.roles.add("guest");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator;
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+				action, "book", collectedData);
+
+		List<String> userReadRecordPermissions = spiderAuthorizator
+				.getUsersReadRecordPartPermissions();
+	}
 }

@@ -47,6 +47,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	private SpiderDependencyProvider dependencyProvider;
 	Set<String> cachedActiveUsers = new HashSet<>();
 	Map<String, List<Rule>> cachedProvidedRulesForUser = new HashMap<>();
+	private List<Rule> matchedRules;
 
 	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider,
 			Authorizator authorizator, RulesProvider rulesProvider) {
@@ -269,14 +270,41 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	@Override
 	public List<String> getUsersReadRecordPartPermissions() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public void checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
 			String action, String recordType, DataGroup collectedData) {
-		// TODO Auto-generated method stub
+		checkUserIsActive(user);
+		tryToGetMatchedRules(user, action, recordType, collectedData);
+	}
+
+	private void tryToGetMatchedRules(User user, String action, String recordType,
+			DataGroup collectedData) {
+		List<Rule> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
+						collectedData);
+		List<Rule> providedRules = getProvidedRulesForUser(user);
+		matchRules(requiredRules, providedRules);
+		possiblyThrowAuthorizationExceptionWhenEmptyMatchedRules(user, action, recordType);
+	}
+
+	private void matchRules(List<Rule> requiredRules, List<Rule> providedRules) {
+		matchedRules = authorizator.providedRulesMatchRequiredRules(providedRules, requiredRules);
+	}
+
+	private void possiblyThrowAuthorizationExceptionWhenEmptyMatchedRules(User user, String action,
+			String recordType) {
+		if (matchedRules.isEmpty()) {
+			throw new AuthorizationException(USER_STRING + user.id + " is not authorized to "
+					+ action + " a record of type: " + recordType);
+		}
+	}
+
+	List<Rule> getMatchedRules() {
+		// needed for test
+		return matchedRules;
 	}
 
 }
