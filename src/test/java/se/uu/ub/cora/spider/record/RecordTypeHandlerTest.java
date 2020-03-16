@@ -195,7 +195,7 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
-		assertFalse(recordTypeHandler.hasRecordPartReadConstraint());
+		assertFalse(recordTypeHandler.hasRecordPartReadWriteConstraint());
 	}
 
 	@Test
@@ -204,6 +204,6 @@ public class RecordTypeHandlerTest {
 		storageSpy.numberOfChildsWithConstraint = 1;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
-		assertTrue(recordTypeHandler.hasRecordPartReadConstraint());
+		assertTrue(recordTypeHandler.hasRecordPartReadWriteConstraint());
 	}
 }

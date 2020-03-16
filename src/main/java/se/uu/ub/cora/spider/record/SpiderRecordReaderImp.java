@@ -119,7 +119,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private boolean hasReadRecordPartConstraints() {
-		return recordTypeHandler.hasRecordPartReadConstraint();
+		return recordTypeHandler.hasRecordPartReadWriteConstraint();
 	}
 
 	private boolean isPublicForRead() {

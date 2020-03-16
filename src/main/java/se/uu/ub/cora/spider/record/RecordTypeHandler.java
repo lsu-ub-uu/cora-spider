@@ -26,21 +26,60 @@ import se.uu.ub.cora.data.DataGroup;
 
 public interface RecordTypeHandler {
 
+	/**
+	 * isAbstract checks if the record is abstract.
+	 * 
+	 * @return If record is abstract
+	 */
 	boolean isAbstract();
 
 	boolean shouldAutoGenerateId();
 
+	/**
+	 * 
+	 * @return
+	 */
 	String getNewMetadataId();
 
+	/**
+	 * getMetadataId returns the metadataId for the top level dataGroup to use for validating data
+	 * when updating data, used in the specified recordType in RecordTypeHandler
+	 * 
+	 * @return String of metadataId
+	 */
 	String getMetadataId();
+
+	/**
+	 * getMetadataGroup is used to get the metadata group as a DataGroup using the implementation of
+	 * {@link #getMetadataId()}.
+	 * 
+	 * @return DataGroup of the recordPart used in the RecordTypeHandler
+	 */
+	DataGroup getMetadataGroup();
 
 	List<String> createListOfPossibleIdsToThisRecord(String recordId);
 
+	/**
+	 * isPublicForRead is used to check if the record has been marked as PublicForRead which implies
+	 * that the record is totally public and exists no restrictions on the record.
+	 * 
+	 * @return If record is PublicForRead or not
+	 */
 	boolean isPublicForRead();
 
-	boolean hasRecordPartReadConstraint();
+	/**
+	 * hasRecordPartReadWriteConstraint is used to check if the record has read constraints on its
+	 * recordParts.
+	 * 
+	 * @return If the record recordParts with readWrite constraint
+	 */
+	boolean hasRecordPartReadWriteConstraint();
 
-	DataGroup getMetadataGroup();
-
+	/**
+	 * getRecordPartReadWriteConstraints is used to collect all the readWrite constraints from a
+	 * recordPart.
+	 * 
+	 * @return Map filled with readWrite constraints key = nameInData Value = "readWrite"
+	 */
 	Map<String, String> getRecordPartReadWriteConstraints();
 }
