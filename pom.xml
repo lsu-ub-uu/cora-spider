@@ -36,8 +36,8 @@
         <logger.version>2.0.0</logger.version>
 		<storage.version>3.3.0</storage.version>
 		<search.version>3.3.0</search.version>
-		<bookkeeper.version>4.4-SNAPSHOT</bookkeeper.version>
-		<beefeater.version>2.1-SNAPSHOT</beefeater.version>
+		<bookkeeper.version>4.4.0</bookkeeper.version>
+		<beefeater.version>3.0.0</beefeater.version>
 		
 	</properties>
 
