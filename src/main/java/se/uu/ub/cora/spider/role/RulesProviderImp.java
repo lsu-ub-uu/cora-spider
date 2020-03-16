@@ -20,11 +20,13 @@
 package se.uu.ub.cora.spider.role;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
-import se.uu.ub.cora.beefeater.authorization.RulePartValues;
+import se.uu.ub.cora.beefeater.authorization.RuleImp;
+import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
@@ -41,14 +43,14 @@ public class RulesProviderImp implements RulesProvider {
 	@Override
 	public List<Rule> getActiveRules(String roleId) {
 		DataGroup readRole = recordStorage.read("permissionRole", roleId);
-		if (roleNotFoundInStorage(readRole)) {
-			return new ArrayList<>();
+		if (missingOrInactiveRole(readRole)) {
+			return Collections.emptyList();
 		}
-		if (roleIsInactive(readRole)) {
-			return new ArrayList<>();
-		}
-
 		return getActiveRulesForRole(readRole);
+	}
+
+	private boolean missingOrInactiveRole(DataGroup readRole) {
+		return roleNotFoundInStorage(readRole) || roleIsInactive(readRole);
 	}
 
 	private boolean roleNotFoundInStorage(DataGroup readRole) {
@@ -60,7 +62,6 @@ public class RulesProviderImp implements RulesProvider {
 	}
 
 	private List<Rule> getActiveRulesForRole(DataGroup readRole) {
-
 		List<Rule> listOfRules = new ArrayList<>();
 		List<DataElement> children = readRole.getChildren();
 		Stream<DataElement> permissionRuleLinks = children.stream()
@@ -88,11 +89,13 @@ public class RulesProviderImp implements RulesProvider {
 	}
 
 	private void addRuleToListOfRules(List<Rule> listOfRules, DataGroup readRule) {
-		Rule rule = new Rule();
+		Rule rule = new RuleImp();
 		listOfRules.add(rule);
 
 		addRulePartsToRule(rule, readRule);
 		addTermRulePartToRule(rule, readRule);
+		possiblyAddReadPermissions(rule, readRule);
+		possiblyAddWritePermissions(rule, readRule);
 	}
 
 	private void addRulePartsToRule(Rule rule, DataGroup readRule) {
@@ -102,12 +105,12 @@ public class RulesProviderImp implements RulesProvider {
 	}
 
 	private void addRulePartToRule(DataGroup rulePart, Rule rule) {
-		RulePartValues ruleValues = createRulePartValuesForRulePart(rulePart);
-		rule.put(rulePart.getAttributes().get("type"), ruleValues);
+		RulePartValuesImp ruleValues = createRulePartValuesForRulePart(rulePart);
+		rule.addRulePart(rulePart.getAttributes().get("type"), ruleValues);
 	}
 
-	private RulePartValues createRulePartValuesForRulePart(DataGroup rulePart) {
-		RulePartValues ruleValues = new RulePartValues();
+	private RulePartValuesImp createRulePartValuesForRulePart(DataGroup rulePart) {
+		RulePartValuesImp ruleValues = new RulePartValuesImp();
 		List<DataElement> children = rulePart.getChildren();
 		children.forEach(ruleValue -> ruleValues.add(((DataAtomic) ruleValue).getValue()));
 		return ruleValues;
@@ -117,16 +120,17 @@ public class RulesProviderImp implements RulesProvider {
 		List<DataGroup> permissionTermRuleParts = readRule
 				.getAllGroupsWithNameInData("permissionTermRulePart");
 		permissionTermRuleParts.forEach(rulePart -> addTermRulePartToRule(rulePart, rule));
+
 	}
 
 	private void addTermRulePartToRule(DataGroup ruleTermPart, Rule rule) {
-		RulePartValues ruleValues = new RulePartValues();
+		RulePartValuesImp ruleValues = new RulePartValuesImp();
 
 		List<DataAtomic> valueChildren = ruleTermPart.getAllDataAtomicsWithNameInData("value");
 		valueChildren.forEach(ruleValue -> ruleValues.add(ruleValue.getValue()));
 
 		String permissionKey = getPermissionKeyForRuleTermPart(ruleTermPart);
-		rule.put(permissionKey, ruleValues);
+		rule.addRulePart(permissionKey, ruleValues);
 	}
 
 	private String getPermissionKeyForRuleTermPart(DataGroup ruleTermPart) {
@@ -135,6 +139,34 @@ public class RulesProviderImp implements RulesProvider {
 		DataGroup permissionTerm = recordStorage.read("collectPermissionTerm", permissionTermId);
 		DataGroup extraData = permissionTerm.getFirstGroupWithNameInData("extraData");
 		return extraData.getFirstAtomicValueWithNameInData("permissionKey");
+	}
+
+	private void possiblyAddReadPermissions(Rule rule, DataGroup readRule) {
+		if (readRule.containsChildWithNameInData("readPermissions")) {
+			addReadPermissions(rule, readRule);
+		}
+	}
+
+	private void addReadPermissions(Rule rule, DataGroup readRule) {
+		DataGroup readPermissions = readRule.getFirstGroupWithNameInData("readPermissions");
+		for (DataAtomic readPermission : readPermissions
+				.getAllDataAtomicsWithNameInData("readPermission")) {
+			rule.addReadRecordPartPermissions(readPermission.getValue());
+		}
+	}
+
+	private void possiblyAddWritePermissions(Rule rule, DataGroup readRule) {
+		if (readRule.containsChildWithNameInData("writePermissions")) {
+			addWritePermissions(rule, readRule);
+		}
+	}
+
+	private void addWritePermissions(Rule rule, DataGroup readRule) {
+		DataGroup writePermissions = readRule.getFirstGroupWithNameInData("writePermissions");
+		for (DataAtomic writePermission : writePermissions
+				.getAllDataAtomicsWithNameInData("writePermission")) {
+			rule.addWriteRecordPartPermissions(writePermission.getValue());
+		}
 	}
 
 	public RecordStorage getRecordStorage() {

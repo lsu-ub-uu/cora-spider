@@ -58,7 +58,7 @@ public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 		this.authToken = authToken;
 		this.recordType = recordType;
 		this.recordId = recordId;
-		recordTypeHandler = RecordTypeHandler.usingRecordStorageAndRecordTypeId(recordStorage,
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorage,
 				recordType);
 		tryToGetActiveUser();
 		checkRecordsRecordTypeNotAbstract();

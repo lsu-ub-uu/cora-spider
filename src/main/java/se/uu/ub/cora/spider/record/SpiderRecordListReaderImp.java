@@ -92,7 +92,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private boolean listedRecordTypeIsNotPublicRead() {
-		RecordTypeHandler recordTypeHandlerForSentInRecordType = RecordTypeHandler
+		RecordTypeHandler recordTypeHandlerForSentInRecordType = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
 		return !recordTypeHandlerForSentInRecordType.isPublicForRead();
 	}

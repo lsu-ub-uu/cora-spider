@@ -29,7 +29,7 @@ import java.util.Set;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.beefeater.authorization.Rule;
-import se.uu.ub.cora.beefeater.authorization.RulePartValues;
+import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -47,6 +47,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	private SpiderDependencyProvider dependencyProvider;
 	Set<String> cachedActiveUsers = new HashSet<>();
 	Map<String, List<Rule>> cachedProvidedRulesForUser = new HashMap<>();
+	private List<Rule> matchedRules;
 
 	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider,
 			Authorizator authorizator, RulesProvider rulesProvider) {
@@ -76,9 +77,9 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		// USER, will be needed for userId, organisation, etc
 
 		providedRules.forEach(rule -> {
-			RulePartValues userIdValues = new RulePartValues();
+			RulePartValuesImp userIdValues = new RulePartValuesImp();
 			userIdValues.add("system.*");
-			rule.put("createdBy", userIdValues);
+			rule.addRulePart("createdBy", userIdValues);
 		});
 		return providedRules;
 	}
@@ -165,14 +166,14 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private void createRulePartUsingInfoFromRulePartInUser(Rule rule, DataGroup rulePartInUser) {
-		RulePartValues rulePartValues = new RulePartValues();
+		RulePartValuesImp rulePartValues = new RulePartValuesImp();
 		addAllValuesFromRulePartToRulePartValues(rulePartInUser, rulePartValues);
 		String permissionKey = getPermissionKeyUsingRulePart(rulePartInUser);
-		rule.put(permissionKey, rulePartValues);
+		rule.addRulePart(permissionKey, rulePartValues);
 	}
 
 	private void addAllValuesFromRulePartToRulePartValues(DataGroup rulePart,
-			RulePartValues rulePartValues) {
+			RulePartValuesImp rulePartValues) {
 		for (DataAtomic rulePartValue : rulePart.getAllDataAtomicsWithNameInData("value")) {
 			rulePartValues.add(rulePartValue.getValue());
 		}
@@ -265,6 +266,73 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	public RulesProvider getRulesProvider() {
 		// needed for test
 		return rulesProvider;
+	}
+
+	@Override
+	public List<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
+			User user, String action, String recordType, DataGroup collectedData) {
+		checkUserIsActive(user);
+		tryToGetMatchedRules(user, action, recordType, collectedData);
+		return collectReadRecordPartPermissions(recordType);
+	}
+
+	private List<String> collectReadRecordPartPermissions(String recordType) {
+		List<String> usersReadRecordPartPermissions = new ArrayList<>();
+
+		for (Rule rule : matchedRules) {
+			addReadRecordPartsPermissions(recordType, usersReadRecordPartPermissions, rule);
+		}
+		return usersReadRecordPartPermissions;
+	}
+
+	private void addReadRecordPartsPermissions(String recordType,
+			List<String> usersReadRecordPartPermissions, Rule rule) {
+		if (!rule.getReadRecordPartPermissions().isEmpty()) {
+			addExistingReadRecordPartPermission(recordType, usersReadRecordPartPermissions, rule);
+		}
+	}
+
+	private void addExistingReadRecordPartPermission(String recordType,
+			List<String> usersReadRecordPartPermissions, Rule rule) {
+		for (String readRecordPart : rule.getReadRecordPartPermissions()) {
+			possiblyAddReadRecordPartsOnlyForRecordType(recordType, usersReadRecordPartPermissions,
+					readRecordPart);
+		}
+	}
+
+	private void possiblyAddReadRecordPartsOnlyForRecordType(String recordType,
+			List<String> usersReadRecordPartPermissions, String readRecordPart) {
+		if (readRecordPart.startsWith(recordType)) {
+			String permissionWithoutRecordType = readRecordPart.replace(recordType + ".", "");
+			usersReadRecordPartPermissions.add(permissionWithoutRecordType);
+		}
+	}
+
+	private void tryToGetMatchedRules(User user, String action, String recordType,
+			DataGroup collectedData) {
+		List<Rule> requiredRules = ruleCalculator
+				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
+						collectedData);
+		List<Rule> providedRules = getProvidedRulesForUser(user);
+		matchRules(requiredRules, providedRules);
+		possiblyThrowAuthorizationExceptionWhenEmptyMatchedRules(user, action, recordType);
+	}
+
+	private void matchRules(List<Rule> requiredRules, List<Rule> providedRules) {
+		matchedRules = authorizator.providedRulesMatchRequiredRules(providedRules, requiredRules);
+	}
+
+	private void possiblyThrowAuthorizationExceptionWhenEmptyMatchedRules(User user, String action,
+			String recordType) {
+		if (matchedRules.isEmpty()) {
+			throw new AuthorizationException(USER_STRING + user.id + " is not authorized to "
+					+ action + " a record of type: " + recordType);
+		}
+	}
+
+	List<Rule> getMatchedRules() {
+		// needed for test
+		return matchedRules;
 	}
 
 }

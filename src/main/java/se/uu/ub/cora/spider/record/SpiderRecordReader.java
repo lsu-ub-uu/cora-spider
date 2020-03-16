@@ -23,6 +23,16 @@ import se.uu.ub.cora.data.DataRecord;
 
 public interface SpiderRecordReader {
 
+	/**
+	 * readRecord is used to read a record using a recordType and recordId. The method should check
+	 * user authorizathion for recordtype and recordParts. It returns a record as a DataGruop.<br>
+	 * <br>
+	 * If user not authorized then it throws an {@link AuthenticationException}
+	 * 
+	 * @param authToken
+	 * @param type
+	 * @param id
+	 * @return
+	 */
 	DataRecord readRecord(String authToken, String type, String id);
-
 }

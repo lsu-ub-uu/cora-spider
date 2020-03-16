@@ -53,7 +53,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private RecordStorage recordStorage;
 	private DataGroupTermCollector collectTermCollector;
 	private DataGroup collectedTerms;
-	private Map<String, RecordTypeHandler> cachedRecordTypeHandlers = new HashMap<>();
+	private Map<String, RecordTypeHandlerImp> cachedRecordTypeHandlers = new HashMap<>();
 	private Map<String, Boolean> cachedAuthorizedToReadRecordLink = new HashMap<>();
 
 	public DataGroupToRecordEnhancerImp(SpiderDependencyProvider dependencyProvider) {
@@ -101,7 +101,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void loadRecordTypeHandlerForRecordType(String recordType) {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+		RecordTypeHandlerImp recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
 		cachedRecordTypeHandlers.put(recordType, recordTypeHandler);
 	}

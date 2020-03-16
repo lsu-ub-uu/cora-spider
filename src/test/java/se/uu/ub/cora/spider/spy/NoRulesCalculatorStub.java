@@ -23,7 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
-import se.uu.ub.cora.beefeater.authorization.RulePartValues;
+import se.uu.ub.cora.beefeater.authorization.RuleImp;
+import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 
@@ -37,11 +38,11 @@ public class NoRulesCalculatorStub implements PermissionRuleCalculator {
 	public List<Rule> returnedRules;
 
 	public NoRulesCalculatorStub() {
-		RulePartValues set = new RulePartValues();
+		RulePartValuesImp set = new RulePartValuesImp();
 		set.add("noValue");
 
-		Rule map = new Rule();
-		map.put("NoRulesCalculator", set);
+		Rule map = new RuleImp();
+		map.addRulePart("NoRulesCalculator", set);
 
 		returnedRules = new ArrayList<>();
 		returnedRules.add(map);

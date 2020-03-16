@@ -28,6 +28,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
+import se.uu.ub.cora.spider.record.RecordTypeHandlerImp;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctionality {
@@ -103,7 +104,7 @@ public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctio
 	}
 
 	private void sendToIndex(DataGroup collectedTerms, DataGroup dataToIndex) {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandler
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, recordTypeToIndex);
 		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordIdToIndex);
 		recordIndexer.indexData(ids, collectedTerms, dataToIndex);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2019 Uppsala University Library
+ * Copyright 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,83 +19,67 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.storage.RecordStorage;
 
-public final class RecordTypeHandler {
-	private static final String LINKED_RECORD_ID = "linkedRecordId";
-	private DataGroup recordType;
-	private static final String RECORD_TYPE = "recordType";
-	private String id;
+public interface RecordTypeHandler {
 
-	public static RecordTypeHandler usingRecordStorageAndRecordTypeId(RecordStorage recordStorage,
-			String id) {
-		return new RecordTypeHandler(recordStorage, id);
-	}
+	/**
+	 * isAbstract checks if the record is abstract.
+	 * 
+	 * @return If record is abstract
+	 */
+	boolean isAbstract();
 
-	private RecordTypeHandler(RecordStorage recordStorage, String id) {
-		this.id = id;
-		recordType = recordStorage.read(RECORD_TYPE, id);
-	}
+	boolean shouldAutoGenerateId();
 
-	public boolean isAbstract() {
-		String abstractInRecordTypeDefinition = getAbstractFromRecordTypeDefinition();
-		return "true".equals(abstractInRecordTypeDefinition);
-	}
+	/**
+	 * 
+	 * @return
+	 */
+	String getNewMetadataId();
 
-	private String getAbstractFromRecordTypeDefinition() {
-		return recordType.getFirstAtomicValueWithNameInData("abstract");
-	}
+	/**
+	 * getMetadataId returns the metadataId for the top level dataGroup to use for validating data
+	 * when updating data, used in the specified recordType in RecordTypeHandler
+	 * 
+	 * @return String of metadataId
+	 */
+	String getMetadataId();
 
-	public boolean shouldAutoGenerateId() {
-		String userSuppliedId = recordType.getFirstAtomicValueWithNameInData("userSuppliedId");
-		return "false".equals(userSuppliedId);
-	}
+	/**
+	 * getMetadataGroup is used to get the metadata group as a DataGroup using the implementation of
+	 * {@link #getMetadataId()}.
+	 * 
+	 * @return DataGroup of the recordPart used in the RecordTypeHandler
+	 */
+	DataGroup getMetadataGroup();
 
-	public String getNewMetadataId() {
-		DataGroup newMetadataGroup = recordType.getFirstGroupWithNameInData("newMetadataId");
-		return newMetadataGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-	}
+	List<String> createListOfPossibleIdsToThisRecord(String recordId);
 
-	public String getMetadataId() {
-		DataGroup metadataIdGroup = recordType.getFirstGroupWithNameInData("metadataId");
-		return metadataIdGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-	}
+	/**
+	 * isPublicForRead is used to check if the record has been marked as PublicForRead which implies
+	 * that the record is totally public and exists no restrictions on the record.
+	 * 
+	 * @return If record is PublicForRead or not
+	 */
+	boolean isPublicForRead();
 
-	public List<String> createListOfPossibleIdsToThisRecord(String recordId) {
-		List<String> ids = new ArrayList<>();
-		ids.add(id + "_" + recordId);
-		possiblyCreateIdForAbstractType(recordId, recordType, ids);
-		return ids;
-	}
+	/**
+	 * hasRecordPartReadWriteConstraint is used to check if the record has read constraints on its
+	 * recordParts.
+	 * 
+	 * @return If the record recordParts with readWrite constraint
+	 */
+	boolean hasRecordPartReadWriteConstraint();
 
-	private void possiblyCreateIdForAbstractType(String recordId, DataGroup recordTypeDefinition,
-			List<String> ids) {
-		if (recordTypeHasAbstractParent(recordTypeDefinition)) {
-			createIdAsAbstractType(recordId, recordTypeDefinition, ids);
-		}
-	}
-
-	private boolean recordTypeHasAbstractParent(DataGroup recordTypeDefinition) {
-		return recordTypeDefinition.containsChildWithNameInData("parentId");
-	}
-
-	private void createIdAsAbstractType(String recordId, DataGroup recordTypeDefinition,
-			List<String> ids) {
-		DataGroup parentGroup = recordTypeDefinition.getFirstGroupWithNameInData("parentId");
-		String abstractParentType = parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-		ids.add(abstractParentType + "_" + recordId);
-	}
-
-	public boolean isPublicForRead() {
-		if (recordType.containsChildWithNameInData("public")) {
-			String isPublic = recordType.getFirstAtomicValueWithNameInData("public");
-			return "true".equals(isPublic);
-		}
-		return false;
-	}
-
+	/**
+	 * getRecordPartReadWriteConstraints is used to collect all the readWrite constraints from a
+	 * recordPart.
+	 * 
+	 * @return Map filled with readWrite constraints key = nameInData Value = "readWrite"
+	 */
+	Map<String, String> getRecordPartReadWriteConstraints();
 }

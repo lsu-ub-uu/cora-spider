@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2018 Uppsala University Library
+ * Copyright 2016, 2018, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,19 +19,90 @@
 
 package se.uu.ub.cora.spider.authorization;
 
+import java.util.List;
+
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
 
 public interface SpiderAuthorizator {
 
-	void checkUserIsAuthorizedForActionOnRecordType(User user, String action, String recordType);
-
+	/**
+	 * userIsAuthorizedForActionOnRecordType is used to check if a user is allowed to perform the
+	 * action on the specified recordType based on the rules the user is associated with.<br>
+	 * <br>
+	 * Implementations SHOULD ensure that the user is active in storage, and that the user through
+	 * its stored rules has access to the action on the recordType.
+	 * 
+	 * @param user
+	 *            the logged in user (or guest)
+	 * @param action
+	 *            the action the user wants to perform, such as read, update, etc.
+	 * @param recordType
+	 *            the recordType the user wants to perform the action on
+	 * @return a boolean, true if the user is allowed to perform the action on the specified
+	 *         recordType else false
+	 */
 	boolean userIsAuthorizedForActionOnRecordType(User user, String action, String recordType);
 
+	/**
+	 * checkUserIsAuthorizedForActionOnRecordType SHOULD implement the same requirements as
+	 * {@link #userIsAuthorizedForActionOnRecordType(User, String, String)} and if not authorized
+	 * throw an {@link AuthorizationException}
+	 * 
+	 * @param user
+	 * @param action
+	 * @param recordType
+	 */
+	void checkUserIsAuthorizedForActionOnRecordType(User user, String action, String recordType);
+
+	/**
+	 * userIsAuthorizedForActionOnRecordTypeAndCollectedData SHOULD implement the same requirements
+	 * as {@link #userIsAuthorizedForActionOnRecordType(User, String, String)} with the addition of
+	 * a check that the users also has access to the collectedData through its associated rules.
+	 * 
+	 * @param user
+	 * @param action
+	 * @param recordType
+	 * @param collectedData
+	 *            the collectedData to use extend the access check with
+	 * @return
+	 */
+	boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+			String recordType, DataGroup collectedData);
+
+	/**
+	 * checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData SHOULD implement the same
+	 * requirements as
+	 * {@link #userIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String)} and if
+	 * not authorized throw an {@link AuthorizationException}
+	 * 
+	 * @param user
+	 * @param action
+	 * @param recordType
+	 * @param collectedData
+	 * @return
+	 */
 	void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData);
 
-	boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData);
+	/**
+	 * checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData SHOULD implement the same
+	 * requirements as
+	 * {@link #checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String, DataGroup)}.
+	 * <br>
+	 * <br>
+	 * If the user is authorized a list of recordPart permissions collected from all the active
+	 * rules the user has access to, that matches the collected data SHALL be returned. The returned
+	 * list of recordPart permissions should be filtered so that it only contains those recordPart
+	 * permissions that are for the specified action and the specified recordType.
+	 * 
+	 * @param user
+	 * @param action
+	 * @param recordType
+	 * @param collectedData
+	 * @return A list of recordPart permissions
+	 */
+	List<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
+			String action, String recordType, DataGroup collectedData);
 
 }

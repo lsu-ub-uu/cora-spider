@@ -15,31 +15,33 @@
  *
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
- */package se.uu.ub.cora.spider.authorization;
+ */
+package se.uu.ub.cora.spider.authorization;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
-import se.uu.ub.cora.beefeater.authorization.RulePartValues;
+import se.uu.ub.cora.beefeater.authorization.RuleImp;
+import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 
 public final class RulesCreator {
 
-	private Map<String, List<RulePartValues>> sortedRulePartValues;
+	private Map<String, List<RulePartValuesImp>> sortedRulePartValues;
 	private List<String> remainingPermissionKeys;
 	private List<RulePart> collectedRuleParts;
 	private List<Rule> requiredRules = new ArrayList<>();
 	private String currentPermissionKey;
 
-	private RulesCreator(Map<String, List<RulePartValues>> sortedRulePartValues,
+	private RulesCreator(Map<String, List<RulePartValuesImp>> sortedRulePartValues,
 			List<RulePart> builtRuleParts) {
 		this.sortedRulePartValues = sortedRulePartValues;
 		this.collectedRuleParts = copyRuleParts(builtRuleParts);
 	}
 
 	public static List<Rule> recursivelyCreateRules(
-			Map<String, List<RulePartValues>> sortedRulePartValues, List<String> permissionKeys,
+			Map<String, List<RulePartValuesImp>> sortedRulePartValues, List<String> permissionKeys,
 			List<RulePart> builtRuleParts) {
 		RulesCreator instance = new RulesCreator(sortedRulePartValues, builtRuleParts);
 		return instance.recursivelyCreateRulesForPermissionKeysWithListOfRuleParts(permissionKeys);
@@ -65,17 +67,17 @@ public final class RulesCreator {
 	}
 
 	private Rule createRuleFromListOfRuleParts(List<RulePart> builtRuleParts) {
-		Rule requiredRule = new Rule();
+		Rule requiredRule = new RuleImp();
 		for (RulePart rulePart : builtRuleParts) {
-			requiredRule.put(rulePart.key, rulePart.rulePartValues);
+			requiredRule.addRulePart(rulePart.key, rulePart.rulePartValues);
 		}
 		return requiredRule;
 	}
 
 	private List<Rule> recursivelyCreateRulesPartsForCurrentPermissionKey() {
 
-		List<RulePartValues> list = sortedRulePartValues.get(currentPermissionKey);
-		for (RulePartValues rulePartValues : list) {
+		List<RulePartValuesImp> list = sortedRulePartValues.get(currentPermissionKey);
+		for (RulePartValuesImp rulePartValues : list) {
 			recursivelyCreateRulesForRulePartValues(rulePartValues);
 		}
 		return copyRule(requiredRules);
@@ -87,7 +89,7 @@ public final class RulesCreator {
 		return builtRuleParts;
 	}
 
-	private void recursivelyCreateRulesForRulePartValues(RulePartValues rulePartValues) {
+	private void recursivelyCreateRulesForRulePartValues(RulePartValuesImp rulePartValues) {
 		List<RulePart> currentRuleParts = copyRuleParts(collectedRuleParts);
 		RulePart rulePart = RulePart.withKeyAndRulePartValues(currentPermissionKey, rulePartValues);
 		currentRuleParts.add(rulePart);

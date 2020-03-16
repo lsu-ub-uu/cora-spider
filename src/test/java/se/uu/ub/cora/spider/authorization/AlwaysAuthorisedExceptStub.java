@@ -21,6 +21,7 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	public Map<String, Set<String>> notAuthorizedForRecordTypeAndActions = new HashMap<>();
 	public List<String> notAuthorizedForIds = new ArrayList<>();
 	public List<String> calledMethods = new ArrayList<>();
+	public boolean throwExceptionOnCheckUserAuthorization = false;
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
@@ -72,6 +74,18 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 			String recordType, DataGroup collectedData) {
 		calledMethods.add(action + ":userIsAuthorizedForActionOnRecordTypeAndCollectedData");
 		return !notAuthorizedForRecordTypeAndAction(recordType, action);
+	}
+
+	@Override
+	public List<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
+			User user, String action, String recordType, DataGroup collectedData) {
+		calledMethods.add(
+				action + ":checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+		if (throwExceptionOnCheckUserAuthorization) {
+			throw new AuthorizationException(
+					"not authorized for " + action + " on recordType " + recordType);
+		}
+		return Collections.emptyList();
 	}
 
 }

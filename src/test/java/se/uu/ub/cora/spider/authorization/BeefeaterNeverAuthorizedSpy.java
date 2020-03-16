@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.authorization;
 
+import java.util.Collections;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.Authorizator;
@@ -31,6 +32,13 @@ public class BeefeaterNeverAuthorizedSpy implements Authorizator {
 			List<Rule> requiredRules) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public List<Rule> providedRulesMatchRequiredRules(List<Rule> providedRules,
+			List<Rule> requiredRules) {
+		// TODO Auto-generated method stub
+		return Collections.emptyList();
 	}
 
 }
