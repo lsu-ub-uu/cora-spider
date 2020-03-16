@@ -59,16 +59,11 @@ public class AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType
 	}
 
 	@Override
-	public List<String> getUsersReadRecordPartPermissions() {
-		getUsersReadRecordPartPermissionsHasBeenCalled = true;
+	public List<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
+			User user, String action, String recordType, DataGroup collectedData) {
+
 		recordPartReadPermissions.add("someRecordType.someMetadataId");
 		return recordPartReadPermissions;
-	}
-
-	@Override
-	public void checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData) {
-		// TODO Auto-generated method stub
 	}
 
 }

@@ -515,7 +515,6 @@ public class SpiderAuthorizatorTest {
 		assertFalse(authorized);
 	}
 
-	// from here
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "user with id nonExistingUserId does not exist")
 	public void checkUserDoesNotSatisfiesActionForRecordUserDoesNotExistCollectingRules() {
@@ -561,8 +560,9 @@ public class SpiderAuthorizatorTest {
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
 		DataGroup collectedData = new DataGroupSpy("collectedData");
-		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
-				action, "book", collectedData);
+		List<String> usersReadRecordPartPermissions = spiderAuthorizator
+				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, action,
+						"book", collectedData);
 		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
 				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
 		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
@@ -581,17 +581,23 @@ public class SpiderAuthorizatorTest {
 
 		assertEquals(spiderAuthorizator.getMatchedRules(),
 				((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).matchedRules);
+
+		assertTrue(usersReadRecordPartPermissions.isEmpty());
 	}
 
+	// assertTrue(usersReadRecordPartPermissions.isEmpty());
 	@Test
 	public void userSatisfiesActionForCollectedDataWithPermissionTermForUserCollectingRules() {
 		user = new User("userWithPermissionTerm");
 		user.roles.add("guest");
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
+		rulesProvider.returnReadRecordPartPermissions = true;
+
 		DataGroup collectedData = new DataGroupSpy("collectedData");
-		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
-				action, "book", collectedData);
+		List<String> usersReadRecordPartPermissions = spiderAuthorizator
+				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, action,
+						"book", collectedData);
 
 		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
 				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
@@ -612,6 +618,10 @@ public class SpiderAuthorizatorTest {
 		assertEquals(secondRule.getNumberOfRuleParts(), 2);
 		assertNotNull(secondRule.getRulePartValuesForKey("action"));
 		assertNotNull(secondRule.getRulePartValuesForKey("OWNING_ORGANISATION"));
+
+		assertEquals(usersReadRecordPartPermissions.size(), 2);
+		assertEquals(usersReadRecordPartPermissions.get(0), "price");
+		assertEquals(usersReadRecordPartPermissions.get(1), "placement");
 
 	}
 
@@ -676,19 +686,25 @@ public class SpiderAuthorizatorTest {
 				action, "book", collectedData);
 	}
 
-	@Test
-	public void testEmptyUsersReadRecordPartPermissions() throws Exception {
-		user = new User("userWithTwoRolesPermissionTerm");
-		user.roles.add("admin");
-		user.roles.add("guest");
-		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
-		setUpDependencyProvider();
-		BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator;
-		DataGroup collectedData = new DataGroupSpy("collectedData");
-		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
-				action, "book", collectedData);
-
-		List<String> userReadRecordPermissions = spiderAuthorizator
-				.getUsersReadRecordPartPermissions();
-	}
+	// @Test
+	// public void testEmptyUsersReadRecordPartPermissions() throws Exception {
+	// // user = new User("userWithTwoRolesPermissionTerm");
+	// // user.roles.add("admin");
+	// // user.roles.add("guest");
+	// // authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+	// setUpDependencyProvider();
+	// // BeefeaterAuthorizatorAlwaysAuthorizedSpy authorizatorSpy =
+	// // (BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator;
+	// // DataGroup collectedData = new DataGroupSpy("collectedData");
+	// //
+	// spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+	// // action, "book", collectedData);
+	//
+	// String recordType = "organisation";
+	//
+	// List<String> userReadRecordPermissions = spiderAuthorizator
+	// .getUsersReadRecordPartPermissions(recordType);
+	//
+	// assertTrue(userReadRecordPermissions.isEmpty());
+	// }
 }

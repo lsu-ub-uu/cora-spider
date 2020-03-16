@@ -344,7 +344,6 @@ public class SpiderRecordReaderTest {
 
 		assertTrue(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
-		assertTrue(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
 		assertTrue(recordPartFilter.recordPartFilterForReadHasBeenCalled);
 		assertEquals(authorizatorSpy.recordPartReadPermissions,
 				recordPartFilter.recordPartReadPermissions);
@@ -368,8 +367,8 @@ public class SpiderRecordReaderTest {
 		String metadataGroupNamInData = recordTypeHandlerSpy.getMetadataGroup()
 				.getFirstAtomicValueWithNameInData("nameInData");
 
-		assertSame(recordPartFilter.recordPartReadPermissions,
-				authorizatorSpy.recordPartReadPermissions);
+		assertEquals(recordPartFilter.recordPartReadPermissions.size(),
+				authorizatorSpy.recordPartReadPermissions.size());
 		assertEquals(recordPartFilter.recordPartConstraints,
 				recordTypeHandlerSpy.getRecordPartReadWriteConstraints());
 

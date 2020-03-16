@@ -85,21 +85,22 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 		return true;
 	}
 
-	@Override
-	public List<String> getUsersReadRecordPartPermissions() {
-		getUsersReadRecordPartPermissionsHasBeenCalled = true;
-		recordPartReadPermissions.add("someRecordType.someMetadataId");
-		return recordPartReadPermissions;
-	}
+	// @Override
+	// public List<String> getUsersReadRecordPartPermissions() {
+	// getUsersReadRecordPartPermissionsHasBeenCalled = true;
+	// }
 
 	@Override
-	public void checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData) {
+	public List<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
+			User user, String action, String recordType, DataGroup collectedData) {
 		this.users.add(user);
 		this.actions.add(action);
 		this.recordTypes.add(recordType);
 		this.collectedTerms.add(collectedData);
 		calledMethods.add("checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+		recordPartReadPermissions.add("someRecordType.someMetadataId");
+		return recordPartReadPermissions;
+		// return Collections.emptyList();
 	}
 
 }

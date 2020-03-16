@@ -269,15 +269,43 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	@Override
-	public List<String> getUsersReadRecordPartPermissions() {
-		return null;
-	}
-
-	@Override
-	public void checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData) {
+	public List<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
+			User user, String action, String recordType, DataGroup collectedData) {
 		checkUserIsActive(user);
 		tryToGetMatchedRules(user, action, recordType, collectedData);
+		return collectReadRecordPartPermissions(recordType);
+	}
+
+	private List<String> collectReadRecordPartPermissions(String recordType) {
+		List<String> usersReadRecordPartPermissions = new ArrayList<>();
+
+		for (Rule rule : matchedRules) {
+			addReadRecordPartsPermissions(recordType, usersReadRecordPartPermissions, rule);
+		}
+		return usersReadRecordPartPermissions;
+	}
+
+	private void addReadRecordPartsPermissions(String recordType,
+			List<String> usersReadRecordPartPermissions, Rule rule) {
+		if (!rule.getReadRecordPartPermissions().isEmpty()) {
+			addExistingReadRecordPartPermission(recordType, usersReadRecordPartPermissions, rule);
+		}
+	}
+
+	private void addExistingReadRecordPartPermission(String recordType,
+			List<String> usersReadRecordPartPermissions, Rule rule) {
+		for (String readRecordPart : rule.getReadRecordPartPermissions()) {
+			possiblyAddReadRecordPartsOnlyForRecordType(recordType, usersReadRecordPartPermissions,
+					readRecordPart);
+		}
+	}
+
+	private void possiblyAddReadRecordPartsOnlyForRecordType(String recordType,
+			List<String> usersReadRecordPartPermissions, String readRecordPart) {
+		if (readRecordPart.startsWith(recordType)) {
+			String permissionWithoutRecordType = readRecordPart.replace(recordType + ".", "");
+			usersReadRecordPartPermissions.add(permissionWithoutRecordType);
+		}
 	}
 
 	private void tryToGetMatchedRules(User user, String action, String recordType,

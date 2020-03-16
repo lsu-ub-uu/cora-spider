@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.spy;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,15 +64,10 @@ public class SpiderAuthorizorNeverAuthorized implements SpiderAuthorizator {
 	}
 
 	@Override
-	public List<String> getUsersReadRecordPartPermissions() {
+	public List<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
+			User user, String action, String recordType, DataGroup collectedData) {
 		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData) {
-		// TODO Auto-generated method stub
+		return Collections.emptyList();
 	}
 
 }

@@ -70,43 +70,6 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		return tryToReadRecord(recordType, recordId);
 	}
 
-	private DataRecord tryToReadRecord(String recordType, String recordId) {
-		DataGroup recordRead = recordStorage.read(recordType, recordId);
-
-		setImplementingRecordTypeHandlerIfAbstract(recordRead);
-		if (isPublicForRead()) {
-			return enhanceRecord(recordType, recordRead);
-		}
-		checkUserIsAuthorisedToReadNonPublicData(recordRead);
-		if (hasRecordPartReadConstraints()) {
-			recordRead = filterDataGroup(recordRead);
-		}
-		return enhanceRecord(recordType, recordRead);
-	}
-
-	private void checkUserIsAuthorisedToReadNonPublicData(DataGroup recordRead) {
-		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
-		if (hasRecordPartReadConstraints()) {
-			spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
-					user, READ, recordType, collectedTerms);
-		} else {
-			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-					READ, recordType, collectedTerms);
-		}
-	}
-
-	private DataRecord enhanceRecord(String recordType, DataGroup recordRead) {
-		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
-	}
-
-	private boolean hasRecordPartReadConstraints() {
-		return recordTypeHandler.hasRecordPartReadConstraint();
-	}
-
-	private boolean isPublicForRead() {
-		return recordTypeHandler.isPublicForRead();
-	}
-
 	private void tryToGetUserWithActiveToken() {
 		user = authenticator.getUserForToken(authToken);
 	}
@@ -119,6 +82,48 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 
 	private boolean isNotPublicForRead() {
 		return !recordTypeHandler.isPublicForRead();
+	}
+
+	private DataRecord tryToReadRecord(String recordType, String recordId) {
+		DataGroup recordRead = recordStorage.read(recordType, recordId);
+
+		setImplementingRecordTypeHandlerIfAbstract(recordRead);
+		if (isPublicForRead()) {
+			return enhanceRecord(recordType, recordRead);
+		}
+		if (hasReadRecordPartConstraints()) {
+			recordRead = checkAccessAndFilterData(recordType, recordRead);
+			return enhanceRecord(recordType, recordRead);
+		}
+		checkAccesWithoutRecordPartConstraints(recordType, recordRead);
+		return enhanceRecord(recordType, recordRead);
+	}
+
+	private void checkAccesWithoutRecordPartConstraints(String recordType, DataGroup recordRead) {
+		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
+				recordType, collectedTerms);
+	}
+
+	private DataGroup checkAccessAndFilterData(String recordType, DataGroup recordRead) {
+		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
+		List<String> usersReadRecordPartPermissions = spiderAuthorizator
+				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, READ,
+						recordType, collectedTerms);
+		recordRead = filterDataGroup(recordRead, usersReadRecordPartPermissions);
+		return recordRead;
+	}
+
+	private DataRecord enhanceRecord(String recordType, DataGroup recordRead) {
+		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
+	}
+
+	private boolean hasReadRecordPartConstraints() {
+		return recordTypeHandler.hasRecordPartReadConstraint();
+	}
+
+	private boolean isPublicForRead() {
+		return recordTypeHandler.isPublicForRead();
 	}
 
 	private void setImplementingRecordTypeHandlerIfAbstract(DataGroup recordRead) {
@@ -139,9 +144,8 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		return dataGroupTermCollector.collectTerms(metadataId, recordRead);
 	}
 
-	private DataGroup filterDataGroup(DataGroup recordRead) {
-		List<String> usersReadRecordPartPermissions = spiderAuthorizator
-				.getUsersReadRecordPartPermissions();
+	private DataGroup filterDataGroup(DataGroup recordRead,
+			List<String> usersReadRecordPartPermissions) {
 		Map<String, String> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadWriteConstraints();
 		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();

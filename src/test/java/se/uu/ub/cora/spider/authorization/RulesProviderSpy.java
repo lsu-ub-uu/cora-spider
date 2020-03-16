@@ -32,6 +32,7 @@ public class RulesProviderSpy implements RulesProvider {
 	public String roleId;
 	public List<String> roleIds = new ArrayList<>();
 	public List<List<Rule>> returnedRules = new ArrayList<>();
+	public boolean returnReadRecordPartPermissions = false;
 
 	@Override
 	public List<Rule> getActiveRules(String roleId) {
@@ -45,13 +46,21 @@ public class RulesProviderSpy implements RulesProvider {
 		RulePartValuesImp rulePart = new RulePartValuesImp();
 		rule.addRulePart("action", rulePart);
 		rulePart.add("system.read");
+		if (returnReadRecordPartPermissions) {
+			rule.addReadRecordPartPermissions("organisation.isRoot");
+			rule.addReadRecordPartPermissions("book.price");
+		}
 
 		Rule rule2 = new RuleImp();
 		rules.add(rule2);
 		RulePartValuesImp rulePart2 = new RulePartValuesImp();
 		rule2.addRulePart("action", rulePart2);
 		rulePart2.add("system.update");
-
+		if (returnReadRecordPartPermissions) {
+			rule2.addReadRecordPartPermissions("organisation.isRoot");
+			rule2.addReadRecordPartPermissions("organisation.isPublic");
+			rule2.addReadRecordPartPermissions("book.placement");
+		}
 		returnedRules.add(rules);
 
 		return rules;
