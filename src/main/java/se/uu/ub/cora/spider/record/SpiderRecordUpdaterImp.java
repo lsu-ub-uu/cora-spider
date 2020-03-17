@@ -92,10 +92,14 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
 		metadataId = recordTypeHandler.getMetadataId();
 
+		// TODO: kontrollera om inkommande data har data som användaren inte borde ha sett och
+		// TODO: change to get list of permissions if recordType has recordparts
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, dataGroup);
 
 		addUpdateInfo();
+
+		// TODO: no read permission, re add data that is stored
 		validateIncomingDataAsSpecifiedInMetadata();
 		useExtendedFunctionalityAfterMetadataValidation(recordType, dataGroup);
 

@@ -36,7 +36,9 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private String recordTypeId;
 	private RecordStorage recordStorage;
 	private DataGroup metadataGroup;
-	private Map<String, String> readWriteConstraints;
+	private Map<String, String> readWriteConstraints = new HashMap<>();
+	private Map<String, String> writeConstraints = new HashMap<>();
+	private boolean constraintsNotLoaded = true;
 
 	public static RecordTypeHandlerImp usingRecordStorageAndRecordTypeId(
 			RecordStorage recordStorage, String recordTypeId) {
@@ -122,16 +124,16 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	@Override
 	public Map<String, String> getRecordPartReadWriteConstraints() {
-		if (readWriteConstraints == null) {
-			collectAllReadWriteConstraints();
+		if (constraintsNotLoaded) {
+			collectAllConstraints();
 		}
 		return readWriteConstraints;
 	}
 
-	private void collectAllReadWriteConstraints() {
-		readWriteConstraints = new HashMap<>();
+	private void collectAllConstraints() {
+		constraintsNotLoaded = false;
 		for (DataGroup childReference : getAllChildReferences()) {
-			possiblyAddReadWriteConstraint(readWriteConstraints, childReference);
+			possiblyAddConstraint(childReference);
 		}
 	}
 
@@ -141,28 +143,21 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return childReferences.getAllGroupsWithNameInData("childReference");
 	}
 
-	private void possiblyAddReadWriteConstraint(Map<String, String> constraints,
-			DataGroup childReference) {
-		if (hasReadWriteConstraints(childReference)) {
-			String refNameInData = getRefNameInData(childReference);
-			constraints.put(refNameInData, getRecordPartConstraintValue(childReference));
+	private void possiblyAddConstraint(DataGroup childReference) {
+		if (hasConstraints(childReference)) {
+			addWriteAndOrReadWriteConstraints(childReference);
 		}
 	}
 
-	private boolean hasReadWriteConstraints(DataGroup childReference) {
-		return hasRecordPartConstrains(childReference) && isReadWriteConstraint(childReference);
-	}
-
-	private boolean hasRecordPartConstrains(DataGroup childReference) {
+	private boolean hasConstraints(DataGroup childReference) {
 		return childReference.containsChildWithNameInData(RECORD_PART_CONSTRAINT);
 	}
 
-	private boolean isReadWriteConstraint(DataGroup childReference) {
-		return "readWrite".equals(getRecordPartConstraintValue(childReference));
-	}
-
-	private String getRecordPartConstraintValue(DataGroup childReference) {
-		return childReference.getFirstAtomicValueWithNameInData(RECORD_PART_CONSTRAINT);
+	private void addWriteAndOrReadWriteConstraints(DataGroup childReference) {
+		String refNameInData = getRefNameInData(childReference);
+		String constraintValue = getRecordPartConstraintValue(childReference);
+		writeConstraints.put(refNameInData, constraintValue);
+		possiblyAddReadWriteConstraint(refNameInData, constraintValue);
 	}
 
 	private String getRefNameInData(DataGroup childReference) {
@@ -173,9 +168,18 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return metadataRefElement.getFirstAtomicValueWithNameInData("nameInData");
 	}
 
-	// Only for test
-	public String getRecordTypeId() {
-		return recordTypeId;
+	private String getRecordPartConstraintValue(DataGroup childReference) {
+		return childReference.getFirstAtomicValueWithNameInData(RECORD_PART_CONSTRAINT);
+	}
+
+	private void possiblyAddReadWriteConstraint(String refNameInData, String constraintValue) {
+		if (isReadWriteConstraint(constraintValue)) {
+			readWriteConstraints.put(refNameInData, constraintValue);
+		}
+	}
+
+	private boolean isReadWriteConstraint(String constraintValue) {
+		return "readWrite".equals(constraintValue);
 	}
 
 	public RecordStorage getRecordStorage() {
@@ -187,4 +191,21 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return !getRecordPartReadWriteConstraints().isEmpty();
 	}
 
+	@Override
+	public boolean hasRecordPartWriteConstraint() {
+		return hasRecordPartReadWriteConstraint();
+	}
+
+	@Override
+	public Map<String, String> getRecordPartWriteConstraints() {
+		if (constraintsNotLoaded) {
+			collectAllConstraints();
+		}
+		return writeConstraints;
+	}
+
+	// Only for test
+	public String getRecordTypeId() {
+		return recordTypeId;
+	}
 }

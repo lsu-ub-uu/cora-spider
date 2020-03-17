@@ -91,7 +91,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		if (isPublicForRead()) {
 			return enhanceRecord(recordType, recordRead);
 		}
-		if (hasReadRecordPartConstraints()) {
+		if (hasRecordPartReadWriteConstraint()) {
 			recordRead = checkAccessAndFilterData(recordType, recordRead);
 			return enhanceRecord(recordType, recordRead);
 		}
@@ -118,7 +118,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
 	}
 
-	private boolean hasReadRecordPartConstraints() {
+	private boolean hasRecordPartReadWriteConstraint() {
 		return recordTypeHandler.hasRecordPartReadWriteConstraint();
 	}
 

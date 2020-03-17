@@ -97,4 +97,16 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		return constraints;
 	}
 
+	@Override
+	public boolean hasRecordPartWriteConstraint() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Map<String, String> getRecordPartWriteConstraints() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

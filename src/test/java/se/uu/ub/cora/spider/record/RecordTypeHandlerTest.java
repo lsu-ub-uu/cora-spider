@@ -132,6 +132,9 @@ public class RecordTypeHandlerTest {
 		assertEquals(storageSpy.type, "metadataGroup");
 		assertEquals(storageSpy.id, "organisation");
 		assertTrue(recordPartReadConstraints.isEmpty());
+		Map<String, String> recordPartWriteConstraints = recordTypeHandler
+				.getRecordPartWriteConstraints();
+		assertTrue(recordPartWriteConstraints.isEmpty());
 
 	}
 
@@ -145,6 +148,10 @@ public class RecordTypeHandlerTest {
 				.getRecordPartReadWriteConstraints();
 		assertEquals(recordPartReadConstraints.size(), 1);
 		assertEquals(recordPartReadConstraints.get("organisationRoot"), "readWrite");
+		Map<String, String> recordPartWriteConstraints = recordTypeHandler
+				.getRecordPartWriteConstraints();
+		assertEquals(recordPartWriteConstraints.size(), 1);
+		assertEquals(recordPartWriteConstraints.get("organisationRoot"), "readWrite");
 
 	}
 
@@ -157,6 +164,8 @@ public class RecordTypeHandlerTest {
 
 		recordTypeHandler.getRecordPartReadWriteConstraints();
 		recordTypeHandler.getRecordPartReadWriteConstraints();
+		recordTypeHandler.getRecordPartWriteConstraints();
+		recordTypeHandler.getRecordPartWriteConstraints();
 		int numOfTimesReadWhenConstraintsOnlyReadOnce = 3;
 		assertEquals(storageSpy.types.size(), numOfTimesReadWhenConstraintsOnlyReadOnce);
 
@@ -174,6 +183,12 @@ public class RecordTypeHandlerTest {
 		assertEquals(recordPartReadConstraints.get("organisationRoot"), "readWrite");
 		assertEquals(recordPartReadConstraints.get("showInPortal"), "readWrite");
 
+		Map<String, String> recordPartWriteConstraints = recordTypeHandler
+				.getRecordPartWriteConstraints();
+		assertEquals(recordPartWriteConstraints.size(), 2);
+		assertEquals(recordPartWriteConstraints.get("organisationRoot"), "readWrite");
+		assertEquals(recordPartWriteConstraints.get("showInPortal"), "readWrite");
+
 	}
 
 	@Test
@@ -188,6 +203,13 @@ public class RecordTypeHandlerTest {
 		assertEquals(recordPartReadConstraints.get("organisationRoot"), "readWrite");
 		assertEquals(recordPartReadConstraints.get("showInPortal"), "readWrite");
 		assertFalse(recordPartReadConstraints.containsKey("showInDefence"));
+
+		Map<String, String> recordPartWriteConstraints = recordTypeHandler
+				.getRecordPartWriteConstraints();
+		assertEquals(recordPartWriteConstraints.size(), 3);
+		assertEquals(recordPartWriteConstraints.get("organisationRoot"), "readWrite");
+		assertEquals(recordPartWriteConstraints.get("showInPortal"), "readWrite");
+		assertEquals(recordPartWriteConstraints.get("showInDefence"), "write");
 	}
 
 	@Test
@@ -205,5 +227,22 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
 		assertTrue(recordTypeHandler.hasRecordPartReadWriteConstraint());
+	}
+
+	@Test
+	public void testHasRecordPartWriteConstraintsNoConstraints() {
+		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
+		assertFalse(recordTypeHandler.hasRecordPartWriteConstraint());
+	}
+
+	@Test
+	public void testHasRecordPartWriteConstraintsOneConstraints() {
+		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
+		storageSpy.numberOfChildsWithConstraint = 1;
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
+		assertTrue(recordTypeHandler.hasRecordPartWriteConstraint());
 	}
 }
