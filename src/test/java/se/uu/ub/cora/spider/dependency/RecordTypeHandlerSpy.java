@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.spider.dependency;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,11 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public boolean recordTypeHasReadPartConstraints = false;
 	public String recordPartConstraint = "";
 	public boolean hasRecordPartReadContraintHasBeenCalled = false;
+	public HashMap<String, String> writeConstraints = new HashMap<String, String>();
+
+	public RecordTypeHandlerSpy() {
+		writeConstraints.put("someKey", "write");
+	}
 
 	@Override
 	public boolean isAbstract() {
@@ -60,8 +66,9 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public List<String> createListOfPossibleIdsToThisRecord(String recordId) {
-		// TODO Auto-generated method stub
-		return null;
+		List<String> fakeList = new ArrayList<>();
+		fakeList.add("fakeIdFromRecordTypeHandlerSpy");
+		return fakeList;
 	}
 
 	@Override
@@ -77,7 +84,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		}
 
 		if ("write".equals(recordPartConstraint)) {
-			return true;
+			return false;
 		}
 		// ""
 		return false;
@@ -93,20 +100,26 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	@Override
 	public Map<String, String> getRecordPartReadWriteConstraints() {
 		HashMap<String, String> constraints = new HashMap<String, String>();
-		constraints.put("someKey", "someValue");
+		constraints.put("someKey", "readWrite");
 		return constraints;
 	}
 
 	@Override
 	public boolean hasRecordPartWriteConstraint() {
-		// TODO Auto-generated method stub
+		hasRecordPartReadContraintHasBeenCalled = true;
+		if ("readWrite".equals(recordPartConstraint)) {
+			return true;
+		}
+
+		if ("write".equals(recordPartConstraint)) {
+			return true;
+		}
 		return false;
 	}
 
 	@Override
 	public Map<String, String> getRecordPartWriteConstraints() {
-		// TODO Auto-generated method stub
-		return null;
+		return writeConstraints;
 	}
 
 }

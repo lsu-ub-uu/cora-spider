@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.time.Instant;
@@ -59,6 +60,7 @@ import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
+import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
@@ -101,6 +103,8 @@ public class SpiderRecordUpdaterTest {
 	private DataGroupFactory dataGroupFactorySpy;
 	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataCopierFactory dataCopierFactory;
+	private RecordTypeHandlerSpy recordTypeHandlerSpy;
+	private RecordPartFilterSpy recordPartFilterSpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -114,6 +118,7 @@ public class SpiderRecordUpdaterTest {
 		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
+		recordPartFilterSpy = new RecordPartFilterSpy();
 		setUpDependencyProvider();
 	}
 
@@ -142,8 +147,10 @@ public class SpiderRecordUpdaterTest {
 		dependencyProvider.searchTermCollector = termCollector;
 		dependencyProvider.recordIndexer = recordIndexer;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
+		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
 		recordUpdater = SpiderRecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
+		dependencyProvider.recordPartFilter = recordPartFilterSpy;
 	}
 
 	@Test
@@ -165,17 +172,94 @@ public class SpiderRecordUpdaterTest {
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
 		assertTrue(((RecordStorageSpy) recordStorage).updateWasCalled);
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
-		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyType");
+		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId,
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
 
 		assertCorrectSearchTermCollectorAndIndexer();
 	}
 
 	private void assertCorrectSearchTermCollectorAndIndexer() {
 		DataGroupTermCollectorSpy searchTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
-		assertEquals(searchTermCollectorSpy.metadataId, "spyType");
+		assertEquals(searchTermCollectorSpy.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
 		assertTrue(searchTermCollectorSpy.collectTermsWasCalled);
 		assertEquals(((RecordIndexerSpy) recordIndexer).recordIndexData,
 				searchTermCollectorSpy.collectedTerms);
+	}
+
+	@Test
+	public void testCorrectSpiderAuthorizatorForNoRecordPartConstraints() throws Exception {
+		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		recordStorage = new RecordStorageSpy();
+		ruleCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+
+		recordTypeHandlerSpy.recordPartConstraint = "";
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator);
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
+		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
+
+		assertEquals(authorizatorSpy.calledMethods.get(0),
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
+		assertFalse(recordPartFilterSpy.replaceRecordPartsUsingPermissionsHasBeenCalled);
+
+		assertSame(dataGroup, ((DataValidatorAlwaysValidSpy) dataValidator).dataGroup);
+	}
+
+	@Test
+	public void testCorrectSpiderAuthorizatorForWriteRecordPartConstraints() throws Exception {
+		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		recordStorage = new RecordStorageSpy();
+		ruleCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+
+		recordTypeHandlerSpy.recordPartConstraint = "write";
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator);
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
+		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
+
+		assertEquals(authorizatorSpy.calledMethods.get(0),
+				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+		assertTrue(recordPartFilterSpy.replaceRecordPartsUsingPermissionsHasBeenCalled);
+		assertSame(recordPartFilterSpy.changedDataGroup, dataGroup);
+		assertSame(recordPartFilterSpy.originalDataGroup,
+				((RecordStorageSpy) recordStorage).aRecord);
+
+		assertSame(recordPartFilterSpy.replaceRecordPartConstraints,
+				recordTypeHandlerSpy.writeConstraints);
+
+		assertSame(recordPartFilterSpy.replaceRecordPartPermissions,
+				((AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator).recordPartReadPermissions);
+
+		assertSame(recordPartFilterSpy.returnedDataGroup,
+				((DataValidatorAlwaysValidSpy) dataValidator).dataGroup);
+
+		// assertEquals(recordPartFilterSpy.recordPartConstraints.get(0), expected);
+
+	}
+
+	@Test
+	public void testCorrectSpiderAuthorizatorForReadWriteRecordPartConstraints() throws Exception {
+		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		recordStorage = new RecordStorageSpy();
+		ruleCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+
+		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
+		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator);
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
+		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
+
+		assertEquals(authorizatorSpy.calledMethods.get(0),
+				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
 	}
 
 	@Test
@@ -460,7 +544,7 @@ public class SpiderRecordUpdaterTest {
 		DataGroup indexedRecord = recordIndexerSpy.record;
 		assertEquals(indexedRecord, updatedRecord);
 		List<String> ids = recordIndexerSpy.ids;
-		assertEquals(ids.get(0), "typeWithAutoGeneratedId_somePlace");
+		assertEquals(ids.get(0), "fakeIdFromRecordTypeHandlerSpy");
 		assertEquals(ids.size(), 1);
 	}
 
@@ -478,9 +562,8 @@ public class SpiderRecordUpdaterTest {
 		DataGroup indexedRecord = recordIndexerSpy.record;
 		assertEquals(indexedRecord, updatedRecord);
 		List<String> ids = recordIndexerSpy.ids;
-		assertEquals(ids.get(0), "image_someImage");
-		assertEquals(ids.get(1), "binary_someImage");
-		assertEquals(ids.size(), 2);
+		assertEquals(ids.get(0), "fakeIdFromRecordTypeHandlerSpy");
+		assertEquals(ids.size(), 1);
 	}
 
 	private DataGroup getDataGroupForImageToUpdate() {
@@ -533,7 +616,7 @@ public class SpiderRecordUpdaterTest {
 				dataGroup);
 
 		DataGroupTermCollectorSpy termCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
-		assertEquals(termCollectorSpy.metadataId, "placeNew");
+		assertEquals(termCollectorSpy.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
 		assertTrue(termCollectorSpy.collectTermsWasCalled);
 		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).collectedTerms,
 				termCollectorSpy.collectedTerms);

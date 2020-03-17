@@ -179,8 +179,8 @@ public class SpiderRecordReaderTest {
 	@Test
 	public void testReadAuthorizedHasRecordPartConstraints() {
 		recordTypeHandlerSpy.isPublicForRead = false;
-		recordTypeHandlerSpy.recordPartConstraint = "write";
-		DataRecord record = recordReader.readRecord("someToken78678567", "place", "place:0001");
+		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
+		recordReader.readRecord("someToken78678567", "place", "place:0001");
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizator);
 		assertFalse(authorizatorSpy.calledMethods.isEmpty());
@@ -340,7 +340,7 @@ public class SpiderRecordReaderTest {
 		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
 		recordTypeHandlerSpy.isPublicForRead = false;
 
-		recordReader.readRecord("someUserId", "someType", "someId");
+		recordReader.readRecord("someUserId", "spyType", "spyId");
 
 		assertTrue(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
@@ -369,7 +369,7 @@ public class SpiderRecordReaderTest {
 
 		assertEquals(recordPartFilter.recordPartReadPermissions.size(),
 				authorizatorSpy.recordPartReadPermissions.size());
-		assertEquals(recordPartFilter.recordPartConstraints,
+		assertEquals(recordPartFilter.replaceRecordPartConstraints,
 				recordTypeHandlerSpy.getRecordPartReadWriteConstraints());
 
 	}

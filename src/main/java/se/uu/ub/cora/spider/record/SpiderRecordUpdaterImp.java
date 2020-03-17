@@ -22,9 +22,11 @@ package se.uu.ub.cora.spider.record;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
@@ -58,9 +60,14 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private DataGroupTermCollector collectTermCollector;
 	private RecordIndexer recordIndexer;
 	private DataGroup topDataGroup;
+	private RecordTypeHandler recordTypeHandler;
+	private SpiderDependencyProvider dependencyProvider;
+	private DataGroup previouslyStoredRecord;
+	private List<String> writePermissions;
 
 	private SpiderRecordUpdaterImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
@@ -70,6 +77,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
+
 	}
 
 	public static SpiderRecordUpdaterImp usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -88,8 +96,9 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
+		// recordTypeHandler = RecordTypeHandlerImp
+		// .usingRecordStorageAndRecordTypeId(recordStorage, recordType);
 		metadataId = recordTypeHandler.getMetadataId();
 
 		// TODO: kontrollera om inkommande data har data som användaren inte borde ha sett och
@@ -97,7 +106,9 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, dataGroup);
 
-		addUpdateInfo();
+		updateRecordInfo();
+		// TODO: replaceRecordPartsWithConstrains()
+		replaceRecordPartsUserIsNotAllowedToChange();
 
 		// TODO: no read permission, re add data that is stored
 		validateIncomingDataAsSpecifiedInMetadata();
@@ -123,6 +134,19 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		recordIndexer.indexData(ids, collectedTerms, topLevelDataGroup);
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);
+	}
+
+	private void replaceRecordPartsUserIsNotAllowedToChange() {
+		if (recordTypeHandler.hasRecordPartWriteConstraint()) {
+			RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
+			DataGroup originalDataGroup = previouslyStoredRecord;
+			DataGroup changedDataGroup = topDataGroup;
+			Map<String, String> recordPartConstraints = recordTypeHandler
+					.getRecordPartWriteConstraints();
+			List<String> recordPartPermissions = writePermissions;
+			topDataGroup = recordPartFilter.replaceRecordPartsUsingPermissions(originalDataGroup,
+					changedDataGroup, recordPartConstraints, recordPartPermissions);
+		}
 	}
 
 	private User tryToGetActiveUser() {
@@ -191,18 +215,25 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
-		DataGroup recordRead = recordStorage.read(recordType, recordId);
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, recordRead);
+		previouslyStoredRecord = recordStorage.read(recordType, recordId);
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId,
+				previouslyStoredRecord);
 
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
 	}
 
 	private void checkUserIsAuthorisedToUpdateGivenCollectedData(DataGroup collectedTerms) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, UPDATE,
-				recordType, collectedTerms);
+		if (recordTypeHandler.hasRecordPartWriteConstraint()) {
+			writePermissions = spiderAuthorizator
+					.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+							UPDATE, recordType, collectedTerms);
+		} else {
+			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
+					UPDATE, recordType, collectedTerms);
+		}
 	}
 
-	private void addUpdateInfo() {
+	private void updateRecordInfo() {
 		DataGroup recordInfo = topDataGroup.getFirstGroupWithNameInData("recordInfo");
 		replaceUpdatedInfoWithInfoFromPreviousRecord(recordInfo);
 		DataGroup updated = createUpdateInfoForThisUpdate(recordInfo);

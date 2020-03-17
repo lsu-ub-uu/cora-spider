@@ -92,5 +92,10 @@ public interface RecordTypeHandler {
 	 */
 	Map<String, String> getRecordPartReadWriteConstraints();
 
+	/**
+	 * getRecordPartWriteConstraints is used to collect all the write constraints from a recordPart.
+	 * 
+	 * @return Map filled with write constraints key = nameInData Value = "write" or "readWrite"
+	 */
 	Map<String, String> getRecordPartWriteConstraints();
 }
