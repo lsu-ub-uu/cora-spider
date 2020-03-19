@@ -21,7 +21,7 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
@@ -54,9 +54,9 @@ public class NeverAuthorisedStub implements SpiderAuthorizator {
 	}
 
 	@Override
-	public List<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
-			User user, String action, String recordType, DataGroup collectedData) {
-		return Collections.emptyList();
+	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
+			String action, String recordType, DataGroup collectedData) {
+		return Collections.emptySet();
 	}
 
 }

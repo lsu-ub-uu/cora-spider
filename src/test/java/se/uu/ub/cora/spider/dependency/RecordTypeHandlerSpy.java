@@ -19,9 +19,9 @@
 package se.uu.ub.cora.spider.dependency;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -35,10 +35,10 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public boolean recordTypeHasReadPartConstraints = false;
 	public String recordPartConstraint = "";
 	public boolean hasRecordPartReadContraintHasBeenCalled = false;
-	public HashMap<String, String> writeConstraints = new HashMap<String, String>();
+	public Set<String> writeConstraints = new HashSet<String>();
 
 	public RecordTypeHandlerSpy() {
-		writeConstraints.put("someKey", "write");
+		writeConstraints.add("someKey");
 	}
 
 	@Override
@@ -98,9 +98,9 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public Map<String, String> getRecordPartReadWriteConstraints() {
-		HashMap<String, String> constraints = new HashMap<String, String>();
-		constraints.put("someKey", "readWrite");
+	public Set<String> getRecordPartReadConstraints() {
+		Set<String> constraints = new HashSet<String>();
+		constraints.add("someKey");
 		return constraints;
 	}
 
@@ -118,7 +118,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public Map<String, String> getRecordPartWriteConstraints() {
+	public Set<String> getRecordPartWriteConstraints() {
 		return writeConstraints;
 	}
 

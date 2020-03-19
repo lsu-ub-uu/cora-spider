@@ -21,8 +21,8 @@ package se.uu.ub.cora.spider.spy;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
@@ -64,10 +64,10 @@ public class SpiderAuthorizorNeverAuthorized implements SpiderAuthorizator {
 	}
 
 	@Override
-	public List<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
-			User user, String action, String recordType, DataGroup collectedData) {
+	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
+			String action, String recordType, DataGroup collectedData) {
 		// TODO Auto-generated method stub
-		return Collections.emptyList();
+		return Collections.emptySet();
 	}
 
 }

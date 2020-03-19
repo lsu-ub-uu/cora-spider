@@ -19,8 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
 import se.uu.ub.cora.data.DataGroup;
@@ -33,15 +32,15 @@ public class RecordPartFilterSpy implements RecordPartFilter {
 	public boolean replaceRecordPartsUsingPermissionsHasBeenCalled = false;
 	public DataGroupSpy returnedDataGroup;
 	public DataGroup lastRecordFilteredForRead;
-	public Map<String, String> replaceRecordPartConstraints;
-	public List<String> recordPartReadPermissions;
+	public Set<String> replaceRecordPartConstraints;
+	public Set<String> recordPartReadPermissions;
 	public DataGroup originalDataGroup;
 	public DataGroup changedDataGroup;
-	public List<String> replaceRecordPartPermissions;
+	public Set<String> replaceRecordPartPermissions;
 
 	@Override
-	public DataGroup filterReadRecordPartsUsingPermissions(DataGroup recordRead,
-			Map<String, String> recordPartConstraints, List<String> recordPartReadPermissions) {
+	public DataGroup removeChildrenForConstraintsWithoutPermissions(DataGroup recordRead,
+			Set<String> recordPartConstraints, Set<String> recordPartReadPermissions) {
 		this.replaceRecordPartConstraints = recordPartConstraints;
 		this.recordPartReadPermissions = recordPartReadPermissions;
 		lastRecordFilteredForRead = recordRead;
@@ -53,9 +52,9 @@ public class RecordPartFilterSpy implements RecordPartFilter {
 	}
 
 	@Override
-	public DataGroup replaceRecordPartsUsingPermissions(DataGroup originalDataGroup,
-			DataGroup changedDataGroup, Map<String, String> recordPartConstraints,
-			List<String> recordPartPermissions) {
+	public DataGroup replaceChildrenForConstraintsWithoutPermissions(DataGroup originalDataGroup,
+			DataGroup changedDataGroup, Set<String> recordPartConstraints,
+			Set<String> recordPartPermissions) {
 		this.originalDataGroup = originalDataGroup;
 		this.changedDataGroup = changedDataGroup;
 		this.replaceRecordPartConstraints = recordPartConstraints;
@@ -64,15 +63,22 @@ public class RecordPartFilterSpy implements RecordPartFilter {
 		// recordRead = new DataGroupSpy("filteredDataGroup");
 		replaceRecordPartsUsingPermissionsHasBeenCalled = true;
 		returnedDataGroup = new DataGroupSpy("someDataGroupSpy");
-		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
+		DataGroupSpy recordInfo = createRecordInfo();
 		returnedDataGroup.addChild(recordInfo);
-		DataGroupSpy type = new DataGroupSpy("type");
-		recordInfo.addChild(type);
-
-		type.addChild(new DataAtomicSpy("linkedRecordId", "spyType"));
-		recordInfo.addChild(new DataAtomicSpy("id", "spyId"));
 
 		return returnedDataGroup;
+	}
+
+	private DataGroupSpy createRecordInfo() {
+		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
+		recordInfo.addChild(new DataAtomicSpy("id", "spyId"));
+		DataGroupSpy type = new DataGroupSpy("type");
+		type.addChild(new DataAtomicSpy("linkedRecordId", "spyType"));
+		recordInfo.addChild(type);
+		DataGroupSpy dataDivider = new DataGroupSpy("dataDivider");
+		dataDivider.addChild(new DataAtomicSpy("linkedRecordId", "someSystem"));
+		recordInfo.addChild(dataDivider);
+		return recordInfo;
 	}
 
 }

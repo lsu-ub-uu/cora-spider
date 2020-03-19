@@ -560,7 +560,7 @@ public class SpiderAuthorizatorTest {
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
 		DataGroup collectedData = new DataGroupSpy("collectedData");
-		List<String> usersReadRecordPartPermissions = spiderAuthorizator
+		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, action,
 						"book", collectedData);
 		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
@@ -595,7 +595,7 @@ public class SpiderAuthorizatorTest {
 		rulesProvider.returnReadRecordPartPermissions = true;
 
 		DataGroup collectedData = new DataGroupSpy("collectedData");
-		List<String> usersReadRecordPartPermissions = spiderAuthorizator
+		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, action,
 						"book", collectedData);
 
@@ -620,8 +620,8 @@ public class SpiderAuthorizatorTest {
 		assertNotNull(secondRule.getRulePartValuesForKey("OWNING_ORGANISATION"));
 
 		assertEquals(usersReadRecordPartPermissions.size(), 2);
-		assertEquals(usersReadRecordPartPermissions.get(0), "price");
-		assertEquals(usersReadRecordPartPermissions.get(1), "placement");
+		assertTrue(usersReadRecordPartPermissions.contains("price"));
+		assertTrue(usersReadRecordPartPermissions.contains("placement"));
 
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -238,9 +238,6 @@ public class SpiderRecordUpdaterTest {
 
 		assertSame(recordPartFilterSpy.returnedDataGroup,
 				((DataValidatorAlwaysValidSpy) dataValidator).dataGroup);
-
-		// assertEquals(recordPartFilterSpy.recordPartConstraints.get(0), expected);
-
 	}
 
 	@Test

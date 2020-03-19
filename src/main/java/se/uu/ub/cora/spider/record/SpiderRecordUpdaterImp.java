@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -22,7 +22,7 @@ package se.uu.ub.cora.spider.record;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
@@ -63,7 +63,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private RecordTypeHandler recordTypeHandler;
 	private SpiderDependencyProvider dependencyProvider;
 	private DataGroup previouslyStoredRecord;
-	private List<String> writePermissions;
+	private Set<String> writePermissions;
 
 	private SpiderRecordUpdaterImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -97,56 +97,38 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		checkUserIsAuthorizedForActionOnRecordType();
 
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		// recordTypeHandler = RecordTypeHandlerImp
-		// .usingRecordStorageAndRecordTypeId(recordStorage, recordType);
 		metadataId = recordTypeHandler.getMetadataId();
 
-		// TODO: kontrollera om inkommande data har data som användaren inte borde ha sett och
-		// TODO: change to get list of permissions if recordType has recordparts
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, dataGroup);
 
 		updateRecordInfo();
-		// TODO: replaceRecordPartsWithConstrains()
-		replaceRecordPartsUserIsNotAllowedToChange();
+		possiblyReplaceRecordPartsUserIsNotAllowedToChange();
 
-		// TODO: no read permission, re add data that is stored
 		validateIncomingDataAsSpecifiedInMetadata();
 		useExtendedFunctionalityAfterMetadataValidation(recordType, dataGroup);
-
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
-		DataGroup topLevelDataGroup = dataGroup;
-
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topDataGroup);
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
 
-		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
-				recordType, recordId);
-		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+		updateRecordInStorage(collectedTerms);
+		indexData(collectedTerms);
+		// läs persmissions igen från uppdaterat/mergat data
+		// filter as in read
+		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup);
+	}
 
-		String dataDivider = extractDataDividerFromData(dataGroup);
-
-		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedTerms,
-				collectedLinks, dataDivider);
-
-		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
-		recordIndexer.indexData(ids, collectedTerms, topLevelDataGroup);
-
-		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);
+	private void possiblyReplaceRecordPartsUserIsNotAllowedToChange() {
+		if (recordTypeHandler.hasRecordPartWriteConstraint()) {
+			replaceRecordPartsUserIsNotAllowedToChange();
+		}
 	}
 
 	private void replaceRecordPartsUserIsNotAllowedToChange() {
-		if (recordTypeHandler.hasRecordPartWriteConstraint()) {
-			RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-			DataGroup originalDataGroup = previouslyStoredRecord;
-			DataGroup changedDataGroup = topDataGroup;
-			Map<String, String> recordPartConstraints = recordTypeHandler
-					.getRecordPartWriteConstraints();
-			List<String> recordPartPermissions = writePermissions;
-			topDataGroup = recordPartFilter.replaceRecordPartsUsingPermissions(originalDataGroup,
-					changedDataGroup, recordPartConstraints, recordPartPermissions);
-		}
+		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
+		topDataGroup = recordPartFilter.replaceChildrenForConstraintsWithoutPermissions(previouslyStoredRecord,
+				topDataGroup, recordTypeHandler.getRecordPartWriteConstraints(), writePermissions);
 	}
 
 	private User tryToGetActiveUser() {
@@ -231,6 +213,22 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
 					UPDATE, recordType, collectedTerms);
 		}
+	}
+
+	private void updateRecordInStorage(DataGroup collectedTerms) {
+		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup, recordType,
+				recordId);
+		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+
+		String dataDivider = extractDataDividerFromData(topDataGroup);
+
+		recordStorage.update(recordType, recordId, topDataGroup, collectedTerms, collectedLinks,
+				dataDivider);
+	}
+
+	private void indexData(DataGroup collectedTerms) {
+		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
+		recordIndexer.indexData(ids, collectedTerms, topDataGroup);
 	}
 
 	private void updateRecordInfo() {

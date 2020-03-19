@@ -19,8 +19,8 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
@@ -30,7 +30,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 public class AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType
 		implements SpiderAuthorizator {
 
-	public List<String> recordPartReadPermissions = new ArrayList<>();
+	public Set<String> recordPartReadPermissions = new HashSet<>();
 	public boolean getUsersReadRecordPartPermissionsHasBeenCalled = false;
 
 	@Override
@@ -59,8 +59,8 @@ public class AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType
 	}
 
 	@Override
-	public List<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
-			User user, String action, String recordType, DataGroup collectedData) {
+	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
+			String action, String recordType, DataGroup collectedData) {
 
 		recordPartReadPermissions.add("someRecordType.someMetadataId");
 		return recordPartReadPermissions;

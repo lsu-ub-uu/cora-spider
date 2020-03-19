@@ -269,15 +269,15 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	@Override
-	public List<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
-			User user, String action, String recordType, DataGroup collectedData) {
+	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
+			String action, String recordType, DataGroup collectedData) {
 		checkUserIsActive(user);
 		tryToGetMatchedRules(user, action, recordType, collectedData);
 		return collectReadRecordPartPermissions(recordType);
 	}
 
-	private List<String> collectReadRecordPartPermissions(String recordType) {
-		List<String> usersReadRecordPartPermissions = new ArrayList<>();
+	private Set<String> collectReadRecordPartPermissions(String recordType) {
+		Set<String> usersReadRecordPartPermissions = new HashSet<>();
 
 		for (Rule rule : matchedRules) {
 			addReadRecordPartsPermissions(recordType, usersReadRecordPartPermissions, rule);
@@ -286,14 +286,14 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private void addReadRecordPartsPermissions(String recordType,
-			List<String> usersReadRecordPartPermissions, Rule rule) {
+			Set<String> usersReadRecordPartPermissions, Rule rule) {
 		if (!rule.getReadRecordPartPermissions().isEmpty()) {
 			addExistingReadRecordPartPermission(recordType, usersReadRecordPartPermissions, rule);
 		}
 	}
 
 	private void addExistingReadRecordPartPermission(String recordType,
-			List<String> usersReadRecordPartPermissions, Rule rule) {
+			Set<String> usersReadRecordPartPermissions, Rule rule) {
 		for (String readRecordPart : rule.getReadRecordPartPermissions()) {
 			possiblyAddReadRecordPartsOnlyForRecordType(recordType, usersReadRecordPartPermissions,
 					readRecordPart);
@@ -301,7 +301,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private void possiblyAddReadRecordPartsOnlyForRecordType(String recordType,
-			List<String> usersReadRecordPartPermissions, String readRecordPart) {
+			Set<String> usersReadRecordPartPermissions, String readRecordPart) {
 		if (readRecordPart.startsWith(recordType)) {
 			String permissionWithoutRecordType = readRecordPart.replace(recordType + ".", "");
 			usersReadRecordPartPermissions.add(permissionWithoutRecordType);

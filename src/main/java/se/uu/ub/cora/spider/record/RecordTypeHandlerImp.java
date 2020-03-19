@@ -20,9 +20,9 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -36,8 +36,8 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private String recordTypeId;
 	private RecordStorage recordStorage;
 	private DataGroup metadataGroup;
-	private Map<String, String> readWriteConstraints = new HashMap<>();
-	private Map<String, String> writeConstraints = new HashMap<>();
+	private Set<String> readWriteConstraints = new HashSet<>();
+	private Set<String> writeConstraints = new HashSet<>();
 	private boolean constraintsNotLoaded = true;
 
 	public static RecordTypeHandlerImp usingRecordStorageAndRecordTypeId(
@@ -123,7 +123,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public Map<String, String> getRecordPartReadWriteConstraints() {
+	public Set<String> getRecordPartReadConstraints() {
 		if (constraintsNotLoaded) {
 			collectAllConstraints();
 		}
@@ -156,7 +156,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private void addWriteAndOrReadWriteConstraints(DataGroup childReference) {
 		String refNameInData = getRefNameInData(childReference);
 		String constraintValue = getRecordPartConstraintValue(childReference);
-		writeConstraints.put(refNameInData, constraintValue);
+		writeConstraints.add(refNameInData);
 		possiblyAddReadWriteConstraint(refNameInData, constraintValue);
 	}
 
@@ -174,7 +174,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void possiblyAddReadWriteConstraint(String refNameInData, String constraintValue) {
 		if (isReadWriteConstraint(constraintValue)) {
-			readWriteConstraints.put(refNameInData, constraintValue);
+			readWriteConstraints.add(refNameInData);
 		}
 	}
 
@@ -188,7 +188,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	@Override
 	public boolean hasRecordPartReadWriteConstraint() {
-		return !getRecordPartReadWriteConstraints().isEmpty();
+		return !getRecordPartReadConstraints().isEmpty();
 	}
 
 	@Override
@@ -197,7 +197,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public Map<String, String> getRecordPartWriteConstraints() {
+	public Set<String> getRecordPartWriteConstraints() {
 		if (constraintsNotLoaded) {
 			collectAllConstraints();
 		}

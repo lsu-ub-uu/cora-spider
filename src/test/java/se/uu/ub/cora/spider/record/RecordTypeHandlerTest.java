@@ -24,7 +24,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
-import java.util.Map;
+import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -127,13 +127,11 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
-		Map<String, String> recordPartReadConstraints = recordTypeHandler
-				.getRecordPartReadWriteConstraints();
+		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
 		assertEquals(storageSpy.type, "metadataGroup");
 		assertEquals(storageSpy.id, "organisation");
 		assertTrue(recordPartReadConstraints.isEmpty());
-		Map<String, String> recordPartWriteConstraints = recordTypeHandler
-				.getRecordPartWriteConstraints();
+		Set<String> recordPartWriteConstraints = recordTypeHandler.getRecordPartWriteConstraints();
 		assertTrue(recordPartWriteConstraints.isEmpty());
 
 	}
@@ -144,14 +142,13 @@ public class RecordTypeHandlerTest {
 		storageSpy.numberOfChildsWithConstraint = 1;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
-		Map<String, String> recordPartReadConstraints = recordTypeHandler
-				.getRecordPartReadWriteConstraints();
+		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
 		assertEquals(recordPartReadConstraints.size(), 1);
-		assertEquals(recordPartReadConstraints.get("organisationRoot"), "readWrite");
-		Map<String, String> recordPartWriteConstraints = recordTypeHandler
-				.getRecordPartWriteConstraints();
+		assertTrue(recordPartReadConstraints.contains("organisationRoot"));
+
+		Set<String> recordPartWriteConstraints = recordTypeHandler.getRecordPartWriteConstraints();
 		assertEquals(recordPartWriteConstraints.size(), 1);
-		assertEquals(recordPartWriteConstraints.get("organisationRoot"), "readWrite");
+		assertTrue(recordPartWriteConstraints.contains("organisationRoot"));
 
 	}
 
@@ -162,8 +159,8 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
 
-		recordTypeHandler.getRecordPartReadWriteConstraints();
-		recordTypeHandler.getRecordPartReadWriteConstraints();
+		recordTypeHandler.getRecordPartReadConstraints();
+		recordTypeHandler.getRecordPartReadConstraints();
 		recordTypeHandler.getRecordPartWriteConstraints();
 		recordTypeHandler.getRecordPartWriteConstraints();
 		int numOfTimesReadWhenConstraintsOnlyReadOnce = 3;
@@ -177,17 +174,15 @@ public class RecordTypeHandlerTest {
 		storageSpy.numberOfChildsWithConstraint = 2;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
-		Map<String, String> recordPartReadConstraints = recordTypeHandler
-				.getRecordPartReadWriteConstraints();
+		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
 		assertEquals(recordPartReadConstraints.size(), 2);
-		assertEquals(recordPartReadConstraints.get("organisationRoot"), "readWrite");
-		assertEquals(recordPartReadConstraints.get("showInPortal"), "readWrite");
+		assertTrue(recordPartReadConstraints.contains("organisationRoot"));
+		assertTrue(recordPartReadConstraints.contains("showInPortal"));
 
-		Map<String, String> recordPartWriteConstraints = recordTypeHandler
-				.getRecordPartWriteConstraints();
+		Set<String> recordPartWriteConstraints = recordTypeHandler.getRecordPartWriteConstraints();
 		assertEquals(recordPartWriteConstraints.size(), 2);
-		assertEquals(recordPartWriteConstraints.get("organisationRoot"), "readWrite");
-		assertEquals(recordPartWriteConstraints.get("showInPortal"), "readWrite");
+		assertTrue(recordPartWriteConstraints.contains("organisationRoot"));
+		assertTrue(recordPartWriteConstraints.contains("showInPortal"));
 
 	}
 
@@ -197,19 +192,17 @@ public class RecordTypeHandlerTest {
 		storageSpy.numberOfChildsWithConstraint = 3;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
-		Map<String, String> recordPartReadConstraints = recordTypeHandler
-				.getRecordPartReadWriteConstraints();
+		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
 		assertEquals(recordPartReadConstraints.size(), 2);
-		assertEquals(recordPartReadConstraints.get("organisationRoot"), "readWrite");
-		assertEquals(recordPartReadConstraints.get("showInPortal"), "readWrite");
-		assertFalse(recordPartReadConstraints.containsKey("showInDefence"));
+		assertTrue(recordPartReadConstraints.contains("organisationRoot"));
+		assertTrue(recordPartReadConstraints.contains("showInPortal"));
+		assertFalse(recordPartReadConstraints.contains("showInDefence"));
 
-		Map<String, String> recordPartWriteConstraints = recordTypeHandler
-				.getRecordPartWriteConstraints();
+		Set<String> recordPartWriteConstraints = recordTypeHandler.getRecordPartWriteConstraints();
 		assertEquals(recordPartWriteConstraints.size(), 3);
-		assertEquals(recordPartWriteConstraints.get("organisationRoot"), "readWrite");
-		assertEquals(recordPartWriteConstraints.get("showInPortal"), "readWrite");
-		assertEquals(recordPartWriteConstraints.get("showInDefence"), "write");
+		assertTrue(recordPartWriteConstraints.contains("organisationRoot"));
+		assertTrue(recordPartWriteConstraints.contains("showInPortal"));
+		assertTrue(recordPartWriteConstraints.contains("showInDefence"));
 	}
 
 	@Test

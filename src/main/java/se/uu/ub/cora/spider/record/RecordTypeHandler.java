@@ -20,14 +20,14 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
 
 public interface RecordTypeHandler {
 
 	/**
-	 * isAbstract checks if the record is abstract.
+	 * isAbstract checks if the recordType is abstract.
 	 * 
 	 * @return If record is abstract
 	 */
@@ -36,8 +36,10 @@ public interface RecordTypeHandler {
 	boolean shouldAutoGenerateId();
 
 	/**
+	 * getNewMetadataId returns the metadataId for the top level dataGroup to use for validating
+	 * data when creating a new record, used in the specified recordType in RecordTypeHandler
 	 * 
-	 * @return
+	 * @return String with metadataId
 	 */
 	String getNewMetadataId();
 
@@ -45,7 +47,7 @@ public interface RecordTypeHandler {
 	 * getMetadataId returns the metadataId for the top level dataGroup to use for validating data
 	 * when updating data, used in the specified recordType in RecordTypeHandler
 	 * 
-	 * @return String of metadataId
+	 * @return String with metadataId
 	 */
 	String getMetadataId();
 
@@ -78,24 +80,31 @@ public interface RecordTypeHandler {
 	/**
 	 * hasRecordPartWriteConstraint is used to check if the record has write constraints on its
 	 * recordParts. If a user has read constraints on a recordPart is it implied that the user also
-	 * has write constriant on that part.
+	 * has write constraint on that part.
 	 * 
 	 * @return If the record recordParts with write constraint
 	 */
 	boolean hasRecordPartWriteConstraint();
 
 	/**
-	 * getRecordPartReadWriteConstraints is used to collect all the readWrite constraints from a
-	 * recordPart.
+	 * getRecordPartReadConstraints returns a Map with all the read constraints for the recordType.
+	 * Read constraints have the value "readWrite" as a read constraint also implies a write
+	 * constraint. The constraints are stored in the map under the key, nameInData, where nameInData
+	 * is the name in data for the child in the top level dataGroup that is limited by the
+	 * constraint.
 	 * 
-	 * @return Map filled with readWrite constraints key = nameInData Value = "readWrite"
+	 * @return Map filled with read constraints key = nameInData Value = "readWrite"
 	 */
-	Map<String, String> getRecordPartReadWriteConstraints();
+	Set<String> getRecordPartReadConstraints();
 
 	/**
-	 * getRecordPartWriteConstraints is used to collect all the write constraints from a recordPart.
+	 * getRecordPartWriteConstraints returns a Map with all the write constraints for the
+	 * recordType. Write constraints have the value "write", or "readWrite" as a read constraint
+	 * also implies a write constraint. The constraints are stored in the map under the key,
+	 * nameInData, where nameInData is the name in data for the child in the top level dataGroup
+	 * that is limited by the constraint.
 	 * 
 	 * @return Map filled with write constraints key = nameInData Value = "write" or "readWrite"
 	 */
-	Map<String, String> getRecordPartWriteConstraints();
+	Set<String> getRecordPartWriteConstraints();
 }

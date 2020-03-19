@@ -19,8 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
@@ -107,7 +106,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 
 	private DataGroup checkAccessAndFilterData(String recordType, DataGroup recordRead) {
 		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
-		List<String> usersReadRecordPartPermissions = spiderAuthorizator
+		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, READ,
 						recordType, collectedTerms);
 		recordRead = filterDataGroup(recordRead, usersReadRecordPartPermissions);
@@ -145,11 +144,10 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private DataGroup filterDataGroup(DataGroup recordRead,
-			List<String> usersReadRecordPartPermissions) {
-		Map<String, String> recordPartReadConstraints = recordTypeHandler
-				.getRecordPartReadWriteConstraints();
+			Set<String> usersReadRecordPartPermissions) {
+		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
 		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-		return recordPartFilter.filterReadRecordPartsUsingPermissions(recordRead,
+		return recordPartFilter.removeChildrenForConstraintsWithoutPermissions(recordRead,
 				recordPartReadConstraints, usersReadRecordPartPermissions);
 	}
 }
