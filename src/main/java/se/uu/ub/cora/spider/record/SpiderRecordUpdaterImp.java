@@ -89,6 +89,9 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	@Override
 	public DataRecord updateRecord(String authToken, String recordType, String recordId,
 			DataGroup dataGroup) {
+
+		// DataRecord dataRecord = DataRecordProvider.getDataRecordWithDataGroup(dataGroup);
+
 		this.authToken = authToken;
 		this.topDataGroup = dataGroup;
 		this.recordType = recordType;
@@ -127,8 +130,9 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void replaceRecordPartsUserIsNotAllowedToChange() {
 		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-		topDataGroup = recordPartFilter.replaceChildrenForConstraintsWithoutPermissions(previouslyStoredRecord,
-				topDataGroup, recordTypeHandler.getRecordPartWriteConstraints(), writePermissions);
+		topDataGroup = recordPartFilter.replaceChildrenForConstraintsWithoutPermissions(
+				previouslyStoredRecord, topDataGroup,
+				recordTypeHandler.getRecordPartWriteConstraints(), writePermissions);
 	}
 
 	private User tryToGetActiveUser() {

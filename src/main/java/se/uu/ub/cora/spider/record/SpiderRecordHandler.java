@@ -35,7 +35,7 @@ public class SpiderRecordHandler {
 	protected static final String LINKED_RECORD_ID = "linkedRecordId";
 	protected static final String RECORD_TYPE = "recordType";
 	protected static final String RECORD_INFO = "recordInfo";
-	static final String TS_CREATED = "tsCreated";
+	protected static final String TS_CREATED = "tsCreated";
 	protected RecordStorage recordStorage;
 	protected String recordType;
 	protected String recordId;
@@ -97,18 +97,18 @@ public class SpiderRecordHandler {
 		recordInfo.addChild(updatedGroup);
 	}
 
-	DataGroup createUpdatedGroup() {
+	private DataGroup createUpdatedGroup() {
 		DataGroup updatedGroup = DataGroupProvider.getDataGroupUsingNameInData("updated");
 		updatedGroup.setRepeatId("0");
 		return updatedGroup;
 	}
 
-	void addUserInfoToUpdatedGroup(String userId, DataGroup updatedGroup) {
+	private void addUserInfoToUpdatedGroup(String userId, DataGroup updatedGroup) {
 		DataGroup updatedByGroup = createLinkToUserUsingUserIdAndNameInData(userId, "updatedBy");
 		updatedGroup.addChild(updatedByGroup);
 	}
 
-	public void addTimestampToUpdateGroup(DataGroup recordInfo, DataGroup updatedGroup) {
+	private void addTimestampToUpdateGroup(DataGroup recordInfo, DataGroup updatedGroup) {
 		String tsCreatedUsedAsFirstTsUpdate = recordInfo
 				.getFirstAtomicValueWithNameInData(TS_CREATED);
 		updatedGroup.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("tsUpdated",
@@ -122,7 +122,7 @@ public class SpiderRecordHandler {
 		return createdByGroup;
 	}
 
-	void addLinkToUserUsingUserId(DataGroup dataGroup, String userId) {
+	private void addLinkToUserUsingUserId(DataGroup dataGroup, String userId) {
 		dataGroup.addChild(DataAtomicProvider
 				.getDataAtomicUsingNameInDataAndValue("linkedRecordType", "user"));
 		dataGroup.addChild(
