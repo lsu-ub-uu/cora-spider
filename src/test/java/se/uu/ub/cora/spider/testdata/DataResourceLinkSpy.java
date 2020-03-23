@@ -180,4 +180,9 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 		return null;
 	}
 
+	@Override
+	public boolean hasChildren() {
+		return !children.isEmpty();
+	}
+
 }

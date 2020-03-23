@@ -213,4 +213,9 @@ public class DataGroupSpy implements DataGroup {
 		return null;
 	}
 
+	@Override
+	public boolean hasChildren() {
+		return !children.isEmpty();
+	}
+
 }

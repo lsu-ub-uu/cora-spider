@@ -183,4 +183,9 @@ public class DataRecordLinkSpy implements DataGroup, DataRecordLink {
 		return null;
 	}
 
+	@Override
+	public boolean hasChildren() {
+		return !children.isEmpty();
+	}
+
 }
