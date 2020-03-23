@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.testdata;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataAtomic;
@@ -127,7 +127,7 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 	}
 
 	@Override
-	public String getAttribute(String attributeId) {
+	public DataAttribute getAttribute(String attributeId) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -139,9 +139,9 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 	}
 
 	@Override
-	public void removeFirstChildWithNameInData(String childNameInData) {
+	public boolean removeFirstChildWithNameInData(String childNameInData) {
 		// TODO Auto-generated method stub
-
+		return false;
 	}
 
 	@Override
@@ -152,7 +152,31 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 	}
 
 	@Override
-	public Map<String, String> getAttributes() {
+	public Set<DataAttribute> getAttributes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addChildren(Collection<DataElement> dataElements) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public List<DataElement> getAllChildrenWithNameInData(String nameInData) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean removeAllChildrenWithNameInData(String childNameInData) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public DataAtomic getFirstDataAtomicWithNameInData(String childNameInData) {
 		// TODO Auto-generated method stub
 		return null;
 	}

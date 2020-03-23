@@ -106,7 +106,7 @@ public class RulesProviderImp implements RulesProvider {
 
 	private void addRulePartToRule(DataGroup rulePart, Rule rule) {
 		RulePartValuesImp ruleValues = createRulePartValuesForRulePart(rulePart);
-		rule.addRulePart(rulePart.getAttributes().get("type"), ruleValues);
+		rule.addRulePart(rulePart.getAttribute("type").getValue(), ruleValues);
 	}
 
 	private RulePartValuesImp createRulePartValuesForRulePart(DataGroup rulePart) {
