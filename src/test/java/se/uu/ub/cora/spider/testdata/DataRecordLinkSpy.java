@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.testdata;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataAtomic;
@@ -155,7 +154,7 @@ public class DataRecordLinkSpy implements DataGroup, DataRecordLink {
 	}
 
 	@Override
-	public Set<DataAttribute> getAttributes() {
+	public Collection<DataAttribute> getAttributes() {
 		// TODO Auto-generated method stub
 		return null;
 	}
