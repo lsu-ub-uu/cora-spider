@@ -110,8 +110,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		List<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, READ,
 						recordType, collectedTerms);
-		recordRead = filterDataGroup(recordRead, usersReadRecordPartPermissions);
-		return recordRead;
+		return filterDataGroup(recordRead, usersReadRecordPartPermissions);
 	}
 
 	private DataRecord enhanceRecord(String recordType, DataGroup recordRead) {
