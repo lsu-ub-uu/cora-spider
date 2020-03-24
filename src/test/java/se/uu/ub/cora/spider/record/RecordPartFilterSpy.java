@@ -30,7 +30,8 @@ public class RecordPartFilterSpy implements RecordPartFilter {
 
 	public boolean recordPartFilterForReadHasBeenCalled = false;
 	public boolean replaceRecordPartsUsingPermissionsHasBeenCalled = false;
-	public DataGroupSpy returnedDataGroup;
+	public DataGroupSpy returnedRemovedDataGroup;
+	public DataGroupSpy returnedReplacedDataGroup;
 	public DataGroup lastRecordFilteredForRead;
 	public Set<String> replaceRecordPartConstraints;
 	public Set<String> recordPartReadPermissions;
@@ -47,8 +48,8 @@ public class RecordPartFilterSpy implements RecordPartFilter {
 		// recordRead.addChild(new DataAtomicSpy("someExtraStuff", "to"));
 		// recordRead = new DataGroupSpy("filteredDataGroup");
 		recordPartFilterForReadHasBeenCalled = true;
-		returnedDataGroup = new DataGroupSpy("someDataGroupSpy");
-		return returnedDataGroup;
+		returnedRemovedDataGroup = new DataGroupSpy("someDataGroupSpy");
+		return returnedRemovedDataGroup;
 	}
 
 	@Override
@@ -62,11 +63,11 @@ public class RecordPartFilterSpy implements RecordPartFilter {
 		// recordRead.addChild(new DataAtomicSpy("someExtraStuff", "to"));
 		// recordRead = new DataGroupSpy("filteredDataGroup");
 		replaceRecordPartsUsingPermissionsHasBeenCalled = true;
-		returnedDataGroup = new DataGroupSpy("someDataGroupSpy");
+		returnedReplacedDataGroup = new DataGroupSpy("someDataGroupSpy");
 		DataGroupSpy recordInfo = createRecordInfo();
-		returnedDataGroup.addChild(recordInfo);
+		returnedReplacedDataGroup.addChild(recordInfo);
 
-		return returnedDataGroup;
+		return returnedReplacedDataGroup;
 	}
 
 	private DataGroupSpy createRecordInfo() {

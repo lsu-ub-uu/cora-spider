@@ -278,8 +278,8 @@ public class DataGroupToRecordEnhancerTest {
 
 		assertEquals(authorizatorSpy.calledMethods.get(0),
 				"userIsAuthorizedForActionOnRecordTypeAndCollectedData");
-		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
-		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
+		assertEquals(authorizatorSpy.collectedTerms.get(0),
+				dataGroupTermCollectorSpy.returnedCollectedTerms.get(0));
 	}
 
 	@Test

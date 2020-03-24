@@ -89,9 +89,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	@Override
 	public DataRecord updateRecord(String authToken, String recordType, String recordId,
 			DataGroup dataGroup) {
-
-		// DataRecord dataRecord = DataRecordProvider.getDataRecordWithDataGroup(dataGroup);
-
 		this.authToken = authToken;
 		this.topDataGroup = dataGroup;
 		this.recordType = recordType;
@@ -117,22 +114,11 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 		updateRecordInStorage(collectedTerms);
 		indexData(collectedTerms);
-		// läs persmissions igen från uppdaterat/mergat data
-		// filter as in read
-		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup);
-	}
 
-	private void possiblyReplaceRecordPartsUserIsNotAllowedToChange() {
-		if (recordTypeHandler.hasRecordPartWriteConstraint()) {
-			replaceRecordPartsUserIsNotAllowedToChange();
+		if (recordTypeHandler.hasRecordPartReadConstraint()) {
+			checkReadAccessAndFilterUpdatedData(recordType, collectedTerms);
 		}
-	}
-
-	private void replaceRecordPartsUserIsNotAllowedToChange() {
-		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-		topDataGroup = recordPartFilter.replaceChildrenForConstraintsWithoutPermissions(
-				previouslyStoredRecord, topDataGroup,
-				recordTypeHandler.getRecordPartWriteConstraints(), writePermissions);
+		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup);
 	}
 
 	private User tryToGetActiveUser() {
@@ -141,63 +127,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, UPDATE, recordType);
-	}
-
-	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
-			DataGroup dataGroup) {
-		List<ExtendedFunctionality> functionalityForUpdateBeforeMetadataValidation = extendedFunctionalityProvider
-				.getFunctionalityForUpdateBeforeMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(dataGroup, functionalityForUpdateBeforeMetadataValidation);
-	}
-
-	private void useExtendedFunctionality(DataGroup dataGroup,
-			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
-		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
-			extendedFunctionality.useExtendedFunctionality(authToken, dataGroup);
-		}
-	}
-
-	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
-			DataGroup dataGroup) {
-		List<ExtendedFunctionality> functionalityForUpdateAfterMetadataValidation = extendedFunctionalityProvider
-				.getFunctionalityForUpdateAfterMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(dataGroup, functionalityForUpdateAfterMetadataValidation);
-	}
-
-	private void validateIncomingDataAsSpecifiedInMetadata() {
-		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, topDataGroup);
-		if (validationAnswer.dataIsInvalid()) {
-			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
-		}
-	}
-
-	private void checkRecordTypeAndIdIsSameAsInEnteredRecord() {
-		DataGroup recordInfo = topDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
-		checkIdIsSameAsInEnteredRecord(recordInfo);
-		checkTypeIsSameAsInEnteredRecord(recordInfo);
-	}
-
-	private void checkIdIsSameAsInEnteredRecord(DataGroup recordInfo) {
-		String valueFromRecord = recordInfo.getFirstAtomicValueWithNameInData("id");
-		checkValueIsSameAsValueInEnteredRecord(recordId, valueFromRecord);
-	}
-
-	private void checkValueIsSameAsValueInEnteredRecord(String value,
-			String extractedValueFromRecord) {
-		if (!value.equals(extractedValueFromRecord)) {
-			throw new DataException("Value in data(" + extractedValueFromRecord
-					+ ") does not match entered value(" + value + ")");
-		}
-	}
-
-	private void checkTypeIsSameAsInEnteredRecord(DataGroup recordInfo) {
-		String type = extractTypeFromRecordInfo(recordInfo);
-		checkValueIsSameAsValueInEnteredRecord(recordType, type);
-	}
-
-	private String extractTypeFromRecordInfo(DataGroup recordInfo) {
-		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
-		return typeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
@@ -219,20 +148,18 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		}
 	}
 
-	private void updateRecordInStorage(DataGroup collectedTerms) {
-		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup, recordType,
-				recordId);
-		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
-
-		String dataDivider = extractDataDividerFromData(topDataGroup);
-
-		recordStorage.update(recordType, recordId, topDataGroup, collectedTerms, collectedLinks,
-				dataDivider);
+	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
+			DataGroup dataGroup) {
+		List<ExtendedFunctionality> functionalityForUpdateBeforeMetadataValidation = extendedFunctionalityProvider
+				.getFunctionalityForUpdateBeforeMetadataValidation(recordTypeToCreate);
+		useExtendedFunctionality(dataGroup, functionalityForUpdateBeforeMetadataValidation);
 	}
 
-	private void indexData(DataGroup collectedTerms) {
-		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
-		recordIndexer.indexData(ids, collectedTerms, topDataGroup);
+	private void useExtendedFunctionality(DataGroup dataGroup,
+			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
+		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
+			extendedFunctionality.useExtendedFunctionality(authToken, dataGroup);
+		}
 	}
 
 	private void updateRecordInfo() {
@@ -275,17 +202,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		return updated;
 	}
 
-	private void setUpdatedBy(DataGroup updated) {
-		DataGroup updatedBy = createUpdatedByLink();
-		updated.addChild(updatedBy);
-	}
-
-	private void setTsUpdated(DataGroup updated) {
-		String currentLocalDateTime = getCurrentTimestampAsString();
-		updated.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_UPDATED,
-				currentLocalDateTime));
-	}
-
 	private String getRepeatId(DataGroup recordInfo) {
 		List<DataGroup> updatedList = recordInfo.getAllGroupsWithNameInData(UPDATED_STRING);
 		if (updatedList.isEmpty()) {
@@ -308,6 +224,17 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		return repeatIds;
 	}
 
+	private void setUpdatedBy(DataGroup updated) {
+		DataGroup updatedBy = createUpdatedByLink();
+		updated.addChild(updatedBy);
+	}
+
+	private void setTsUpdated(DataGroup updated) {
+		String currentLocalDateTime = getCurrentTimestampAsString();
+		updated.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_UPDATED,
+				currentLocalDateTime));
+	}
+
 	private DataGroup createUpdatedByLink() {
 		DataGroup updatedBy = DataGroupProvider.getDataGroupUsingNameInData(UPDATED_BY);
 		updatedBy.addChild(DataAtomicProvider
@@ -315,6 +242,88 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		updatedBy.addChild(
 				DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(LINKED_RECORD_ID, user.id));
 		return updatedBy;
+	}
+
+	private void possiblyReplaceRecordPartsUserIsNotAllowedToChange() {
+		if (recordTypeHandler.hasRecordPartWriteConstraint()) {
+			replaceRecordPartsUserIsNotAllowedToChange();
+		}
+	}
+
+	private void replaceRecordPartsUserIsNotAllowedToChange() {
+		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
+		topDataGroup = recordPartFilter.replaceChildrenForConstraintsWithoutPermissions(
+				previouslyStoredRecord, topDataGroup,
+				recordTypeHandler.getRecordPartWriteConstraints(), writePermissions);
+	}
+
+	private void validateIncomingDataAsSpecifiedInMetadata() {
+		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, topDataGroup);
+		if (validationAnswer.dataIsInvalid()) {
+			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
+		}
+	}
+
+	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
+			DataGroup dataGroup) {
+		List<ExtendedFunctionality> functionalityForUpdateAfterMetadataValidation = extendedFunctionalityProvider
+				.getFunctionalityForUpdateAfterMetadataValidation(recordTypeToCreate);
+		useExtendedFunctionality(dataGroup, functionalityForUpdateAfterMetadataValidation);
+	}
+
+	private void checkRecordTypeAndIdIsSameAsInEnteredRecord() {
+		DataGroup recordInfo = topDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
+		checkIdIsSameAsInEnteredRecord(recordInfo);
+		checkTypeIsSameAsInEnteredRecord(recordInfo);
+	}
+
+	private void checkIdIsSameAsInEnteredRecord(DataGroup recordInfo) {
+		String valueFromRecord = recordInfo.getFirstAtomicValueWithNameInData("id");
+		checkValueIsSameAsValueInEnteredRecord(recordId, valueFromRecord);
+	}
+
+	private void checkValueIsSameAsValueInEnteredRecord(String value,
+			String extractedValueFromRecord) {
+		if (!value.equals(extractedValueFromRecord)) {
+			throw new DataException("Value in data(" + extractedValueFromRecord
+					+ ") does not match entered value(" + value + ")");
+		}
+	}
+
+	private void checkTypeIsSameAsInEnteredRecord(DataGroup recordInfo) {
+		String type = extractTypeFromRecordInfo(recordInfo);
+		checkValueIsSameAsValueInEnteredRecord(recordType, type);
+	}
+
+	private String extractTypeFromRecordInfo(DataGroup recordInfo) {
+		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
+		return typeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	}
+
+	private void updateRecordInStorage(DataGroup collectedTerms) {
+		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup, recordType,
+				recordId);
+		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+
+		String dataDivider = extractDataDividerFromData(topDataGroup);
+
+		recordStorage.update(recordType, recordId, topDataGroup, collectedTerms, collectedLinks,
+				dataDivider);
+	}
+
+	private void indexData(DataGroup collectedTerms) {
+		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
+		recordIndexer.indexData(ids, collectedTerms, topDataGroup);
+	}
+
+	private void checkReadAccessAndFilterUpdatedData(String recordType, DataGroup collectedTerms) {
+		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
+		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
+		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
+				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, "read",
+						recordType, collectedTerms);
+		topDataGroup = recordPartFilter.removeChildrenForConstraintsWithoutPermissions(topDataGroup,
+				recordPartReadConstraints, usersReadRecordPartPermissions);
 	}
 
 }

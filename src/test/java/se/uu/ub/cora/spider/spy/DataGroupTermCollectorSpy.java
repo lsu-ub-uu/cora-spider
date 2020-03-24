@@ -32,7 +32,8 @@ public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
 	public String metadataId = null;
 	public DataGroup dataGroup;
 
-	public DataGroup collectedTerms = new DataGroupSpy("collectedData");
+	public DataGroup collectedTerms;
+	public List<DataGroup> returnedCollectedTerms = new ArrayList<>();
 
 	public List<DataGroup> dataGroups = new ArrayList<>();
 	public Map<String, Integer> metadataIdsReadNumberOfTimesMap = new HashMap<>();
@@ -50,7 +51,8 @@ public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
 		collectTermsWasCalled = true;
 
 		dataGroups.add(dataGroup);
-
+		collectedTerms = new DataGroupSpy("collectedData");
+		returnedCollectedTerms.add(collectedTerms);
 		return collectedTerms;
 	}
 }

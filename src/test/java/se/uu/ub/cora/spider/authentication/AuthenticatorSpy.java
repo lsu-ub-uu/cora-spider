@@ -25,6 +25,7 @@ public class AuthenticatorSpy implements Authenticator {
 
 	public boolean authenticationWasCalled = false;
 	public String authToken;
+	public User returnedUser;
 
 	@Override
 	public User getUserForToken(String authToken) {
@@ -47,6 +48,7 @@ public class AuthenticatorSpy implements Authenticator {
 		user.loginId = "knownUser";
 		user.loginDomain = "system";
 		user.roles.add("guest");
+		returnedUser = user;
 		return user;
 	}
 

@@ -48,7 +48,6 @@ import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
@@ -88,7 +87,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 public class SpiderRecordUpdaterTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
 	private RecordStorage recordStorage;
-	private Authenticator authenticator;
+	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private SpiderRecordUpdater recordUpdater;
@@ -204,6 +203,9 @@ public class SpiderRecordUpdaterTest {
 		assertEquals(authorizatorSpy.calledMethods.get(0),
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
 		assertFalse(recordPartFilterSpy.replaceRecordPartsUsingPermissionsHasBeenCalled);
+		// reading updated data
+		assertFalse(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
+		assertFalse(recordPartFilterSpy.recordPartFilterForReadHasBeenCalled);
 
 		assertSame(dataGroup, ((DataValidatorAlwaysValidSpy) dataValidator).dataGroup);
 	}
@@ -229,15 +231,16 @@ public class SpiderRecordUpdaterTest {
 		assertSame(recordPartFilterSpy.changedDataGroup, dataGroup);
 		assertSame(recordPartFilterSpy.originalDataGroup,
 				((RecordStorageSpy) recordStorage).aRecord);
-
 		assertSame(recordPartFilterSpy.replaceRecordPartConstraints,
 				recordTypeHandlerSpy.writeConstraints);
-
 		assertSame(recordPartFilterSpy.replaceRecordPartPermissions,
 				((AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator).recordPartReadPermissions);
-
-		assertSame(recordPartFilterSpy.returnedDataGroup,
+		assertSame(recordPartFilterSpy.returnedReplacedDataGroup,
 				((DataValidatorAlwaysValidSpy) dataValidator).dataGroup);
+
+		// reading updated data
+		assertFalse(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
+		assertFalse(recordPartFilterSpy.recordPartFilterForReadHasBeenCalled);
 	}
 
 	@Test
@@ -257,6 +260,30 @@ public class SpiderRecordUpdaterTest {
 
 		assertEquals(authorizatorSpy.calledMethods.get(0),
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+
+		// reading updated data
+		assertTrue(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
+		assertTrue(recordPartFilterSpy.recordPartFilterForReadHasBeenCalled);
+		assertSame(recordPartFilterSpy.returnedReplacedDataGroup,
+				recordPartFilterSpy.lastRecordFilteredForRead);
+		assertEquals(recordPartFilterSpy.replaceRecordPartConstraints,
+				recordTypeHandlerSpy.getRecordPartReadConstraints());
+		assertEquals(authorizatorSpy.recordPartReadPermissions,
+				recordPartFilterSpy.recordPartReadPermissions);
+
+		// authorizator second read
+		assertEquals(authorizatorSpy.calledMethods.get(2),
+				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+		assertEquals(authorizatorSpy.actions.get(2), "read");
+		assertSame(authorizatorSpy.users.get(2), authenticator.returnedUser);
+		assertEquals(authorizatorSpy.recordTypes.get(2), "spyType");
+		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
+		assertEquals(authorizatorSpy.collectedTerms.get(2),
+				dataGroupTermCollectorSpy.returnedCollectedTerms.get(1));
+
+		// removed datgorup returned
+		DataGroup lastEnhancedDataGroup = dataGroupToRecordEnhancer.dataGroup;
+		assertSame(recordPartFilterSpy.returnedRemovedDataGroup, lastEnhancedDataGroup);
 	}
 
 	@Test
@@ -449,7 +476,8 @@ public class SpiderRecordUpdaterTest {
 		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
 		assertEquals(authorizatorSpy.calledMethods.get(0),
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
-		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
+		assertEquals(authorizatorSpy.collectedTerms.get(0),
+				dataGroupTermCollectorSpy.returnedCollectedTerms.get(0));
 
 		assertEquals(authorizatorSpy.actions.get(1), "update");
 		assertEquals(authorizatorSpy.users.get(1).id, "12345");

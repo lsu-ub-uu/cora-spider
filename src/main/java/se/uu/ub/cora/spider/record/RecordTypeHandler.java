@@ -73,16 +73,18 @@ public interface RecordTypeHandler {
 	 * hasRecordPartReadWriteConstraint is used to check if the record has read constraints on its
 	 * recordParts.
 	 * 
-	 * @return If the record recordParts with readWrite constraint
+	 * @return A boolean, true if the record has at least one recordPart with read constraint, else
+	 *         false
 	 */
-	boolean hasRecordPartReadWriteConstraint();
+	boolean hasRecordPartReadConstraint();
 
 	/**
 	 * hasRecordPartWriteConstraint is used to check if the record has write constraints on its
 	 * recordParts. If a user has read constraints on a recordPart is it implied that the user also
 	 * has write constraint on that part.
 	 * 
-	 * @return If the record recordParts with write constraint
+	 * @return A boolean, true if the record has at least one recordPart with write constraint, else
+	 *         false
 	 */
 	boolean hasRecordPartWriteConstraint();
 

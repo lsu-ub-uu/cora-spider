@@ -349,7 +349,7 @@ public class SpiderRecordReaderTest {
 				recordPartFilter.recordPartReadPermissions);
 		assertSame(recordStorageSpy.aRecord, recordPartFilter.lastRecordFilteredForRead);
 		DataGroup lastEnhancedDataGroup = dataGroupToRecordEnhancer.dataGroup;
-		assertSame(recordPartFilter.returnedDataGroup, lastEnhancedDataGroup);
+		assertSame(recordPartFilter.returnedRemovedDataGroup, lastEnhancedDataGroup);
 	}
 
 	@Test

@@ -187,13 +187,13 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public boolean hasRecordPartReadWriteConstraint() {
+	public boolean hasRecordPartReadConstraint() {
 		return !getRecordPartReadConstraints().isEmpty();
 	}
 
 	@Override
 	public boolean hasRecordPartWriteConstraint() {
-		return hasRecordPartReadWriteConstraint();
+		return hasRecordPartReadConstraint();
 	}
 
 	@Override
