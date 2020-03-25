@@ -21,8 +21,24 @@ package se.uu.ub.cora.spider.authentication;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 
+/**
+ * Authenticator is the interface that defines how to retreive a authenticated User.
+ *
+ */
 public interface Authenticator {
-
+	/**
+	 * getUserForToken returns the User to which the provided authToken was issued, providing the
+	 * User is still loggedin and active (has not timed out).
+	 * <p>
+	 * An {@link AuthenticationException} MUST be throw if the provided authToken is not issues to
+	 * any user, or if the user has been deactivated in storage, or if the user has logged out, or
+	 * if the user is no longer active. If the user is active or not is determined by the part of
+	 * the system that provided the authToken to the User.
+	 * 
+	 * @param authToken
+	 *            to retreive a logged in User for
+	 * @return A User, which is logged in and active
+	 */
 	User getUserForToken(String authToken);
 
 }
