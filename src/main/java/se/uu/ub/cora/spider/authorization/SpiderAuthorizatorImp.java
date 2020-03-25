@@ -273,39 +273,10 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 			String action, String recordType, DataGroup collectedData) {
 		checkUserIsActive(user);
 		tryToGetMatchedRules(user, action, recordType, collectedData);
-		return collectReadRecordPartPermissions(recordType);
-	}
-
-	private Set<String> collectReadRecordPartPermissions(String recordType) {
-		Set<String> usersReadRecordPartPermissions = new HashSet<>();
-
-		for (Rule rule : matchedRules) {
-			addReadRecordPartsPermissions(recordType, usersReadRecordPartPermissions, rule);
+		if ("read".equals(action)) {
+			return collectReadRecordPartPermissions(recordType);
 		}
-		return usersReadRecordPartPermissions;
-	}
-
-	private void addReadRecordPartsPermissions(String recordType,
-			Set<String> usersReadRecordPartPermissions, Rule rule) {
-		if (!rule.getReadRecordPartPermissions().isEmpty()) {
-			addExistingReadRecordPartPermission(recordType, usersReadRecordPartPermissions, rule);
-		}
-	}
-
-	private void addExistingReadRecordPartPermission(String recordType,
-			Set<String> usersReadRecordPartPermissions, Rule rule) {
-		for (String readRecordPart : rule.getReadRecordPartPermissions()) {
-			possiblyAddReadRecordPartsOnlyForRecordType(recordType, usersReadRecordPartPermissions,
-					readRecordPart);
-		}
-	}
-
-	private void possiblyAddReadRecordPartsOnlyForRecordType(String recordType,
-			Set<String> usersReadRecordPartPermissions, String readRecordPart) {
-		if (readRecordPart.startsWith(recordType)) {
-			String permissionWithoutRecordType = readRecordPart.replace(recordType + ".", "");
-			usersReadRecordPartPermissions.add(permissionWithoutRecordType);
-		}
+		return collectWriteRecordPartPermissions(recordType);
 	}
 
 	private void tryToGetMatchedRules(User user, String action, String recordType,
@@ -328,6 +299,52 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 			throw new AuthorizationException(USER_STRING + user.id + " is not authorized to "
 					+ action + " a record of type: " + recordType);
 		}
+	}
+
+	private Set<String> collectReadRecordPartPermissions(String recordType) {
+		Set<String> usersReadRecordPartPermissions = new HashSet<>();
+
+		for (Rule rule : matchedRules) {
+			List<String> writeRecordPartPermissions = rule.getReadRecordPartPermissions();
+			addRecordPartsPermissions(recordType, usersReadRecordPartPermissions,
+					writeRecordPartPermissions);
+		}
+		return usersReadRecordPartPermissions;
+	}
+
+	private void addRecordPartsPermissions(String recordType,
+			Set<String> usersRecordPartPermissions, List<String> recordPartPermissions) {
+		if (!recordPartPermissions.isEmpty()) {
+			addExistingRecordPartPermissions(recordType, usersRecordPartPermissions,
+					recordPartPermissions);
+		}
+	}
+
+	private void addExistingRecordPartPermissions(String recordType,
+			Set<String> usersRecordPartPermissions, List<String> recordPartPermissions) {
+		for (String readRecordPart : recordPartPermissions) {
+			possiblyAddRecordPartsOnlyForRecordType(recordType, usersRecordPartPermissions,
+					readRecordPart);
+		}
+	}
+
+	private void possiblyAddRecordPartsOnlyForRecordType(String recordType,
+			Set<String> usersReadRecordPartPermissions, String readRecordPart) {
+		if (readRecordPart.startsWith(recordType)) {
+			String permissionWithoutRecordType = readRecordPart.replace(recordType + ".", "");
+			usersReadRecordPartPermissions.add(permissionWithoutRecordType);
+		}
+	}
+
+	private Set<String> collectWriteRecordPartPermissions(String recordType) {
+		Set<String> usersWriteRecordPartPermissions = new HashSet<>();
+
+		for (Rule rule : matchedRules) {
+			List<String> writeRecordPartPermissions = rule.getWriteRecordPartPermissions();
+			addRecordPartsPermissions(recordType, usersWriteRecordPartPermissions,
+					writeRecordPartPermissions);
+		}
+		return usersWriteRecordPartPermissions;
 	}
 
 	List<Rule> getMatchedRules() {

@@ -15,6 +15,7 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 
 	public String type;
 	public List<String> types = new ArrayList<>();
+	public List<String> ids = new ArrayList<>();
 	public String id;
 	public int numberOfChildsWithConstraint = 0;
 
@@ -22,6 +23,7 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	public DataGroup read(String type, String id) {
 		this.type = type;
 		types.add(type);
+		ids.add(id);
 		this.id = id;
 		if ("recordType".equals(type) && "organisation".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedId(id, "true");

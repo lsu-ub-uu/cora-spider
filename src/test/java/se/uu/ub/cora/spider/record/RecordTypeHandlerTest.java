@@ -158,14 +158,30 @@ public class RecordTypeHandlerTest {
 		storageSpy.numberOfChildsWithConstraint = 1;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
-
 		recordTypeHandler.getRecordPartReadConstraints();
 		recordTypeHandler.getRecordPartReadConstraints();
 		recordTypeHandler.getRecordPartWriteConstraints();
 		recordTypeHandler.getRecordPartWriteConstraints();
-		int numOfTimesReadWhenConstraintsOnlyReadOnce = 3;
-		assertEquals(storageSpy.types.size(), numOfTimesReadWhenConstraintsOnlyReadOnce);
 
+		String childWithConstraint = "divaOrganisationRoot";
+		long childWithConstraintReadNumberOfTimes = storageSpy.ids.stream()
+				.filter(id -> childWithConstraint.equals(id)).count();
+		assertEquals(childWithConstraintReadNumberOfTimes, 1);
+	}
+
+	@Test
+	public void testGetRecordPartWriteConstraintsReturnsSameInstance() {
+		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
+		storageSpy.numberOfChildsWithConstraint = 1;
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
+
+		recordTypeHandler.getRecordPartWriteConstraints();
+		recordTypeHandler.getRecordPartWriteConstraints();
+		String childWithConstraint = "divaOrganisationRoot";
+		long childWithConstraintReadNumberOfTimes = storageSpy.ids.stream()
+				.filter(id -> childWithConstraint.equals(id)).count();
+		assertEquals(childWithConstraintReadNumberOfTimes, 1);
 	}
 
 	@Test
@@ -238,4 +254,5 @@ public class RecordTypeHandlerTest {
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
 		assertTrue(recordTypeHandler.hasRecordPartWriteConstraint());
 	}
+
 }

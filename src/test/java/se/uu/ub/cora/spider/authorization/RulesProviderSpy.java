@@ -33,6 +33,7 @@ public class RulesProviderSpy implements RulesProvider {
 	public List<String> roleIds = new ArrayList<>();
 	public List<List<Rule>> returnedRules = new ArrayList<>();
 	public boolean returnReadRecordPartPermissions = false;
+	public boolean returnWriteRecordPartPermissions = false;
 
 	@Override
 	public List<Rule> getActiveRules(String roleId) {
@@ -47,8 +48,12 @@ public class RulesProviderSpy implements RulesProvider {
 		rule.addRulePart("action", rulePart);
 		rulePart.add("system.read");
 		if (returnReadRecordPartPermissions) {
-			rule.addReadRecordPartPermissions("organisation.isRoot");
-			rule.addReadRecordPartPermissions("book.price");
+			rule.addReadRecordPartPermission("organisation.isRoot");
+			rule.addReadRecordPartPermission("book.price");
+		}
+		if (returnWriteRecordPartPermissions) {
+			rule.addWriteRecordPartPermission("organisation.isRootWrite");
+			rule.addWriteRecordPartPermission("book.priceWrite");
 		}
 
 		Rule rule2 = new RuleImp();
@@ -57,9 +62,14 @@ public class RulesProviderSpy implements RulesProvider {
 		rule2.addRulePart("action", rulePart2);
 		rulePart2.add("system.update");
 		if (returnReadRecordPartPermissions) {
-			rule2.addReadRecordPartPermissions("organisation.isRoot");
-			rule2.addReadRecordPartPermissions("organisation.isPublic");
-			rule2.addReadRecordPartPermissions("book.placement");
+			rule2.addReadRecordPartPermission("organisation.isRoot");
+			rule2.addReadRecordPartPermission("organisation.isPublic");
+			rule2.addReadRecordPartPermission("book.placement");
+		}
+		if (returnWriteRecordPartPermissions) {
+			rule2.addWriteRecordPartPermission("organisation.isRootWrite");
+			rule2.addWriteRecordPartPermission("organisation.isPublicWrite");
+			rule2.addWriteRecordPartPermission("book.placementWrite");
 		}
 		returnedRules.add(rules);
 

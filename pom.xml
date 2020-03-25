@@ -37,7 +37,7 @@
 		<storage.version>3.4-SNAPSHOT</storage.version>
 		<search.version>3.3.0</search.version>
 		<bookkeeper.version>4.5-SNAPSHOT</bookkeeper.version>
-		<beefeater.version>3.0.0</beefeater.version>
+		<beefeater.version>3.1-SNAPSHOT</beefeater.version>
 		
 	</properties>
 

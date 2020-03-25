@@ -626,6 +626,42 @@ public class SpiderAuthorizatorTest {
 	}
 
 	@Test
+	public void userWritePermissionsForCollectedRulesNoReturnedPermissions() {
+		user = new User("userWithPermissionTerm");
+		user.roles.add("guest");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		rulesProvider.returnReadRecordPartPermissions = false;
+		rulesProvider.returnWriteRecordPartPermissions = false;
+
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
+				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, "update",
+						"book", collectedData);
+
+		assertEquals(usersReadRecordPartPermissions.size(), 0);
+	}
+
+	@Test
+	public void userWritePermissionsForCollectedRules() {
+		user = new User("userWithPermissionTerm");
+		user.roles.add("guest");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		rulesProvider.returnReadRecordPartPermissions = false;
+		rulesProvider.returnWriteRecordPartPermissions = true;
+
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
+				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, "update",
+						"book", collectedData);
+
+		assertEquals(usersReadRecordPartPermissions.size(), 2);
+		assertTrue(usersReadRecordPartPermissions.contains("priceWrite"));
+		assertTrue(usersReadRecordPartPermissions.contains("placementWrite"));
+	}
+
+	@Test
 	public void userSatisfiesActionForCollectedDataWithPermissionTermWithTwoRolesAndPermissionTermsForUserCollectingRules() {
 		user = new User("userWithTwoRolesPermissionTerm");
 		user.roles.add("admin");
