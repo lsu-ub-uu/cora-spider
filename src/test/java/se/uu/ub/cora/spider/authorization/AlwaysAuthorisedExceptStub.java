@@ -62,14 +62,6 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 	}
 
 	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData) {
-		calledMethods.add(action + ":checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
 		calledMethods.add(action + ":userIsAuthorizedForActionOnRecordTypeAndCollectedData");
@@ -78,7 +70,8 @@ public class AlwaysAuthorisedExceptStub implements SpiderAuthorizator {
 
 	@Override
 	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData) {
+			String action, String recordType, DataGroup collectedData,
+			boolean calculateRecordPartPermissions) {
 		calledMethods.add(
 				action + ":checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
 		if (throwExceptionOnCheckUserAuthorization) {

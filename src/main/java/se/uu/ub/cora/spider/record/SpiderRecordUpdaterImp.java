@@ -138,14 +138,10 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void checkUserIsAuthorisedToUpdateGivenCollectedData(DataGroup collectedTerms) {
-		if (recordTypeHandler.hasRecordPartWriteConstraint()) {
-			writePermissions = spiderAuthorizator
-					.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
-							UPDATE, recordType, collectedTerms);
-		} else {
-			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-					UPDATE, recordType, collectedTerms);
-		}
+		writePermissions = spiderAuthorizator
+				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, UPDATE,
+						recordType, collectedTerms,
+						recordTypeHandler.hasRecordPartWriteConstraint());
 	}
 
 	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
@@ -188,8 +184,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private DataGroup getRecordInfoFromStoredData() {
-		DataGroup recordRead = recordStorage.read(recordType, recordId);
-		return recordRead.getFirstGroupWithNameInData("recordInfo");
+		return previouslyStoredRecord.getFirstGroupWithNameInData("recordInfo");
 	}
 
 	private DataGroup createUpdateInfoForThisUpdate(DataGroup recordInfo) {
@@ -321,7 +316,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
 		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, "read",
-						recordType, collectedTerms);
+						recordType, collectedTerms, true);
 		topDataGroup = recordPartFilter.removeChildrenForConstraintsWithoutPermissions(topDataGroup,
 				recordPartReadConstraints, usersReadRecordPartPermissions);
 	}

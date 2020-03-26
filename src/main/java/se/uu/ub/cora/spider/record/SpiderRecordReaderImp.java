@@ -90,27 +90,14 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		if (isPublicForRead()) {
 			return enhanceRecord(recordType, recordRead);
 		}
-		if (hasRecordPartReadWriteConstraint()) {
-			recordRead = checkAccessAndFilterData(recordType, recordRead);
-			return enhanceRecord(recordType, recordRead);
-		}
-		checkAccesWithoutRecordPartConstraints(recordType, recordRead);
-		return enhanceRecord(recordType, recordRead);
-	}
 
-	private void checkAccesWithoutRecordPartConstraints(String recordType, DataGroup recordRead) {
-		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
-				recordType, collectedTerms);
-	}
-
-	private DataGroup checkAccessAndFilterData(String recordType, DataGroup recordRead) {
 		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
 		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, READ,
-						recordType, collectedTerms);
+						recordType, collectedTerms, hasRecordPartReadWriteConstraint());
+
 		recordRead = filterDataGroup(recordRead, usersReadRecordPartPermissions);
-		return recordRead;
+		return enhanceRecord(recordType, recordRead);
 	}
 
 	private DataRecord enhanceRecord(String recordType, DataGroup recordRead) {
@@ -145,9 +132,13 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 
 	private DataGroup filterDataGroup(DataGroup recordRead,
 			Set<String> usersReadRecordPartPermissions) {
-		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
-		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-		return recordPartFilter.removeChildrenForConstraintsWithoutPermissions(recordRead,
-				recordPartReadConstraints, usersReadRecordPartPermissions);
+		if (hasRecordPartReadWriteConstraint()) {
+			Set<String> recordPartReadConstraints = recordTypeHandler
+					.getRecordPartReadConstraints();
+			RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
+			return recordPartFilter.removeChildrenForConstraintsWithoutPermissions(recordRead,
+					recordPartReadConstraints, usersReadRecordPartPermissions);
+		}
+		return recordRead;
 	}
 }

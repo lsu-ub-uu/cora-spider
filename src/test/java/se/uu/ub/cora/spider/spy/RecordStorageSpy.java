@@ -67,6 +67,7 @@ public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 		readWasCalled = true;
 
 		if ("spyType".equals(type) && "spyId".equals(id)) {
+			readDataGroup = aRecord;
 			return aRecord;
 		}
 

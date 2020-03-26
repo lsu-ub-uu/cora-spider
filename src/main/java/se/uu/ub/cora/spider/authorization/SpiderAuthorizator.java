@@ -71,38 +71,27 @@ public interface SpiderAuthorizator {
 			String recordType, DataGroup collectedData);
 
 	/**
-	 * checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData MUST implement the same
+	 * checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData MUST implement the same
 	 * requirements as
 	 * {@link #userIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String)} and if
 	 * not authorized throw an {@link AuthorizationException}
+	 * <p>
+	 * If the user is authorized and calculateRecordPartPermissions is specified to true, should a
+	 * list of recordPart permissions collected from all the active rules the user has access to,
+	 * that matches the collected data SHALL be returned. The returned list of recordPart
+	 * permissions should be filtered so that it only contains those recordPart permissions that are
+	 * for the specified action and the specified recordType.
 	 * 
 	 * @param user
 	 * @param action
 	 * @param recordType
 	 * @param collectedData
-	 * @return
-	 */
-	void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData);
-
-	/**
-	 * checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData MUST implement the same
-	 * requirements as
-	 * {@link #checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String, DataGroup)}.
-	 * <br>
-	 * <br>
-	 * If the user is authorized a list of recordPart permissions collected from all the active
-	 * rules the user has access to, that matches the collected data SHALL be returned. The returned
-	 * list of recordPart permissions should be filtered so that it only contains those recordPart
-	 * permissions that are for the specified action and the specified recordType.
-	 * 
-	 * @param user
-	 * @param action
-	 * @param recordType
-	 * @param collectedData
+	 * @param calculateRecordPartPermissions,
+	 *            a boolean, if recordPartPermissions should be calculated
 	 * @return A list of recordPart permissions
 	 */
 	Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData);
+			String action, String recordType, DataGroup collectedData,
+			boolean calculateRecordPartPermissions);
 
 }

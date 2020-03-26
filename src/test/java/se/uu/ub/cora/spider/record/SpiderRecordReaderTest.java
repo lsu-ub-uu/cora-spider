@@ -171,7 +171,8 @@ public class SpiderRecordReaderTest {
 				recordStorage.read("place", "place:0001"));
 
 		assertEquals(authorizatorSpy.calledMethods.get(0),
-				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
+				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+		assertFalse(authorizatorSpy.calculateRecordPartPermissions);
 		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
 		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
 	}
@@ -241,7 +242,8 @@ public class SpiderRecordReaderTest {
 				recordStorage.read("abstractAuthority", "place:0001"));
 
 		assertEquals(authorizatorSpy.calledMethods.get(0),
-				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
+				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+		assertFalse(authorizatorSpy.calculateRecordPartPermissions);
 		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
 		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
 	}

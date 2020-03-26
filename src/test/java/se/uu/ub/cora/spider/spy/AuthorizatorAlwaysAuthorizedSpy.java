@@ -44,6 +44,7 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 	public Map<String, Integer> recordTypeAuthorizedNumberOfTimesMap = new HashMap<>();
 	public boolean getUsersReadRecordPartPermissionsHasBeenCalled = false;
 	public Set<String> recordPartReadPermissions = new HashSet<>();
+	public boolean calculateRecordPartPermissions;
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
@@ -58,17 +59,6 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 		authorizedWasCalled = true;
 		userIsAuthorizedParameters.add(user.id + ":" + action + ":" + recordType);
 		return true;
-	}
-
-	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData) {
-		this.users.add(user);
-		this.actions.add(action);
-		this.recordTypes.add(recordType);
-		this.collectedTerms.add(collectedData);
-		calledMethods.add("checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
-		// always authorized
 	}
 
 	@Override
@@ -89,7 +79,9 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 
 	@Override
 	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData) {
+			String action, String recordType, DataGroup collectedData,
+			boolean calculateRecordPartPermissions) {
+		this.calculateRecordPartPermissions = calculateRecordPartPermissions;
 		this.users.add(user);
 		this.actions.add(action);
 		this.recordTypes.add(recordType);

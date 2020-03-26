@@ -554,7 +554,8 @@ public class SpiderRecordCreatorTest {
 		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
 		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
 		assertEquals(authorizatorSpy.calledMethods.get(0),
-				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
+				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+		assertFalse(authorizatorSpy.calculateRecordPartPermissions);
 		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
 	}
 

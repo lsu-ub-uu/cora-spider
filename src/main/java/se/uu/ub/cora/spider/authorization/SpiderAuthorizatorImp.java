@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -199,14 +200,14 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		checkUserIsActive(user);
+		checkUserIsActiveInStorage(user);
 		List<Rule> requiredRulesForActionAndRecordType = ruleCalculator
 				.calculateRulesForActionAndRecordType(action, recordType);
 
 		return userSatisfiesRequiredRules(user, requiredRulesForActionAndRecordType);
 	}
 
-	private void checkUserIsActive(User user) {
+	private void checkUserIsActiveInStorage(User user) {
 		if (!cachedActiveUsers.contains(user.id)) {
 			DataGroup dataGroupUser = getUserAsDataGroup(user);
 			if (userIsInactive(dataGroupUser)) {
@@ -231,9 +232,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		}
 	}
 
-	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData) {
+	private void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user,
+			String action, String recordType, DataGroup collectedData) {
 		if (!userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, recordType,
 				collectedData)) {
 			throw new AuthorizationException(USER_STRING + user.id + " is not authorized to "
@@ -244,7 +244,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
-		checkUserIsActive(user);
+		checkUserIsActiveInStorage(user);
 		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
 						collectedData);
@@ -270,13 +270,20 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	@Override
 	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData) {
-		checkUserIsActive(user);
-		tryToGetMatchedRules(user, action, recordType, collectedData);
-		if ("read".equals(action)) {
-			return collectReadRecordPartPermissions(recordType);
+			String action, String recordType, DataGroup collectedData,
+			boolean calculateRecordPartPermissions) {
+		if (calculateRecordPartPermissions) {
+
+			checkUserIsActiveInStorage(user);
+			tryToGetMatchedRules(user, action, recordType, collectedData);
+			if ("read".equals(action)) {
+				return collectReadRecordPartPermissions(recordType);
+			}
+			return collectWriteRecordPartPermissions(recordType);
 		}
-		return collectWriteRecordPartPermissions(recordType);
+		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, recordType,
+				collectedData);
+		return Collections.emptySet();
 	}
 
 	private void tryToGetMatchedRules(User user, String action, String recordType,

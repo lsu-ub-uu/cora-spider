@@ -237,7 +237,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType,
 			DataGroup collectedData) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, CREATE,
-				recordType, collectedData);
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+				CREATE, recordType, collectedData, false);
 	}
 }

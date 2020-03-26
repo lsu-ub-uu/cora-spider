@@ -46,13 +46,6 @@ public class AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType
 	}
 
 	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String string, DataGroup collectedData) {
-		throw new AuthorizationException("not authorized");
-
-	}
-
-	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String string, DataGroup collectedData) {
 		return false;
@@ -60,10 +53,12 @@ public class AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType
 
 	@Override
 	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData) {
+			String action, String recordType, DataGroup collectedData,
+			boolean calculateRecordPartPermissions) {
 
-		recordPartReadPermissions.add("someRecordType.someMetadataId");
-		return recordPartReadPermissions;
+		throw new AuthorizationException("not authorized");
+		// recordPartReadPermissions.add("someRecordType.someMetadataId");
+		// return recordPartReadPermissions;
 	}
 
 }

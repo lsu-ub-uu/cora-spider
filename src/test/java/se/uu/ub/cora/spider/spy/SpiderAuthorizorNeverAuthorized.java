@@ -45,13 +45,6 @@ public class SpiderAuthorizorNeverAuthorized implements SpiderAuthorizator {
 	}
 
 	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String string, DataGroup collectedData) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
 		if (!recordTypeAuthorizedNumberOfTimesMap.containsKey(recordType)) {
@@ -65,7 +58,8 @@ public class SpiderAuthorizorNeverAuthorized implements SpiderAuthorizator {
 
 	@Override
 	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData) {
+			String action, String recordType, DataGroup collectedData,
+			boolean calculateRecordPartPermissions) {
 		// TODO Auto-generated method stub
 		return Collections.emptySet();
 	}

@@ -20,7 +20,6 @@
 
 package se.uu.ub.cora.spider.authorization;
 
-import java.util.Collections;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
@@ -41,12 +40,6 @@ public class NeverAuthorisedStub implements SpiderAuthorizator {
 	}
 
 	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String string, DataGroup collectedData) {
-		throw new AuthorizationException("never authorized");
-	}
-
-	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String string, DataGroup collectedData) {
 		// TODO Auto-generated method stub
@@ -55,8 +48,9 @@ public class NeverAuthorisedStub implements SpiderAuthorizator {
 
 	@Override
 	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData) {
-		return Collections.emptySet();
+			String action, String recordType, DataGroup collectedData,
+			boolean calculateRecordPartPermissions) {
+		throw new AuthorizationException("never authorized");
 	}
 
 }
