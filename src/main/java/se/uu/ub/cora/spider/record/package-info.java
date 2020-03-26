@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,22 +17,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * some info about record in spider
+ */
 package se.uu.ub.cora.spider.record;
-
-import se.uu.ub.cora.data.DataRecord;
-
-public interface SpiderRecordReader {
-
-	/**
-	 * readRecord is used to read a record using a recordType and recordId. The method should check
-	 * user authorizathion for recordtype and recordParts. It returns a record as a DataRecord.
-	 * <p>
-	 * If user not authorized then it throws an {@link AuthenticationException}
-	 * 
-	 * @param authToken
-	 * @param type
-	 * @param id
-	 * @return
-	 */
-	DataRecord readRecord(String authToken, String type, String id);
-}

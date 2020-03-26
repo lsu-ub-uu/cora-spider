@@ -19,8 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
@@ -91,34 +90,22 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		if (isPublicForRead()) {
 			return enhanceRecord(recordType, recordRead);
 		}
-		if (hasReadRecordPartConstraints()) {
-			recordRead = checkAccessAndFilterData(recordType, recordRead);
-			return enhanceRecord(recordType, recordRead);
-		}
-		checkAccesWithoutRecordPartConstraints(recordType, recordRead);
-		return enhanceRecord(recordType, recordRead);
-	}
 
-	private void checkAccesWithoutRecordPartConstraints(String recordType, DataGroup recordRead) {
 		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
-				recordType, collectedTerms);
-	}
-
-	private DataGroup checkAccessAndFilterData(String recordType, DataGroup recordRead) {
-		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
-		List<String> usersReadRecordPartPermissions = spiderAuthorizator
+		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, READ,
-						recordType, collectedTerms);
-		return filterDataGroup(recordRead, usersReadRecordPartPermissions);
+						recordType, collectedTerms, hasRecordPartReadWriteConstraint());
+
+		recordRead = filterDataGroup(recordRead, usersReadRecordPartPermissions);
+		return enhanceRecord(recordType, recordRead);
 	}
 
 	private DataRecord enhanceRecord(String recordType, DataGroup recordRead) {
 		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
 	}
 
-	private boolean hasReadRecordPartConstraints() {
-		return recordTypeHandler.hasRecordPartReadWriteConstraint();
+	private boolean hasRecordPartReadWriteConstraint() {
+		return recordTypeHandler.hasRecordPartReadConstraint();
 	}
 
 	private boolean isPublicForRead() {
@@ -144,11 +131,14 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	}
 
 	private DataGroup filterDataGroup(DataGroup recordRead,
-			List<String> usersReadRecordPartPermissions) {
-		Map<String, String> recordPartReadConstraints = recordTypeHandler
-				.getRecordPartReadWriteConstraints();
-		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-		return recordPartFilter.filterReadRecordPartsUsingPermissions(recordRead,
-				recordPartReadConstraints, usersReadRecordPartPermissions);
+			Set<String> usersReadRecordPartPermissions) {
+		if (hasRecordPartReadWriteConstraint()) {
+			Set<String> recordPartReadConstraints = recordTypeHandler
+					.getRecordPartReadConstraints();
+			RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
+			return recordPartFilter.removeChildrenForConstraintsWithoutPermissions(recordRead,
+					recordPartReadConstraints, usersReadRecordPartPermissions);
+		}
+		return recordRead;
 	}
 }

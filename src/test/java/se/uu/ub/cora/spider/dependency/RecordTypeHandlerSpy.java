@@ -18,9 +18,10 @@
  */
 package se.uu.ub.cora.spider.dependency;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -34,6 +35,11 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public boolean recordTypeHasReadPartConstraints = false;
 	public String recordPartConstraint = "";
 	public boolean hasRecordPartReadContraintHasBeenCalled = false;
+	public Set<String> writeConstraints = new HashSet<String>();
+
+	public RecordTypeHandlerSpy() {
+		writeConstraints.add("someKey");
+	}
 
 	@Override
 	public boolean isAbstract() {
@@ -60,8 +66,9 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public List<String> createListOfPossibleIdsToThisRecord(String recordId) {
-		// TODO Auto-generated method stub
-		return null;
+		List<String> fakeList = new ArrayList<>();
+		fakeList.add("fakeIdFromRecordTypeHandlerSpy");
+		return fakeList;
 	}
 
 	@Override
@@ -70,14 +77,14 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public boolean hasRecordPartReadWriteConstraint() {
+	public boolean hasRecordPartReadConstraint() {
 		hasRecordPartReadContraintHasBeenCalled = true;
 		if ("readWrite".equals(recordPartConstraint)) {
 			return true;
 		}
 
 		if ("write".equals(recordPartConstraint)) {
-			return true;
+			return false;
 		}
 		// ""
 		return false;
@@ -91,10 +98,28 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public Map<String, String> getRecordPartReadWriteConstraints() {
-		HashMap<String, String> constraints = new HashMap<String, String>();
-		constraints.put("someKey", "someValue");
+	public Set<String> getRecordPartReadConstraints() {
+		Set<String> constraints = new HashSet<String>();
+		constraints.add("someKey");
 		return constraints;
+	}
+
+	@Override
+	public boolean hasRecordPartWriteConstraint() {
+		hasRecordPartReadContraintHasBeenCalled = true;
+		if ("readWrite".equals(recordPartConstraint)) {
+			return true;
+		}
+
+		if ("write".equals(recordPartConstraint)) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public Set<String> getRecordPartWriteConstraints() {
+		return writeConstraints;
 	}
 
 }

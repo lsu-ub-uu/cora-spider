@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -199,14 +200,14 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		checkUserIsActive(user);
+		checkUserIsActiveInStorage(user);
 		List<Rule> requiredRulesForActionAndRecordType = ruleCalculator
 				.calculateRulesForActionAndRecordType(action, recordType);
 
 		return userSatisfiesRequiredRules(user, requiredRulesForActionAndRecordType);
 	}
 
-	private void checkUserIsActive(User user) {
+	private void checkUserIsActiveInStorage(User user) {
 		if (!cachedActiveUsers.contains(user.id)) {
 			DataGroup dataGroupUser = getUserAsDataGroup(user);
 			if (userIsInactive(dataGroupUser)) {
@@ -231,9 +232,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		}
 	}
 
-	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData) {
+	private void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user,
+			String action, String recordType, DataGroup collectedData) {
 		if (!userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, recordType,
 				collectedData)) {
 			throw new AuthorizationException(USER_STRING + user.id + " is not authorized to "
@@ -244,7 +244,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
-		checkUserIsActive(user);
+		checkUserIsActiveInStorage(user);
 		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
 						collectedData);
@@ -269,43 +269,21 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	@Override
-	public List<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
-			User user, String action, String recordType, DataGroup collectedData) {
-		checkUserIsActive(user);
-		tryToGetMatchedRules(user, action, recordType, collectedData);
-		return collectReadRecordPartPermissions(recordType);
-	}
+	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
+			String action, String recordType, DataGroup collectedData,
+			boolean calculateRecordPartPermissions) {
+		if (calculateRecordPartPermissions) {
 
-	private List<String> collectReadRecordPartPermissions(String recordType) {
-		List<String> usersReadRecordPartPermissions = new ArrayList<>();
-
-		for (Rule rule : matchedRules) {
-			addReadRecordPartsPermissions(recordType, usersReadRecordPartPermissions, rule);
+			checkUserIsActiveInStorage(user);
+			tryToGetMatchedRules(user, action, recordType, collectedData);
+			if ("read".equals(action)) {
+				return collectReadRecordPartPermissions(recordType);
+			}
+			return collectWriteRecordPartPermissions(recordType);
 		}
-		return usersReadRecordPartPermissions;
-	}
-
-	private void addReadRecordPartsPermissions(String recordType,
-			List<String> usersReadRecordPartPermissions, Rule rule) {
-		if (!rule.getReadRecordPartPermissions().isEmpty()) {
-			addExistingReadRecordPartPermission(recordType, usersReadRecordPartPermissions, rule);
-		}
-	}
-
-	private void addExistingReadRecordPartPermission(String recordType,
-			List<String> usersReadRecordPartPermissions, Rule rule) {
-		for (String readRecordPart : rule.getReadRecordPartPermissions()) {
-			possiblyAddReadRecordPartsOnlyForRecordType(recordType, usersReadRecordPartPermissions,
-					readRecordPart);
-		}
-	}
-
-	private void possiblyAddReadRecordPartsOnlyForRecordType(String recordType,
-			List<String> usersReadRecordPartPermissions, String readRecordPart) {
-		if (readRecordPart.startsWith(recordType)) {
-			String permissionWithoutRecordType = readRecordPart.replace(recordType + ".", "");
-			usersReadRecordPartPermissions.add(permissionWithoutRecordType);
-		}
+		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, recordType,
+				collectedData);
+		return Collections.emptySet();
 	}
 
 	private void tryToGetMatchedRules(User user, String action, String recordType,
@@ -328,6 +306,52 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 			throw new AuthorizationException(USER_STRING + user.id + " is not authorized to "
 					+ action + " a record of type: " + recordType);
 		}
+	}
+
+	private Set<String> collectReadRecordPartPermissions(String recordType) {
+		Set<String> usersReadRecordPartPermissions = new HashSet<>();
+
+		for (Rule rule : matchedRules) {
+			List<String> writeRecordPartPermissions = rule.getReadRecordPartPermissions();
+			addRecordPartsPermissions(recordType, usersReadRecordPartPermissions,
+					writeRecordPartPermissions);
+		}
+		return usersReadRecordPartPermissions;
+	}
+
+	private void addRecordPartsPermissions(String recordType,
+			Set<String> usersRecordPartPermissions, List<String> recordPartPermissions) {
+		if (!recordPartPermissions.isEmpty()) {
+			addExistingRecordPartPermissions(recordType, usersRecordPartPermissions,
+					recordPartPermissions);
+		}
+	}
+
+	private void addExistingRecordPartPermissions(String recordType,
+			Set<String> usersRecordPartPermissions, List<String> recordPartPermissions) {
+		for (String readRecordPart : recordPartPermissions) {
+			possiblyAddRecordPartsOnlyForRecordType(recordType, usersRecordPartPermissions,
+					readRecordPart);
+		}
+	}
+
+	private void possiblyAddRecordPartsOnlyForRecordType(String recordType,
+			Set<String> usersReadRecordPartPermissions, String readRecordPart) {
+		if (readRecordPart.startsWith(recordType)) {
+			String permissionWithoutRecordType = readRecordPart.replace(recordType + ".", "");
+			usersReadRecordPartPermissions.add(permissionWithoutRecordType);
+		}
+	}
+
+	private Set<String> collectWriteRecordPartPermissions(String recordType) {
+		Set<String> usersWriteRecordPartPermissions = new HashSet<>();
+
+		for (Rule rule : matchedRules) {
+			List<String> writeRecordPartPermissions = rule.getWriteRecordPartPermissions();
+			addRecordPartsPermissions(recordType, usersWriteRecordPartPermissions,
+					writeRecordPartPermissions);
+		}
+		return usersWriteRecordPartPermissions;
 	}
 
 	List<Rule> getMatchedRules() {

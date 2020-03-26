@@ -226,7 +226,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 	}
 
 	private int calculateRepeatId(DataGroup errorMessages) {
-		return errorMessages.getChildren().isEmpty() ? 0 : errorMessages.getChildren().size();
+		return !errorMessages.hasChildren() ? 0 : errorMessages.getChildren().size();
 	}
 
 	private DataAtomic createErrorWithMessageAndRepeatId(String message, int repeatId) {

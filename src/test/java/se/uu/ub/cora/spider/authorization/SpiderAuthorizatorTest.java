@@ -235,8 +235,8 @@ public class SpiderAuthorizatorTest {
 		User nonExistingUser = new User("nonExistingUserId");
 
 		DataGroup collectedData = new DataGroupSpy("collectedData");
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(
-				nonExistingUser, action, "book", collectedData);
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
+				nonExistingUser, action, "book", collectedData, false);
 	}
 
 	@Test
@@ -247,8 +247,8 @@ public class SpiderAuthorizatorTest {
 
 		DataGroup collectedData = new DataGroupSpy("collectedData");
 		try {
-			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(
-					nonExistingUser, action, "book", collectedData);
+			spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
+					nonExistingUser, action, "book", collectedData, false);
 		} catch (Exception e) {
 			assertTrue(e.getCause() instanceof RecordNotFoundException);
 		}
@@ -262,8 +262,8 @@ public class SpiderAuthorizatorTest {
 
 		User inactiveUser = new User("inactiveUserId");
 		DataGroup collectedData = new DataGroupSpy("collectedData");
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(inactiveUser,
-				action, "book", collectedData);
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
+				inactiveUser, action, "book", collectedData, false);
 	}
 
 	@Test
@@ -272,8 +272,8 @@ public class SpiderAuthorizatorTest {
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
 		DataGroup collectedData = new DataGroupSpy("collectedData");
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action,
-				"book", collectedData);
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+				action, "book", collectedData, false);
 
 		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
 				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
@@ -299,8 +299,8 @@ public class SpiderAuthorizatorTest {
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
 		DataGroup collectedData = new DataGroupSpy("collectedData");
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action,
-				"book", collectedData);
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+				action, "book", collectedData, false);
 
 		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
 				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
@@ -334,8 +334,8 @@ public class SpiderAuthorizatorTest {
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
 		DataGroup collectedData = new DataGroupSpy("collectedData");
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action,
-				"book", collectedData);
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+				action, "book", collectedData, false);
 
 		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
 				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
@@ -387,8 +387,8 @@ public class SpiderAuthorizatorTest {
 
 		user.roles.add("guest2");
 		DataGroup collectedData = new DataGroupSpy("collectedData");
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action,
-				"book", collectedData);
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+				action, "book", collectedData, false);
 	}
 
 	@Test
@@ -524,7 +524,7 @@ public class SpiderAuthorizatorTest {
 
 		DataGroup collectedData = new DataGroupSpy("collectedData");
 		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
-				nonExistingUser, action, "book", collectedData);
+				nonExistingUser, action, "book", collectedData, true);
 	}
 
 	@Test
@@ -536,7 +536,7 @@ public class SpiderAuthorizatorTest {
 		DataGroup collectedData = new DataGroupSpy("collectedData");
 		try {
 			spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
-					nonExistingUser, action, "book", collectedData);
+					nonExistingUser, action, "book", collectedData, true);
 		} catch (Exception e) {
 			assertTrue(e.getCause() instanceof RecordNotFoundException);
 		}
@@ -551,7 +551,7 @@ public class SpiderAuthorizatorTest {
 		User inactiveUser = new User("inactiveUserId");
 		DataGroup collectedData = new DataGroupSpy("collectedData");
 		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
-				inactiveUser, action, "book", collectedData);
+				inactiveUser, action, "book", collectedData, true);
 	}
 
 	@Test
@@ -560,9 +560,9 @@ public class SpiderAuthorizatorTest {
 		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
 		setUpDependencyProvider();
 		DataGroup collectedData = new DataGroupSpy("collectedData");
-		List<String> usersReadRecordPartPermissions = spiderAuthorizator
+		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, action,
-						"book", collectedData);
+						"book", collectedData, true);
 		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
 				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
 		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
@@ -595,9 +595,9 @@ public class SpiderAuthorizatorTest {
 		rulesProvider.returnReadRecordPartPermissions = true;
 
 		DataGroup collectedData = new DataGroupSpy("collectedData");
-		List<String> usersReadRecordPartPermissions = spiderAuthorizator
+		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, action,
-						"book", collectedData);
+						"book", collectedData, true);
 
 		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
 				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
@@ -620,9 +620,45 @@ public class SpiderAuthorizatorTest {
 		assertNotNull(secondRule.getRulePartValuesForKey("OWNING_ORGANISATION"));
 
 		assertEquals(usersReadRecordPartPermissions.size(), 2);
-		assertEquals(usersReadRecordPartPermissions.get(0), "price");
-		assertEquals(usersReadRecordPartPermissions.get(1), "placement");
+		assertTrue(usersReadRecordPartPermissions.contains("price"));
+		assertTrue(usersReadRecordPartPermissions.contains("placement"));
 
+	}
+
+	@Test
+	public void userWritePermissionsForCollectedRulesNoReturnedPermissions() {
+		user = new User("userWithPermissionTerm");
+		user.roles.add("guest");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		rulesProvider.returnReadRecordPartPermissions = false;
+		rulesProvider.returnWriteRecordPartPermissions = false;
+
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
+				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, "update",
+						"book", collectedData, true);
+
+		assertEquals(usersReadRecordPartPermissions.size(), 0);
+	}
+
+	@Test
+	public void userWritePermissionsForCollectedRules() {
+		user = new User("userWithPermissionTerm");
+		user.roles.add("guest");
+		authorizator = new BeefeaterAuthorizatorAlwaysAuthorizedSpy();
+		setUpDependencyProvider();
+		rulesProvider.returnReadRecordPartPermissions = false;
+		rulesProvider.returnWriteRecordPartPermissions = true;
+
+		DataGroup collectedData = new DataGroupSpy("collectedData");
+		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
+				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, "update",
+						"book", collectedData, true);
+
+		assertEquals(usersReadRecordPartPermissions.size(), 2);
+		assertTrue(usersReadRecordPartPermissions.contains("priceWrite"));
+		assertTrue(usersReadRecordPartPermissions.contains("placementWrite"));
 	}
 
 	@Test
@@ -634,7 +670,7 @@ public class SpiderAuthorizatorTest {
 		setUpDependencyProvider();
 		DataGroup collectedData = new DataGroupSpy("collectedData");
 		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
-				action, "book", collectedData);
+				action, "book", collectedData, true);
 
 		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
 				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
@@ -683,7 +719,7 @@ public class SpiderAuthorizatorTest {
 		authorizatorSpy.returnEmptyMatchedRules = true;
 		DataGroup collectedData = new DataGroupSpy("collectedData");
 		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
-				action, "book", collectedData);
+				action, "book", collectedData, true);
 	}
 
 	// @Test

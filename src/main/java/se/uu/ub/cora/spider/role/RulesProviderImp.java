@@ -96,6 +96,7 @@ public class RulesProviderImp implements RulesProvider {
 		addTermRulePartToRule(rule, readRule);
 		possiblyAddReadPermissions(rule, readRule);
 		possiblyAddWritePermissions(rule, readRule);
+		addAllWritePermissionsToReadPermissionsAsReadIsImplied(rule);
 	}
 
 	private void addRulePartsToRule(Rule rule, DataGroup readRule) {
@@ -106,7 +107,7 @@ public class RulesProviderImp implements RulesProvider {
 
 	private void addRulePartToRule(DataGroup rulePart, Rule rule) {
 		RulePartValuesImp ruleValues = createRulePartValuesForRulePart(rulePart);
-		rule.addRulePart(rulePart.getAttributes().get("type"), ruleValues);
+		rule.addRulePart(rulePart.getAttribute("type").getValue(), ruleValues);
 	}
 
 	private RulePartValuesImp createRulePartValuesForRulePart(DataGroup rulePart) {
@@ -151,7 +152,7 @@ public class RulesProviderImp implements RulesProvider {
 		DataGroup readPermissions = readRule.getFirstGroupWithNameInData("readPermissions");
 		for (DataAtomic readPermission : readPermissions
 				.getAllDataAtomicsWithNameInData("readPermission")) {
-			rule.addReadRecordPartPermissions(readPermission.getValue());
+			rule.addReadRecordPartPermission(readPermission.getValue());
 		}
 	}
 
@@ -165,7 +166,13 @@ public class RulesProviderImp implements RulesProvider {
 		DataGroup writePermissions = readRule.getFirstGroupWithNameInData("writePermissions");
 		for (DataAtomic writePermission : writePermissions
 				.getAllDataAtomicsWithNameInData("writePermission")) {
-			rule.addWriteRecordPartPermissions(writePermission.getValue());
+			rule.addWriteRecordPartPermission(writePermission.getValue());
+		}
+	}
+
+	private void addAllWritePermissionsToReadPermissionsAsReadIsImplied(Rule rule) {
+		for (String writePermission : rule.getWriteRecordPartPermissions()) {
+			rule.addReadRecordPartPermission(writePermission);
 		}
 	}
 

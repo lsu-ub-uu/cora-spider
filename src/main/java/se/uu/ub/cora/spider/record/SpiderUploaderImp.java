@@ -90,8 +90,8 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 
 	private void checkUserIsAuthorisedToUploadData(DataGroup recordRead) {
 		DataGroup collectedTerms = getCollectedTermsForRecord(recordType, recordRead);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				"upload", recordType, collectedTerms);
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+				"upload", recordType, collectedTerms, false);
 	}
 
 	private DataGroup getCollectedTermsForRecord(String recordType, DataGroup recordRead) {

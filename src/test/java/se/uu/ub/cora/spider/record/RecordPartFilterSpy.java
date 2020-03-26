@@ -19,32 +19,67 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 
 public class RecordPartFilterSpy implements RecordPartFilter {
 
 	public boolean recordPartFilterForReadHasBeenCalled = false;
-	public DataGroupSpy returnedDataGroup;
+	public boolean replaceRecordPartsUsingPermissionsHasBeenCalled = false;
+	public DataGroupSpy returnedRemovedDataGroup;
+	public DataGroupSpy returnedReplacedDataGroup;
 	public DataGroup lastRecordFilteredForRead;
-	public Map<String, String> recordPartConstraints;
-	public List<String> recordPartReadPermissions;
+	public Set<String> replaceRecordPartConstraints;
+	public Set<String> recordPartReadPermissions;
+	public DataGroup originalDataGroup;
+	public DataGroup changedDataGroup;
+	public Set<String> replaceRecordPartPermissions;
 
 	@Override
-	public DataGroup filterReadRecordPartsUsingPermissions(DataGroup recordRead,
-			Map<String, String> recordPartConstraints, List<String> recordPartReadPermissions) {
-		this.recordPartConstraints = recordPartConstraints;
+	public DataGroup removeChildrenForConstraintsWithoutPermissions(DataGroup recordRead,
+			Set<String> recordPartConstraints, Set<String> recordPartReadPermissions) {
+		this.replaceRecordPartConstraints = recordPartConstraints;
 		this.recordPartReadPermissions = recordPartReadPermissions;
 		lastRecordFilteredForRead = recordRead;
 		// recordRead.addChild(new DataAtomicSpy("someExtraStuff", "to"));
-		recordRead = new DataGroupSpy("filteredDataGroup");
+		// recordRead = new DataGroupSpy("filteredDataGroup");
 		recordPartFilterForReadHasBeenCalled = true;
-		returnedDataGroup = new DataGroupSpy("someDataGroupSpy");
-		return returnedDataGroup;
+		returnedRemovedDataGroup = new DataGroupSpy("someDataGroupSpy");
+		return returnedRemovedDataGroup;
+	}
+
+	@Override
+	public DataGroup replaceChildrenForConstraintsWithoutPermissions(DataGroup originalDataGroup,
+			DataGroup changedDataGroup, Set<String> recordPartConstraints,
+			Set<String> recordPartPermissions) {
+		this.originalDataGroup = originalDataGroup;
+		this.changedDataGroup = changedDataGroup;
+		this.replaceRecordPartConstraints = recordPartConstraints;
+		this.replaceRecordPartPermissions = recordPartPermissions;
+		// recordRead.addChild(new DataAtomicSpy("someExtraStuff", "to"));
+		// recordRead = new DataGroupSpy("filteredDataGroup");
+		replaceRecordPartsUsingPermissionsHasBeenCalled = true;
+		returnedReplacedDataGroup = new DataGroupSpy("someDataGroupSpy");
+		DataGroupSpy recordInfo = createRecordInfo();
+		returnedReplacedDataGroup.addChild(recordInfo);
+
+		return returnedReplacedDataGroup;
+	}
+
+	private DataGroupSpy createRecordInfo() {
+		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
+		recordInfo.addChild(new DataAtomicSpy("id", "spyId"));
+		DataGroupSpy type = new DataGroupSpy("type");
+		type.addChild(new DataAtomicSpy("linkedRecordId", "spyType"));
+		recordInfo.addChild(type);
+		DataGroupSpy dataDivider = new DataGroupSpy("dataDivider");
+		dataDivider.addChild(new DataAtomicSpy("linkedRecordId", "someSystem"));
+		recordInfo.addChild(dataDivider);
+		return recordInfo;
 	}
 
 }

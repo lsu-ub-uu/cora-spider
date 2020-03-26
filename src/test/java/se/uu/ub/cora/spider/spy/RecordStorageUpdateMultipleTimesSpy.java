@@ -48,10 +48,12 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 	public boolean readListWasCalled = false;
 	public DataGroup recordToReturnOnRead = null;
 	public boolean alreadyCalled = false;
+	public List<String> types = new ArrayList<>();
 
 	@Override
 	public DataGroup read(String type, String id) {
 		this.type = type;
+		types.add(type);
 		this.id = id;
 		readWasCalled = true;
 		if ("spyType".equals(id)) {

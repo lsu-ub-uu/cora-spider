@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -22,9 +22,11 @@ package se.uu.ub.cora.spider.record;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
@@ -58,9 +60,14 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private DataGroupTermCollector collectTermCollector;
 	private RecordIndexer recordIndexer;
 	private DataGroup topDataGroup;
+	private RecordTypeHandler recordTypeHandler;
+	private SpiderDependencyProvider dependencyProvider;
+	private DataGroup previouslyStoredRecord;
+	private Set<String> writePermissions;
 
 	private SpiderRecordUpdaterImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
@@ -70,6 +77,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
+
 	}
 
 	public static SpiderRecordUpdaterImp usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -88,37 +96,29 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		metadataId = recordTypeHandler.getMetadataId();
 
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, dataGroup);
 
-		addUpdateInfo();
+		updateRecordInfo();
+		possiblyReplaceRecordPartsUserIsNotAllowedToChange();
+
 		validateIncomingDataAsSpecifiedInMetadata();
 		useExtendedFunctionalityAfterMetadataValidation(recordType, dataGroup);
-
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
-		DataGroup topLevelDataGroup = dataGroup;
-
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topLevelDataGroup);
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topDataGroup);
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
 
-		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topLevelDataGroup,
-				recordType, recordId);
-		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+		updateRecordInStorage(collectedTerms);
+		indexData(collectedTerms);
 
-		String dataDivider = extractDataDividerFromData(dataGroup);
-
-		recordStorage.update(recordType, recordId, topLevelDataGroup, collectedTerms,
-				collectedLinks, dataDivider);
-
-		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
-		recordIndexer.indexData(ids, collectedTerms, topLevelDataGroup);
-
-		return dataGroupToRecordEnhancer.enhance(user, recordType, topLevelDataGroup);
+		if (recordTypeHandler.hasRecordPartReadConstraint()) {
+			checkReadAccessAndFilterUpdatedData(recordType, collectedTerms);
+		}
+		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup);
 	}
 
 	private User tryToGetActiveUser() {
@@ -127,6 +127,21 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, UPDATE, recordType);
+	}
+
+	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
+		previouslyStoredRecord = recordStorage.read(recordType, recordId);
+		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId,
+				previouslyStoredRecord);
+
+		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
+	}
+
+	private void checkUserIsAuthorisedToUpdateGivenCollectedData(DataGroup collectedTerms) {
+		writePermissions = spiderAuthorizator
+				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, UPDATE,
+						recordType, collectedTerms,
+						recordTypeHandler.hasRecordPartWriteConstraint());
 	}
 
 	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
@@ -143,11 +158,98 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		}
 	}
 
-	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
-			DataGroup dataGroup) {
-		List<ExtendedFunctionality> functionalityForUpdateAfterMetadataValidation = extendedFunctionalityProvider
-				.getFunctionalityForUpdateAfterMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(dataGroup, functionalityForUpdateAfterMetadataValidation);
+	private void updateRecordInfo() {
+		DataGroup recordInfo = topDataGroup.getFirstGroupWithNameInData("recordInfo");
+		replaceUpdatedInfoWithInfoFromPreviousRecord(recordInfo);
+		DataGroup updated = createUpdateInfoForThisUpdate(recordInfo);
+		recordInfo.addChild(updated);
+	}
+
+	private void replaceUpdatedInfoWithInfoFromPreviousRecord(DataGroup recordInfo) {
+		removeUpdateInfoFromIncomingData(recordInfo);
+		addRecordInfoFromReadData(recordInfo);
+	}
+
+	private void removeUpdateInfoFromIncomingData(DataGroup recordInfo) {
+		while (recordInfo.containsChildWithNameInData(UPDATED_STRING)) {
+			recordInfo.removeFirstChildWithNameInData(UPDATED_STRING);
+		}
+	}
+
+	private void addRecordInfoFromReadData(DataGroup recordInfo) {
+		DataGroup recordInfoStoredRecord = getRecordInfoFromStoredData();
+		List<DataGroup> updatedGroups = recordInfoStoredRecord
+				.getAllGroupsWithNameInData(UPDATED_STRING);
+		updatedGroups.forEach(recordInfo::addChild);
+	}
+
+	private DataGroup getRecordInfoFromStoredData() {
+		return previouslyStoredRecord.getFirstGroupWithNameInData("recordInfo");
+	}
+
+	private DataGroup createUpdateInfoForThisUpdate(DataGroup recordInfo) {
+		DataGroup updated = DataGroupProvider.getDataGroupUsingNameInData(UPDATED_STRING);
+		String repeatId = getRepeatId(recordInfo);
+		updated.setRepeatId(repeatId);
+
+		setUpdatedBy(updated);
+		setTsUpdated(updated);
+		return updated;
+	}
+
+	private String getRepeatId(DataGroup recordInfo) {
+		List<DataGroup> updatedList = recordInfo.getAllGroupsWithNameInData(UPDATED_STRING);
+		if (updatedList.isEmpty()) {
+			return "0";
+		}
+		return calculateRepeatId(updatedList);
+	}
+
+	private String calculateRepeatId(List<DataGroup> updatedList) {
+		List<Integer> repeatIds = getAllCurrentRepeatIds(updatedList);
+		Integer max = Collections.max(repeatIds);
+		return String.valueOf(max + 1);
+	}
+
+	private List<Integer> getAllCurrentRepeatIds(List<DataGroup> updatedList) {
+		List<Integer> repeatIds = new ArrayList<>(updatedList.size());
+		for (DataGroup updated : updatedList) {
+			repeatIds.add(Integer.valueOf(updated.getRepeatId()));
+		}
+		return repeatIds;
+	}
+
+	private void setUpdatedBy(DataGroup updated) {
+		DataGroup updatedBy = createUpdatedByLink();
+		updated.addChild(updatedBy);
+	}
+
+	private void setTsUpdated(DataGroup updated) {
+		String currentLocalDateTime = getCurrentTimestampAsString();
+		updated.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_UPDATED,
+				currentLocalDateTime));
+	}
+
+	private DataGroup createUpdatedByLink() {
+		DataGroup updatedBy = DataGroupProvider.getDataGroupUsingNameInData(UPDATED_BY);
+		updatedBy.addChild(DataAtomicProvider
+				.getDataAtomicUsingNameInDataAndValue("linkedRecordType", "user"));
+		updatedBy.addChild(
+				DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(LINKED_RECORD_ID, user.id));
+		return updatedBy;
+	}
+
+	private void possiblyReplaceRecordPartsUserIsNotAllowedToChange() {
+		if (recordTypeHandler.hasRecordPartWriteConstraint()) {
+			replaceRecordPartsUserIsNotAllowedToChange();
+		}
+	}
+
+	private void replaceRecordPartsUserIsNotAllowedToChange() {
+		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
+		topDataGroup = recordPartFilter.replaceChildrenForConstraintsWithoutPermissions(
+				previouslyStoredRecord, topDataGroup,
+				recordTypeHandler.getRecordPartWriteConstraints(), writePermissions);
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata() {
@@ -155,6 +257,13 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
+	}
+
+	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
+			DataGroup dataGroup) {
+		List<ExtendedFunctionality> functionalityForUpdateAfterMetadataValidation = extendedFunctionalityProvider
+				.getFunctionalityForUpdateAfterMetadataValidation(recordTypeToCreate);
+		useExtendedFunctionality(dataGroup, functionalityForUpdateAfterMetadataValidation);
 	}
 
 	private void checkRecordTypeAndIdIsSameAsInEnteredRecord() {
@@ -186,98 +295,30 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		return typeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
-	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
-		DataGroup recordRead = recordStorage.read(recordType, recordId);
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, recordRead);
+	private void updateRecordInStorage(DataGroup collectedTerms) {
+		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup, recordType,
+				recordId);
+		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
-		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
+		String dataDivider = extractDataDividerFromData(topDataGroup);
+
+		recordStorage.update(recordType, recordId, topDataGroup, collectedTerms, collectedLinks,
+				dataDivider);
 	}
 
-	private void checkUserIsAuthorisedToUpdateGivenCollectedData(DataGroup collectedTerms) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, UPDATE,
-				recordType, collectedTerms);
+	private void indexData(DataGroup collectedTerms) {
+		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
+		recordIndexer.indexData(ids, collectedTerms, topDataGroup);
 	}
 
-	private void addUpdateInfo() {
-		DataGroup recordInfo = topDataGroup.getFirstGroupWithNameInData("recordInfo");
-		replaceUpdatedInfoWithInfoFromPreviousRecord(recordInfo);
-		DataGroup updated = createUpdateInfoForThisUpdate(recordInfo);
-		recordInfo.addChild(updated);
-	}
-
-	private void replaceUpdatedInfoWithInfoFromPreviousRecord(DataGroup recordInfo) {
-		removeUpdateInfoFromIncomingData(recordInfo);
-		addRecordInfoFromReadData(recordInfo);
-	}
-
-	private void removeUpdateInfoFromIncomingData(DataGroup recordInfo) {
-		while (recordInfo.containsChildWithNameInData(UPDATED_STRING)) {
-			recordInfo.removeFirstChildWithNameInData(UPDATED_STRING);
-		}
-	}
-
-	private void addRecordInfoFromReadData(DataGroup recordInfo) {
-		DataGroup recordInfoStoredRecord = getRecordInfoFromStoredData();
-		List<DataGroup> updatedGroups = recordInfoStoredRecord
-				.getAllGroupsWithNameInData(UPDATED_STRING);
-		updatedGroups.forEach(recordInfo::addChild);
-	}
-
-	private DataGroup getRecordInfoFromStoredData() {
-		DataGroup recordRead = recordStorage.read(recordType, recordId);
-		return recordRead.getFirstGroupWithNameInData("recordInfo");
-	}
-
-	private DataGroup createUpdateInfoForThisUpdate(DataGroup recordInfo) {
-		DataGroup updated = DataGroupProvider.getDataGroupUsingNameInData(UPDATED_STRING);
-		String repeatId = getRepeatId(recordInfo);
-		updated.setRepeatId(repeatId);
-
-		setUpdatedBy(updated);
-		setTsUpdated(updated);
-		return updated;
-	}
-
-	private void setUpdatedBy(DataGroup updated) {
-		DataGroup updatedBy = createUpdatedByLink();
-		updated.addChild(updatedBy);
-	}
-
-	private void setTsUpdated(DataGroup updated) {
-		String currentLocalDateTime = getCurrentTimestampAsString();
-		updated.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_UPDATED,
-				currentLocalDateTime));
-	}
-
-	private String getRepeatId(DataGroup recordInfo) {
-		List<DataGroup> updatedList = recordInfo.getAllGroupsWithNameInData(UPDATED_STRING);
-		if (updatedList.isEmpty()) {
-			return "0";
-		}
-		return calculateRepeatId(updatedList);
-	}
-
-	private String calculateRepeatId(List<DataGroup> updatedList) {
-		List<Integer> repeatIds = getAllCurrentRepeatIds(updatedList);
-		Integer max = Collections.max(repeatIds);
-		return String.valueOf(max + 1);
-	}
-
-	private List<Integer> getAllCurrentRepeatIds(List<DataGroup> updatedList) {
-		List<Integer> repeatIds = new ArrayList<>(updatedList.size());
-		for (DataGroup updated : updatedList) {
-			repeatIds.add(Integer.valueOf(updated.getRepeatId()));
-		}
-		return repeatIds;
-	}
-
-	private DataGroup createUpdatedByLink() {
-		DataGroup updatedBy = DataGroupProvider.getDataGroupUsingNameInData(UPDATED_BY);
-		updatedBy.addChild(DataAtomicProvider
-				.getDataAtomicUsingNameInDataAndValue("linkedRecordType", "user"));
-		updatedBy.addChild(
-				DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(LINKED_RECORD_ID, user.id));
-		return updatedBy;
+	private void checkReadAccessAndFilterUpdatedData(String recordType, DataGroup collectedTerms) {
+		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
+		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
+		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
+				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, "read",
+						recordType, collectedTerms, true);
+		topDataGroup = recordPartFilter.removeChildrenForConstraintsWithoutPermissions(topDataGroup,
+				recordPartReadConstraints, usersReadRecordPartPermissions);
 	}
 
 }

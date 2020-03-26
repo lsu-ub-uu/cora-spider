@@ -250,4 +250,43 @@ public class RulesProviderTest {
 				secondWritePermissionFromStorage.getValue());
 	}
 
+	@Test
+	public void testReadAndWritePermissions() {
+		RulesRecordPartRecordStorageSpy recordStorage = new RulesRecordPartRecordStorageSpy();
+		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
+
+		List<Rule> rules = rulesProvider
+				.getActiveRules("roleWithReadAndWriteRecordPartPermissions");
+		assertEquals(rules.size(), 1);
+
+		RuleImp rule = (RuleImp) rules.get(0);
+		assertEquals(rule.getWriteRecordPartPermissions().size(), 2);
+		List<String> readPermissionsInRule = rule.getReadRecordPartPermissions();
+		assertEquals(readPermissionsInRule.size(), 3);
+
+		List<DataAtomic> writePermissionsFromMetadata = getWritePermissionsFromRuleInStorage(
+				recordStorage);
+
+		assertWriteFromMetadataIsAddedToReadInPopulatedRule(readPermissionsInRule,
+				writePermissionsFromMetadata);
+
+	}
+
+	private void assertWriteFromMetadataIsAddedToReadInPopulatedRule(
+			List<String> readPermissionsInRule, List<DataAtomic> writePermissionsFromMetadata) {
+		assertEquals(readPermissionsInRule.get(1), writePermissionsFromMetadata.get(0).getValue());
+		assertEquals(readPermissionsInRule.get(2), writePermissionsFromMetadata.get(1).getValue());
+	}
+
+	private List<DataAtomic> getWritePermissionsFromRuleInStorage(
+			RulesRecordPartRecordStorageSpy recordStorage) {
+		DataGroup ruleFromStorage = recordStorage.returnedReadDataGroups.get(1);
+		DataGroup writePermissionsFromRuleInStorage = ruleFromStorage
+				.getFirstGroupWithNameInData("writePermissions");
+
+		List<DataAtomic> writePermissions = writePermissionsFromRuleInStorage
+				.getAllDataAtomicsWithNameInData("writePermission");
+		return writePermissions;
+	}
+
 }

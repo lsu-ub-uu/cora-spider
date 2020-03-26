@@ -262,7 +262,8 @@ public class SpiderUploaderTest {
 				recordStorage.read("image", "image:123456789"));
 
 		assertEquals(authorizatorSpy.calledMethods.get(0),
-				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
+				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+		assertFalse(authorizatorSpy.calculateRecordPartPermissions);
 		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
 		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
 	}

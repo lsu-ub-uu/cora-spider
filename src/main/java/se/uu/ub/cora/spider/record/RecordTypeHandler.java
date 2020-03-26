@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Uppsala University Library
+ * Copyright 2016, 2017, 2019, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,14 +20,14 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
 
 public interface RecordTypeHandler {
 
 	/**
-	 * isAbstract checks if the record is abstract.
+	 * isAbstract checks if the recordType is abstract.
 	 * 
 	 * @return If record is abstract
 	 */
@@ -36,8 +36,10 @@ public interface RecordTypeHandler {
 	boolean shouldAutoGenerateId();
 
 	/**
+	 * getNewMetadataId returns the metadataId for the top level dataGroup to use for validating
+	 * data when creating a new record, used in the specified recordType in RecordTypeHandler
 	 * 
-	 * @return
+	 * @return String with metadataId
 	 */
 	String getNewMetadataId();
 
@@ -45,7 +47,7 @@ public interface RecordTypeHandler {
 	 * getMetadataId returns the metadataId for the top level dataGroup to use for validating data
 	 * when updating data, used in the specified recordType in RecordTypeHandler
 	 * 
-	 * @return String of metadataId
+	 * @return String with metadataId
 	 */
 	String getMetadataId();
 
@@ -71,15 +73,40 @@ public interface RecordTypeHandler {
 	 * hasRecordPartReadWriteConstraint is used to check if the record has read constraints on its
 	 * recordParts.
 	 * 
-	 * @return If the record recordParts with readWrite constraint
+	 * @return A boolean, true if the record has at least one recordPart with read constraint, else
+	 *         false
 	 */
-	boolean hasRecordPartReadWriteConstraint();
+	boolean hasRecordPartReadConstraint();
 
 	/**
-	 * getRecordPartReadWriteConstraints is used to collect all the readWrite constraints from a
-	 * recordPart.
+	 * hasRecordPartWriteConstraint is used to check if the record has write constraints on its
+	 * recordParts. If a user has read constraints on a recordPart is it implied that the user also
+	 * has write constraint on that part.
 	 * 
-	 * @return Map filled with readWrite constraints key = nameInData Value = "readWrite"
+	 * @return A boolean, true if the record has at least one recordPart with write constraint, else
+	 *         false
 	 */
-	Map<String, String> getRecordPartReadWriteConstraints();
+	boolean hasRecordPartWriteConstraint();
+
+	/**
+	 * getRecordPartReadConstraints returns a Map with all the read constraints for the recordType.
+	 * Read constraints have the value "readWrite" as a read constraint also implies a write
+	 * constraint. The constraints are stored in the map under the key, nameInData, where nameInData
+	 * is the name in data for the child in the top level dataGroup that is limited by the
+	 * constraint.
+	 * 
+	 * @return Map filled with read constraints key = nameInData Value = "readWrite"
+	 */
+	Set<String> getRecordPartReadConstraints();
+
+	/**
+	 * getRecordPartWriteConstraints returns a Map with all the write constraints for the
+	 * recordType. Write constraints have the value "write", or "readWrite" as a read constraint
+	 * also implies a write constraint. The constraints are stored in the map under the key,
+	 * nameInData, where nameInData is the name in data for the child in the top level dataGroup
+	 * that is limited by the constraint.
+	 * 
+	 * @return Map filled with write constraints key = nameInData Value = "write" or "readWrite"
+	 */
+	Set<String> getRecordPartWriteConstraints();
 }

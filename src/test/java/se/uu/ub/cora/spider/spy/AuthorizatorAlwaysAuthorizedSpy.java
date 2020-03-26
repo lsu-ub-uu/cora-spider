@@ -21,8 +21,10 @@ package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
@@ -41,7 +43,8 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 	public List<String> userIsAuthorizedParameters = new ArrayList<>();
 	public Map<String, Integer> recordTypeAuthorizedNumberOfTimesMap = new HashMap<>();
 	public boolean getUsersReadRecordPartPermissionsHasBeenCalled = false;
-	public List<String> recordPartReadPermissions = new ArrayList<>();
+	public Set<String> recordPartReadPermissions = new HashSet<>();
+	public boolean calculateRecordPartPermissions;
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
@@ -56,17 +59,6 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 		authorizedWasCalled = true;
 		userIsAuthorizedParameters.add(user.id + ":" + action + ":" + recordType);
 		return true;
-	}
-
-	@Override
-	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData) {
-		this.users.add(user);
-		this.actions.add(action);
-		this.recordTypes.add(recordType);
-		this.collectedTerms.add(collectedData);
-		calledMethods.add("checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
-		// always authorized
 	}
 
 	@Override
@@ -86,8 +78,10 @@ public class AuthorizatorAlwaysAuthorizedSpy implements SpiderAuthorizator {
 	}
 
 	@Override
-	public List<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(
-			User user, String action, String recordType, DataGroup collectedData) {
+	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
+			String action, String recordType, DataGroup collectedData,
+			boolean calculateRecordPartPermissions) {
+		this.calculateRecordPartPermissions = calculateRecordPartPermissions;
 		this.users.add(user);
 		this.actions.add(action);
 		this.recordTypes.add(recordType);

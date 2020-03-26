@@ -82,8 +82,8 @@ public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
 		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
-				recordType, collectedTerms);
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+				READ, recordType, collectedTerms, false);
 	}
 
 	private DataGroup getCollectedTermsForRecord(DataGroup recordRead) {
@@ -129,8 +129,7 @@ public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 		return parent.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
-	private DataList convertLinksPointingToRecordToDataList(
-			Collection<DataGroup> dataGroupLinks) {
+	private DataList convertLinksPointingToRecordToDataList(Collection<DataGroup> dataGroupLinks) {
 		DataList recordToRecordLinkList = createDataListForRecordToRecordLinks(dataGroupLinks);
 		convertAndAddLinksToLinkList(dataGroupLinks, recordToRecordLinkList);
 		return recordToRecordLinkList;
@@ -154,8 +153,7 @@ public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 	}
 
 	private void addReadActionToIncomingLinks(DataGroup dataGroup) {
-		DataRecordLink recordLink = (DataRecordLink) dataGroup
-				.getFirstChildWithNameInData("from");
+		DataRecordLink recordLink = (DataRecordLink) dataGroup.getFirstChildWithNameInData("from");
 		recordLink.addAction(se.uu.ub.cora.data.Action.READ);
 	}
 

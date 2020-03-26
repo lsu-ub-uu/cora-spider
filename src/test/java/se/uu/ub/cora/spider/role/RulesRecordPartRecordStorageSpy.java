@@ -91,6 +91,29 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 			returnedReadDataGroups.add(rule);
 			return rule;
 		}
+		if ("permissionRole".equals(type)
+				&& "roleWithReadAndWriteRecordPartPermissions".equals(id)) {
+			DataGroup createRole = createRoleWithReadAndWritePermissions();
+			returnedReadDataGroups.add(createRole);
+			return createRole;
+		}
+		if ("permissionRule".equals(type)
+				&& "ruleWithOneReadPermissionPartTwoWritePermissionPart".equals(id)) {
+			DataGroup rule = createBasicPermissionRule();
+
+			DataGroup readPermission = new DataGroupSpy("readPermissions");
+			createAndAddReadPermission(readPermission, "organisation.showInPortal", "0");
+			rule.addChild(readPermission);
+
+			DataGroup writePermission = new DataGroupSpy("writePermissions");
+			createAndAddWritePermission(writePermission, "organisation.showInAdvancedSearch", "0");
+			createAndAddWritePermission(writePermission, "organisation.showInBrowse", "1");
+			rule.addChild(writePermission);
+			rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+
+			returnedReadDataGroups.add(rule);
+			return rule;
+		}
 
 		DataGroup dataGroupToReturn = new DataGroupSpy("someNameInData");
 		dataGroupToReturn.addChild(new DataGroupSpy("recordInfo"));
@@ -137,6 +160,16 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 		DataGroup permissionRole = new DataGroupSpy("permissionRole");
 		addPermissionRuleToRoleUsingRuleId(permissionRole, "ruleWithOneWritePermissionPart");
 		addPermissionRuleToRoleUsingRuleId(permissionRole, "ruleWithTwoWritePermissionPart");
+
+		permissionRole.addChild(new DataAtomicSpy("activeStatus", "active"));
+
+		return permissionRole;
+	}
+
+	private DataGroup createRoleWithReadAndWritePermissions() {
+		DataGroup permissionRole = new DataGroupSpy("permissionRole");
+		addPermissionRuleToRoleUsingRuleId(permissionRole,
+				"ruleWithOneReadPermissionPartTwoWritePermissionPart");
 
 		permissionRole.addChild(new DataAtomicSpy("activeStatus", "active"));
 
