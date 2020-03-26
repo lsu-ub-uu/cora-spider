@@ -353,10 +353,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean isAuthorizedToReadRecordLink(DataLink dataChild) {
-		String linkedRecordType = ((DataGroup) dataChild)
-				.getFirstAtomicValueWithNameInData("linkedRecordType");
-		String linkedRecordId = ((DataGroup) dataChild)
-				.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		String linkedRecordType = dataChild.getFirstAtomicValueWithNameInData("linkedRecordType");
+		String linkedRecordId = dataChild.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 
 		if (isPublicRecordType(linkedRecordType)) {
 			return true;
