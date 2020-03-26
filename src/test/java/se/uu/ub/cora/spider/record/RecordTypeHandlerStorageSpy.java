@@ -17,7 +17,8 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	public List<String> types = new ArrayList<>();
 	public List<String> ids = new ArrayList<>();
 	public String id;
-	public int numberOfChildsWithConstraint = 0;
+	public int numberOfChildrenWithReadConstraint = 0;
+	public int numberOfChildrenWithWriteConstraint = 0;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -36,19 +37,19 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 					"divaOrganisationNameGroup");
 			childReferences.addChild(childReference);
 
-			if (numberOfChildsWithConstraint > 0) {
+			if (numberOfChildrenWithReadConstraint > 0) {
 				DataGroupSpy referenceWithConstraint = createChildWithConstraint(
 						"metadataTextVariable", "divaOrganisationRoot", "readWrite");
 				childReferences.addChild(referenceWithConstraint);
 
 			}
-			if (numberOfChildsWithConstraint > 1) {
+			if (numberOfChildrenWithReadConstraint > 1) {
 				DataGroupSpy referenceWithConstraint2 = createChildWithConstraint(
 						"metadataTextVariable", "showInPortalTextVar", "readWrite");
 				childReferences.addChild(referenceWithConstraint2);
 
 			}
-			if (numberOfChildsWithConstraint > 2) {
+			if (numberOfChildrenWithWriteConstraint > 0) {
 				DataGroupSpy referenceWithConstraint3 = createChildWithConstraint(
 						"metadataTextVariable", "showInDefenceTextVar", "write");
 				childReferences.addChild(referenceWithConstraint3);
