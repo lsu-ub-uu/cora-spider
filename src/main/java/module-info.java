@@ -1,3 +1,7 @@
+/**
+ * The spider module sits in the center of a Cora based system, managing data flow to and from other
+ * modules to bring the parts together as a working system.
+ */
 module se.uu.ub.cora.spider {
 	requires transitive se.uu.ub.cora.beefeater;
 	requires transitive se.uu.ub.cora.bookkeeper;
