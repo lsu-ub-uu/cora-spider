@@ -70,7 +70,7 @@ import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageForValidateDataSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
@@ -415,7 +415,7 @@ public class SpiderRecordValidatorTest {
 
 	@Test
 	public void testUnauthorizedForCreateOnValidationorderRecordTypeShouldNotValidate() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
 		HashSet<String> hashSet = new HashSet<String>();
 		hashSet.add("create");

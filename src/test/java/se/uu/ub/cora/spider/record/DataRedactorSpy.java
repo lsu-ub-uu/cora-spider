@@ -21,18 +21,18 @@ package se.uu.ub.cora.spider.record;
 
 import java.util.Set;
 
-import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 
-public class RecordPartFilterSpy implements RecordPartFilter {
+public class DataRedactorSpy implements DataRedactor {
 
-	public boolean recordPartFilterForReadHasBeenCalled = false;
+	public boolean dataRedactorHasBeenCalled = false;
 	public boolean replaceRecordPartsUsingPermissionsHasBeenCalled = false;
 	public DataGroupSpy returnedRemovedDataGroup;
 	public DataGroupSpy returnedReplacedDataGroup;
-	public DataGroup lastRecordFilteredForRead;
+	public DataGroup lastDataRedactedForRead;
 	public Set<String> replaceRecordPartConstraints;
 	public Set<String> recordPartReadPermissions;
 	public DataGroup originalDataGroup;
@@ -44,10 +44,10 @@ public class RecordPartFilterSpy implements RecordPartFilter {
 			Set<String> recordPartConstraints, Set<String> recordPartReadPermissions) {
 		this.replaceRecordPartConstraints = recordPartConstraints;
 		this.recordPartReadPermissions = recordPartReadPermissions;
-		lastRecordFilteredForRead = recordRead;
+		lastDataRedactedForRead = recordRead;
 		// recordRead.addChild(new DataAtomicSpy("someExtraStuff", "to"));
 		// recordRead = new DataGroupSpy("filteredDataGroup");
-		recordPartFilterForReadHasBeenCalled = true;
+		dataRedactorHasBeenCalled = true;
 		returnedRemovedDataGroup = new DataGroupSpy("someDataGroupSpy");
 		return returnedRemovedDataGroup;
 	}

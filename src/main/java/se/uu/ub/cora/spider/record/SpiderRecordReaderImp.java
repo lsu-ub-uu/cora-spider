@@ -22,7 +22,7 @@ package se.uu.ub.cora.spider.record;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
@@ -96,7 +96,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, READ,
 						recordType, collectedTerms, hasRecordPartReadWriteConstraint());
 
-		recordRead = filterDataGroup(recordRead, usersReadRecordPartPermissions);
+		recordRead = redactDataGroup(recordRead, usersReadRecordPartPermissions);
 		return enhanceRecord(recordType, recordRead);
 	}
 
@@ -130,13 +130,13 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		return dataGroupTermCollector.collectTerms(metadataId, recordRead);
 	}
 
-	private DataGroup filterDataGroup(DataGroup recordRead,
+	private DataGroup redactDataGroup(DataGroup recordRead,
 			Set<String> usersReadRecordPartPermissions) {
 		if (hasRecordPartReadWriteConstraint()) {
 			Set<String> recordPartReadConstraints = recordTypeHandler
 					.getRecordPartReadConstraints();
-			RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-			return recordPartFilter.removeChildrenForConstraintsWithoutPermissions(recordRead,
+			DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
+			return dataRedactor.removeChildrenForConstraintsWithoutPermissions(recordRead,
 					recordPartReadConstraints, usersReadRecordPartPermissions);
 		}
 		return recordRead;

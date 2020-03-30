@@ -32,8 +32,8 @@ import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataElement;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
-import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
-import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilterImp;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.CollectedDataCreatorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
@@ -280,8 +280,8 @@ public class SpiderDependencyProviderTest {
 
 	@Test
 	public void testGetRecordPartFilter() {
-		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-		assertTrue(recordPartFilter instanceof RecordPartFilterImp);
+		DataRedactor recordPartFilter = dependencyProvider.getDataRedactor();
+		assertTrue(recordPartFilter instanceof DataRedactorImp);
 	}
 
 }

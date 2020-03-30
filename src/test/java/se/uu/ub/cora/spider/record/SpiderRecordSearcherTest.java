@@ -63,7 +63,7 @@ import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -135,7 +135,7 @@ public class SpiderRecordSearcherTest {
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		String searchId = "someSearchId";
 		String authToken = "dummyNonAuthenticatedToken";

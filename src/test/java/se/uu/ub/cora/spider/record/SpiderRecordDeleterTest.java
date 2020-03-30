@@ -58,7 +58,7 @@ import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -122,25 +122,25 @@ public class SpiderRecordDeleterTest {
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		recordDeleter.deleteRecord("dummyNonAuthenticatedToken", "spyType", "spyId");
 	}
 
 	@Test
 	public void testDeleteAuthorizedNoIncomingLinks() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 
 		recordDeleter.deleteRecord("userId", "child1", "place:0002");
-		assertTrue(((RecordStorageSpy) recordStorage).deleteWasCalled);
+		assertTrue(((OldRecordStorageSpy) recordStorage).deleteWasCalled);
 		assertEquals(((RecordIndexerSpy) recordIndexer).type, "child1");
 		assertEquals(((RecordIndexerSpy) recordIndexer).id, "place:0002");
 	}
 
 	@Test
 	public void testDeleteAuthorizedNoIncomingLinksCheckExternalDependenciesAreCalled() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 
 		setUpDependencyProvider();
 
@@ -154,7 +154,7 @@ public class SpiderRecordDeleterTest {
 		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
 		assertEquals(dataGroupTermCollectorSpy.metadataId, "child1");
 
-		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
+		OldRecordStorageSpy recordStorageSpy = (OldRecordStorageSpy) recordStorage;
 		assertEquals(dataGroupTermCollectorSpy.dataGroup, recordStorageSpy.readDataGroup);
 
 		assertEquals(authorizatorSpy.calledMethods.get(0),
@@ -167,13 +167,13 @@ public class SpiderRecordDeleterTest {
 
 	@Test
 	public void testExtendedFunctionalityBeforeDelete() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		String recordId = "place:0002";
 		String recordType = "child1";
 		recordDeleter.deleteRecord("userId", recordType, recordId);
 
-		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
+		OldRecordStorageSpy recordStorageSpy = (OldRecordStorageSpy) recordStorage;
 		assertEquals(recordStorageSpy.numOfTimesReadWasCalled, 3);
 		assertEquals(recordStorageSpy.types.get(0), recordType);
 		assertEquals(recordStorageSpy.ids.get(0), recordId);
@@ -197,16 +197,16 @@ public class SpiderRecordDeleterTest {
 
 	@Test(expectedExceptions = MisuseException.class)
 	public void testDeleteAuthorizedWithIncomingLinks() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 
-		((RecordStorageSpy) recordStorage).linksExist = true;
+		((OldRecordStorageSpy) recordStorage).linksExist = true;
 		recordDeleter.deleteRecord("userId", "child1", "place:0001");
 	}
 
 	@Test(expectedExceptions = MisuseException.class)
 	public void testAuthorizedToDeleteAndIncomingLinkToAbstractParent() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 
 		recordDeleter.deleteRecord("userId", "place", "place:0003");

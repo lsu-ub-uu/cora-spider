@@ -58,7 +58,7 @@ import se.uu.ub.cora.spider.dependency.StreamStorageProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -123,7 +123,7 @@ public class SpiderDownloaderTest {
 
 	@Test
 	public void testUnauthorizedForDownloadOnRecordTypeShouldShouldNotAccessStorage() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		authorizator = new AlwaysAuthorisedExceptStub();
 		HashSet<String> hashSet = new HashSet<String>();
 		hashSet.add("download");
@@ -139,10 +139,10 @@ public class SpiderDownloaderTest {
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);
-		assertFalse(((RecordStorageSpy) recordStorage).readWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).updateWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).deleteWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).createWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).readWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).updateWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).deleteWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).createWasCalled);
 	}
 
 	@Test
@@ -157,7 +157,7 @@ public class SpiderDownloaderTest {
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		downloader.download("dummyNonAuthenticatedToken", "image", "image:123456789", "master");
 	}

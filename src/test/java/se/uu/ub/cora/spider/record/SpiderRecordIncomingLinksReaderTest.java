@@ -53,7 +53,7 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -204,7 +204,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testReadIncomingLinksAuthenticationNotAuthenticated() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		incomingLinksReader.readIncomingLinks("dummyNonAuthenticatedToken", "place", "place:0001");
 	}
@@ -218,7 +218,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 	@Test(expectedExceptions = MisuseException.class)
 	public void testReadIncomingLinksAbstractType() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 
 		incomingLinksReader.readIncomingLinks("someToken78678567", "abstract", "place:0001");

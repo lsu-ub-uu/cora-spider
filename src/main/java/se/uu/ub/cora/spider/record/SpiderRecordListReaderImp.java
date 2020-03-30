@@ -25,7 +25,6 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataListProvider;
 import se.uu.ub.cora.data.DataRecord;
@@ -46,9 +45,12 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataValidator dataValidator;
 	private StorageReadResult readResult;
+	private SpiderDependencyProvider dependencyProvider;
+	private RecordTypeHandler recordTypeHandler;
 
 	private SpiderRecordListReaderImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
@@ -64,12 +66,13 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	@Override
 	public DataList readRecordList(String authToken, String recordType, DataGroup filter) {
+		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		ensureActiveUserHasListPermissionUsingAuthTokenAndRecordType(authToken, recordType);
 
 		readRecordList = DataListProvider.getDataListWithNameOfDataType(recordType);
 		DataGroup recordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordType);
 		validateFilterIfNotEmpty(filter, recordType, recordTypeDataGroup);
-		readRecordsOfType(recordType, filter, recordTypeDataGroup);
+		readRecordsOfType(recordType, filter);
 		readRecordList.setTotalNo(String.valueOf(readResult.totalNumberOfMatches));
 		setFromToInReadRecordList();
 
@@ -119,19 +122,8 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		throwErrorIfRecordTypeHasNoDefinedFilter(recordType, recordTypeDataGroup);
 
 		String filterMetadataId = getMetadataIdForFilter(recordTypeDataGroup);
+		// recordTypeHandler.getFilter();
 		validateFilterAsSpecifiedInMetadata(filter, filterMetadataId);
-	}
-
-	private void validateFilterAsSpecifiedInMetadata(DataGroup filter, String filterMetadataId) {
-		ValidationAnswer validationAnswer = dataValidator.validateData(filterMetadataId, filter);
-		if (validationAnswer.dataIsInvalid()) {
-			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
-		}
-	}
-
-	private String getMetadataIdForFilter(DataGroup recordTypeDataGroup) {
-		DataGroup filterGroup = recordTypeDataGroup.getFirstGroupWithNameInData(FILTER_STRING);
-		return filterGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	private void throwErrorIfRecordTypeHasNoDefinedFilter(String recordType,
@@ -141,24 +133,32 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		}
 	}
 
-	private void readRecordsOfType(String recordType, DataGroup filter,
-			DataGroup recordTypeDataGroup) {
-		if (recordTypeIsAbstract(recordTypeDataGroup)) {
-			addChildrenOfAbstractTypeToReadRecordList(recordType);
+	private String getMetadataIdForFilter(DataGroup recordTypeDataGroup) {
+		DataGroup filterGroup = recordTypeDataGroup.getFirstGroupWithNameInData(FILTER_STRING);
+		return filterGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+	}
+
+	private void validateFilterAsSpecifiedInMetadata(DataGroup filter, String filterMetadataId) {
+		ValidationAnswer validationAnswer = dataValidator.validateData(filterMetadataId, filter);
+		if (validationAnswer.dataIsInvalid()) {
+			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
+		}
+	}
+
+	private void readRecordsOfType(String recordType, DataGroup filter) {
+
+		// Kolla om man har rättigheter att läsa den posttyp
+
+		if (recordTypeHandler.isAbstract()) {
+			addChildrenOfAbstractTypeToReadRecordList(recordType, filter);
 		} else {
 			readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(recordType, filter);
 		}
 	}
 
-	private boolean recordTypeIsAbstract(DataGroup recordTypeDataGroup) {
-
-		String abstractString = recordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract");
-		return "true".equals(abstractString);
-	}
-
-	private void addChildrenOfAbstractTypeToReadRecordList(String abstractRecordType) {
-		DataGroup emptyFilter = DataGroupProvider.getDataGroupUsingNameInData(FILTER_STRING);
-		readResult = recordStorage.readAbstractList(abstractRecordType, emptyFilter);
+	private void addChildrenOfAbstractTypeToReadRecordList(String abstractRecordType,
+			DataGroup filter) {
+		readResult = recordStorage.readAbstractList(abstractRecordType, filter);
 		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
 		for (DataGroup dataGroup : dataGroupList) {
 			String type = extractRecordTypeFromDataGroup(dataGroup);
@@ -176,6 +176,13 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	private void enhanceDataGroupAndAddToRecordList(DataGroup dataGroup,
 			String recordTypeForRecord) {
+		// FILTER DATA
+		// DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
+		// Set<String> usersReadRecordPartPermissions = spiderAuthorizator
+		// .checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, READ,
+		// recordType, collectedTerms, hasRecordPartReadWriteConstraint());
+		// recordTypeForRecord = redactDataGroup(recordTypeForRecord,
+		// usersReadRecordPartPermissions);
 		DataRecord dataRecord = dataGroupToRecordEnhancer.enhance(user, recordTypeForRecord,
 				dataGroup);
 		if (dataRecord.getActions().contains(se.uu.ub.cora.data.Action.READ)) {
@@ -188,6 +195,9 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		readResult = recordStorage.readList(type, filter);
 		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
 		this.recordType = type;
+		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(null,
+				null, null, null, false);
+
 		for (DataGroup dataGroup : dataGroupList) {
 			enhanceDataGroupAndAddToRecordList(dataGroup, type);
 		}

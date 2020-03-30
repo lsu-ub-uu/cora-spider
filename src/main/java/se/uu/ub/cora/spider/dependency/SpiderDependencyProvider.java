@@ -29,8 +29,8 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolderFromStoragePopulator;
-import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
-import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilterImp;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.CollectedDataCreatorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
@@ -190,8 +190,8 @@ public abstract class SpiderDependencyProvider {
 		return !initInfo.containsKey(key);
 	}
 
-	public RecordPartFilter getRecordPartFilter() {
-		return new RecordPartFilterImp();
+	public DataRedactor getDataRedactor() {
+		return new DataRedactorImp();
 	}
 
 	protected abstract void tryToInitialize() throws Exception;

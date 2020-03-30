@@ -23,7 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.search.RecordIndexer;
@@ -56,7 +56,7 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public boolean readInitInfoWasCalled;
 	public boolean tryToInitializeWasCalled;
 	public RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
-	public RecordPartFilter recordPartFilter;
+	public DataRedactor dataRedactor;
 
 	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
 		super(initInfo);
@@ -135,7 +135,7 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	}
 
 	@Override
-	public RecordPartFilter getRecordPartFilter() {
-		return recordPartFilter;
+	public DataRedactor getDataRedactor() {
+		return dataRedactor;
 	}
 }

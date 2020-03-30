@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -60,13 +61,14 @@ import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
+import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -90,6 +92,7 @@ public class SpiderRecordListReaderTest {
 	private DataAtomicFactorySpy dataAtomicFactory;
 	private DataListFactory dataListFactory;
 	private DataCopierFactory dataCopierFactory;
+	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -133,11 +136,12 @@ public class SpiderRecordListReaderTest {
 		recordListReader = SpiderRecordListReaderImp
 				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProvider,
 						dataGroupToRecordEnhancer);
+		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
 	}
 
 	@Test
 	public void testExternalDependenciesAreCalled() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
@@ -152,12 +156,12 @@ public class SpiderRecordListReaderTest {
 
 		assertDataGroupEquality(dataValidatorAlwaysValidSpy.dataGroup, nonEmptyFilter);
 
-		assertTrue(((RecordStorageSpy) recordStorage).readListWasCalled);
+		assertTrue(((OldRecordStorageSpy) recordStorage).readListWasCalled);
 	}
 
 	@Test
 	public void testFilterValidationIsCalledCorrectlyWithOtherFilter() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		DataGroup filter = new DataGroupSpy("filter2");
 		DataGroup part = new DataGroupSpy("part");
@@ -172,7 +176,7 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testFilterValidationIsCalledCorrectlyForStart() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 
 		exampleFilter.addChild(new DataAtomicSpy("start", "1"));
@@ -185,7 +189,7 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testFilterValidationIsCalledCorrectlyForRows() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 
 		exampleFilter.addChild(new DataAtomicSpy("rows", "1"));
@@ -198,7 +202,7 @@ public class SpiderRecordListReaderTest {
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		recordListReader.readRecordList("dummyNonAuthenticatedToken", "spyType", emptyFilter);
 	}
@@ -306,6 +310,7 @@ public class SpiderRecordListReaderTest {
 	@Test
 	public void testReadAbstractListReturnedStartIsFromStorage() {
 		recordStorage = new RecordStorageResultListCreatorSpy();
+
 		setUpDependencyProvider();
 		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
 		recordStorageSpy.abstractString = "true";
@@ -341,7 +346,7 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListFilterIsPassedOnToStorage() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 
 		DataGroup filter = new DataGroupSpy("filter");
@@ -352,7 +357,7 @@ public class SpiderRecordListReaderTest {
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, filter);
 
-		DataGroup filterFromStorage = ((RecordStorageSpy) recordStorage).filters.get(0);
+		DataGroup filterFromStorage = ((OldRecordStorageSpy) recordStorage).filters.get(0);
 		assertEquals(filterFromStorage.getNameInData(), "filter");
 		DataGroup extractedPart = filterFromStorage.getFirstGroupWithNameInData("part");
 		assertEquals(extractedPart.getFirstAtomicValueWithNameInData("key"), "someKey");
@@ -380,8 +385,10 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListAbstractRecordType() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
+		recordTypeHandlerSpy.isAbstract = true;
+
 		DataList dataList = recordListReader.readRecordList(SOME_USER_TOKEN, "abstract",
 				emptyFilter);
 		assertEquals(dataList.getTotalNumberOfTypeInStorage(), "199");
@@ -393,9 +400,23 @@ public class SpiderRecordListReaderTest {
 	}
 
 	@Test
-	public void testRecordEnhancerCalledForAbstractType() {
-		recordStorage = new RecordStorageSpy();
+	public void testReadListAbstractFilterPassedOnToStorage() {
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
+		recordTypeHandlerSpy.isAbstract = true;
+
+		recordListReader.readRecordList(SOME_USER_TOKEN, "abstract", exampleFilter);
+		DataGroup sentListRecordFilter = ((OldRecordStorageSpy) recordStorage).filter;
+
+		assertSame(sentListRecordFilter, exampleFilter);
+	}
+
+	@Test
+	public void testRecordEnhancerCalledForType() {
+		recordStorage = new OldRecordStorageSpy();
+		setUpDependencyProvider();
+		recordTypeHandlerSpy.isAbstract = true;
+
 		recordListReader.readRecordList(SOME_USER_TOKEN, "abstract", emptyFilter);
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
 		assertEquals(dataGroupToRecordEnhancer.recordType, "implementing2");
@@ -413,8 +434,9 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListAbstractRecordTypeNoDataForOneRecordType() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
+		recordTypeHandlerSpy.isAbstract = true;
 
 		DataList dataList = recordListReader.readRecordList(SOME_USER_TOKEN, "abstract2",
 				emptyFilter);
@@ -474,7 +496,7 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListNotAuthorizedButPublicRecordType() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		authorizator = new AlwaysAuthorisedExceptStub();
 		AlwaysAuthorisedExceptStub authorisedExceptStub = (AlwaysAuthorisedExceptStub) authorizator;
 		HashSet<String> hashSet = new HashSet<String>();
@@ -484,7 +506,7 @@ public class SpiderRecordListReaderTest {
 		setUpDependencyProvider();
 
 		recordListReader.readRecordList("unauthorizedUserId", "publicReadType", emptyFilter);
-		assertTrue(((RecordStorageSpy) recordStorage).readListWasCalled);
+		assertTrue(((OldRecordStorageSpy) recordStorage).readListWasCalled);
 	}
 
 	private void assertDataGroupEquality(DataGroup actual, DataGroup expected) {
@@ -534,4 +556,20 @@ public class SpiderRecordListReaderTest {
 		assertEquals(actual.getRepeatId(), expected.getRepeatId());
 		assertEquals(actual.getAttributes(), expected.getAttributes());
 	}
+
+	// @Test
+	// public void testReadListIsAuthorizedPerRecord() {
+	//
+	// ((OldRecordStorageSpy) recordStorage).numberOfRecordsToReturnForReadRecordList = 2;
+	//
+	// recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, exampleFilter);
+	//
+	// AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy)
+	// authorizator);
+	// assertFalse(authorizatorSpy.calledMethods.isEmpty());
+	// assertEquals(authorizatorSpy.calledMethods.get(0),
+	// "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+	// assertEquals(authorizatorSpy.calledMethods.size(), "2");
+	//
+	// }
 }

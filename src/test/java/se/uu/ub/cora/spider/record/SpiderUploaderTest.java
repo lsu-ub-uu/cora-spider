@@ -80,7 +80,7 @@ import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
@@ -173,7 +173,7 @@ public class SpiderUploaderTest {
 	public void testExternalDependenciesAreCalled() {
 		factory = new SpiderInstanceFactorySpy2();
 		setUpDependencyProvider();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
@@ -186,7 +186,7 @@ public class SpiderUploaderTest {
 				stream, "someFileName");
 		assertResourceInfoIsCorrect(recordUpdated);
 
-		assertTrue(((RecordStorageSpy) recordStorage).readWasCalled);
+		assertTrue(((OldRecordStorageSpy) recordStorage).readWasCalled);
 
 		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorizator).authorizedWasCalled);
 
@@ -197,14 +197,14 @@ public class SpiderUploaderTest {
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		uploader.upload("dummyNonAuthenticatedToken", "place", "place:0002", null, "someFileName");
 	}
 
 	@Test
 	public void testUnauthorizedForDownloadOnRecordTypeShouldShouldNotAccessStorage() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		authorizator = new AlwaysAuthorisedExceptStub();
 		HashSet<String> hashSet = new HashSet<String>();
 		hashSet.add("upload");
@@ -224,10 +224,10 @@ public class SpiderUploaderTest {
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);
-		assertFalse(((RecordStorageSpy) recordStorage).readWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).updateWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).deleteWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).createWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).readWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).updateWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).deleteWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).createWasCalled);
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)

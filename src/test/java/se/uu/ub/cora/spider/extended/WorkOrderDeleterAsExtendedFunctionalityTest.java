@@ -38,7 +38,7 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.SpiderRecordDeleterSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 
@@ -62,7 +62,7 @@ public class WorkOrderDeleterAsExtendedFunctionalityTest {
 		dependencyProvider.authenticator = new AuthenticatorSpy();
 
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		recordStorageProviderSpy.recordStorage = new RecordStorageSpy();
+		recordStorageProviderSpy.recordStorage = new OldRecordStorageSpy();
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 
 		dependencyProvider.spiderAuthorizator = new AlwaysAuthorisedExceptStub();

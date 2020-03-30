@@ -20,12 +20,12 @@ package se.uu.ub.cora.spider.dependency;
 
 import java.util.Map;
 
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 
 public class RecordStorageProviderSpy implements RecordStorageProvider {
-	public RecordStorage recordStorage = new RecordStorageSpy();
+	public RecordStorage recordStorage = new OldRecordStorageSpy();
 
 	@Override
 	public int getOrderToSelectImplementionsBy() {

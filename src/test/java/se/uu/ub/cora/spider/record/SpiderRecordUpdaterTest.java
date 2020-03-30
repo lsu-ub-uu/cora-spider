@@ -73,7 +73,7 @@ import se.uu.ub.cora.spider.spy.DataValidatorForRecordInfoSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageUpdateMultipleTimesSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
@@ -103,7 +103,7 @@ public class SpiderRecordUpdaterTest {
 	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataCopierFactory dataCopierFactory;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
-	private RecordPartFilterSpy recordPartFilterSpy;
+	private DataRedactorSpy dataRedactorSpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -117,7 +117,7 @@ public class SpiderRecordUpdaterTest {
 		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		recordPartFilterSpy = new RecordPartFilterSpy();
+		dataRedactorSpy = new DataRedactorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -149,13 +149,13 @@ public class SpiderRecordUpdaterTest {
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
 		recordUpdater = SpiderRecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
-		dependencyProvider.recordPartFilter = recordPartFilterSpy;
+		dependencyProvider.dataRedactor = dataRedactorSpy;
 	}
 
 	@Test
 	public void testExternalDependenciesAreCalled() {
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
@@ -169,7 +169,7 @@ public class SpiderRecordUpdaterTest {
 		assertTrue(authorizatorSpy.authorizedWasCalled);
 
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
-		assertTrue(((RecordStorageSpy) recordStorage).updateWasCalled);
+		assertTrue(((OldRecordStorageSpy) recordStorage).updateWasCalled);
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId,
 				"fakeMetadataIdFromRecordTypeHandlerSpy");
@@ -188,7 +188,7 @@ public class SpiderRecordUpdaterTest {
 	@Test
 	public void testCorrectSpiderAuthorizatorForNoRecordPartConstraints() throws Exception {
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
@@ -204,10 +204,10 @@ public class SpiderRecordUpdaterTest {
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
 		assertFalse(authorizatorSpy.calculateRecordPartPermissions);
 
-		assertFalse(recordPartFilterSpy.replaceRecordPartsUsingPermissionsHasBeenCalled);
+		assertFalse(dataRedactorSpy.replaceRecordPartsUsingPermissionsHasBeenCalled);
 		// reading updated data
 		assertFalse(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
-		assertFalse(recordPartFilterSpy.recordPartFilterForReadHasBeenCalled);
+		assertFalse(dataRedactorSpy.dataRedactorHasBeenCalled);
 
 		assertSame(dataGroup, ((DataValidatorAlwaysValidSpy) dataValidator).dataGroup);
 	}
@@ -215,7 +215,7 @@ public class SpiderRecordUpdaterTest {
 	@Test
 	public void testCorrectSpiderAuthorizatorForWriteRecordPartConstraints() throws Exception {
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
@@ -229,26 +229,26 @@ public class SpiderRecordUpdaterTest {
 
 		assertEquals(authorizatorSpy.calledMethods.get(0),
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
-		assertTrue(recordPartFilterSpy.replaceRecordPartsUsingPermissionsHasBeenCalled);
-		assertSame(recordPartFilterSpy.changedDataGroup, dataGroup);
-		assertSame(recordPartFilterSpy.originalDataGroup,
-				((RecordStorageSpy) recordStorage).aRecord);
-		assertSame(recordPartFilterSpy.replaceRecordPartConstraints,
+		assertTrue(dataRedactorSpy.replaceRecordPartsUsingPermissionsHasBeenCalled);
+		assertSame(dataRedactorSpy.changedDataGroup, dataGroup);
+		assertSame(dataRedactorSpy.originalDataGroup,
+				((OldRecordStorageSpy) recordStorage).aRecord);
+		assertSame(dataRedactorSpy.replaceRecordPartConstraints,
 				recordTypeHandlerSpy.writeConstraints);
-		assertSame(recordPartFilterSpy.replaceRecordPartPermissions,
+		assertSame(dataRedactorSpy.replaceRecordPartPermissions,
 				((AuthorizatorAlwaysAuthorizedSpy) spiderAuthorizator).recordPartReadPermissions);
-		assertSame(recordPartFilterSpy.returnedReplacedDataGroup,
+		assertSame(dataRedactorSpy.returnedReplacedDataGroup,
 				((DataValidatorAlwaysValidSpy) dataValidator).dataGroup);
 
 		// reading updated data
 		assertFalse(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
-		assertFalse(recordPartFilterSpy.recordPartFilterForReadHasBeenCalled);
+		assertFalse(dataRedactorSpy.dataRedactorHasBeenCalled);
 	}
 
 	@Test
 	public void testCorrectSpiderAuthorizatorForReadWriteRecordPartConstraints() throws Exception {
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
@@ -265,13 +265,13 @@ public class SpiderRecordUpdaterTest {
 
 		// reading updated data
 		assertTrue(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
-		assertTrue(recordPartFilterSpy.recordPartFilterForReadHasBeenCalled);
-		assertSame(recordPartFilterSpy.returnedReplacedDataGroup,
-				recordPartFilterSpy.lastRecordFilteredForRead);
-		assertEquals(recordPartFilterSpy.replaceRecordPartConstraints,
+		assertTrue(dataRedactorSpy.dataRedactorHasBeenCalled);
+		assertSame(dataRedactorSpy.returnedReplacedDataGroup,
+				dataRedactorSpy.lastDataRedactedForRead);
+		assertEquals(dataRedactorSpy.replaceRecordPartConstraints,
 				recordTypeHandlerSpy.getRecordPartReadConstraints());
 		assertEquals(authorizatorSpy.recordPartReadPermissions,
-				recordPartFilterSpy.recordPartReadPermissions);
+				dataRedactorSpy.recordPartReadPermissions);
 
 		// authorizator second read
 		assertEquals(authorizatorSpy.calledMethods.get(2),
@@ -285,13 +285,13 @@ public class SpiderRecordUpdaterTest {
 
 		// removed datgorup returned
 		DataGroup lastEnhancedDataGroup = dataGroupToRecordEnhancer.dataGroup;
-		assertSame(recordPartFilterSpy.returnedRemovedDataGroup, lastEnhancedDataGroup);
+		assertSame(dataRedactorSpy.returnedRemovedDataGroup, lastEnhancedDataGroup);
 	}
 
 	@Test
 	public void testRecordEnhancerCalled() {
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 		DataGroup dataGroup = new DataGroupSpy("nameInData");
@@ -306,7 +306,7 @@ public class SpiderRecordUpdaterTest {
 
 	@Test
 	public void testCorrectRecordInfoInUpdatedRecord() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		dataValidator = new DataValidatorForRecordInfoSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
@@ -495,7 +495,7 @@ public class SpiderRecordUpdaterTest {
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
 				"nameInData", "spyId", "spyType", "cora");
@@ -504,7 +504,7 @@ public class SpiderRecordUpdaterTest {
 
 	@Test
 	public void testUnauthorizedForUpdateOnRecordTypeShouldNotAccessStorage() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
 		HashSet<String> hashSet = new HashSet<String>();
 		hashSet.add("update");
@@ -524,16 +524,16 @@ public class SpiderRecordUpdaterTest {
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);
-		assertFalse(((RecordStorageSpy) recordStorage).readWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).updateWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).deleteWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).createWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).readWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).updateWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).deleteWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).createWasCalled);
 	}
 
 	@Test
 	public void testExtendedFunctionalityIsCalled() {
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 

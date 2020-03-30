@@ -57,7 +57,7 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.MetadataStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -77,7 +77,7 @@ public class SpiderRecordReaderTest {
 	private DataAtomicFactorySpy dataAtomicFactory;
 	private DataCopierFactorySpy dataCopierFactory;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
-	private RecordPartFilterSpy recordPartFilter;
+	private DataRedactorSpy dataRedactor;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -87,7 +87,7 @@ public class SpiderRecordReaderTest {
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
 		termCollector = new DataGroupTermCollectorSpy();
-		recordPartFilter = new RecordPartFilterSpy();
+		dataRedactor = new DataRedactorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -123,13 +123,13 @@ public class SpiderRecordReaderTest {
 				dependencyProvider, dataGroupToRecordEnhancer);
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
 
-		dependencyProvider.recordPartFilter = recordPartFilter;
+		dependencyProvider.dataRedactor = dataRedactor;
 
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		recordReader.readRecord("dummyNonAuthenticatedToken", "spyType", "spyId");
 	}
@@ -216,13 +216,13 @@ public class SpiderRecordReaderTest {
 			assertFalse(authorizatorSpy.calledMethods.isEmpty());
 			assertEquals(authorizatorSpy.calledMethods.get(callMethodsSize),
 					"read:checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
-			assertFalse(recordPartFilter.recordPartFilterForReadHasBeenCalled);
+			assertFalse(dataRedactor.dataRedactorHasBeenCalled);
 		}
 	}
 
 	@Test
 	public void testReadRecordAbstractRecordType() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.isPublicForRead = false;
 		recordTypeHandlerSpy.isAbstract = true;
@@ -250,7 +250,7 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testUnauthorizedForRecordTypeShouldNeverReadRecordFromStorage() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		authorizator = new NeverAuthorisedStub();
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.isPublicForRead = false;
@@ -263,12 +263,12 @@ public class SpiderRecordReaderTest {
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);
-		assertEquals(((RecordStorageSpy) recordStorage).numOfTimesReadWasCalled, 0);
+		assertEquals(((OldRecordStorageSpy) recordStorage).numOfTimesReadWasCalled, 0);
 	}
 
 	@Test
 	public void testUnauthorizedForRulesAgainsRecord() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		authorizator = new AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType();
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.isPublicForRead = false;
@@ -281,7 +281,7 @@ public class SpiderRecordReaderTest {
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);
-		assertEquals(((RecordStorageSpy) recordStorage).readWasCalled, true);
+		assertEquals(((OldRecordStorageSpy) recordStorage).readWasCalled, true);
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)
@@ -291,7 +291,7 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testReadNotAuthorizedToReadRecordTypeButPublicRecordType() throws Exception {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		authorizator = new AlwaysAuthorisedExceptStub();
 		AlwaysAuthorisedExceptStub authorisedExceptStub = (AlwaysAuthorisedExceptStub) authorizator;
 		HashSet<String> hashSet = new HashSet<String>();
@@ -307,7 +307,7 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testReadPublicRecordType() throws Exception {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType authorizatorSpy = new AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType();
 		setUpDependencyProvider();
 		// publicReadType
@@ -317,12 +317,12 @@ public class SpiderRecordReaderTest {
 		assertNotNull(readRecord);
 		assertFalse(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
 		assertFalse(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
-		assertFalse(recordPartFilter.recordPartFilterForReadHasBeenCalled);
+		assertFalse(dataRedactor.dataRedactorHasBeenCalled);
 	}
 
 	@Test
 	public void testRecordHasNoPartConstraints() throws Exception {
-		RecordStorageSpy recordStorageSpy = new RecordStorageSpy();
+		OldRecordStorageSpy recordStorageSpy = new OldRecordStorageSpy();
 		recordStorage = recordStorageSpy;
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.recordPartConstraint = "";
@@ -331,12 +331,12 @@ public class SpiderRecordReaderTest {
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
 		assertFalse(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
-		assertFalse(recordPartFilter.recordPartFilterForReadHasBeenCalled);
+		assertFalse(dataRedactor.dataRedactorHasBeenCalled);
 	}
 
 	@Test
 	public void testRecordHasReadPartConstraints() throws Exception {
-		RecordStorageSpy recordStorageSpy = new RecordStorageSpy();
+		OldRecordStorageSpy recordStorageSpy = new OldRecordStorageSpy();
 		recordStorage = recordStorageSpy;
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
@@ -346,17 +346,17 @@ public class SpiderRecordReaderTest {
 
 		assertTrue(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
-		assertTrue(recordPartFilter.recordPartFilterForReadHasBeenCalled);
+		assertTrue(dataRedactor.dataRedactorHasBeenCalled);
 		assertEquals(authorizatorSpy.recordPartReadPermissions,
-				recordPartFilter.recordPartReadPermissions);
-		assertSame(recordStorageSpy.aRecord, recordPartFilter.lastRecordFilteredForRead);
+				dataRedactor.recordPartReadPermissions);
+		assertSame(recordStorageSpy.aRecord, dataRedactor.lastDataRedactedForRead);
 		DataGroup lastEnhancedDataGroup = dataGroupToRecordEnhancer.dataGroup;
-		assertSame(recordPartFilter.returnedRemovedDataGroup, lastEnhancedDataGroup);
+		assertSame(dataRedactor.returnedRemovedDataGroup, lastEnhancedDataGroup);
 	}
 
 	@Test
-	public void testRecordHasReadPartConstraintsFilterParameters() throws Exception {
-		RecordStorageSpy recordStorageSpy = new RecordStorageSpy();
+	public void testRecordHasReadPartConstraintsRedactorParameters() throws Exception {
+		OldRecordStorageSpy recordStorageSpy = new OldRecordStorageSpy();
 		recordStorage = recordStorageSpy;
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
@@ -366,12 +366,11 @@ public class SpiderRecordReaderTest {
 
 		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
 
-		String metadataGroupNamInData = recordTypeHandlerSpy.getMetadataGroup()
-				.getFirstAtomicValueWithNameInData("nameInData");
+		recordTypeHandlerSpy.getMetadataGroup().getFirstAtomicValueWithNameInData("nameInData");
 
-		assertEquals(recordPartFilter.recordPartReadPermissions.size(),
+		assertEquals(dataRedactor.recordPartReadPermissions.size(),
 				authorizatorSpy.recordPartReadPermissions.size());
-		assertEquals(recordPartFilter.replaceRecordPartConstraints,
+		assertEquals(dataRedactor.replaceRecordPartConstraints,
 				recordTypeHandlerSpy.getRecordPartReadConstraints());
 
 	}

@@ -21,17 +21,16 @@ package se.uu.ub.cora.spider.spy;
 
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
-import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
 
 public class DataValidatorForRecordInfoSpy implements DataValidator {
 	public boolean validateDataWasCalled = false;
 
 	@Override
-	public ValidationAnswer validateData(String metadataId, DataElement dataElement) {
+	public ValidationAnswer validateData(String metadataId, DataGroup dataElement) {
 		validateDataWasCalled = true;
 		ValidationAnswer validationAnswer = new ValidationAnswer();
-		DataGroup dataGroup = (DataGroup) dataElement;
+		DataGroup dataGroup = dataElement;
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup updated = recordInfo.getFirstGroupWithNameInData("updated");
 		if (!updated.containsChildWithNameInData("tsUpdated")) {

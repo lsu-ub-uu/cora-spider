@@ -30,14 +30,14 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 
 public class RecordTypeHandlerTest {
-	private RecordStorageSpy recordStorage;
+	private OldRecordStorageSpy recordStorage;
 
 	@BeforeMethod
 	public void setUp() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 	}
 
 	@Test

@@ -75,7 +75,7 @@ import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageDuplicateSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
@@ -161,7 +161,7 @@ public class SpiderRecordCreatorTest {
 	public void testExternalDependenciesAreCalled() {
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
@@ -175,7 +175,7 @@ public class SpiderRecordCreatorTest {
 		ExtendedFunctionalitySpy extendedFunctionality = extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation
 				.get(0);
 		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
-		assertTrue(((RecordStorageSpy) recordStorage).createWasCalled);
+		assertTrue(((OldRecordStorageSpy) recordStorage).createWasCalled);
 		assertTrue(((IdGeneratorSpy) idGenerator).getIdForTypeWasCalled);
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyTypeNew");
@@ -196,7 +196,7 @@ public class SpiderRecordCreatorTest {
 	public void testRecordEnhancerCalled() {
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
@@ -212,7 +212,7 @@ public class SpiderRecordCreatorTest {
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
 				"cora");
@@ -223,7 +223,7 @@ public class SpiderRecordCreatorTest {
 	public void testExtendedFunctionallityIsCalled() {
 		spiderAuthorizator = new AuthorizatorAlwaysAuthorizedSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
@@ -243,7 +243,7 @@ public class SpiderRecordCreatorTest {
 
 	@Test
 	public void testIndexerIsCalled() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
@@ -252,7 +252,7 @@ public class SpiderRecordCreatorTest {
 		String authToken = "someToken78678567";
 		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
 
-		DataGroup createdRecord = ((RecordStorageSpy) recordStorage).createRecord;
+		DataGroup createdRecord = ((OldRecordStorageSpy) recordStorage).createRecord;
 		RecordIndexerSpy recordIndexerSpy = (RecordIndexerSpy) recordIndexer;
 		DataGroup indexedRecord = recordIndexerSpy.record;
 		assertEquals(indexedRecord, createdRecord);
@@ -384,7 +384,7 @@ public class SpiderRecordCreatorTest {
 
 	@Test
 	public void testCorrectRecordInfoInCreatedRecord() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		DataGroup record = DataCreator2.createRecordWithNameInDataAndIdAndLinkedRecordId(
 				"testingRecordInfo", "someId", "cora");
@@ -498,7 +498,7 @@ public class SpiderRecordCreatorTest {
 
 	@Test
 	public void testUnauthorizedForCreateOnRecordTypeShouldShouldNotAccessStorage() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
 		HashSet<String> hashSet = new HashSet<String>();
 		hashSet.add("create");
@@ -516,10 +516,10 @@ public class SpiderRecordCreatorTest {
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);
-		assertFalse(((RecordStorageSpy) recordStorage).readWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).updateWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).deleteWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).createWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).readWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).updateWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).deleteWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).createWasCalled);
 		assertEquals(
 				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeMetadataValidation
 						.size(),
@@ -567,7 +567,7 @@ public class SpiderRecordCreatorTest {
 
 	@Test(expectedExceptions = MisuseException.class)
 	public void testCreateRecordAbstractRecordType() {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 
 		DataGroup record = new DataGroupSpy("abstract");

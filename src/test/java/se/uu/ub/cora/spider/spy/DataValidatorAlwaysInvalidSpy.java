@@ -21,13 +21,13 @@ package se.uu.ub.cora.spider.spy;
 
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
-import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataGroup;
 
 public class DataValidatorAlwaysInvalidSpy implements DataValidator {
 	public boolean validateDataWasCalled = false;
 
 	@Override
-	public ValidationAnswer validateData(String metadataId, DataElement dataGroup) {
+	public ValidationAnswer validateData(String metadataGroupId, DataGroup dataGroup) {
 		validateDataWasCalled = true;
 		ValidationAnswer validationAnswer = new ValidationAnswer();
 		validationAnswer.addErrorMessage("Data always invalid");

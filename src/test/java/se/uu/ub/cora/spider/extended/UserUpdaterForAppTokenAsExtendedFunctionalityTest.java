@@ -49,7 +49,7 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceFactorySpy2;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -84,7 +84,7 @@ public class UserUpdaterForAppTokenAsExtendedFunctionalityTest {
 
 		dependencyProvider = new SpiderDependencyProviderSpy(Collections.emptyMap());
 		authenticator = new AuthenticatorSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		extendedFunctionality = UserUpdaterForAppTokenAsExtendedFunctionality
 				.usingSpiderDependencyProvider(dependencyProvider);
