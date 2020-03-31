@@ -57,7 +57,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private String authToken;
 	private User user;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
-	private DataGroupTermCollector collectTermCollector;
+	private DataGroupTermCollector dataGroupTermCollector;
 	private RecordIndexer recordIndexer;
 	private DataGroup topDataGroup;
 	private RecordTypeHandler recordTypeHandler;
@@ -74,7 +74,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
+		this.dataGroupTermCollector = dependencyProvider.getDataGroupTermCollector();
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 
@@ -109,7 +109,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		useExtendedFunctionalityAfterMetadataValidation(recordType, dataGroup);
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topDataGroup);
+		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId, topDataGroup);
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
 
 		updateRecordInStorage(collectedTerms);
@@ -131,7 +131,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
 		previouslyStoredRecord = recordStorage.read(recordType, recordId);
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId,
+		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId,
 				previouslyStoredRecord);
 
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);

@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertRecordStorageWasCalledOnlyOnceForReadKey;
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertRecordStorageWasNOTCalledForReadKey;
@@ -30,6 +31,7 @@ import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevel
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
@@ -47,27 +49,25 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordFactory;
 import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
+import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizorNeverAuthorized;
 
 public class DataGroupToRecordEnhancerTest {
 	private RecordEnhancerTestsRecordStorage recordStorage;
-	private Authenticator authenticator;
-	private SpiderAuthorizator authorizator;
+	private AuthenticatorSpy authenticator;
+	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private User user;
@@ -84,7 +84,7 @@ public class DataGroupToRecordEnhancerTest {
 		user = new User("987654321");
 		recordStorage = new RecordEnhancerTestsRecordStorage();
 		authenticator = new AuthenticatorSpy();
-		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		authorizator = new SpiderAuthorizatorSpy();
 		keyCalculator = new NoRulesCalculatorStub();
 		termCollector = new DataGroupTermCollectorSpy();
 		setUpDependencyProvider();
@@ -144,8 +144,7 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testNotAuthorizedToDeleteAndNoIncomingLink() {
-		authorizator = new NeverAuthorisedStub();
-		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 
 		DataGroup dataGroup = recordStorage.read("place", "place:0002");
 		String recordType = "place";
@@ -185,8 +184,7 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testNotAuthorizedToDeleteAndIncomingLink() {
-		authorizator = new NeverAuthorisedStub();
-		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 
 		String recordType = "place";
 		DataGroup dataGroup = recordStorage.read("place", "place:0001");
@@ -245,8 +243,8 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testNotAuthorizedOnReadImage() {
-		authorizator = new NeverAuthorisedStub();
-		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
+
 		DataGroup dataGroup = recordStorage.read("image", "image:0001");
 		String recordType = "image";
 		DataRecord record = enhancer.enhance(user, recordType, dataGroup);
@@ -268,18 +266,57 @@ public class DataGroupToRecordEnhancerTest {
 
 		assertTrue(record.getActions().contains(Action.LIST));
 
-		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizator);
-		assertEquals(authorizatorSpy.userIsAuthorizedParameters.get(0),
-				"987654321:read:recordType");
+		// SpiderAuthorizatorSpy authorizatorSpy = (authorizator);
+		// assertEquals(authorizatorSpy.userIsAuthorizedParameters.get(0),
+		// "987654321:read:recordType");
+		//
+		//// DataGroupTermCollectorSpy dataGroupTermCollectorSpy = termCollector;
+		//
+		// assertEquals(authorizatorSpy.calledMethods.get(0),
+		// "userIsAuthorizedForActionOnRecordTypeAndCollectedData");
+		// assertEquals(authorizatorSpy.collectedTerms.get(0),
+		// dataGroupTermCollectorSpy.returnedCollectedTerms.get(0));
 
-		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = termCollector;
-		assertEquals(dataGroupTermCollectorSpy.metadataId, "dataWithLinks");
-		assertEquals(dataGroupTermCollectorSpy.dataGroups.get(0), dataGroup);
+		Map<String, Object> parameters = authorizator.testCallRecorder
+				.getParametersForMethodAndCallNumber("userIsAuthorizedForActionOnRecordType", 0);
+		assertSame(parameters.get("user"), user);
+		assertEquals(parameters.get("action"), "list");
+		assertEquals(parameters.get("recordType"), "recordType");
 
-		assertEquals(authorizatorSpy.calledMethods.get(0),
-				"userIsAuthorizedForActionOnRecordTypeAndCollectedData");
-		assertEquals(authorizatorSpy.collectedTerms.get(0),
-				dataGroupTermCollectorSpy.returnedCollectedTerms.get(0));
+		Map<String, Object> parameters2 = authorizator.testCallRecorder
+				.getParametersForMethodAndCallNumber("userIsAuthorizedForActionOnRecordType", 1);
+		assertSame(parameters2.get("user"), user);
+		assertEquals(parameters2.get("action"), "search");
+		assertEquals(parameters2.get("recordType"), "someRecordType");
+
+		assertEquals(authorizator.testCallRecorder
+				.getNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType"), 2);
+
+		// Map<String, Object> parameters = spiderAuthorizator.testCallRecorder
+		// .getParametersForMethodAndCallNumber(
+		// "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
+		// assertSame(parameters.get("user"), authenticator.returnedUser);
+		// assertEquals(parameters.get("action"), "update");
+		// assertEquals(parameters.get("recordType"), "spyType");
+		// assertSame(parameters.get("collectedData"), termCollector.returnedCollectedTerms.get(0));
+		// assertEquals(parameters.get("calculateRecordPartPermissions"), true);
+		//
+		// Map<String, Object> parameters2 = spiderAuthorizator.testCallRecorder
+		// .getParametersForMethodAndCallNumber(
+		// "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1);
+		// assertSame(parameters2.get("user"), authenticator.returnedUser);
+		// assertEquals(parameters2.get("action"), "update");
+		// assertEquals(parameters2.get("recordType"), "spyType");
+		// assertSame(parameters2.get("collectedData"),
+		// termCollector.returnedCollectedTerms.get(1));
+		// assertEquals(parameters2.get("calculateRecordPartPermissions"), true);
+
+		// TODO: 12 like above
+		assertEquals(authorizator.testCallRecorder.getNumberOfCallsToMethod(
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData"), 12);
+
+		assertEquals(termCollector.metadataId, "dataWithLinks");
+		assertEquals(termCollector.dataGroups.get(0), dataGroup);
 	}
 
 	@Test
@@ -390,7 +427,7 @@ public class DataGroupToRecordEnhancerTest {
 		assertTrue(record.getActions().contains(Action.INDEX));
 		assertEquals(record.getActions().size(), 5);
 
-		AuthorizatorAlwaysAuthorizedSpy authorizator = (AuthorizatorAlwaysAuthorizedSpy) this.authorizator;
+		// SpiderAuthorizatorSpy authorizator = (SpiderAuthorizatorSpy) authorizator;
 		List<String> parameters = authorizator.userIsAuthorizedParameters;
 		assertTrue(parameters.contains("987654321:search:place"));
 	}
@@ -469,7 +506,7 @@ public class DataGroupToRecordEnhancerTest {
 		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "toRecordType:toRecordId");
 		assertEquals(termCollector.metadataIdsReadNumberOfTimesMap.get("toRecordType").intValue(),
 				1);
-		Integer authorizedCalledNoOfTimes = ((AuthorizatorAlwaysAuthorizedSpy) authorizator).recordTypeAuthorizedNumberOfTimesMap
+		Integer authorizedCalledNoOfTimes = authorizator.recordTypeAuthorizedNumberOfTimesMap
 				.get("toRecordType");
 		assertEquals(authorizedCalledNoOfTimes.intValue(), 1);
 	}

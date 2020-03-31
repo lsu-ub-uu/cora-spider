@@ -19,15 +19,15 @@
 package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
@@ -39,21 +39,18 @@ import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
+import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -63,11 +60,11 @@ public class SpiderRecordIncomingLinksReaderTest {
 	private SpiderRecordIncomingLinksReader incomingLinksReader;
 
 	private RecordStorage recordStorage;
-	private Authenticator authenticator;
-	private SpiderAuthorizator authorizator;
+	private AuthenticatorSpy authenticator;
+	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
-	private DataGroupTermCollector termCollector;
+	private DataGroupTermCollectorSpy termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataGroupFactory dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
@@ -79,7 +76,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 		authenticator = new AuthenticatorSpy();
-		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
 		termCollector = new DataGroupTermCollectorSpy();
@@ -143,22 +140,18 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 		assertEquals(toLinkedRecordType.getValue(), "place");
 		assertEquals(toLinkedRecordId.getValue(), "place:0001");
-		//
-		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizator);
-		assertEquals(authorizatorSpy.actions.get(0), "read");
-		assertEquals(authorizatorSpy.users.get(0).id, "12345");
-		assertEquals(authorizatorSpy.recordTypes.get(0), "place");
 
-		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
-		assertEquals(dataGroupTermCollectorSpy.metadataId, "place");
-		assertEquals(dataGroupTermCollectorSpy.dataGroup,
-				recordStorage.read("place", "place:0001"));
+		Map<String, Object> parameters = authorizator.testCallRecorder
+				.getParametersForMethodAndCallNumber(
+						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
+		assertSame(parameters.get("user"), authenticator.returnedUser);
+		assertEquals(parameters.get("action"), "read");
+		assertEquals(parameters.get("recordType"), "place");
+		assertSame(parameters.get("collectedData"), termCollector.collectedTerms);
+		assertEquals(parameters.get("calculateRecordPartPermissions"), false);
 
-		assertEquals(authorizatorSpy.calledMethods.get(0),
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
-		assertFalse(authorizatorSpy.calculateRecordPartPermissions);
-		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
-		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
+		assertEquals(termCollector.metadataId, "place");
+		assertEquals(termCollector.dataGroup, recordStorage.read("place", "place:0001"));
 	}
 
 	@Test
@@ -204,6 +197,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testReadIncomingLinksAuthenticationNotAuthenticated() {
+		authenticator.throwAuthenticationException = true;
 		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		incomingLinksReader.readIncomingLinks("dummyNonAuthenticatedToken", "place", "place:0001");
@@ -211,7 +205,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testReadIncomingLinksUnauthorized() {
-		authorizator = new NeverAuthorisedStub();
+		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 		setUpDependencyProvider();
 		incomingLinksReader.readIncomingLinks("unauthorizedUserId", "place", "place:0001");
 	}

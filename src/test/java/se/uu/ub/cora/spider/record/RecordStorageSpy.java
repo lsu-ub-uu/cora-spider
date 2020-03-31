@@ -1,6 +1,7 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
@@ -10,11 +11,11 @@ import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
-public class RecordStorageResultListCreatorSpy implements RecordStorage {
+public class RecordStorageSpy implements RecordStorage {
 
-	public long start;
-	public long totalNumberOfMatches;
-	public List<DataGroup> listOfDataGroups;
+	public long start = 0;
+	public long totalNumberOfMatches = 0;
+	public List<DataGroup> listOfDataGroups = Collections.emptyList();
 	public String abstractString = "false";
 
 	@Override

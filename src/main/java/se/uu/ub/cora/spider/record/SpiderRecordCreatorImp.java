@@ -53,7 +53,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private User user;
 	private RecordTypeHandler recordTypeHandler;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
-	private DataGroupTermCollector collectTermCollector;
+	private DataGroupTermCollector dataGroupTermCollector;
 	private RecordIndexer recordIndexer;
 
 	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider,
@@ -65,7 +65,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.idGenerator = dependencyProvider.getRecordIdGenerator();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
+		this.dataGroupTermCollector = dependencyProvider.getDataGroupTermCollector();
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
@@ -106,7 +106,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = extractIdFromData();
 
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, recordAsDataGroup);
+		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId, recordAsDataGroup);
 		checkUserIsAuthorisedToCreateIncomingData(recordType, collectedTerms);
 
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup,
@@ -237,7 +237,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType,
 			DataGroup collectedData) {
+		boolean calculateRecordPartPermissions = false;
 		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
-				CREATE, recordType, collectedData, false);
+				CREATE, recordType, collectedData, calculateRecordPartPermissions);
 	}
 }

@@ -20,10 +20,13 @@ package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
@@ -44,13 +47,10 @@ import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
@@ -58,12 +58,12 @@ import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
+import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -74,8 +74,8 @@ public class SpiderRecordSearcherTest {
 	private final DataGroup someSearchData = new DataGroupSpy("search");
 
 	private RecordStorage recordStorage;
-	private Authenticator authenticator;
-	private SpiderAuthorizator authorizationService;
+	private AuthenticatorSpy authenticator;
+	private SpiderAuthorizatorSpy spiderAuthorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private SpiderRecordSearcher recordSearcher;
@@ -93,7 +93,7 @@ public class SpiderRecordSearcherTest {
 		setUpFactoriesAndProviders();
 
 		authenticator = new AuthenticatorSpy();
-		authorizationService = new AuthorizatorAlwaysAuthorizedSpy();
+		spiderAuthorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorAlwaysValidSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
@@ -119,7 +119,7 @@ public class SpiderRecordSearcherTest {
 		SpiderDependencyProviderSpy dependencyProvider;
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.spiderAuthorizator = authorizationService;
+		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
 		dependencyProvider.dataValidator = dataValidator;
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
 		recordStorageProviderSpy.recordStorage = recordStorage;
@@ -135,6 +135,7 @@ public class SpiderRecordSearcherTest {
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
+		authenticator.throwAuthenticationException = true;
 		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		String searchId = "someSearchId";
@@ -162,32 +163,41 @@ public class SpiderRecordSearcherTest {
 		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 		assertNotNull(searchResult);
 
-		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizationService);
-		assertEquals(authorizatorSpy.userIsAuthorizedParameters.get(0), "12345:read:place");
+		Map<String, Object> firstParameters = spiderAuthorizator.testCallRecorder
+				.getParametersForMethodAndCallNumber("checkUserIsAuthorizedForActionOnRecordType",
+						0);
+
+		assertSame(firstParameters.get("user"), authenticator.returnedUser);
+		assertEquals(firstParameters.get("action"), "search");
+		assertEquals(firstParameters.get("recordType"), "place");
 
 		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
 		assertEquals(dataGroupTermCollectorSpy.metadataId, "place");
 		assertEquals(dataGroupTermCollectorSpy.dataGroup, ((RecordSearchSpy) recordSearch).place44);
 
-		assertEquals(authorizatorSpy.calledMethods.get(0),
-				"userIsAuthorizedForActionOnRecordTypeAndCollectedData");
+		Map<String, Object> secondParameters = spiderAuthorizator.testCallRecorder
+				.getParametersForMethodAndCallNumber(
+						"userIsAuthorizedForActionOnRecordTypeAndCollectedData", 0);
+
+		assertTrue(spiderAuthorizator.testCallRecorder
+				.methodWasCalled("userIsAuthorizedForActionOnRecordTypeAndCollectedData"));
+
 		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
-		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
+		assertEquals(secondParameters.get("collectedData"), returnedCollectedTerms);
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testReadListAuthenticatedAndUnauthorized() {
-		authorizationService = new NeverAuthorisedStub();
-		setUpDependencyProvider();
+		spiderAuthorizator.authorizedForActionAndRecordType = false;
 		recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testReadListAuthenticatedAndUnauthorizedNoRightToOneRecordTypeToSearchIn() {
-		authorizationService = new AlwaysAuthorisedExceptStub();
+		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
 		HashSet<String> hashSet = new HashSet<>();
 		hashSet.add("search");
-		((AlwaysAuthorisedExceptStub) authorizationService).notAuthorizedForRecordTypeAndActions
+		((AlwaysAuthorisedExceptStub) spiderAuthorizator).notAuthorizedForRecordTypeAndActions
 				.put("image", hashSet);
 		setUpDependencyProvider();
 		recordSearcher.search(SOME_AUTH_TOKEN, ANOTHER_SEARCH_ID, someSearchData);
@@ -213,12 +223,12 @@ public class SpiderRecordSearcherTest {
 
 	@Test
 	public void testSearchResultIsEnhancedForEachResult() {
-		authorizationService = new AlwaysAuthorisedExceptStub();
+		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
 		Set<String> actions = new HashSet<>();
 		actions.add("create");
 		actions.add("list");
 		actions.add("search");
-		((AlwaysAuthorisedExceptStub) authorizationService).notAuthorizedForRecordTypeAndActions
+		((AlwaysAuthorisedExceptStub) spiderAuthorizator).notAuthorizedForRecordTypeAndActions
 				.put("recordType", actions);
 		setUpDependencyProvider();
 
@@ -234,10 +244,10 @@ public class SpiderRecordSearcherTest {
 
 	@Test
 	public void testSearchResultIsFilteredAndEnhancedForEachResult() {
-		authorizationService = new AlwaysAuthorisedExceptStub();
+		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
 		Set<String> actions = new HashSet<>();
 		actions.add("read");
-		((AlwaysAuthorisedExceptStub) authorizationService).notAuthorizedForRecordTypeAndActions
+		((AlwaysAuthorisedExceptStub) spiderAuthorizator).notAuthorizedForRecordTypeAndActions
 				.put("binary", actions);
 		setUpDependencyProvider();
 
@@ -252,10 +262,11 @@ public class SpiderRecordSearcherTest {
 	@Test
 	public void testSearchResultHasTotalNumberOfMatches() {
 		long searchMatches = 42;
-		authorizationService = new AlwaysAuthorisedExceptStub();
+
 		((RecordSearchSpy) recordSearch).totalNumberOfMatches = searchMatches;
 
 		setUpDependencyProvider();
+		spiderAuthorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 
 		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 
@@ -265,10 +276,10 @@ public class SpiderRecordSearcherTest {
 	@Test
 	public void testSearchResultHasAnotherTotalNumberOfMatches() {
 		long searchMatches = Long.MAX_VALUE;
-		authorizationService = new AlwaysAuthorisedExceptStub();
 		((RecordSearchSpy) recordSearch).totalNumberOfMatches = searchMatches;
 
 		setUpDependencyProvider();
+		spiderAuthorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 
 		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 

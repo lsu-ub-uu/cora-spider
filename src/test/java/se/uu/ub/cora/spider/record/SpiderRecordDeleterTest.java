@@ -20,15 +20,15 @@
 package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataAtomicFactory;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
@@ -38,12 +38,9 @@ import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
@@ -54,24 +51,24 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
-import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
+import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
+import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderRecordDeleterTest {
 	private RecordStorage recordStorage;
-	private Authenticator authenticator;
-	private SpiderAuthorizator authorizator;
+	private AuthenticatorSpy authenticator;
+	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private SpiderRecordDeleter recordDeleter;
 	private RecordIndexer recordIndexer;
-	private DataGroupTermCollector termCollector;
+	private DataGroupTermCollectorSpy termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private DataGroupFactory dataGroupFactory;
@@ -82,7 +79,7 @@ public class SpiderRecordDeleterTest {
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 		authenticator = new AuthenticatorSpy();
-		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
 		recordIndexer = new RecordIndexerSpy();
@@ -122,6 +119,7 @@ public class SpiderRecordDeleterTest {
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
+		authenticator.throwAuthenticationException = true;
 		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		recordDeleter.deleteRecord("dummyNonAuthenticatedToken", "spyType", "spyId");
@@ -146,23 +144,19 @@ public class SpiderRecordDeleterTest {
 
 		recordDeleter.deleteRecord("userId", "child1", "place:0002");
 
-		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizator);
-		assertEquals(authorizatorSpy.actions.get(0), "delete");
-		assertEquals(authorizatorSpy.users.get(0).id, "12345");
-		assertEquals(authorizatorSpy.recordTypes.get(0), "child1");
+		Map<String, Object> parameters = authorizator.testCallRecorder
+				.getParametersForMethodAndCallNumber(
+						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
+		assertSame(parameters.get("user"), authenticator.returnedUser);
+		assertEquals(parameters.get("action"), "delete");
+		assertEquals(parameters.get("recordType"), "child1");
+		assertSame(parameters.get("collectedData"), termCollector.collectedTerms);
+		assertEquals(parameters.get("calculateRecordPartPermissions"), false);
 
-		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
-		assertEquals(dataGroupTermCollectorSpy.metadataId, "child1");
+		assertEquals(termCollector.metadataId, "child1");
 
 		OldRecordStorageSpy recordStorageSpy = (OldRecordStorageSpy) recordStorage;
-		assertEquals(dataGroupTermCollectorSpy.dataGroup, recordStorageSpy.readDataGroup);
-
-		assertEquals(authorizatorSpy.calledMethods.get(0),
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
-		assertFalse(authorizatorSpy.calculateRecordPartPermissions);
-		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
-		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
-
+		assertEquals(termCollector.dataGroup, recordStorageSpy.readDataGroup);
 	}
 
 	@Test
@@ -214,15 +208,15 @@ public class SpiderRecordDeleterTest {
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testDeleteUnauthorized() {
-		authorizator = new NeverAuthorisedStub();
-		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordType = false;
+
 		recordDeleter.deleteRecord("unauthorizedUserId", "place", "place:0001");
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testDeleteUnauthorizedRecodNotFound() {
-		authorizator = new NeverAuthorisedStub();
-		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordType = false;
+
 		recordDeleter.deleteRecord("unauthorizedUserId", "place", "place:0001_NOT_FOUND");
 	}
 

@@ -27,8 +27,8 @@ import static org.testng.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.testng.annotations.BeforeMethod;
@@ -49,13 +49,9 @@ import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
@@ -64,20 +60,20 @@ import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
+import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderRecordListReaderTest {
 
 	private RecordStorage recordStorage;
-	private Authenticator authenticator;
-	private SpiderAuthorizator authorizator;
+	private AuthenticatorSpy authenticator;
+	private SpiderAuthorizatorSpy spiderAuthorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderRecordListReader recordListReader;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
@@ -100,8 +96,8 @@ public class SpiderRecordListReaderTest {
 		emptyFilter = new DataGroupSpy("filter");
 		exampleFilter = new DataGroupSpy("filter");
 		authenticator = new AuthenticatorSpy();
-		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
-		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+		spiderAuthorizator = new SpiderAuthorizatorSpy();
+		recordStorage = new RecordStorageSpy();
 		keyCalculator = new NoRulesCalculatorStub();
 		dataValidator = new DataValidatorAlwaysValidSpy();
 		setUpDependencyProvider();
@@ -124,7 +120,7 @@ public class SpiderRecordListReaderTest {
 		SpiderDependencyProviderSpy dependencyProvider = new SpiderDependencyProviderSpy(
 				new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.spiderAuthorizator = authorizator;
+		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
 
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
 		recordStorageProviderSpy.recordStorage = recordStorage;
@@ -139,6 +135,60 @@ public class SpiderRecordListReaderTest {
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
 	}
 
+	@Test(expectedExceptions = AuthenticationException.class, expectedExceptionsMessageRegExp = ""
+			+ "Error from AuthenticatorSpy")
+	public void testUserNotAuthenticated() {
+		authenticator.throwAuthenticationException = true;
+
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+	}
+
+	@Test
+	public void testAuthTokenIsPassedOnToAuthenticator() throws Exception {
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+
+		assertEquals(authenticator.authToken, SOME_USER_TOKEN);
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "Exception from SpiderAuthorizatorSpy")
+	public void testUserIsNotAuthorizedForActionOnRecordType() {
+		spiderAuthorizator.authorizedForActionAndRecordType = false;
+		setUpDependencyProvider();
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+	}
+
+	@Test
+	public void testUserIsAuthorizedForActionOnRecordTypeIncomingParameters() {
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+
+		Map<String, Object> parameters = spiderAuthorizator.testCallRecorder
+				.getParametersForMethodAndCallNumber("checkUserIsAuthorizedForActionOnRecordType",
+						0);
+		assertEquals((parameters.get("user")), authenticator.returnedUser);
+		assertEquals((parameters.get("action")), "list");
+		assertEquals((parameters.get("recordType")), SOME_RECORD_TYPE);
+
+	}
+
+	@Test
+	public void testReadListAuthorized() {
+		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+		setUpDependencyProvider();
+		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				emptyFilter);
+		// DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
+		// SOME_RECORD_TYPE,
+		// emptyFilter);
+		assertEquals(readRecordList.getContainDataOfType(), SOME_RECORD_TYPE);
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
+		assertEquals(readRecordList.getFromNo(), "1");
+		assertEquals(readRecordList.getToNo(), "5");
+		List<Data> records = readRecordList.getDataList();
+		DataRecord dataRecord = (DataRecord) records.iterator().next();
+		assertNotNull(dataRecord);
+	}
+
 	@Test
 	public void testExternalDependenciesAreCalled() {
 		recordStorage = new OldRecordStorageSpy();
@@ -148,8 +198,9 @@ public class SpiderRecordListReaderTest {
 		DataGroup nonEmptyFilter = createNonEmptyFilter();
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
 
-		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
-		assertTrue(authorizatorSpy.authorizedWasCalled);
+		SpiderAuthorizatorSpy authorizatorSpy = spiderAuthorizator;
+		authorizatorSpy.testCallRecorder
+				.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 
 		DataValidatorAlwaysValidSpy dataValidatorAlwaysValidSpy = (DataValidatorAlwaysValidSpy) dataValidator;
 		assertTrue(dataValidatorAlwaysValidSpy.validateDataWasCalled);
@@ -200,31 +251,11 @@ public class SpiderRecordListReaderTest {
 		assertDataGroupEquality(dataGroup, exampleFilter);
 	}
 
-	@Test(expectedExceptions = AuthenticationException.class)
-	public void testAuthenticationNotAuthenticated() {
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
-		recordListReader.readRecordList("dummyNonAuthenticatedToken", "spyType", emptyFilter);
-	}
-
-	@Test
-	public void testReadListAuthorized() {
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				emptyFilter);
-		assertEquals(readRecordList.getContainDataOfType(), SOME_RECORD_TYPE);
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
-		assertEquals(readRecordList.getFromNo(), "1");
-		assertEquals(readRecordList.getToNo(), "5");
-		List<Data> records = readRecordList.getDataList();
-		DataRecord dataRecord = (DataRecord) records.iterator().next();
-		assertNotNull(dataRecord);
-	}
-
 	@Test
 	public void testReadListReturnedNumbersAreFromStorage() {
-		recordStorage = new RecordStorageResultListCreatorSpy();
+		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
+		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
 		recordStorageSpy.start = 3;
 		recordStorageSpy.totalNumberOfMatches = 1500;
 		List<DataGroup> list = new ArrayList<>();
@@ -241,9 +272,9 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListReturnedOtherNumbersAreFromStorage() {
-		recordStorage = new RecordStorageResultListCreatorSpy();
+		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
+		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
 		recordStorageSpy.start = 50;
 		recordStorageSpy.totalNumberOfMatches = 1300;
 		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(50);
@@ -258,9 +289,9 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListReturnedNoMatches() {
-		recordStorage = new RecordStorageResultListCreatorSpy();
+		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
+		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
 		recordStorageSpy.start = 0;
 		recordStorageSpy.totalNumberOfMatches = 0;
 		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(0);
@@ -275,9 +306,9 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListReturnedOneMatches() {
-		recordStorage = new RecordStorageResultListCreatorSpy();
+		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
+		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
 		recordStorageSpy.start = 0;
 		recordStorageSpy.totalNumberOfMatches = 1;
 		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(1);
@@ -292,9 +323,9 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListReturnedNoMatchesButHasMatches() {
-		recordStorage = new RecordStorageResultListCreatorSpy();
+		recordStorage = new RecordStorageSpy();
 		setUpDependencyProvider();
-		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
+		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
 		recordStorageSpy.start = 0;
 		recordStorageSpy.totalNumberOfMatches = 15;
 		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(0);
@@ -309,10 +340,10 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadAbstractListReturnedStartIsFromStorage() {
-		recordStorage = new RecordStorageResultListCreatorSpy();
+		recordStorage = new RecordStorageSpy();
 
 		setUpDependencyProvider();
-		RecordStorageResultListCreatorSpy recordStorageSpy = (RecordStorageResultListCreatorSpy) recordStorage;
+		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
 		recordStorageSpy.abstractString = "true";
 		recordStorageSpy.start = 3;
 		recordStorageSpy.totalNumberOfMatches = 765;
@@ -366,6 +397,8 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListAuthorizedButNoReadLinks() {
+		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+		setUpDependencyProvider();
 		dataGroupToRecordEnhancer.addReadAction = false;
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				emptyFilter);
@@ -376,6 +409,8 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testRecordEnhancerCalled() {
+		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+		setUpDependencyProvider();
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
 		assertEquals(dataGroupToRecordEnhancer.recordType, SOME_RECORD_TYPE);
@@ -447,15 +482,10 @@ public class SpiderRecordListReaderTest {
 
 	}
 
-	@Test(expectedExceptions = AuthorizationException.class)
-	public void testReadListUnauthorized() {
-		authorizator = new NeverAuthorisedStub();
-		setUpDependencyProvider();
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
-	}
-
 	@Test(expectedExceptions = DataException.class)
 	public void testReadListAuthenticatedAndAuthorizedInvalidData() {
+		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+		setUpDependencyProvider();
 		dataValidator = new DataValidatorAlwaysInvalidSpy();
 		setUpDependencyProvider();
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, createNonEmptyFilter());
@@ -463,6 +493,8 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListCorrectFilterMetadataIsRead() {
+		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+		setUpDependencyProvider();
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, createNonEmptyFilter());
 
 		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
@@ -486,6 +518,7 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListAuthenticatedAndAuthorizedNoFilterMetadataEmptyFilter() {
+		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		setUpDependencyProvider();
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, "image",
 				emptyFilter);
@@ -497,12 +530,9 @@ public class SpiderRecordListReaderTest {
 	@Test
 	public void testReadListNotAuthorizedButPublicRecordType() {
 		recordStorage = new OldRecordStorageSpy();
-		authorizator = new AlwaysAuthorisedExceptStub();
-		AlwaysAuthorisedExceptStub authorisedExceptStub = (AlwaysAuthorisedExceptStub) authorizator;
-		HashSet<String> hashSet = new HashSet<String>();
-		hashSet.add("list");
 
-		authorisedExceptStub.notAuthorizedForRecordTypeAndActions.put("publicReadType", hashSet);
+		spiderAuthorizator.authorizedForActionAndRecordType = false;
+
 		setUpDependencyProvider();
 
 		recordListReader.readRecordList("unauthorizedUserId", "publicReadType", emptyFilter);

@@ -26,12 +26,11 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
@@ -40,13 +39,9 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.dependency.MetadataStorageProviderSpy;
@@ -54,10 +49,10 @@ import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
+import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.MetadataStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -65,13 +60,13 @@ import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderRecordReaderTest {
 	private RecordStorage recordStorage;
-	private Authenticator authenticator;
-	private SpiderAuthorizator authorizator;
+	private AuthenticatorSpy authenticator;
+	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private SpiderRecordReader recordReader;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
-	private DataGroupTermCollector termCollector;
+	private DataGroupTermCollectorSpy termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataGroupFactory dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
@@ -83,7 +78,7 @@ public class SpiderRecordReaderTest {
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 		authenticator = new AuthenticatorSpy();
-		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
+		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new NoRulesCalculatorStub();
 		termCollector = new DataGroupTermCollectorSpy();
@@ -129,6 +124,7 @@ public class SpiderRecordReaderTest {
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
+		authenticator.throwAuthenticationException = true;
 		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		recordReader.readRecord("dummyNonAuthenticatedToken", "spyType", "spyId");
@@ -159,22 +155,25 @@ public class SpiderRecordReaderTest {
 		DataGroup groupOut = record.getDataGroup();
 		assertEquals(groupOut.getNameInData(), "authority");
 
-		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizator);
-		assertEquals(authorizatorSpy.actions.get(0), "read");
-		assertEquals(authorizatorSpy.users.get(0).id, "12345");
-		assertEquals(authorizatorSpy.recordTypes.get(0), "place");
+		Map<String, Object> parameters = authorizator.testCallRecorder
+				.getParametersForMethodAndCallNumber("checkUserIsAuthorizedForActionOnRecordType",
+						0);
+		assertSame(parameters.get("user"), authenticator.returnedUser);
+		assertEquals(parameters.get("action"), "read");
+		assertEquals(parameters.get("recordType"), "place");
 
-		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
-		assertEquals(dataGroupTermCollectorSpy.metadataId,
-				"fakeMetadataIdFromRecordTypeHandlerSpy");
-		assertEquals(dataGroupTermCollectorSpy.dataGroup,
-				recordStorage.read("place", "place:0001"));
+		assertEquals(termCollector.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
+		assertEquals(termCollector.dataGroup, recordStorage.read("place", "place:0001"));
 
-		assertEquals(authorizatorSpy.calledMethods.get(0),
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
-		assertFalse(authorizatorSpy.calculateRecordPartPermissions);
-		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
-		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
+		Map<String, Object> parameters2 = authorizator.testCallRecorder
+				.getParametersForMethodAndCallNumber(
+						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
+		assertSame(parameters2.get("user"), authenticator.returnedUser);
+		assertEquals(parameters2.get("action"), "read");
+		assertEquals(parameters2.get("recordType"), "place");
+		DataGroup returnedCollectedTerms = termCollector.collectedTerms;
+		assertSame(parameters2.get("collectedData"), returnedCollectedTerms);
+		assertEquals(parameters2.get("calculateRecordPartPermissions"), false);
 	}
 
 	@Test
@@ -183,39 +182,30 @@ public class SpiderRecordReaderTest {
 		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
 		recordReader.readRecord("someToken78678567", "place", "place:0001");
 
-		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizator);
-		assertFalse(authorizatorSpy.calledMethods.isEmpty());
-		assertEquals(authorizatorSpy.calledMethods.get(0),
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+		Map<String, Object> parameters = authorizator.testCallRecorder
+				.getParametersForMethodAndCallNumber(
+						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
+		assertSame(parameters.get("user"), authenticator.returnedUser);
+		assertEquals(parameters.get("action"), "read");
+		assertEquals(parameters.get("recordType"), "place");
+		assertSame(parameters.get("collectedData"), termCollector.collectedTerms);
+		assertEquals(parameters.get("calculateRecordPartPermissions"), true);
 
-		assertEquals(authorizatorSpy.users.get(0).id, "12345");
-		assertEquals(authorizatorSpy.actions.get(0), "read");
-		assertEquals(authorizatorSpy.recordTypes.get(0), "place");
-
-		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
-		assertEquals(dataGroupTermCollectorSpy.metadataId,
-				"fakeMetadataIdFromRecordTypeHandlerSpy");
-		assertEquals(dataGroupTermCollectorSpy.dataGroup,
-				recordStorage.read("place", "place:0001"));
-		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
-		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
+		assertEquals(termCollector.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
+		assertEquals(termCollector.dataGroup, recordStorage.read("place", "place:0001"));
 	}
 
 	@Test
 	public void testReadHasRecordPartConstraintsNotAuthorized() {
-		authorizator = new AlwaysAuthorisedExceptStub();
-		setUpDependencyProvider();
-		AlwaysAuthorisedExceptStub authorizatorSpy = (AlwaysAuthorisedExceptStub) authorizator;
+		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
+
 		recordTypeHandlerSpy.isPublicForRead = false;
 		recordTypeHandlerSpy.recordPartConstraint = "write";
-		authorizatorSpy.throwExceptionOnCheckUserAuthorization = true;
 		try {
 			recordReader.readRecord("someToken78678567", "place", "place:0001");
 		} catch (Exception e) {
-			int callMethodsSize = authorizatorSpy.calledMethods.size() - 1;
-			assertFalse(authorizatorSpy.calledMethods.isEmpty());
-			assertEquals(authorizatorSpy.calledMethods.get(callMethodsSize),
-					"read:checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
+			assertTrue(authorizator.testCallRecorder.methodWasCalled(
+					"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData"));
 			assertFalse(dataRedactor.dataRedactorHasBeenCalled);
 		}
 	}
@@ -230,29 +220,25 @@ public class SpiderRecordReaderTest {
 				"place:0001");
 		assertNotNull(readRecord);
 
-		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizator);
-		assertEquals(authorizatorSpy.actions.get(0), "read");
-		assertEquals(authorizatorSpy.users.get(0).id, "12345");
-		assertEquals(authorizatorSpy.recordTypes.get(0), "abstractAuthority");
+		Map<String, Object> parameters = authorizator.testCallRecorder
+				.getParametersForMethodAndCallNumber(
+						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
+		assertSame(parameters.get("user"), authenticator.returnedUser);
+		assertEquals(parameters.get("action"), "read");
+		assertEquals(parameters.get("recordType"), "abstractAuthority");
+		assertSame(parameters.get("collectedData"), termCollector.collectedTerms);
+		assertEquals(parameters.get("calculateRecordPartPermissions"), false);
 
-		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
-		assertEquals(dataGroupTermCollectorSpy.metadataId,
-				"fakeMetadataIdFromRecordTypeHandlerSpy");
-		assertEquals(dataGroupTermCollectorSpy.dataGroup,
+		assertEquals(termCollector.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
+		assertEquals(termCollector.dataGroup,
 				recordStorage.read("abstractAuthority", "place:0001"));
-
-		assertEquals(authorizatorSpy.calledMethods.get(0),
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
-		assertFalse(authorizatorSpy.calculateRecordPartPermissions);
-		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
-		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
 	}
 
 	@Test
 	public void testUnauthorizedForRecordTypeShouldNeverReadRecordFromStorage() {
 		recordStorage = new OldRecordStorageSpy();
-		authorizator = new NeverAuthorisedStub();
 		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordType = false;
 		recordTypeHandlerSpy.isPublicForRead = false;
 
 		boolean exceptionWasCaught = false;
@@ -269,8 +255,8 @@ public class SpiderRecordReaderTest {
 	@Test
 	public void testUnauthorizedForRulesAgainsRecord() {
 		recordStorage = new OldRecordStorageSpy();
-		authorizator = new AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType();
 		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 		recordTypeHandlerSpy.isPublicForRead = false;
 
 		boolean exceptionWasCaught = false;
@@ -292,13 +278,8 @@ public class SpiderRecordReaderTest {
 	@Test
 	public void testReadNotAuthorizedToReadRecordTypeButPublicRecordType() throws Exception {
 		recordStorage = new OldRecordStorageSpy();
-		authorizator = new AlwaysAuthorisedExceptStub();
-		AlwaysAuthorisedExceptStub authorisedExceptStub = (AlwaysAuthorisedExceptStub) authorizator;
-		HashSet<String> hashSet = new HashSet<String>();
-		hashSet.add("read");
-
-		authorisedExceptStub.notAuthorizedForRecordTypeAndActions.put("publicReadType", hashSet);
 		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordType = false;
 		// publicReadType
 		DataRecord readRecord = recordReader.readRecord("unauthorizedUserId", "publicReadType",
 				"publicReadType:0001");
@@ -308,7 +289,7 @@ public class SpiderRecordReaderTest {
 	@Test
 	public void testReadPublicRecordType() throws Exception {
 		recordStorage = new OldRecordStorageSpy();
-		AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType authorizatorSpy = new AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType();
+		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 		setUpDependencyProvider();
 		// publicReadType
 		DataRecord readRecord = recordReader.readRecord("unauthorizedUserId", "publicReadType",
@@ -316,7 +297,8 @@ public class SpiderRecordReaderTest {
 
 		assertNotNull(readRecord);
 		assertFalse(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
-		assertFalse(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
+		assertFalse(authorizator.testCallRecorder.methodWasCalled(
+				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData"));
 		assertFalse(dataRedactor.dataRedactorHasBeenCalled);
 	}
 
@@ -329,8 +311,8 @@ public class SpiderRecordReaderTest {
 
 		recordReader.readRecord("someUserId", "someType", "someId");
 
-		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
-		assertFalse(authorizatorSpy.getUsersReadRecordPartPermissionsHasBeenCalled);
+		assertFalse(authorizator.testCallRecorder.methodWasCalled(
+				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData"));
 		assertFalse(dataRedactor.dataRedactorHasBeenCalled);
 	}
 
@@ -345,7 +327,7 @@ public class SpiderRecordReaderTest {
 		recordReader.readRecord("someUserId", "spyType", "spyId");
 
 		assertTrue(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
-		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
+		SpiderAuthorizatorSpy authorizatorSpy = authorizator;
 		assertTrue(dataRedactor.dataRedactorHasBeenCalled);
 		assertEquals(authorizatorSpy.recordPartReadPermissions,
 				dataRedactor.recordPartReadPermissions);
@@ -364,7 +346,7 @@ public class SpiderRecordReaderTest {
 
 		recordReader.readRecord("someUserId", "someType", "someId");
 
-		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = (AuthorizatorAlwaysAuthorizedSpy) authorizator;
+		SpiderAuthorizatorSpy authorizatorSpy = authorizator;
 
 		recordTypeHandlerSpy.getMetadataGroup().getFirstAtomicValueWithNameInData("nameInData");
 

@@ -40,7 +40,6 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataList readRecordList;
-	private String authToken;
 	private User user;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataValidator dataValidator;
@@ -66,8 +65,9 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	@Override
 	public DataList readRecordList(String authToken, String recordType, DataGroup filter) {
+		this.recordType = recordType;
+		ensureActiveUserHasListPermissionUsingAuthToken(authToken);
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		ensureActiveUserHasListPermissionUsingAuthTokenAndRecordType(authToken, recordType);
 
 		readRecordList = DataListProvider.getDataListWithNameOfDataType(recordType);
 		DataGroup recordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordType);
@@ -79,13 +79,13 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		return readRecordList;
 	}
 
-	private void ensureActiveUserHasListPermissionUsingAuthTokenAndRecordType(String authToken,
-			String recordType) {
-		this.authToken = authToken;
-		this.recordType = recordType;
-
-		tryToGetActiveUser();
+	private void ensureActiveUserHasListPermissionUsingAuthToken(String authToken) {
+		tryToGetActiveUser(authToken);
 		checkUserIsAuthorizedForActionOnRecordType();
+	}
+
+	private void tryToGetActiveUser(String authToken) {
+		user = authenticator.getUserForToken(authToken);
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {
@@ -98,10 +98,6 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		RecordTypeHandler recordTypeHandlerForSentInRecordType = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
 		return !recordTypeHandlerForSentInRecordType.isPublicForRead();
-	}
-
-	private void tryToGetActiveUser() {
-		user = authenticator.getUserForToken(authToken);
 	}
 
 	private void validateFilterIfNotEmpty(DataGroup filter, String recordType,
@@ -195,8 +191,8 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		readResult = recordStorage.readList(type, filter);
 		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
 		this.recordType = type;
-		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(null,
-				null, null, null, false);
+		// spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+		// null, null, null, false);
 
 		for (DataGroup dataGroup : dataGroupList) {
 			enhanceDataGroupAndAddToRecordList(dataGroup, type);

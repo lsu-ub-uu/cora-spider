@@ -26,15 +26,17 @@ public class AuthenticatorSpy implements Authenticator {
 	public boolean authenticationWasCalled = false;
 	public String authToken;
 	public User returnedUser;
+	public boolean throwAuthenticationException = false;
 
 	@Override
 	public User getUserForToken(String authToken) {
+		this.authToken = authToken;
 		authenticationWasCalled = true;
 
-		this.authToken = authToken;
-		if ("dummyNonAuthenticatedToken".equals(authToken)) {
-			throw new AuthenticationException("token not valid");
+		if (throwAuthenticationException) {
+			throw new AuthenticationException("Error from AuthenticatorSpy");
 		}
+
 		if ("dummy1Token".equals(authToken)) {
 			User user = new User("dummy1");
 			user.loginId = "knownUser";
