@@ -159,7 +159,7 @@ public class SpiderRecordValidatorTest {
 		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
 				recordToValidate);
 
-		assertTrue(spiderAuthorizator.testCallRecorder
+		assertTrue(spiderAuthorizator.TCR
 				.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType"));
 
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
@@ -196,7 +196,7 @@ public class SpiderRecordValidatorTest {
 		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
 				dataGroup);
 
-		assertTrue(spiderAuthorizator.testCallRecorder
+		assertTrue(spiderAuthorizator.TCR
 				.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType"));
 
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
@@ -428,7 +428,7 @@ public class SpiderRecordValidatorTest {
 			exceptionWasCaught = true;
 		}
 		assertEquals(
-				spiderAuthorizator.testCallRecorder
+				spiderAuthorizator.TCR
 						.getValueForMethodNameAndCallNumberAndParameterName(
 								"checkUserIsAuthorizedForActionOnRecordType", 0, "action"),
 				"create");

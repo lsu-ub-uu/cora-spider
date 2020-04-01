@@ -184,8 +184,7 @@ public class SpiderUploaderTest {
 
 		assertTrue(((OldRecordStorageSpy) recordStorage).readWasCalled);
 
-		assertTrue(authorizator.testCallRecorder
-				.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType"));
+		assertTrue(authorizator.TCR.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType"));
 
 		assertEquals(((SpiderInstanceFactorySpy2) factory).createdUpdaters.get(0).authToken,
 				"someToken78678567");
@@ -244,11 +243,8 @@ public class SpiderUploaderTest {
 		assertStreamStorageCalledCorrectly(recordUpdated);
 		assertResourceInfoIsCorrect(recordUpdated);
 
-		// SpiderAuthorizatorSpy authorizatorSpy = (authorizator);
-
-		Map<String, Object> paramMethodA = authorizator.testCallRecorder
-				.getParametersForMethodAndCallNumber("checkUserIsAuthorizedForActionOnRecordType",
-						0);
+		Map<String, Object> paramMethodA = authorizator.TCR.getParametersForMethodAndCallNumber(
+				"checkUserIsAuthorizedForActionOnRecordType", 0);
 
 		assertEquals(paramMethodA.get("action"), "upload");
 		assertEquals(paramMethodA.get("user"), authenticator.returnedUser);
@@ -259,14 +255,13 @@ public class SpiderUploaderTest {
 		assertEquals(dataGroupTermCollectorSpy.dataGroup,
 				recordStorage.read("image", "image:123456789"));
 
-		assertFalse(authorizator.calculateRecordPartPermissions);
 		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
-
-		assertEquals(
-				authorizator.testCallRecorder.getValueForMethodNameAndCallNumberAndParameterName(
-						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0,
-						"collectedData"),
-				returnedCollectedTerms);
+		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		assertEquals(authorizator.TCR.getValueForMethodNameAndCallNumberAndParameterName(methodName,
+				0, "collectedData"), returnedCollectedTerms);
+		assertEquals(authorizator.TCR.getValueForMethodNameAndCallNumberAndParameterName(methodName,
+				0, "calculateRecordPartPermissions"), false);
+		authorizator.TCR.assertParameter(methodName, 0, "calculateRecordPartPermissions", false);
 	}
 
 	private void assertStreamStorageCalledCorrectly(DataRecord recordUpdated) {

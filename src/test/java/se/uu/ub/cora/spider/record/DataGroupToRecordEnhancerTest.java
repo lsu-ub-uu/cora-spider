@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertRecordStorageWasCalledOnlyOnceForReadKey;
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertRecordStorageWasNOTCalledForReadKey;
@@ -29,10 +28,7 @@ import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevel
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevelTwoLinksDoesNotContainReadAction;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -50,8 +46,6 @@ import se.uu.ub.cora.data.DataRecordFactory;
 import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
-import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
@@ -62,7 +56,6 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizorNeverAuthorized;
 
 public class DataGroupToRecordEnhancerTest {
 	private RecordEnhancerTestsRecordStorage recordStorage;
@@ -266,54 +259,41 @@ public class DataGroupToRecordEnhancerTest {
 
 		assertTrue(record.getActions().contains(Action.LIST));
 
-		// SpiderAuthorizatorSpy authorizatorSpy = (authorizator);
-		// assertEquals(authorizatorSpy.userIsAuthorizedParameters.get(0),
-		// "987654321:read:recordType");
-		//
-		//// DataGroupTermCollectorSpy dataGroupTermCollectorSpy = termCollector;
-		//
-		// assertEquals(authorizatorSpy.calledMethods.get(0),
-		// "userIsAuthorizedForActionOnRecordTypeAndCollectedData");
-		// assertEquals(authorizatorSpy.collectedTerms.get(0),
-		// dataGroupTermCollectorSpy.returnedCollectedTerms.get(0));
+		authorizator.TCR.assertParameters("userIsAuthorizedForActionOnRecordType", 0, user, "list",
+				"recordType");
+		authorizator.TCR.assertParameters("userIsAuthorizedForActionOnRecordType", 1, user,
+				"search", "someRecordType");
+		authorizator.TCR.assertNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType", 2);
 
-		Map<String, Object> parameters = authorizator.testCallRecorder
-				.getParametersForMethodAndCallNumber("userIsAuthorizedForActionOnRecordType", 0);
-		assertSame(parameters.get("user"), user);
-		assertEquals(parameters.get("action"), "list");
-		assertEquals(parameters.get("recordType"), "recordType");
+		List<DataGroup> expectedCollectedTerms = termCollector.returnedCollectedTerms;
 
-		Map<String, Object> parameters2 = authorizator.testCallRecorder
-				.getParametersForMethodAndCallNumber("userIsAuthorizedForActionOnRecordType", 1);
-		assertSame(parameters2.get("user"), user);
-		assertEquals(parameters2.get("action"), "search");
-		assertEquals(parameters2.get("recordType"), "someRecordType");
+		String methodName = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
+		authorizator.TCR.assertParameters(methodName, 0, user, "read", "recordType",
+				expectedCollectedTerms.get(0));
+		authorizator.TCR.assertParameters(methodName, 1, user, "update", "recordType",
+				expectedCollectedTerms.get(0));
+		authorizator.TCR.assertParameters(methodName, 2, user, "index", "recordType",
+				expectedCollectedTerms.get(0));
+		authorizator.TCR.assertParameters(methodName, 3, user, "delete", "recordType",
+				expectedCollectedTerms.get(0));
+		authorizator.TCR.assertParameters(methodName, 4, user, "validate", "recordType",
+				expectedCollectedTerms.get(0));
 
-		assertEquals(authorizator.testCallRecorder
-				.getNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType"), 2);
-
-		// Map<String, Object> parameters = spiderAuthorizator.testCallRecorder
-		// .getParametersForMethodAndCallNumber(
-		// "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
-		// assertSame(parameters.get("user"), authenticator.returnedUser);
-		// assertEquals(parameters.get("action"), "update");
-		// assertEquals(parameters.get("recordType"), "spyType");
-		// assertSame(parameters.get("collectedData"), termCollector.returnedCollectedTerms.get(0));
-		// assertEquals(parameters.get("calculateRecordPartPermissions"), true);
-		//
-		// Map<String, Object> parameters2 = spiderAuthorizator.testCallRecorder
-		// .getParametersForMethodAndCallNumber(
-		// "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1);
-		// assertSame(parameters2.get("user"), authenticator.returnedUser);
-		// assertEquals(parameters2.get("action"), "update");
-		// assertEquals(parameters2.get("recordType"), "spyType");
-		// assertSame(parameters2.get("collectedData"),
-		// termCollector.returnedCollectedTerms.get(1));
-		// assertEquals(parameters2.get("calculateRecordPartPermissions"), true);
-
-		// TODO: 12 like above
-		assertEquals(authorizator.testCallRecorder.getNumberOfCallsToMethod(
-				"userIsAuthorizedForActionOnRecordTypeAndCollectedData"), 12);
+		authorizator.TCR.assertParameters(methodName, 5, user, "read", "recordType",
+				expectedCollectedTerms.get(1));
+		authorizator.TCR.assertParameters(methodName, 6, user, "read", "metadataGroup",
+				expectedCollectedTerms.get(2));
+		authorizator.TCR.assertParameters(methodName, 7, user, "read", "presentationGroup",
+				expectedCollectedTerms.get(3));
+		authorizator.TCR.assertParameters(methodName, 8, user, "read", "presentationGroup",
+				expectedCollectedTerms.get(4));
+		authorizator.TCR.assertParameters(methodName, 9, user, "read", "metadataGroup",
+				expectedCollectedTerms.get(5));
+		authorizator.TCR.assertParameters(methodName, 10, user, "read", "presentationGroup",
+				expectedCollectedTerms.get(6));
+		authorizator.TCR.assertParameters(methodName, 11, user, "read", "presentationGroup",
+				expectedCollectedTerms.get(7));
+		authorizator.TCR.assertNumberOfCallsToMethod(methodName, 12);
 
 		assertEquals(termCollector.metadataId, "dataWithLinks");
 		assertEquals(termCollector.dataGroups.get(0), dataGroup);
@@ -321,16 +301,9 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testAuthorizedOnReadRecordTypePlaceWithNoCreateOnRecordTypeRecordType() {
-		AlwaysAuthorisedExceptStub authorizatorSpy = new AlwaysAuthorisedExceptStub();
-		authorizator = authorizatorSpy;
-
-		Set<String> actions = new HashSet<>();
-		actions.add("create");
-		actions.add("list");
-		actions.add("search");
-		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
-				.put("place", actions);
-		setUpDependencyProvider();
+		authorizator.setNotAutorizedForActionOnRecordType("create", "place");
+		authorizator.setNotAutorizedForActionOnRecordType("list", "place");
+		authorizator.setNotAutorizedForActionOnRecordType("search", "place");
 
 		DataGroup dataGroup = recordStorage.read("recordType", "place");
 		String recordType = "recordType";
@@ -344,17 +317,18 @@ public class DataGroupToRecordEnhancerTest {
 
 		assertFalse(record.getActions().contains(Action.CREATE));
 		assertFalse(record.getActions().contains(Action.LIST));
-		assertEquals(authorizatorSpy.calledMethods.get(4),
-				"create:userIsAuthorizedForActionOnRecordType");
-		assertEquals(authorizatorSpy.calledMethods.get(5),
-				"list:userIsAuthorizedForActionOnRecordType");
 
+		String methodName = "userIsAuthorizedForActionOnRecordType";
+		authorizator.TCR.assertParameters(methodName, 0, user, "create", "place");
+		authorizator.TCR.assertParameters(methodName, 1, user, "list", "place");
+		authorizator.TCR.assertNumberOfCallsToMethod(methodName, 2);
 	}
 
 	@Test
 	public void testNotAuthorizedOnReadRecordType() {
-		authorizator = new NeverAuthorisedStub();
-		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordType = false;
+		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
+
 		DataGroup dataGroup = recordStorage.read("recordType", "recordType");
 		String recordType = "recordType";
 		DataRecord record = enhancer.enhance(user, recordType, dataGroup);
@@ -371,15 +345,11 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testReadRecordWithDataRecordLinkHasNOReadAction() {
-		authorizator = new AlwaysAuthorisedExceptStub();
-		Set<String> actions = new HashSet<>();
-		actions.add("create");
-		actions.add("list");
-		actions.add("search");
-		actions.add("read");
-		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
-				.put("toRecordType", actions);
-		setUpDependencyProvider();
+		authorizator.setNotAutorizedForActionOnRecordType("create", "toRecordType");
+		authorizator.setNotAutorizedForActionOnRecordType("list", "toRecordType");
+		authorizator.setNotAutorizedForActionOnRecordType("search", "toRecordType");
+		authorizator.setNotAutorizedForActionOnRecordType("read", "toRecordType");
+
 		DataGroup dataGroup = recordStorage.read("dataWithLinks", "oneLinkTopLevelNotAuthorized");
 		String recordType = "dataWithLinks";
 		DataRecord record = enhancer.enhance(user, recordType, dataGroup);
@@ -427,24 +397,26 @@ public class DataGroupToRecordEnhancerTest {
 		assertTrue(record.getActions().contains(Action.INDEX));
 		assertEquals(record.getActions().size(), 5);
 
-		// SpiderAuthorizatorSpy authorizator = (SpiderAuthorizatorSpy) authorizator;
-		List<String> parameters = authorizator.userIsAuthorizedParameters;
-		assertTrue(parameters.contains("987654321:search:place"));
+		String methodName = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
+		authorizator.TCR.assertParameters(methodName, 0, user, "read", "search");
+		authorizator.TCR.assertParameters(methodName, 1, user, "update", "search");
+		authorizator.TCR.assertParameters(methodName, 2, user, "index", "search");
+		authorizator.TCR.assertParameters(methodName, 3, user, "delete", "search");
+		authorizator.TCR.assertNumberOfCallsToMethod(methodName, 4);
+
+		String methodName2 = "userIsAuthorizedForActionOnRecordType";
+		authorizator.TCR.assertParameters(methodName2, 0, user, "search", "place");
+		authorizator.TCR.assertNumberOfCallsToMethod(methodName2, 1);
 	}
 
 	@Test
 	public void testActionsOnReadRecordTypeSearchWhereWeDoNotHaveSearchOnOneRecordTypeToSearchIn() {
+		authorizator.setNotAutorizedForActionOnRecordType("search", "image");
 		String recordType = "search";
 		DataGroup dataGroup = recordStorage.read(recordType, "anotherSearchId");
-		//
-		authorizator = new AlwaysAuthorisedExceptStub();
-		Set<String> actions = new HashSet<>();
-		actions.add("search");
-		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
-				.put("image", actions);
-		setUpDependencyProvider();
-		//
+
 		DataRecord record = enhancer.enhance(user, recordType, dataGroup);
+
 		assertTrue(record.getActions().contains(Action.READ));
 		assertTrue(record.getActions().contains(Action.UPDATE));
 		assertTrue(record.getActions().contains(Action.DELETE));
@@ -506,15 +478,21 @@ public class DataGroupToRecordEnhancerTest {
 		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "toRecordType:toRecordId");
 		assertEquals(termCollector.metadataIdsReadNumberOfTimesMap.get("toRecordType").intValue(),
 				1);
-		Integer authorizedCalledNoOfTimes = authorizator.recordTypeAuthorizedNumberOfTimesMap
-				.get("toRecordType");
-		assertEquals(authorizedCalledNoOfTimes.intValue(), 1);
+
+		String methodName = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
+		authorizator.TCR.assertParameters(methodName, 0, user, "read", "dataWithLinks");
+		authorizator.TCR.assertParameters(methodName, 1, user, "update", "dataWithLinks");
+		authorizator.TCR.assertParameters(methodName, 2, user, "index", "dataWithLinks");
+		authorizator.TCR.assertParameters(methodName, 3, user, "delete", "dataWithLinks");
+		authorizator.TCR.assertParameters(methodName, 4, user, "read", "system");
+		authorizator.TCR.assertParameters(methodName, 5, user, "read", "toRecordType");
+		authorizator.TCR.assertNumberOfCallsToMethod(methodName, 6);
 	}
 
 	@Test
 	public void testLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord2() {
-		authorizator = new SpiderAuthorizorNeverAuthorized();
-		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordType = false;
+		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 
 		String recordType = "dataWithLinks";
 		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
@@ -524,10 +502,15 @@ public class DataGroupToRecordEnhancerTest {
 		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "toRecordType:toRecordId");
 		assertEquals(termCollector.metadataIdsReadNumberOfTimesMap.get("toRecordType").intValue(),
 				1);
-		Integer authorizedCalledNoOfTimes = ((SpiderAuthorizorNeverAuthorized) authorizator).recordTypeAuthorizedNumberOfTimesMap
-				.get("toRecordType");
-		assertEquals(authorizedCalledNoOfTimes.intValue(), 1);
 
+		String methodName = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
+		authorizator.TCR.assertParameters(methodName, 0, user, "read", "dataWithLinks");
+		authorizator.TCR.assertParameters(methodName, 1, user, "update", "dataWithLinks");
+		authorizator.TCR.assertParameters(methodName, 2, user, "index", "dataWithLinks");
+		authorizator.TCR.assertParameters(methodName, 3, user, "delete", "dataWithLinks");
+		authorizator.TCR.assertParameters(methodName, 4, user, "read", "system");
+		authorizator.TCR.assertParameters(methodName, 5, user, "read", "toRecordType");
+		authorizator.TCR.assertNumberOfCallsToMethod(methodName, 6);
 	}
 
 }

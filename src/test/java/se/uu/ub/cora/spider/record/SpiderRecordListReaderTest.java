@@ -162,7 +162,7 @@ public class SpiderRecordListReaderTest {
 	public void testUserIsAuthorizedForActionOnRecordTypeIncomingParameters() {
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
-		Map<String, Object> parameters = spiderAuthorizator.testCallRecorder
+		Map<String, Object> parameters = spiderAuthorizator.TCR
 				.getParametersForMethodAndCallNumber("checkUserIsAuthorizedForActionOnRecordType",
 						0);
 		assertEquals((parameters.get("user")), authenticator.returnedUser);
@@ -199,7 +199,7 @@ public class SpiderRecordListReaderTest {
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
 
 		SpiderAuthorizatorSpy authorizatorSpy = spiderAuthorizator;
-		authorizatorSpy.testCallRecorder
+		authorizatorSpy.TCR
 				.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 
 		DataValidatorAlwaysValidSpy dataValidatorAlwaysValidSpy = (DataValidatorAlwaysValidSpy) dataValidator;

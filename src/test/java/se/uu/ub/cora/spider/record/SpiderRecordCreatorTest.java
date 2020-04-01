@@ -165,7 +165,7 @@ public class SpiderRecordCreatorTest {
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 
 		assertTrue(authenticator.authenticationWasCalled);
-		assertTrue(spiderAuthorizatorSpy.testCallRecorder
+		assertTrue(spiderAuthorizatorSpy.TCR
 				.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType"));
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
 		ExtendedFunctionalitySpy extendedFunctionality = extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation
@@ -541,7 +541,7 @@ public class SpiderRecordCreatorTest {
 
 		recordCreator.createAndStoreRecord("someToken78678567", "typeWithUserGeneratedId", record);
 
-		Map<String, Object> parameters = spiderAuthorizatorSpy.testCallRecorder
+		Map<String, Object> parameters = spiderAuthorizatorSpy.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
 		assertSame(parameters.get("user"), authenticator.returnedUser);

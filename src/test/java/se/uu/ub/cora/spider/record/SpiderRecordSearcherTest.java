@@ -24,10 +24,8 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -48,7 +46,6 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
@@ -163,7 +160,7 @@ public class SpiderRecordSearcherTest {
 		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 		assertNotNull(searchResult);
 
-		Map<String, Object> firstParameters = spiderAuthorizator.testCallRecorder
+		Map<String, Object> firstParameters = spiderAuthorizator.TCR
 				.getParametersForMethodAndCallNumber("checkUserIsAuthorizedForActionOnRecordType",
 						0);
 
@@ -175,11 +172,11 @@ public class SpiderRecordSearcherTest {
 		assertEquals(dataGroupTermCollectorSpy.metadataId, "place");
 		assertEquals(dataGroupTermCollectorSpy.dataGroup, ((RecordSearchSpy) recordSearch).place44);
 
-		Map<String, Object> secondParameters = spiderAuthorizator.testCallRecorder
+		Map<String, Object> secondParameters = spiderAuthorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"userIsAuthorizedForActionOnRecordTypeAndCollectedData", 0);
 
-		assertTrue(spiderAuthorizator.testCallRecorder
+		assertTrue(spiderAuthorizator.TCR
 				.methodWasCalled("userIsAuthorizedForActionOnRecordTypeAndCollectedData"));
 
 		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
@@ -194,12 +191,8 @@ public class SpiderRecordSearcherTest {
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testReadListAuthenticatedAndUnauthorizedNoRightToOneRecordTypeToSearchIn() {
-		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
-		HashSet<String> hashSet = new HashSet<>();
-		hashSet.add("search");
-		((AlwaysAuthorisedExceptStub) spiderAuthorizator).notAuthorizedForRecordTypeAndActions
-				.put("image", hashSet);
-		setUpDependencyProvider();
+		spiderAuthorizator.setNotAutorizedForActionOnRecordType("search", "image");
+
 		recordSearcher.search(SOME_AUTH_TOKEN, ANOTHER_SEARCH_ID, someSearchData);
 	}
 
@@ -223,14 +216,9 @@ public class SpiderRecordSearcherTest {
 
 	@Test
 	public void testSearchResultIsEnhancedForEachResult() {
-		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
-		Set<String> actions = new HashSet<>();
-		actions.add("create");
-		actions.add("list");
-		actions.add("search");
-		((AlwaysAuthorisedExceptStub) spiderAuthorizator).notAuthorizedForRecordTypeAndActions
-				.put("recordType", actions);
-		setUpDependencyProvider();
+		spiderAuthorizator.setNotAutorizedForActionOnRecordType("create", "recordType");
+		spiderAuthorizator.setNotAutorizedForActionOnRecordType("list", "recordType");
+		spiderAuthorizator.setNotAutorizedForActionOnRecordType("search", "recordType");
 
 		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 		assertEquals(searchResult.getDataList().size(),
@@ -244,12 +232,7 @@ public class SpiderRecordSearcherTest {
 
 	@Test
 	public void testSearchResultIsFilteredAndEnhancedForEachResult() {
-		spiderAuthorizator = new AlwaysAuthorisedExceptStub();
-		Set<String> actions = new HashSet<>();
-		actions.add("read");
-		((AlwaysAuthorisedExceptStub) spiderAuthorizator).notAuthorizedForRecordTypeAndActions
-				.put("binary", actions);
-		setUpDependencyProvider();
+		spiderAuthorizator.setNotAutorizedForActionOnRecordType("read", "binary");
 
 		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, ANOTHER_SEARCH_ID,
 				someSearchData);
@@ -286,24 +269,4 @@ public class SpiderRecordSearcherTest {
 		assertEquals(searchResult.getTotalNumberOfTypeInStorage(), String.valueOf(searchMatches));
 	}
 
-	// @Test
-	// public void testSearchWithLimitsOnResponse() {
-	// long searchMatches = Long.MAX_VALUE;
-	// authorizationService = new AlwaysAuthorisedExceptStub();
-	// ((RecordSearchSpy) recordSearch).totalNumberOfMatches = searchMatches;
-	// setUpDependencyProvider();
-	//
-	// String rowsToRead = "20";
-	// someSearchData.addChild(DataAtomic.withNameInDataAndValue("rows",
-	// rowsToRead));
-	//
-	// DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN,
-	// A_SEARCH_ID, someSearchData);
-	// assertEquals(searchResult.getFromNo(), "1");
-	// assertEquals(searchResult.getToNo(), rowsToRead);
-	// assertEquals(searchResult.getDataList().size(),
-	// Integer.parseInt(rowsToRead));
-	// assertEquals(searchResult.getTotalNumberOfTypeInStorage(),
-	// String.valueOf(searchMatches));
-	// }
 }

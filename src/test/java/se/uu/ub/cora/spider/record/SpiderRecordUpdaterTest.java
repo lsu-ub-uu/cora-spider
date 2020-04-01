@@ -165,7 +165,7 @@ public class SpiderRecordUpdaterTest {
 		// SpiderAuthorizatorSpy authorizatorSpy = (SpiderAuthorizatorSpy) spiderAuthorizator;
 		// assertTrue(authorizatorSpy.authorizedWasCalled);
 
-		assertTrue(spiderAuthorizator.testCallRecorder
+		assertTrue(spiderAuthorizator.TCR
 				.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType"));
 
 		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
@@ -198,7 +198,7 @@ public class SpiderRecordUpdaterTest {
 				"spyType", "spyId", "cora"));
 		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 
-		Map<String, Object> parameters = spiderAuthorizator.testCallRecorder
+		Map<String, Object> parameters = spiderAuthorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
 		assertSame(parameters.get("user"), authenticator.returnedUser);
@@ -207,7 +207,7 @@ public class SpiderRecordUpdaterTest {
 		assertSame(parameters.get("collectedData"), termCollector.returnedCollectedTerms.get(0));
 		assertEquals(parameters.get("calculateRecordPartPermissions"), false);
 
-		Map<String, Object> parameters2 = spiderAuthorizator.testCallRecorder
+		Map<String, Object> parameters2 = spiderAuthorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1);
 		assertSame(parameters2.get("user"), authenticator.returnedUser);
@@ -216,7 +216,7 @@ public class SpiderRecordUpdaterTest {
 		assertSame(parameters2.get("collectedData"), termCollector.returnedCollectedTerms.get(1));
 		assertEquals(parameters2.get("calculateRecordPartPermissions"), false);
 
-		assertEquals(spiderAuthorizator.testCallRecorder.getNumberOfCallsToMethod(
+		assertEquals(spiderAuthorizator.TCR.getNumberOfCallsToMethod(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData"), 2);
 
 		assertFalse(dataRedactorSpy.replaceRecordPartsUsingPermissionsHasBeenCalled);
@@ -238,7 +238,7 @@ public class SpiderRecordUpdaterTest {
 				"spyType", "spyId", "cora"));
 		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 
-		Map<String, Object> parameters = spiderAuthorizator.testCallRecorder
+		Map<String, Object> parameters = spiderAuthorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
 		assertSame(parameters.get("user"), authenticator.returnedUser);
@@ -247,7 +247,7 @@ public class SpiderRecordUpdaterTest {
 		assertSame(parameters.get("collectedData"), termCollector.returnedCollectedTerms.get(0));
 		assertEquals(parameters.get("calculateRecordPartPermissions"), true);
 
-		Map<String, Object> parameters2 = spiderAuthorizator.testCallRecorder
+		Map<String, Object> parameters2 = spiderAuthorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1);
 		assertSame(parameters2.get("user"), authenticator.returnedUser);
@@ -256,7 +256,7 @@ public class SpiderRecordUpdaterTest {
 		assertSame(parameters2.get("collectedData"), termCollector.returnedCollectedTerms.get(1));
 		assertEquals(parameters2.get("calculateRecordPartPermissions"), true);
 
-		assertEquals(spiderAuthorizator.testCallRecorder.getNumberOfCallsToMethod(
+		assertEquals(spiderAuthorizator.TCR.getNumberOfCallsToMethod(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData"), 2);
 
 		assertTrue(dataRedactorSpy.replaceRecordPartsUsingPermissionsHasBeenCalled);
@@ -287,7 +287,7 @@ public class SpiderRecordUpdaterTest {
 				"spyType", "spyId", "cora"));
 		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 
-		Map<String, Object> parameters = spiderAuthorizator.testCallRecorder
+		Map<String, Object> parameters = spiderAuthorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
 		assertSame(parameters.get("user"), authenticator.returnedUser);
@@ -296,7 +296,7 @@ public class SpiderRecordUpdaterTest {
 		assertSame(parameters.get("collectedData"), termCollector.returnedCollectedTerms.get(0));
 		assertEquals(parameters.get("calculateRecordPartPermissions"), true);
 
-		Map<String, Object> parameters2 = spiderAuthorizator.testCallRecorder
+		Map<String, Object> parameters2 = spiderAuthorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1);
 		assertSame(parameters2.get("user"), authenticator.returnedUser);
@@ -305,7 +305,7 @@ public class SpiderRecordUpdaterTest {
 		assertSame(parameters2.get("collectedData"), termCollector.returnedCollectedTerms.get(1));
 		assertEquals(parameters2.get("calculateRecordPartPermissions"), true);
 
-		Map<String, Object> parameters3 = spiderAuthorizator.testCallRecorder
+		Map<String, Object> parameters3 = spiderAuthorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 2);
 		assertSame(parameters3.get("user"), authenticator.returnedUser);
@@ -314,7 +314,7 @@ public class SpiderRecordUpdaterTest {
 		assertSame(parameters3.get("collectedData"), termCollector.returnedCollectedTerms.get(1));
 		assertEquals(parameters3.get("calculateRecordPartPermissions"), true);
 
-		assertEquals(spiderAuthorizator.testCallRecorder.getNumberOfCallsToMethod(
+		assertEquals(spiderAuthorizator.TCR.getNumberOfCallsToMethod(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData"), 3);
 
 		// removed dataGroup returned
@@ -508,10 +508,10 @@ public class SpiderRecordUpdaterTest {
 
 		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = termCollector;
 
-		assertEquals(spiderAuthorizator.testCallRecorder.getNumberOfCallsToMethod(
+		assertEquals(spiderAuthorizator.TCR.getNumberOfCallsToMethod(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData"), 2);
 
-		Map<String, Object> firstParamaters = spiderAuthorizator.testCallRecorder
+		Map<String, Object> firstParamaters = spiderAuthorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
 
@@ -521,7 +521,7 @@ public class SpiderRecordUpdaterTest {
 		assertEquals(firstParamaters.get("collectedData"),
 				dataGroupTermCollectorSpy.returnedCollectedTerms.get(0));
 
-		Map<String, Object> secondParamaters = spiderAuthorizator.testCallRecorder
+		Map<String, Object> secondParamaters = spiderAuthorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1);
 

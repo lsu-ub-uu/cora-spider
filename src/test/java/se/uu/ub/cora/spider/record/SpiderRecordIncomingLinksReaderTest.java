@@ -141,7 +141,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 		assertEquals(toLinkedRecordType.getValue(), "place");
 		assertEquals(toLinkedRecordId.getValue(), "place:0001");
 
-		Map<String, Object> parameters = authorizator.testCallRecorder
+		Map<String, Object> parameters = authorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
 		assertSame(parameters.get("user"), authenticator.returnedUser);

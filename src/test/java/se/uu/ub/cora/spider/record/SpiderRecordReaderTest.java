@@ -155,7 +155,7 @@ public class SpiderRecordReaderTest {
 		DataGroup groupOut = record.getDataGroup();
 		assertEquals(groupOut.getNameInData(), "authority");
 
-		Map<String, Object> parameters = authorizator.testCallRecorder
+		Map<String, Object> parameters = authorizator.TCR
 				.getParametersForMethodAndCallNumber("checkUserIsAuthorizedForActionOnRecordType",
 						0);
 		assertSame(parameters.get("user"), authenticator.returnedUser);
@@ -165,7 +165,7 @@ public class SpiderRecordReaderTest {
 		assertEquals(termCollector.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
 		assertEquals(termCollector.dataGroup, recordStorage.read("place", "place:0001"));
 
-		Map<String, Object> parameters2 = authorizator.testCallRecorder
+		Map<String, Object> parameters2 = authorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
 		assertSame(parameters2.get("user"), authenticator.returnedUser);
@@ -182,7 +182,7 @@ public class SpiderRecordReaderTest {
 		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
 		recordReader.readRecord("someToken78678567", "place", "place:0001");
 
-		Map<String, Object> parameters = authorizator.testCallRecorder
+		Map<String, Object> parameters = authorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
 		assertSame(parameters.get("user"), authenticator.returnedUser);
@@ -204,7 +204,7 @@ public class SpiderRecordReaderTest {
 		try {
 			recordReader.readRecord("someToken78678567", "place", "place:0001");
 		} catch (Exception e) {
-			assertTrue(authorizator.testCallRecorder.methodWasCalled(
+			assertTrue(authorizator.TCR.methodWasCalled(
 					"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData"));
 			assertFalse(dataRedactor.dataRedactorHasBeenCalled);
 		}
@@ -220,7 +220,7 @@ public class SpiderRecordReaderTest {
 				"place:0001");
 		assertNotNull(readRecord);
 
-		Map<String, Object> parameters = authorizator.testCallRecorder
+		Map<String, Object> parameters = authorizator.TCR
 				.getParametersForMethodAndCallNumber(
 						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
 		assertSame(parameters.get("user"), authenticator.returnedUser);
@@ -297,7 +297,7 @@ public class SpiderRecordReaderTest {
 
 		assertNotNull(readRecord);
 		assertFalse(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
-		assertFalse(authorizator.testCallRecorder.methodWasCalled(
+		assertFalse(authorizator.TCR.methodWasCalled(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData"));
 		assertFalse(dataRedactor.dataRedactorHasBeenCalled);
 	}
@@ -311,7 +311,7 @@ public class SpiderRecordReaderTest {
 
 		recordReader.readRecord("someUserId", "someType", "someId");
 
-		assertFalse(authorizator.testCallRecorder.methodWasCalled(
+		assertFalse(authorizator.TCR.methodWasCalled(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData"));
 		assertFalse(dataRedactor.dataRedactorHasBeenCalled);
 	}

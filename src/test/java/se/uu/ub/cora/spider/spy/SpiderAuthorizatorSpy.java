@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2018 Uppsala University Library
+ * Copyright 2015, 2018, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -30,78 +30,66 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 
 public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
+	public TestCallRecorder TCR = new TestCallRecorder();
 
-	// public boolean authorizedWasCalled = false;
-	// public List<User> users = new ArrayList<>();
-	// public List<String> actions = new ArrayList<>();
-	// public List<String> recordTypes = new ArrayList<>();
-	// public List<DataGroup> records = new ArrayList<>();
-	// public List<DataGroup> collectedTerms = new ArrayList<>();
-	// public List<String> calledMethods = new ArrayList<>();
-	// public List<String> userIsAuthorizedParameters = new ArrayList<>();
-	// public boolean getUsersReadRecordPartPermissionsHasBeenCalled = false;
-
-	public Map<String, Integer> recordTypeAuthorizedNumberOfTimesMap = new HashMap<>();
 	public Set<String> recordPartReadPermissions = new HashSet<>();
-	public boolean calculateRecordPartPermissions;
+
 	public boolean authorizedForActionAndRecordType = true;
 	public boolean authorizedForActionAndRecordTypeAndCollectedData = true;
-
-	public TestCallRecorder testCallRecorder = new TestCallRecorder();
 	private Set<String> notAutorizedForAction = new HashSet<>();
-
 	private Map<String, Set<String>> notAuthorizedForActionsOnRecordType = new HashMap<>();
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		testCallRecorder.addCall("checkUserIsAuthorizedForActionOnRecordType", "user", user,
-				"action", action, "recordType", recordType);
-		if (!authorizedForActionAndRecordType || notAutorizedForAction.contains(action)
+		TCR.addCall("checkUserIsAuthorizedForActionOnRecordType", "user", user, "action", action,
+				"recordType", recordType);
+		if (!authorizedForActionAndRecordType
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
 			throw new AuthorizationException("Exception from SpiderAuthorizatorSpy");
 		}
 	}
 
 	private boolean notAuthorizedForActionOnRecordType(String action, String recordType) {
+		boolean temp = false;
+		if (notAutorizedForAction.contains(action)) {
+			temp = true;
+		}
 		if (notAuthorizedForActionsOnRecordType.containsKey(action)) {
 			Set<String> actionRecordTypes = notAuthorizedForActionsOnRecordType.get(action);
-			return actionRecordTypes.contains(recordType);
+			if (actionRecordTypes.contains(recordType)) {
+				temp = true;
+			}
 		}
-		return false;
+		return temp;
 	}
 
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		testCallRecorder.addCall("userIsAuthorizedForActionOnRecordType", "user", user, "action",
-				action, "recordType", recordType);
+		TCR.addCall("userIsAuthorizedForActionOnRecordType", "user", user, "action", action,
+				"recordType", recordType);
 
-		if (authorizedForActionAndRecordType) {
-			// userIsAuthorizedParameters.add(user.id + ":" + action + ":" + recordType);
-			return true;
-		} else {
+		if (!authorizedForActionAndRecordType
+				|| notAuthorizedForActionOnRecordType(action, recordType)) {
 			return false;
+		} else {
+			return true;
 		}
 	}
 
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
-		testCallRecorder.addCall("userIsAuthorizedForActionOnRecordTypeAndCollectedData", "user",
-				user, "action", action, "recordType", recordType, "collectedData", collectedData);
+		TCR.addCall("userIsAuthorizedForActionOnRecordTypeAndCollectedData", "user", user, "action",
+				action, "recordType", recordType, "collectedData", collectedData);
 
-		if (!recordTypeAuthorizedNumberOfTimesMap.containsKey(recordType)) {
-			recordTypeAuthorizedNumberOfTimesMap.put(recordType, 1);
-		} else {
-			recordTypeAuthorizedNumberOfTimesMap.put(recordType,
-					recordTypeAuthorizedNumberOfTimesMap.get(recordType) + 1);
+		if (!authorizedForActionAndRecordTypeAndCollectedData
+				|| notAuthorizedForActionOnRecordType(action, recordType)) {
+
+			return false;
 		}
-		// this.collectedTerms.add(collectedData);
-		// userIsAuthorizedParameters.add(user.id + ":" + action + ":" + recordType);
-		// calledMethods.add("userIsAuthorizedForActionOnRecordTypeAndCollectedData");
-
-		return authorizedForActionAndRecordTypeAndCollectedData;
+		return true;
 	}
 
 	@Override
@@ -109,22 +97,16 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 			String action, String recordType, DataGroup collectedData,
 			boolean calculateRecordPartPermissions) {
 
-		testCallRecorder.addCall(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", "user", user,
-				"action", action, "recordType", recordType, "collectedData", collectedData,
+		TCR.addCall("checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", "user",
+				user, "action", action, "recordType", recordType, "collectedData", collectedData,
 				"calculateRecordPartPermissions", calculateRecordPartPermissions);
 
-		if (!authorizedForActionAndRecordTypeAndCollectedData) {
+		if (!authorizedForActionAndRecordTypeAndCollectedData
+				|| notAuthorizedForActionOnRecordType(action, recordType)) {
 			throw new AuthorizationException(
 					"Excpetion thrown from checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData from Spy");
 		}
 
-		this.calculateRecordPartPermissions = calculateRecordPartPermissions;
-		// this.users.add(user);
-		// this.actions.add(action);
-		// this.recordTypes.add(recordType);
-		// this.collectedTerms.add(collectedData);
-		// calledMethods.add("checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
 		recordPartReadPermissions.add("someRecordType.someMetadataId");
 		return recordPartReadPermissions;
 	}

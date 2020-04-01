@@ -23,9 +23,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -36,16 +34,16 @@ import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
-import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
+import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 
 public class WorkOrderExecutorAsExtendedFunctionalityTest {
@@ -54,7 +52,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 	WorkOrderExecutorAsExtendedFunctionality extendedFunctionality;
 	DataGroupTermCollectorSpy termCollector;
 	RecordIndexerSpy recordIndexer;
-	AlwaysAuthorisedExceptStub authorizer;
+	SpiderAuthorizatorSpy authorizator;
 	AuthenticatorSpy authenticator;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataGroupFactory dataGroupFactory;
@@ -71,7 +69,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 		recordStorageProviderSpy.recordStorage = new OldRecordStorageSpy();
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 		dependencyProvider.authenticator = new AuthenticatorSpy();
-		dependencyProvider.spiderAuthorizator = new AlwaysAuthorisedExceptStub();
+		dependencyProvider.spiderAuthorizator = new SpiderAuthorizatorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -89,7 +87,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 				.usingDependencyProvider(dependencyProvider);
 		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
 		recordIndexer = (RecordIndexerSpy) dependencyProvider.getRecordIndexer();
-		authorizer = (AlwaysAuthorisedExceptStub) dependencyProvider.getSpiderAuthorizator();
+		authorizator = (SpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();
 		authenticator = (AuthenticatorSpy) dependencyProvider.getAuthenticator();
 	}
 
@@ -137,9 +135,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 
 	@Test
 	public void testIndexDataWithNoRightToIndexRecordType() {
-		Set<String> actions = new HashSet<>();
-		actions.add("index");
-		authorizer.notAuthorizedForRecordTypeAndActions.put("book", actions);
+		authorizator.setNotAutorizedForActionOnRecordType("index", "book");
 
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
 				"someGeneratedId", "book", "book1");

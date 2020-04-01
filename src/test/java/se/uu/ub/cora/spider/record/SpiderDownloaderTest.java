@@ -144,7 +144,7 @@ public class SpiderDownloaderTest {
 
 		downloader.download("someToken78678567", "image", "image:123456789", "master");
 
-		boolean methodWasCalled = spiderAuthorizatorSpy.testCallRecorder
+		boolean methodWasCalled = spiderAuthorizatorSpy.TCR
 				.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 
 		assertTrue(methodWasCalled);
