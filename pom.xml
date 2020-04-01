@@ -34,10 +34,10 @@
 
 	<properties>
         <logger.version>2.0.0</logger.version>
-		<storage.version>3.4-SNAPSHOT</storage.version>
+		<storage.version>3.4.0</storage.version>
 		<search.version>3.3.0</search.version>
-		<bookkeeper.version>4.5-SNAPSHOT</bookkeeper.version>
-		<beefeater.version>3.1-SNAPSHOT</beefeater.version>
+		<bookkeeper.version>4.5.0</bookkeeper.version>
+		<beefeater.version>3.1.0</beefeater.version>
 		
 	</properties>
 
