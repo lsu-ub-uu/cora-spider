@@ -1,7 +1,9 @@
 package se.uu.ub.cora.spider.spy;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,20 +12,24 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * TestCallRecorder is a test helper class used to record and validate calls to methods in spies and
- * similar test helping classes.
+ * MethodCallRecorder is a test helper class used to record and validate calls to methods in spies
+ * and similar test helping classes.
  * <p>
  * Spies and similar helper classes should create an internal instance of this class and then record
  * calls to its methods using the {@link #addCall(String, Object...)} method.
  * <p>
- * Tests can then validate correct calls using the {@link #assertParameters(String, int, Object...)
- * method and check the number of calls using the {@link #assertNumberOfCallsToMethod(String, int)}
+ * Tests can then validate that correct calls have been made using the
+ * {@link #assertParameters(String, int, Object...)} method or the
+ * {@link #assertParameter(String, int, String, Object)} method and check the number of calls using
+ * the {@link #assertNumberOfCallsToMethod(String, int)} or that a method has been called using the
+ * {@link #assertMethodWasCalled(String)} method.
  * <p>
  * Or get values for a specific call using the {@link #getInParametersAsArray(String, int)} method
  * to use in external asserts and check the number of calls using the
- * {@link #getNumberOfCallsToMethod(String)} method
+ * {@link #getNumberOfCallsToMethod(String)} method or that a method has been called using the
+ * {@link #methodWasCalled(String)} method.
  */
-public class TestCallRecorder {
+public class MethodCallRecorder {
 	private Map<String, List<Map<String, Object>>> calledMethods = new HashMap<>();
 
 	/**
@@ -88,6 +94,13 @@ public class TestCallRecorder {
 		return calledMethods.get(methodName);
 	}
 
+	/**
+	 * methodWasCalled returns if a method has been called or not
+	 * 
+	 * @param methodName
+	 *            A String with the methodName to get if it has been called or not
+	 * @return A boolean, true if the method has been called else false
+	 */
 	public boolean methodWasCalled(String methodName) {
 		return calledMethods.containsKey(methodName);
 	}
@@ -155,10 +168,10 @@ public class TestCallRecorder {
 	}
 
 	/**
-	 * It asserts the number of times a method has been called.
+	 * assertNumberOfCallsToMethod asserts the number of times a method has been called.
 	 * 
 	 * @param methodName
-	 *            Name of the method to assert.
+	 *            Name of the method to assert
 	 * @param calledNumberOfTimes
 	 *            Expected number of times that the method has been called.
 	 */
@@ -184,6 +197,26 @@ public class TestCallRecorder {
 			return false;
 		}
 
+	}
+
+	/**
+	 * assertMethodWasCalled is used to assert that a method has been called
+	 * 
+	 * @param methodName
+	 *            A String with the methodName to assert that it has been called
+	 */
+	public void assertMethodWasCalled(String methodName) {
+		assertTrue(methodWasCalled(methodName));
+	}
+
+	/**
+	 * assertMethodNotCalled is used to assert that a method has NOT been called
+	 * 
+	 * @param methodName
+	 *            A String with the methodName to assert that it has NOT been called
+	 */
+	public void assertMethodNotCalled(String methodName) {
+		assertFalse(methodWasCalled(methodName));
 	}
 
 }

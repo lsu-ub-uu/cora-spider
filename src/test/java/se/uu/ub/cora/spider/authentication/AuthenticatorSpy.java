@@ -20,8 +20,10 @@
 package se.uu.ub.cora.spider.authentication;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class AuthenticatorSpy implements Authenticator {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public boolean authenticationWasCalled = false;
 	public String authToken;
@@ -30,6 +32,7 @@ public class AuthenticatorSpy implements Authenticator {
 
 	@Override
 	public User getUserForToken(String authToken) {
+		MCR.addCall("getUserForToken", "authToken", authToken);
 		this.authToken = authToken;
 		authenticationWasCalled = true;
 

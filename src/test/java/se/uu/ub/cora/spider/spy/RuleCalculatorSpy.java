@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2018 Uppsala University Library
+ * Copyright 2015, 2018, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,25 +23,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
+import se.uu.ub.cora.beefeater.authorization.RuleImp;
+import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 
 public class RuleCalculatorSpy implements PermissionRuleCalculator {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
-	public boolean calculateKeysWithoutDataWasCalled = false;
-	public boolean calculateKeysForDataWasCalled = false;
+	public List<Rule> returnedRules;
+
+	public RuleCalculatorSpy() {
+		RulePartValuesImp set = new RulePartValuesImp();
+		set.add("noValue");
+
+		Rule map = new RuleImp();
+		map.addRulePart("NoRulesCalculator", set);
+
+		returnedRules = new ArrayList<>();
+		returnedRules.add(map);
+	}
 
 	@Override
 	public List<Rule> calculateRulesForActionAndRecordType(String action, String recordType) {
-		calculateKeysWithoutDataWasCalled = true;
-		return new ArrayList<>();
+		MCR.addCall("calculateRulesForActionAndRecordType", "action", action, "recordType",
+				recordType);
+		return returnedRules;
 	}
 
 	@Override
 	public List<Rule> calculateRulesForActionAndRecordTypeAndCollectedData(String action,
 			String recordType, DataGroup collectedData) {
-		calculateKeysForDataWasCalled = true;
-		return new ArrayList<>();
+		MCR.addCall("calculateRulesForActionAndRecordTypeAndCollectedData", "action", action,
+				"recordType", recordType, "collectedData", collectedData);
+		return returnedRules;
 	}
 
 }

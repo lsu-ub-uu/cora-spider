@@ -26,7 +26,6 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -50,8 +49,8 @@ import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
-import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
+import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.MetadataStorage;
@@ -62,7 +61,7 @@ public class SpiderRecordReaderTest {
 	private RecordStorage recordStorage;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
-	private PermissionRuleCalculator keyCalculator;
+	private PermissionRuleCalculator ruleCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private SpiderRecordReader recordReader;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
@@ -80,7 +79,7 @@ public class SpiderRecordReaderTest {
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		keyCalculator = new NoRulesCalculatorStub();
+		ruleCalculator = new RuleCalculatorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		dataRedactor = new DataRedactorSpy();
 		setUpDependencyProvider();
@@ -110,7 +109,7 @@ public class SpiderRecordReaderTest {
 		metadataStorageProviderSpy.metadataStorage = (MetadataStorage) recordStorage;
 		dependencyProvider.setMetadataStorageProvider(metadataStorageProviderSpy);
 
-		dependencyProvider.ruleCalculator = keyCalculator;
+		dependencyProvider.ruleCalculator = ruleCalculator;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		dependencyProvider.searchTermCollector = termCollector;
 
@@ -155,41 +154,28 @@ public class SpiderRecordReaderTest {
 		DataGroup groupOut = record.getDataGroup();
 		assertEquals(groupOut.getNameInData(), "authority");
 
-		Map<String, Object> parameters = authorizator.TCR
-				.getParametersForMethodAndCallNumber("checkUserIsAuthorizedForActionOnRecordType",
-						0);
-		assertSame(parameters.get("user"), authenticator.returnedUser);
-		assertEquals(parameters.get("action"), "read");
-		assertEquals(parameters.get("recordType"), "place");
+		String methodName = "checkUserIsAuthorizedForActionOnRecordType";
+		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "read",
+				"place");
 
 		assertEquals(termCollector.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
 		assertEquals(termCollector.dataGroup, recordStorage.read("place", "place:0001"));
 
-		Map<String, Object> parameters2 = authorizator.TCR
-				.getParametersForMethodAndCallNumber(
-						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
-		assertSame(parameters2.get("user"), authenticator.returnedUser);
-		assertEquals(parameters2.get("action"), "read");
-		assertEquals(parameters2.get("recordType"), "place");
-		DataGroup returnedCollectedTerms = termCollector.collectedTerms;
-		assertSame(parameters2.get("collectedData"), returnedCollectedTerms);
-		assertEquals(parameters2.get("calculateRecordPartPermissions"), false);
+		String methodName2 = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		authorizator.MCR.assertParameters(methodName2, 0, authenticator.returnedUser, "read",
+				"place", termCollector.collectedTerms, false);
 	}
 
 	@Test
 	public void testReadAuthorizedHasRecordPartConstraints() {
 		recordTypeHandlerSpy.isPublicForRead = false;
 		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
+
 		recordReader.readRecord("someToken78678567", "place", "place:0001");
 
-		Map<String, Object> parameters = authorizator.TCR
-				.getParametersForMethodAndCallNumber(
-						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
-		assertSame(parameters.get("user"), authenticator.returnedUser);
-		assertEquals(parameters.get("action"), "read");
-		assertEquals(parameters.get("recordType"), "place");
-		assertSame(parameters.get("collectedData"), termCollector.collectedTerms);
-		assertEquals(parameters.get("calculateRecordPartPermissions"), true);
+		String methodName2 = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		authorizator.MCR.assertParameters(methodName2, 0, authenticator.returnedUser, "read",
+				"place", termCollector.collectedTerms, true);
 
 		assertEquals(termCollector.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
 		assertEquals(termCollector.dataGroup, recordStorage.read("place", "place:0001"));
@@ -204,8 +190,8 @@ public class SpiderRecordReaderTest {
 		try {
 			recordReader.readRecord("someToken78678567", "place", "place:0001");
 		} catch (Exception e) {
-			assertTrue(authorizator.TCR.methodWasCalled(
-					"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData"));
+			authorizator.MCR.assertMethodWasCalled(
+					"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
 			assertFalse(dataRedactor.dataRedactorHasBeenCalled);
 		}
 	}
@@ -220,14 +206,9 @@ public class SpiderRecordReaderTest {
 				"place:0001");
 		assertNotNull(readRecord);
 
-		Map<String, Object> parameters = authorizator.TCR
-				.getParametersForMethodAndCallNumber(
-						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
-		assertSame(parameters.get("user"), authenticator.returnedUser);
-		assertEquals(parameters.get("action"), "read");
-		assertEquals(parameters.get("recordType"), "abstractAuthority");
-		assertSame(parameters.get("collectedData"), termCollector.collectedTerms);
-		assertEquals(parameters.get("calculateRecordPartPermissions"), false);
+		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "read",
+				"abstractAuthority", termCollector.collectedTerms, false);
 
 		assertEquals(termCollector.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
 		assertEquals(termCollector.dataGroup,
@@ -297,8 +278,8 @@ public class SpiderRecordReaderTest {
 
 		assertNotNull(readRecord);
 		assertFalse(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
-		assertFalse(authorizator.TCR.methodWasCalled(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData"));
+		authorizator.MCR.assertMethodNotCalled(
+				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
 		assertFalse(dataRedactor.dataRedactorHasBeenCalled);
 	}
 
@@ -311,8 +292,8 @@ public class SpiderRecordReaderTest {
 
 		recordReader.readRecord("someUserId", "someType", "someId");
 
-		assertFalse(authorizator.TCR.methodWasCalled(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData"));
+		authorizator.MCR.assertMethodNotCalled(
+				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
 		assertFalse(dataRedactor.dataRedactorHasBeenCalled);
 	}
 

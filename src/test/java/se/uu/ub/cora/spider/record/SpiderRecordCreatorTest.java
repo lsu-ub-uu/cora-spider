@@ -22,18 +22,15 @@ package se.uu.ub.cora.spider.record;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
@@ -63,10 +60,8 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
-import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
@@ -86,11 +81,11 @@ public class SpiderRecordCreatorTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
 	private RecordStorage recordStorage;
 	private AuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy spiderAuthorizatorSpy;
+	private SpiderAuthorizatorSpy authorizator;
 	private RecordIdGenerator idGenerator;
 	private PermissionRuleCalculator ruleCalculator;
 	private SpiderRecordCreator recordCreator;
-	private DataValidator dataValidator;
+	private DataValidatorSpy dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
@@ -107,11 +102,11 @@ public class SpiderRecordCreatorTest {
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 		authenticator = new AuthenticatorSpy();
-		spiderAuthorizatorSpy = new SpiderAuthorizatorSpy();
-		dataValidator = new DataValidatorAlwaysValidSpy();
+		authorizator = new SpiderAuthorizatorSpy();
+		dataValidator = new DataValidatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		idGenerator = new IdGeneratorSpy();
-		ruleCalculator = new NoRulesCalculatorStub();
+		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		termCollector = new DataGroupTermCollectorSpy();
@@ -135,7 +130,7 @@ public class SpiderRecordCreatorTest {
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.spiderAuthorizator = spiderAuthorizatorSpy;
+		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.dataValidator = dataValidator;
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
 		recordStorageProviderSpy.recordStorage = recordStorage;
@@ -155,7 +150,7 @@ public class SpiderRecordCreatorTest {
 
 	@Test
 	public void testExternalDependenciesAreCalled() {
-		dataValidator = new DataValidatorAlwaysValidSpy();
+		dataValidator = new DataValidatorSpy();
 		recordStorage = new OldRecordStorageSpy();
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
@@ -165,9 +160,9 @@ public class SpiderRecordCreatorTest {
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 
 		assertTrue(authenticator.authenticationWasCalled);
-		assertTrue(spiderAuthorizatorSpy.TCR
-				.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType"));
-		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
+		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+		dataValidator.MCR.assertMethodWasCalled("validateData");
+
 		ExtendedFunctionalitySpy extendedFunctionality = extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation
 				.get(0);
 		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
@@ -190,8 +185,8 @@ public class SpiderRecordCreatorTest {
 
 	@Test
 	public void testRecordEnhancerCalled() {
-		spiderAuthorizatorSpy = new SpiderAuthorizatorSpy();
-		dataValidator = new DataValidatorAlwaysValidSpy();
+		authorizator = new SpiderAuthorizatorSpy();
+		dataValidator = new DataValidatorSpy();
 		recordStorage = new OldRecordStorageSpy();
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
@@ -218,8 +213,8 @@ public class SpiderRecordCreatorTest {
 
 	@Test
 	public void testExtendedFunctionallityIsCalled() {
-		spiderAuthorizatorSpy = new SpiderAuthorizatorSpy();
-		dataValidator = new DataValidatorAlwaysValidSpy();
+		authorizator = new SpiderAuthorizatorSpy();
+		dataValidator = new DataValidatorSpy();
 		recordStorage = new OldRecordStorageSpy();
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
@@ -302,9 +297,10 @@ public class SpiderRecordCreatorTest {
 
 	@Test(expectedExceptions = DataException.class)
 	public void testCreateRecordInvalidData() {
-		dataValidator = new DataValidatorAlwaysInvalidSpy();
-		setUpDependencyProvider();
+		dataValidator.validValidation = false;
+
 		DataGroup dataGroup = new DataGroupSpy("nameInData");
+
 		recordCreator.createAndStoreRecord("someToken78678567", "recordType", dataGroup);
 	}
 
@@ -486,7 +482,7 @@ public class SpiderRecordCreatorTest {
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testCreateRecordUnauthorized() {
 		// spiderAuthorizatorSpy = new NeverAuthorisedStub();
-		spiderAuthorizatorSpy.authorizedForActionAndRecordType = false;
+		authorizator.authorizedForActionAndRecordType = false;
 		// setUpDependencyProvider();
 
 		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("authority",
@@ -497,7 +493,7 @@ public class SpiderRecordCreatorTest {
 	@Test
 	public void testUnauthorizedForCreateOnRecordTypeShouldShouldNotAccessStorage() {
 		recordStorage = new OldRecordStorageSpy();
-		spiderAuthorizatorSpy.authorizedForActionAndRecordType = false;
+		authorizator.authorizedForActionAndRecordType = false;
 		setUpDependencyProvider();
 
 		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("spyType",
@@ -524,7 +520,7 @@ public class SpiderRecordCreatorTest {
 			+ "Excpetion thrown from checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData from Spy")
 	public void testCreateRecordUnauthorizedForDataInRecord() {
 
-		spiderAuthorizatorSpy.authorizedForActionAndRecordTypeAndCollectedData = false;
+		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 
 		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("place",
 				"cora");
@@ -541,14 +537,9 @@ public class SpiderRecordCreatorTest {
 
 		recordCreator.createAndStoreRecord("someToken78678567", "typeWithUserGeneratedId", record);
 
-		Map<String, Object> parameters = spiderAuthorizatorSpy.TCR
-				.getParametersForMethodAndCallNumber(
-						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
-		assertSame(parameters.get("user"), authenticator.returnedUser);
-		assertEquals(parameters.get("action"), "create");
-		assertEquals(parameters.get("recordType"), "typeWithUserGeneratedId");
-		assertSame(parameters.get("collectedData"), termCollector.collectedTerms);
-		assertEquals(parameters.get("calculateRecordPartPermissions"), false);
+		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "create",
+				"typeWithUserGeneratedId", termCollector.collectedTerms, false);
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)

@@ -30,7 +30,6 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
-import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicFactory;
 import se.uu.ub.cora.data.DataAtomicProvider;
@@ -60,10 +59,8 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorValidExceptSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
-import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageForValidateDataSpy;
@@ -79,10 +76,10 @@ public class SpiderRecordValidatorTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
-	private SpiderAuthorizatorSpy spiderAuthorizator;
+	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private SpiderRecordValidator recordValidator;
-	private DataValidator dataValidator;
+	private DataValidatorSpy dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
@@ -99,10 +96,10 @@ public class SpiderRecordValidatorTest {
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 		authenticator = new AuthenticatorSpy();
-		spiderAuthorizator = new SpiderAuthorizatorSpy();
-		dataValidator = new DataValidatorAlwaysValidSpy();
+		authorizator = new SpiderAuthorizatorSpy();
+		dataValidator = new DataValidatorSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();
-		ruleCalculator = new NoRulesCalculatorStub();
+		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
@@ -127,7 +124,7 @@ public class SpiderRecordValidatorTest {
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
+		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.dataValidator = dataValidator;
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
 		recordStorageProviderSpy.recordStorage = recordStorage;
@@ -159,10 +156,10 @@ public class SpiderRecordValidatorTest {
 		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
 				recordToValidate);
 
-		assertTrue(spiderAuthorizator.TCR
-				.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType"));
+		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 
-		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
+		dataValidator.MCR.assertMethodWasCalled("validateData");
+
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "textNew");
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).recordType, "text");
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).recordId, null);
@@ -196,10 +193,10 @@ public class SpiderRecordValidatorTest {
 		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
 				dataGroup);
 
-		assertTrue(spiderAuthorizator.TCR
-				.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType"));
+		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 
-		assertTrue(((DataValidatorAlwaysValidSpy) dataValidator).validateDataWasCalled);
+		dataValidator.MCR.assertMethodWasCalled("validateData");
+
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "text");
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).recordType, "text");
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).recordId, "spyId");
@@ -208,7 +205,7 @@ public class SpiderRecordValidatorTest {
 
 	@Test
 	public void testLinkCollectorIsNotCalledWhenValidateLinksIsFalse() {
-		spiderAuthorizator = new SpiderAuthorizatorSpy();
+		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
@@ -237,9 +234,7 @@ public class SpiderRecordValidatorTest {
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "true");
 
-		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
-		assertTrue(dataValidatorSpy.validateDataWasCalled);
-		assertEquals(dataValidatorSpy.metadataId, "textNew");
+		dataValidator.MCR.assertParameter("validateData", 0, "metadataGroupId", "textNew");
 	}
 
 	private DataGroup createDataGroupPlace() {
@@ -269,9 +264,10 @@ public class SpiderRecordValidatorTest {
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "true");
 
-		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
-		assertTrue(dataValidatorSpy.validateDataWasCalled);
-		assertEquals(dataValidatorSpy.metadataId, "text");
+		String methodName = "validateData";
+		dataValidator.MCR.assertParameter(methodName, 0, "metadataGroupId", "validationOrderNew");
+		dataValidator.MCR.assertParameter(methodName, 1, "metadataGroupId", "text");
+		dataValidator.MCR.assertNumberOfCallsToMethod(methodName, 2);
 	}
 
 	@Test
@@ -316,8 +312,7 @@ public class SpiderRecordValidatorTest {
 	@Test
 	public void testValidateRecordInvalidData() {
 		recordStorage = new RecordStorageForValidateDataSpy();
-		dataValidator = new DataValidatorValidExceptSpy();
-		((DataValidatorValidExceptSpy) dataValidator).notValidForMetadataId.add("text");
+		dataValidator.setNotValidForMetadataGroupId("text");
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = createDataGroupPlace();
@@ -328,7 +323,7 @@ public class SpiderRecordValidatorTest {
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "false");
 
-		assertEquals(((DataValidatorValidExceptSpy) dataValidator).numOfCallsToValidate, 2);
+		dataValidator.MCR.assertNumberOfCallsToMethod("validateData", 2);
 	}
 
 	@Test
@@ -359,8 +354,7 @@ public class SpiderRecordValidatorTest {
 	@Test
 	public void testValidateRecordInvalidDataAndLinksDoesNotExist() {
 		recordStorage = new RecordLinkTestsRecordStorage();
-		dataValidator = new DataValidatorValidExceptSpy();
-		((DataValidatorValidExceptSpy) dataValidator).notValidForMetadataId.add("dataWithLinksNew");
+		dataValidator.setNotValidForMetadataGroupId("dataWithLinksNew");
 		linkCollector = DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
 		setUpDependencyProvider();
 
@@ -411,7 +405,7 @@ public class SpiderRecordValidatorTest {
 	@Test
 	public void testUnauthorizedForCreateOnValidationorderRecordTypeShouldNotValidate() {
 		recordStorage = new OldRecordStorageSpy();
-		spiderAuthorizator.authorizedForActionAndRecordType = false;
+		authorizator.authorizedForActionAndRecordType = false;
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = createDataGroupPlace();
@@ -427,22 +421,18 @@ public class SpiderRecordValidatorTest {
 			assertEquals(e.getMessage(), "Exception from SpiderAuthorizatorSpy");
 			exceptionWasCaught = true;
 		}
-		assertEquals(
-				spiderAuthorizator.TCR
-						.getValueForMethodNameAndCallNumberAndParameterName(
-								"checkUserIsAuthorizedForActionOnRecordType", 0, "action"),
+
+		authorizator.MCR.assertParameter("checkUserIsAuthorizedForActionOnRecordType", 0, "action",
 				"create");
+
 		assertTrue(exceptionWasCaught);
-		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
-		assertFalse(dataValidatorSpy.validateDataWasCalled);
+		dataValidator.MCR.assertMethodNotCalled("validateData");
 	}
 
 	@Test
 	public void testInvalidDataForCreateOnValidationOrderShouldThrowException() {
-		dataValidator = new DataValidatorValidExceptSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();
-		((DataValidatorValidExceptSpy) dataValidator).notValidForMetadataId
-				.add("validationOrderNew");
+		dataValidator.setNotValidForMetadataGroupId("validationOrderNew");
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = createDataGroupPlace();
@@ -464,7 +454,7 @@ public class SpiderRecordValidatorTest {
 	@Test
 	public void testUnauthorizedForValidateOnRecordTypeShouldNotValidateDataForThatType() {
 		recordStorage = new RecordStorageForValidateDataSpy();
-		spiderAuthorizator.setNotAutorizedForAction("validate");
+		authorizator.setNotAutorizedForAction("validate");
 
 		setUpDependencyProvider();
 
@@ -485,8 +475,7 @@ public class SpiderRecordValidatorTest {
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);
-		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
-		assertEquals(dataValidatorSpy.numOfCallsToValidate, 1);
+		dataValidator.MCR.assertNumberOfCallsToMethod("validateData", 1);
 	}
 
 	private void changeRecordTypeTo(DataGroup validationOrder, String recordType) {

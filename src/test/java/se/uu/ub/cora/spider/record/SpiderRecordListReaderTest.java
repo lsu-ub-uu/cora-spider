@@ -28,13 +28,11 @@ import static org.testng.Assert.fail;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.data.Data;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicProvider;
@@ -60,9 +58,7 @@ import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.spy.DataValidatorAlwaysInvalidSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
-import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
+import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
@@ -73,11 +69,11 @@ public class SpiderRecordListReaderTest {
 
 	private RecordStorage recordStorage;
 	private AuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy spiderAuthorizator;
-	private PermissionRuleCalculator keyCalculator;
+	private SpiderAuthorizatorSpy authorizator;
+	private PermissionRuleCalculator ruleCalculator;
 	private SpiderRecordListReader recordListReader;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
-	private DataValidator dataValidator;
+	private DataValidatorSpy dataValidator;
 	private DataGroup emptyFilter;
 	private DataGroup exampleFilter;
 	private LoggerFactorySpy loggerFactorySpy;
@@ -96,10 +92,10 @@ public class SpiderRecordListReaderTest {
 		emptyFilter = new DataGroupSpy("filter");
 		exampleFilter = new DataGroupSpy("filter");
 		authenticator = new AuthenticatorSpy();
-		spiderAuthorizator = new SpiderAuthorizatorSpy();
+		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageSpy();
-		keyCalculator = new NoRulesCalculatorStub();
-		dataValidator = new DataValidatorAlwaysValidSpy();
+		ruleCalculator = new RuleCalculatorSpy();
+		dataValidator = new DataValidatorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -120,13 +116,13 @@ public class SpiderRecordListReaderTest {
 		SpiderDependencyProviderSpy dependencyProvider = new SpiderDependencyProviderSpy(
 				new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
+		dependencyProvider.spiderAuthorizator = authorizator;
 
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
 		recordStorageProviderSpy.recordStorage = recordStorage;
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 
-		dependencyProvider.ruleCalculator = keyCalculator;
+		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.dataValidator = dataValidator;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordListReader = SpiderRecordListReaderImp
@@ -147,14 +143,15 @@ public class SpiderRecordListReaderTest {
 	public void testAuthTokenIsPassedOnToAuthenticator() throws Exception {
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
-		assertEquals(authenticator.authToken, SOME_USER_TOKEN);
+		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_USER_TOKEN);
+		authenticator.MCR.assertNumberOfCallsToMethod("getUserForToken", 1);
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "Exception from SpiderAuthorizatorSpy")
 	public void testUserIsNotAuthorizedForActionOnRecordType() {
-		spiderAuthorizator.authorizedForActionAndRecordType = false;
-		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordType = false;
+
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 	}
 
@@ -162,13 +159,8 @@ public class SpiderRecordListReaderTest {
 	public void testUserIsAuthorizedForActionOnRecordTypeIncomingParameters() {
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
-		Map<String, Object> parameters = spiderAuthorizator.TCR
-				.getParametersForMethodAndCallNumber("checkUserIsAuthorizedForActionOnRecordType",
-						0);
-		assertEquals((parameters.get("user")), authenticator.returnedUser);
-		assertEquals((parameters.get("action")), "list");
-		assertEquals((parameters.get("recordType")), SOME_RECORD_TYPE);
-
+		authorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0,
+				authenticator.returnedUser, "list", SOME_RECORD_TYPE);
 	}
 
 	@Test
@@ -192,20 +184,14 @@ public class SpiderRecordListReaderTest {
 	@Test
 	public void testExternalDependenciesAreCalled() {
 		recordStorage = new OldRecordStorageSpy();
-		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
 		DataGroup nonEmptyFilter = createNonEmptyFilter();
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
 
-		SpiderAuthorizatorSpy authorizatorSpy = spiderAuthorizator;
-		authorizatorSpy.TCR
-				.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 
-		DataValidatorAlwaysValidSpy dataValidatorAlwaysValidSpy = (DataValidatorAlwaysValidSpy) dataValidator;
-		assertTrue(dataValidatorAlwaysValidSpy.validateDataWasCalled);
-
-		assertDataGroupEquality(dataValidatorAlwaysValidSpy.dataGroup, nonEmptyFilter);
+		dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", nonEmptyFilter);
 
 		assertTrue(((OldRecordStorageSpy) recordStorage).readListWasCalled);
 	}
@@ -221,8 +207,7 @@ public class SpiderRecordListReaderTest {
 		DataGroup nonEmptyFilter = filter;
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
 
-		DataGroup dataGroup = ((DataValidatorAlwaysValidSpy) dataValidator).dataGroup;
-		assertDataGroupEquality(dataGroup, nonEmptyFilter);
+		dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", nonEmptyFilter);
 	}
 
 	@Test
@@ -234,8 +219,7 @@ public class SpiderRecordListReaderTest {
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, exampleFilter);
 
-		DataGroup dataGroup = ((DataValidatorAlwaysValidSpy) dataValidator).dataGroup;
-		assertDataGroupEquality(dataGroup, exampleFilter);
+		dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", exampleFilter);
 	}
 
 	@Test
@@ -247,14 +231,11 @@ public class SpiderRecordListReaderTest {
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, exampleFilter);
 
-		DataGroup dataGroup = ((DataValidatorAlwaysValidSpy) dataValidator).dataGroup;
-		assertDataGroupEquality(dataGroup, exampleFilter);
+		dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", exampleFilter);
 	}
 
 	@Test
 	public void testReadListReturnedNumbersAreFromStorage() {
-		recordStorage = new RecordStorageSpy();
-		setUpDependencyProvider();
 		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
 		recordStorageSpy.start = 3;
 		recordStorageSpy.totalNumberOfMatches = 1500;
@@ -272,8 +253,6 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListReturnedOtherNumbersAreFromStorage() {
-		recordStorage = new RecordStorageSpy();
-		setUpDependencyProvider();
 		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
 		recordStorageSpy.start = 50;
 		recordStorageSpy.totalNumberOfMatches = 1300;
@@ -289,8 +268,6 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListReturnedNoMatches() {
-		recordStorage = new RecordStorageSpy();
-		setUpDependencyProvider();
 		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
 		recordStorageSpy.start = 0;
 		recordStorageSpy.totalNumberOfMatches = 0;
@@ -306,8 +283,6 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListReturnedOneMatches() {
-		recordStorage = new RecordStorageSpy();
-		setUpDependencyProvider();
 		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
 		recordStorageSpy.start = 0;
 		recordStorageSpy.totalNumberOfMatches = 1;
@@ -323,8 +298,6 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListReturnedNoMatchesButHasMatches() {
-		recordStorage = new RecordStorageSpy();
-		setUpDependencyProvider();
 		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
 		recordStorageSpy.start = 0;
 		recordStorageSpy.totalNumberOfMatches = 15;
@@ -340,9 +313,6 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadAbstractListReturnedStartIsFromStorage() {
-		recordStorage = new RecordStorageSpy();
-
-		setUpDependencyProvider();
 		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
 		recordStorageSpy.abstractString = "true";
 		recordStorageSpy.start = 3;
@@ -486,8 +456,8 @@ public class SpiderRecordListReaderTest {
 	public void testReadListAuthenticatedAndAuthorizedInvalidData() {
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		setUpDependencyProvider();
-		dataValidator = new DataValidatorAlwaysInvalidSpy();
-		setUpDependencyProvider();
+		dataValidator.validValidation = false;
+
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, createNonEmptyFilter());
 	}
 
@@ -495,10 +465,10 @@ public class SpiderRecordListReaderTest {
 	public void testReadListCorrectFilterMetadataIsRead() {
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		setUpDependencyProvider();
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, createNonEmptyFilter());
+		DataGroup nonEmptyFilter = createNonEmptyFilter();
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
 
-		DataValidatorAlwaysValidSpy dataValidatorSpy = (DataValidatorAlwaysValidSpy) dataValidator;
-		assertEquals(dataValidatorSpy.metadataId, "placeFilterGroup");
+		dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", nonEmptyFilter);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
@@ -530,12 +500,11 @@ public class SpiderRecordListReaderTest {
 	@Test
 	public void testReadListNotAuthorizedButPublicRecordType() {
 		recordStorage = new OldRecordStorageSpy();
-
-		spiderAuthorizator.authorizedForActionAndRecordType = false;
-
+		authorizator.authorizedForActionAndRecordType = false;
 		setUpDependencyProvider();
 
 		recordListReader.readRecordList("unauthorizedUserId", "publicReadType", emptyFilter);
+
 		assertTrue(((OldRecordStorageSpy) recordStorage).readListWasCalled);
 	}
 

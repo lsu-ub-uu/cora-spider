@@ -20,11 +20,9 @@
 package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -52,9 +50,9 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
-import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
+import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -81,7 +79,7 @@ public class SpiderRecordDeleterTest {
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		keyCalculator = new NoRulesCalculatorStub();
+		keyCalculator = new RuleCalculatorSpy();
 		recordIndexer = new RecordIndexerSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
@@ -139,19 +137,13 @@ public class SpiderRecordDeleterTest {
 	@Test
 	public void testDeleteAuthorizedNoIncomingLinksCheckExternalDependenciesAreCalled() {
 		recordStorage = new OldRecordStorageSpy();
-
 		setUpDependencyProvider();
 
 		recordDeleter.deleteRecord("userId", "child1", "place:0002");
 
-		Map<String, Object> parameters = authorizator.TCR
-				.getParametersForMethodAndCallNumber(
-						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
-		assertSame(parameters.get("user"), authenticator.returnedUser);
-		assertEquals(parameters.get("action"), "delete");
-		assertEquals(parameters.get("recordType"), "child1");
-		assertSame(parameters.get("collectedData"), termCollector.collectedTerms);
-		assertEquals(parameters.get("calculateRecordPartPermissions"), false);
+		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "delete",
+				"child1", termCollector.collectedTerms, false);
 
 		assertEquals(termCollector.metadataId, "child1");
 

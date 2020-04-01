@@ -30,7 +30,7 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 
 public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
-	public TestCallRecorder TCR = new TestCallRecorder();
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public Set<String> recordPartReadPermissions = new HashSet<>();
 
@@ -42,7 +42,7 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		TCR.addCall("checkUserIsAuthorizedForActionOnRecordType", "user", user, "action", action,
+		MCR.addCall("checkUserIsAuthorizedForActionOnRecordType", "user", user, "action", action,
 				"recordType", recordType);
 		if (!authorizedForActionAndRecordType
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
@@ -67,7 +67,7 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		TCR.addCall("userIsAuthorizedForActionOnRecordType", "user", user, "action", action,
+		MCR.addCall("userIsAuthorizedForActionOnRecordType", "user", user, "action", action,
 				"recordType", recordType);
 
 		if (!authorizedForActionAndRecordType
@@ -81,7 +81,7 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
-		TCR.addCall("userIsAuthorizedForActionOnRecordTypeAndCollectedData", "user", user, "action",
+		MCR.addCall("userIsAuthorizedForActionOnRecordTypeAndCollectedData", "user", user, "action",
 				action, "recordType", recordType, "collectedData", collectedData);
 
 		if (!authorizedForActionAndRecordTypeAndCollectedData
@@ -97,7 +97,7 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 			String action, String recordType, DataGroup collectedData,
 			boolean calculateRecordPartPermissions) {
 
-		TCR.addCall("checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", "user",
+		MCR.addCall("checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", "user",
 				user, "action", action, "recordType", recordType, "collectedData", collectedData,
 				"calculateRecordPartPermissions", calculateRecordPartPermissions);
 

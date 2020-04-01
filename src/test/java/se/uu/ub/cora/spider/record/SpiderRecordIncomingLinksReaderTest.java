@@ -19,11 +19,9 @@
 package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -48,8 +46,8 @@ import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
-import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
+import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
@@ -78,7 +76,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		keyCalculator = new NoRulesCalculatorStub();
+		keyCalculator = new RuleCalculatorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		setUpDependencyProvider();
 	}
@@ -141,14 +139,9 @@ public class SpiderRecordIncomingLinksReaderTest {
 		assertEquals(toLinkedRecordType.getValue(), "place");
 		assertEquals(toLinkedRecordId.getValue(), "place:0001");
 
-		Map<String, Object> parameters = authorizator.TCR
-				.getParametersForMethodAndCallNumber(
-						"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
-		assertSame(parameters.get("user"), authenticator.returnedUser);
-		assertEquals(parameters.get("action"), "read");
-		assertEquals(parameters.get("recordType"), "place");
-		assertSame(parameters.get("collectedData"), termCollector.collectedTerms);
-		assertEquals(parameters.get("calculateRecordPartPermissions"), false);
+		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "read",
+				"place", termCollector.collectedTerms, false);
 
 		assertEquals(termCollector.metadataId, "place");
 		assertEquals(termCollector.dataGroup, recordStorage.read("place", "place:0001"));

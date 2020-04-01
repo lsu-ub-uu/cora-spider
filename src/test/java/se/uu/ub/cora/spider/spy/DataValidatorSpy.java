@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,24 +19,34 @@
 
 package se.uu.ub.cora.spider.spy;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
 
-public class DataValidatorForRecordInfoSpy implements DataValidator {
-	public boolean validateDataWasCalled = false;
+public class DataValidatorSpy implements DataValidator {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public boolean validValidation = true;
+	private Set<String> notValidForMetadataGroupId = new HashSet<>();
 
 	@Override
-	public ValidationAnswer validateData(String metadataId, DataGroup dataElement) {
-		validateDataWasCalled = true;
+	public ValidationAnswer validateData(String metadataGroupId, DataGroup dataGroup) {
+		MCR.addCall("validateData", "metadataGroupId", metadataGroupId, "dataGroup", dataGroup);
+
 		ValidationAnswer validationAnswer = new ValidationAnswer();
-		DataGroup dataGroup = dataElement;
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		DataGroup updated = recordInfo.getFirstGroupWithNameInData("updated");
-		if (!updated.containsChildWithNameInData("tsUpdated")) {
-			validationAnswer.addErrorMessage("Data missing tsUpdated");
+		if (!validValidation) {
+			validationAnswer.addErrorMessage("Data always invalid");
+		}
+		if (notValidForMetadataGroupId.contains(metadataGroupId)) {
+			validationAnswer.addErrorMessage("Data invalid for metadataId " + metadataGroupId);
 		}
 		return validationAnswer;
+	}
+
+	public void setNotValidForMetadataGroupId(String metadataGroupId) {
+		notValidForMetadataGroupId.add(metadataGroupId);
 	}
 
 }

@@ -52,8 +52,8 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.StreamStorageProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
+import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -63,8 +63,8 @@ public class SpiderDownloaderTest {
 	private RecordStorage recordStorage;
 	private AuthenticatorSpy authenticator;
 	private StreamStorageSpy streamStorage;
-	private SpiderAuthorizatorSpy spiderAuthorizatorSpy;
-	private NoRulesCalculatorStub keyCalculator;
+	private SpiderAuthorizatorSpy authorizator;
+	private RuleCalculatorSpy ruleCalculator;
 	private SpiderDownloader downloader;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private LoggerFactorySpy loggerFactorySpy;
@@ -77,8 +77,8 @@ public class SpiderDownloaderTest {
 		setUpFactoriesAndProviders();
 
 		authenticator = new AuthenticatorSpy();
-		spiderAuthorizatorSpy = new SpiderAuthorizatorSpy();
-		keyCalculator = new NoRulesCalculatorStub();
+		authorizator = new SpiderAuthorizatorSpy();
+		ruleCalculator = new RuleCalculatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		streamStorage = new StreamStorageSpy();
 		setUpDependencyProvider();
@@ -98,8 +98,8 @@ public class SpiderDownloaderTest {
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.spiderAuthorizator = spiderAuthorizatorSpy;
-		dependencyProvider.ruleCalculator = keyCalculator;
+		dependencyProvider.spiderAuthorizator = authorizator;
+		dependencyProvider.ruleCalculator = ruleCalculator;
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
 		recordStorageProviderSpy.recordStorage = recordStorage;
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
@@ -120,7 +120,7 @@ public class SpiderDownloaderTest {
 	@Test
 	public void testUnauthorizedForDownloadOnRecordTypeShouldShouldNotAccessStorage() {
 		recordStorage = new OldRecordStorageSpy();
-		spiderAuthorizatorSpy.authorizedForActionAndRecordType = false;
+		authorizator.authorizedForActionAndRecordType = false;
 		setUpDependencyProvider();
 
 		boolean exceptionWasCaught = false;
@@ -144,10 +144,7 @@ public class SpiderDownloaderTest {
 
 		downloader.download("someToken78678567", "image", "image:123456789", "master");
 
-		boolean methodWasCalled = spiderAuthorizatorSpy.TCR
-				.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
-
-		assertTrue(methodWasCalled);
+		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)

@@ -54,14 +54,14 @@ import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
-import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
+import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 
 public class DataGroupToRecordEnhancerTest {
 	private RecordEnhancerTestsRecordStorage recordStorage;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
-	private PermissionRuleCalculator keyCalculator;
+	private PermissionRuleCalculator ruleCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private User user;
 	private DataGroupToRecordEnhancer enhancer;
@@ -78,7 +78,7 @@ public class DataGroupToRecordEnhancerTest {
 		recordStorage = new RecordEnhancerTestsRecordStorage();
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
-		keyCalculator = new NoRulesCalculatorStub();
+		ruleCalculator = new RuleCalculatorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		setUpDependencyProvider();
 	}
@@ -101,7 +101,7 @@ public class DataGroupToRecordEnhancerTest {
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
 		recordStorageProviderSpy.recordStorage = recordStorage;
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
-		dependencyProvider.ruleCalculator = keyCalculator;
+		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.searchTermCollector = termCollector;
 		enhancer = new DataGroupToRecordEnhancerImp(dependencyProvider);
 	}
@@ -259,41 +259,41 @@ public class DataGroupToRecordEnhancerTest {
 
 		assertTrue(record.getActions().contains(Action.LIST));
 
-		authorizator.TCR.assertParameters("userIsAuthorizedForActionOnRecordType", 0, user, "list",
+		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 0, user, "list",
 				"recordType");
-		authorizator.TCR.assertParameters("userIsAuthorizedForActionOnRecordType", 1, user,
+		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 1, user,
 				"search", "someRecordType");
-		authorizator.TCR.assertNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType", 2);
+		authorizator.MCR.assertNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType", 2);
 
 		List<DataGroup> expectedCollectedTerms = termCollector.returnedCollectedTerms;
 
 		String methodName = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
-		authorizator.TCR.assertParameters(methodName, 0, user, "read", "recordType",
+		authorizator.MCR.assertParameters(methodName, 0, user, "read", "recordType",
 				expectedCollectedTerms.get(0));
-		authorizator.TCR.assertParameters(methodName, 1, user, "update", "recordType",
+		authorizator.MCR.assertParameters(methodName, 1, user, "update", "recordType",
 				expectedCollectedTerms.get(0));
-		authorizator.TCR.assertParameters(methodName, 2, user, "index", "recordType",
+		authorizator.MCR.assertParameters(methodName, 2, user, "index", "recordType",
 				expectedCollectedTerms.get(0));
-		authorizator.TCR.assertParameters(methodName, 3, user, "delete", "recordType",
+		authorizator.MCR.assertParameters(methodName, 3, user, "delete", "recordType",
 				expectedCollectedTerms.get(0));
-		authorizator.TCR.assertParameters(methodName, 4, user, "validate", "recordType",
+		authorizator.MCR.assertParameters(methodName, 4, user, "validate", "recordType",
 				expectedCollectedTerms.get(0));
 
-		authorizator.TCR.assertParameters(methodName, 5, user, "read", "recordType",
+		authorizator.MCR.assertParameters(methodName, 5, user, "read", "recordType",
 				expectedCollectedTerms.get(1));
-		authorizator.TCR.assertParameters(methodName, 6, user, "read", "metadataGroup",
+		authorizator.MCR.assertParameters(methodName, 6, user, "read", "metadataGroup",
 				expectedCollectedTerms.get(2));
-		authorizator.TCR.assertParameters(methodName, 7, user, "read", "presentationGroup",
+		authorizator.MCR.assertParameters(methodName, 7, user, "read", "presentationGroup",
 				expectedCollectedTerms.get(3));
-		authorizator.TCR.assertParameters(methodName, 8, user, "read", "presentationGroup",
+		authorizator.MCR.assertParameters(methodName, 8, user, "read", "presentationGroup",
 				expectedCollectedTerms.get(4));
-		authorizator.TCR.assertParameters(methodName, 9, user, "read", "metadataGroup",
+		authorizator.MCR.assertParameters(methodName, 9, user, "read", "metadataGroup",
 				expectedCollectedTerms.get(5));
-		authorizator.TCR.assertParameters(methodName, 10, user, "read", "presentationGroup",
+		authorizator.MCR.assertParameters(methodName, 10, user, "read", "presentationGroup",
 				expectedCollectedTerms.get(6));
-		authorizator.TCR.assertParameters(methodName, 11, user, "read", "presentationGroup",
+		authorizator.MCR.assertParameters(methodName, 11, user, "read", "presentationGroup",
 				expectedCollectedTerms.get(7));
-		authorizator.TCR.assertNumberOfCallsToMethod(methodName, 12);
+		authorizator.MCR.assertNumberOfCallsToMethod(methodName, 12);
 
 		assertEquals(termCollector.metadataId, "dataWithLinks");
 		assertEquals(termCollector.dataGroups.get(0), dataGroup);
@@ -319,9 +319,9 @@ public class DataGroupToRecordEnhancerTest {
 		assertFalse(record.getActions().contains(Action.LIST));
 
 		String methodName = "userIsAuthorizedForActionOnRecordType";
-		authorizator.TCR.assertParameters(methodName, 0, user, "create", "place");
-		authorizator.TCR.assertParameters(methodName, 1, user, "list", "place");
-		authorizator.TCR.assertNumberOfCallsToMethod(methodName, 2);
+		authorizator.MCR.assertParameters(methodName, 0, user, "create", "place");
+		authorizator.MCR.assertParameters(methodName, 1, user, "list", "place");
+		authorizator.MCR.assertNumberOfCallsToMethod(methodName, 2);
 	}
 
 	@Test
@@ -398,15 +398,15 @@ public class DataGroupToRecordEnhancerTest {
 		assertEquals(record.getActions().size(), 5);
 
 		String methodName = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
-		authorizator.TCR.assertParameters(methodName, 0, user, "read", "search");
-		authorizator.TCR.assertParameters(methodName, 1, user, "update", "search");
-		authorizator.TCR.assertParameters(methodName, 2, user, "index", "search");
-		authorizator.TCR.assertParameters(methodName, 3, user, "delete", "search");
-		authorizator.TCR.assertNumberOfCallsToMethod(methodName, 4);
+		authorizator.MCR.assertParameters(methodName, 0, user, "read", "search");
+		authorizator.MCR.assertParameters(methodName, 1, user, "update", "search");
+		authorizator.MCR.assertParameters(methodName, 2, user, "index", "search");
+		authorizator.MCR.assertParameters(methodName, 3, user, "delete", "search");
+		authorizator.MCR.assertNumberOfCallsToMethod(methodName, 4);
 
 		String methodName2 = "userIsAuthorizedForActionOnRecordType";
-		authorizator.TCR.assertParameters(methodName2, 0, user, "search", "place");
-		authorizator.TCR.assertNumberOfCallsToMethod(methodName2, 1);
+		authorizator.MCR.assertParameters(methodName2, 0, user, "search", "place");
+		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 1);
 	}
 
 	@Test
@@ -480,13 +480,13 @@ public class DataGroupToRecordEnhancerTest {
 				1);
 
 		String methodName = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
-		authorizator.TCR.assertParameters(methodName, 0, user, "read", "dataWithLinks");
-		authorizator.TCR.assertParameters(methodName, 1, user, "update", "dataWithLinks");
-		authorizator.TCR.assertParameters(methodName, 2, user, "index", "dataWithLinks");
-		authorizator.TCR.assertParameters(methodName, 3, user, "delete", "dataWithLinks");
-		authorizator.TCR.assertParameters(methodName, 4, user, "read", "system");
-		authorizator.TCR.assertParameters(methodName, 5, user, "read", "toRecordType");
-		authorizator.TCR.assertNumberOfCallsToMethod(methodName, 6);
+		authorizator.MCR.assertParameters(methodName, 0, user, "read", "dataWithLinks");
+		authorizator.MCR.assertParameters(methodName, 1, user, "update", "dataWithLinks");
+		authorizator.MCR.assertParameters(methodName, 2, user, "index", "dataWithLinks");
+		authorizator.MCR.assertParameters(methodName, 3, user, "delete", "dataWithLinks");
+		authorizator.MCR.assertParameters(methodName, 4, user, "read", "system");
+		authorizator.MCR.assertParameters(methodName, 5, user, "read", "toRecordType");
+		authorizator.MCR.assertNumberOfCallsToMethod(methodName, 6);
 	}
 
 	@Test
@@ -504,13 +504,13 @@ public class DataGroupToRecordEnhancerTest {
 				1);
 
 		String methodName = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
-		authorizator.TCR.assertParameters(methodName, 0, user, "read", "dataWithLinks");
-		authorizator.TCR.assertParameters(methodName, 1, user, "update", "dataWithLinks");
-		authorizator.TCR.assertParameters(methodName, 2, user, "index", "dataWithLinks");
-		authorizator.TCR.assertParameters(methodName, 3, user, "delete", "dataWithLinks");
-		authorizator.TCR.assertParameters(methodName, 4, user, "read", "system");
-		authorizator.TCR.assertParameters(methodName, 5, user, "read", "toRecordType");
-		authorizator.TCR.assertNumberOfCallsToMethod(methodName, 6);
+		authorizator.MCR.assertParameters(methodName, 0, user, "read", "dataWithLinks");
+		authorizator.MCR.assertParameters(methodName, 1, user, "update", "dataWithLinks");
+		authorizator.MCR.assertParameters(methodName, 2, user, "index", "dataWithLinks");
+		authorizator.MCR.assertParameters(methodName, 3, user, "delete", "dataWithLinks");
+		authorizator.MCR.assertParameters(methodName, 4, user, "read", "system");
+		authorizator.MCR.assertParameters(methodName, 5, user, "read", "toRecordType");
+		authorizator.MCR.assertNumberOfCallsToMethod(methodName, 6);
 	}
 
 }

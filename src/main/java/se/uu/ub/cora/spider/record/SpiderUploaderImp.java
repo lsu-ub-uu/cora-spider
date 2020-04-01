@@ -42,7 +42,7 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 	private RecordIdGenerator idGenerator;
 	private StreamStorage streamStorage;
 	private String streamId;
-	private DataGroupTermCollector collectTermCollector;
+	private DataGroupTermCollector termCollector;
 	private DataGroup recordRead;
 
 	private SpiderUploaderImp(SpiderDependencyProvider dependencyProvider) {
@@ -51,7 +51,7 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 		recordStorage = dependencyProvider.getRecordStorage();
 		idGenerator = dependencyProvider.getRecordIdGenerator();
 		streamStorage = dependencyProvider.getStreamStorage();
-		collectTermCollector = dependencyProvider.getDataGroupTermCollector();
+		termCollector = dependencyProvider.getDataGroupTermCollector();
 	}
 
 	public static SpiderUploaderImp usingDependencyProvider(
@@ -96,7 +96,7 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 
 	private DataGroup getCollectedTermsForRecord(String recordType, DataGroup recordRead) {
 		String metadataId = getMetadataIdFromRecordType(recordType);
-		return collectTermCollector.collectTerms(metadataId, recordRead);
+		return termCollector.collectTerms(metadataId, recordRead);
 	}
 
 	private String getMetadataIdFromRecordType(String recordType) {

@@ -27,13 +27,11 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.data.DataAtomicFactory;
 import se.uu.ub.cora.data.DataAtomicProvider;
@@ -70,9 +68,8 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
-import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
@@ -93,7 +90,7 @@ public class SpiderUploaderTest {
 	private SpiderUploader uploader;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
-	private DataGroupTermCollector termCollector;
+	private DataGroupTermCollectorSpy termCollector;
 	private RecordIndexer recordIndexer;
 	private RecordIdGenerator idGenerator;
 	private SpiderDependencyProviderSpy dependencyProvider;
@@ -111,9 +108,9 @@ public class SpiderUploaderTest {
 		setUpFactoriesAndProviders();
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
-		dataValidator = new DataValidatorAlwaysValidSpy();
+		dataValidator = new DataValidatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		keyCalculator = new NoRulesCalculatorStub();
+		keyCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		idGenerator = new IdGeneratorSpy();
 		streamStorage = new StreamStorageSpy();
@@ -184,7 +181,7 @@ public class SpiderUploaderTest {
 
 		assertTrue(((OldRecordStorageSpy) recordStorage).readWasCalled);
 
-		assertTrue(authorizator.TCR.methodWasCalled("checkUserIsAuthorizedForActionOnRecordType"));
+		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 
 		assertEquals(((SpiderInstanceFactorySpy2) factory).createdUpdaters.get(0).authToken,
 				"someToken78678567");
@@ -243,25 +240,16 @@ public class SpiderUploaderTest {
 		assertStreamStorageCalledCorrectly(recordUpdated);
 		assertResourceInfoIsCorrect(recordUpdated);
 
-		Map<String, Object> paramMethodA = authorizator.TCR.getParametersForMethodAndCallNumber(
-				"checkUserIsAuthorizedForActionOnRecordType", 0);
+		String methodName = "checkUserIsAuthorizedForActionOnRecordType";
+		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "upload",
+				"image");
 
-		assertEquals(paramMethodA.get("action"), "upload");
-		assertEquals(paramMethodA.get("user"), authenticator.returnedUser);
-		assertEquals(paramMethodA.get("recordType"), "image");
+		assertEquals(termCollector.metadataId, "image");
+		assertEquals(termCollector.dataGroup, recordStorage.read("image", "image:123456789"));
 
-		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
-		assertEquals(dataGroupTermCollectorSpy.metadataId, "image");
-		assertEquals(dataGroupTermCollectorSpy.dataGroup,
-				recordStorage.read("image", "image:123456789"));
-
-		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
-		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
-		assertEquals(authorizator.TCR.getValueForMethodNameAndCallNumberAndParameterName(methodName,
-				0, "collectedData"), returnedCollectedTerms);
-		assertEquals(authorizator.TCR.getValueForMethodNameAndCallNumberAndParameterName(methodName,
-				0, "calculateRecordPartPermissions"), false);
-		authorizator.TCR.assertParameter(methodName, 0, "calculateRecordPartPermissions", false);
+		String methodName2 = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		authorizator.MCR.assertParameters(methodName2, 0, authenticator.returnedUser, "upload",
+				"image", termCollector.collectedTerms, false);
 	}
 
 	private void assertStreamStorageCalledCorrectly(DataRecord recordUpdated) {
