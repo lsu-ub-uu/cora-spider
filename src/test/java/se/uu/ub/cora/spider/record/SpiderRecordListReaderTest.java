@@ -23,18 +23,15 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.Data;
-import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
@@ -165,22 +162,25 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testReadListAuthorized() {
-		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		setUpDependencyProvider();
+		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
+		recordStorageSpy.totalNumberOfMatches = 177;
+		recordStorageSpy.start = 1;
+		recordStorageSpy.numberOfRecordsToReturn = 5;
+
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				emptyFilter);
-		// DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN,
-		// SOME_RECORD_TYPE,
-		// emptyFilter);
 		assertEquals(readRecordList.getContainDataOfType(), SOME_RECORD_TYPE);
 		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
 		assertEquals(readRecordList.getFromNo(), "1");
 		assertEquals(readRecordList.getToNo(), "5");
+
+		// TODO: possibly remove if checked elsewere in this test
 		List<Data> records = readRecordList.getDataList();
-		DataRecord dataRecord = (DataRecord) records.iterator().next();
+		DataRecord dataRecord = (DataRecord) records.get(0);
 		assertNotNull(dataRecord);
 	}
 
+	// TODO: we are HERE, from the top!
 	@Test
 	public void testExternalDependenciesAreCalled() {
 		recordStorage = new OldRecordStorageSpy();
@@ -506,54 +506,6 @@ public class SpiderRecordListReaderTest {
 		recordListReader.readRecordList("unauthorizedUserId", "publicReadType", emptyFilter);
 
 		assertTrue(((OldRecordStorageSpy) recordStorage).readListWasCalled);
-	}
-
-	private void assertDataGroupEquality(DataGroup actual, DataGroup expected) {
-		assertEquals(actual.getNameInData(), expected.getNameInData());
-		var actualAtomicChildren = actual.getChildren().stream()
-				.filter(elem -> elem instanceof DataAtomic).map(elem -> (DataAtomic) elem)
-				.collect(Collectors.toList());
-		var expectedAtomicChildren = expected.getChildren().stream()
-				.filter(elem -> elem instanceof DataAtomic).map(elem -> (DataAtomic) elem)
-				.collect(Collectors.toList());
-		if (actualAtomicChildren.size() == expectedAtomicChildren.size()) {
-			if (!actualAtomicChildren.isEmpty()) {
-				for (int idx = 0; idx < actualAtomicChildren.size(); idx++) {
-					assertDataAtomicEquality(actualAtomicChildren.get(idx),
-							expectedAtomicChildren.get(idx));
-				}
-			}
-		} else {
-			fail();
-		}
-
-		var actualGroupChildren = actual.getChildren().stream()
-				.filter(elem -> elem instanceof DataGroup).map(elem -> (DataGroup) elem)
-				.collect(Collectors.toList());
-		var expectedGroupChildren = expected.getChildren().stream()
-				.filter(elem -> elem instanceof DataGroup).map(elem -> (DataGroup) elem)
-				.collect(Collectors.toList());
-
-		if (actualGroupChildren.size() == expectedGroupChildren.size()) {
-			if (!actualGroupChildren.isEmpty()) {
-				for (int idx = 0; idx < actualAtomicChildren.size(); idx++) {
-					assertDataGroupEquality(actualGroupChildren.get(idx),
-							expectedGroupChildren.get(idx));
-				}
-			}
-		} else {
-			fail();
-		}
-
-		assertEquals(actual.getRepeatId(), expected.getRepeatId());
-		assertEquals(actual.getAttributes(), expected.getAttributes());
-	}
-
-	private void assertDataAtomicEquality(DataAtomic actual, DataAtomic expected) {
-		assertEquals(actual.getNameInData(), expected.getNameInData());
-		assertEquals(actual.getValue(), expected.getValue());
-		assertEquals(actual.getRepeatId(), expected.getRepeatId());
-		assertEquals(actual.getAttributes(), expected.getAttributes());
 	}
 
 	// @Test
