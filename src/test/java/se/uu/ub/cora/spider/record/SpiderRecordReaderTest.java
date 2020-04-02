@@ -148,7 +148,6 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testReadAuthorized2() {
-		recordTypeHandlerSpy.isPublicForRead = false;
 		recordTypeHandlerSpy.recordPartConstraint = "";
 		DataRecord record = recordReader.readRecord("someToken78678567", "place", "place:0001");
 		DataGroup groupOut = record.getDataGroup();
@@ -168,7 +167,6 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testReadAuthorizedHasRecordPartConstraints() {
-		recordTypeHandlerSpy.isPublicForRead = false;
 		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
 
 		recordReader.readRecord("someToken78678567", "place", "place:0001");
@@ -185,7 +183,6 @@ public class SpiderRecordReaderTest {
 	public void testReadHasRecordPartConstraintsNotAuthorized() {
 		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 
-		recordTypeHandlerSpy.isPublicForRead = false;
 		recordTypeHandlerSpy.recordPartConstraint = "write";
 		try {
 			recordReader.readRecord("someToken78678567", "place", "place:0001");
@@ -200,7 +197,6 @@ public class SpiderRecordReaderTest {
 	public void testReadRecordAbstractRecordType() {
 		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
-		recordTypeHandlerSpy.isPublicForRead = false;
 		recordTypeHandlerSpy.isAbstract = true;
 		DataRecord readRecord = recordReader.readRecord("someToken78678567", "abstractAuthority",
 				"place:0001");
@@ -220,7 +216,6 @@ public class SpiderRecordReaderTest {
 		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		authorizator.authorizedForActionAndRecordType = false;
-		recordTypeHandlerSpy.isPublicForRead = false;
 
 		boolean exceptionWasCaught = false;
 		try {
@@ -238,7 +233,6 @@ public class SpiderRecordReaderTest {
 		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
-		recordTypeHandlerSpy.isPublicForRead = false;
 
 		boolean exceptionWasCaught = false;
 		try {
@@ -260,6 +254,7 @@ public class SpiderRecordReaderTest {
 	public void testReadNotAuthorizedToReadRecordTypeButPublicRecordType() throws Exception {
 		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
+		recordTypeHandlerSpy.isPublicForRead = true;
 		authorizator.authorizedForActionAndRecordType = false;
 		// publicReadType
 		DataRecord readRecord = recordReader.readRecord("unauthorizedUserId", "publicReadType",
@@ -272,6 +267,7 @@ public class SpiderRecordReaderTest {
 		recordStorage = new OldRecordStorageSpy();
 		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 		setUpDependencyProvider();
+		recordTypeHandlerSpy.isPublicForRead = true;
 		// publicReadType
 		DataRecord readRecord = recordReader.readRecord("unauthorizedUserId", "publicReadType",
 				"publicReadType:0001");
@@ -289,6 +285,7 @@ public class SpiderRecordReaderTest {
 		recordStorage = recordStorageSpy;
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.recordPartConstraint = "";
+		recordTypeHandlerSpy.isPublicForRead = true;
 
 		recordReader.readRecord("someUserId", "someType", "someId");
 
@@ -303,7 +300,6 @@ public class SpiderRecordReaderTest {
 		recordStorage = recordStorageSpy;
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
-		recordTypeHandlerSpy.isPublicForRead = false;
 
 		recordReader.readRecord("someUserId", "spyType", "spyId");
 
@@ -323,7 +319,6 @@ public class SpiderRecordReaderTest {
 		recordStorage = recordStorageSpy;
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
-		recordTypeHandlerSpy.isPublicForRead = false;
 
 		recordReader.readRecord("someUserId", "someType", "someId");
 

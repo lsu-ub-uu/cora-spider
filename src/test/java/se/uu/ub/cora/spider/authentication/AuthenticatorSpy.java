@@ -45,6 +45,7 @@ public class AuthenticatorSpy implements Authenticator {
 			user.loginId = "knownUser";
 			user.loginDomain = "system";
 			user.roles.add("guest");
+			MCR.addReturned("getUserForToken", user);
 			return user;
 
 		}
@@ -54,6 +55,8 @@ public class AuthenticatorSpy implements Authenticator {
 		user.loginDomain = "system";
 		user.roles.add("guest");
 		returnedUser = user;
+
+		MCR.addReturned("getUserForToken", user);
 		return user;
 	}
 

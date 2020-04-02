@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -27,17 +27,22 @@ import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.data.DataRecordSpy;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public User user;
 	public String recordType;
 	public DataGroup dataGroup;
 	public List<DataGroup> enhancedDataGroups = new ArrayList<>();
+
 	public boolean addReadAction = true;
 
 	@Override
 	public DataRecord enhance(User user, String recordType, DataGroup dataGroup) {
+		MCR.addCall("enhance", "user", user, "recordType", recordType, "dataGroup", dataGroup);
+
 		enhancedDataGroups.add(dataGroup);
 		this.user = user;
 		this.recordType = recordType;

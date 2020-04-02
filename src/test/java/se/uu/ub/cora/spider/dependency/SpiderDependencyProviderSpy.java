@@ -130,7 +130,6 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	@Override
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
-		// TODO Auto-generated method stub
 		return recordTypeHandlerSpy;
 	}
 

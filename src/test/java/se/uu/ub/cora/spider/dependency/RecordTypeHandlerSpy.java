@@ -27,10 +27,12 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class RecordTypeHandlerSpy implements RecordTypeHandler {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
-	public boolean isPublicForRead = true;
+	public boolean isPublicForRead = false;
 	public boolean isAbstract = false;
 	public boolean recordTypeHasReadPartConstraints = false;
 	public String recordPartConstraint = "";
@@ -43,29 +45,34 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean isAbstract() {
+		MCR.addCall("isAbstract");
 		return isAbstract;
 	}
 
 	@Override
 	public boolean shouldAutoGenerateId() {
+		MCR.addCall("shouldAutoGenerateId");
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public String getNewMetadataId() {
+		MCR.addCall("getNewMetadataId");
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String getMetadataId() {
+		MCR.addCall("getMetadataId");
 		// TODO Auto-generated method stub
 		return "fakeMetadataIdFromRecordTypeHandlerSpy";
 	}
 
 	@Override
 	public List<String> createListOfPossibleIdsToThisRecord(String recordId) {
+		MCR.addCall("createListOfPossibleIdsToThisRecord", "recordId", recordId);
 		List<String> fakeList = new ArrayList<>();
 		fakeList.add("fakeIdFromRecordTypeHandlerSpy");
 		return fakeList;
@@ -73,11 +80,13 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean isPublicForRead() {
+		MCR.addCall("isPublicForRead");
 		return isPublicForRead;
 	}
 
 	@Override
 	public boolean hasRecordPartReadConstraint() {
+		MCR.addCall("hasRecordPartReadConstraint");
 		hasRecordPartReadContraintHasBeenCalled = true;
 		if ("readWrite".equals(recordPartConstraint)) {
 			return true;
@@ -92,6 +101,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public DataGroup getMetadataGroup() {
+		MCR.addCall("getMetadataGroup");
 		DataGroup metadataDataGroup = new DataGroupSpy("organisationGroup");
 		metadataDataGroup.addChild(new DataAtomicSpy("nameInData", "organisation"));
 		return metadataDataGroup;
@@ -99,6 +109,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public Set<String> getRecordPartReadConstraints() {
+		MCR.addCall("getRecordPartReadConstraints");
 		Set<String> constraints = new HashSet<String>();
 		constraints.add("someKey");
 		return constraints;
@@ -106,6 +117,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean hasRecordPartWriteConstraint() {
+		MCR.addCall("hasRecordPartWriteConstraint");
 		hasRecordPartReadContraintHasBeenCalled = true;
 		if ("readWrite".equals(recordPartConstraint)) {
 			return true;
@@ -119,6 +131,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public Set<String> getRecordPartWriteConstraints() {
+		MCR.addCall("getRecordPartWriteConstraints");
 		return writeConstraints;
 	}
 

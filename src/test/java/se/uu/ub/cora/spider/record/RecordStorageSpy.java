@@ -32,6 +32,7 @@ public class RecordStorageSpy implements RecordStorage {
 				"metadata");
 		dataGroup.addChild(recordInfo);
 		dataGroup.addChild(new DataAtomicSpy("abstract", abstractString));
+		MCR.addReturned("read", dataGroup);
 		return dataGroup;
 	}
 
@@ -40,7 +41,6 @@ public class RecordStorageSpy implements RecordStorage {
 			DataGroup linkList, String dataDivider) {
 		MCR.addCall("create", "type", type, "id", id, "record", record, "collectedTerms",
 				collectedTerms, "linkList", linkList, "dataDivider", dataDivider);
-
 	}
 
 	@Override
@@ -52,6 +52,7 @@ public class RecordStorageSpy implements RecordStorage {
 	@Override
 	public boolean linksExistForRecord(String type, String id) {
 		MCR.addCall("linksExistForRecord", "type", type, "id", id);
+		MCR.addReturned("linksExistForRecord", false);
 		return false;
 	}
 
@@ -66,7 +67,9 @@ public class RecordStorageSpy implements RecordStorage {
 	@Override
 	public StorageReadResult readList(String type, DataGroup filter) {
 		MCR.addCall("readList", "type", type, "filter", filter);
-		return createSpiderReadResult();
+		StorageReadResult createSpiderReadResult = createSpiderReadResult();
+		MCR.addReturned("readList", createSpiderReadResult);
+		return createSpiderReadResult;
 	}
 
 	private StorageReadResult createSpiderReadResult() {
@@ -92,24 +95,29 @@ public class RecordStorageSpy implements RecordStorage {
 	@Override
 	public StorageReadResult readAbstractList(String type, DataGroup filter) {
 		MCR.addCall("readAbstractList", "type", type, "filter", filter);
-		return createSpiderReadResult();
+		StorageReadResult createSpiderReadResult = createSpiderReadResult();
+		MCR.addReturned("readAbstractList", createSpiderReadResult);
+		return createSpiderReadResult;
 	}
 
 	@Override
 	public DataGroup readLinkList(String type, String id) {
 		MCR.addCall("readLinkList", "type", type, "id", id);
+		MCR.addReturned("readLinkList", null);
 		return null;
 	}
 
 	@Override
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
 		MCR.addCall("generateLinkCollectionPointingToRecord", "type", type, "id", id);
+		MCR.addReturned("generateLinkCollectionPointingToRecord", null);
 		return null;
 	}
 
 	@Override
 	public boolean recordsExistForRecordType(String type) {
 		MCR.addCall("recordsExistForRecordType", "type", type);
+		MCR.addReturned("recordsExistForRecordType", null);
 		return false;
 	}
 
@@ -118,6 +126,7 @@ public class RecordStorageSpy implements RecordStorage {
 			String id) {
 		MCR.addCall("recordExistsForAbstractOrImplementingRecordTypeAndRecordId", "type", type,
 				"id", id);
+		MCR.addReturned("recordExistsForAbstractOrImplementingRecordTypeAndRecordId", false);
 		return false;
 	}
 

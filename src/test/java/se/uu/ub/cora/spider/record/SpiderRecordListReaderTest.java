@@ -21,10 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertSame;
-import static org.testng.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -48,7 +45,6 @@ import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
@@ -56,22 +52,22 @@ import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
-import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
-import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
-import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.StorageReadResult;
 
 public class SpiderRecordListReaderTest {
 
-	private RecordStorage recordStorage;
+	private RecordStorageSpy recordStorage;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private SpiderRecordListReader recordListReader;
-	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
+	private DataGroupToRecordEnhancerSpy recordEnhancer;
 	private DataValidatorSpy dataValidator;
 	private DataGroup emptyFilter;
+	private DataGroup nonEmptyFilter;
+
 	private DataGroup exampleFilter;
 	private LoggerFactorySpy loggerFactorySpy;
 
@@ -87,6 +83,7 @@ public class SpiderRecordListReaderTest {
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 		emptyFilter = new DataGroupSpy("filter");
+		nonEmptyFilter = createNonEmptyFilter();
 		exampleFilter = new DataGroupSpy("filter");
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
@@ -94,6 +91,13 @@ public class SpiderRecordListReaderTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		dataValidator = new DataValidatorSpy();
 		setUpDependencyProvider();
+	}
+
+	private DataGroup createNonEmptyFilter() {
+		DataGroup filter = new DataGroupSpy("filter");
+		DataGroup part = new DataGroupSpy("part");
+		filter.addChild(part);
+		return filter;
 	}
 
 	private void setUpFactoriesAndProviders() {
@@ -121,10 +125,10 @@ public class SpiderRecordListReaderTest {
 
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.dataValidator = dataValidator;
-		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
+		recordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordListReader = SpiderRecordListReaderImp
 				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProvider,
-						dataGroupToRecordEnhancer);
+						recordEnhancer);
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
 	}
 
@@ -161,352 +165,412 @@ public class SpiderRecordListReaderTest {
 	}
 
 	@Test
-	public void testReadListAuthorized() {
-		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
-		recordStorageSpy.totalNumberOfMatches = 177;
-		recordStorageSpy.start = 1;
-		recordStorageSpy.numberOfRecordsToReturn = 5;
+	public void testUserAuthorizationForReadOnListNOTDoneForPublicRecordTypes() throws Exception {
+		recordTypeHandlerSpy.isPublicForRead = true;
 
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				emptyFilter);
-		assertEquals(readRecordList.getContainDataOfType(), SOME_RECORD_TYPE);
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
-		assertEquals(readRecordList.getFromNo(), "1");
-		assertEquals(readRecordList.getToNo(), "5");
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
-		// TODO: possibly remove if checked elsewere in this test
-		List<Data> records = readRecordList.getDataList();
-		DataRecord dataRecord = (DataRecord) records.get(0);
-		assertNotNull(dataRecord);
+		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForActionOnRecordType");
+	}
+
+	@Test
+	public void testEmptyFilter() throws Exception {
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+		dataValidator.MCR.assertMethodNotCalled("validateListFilter");
+	}
+
+	@Test
+	public void testNonEmptyFilterContainsPartGroupValidateListFilterIsCalled() {
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+
+		dataValidator.MCR.assertParameters("validateListFilter", 0, SOME_RECORD_TYPE,
+				nonEmptyFilter);
+	}
+
+	@Test
+	public void testNonEmptyFilterContainsStartGroupValidateListFilterIsCalled() {
+		emptyFilter.addChild(new DataGroupSpy("start"));
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+
+		dataValidator.MCR.assertParameters("validateListFilter", 0, SOME_RECORD_TYPE, emptyFilter);
+	}
+
+	@Test
+	public void testNonEmptyFilterContainsRowsGroupValidateListFilterIsCalled() {
+		emptyFilter.addChild(new DataGroupSpy("rows"));
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+
+		dataValidator.MCR.assertParameters("validateListFilter", 0, SOME_RECORD_TYPE, emptyFilter);
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "Data is not valid: \\[Data for list filter not vaild, DataValidatorSpy\\]")
+	public void testFilterNotValid() throws Exception {
+		dataValidator.validListFilterValidation = false;
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "No filter exists for recordType: " + SOME_RECORD_TYPE)
+	public void testFilterNotPresentInRecordType() throws Exception {
+		dataValidator.throwFilterNotFoundException = true;
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
 	}
 
 	// TODO: we are HERE, from the top!
 	@Test
-	public void testExternalDependenciesAreCalled() {
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
-
-		DataGroup nonEmptyFilter = createNonEmptyFilter();
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
-
-		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
-
-		dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", nonEmptyFilter);
-
-		assertTrue(((OldRecordStorageSpy) recordStorage).readListWasCalled);
-	}
-
-	@Test
-	public void testFilterValidationIsCalledCorrectlyWithOtherFilter() {
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
-		DataGroup filter = new DataGroupSpy("filter2");
-		DataGroup part = new DataGroupSpy("part");
-		filter.addChild(part);
-
-		DataGroup nonEmptyFilter = filter;
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
-
-		dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", nonEmptyFilter);
-	}
-
-	@Test
-	public void testFilterValidationIsCalledCorrectlyForStart() {
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
-
-		exampleFilter.addChild(new DataAtomicSpy("start", "1"));
-
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, exampleFilter);
-
-		dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", exampleFilter);
-	}
-
-	@Test
-	public void testFilterValidationIsCalledCorrectlyForRows() {
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
-
-		exampleFilter.addChild(new DataAtomicSpy("rows", "1"));
-
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, exampleFilter);
-
-		dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", exampleFilter);
-	}
-
-	@Test
-	public void testReadListReturnedNumbersAreFromStorage() {
-		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
-		recordStorageSpy.start = 3;
-		recordStorageSpy.totalNumberOfMatches = 1500;
-		List<DataGroup> list = new ArrayList<>();
-		list.add(new DataGroupSpy("someName"));
-		recordStorageSpy.listOfDataGroups = list;
-
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				emptyFilter);
-
-		assertEquals(readRecordList.getFromNo(), "3");
-		assertEquals(readRecordList.getToNo(), "4");
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1500");
-	}
-
-	@Test
-	public void testReadListReturnedOtherNumbersAreFromStorage() {
-		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
-		recordStorageSpy.start = 50;
-		recordStorageSpy.totalNumberOfMatches = 1300;
-		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(50);
-
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				emptyFilter);
-
-		assertEquals(readRecordList.getFromNo(), "50");
-		assertEquals(readRecordList.getToNo(), "100");
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1300");
-	}
-
-	@Test
-	public void testReadListReturnedNoMatches() {
-		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
-		recordStorageSpy.start = 0;
-		recordStorageSpy.totalNumberOfMatches = 0;
-		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(0);
-
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				emptyFilter);
-
-		assertEquals(readRecordList.getFromNo(), "0");
-		assertEquals(readRecordList.getToNo(), "0");
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "0");
-	}
-
-	@Test
-	public void testReadListReturnedOneMatches() {
-		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
-		recordStorageSpy.start = 0;
-		recordStorageSpy.totalNumberOfMatches = 1;
-		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(1);
-
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				emptyFilter);
-
-		assertEquals(readRecordList.getFromNo(), "0");
-		assertEquals(readRecordList.getToNo(), "1");
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1");
-	}
-
-	@Test
-	public void testReadListReturnedNoMatchesButHasMatches() {
-		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
-		recordStorageSpy.start = 0;
-		recordStorageSpy.totalNumberOfMatches = 15;
-		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(0);
-
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				emptyFilter);
-
-		assertEquals(readRecordList.getFromNo(), "0");
-		assertEquals(readRecordList.getToNo(), "0");
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "15");
-	}
-
-	@Test
-	public void testReadAbstractListReturnedStartIsFromStorage() {
-		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
-		recordStorageSpy.abstractString = "true";
-		recordStorageSpy.start = 3;
-		recordStorageSpy.totalNumberOfMatches = 765;
-		recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(3);
-
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				emptyFilter);
-
-		assertEquals(readRecordList.getFromNo(), "3");
-		assertEquals(readRecordList.getToNo(), "6");
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "765");
-	}
-
-	private List<DataGroup> createListOfDummyDataGroups(int numberOfGroups) {
-		List<DataGroup> list = new ArrayList<>();
-		for (int i = 0; i < numberOfGroups; i++) {
-			list.add(createDataGroupWithRecordInfo());
-		}
-		return list;
-	}
-
-	private DataGroup createDataGroupWithRecordInfo() {
-		DataGroup dataGroup = new DataGroupSpy("someName");
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
-		dataGroup.addChild(recordInfo);
-		DataGroup typeGroup = new DataGroupSpy("type");
-		recordInfo.addChild(typeGroup);
-		typeGroup.addChild(new DataAtomicSpy("linkedRecordId", "someType"));
-		return dataGroup;
-	}
-
-	@Test
-	public void testReadListFilterIsPassedOnToStorage() {
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
-
-		DataGroup filter = new DataGroupSpy("filter");
-		DataGroup part = new DataGroupSpy("part");
-		filter.addChild(part);
-		part.addChild(new DataAtomicSpy("key", "someKey"));
-		part.addChild(new DataAtomicSpy("value", "someValue"));
-
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, filter);
-
-		DataGroup filterFromStorage = ((OldRecordStorageSpy) recordStorage).filters.get(0);
-		assertEquals(filterFromStorage.getNameInData(), "filter");
-		DataGroup extractedPart = filterFromStorage.getFirstGroupWithNameInData("part");
-		assertEquals(extractedPart.getFirstAtomicValueWithNameInData("key"), "someKey");
-		assertEquals(extractedPart.getFirstAtomicValueWithNameInData("value"), "someValue");
-	}
-
-	@Test
-	public void testReadListAuthorizedButNoReadLinks() {
-		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		setUpDependencyProvider();
-		dataGroupToRecordEnhancer.addReadAction = false;
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				emptyFilter);
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
-		List<Data> records = readRecordList.getDataList();
-		assertEquals(records.size(), 0);
-	}
-
-	@Test
-	public void testRecordEnhancerCalled() {
-		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		setUpDependencyProvider();
+	public void testReadingFromStorageCalled() {
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
-		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
-		assertEquals(dataGroupToRecordEnhancer.recordType, SOME_RECORD_TYPE);
-		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id"), "place:0004");
+
+		recordTypeHandlerSpy.MCR.assertMethodWasCalled("isAbstract");
+		recordStorage.MCR.assertParameters("readList", 0, SOME_RECORD_TYPE, emptyFilter);
 	}
 
 	@Test
-	public void testReadListAbstractRecordType() {
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
+	public void testReadingFromStorageCalledForAbstract() {
 		recordTypeHandlerSpy.isAbstract = true;
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
-		DataList dataList = recordListReader.readRecordList(SOME_USER_TOKEN, "abstract",
-				emptyFilter);
-		assertEquals(dataList.getTotalNumberOfTypeInStorage(), "199");
-
-		String type1 = extractTypeFromChildInListUsingIndex(dataList, 0);
-		assertEquals(type1, "implementing1");
-		String type2 = extractTypeFromChildInListUsingIndex(dataList, 1);
-		assertEquals(type2, "implementing2");
+		recordTypeHandlerSpy.MCR.assertMethodWasCalled("isAbstract");
+		recordStorage.MCR.assertParameters("readAbstractList", 0, SOME_RECORD_TYPE, emptyFilter);
 	}
 
 	@Test
-	public void testReadListAbstractFilterPassedOnToStorage() {
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
-		recordTypeHandlerSpy.isAbstract = true;
+	public void testEnhanceIsCalledForRecordsReturnedFromStorage() throws Exception {
+		recordStorage.numberOfRecordsToReturn = 2;
 
-		recordListReader.readRecordList(SOME_USER_TOKEN, "abstract", exampleFilter);
-		DataGroup sentListRecordFilter = ((OldRecordStorageSpy) recordStorage).filter;
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
-		assertSame(sentListRecordFilter, exampleFilter);
+		recordEnhancer.MCR.assertNumberOfCallsToMethod("enhance", 2);
+
+		StorageReadResult storageReadResult = (StorageReadResult) recordStorage.MCR
+				.getReturnValueForMethodNameAndCallNumber("readList", 0);
+		List<DataGroup> listOfReturnedDataGroupsFromStorage = storageReadResult.listOfDataGroups;
+
+		recordEnhancer.MCR.assertParameters("enhance", 0, authenticator.returnedUser,
+				SOME_RECORD_TYPE, listOfReturnedDataGroupsFromStorage.get(0));
+		recordEnhancer.MCR.assertParameters("enhance", 1, authenticator.returnedUser,
+				SOME_RECORD_TYPE, listOfReturnedDataGroupsFromStorage.get(1));
 	}
 
-	@Test
-	public void testRecordEnhancerCalledForType() {
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
-		recordTypeHandlerSpy.isAbstract = true;
+	// @Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+	// + "No filter exists for recordType: image")
+	// public void testReadListAuthenticatedAndAuthorizedNoFilterMetadataNonEmptyFilter() {
+	// setUpDependencyProvider();
+	// DataGroup filter = createNonEmptyFilter();
+	// recordListReader.readRecordList(SOME_USER_TOKEN, "image", filter);
+	// }
+	//
 
-		recordListReader.readRecordList(SOME_USER_TOKEN, "abstract", emptyFilter);
-		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
-		assertEquals(dataGroupToRecordEnhancer.recordType, "implementing2");
-		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id"), "child2_2");
-	}
-
-	private String extractTypeFromChildInListUsingIndex(DataList dataList, int index) {
-		DataRecord data1 = (DataRecord) dataList.getDataList().get(index);
-		DataGroup dataGroup1 = data1.getDataGroup();
-		DataGroup recordInfo = dataGroup1.getFirstGroupWithNameInData("recordInfo");
-		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
-		return typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
-	}
-
-	@Test
-	public void testReadListAbstractRecordTypeNoDataForOneRecordType() {
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
-		recordTypeHandlerSpy.isAbstract = true;
-
-		DataList dataList = recordListReader.readRecordList(SOME_USER_TOKEN, "abstract2",
-				emptyFilter);
-		assertEquals(dataList.getTotalNumberOfTypeInStorage(), "199");
-
-		String type1 = extractTypeFromChildInListUsingIndex(dataList, 0);
-		assertEquals(type1, "implementing2");
-
-	}
-
-	@Test(expectedExceptions = DataException.class)
-	public void testReadListAuthenticatedAndAuthorizedInvalidData() {
-		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		setUpDependencyProvider();
-		dataValidator.validValidation = false;
-
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, createNonEmptyFilter());
-	}
-
-	@Test
-	public void testReadListCorrectFilterMetadataIsRead() {
-		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		setUpDependencyProvider();
-		DataGroup nonEmptyFilter = createNonEmptyFilter();
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
-
-		dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", nonEmptyFilter);
-	}
-
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
-			+ "No filter exists for recordType: image")
-	public void testReadListAuthenticatedAndAuthorizedNoFilterMetadataNonEmptyFilter() {
-		setUpDependencyProvider();
-		DataGroup filter = createNonEmptyFilter();
-		recordListReader.readRecordList(SOME_USER_TOKEN, "image", filter);
-	}
-
-	private DataGroup createNonEmptyFilter() {
-		DataGroup filter = new DataGroupSpy("filter");
-		DataGroup part = new DataGroupSpy("part");
-		filter.addChild(part);
-		return filter;
-	}
-
-	@Test
-	public void testReadListAuthenticatedAndAuthorizedNoFilterMetadataEmptyFilter() {
-		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		setUpDependencyProvider();
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, "image",
-				emptyFilter);
-		assertEquals(readRecordList.getFromNo(), "1");
-		assertEquals(readRecordList.getToNo(), "3");
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
-	}
-
-	@Test
-	public void testReadListNotAuthorizedButPublicRecordType() {
-		recordStorage = new OldRecordStorageSpy();
-		authorizator.authorizedForActionAndRecordType = false;
-		setUpDependencyProvider();
-
-		recordListReader.readRecordList("unauthorizedUserId", "publicReadType", emptyFilter);
-
-		assertTrue(((OldRecordStorageSpy) recordStorage).readListWasCalled);
-	}
+	// @Test
+	// public void testFilterValidationIsCalledCorrectlyWithOtherFilter() {
+	// recordStorage = new OldRecordStorageSpy();
+	// setUpDependencyProvider();
+	// DataGroup filter = new DataGroupSpy("filter2");
+	// DataGroup part = new DataGroupSpy("part");
+	// filter.addChild(part);
+	//
+	// DataGroup nonEmptyFilter = filter;
+	// recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+	//
+	// dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", nonEmptyFilter);
+	// }
+	//
+	// @Test
+	// public void testFilterValidationIsCalledCorrectlyForStart() {
+	// recordStorage = new OldRecordStorageSpy();
+	// setUpDependencyProvider();
+	//
+	// exampleFilter.addChild(new DataAtomicSpy("start", "1"));
+	//
+	// recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, exampleFilter);
+	//
+	// dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", exampleFilter);
+	// }
+	//
+	// @Test
+	// public void testFilterValidationIsCalledCorrectlyForRows() {
+	// recordStorage = new OldRecordStorageSpy();
+	// setUpDependencyProvider();
+	//
+	// exampleFilter.addChild(new DataAtomicSpy("rows", "1"));
+	//
+	// recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, exampleFilter);
+	//
+	// dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", exampleFilter);
+	// }
+	//
+	// @Test
+	// public void testReadListReturnedNumbersAreFromStorage() {
+	// RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
+	// recordStorageSpy.start = 3;
+	// recordStorageSpy.totalNumberOfMatches = 1500;
+	// List<DataGroup> list = new ArrayList<>();
+	// list.add(new DataGroupSpy("someName"));
+	// recordStorageSpy.listOfDataGroups = list;
+	//
+	// DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+	// emptyFilter);
+	//
+	// assertEquals(readRecordList.getFromNo(), "3");
+	// assertEquals(readRecordList.getToNo(), "4");
+	// assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1500");
+	// }
+	//
+	// @Test
+	// public void testReadListReturnedOtherNumbersAreFromStorage() {
+	// RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
+	// recordStorageSpy.start = 50;
+	// recordStorageSpy.totalNumberOfMatches = 1300;
+	// recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(50);
+	//
+	// DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+	// emptyFilter);
+	//
+	// assertEquals(readRecordList.getFromNo(), "50");
+	// assertEquals(readRecordList.getToNo(), "100");
+	// assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1300");
+	// }
+	//
+	// @Test
+	// public void testReadListReturnedNoMatches() {
+	// RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
+	// recordStorageSpy.start = 0;
+	// recordStorageSpy.totalNumberOfMatches = 0;
+	// recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(0);
+	//
+	// DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+	// emptyFilter);
+	//
+	// assertEquals(readRecordList.getFromNo(), "0");
+	// assertEquals(readRecordList.getToNo(), "0");
+	// assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "0");
+	// }
+	//
+	// @Test
+	// public void testReadListReturnedOneMatches() {
+	// RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
+	// recordStorageSpy.start = 0;
+	// recordStorageSpy.totalNumberOfMatches = 1;
+	// recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(1);
+	//
+	// DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+	// emptyFilter);
+	//
+	// assertEquals(readRecordList.getFromNo(), "0");
+	// assertEquals(readRecordList.getToNo(), "1");
+	// assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "1");
+	// }
+	//
+	// @Test
+	// public void testReadListReturnedNoMatchesButHasMatches() {
+	// RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
+	// recordStorageSpy.start = 0;
+	// recordStorageSpy.totalNumberOfMatches = 15;
+	// recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(0);
+	//
+	// DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+	// emptyFilter);
+	//
+	// assertEquals(readRecordList.getFromNo(), "0");
+	// assertEquals(readRecordList.getToNo(), "0");
+	// assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "15");
+	// }
+	//
+	// @Test
+	// public void testReadAbstractListReturnedStartIsFromStorage() {
+	// RecordStorageSpy recordStorageSpy = (RecordStorageSpy) recordStorage;
+	// recordStorageSpy.abstractString = "true";
+	// recordStorageSpy.start = 3;
+	// recordStorageSpy.totalNumberOfMatches = 765;
+	// recordStorageSpy.listOfDataGroups = createListOfDummyDataGroups(3);
+	//
+	// DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+	// emptyFilter);
+	//
+	// assertEquals(readRecordList.getFromNo(), "3");
+	// assertEquals(readRecordList.getToNo(), "6");
+	// assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "765");
+	// }
+	//
+	// private List<DataGroup> createListOfDummyDataGroups(int numberOfGroups) {
+	// List<DataGroup> list = new ArrayList<>();
+	// for (int i = 0; i < numberOfGroups; i++) {
+	// list.add(createDataGroupWithRecordInfo());
+	// }
+	// return list;
+	// }
+	//
+	// private DataGroup createDataGroupWithRecordInfo() {
+	// DataGroup dataGroup = new DataGroupSpy("someName");
+	// DataGroup recordInfo = new DataGroupSpy("recordInfo");
+	// dataGroup.addChild(recordInfo);
+	// DataGroup typeGroup = new DataGroupSpy("type");
+	// recordInfo.addChild(typeGroup);
+	// typeGroup.addChild(new DataAtomicSpy("linkedRecordId", "someType"));
+	// return dataGroup;
+	// }
+	//
+	// @Test
+	// public void testReadListFilterIsPassedOnToStorage() {
+	// recordStorage = new OldRecordStorageSpy();
+	// setUpDependencyProvider();
+	//
+	// DataGroup filter = new DataGroupSpy("filter");
+	// DataGroup part = new DataGroupSpy("part");
+	// filter.addChild(part);
+	// part.addChild(new DataAtomicSpy("key", "someKey"));
+	// part.addChild(new DataAtomicSpy("value", "someValue"));
+	//
+	// recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, filter);
+	//
+	// DataGroup filterFromStorage = ((OldRecordStorageSpy) recordStorage).filters.get(0);
+	// assertEquals(filterFromStorage.getNameInData(), "filter");
+	// DataGroup extractedPart = filterFromStorage.getFirstGroupWithNameInData("part");
+	// assertEquals(extractedPart.getFirstAtomicValueWithNameInData("key"), "someKey");
+	// assertEquals(extractedPart.getFirstAtomicValueWithNameInData("value"), "someValue");
+	// }
+	//
+	// @Test
+	// public void testReadListAuthorizedButNoReadLinks() {
+	// recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+	// setUpDependencyProvider();
+	// recordEnhancer.addReadAction = false;
+	// DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+	// emptyFilter);
+	// assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
+	// List<Data> records = readRecordList.getDataList();
+	// assertEquals(records.size(), 0);
+	// }
+	//
+	// @Test
+	// public void testRecordEnhancerCalled() {
+	// recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+	// setUpDependencyProvider();
+	// recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+	//
+	// recordEnhancer.MCR.assertParameter("enhance", 0, "user", authenticator.returnedUser);
+	// recordEnhancer.MCR.assertParameter("enhance", 0, "recordType", SOME_RECORD_TYPE);
+	// assertEquals(recordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
+	// .getFirstAtomicValueWithNameInData("id"), "place:0004");
+	// recordEnhancer.MCR.assertNumberOfCallsToMethod("enhance", 4);
+	// // recordEnhancer.MCR.assertParameters("enhance", 0, authenticator.returnedUser,
+	// // SOME_RECORD_TYPE, null);
+	// }
+	//
+	// @Test
+	// public void testReadListAbstractRecordType() {
+	// recordStorage = new OldRecordStorageSpy();
+	// setUpDependencyProvider();
+	// recordTypeHandlerSpy.isAbstract = true;
+	//
+	// DataList dataList = recordListReader.readRecordList(SOME_USER_TOKEN, "abstract",
+	// emptyFilter);
+	// assertEquals(dataList.getTotalNumberOfTypeInStorage(), "199");
+	//
+	// String type1 = extractTypeFromChildInListUsingIndex(dataList, 0);
+	// assertEquals(type1, "implementing1");
+	// String type2 = extractTypeFromChildInListUsingIndex(dataList, 1);
+	// assertEquals(type2, "implementing2");
+	// }
+	//
+	// @Test
+	// public void testReadListAbstractFilterPassedOnToStorage() {
+	// recordStorage = new OldRecordStorageSpy();
+	// setUpDependencyProvider();
+	// recordTypeHandlerSpy.isAbstract = true;
+	//
+	// recordListReader.readRecordList(SOME_USER_TOKEN, "abstract", exampleFilter);
+	// DataGroup sentListRecordFilter = ((OldRecordStorageSpy) recordStorage).filter;
+	//
+	// assertSame(sentListRecordFilter, exampleFilter);
+	// }
+	//
+	// @Test
+	// public void testRecordEnhancerCalledForType() {
+	// recordStorage = new OldRecordStorageSpy();
+	// setUpDependencyProvider();
+	// recordTypeHandlerSpy.isAbstract = true;
+	//
+	// recordListReader.readRecordList(SOME_USER_TOKEN, "abstract", emptyFilter);
+	// assertEquals(recordEnhancer.user.id, "12345");
+	// assertEquals(recordEnhancer.recordType, "implementing2");
+	// assertEquals(recordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
+	// .getFirstAtomicValueWithNameInData("id"), "child2_2");
+	// }
+	//
+	// private String extractTypeFromChildInListUsingIndex(DataList dataList, int index) {
+	// DataRecord data1 = (DataRecord) dataList.getDataList().get(index);
+	// DataGroup dataGroup1 = data1.getDataGroup();
+	// DataGroup recordInfo = dataGroup1.getFirstGroupWithNameInData("recordInfo");
+	// DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
+	// return typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+	// }
+	//
+	// @Test
+	// public void testReadListAbstractRecordTypeNoDataForOneRecordType() {
+	// recordStorage = new OldRecordStorageSpy();
+	// setUpDependencyProvider();
+	// recordTypeHandlerSpy.isAbstract = true;
+	//
+	// DataList dataList = recordListReader.readRecordList(SOME_USER_TOKEN, "abstract2",
+	// emptyFilter);
+	// assertEquals(dataList.getTotalNumberOfTypeInStorage(), "199");
+	//
+	// String type1 = extractTypeFromChildInListUsingIndex(dataList, 0);
+	// assertEquals(type1, "implementing2");
+	//
+	// }
+	//
+	// @Test(expectedExceptions = DataException.class)
+	// public void testReadListAuthenticatedAndAuthorizedInvalidData() {
+	// recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+	// setUpDependencyProvider();
+	// dataValidator.validValidation = false;
+	//
+	// recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, createNonEmptyFilter());
+	// }
+	//
+	// @Test
+	// public void testReadListCorrectFilterMetadataIsRead() {
+	// recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+	// setUpDependencyProvider();
+	// DataGroup nonEmptyFilter = createNonEmptyFilter();
+	// recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+	//
+	// dataValidator.MCR.assertParameters("validateData", 0, "placeFilterGroup", nonEmptyFilter);
+	// }
+	//
+	// @Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+	// + "No filter exists for recordType: image")
+	// public void testReadListAuthenticatedAndAuthorizedNoFilterMetadataNonEmptyFilter() {
+	// setUpDependencyProvider();
+	// DataGroup filter = createNonEmptyFilter();
+	// recordListReader.readRecordList(SOME_USER_TOKEN, "image", filter);
+	// }
+	//
+	//
+	// @Test
+	// public void testReadListAuthenticatedAndAuthorizedNoFilterMetadataEmptyFilter() {
+	// recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+	// setUpDependencyProvider();
+	// DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, "image",
+	// emptyFilter);
+	// assertEquals(readRecordList.getFromNo(), "1");
+	// assertEquals(readRecordList.getToNo(), "3");
+	// assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
+	// }
+	//
+	// @Test
+	// public void testReadListNotAuthorizedButPublicRecordType() {
+	// recordStorage = new OldRecordStorageSpy();
+	// authorizator.authorizedForActionAndRecordType = false;
+	// setUpDependencyProvider();
+	//
+	// recordListReader.readRecordList("unauthorizedUserId", "publicReadType", emptyFilter);
+	//
+	// assertTrue(((OldRecordStorageSpy) recordStorage).readListWasCalled);
+	// }
 
 	// @Test
 	// public void testReadListIsAuthorizedPerRecord() {
@@ -523,4 +587,23 @@ public class SpiderRecordListReaderTest {
 	// assertEquals(authorizatorSpy.calledMethods.size(), "2");
 	//
 	// }
+	@Test
+	public void testReadListAuthorized() {
+		RecordStorageSpy recordStorageSpy = recordStorage;
+		recordStorageSpy.totalNumberOfMatches = 177;
+		recordStorageSpy.start = 1;
+		recordStorageSpy.numberOfRecordsToReturn = 5;
+
+		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				emptyFilter);
+		assertEquals(readRecordList.getContainDataOfType(), SOME_RECORD_TYPE);
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "177");
+		assertEquals(readRecordList.getFromNo(), "1");
+		assertEquals(readRecordList.getToNo(), "5");
+
+		// TODO: possibly remove if checked elsewere in this test
+		List<Data> records = readRecordList.getDataList();
+		DataRecord dataRecord = (DataRecord) records.get(0);
+		assertNotNull(dataRecord);
+	}
 }

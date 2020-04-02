@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.spy;
 import java.util.HashSet;
 import java.util.Set;
 
+import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
@@ -29,7 +30,9 @@ import se.uu.ub.cora.data.DataGroup;
 public class DataValidatorSpy implements DataValidator {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public boolean validValidation = true;
+	public boolean validListFilterValidation = true;
 	private Set<String> notValidForMetadataGroupId = new HashSet<>();
+	public boolean throwFilterNotFoundException = false;
 
 	@Override
 	public ValidationAnswer validateData(String metadataGroupId, DataGroup dataGroup) {
@@ -47,6 +50,21 @@ public class DataValidatorSpy implements DataValidator {
 
 	public void setNotValidForMetadataGroupId(String metadataGroupId) {
 		notValidForMetadataGroupId.add(metadataGroupId);
+	}
+
+	@Override
+	public ValidationAnswer validateListFilter(String recordType, DataGroup filterDataGroup) {
+		MCR.addCall("validateListFilter", "recordType", recordType, "filterDataGroup",
+				filterDataGroup);
+		if (throwFilterNotFoundException) {
+			throw DataValidationException.withMessage(
+					"DataValidatorSpy, No filter exists for recordType, " + recordType);
+		}
+		ValidationAnswer validationAnswer = new ValidationAnswer();
+		if (!validListFilterValidation) {
+			validationAnswer.addErrorMessage("Data for list filter not vaild, DataValidatorSpy");
+		}
+		return validationAnswer;
 	}
 
 }

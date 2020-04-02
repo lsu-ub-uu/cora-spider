@@ -16,13 +16,17 @@ import java.util.Map;
  * and similar test helping classes.
  * <p>
  * Spies and similar helper classes should create an internal instance of this class and then record
- * calls to its methods using the {@link #addCall(String, Object...)} method.
+ * calls to its methods using the {@link #addCall(String, Object...)} method. And record answers to
+ * the calls using the {@link #addReturned(String, Object)}method.
  * <p>
  * Tests can then validate that correct calls have been made using the
  * {@link #assertParameters(String, int, Object...)} method or the
  * {@link #assertParameter(String, int, String, Object)} method and check the number of calls using
  * the {@link #assertNumberOfCallsToMethod(String, int)} or that a method has been called using the
  * {@link #assertMethodWasCalled(String)} method.
+ * <p>
+ * Returned values can be accessed using the
+ * {@link #getReturnValueForMethodNameAndCallNumber(String, int)} method.
  * <p>
  * Or get values for a specific call using the {@link #getInParametersAsArray(String, int)} method
  * to use in external asserts and check the number of calls using the
@@ -31,6 +35,7 @@ import java.util.Map;
  */
 public class MethodCallRecorder {
 	private Map<String, List<Map<String, Object>>> calledMethods = new HashMap<>();
+	private Map<String, List<Object>> returnedValues = new HashMap<>();
 
 	/**
 	 * addCall is expected to be used by spies and similar test helper classes to record calls made
@@ -56,6 +61,49 @@ public class MethodCallRecorder {
 		list.add(parameter);
 	}
 
+	private List<Map<String, Object>> possiblyAddMethodName(String methodName) {
+		if (!calledMethods.containsKey(methodName)) {
+			calledMethods.put(methodName, new ArrayList<>());
+		}
+		return calledMethods.get(methodName);
+	}
+
+	/**
+	 * addReturned is expected to be used by spies and similar test helper classes to record return
+	 * values sent from their methods.
+	 * 
+	 * @param methodName
+	 *            A String with the method name
+	 * @param returnedValue
+	 *            The value returned from the method
+	 */
+	public void addReturned(String methodName, Object returnedValue) {
+		List<Object> list = possiblyAddMethodNameToReturnedValues(methodName);
+		list.add(returnedValue);
+	}
+
+	private List<Object> possiblyAddMethodNameToReturnedValues(String methodName) {
+		if (!returnedValues.containsKey(methodName)) {
+			returnedValues.put(methodName, new ArrayList<>());
+		}
+		return returnedValues.get(methodName);
+	}
+
+	/**
+	 * getReturnValueForMethodNameAndCallNumber is used to get the return value for a specific
+	 * method call and call number
+	 * 
+	 * @param methodName
+	 *            A String with the method name
+	 * @param callNumber
+	 *            An int with the order number of the call, starting on 0
+	 * @return An Object with the recorded return value
+	 */
+	public Object getReturnValueForMethodNameAndCallNumber(String methodName, int callNumber) {
+		List<Object> returnedValuesForMethod = returnedValues.get(methodName);
+		return returnedValuesForMethod.get(callNumber);
+	}
+
 	/**
 	 * getNumberOfCallsToMethod is used to get the number of calls made to a method
 	 * 
@@ -68,13 +116,13 @@ public class MethodCallRecorder {
 	}
 
 	/**
-	 * getValueForMethodNameAndCallNumberAndParameterName is use to get the value for a specific
+	 * getValueForMethodNameAndCallNumberAndParameterName is used to get the value for a specific
 	 * method calls specified parameter
 	 * 
 	 * @param methodName
 	 *            A String with the method name
 	 * @param callNumber
-	 *            An int with the order number of the call, starting on
+	 *            An int with the order number of the call, starting on 0
 	 * @param parameterName
 	 *            A String with the parameter name to get the value for
 	 * @return An Object with the recorded value
@@ -84,14 +132,6 @@ public class MethodCallRecorder {
 		List<Map<String, Object>> methodCalls = calledMethods.get(methodName);
 		Map<String, Object> parameters = methodCalls.get(callNumber);
 		return parameters.get(parameterName);
-
-	}
-
-	private List<Map<String, Object>> possiblyAddMethodName(String methodName) {
-		if (!calledMethods.containsKey(methodName)) {
-			calledMethods.put(methodName, new ArrayList<>());
-		}
-		return calledMethods.get(methodName);
 	}
 
 	/**
