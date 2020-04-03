@@ -21,7 +21,7 @@ public class RecordStorageSpy implements RecordStorage {
 	public List<DataGroup> listOfDataGroups = Collections.emptyList();
 	public String abstractString = "false";
 
-	public int numberOfRecordsToReturn = 0;
+	public int endNumberToReturn = 0;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -74,7 +74,7 @@ public class RecordStorageSpy implements RecordStorage {
 		StorageReadResult readResult = new StorageReadResult();
 		readResult.start = start;
 		readResult.totalNumberOfMatches = totalNumberOfMatches;
-		if (numberOfRecordsToReturn > 0) {
+		if (endNumberToReturn > 0) {
 			listOfDataGroups = new ArrayList<>();
 			addRecordsToList();
 		}
@@ -84,7 +84,7 @@ public class RecordStorageSpy implements RecordStorage {
 
 	private void addRecordsToList() {
 		int i = (int) start;
-		while (i < numberOfRecordsToReturn) {
+		while (i < endNumberToReturn) {
 			DataGroupSpy topDataGroup = new DataGroupSpy("dummy");
 			DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
 			topDataGroup.addChild(recordInfo);

@@ -73,7 +73,6 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		readRecordList = DataListProvider.getDataListWithNameOfDataType(recordType);
 		validateFilterIfNotEmpty(filter, recordType);
 		readRecordsOfType(recordType, filter);
-		readRecordList.setTotalNo(String.valueOf(readResult.totalNumberOfMatches));
 		setFromToInReadRecordList();
 
 		return readRecordList;
@@ -184,6 +183,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private void setFromToInReadRecordList() {
+		readRecordList.setTotalNo(String.valueOf(readResult.totalNumberOfMatches));
 		if (resultContainsRecords()) {
 			setFromToValuesForReturnedRecords();
 		} else {

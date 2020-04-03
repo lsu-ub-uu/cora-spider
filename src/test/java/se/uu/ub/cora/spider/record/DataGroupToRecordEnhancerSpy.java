@@ -38,6 +38,7 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 	public List<DataGroup> enhancedDataGroups = new ArrayList<>();
 
 	public boolean addReadAction = true;
+	public boolean addReadActionOnlyFirst = false;
 
 	@Override
 	public DataRecord enhance(User user, String recordType, DataGroup dataGroup) {
@@ -51,7 +52,11 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 		DataRecord dataGroupSpy = new DataRecordSpy(dataGroup);
 		if (addReadAction) {
 			dataGroupSpy.addAction(Action.READ);
+			if (addReadActionOnlyFirst) {
+				addReadAction = false;
+			}
 		}
+		MCR.addReturned(dataGroupSpy);
 		return dataGroupSpy;
 	}
 

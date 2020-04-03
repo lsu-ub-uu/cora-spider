@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertSame;
 
 import java.util.HashMap;
 import java.util.List;
@@ -91,6 +92,7 @@ public class SpiderRecordListReaderTest {
 		recordStorage = new RecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		dataValidator = new DataValidatorSpy();
+		recordEnhancer = new DataGroupToRecordEnhancerSpy();
 		setUpDependencyProvider();
 	}
 
@@ -240,7 +242,7 @@ public class SpiderRecordListReaderTest {
 
 	@Test
 	public void testEnhanceIsCalledForRecordsReturnedFromStorage() throws Exception {
-		recordStorage.numberOfRecordsToReturn = 2;
+		recordStorage.endNumberToReturn = 2;
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
@@ -261,7 +263,7 @@ public class SpiderRecordListReaderTest {
 	@Test
 	public void testEnhanceIsCalledForRecordsReturnedFromStorageForAbstract() {
 		recordTypeHandlerSpy.isAbstract = true;
-		recordStorage.numberOfRecordsToReturn = 2;
+		recordStorage.endNumberToReturn = 2;
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
@@ -290,6 +292,127 @@ public class SpiderRecordListReaderTest {
 		return typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
+	@Test
+	public void testEnhancedDataIsReturnedInDataList() throws Exception {
+		recordStorage.endNumberToReturn = 2;
+
+		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				emptyFilter);
+
+		List<Data> dataList = readRecordList.getDataList();
+
+		DataRecord returnValue0 = (DataRecord) recordEnhancer.MCR.getReturnValue("enhance", 0);
+		DataRecord dataRecord0 = (DataRecord) dataList.get(0);
+		assertSame(dataRecord0, returnValue0);
+
+		DataRecord returnValue1 = (DataRecord) recordEnhancer.MCR.getReturnValue("enhance", 1);
+		DataRecord dataRecord1 = (DataRecord) dataList.get(1);
+		assertSame(dataRecord1, returnValue1);
+	}
+
+	@Test
+	public void testEnhancedDataIsReturnedInDataListForAbstract() throws Exception {
+		recordStorage.endNumberToReturn = 2;
+		recordTypeHandlerSpy.isAbstract = true;
+
+		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				emptyFilter);
+
+		List<Data> dataList = readRecordList.getDataList();
+
+		DataRecord returnValue0 = (DataRecord) recordEnhancer.MCR.getReturnValue("enhance", 0);
+		DataRecord dataRecord0 = (DataRecord) dataList.get(0);
+		assertSame(dataRecord0, returnValue0);
+
+		DataRecord returnValue1 = (DataRecord) recordEnhancer.MCR.getReturnValue("enhance", 1);
+		DataRecord dataRecord1 = (DataRecord) dataList.get(1);
+		assertSame(dataRecord1, returnValue1);
+	}
+
+	@Test
+	public void testOnlyRecordsWithReadActionFromEnhancerIsReturnedNoRecordHasReadAction()
+			throws Exception {
+		recordStorage.endNumberToReturn = 2;
+		recordEnhancer.addReadAction = false;
+
+		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				emptyFilter);
+
+		List<Data> dataList = readRecordList.getDataList();
+		assertEquals(dataList.size(), 0);
+	}
+
+	@Test
+	public void testOnlyRecordsWithReadActionFromEnhancerIsReturned() throws Exception {
+		recordStorage.endNumberToReturn = 3;
+		recordEnhancer.addReadActionOnlyFirst = true;
+
+		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				emptyFilter);
+
+		List<Data> dataList = readRecordList.getDataList();
+		assertEquals(dataList.size(), 1);
+	}
+
+	@Test
+	public void testTotalNumberInDataListIsFromStorage() throws Exception {
+		recordEnhancer.addReadActionOnlyFirst = false;
+		recordEnhancer.addReadAction = true;
+
+		recordStorage.totalNumberOfMatches = 25;
+		recordStorage.endNumberToReturn = 7;
+		recordStorage.start = 4;
+
+		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				emptyFilter);
+
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "25");
+		assertEquals(readRecordList.getFromNo(), "4");
+		assertEquals(readRecordList.getToNo(), "7");
+	}
+
+	@Test
+	public void testTotalNumberInDataListIsFromStorageOtherNumbers() throws Exception {
+		recordStorage.totalNumberOfMatches = 20;
+		recordStorage.endNumberToReturn = 10;
+		recordStorage.start = 1;
+
+		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				emptyFilter);
+
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "20");
+		assertEquals(readRecordList.getFromNo(), "1");
+		assertEquals(readRecordList.getToNo(), "10");
+	}
+
+	@Test
+	public void testTotalNumberInDataListIsFromStorageNonHasReadAction() throws Exception {
+		recordStorage.totalNumberOfMatches = 20;
+		recordStorage.endNumberToReturn = 10;
+		recordStorage.start = 1;
+		recordEnhancer.addReadAction = false;
+
+		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				emptyFilter);
+
+		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "20");
+		assertEquals(readRecordList.getFromNo(), "0");
+		assertEquals(readRecordList.getToNo(), "0");
+	}
+
+	// @Test
+	// public void testTotalNumberInDataListIsFromStorageOtherNumbers() throws Exception {
+	// recordStorage.totalNumberOfMatches = 20;
+	// recordStorage.numberOfRecordsToReturn = 3;
+	// recordStorage.start = 1;
+	//
+	// DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+	// emptyFilter);
+	//
+	// assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "20");
+	// assertEquals(readRecordList.getFromNo(), "1");
+	// assertEquals(readRecordList.getToNo(), "3");
+	// }
 	// @Test
 	// public void testPublicRecordIsAddedAfterEnhance() throws Exception {
 	// recordTypeHandlerSpy.isPublicForRead = true;
@@ -637,7 +760,7 @@ public class SpiderRecordListReaderTest {
 		RecordStorageSpy recordStorageSpy = recordStorage;
 		recordStorageSpy.totalNumberOfMatches = 177;
 		recordStorageSpy.start = 1;
-		recordStorageSpy.numberOfRecordsToReturn = 5;
+		recordStorageSpy.endNumberToReturn = 5;
 
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				emptyFilter);
