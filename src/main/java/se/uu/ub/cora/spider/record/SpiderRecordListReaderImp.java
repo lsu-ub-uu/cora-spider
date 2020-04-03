@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2019 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2019, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -25,6 +25,7 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataListProvider;
@@ -164,7 +165,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		// usersReadRecordPartPermissions);
 		DataRecord dataRecord = dataGroupToRecordEnhancer.enhance(user, recordTypeForRecord,
 				dataGroup);
-		if (dataRecord.getActions().contains(se.uu.ub.cora.data.Action.READ)) {
+		if (dataRecord.getActions().contains(Action.READ)) {
 			readRecordList.addData(dataRecord);
 		}
 	}

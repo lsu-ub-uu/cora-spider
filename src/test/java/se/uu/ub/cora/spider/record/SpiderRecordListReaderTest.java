@@ -28,6 +28,7 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.Data;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
@@ -207,6 +208,7 @@ public class SpiderRecordListReaderTest {
 			+ "Data is not valid: \\[Data for list filter not vaild, DataValidatorSpy\\]")
 	public void testFilterNotValid() throws Exception {
 		dataValidator.validListFilterValidation = false;
+
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
 	}
 
@@ -214,10 +216,10 @@ public class SpiderRecordListReaderTest {
 			+ "No filter exists for recordType: " + SOME_RECORD_TYPE)
 	public void testFilterNotPresentInRecordType() throws Exception {
 		dataValidator.throwFilterNotFoundException = true;
+
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
 	}
 
-	// TODO: we are HERE, from the top!
 	@Test
 	public void testReadingFromStorageCalled() {
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
@@ -229,6 +231,7 @@ public class SpiderRecordListReaderTest {
 	@Test
 	public void testReadingFromStorageCalledForAbstract() {
 		recordTypeHandlerSpy.isAbstract = true;
+
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
 		recordTypeHandlerSpy.MCR.assertMethodWasCalled("isAbstract");
@@ -244,15 +247,57 @@ public class SpiderRecordListReaderTest {
 		recordEnhancer.MCR.assertNumberOfCallsToMethod("enhance", 2);
 
 		StorageReadResult storageReadResult = (StorageReadResult) recordStorage.MCR
-				.getReturnValueForMethodNameAndCallNumber("readList", 0);
+				.getReturnValue("readList", 0);
 		List<DataGroup> listOfReturnedDataGroupsFromStorage = storageReadResult.listOfDataGroups;
+		User returnedUser = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 
-		recordEnhancer.MCR.assertParameters("enhance", 0, authenticator.returnedUser,
-				SOME_RECORD_TYPE, listOfReturnedDataGroupsFromStorage.get(0));
-		recordEnhancer.MCR.assertParameters("enhance", 1, authenticator.returnedUser,
-				SOME_RECORD_TYPE, listOfReturnedDataGroupsFromStorage.get(1));
+		recordEnhancer.MCR.assertParameters("enhance", 0, returnedUser, SOME_RECORD_TYPE,
+				listOfReturnedDataGroupsFromStorage.get(0));
+		recordEnhancer.MCR.assertParameters("enhance", 1, returnedUser, SOME_RECORD_TYPE,
+				listOfReturnedDataGroupsFromStorage.get(1));
 	}
 
+	// TODO: we are HERE, from the top!
+	@Test
+	public void testEnhanceIsCalledForRecordsReturnedFromStorageForAbstract() {
+		recordTypeHandlerSpy.isAbstract = true;
+		recordStorage.numberOfRecordsToReturn = 2;
+
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+
+		recordEnhancer.MCR.assertNumberOfCallsToMethod("enhance", 2);
+
+		StorageReadResult storageReadResult = (StorageReadResult) recordStorage.MCR
+				.getReturnValue("readAbstractList", 0);
+		User returnedUser = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		List<DataGroup> listOfReturnedDataGroupsFromStorage = storageReadResult.listOfDataGroups;
+		DataGroup returnedDataGroup1 = listOfReturnedDataGroupsFromStorage.get(0);
+		String returnedRecordType1 = extractRecordTypeFromDataGroup(returnedDataGroup1);
+
+		recordEnhancer.MCR.assertParameters("enhance", 0, returnedUser, returnedRecordType1,
+				returnedDataGroup1);
+
+		DataGroup returnedDataGroup2 = listOfReturnedDataGroupsFromStorage.get(1);
+		String returnedRecordType2 = extractRecordTypeFromDataGroup(returnedDataGroup2);
+		recordEnhancer.MCR.assertParameters("enhance", 1, returnedUser, returnedRecordType2,
+				returnedDataGroup2);
+	}
+
+	private String extractRecordTypeFromDataGroup(DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
+
+		return typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+	}
+
+	// @Test
+	// public void testPublicRecordIsAddedAfterEnhance() throws Exception {
+	// recordTypeHandlerSpy.isPublicForRead = true;
+	//
+	// recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+	//
+	// //Vi förvänta oss att dataRecord är adderad
+	// }
 	// @Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
 	// + "No filter exists for recordType: image")
 	// public void testReadListAuthenticatedAndAuthorizedNoFilterMetadataNonEmptyFilter() {

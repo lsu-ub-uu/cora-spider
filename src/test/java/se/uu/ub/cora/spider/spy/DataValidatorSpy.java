@@ -36,7 +36,7 @@ public class DataValidatorSpy implements DataValidator {
 
 	@Override
 	public ValidationAnswer validateData(String metadataGroupId, DataGroup dataGroup) {
-		MCR.addCall("validateData", "metadataGroupId", metadataGroupId, "dataGroup", dataGroup);
+		MCR.addCall("metadataGroupId", metadataGroupId, "dataGroup", dataGroup);
 
 		ValidationAnswer validationAnswer = new ValidationAnswer();
 		if (!validValidation) {
@@ -54,8 +54,7 @@ public class DataValidatorSpy implements DataValidator {
 
 	@Override
 	public ValidationAnswer validateListFilter(String recordType, DataGroup filterDataGroup) {
-		MCR.addCall("validateListFilter", "recordType", recordType, "filterDataGroup",
-				filterDataGroup);
+		MCR.addCall("recordType", recordType, "filterDataGroup", filterDataGroup);
 		if (throwFilterNotFoundException) {
 			throw DataValidationException.withMessage(
 					"DataValidatorSpy, No filter exists for recordType, " + recordType);

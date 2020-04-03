@@ -41,7 +41,7 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 
 	@Override
 	public DataRecord enhance(User user, String recordType, DataGroup dataGroup) {
-		MCR.addCall("enhance", "user", user, "recordType", recordType, "dataGroup", dataGroup);
+		MCR.addCall("user", user, "recordType", recordType, "dataGroup", dataGroup);
 
 		enhancedDataGroups.add(dataGroup);
 		this.user = user;

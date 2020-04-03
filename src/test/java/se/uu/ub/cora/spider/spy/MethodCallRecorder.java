@@ -16,8 +16,8 @@ import java.util.Map;
  * and similar test helping classes.
  * <p>
  * Spies and similar helper classes should create an internal instance of this class and then record
- * calls to its methods using the {@link #addCall(String, Object...)} method. And record answers to
- * the calls using the {@link #addReturned(String, Object)}method.
+ * calls to its methods using the {@link #addCall(Object...)} method. And record answers to the
+ * calls using the {@link #addReturned(Object)}method.
  * <p>
  * Tests can then validate that correct calls have been made using the
  * {@link #assertParameters(String, int, Object...)} method or the
@@ -25,8 +25,7 @@ import java.util.Map;
  * the {@link #assertNumberOfCallsToMethod(String, int)} or that a method has been called using the
  * {@link #assertMethodWasCalled(String)} method.
  * <p>
- * Returned values can be accessed using the
- * {@link #getReturnValueForMethodNameAndCallNumber(String, int)} method.
+ * Returned values can be accessed using the {@link #getReturnValue(String, int)} method.
  * <p>
  * Or get values for a specific call using the {@link #getInParametersAsArray(String, int)} method
  * to use in external asserts and check the number of calls using the
@@ -40,17 +39,18 @@ public class MethodCallRecorder {
 	/**
 	 * addCall is expected to be used by spies and similar test helper classes to record calls made
 	 * to their methods.
+	 * <p>
+	 * The calling methods name (from the spy or similar) is automatically added to the provided
+	 * parameters, so it can be used when later using the assert and get methods in this class.
 	 * 
-	 * @param methodName
-	 *            A String with the method name
 	 * @param parameters
 	 *            An Object Varargs with the respective methods and their values. For each parameter
 	 *            should first the parameter name, and then the value be added to this call <br>
-	 *            Ex: addCall("someMethodName", "parameter1Name", parameter1Value, "parameter2Name",
-	 *            parameter2Value )
+	 *            Ex: addCall("parameter1Name", parameter1Value, "parameter2Name", parameter2Value )
 	 * 
 	 */
-	public void addCall(String methodName, Object... parameters) {
+	public void addCall(Object... parameters) {
+		String methodName = getMethodNameFromCall();
 		List<Map<String, Object>> list = possiblyAddMethodName(methodName);
 		Map<String, Object> parameter = new LinkedHashMap<>();
 		int position = 0;
@@ -59,6 +59,13 @@ public class MethodCallRecorder {
 			position = position + 2;
 		}
 		list.add(parameter);
+	}
+
+	private String getMethodNameFromCall() {
+		int numberOfCallsBackwardToAddCallInSpy = 3;
+		StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+		StackTraceElement stackTraceElement = stackTrace[numberOfCallsBackwardToAddCallInSpy];
+		return stackTraceElement.getMethodName();
 	}
 
 	private List<Map<String, Object>> possiblyAddMethodName(String methodName) {
@@ -71,14 +78,16 @@ public class MethodCallRecorder {
 	/**
 	 * addReturned is expected to be used by spies and similar test helper classes to record return
 	 * values sent from their methods.
+	 * <p>
+	 * The calling methods name (from the spy or similar) is automatically added to the provided
+	 * parameters, so it can be used when later using the assert and get methods in this class.
 	 * 
-	 * @param methodName
-	 *            A String with the method name
 	 * @param returnedValue
 	 *            The value returned from the method
 	 */
-	public void addReturned(String methodName, Object returnedValue) {
-		List<Object> list = possiblyAddMethodNameToReturnedValues(methodName);
+	public void addReturned(Object returnedValue) {
+		String methodName2 = getMethodNameFromCall();
+		List<Object> list = possiblyAddMethodNameToReturnedValues(methodName2);
 		list.add(returnedValue);
 	}
 
@@ -90,8 +99,7 @@ public class MethodCallRecorder {
 	}
 
 	/**
-	 * getReturnValueForMethodNameAndCallNumber is used to get the return value for a specific
-	 * method call and call number
+	 * getReturnValue is used to get the return value for a specific method call and call number
 	 * 
 	 * @param methodName
 	 *            A String with the method name
@@ -99,7 +107,7 @@ public class MethodCallRecorder {
 	 *            An int with the order number of the call, starting on 0
 	 * @return An Object with the recorded return value
 	 */
-	public Object getReturnValueForMethodNameAndCallNumber(String methodName, int callNumber) {
+	public Object getReturnValue(String methodName, int callNumber) {
 		List<Object> returnedValuesForMethod = returnedValues.get(methodName);
 		return returnedValuesForMethod.get(callNumber);
 	}

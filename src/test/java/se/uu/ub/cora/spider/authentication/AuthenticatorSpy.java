@@ -32,7 +32,7 @@ public class AuthenticatorSpy implements Authenticator {
 
 	@Override
 	public User getUserForToken(String authToken) {
-		MCR.addCall("getUserForToken", "authToken", authToken);
+		MCR.addCall("authToken", authToken);
 		this.authToken = authToken;
 		authenticationWasCalled = true;
 
@@ -45,7 +45,7 @@ public class AuthenticatorSpy implements Authenticator {
 			user.loginId = "knownUser";
 			user.loginDomain = "system";
 			user.roles.add("guest");
-			MCR.addReturned("getUserForToken", user);
+			MCR.addReturned(user);
 			return user;
 
 		}
@@ -56,7 +56,7 @@ public class AuthenticatorSpy implements Authenticator {
 		user.roles.add("guest");
 		returnedUser = user;
 
-		MCR.addReturned("getUserForToken", user);
+		MCR.addReturned(user);
 		return user;
 	}
 

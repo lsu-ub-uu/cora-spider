@@ -45,34 +45,34 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean isAbstract() {
-		MCR.addCall("isAbstract");
+		MCR.addCall();
 		return isAbstract;
 	}
 
 	@Override
 	public boolean shouldAutoGenerateId() {
-		MCR.addCall("shouldAutoGenerateId");
+		MCR.addCall();
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public String getNewMetadataId() {
-		MCR.addCall("getNewMetadataId");
+		MCR.addCall();
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String getMetadataId() {
-		MCR.addCall("getMetadataId");
+		MCR.addCall();
 		// TODO Auto-generated method stub
 		return "fakeMetadataIdFromRecordTypeHandlerSpy";
 	}
 
 	@Override
 	public List<String> createListOfPossibleIdsToThisRecord(String recordId) {
-		MCR.addCall("createListOfPossibleIdsToThisRecord", "recordId", recordId);
+		MCR.addCall("recordId", recordId);
 		List<String> fakeList = new ArrayList<>();
 		fakeList.add("fakeIdFromRecordTypeHandlerSpy");
 		return fakeList;
@@ -80,13 +80,13 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean isPublicForRead() {
-		MCR.addCall("isPublicForRead");
+		MCR.addCall();
 		return isPublicForRead;
 	}
 
 	@Override
 	public boolean hasRecordPartReadConstraint() {
-		MCR.addCall("hasRecordPartReadConstraint");
+		MCR.addCall();
 		hasRecordPartReadContraintHasBeenCalled = true;
 		if ("readWrite".equals(recordPartConstraint)) {
 			return true;
@@ -101,7 +101,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public DataGroup getMetadataGroup() {
-		MCR.addCall("getMetadataGroup");
+		MCR.addCall();
 		DataGroup metadataDataGroup = new DataGroupSpy("organisationGroup");
 		metadataDataGroup.addChild(new DataAtomicSpy("nameInData", "organisation"));
 		return metadataDataGroup;
@@ -109,7 +109,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public Set<String> getRecordPartReadConstraints() {
-		MCR.addCall("getRecordPartReadConstraints");
+		MCR.addCall();
 		Set<String> constraints = new HashSet<String>();
 		constraints.add("someKey");
 		return constraints;
@@ -117,7 +117,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean hasRecordPartWriteConstraint() {
-		MCR.addCall("hasRecordPartWriteConstraint");
+		MCR.addCall();
 		hasRecordPartReadContraintHasBeenCalled = true;
 		if ("readWrite".equals(recordPartConstraint)) {
 			return true;
@@ -131,7 +131,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public Set<String> getRecordPartWriteConstraints() {
-		MCR.addCall("getRecordPartWriteConstraints");
+		MCR.addCall();
 		return writeConstraints;
 	}
 

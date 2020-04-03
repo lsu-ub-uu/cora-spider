@@ -42,8 +42,8 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		MCR.addCall("checkUserIsAuthorizedForActionOnRecordType", "user", user, "action", action,
-				"recordType", recordType);
+		MCR.addCall("user", user, "action", action, "recordType",
+				recordType);
 		if (!authorizedForActionAndRecordType
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
 			throw new AuthorizationException("Exception from SpiderAuthorizatorSpy");
@@ -67,8 +67,8 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		MCR.addCall("userIsAuthorizedForActionOnRecordType", "user", user, "action", action,
-				"recordType", recordType);
+		MCR.addCall("user", user, "action", action, "recordType",
+				recordType);
 
 		if (!authorizedForActionAndRecordType
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
@@ -81,8 +81,8 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
-		MCR.addCall("userIsAuthorizedForActionOnRecordTypeAndCollectedData", "user", user, "action",
-				action, "recordType", recordType, "collectedData", collectedData);
+		MCR.addCall("user", user, "action", action,
+				"recordType", recordType, "collectedData", collectedData);
 
 		if (!authorizedForActionAndRecordTypeAndCollectedData
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
@@ -97,9 +97,9 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 			String action, String recordType, DataGroup collectedData,
 			boolean calculateRecordPartPermissions) {
 
-		MCR.addCall("checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", "user",
-				user, "action", action, "recordType", recordType, "collectedData", collectedData,
-				"calculateRecordPartPermissions", calculateRecordPartPermissions);
+		MCR.addCall("user", user,
+				"action", action, "recordType", recordType, "collectedData", collectedData, "calculateRecordPartPermissions",
+				calculateRecordPartPermissions);
 
 		if (!authorizedForActionAndRecordTypeAndCollectedData
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
