@@ -210,18 +210,20 @@ public class SpiderDependencyProviderTest {
 
 	@Test
 	public void testDataValidatorHasCorrectDependecies() {
+		MetadataStorageSpy metadataStorage = (MetadataStorageSpy) dependencyProvider
+				.getMetadataStorage();
+
 		DataValidatorImp dataValidator = (DataValidatorImp) dependencyProvider.getDataValidator();
 		assertTrue(dataValidator instanceof DataValidatorImp);
 		assertSame(dataValidator.getMetadataStorage(), dependencyProvider.getMetadataStorage());
+		assertCorrectRecordTypeHolder(dataValidator.getRecordTypeHolder(), metadataStorage);
 
 		DataValidatorFactoryImp dataValidatorFactory = (DataValidatorFactoryImp) dataValidator
 				.getDataValidatorFactory();
 
-		MetadataStorageSpy metadataStorage = (MetadataStorageSpy) dependencyProvider
-				.getMetadataStorage();
 		assertTrue(metadataStorage.getMetadataElementsWasCalled);
 
-		assertCorrectRecordTypeHolder(dataValidatorFactory, metadataStorage);
+		assertCorrectRecordTypeHolder(dataValidatorFactory.getRecordTypeHolder(), metadataStorage);
 		assertCorrectMetadataHolder(dataValidatorFactory);
 
 	}
@@ -233,9 +235,8 @@ public class SpiderDependencyProviderTest {
 		assertEquals(metadataElement.getId(), "someMetadata1");
 	}
 
-	private void assertCorrectRecordTypeHolder(DataValidatorFactoryImp dataValidatorFactory,
+	private void assertCorrectRecordTypeHolder(Map<String, DataGroup> recordTypeHolder,
 			MetadataStorageSpy metadataStorage) {
-		Map<String, DataGroup> recordTypeHolder = dataValidatorFactory.getRecordTypeHolder();
 		assertEquals(recordTypeHolder.get("someId1"), metadataStorage.recordTypes.get(0));
 		assertEquals(recordTypeHolder.get("someId2"), metadataStorage.recordTypes.get(1));
 	}

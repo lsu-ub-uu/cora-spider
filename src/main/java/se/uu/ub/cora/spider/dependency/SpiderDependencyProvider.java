@@ -136,7 +136,7 @@ public abstract class SpiderDependencyProvider {
 
 		DataValidatorFactory dataValidatorFactory = new DataValidatorFactoryImp(recordTypeHolder,
 				metadataHolder);
-		return new DataValidatorImp(metadataStorage, dataValidatorFactory);
+		return new DataValidatorImp(metadataStorage, dataValidatorFactory, recordTypeHolder);
 	}
 
 	private Map<String, DataGroup> createRecordTypeHolder(Collection<DataGroup> recordTypes) {
