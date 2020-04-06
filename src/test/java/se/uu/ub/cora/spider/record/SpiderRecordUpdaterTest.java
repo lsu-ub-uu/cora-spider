@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.record;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.time.Instant;
@@ -202,8 +201,9 @@ public class SpiderRecordUpdaterTest {
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 2);
 
-		assertFalse(dataRedactorSpy.replaceRecordPartsUsingPermissionsHasBeenCalled);
-		assertFalse(dataRedactorSpy.dataRedactorHasBeenCalled);
+		dataRedactorSpy.MCR
+				.assertMethodNotCalled("replaceChildrenForConstraintsWithoutPermissions");
+		dataRedactorSpy.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
 
 		dataValidator.MCR.assertParameter("validateData", 0, "dataGroup", dataGroup);
 	}
@@ -231,24 +231,23 @@ public class SpiderRecordUpdaterTest {
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1,
 				authenticator.returnedUser, "update", "spyType", expectedCollectedTerms.get(1),
 				true);
-
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 2);
 
-		assertTrue(dataRedactorSpy.replaceRecordPartsUsingPermissionsHasBeenCalled);
-		assertSame(dataRedactorSpy.changedDataGroup, dataGroup);
-		assertSame(dataRedactorSpy.originalDataGroup,
-				((OldRecordStorageSpy) recordStorage).aRecord);
-		assertSame(dataRedactorSpy.replaceRecordPartConstraints,
-				recordTypeHandlerSpy.writeConstraints);
-		assertSame(dataRedactorSpy.replaceRecordPartPermissions,
-				authorizator.recordPartReadPermissions);
+		dataRedactorSpy.MCR
+				.assertMethodWasCalled("replaceChildrenForConstraintsWithoutPermissions");
 
+		dataRedactorSpy.MCR.assertParameters("replaceChildrenForConstraintsWithoutPermissions", 0,
+				((OldRecordStorageSpy) recordStorage).aRecord, dataGroup,
+				recordTypeHandlerSpy.writeConstraints, authorizator.recordPartReadPermissions);
+
+		DataGroup returnedRedactedDataGroup = (DataGroup) dataRedactorSpy.MCR
+				.getReturnValue("replaceChildrenForConstraintsWithoutPermissions", 0);
 		dataValidator.MCR.assertParameter("validateData", 0, "dataGroup",
-				dataRedactorSpy.returnedReplacedDataGroup);
+				returnedRedactedDataGroup);
 
 		// reading updated data
-		assertFalse(dataRedactorSpy.dataRedactorHasBeenCalled);
+		dataRedactorSpy.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
 	}
 
 	@Test
@@ -283,7 +282,9 @@ public class SpiderRecordUpdaterTest {
 
 		// removed dataGroup returned
 		DataGroup lastEnhancedDataGroup = dataGroupToRecordEnhancer.dataGroup;
-		assertSame(dataRedactorSpy.returnedRemovedDataGroup, lastEnhancedDataGroup);
+
+		dataRedactorSpy.MCR.assertReturn("removeChildrenForConstraintsWithoutPermissions", 0,
+				lastEnhancedDataGroup);
 	}
 
 	@Test

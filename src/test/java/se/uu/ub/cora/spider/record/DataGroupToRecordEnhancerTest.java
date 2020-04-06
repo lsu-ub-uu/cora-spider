@@ -70,6 +70,7 @@ public class DataGroupToRecordEnhancerTest {
 	private DataGroupFactory dataGroupFactorySpy;
 	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataRecordFactory dataRecordFactorySpy;
+	private DataRedactorSpy dataRedactor;
 
 	@BeforeMethod
 	public void setUp() {
@@ -80,6 +81,7 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator = new SpiderAuthorizatorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
+		dataRedactor = new DataRedactorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -103,6 +105,7 @@ public class DataGroupToRecordEnhancerTest {
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.searchTermCollector = termCollector;
+		dependencyProvider.dataRedactor = dataRedactor;
 		enhancer = new DataGroupToRecordEnhancerImp(dependencyProvider);
 	}
 
@@ -512,5 +515,17 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator.MCR.assertParameters(methodName, 5, user, "read", "toRecordType");
 		authorizator.MCR.assertNumberOfCallsToMethod(methodName, 6);
 	}
+
+	// WE ARE HERE
+	// @Test
+	// public void testCallRedactor() throws Exception {
+	//
+	// DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
+	// DataRecord record = enhancer.enhance(user, recordType, dataGroup);
+	//
+	// dataRedactor.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
+	// recordStorage.);
+	//
+	// }
 
 }

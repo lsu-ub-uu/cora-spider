@@ -26,6 +26,7 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -189,7 +190,8 @@ public class SpiderRecordReaderTest {
 		} catch (Exception e) {
 			authorizator.MCR.assertMethodWasCalled(
 					"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
-			assertFalse(dataRedactor.dataRedactorHasBeenCalled);
+			dataRedactor.MCR
+					.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
 		}
 	}
 
@@ -276,7 +278,7 @@ public class SpiderRecordReaderTest {
 		assertFalse(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
 		authorizator.MCR.assertMethodNotCalled(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
-		assertFalse(dataRedactor.dataRedactorHasBeenCalled);
+		dataRedactor.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
 	}
 
 	@Test
@@ -291,7 +293,7 @@ public class SpiderRecordReaderTest {
 
 		authorizator.MCR.assertMethodNotCalled(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
-		assertFalse(dataRedactor.dataRedactorHasBeenCalled);
+		dataRedactor.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
 	}
 
 	@Test
@@ -305,12 +307,19 @@ public class SpiderRecordReaderTest {
 
 		assertTrue(recordTypeHandlerSpy.hasRecordPartReadContraintHasBeenCalled);
 		SpiderAuthorizatorSpy authorizatorSpy = authorizator;
-		assertTrue(dataRedactor.dataRedactorHasBeenCalled);
-		assertEquals(authorizatorSpy.recordPartReadPermissions,
-				dataRedactor.recordPartReadPermissions);
-		assertSame(recordStorageSpy.aRecord, dataRedactor.lastDataRedactedForRead);
+		dataRedactor.MCR.assertMethodWasCalled("removeChildrenForConstraintsWithoutPermissions");
+		Set<String> recordPartReadPermissions = (Set<String>) dataRedactor.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"removeChildrenForConstraintsWithoutPermissions", 0,
+						"recordPartReadPermissions");
+		assertEquals(authorizatorSpy.recordPartReadPermissions, recordPartReadPermissions);
+		DataGroup lastDataRedactedForRead = (DataGroup) dataRedactor.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"removeChildrenForConstraintsWithoutPermissions", 0, "recordRead");
+		assertSame(recordStorageSpy.aRecord, lastDataRedactedForRead);
 		DataGroup lastEnhancedDataGroup = dataGroupToRecordEnhancer.dataGroup;
-		assertSame(dataRedactor.returnedRemovedDataGroup, lastEnhancedDataGroup);
+		dataRedactor.MCR.assertReturn("removeChildrenForConstraintsWithoutPermissions", 0,
+				lastEnhancedDataGroup);
 	}
 
 	@Test
@@ -322,14 +331,12 @@ public class SpiderRecordReaderTest {
 
 		recordReader.readRecord("someUserId", "someType", "someId");
 
-		SpiderAuthorizatorSpy authorizatorSpy = authorizator;
+		DataGroup lastReadRecord = recordStorageSpy.dataGroupToReturn;
 
-		recordTypeHandlerSpy.getMetadataGroup().getFirstAtomicValueWithNameInData("nameInData");
-
-		assertEquals(dataRedactor.recordPartReadPermissions.size(),
-				authorizatorSpy.recordPartReadPermissions.size());
-		assertEquals(dataRedactor.replaceRecordPartConstraints,
-				recordTypeHandlerSpy.getRecordPartReadConstraints());
+		Set<String> recordPartReadConstraints = (Set<String>) recordTypeHandlerSpy.MCR
+				.getReturnValue("getRecordPartReadConstraints", 0);
+		dataRedactor.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
+				lastReadRecord, recordPartReadConstraints, authorizator.recordPartReadPermissions);
 
 	}
 }

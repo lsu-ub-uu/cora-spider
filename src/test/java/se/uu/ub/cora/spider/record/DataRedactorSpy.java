@@ -25,30 +25,18 @@ import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class DataRedactorSpy implements DataRedactor {
-
-	public boolean dataRedactorHasBeenCalled = false;
-	public boolean replaceRecordPartsUsingPermissionsHasBeenCalled = false;
-	public DataGroupSpy returnedRemovedDataGroup;
-	public DataGroupSpy returnedReplacedDataGroup;
-	public DataGroup lastDataRedactedForRead;
-	public Set<String> replaceRecordPartConstraints;
-	public Set<String> recordPartReadPermissions;
-	public DataGroup originalDataGroup;
-	public DataGroup changedDataGroup;
-	public Set<String> replaceRecordPartPermissions;
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
 	public DataGroup removeChildrenForConstraintsWithoutPermissions(DataGroup recordRead,
 			Set<String> recordPartConstraints, Set<String> recordPartReadPermissions) {
-		this.replaceRecordPartConstraints = recordPartConstraints;
-		this.recordPartReadPermissions = recordPartReadPermissions;
-		lastDataRedactedForRead = recordRead;
-		// recordRead.addChild(new DataAtomicSpy("someExtraStuff", "to"));
-		// recordRead = new DataGroupSpy("filteredDataGroup");
-		dataRedactorHasBeenCalled = true;
-		returnedRemovedDataGroup = new DataGroupSpy("someDataGroupSpy");
+		MCR.addCall("recordRead", recordRead, "recordPartConstraints", recordPartConstraints,
+				"recordPartReadPermissions", recordPartReadPermissions);
+		DataGroupSpy returnedRemovedDataGroup = new DataGroupSpy("someDataGroupSpy");
+		MCR.addReturned(returnedRemovedDataGroup);
 		return returnedRemovedDataGroup;
 	}
 
@@ -56,17 +44,14 @@ public class DataRedactorSpy implements DataRedactor {
 	public DataGroup replaceChildrenForConstraintsWithoutPermissions(DataGroup originalDataGroup,
 			DataGroup changedDataGroup, Set<String> recordPartConstraints,
 			Set<String> recordPartPermissions) {
-		this.originalDataGroup = originalDataGroup;
-		this.changedDataGroup = changedDataGroup;
-		this.replaceRecordPartConstraints = recordPartConstraints;
-		this.replaceRecordPartPermissions = recordPartPermissions;
-		// recordRead.addChild(new DataAtomicSpy("someExtraStuff", "to"));
-		// recordRead = new DataGroupSpy("filteredDataGroup");
-		replaceRecordPartsUsingPermissionsHasBeenCalled = true;
-		returnedReplacedDataGroup = new DataGroupSpy("someDataGroupSpy");
+		MCR.addCall("originalDataGroup", originalDataGroup, "changedDataGroup", changedDataGroup,
+				"recordPartConstraints", recordPartConstraints, "recordPartPermissions",
+				recordPartPermissions);
+		DataGroupSpy returnedReplacedDataGroup = new DataGroupSpy("someDataGroupSpy");
 		DataGroupSpy recordInfo = createRecordInfo();
 		returnedReplacedDataGroup.addChild(recordInfo);
 
+		MCR.addReturned(returnedReplacedDataGroup);
 		return returnedReplacedDataGroup;
 	}
 

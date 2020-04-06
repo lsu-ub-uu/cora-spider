@@ -68,9 +68,6 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		this.recordType = recordType;
 		this.dataGroup = dataGroup;
 		collectedTerms = getCollectedTermsForRecord(recordType, dataGroup);
-
-		// this.dataGroup = dataGroup;
-
 		record = DataRecordProvider.getDataRecordWithDataGroup(dataGroup);
 		handledRecordId = getRecordIdFromDataRecord(record);
 		addActions();
@@ -78,10 +75,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return record;
 	}
 
-	private DataGroup getCollectedTermsForRecord(String recordType, DataGroup record) {
+	private DataGroup getCollectedTermsForRecord(String recordType, DataGroup dataGroup) {
 
 		String metadataId = getMetadataIdFromRecordType(recordType);
-		return collectTermCollector.collectTerms(metadataId, record);
+		return collectTermCollector.collectTerms(metadataId, dataGroup);
 	}
 
 	private String getMetadataIdFromRecordType(String recordType) {
@@ -394,7 +391,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private boolean userIsAuthorizedForActionOnRecordTypeAndData(String action, String recordType,
 			DataGroup dataGroup) {
-		DataGroup linkedRecordCollectedTerms = getCollectedTermsForRecord(recordType, dataGroup);
+		DataGroup linkedRecordCollectedTerms = getCollectedTermsForRecord(recordType, null);
 
 		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
 				action, recordType, linkedRecordCollectedTerms);

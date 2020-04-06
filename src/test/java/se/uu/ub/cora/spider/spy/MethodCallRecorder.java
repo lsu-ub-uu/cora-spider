@@ -113,6 +113,27 @@ public class MethodCallRecorder {
 	}
 
 	/**
+	 * assertReturn is used to validate calls to spies and similar test helpers.
+	 * <p>
+	 * Strings and Ints are compared using assertEquals
+	 * <p>
+	 * All other types are compared using assertSame
+	 * 
+	 * @param methodName
+	 *            A String with the methodName to check parameters for
+	 * @param callNumber
+	 *            An int with the order number of the call, starting on 0
+	 * @param expectedValue
+	 *            An Object with the expected parameter value
+	 */
+	public void assertReturn(String methodName, int callNumber, Object expectedValue) {
+
+		Object value = getReturnValue(methodName, callNumber);
+
+		assertParameter(expectedValue, value);
+	}
+
+	/**
 	 * getNumberOfCallsToMethod is used to get the number of calls made to a method
 	 * 
 	 * @param methodName
@@ -212,7 +233,6 @@ public class MethodCallRecorder {
 				parameterName);
 
 		assertParameter(expectedValue, value);
-
 	}
 
 	/**

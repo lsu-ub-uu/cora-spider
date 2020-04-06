@@ -56,6 +56,7 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 			"someNameInData", "someId");
 	public DataGroup readDataGroup;
 	public DataGroup filter;
+	public DataGroup dataGroupToReturn;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -329,7 +330,7 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 			return readDataGroup;
 		}
 
-		DataGroup dataGroupToReturn = new DataGroupSpy("someNameInData");
+		dataGroupToReturn = new DataGroupSpy("someNameInData");
 		dataGroupToReturn.addChild(new DataGroupSpy("recordInfo"));
 		return dataGroupToReturn;
 	}

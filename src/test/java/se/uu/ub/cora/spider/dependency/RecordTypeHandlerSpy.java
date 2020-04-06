@@ -112,6 +112,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MCR.addCall();
 		Set<String> constraints = new HashSet<String>();
 		constraints.add("someKey");
+		MCR.addReturned(constraints);
 		return constraints;
 	}
 
@@ -132,6 +133,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	@Override
 	public Set<String> getRecordPartWriteConstraints() {
 		MCR.addCall();
+		MCR.addReturned(writeConstraints);
 		return writeConstraints;
 	}
 

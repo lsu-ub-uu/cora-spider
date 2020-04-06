@@ -125,9 +125,6 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private void readRecordsOfType(String recordType, DataGroup filter) {
-
-		// Kolla om man har rättigheter att läsa den posttyp
-
 		if (recordTypeHandler.isAbstract()) {
 			addChildrenOfAbstractTypeToReadRecordList(recordType, filter);
 		} else {
@@ -142,7 +139,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		for (DataGroup dataGroup : dataGroupList) {
 			String type = extractRecordTypeFromDataGroup(dataGroup);
 			this.recordType = type;
-			enhanceDataGroupAndAddToRecordList(dataGroup, type);
+			enhanceDataGroupAndPossiblyAddToRecordList(dataGroup, type);
 		}
 	}
 
@@ -153,7 +150,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		return typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
-	private void enhanceDataGroupAndAddToRecordList(DataGroup dataGroup,
+	private void enhanceDataGroupAndPossiblyAddToRecordList(DataGroup dataGroup,
 			String recordTypeForRecord) {
 		// FILTER DATA
 		// DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
@@ -174,11 +171,8 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		readResult = recordStorage.readList(type, filter);
 		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
 		this.recordType = type;
-		// spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
-		// null, null, null, false);
-
 		for (DataGroup dataGroup : dataGroupList) {
-			enhanceDataGroupAndAddToRecordList(dataGroup, type);
+			enhanceDataGroupAndPossiblyAddToRecordList(dataGroup, type);
 		}
 	}
 

@@ -20,11 +20,45 @@
 package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 
+/**
+ * DataGroupToRecordEnhancer converts a {@link DataGroup} into a {@link DataRecord}. This includes
+ * adding actions to the record and read actions to the links in the DataGroup. Use the
+ * {@link #enhance(User, String, DataGroup)} method to convert a DataGroup.
+ */
 public interface DataGroupToRecordEnhancer {
-
+	/**
+	 * Enhance converts a DataGroup into a DataRecord. The conversion has x major parts.
+	 * <p>
+	 * Create a new DataRecord, and add the DataGroup to it.
+	 * <p>
+	 * Find out what actions the User is allowed to do for the record and add those actions to the
+	 * DataGroup.
+	 * <p>
+	 * Add read links to all linked records in the DataGroup if the User has read access to the
+	 * linked record.
+	 * <p>
+	 * 
+	 * The implementations MUST make sure that the actions is only added to the DataRecord if the
+	 * user has read action for the record including security check against collected data, using
+	 * {@link SpiderAuthorizator#checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User, String, String, DataGroup, boolean)}
+	 * or similar method.
+	 * <p>
+	 * If the returned DataRecord contains {@link Action#READ} is it ok to send the record to the
+	 * user.
+	 * 
+	 * @param user
+	 *            The User that will get the DataRecord
+	 * @param recordType
+	 *            A String with the recordType
+	 * @param dataGroup
+	 *            A DataGroup with data to turn into a DataRecord
+	 * @return A newly created DataRecord containing the DataGroup with added actions
+	 */
 	DataRecord enhance(User user, String recordType, DataGroup dataGroup);
 
 }
