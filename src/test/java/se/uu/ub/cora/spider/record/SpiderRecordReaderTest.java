@@ -112,7 +112,7 @@ public class SpiderRecordReaderTest {
 
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
-		dependencyProvider.searchTermCollector = termCollector;
+		dependencyProvider.termCollector = termCollector;
 
 		recordReader = SpiderRecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
@@ -158,12 +158,14 @@ public class SpiderRecordReaderTest {
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "read",
 				"place");
 
-		assertEquals(termCollector.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
-		assertEquals(termCollector.dataGroup, recordStorage.read("place", "place:0001"));
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
+		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
+				recordStorage.read("place", "place:0001"));
 
 		String methodName2 = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName2, 0, authenticator.returnedUser, "read",
-				"place", termCollector.collectedTerms, false);
+				"place", termCollector.MCR.getReturnValue("collectTerms", 0), false);
 	}
 
 	@Test
@@ -174,10 +176,12 @@ public class SpiderRecordReaderTest {
 
 		String methodName2 = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName2, 0, authenticator.returnedUser, "read",
-				"place", termCollector.collectedTerms, true);
+				"place", termCollector.MCR.getReturnValue("collectTerms", 0), true);
 
-		assertEquals(termCollector.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
-		assertEquals(termCollector.dataGroup, recordStorage.read("place", "place:0001"));
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
+		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
+				recordStorage.read("place", "place:0001"));
 	}
 
 	@Test
@@ -206,10 +210,11 @@ public class SpiderRecordReaderTest {
 
 		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "read",
-				"abstractAuthority", termCollector.collectedTerms, false);
+				"abstractAuthority", termCollector.MCR.getReturnValue("collectTerms", 0), false);
 
-		assertEquals(termCollector.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
-		assertEquals(termCollector.dataGroup,
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
+		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
 				recordStorage.read("abstractAuthority", "place:0001"));
 	}
 

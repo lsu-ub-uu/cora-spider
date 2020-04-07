@@ -141,7 +141,7 @@ public class SpiderRecordCreatorTest {
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
-		dependencyProvider.searchTermCollector = termCollector;
+		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.recordIndexer = recordIndexer;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordCreator = SpiderRecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -171,16 +171,9 @@ public class SpiderRecordCreatorTest {
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "spyTypeNew");
 
-		assertCorrectSearchTermCollectorAndIndexer(dataGroup);
-
-	}
-
-	private void assertCorrectSearchTermCollectorAndIndexer(DataGroup dataGroup) {
-		DataGroupTermCollectorSpy searchTermCollectorSpy = termCollector;
-		assertEquals(searchTermCollectorSpy.metadataId, "spyTypeNew");
-		assertTrue(searchTermCollectorSpy.collectTermsWasCalled);
+		termCollector.MCR.assertParameters("collectTerms", 0, "spyTypeNew", dataGroup);
 		assertEquals(((RecordIndexerSpy) recordIndexer).recordIndexData,
-				searchTermCollectorSpy.collectedTerms);
+				termCollector.MCR.getReturnValue("collectTerms", 0));
 	}
 
 	@Test
@@ -472,11 +465,11 @@ public class SpiderRecordCreatorTest {
 
 		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).dataDivider, "cora");
 
-		DataGroupTermCollectorSpy termCollectorSpy = termCollector;
-		assertEquals(termCollectorSpy.metadataId, "place");
-		assertTrue(termCollectorSpy.collectTermsWasCalled);
+		// DataGroupTermCollectorSpy termCollectorSpy = termCollector;
+
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "place");
 		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).collectedTerms,
-				termCollectorSpy.collectedTerms);
+				termCollector.MCR.getReturnValue("collectTerms", 0));
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
@@ -539,7 +532,8 @@ public class SpiderRecordCreatorTest {
 
 		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "create",
-				"typeWithUserGeneratedId", termCollector.collectedTerms, false);
+				"typeWithUserGeneratedId", termCollector.MCR.getReturnValue("collectTerms", 0),
+				false);
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)

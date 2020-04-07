@@ -34,6 +34,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
 import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
@@ -51,12 +52,14 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	public Authenticator authenticator;
 	public RecordSearch recordSearch;
-	public DataGroupTermCollector searchTermCollector;
+	public DataGroupTermCollector termCollector;
 	public RecordIndexer recordIndexer;
 	public boolean readInitInfoWasCalled;
 	public boolean tryToInitializeWasCalled;
 	public RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
 	public DataRedactor dataRedactor;
+
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
 		super(initInfo);
@@ -99,7 +102,9 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	@Override
 	public DataGroupTermCollector getDataGroupTermCollector() {
-		return searchTermCollector;
+		MCR.addCall();
+		MCR.addReturned(termCollector);
+		return termCollector;
 	}
 
 	@Override
@@ -130,6 +135,8 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	@Override
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
+		MCR.addCall("recordTypeId", recordTypeId);
+		MCR.addReturned(recordTypeHandlerSpy);
 		return recordTypeHandlerSpy;
 	}
 

@@ -27,7 +27,6 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataAtomicFactory;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
@@ -73,7 +72,7 @@ public class SpiderRecordSearcherTest {
 	private SpiderRecordSearcher recordSearcher;
 	private DataValidatorSpy dataValidator;
 	private RecordSearch recordSearch;
-	private DataGroupTermCollector termCollector;
+	private DataGroupTermCollectorSpy termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataGroupFactory dataGroupFactorySpy;
 	private DataAtomicFactory dataAtomicFactorySpy;
@@ -119,7 +118,7 @@ public class SpiderRecordSearcherTest {
 		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.recordSearch = recordSearch;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
-		dependencyProvider.searchTermCollector = termCollector;
+		dependencyProvider.termCollector = termCollector;
 		recordSearcher = SpiderRecordSearcherImp
 				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProvider,
 						dataGroupToRecordEnhancer);
@@ -159,13 +158,13 @@ public class SpiderRecordSearcherTest {
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "search",
 				"place");
 
-		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
-		assertEquals(dataGroupTermCollectorSpy.metadataId, "place");
-		assertEquals(dataGroupTermCollectorSpy.dataGroup, ((RecordSearchSpy) recordSearch).place44);
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "place");
+		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
+				((RecordSearchSpy) recordSearch).place44);
 
 		String methodName2 = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName2, 0, authenticator.returnedUser, "read",
-				"place", dataGroupTermCollectorSpy.collectedTerms);
+				"place", termCollector.MCR.getReturnValue("collectTerms", 0));
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)

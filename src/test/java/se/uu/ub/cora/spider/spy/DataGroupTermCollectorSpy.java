@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,41 +18,20 @@
  */
 package se.uu.ub.cora.spider.spy;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 
 public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
-	public boolean collectTermsWasCalled = false;
-	public String metadataId = null;
-	public DataGroup dataGroup;
-
-	public DataGroup collectedTerms;
-	public List<DataGroup> returnedCollectedTerms = new ArrayList<>();
-
-	public List<DataGroup> dataGroups = new ArrayList<>();
-	public Map<String, Integer> metadataIdsReadNumberOfTimesMap = new HashMap<>();
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
 	public DataGroup collectTerms(String metadataId, DataGroup dataGroup) {
-		if (!metadataIdsReadNumberOfTimesMap.containsKey(metadataId)) {
-			metadataIdsReadNumberOfTimesMap.put(metadataId, 1);
-		} else {
-			metadataIdsReadNumberOfTimesMap.put(metadataId,
-					metadataIdsReadNumberOfTimesMap.get(metadataId) + 1);
-		}
-		this.metadataId = metadataId;
-		this.dataGroup = dataGroup;
-		collectTermsWasCalled = true;
+		MCR.addCall("metadataId", metadataId, "dataGroup", dataGroup);
 
-		dataGroups.add(dataGroup);
-		collectedTerms = new DataGroupSpy("collectedData");
-		returnedCollectedTerms.add(collectedTerms);
+		DataGroup collectedTerms = new DataGroupSpy("collectedData");
+
+		MCR.addReturned(collectedTerms);
 		return collectedTerms;
 	}
 }

@@ -135,7 +135,7 @@ public class SpiderRecordValidatorTest {
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
-		dependencyProvider.searchTermCollector = termCollector;
+		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.recordIndexer = recordIndexer;
 		recordValidator = SpiderRecordValidatorImp.usingDependencyProvider(dependencyProvider);
 	}

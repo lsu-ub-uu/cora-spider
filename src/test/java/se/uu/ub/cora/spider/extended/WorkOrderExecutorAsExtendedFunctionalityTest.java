@@ -19,7 +19,6 @@
 package se.uu.ub.cora.spider.extended;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -64,7 +63,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
-		dependencyProvider.searchTermCollector = new DataGroupTermCollectorSpy();
+		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
 		recordStorageProviderSpy.recordStorage = new OldRecordStorageSpy();
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
@@ -97,14 +96,18 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 				"someGeneratedId", "book", "book1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
-		assertTrue(termCollector.collectTermsWasCalled);
-		assertEquals(termCollector.metadataId, "bookGroup");
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "bookGroup");
 
-		DataGroup recordInfo = termCollector.dataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup dataGroup = (DataGroup) termCollector.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("collectTerms", 0, "dataGroup");
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		assertEquals(recordInfo.getFirstAtomicValueWithNameInData("id"), "book1");
 
 		assertTrue(recordIndexer.indexDataHasBeenCalled);
-		assertCollectedTermsAreSentToIndex();
+
+		recordIndexer.MCR.assertParameter("indexData", 0, "recordIndexData",
+				termCollector.MCR.getReturnValue("collectTerms", 0));
+
 		DataGroup recordInfo2 = recordIndexer.record.getFirstGroupWithNameInData("recordInfo");
 		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
 
@@ -129,10 +132,6 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 		assertEquals(ids.size(), 2);
 	}
 
-	private void assertCollectedTermsAreSentToIndex() {
-		assertEquals(recordIndexer.recordIndexData, termCollector.collectedTerms);
-	}
-
 	@Test
 	public void testIndexDataWithNoRightToIndexRecordType() {
 		authorizator.setNotAutorizedForActionOnRecordType("index", "book");
@@ -141,8 +140,8 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 				"someGeneratedId", "book", "book1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
-		assertFalse(termCollector.collectTermsWasCalled);
-		assertFalse(recordIndexer.indexDataHasBeenCalled);
+		termCollector.MCR.assertMethodNotCalled("collectTerms");
+		termCollector.MCR.assertMethodNotCalled("indexData");
 	}
 
 }

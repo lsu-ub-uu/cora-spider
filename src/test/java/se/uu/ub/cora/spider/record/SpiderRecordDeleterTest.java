@@ -108,7 +108,7 @@ public class SpiderRecordDeleterTest {
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.recordIndexer = recordIndexer;
-		dependencyProvider.searchTermCollector = termCollector;
+		dependencyProvider.termCollector = termCollector;
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
@@ -143,12 +143,13 @@ public class SpiderRecordDeleterTest {
 
 		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "delete",
-				"child1", termCollector.collectedTerms, false);
+				"child1", termCollector.MCR.getReturnValue("collectTerms", 0), false);
 
-		assertEquals(termCollector.metadataId, "child1");
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "child1");
 
 		OldRecordStorageSpy recordStorageSpy = (OldRecordStorageSpy) recordStorage;
-		assertEquals(termCollector.dataGroup, recordStorageSpy.readDataGroup);
+		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
+				recordStorageSpy.readDataGroup);
 	}
 
 	@Test

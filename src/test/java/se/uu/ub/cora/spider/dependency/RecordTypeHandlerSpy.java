@@ -67,7 +67,9 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public String getMetadataId() {
 		MCR.addCall();
 		// TODO Auto-generated method stub
-		return "fakeMetadataIdFromRecordTypeHandlerSpy";
+		String returnValue = "fakeMetadataIdFromRecordTypeHandlerSpy";
+		MCR.addReturned(returnValue);
+		return returnValue;
 	}
 
 	@Override

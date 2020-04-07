@@ -58,7 +58,7 @@ public class WorkOrderDeleterAsExtendedFunctionalityTest {
 
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
-		dependencyProvider.searchTermCollector = new DataGroupTermCollectorSpy();
+		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.authenticator = new AuthenticatorSpy();
 
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();

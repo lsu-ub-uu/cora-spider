@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -37,7 +37,10 @@ public interface DataGroupToRecordEnhancer {
 	 * Create a new DataRecord, and add the DataGroup to it.
 	 * <p>
 	 * Find out what actions the User is allowed to do for the record and add those actions to the
-	 * DataGroup.
+	 * DataRecord.
+	 * <p>
+	 * Redact information the user is not allowed to read from the DataGroup, based on settings in
+	 * metadata and the users currently active roles.
 	 * <p>
 	 * Add read links to all linked records in the DataGroup if the User has read access to the
 	 * linked record.

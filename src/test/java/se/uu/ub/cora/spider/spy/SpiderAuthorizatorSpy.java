@@ -42,8 +42,7 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		MCR.addCall("user", user, "action", action, "recordType",
-				recordType);
+		MCR.addCall("user", user, "action", action, "recordType", recordType);
 		if (!authorizedForActionAndRecordType
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
 			throw new AuthorizationException("Exception from SpiderAuthorizatorSpy");
@@ -67,13 +66,14 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		MCR.addCall("user", user, "action", action, "recordType",
-				recordType);
+		MCR.addCall("user", user, "action", action, "recordType", recordType);
 
 		if (!authorizedForActionAndRecordType
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
+			MCR.addReturned(false);
 			return false;
 		} else {
+			MCR.addReturned(true);
 			return true;
 		}
 	}
@@ -81,14 +81,16 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData) {
-		MCR.addCall("user", user, "action", action,
-				"recordType", recordType, "collectedData", collectedData);
+		MCR.addCall("user", user, "action", action, "recordType", recordType, "collectedData",
+				collectedData);
 
 		if (!authorizedForActionAndRecordTypeAndCollectedData
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
 
+			MCR.addReturned(false);
 			return false;
 		}
+		MCR.addReturned(true);
 		return true;
 	}
 
@@ -97,9 +99,8 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 			String action, String recordType, DataGroup collectedData,
 			boolean calculateRecordPartPermissions) {
 
-		MCR.addCall("user", user,
-				"action", action, "recordType", recordType, "collectedData", collectedData, "calculateRecordPartPermissions",
-				calculateRecordPartPermissions);
+		MCR.addCall("user", user, "action", action, "recordType", recordType, "collectedData",
+				collectedData, "calculateRecordPartPermissions", calculateRecordPartPermissions);
 
 		if (!authorizedForActionAndRecordTypeAndCollectedData
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
@@ -108,6 +109,7 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 		}
 
 		recordPartReadPermissions.add("someRecordType.someMetadataId");
+		MCR.addReturned(recordPartReadPermissions);
 		return recordPartReadPermissions;
 	}
 

@@ -134,7 +134,7 @@ public class SpiderRecordUpdaterTest {
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
-		dependencyProvider.searchTermCollector = termCollector;
+		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.recordIndexer = recordIndexer;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
@@ -158,7 +158,6 @@ public class SpiderRecordUpdaterTest {
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 		dataValidator.MCR.assertMethodWasCalled("validateData");
 
-		// assertTrue(dataValidator.validateDataWasCalled);
 		assertTrue(((OldRecordStorageSpy) recordStorage).updateWasCalled);
 		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
 		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId,
@@ -168,11 +167,12 @@ public class SpiderRecordUpdaterTest {
 	}
 
 	private void assertCorrectSearchTermCollectorAndIndexer() {
-		DataGroupTermCollectorSpy searchTermCollectorSpy = termCollector;
-		assertEquals(searchTermCollectorSpy.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
-		assertTrue(searchTermCollectorSpy.collectTermsWasCalled);
+
+		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
+
 		assertEquals(((RecordIndexerSpy) recordIndexer).recordIndexData,
-				searchTermCollectorSpy.collectedTerms);
+				termCollector.MCR.getReturnValue("collectTerms", 1));
 	}
 
 	@Test
@@ -191,12 +191,12 @@ public class SpiderRecordUpdaterTest {
 		authorizator.MCR.assertParameters(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0,
 				authenticator.returnedUser, "update", "spyType",
-				termCollector.returnedCollectedTerms.get(0), false);
+				termCollector.MCR.getReturnValue("collectTerms", 0), false);
 
 		authorizator.MCR.assertParameters(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1,
 				authenticator.returnedUser, "update", "spyType",
-				termCollector.returnedCollectedTerms.get(1), false);
+				termCollector.MCR.getReturnValue("collectTerms", 1), false);
 
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 2);
@@ -221,16 +221,14 @@ public class SpiderRecordUpdaterTest {
 				"spyType", "spyId", "cora"));
 		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 
-		List<DataGroup> expectedCollectedTerms = termCollector.returnedCollectedTerms;
-
 		authorizator.MCR.assertParameters(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0,
-				authenticator.returnedUser, "update", "spyType", expectedCollectedTerms.get(0),
-				true);
+				authenticator.returnedUser, "update", "spyType",
+				termCollector.MCR.getReturnValue("collectTerms", 0), true);
 		authorizator.MCR.assertParameters(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1,
-				authenticator.returnedUser, "update", "spyType", expectedCollectedTerms.get(1),
-				true);
+				authenticator.returnedUser, "update", "spyType",
+				termCollector.MCR.getReturnValue("collectTerms", 1), true);
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 2);
 
@@ -263,19 +261,18 @@ public class SpiderRecordUpdaterTest {
 
 		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 
-		List<DataGroup> expectedCollectedTerms = termCollector.returnedCollectedTerms;
-
 		authorizator.MCR.assertParameters(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0,
-				authenticator.returnedUser, "update", "spyType", expectedCollectedTerms.get(0),
-				true);
+				authenticator.returnedUser, "update", "spyType",
+				termCollector.MCR.getReturnValue("collectTerms", 0), true);
 		authorizator.MCR.assertParameters(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1,
-				authenticator.returnedUser, "update", "spyType", expectedCollectedTerms.get(1),
-				true);
+				authenticator.returnedUser, "update", "spyType",
+				termCollector.MCR.getReturnValue("collectTerms", 1), true);
 		authorizator.MCR.assertParameters(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 2,
-				authenticator.returnedUser, "read", "spyType", expectedCollectedTerms.get(1), true);
+				authenticator.returnedUser, "read", "spyType",
+				termCollector.MCR.getReturnValue("collectTerms", 1), true);
 
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 3);
@@ -474,17 +471,17 @@ public class SpiderRecordUpdaterTest {
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 2);
 
-		List<DataGroup> expectedCollectedTerms = termCollector.returnedCollectedTerms;
+		// List<DataGroup> expectedCollectedTerms = termCollector.returnedCollectedTerms;
 
 		authorizator.MCR.assertParameters(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0,
 				authenticator.returnedUser, "update", "typeWithAutoGeneratedId",
-				expectedCollectedTerms.get(0), false);
+				termCollector.MCR.getReturnValue("collectTerms", 0), false);
 
 		authorizator.MCR.assertParameters(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1,
 				authenticator.returnedUser, "update", "typeWithAutoGeneratedId",
-				expectedCollectedTerms.get(1), false);
+				termCollector.MCR.getReturnValue("collectTerms", 1), false);
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
@@ -637,11 +634,11 @@ public class SpiderRecordUpdaterTest {
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
 				dataGroup);
 
-		DataGroupTermCollectorSpy termCollectorSpy = termCollector;
-		assertEquals(termCollectorSpy.metadataId, "fakeMetadataIdFromRecordTypeHandlerSpy");
-		assertTrue(termCollectorSpy.collectTermsWasCalled);
+		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
 		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).collectedTerms,
-				termCollectorSpy.collectedTerms);
+				termCollector.MCR.getReturnValue("collectTerms", 1));
+
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)

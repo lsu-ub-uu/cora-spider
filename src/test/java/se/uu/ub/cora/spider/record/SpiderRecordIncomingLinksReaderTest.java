@@ -104,7 +104,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 
 		dependencyProvider.ruleCalculator = keyCalculator;
-		dependencyProvider.searchTermCollector = termCollector;
+		dependencyProvider.termCollector = termCollector;
 
 		incomingLinksReader = SpiderRecordIncomingLinksReaderImp
 				.usingDependencyProvider(dependencyProvider);
@@ -141,10 +141,11 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "read",
-				"place", termCollector.collectedTerms, false);
+				"place", termCollector.MCR.getReturnValue("collectTerms", 0), false);
 
-		assertEquals(termCollector.metadataId, "place");
-		assertEquals(termCollector.dataGroup, recordStorage.read("place", "place:0001"));
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "place");
+		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
+				recordStorage.read("place", "place:0001"));
 	}
 
 	@Test
