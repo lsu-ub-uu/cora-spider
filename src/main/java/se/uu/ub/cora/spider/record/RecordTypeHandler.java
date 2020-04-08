@@ -29,9 +29,46 @@ public interface RecordTypeHandler {
 	/**
 	 * isAbstract checks if the recordType is abstract.
 	 * 
-	 * @return If record is abstract
+	 * @return A boolean, true if the recordType is abstract
 	 */
 	boolean isAbstract();
+
+	/**
+	 * hasParentType returns if the recordType is has a parent recordType or not.
+	 * 
+	 * @return A boolean, true the recordType has a parentRecordType
+	 */
+	public boolean hasParentType();
+
+	/**
+	 * isChildOfBinary returns if the recordType has a parent recordType that is binary (handles
+	 * binary data).
+	 * 
+	 * @return A boolean, true if the recordType has binary as parentRecordType
+	 */
+	public boolean isChildOfBinary();
+
+	/**
+	 * isSearchType returns if the recordType is of search type or not.
+	 * 
+	 * @return A boolean, true if the recordType is search type
+	 */
+	boolean isSearchType();
+
+	/**
+	 * isRecordType returns if the recordType is of recordType type or not.
+	 * 
+	 * @return A boolean, true if the recordType is recordType type
+	 */
+	boolean isRecordType();
+
+	/**
+	 * getParentId returns the parentId for the recordType if it has one, if this recordType does
+	 * not have a parent should an exception be thrown indicating that no parentId can be found.
+	 * 
+	 * @return A String with this recordTypes parentId, if it has one
+	 */
+	public String getParentId();
 
 	boolean shouldAutoGenerateId();
 
@@ -109,4 +146,5 @@ public interface RecordTypeHandler {
 	 * @return Map filled with write constraints key = nameInData Value = "write" or "readWrite"
 	 */
 	Set<String> getRecordPartWriteConstraints();
+
 }

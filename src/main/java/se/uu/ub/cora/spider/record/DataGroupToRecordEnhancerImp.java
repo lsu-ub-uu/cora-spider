@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2017, 2019 Uppsala University Library
+ * Copyright 2016, 2017, 2019, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -57,6 +57,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private Map<String, RecordTypeHandler> cachedRecordTypeHandlers = new HashMap<>();
 	private Map<String, Boolean> cachedAuthorizedToReadRecordLink = new HashMap<>();
 	private SpiderDependencyProvider dependencyProvider;
+	private RecordTypeHandler recordTypeHandler;
 
 	public DataGroupToRecordEnhancerImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -70,6 +71,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		this.user = user;
 		this.recordType = recordType;
 		this.dataGroup = dataGroup;
+		recordTypeHandler = getRecordTypeHandlerForRecordType(recordType);
 		collectedTerms = getCollectedTermsForRecord(recordType, dataGroup);
 		dataRecord = DataRecordProvider.getDataRecordWithDataGroup(dataGroup);
 		handledRecordId = getRecordIdFromDataRecord(dataRecord);
@@ -85,7 +87,6 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private String getMetadataIdFromRecordType(String recordType) {
-		RecordTypeHandler recordTypeHandler = getRecordTypeHandlerForRecordType(recordType);
 		return recordTypeHandler.getMetadataId();
 	}
 
@@ -123,7 +124,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 			dataRecord.addAction(Action.READ);
 
 		} catch (Exception e) {
-
+			/**
+			 * TODO: should we throw this error? That would prevent us from the reset of processing
+			 * here, for a record we will not return to the user anyway....
+			 */
 		}
 		// if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("update", recordType)) {
 		// dataRecord.addAction(Action.UPDATE);
@@ -142,64 +146,40 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("index", recordType)) {
 			dataRecord.addAction(Action.INDEX);
 		}
-		possiblyAddDeleteAction(dataRecord);
-		possiblyAddIncomingLinksAction(dataRecord);
+		boolean hasIncommingLinks = incomingLinksExistsForRecord(dataRecord);
+		possiblyAddDeleteAction(dataRecord, hasIncommingLinks);
+		possiblyAddIncomingLinksAction(dataRecord, hasIncommingLinks);
 		possiblyAddUploadAction(dataRecord);
 		possiblyAddSearchActionWhenRecordTypeSearch(dataRecord);
 		addActionsForRecordType(dataRecord);
 	}
 
-	// private DataGroup redactDataGroup(DataGroup recordRead,
-	// Set<String> usersReadRecordPartPermissions) {
-	// if (hasRecordPartReadWriteConstraint()) {
-	// Set<String> recordPartReadConstraints = recordTypeHandler
-	// .getRecordPartReadConstraints();
-	// DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-	// return dataRedactor.removeChildrenForConstraintsWithoutPermissions(recordRead,
-	// recordPartReadConstraints, usersReadRecordPartPermissions);
-	// }
-	// return recordRead;
-	// }
-	// private boolean hasRecordPartReadWriteConstraint() {
-	// return recordTypeHandler.hasRecordPartReadConstraint();
-	// }
 	private boolean userIsAuthorizedForActionOnRecordTypeAndCollectedTerms(String action,
 			String recordType) {
 		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
 				action, recordType, collectedTerms);
 	}
 
-	private void possiblyAddDeleteAction(DataRecord dataRecord) {
-		if (!incomingLinksExistsForRecord(dataRecord)
-				&& userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("delete", recordType)) {
+	private void possiblyAddDeleteAction(DataRecord dataRecord, boolean hasIncommingLinks) {
+		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("delete", recordType)
+				&& !hasIncommingLinks) {
 			dataRecord.addAction(Action.DELETE);
 		}
 	}
 
 	private boolean incomingLinksExistsForRecord(DataRecord dataRecord) {
-		DataGroup topLevelDataGroup = dataRecord.getDataGroup();
-		DataGroup recordInfo = topLevelDataGroup.getFirstGroupWithNameInData("recordInfo");
-		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
-		String recordTypeForThisRecord = typeGroup
-				.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-
-		return linksExistForRecord(recordTypeForThisRecord)
-				|| incomingLinksExistsForParentToRecordType(recordTypeForThisRecord);
+		return linksExistForRecordTypeUsingCurrentHandledId(recordType)
+				|| incomingLinksExistsForParentToRecordType();
 	}
 
-	private boolean linksExistForRecord(String recordTypeForThisRecord) {
-		return recordStorage.linksExistForRecord(recordTypeForThisRecord, handledRecordId);
+	private boolean linksExistForRecordTypeUsingCurrentHandledId(String recordTypeId) {
+		return recordStorage.linksExistForRecord(recordTypeId, handledRecordId);
 	}
 
-	private boolean incomingLinksExistsForParentToRecordType(String recordTypeForThisRecord) {
-		// RecordTypeHandler recordTypeHandler =
-		// dependencyProvider.getRecordTypeHandler(recordTypeForThisRecord);
-		// recordTypeHandler.hasParent();
-		DataGroup recordTypeDataGroup = readRecordFromStorageByTypeAndId(RECORD_TYPE,
-				recordTypeForThisRecord);
-		if (handledRecordHasParent(recordTypeDataGroup)) {
-			String parentId = extractParentId(recordTypeDataGroup);
-			return recordStorage.linksExistForRecord(parentId, handledRecordId);
+	private boolean incomingLinksExistsForParentToRecordType() {
+		if (recordTypeHandler.hasParentType()) {
+			String parentId = recordTypeHandler.getParentId();
+			return linksExistForRecordTypeUsingCurrentHandledId(parentId);
 		}
 		return false;
 	}
@@ -209,59 +189,57 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return recordStorage.read(linkedRecordType, linkedRecordId);
 	}
 
-	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
-		return handledRecordTypeDataGroup.containsChildWithNameInData(PARENT_ID);
-	}
+	// private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
+	// return handledRecordTypeDataGroup.containsChildWithNameInData(PARENT_ID);
+	// }
 
-	private String extractParentId(DataGroup handledRecordTypeDataGroup) {
-		DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData(PARENT_ID);
-		return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-	}
+	// private String extractParentId(DataGroup handledRecordTypeDataGroup) {
+	// DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData(PARENT_ID);
+	// return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	// }
 
-	private void possiblyAddIncomingLinksAction(DataRecord dataRecord) {
-		if (incomingLinksExistsForRecord(dataRecord)) {
+	private void possiblyAddIncomingLinksAction(DataRecord dataRecord, boolean hasIncommingLinks) {
+		if (hasIncommingLinks) {
 			dataRecord.addAction(Action.READ_INCOMING_LINKS);
 		}
 	}
 
 	private void possiblyAddUploadAction(DataRecord dataRecord) {
-		if (isHandledRecordIdChildOfBinary(recordType)
+		// if (isHandledRecordIdChildOfBinary(recordType)
+		if (recordTypeHandler.isChildOfBinary()
 				&& userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("upload", recordType)) {
 			dataRecord.addAction(Action.UPLOAD);
 		}
 	}
 
-	private boolean isHandledRecordIdChildOfBinary(String dataRecordRecordId) {
-		DataGroup handledRecordTypeDataGroup = readRecordFromStorageByTypeAndId(RECORD_TYPE,
-				dataRecordRecordId);
-		return isHandledRecordTypeChildOfBinary(handledRecordTypeDataGroup);
-	}
+	// private boolean isHandledRecordIdChildOfBinary(String dataRecordRecordId) {
+	// DataGroup handledRecordTypeDataGroup = readRecordFromStorageByTypeAndId(RECORD_TYPE,
+	// dataRecordRecordId);
+	// return isHandledRecordTypeChildOfBinary(handledRecordTypeDataGroup);
+	// }
+	//
+	// private boolean isHandledRecordTypeChildOfBinary(DataGroup handledRecordTypeDataGroup) {
+	// if (handledRecordHasParent(handledRecordTypeDataGroup)) {
+	// return recordTypeWithParentIsChildOfBinary(handledRecordTypeDataGroup);
+	// }
+	// return false;
+	// }
 
-	private boolean isHandledRecordTypeChildOfBinary(DataGroup handledRecordTypeDataGroup) {
-		if (handledRecordHasParent(handledRecordTypeDataGroup)) {
-			return recordTypeWithParentIsChildOfBinary(handledRecordTypeDataGroup);
-		}
-		return false;
-	}
-
-	private boolean recordTypeWithParentIsChildOfBinary(DataGroup handledRecordTypeDataGroup) {
-		String refParentId = extractParentId(handledRecordTypeDataGroup);
-		return "binary".equals(refParentId);
-	}
+	// private boolean recordTypeWithParentIsChildOfBinary(DataGroup handledRecordTypeDataGroup) {
+	// String refParentId = extractParentId(handledRecordTypeDataGroup);
+	// return "binary".equals(refParentId);
+	// }
 
 	private void possiblyAddSearchActionWhenRecordTypeSearch(DataRecord dataRecord) {
 		if (isRecordTypeSearch()) {
-			List<DataGroup> recordTypeToSearchInGroups = getRecordTypesToSearchInFromSearchGroup();
+			List<DataGroup> recordTypeToSearchInGroups = dataGroup
+					.getAllGroupsWithNameInData("recordTypeToSearchIn");
 			addSearchActionIfUserHasAccess(dataRecord, recordTypeToSearchInGroups);
 		}
 	}
 
 	private boolean isRecordTypeSearch() {
-		return SEARCH.equals(recordType);
-	}
-
-	private List<DataGroup> getRecordTypesToSearchInFromSearchGroup() {
-		return dataGroup.getAllGroupsWithNameInData("recordTypeToSearchIn");
+		return recordTypeHandler.isSearchType();
 	}
 
 	private void addSearchActionIfUserHasAccess(DataRecord dataRecord,
@@ -292,26 +270,27 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean isRecordType() {
-		return RECORD_TYPE.equals(recordType);
+		return recordTypeHandler.isRecordType();
 	}
 
 	private void possiblyAddCreateAction(DataRecord dataRecord) {
-		if (!isHandledRecordIdOfTypeAbstract(handledRecordId)
+		// if (!isHandledRecordIdOfTypeAbstract(handledRecordId)
+		if (!recordTypeHandler.isAbstract()
 				&& userIsAuthorizedForActionOnRecordType("create", handledRecordId)) {
 			dataRecord.addAction(Action.CREATE);
 		}
 	}
 
-	private boolean isHandledRecordIdOfTypeAbstract(String recordId) {
-		String abstractInRecordTypeDefinition = getAbstractFromHandledRecord(recordId);
-		return "true".equals(abstractInRecordTypeDefinition);
-	}
+	// private boolean isHandledRecordIdOfTypeAbstract(String recordId) {
+	// String abstractInRecordTypeDefinition = getAbstractFromHandledRecord(recordId);
+	// return "true".equals(abstractInRecordTypeDefinition);
+	// }
 
-	private String getAbstractFromHandledRecord(String recordId) {
-		DataGroup handleRecordTypeDataGroup = readRecordFromStorageByTypeAndId(RECORD_TYPE,
-				recordId);
-		return handleRecordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract");
-	}
+	// private String getAbstractFromHandledRecord(String recordId) {
+	// DataGroup handleRecordTypeDataGroup = readRecordFromStorageByTypeAndId(RECORD_TYPE,
+	// recordId);
+	// return handleRecordTypeDataGroup.getFirstAtomicValueWithNameInData("abstract");
+	// }
 
 	private boolean userIsAuthorizedForActionOnRecordType(String action, String handledRecordId) {
 		return spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user, action,
@@ -325,6 +304,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void possiblyAddValidateAction() {
+		// TODO: varför collected terms här men inte i list, create etc. action?
+		// TODO: vi använder recordType och inte handledRecordId som i andra?
 		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("validate", recordType)) {
 			dataRecord.addAction(Action.VALIDATE);
 		}

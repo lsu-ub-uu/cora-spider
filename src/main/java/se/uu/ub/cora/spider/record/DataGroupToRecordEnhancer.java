@@ -57,7 +57,8 @@ public interface DataGroupToRecordEnhancer {
 	 * @param user
 	 *            The User that will get the DataRecord
 	 * @param recordType
-	 *            A String with the recordType
+	 *            A String with the records recordType, it must be the implementing recordType (not
+	 *            the abstract parent type if the recordType has a parent)
 	 * @param dataGroup
 	 *            A DataGroup with data to turn into a DataRecord
 	 * @return A newly created DataRecord containing the DataGroup with added actions

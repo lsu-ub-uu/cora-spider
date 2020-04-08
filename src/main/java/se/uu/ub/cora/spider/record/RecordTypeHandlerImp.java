@@ -208,4 +208,34 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	public String getRecordTypeId() {
 		return recordTypeId;
 	}
+
+	@Override
+	public boolean hasParentType() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public String getParentId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isChildOfBinary() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isSearchType() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isRecordType() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

@@ -3,7 +3,9 @@ package se.uu.ub.cora.spider.record;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -20,6 +22,7 @@ public class RecordStorageSpy implements RecordStorage {
 	public long totalNumberOfMatches = 0;
 	public List<DataGroup> listOfDataGroups = Collections.emptyList();
 	public String abstractString = "false";
+	public Set<String> incomingLinksExistsForType = new HashSet<>();
 
 	public int endNumberToReturn = 0;
 
@@ -51,8 +54,12 @@ public class RecordStorageSpy implements RecordStorage {
 	@Override
 	public boolean linksExistForRecord(String type, String id) {
 		MCR.addCall("type", type, "id", id);
-		MCR.addReturned(false);
-		return false;
+		boolean answer = false;
+		if (incomingLinksExistsForType.contains(type)) {
+			answer = true;
+		}
+		MCR.addReturned(answer);
+		return answer;
 	}
 
 	@Override

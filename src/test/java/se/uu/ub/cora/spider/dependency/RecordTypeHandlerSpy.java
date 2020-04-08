@@ -39,6 +39,13 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public boolean hasRecordPartReadContraintHasBeenCalled = false;
 	public Set<String> writeConstraints = new HashSet<String>();
 
+	public boolean hasParent = false;
+	public String parentId = "someParentId";
+
+	public boolean isChildOfBinary = false;
+	public boolean isSearchType = false;
+	public boolean isRecordType = false;
+
 	public RecordTypeHandlerSpy() {
 		writeConstraints.add("someKey");
 	}
@@ -46,27 +53,27 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	@Override
 	public boolean isAbstract() {
 		MCR.addCall();
+		MCR.addReturned(isAbstract);
 		return isAbstract;
 	}
 
 	@Override
 	public boolean shouldAutoGenerateId() {
 		MCR.addCall();
-		// TODO Auto-generated method stub
+		MCR.addReturned(false);
 		return false;
 	}
 
 	@Override
 	public String getNewMetadataId() {
 		MCR.addCall();
-		// TODO Auto-generated method stub
+		MCR.addReturned(null);
 		return null;
 	}
 
 	@Override
 	public String getMetadataId() {
 		MCR.addCall();
-		// TODO Auto-generated method stub
 		String returnValue = "fakeMetadataIdFromRecordTypeHandlerSpy";
 		MCR.addReturned(returnValue);
 		return returnValue;
@@ -77,28 +84,31 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MCR.addCall("recordId", recordId);
 		List<String> fakeList = new ArrayList<>();
 		fakeList.add("fakeIdFromRecordTypeHandlerSpy");
+		MCR.addReturned(fakeList);
 		return fakeList;
 	}
 
 	@Override
 	public boolean isPublicForRead() {
 		MCR.addCall();
+		MCR.addReturned(isPublicForRead);
 		return isPublicForRead;
 	}
 
 	@Override
 	public boolean hasRecordPartReadConstraint() {
 		MCR.addCall();
+		boolean answer = false;
 		hasRecordPartReadContraintHasBeenCalled = true;
 		if ("readWrite".equals(recordPartConstraint)) {
-			return true;
-		}
+			answer = true;
+		} else
 
 		if ("write".equals(recordPartConstraint)) {
-			return false;
+			answer = false;
 		}
-		// ""
-		return false;
+		MCR.addReturned(answer);
+		return answer;
 	}
 
 	@Override
@@ -106,6 +116,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MCR.addCall();
 		DataGroup metadataDataGroup = new DataGroupSpy("organisationGroup");
 		metadataDataGroup.addChild(new DataAtomicSpy("nameInData", "organisation"));
+		MCR.addReturned(metadataDataGroup);
 		return metadataDataGroup;
 	}
 
@@ -121,15 +132,15 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	@Override
 	public boolean hasRecordPartWriteConstraint() {
 		MCR.addCall();
+		boolean answer = false;
 		hasRecordPartReadContraintHasBeenCalled = true;
 		if ("readWrite".equals(recordPartConstraint)) {
-			return true;
+			answer = true;
+		} else if ("write".equals(recordPartConstraint)) {
+			answer = true;
 		}
-
-		if ("write".equals(recordPartConstraint)) {
-			return true;
-		}
-		return false;
+		MCR.addReturned(answer);
+		return answer;
 	}
 
 	@Override
@@ -137,6 +148,41 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MCR.addCall();
 		MCR.addReturned(writeConstraints);
 		return writeConstraints;
+	}
+
+	@Override
+	public boolean hasParentType() {
+		MCR.addCall();
+		MCR.addReturned(hasParent);
+		return hasParent;
+	}
+
+	@Override
+	public String getParentId() {
+		MCR.addCall();
+		MCR.addReturned(parentId);
+		return parentId;
+	}
+
+	@Override
+	public boolean isChildOfBinary() {
+		MCR.addCall();
+		MCR.addReturned(isChildOfBinary);
+		return isChildOfBinary;
+	}
+
+	@Override
+	public boolean isSearchType() {
+		MCR.addCall();
+		MCR.addReturned(isSearchType);
+		return isSearchType;
+	}
+
+	@Override
+	public boolean isRecordType() {
+		MCR.addCall();
+		MCR.addReturned(isRecordType);
+		return isRecordType;
 	}
 
 }
