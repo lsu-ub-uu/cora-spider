@@ -299,8 +299,14 @@ public class RecordTypeHandlerTest {
 	}
 
 	private void addParentIdToContain(RecordStorageLightSpy recordStorgageSpy, String id) {
+		String childNameInData = "parentId";
+		addChildToGroupIdReturnedFromStorageSpy(childNameInData, id, recordStorgageSpy);
+	}
+
+	private void addChildToGroupIdReturnedFromStorageSpy(String childNameInData, String id,
+			RecordStorageLightSpy recordStorgageSpy) {
 		List<String> childrenToContain = new ArrayList<>();
-		childrenToContain.add("parentId");
+		childrenToContain.add(childNameInData);
 		recordStorgageSpy.childrenToContainInDataGroup.put(id, childrenToContain);
 	}
 
@@ -394,7 +400,94 @@ public class RecordTypeHandlerTest {
 		DataGroupCheckCallsSpy parentIdChild = new DataGroupCheckCallsSpy();
 		parentIdChild.atomicValuesToReturn.put("linkedRecordId", "binary");
 		groupToReturnFromStorage.presetGroupChildrenToReturn.put("parentId", parentIdChild);
+		recordStorgageLightSpy.dataGroupReturnedFromSpy = groupToReturnFromStorage;
+	}
+
+	@Test
+	public void testIsNotSearch() {
+		String id = "someRecordType";
+		addRecordInfoToContain(recordStorgageLightSpy, id);
+		setUpPresetDataGroupToReturnRecordId("NOTSearch");
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, id);
+
+		boolean isSearchType = recordTypeHandler.representsTheRecordTypeDefiningSearches();
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+
+		assertRecordInfoWasRequestedFromDataGroup(recordTypeDataGroup);
+		assertIdWasRequestedFromRecordInfo(recordTypeDataGroup);
+		assertFalse(isSearchType);
+	}
+
+	private void addRecordInfoToContain(RecordStorageLightSpy recordStorgageSpy, String id) {
+		addChildToGroupIdReturnedFromStorageSpy("recordInfo", id, recordStorgageSpy);
+	}
+
+	private void setUpPresetDataGroupToReturnRecordId(String recordId) {
+		DataGroupCheckCallsSpy groupToReturnFromStorage = new DataGroupCheckCallsSpy();
+		DataGroupCheckCallsSpy groupChild = new DataGroupCheckCallsSpy();
+		groupChild.atomicValuesToReturn.put("id", recordId);
+		groupToReturnFromStorage.presetGroupChildrenToReturn.put("recordInfo", groupChild);
 
 		recordStorgageLightSpy.dataGroupReturnedFromSpy = groupToReturnFromStorage;
+	}
+
+	private void assertRecordInfoWasRequestedFromDataGroup(
+			DataGroupCheckCallsSpy recordTypeDataGroup) {
+		assertEquals((recordTypeDataGroup.requestedFirstGroupWithNameInData.get(0)), "recordInfo");
+	}
+
+	private void assertIdWasRequestedFromRecordInfo(DataGroupCheckCallsSpy recordTypeDataGroup) {
+		DataGroupCheckCallsSpy returnedRecordInfoGroup = recordTypeDataGroup.returnedChildrenGroups
+				.get(0);
+		assertEquals(returnedRecordInfoGroup.requestedFirstAtomicValue.get(0), "id");
+	}
+
+	@Test
+	public void testIsSearch() {
+		String id = "someRecordType";
+		addRecordInfoToContain(recordStorgageLightSpy, id);
+		setUpPresetDataGroupToReturnRecordId("search");
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, id);
+
+		boolean isSearchType = recordTypeHandler.representsTheRecordTypeDefiningSearches();
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+
+		assertRecordInfoWasRequestedFromDataGroup(recordTypeDataGroup);
+		assertIdWasRequestedFromRecordInfo(recordTypeDataGroup);
+		assertTrue(isSearchType);
+	}
+
+	@Test
+	public void testIsNotRecordType() {
+		String id = "someRecordType";
+		addRecordInfoToContain(recordStorgageLightSpy, id);
+		setUpPresetDataGroupToReturnRecordId("NOTRecordType");
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, id);
+
+		boolean isRecordType = recordTypeHandler.representsTheRecordTypeDefiningRecordTypes();
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+
+		assertRecordInfoWasRequestedFromDataGroup(recordTypeDataGroup);
+		assertIdWasRequestedFromRecordInfo(recordTypeDataGroup);
+		assertFalse(isRecordType);
+	}
+
+	@Test
+	public void testIsRecordType() {
+		String id = "someRecordType";
+		addRecordInfoToContain(recordStorgageLightSpy, id);
+		setUpPresetDataGroupToReturnRecordId("recordType");
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, id);
+
+		boolean isRecordType = recordTypeHandler.representsTheRecordTypeDefiningRecordTypes();
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+
+		assertRecordInfoWasRequestedFromDataGroup(recordTypeDataGroup);
+		assertIdWasRequestedFromRecordInfo(recordTypeDataGroup);
+		assertTrue(isRecordType);
 	}
 }
