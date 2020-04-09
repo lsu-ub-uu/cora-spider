@@ -241,13 +241,18 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	@Override
 	public boolean isSearchType() {
-		// TODO Auto-generated method stub
-		return false;
+		String id = extractIdFromRecordInfo();
+		return "search".equals(id);
+	}
+
+	private String extractIdFromRecordInfo() {
+		DataGroup recordInfo = recordType.getFirstGroupWithNameInData("recordInfo");
+		return recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
 	@Override
 	public boolean isRecordType() {
-		// TODO Auto-generated method stub
-		return false;
+		String id = extractIdFromRecordInfo();
+		return RECORD_TYPE.equals(id);
 	}
 }
