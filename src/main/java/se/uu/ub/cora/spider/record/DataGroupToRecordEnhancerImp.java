@@ -177,7 +177,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean incomingLinksExistsForParentToRecordType() {
-		if (recordTypeHandler.hasParentType()) {
+		if (recordTypeHandler.hasParent()) {
 			String parentId = recordTypeHandler.getParentId();
 			return linksExistForRecordTypeUsingCurrentHandledId(parentId);
 		}

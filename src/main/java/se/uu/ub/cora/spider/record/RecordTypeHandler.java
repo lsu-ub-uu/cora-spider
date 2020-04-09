@@ -34,11 +34,11 @@ public interface RecordTypeHandler {
 	boolean isAbstract();
 
 	/**
-	 * hasParentType returns if the recordType is has a parent recordType or not.
+	 * hasParentType returns if the recordType has a parent recordType or not.
 	 * 
-	 * @return A boolean, true the recordType has a parentRecordType
+	 * @return A boolean, true if the recordType has a parent
 	 */
-	public boolean hasParentType();
+	public boolean hasParent();
 
 	/**
 	 * isChildOfBinary returns if the recordType has a parent recordType that is binary (handles

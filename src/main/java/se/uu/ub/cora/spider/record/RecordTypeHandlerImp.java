@@ -25,9 +25,11 @@ import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public final class RecordTypeHandlerImp implements RecordTypeHandler {
+	private static final String PARENT_ID = "parentId";
 	private static final String RECORD_PART_CONSTRAINT = "recordPartConstraint";
 	private static final String LINKED_RECORD_TYPE = "linkedRecordType";
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
@@ -95,12 +97,12 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	private boolean recordTypeHasAbstractParent(DataGroup recordTypeDefinition) {
-		return recordTypeDefinition.containsChildWithNameInData("parentId");
+		return recordTypeDefinition.containsChildWithNameInData(PARENT_ID);
 	}
 
 	private void createIdAsAbstractType(String recordId, DataGroup recordTypeDefinition,
 			List<String> ids) {
-		DataGroup parentGroup = recordTypeDefinition.getFirstGroupWithNameInData("parentId");
+		DataGroup parentGroup = recordTypeDefinition.getFirstGroupWithNameInData(PARENT_ID);
 		String abstractParentType = parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		ids.add(abstractParentType + "_" + recordId);
 	}
@@ -210,15 +212,18 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public boolean hasParentType() {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean hasParent() {
+		return recordType.containsChildWithNameInData(PARENT_ID);
 	}
 
 	@Override
 	public String getParentId() {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			DataGroup parentGroup = recordType.getFirstGroupWithNameInData(PARENT_ID);
+			return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		} catch (Exception e) {
+			throw new DataMissingException("Unable to get parentId: " + e.getMessage());
+		}
 	}
 
 	@Override

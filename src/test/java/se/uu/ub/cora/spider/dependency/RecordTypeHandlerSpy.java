@@ -151,7 +151,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public boolean hasParentType() {
+	public boolean hasParent() {
 		MCR.addCall();
 		MCR.addReturned(hasParent);
 		return hasParent;
