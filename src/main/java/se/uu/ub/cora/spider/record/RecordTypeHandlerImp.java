@@ -91,13 +91,9 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void possiblyCreateIdForAbstractType(String recordId, DataGroup recordTypeDefinition,
 			List<String> ids) {
-		if (recordTypeHasAbstractParent(recordTypeDefinition)) {
+		if (hasParent()) {
 			createIdAsAbstractType(recordId, recordTypeDefinition, ids);
 		}
-	}
-
-	private boolean recordTypeHasAbstractParent(DataGroup recordTypeDefinition) {
-		return recordTypeDefinition.containsChildWithNameInData(PARENT_ID);
 	}
 
 	private void createIdAsAbstractType(String recordId, DataGroup recordTypeDefinition,
@@ -218,18 +214,29 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	@Override
 	public String getParentId() {
-		try {
-			DataGroup parentGroup = recordType.getFirstGroupWithNameInData(PARENT_ID);
-			return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-		} catch (Exception e) {
-			throw new DataMissingException("Unable to get parentId: " + e.getMessage());
+		throwErrorIfNoParent();
+		return extractParentId();
+	}
+
+	private String extractParentId() {
+		DataGroup parentGroup = recordType.getFirstGroupWithNameInData(PARENT_ID);
+		return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	}
+
+	private void throwErrorIfNoParent() {
+		if (!hasParent()) {
+			throw new DataMissingException("Unable to get parentId, no parents exists");
 		}
 	}
 
 	@Override
 	public boolean isChildOfBinary() {
-		// TODO Auto-generated method stub
-		return false;
+		return hasParent() && parentIsBinary();
+	}
+
+	private boolean parentIsBinary() {
+		String parentId = extractParentId();
+		return "binary".equals(parentId);
 	}
 
 	@Override

@@ -274,8 +274,10 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testHasParent() {
+		String id = "recordTypeWithParent";
+		addParentIdToContain(recordStorgageLightSpy, id);
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, "recordTypeWithParent");
+				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, id);
 
 		boolean hasParent = recordTypeHandler.hasParent();
 		assertContainsWasRequestedForParentId();
@@ -283,36 +285,37 @@ public class RecordTypeHandlerTest {
 	}
 
 	private void assertContainsWasRequestedForParentId() {
-		DataGroupCheckCallsSpy dataGroupReturnedFromSpy = recordStorgageLightSpy.dataGroupReturnedFromSpy;
-		assertEquals((dataGroupReturnedFromSpy.nameInDatasSentToContains.get(0)), "parentId");
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		assertEquals((recordTypeDataGroup.nameInDatasSentToContains.get(0)), "parentId");
 	}
 
 	@Test
 	public void testHasNoParent() {
 		String id = "recordTypeWithoutParent";
 
-		addParentIdToNotContain(recordStorgageLightSpy, id);
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, id);
 		assertFalse(recordTypeHandler.hasParent());
 	}
 
-	private void addParentIdToNotContain(RecordStorageLightSpy recordStorgageSpy, String id) {
-		List<String> childrenToNotContain = new ArrayList<>();
-		childrenToNotContain.add("parentId");
-		recordStorgageSpy.childrentoNotContainInDataGroup.put(id, childrenToNotContain);
+	private void addParentIdToContain(RecordStorageLightSpy recordStorgageSpy, String id) {
+		List<String> childrenToContain = new ArrayList<>();
+		childrenToContain.add("parentId");
+		recordStorgageSpy.childrenToContainInDataGroup.put(id, childrenToContain);
 	}
 
 	@Test
 	public void testGetParentId() {
+		String id = "recordTypeWithParent";
+		addParentIdToContain(recordStorgageLightSpy, id);
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, "recordTypeWithParent");
+				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, id);
 
 		String parentId = recordTypeHandler.getParentId();
-		DataGroupCheckCallsSpy dataGroupReturnedFromSpy = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
 
-		assertParentIdWasRequestedFromDataGroup(dataGroupReturnedFromSpy);
-		assertLinkedRecordIdWasRequestedAndReturned(dataGroupReturnedFromSpy, parentId);
+		assertParentIdWasRequestedFromDataGroup(recordTypeDataGroup);
+		assertLinkedRecordIdWasRequestedAndReturned(recordTypeDataGroup, parentId);
 	}
 
 	private void assertParentIdWasRequestedFromDataGroup(
@@ -321,8 +324,8 @@ public class RecordTypeHandlerTest {
 				"parentId");
 	}
 
-	private void assertLinkedRecordIdWasRequestedAndReturned(DataGroupCheckCallsSpy dataGroupReturnedFromSpy,
-			String parentId) {
+	private void assertLinkedRecordIdWasRequestedAndReturned(
+			DataGroupCheckCallsSpy dataGroupReturnedFromSpy, String parentId) {
 		DataGroupCheckCallsSpy returnedParentGroup = dataGroupReturnedFromSpy.returnedChildrenGroups
 				.get(0);
 		assertEquals(returnedParentGroup.requestedFirstAtomicValue.get(0), "linkedRecordId");
@@ -330,15 +333,68 @@ public class RecordTypeHandlerTest {
 	}
 
 	@Test(expectedExceptions = DataMissingException.class, expectedExceptionsMessageRegExp = ""
-			+ "Unable to get parentId: Error from spy")
+			+ "Unable to get parentId, no parents exists")
 	public void testGetParentIdThrowsExceptionWhenMissing() {
 		String id = "recordTypeWithoutParent";
-		addParentIdToNotContain(recordStorgageLightSpy, id);
 
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, id);
 
 		recordTypeHandler.getParentId();
+	}
 
+	@Test
+	public void testIsChildOfBinaryNoParent() {
+		String id = "recordTypeWithoutParent";
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, id);
+
+		boolean isChildOfBinary = recordTypeHandler.isChildOfBinary();
+
+		assertContainsWasRequestedForParentId();
+		assertFalse(isChildOfBinary);
+	}
+
+	@Test
+	public void testIsChildOfBinaryHasParentButNotBinary() {
+		String id = "recordTypeWithParent";
+		addParentIdToContain(recordStorgageLightSpy, id);
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, id);
+
+		boolean isChildOfBinary = recordTypeHandler.isChildOfBinary();
+
+		assertContainsWasRequestedForParentId();
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		assertParentIdWasRequestedFromDataGroup(recordTypeDataGroup);
+
+		assertFalse(isChildOfBinary);
+	}
+
+	@Test
+	public void testIsChildOfBinaryHasParentIsBinary() {
+		String id = "recordTypeWithParent";
+		addParentIdToContain(recordStorgageLightSpy, id);
+		setUpPresetDataGroupToReturnParentIdBinary();
+
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, id);
+
+		boolean isChildOfBinary = recordTypeHandler.isChildOfBinary();
+
+		assertContainsWasRequestedForParentId();
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		assertParentIdWasRequestedFromDataGroup(recordTypeDataGroup);
+
+		assertTrue(isChildOfBinary);
+	}
+
+	private void setUpPresetDataGroupToReturnParentIdBinary() {
+		DataGroupCheckCallsSpy groupToReturnFromStorage = new DataGroupCheckCallsSpy();
+		DataGroupCheckCallsSpy parentIdChild = new DataGroupCheckCallsSpy();
+		parentIdChild.atomicValuesToReturn.put("linkedRecordId", "binary");
+		groupToReturnFromStorage.presetGroupChildrenToReturn.put("parentId", parentIdChild);
+
+		recordStorgageLightSpy.dataGroupReturnedFromSpy = groupToReturnFromStorage;
 	}
 }

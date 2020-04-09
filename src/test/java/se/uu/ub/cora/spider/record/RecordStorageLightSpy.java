@@ -30,17 +30,27 @@ import se.uu.ub.cora.storage.StorageReadResult;
 public class RecordStorageLightSpy implements RecordStorage {
 
 	public DataGroupCheckCallsSpy dataGroupReturnedFromSpy;
-	public Map<String, List<String>> childrentoNotContainInDataGroup = new HashMap<>();
+	public Map<String, List<String>> childrenToContainInDataGroup = new HashMap<>();
 
 	@Override
 	public DataGroup read(String type, String id) {
-		dataGroupReturnedFromSpy = new DataGroupCheckCallsSpy();
-		if (childrentoNotContainInDataGroup.containsKey(id)) {
-			dataGroupReturnedFromSpy.nameInDatasToNotContain
-					.addAll(childrentoNotContainInDataGroup.get(id));
+		if (dataGroupNotAlreadySetFromOutside()) {
+			dataGroupReturnedFromSpy = new DataGroupCheckCallsSpy();
 		}
+		possiblyAddChildrenToNotContain(id);
 		return dataGroupReturnedFromSpy;
 
+	}
+
+	private boolean dataGroupNotAlreadySetFromOutside() {
+		return dataGroupReturnedFromSpy == null;
+	}
+
+	private void possiblyAddChildrenToNotContain(String id) {
+		if (childrenToContainInDataGroup.containsKey(id)) {
+			dataGroupReturnedFromSpy.nameInDatasToContain
+					.addAll(childrenToContainInDataGroup.get(id));
+		}
 	}
 
 	@Override

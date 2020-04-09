@@ -20,7 +20,9 @@ package se.uu.ub.cora.spider.record;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAttribute;
@@ -29,12 +31,16 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataMissingException;
 
 public class DataGroupCheckCallsSpy implements DataGroup {
-	public List<String> nameInDatasToNotContain = new ArrayList<>();
+	public List<String> nameInDatasToContain = new ArrayList<>();
+	public Map<String, DataGroupCheckCallsSpy> presetGroupChildrenToReturn = new HashMap<>();
+
+	public List<String> returnedAtomicValues = new ArrayList<>();
+	public Map<String, String> atomicValuesToReturn = new HashMap<>();
+	public List<DataGroupCheckCallsSpy> returnedChildrenGroups = new ArrayList<>();
+
 	public List<String> requestedFirstGroupWithNameInData = new ArrayList<>();
 	public List<String> requestedFirstAtomicValue = new ArrayList<>();
-	public List<String> returnedAtomicValues = new ArrayList<>();
 	public List<String> nameInDatasSentToContains = new ArrayList<>();
-	public List<DataGroupCheckCallsSpy> returnedChildrenGroups = new ArrayList<>();
 
 	@Override
 	public void setRepeatId(String repeatId) {
@@ -63,7 +69,7 @@ public class DataGroupCheckCallsSpy implements DataGroup {
 	@Override
 	public boolean containsChildWithNameInData(String nameInData) {
 		nameInDatasSentToContains.add(nameInData);
-		return !nameInDatasToNotContain.contains(nameInData);
+		return nameInDatasToContain.contains(nameInData);
 	}
 
 	@Override
@@ -101,6 +107,9 @@ public class DataGroupCheckCallsSpy implements DataGroup {
 		requestedFirstAtomicValue.add(nameInData);
 		String atomicValue = "atomicValueFromSpyFor" + nameInData;
 		returnedAtomicValues.add(atomicValue);
+		if (atomicValuesToReturn.containsKey(nameInData)) {
+			return atomicValuesToReturn.get(nameInData);
+		}
 		return atomicValue;
 	}
 
@@ -113,11 +122,15 @@ public class DataGroupCheckCallsSpy implements DataGroup {
 	@Override
 	public DataGroup getFirstGroupWithNameInData(String childNameInData) {
 		requestedFirstGroupWithNameInData.add(childNameInData);
-		if (nameInDatasToNotContain.contains(childNameInData)) {
+		if (!nameInDatasToContain.contains(childNameInData)) {
 			throw new DataMissingException("Error from spy");
 		}
 		DataGroupCheckCallsSpy childGroup = new DataGroupCheckCallsSpy();
+		if (presetGroupChildrenToReturn.containsKey(childNameInData)) {
+			childGroup = presetGroupChildrenToReturn.get(childNameInData);
+		}
 		returnedChildrenGroups.add(childGroup);
+
 		return childGroup;
 	}
 
