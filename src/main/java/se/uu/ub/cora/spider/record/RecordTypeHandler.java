@@ -24,6 +24,10 @@ import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
 
+/**
+ * RecordTypeHandler is a class that mostly handles information about a recordType, but also has
+ * some extra utility methods around recordTypes.
+ */
 public interface RecordTypeHandler {
 
 	/**
@@ -34,7 +38,7 @@ public interface RecordTypeHandler {
 	boolean isAbstract();
 
 	/**
-	 * hasParentType returns if the recordType has a parent recordType or not.
+	 * hasParent returns if the recordType has a parent recordType or not.
 	 * 
 	 * @return A boolean, true if the recordType has a parent
 	 */
@@ -49,18 +53,34 @@ public interface RecordTypeHandler {
 	public boolean isChildOfBinary();
 
 	/**
-	 * isSearchType returns if the recordType is of search type or not.
+	 * representsTheRecordTypeDefiningSearches returns if this recordType is the one defining
+	 * searches. (this recordTypes id is search)
 	 * 
-	 * @return A boolean, true if the recordType is search type
+	 * @return A boolean, true if this recordType defines searches
 	 */
-	boolean isSearchType();
+	boolean representsTheRecordTypeDefiningSearches();
 
 	/**
-	 * isRecordType returns if the recordType is of recordType type or not.
+	 * representsTheRecordTypeDefiningRecordTypes returns if this recordType is the one defining
+	 * recordTypes. (this recordTypes id is recordType)
+	 * 
+	 * @return A boolean, true if this recordType defines recordTypes
+	 */
+	boolean representsTheRecordTypeDefiningRecordTypes();
+
+	/**
+	 * hasLinkedSearch returns if the recordType has a link to a search or not.
 	 * 
 	 * @return A boolean, true if the recordType is recordType type
 	 */
-	boolean isRecordType();
+	boolean hasLinkedSearch();
+
+	/**
+	 * getSearchId returns the id of the linked search.
+	 * 
+	 * @return A String with the recordId of the linked search record
+	 */
+	String getSearchId();
 
 	/**
 	 * getParentId returns the parentId for the recordType if it has one, if this recordType does

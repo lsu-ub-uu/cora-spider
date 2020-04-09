@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.dependency;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
@@ -54,8 +55,9 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public RecordIndexer recordIndexer;
 	public boolean readInitInfoWasCalled;
 	public boolean tryToInitializeWasCalled;
-	public RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
 	public DataRedactor dataRedactor;
+	public RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
+	public Map<String, RecordTypeHandlerSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
@@ -134,12 +136,20 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	@Override
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
 		MCR.addCall("recordTypeId", recordTypeId);
-		MCR.addReturned(recordTypeHandlerSpy);
-		return recordTypeHandlerSpy;
+		RecordTypeHandler recordTypeHandlerSpyToReturn = recordTypeHandlerSpy;
+		if (mapOfRecordTypeHandlerSpies.containsKey(recordTypeId)) {
+			recordTypeHandlerSpyToReturn = mapOfRecordTypeHandlerSpies.get(recordTypeId);
+		}
+		MCR.addReturned(recordTypeHandlerSpyToReturn);
+		return recordTypeHandlerSpyToReturn;
 	}
 
 	@Override
 	public DataRedactor getDataRedactor() {
 		return dataRedactor;
+	}
+
+	public void createRecordTypeHandlerSpy(String recordType) {
+		mapOfRecordTypeHandlerSpies.put(recordType, new RecordTypeHandlerSpy());
 	}
 }

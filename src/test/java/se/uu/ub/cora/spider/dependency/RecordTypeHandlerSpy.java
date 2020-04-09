@@ -46,6 +46,8 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public boolean isSearchType = false;
 	public boolean isRecordType = false;
 
+	public boolean hasLinkedSearch = false;
+
 	public RecordTypeHandlerSpy() {
 		writeConstraints.add("someKey");
 	}
@@ -172,17 +174,31 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public boolean isSearchType() {
+	public boolean representsTheRecordTypeDefiningSearches() {
 		MCR.addCall();
 		MCR.addReturned(isSearchType);
 		return isSearchType;
 	}
 
 	@Override
-	public boolean isRecordType() {
+	public boolean representsTheRecordTypeDefiningRecordTypes() {
 		MCR.addCall();
 		MCR.addReturned(isRecordType);
 		return isRecordType;
+	}
+
+	@Override
+	public boolean hasLinkedSearch() {
+		// TODO Auto-generated method stub
+		MCR.addCall();
+		MCR.addReturned(hasLinkedSearch);
+		return hasLinkedSearch;
+	}
+
+	@Override
+	public String getSearchId() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

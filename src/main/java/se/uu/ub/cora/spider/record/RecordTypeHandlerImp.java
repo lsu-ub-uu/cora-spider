@@ -240,14 +240,26 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public boolean isSearchType() {
+	public boolean representsTheRecordTypeDefiningSearches() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean isRecordType() {
+	public boolean representsTheRecordTypeDefiningRecordTypes() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public boolean hasLinkedSearch() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public String getSearchId() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

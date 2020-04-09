@@ -133,6 +133,9 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		// dataRecord.addAction(Action.UPDATE);
 		// }
 		try {
+			/**
+			 * TODO: we need a boolean version of this method....
+			 */
 			Set<String> usersWriteRecordPartPermissions = spiderAuthorizator
 					.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
 							"update", recordType, collectedTerms, true);
@@ -150,8 +153,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		possiblyAddDeleteAction(dataRecord, hasIncommingLinks);
 		possiblyAddIncomingLinksAction(dataRecord, hasIncommingLinks);
 		possiblyAddUploadAction(dataRecord);
-		possiblyAddSearchActionWhenRecordTypeSearch(dataRecord);
-		addActionsForRecordType(dataRecord);
+		possiblyAddSearchActionWhenDataRepresentsASearch(dataRecord);
+		possiblyAddActionsWhenDataRepresentsARecordType(dataRecord);
 	}
 
 	private boolean userIsAuthorizedForActionOnRecordTypeAndCollectedTerms(String action,
@@ -189,15 +192,6 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return recordStorage.read(linkedRecordType, linkedRecordId);
 	}
 
-	// private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
-	// return handledRecordTypeDataGroup.containsChildWithNameInData(PARENT_ID);
-	// }
-
-	// private String extractParentId(DataGroup handledRecordTypeDataGroup) {
-	// DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData(PARENT_ID);
-	// return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-	// }
-
 	private void possiblyAddIncomingLinksAction(DataRecord dataRecord, boolean hasIncommingLinks) {
 		if (hasIncommingLinks) {
 			dataRecord.addAction(Action.READ_INCOMING_LINKS);
@@ -205,7 +199,6 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void possiblyAddUploadAction(DataRecord dataRecord) {
-		// if (isHandledRecordIdChildOfBinary(recordType)
 		if (recordTypeHandler.isChildOfBinary()
 				&& userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("upload", recordType)) {
 			dataRecord.addAction(Action.UPLOAD);
@@ -230,16 +223,17 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	// return "binary".equals(refParentId);
 	// }
 
-	private void possiblyAddSearchActionWhenRecordTypeSearch(DataRecord dataRecord) {
-		if (isRecordTypeSearch()) {
+	private void possiblyAddSearchActionWhenDataRepresentsASearch(DataRecord dataRecord) {
+		// if (recordTypeOfTheDataGroupBeeingTurnedIntoARecordIsSearch()) {
+		if (theDataBeeingTurnedIntoARecordIsASearch()) {
 			List<DataGroup> recordTypeToSearchInGroups = dataGroup
 					.getAllGroupsWithNameInData("recordTypeToSearchIn");
 			addSearchActionIfUserHasAccess(dataRecord, recordTypeToSearchInGroups);
 		}
 	}
 
-	private boolean isRecordTypeSearch() {
-		return recordTypeHandler.isSearchType();
+	private boolean theDataBeeingTurnedIntoARecordIsASearch() {
+		return recordTypeHandler.representsTheRecordTypeDefiningSearches();
 	}
 
 	private void addSearchActionIfUserHasAccess(DataRecord dataRecord,
@@ -260,22 +254,27 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 				linkedRecordTypeId);
 	}
 
-	private void addActionsForRecordType(DataRecord dataRecord) {
-		if (isRecordType()) {
-			possiblyAddCreateAction(dataRecord);
+	private void possiblyAddActionsWhenDataRepresentsARecordType(DataRecord dataRecord) {
+		// if (recordTypeOfTheDataGroupBeeingTurnedIntoARecordIsRecordType()) {
+		if (theDataBeeingTurnedIntoARecordIsARecordType()) {
+			RecordTypeHandler handledRecordTypeHandler = getRecordTypeHandlerForRecordType(
+					handledRecordId);
+			// TODO: special recordTypeHandler for these..
+			// dependencyProvider.getRecordTypeHandler(recordTypeId)
+			possiblyAddCreateAction(handledRecordTypeHandler, dataRecord);
 			possiblyAddListAction(dataRecord);
 			possiblyAddValidateAction();
-			possiblyAddSearchAction(dataRecord);
+			possiblyAddSearchAction(handledRecordTypeHandler, dataRecord);
 		}
 	}
 
-	private boolean isRecordType() {
-		return recordTypeHandler.isRecordType();
+	private boolean theDataBeeingTurnedIntoARecordIsARecordType() {
+		return recordTypeHandler.representsTheRecordTypeDefiningRecordTypes();
 	}
 
-	private void possiblyAddCreateAction(DataRecord dataRecord) {
-		// if (!isHandledRecordIdOfTypeAbstract(handledRecordId)
-		if (!recordTypeHandler.isAbstract()
+	private void possiblyAddCreateAction(RecordTypeHandler handledRecordTypeHandler,
+			DataRecord dataRecord) {
+		if (!handledRecordTypeHandler.isAbstract()
 				&& userIsAuthorizedForActionOnRecordType("create", handledRecordId)) {
 			dataRecord.addAction(Action.CREATE);
 		}
@@ -304,25 +303,32 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void possiblyAddValidateAction() {
-		// TODO: varför collected terms här men inte i list, create etc. action?
-		// TODO: vi använder recordType och inte handledRecordId som i andra?
-		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("validate", recordType)) {
+		if (userIsAuthorizedForActionOnRecordType("validate", handledRecordId)) {
 			dataRecord.addAction(Action.VALIDATE);
 		}
 	}
 
-	private void possiblyAddSearchAction(DataRecord dataRecord) {
-		if (dataGroup.containsChildWithNameInData(SEARCH)) {
+	private void possiblyAddSearchAction(RecordTypeHandler handledRecordTypeHandler,
+			DataRecord dataRecord) {
+		if (hasLinkedSearch(handledRecordTypeHandler)) {
 			List<DataGroup> recordTypesToSearchIn = getRecordTypesToSearchInFromLinkedSearch();
 			addSearchActionIfUserHasAccess(dataRecord, recordTypesToSearchIn);
 		}
+	}
+
+	private boolean hasLinkedSearch(RecordTypeHandler handledRecordTypeHandler) {
+		// TODO: add into recordTypeHandler
+		// return dataGroup.containsChildWithNameInData(SEARCH);
+		return handledRecordTypeHandler.hasLinkedSearch();
 	}
 
 	private List<DataGroup> getRecordTypesToSearchInFromLinkedSearch() {
 		DataGroup searchChildInRecordType = dataGroup.getFirstGroupWithNameInData(SEARCH);
 		String searchId = searchChildInRecordType
 				.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		// TODO: searchId = recordTypeHandler.getSearchId()
 		DataGroup searchGroup = readRecordFromStorageByTypeAndId(SEARCH, searchId);
+		// här borde vara samma som ovan
 		return searchGroup.getAllGroupsWithNameInData("recordTypeToSearchIn");
 	}
 
