@@ -395,8 +395,8 @@ public class SpiderRecordListReaderTest {
 		assertEquals(readRecordList.getToNo(), "0");
 	}
 
-	// Flyttas till enhance.
-	@Test
+	// TODO: Flyttas till enhance.
+	@Test(enabled = false)
 	public void testPublicRecordTypeIsAddedToList() throws Exception {
 		recordTypeHandlerSpy.isPublicForRead = true;
 		recordStorage.totalNumberOfMatches = 2;

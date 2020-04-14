@@ -44,7 +44,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private static final String SEARCH = "search";
 	private DataGroup dataGroup;
-	private DataRecord dataRecord;
+	// private DataRecord dataRecord;
 	private User user;
 	private String recordType;
 	private String handledRecordId;
@@ -56,6 +56,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private Map<String, Boolean> cachedAuthorizedToReadRecordLink = new HashMap<>();
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordTypeHandler recordTypeHandler;
+	private Set<String> usersReadRecordPartPermissions;
 
 	public DataGroupToRecordEnhancerImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -66,16 +67,63 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	@Override
 	public DataRecord enhance(User user, String recordType, DataGroup dataGroup) {
+		paramsToFields(user, recordType, dataGroup);
+		DataRecord dataRecord = createDataRecord(dataGroup);
+		addActions(dataRecord);
+		// redact();
+		addReadActionToAllRecordLinks(dataGroup);
+		return dataRecord;
+	}
+
+	private void paramsToFields(User user, String recordType, DataGroup dataGroup) {
 		this.user = user;
 		this.recordType = recordType;
 		this.dataGroup = dataGroup;
 		recordTypeHandler = getRecordTypeHandlerForRecordType(recordType);
 		collectedTerms = getCollectedTermsForRecord(dataGroup);
-		dataRecord = DataRecordProvider.getDataRecordWithDataGroup(dataGroup);
+	}
+
+	private DataRecord createDataRecord(DataGroup dataGroup) {
+		DataRecord dataRecord = DataRecordProvider.getDataRecordWithDataGroup(dataGroup);
 		handledRecordId = getRecordIdFromDataRecord(dataRecord);
-		addActions();
-		addReadActionToAllRecordLinks(dataGroup);
 		return dataRecord;
+	}
+
+	private void addActions(DataRecord dataRecord) {
+		possiblyAddReadActions(dataRecord);
+		possiblyAddUpdateAction(dataRecord);
+		possiblyAddIndexAction(dataRecord);
+		boolean hasIncommingLinks = incomingLinksExistsForRecord();
+		possiblyAddDeleteAction(dataRecord, hasIncommingLinks);
+		possiblyAddIncomingLinksAction(dataRecord, hasIncommingLinks);
+		possiblyAddUploadAction(dataRecord);
+		possiblyAddSearchActionWhenDataRepresentsASearch(dataRecord);
+		possiblyAddActionsWhenDataRepresentsARecordType(dataRecord);
+	}
+
+	private void possiblyAddReadActions(DataRecord dataRecord) {
+		if (isPublicOrHasReadAuthorization()) {
+			dataRecord.addAction(Action.READ);
+		}
+	}
+
+	private boolean isPublicOrHasReadAuthorization() {
+		return recordTypeHandler.isPublicForRead() || checkAndGetUserAuthorizationsForReadAction();
+	}
+
+	private boolean checkAndGetUserAuthorizationsForReadAction() {
+		try {
+			usersReadRecordPartPermissions = spiderAuthorizator
+					.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+							"read", recordType, collectedTerms, true);
+			// recordRead = redactDataGroup(recordRead, usersReadRecordPartPermissions);
+			// dataRecord.setReadKeys(usersReadRecordPartPermissions);
+			// dataRecord.addAction(Action.READ);
+			return true;
+
+		} catch (Exception e) {
+			throw e;
+		}
 	}
 
 	private DataGroup getCollectedTermsForRecord(DataGroup dataGroup) {
@@ -110,39 +158,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
-	protected void addActions() {
-		// if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read", recordType)) {
-		// dataRecord.addAction(Action.READ);
-		// }
-		if (recordTypeHandler.isPublicForRead()) {
-			dataRecord.addAction(Action.READ);
-		} else {
-			try {
-				Set<String> usersReadRecordPartPermissions = spiderAuthorizator
-						.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
-								"read", recordType, collectedTerms, true);
-				// recordRead = redactDataGroup(recordRead, usersReadRecordPartPermissions);
-				// dataRecord.setReadKeys(usersReadRecordPartPermissions);
-				dataRecord.addAction(Action.READ);
-
-			} catch (Exception e) {
-				throw e;
-			}
-		}
-		// if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("update", recordType)) {
-		// dataRecord.addAction(Action.UPDATE);
-		// }
-		possiblyAddUpdateAction();
-		possiblyAddIndexAction();
-		boolean hasIncommingLinks = incomingLinksExistsForRecord();
-		possiblyAddDeleteAction(dataRecord, hasIncommingLinks);
-		possiblyAddIncomingLinksAction(dataRecord, hasIncommingLinks);
-		possiblyAddUploadAction(dataRecord);
-		possiblyAddSearchActionWhenDataRepresentsASearch(dataRecord);
-		possiblyAddActionsWhenDataRepresentsARecordType(dataRecord);
-	}
-
-	private void possiblyAddUpdateAction() {
+	private void possiblyAddUpdateAction(DataRecord dataRecord) {
 		try {
 			Set<String> usersWriteRecordPartPermissions = spiderAuthorizator
 					.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
@@ -154,7 +170,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		}
 	}
 
-	private void possiblyAddIndexAction() {
+	private void possiblyAddIndexAction(DataRecord dataRecord) {
 		if (userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("index", recordType)) {
 			dataRecord.addAction(Action.INDEX);
 		}
@@ -244,7 +260,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 					handledRecordId);
 			possiblyAddCreateAction(handledRecordTypeHandler, dataRecord);
 			possiblyAddListAction(dataRecord);
-			possiblyAddValidateAction();
+			possiblyAddValidateAction(dataRecord);
 			possiblyAddSearchAction(handledRecordTypeHandler, dataRecord);
 		}
 	}
@@ -272,7 +288,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		}
 	}
 
-	private void possiblyAddValidateAction() {
+	private void possiblyAddValidateAction(DataRecord dataRecord) {
 		if (userIsAuthorizedForActionOnRecordType("validate", handledRecordId)) {
 			dataRecord.addAction(Action.VALIDATE);
 		}

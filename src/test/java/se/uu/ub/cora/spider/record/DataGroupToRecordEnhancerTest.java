@@ -235,6 +235,7 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator.MCR.assertParameters(
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1, user,
 				"update", SOME_RECORD_TYPE, returnedCollectedTermsForRecordType, true);
+		// dataRedactor.MCR.assertParameters(methodName, callNumber, expectedValues);
 		assertFalse(record.getActions().contains(Action.UPDATE));
 	}
 
