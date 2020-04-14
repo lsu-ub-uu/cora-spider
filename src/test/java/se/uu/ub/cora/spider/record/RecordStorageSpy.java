@@ -42,19 +42,24 @@ public class RecordStorageSpy implements RecordStorage {
 	public List<DataGroup> listOfDataGroups = Collections.emptyList();
 	public String abstractString = "false";
 	public Set<String> incomingLinksExistsForType = new HashSet<>();
-
+	public DataGroup returnForRead = null;
 	public int endNumberToReturn = 0;
 
 	@Override
 	public DataGroup read(String type, String id) {
 		MCR.addCall("type", type, "id", id);
-		DataGroup dataGroup = new DataGroupSpy("recordType");
+		DataGroup dataGroup;
+		if (null != returnForRead) {
+			dataGroup = returnForRead;
+		} else {
+			dataGroup = new DataGroupSpy("recordType");
 
-		DataGroup recordInfo = DataCreator.createRecordInfoWithRecordTypeAndRecordId("recordType",
-				"metadata");
-		dataGroup.addChild(recordInfo);
-		dataGroup.addChild(new DataAtomicSpy("abstract", abstractString));
-		MCR.addReturned(dataGroup);
+			DataGroup recordInfo = DataCreator
+					.createRecordInfoWithRecordTypeAndRecordId("recordType", "metadata");
+			dataGroup.addChild(recordInfo);
+			dataGroup.addChild(new DataAtomicSpy("abstract", abstractString));
+			MCR.addReturned(dataGroup);
+		}
 		return dataGroup;
 	}
 

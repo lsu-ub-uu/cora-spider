@@ -23,6 +23,7 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 
 /**
@@ -32,27 +33,33 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
  */
 public interface DataGroupToRecordEnhancer {
 	/**
-	 * Enhance converts a DataGroup into a DataRecord. The conversion has x major parts.
-	 * <p>
-	 * Create a new DataRecord, and add the DataGroup to it.
-	 * <p>
-	 * Find out what actions the User is allowed to do for the record and add those actions to the
-	 * DataRecord.
-	 * <p>
-	 * Redact information the user is not allowed to read from the DataGroup, based on settings in
-	 * metadata and the users currently active roles.
-	 * <p>
-	 * Add read links to all linked records in the DataGroup if the User has read access to the
-	 * linked record.
-	 * <p>
+	 * Enhance converts a DataGroup into a DataRecord. The conversion has a few major parts.
+	 * <ol>
+	 * <li>Create a new DataRecord, and add the DataGroup to it.</li>
+	 * <li>Find out what actions the User is allowed to do for the record and add those actions to
+	 * the DataRecord. This is a multistep process in itself.
+	 * <ol>
+	 * <li>Add standard actions for all recordTypes (read, update, delete, index,
+	 * incomingLinks)</li>
+	 * <li>If dataGroup beeing enhanced is a binary type, add upload</li>
+	 * <li>If dataGroup beeing enhanced is a search type, add search</li>
+	 * <li>If dataGroup beeing enhanced is a recordType type, add recordType specific actions
+	 * (create, list, validate, search)</li>
+	 * </ol>
+	 * </li>
+	 * <li>Redact information the user is not allowed to read from the DataGroup, based on settings
+	 * in metadata and the users currently active roles.</li>
+	 * <li>Add read links to all linked records in the DataGroup if the User has read access to the
+	 * linked record.</li>
+	 * </ol>
 	 * 
-	 * The implementations MUST make sure that the actions is only added to the DataRecord if the
-	 * user has read action for the record including security check against collected data, using
+	 * The implementations MUST throw an {@link AuthorizationException} if the user does NOT have
+	 * authorization to read the record including security check against collected data, using
 	 * {@link SpiderAuthorizator#checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User, String, String, DataGroup, boolean)}
 	 * or similar method.
 	 * <p>
-	 * If the returned DataRecord contains {@link Action#READ} is it ok to send the record to the
-	 * user.
+	 * If no exception is thrown and the returned DataRecord contains {@link Action#READ} it is
+	 * considered ok to send the record to the user.
 	 * 
 	 * @param user
 	 *            The User that will get the DataRecord

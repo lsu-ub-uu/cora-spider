@@ -149,7 +149,9 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 		return dataRedactor;
 	}
 
-	public void createRecordTypeHandlerSpy(String recordType) {
-		mapOfRecordTypeHandlerSpies.put(recordType, new RecordTypeHandlerSpy());
+	public RecordTypeHandlerSpy createRecordTypeHandlerSpy(String recordType) {
+		RecordTypeHandlerSpy newRecordTypeHandlerSpy = new RecordTypeHandlerSpy();
+		mapOfRecordTypeHandlerSpies.put(recordType, newRecordTypeHandlerSpy);
+		return newRecordTypeHandlerSpy;
 	}
 }
