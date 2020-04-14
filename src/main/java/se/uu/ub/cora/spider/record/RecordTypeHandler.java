@@ -78,6 +78,8 @@ public interface RecordTypeHandler {
 	/**
 	 * getSearchId returns the id of the linked search.
 	 * 
+	 * If a searchId does not exist, a {@link DataMissingException} MUST be thrown.
+	 * 
 	 * @return A String with the recordId of the linked search record
 	 */
 	String getSearchId();

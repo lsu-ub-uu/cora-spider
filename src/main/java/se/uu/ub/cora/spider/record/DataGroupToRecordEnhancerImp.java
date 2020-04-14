@@ -323,6 +323,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private List<DataGroup> getRecordTypesToSearchInFromLinkedSearch() {
+		// TODO: måste kolla contains här innan
 		DataGroup searchChildInRecordType = dataGroup.getFirstGroupWithNameInData(SEARCH);
 		String searchId = searchChildInRecordType
 				.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);

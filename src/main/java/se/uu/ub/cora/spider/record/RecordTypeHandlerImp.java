@@ -29,6 +29,7 @@ import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public final class RecordTypeHandlerImp implements RecordTypeHandler {
+	private static final String SEARCH = "search";
 	private static final String PARENT_ID = "parentId";
 	private static final String RECORD_PART_CONSTRAINT = "recordPartConstraint";
 	private static final String LINKED_RECORD_TYPE = "linkedRecordType";
@@ -202,8 +203,8 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return writeConstraints;
 	}
 
-	// Only for test
 	public String getRecordTypeId() {
+		// needed for test
 		return recordTypeId;
 	}
 
@@ -242,7 +243,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	@Override
 	public boolean representsTheRecordTypeDefiningSearches() {
 		String id = extractIdFromRecordInfo();
-		return "search".equals(id);
+		return SEARCH.equals(id);
 	}
 
 	private String extractIdFromRecordInfo() {
@@ -258,13 +259,19 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	@Override
 	public boolean hasLinkedSearch() {
-		// TODO Auto-generated method stub
-		return false;
+		return recordType.containsChildWithNameInData(SEARCH);
 	}
 
 	@Override
 	public String getSearchId() {
-		// TODO Auto-generated method stub
-		return null;
+		throwErrorIfNoSearch();
+		DataGroup searchGroup = recordType.getFirstGroupWithNameInData(SEARCH);
+		return searchGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	}
+
+	private void throwErrorIfNoSearch() {
+		if (!hasLinkedSearch()) {
+			throw new DataMissingException("Unable to get searchId, no search exists");
+		}
 	}
 }
