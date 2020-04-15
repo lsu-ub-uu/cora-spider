@@ -148,24 +148,27 @@ public interface RecordTypeHandler {
 	boolean hasRecordPartWriteConstraint();
 
 	/**
-	 * getRecordPartReadConstraints returns a Map with all the read constraints for the recordType.
-	 * Read constraints have the value "readWrite" as a read constraint also implies a write
-	 * constraint. The constraints are stored in the map under the key, nameInData, where nameInData
-	 * is the name in data for the child in the top level dataGroup that is limited by the
-	 * constraint.
+	 * getRecordPartReadConstraints returns a Set with all the read constraints for the recordType.
+	 * Read constraints internally have the value "readWrite" as a read constraint also implies a
+	 * write constraint. The constraints are identified by nameInData, where nameInData is the name
+	 * in data for the child in the top level dataGroup that is limited by the constraint.
 	 * 
-	 * @return Map filled with read constraints key = nameInData Value = "readWrite"
+	 * @return A Set filled with read constraints, more precisly nameInData for children to the top
+	 *         level dataGroup that has read constraints. If there are no read constrainst SHOULD an
+	 *         empty set returned.
 	 */
 	Set<String> getRecordPartReadConstraints();
 
 	/**
-	 * getRecordPartWriteConstraints returns a Map with all the write constraints for the
+	 * getRecordPartWriteConstraints returns a Set with all the write constraints for the
 	 * recordType. Write constraints have the value "write", or "readWrite" as a read constraint
-	 * also implies a write constraint. The constraints are stored in the map under the key,
-	 * nameInData, where nameInData is the name in data for the child in the top level dataGroup
-	 * that is limited by the constraint.
+	 * also implies a write constraint. The constraints are identified by nameInData, where
+	 * nameInData is the name in data for the child in the top level dataGroup that is limited by
+	 * the constraint.
 	 * 
-	 * @return Map filled with write constraints key = nameInData Value = "write" or "readWrite"
+	 * @return A Set filled with write constraints, more precisly nameInData for children to the top
+	 *         level dataGroup that has write constraints. If there are no write constrainst SHOULD
+	 *         an empty set returned.
 	 */
 	Set<String> getRecordPartWriteConstraints();
 

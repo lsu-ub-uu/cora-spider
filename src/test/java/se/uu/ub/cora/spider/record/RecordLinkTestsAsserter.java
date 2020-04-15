@@ -39,6 +39,12 @@ public class RecordLinkTestsAsserter {
 		assertEquals(link.getActions().size(), 1);
 	}
 
+	public static void assertTopLevelLinkContainsReadActionOnly(DataGroup dataGroup) {
+		DataLink link = (DataLink) dataGroup.getFirstChildWithNameInData("link");
+		assertTrue(link.getActions().contains(Action.READ));
+		assertEquals(link.getActions().size(), 1);
+	}
+
 	private static DataLink getLinkFromRecord(DataRecord record) {
 		DataGroup dataGroup = record.getDataGroup();
 		DataLink link = (DataLink) dataGroup.getFirstChildWithNameInData("link");

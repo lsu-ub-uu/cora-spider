@@ -19,10 +19,7 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.Set;
-
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
@@ -65,7 +62,7 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		this.recordId = recordId;
 		tryToGetUserWithActiveToken();
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		checkUserIsAuthorizedForActionOnRecordType();
+		// checkUserIsAuthorizedForActionOnRecordType();
 		return tryToReadRecord(recordType, recordId);
 	}
 
@@ -73,30 +70,30 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		user = authenticator.getUserForToken(authToken);
 	}
 
-	private void checkUserIsAuthorizedForActionOnRecordType() {
-		if (isNotPublicForRead()) {
-			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
-		}
-	}
+	// private void checkUserIsAuthorizedForActionOnRecordType() {
+	// if (isNotPublicForRead()) {
+	// spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
+	// }
+	// }
 
-	private boolean isNotPublicForRead() {
-		return !recordTypeHandler.isPublicForRead();
-	}
+	// private boolean isNotPublicForRead() {
+	// return !recordTypeHandler.isPublicForRead();
+	// }
 
 	private DataRecord tryToReadRecord(String recordType, String recordId) {
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
 
 		setImplementingRecordTypeHandlerIfAbstract(recordRead);
-		if (isPublicForRead()) {
-			return enhanceRecord(recordType, recordRead);
-		}
-
-		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
-		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
-				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, READ,
-						recordType, collectedTerms, hasRecordPartReadWriteConstraint());
-
-		recordRead = redactDataGroup(recordRead, usersReadRecordPartPermissions);
+		// if (isPublicForRead()) {
+		// return enhanceRecord(recordType, recordRead);
+		// }
+		//
+		// DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
+		// Set<String> usersReadRecordPartPermissions = spiderAuthorizator
+		// .checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, READ,
+		// recordType, collectedTerms, hasRecordPartReadWriteConstraint());
+		//
+		// recordRead = redactDataGroup(recordRead, usersReadRecordPartPermissions);
 		return enhanceRecord(recordType, recordRead);
 	}
 
@@ -104,13 +101,13 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
 	}
 
-	private boolean hasRecordPartReadWriteConstraint() {
-		return recordTypeHandler.hasRecordPartReadConstraint();
-	}
+	// private boolean hasRecordPartReadWriteConstraint() {
+	// return recordTypeHandler.hasRecordPartReadConstraint();
+	// }
 
-	private boolean isPublicForRead() {
-		return recordTypeHandler.isPublicForRead();
-	}
+	// private boolean isPublicForRead() {
+	// return recordTypeHandler.isPublicForRead();
+	// }
 
 	private void setImplementingRecordTypeHandlerIfAbstract(DataGroup recordRead) {
 		if (recordTypeHandler.isAbstract()) {
@@ -125,20 +122,20 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		return type.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
-	private DataGroup getCollectedTermsForRecord(DataGroup recordRead) {
-		String metadataId = recordTypeHandler.getMetadataId();
-		return dataGroupTermCollector.collectTerms(metadataId, recordRead);
-	}
-
-	private DataGroup redactDataGroup(DataGroup recordRead,
-			Set<String> usersReadRecordPartPermissions) {
-		if (hasRecordPartReadWriteConstraint()) {
-			Set<String> recordPartReadConstraints = recordTypeHandler
-					.getRecordPartReadConstraints();
-			DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-			return dataRedactor.removeChildrenForConstraintsWithoutPermissions(recordRead,
-					recordPartReadConstraints, usersReadRecordPartPermissions);
-		}
-		return recordRead;
-	}
+	// private DataGroup getCollectedTermsForRecord(DataGroup recordRead) {
+	// String metadataId = recordTypeHandler.getMetadataId();
+	// return dataGroupTermCollector.collectTerms(metadataId, recordRead);
+	// }
+	//
+	// private DataGroup redactDataGroup(DataGroup recordRead,
+	// Set<String> usersReadRecordPartPermissions) {
+	// if (hasRecordPartReadWriteConstraint()) {
+	// Set<String> recordPartReadConstraints = recordTypeHandler
+	// .getRecordPartReadConstraints();
+	// DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
+	// return dataRedactor.removeChildrenForConstraintsWithoutPermissions(recordRead,
+	// recordPartReadConstraints, usersReadRecordPartPermissions);
+	// }
+	// return recordRead;
+	// }
 }

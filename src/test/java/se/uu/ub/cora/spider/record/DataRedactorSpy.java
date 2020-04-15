@@ -29,13 +29,31 @@ import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class DataRedactorSpy implements DataRedactor {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	/**
+	 * returnEnteredDataGroupAsAnswer is default false, if set to true is the dataGroup entered in
+	 * calls to methods retured as answer instead of a new DataGroupSpy
+	 */
+	public boolean returnEnteredDataGroupAsAnswer = false;
+	/**
+	 * returnDataGroup is initially null, if set to a DataGroup is that dataGroup returned as
+	 * answer.
+	 */
+	public DataGroup returnDataGroup;
 
 	@Override
-	public DataGroup removeChildrenForConstraintsWithoutPermissions(DataGroup recordRead,
+	public DataGroup removeChildrenForConstraintsWithoutPermissions(DataGroup originalDataGroup,
 			Set<String> recordPartConstraints, Set<String> recordPartReadPermissions) {
-		MCR.addCall("recordRead", recordRead, "recordPartConstraints", recordPartConstraints,
+		MCR.addCall("recordRead", originalDataGroup, "recordPartConstraints", recordPartConstraints,
 				"recordPartReadPermissions", recordPartReadPermissions);
 		DataGroupSpy returnedRemovedDataGroup = new DataGroupSpy("someDataGroupSpy");
+		if (returnEnteredDataGroupAsAnswer) {
+			MCR.addReturned(originalDataGroup);
+			return originalDataGroup;
+		}
+		if (null != returnDataGroup) {
+			MCR.addReturned(returnDataGroup);
+			return returnDataGroup;
+		}
 		MCR.addReturned(returnedRemovedDataGroup);
 		return returnedRemovedDataGroup;
 	}
@@ -50,7 +68,14 @@ public class DataRedactorSpy implements DataRedactor {
 		DataGroupSpy returnedReplacedDataGroup = new DataGroupSpy("someDataGroupSpy");
 		DataGroupSpy recordInfo = createRecordInfo();
 		returnedReplacedDataGroup.addChild(recordInfo);
-
+		if (returnEnteredDataGroupAsAnswer) {
+			MCR.addReturned(originalDataGroup);
+			return originalDataGroup;
+		}
+		if (null != returnDataGroup) {
+			MCR.addReturned(returnDataGroup);
+			return returnDataGroup;
+		}
 		MCR.addReturned(returnedReplacedDataGroup);
 		return returnedReplacedDataGroup;
 	}

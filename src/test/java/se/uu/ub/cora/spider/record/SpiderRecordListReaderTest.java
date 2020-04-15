@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2019 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2019, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -366,6 +366,17 @@ public class SpiderRecordListReaderTest {
 		assertEquals(readRecordList.getToNo(), "7");
 	}
 
+	@Test(expectedExceptions = RuntimeException.class)
+	public void testCallsToEnhancerThatThrowsOtherExceptionsPassedOn() throws Exception {
+		recordEnhancer.throwOtherException = true;
+
+		recordStorage.totalNumberOfMatches = 25;
+		recordStorage.endNumberToReturn = 7;
+		recordStorage.start = 4;
+
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+	}
+
 	@Test
 	public void testTotalNumberInDataListIsFromStorageOtherNumbers() throws Exception {
 		recordStorage.totalNumberOfMatches = 20;
@@ -395,13 +406,4 @@ public class SpiderRecordListReaderTest {
 		assertEquals(readRecordList.getToNo(), "0");
 	}
 
-	// TODO: Flyttas till enhance.
-	@Test(enabled = false)
-	public void testPublicRecordTypeIsAddedToList() throws Exception {
-		recordTypeHandlerSpy.isPublicForRead = true;
-		recordStorage.totalNumberOfMatches = 2;
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				emptyFilter);
-		assertEquals(readRecordList.getDataList().size(), "2");
-	}
 }

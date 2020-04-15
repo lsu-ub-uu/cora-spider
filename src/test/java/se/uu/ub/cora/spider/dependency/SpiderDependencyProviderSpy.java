@@ -67,36 +67,50 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	@Override
 	public SpiderAuthorizator getSpiderAuthorizator() {
+		MCR.addCall();
+		MCR.addReturned(spiderAuthorizator);
 		return spiderAuthorizator;
 	}
 
 	@Override
 	public PermissionRuleCalculator getPermissionRuleCalculator() {
+		MCR.addCall();
+		MCR.addReturned(ruleCalculator);
 		return ruleCalculator;
 	}
 
 	@Override
 	public DataValidator getDataValidator() {
+		MCR.addCall();
+		MCR.addReturned(dataValidator);
 		return dataValidator;
 	}
 
 	@Override
 	public DataRecordLinkCollector getDataRecordLinkCollector() {
+		MCR.addCall();
+		MCR.addReturned(linkCollector);
 		return linkCollector;
 	}
 
 	@Override
 	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
+		MCR.addCall();
+		MCR.addReturned(extendedFunctionalityProvider);
 		return extendedFunctionalityProvider;
 	}
 
 	@Override
 	public Authenticator getAuthenticator() {
+		MCR.addCall();
+		MCR.addReturned(authenticator);
 		return authenticator;
 	}
 
 	@Override
 	public RecordSearch getRecordSearch() {
+		MCR.addCall();
+		MCR.addReturned(recordSearch);
 		return recordSearch;
 	}
 
@@ -109,6 +123,8 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	@Override
 	public RecordIndexer getRecordIndexer() {
+		MCR.addCall();
+		MCR.addReturned(recordIndexer);
 		return recordIndexer;
 	}
 
@@ -146,6 +162,8 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	@Override
 	public DataRedactor getDataRedactor() {
+		MCR.addCall();
+		MCR.addReturned(dataRedactor);
 		return dataRedactor;
 	}
 

@@ -25,12 +25,12 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
-import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataListProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.storage.StorageReadResult;
@@ -152,18 +152,13 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	private void enhanceDataGroupAndPossiblyAddToRecordList(DataGroup dataGroup,
 			String recordTypeForRecord) {
-		// FILTER DATA
-		// DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
-		// Set<String> usersReadRecordPartPermissions = spiderAuthorizator
-		// .checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, READ,
-		// recordType, collectedTerms, hasRecordPartReadWriteConstraint());
-		// recordTypeForRecord = redactDataGroup(recordTypeForRecord,
-		// usersReadRecordPartPermissions);
-		DataRecord dataRecord = dataGroupToRecordEnhancer.enhance(user, recordTypeForRecord,
-				dataGroup);
-		if (dataRecord.getActions().contains(Action.READ)) {
+		try {
+			DataRecord dataRecord = dataGroupToRecordEnhancer.enhance(user, recordTypeForRecord,
+					dataGroup);
 			readRecordList.addData(dataRecord);
+		} catch (AuthorizationException noReadAuthorization) {
 		}
+
 	}
 
 	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String type,

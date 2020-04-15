@@ -26,6 +26,7 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.DataRecordSpy;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
@@ -36,13 +37,35 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 	public String recordType;
 	public DataGroup dataGroup;
 	public List<DataGroup> enhancedDataGroups = new ArrayList<>();
-
+	/**
+	 * addReadAction is default true, if set to false will no read action be added but instead an
+	 * AuthorizationException thrown as is specified in interface.
+	 */
 	public boolean addReadAction = true;
+	/**
+	 * addReadActionOnlyFirst is default false, if set to true will add read action for the first
+	 * call to enhance, and following calls will get (an AuthorizationException thrown) instead of
+	 * an added action.
+	 */
 	public boolean addReadActionOnlyFirst = false;
+
+	/**
+	 * throwOtherException is default false, if set to true will a call to enhance throw an
+	 * exception other than AuthorizationException
+	 */
+	public boolean throwOtherException = false;
 
 	@Override
 	public DataRecord enhance(User user, String recordType, DataGroup dataGroup) {
 		MCR.addCall("user", user, "recordType", recordType, "dataGroup", dataGroup);
+
+		if (throwOtherException) {
+			throw new RuntimeException();
+		}
+
+		if (!addReadAction) {
+			throw new AuthorizationException(recordType);
+		}
 
 		enhancedDataGroups.add(dataGroup);
 		this.user = user;

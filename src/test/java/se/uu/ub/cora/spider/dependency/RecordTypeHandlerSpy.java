@@ -32,7 +32,14 @@ import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
+	/**
+	 * isPublicForRead is default false, if set to true, is the recordType considered totaly public
+	 * and no security checks are done for reading
+	 */
 	public boolean isPublicForRead = false;
+	/**
+	 * isAbstract
+	 */
 	public boolean isAbstract = false;
 	public boolean recordTypeHasReadPartConstraints = false;
 	public String recordPartConstraint = "";
