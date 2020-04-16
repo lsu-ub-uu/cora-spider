@@ -26,7 +26,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
@@ -57,7 +57,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private String authToken;
 	private User user;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
-	private DataGroupTermCollector collectTermCollector;
+	private DataGroupTermCollector dataGroupTermCollector;
 	private RecordIndexer recordIndexer;
 	private DataGroup topDataGroup;
 	private RecordTypeHandler recordTypeHandler;
@@ -74,10 +74,9 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
+		this.dataGroupTermCollector = dependencyProvider.getDataGroupTermCollector();
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
-
 	}
 
 	public static SpiderRecordUpdaterImp usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -109,15 +108,12 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		useExtendedFunctionalityAfterMetadataValidation(recordType, dataGroup);
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId, topDataGroup);
+		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId, topDataGroup);
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
 
 		updateRecordInStorage(collectedTerms);
 		indexData(collectedTerms);
 
-		if (recordTypeHandler.hasRecordPartReadConstraint()) {
-			checkReadAccessAndFilterUpdatedData(recordType, collectedTerms);
-		}
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup);
 	}
 
@@ -131,7 +127,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
 		previouslyStoredRecord = recordStorage.read(recordType, recordId);
-		DataGroup collectedTerms = collectTermCollector.collectTerms(metadataId,
+		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId,
 				previouslyStoredRecord);
 
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
@@ -246,8 +242,8 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void replaceRecordPartsUserIsNotAllowedToChange() {
-		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-		topDataGroup = recordPartFilter.replaceChildrenForConstraintsWithoutPermissions(
+		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
+		topDataGroup = dataRedactor.replaceChildrenForConstraintsWithoutPermissions(
 				previouslyStoredRecord, topDataGroup,
 				recordTypeHandler.getRecordPartWriteConstraints(), writePermissions);
 	}
@@ -309,16 +305,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private void indexData(DataGroup collectedTerms) {
 		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
 		recordIndexer.indexData(ids, collectedTerms, topDataGroup);
-	}
-
-	private void checkReadAccessAndFilterUpdatedData(String recordType, DataGroup collectedTerms) {
-		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
-		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
-				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, "read",
-						recordType, collectedTerms, true);
-		topDataGroup = recordPartFilter.removeChildrenForConstraintsWithoutPermissions(topDataGroup,
-				recordPartReadConstraints, usersReadRecordPartPermissions);
 	}
 
 }

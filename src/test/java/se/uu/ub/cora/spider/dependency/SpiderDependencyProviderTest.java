@@ -32,8 +32,8 @@ import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataElement;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
-import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
-import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilterImp;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.CollectedDataCreatorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
@@ -210,18 +210,20 @@ public class SpiderDependencyProviderTest {
 
 	@Test
 	public void testDataValidatorHasCorrectDependecies() {
+		MetadataStorageSpy metadataStorage = (MetadataStorageSpy) dependencyProvider
+				.getMetadataStorage();
+
 		DataValidatorImp dataValidator = (DataValidatorImp) dependencyProvider.getDataValidator();
 		assertTrue(dataValidator instanceof DataValidatorImp);
 		assertSame(dataValidator.getMetadataStorage(), dependencyProvider.getMetadataStorage());
+		assertCorrectRecordTypeHolder(dataValidator.getRecordTypeHolder(), metadataStorage);
 
 		DataValidatorFactoryImp dataValidatorFactory = (DataValidatorFactoryImp) dataValidator
 				.getDataValidatorFactory();
 
-		MetadataStorageSpy metadataStorage = (MetadataStorageSpy) dependencyProvider
-				.getMetadataStorage();
 		assertTrue(metadataStorage.getMetadataElementsWasCalled);
 
-		assertCorrectRecordTypeHolder(dataValidatorFactory, metadataStorage);
+		assertCorrectRecordTypeHolder(dataValidatorFactory.getRecordTypeHolder(), metadataStorage);
 		assertCorrectMetadataHolder(dataValidatorFactory);
 
 	}
@@ -233,9 +235,8 @@ public class SpiderDependencyProviderTest {
 		assertEquals(metadataElement.getId(), "someMetadata1");
 	}
 
-	private void assertCorrectRecordTypeHolder(DataValidatorFactoryImp dataValidatorFactory,
+	private void assertCorrectRecordTypeHolder(Map<String, DataGroup> recordTypeHolder,
 			MetadataStorageSpy metadataStorage) {
-		Map<String, DataGroup> recordTypeHolder = dataValidatorFactory.getRecordTypeHolder();
 		assertEquals(recordTypeHolder.get("someId1"), metadataStorage.recordTypes.get(0));
 		assertEquals(recordTypeHolder.get("someId2"), metadataStorage.recordTypes.get(1));
 	}
@@ -280,8 +281,8 @@ public class SpiderDependencyProviderTest {
 
 	@Test
 	public void testGetRecordPartFilter() {
-		RecordPartFilter recordPartFilter = dependencyProvider.getRecordPartFilter();
-		assertTrue(recordPartFilter instanceof RecordPartFilterImp);
+		DataRedactor recordPartFilter = dependencyProvider.getDataRedactor();
+		assertTrue(recordPartFilter instanceof DataRedactorImp);
 	}
 
 }

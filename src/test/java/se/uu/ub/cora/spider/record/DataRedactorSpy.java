@@ -21,34 +21,40 @@ package se.uu.ub.cora.spider.record;
 
 import java.util.Set;
 
-import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
-public class RecordPartFilterSpy implements RecordPartFilter {
-
-	public boolean recordPartFilterForReadHasBeenCalled = false;
-	public boolean replaceRecordPartsUsingPermissionsHasBeenCalled = false;
-	public DataGroupSpy returnedRemovedDataGroup;
-	public DataGroupSpy returnedReplacedDataGroup;
-	public DataGroup lastRecordFilteredForRead;
-	public Set<String> replaceRecordPartConstraints;
-	public Set<String> recordPartReadPermissions;
-	public DataGroup originalDataGroup;
-	public DataGroup changedDataGroup;
-	public Set<String> replaceRecordPartPermissions;
+public class DataRedactorSpy implements DataRedactor {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	/**
+	 * returnEnteredDataGroupAsAnswer is default false, if set to true is the dataGroup entered in
+	 * calls to methods retured as answer instead of a new DataGroupSpy
+	 */
+	public boolean returnEnteredDataGroupAsAnswer = false;
+	/**
+	 * returnDataGroup is initially null, if set to a DataGroup is that dataGroup returned as
+	 * answer.
+	 */
+	public DataGroup returnDataGroup;
 
 	@Override
-	public DataGroup removeChildrenForConstraintsWithoutPermissions(DataGroup recordRead,
+	public DataGroup removeChildrenForConstraintsWithoutPermissions(DataGroup originalDataGroup,
 			Set<String> recordPartConstraints, Set<String> recordPartReadPermissions) {
-		this.replaceRecordPartConstraints = recordPartConstraints;
-		this.recordPartReadPermissions = recordPartReadPermissions;
-		lastRecordFilteredForRead = recordRead;
-		// recordRead.addChild(new DataAtomicSpy("someExtraStuff", "to"));
-		// recordRead = new DataGroupSpy("filteredDataGroup");
-		recordPartFilterForReadHasBeenCalled = true;
-		returnedRemovedDataGroup = new DataGroupSpy("someDataGroupSpy");
+		MCR.addCall("recordRead", originalDataGroup, "recordPartConstraints", recordPartConstraints,
+				"recordPartReadPermissions", recordPartReadPermissions);
+		DataGroupSpy returnedRemovedDataGroup = new DataGroupSpy("someDataGroupSpy");
+		if (returnEnteredDataGroupAsAnswer) {
+			MCR.addReturned(originalDataGroup);
+			return originalDataGroup;
+		}
+		if (null != returnDataGroup) {
+			MCR.addReturned(returnDataGroup);
+			return returnDataGroup;
+		}
+		MCR.addReturned(returnedRemovedDataGroup);
 		return returnedRemovedDataGroup;
 	}
 
@@ -56,17 +62,21 @@ public class RecordPartFilterSpy implements RecordPartFilter {
 	public DataGroup replaceChildrenForConstraintsWithoutPermissions(DataGroup originalDataGroup,
 			DataGroup changedDataGroup, Set<String> recordPartConstraints,
 			Set<String> recordPartPermissions) {
-		this.originalDataGroup = originalDataGroup;
-		this.changedDataGroup = changedDataGroup;
-		this.replaceRecordPartConstraints = recordPartConstraints;
-		this.replaceRecordPartPermissions = recordPartPermissions;
-		// recordRead.addChild(new DataAtomicSpy("someExtraStuff", "to"));
-		// recordRead = new DataGroupSpy("filteredDataGroup");
-		replaceRecordPartsUsingPermissionsHasBeenCalled = true;
-		returnedReplacedDataGroup = new DataGroupSpy("someDataGroupSpy");
+		MCR.addCall("originalDataGroup", originalDataGroup, "changedDataGroup", changedDataGroup,
+				"recordPartConstraints", recordPartConstraints, "recordPartPermissions",
+				recordPartPermissions);
+		DataGroupSpy returnedReplacedDataGroup = new DataGroupSpy("someDataGroupSpy");
 		DataGroupSpy recordInfo = createRecordInfo();
 		returnedReplacedDataGroup.addChild(recordInfo);
-
+		if (returnEnteredDataGroupAsAnswer) {
+			MCR.addReturned(originalDataGroup);
+			return originalDataGroup;
+		}
+		if (null != returnDataGroup) {
+			MCR.addReturned(returnDataGroup);
+			return returnDataGroup;
+		}
+		MCR.addReturned(returnedReplacedDataGroup);
 		return returnedReplacedDataGroup;
 	}
 

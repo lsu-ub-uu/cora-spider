@@ -30,15 +30,15 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderRecordDeleterSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 
@@ -47,25 +47,25 @@ public class WorkOrderDeleterAsExtendedFunctionalityTest {
 	SpiderDependencyProviderSpy dependencyProvider;
 	WorkOrderDeleterAsExtendedFunctionality extendedFunctionality;
 	DataGroupTermCollectorSpy termCollector;
-	AlwaysAuthorisedExceptStub authorizer;
+	SpiderAuthorizatorSpy authorizator;
 	AuthenticatorSpy authenticator;
 	SpiderRecordDeleterSpy recordDeleter;
 	private LoggerFactorySpy loggerFactorySpy;
 
 	@BeforeMethod
 	public void setUp() {
-	setUpFactoriesAndProviders();
+		setUpFactoriesAndProviders();
 
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
-		dependencyProvider.searchTermCollector = new DataGroupTermCollectorSpy();
+		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.authenticator = new AuthenticatorSpy();
 
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		recordStorageProviderSpy.recordStorage = new RecordStorageSpy();
+		recordStorageProviderSpy.recordStorage = new OldRecordStorageSpy();
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 
-		dependencyProvider.spiderAuthorizator = new AlwaysAuthorisedExceptStub();
+		dependencyProvider.spiderAuthorizator = new SpiderAuthorizatorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -78,7 +78,7 @@ public class WorkOrderDeleterAsExtendedFunctionalityTest {
 		recordDeleter = new SpiderRecordDeleterSpy();
 		extendedFunctionality = WorkOrderDeleterAsExtendedFunctionality.usingDeleter(recordDeleter);
 		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
-		authorizer = (AlwaysAuthorisedExceptStub) dependencyProvider.getSpiderAuthorizator();
+		authorizator = (SpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();
 		authenticator = (AuthenticatorSpy) dependencyProvider.getAuthenticator();
 	}
 

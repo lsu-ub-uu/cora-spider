@@ -28,6 +28,7 @@ import java.util.TreeMap;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
@@ -36,6 +37,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordEnhancerTestsRecordStorage implements RecordStorage {
+	MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public boolean recordIdExistsForRecordType = true;
 	public boolean createWasRead = false;
@@ -44,8 +46,12 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 	public List<String> readList = new ArrayList<>();
 	public Map<String, Integer> readNumberMap = new TreeMap<>();
 
+	private DataGroup datagroup;
+
 	@Override
 	public DataGroup read(String type, String id) {
+
+		MCR.addCall("type", type, "id", id);
 		String readKey = type + ":" + id;
 		readList.add(readKey);
 		if (!readNumberMap.containsKey(readKey)) {
@@ -56,11 +62,12 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 
 		if (type.equals("recordType")) {
 			if ("binary".equals(id)) {
-				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
-						id, "false", "true", "false");
+				datagroup = DataCreator
+						.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+								"false", "true", "false");
 			} else if ("image".equals(id)) {
-				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "false",
-						"binary");
+				datagroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id,
+						"false", "binary");
 			} else if ("recordType".equals(id)) {
 				DataGroup dataGroup = DataCreator
 						.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
@@ -71,79 +78,76 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 				// .asLinkWithNameInDataAndTypeAndId("search", "search",
 				// "someDefaultSearch");
 				dataGroup.addChild(search);
-				return dataGroup;
+				datagroup = dataGroup;
 			} else if (("place".equals(id))) {
-				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "false",
-						"authority");
+				datagroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id,
+						"false", "authority");
 			} else if (("toRecordType".equals(id))) {
-				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
-						id, "false", "true", publicReadForToRecordType);
+				datagroup = DataCreator
+						.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+								"false", "true", publicReadForToRecordType);
+			} else {
+				datagroup = DataCreator
+						.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+								"dataWithLinks", "false", "false", "false");
 			}
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
-					"dataWithLinks", "false", "false", "false");
-		}
-		if (type.equals("dataWithLinks")) {
+		} else if (type.equals("dataWithLinks")) {
 			if (id.equals("oneLinkTopLevel")) {
-				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndLink();
-			}
-			if (id.equals("twoLinksTopLevel")) {
-				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndTwoLinks();
-			}
-			if (id.equals("oneLinkTopLevelNotAuthorized")) {
-				return RecordLinkTestsDataCreator
+				datagroup = RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndLink();
+			} else if (id.equals("twoLinksTopLevel")) {
+				datagroup = RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndTwoLinks();
+			} else if (id.equals("oneLinkTopLevelNotAuthorized")) {
+				datagroup = RecordLinkTestsDataCreator
 						.createDataGroupWithRecordInfoAndLinkNotAuthorized();
-			}
-			if (id.equals("oneLinkOneLevelDown")) {
-				return RecordLinkTestsDataCreator
+			} else if (id.equals("oneLinkOneLevelDown")) {
+				datagroup = RecordLinkTestsDataCreator
 						.createDataDataGroupWithRecordInfoAndLinkOneLevelDown();
-			}
-			if (id.equals("oneLinkOneLevelDownTargetDoesNotExist")) {
-				return RecordLinkTestsDataCreator
+			} else if (id.equals("oneLinkOneLevelDownTargetDoesNotExist")) {
+				datagroup = RecordLinkTestsDataCreator
 						.createDataDataGroupWithRecordInfoAndLinkOneLevelDownTargetDoesNotExist();
 			}
-		}
-		if (type.equals("dataWithResourceLinks")) {
+		} else if (type.equals("dataWithResourceLinks")) {
 			if (id.equals("oneResourceLinkTopLevel")) {
-				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndResourceLink();
-			}
-			if (id.equals("oneResourceLinkOneLevelDown")) {
-				return RecordLinkTestsDataCreator
+				datagroup = RecordLinkTestsDataCreator
+						.createDataGroupWithRecordInfoAndResourceLink();
+			} else if (id.equals("oneResourceLinkOneLevelDown")) {
+				datagroup = RecordLinkTestsDataCreator
 						.createDataDataGroupWithRecordInfoAndResourceLinkOneLevelDown();
 			}
-		}
-		if (type.equals("toRecordType")) {
+		} else if (type.equals("toRecordType")) {
 			if (id.equals("recordLinkNotAuthorized")) {
-				return RecordLinkTestsDataCreator.createLinkChildAsDataRecordDataGroup();
+				datagroup = RecordLinkTestsDataCreator.createLinkChildAsDataRecordDataGroup();
+			} else if ("nonExistingRecordId".equals(id)) {
+				throw new RecordNotFoundException("no record with id " + id + " exists");
 			}
-		}
-		if (type.equals("search")) {
+
+		} else if (type.equals("search")) {
 			if ("aSearchId".equals(id)) {
-				return DataCreator2.createSearchWithIdAndRecordTypeToSearchIn("aSearchId", "place");
+				datagroup = DataCreator2.createSearchWithIdAndRecordTypeToSearchIn("aSearchId",
+						"place");
 			} else if ("anotherSearchId".equals(id)) {
-				return DataCreator2.createSearchWithIdAndRecordTypeToSearchIn("anotherSearchId",
-						"image");
+				datagroup = DataCreator2
+						.createSearchWithIdAndRecordTypeToSearchIn("anotherSearchId", "image");
 			} else if ("someDefaultSearch".equals(id)) {
-				return DataCreator2.createSearchWithIdAndRecordTypeToSearchIn("someDefaultSearch",
-						"someRecordType");
+				datagroup = DataCreator2.createSearchWithIdAndRecordTypeToSearchIn(
+						"someDefaultSearch", "someRecordType");
 			}
-		}
-		if (type.equals("system")) {
+		} else if (type.equals("system")) {
 			if (id.equals("cora")) {
-				return DataCreator.createDataGroupWithNameInDataTypeAndId("system", type, id);
+				datagroup = DataCreator.createDataGroupWithNameInDataTypeAndId("system", type, id);
 			}
-		}
-		if ("image".equals(type)) {
-			return DataCreator.createDataGroupWithNameInDataTypeAndId("binary", "image",
+		} else if ("image".equals(type)) {
+			datagroup = DataCreator.createDataGroupWithNameInDataTypeAndId("binary", "image",
 					"image:0001");
+		} else if ("place".equals(type)) {
+			datagroup = DataCreator.createDataGroupWithNameInDataTypeAndId("authority", "place",
+					id);
+		} else {
+			// return null;
+			datagroup = DataCreator.createDataGroupWithNameInDataTypeAndId("noData", type, id);
 		}
-		if ("place".equals(type)) {
-			return DataCreator.createDataGroupWithNameInDataTypeAndId("authority", "place", id);
-		}
-		if ("nonExistingRecordId".equals(id)) {
-			throw new RecordNotFoundException("no record with id " + id + " exists");
-		}
-		// return null;
-		return DataCreator.createDataGroupWithNameInDataTypeAndId("noData", type, id);
+		MCR.addReturned(datagroup);
+		return datagroup;
 	}
 
 	@Override

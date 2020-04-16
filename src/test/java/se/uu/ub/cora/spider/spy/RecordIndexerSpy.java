@@ -8,6 +8,7 @@ import se.uu.ub.cora.search.RecordIndexer;
 
 public class RecordIndexerSpy implements RecordIndexer {
 
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public DataGroup recordIndexData;
 	public DataGroup record;
 
@@ -19,6 +20,7 @@ public class RecordIndexerSpy implements RecordIndexer {
 
 	@Override
 	public void indexData(List<String> ids, DataGroup recordIndexData, DataGroup record) {
+		MCR.addCall("ids", ids, "recordIndexData", recordIndexData, "record", record);
 		this.ids = ids;
 		this.recordIndexData = recordIndexData;
 		this.record = record;
@@ -28,6 +30,7 @@ public class RecordIndexerSpy implements RecordIndexer {
 
 	@Override
 	public void deleteFromIndex(String type, String id) {
+		MCR.addCall("type", type, "id", id);
 		this.type = type;
 		this.id = id;
 	}

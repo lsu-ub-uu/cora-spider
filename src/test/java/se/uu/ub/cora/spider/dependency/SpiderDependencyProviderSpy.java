@@ -20,10 +20,11 @@
 package se.uu.ub.cora.spider.dependency;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.recordpart.RecordPartFilter;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.search.RecordIndexer;
@@ -34,13 +35,12 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
 import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 import se.uu.ub.cora.storage.RecordIdGenerator;
-import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 
 public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
-	public RecordStorage recordStorage;
 	public SpiderAuthorizator spiderAuthorizator;
 	public PermissionRuleCalculator ruleCalculator;
 	public SpiderUploader uploader;
@@ -51,12 +51,15 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	public Authenticator authenticator;
 	public RecordSearch recordSearch;
-	public DataGroupTermCollector searchTermCollector;
+	public DataGroupTermCollector termCollector;
 	public RecordIndexer recordIndexer;
 	public boolean readInitInfoWasCalled;
 	public boolean tryToInitializeWasCalled;
+	public DataRedactor dataRedactor;
 	public RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
-	public RecordPartFilter recordPartFilter;
+	public Map<String, RecordTypeHandlerSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
+
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
 		super(initInfo);
@@ -64,46 +67,64 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	@Override
 	public SpiderAuthorizator getSpiderAuthorizator() {
+		MCR.addCall();
+		MCR.addReturned(spiderAuthorizator);
 		return spiderAuthorizator;
 	}
 
 	@Override
 	public PermissionRuleCalculator getPermissionRuleCalculator() {
+		MCR.addCall();
+		MCR.addReturned(ruleCalculator);
 		return ruleCalculator;
 	}
 
 	@Override
 	public DataValidator getDataValidator() {
+		MCR.addCall();
+		MCR.addReturned(dataValidator);
 		return dataValidator;
 	}
 
 	@Override
 	public DataRecordLinkCollector getDataRecordLinkCollector() {
+		MCR.addCall();
+		MCR.addReturned(linkCollector);
 		return linkCollector;
 	}
 
 	@Override
 	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
+		MCR.addCall();
+		MCR.addReturned(extendedFunctionalityProvider);
 		return extendedFunctionalityProvider;
 	}
 
 	@Override
 	public Authenticator getAuthenticator() {
+		MCR.addCall();
+		MCR.addReturned(authenticator);
 		return authenticator;
 	}
 
 	@Override
 	public RecordSearch getRecordSearch() {
+		MCR.addCall();
+		MCR.addReturned(recordSearch);
 		return recordSearch;
 	}
 
 	@Override
 	public DataGroupTermCollector getDataGroupTermCollector() {
-		return searchTermCollector;
+		MCR.addCall();
+		MCR.addReturned(termCollector);
+		return termCollector;
 	}
 
 	@Override
 	public RecordIndexer getRecordIndexer() {
+		MCR.addCall();
+		MCR.addReturned(recordIndexer);
 		return recordIndexer;
 	}
 
@@ -130,12 +151,25 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	@Override
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
-		// TODO Auto-generated method stub
-		return recordTypeHandlerSpy;
+		MCR.addCall("recordTypeId", recordTypeId);
+		RecordTypeHandler recordTypeHandlerSpyToReturn = recordTypeHandlerSpy;
+		if (mapOfRecordTypeHandlerSpies.containsKey(recordTypeId)) {
+			recordTypeHandlerSpyToReturn = mapOfRecordTypeHandlerSpies.get(recordTypeId);
+		}
+		MCR.addReturned(recordTypeHandlerSpyToReturn);
+		return recordTypeHandlerSpyToReturn;
 	}
 
 	@Override
-	public RecordPartFilter getRecordPartFilter() {
-		return recordPartFilter;
+	public DataRedactor getDataRedactor() {
+		MCR.addCall();
+		MCR.addReturned(dataRedactor);
+		return dataRedactor;
+	}
+
+	public RecordTypeHandlerSpy createRecordTypeHandlerSpy(String recordType) {
+		RecordTypeHandlerSpy newRecordTypeHandlerSpy = new RecordTypeHandlerSpy();
+		mapOfRecordTypeHandlerSpies.put(recordType, newRecordTypeHandlerSpy);
+		return newRecordTypeHandlerSpy;
 	}
 }

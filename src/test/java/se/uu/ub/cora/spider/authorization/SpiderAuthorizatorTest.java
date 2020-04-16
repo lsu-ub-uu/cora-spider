@@ -49,16 +49,16 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
-import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
+import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageForAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderAuthorizatorTest {
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
-	private PermissionRuleCalculator rulesCalculator;
+	private RuleCalculatorSpy ruleCalculator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
@@ -80,9 +80,9 @@ public class SpiderAuthorizatorTest {
 		user.roles.add("guest");
 
 		authenticator = new AuthenticatorSpy();
-		dataValidator = new DataValidatorAlwaysValidSpy();
+		dataValidator = new DataValidatorSpy();
 		recordStorage = new RecordStorageForAuthorizatorSpy();
-		rulesCalculator = new NoRulesCalculatorStub();
+		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		rulesProvider = new RulesProviderSpy();
@@ -98,7 +98,7 @@ public class SpiderAuthorizatorTest {
 		recordStorageProviderSpy.recordStorage = recordStorage;
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 
-		dependencyProvider.ruleCalculator = rulesCalculator;
+		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 
@@ -109,19 +109,16 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void testGetDependencyProvider() {
-		setUpDependencyProvider();
 		assertSame(spiderAuthorizator.getDependencyProvider(), dependencyProvider);
 	}
 
 	@Test
 	public void testGetAuthorizator() {
-		setUpDependencyProvider();
 		assertSame(spiderAuthorizator.getAuthorizator(), authorizator);
 	}
 
 	@Test
 	public void testGetRulesProvider() {
-		setUpDependencyProvider();
 		assertSame(spiderAuthorizator.getRulesProvider(), rulesProvider);
 	}
 
@@ -185,8 +182,8 @@ public class SpiderAuthorizatorTest {
 	}
 
 	private void assertRuleCalculatorIsCalled() {
-		assertEquals(((NoRulesCalculatorStub) rulesCalculator).action, "read");
-		assertEquals(((NoRulesCalculatorStub) rulesCalculator).recordType, "book");
+		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordType", 0, "read",
+				"book");
 	}
 
 	@Test
@@ -275,10 +272,10 @@ public class SpiderAuthorizatorTest {
 		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
 				action, "book", collectedData, false);
 
-		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
-				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
+				0, "read", "book", collectedData);
 		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
-				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+				ruleCalculator.returnedRules);
 
 		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
 
@@ -302,10 +299,10 @@ public class SpiderAuthorizatorTest {
 		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
 				action, "book", collectedData, false);
 
-		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
-				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
+				0, "read", "book", collectedData);
 		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
-				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+				ruleCalculator.returnedRules);
 
 		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
 
@@ -337,10 +334,10 @@ public class SpiderAuthorizatorTest {
 		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
 				action, "book", collectedData, false);
 
-		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
-				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
+				0, "read", "book", collectedData);
 		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
-				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+				ruleCalculator.returnedRules);
 
 		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
 
@@ -402,10 +399,10 @@ public class SpiderAuthorizatorTest {
 						collectedData);
 		assertTrue(authorized);
 
-		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
-				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
+				0, "read", "book", collectedData);
 		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
-				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+				ruleCalculator.returnedRules);
 
 		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
 
@@ -431,10 +428,10 @@ public class SpiderAuthorizatorTest {
 						collectedData);
 		assertTrue(authorized);
 
-		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
-				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
+				0, "read", "book", collectedData);
 		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
-				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+				ruleCalculator.returnedRules);
 
 		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
 
@@ -466,10 +463,10 @@ public class SpiderAuthorizatorTest {
 						collectedData);
 		assertTrue(authorized);
 
-		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
-				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
+				0, "read", "book", collectedData);
 		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
-				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+				ruleCalculator.returnedRules);
 		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
 
 		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);
@@ -563,10 +560,10 @@ public class SpiderAuthorizatorTest {
 		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, action,
 						"book", collectedData, true);
-		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
-				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
+				0, "read", "book", collectedData);
 		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
-				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+				ruleCalculator.returnedRules);
 
 		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
 
@@ -599,10 +596,10 @@ public class SpiderAuthorizatorTest {
 				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, action,
 						"book", collectedData, true);
 
-		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
-				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
+				0, "read", "book", collectedData);
 		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
-				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+				ruleCalculator.returnedRules);
 
 		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
 
@@ -672,10 +669,10 @@ public class SpiderAuthorizatorTest {
 		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
 				action, "book", collectedData, true);
 
-		assertTrue(((NoRulesCalculatorStub) rulesCalculator).calledMethods
-				.contains("calculateRulesForActionAndRecordTypeAndCollectedData"));
+		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
+				0, "read", "book", collectedData);
 		assertEquals(((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).requiredRules,
-				((NoRulesCalculatorStub) rulesCalculator).returnedRules);
+				ruleCalculator.returnedRules);
 		List<Rule> providedRules = ((BeefeaterAuthorizatorAlwaysAuthorizedSpy) authorizator).providedRules;
 
 		List<Rule> rulesFromFirstRole = rulesProvider.returnedRules.get(0);

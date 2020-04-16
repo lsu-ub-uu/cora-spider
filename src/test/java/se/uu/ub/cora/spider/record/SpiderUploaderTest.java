@@ -27,13 +27,11 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.HashSet;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.data.DataAtomicFactory;
 import se.uu.ub.cora.data.DataAtomicProvider;
@@ -51,13 +49,9 @@ import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.NeverAuthorisedStub;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
@@ -72,16 +66,15 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.StreamStorageProviderSpy;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.spy.AuthorizatorAlwaysAuthorizedSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorAlwaysValidSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
-import se.uu.ub.cora.spider.spy.NoRulesCalculatorStub;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
+import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordIdGenerator;
@@ -90,14 +83,14 @@ import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderUploaderTest {
 	private RecordStorage recordStorage;
-	private Authenticator authenticator;
+	private AuthenticatorSpy authenticator;
 	private StreamStorageSpy streamStorage;
-	private SpiderAuthorizator authorizator;
+	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderUploader uploader;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
-	private DataGroupTermCollector termCollector;
+	private DataGroupTermCollectorSpy termCollector;
 	private RecordIndexer recordIndexer;
 	private RecordIdGenerator idGenerator;
 	private SpiderDependencyProviderSpy dependencyProvider;
@@ -114,10 +107,10 @@ public class SpiderUploaderTest {
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 		authenticator = new AuthenticatorSpy();
-		authorizator = new AuthorizatorAlwaysAuthorizedSpy();
-		dataValidator = new DataValidatorAlwaysValidSpy();
+		authorizator = new SpiderAuthorizatorSpy();
+		dataValidator = new DataValidatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		keyCalculator = new NoRulesCalculatorStub();
+		keyCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		idGenerator = new IdGeneratorSpy();
 		streamStorage = new StreamStorageSpy();
@@ -162,7 +155,7 @@ public class SpiderUploaderTest {
 
 		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.linkCollector = linkCollector;
-		dependencyProvider.searchTermCollector = termCollector;
+		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.recordIndexer = recordIndexer;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
@@ -173,7 +166,7 @@ public class SpiderUploaderTest {
 	public void testExternalDependenciesAreCalled() {
 		factory = new SpiderInstanceFactorySpy2();
 		setUpDependencyProvider();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new OldRecordStorageSpy();
 		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
@@ -186,9 +179,9 @@ public class SpiderUploaderTest {
 				stream, "someFileName");
 		assertResourceInfoIsCorrect(recordUpdated);
 
-		assertTrue(((RecordStorageSpy) recordStorage).readWasCalled);
+		assertTrue(((OldRecordStorageSpy) recordStorage).readWasCalled);
 
-		assertTrue(((AuthorizatorAlwaysAuthorizedSpy) authorizator).authorizedWasCalled);
+		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 
 		assertEquals(((SpiderInstanceFactorySpy2) factory).createdUpdaters.get(0).authToken,
 				"someToken78678567");
@@ -197,20 +190,17 @@ public class SpiderUploaderTest {
 
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
-		recordStorage = new RecordStorageSpy();
+		authenticator.throwAuthenticationException = true;
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
 		uploader.upload("dummyNonAuthenticatedToken", "place", "place:0002", null, "someFileName");
 	}
 
 	@Test
 	public void testUnauthorizedForDownloadOnRecordTypeShouldShouldNotAccessStorage() {
-		recordStorage = new RecordStorageSpy();
-		authorizator = new AlwaysAuthorisedExceptStub();
-		HashSet<String> hashSet = new HashSet<String>();
-		hashSet.add("upload");
-		((AlwaysAuthorisedExceptStub) authorizator).notAuthorizedForRecordTypeAndActions
-				.put("image", hashSet);
+		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordType = false;
 
 		boolean exceptionWasCaught = false;
 		try {
@@ -224,16 +214,15 @@ public class SpiderUploaderTest {
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);
-		assertFalse(((RecordStorageSpy) recordStorage).readWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).updateWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).deleteWasCalled);
-		assertFalse(((RecordStorageSpy) recordStorage).createWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).readWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).updateWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).deleteWasCalled);
+		assertFalse(((OldRecordStorageSpy) recordStorage).createWasCalled);
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testUnauthorizedForDataInRecord() {
-		authorizator = new AuthorizatorNotAuthorizedRequiredRulesButForActionOnRecordType();
-		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 
@@ -251,21 +240,17 @@ public class SpiderUploaderTest {
 		assertStreamStorageCalledCorrectly(recordUpdated);
 		assertResourceInfoIsCorrect(recordUpdated);
 
-		AuthorizatorAlwaysAuthorizedSpy authorizatorSpy = ((AuthorizatorAlwaysAuthorizedSpy) authorizator);
-		assertEquals(authorizatorSpy.actions.get(0), "upload");
-		assertEquals(authorizatorSpy.users.get(0).id, "12345");
-		assertEquals(authorizatorSpy.recordTypes.get(0), "image");
+		String methodName = "checkUserIsAuthorizedForActionOnRecordType";
+		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "upload",
+				"image");
 
-		DataGroupTermCollectorSpy dataGroupTermCollectorSpy = (DataGroupTermCollectorSpy) termCollector;
-		assertEquals(dataGroupTermCollectorSpy.metadataId, "image");
-		assertEquals(dataGroupTermCollectorSpy.dataGroup,
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "image");
+		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
 				recordStorage.read("image", "image:123456789"));
 
-		assertEquals(authorizatorSpy.calledMethods.get(0),
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData");
-		assertFalse(authorizatorSpy.calculateRecordPartPermissions);
-		DataGroup returnedCollectedTerms = dataGroupTermCollectorSpy.collectedTerms;
-		assertEquals(authorizatorSpy.collectedTerms.get(0), returnedCollectedTerms);
+		String methodName2 = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		authorizator.MCR.assertParameters(methodName2, 0, authenticator.returnedUser, "upload",
+				"image", termCollector.MCR.getReturnValue("collectTerms", 0), false);
 	}
 
 	private void assertStreamStorageCalledCorrectly(DataRecord recordUpdated) {
@@ -367,8 +352,7 @@ public class SpiderUploaderTest {
 	}
 
 	private SpiderUploader setupWithUserNotAuthorized() {
-		authorizator = new NeverAuthorisedStub();
-		setUpDependencyProvider();
+		authorizator.authorizedForActionAndRecordType = false;
 
 		SpiderUploader uploader = SpiderUploaderImp.usingDependencyProvider(dependencyProvider);
 		return uploader;

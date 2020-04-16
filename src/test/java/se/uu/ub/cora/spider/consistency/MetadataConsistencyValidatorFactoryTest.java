@@ -23,13 +23,13 @@ import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class MetadataConsistencyValidatorFactoryTest {
 	@Test
 	public void test() {
-		RecordStorage recordStorage = new RecordStorageSpy();
+		RecordStorage recordStorage = new OldRecordStorageSpy();
 		MetadataConsistencyValidatorFactory m = MetadataConsistencyValidatorFactory
 				.usingRecordStorage(recordStorage);
 		String recordType = "metadataGroup";

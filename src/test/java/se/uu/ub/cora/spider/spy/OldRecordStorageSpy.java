@@ -33,7 +33,7 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
-public class RecordStorageSpy implements RecordStorage, MetadataStorage {
+public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 
 	public Collection<String> readLists = new ArrayList<>();
 	public boolean readWasCalled = false;
@@ -55,6 +55,8 @@ public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 	public DataGroup aRecord = DataCreator.createDataGroupWithNameInDataTypeAndId("someType",
 			"someNameInData", "someId");
 	public DataGroup readDataGroup;
+	public DataGroup filter;
+	public DataGroup dataGroupToReturn;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -328,7 +330,7 @@ public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 			return readDataGroup;
 		}
 
-		DataGroup dataGroupToReturn = new DataGroupSpy("someNameInData");
+		dataGroupToReturn = new DataGroupSpy("someNameInData");
 		dataGroupToReturn.addChild(new DataGroupSpy("recordInfo"));
 		return dataGroupToReturn;
 	}
@@ -457,6 +459,7 @@ public class RecordStorageSpy implements RecordStorage, MetadataStorage {
 
 	@Override
 	public StorageReadResult readAbstractList(String type, DataGroup filter) {
+		this.filter = filter;
 		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.totalNumberOfMatches = 199;
 		spiderReadResult.listOfDataGroups = new ArrayList<>();

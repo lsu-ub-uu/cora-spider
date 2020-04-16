@@ -19,13 +19,10 @@
 package se.uu.ub.cora.spider.extended;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -36,16 +33,16 @@ import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.authorization.AlwaysAuthorisedExceptStub;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 
 public class WorkOrderExecutorAsExtendedFunctionalityTest {
@@ -54,7 +51,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 	WorkOrderExecutorAsExtendedFunctionality extendedFunctionality;
 	DataGroupTermCollectorSpy termCollector;
 	RecordIndexerSpy recordIndexer;
-	AlwaysAuthorisedExceptStub authorizer;
+	SpiderAuthorizatorSpy authorizator;
 	AuthenticatorSpy authenticator;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataGroupFactory dataGroupFactory;
@@ -66,12 +63,12 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
-		dependencyProvider.searchTermCollector = new DataGroupTermCollectorSpy();
+		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		recordStorageProviderSpy.recordStorage = new RecordStorageSpy();
+		recordStorageProviderSpy.recordStorage = new OldRecordStorageSpy();
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 		dependencyProvider.authenticator = new AuthenticatorSpy();
-		dependencyProvider.spiderAuthorizator = new AlwaysAuthorisedExceptStub();
+		dependencyProvider.spiderAuthorizator = new SpiderAuthorizatorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -89,7 +86,7 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 				.usingDependencyProvider(dependencyProvider);
 		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
 		recordIndexer = (RecordIndexerSpy) dependencyProvider.getRecordIndexer();
-		authorizer = (AlwaysAuthorisedExceptStub) dependencyProvider.getSpiderAuthorizator();
+		authorizator = (SpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();
 		authenticator = (AuthenticatorSpy) dependencyProvider.getAuthenticator();
 	}
 
@@ -99,14 +96,18 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 				"someGeneratedId", "book", "book1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
-		assertTrue(termCollector.collectTermsWasCalled);
-		assertEquals(termCollector.metadataId, "bookGroup");
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "bookGroup");
 
-		DataGroup recordInfo = termCollector.dataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup dataGroup = (DataGroup) termCollector.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("collectTerms", 0, "dataGroup");
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		assertEquals(recordInfo.getFirstAtomicValueWithNameInData("id"), "book1");
 
 		assertTrue(recordIndexer.indexDataHasBeenCalled);
-		assertCollectedTermsAreSentToIndex();
+
+		recordIndexer.MCR.assertParameter("indexData", 0, "recordIndexData",
+				termCollector.MCR.getReturnValue("collectTerms", 0));
+
 		DataGroup recordInfo2 = recordIndexer.record.getFirstGroupWithNameInData("recordInfo");
 		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
 
@@ -131,22 +132,16 @@ public class WorkOrderExecutorAsExtendedFunctionalityTest {
 		assertEquals(ids.size(), 2);
 	}
 
-	private void assertCollectedTermsAreSentToIndex() {
-		assertEquals(recordIndexer.recordIndexData, termCollector.collectedTerms);
-	}
-
 	@Test
 	public void testIndexDataWithNoRightToIndexRecordType() {
-		Set<String> actions = new HashSet<>();
-		actions.add("index");
-		authorizer.notAuthorizedForRecordTypeAndActions.put("book", actions);
+		authorizator.setNotAutorizedForActionOnRecordType("index", "book");
 
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
 				"someGeneratedId", "book", "book1");
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
-		assertFalse(termCollector.collectTermsWasCalled);
-		assertFalse(recordIndexer.indexDataHasBeenCalled);
+		termCollector.MCR.assertMethodNotCalled("collectTerms");
+		termCollector.MCR.assertMethodNotCalled("indexData");
 	}
 
 }

@@ -25,9 +25,12 @@ import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public final class RecordTypeHandlerImp implements RecordTypeHandler {
+	private static final String SEARCH = "search";
+	private static final String PARENT_ID = "parentId";
 	private static final String RECORD_PART_CONSTRAINT = "recordPartConstraint";
 	private static final String LINKED_RECORD_TYPE = "linkedRecordType";
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
@@ -89,18 +92,14 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void possiblyCreateIdForAbstractType(String recordId, DataGroup recordTypeDefinition,
 			List<String> ids) {
-		if (recordTypeHasAbstractParent(recordTypeDefinition)) {
+		if (hasParent()) {
 			createIdAsAbstractType(recordId, recordTypeDefinition, ids);
 		}
 	}
 
-	private boolean recordTypeHasAbstractParent(DataGroup recordTypeDefinition) {
-		return recordTypeDefinition.containsChildWithNameInData("parentId");
-	}
-
 	private void createIdAsAbstractType(String recordId, DataGroup recordTypeDefinition,
 			List<String> ids) {
-		DataGroup parentGroup = recordTypeDefinition.getFirstGroupWithNameInData("parentId");
+		DataGroup parentGroup = recordTypeDefinition.getFirstGroupWithNameInData(PARENT_ID);
 		String abstractParentType = parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		ids.add(abstractParentType + "_" + recordId);
 	}
@@ -204,8 +203,75 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return writeConstraints;
 	}
 
-	// Only for test
 	public String getRecordTypeId() {
+		// needed for test
 		return recordTypeId;
+	}
+
+	@Override
+	public boolean hasParent() {
+		return recordType.containsChildWithNameInData(PARENT_ID);
+	}
+
+	@Override
+	public String getParentId() {
+		throwErrorIfNoParent();
+		return extractParentId();
+	}
+
+	private String extractParentId() {
+		DataGroup parentGroup = recordType.getFirstGroupWithNameInData(PARENT_ID);
+		return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	}
+
+	private void throwErrorIfNoParent() {
+		if (!hasParent()) {
+			throw new DataMissingException("Unable to get parentId, no parents exists");
+		}
+	}
+
+	@Override
+	public boolean isChildOfBinary() {
+		return hasParent() && parentIsBinary();
+	}
+
+	private boolean parentIsBinary() {
+		String parentId = extractParentId();
+		return "binary".equals(parentId);
+	}
+
+	@Override
+	public boolean representsTheRecordTypeDefiningSearches() {
+		String id = extractIdFromRecordInfo();
+		return SEARCH.equals(id);
+	}
+
+	private String extractIdFromRecordInfo() {
+		DataGroup recordInfo = recordType.getFirstGroupWithNameInData("recordInfo");
+		return recordInfo.getFirstAtomicValueWithNameInData("id");
+	}
+
+	@Override
+	public boolean representsTheRecordTypeDefiningRecordTypes() {
+		String id = extractIdFromRecordInfo();
+		return RECORD_TYPE.equals(id);
+	}
+
+	@Override
+	public boolean hasLinkedSearch() {
+		return recordType.containsChildWithNameInData(SEARCH);
+	}
+
+	@Override
+	public String getSearchId() {
+		throwErrorIfNoSearch();
+		DataGroup searchGroup = recordType.getFirstGroupWithNameInData(SEARCH);
+		return searchGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	}
+
+	private void throwErrorIfNoSearch() {
+		if (!hasLinkedSearch()) {
+			throw new DataMissingException("Unable to get searchId, no search exists");
+		}
 	}
 }

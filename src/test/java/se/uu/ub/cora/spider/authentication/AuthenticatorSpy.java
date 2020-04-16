@@ -20,26 +20,36 @@
 package se.uu.ub.cora.spider.authentication;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class AuthenticatorSpy implements Authenticator {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public boolean authenticationWasCalled = false;
 	public String authToken;
 	public User returnedUser;
+	/**
+	 * throwAuthenticationException is default false, if set to true will an authenticationException
+	 * be thrown for all calls to getUserForToken
+	 */
+	public boolean throwAuthenticationException = false;
 
 	@Override
 	public User getUserForToken(String authToken) {
+		MCR.addCall("authToken", authToken);
+		this.authToken = authToken;
 		authenticationWasCalled = true;
 
-		this.authToken = authToken;
-		if ("dummyNonAuthenticatedToken".equals(authToken)) {
-			throw new AuthenticationException("token not valid");
+		if (throwAuthenticationException) {
+			throw new AuthenticationException("Error from AuthenticatorSpy");
 		}
+
 		if ("dummy1Token".equals(authToken)) {
 			User user = new User("dummy1");
 			user.loginId = "knownUser";
 			user.loginDomain = "system";
 			user.roles.add("guest");
+			MCR.addReturned(user);
 			return user;
 
 		}
@@ -49,6 +59,8 @@ public class AuthenticatorSpy implements Authenticator {
 		user.loginDomain = "system";
 		user.roles.add("guest");
 		returnedUser = user;
+
+		MCR.addReturned(user);
 		return user;
 	}
 

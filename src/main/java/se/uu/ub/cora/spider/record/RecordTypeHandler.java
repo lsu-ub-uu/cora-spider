@@ -24,14 +24,73 @@ import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
 
+/**
+ * RecordTypeHandler is a class that mostly handles information about a recordType, but also has
+ * some extra utility methods around recordTypes.
+ */
 public interface RecordTypeHandler {
 
 	/**
 	 * isAbstract checks if the recordType is abstract.
 	 * 
-	 * @return If record is abstract
+	 * @return A boolean, true if the recordType is abstract
 	 */
 	boolean isAbstract();
+
+	/**
+	 * hasParent returns if the recordType has a parent recordType or not.
+	 * 
+	 * @return A boolean, true if the recordType has a parent
+	 */
+	public boolean hasParent();
+
+	/**
+	 * isChildOfBinary returns if the recordType has a parent recordType that is binary (handles
+	 * binary data).
+	 * 
+	 * @return A boolean, true if the recordType has binary as parentRecordType
+	 */
+	public boolean isChildOfBinary();
+
+	/**
+	 * representsTheRecordTypeDefiningSearches returns if this recordType is the one defining
+	 * searches. (this recordTypes id is search)
+	 * 
+	 * @return A boolean, true if this recordType defines searches
+	 */
+	boolean representsTheRecordTypeDefiningSearches();
+
+	/**
+	 * representsTheRecordTypeDefiningRecordTypes returns if this recordType is the one defining
+	 * recordTypes. (this recordTypes id is recordType)
+	 * 
+	 * @return A boolean, true if this recordType defines recordTypes
+	 */
+	boolean representsTheRecordTypeDefiningRecordTypes();
+
+	/**
+	 * hasLinkedSearch returns if the recordType has a link to a search or not.
+	 * 
+	 * @return A boolean, true if the recordType is recordType type
+	 */
+	boolean hasLinkedSearch();
+
+	/**
+	 * getSearchId returns the id of the linked search.
+	 * 
+	 * If a searchId does not exist, a {@link DataMissingException} MUST be thrown.
+	 * 
+	 * @return A String with the recordId of the linked search record
+	 */
+	String getSearchId();
+
+	/**
+	 * getParentId returns the parentId for the recordType if it has one, if this recordType does
+	 * not have a parent should an exception be thrown indicating that no parentId can be found.
+	 * 
+	 * @return A String with this recordTypes parentId, if it has one
+	 */
+	public String getParentId();
 
 	boolean shouldAutoGenerateId();
 
@@ -89,24 +148,28 @@ public interface RecordTypeHandler {
 	boolean hasRecordPartWriteConstraint();
 
 	/**
-	 * getRecordPartReadConstraints returns a Map with all the read constraints for the recordType.
-	 * Read constraints have the value "readWrite" as a read constraint also implies a write
-	 * constraint. The constraints are stored in the map under the key, nameInData, where nameInData
-	 * is the name in data for the child in the top level dataGroup that is limited by the
-	 * constraint.
+	 * getRecordPartReadConstraints returns a Set with all the read constraints for the recordType.
+	 * Read constraints internally have the value "readWrite" as a read constraint also implies a
+	 * write constraint. The constraints are identified by nameInData, where nameInData is the name
+	 * in data for the child in the top level dataGroup that is limited by the constraint.
 	 * 
-	 * @return Map filled with read constraints key = nameInData Value = "readWrite"
+	 * @return A Set filled with read constraints, more precisly nameInData for children to the top
+	 *         level dataGroup that has read constraints. If there are no read constrainst SHOULD an
+	 *         empty set returned.
 	 */
 	Set<String> getRecordPartReadConstraints();
 
 	/**
-	 * getRecordPartWriteConstraints returns a Map with all the write constraints for the
+	 * getRecordPartWriteConstraints returns a Set with all the write constraints for the
 	 * recordType. Write constraints have the value "write", or "readWrite" as a read constraint
-	 * also implies a write constraint. The constraints are stored in the map under the key,
-	 * nameInData, where nameInData is the name in data for the child in the top level dataGroup
-	 * that is limited by the constraint.
+	 * also implies a write constraint. The constraints are identified by nameInData, where
+	 * nameInData is the name in data for the child in the top level dataGroup that is limited by
+	 * the constraint.
 	 * 
-	 * @return Map filled with write constraints key = nameInData Value = "write" or "readWrite"
+	 * @return A Set filled with write constraints, more precisly nameInData for children to the top
+	 *         level dataGroup that has write constraints. If there are no write constrainst SHOULD
+	 *         an empty set returned.
 	 */
 	Set<String> getRecordPartWriteConstraints();
+
 }

@@ -50,8 +50,11 @@ public interface SpiderAuthorizator {
 	 * throw an {@link AuthorizationException}
 	 * 
 	 * @param user
+	 *            the logged in user (or guest)
 	 * @param action
+	 *            the action the user wants to perform, such as read, update, etc.
 	 * @param recordType
+	 *            the recordType the user wants to perform the action on
 	 */
 	void checkUserIsAuthorizedForActionOnRecordType(User user, String action, String recordType);
 
@@ -61,8 +64,11 @@ public interface SpiderAuthorizator {
 	 * check that the users also has access to the collectedData through its associated rules.
 	 * 
 	 * @param user
+	 *            the logged in user (or guest)
 	 * @param action
+	 *            the action the user wants to perform, such as read, update, etc.
 	 * @param recordType
+	 *            the recordType the user wants to perform the action on
 	 * @param collectedData
 	 *            the collectedData to use extend the access check with
 	 * @return
@@ -83,9 +89,13 @@ public interface SpiderAuthorizator {
 	 * for the specified action and the specified recordType.
 	 * 
 	 * @param user
+	 *            the logged in user (or guest)
 	 * @param action
+	 *            the action the user wants to perform, such as read, update, etc.
 	 * @param recordType
+	 *            the recordType the user wants to perform the action on
 	 * @param collectedData
+	 *            the collectedData to use extend the access check with
 	 * @param calculateRecordPartPermissions,
 	 *            a boolean, if recordPartPermissions should be calculated
 	 * @return A list of recordPart permissions

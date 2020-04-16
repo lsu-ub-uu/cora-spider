@@ -32,13 +32,13 @@ import se.uu.ub.cora.beefeater.authorization.RuleImp;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class RulesProviderTest {
 	@Test
 	public void test() {
-		RecordStorage recordStorage = new RecordStorageSpy();
+		RecordStorage recordStorage = new OldRecordStorageSpy();
 		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
 		String roleId = "guest";
 		List<Rule> rules = rulesProvider.getActiveRules(roleId);
@@ -52,14 +52,14 @@ public class RulesProviderTest {
 
 	@Test
 	public void testGetRecordStorage() {
-		RecordStorage recordStorage = new RecordStorageSpy();
+		RecordStorage recordStorage = new OldRecordStorageSpy();
 		RulesProviderImp rulesProvider = new RulesProviderImp(recordStorage);
 		assertSame(rulesProvider.getRecordStorage(), recordStorage);
 	}
 
 	@Test
 	public void testWithPermissionTerms() {
-		RecordStorage recordStorage = new RecordStorageSpy();
+		RecordStorage recordStorage = new OldRecordStorageSpy();
 		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
 		String roleId = "guestWithPermissionTerms";
 		List<Rule> rules = rulesProvider.getActiveRules(roleId);
@@ -89,7 +89,7 @@ public class RulesProviderTest {
 
 	@Test
 	public void testWithMultiplePermissionTerms() {
-		RecordStorage recordStorage = new RecordStorageSpy();
+		RecordStorage recordStorage = new OldRecordStorageSpy();
 		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
 		String roleId = "guestWithMultiplePermissionTerms";
 		List<Rule> rules = rulesProvider.getActiveRules(roleId);
@@ -138,7 +138,7 @@ public class RulesProviderTest {
 
 	@Test
 	public void testInactiveRole() {
-		RecordStorage recordStorage = new RecordStorageSpy();
+		RecordStorage recordStorage = new OldRecordStorageSpy();
 		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
 		String roleId = "inactive";
 		List<Rule> rules = rulesProvider.getActiveRules(roleId);
@@ -147,7 +147,7 @@ public class RulesProviderTest {
 
 	@Test
 	public void testNotFoundRole() {
-		RecordStorage recordStorage = new RecordStorageSpy();
+		RecordStorage recordStorage = new OldRecordStorageSpy();
 		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
 		String roleId = "roleNotFoundInStorage";
 		List<Rule> rules = rulesProvider.getActiveRules(roleId);

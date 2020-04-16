@@ -27,15 +27,39 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class RecordTypeHandlerSpy implements RecordTypeHandler {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
-	public boolean isPublicForRead = true;
+	/**
+	 * isPublicForRead is default false, if set to true, the recordType is considered totaly public
+	 * and no security checks are supposed to be done for reading
+	 */
+	public boolean isPublicForRead = false;
+	/**
+	 * isAbstract is default false, if set to true, the recordType is considered abstract
+	 */
 	public boolean isAbstract = false;
-	public boolean recordTypeHasReadPartConstraints = false;
+	/**
+	 * recordTypeHasReadPartConstraints is default false, if set to true, the recordType has read
+	 * record parts constraints.
+	 */
+	// public boolean recordTypeHasReadPartConstraints = false;
 	public String recordPartConstraint = "";
-	public boolean hasRecordPartReadContraintHasBeenCalled = false;
+	// public boolean hasRecordPartReadContraintHasBeenCalled = false;
 	public Set<String> writeConstraints = new HashSet<String>();
+
+	public boolean hasParent = false;
+	public String parentId = "someParentId";
+
+	public boolean isChildOfBinary = false;
+	public boolean representsTheRecordTypeDefiningSearches = false;
+	public boolean representsTheRecordTypeDefiningRecordTypes = false;
+
+	public boolean hasLinkedSearch = false;
+
+	public String returnedSearchId = "someSearchId";
 
 	public RecordTypeHandlerSpy() {
 		writeConstraints.add("someKey");
@@ -43,83 +67,151 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean isAbstract() {
+		MCR.addCall();
+		MCR.addReturned(isAbstract);
 		return isAbstract;
 	}
 
 	@Override
 	public boolean shouldAutoGenerateId() {
-		// TODO Auto-generated method stub
+		MCR.addCall();
+		MCR.addReturned(false);
 		return false;
 	}
 
 	@Override
 	public String getNewMetadataId() {
-		// TODO Auto-generated method stub
+		MCR.addCall();
+		MCR.addReturned(null);
 		return null;
 	}
 
 	@Override
 	public String getMetadataId() {
-		// TODO Auto-generated method stub
-		return "fakeMetadataIdFromRecordTypeHandlerSpy";
+		MCR.addCall();
+		String returnValue = "fakeMetadataIdFromRecordTypeHandlerSpy";
+		MCR.addReturned(returnValue);
+		return returnValue;
 	}
 
 	@Override
 	public List<String> createListOfPossibleIdsToThisRecord(String recordId) {
+		MCR.addCall("recordId", recordId);
 		List<String> fakeList = new ArrayList<>();
 		fakeList.add("fakeIdFromRecordTypeHandlerSpy");
+		MCR.addReturned(fakeList);
 		return fakeList;
 	}
 
 	@Override
 	public boolean isPublicForRead() {
+		MCR.addCall();
+		MCR.addReturned(isPublicForRead);
 		return isPublicForRead;
 	}
 
 	@Override
 	public boolean hasRecordPartReadConstraint() {
-		hasRecordPartReadContraintHasBeenCalled = true;
+		MCR.addCall();
+		boolean answer = false;
+		// hasRecordPartReadContraintHasBeenCalled = true;
 		if ("readWrite".equals(recordPartConstraint)) {
-			return true;
-		}
+			answer = true;
+		} else
 
 		if ("write".equals(recordPartConstraint)) {
-			return false;
+			answer = false;
 		}
-		// ""
-		return false;
+		MCR.addReturned(answer);
+		return answer;
 	}
 
 	@Override
 	public DataGroup getMetadataGroup() {
+		MCR.addCall();
 		DataGroup metadataDataGroup = new DataGroupSpy("organisationGroup");
 		metadataDataGroup.addChild(new DataAtomicSpy("nameInData", "organisation"));
+		MCR.addReturned(metadataDataGroup);
 		return metadataDataGroup;
 	}
 
 	@Override
 	public Set<String> getRecordPartReadConstraints() {
+		MCR.addCall();
 		Set<String> constraints = new HashSet<String>();
 		constraints.add("someKey");
+		MCR.addReturned(constraints);
 		return constraints;
 	}
 
 	@Override
 	public boolean hasRecordPartWriteConstraint() {
-		hasRecordPartReadContraintHasBeenCalled = true;
+		MCR.addCall();
+		boolean answer = false;
+		// hasRecordPartReadContraintHasBeenCalled = true;
 		if ("readWrite".equals(recordPartConstraint)) {
-			return true;
+			answer = true;
+		} else if ("write".equals(recordPartConstraint)) {
+			answer = true;
 		}
-
-		if ("write".equals(recordPartConstraint)) {
-			return true;
-		}
-		return false;
+		MCR.addReturned(answer);
+		return answer;
 	}
 
 	@Override
 	public Set<String> getRecordPartWriteConstraints() {
+		MCR.addCall();
+		MCR.addReturned(writeConstraints);
 		return writeConstraints;
+	}
+
+	@Override
+	public boolean hasParent() {
+		MCR.addCall();
+		MCR.addReturned(hasParent);
+		return hasParent;
+	}
+
+	@Override
+	public String getParentId() {
+		MCR.addCall();
+		MCR.addReturned(parentId);
+		return parentId;
+	}
+
+	@Override
+	public boolean isChildOfBinary() {
+		MCR.addCall();
+		MCR.addReturned(isChildOfBinary);
+		return isChildOfBinary;
+	}
+
+	@Override
+	public boolean representsTheRecordTypeDefiningSearches() {
+		MCR.addCall();
+		MCR.addReturned(representsTheRecordTypeDefiningSearches);
+		return representsTheRecordTypeDefiningSearches;
+	}
+
+	@Override
+	public boolean representsTheRecordTypeDefiningRecordTypes() {
+		MCR.addCall();
+		MCR.addReturned(representsTheRecordTypeDefiningRecordTypes);
+		return representsTheRecordTypeDefiningRecordTypes;
+	}
+
+	@Override
+	public boolean hasLinkedSearch() {
+		MCR.addCall();
+		MCR.addReturned(hasLinkedSearch);
+		return hasLinkedSearch;
+	}
+
+	@Override
+	public String getSearchId() {
+		MCR.addCall();
+		MCR.addReturned(returnedSearchId);
+		return returnedSearchId;
 	}
 
 }
