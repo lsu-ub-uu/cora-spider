@@ -28,6 +28,10 @@ public class AuthenticatorSpy implements Authenticator {
 	public boolean authenticationWasCalled = false;
 	public String authToken;
 	public User returnedUser;
+	/**
+	 * throwAuthenticationException is default false, if set to true will an authenticationException
+	 * be thrown for all calls to getUserForToken
+	 */
 	public boolean throwAuthenticationException = false;
 
 	@Override

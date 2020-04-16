@@ -58,8 +58,8 @@ public class RecordStorageSpy implements RecordStorage {
 					.createRecordInfoWithRecordTypeAndRecordId("recordType", "metadata");
 			dataGroup.addChild(recordInfo);
 			dataGroup.addChild(new DataAtomicSpy("abstract", abstractString));
-			MCR.addReturned(dataGroup);
 		}
+		MCR.addReturned(dataGroup);
 		return dataGroup;
 	}
 

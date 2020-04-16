@@ -37,9 +37,11 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordFactory;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.DataRecordLinkFactory;
 import se.uu.ub.cora.data.DataRecordLinkProvider;
+import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
@@ -52,6 +54,7 @@ import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
 import se.uu.ub.cora.spider.dependency.RecordIdGeneratorProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
@@ -97,6 +100,7 @@ public class SpiderRecordCreatorTest {
 	private DataAtomicFactorySpy dataAtomicFactory;
 	private DataRecordLinkFactory dataRecordLinkFactory;
 	private DataCopierFactory dataCopierFactory;
+	private DataRecordFactory dataRecordFactorySpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -125,6 +129,8 @@ public class SpiderRecordCreatorTest {
 		DataCopierProvider.setDataCopierFactory(dataCopierFactory);
 		dataRecordLinkFactory = new DataRecordLinkFactorySpy();
 		DataRecordLinkProvider.setDataRecordLinkFactory(dataRecordLinkFactory);
+		dataRecordFactorySpy = new DataRecordFactorySpy();
+		DataRecordProvider.setDataRecordFactory(dataRecordFactorySpy);
 	}
 
 	private void setUpDependencyProvider() {
@@ -593,4 +599,32 @@ public class SpiderRecordCreatorTest {
 		assertEquals(recordLinkTestsRecordStorage.type, "toRecordType");
 		assertEquals(recordLinkTestsRecordStorage.id, "toRecordId");
 	}
+
+	@Test
+	public void testReturnEmptyRecordIfUserHasCreateButNotReadAccess() {
+		authorizator = new SpiderAuthorizatorSpy();
+		dataValidator = new DataValidatorSpy();
+		recordStorage = new OldRecordStorageSpy();
+		idGenerator = new IdGeneratorSpy();
+		ruleCalculator = new RuleCalculatorSpy();
+		linkCollector = new DataRecordLinkCollectorSpy();
+		setUpDependencyProvider();
+		dataGroupToRecordEnhancer.addReadAction = false;
+
+		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
+				"cora");
+		DataRecord createdRecord = recordCreator.createAndStoreRecord("dummyAuthenticatedToken",
+				"spyType", dataGroup);
+
+		DataGroup groupOut = createdRecord.getDataGroup();
+		DataGroup recordInfo = groupOut.getFirstGroupWithNameInData("recordInfo");
+		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
+		assertEquals("noReadAccess", recordId);
+
+		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
+		assertEquals(typeGroup.getFirstAtomicValueWithNameInData("linkedRecordType"), "spyType");
+		assertEquals(typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId"), "noReadAccess");
+		assertEquals(groupOut.getNameInData(), "noReadAccess");
+	}
+
 }

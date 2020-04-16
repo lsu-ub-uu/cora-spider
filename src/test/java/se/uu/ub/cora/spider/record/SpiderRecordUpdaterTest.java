@@ -249,42 +249,6 @@ public class SpiderRecordUpdaterTest {
 	}
 
 	@Test
-	public void testCorrectSpiderAuthorizatorForReadWriteRecordPartConstraints() throws Exception {
-		recordStorage = new OldRecordStorageSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		setUpDependencyProvider();
-
-		recordTypeHandlerSpy.recordPartConstraint = "readWrite";
-		DataGroup dataGroup = new DataGroupSpy("nameInData");
-		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				"spyType", "spyId", "cora"));
-
-		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
-
-		authorizator.MCR.assertParameters(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0,
-				authenticator.returnedUser, "update", "spyType",
-				termCollector.MCR.getReturnValue("collectTerms", 0), true);
-		authorizator.MCR.assertParameters(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1,
-				authenticator.returnedUser, "update", "spyType",
-				termCollector.MCR.getReturnValue("collectTerms", 1), true);
-		authorizator.MCR.assertParameters(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 2,
-				authenticator.returnedUser, "read", "spyType",
-				termCollector.MCR.getReturnValue("collectTerms", 1), true);
-
-		authorizator.MCR.assertNumberOfCallsToMethod(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 3);
-
-		// removed dataGroup returned
-		DataGroup lastEnhancedDataGroup = dataGroupToRecordEnhancer.dataGroup;
-
-		dataRedactorSpy.MCR.assertReturn("removeChildrenForConstraintsWithoutPermissions", 0,
-				lastEnhancedDataGroup);
-	}
-
-	@Test
 	public void testRecordEnhancerCalled() {
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new OldRecordStorageSpy();

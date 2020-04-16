@@ -37,7 +37,6 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		implements SpiderRecordListReader {
-	private static final String LIST = "list";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataList readRecordList;
@@ -89,7 +88,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {
 		if (listedRecordTypeIsNotPublicRead()) {
-			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, LIST, recordType);
+			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "list", recordType);
 		}
 	}
 

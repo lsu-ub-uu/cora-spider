@@ -77,7 +77,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.dataGroupTermCollector = dependencyProvider.getDataGroupTermCollector();
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
-
 	}
 
 	public static SpiderRecordUpdaterImp usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -115,9 +114,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		updateRecordInStorage(collectedTerms);
 		indexData(collectedTerms);
 
-		if (recordTypeHandler.hasRecordPartReadConstraint()) {
-			checkReadAccessAndRedactUpdatedData(recordType, collectedTerms);
-		}
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup);
 	}
 
@@ -309,16 +305,6 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private void indexData(DataGroup collectedTerms) {
 		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
 		recordIndexer.indexData(ids, collectedTerms, topDataGroup);
-	}
-
-	private void checkReadAccessAndRedactUpdatedData(String recordType, DataGroup collectedTerms) {
-		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
-		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
-				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, "read",
-						recordType, collectedTerms, true);
-		topDataGroup = dataRedactor.removeChildrenForConstraintsWithoutPermissions(topDataGroup,
-				recordPartReadConstraints, usersReadRecordPartPermissions);
 	}
 
 }

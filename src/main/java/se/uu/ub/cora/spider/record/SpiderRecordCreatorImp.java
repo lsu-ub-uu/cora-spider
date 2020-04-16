@@ -30,8 +30,10 @@ import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
@@ -106,7 +108,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = extractIdFromData();
 
-		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId, recordAsDataGroup);
+		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId,
+				recordAsDataGroup);
 		checkUserIsAuthorisedToCreateIncomingData(recordType, collectedTerms);
 
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup,
@@ -119,7 +122,30 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 		useExtendedFunctionalityBeforeReturn(recordType, recordAsDataGroup);
 
-		return dataGroupToRecordEnhancer.enhance(user, recordType, recordAsDataGroup);
+		DataRecord record = null;
+		try {
+			record = dataGroupToRecordEnhancer.enhance(user, recordType, recordAsDataGroup);
+		} catch (AuthorizationException e) {
+			DataGroup noReadAccessGroup = createSpecialNoReadAccessAnswerRecord();
+			record = DataRecordProvider.getDataRecordWithDataGroup(noReadAccessGroup);
+		}
+		return record;
+	}
+
+	private DataGroup createSpecialNoReadAccessAnswerRecord() {
+		DataGroup noReadAccessGroup = DataGroupProvider
+				.getDataGroupUsingNameInData("noReadAcces");
+		DataGroup recordInfo = DataGroupProvider.getDataGroupUsingNameInData("recordInfo");
+		recordInfo.addChild(
+				DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("id", "noReadAccess"));
+		DataGroup type = DataGroupProvider.getDataGroupUsingNameInData("type");
+		recordInfo.addChild(type);
+		type.addChild(DataAtomicProvider
+				.getDataAtomicUsingNameInDataAndValue("linkedRecordType", recordType));
+		type.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("linkedRecordId",
+				"noReadAccess"));
+		noReadAccessGroup.addChild(recordInfo);
+		return noReadAccessGroup;
 	}
 
 	private void tryToGetActiveUser() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019 Uppsala University Library
+ * Copyright 2015, 2016, 2019, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,23 +20,24 @@
 package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.storage.RecordStorage;
 
-public final class SpiderRecordReaderImp extends SpiderRecordHandler implements SpiderRecordReader {
+public final class SpiderRecordReaderImp implements SpiderRecordReader {
 	private static final String READ = "read";
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private User user;
 	private String authToken;
-	private DataGroupTermCollector dataGroupTermCollector;
 	private RecordTypeHandler recordTypeHandler;
 	private SpiderDependencyProvider dependencyProvider;
+	private RecordStorage recordStorage;
+	private String recordType;
 
 	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -46,7 +47,6 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.dataGroupTermCollector = dependencyProvider.getDataGroupTermCollector();
 	}
 
 	public static SpiderRecordReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -59,61 +59,42 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 	public DataRecord readRecord(String authToken, String recordType, String recordId) {
 		this.authToken = authToken;
 		this.recordType = recordType;
-		this.recordId = recordId;
-		tryToGetUserWithActiveToken();
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		// checkUserIsAuthorizedForActionOnRecordType();
-		return tryToReadRecord(recordType, recordId);
+
+		return tryToReadRecord(recordId);
+	}
+
+	private DataRecord tryToReadRecord(String recordId) {
+		tryToGetUserWithActiveToken();
+		checkUserIsAuthorizedForActionOnRecordType();
+		DataGroup recordRead = recordStorage.read(recordType, recordId);
+		return tryToReadAndEnhanceRecord(recordRead);
 	}
 
 	private void tryToGetUserWithActiveToken() {
 		user = authenticator.getUserForToken(authToken);
 	}
 
-	// private void checkUserIsAuthorizedForActionOnRecordType() {
-	// if (isNotPublicForRead()) {
-	// spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
-	// }
-	// }
-
-	// private boolean isNotPublicForRead() {
-	// return !recordTypeHandler.isPublicForRead();
-	// }
-
-	private DataRecord tryToReadRecord(String recordType, String recordId) {
-		DataGroup recordRead = recordStorage.read(recordType, recordId);
-
-		setImplementingRecordTypeHandlerIfAbstract(recordRead);
-		// if (isPublicForRead()) {
-		// return enhanceRecord(recordType, recordRead);
-		// }
-		//
-		// DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
-		// Set<String> usersReadRecordPartPermissions = spiderAuthorizator
-		// .checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, READ,
-		// recordType, collectedTerms, hasRecordPartReadWriteConstraint());
-		//
-		// recordRead = redactDataGroup(recordRead, usersReadRecordPartPermissions);
-		return enhanceRecord(recordType, recordRead);
-	}
-
-	private DataRecord enhanceRecord(String recordType, DataGroup recordRead) {
-		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead);
-	}
-
-	// private boolean hasRecordPartReadWriteConstraint() {
-	// return recordTypeHandler.hasRecordPartReadConstraint();
-	// }
-
-	// private boolean isPublicForRead() {
-	// return recordTypeHandler.isPublicForRead();
-	// }
-
-	private void setImplementingRecordTypeHandlerIfAbstract(DataGroup recordRead) {
-		if (recordTypeHandler.isAbstract()) {
-			String implementingRecordType = getImplementingRecordType(recordRead);
-			recordTypeHandler = dependencyProvider.getRecordTypeHandler(implementingRecordType);
+	private void checkUserIsAuthorizedForActionOnRecordType() {
+		if (isNotPublicForRead()) {
+			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
 		}
+	}
+
+	private boolean isNotPublicForRead() {
+		return !recordTypeHandler.isPublicForRead();
+	}
+
+	private DataRecord tryToReadAndEnhanceRecord(DataGroup recordRead) {
+		String implementingRecordType = ensureImplementingRecordType(recordRead);
+		return dataGroupToRecordEnhancer.enhance(user, implementingRecordType, recordRead);
+	}
+
+	private String ensureImplementingRecordType(DataGroup recordRead) {
+		if (recordTypeHandler.isAbstract()) {
+			recordType = getImplementingRecordType(recordRead);
+		}
+		return recordType;
 	}
 
 	private String getImplementingRecordType(DataGroup recordRead) {
@@ -121,21 +102,4 @@ public final class SpiderRecordReaderImp extends SpiderRecordHandler implements 
 		DataGroup type = recordInfo.getFirstGroupWithNameInData("type");
 		return type.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
-
-	// private DataGroup getCollectedTermsForRecord(DataGroup recordRead) {
-	// String metadataId = recordTypeHandler.getMetadataId();
-	// return dataGroupTermCollector.collectTerms(metadataId, recordRead);
-	// }
-	//
-	// private DataGroup redactDataGroup(DataGroup recordRead,
-	// Set<String> usersReadRecordPartPermissions) {
-	// if (hasRecordPartReadWriteConstraint()) {
-	// Set<String> recordPartReadConstraints = recordTypeHandler
-	// .getRecordPartReadConstraints();
-	// DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-	// return dataRedactor.removeChildrenForConstraintsWithoutPermissions(recordRead,
-	// recordPartReadConstraints, usersReadRecordPartPermissions);
-	// }
-	// return recordRead;
-	// }
 }

@@ -124,6 +124,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private void ensurePublicOrReadAccess() {
 		if (!recordTypeHandler.isPublicForRead()) {
 			checkAndGetUserAuthorizationsForReadAction();
+		} else {
+			readRecordPartPermissions = Collections.emptySet();
 		}
 	}
 

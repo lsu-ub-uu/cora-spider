@@ -701,6 +701,16 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
+	public void testReadPermissionsAreAddedToRecordPublicData() throws Exception {
+		recordTypeHandlerSpy.isPublicForRead = true;
+		createRecordStorageSpy();
+
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+
+		assertEquals(record.getReadPermissions(), Collections.emptySet());
+	}
+
+	@Test
 	public void testWritePermissionsAreAddedToRecord() throws Exception {
 		createRecordStorageSpy();
 

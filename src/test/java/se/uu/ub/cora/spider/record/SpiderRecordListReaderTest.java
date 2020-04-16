@@ -59,6 +59,9 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public class SpiderRecordListReaderTest {
 
+	private static final String SOME_USER_TOKEN = "someToken78678567";
+	private static final String SOME_RECORD_TYPE = "place";
+
 	private RecordStorageSpy recordStorage;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
@@ -70,8 +73,6 @@ public class SpiderRecordListReaderTest {
 	private DataGroup nonEmptyFilter;
 	private LoggerFactorySpy loggerFactorySpy;
 
-	private static final String SOME_USER_TOKEN = "someToken78678567";
-	private static final String SOME_RECORD_TYPE = "place";
 	private DataGroupFactory dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
 	private DataListFactory dataListFactory;

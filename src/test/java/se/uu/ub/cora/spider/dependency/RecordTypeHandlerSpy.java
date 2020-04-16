@@ -33,17 +33,21 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	/**
-	 * isPublicForRead is default false, if set to true, is the recordType considered totaly public
-	 * and no security checks are done for reading
+	 * isPublicForRead is default false, if set to true, the recordType is considered totaly public
+	 * and no security checks are supposed to be done for reading
 	 */
 	public boolean isPublicForRead = false;
 	/**
-	 * isAbstract
+	 * isAbstract is default false, if set to true, the recordType is considered abstract
 	 */
 	public boolean isAbstract = false;
-	public boolean recordTypeHasReadPartConstraints = false;
+	/**
+	 * recordTypeHasReadPartConstraints is default false, if set to true, the recordType has read
+	 * record parts constraints.
+	 */
+	// public boolean recordTypeHasReadPartConstraints = false;
 	public String recordPartConstraint = "";
-	public boolean hasRecordPartReadContraintHasBeenCalled = false;
+	// public boolean hasRecordPartReadContraintHasBeenCalled = false;
 	public Set<String> writeConstraints = new HashSet<String>();
 
 	public boolean hasParent = false;
@@ -110,7 +114,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public boolean hasRecordPartReadConstraint() {
 		MCR.addCall();
 		boolean answer = false;
-		hasRecordPartReadContraintHasBeenCalled = true;
+		// hasRecordPartReadContraintHasBeenCalled = true;
 		if ("readWrite".equals(recordPartConstraint)) {
 			answer = true;
 		} else
@@ -144,7 +148,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public boolean hasRecordPartWriteConstraint() {
 		MCR.addCall();
 		boolean answer = false;
-		hasRecordPartReadContraintHasBeenCalled = true;
+		// hasRecordPartReadContraintHasBeenCalled = true;
 		if ("readWrite".equals(recordPartConstraint)) {
 			answer = true;
 		} else if ("write".equals(recordPartConstraint)) {
