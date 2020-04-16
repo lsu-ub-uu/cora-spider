@@ -133,17 +133,17 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private DataGroup createSpecialNoReadAccessAnswerRecord() {
-		DataGroup noReadAccessGroup = DataGroupProvider
-				.getDataGroupUsingNameInData("noReadAcces");
+		String noReadAccess = "noReadAccess";
+		DataGroup noReadAccessGroup = DataGroupProvider.getDataGroupUsingNameInData(noReadAccess);
 		DataGroup recordInfo = DataGroupProvider.getDataGroupUsingNameInData("recordInfo");
 		recordInfo.addChild(
-				DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("id", "noReadAccess"));
+				DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("id", noReadAccess));
 		DataGroup type = DataGroupProvider.getDataGroupUsingNameInData("type");
 		recordInfo.addChild(type);
-		type.addChild(DataAtomicProvider
-				.getDataAtomicUsingNameInDataAndValue("linkedRecordType", recordType));
+		type.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("linkedRecordType",
+				recordType));
 		type.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("linkedRecordId",
-				"noReadAccess"));
+				noReadAccess));
 		noReadAccessGroup.addChild(recordInfo);
 		return noReadAccessGroup;
 	}
