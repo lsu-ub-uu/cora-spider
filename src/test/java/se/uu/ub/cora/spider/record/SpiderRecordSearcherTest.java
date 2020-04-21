@@ -150,7 +150,7 @@ public class SpiderRecordSearcherTest {
 	}
 
 	@Test
-	public void testReadListAuthenticatedAndAuthorized() {
+	public void testSearchAuthenticated() {
 		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 		assertNotNull(searchResult);
 
@@ -158,13 +158,13 @@ public class SpiderRecordSearcherTest {
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "search",
 				"place");
 
-		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "place");
-		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
-				((RecordSearchSpy) recordSearch).place44);
+		// termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "place");
+		// termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
+		// ((RecordSearchSpy) recordSearch).place44);
 
-		String methodName2 = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
-		authorizator.MCR.assertParameters(methodName2, 0, authenticator.returnedUser, "read",
-				"place", termCollector.MCR.getReturnValue("collectTerms", 0));
+		// String methodName2 = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
+		// authorizator.MCR.assertParameters(methodName2, 0, authenticator.returnedUser, "read",
+		// "place", termCollector.MCR.getReturnValue("collectTerms", 0));
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
@@ -181,7 +181,7 @@ public class SpiderRecordSearcherTest {
 	}
 
 	@Test(expectedExceptions = DataException.class)
-	public void testReadListAuthenticatedAndAuthorizedInvalidData() {
+	public void testSearchAuthenticatedAndAuthorizedInvalidData() {
 		dataValidator.validValidation = false;
 		recordSearcher.search(SOME_AUTH_TOKEN, A_SEARCH_ID, someSearchData);
 	}
@@ -215,12 +215,23 @@ public class SpiderRecordSearcherTest {
 
 	@Test
 	public void testSearchResultIsFilteredAndEnhancedForEachResult() {
-		authorizator.setNotAutorizedForActionOnRecordType("read", "binary");
 
 		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, ANOTHER_SEARCH_ID,
 				someSearchData);
 		int numberOfMatchesFetched = searchResult.getDataList().size();
-		assertEquals(numberOfMatchesFetched, 2);
+		assertEquals(numberOfMatchesFetched, 3);
+		assertEquals(searchResult.getFromNo(), "1");
+		assertEquals(searchResult.getToNo(), String.valueOf(numberOfMatchesFetched));
+	}
+
+	@Test
+	public void testSearchResultOnlyFirstResultHasReadAccess() {
+		dataGroupToRecordEnhancer.addReadActionOnlyFirst = true;
+
+		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, ANOTHER_SEARCH_ID,
+				someSearchData);
+		int numberOfMatchesFetched = searchResult.getDataList().size();
+		assertEquals(numberOfMatchesFetched, 1);
 		assertEquals(searchResult.getFromNo(), "1");
 		assertEquals(searchResult.getToNo(), String.valueOf(numberOfMatchesFetched));
 	}
