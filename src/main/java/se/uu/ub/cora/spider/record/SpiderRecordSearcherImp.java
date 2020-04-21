@@ -23,22 +23,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataListProvider;
+import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.search.SearchResult;
 import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
-	private static final String READ = "read";
 	private static final String SEARCH = "search";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -51,7 +51,6 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private DataList dataList;
 	private DataGroup searchMetadata;
 	private List<DataGroup> recordTypeToSearchInGroups;
-	private DataGroupTermCollector collectTermCollector;
 	private int startRow = 1;
 
 	private SpiderRecordSearcherImp(SpiderDependencyProvider dependencyProvider,
@@ -62,7 +61,6 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.recordSearch = dependencyProvider.getRecordSearch();
-		collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 
 	}
 
@@ -163,8 +161,11 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 
 	private void filterEnhanceAndAddToList(DataGroup dataGroup) {
 		String recordType = extractRecordTypeFromRecordInfo(dataGroup);
-		if (isUserAuthorisedToReadData(recordType, dataGroup)) {
-			dataList.addData(dataGroupToRecordEnhancer.enhance(user, recordType, dataGroup));
+		try {
+			DataRecord record = dataGroupToRecordEnhancer.enhance(user, recordType, dataGroup);
+			dataList.addData(record);
+		} catch (AuthorizationException noReadAuthorization) {
+			// do nothing
 		}
 	}
 
@@ -172,24 +173,5 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
 		return typeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-	}
-
-	private boolean isUserAuthorisedToReadData(String recordType, DataGroup recordFromIndex) {
-		DataGroup collectedTerms = getCollectedTermsForRecord(recordType, recordFromIndex);
-
-		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
-				recordType, collectedTerms);
-	}
-
-	private DataGroup getCollectedTermsForRecord(String recordType, DataGroup recordFromIndex) {
-
-		String metadataId = getMetadataIdFromRecordType(recordType);
-		return collectTermCollector.collectTerms(metadataId, recordFromIndex);
-	}
-
-	private String getMetadataIdFromRecordType(String recordType) {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
-		return recordTypeHandler.getMetadataId();
 	}
 }
