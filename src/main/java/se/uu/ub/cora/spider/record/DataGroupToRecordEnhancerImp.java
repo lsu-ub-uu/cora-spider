@@ -71,12 +71,16 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	@Override
 	public DataRecord enhance(User user, String recordType, DataGroup dataGroup) {
+		commonSetupForEnhance(user, recordType, dataGroup);
+		return enhanceDataGroupToRecord(dataGroup);
+	}
+
+	private void commonSetupForEnhance(User user, String recordType, DataGroup dataGroup) {
 		this.user = user;
 		this.recordType = recordType;
 		recordTypeHandler = getRecordTypeHandlerForRecordType(recordType);
 		collectedTerms = getCollectedTermsForRecord(dataGroup);
 		handledRecordId = getRecordIdFromDataRecord(dataGroup);
-		return enhanceDataGroupToRecord(dataGroup);
 	}
 
 	private RecordTypeHandler getRecordTypeHandlerForRecordType(String recordType) {
@@ -112,6 +116,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private DataRecord enhanceDataGroupToRecord(DataGroup dataGroup) {
 		ensurePublicOrReadAccess();
+		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataGroup);
+	}
+
+	private DataRecord enhanceDataGroupToRecordUsingReadRecordPartPermissions(DataGroup dataGroup) {
 		DataRecord dataRecord = createDataRecord(dataGroup);
 		addActions(dataRecord);
 		addPermissions(dataRecord);
@@ -429,4 +437,37 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read", "image");
 	}
 
+	@Override
+	// public DataRecord enhanceIgnoringReadAccess(User user, String recordType, DataGroup
+	// dataGroup) {
+	public DataRecord enhanceForNonReadAccess(User user, String recordType, DataGroup dataGroup) {
+		// TODO Auto-generated method stub
+		// return null;
+		commonSetupForEnhance(user, recordType, dataGroup);
+		return enhanceDataGroupToRecord2(dataGroup);
+	}
+
+	private DataRecord enhanceDataGroupToRecord2(DataGroup dataGroup) {
+		ensurePublicOrReadAccess2();
+		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataGroup);
+	}
+
+	private void ensurePublicOrReadAccess2() {
+		if (!recordTypeHandler.isPublicForRead()) {
+			checkAndGetUserAuthorizationsForReadAction2();
+		} else {
+			readRecordPartPermissions = Collections.emptySet();
+		}
+	}
+
+	private void checkAndGetUserAuthorizationsForReadAction2() {
+		try {
+			// TODO: call non throwing method...
+			readRecordPartPermissions = spiderAuthorizator
+					.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+							"read", recordType, collectedTerms, true);
+		} catch (Exception catchedException) {
+			throw catchedException;
+		}
+	}
 }

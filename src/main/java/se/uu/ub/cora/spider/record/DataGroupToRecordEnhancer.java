@@ -29,11 +29,19 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 /**
  * DataGroupToRecordEnhancer converts a {@link DataGroup} into a {@link DataRecord}. This includes
  * adding actions to the record and read actions to the links in the DataGroup. Use the
- * {@link #enhance(User, String, DataGroup)} method to convert a DataGroup.
+ * {@link #enhance(User, String, DataGroup)} method to convert a DataGroup when read access is
+ * required and {@link #enhanceForNonReadAccess(User, String, DataGroup)} when the user might not
+ * have read access, create etc.
  */
 public interface DataGroupToRecordEnhancer {
 	/**
-	 * Enhance converts a DataGroup into a DataRecord. The conversion has a few major parts.
+	 * Enhance converts a DataGroup into a DataRecord. It is very similar to
+	 * {@link #enhanceForNonReadAccess(User, String, DataGroup)} except that it will not complete if
+	 * the User does not have read access to the enhanced record and it will instead throw an
+	 * exception. This method is intended to be used for such actions that require read access,
+	 * read, list, search etc.
+	 * <p>
+	 * The conversion has a few major parts.
 	 * <ol>
 	 * <li>Create a new DataRecord, and add the DataGroup to it.</li>
 	 * <li>Find out what actions the User is allowed to do for the record and add those actions to
@@ -71,5 +79,48 @@ public interface DataGroupToRecordEnhancer {
 	 * @return A newly created DataRecord containing the DataGroup with added actions
 	 */
 	DataRecord enhance(User user, String recordType, DataGroup dataGroup);
+
+	/**
+	 * enhanceForNonReadAccess converts a DataGroup into a DataRecord. It is very similar to
+	 * {@link #enhance(User, String, DataGroup)} except that it will complete even if the User does
+	 * not have read access to the enhanced record and not throw an exception. This method is
+	 * intended to be used for actions such as create where the user may only have create but no
+	 * read permissions.
+	 * <p>
+	 * The conversion has a few major parts.
+	 * <ol>
+	 * <li>Create a new DataRecord, and add the DataGroup to it.</li>
+	 * <li>Find out what actions the User is allowed to do for the record and add those actions to
+	 * the DataRecord. This is a multistep process in itself.
+	 * <ol>
+	 * <li>Add standard actions for all recordTypes (read, update, delete, index,
+	 * incomingLinks)</li>
+	 * <li>If dataGroup beeing enhanced is a binary type, add upload</li>
+	 * <li>If dataGroup beeing enhanced is a search type, add search</li>
+	 * <li>If dataGroup beeing enhanced is a recordType type, add recordType specific actions
+	 * (create, list, validate, search)</li>
+	 * </ol>
+	 * </li>
+	 * <li>Redact information the user is not allowed to read from the DataGroup, based on settings
+	 * in metadata and the users currently active roles. If the user has no read access SHOULD all
+	 * read protected data be redacted.</li>
+	 * <li>Add read links to all linked records in the DataGroup if the User has read access to the
+	 * linked record.</li>
+	 * </ol>
+	 * <p>
+	 * Note that this method does not guarante that the User has read action to the data, and is
+	 * therefor inteded to be used on action such as create, where the user is providing data and
+	 * not for actions where data is read from storage.
+	 * 
+	 * @param user
+	 *            The User that will get the DataRecord
+	 * @param recordType
+	 *            A String with the records recordType, it must be the implementing recordType (not
+	 *            the abstract parent type if the recordType has a parent)
+	 * @param dataGroup
+	 *            A DataGroup with data to turn into a DataRecord
+	 * @return A newly created DataRecord containing the DataGroup with added actions
+	 */
+	DataRecord enhanceForNonReadAccess(User user, String recordType, DataGroup dataGroup);
 
 }

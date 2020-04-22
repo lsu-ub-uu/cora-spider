@@ -77,8 +77,34 @@ public interface SpiderAuthorizator {
 			String recordType, DataGroup collectedData);
 
 	/**
-	 * checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData MUST implement the same
+	 * checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData MUST implement the same
 	 * requirements as
+	 * {@link #userIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String, DataGroup)}
+	 * and if not authorized throw an {@link AuthorizationException}
+	 * 
+	 * @param user
+	 *            the logged in user (or guest)
+	 * @param action
+	 *            the action the user wants to perform, such as read, update, etc.
+	 * @param recordType
+	 *            the recordType the user wants to perform the action on
+	 * @param collectedData
+	 *            the collectedData to use extend the access check with
+	 * @return
+	 */
+	/**
+	 * TODO: finish enable and use instead of
+	 * checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData when
+	 * calculateRecordPartPermissions is false and result is not used spiderUploaderImp,
+	 * ?spiderRecordUpdaterImp?, SpiderRecordIncomingLinksReaderImp, SpiderRecordDeleterImp,
+	 * SpiderRecordCreatorImp,
+	 */
+	// boolean checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+	// String recordType, DataGroup collectedData);
+
+	/**
+	 * getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData MUST implement the
+	 * same requirements as
 	 * {@link #userIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String)} and if
 	 * not authorized throw an {@link AuthorizationException}
 	 * <p>
@@ -87,6 +113,9 @@ public interface SpiderAuthorizator {
 	 * that matches the collected data SHALL be returned. The returned list of recordPart
 	 * permissions should be filtered so that it only contains those recordPart permissions that are
 	 * for the specified action and the specified recordType.
+	 * <p>
+	 * TODO: spec that read returns read recordPartPermission, all other actions return write
+	 * recordPartPermission
 	 * 
 	 * @param user
 	 *            the logged in user (or guest)
@@ -100,6 +129,45 @@ public interface SpiderAuthorizator {
 	 *            a boolean, if recordPartPermissions should be calculated
 	 * @return A list of recordPart permissions
 	 */
+	Set<String> getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(User user,
+			String action, String recordType, DataGroup collectedData,
+			boolean calculateRecordPartPermissions);
+
+	/**
+	 * TODO: call to this with boolean true is more or
+	 * less:checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData and should be that instead
+	 * som the boolean can be removed from here
+	 * <p>
+	 * checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData MUST implement the same
+	 * requirements as
+	 * {@link #userIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String)} and if
+	 * not authorized throw an {@link AuthorizationException}
+	 * <p>
+	 * If the user is authorized and calculateRecordPartPermissions is specified to true, should a
+	 * list of recordPart permissions collected from all the active rules the user has access to,
+	 * that matches the collected data SHALL be returned. The returned list of recordPart
+	 * permissions should be filtered so that it only contains those recordPart permissions that are
+	 * for the specified action and the specified recordType.
+	 * <p>
+	 * TODO: spec that read returns read recordPartPermission, all other actions return write
+	 * recordPartPermission
+	 * 
+	 * @param user
+	 *            the logged in user (or guest)
+	 * @param action
+	 *            the action the user wants to perform, such as read, update, etc.
+	 * @param recordType
+	 *            the recordType the user wants to perform the action on
+	 * @param collectedData
+	 *            the collectedData to use extend the access check with
+	 * @param calculateRecordPartPermissions,
+	 *            a boolean, if recordPartPermissions should be calculated
+	 * @return A list of recordPart permissions
+	 */
+	// TODO: rename to
+	// checkGetUsersAuthorizedRecordPartPermissionsForActionOnRecordTypeAndCollectedData
+	// or
+	// checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData
 	Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
 			String action, String recordType, DataGroup collectedData,
 			boolean calculateRecordPartPermissions);
