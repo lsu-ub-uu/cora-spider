@@ -125,6 +125,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		DataRecord record = null;
 		try {
 			record = dataGroupToRecordEnhancer.enhance(user, recordType, recordAsDataGroup);
+			// record = dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user, recordType,
+			// recordAsDataGroup);
 		} catch (AuthorizationException e) {
 			DataGroup noReadAccessGroup = createSpecialNoReadAccessAnswerRecord();
 			record = DataRecordProvider.getDataRecordWithDataGroup(noReadAccessGroup);

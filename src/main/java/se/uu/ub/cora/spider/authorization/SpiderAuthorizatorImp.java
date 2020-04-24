@@ -270,8 +270,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	@Override
 	public Set<String> getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-			User user, String action, String recordType, DataGroup collectedData,
-			boolean calculateRecordPartPermissions) {
+			User user, String action, String recordType, DataGroup collectedData) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -128,4 +128,13 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 		notAutorizedForAction.add(action);
 	}
 
+	@Override
+	public Set<String> getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
+			User user, String action, String recordType, DataGroup collectedData) {
+		MCR.addCall("user", user, "action", action, "recordType", recordType, "collectedData",
+				collectedData);
+		MCR.addReturned(null);
+		return null;
+	}
+
 }

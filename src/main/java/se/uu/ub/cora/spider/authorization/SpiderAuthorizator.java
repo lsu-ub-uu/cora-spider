@@ -28,10 +28,14 @@ public interface SpiderAuthorizator {
 
 	/**
 	 * userIsAuthorizedForActionOnRecordType is used to check if a user is allowed to perform the
-	 * action on the specified recordType based on the rules the user is associated with.<br>
-	 * <br>
+	 * action on the specified recordType based on the rules the user is associated with.
+	 * <p>
 	 * Implementations MUST ensure that the user is active in storage, and that the user through its
 	 * stored active rules has access to the action on the recordType.
+	 * <p>
+	 * This method is very similar to
+	 * {@link #checkUserIsAuthorizedForActionOnRecordType(User, String, String)} with the main
+	 * difference beeing that this one returns a boolean instead of throwing an excepiton.
 	 * 
 	 * @param user
 	 *            the logged in user (or guest)
@@ -45,9 +49,17 @@ public interface SpiderAuthorizator {
 	boolean userIsAuthorizedForActionOnRecordType(User user, String action, String recordType);
 
 	/**
-	 * checkUserIsAuthorizedForActionOnRecordType MUST implement the same requirements as
-	 * {@link #userIsAuthorizedForActionOnRecordType(User, String, String)} and if not authorized
-	 * throw an {@link AuthorizationException}
+	 * checkUserIsAuthorizedForActionOnRecordType is used to check if a user is allowed to perform
+	 * the action on the specified recordType based on the rules the user is associated with.
+	 * <p>
+	 * Implementations MUST ensure that the user is active in storage, and that the user through its
+	 * stored active rules has access to the action on the recordType.
+	 * <p>
+	 * If the user is not authorized MUST implementations throw an {@link AuthorizationException}
+	 * <p>
+	 * This method is very similar to
+	 * {@link #userIsAuthorizedForActionOnRecordType(User, String, String)} with the main difference
+	 * beeing that this one throws an excepiton instead of returning a boolean.
 	 * 
 	 * @param user
 	 *            the logged in user (or guest)
@@ -59,9 +71,18 @@ public interface SpiderAuthorizator {
 	void checkUserIsAuthorizedForActionOnRecordType(User user, String action, String recordType);
 
 	/**
-	 * userIsAuthorizedForActionOnRecordTypeAndCollectedData MUST implement the same requirements as
-	 * {@link #userIsAuthorizedForActionOnRecordType(User, String, String)} with the addition of a
-	 * check that the users also has access to the collectedData through its associated rules.
+	 * userIsAuthorizedForActionOnRecordTypeAndCollectedData is used to check if a user is allowed
+	 * to perform the action on the specified recordType based on the rules the user is associated
+	 * with. In addition should implementations also check that the users also has access to the
+	 * collectedData through its associated rules.
+	 * <p>
+	 * Implementations MUST ensure that the user is active in storage, and that the user through its
+	 * stored active rules has access to the action and collected data on the recordType.
+	 * <p>
+	 * This method is very similar to
+	 * {@link #checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String, DataGroup)}
+	 * with the main difference beeing that this one returns a boolean instead of throwing an
+	 * excepiton.
 	 * 
 	 * @param user
 	 *            the logged in user (or guest)
@@ -71,16 +92,27 @@ public interface SpiderAuthorizator {
 	 *            the recordType the user wants to perform the action on
 	 * @param collectedData
 	 *            the collectedData to use extend the access check with
-	 * @return
+	 * @return a boolean, true if the user is allowed to perform the action on the specified
+	 *         recordType else false
 	 */
 	boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, DataGroup collectedData);
 
 	/**
-	 * checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData MUST implement the same
-	 * requirements as
+	 * checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData is used to check if a user is
+	 * allowed to perform the action on the specified recordType based on the rules the user is
+	 * associated with. In addition should implementations also check that the users also has access
+	 * to the collectedData through its associated rules.
+	 * <p>
+	 * Implementations MUST ensure that the user is active in storage, and that the user through its
+	 * stored active rules has access to the action and collected data on the recordType.
+	 * <p>
+	 * If the user is not authorized MUST implementations throw an {@link AuthorizationException}
+	 * <p>
+	 * This method is very similar to
 	 * {@link #userIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String, DataGroup)}
-	 * and if not authorized throw an {@link AuthorizationException}
+	 * with the main difference beeing that this one throws an excepiton instead of returning a
+	 * boolean.
 	 * 
 	 * @param user
 	 *            the logged in user (or guest)
@@ -90,32 +122,36 @@ public interface SpiderAuthorizator {
 	 *            the recordType the user wants to perform the action on
 	 * @param collectedData
 	 *            the collectedData to use extend the access check with
-	 * @return
 	 */
-	/**
-	 * TODO: finish enable and use instead of
-	 * checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData when
-	 * calculateRecordPartPermissions is false and result is not used spiderUploaderImp,
-	 * ?spiderRecordUpdaterImp?, SpiderRecordIncomingLinksReaderImp, SpiderRecordDeleterImp,
-	 * SpiderRecordCreatorImp,
-	 */
-	// boolean checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+	// TODO: enable and use instead of
+	// checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData when
+	// calculateRecordPartPermissions is false and result is not used spiderUploaderImp,
+	// ?spiderRecordUpdaterImp?, SpiderRecordIncomingLinksReaderImp, SpiderRecordDeleterImp,
+	// SpiderRecordCreatorImp,
+	// void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 	// String recordType, DataGroup collectedData);
 
 	/**
-	 * getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData MUST implement the
-	 * same requirements as
-	 * {@link #userIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String)} and if
-	 * not authorized throw an {@link AuthorizationException}
+	 * getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData is used to get all
+	 * recordPartPermissions that come from matched rules. RecordPart permissions are collected for
+	 * all rules that allow the user to perform the action on the specified recordType based on the
+	 * rules and the collectedData, the user is associated with.
 	 * <p>
-	 * If the user is authorized and calculateRecordPartPermissions is specified to true, should a
-	 * list of recordPart permissions collected from all the active rules the user has access to,
-	 * that matches the collected data SHALL be returned. The returned list of recordPart
-	 * permissions should be filtered so that it only contains those recordPart permissions that are
-	 * for the specified action and the specified recordType.
+	 * Implementations MUST ensure that the user is active in storage, and collect only the
+	 * recordPart permissions that the user through its stored active rules has access to based on
+	 * the action and collected data for the recordType.
 	 * <p>
-	 * TODO: spec that read returns read recordPartPermission, all other actions return write
-	 * recordPartPermission
+	 * The returned set of recordPart permissions should be filtered so that it only contains those
+	 * recordPart permissions that are for the specified action and the specified recordType. If no
+	 * recordPart permissons are to be returned should and emtpy set be retured instead.
+	 * <p>
+	 * For a read action SHALL the matched rules read recordPart permissions be returned, and for
+	 * all other actions shall the rules write recordPart permissions be returned.
+	 * <p>
+	 * This method is very similar to
+	 * {@link #checkgetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(User, String, String, DataGroup)}
+	 * with the main difference beeing that this one returns an empty set instead of throwing an
+	 * excepiton if the User is not authorized as specified above.
 	 * 
 	 * @param user
 	 *            the logged in user (or guest)
@@ -125,35 +161,42 @@ public interface SpiderAuthorizator {
 	 *            the recordType the user wants to perform the action on
 	 * @param collectedData
 	 *            the collectedData to use extend the access check with
-	 * @param calculateRecordPartPermissions,
-	 *            a boolean, if recordPartPermissions should be calculated
-	 * @return A list of recordPart permissions
+	 * @return A set of recordPart permissions
 	 */
 	Set<String> getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData,
-			boolean calculateRecordPartPermissions);
+			String action, String recordType, DataGroup collectedData);
 
 	/**
 	 * TODO: call to this with boolean true is more or
 	 * less:checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData and should be that instead
 	 * som the boolean can be removed from here
 	 * <p>
-	 * checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData MUST implement the same
-	 * requirements as
-	 * {@link #userIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String)} and if
-	 * not authorized throw an {@link AuthorizationException}
+	 * checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData is used to get
+	 * all recordPartPermissions that come from matched rules. RecordPart permissions are collected
+	 * for all rules that allow the user to perform the action on the specified recordType based on
+	 * the rules and the collectedData, the user is associated with.
 	 * <p>
-	 * If the user is authorized and calculateRecordPartPermissions is specified to true, should a
-	 * list of recordPart permissions collected from all the active rules the user has access to,
-	 * that matches the collected data SHALL be returned. The returned list of recordPart
-	 * permissions should be filtered so that it only contains those recordPart permissions that are
-	 * for the specified action and the specified recordType.
+	 * Implementations MUST ensure that the user is active in storage, and collect only the
+	 * recordPart permissions that the user through its stored active rules has access to based on
+	 * the action and collected data for the recordType.
 	 * <p>
-	 * TODO: spec that read returns read recordPartPermission, all other actions return write
-	 * recordPartPermission
+	 * The returned set of recordPart permissions should be filtered so that it only contains those
+	 * recordPart permissions that are for the specified action and the specified recordType. If no
+	 * recordPart permissons are to be returned should and emtpy set be retured instead.
+	 * <p>
+	 * For a read action SHALL the matched rules read recordPart permissions be returned, and for
+	 * all other actions shall the rules write recordPart permissions be returned.
+	 * <p>
+	 * If the user is not authorized MUST implementations throw an {@link AuthorizationException}
+	 * <p>
+	 * This method is very similar to
+	 * {@link #getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(User, String, String, DataGroup)}
+	 * with the main difference beeing that this one throws an excepiton instead of returning an
+	 * empty set if the User is not authorized as specified above.
 	 * 
 	 * @param user
 	 *            the logged in user (or guest)
+	 * 
 	 * @param action
 	 *            the action the user wants to perform, such as read, update, etc.
 	 * @param recordType
@@ -162,11 +205,9 @@ public interface SpiderAuthorizator {
 	 *            the collectedData to use extend the access check with
 	 * @param calculateRecordPartPermissions,
 	 *            a boolean, if recordPartPermissions should be calculated
-	 * @return A list of recordPart permissions
+	 * @return A set of recordPart permissions
 	 */
 	// TODO: rename to
-	// checkGetUsersAuthorizedRecordPartPermissionsForActionOnRecordTypeAndCollectedData
-	// or
 	// checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData
 	Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
 			String action, String recordType, DataGroup collectedData,
