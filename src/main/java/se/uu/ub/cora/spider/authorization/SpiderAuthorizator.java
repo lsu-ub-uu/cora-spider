@@ -123,13 +123,8 @@ public interface SpiderAuthorizator {
 	 * @param collectedData
 	 *            the collectedData to use extend the access check with
 	 */
-	// TODO: enable and use instead of
-	// checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData when
-	// calculateRecordPartPermissions is false and result is not used spiderUploaderImp,
-	// ?spiderRecordUpdaterImp?, SpiderRecordIncomingLinksReaderImp, SpiderRecordDeleterImp,
-	// SpiderRecordCreatorImp,
-	// void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-	// String recordType, DataGroup collectedData);
+	void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+			String recordType, DataGroup collectedData);
 
 	/**
 	 * getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData is used to get all
@@ -163,8 +158,9 @@ public interface SpiderAuthorizator {
 	 *            the collectedData to use extend the access check with
 	 * @return A set of recordPart permissions
 	 */
-	Set<String> getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData);
+	// Set<String> getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(User
+	// user,
+	// String action, String recordType, DataGroup collectedData);
 
 	/**
 	 * TODO: call to this with boolean true is more or
@@ -207,10 +203,8 @@ public interface SpiderAuthorizator {
 	 *            a boolean, if recordPartPermissions should be calculated
 	 * @return A set of recordPart permissions
 	 */
-	// TODO: rename to
-	// checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData
-	Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData,
+	Set<String> checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
+			User user, String action, String recordType, DataGroup collectedData,
 			boolean calculateRecordPartPermissions);
 
 }

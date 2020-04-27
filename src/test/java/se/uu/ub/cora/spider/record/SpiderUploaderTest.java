@@ -248,9 +248,9 @@ public class SpiderUploaderTest {
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
 				recordStorage.read("image", "image:123456789"));
 
-		String methodName2 = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		String methodName2 = "checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName2, 0, authenticator.returnedUser, "upload",
-				"image", termCollector.MCR.getReturnValue("collectTerms", 0), false);
+				"image", termCollector.MCR.getReturnValue("collectTerms", 0));
 	}
 
 	private void assertStreamStorageCalledCorrectly(DataRecord recordUpdated) {

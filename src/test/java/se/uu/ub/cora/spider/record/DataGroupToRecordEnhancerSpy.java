@@ -59,6 +59,12 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 	public DataRecord enhance(User user, String recordType, DataGroup dataGroup) {
 		MCR.addCall("user", user, "recordType", recordType, "dataGroup", dataGroup);
 
+		DataRecord dataGroupSpy = spyEnhanceDataGroupToRecord(user, recordType, dataGroup);
+		MCR.addReturned(dataGroupSpy);
+		return dataGroupSpy;
+	}
+
+	private DataRecord spyEnhanceDataGroupToRecord(User user, String recordType, DataGroup dataGroup) {
 		if (throwOtherException) {
 			throw new RuntimeException();
 		}
@@ -79,6 +85,13 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 				addReadAction = false;
 			}
 		}
+		return dataGroupSpy;
+	}
+
+	@Override
+	public DataRecord enhanceIgnoringReadAccess(User user, String recordType, DataGroup dataGroup) {
+		MCR.addCall("user", user, "recordType", recordType, "dataGroup", dataGroup);
+		DataRecord dataGroupSpy = spyEnhanceDataGroupToRecord(user, recordType, dataGroup);
 		MCR.addReturned(dataGroupSpy);
 		return dataGroupSpy;
 	}

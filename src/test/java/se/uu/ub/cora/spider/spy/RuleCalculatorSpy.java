@@ -47,14 +47,15 @@ public class RuleCalculatorSpy implements PermissionRuleCalculator {
 	@Override
 	public List<Rule> calculateRulesForActionAndRecordType(String action, String recordType) {
 		MCR.addCall("action", action, "recordType", recordType);
+		MCR.addReturned(returnedRules);
 		return returnedRules;
 	}
 
 	@Override
 	public List<Rule> calculateRulesForActionAndRecordTypeAndCollectedData(String action,
 			String recordType, DataGroup collectedData) {
-		MCR.addCall("action", action, "recordType",
-				recordType, "collectedData", collectedData);
+		MCR.addCall("action", action, "recordType", recordType, "collectedData", collectedData);
+		MCR.addReturned(returnedRules);
 		return returnedRules;
 	}
 

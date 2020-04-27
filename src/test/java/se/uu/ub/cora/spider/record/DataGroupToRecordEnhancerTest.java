@@ -238,8 +238,6 @@ public class DataGroupToRecordEnhancerTest {
 				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1);
 	}
 
-	// TODO: this test is different should use
-	// getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData method
 	@Test
 	public void testIRAReadActionPartOfEnhanceNotAuthorized() throws Exception {
 		setupForNoReadAccess();

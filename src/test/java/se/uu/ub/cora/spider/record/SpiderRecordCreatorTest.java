@@ -516,7 +516,7 @@ public class SpiderRecordCreatorTest {
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
-			+ "Excpetion thrown from checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData from Spy")
+			+ "Excpetion thrown from checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData from Spy")
 	public void testCreateRecordUnauthorizedForDataInRecord() {
 
 		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
@@ -536,10 +536,13 @@ public class SpiderRecordCreatorTest {
 
 		recordCreator.createAndStoreRecord("someToken78678567", "typeWithUserGeneratedId", record);
 
-		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		// String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		// authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "create",
+		// "typeWithUserGeneratedId", termCollector.MCR.getReturnValue("collectTerms", 0),
+		// false);
+		String methodName = "checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "create",
-				"typeWithUserGeneratedId", termCollector.MCR.getReturnValue("collectTerms", 0),
-				false);
+				"typeWithUserGeneratedId", termCollector.MCR.getReturnValue("collectTerms", 0));
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)

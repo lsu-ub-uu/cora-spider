@@ -24,21 +24,42 @@ import java.util.List;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authorization.Rule;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
-public class BeefeaterNeverAuthorizedSpy implements Authorizator {
+public class BeefeaterAuthorizatorSpy implements Authorizator {
+
+	MethodCallRecorder MCR = new MethodCallRecorder();
+
+	/**
+	 * providedRulesSatisfiesRequiredRules is default true, is used as return value for
+	 * {@link #providedRulesSatisfiesRequiredRules(List, List)}
+	 */
+	public boolean providedRulesSatisfiesRequiredRules = true;
+
+	/**
+	 * returnNoMatchedRules is default false, then
+	 * {@link #providedRulesMatchRequiredRules(List, List)} returns a created List with
+	 * providedRules, when the flag is set to true, is an empty list returned instead.
+	 */
+	public boolean returnNoMatchedRules = false;
 
 	@Override
 	public boolean providedRulesSatisfiesRequiredRules(List<Rule> providedRules,
 			List<Rule> requiredRules) {
-		// TODO Auto-generated method stub
-		return false;
+		MCR.addCall("providedRules", providedRules, "requiredRules", requiredRules);
+		MCR.addReturned(providedRulesSatisfiesRequiredRules);
+		return providedRulesSatisfiesRequiredRules;
 	}
 
 	@Override
 	public List<Rule> providedRulesMatchRequiredRules(List<Rule> providedRules,
 			List<Rule> requiredRules) {
-		// TODO Auto-generated method stub
-		return Collections.emptyList();
+		MCR.addCall("providedRules", providedRules, "requiredRules", requiredRules);
+		List<Rule> matchedRules = providedRules;
+		if (returnNoMatchedRules) {
+			matchedRules = Collections.emptyList();
+		}
+		MCR.addReturned(matchedRules);
+		return matchedRules;
 	}
-
 }

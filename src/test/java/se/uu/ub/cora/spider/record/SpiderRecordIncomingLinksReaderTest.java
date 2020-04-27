@@ -139,9 +139,9 @@ public class SpiderRecordIncomingLinksReaderTest {
 		assertEquals(toLinkedRecordType.getValue(), "place");
 		assertEquals(toLinkedRecordId.getValue(), "place:0001");
 
-		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		String methodName = "checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "read",
-				"place", termCollector.MCR.getReturnValue("collectTerms", 0), false);
+				"place", termCollector.MCR.getReturnValue("collectTerms", 0));
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "place");
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",

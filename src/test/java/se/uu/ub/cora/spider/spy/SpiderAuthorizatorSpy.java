@@ -95,7 +95,7 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	}
 
 	@Override
-	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
+	public Set<String> checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(User user,
 			String action, String recordType, DataGroup collectedData,
 			boolean calculateRecordPartPermissions) {
 
@@ -128,13 +128,25 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 		notAutorizedForAction.add(action);
 	}
 
+	// @Override
+	// public Set<String> getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
+	// User user, String action, String recordType, DataGroup collectedData) {
+	// MCR.addCall("user", user, "action", action, "recordType", recordType, "collectedData",
+	// collectedData);
+	// MCR.addReturned(null);
+	// return null;
+	// }
+
 	@Override
-	public Set<String> getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-			User user, String action, String recordType, DataGroup collectedData) {
+	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+			String recordType, DataGroup collectedData) {
 		MCR.addCall("user", user, "action", action, "recordType", recordType, "collectedData",
 				collectedData);
-		MCR.addReturned(null);
-		return null;
+		if (!authorizedForActionAndRecordTypeAndCollectedData
+				|| notAuthorizedForActionOnRecordType(action, recordType)) {
+			throw new AuthorizationException(
+					"Excpetion thrown from checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData from Spy");
+		}
 	}
 
 }

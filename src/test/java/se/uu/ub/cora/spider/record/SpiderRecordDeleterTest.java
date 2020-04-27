@@ -141,9 +141,9 @@ public class SpiderRecordDeleterTest {
 
 		recordDeleter.deleteRecord("userId", "child1", "place:0002");
 
-		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		String methodName = "checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "delete",
-				"child1", termCollector.MCR.getReturnValue("collectTerms", 0), false);
+				"child1", termCollector.MCR.getReturnValue("collectTerms", 0));
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "child1");
 

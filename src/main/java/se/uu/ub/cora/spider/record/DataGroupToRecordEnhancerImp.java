@@ -141,7 +141,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private void checkAndGetUserAuthorizationsForReadAction() {
 		try {
 			readRecordPartPermissions = spiderAuthorizator
-					.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(user,
 							"read", recordType, collectedTerms, true);
 		} catch (Exception catchedException) {
 			throw catchedException;
@@ -173,7 +173,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private void possiblyAddUpdateAction(DataRecord dataRecord) {
 		try {
 			writeRecordPartPermissions = spiderAuthorizator
-					.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(user,
 							"update", recordType, collectedTerms, true);
 
 			dataRecord.addAction(Action.UPDATE);
@@ -462,7 +462,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private void checkAndGetUserAuthorizationsForReadAction2() {
 		try {
 			readRecordPartPermissions = spiderAuthorizator
-					.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
+					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(user,
 							"read", recordType, collectedTerms, true);
 		} catch (Exception catchedException) {
 			addActionRead = false;
