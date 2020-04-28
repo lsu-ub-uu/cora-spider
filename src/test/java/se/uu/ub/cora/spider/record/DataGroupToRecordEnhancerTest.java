@@ -157,8 +157,8 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup returnedCollectedTermsForRecordType = getAssertedCollectedTermsForRecordType(
 				SOME_RECORD_TYPE, someDataGroup);
 		authorizator.MCR.assertParameters(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0, user, READ,
-				SOME_RECORD_TYPE, returnedCollectedTermsForRecordType, true);
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
+				user, READ, SOME_RECORD_TYPE, returnedCollectedTermsForRecordType, true);
 	}
 
 	private void assertRecordContainsReadAction(DataRecord record) {
@@ -235,7 +235,8 @@ public class DataGroupToRecordEnhancerTest {
 		assertTrue(auxiliaryException instanceof AuthorizationException);
 		assertCheckAndGetAuthorizationCalledForReadActionPartOfEnhance();
 		authorizator.MCR.assertNumberOfCallsToMethod(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1);
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
+				1);
 	}
 
 	@Test
@@ -272,7 +273,8 @@ public class DataGroupToRecordEnhancerTest {
 	private void assertReadActionPartOfEnhanceNotAuthorizedButPublicData(DataRecord record) {
 		recordTypeHandlerSpy.MCR.assertMethodWasCalled("isPublicForRead");
 		authorizator.MCR.assertNumberOfCallsToMethod(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1);
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
+				1);
 		assertRecordContainsReadAction(record);
 	}
 
@@ -308,8 +310,8 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup returnedCollectedTermsForRecordType = getAssertedCollectedTermsForRecordType(
 				SOME_RECORD_TYPE, someDataGroup);
 		authorizator.MCR.assertParameters(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1, user,
-				UPDATE, SOME_RECORD_TYPE, returnedCollectedTermsForRecordType, true);
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
+				user, UPDATE, SOME_RECORD_TYPE, returnedCollectedTermsForRecordType, true);
 	}
 
 	@Test
@@ -1297,10 +1299,10 @@ public class DataGroupToRecordEnhancerTest {
 
 	private void assertReadPermissionsAreAddedToRecord(DataRecord record) {
 		authorizator.MCR.assertParameter(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0, "action",
-				READ);
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
+				"action", READ);
 		authorizator.MCR.assertReturn(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0,
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
 				record.getReadPermissions());
 	}
 
@@ -1363,10 +1365,10 @@ public class DataGroupToRecordEnhancerTest {
 
 	private void assertWritePermissionsAreAddedToRecord(DataRecord record) {
 		authorizator.MCR.assertParameter(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1, "action",
-				UPDATE);
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
+				"action", UPDATE);
 		authorizator.MCR.assertReturn(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1,
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
 				record.getWritePermissions());
 	}
 
@@ -1396,8 +1398,8 @@ public class DataGroupToRecordEnhancerTest {
 
 	private void assertWritePermissionsAreAddedToRecordNotAutorized(DataRecord record) {
 		authorizator.MCR.assertParameter(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 1, "action",
-				UPDATE);
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
+				"action", UPDATE);
 		assertEquals(record.getWritePermissions(), Collections.emptySet());
 	}
 
@@ -1423,7 +1425,8 @@ public class DataGroupToRecordEnhancerTest {
 
 	private void assertRedactCalledWithCorrectArguments() {
 		Set<String> usersReadRecordPartPermissions = (Set<String>) authorizator.MCR.getReturnValue(
-				"checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData", 0);
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
+				0);
 
 		Set<String> recordPartConstraints = (Set<String>) recordTypeHandlerSpy.MCR
 				.getReturnValue("getRecordPartReadConstraints", 0);
@@ -1731,7 +1734,7 @@ public class DataGroupToRecordEnhancerTest {
 		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
 		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 3);
 
-		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, user, READ, DATA_WITH_LINKS);
 		authorizator.MCR.assertParameters(methodName, 1, user, UPDATE, DATA_WITH_LINKS);
 		authorizator.MCR.assertNumberOfCallsToMethod(methodName, 2);
@@ -1781,7 +1784,7 @@ public class DataGroupToRecordEnhancerTest {
 		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
 		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 3);
 
-		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, user, READ, DATA_WITH_LINKS);
 		authorizator.MCR.assertParameters(methodName, 1, user, UPDATE, DATA_WITH_LINKS);
 		authorizator.MCR.assertNumberOfCallsToMethod(methodName, 2);
@@ -1815,7 +1818,7 @@ public class DataGroupToRecordEnhancerTest {
 		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
 		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 3);
 
-		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, user, READ, DATA_WITH_LINKS);
 		authorizator.MCR.assertParameters(methodName, 1, user, UPDATE, DATA_WITH_LINKS);
 		authorizator.MCR.assertNumberOfCallsToMethod(methodName, 2);

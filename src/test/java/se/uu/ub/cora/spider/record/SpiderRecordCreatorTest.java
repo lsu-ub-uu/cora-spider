@@ -30,6 +30,7 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataElement;
@@ -84,7 +85,7 @@ public class SpiderRecordCreatorTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
 	private RecordStorage recordStorage;
 	private AuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy authorizator;
+	private SpiderAuthorizatorSpy spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
 	private PermissionRuleCalculator ruleCalculator;
 	private SpiderRecordCreator recordCreator;
@@ -106,7 +107,7 @@ public class SpiderRecordCreatorTest {
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 		authenticator = new AuthenticatorSpy();
-		authorizator = new SpiderAuthorizatorSpy();
+		spiderAuthorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		idGenerator = new IdGeneratorSpy();
@@ -136,7 +137,7 @@ public class SpiderRecordCreatorTest {
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.spiderAuthorizator = authorizator;
+		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
 		dependencyProvider.dataValidator = dataValidator;
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
 		recordStorageProviderSpy.recordStorage = recordStorage;
@@ -156,17 +157,24 @@ public class SpiderRecordCreatorTest {
 
 	@Test
 	public void testExternalDependenciesAreCalled() {
-		dataValidator = new DataValidatorSpy();
+		DataGroup dataGroup = setupRecordStorageAndDataGroup();
+
+		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
+
+		assertForExternalDependenciesAreCalled(dataGroup);
+	}
+
+	private DataGroup setupRecordStorageAndDataGroup() {
 		recordStorage = new OldRecordStorageSpy();
-		idGenerator = new IdGeneratorSpy();
-		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
 				"cora");
-		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
+		return dataGroup;
+	}
 
+	private void assertForExternalDependenciesAreCalled(DataGroup dataGroup) {
 		assertTrue(authenticator.authenticationWasCalled);
-		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+		spiderAuthorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 		dataValidator.MCR.assertMethodWasCalled("validateData");
 
 		ExtendedFunctionalitySpy extendedFunctionality = extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation
@@ -184,43 +192,32 @@ public class SpiderRecordCreatorTest {
 
 	@Test
 	public void testRecordEnhancerCalled() {
-		authorizator = new SpiderAuthorizatorSpy();
-		dataValidator = new DataValidatorSpy();
-		recordStorage = new OldRecordStorageSpy();
-		idGenerator = new IdGeneratorSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		linkCollector = new DataRecordLinkCollectorSpy();
-		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
-				"cora");
+		DataGroup dataGroup = setupRecordStorageAndDataGroup();
+
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
-		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
-		assertEquals(dataGroupToRecordEnhancer.recordType, "spyType");
-		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id"), "1");
+
+		assertCallEnhanceIgnoringReadAccess(dataGroup);
+	}
+
+	private void assertCallEnhanceIgnoringReadAccess(DataGroup dataGroup) {
+		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		dataGroupToRecordEnhancer.MCR.assertParameters("enhanceIgnoringReadAccess", 0, user,
+				"spyType", dataGroup);
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
-	public void testAuthenticationNotAuthenticated() {
+	public void testGetActiveUserFails() {
 		authenticator.throwAuthenticationException = true;
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
-				"cora");
+
+		DataGroup dataGroup = setupRecordStorageAndDataGroup();
+
 		recordCreator.createAndStoreRecord("dummyNonAuthenticatedToken", "spyType", dataGroup);
 	}
 
 	@Test
 	public void testExtendedFunctionallityIsCalled() {
-		authorizator = new SpiderAuthorizatorSpy();
-		dataValidator = new DataValidatorSpy();
-		recordStorage = new OldRecordStorageSpy();
-		idGenerator = new IdGeneratorSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		linkCollector = new DataRecordLinkCollectorSpy();
-		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
-				"cora");
+		DataGroup dataGroup = setupRecordStorageAndDataGroup();
+
 		String authToken = "someToken78678567";
 		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
 
@@ -234,13 +231,10 @@ public class SpiderRecordCreatorTest {
 
 	@Test
 	public void testIndexerIsCalled() {
-		recordStorage = new OldRecordStorageSpy();
-		idGenerator = new IdGeneratorSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
-				"cora");
+		DataGroup dataGroup = setupRecordStorageAndDataGroup();
+
 		String authToken = "someToken78678567";
+
 		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
 
 		DataGroup createdRecord = ((OldRecordStorageSpy) recordStorage).createRecord;
@@ -256,9 +250,10 @@ public class SpiderRecordCreatorTest {
 	@Test
 	public void testIndexerIsCalledForChildOfAbstract() {
 		recordStorage = new RecordStorageCreateUpdateSpy();
-		ruleCalculator = new RuleCalculatorSpy();
+		// ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 		DataGroup dataGroup = getDataGroupForImageToCreate();
+
 		String authToken = "someToken78678567";
 		recordCreator.createAndStoreRecord(authToken, "image", dataGroup);
 
@@ -335,7 +330,6 @@ public class SpiderRecordCreatorTest {
 	@Test
 	public void testAutogeneratedIdSentToStorageUsingGeneratedId() {
 		recordStorage = new RecordStorageCreateUpdateSpy();
-		idGenerator = new IdGeneratorSpy();
 		setUpDependencyProvider();
 		DataGroup record = DataCreator2
 				.createRecordWithNameInDataAndLinkedRecordId("typeWithAutoGeneratedId", "cora");
@@ -471,28 +465,24 @@ public class SpiderRecordCreatorTest {
 
 		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).dataDivider, "cora");
 
-		// DataGroupTermCollectorSpy termCollectorSpy = termCollector;
-
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "place");
 		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).collectedTerms,
 				termCollector.MCR.getReturnValue("collectTerms", 0));
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
-	public void testCreateRecordUnauthorized() {
-		// spiderAuthorizatorSpy = new NeverAuthorisedStub();
-		authorizator.authorizedForActionAndRecordType = false;
-		// setUpDependencyProvider();
-
+	public void testCreateRecordUnauthorizedForActionCreate() {
+		spiderAuthorizator.authorizedForActionAndRecordType = false;
 		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("authority",
 				"cora");
+
 		recordCreator.createAndStoreRecord("someToken78678567", "place", record);
 	}
 
 	@Test
 	public void testUnauthorizedForCreateOnRecordTypeShouldShouldNotAccessStorage() {
 		recordStorage = new OldRecordStorageSpy();
-		authorizator.authorizedForActionAndRecordType = false;
+		spiderAuthorizator.authorizedForActionAndRecordType = false;
 		setUpDependencyProvider();
 
 		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("spyType",
@@ -518,8 +508,7 @@ public class SpiderRecordCreatorTest {
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "Excpetion thrown from checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData from Spy")
 	public void testCreateRecordUnauthorizedForDataInRecord() {
-
-		authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
+		spiderAuthorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 
 		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("place",
 				"cora");
@@ -536,12 +525,8 @@ public class SpiderRecordCreatorTest {
 
 		recordCreator.createAndStoreRecord("someToken78678567", "typeWithUserGeneratedId", record);
 
-		// String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
-		// authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "create",
-		// "typeWithUserGeneratedId", termCollector.MCR.getReturnValue("collectTerms", 0),
-		// false);
 		String methodName = "checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData";
-		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "create",
+		spiderAuthorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "create",
 				"typeWithUserGeneratedId", termCollector.MCR.getReturnValue("collectTerms", 0));
 	}
 
@@ -592,42 +577,24 @@ public class SpiderRecordCreatorTest {
 		recordLinkTestsRecordStorage.recordIdExistsForRecordType = true;
 		linkCollector = DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
 		setUpDependencyProvider();
-
 		DataGroup dataGroup = RecordLinkTestsDataCreator.createDataDataGroupWithLink();
 		dataGroup.addChild(DataCreator2.createRecordInfoWithLinkedRecordId("cora"));
 
 		recordCreator.createAndStoreRecord("someToken78678567", "dataWithLinks", dataGroup);
-		assertTrue(recordLinkTestsRecordStorage.createWasRead);
 
+		assertTrue(recordLinkTestsRecordStorage.createWasRead);
 		assertEquals(recordLinkTestsRecordStorage.type, "toRecordType");
 		assertEquals(recordLinkTestsRecordStorage.id, "toRecordId");
 	}
 
 	@Test
-	public void testReturnEmptyRecordIfUserHasCreateButNotReadAccess() {
-		authorizator = new SpiderAuthorizatorSpy();
-		dataValidator = new DataValidatorSpy();
-		recordStorage = new OldRecordStorageSpy();
-		idGenerator = new IdGeneratorSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		linkCollector = new DataRecordLinkCollectorSpy();
-		setUpDependencyProvider();
+	public void testReturnRecordWithoutReadActionIfUserHasCreateButNotReadAccess() {
+		DataGroup dataGroup = setupRecordStorageAndDataGroup();
 		dataGroupToRecordEnhancer.addReadAction = false;
 
-		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
-				"cora");
 		DataRecord createdRecord = recordCreator.createAndStoreRecord("dummyAuthenticatedToken",
 				"spyType", dataGroup);
 
-		DataGroup groupOut = createdRecord.getDataGroup();
-		DataGroup recordInfo = groupOut.getFirstGroupWithNameInData("recordInfo");
-		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
-		assertEquals("noReadAccess", recordId);
-
-		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
-		assertEquals(typeGroup.getFirstAtomicValueWithNameInData("linkedRecordType"), "spyType");
-		assertEquals(typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId"), "noReadAccess");
-		assertEquals(groupOut.getNameInData(), "noReadAccess");
+		dataGroupToRecordEnhancer.MCR.assertReturn("enhanceIgnoringReadAccess", 0, createdRecord);
 	}
-
 }

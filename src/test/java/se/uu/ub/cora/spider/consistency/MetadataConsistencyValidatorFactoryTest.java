@@ -27,13 +27,26 @@ import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class MetadataConsistencyValidatorFactoryTest {
+	private RecordStorage recordStorage = new OldRecordStorageSpy();;
+	private String recordType = "metadataGroup";
+	private MetadataConsistencyValidatorFactory factory;
+
 	@Test
-	public void test() {
-		RecordStorage recordStorage = new OldRecordStorageSpy();
-		MetadataConsistencyValidatorFactory m = MetadataConsistencyValidatorFactory
-				.usingRecordStorage(recordStorage);
-		String recordType = "metadataGroup";
-		MetadataConsistencyValidator metadataConsistencyValidator = m.factor(recordType);
-		assertTrue(metadataConsistencyValidator instanceof MetadataConsistencyGroupAndCollectionValidatorImp);
+	public void testMetadataConsistencyValidatorFactoryCanFactorAMetadataConsistencyValidator() {
+		setupFactoryWithRecordStorage();
+
+		MetadataConsistencyValidator metadataConsistencyValidator = factory.factor(recordType);
+
+		assertInstanceOfMetadataConsistencyValidator(metadataConsistencyValidator);
+	}
+
+	private void assertInstanceOfMetadataConsistencyValidator(
+			MetadataConsistencyValidator metadataConsistencyValidator) {
+		assertTrue(
+				metadataConsistencyValidator instanceof MetadataConsistencyGroupAndCollectionValidatorImp);
+	}
+
+	private void setupFactoryWithRecordStorage() {
+		factory = MetadataConsistencyValidatorFactory.usingRecordStorage(recordStorage);
 	}
 }

@@ -302,6 +302,12 @@ public class SpiderRecordValidatorTest {
 		String tsCreated = recordInfo.getFirstAtomicValueWithNameInData("tsCreated");
 		assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
 
+		DataGroup createdBy = recordInfo.getFirstGroupWithNameInData("createdBy");
+		String createdByType = createdBy.getFirstAtomicValueWithNameInData("linkedRecordType");
+		assertEquals(createdByType, "user");
+		String createdById = createdBy.getFirstAtomicValueWithNameInData("linkedRecordId");
+		assertEquals(createdById, "12345");
+
 		DataGroup updated = recordInfo.getFirstGroupWithNameInData("updated");
 		String tsUpdated = updated.getFirstAtomicValueWithNameInData("tsUpdated");
 		assertTrue(tsUpdated.matches(TIMESTAMP_FORMAT));

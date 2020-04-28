@@ -196,13 +196,17 @@ public class MethodCallRecorder {
 	 *            the method.
 	 */
 	public void assertParameters(String methodName, int callNumber, Object... expectedValues) {
-		Object[] inParameters = getInParametersAsArray(methodName, callNumber);
+		try {
+			Object[] inParameters = getInParametersAsArray(methodName, callNumber);
 
-		int position = 0;
-		for (Object expectedValue : expectedValues) {
-			Object value = inParameters[position];
-			assertParameter(expectedValue, value);
-			position++;
+			int position = 0;
+			for (Object expectedValue : expectedValues) {
+				Object value = inParameters[position];
+				assertParameter(expectedValue, value);
+				position++;
+			}
+		} catch (Exception e) {
+			assertTrue(false);
 		}
 	}
 

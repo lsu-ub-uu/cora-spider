@@ -141,8 +141,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private void checkAndGetUserAuthorizationsForReadAction() {
 		try {
 			readRecordPartPermissions = spiderAuthorizator
-					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(user,
-							"read", recordType, collectedTerms, true);
+					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
+							user, "read", recordType, collectedTerms, true);
 		} catch (Exception catchedException) {
 			throw catchedException;
 		}
@@ -173,8 +173,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private void possiblyAddUpdateAction(DataRecord dataRecord) {
 		try {
 			writeRecordPartPermissions = spiderAuthorizator
-					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(user,
-							"update", recordType, collectedTerms, true);
+					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
+							user, "update", recordType, collectedTerms, true);
 
 			dataRecord.addAction(Action.UPDATE);
 		} catch (Exception catchedException) {
@@ -207,6 +207,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		if (recordTypeHandler.hasParent()) {
 			String parentId = recordTypeHandler.getParentId();
 			return linksExistForRecordTypeUsingCurrentHandledId(parentId);
+			// return true;
 		}
 		return false;
 	}
@@ -462,8 +463,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private void checkAndGetUserAuthorizationsForReadAction2() {
 		try {
 			readRecordPartPermissions = spiderAuthorizator
-					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(user,
-							"read", recordType, collectedTerms, true);
+					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
+							user, "read", recordType, collectedTerms, true);
 		} catch (Exception catchedException) {
 			addActionRead = false;
 			readRecordPartPermissions = Collections.emptySet();
