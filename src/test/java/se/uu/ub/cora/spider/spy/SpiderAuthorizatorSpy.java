@@ -109,8 +109,8 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 
 		if (!authorizedForActionAndRecordTypeAndCollectedData
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
-			throw new AuthorizationException(
-					"Excpetion thrown from checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData from Spy");
+			throw new AuthorizationException("Excpetion thrown from "
+					+ "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData from Spy");
 		}
 
 		recordPartReadPermissions.add("someRecordType.someMetadataId");

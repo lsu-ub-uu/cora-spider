@@ -33,6 +33,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
@@ -55,7 +56,7 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public RecordIndexer recordIndexer;
 	public boolean readInitInfoWasCalled;
 	public boolean tryToInitializeWasCalled;
-	public DataRedactor dataRedactor;
+	public DataRedactorSpy dataRedactor = new DataRedactorSpy();
 	public RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
 	public Map<String, RecordTypeHandlerSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
 

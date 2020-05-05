@@ -20,9 +20,11 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.List;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
@@ -55,9 +57,12 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataGroupTermCollector dataGroupTermCollector;
 	private RecordIndexer recordIndexer;
+	private SpiderDependencyProvider dependencyProvider;
+	private Set<String> writePermissions;
 
 	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
@@ -82,6 +87,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		this.authToken = authToken;
 		this.recordType = recordTypeToCreate;
 		this.recordAsDataGroup = dataGroup;
+		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 
 		return validateCreateAndStoreRecord();
 
@@ -91,14 +97,18 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
-		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorage,
-				recordType);
 		metadataId = recordTypeHandler.getNewMetadataId();
 
 		checkNoCreateForAbstractRecordType();
 
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordAsDataGroup);
 
+		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId,
+				recordAsDataGroup);
+		// DataGroup collectedTerms = dataGroupTermCollector.collectTermsSkipTypeAndId(metadataId,
+		// recordAsDataGroup);
+		checkUserIsAuthorisedToCreateIncomingData(recordType, collectedTerms);
+		possiblyRemoveRecordPartsUserIsNotAllowedToChange();
 		validateDataInRecordAsSpecifiedInMetadata();
 
 		useExtendedFunctionalityAfterMetadataValidation(recordType, recordAsDataGroup);
@@ -106,9 +116,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = extractIdFromData();
 
-		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId,
-				recordAsDataGroup);
-		checkUserIsAuthorisedToCreateIncomingData(recordType, collectedTerms);
+		collectedTerms = dataGroupTermCollector.collectTerms(metadataId, recordAsDataGroup);
 
 		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup,
 				recordType, recordId);
@@ -146,19 +154,6 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		}
 	}
 
-	private String extractIdFromData() {
-		return recordAsDataGroup.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id");
-	}
-
-	private void validateDataInRecordAsSpecifiedInMetadata() {
-		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId,
-				recordAsDataGroup);
-		if (validationAnswer.dataIsInvalid()) {
-			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
-		}
-	}
-
 	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
 			DataGroup dataGroup) {
 		List<ExtendedFunctionality> functionalityForCreateBeforeMetadataValidation = extendedFunctionalityProvider
@@ -173,18 +168,37 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		}
 	}
 
-	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
-			DataGroup dataGroup) {
-		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = extendedFunctionalityProvider
-				.getFunctionalityForCreateAfterMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(dataGroup, functionalityForCreateAfterMetadataValidation);
+	private void checkUserIsAuthorisedToCreateIncomingData(String recordType,
+			DataGroup collectedData) {
+		writePermissions = spiderAuthorizator
+				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
+						user, CREATE, recordType, collectedData, true);
 	}
 
-	private void useExtendedFunctionalityBeforeReturn(String recordTypeToCreate,
-			DataGroup dataGroup) {
-		List<ExtendedFunctionality> extendedFunctionalityList = extendedFunctionalityProvider
-				.getFunctionalityForCreateBeforeReturn(recordTypeToCreate);
-		useExtendedFunctionality(dataGroup, extendedFunctionalityList);
+	private void possiblyRemoveRecordPartsUserIsNotAllowedToChange() {
+		if (recordTypeHandler.hasRecordPartWriteConstraint()) {
+			removeRecordPartsUserIsNotAllowedToChange();
+		}
+	}
+
+	private void removeRecordPartsUserIsNotAllowedToChange() {
+		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
+		recordAsDataGroup = dataRedactor.removeChildrenForConstraintsWithoutPermissions(
+				recordAsDataGroup, recordTypeHandler.getRecordPartWriteConstraints(),
+				writePermissions);
+	}
+
+	private String extractIdFromData() {
+		return recordAsDataGroup.getFirstGroupWithNameInData("recordInfo")
+				.getFirstAtomicValueWithNameInData("id");
+	}
+
+	private void validateDataInRecordAsSpecifiedInMetadata() {
+		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId,
+				recordAsDataGroup);
+		if (validationAnswer.dataIsInvalid()) {
+			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
+		}
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
@@ -237,9 +251,17 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		return type;
 	}
 
-	private void checkUserIsAuthorisedToCreateIncomingData(String recordType,
-			DataGroup collectedData) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, CREATE,
-				recordType, collectedData);
+	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
+			DataGroup dataGroup) {
+		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = extendedFunctionalityProvider
+				.getFunctionalityForCreateAfterMetadataValidation(recordTypeToCreate);
+		useExtendedFunctionality(dataGroup, functionalityForCreateAfterMetadataValidation);
+	}
+
+	private void useExtendedFunctionalityBeforeReturn(String recordTypeToCreate,
+			DataGroup dataGroup) {
+		List<ExtendedFunctionality> extendedFunctionalityList = extendedFunctionalityProvider
+				.getFunctionalityForCreateBeforeReturn(recordTypeToCreate);
+		useExtendedFunctionality(dataGroup, extendedFunctionalityList);
 	}
 }

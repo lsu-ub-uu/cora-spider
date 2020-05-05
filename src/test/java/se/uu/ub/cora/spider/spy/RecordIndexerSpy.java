@@ -25,7 +25,6 @@ public class RecordIndexerSpy implements RecordIndexer {
 		this.recordIndexData = recordIndexData;
 		this.record = record;
 		indexDataHasBeenCalled = true;
-
 	}
 
 	@Override

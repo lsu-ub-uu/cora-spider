@@ -108,7 +108,6 @@ public class SpiderRecordUpdaterTest {
 		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		dataRedactorSpy = new DataRedactorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -140,7 +139,7 @@ public class SpiderRecordUpdaterTest {
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
 		recordUpdater = SpiderRecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
-		dependencyProvider.dataRedactor = dataRedactorSpy;
+		dataRedactorSpy = dependencyProvider.dataRedactor;
 	}
 
 	@Test
@@ -164,6 +163,22 @@ public class SpiderRecordUpdaterTest {
 				"fakeMetadataIdFromRecordTypeHandlerSpy");
 
 		assertCorrectSearchTermCollectorAndIndexer();
+	}
+
+	@Test
+	public void testRecordTypeHandlerFetchedFromDependencyProvider() {
+		recordStorage = new OldRecordStorageSpy();
+		ruleCalculator = new RuleCalculatorSpy();
+		setUpDependencyProvider();
+
+		DataGroup dataGroup = new DataGroupSpy("nameInData");
+
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
+		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
+
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "spyType");
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 1);
 	}
 
 	private void assertCorrectSearchTermCollectorAndIndexer() {
