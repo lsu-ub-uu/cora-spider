@@ -160,12 +160,13 @@ public class SpiderRecordCreatorTest {
 	}
 
 	@Test
-	public void testExternalDependenciesAreCalled() {
+	public void testRecordTypeHandlerFetchedFromDependencyProvider() {
 		DataGroup dataGroup = setupForAutoGenerateId();
 
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 
-		assertForExternalDependenciesAreCalled(dataGroup);
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "spyType");
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 1);
 	}
 
 	private DataGroup setupRecordStorageAndDataGroup() {
@@ -176,35 +177,54 @@ public class SpiderRecordCreatorTest {
 		return dataGroup;
 	}
 
-	private void assertForExternalDependenciesAreCalled(DataGroup dataGroup) {
-		assertTrue(authenticator.authenticationWasCalled);
-		spiderAuthorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
-		// dataValidator.MCR.assertMethodWasCalled("validateData");
-		String newMetadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getNewMetadataId",
-				0);
-		dataValidator.MCR.assertParameters("validateData", 0, newMetadataId);
+	@Test
+	public void testAuthenticatorIsCalled() throws Exception {
+		DataGroup dataGroup = setupForAutoGenerateId();
 
-		ExtendedFunctionalitySpy extendedFunctionality = extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation
-				.get(0);
-		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
-		assertTrue(((OldRecordStorageSpy) recordStorage).createWasCalled);
-		assertTrue(((IdGeneratorSpy) idGenerator).getIdForTypeWasCalled);
-		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
-		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, newMetadataId);
+		String authToken = "dummyAuthenticatedToken";
+		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
 
-		termCollector.MCR.assertParameters("collectTerms", 1, newMetadataId, dataGroup);
-		assertEquals(recordIndexer.recordIndexData,
-				termCollector.MCR.getReturnValue("collectTerms", 1));
+		authenticator.MCR.assertParameters("getUserForToken", 0, authToken);
+
 	}
 
 	@Test
-	public void testRecordTypeHandlerFetchedFromDependencyProvider() {
+	public void testAuthorizatorIsCalled() throws Exception {
 		DataGroup dataGroup = setupForAutoGenerateId();
+		String recordType = "spyType";
 
-		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
+		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", recordType, dataGroup);
 
-		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "spyType");
-		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 1);
+		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		spiderAuthorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0,
+				user, "create", recordType);
+	}
+
+	@Test(expectedExceptions = MisuseException.class)
+	public void testCreateRecordAbstractRecordType() {
+		recordStorage = new OldRecordStorageSpy();
+		setUpDependencyProvider();
+		DataGroup record = new DataGroupSpy("abstract");
+		recordTypeHandlerSpy.shouldAutoGenerateId = true;
+		recordTypeHandlerSpy.isAbstract = true;
+
+		recordCreator.createAndStoreRecord("someToken78678567", "abstract", record);
+	}
+
+	@Test
+	public void testExtendedFunctionallityIsCalled() {
+		String authToken = "someToken78678567";
+		DataGroup dataGroup = setupRecordStorageAndDataGroup();
+		recordTypeHandlerSpy.shouldAutoGenerateId = true;
+
+		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
+
+		assertFetchedFunctionalityHasBeenCalled(authToken,
+				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeMetadataValidation);
+		assertFetchedFunctionalityHasBeenCalled(authToken,
+				extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation);
+		assertFetchedFunctionalityHasBeenCalled(authToken,
+				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeReturn);
 	}
 
 	@Test
@@ -232,22 +252,6 @@ public class SpiderRecordCreatorTest {
 	}
 
 	@Test
-	public void testExtendedFunctionallityIsCalled() {
-		String authToken = "someToken78678567";
-		DataGroup dataGroup = setupRecordStorageAndDataGroup();
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
-
-		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
-
-		assertFetchedFunctionalityHasBeenCalled(authToken,
-				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeMetadataValidation);
-		assertFetchedFunctionalityHasBeenCalled(authToken,
-				extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation);
-		assertFetchedFunctionalityHasBeenCalled(authToken,
-				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeReturn);
-	}
-
-	@Test
 	public void testIndexerIsCalled() {
 		String authToken = "someToken78678567";
 		DataGroup dataGroup = setupRecordStorageAndDataGroup();
@@ -259,7 +263,7 @@ public class SpiderRecordCreatorTest {
 
 		List<String> ids = (List<String>) recordTypeHandlerSpy.MCR
 				.getReturnValue("createListOfPossibleIdsToThisRecord", 0);
-		DataGroup collectedTerms = (DataGroup) termCollector.MCR.getReturnValue("collectTerms", 1);
+		DataGroup collectedTerms = (DataGroup) termCollector.MCR.getReturnValue("collectTerms", 0);
 		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectedTerms, createdRecord);
 	}
 
@@ -457,10 +461,10 @@ public class SpiderRecordCreatorTest {
 
 		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).dataDivider, "cora");
 
-		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
 				"fakeMetadataIdFromRecordTypeHandlerSpy");
 		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).collectedTerms,
-				termCollector.MCR.getReturnValue("collectTerms", 1));
+				termCollector.MCR.getReturnValue("collectTerms", 0));
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
@@ -522,18 +526,8 @@ public class SpiderRecordCreatorTest {
 
 		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
 		spiderAuthorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "create",
-				"typeWithUserGeneratedId", termCollector.MCR.getReturnValue("collectTerms", 0));
-	}
-
-	@Test(expectedExceptions = MisuseException.class)
-	public void testCreateRecordAbstractRecordType() {
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
-		DataGroup record = new DataGroupSpy("abstract");
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
-		recordTypeHandlerSpy.isAbstract = true;
-
-		recordCreator.createAndStoreRecord("someToken78678567", "abstract", record);
+				"typeWithUserGeneratedId",
+				termCollector.MCR.getReturnValue("collectTermsWithoutTypeAndId", 0));
 	}
 
 	@Test(expectedExceptions = RecordConflictException.class)

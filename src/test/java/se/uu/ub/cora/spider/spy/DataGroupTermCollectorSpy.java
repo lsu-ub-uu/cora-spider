@@ -34,4 +34,14 @@ public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
 		MCR.addReturned(collectedTerms);
 		return collectedTerms;
 	}
+
+	@Override
+	public DataGroup collectTermsWithoutTypeAndId(String metadataGroupId, DataGroup dataGroup) {
+		MCR.addCall("metadataId", metadataGroupId, "dataGroup", dataGroup);
+
+		DataGroup collectedTerms = new DataGroupSpy("collectedData");
+
+		MCR.addReturned(collectedTerms);
+		return collectedTerms;
+	}
 }
