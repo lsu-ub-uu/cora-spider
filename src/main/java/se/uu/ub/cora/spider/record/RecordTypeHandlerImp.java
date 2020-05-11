@@ -40,6 +40,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private RecordStorage recordStorage;
 	private DataGroup metadataGroup;
 	private Set<String> readWriteConstraints = new HashSet<>();
+	private Set<String> readWriteCreateConstraints = new HashSet<>();
 	private Set<String> writeConstraints = new HashSet<>();
 	private boolean constraintsNotLoaded = true;
 
@@ -134,10 +135,22 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		for (DataGroup childReference : getAllChildReferences()) {
 			possiblyAddConstraint(childReference);
 		}
+		//Spike
+		 for (DataGroup childReference : getAllChildReferences()) {
+		 possiblyAddConstraint(childReference);
+		 }
 	}
 
 	private List<DataGroup> getAllChildReferences() {
-		DataGroup childReferences = getMetadataGroup()
+		DataGroup metadataGroupForMetadata = getMetadataGroup();
+		DataGroup childReferences = metadataGroupForMetadata
+				.getFirstGroupWithNameInData("childReferences");
+		return childReferences.getAllGroupsWithNameInData("childReference");
+	}
+	//Spike
+	private List<DataGroup> getAllChildReferencesForNewMetadata() {
+		DataGroup metadataGroupForMetadata = getMetadataGroup();
+		DataGroup childReferences = metadataGroupForMetadata
 				.getFirstGroupWithNameInData("childReferences");
 		return childReferences.getAllGroupsWithNameInData("childReference");
 	}
@@ -273,5 +286,13 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		if (!hasLinkedSearch()) {
 			throw new DataMissingException("Unable to get searchId, no search exists");
 		}
+	}
+
+	@Override
+	public Set<String> getRecordPartCreateWriteConstraints() {
+		if (constraintsNotLoaded) {
+			collectAllConstraints();
+		}
+		return readWriteCreateConstraints;
 	}
 }

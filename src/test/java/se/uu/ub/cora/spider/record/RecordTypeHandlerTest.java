@@ -140,6 +140,9 @@ public class RecordTypeHandlerTest {
 		Set<String> recordPartWriteConstraints = recordTypeHandler.getRecordPartWriteConstraints();
 		assertTrue(recordPartWriteConstraints.isEmpty());
 
+		Set<String> recordPartCreateWriteConstraints = recordTypeHandler
+				.getRecordPartCreateWriteConstraints();
+		assertTrue(recordPartCreateWriteConstraints.isEmpty());
 	}
 
 	@Test
@@ -156,6 +159,10 @@ public class RecordTypeHandlerTest {
 		assertEquals(recordPartWriteConstraints.size(), 1);
 		assertTrue(recordPartWriteConstraints.contains("organisationRoot"));
 
+		Set<String> recordPartWriteCreateConstraints = recordTypeHandler
+				.getRecordPartCreateWriteConstraints();
+		assertEquals(recordPartWriteCreateConstraints.size(), 1);
+		assertTrue(recordPartWriteCreateConstraints.contains("organisationRoot2"));
 	}
 
 	@Test

@@ -160,16 +160,35 @@ public interface RecordTypeHandler {
 	Set<String> getRecordPartReadConstraints();
 
 	/**
-	 * getRecordPartWriteConstraints returns a Set with all the write constraints for the
-	 * recordType. Write constraints have the value "write", or "readWrite" as a read constraint
-	 * also implies a write constraint. The constraints are identified by nameInData, where
-	 * nameInData is the name in data for the child in the top level dataGroup that is limited by
-	 * the constraint.
+	 * getRecordPartWriteConstraints returns a Set with all the write constraints that are specified
+	 * in the dataGroup specified by metadataId in the recordType. Write constraints have the value
+	 * "write", or "readWrite" as a read constraint also implies a write constraint. The constraints
+	 * are identified by nameInData, where nameInData is the name in data for the child in the top
+	 * level dataGroup that is limited by the constraint.
+	 * <p>
+	 * This method is similar to {@link #getRecordPartCreateWriteConstraints()}, but this one
+	 * returnes constraints active when updating data.
 	 * 
 	 * @return A Set filled with write constraints, more precisly nameInData for children to the top
 	 *         level dataGroup that has write constraints. If there are no write constrainst SHOULD
 	 *         an empty set returned.
 	 */
 	Set<String> getRecordPartWriteConstraints();
+
+	/**
+	 * getRecordPartCreateWriteConstraints returns a Set with all the write constraints that are
+	 * specified in the dataGroup specified by newMetadataId in the recordType. Write constraints
+	 * have the value "write", or "readWrite" as a read constraint also implies a write constraint.
+	 * The constraints are identified by nameInData, where nameInData is the name in data for the
+	 * child in the top level dataGroup that is limited by the constraint.
+	 * <p>
+	 * This method is similar to {@link #getRecordPartCreateWriteConstraints()}, but this one
+	 * returnes constraints active when creating data.
+	 * 
+	 * @return A Set filled with write constraints, more precisly nameInData for children to the top
+	 *         level dataGroup that has write constraints. If there are no write constrainst SHOULD
+	 *         an empty set returned.
+	 */
+	Set<String> getRecordPartCreateWriteConstraints();
 
 }
