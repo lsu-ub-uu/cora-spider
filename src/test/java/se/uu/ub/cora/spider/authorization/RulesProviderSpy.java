@@ -26,6 +26,7 @@ import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RuleImp;
 import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.spider.role.RulesProvider;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class RulesProviderSpy implements RulesProvider {
 
@@ -35,8 +36,11 @@ public class RulesProviderSpy implements RulesProvider {
 	public boolean returnReadRecordPartPermissions = false;
 	public boolean returnWriteRecordPartPermissions = false;
 
+	MethodCallRecorder MCR = new MethodCallRecorder();
+
 	@Override
 	public List<Rule> getActiveRules(String roleId) {
+		MCR.addCall("roleId", roleId);
 		this.roleId = roleId;
 		roleIds.add(roleId);
 
@@ -72,7 +76,7 @@ public class RulesProviderSpy implements RulesProvider {
 			rule2.addWriteRecordPartPermission("book.placementWrite");
 		}
 		returnedRules.add(rules);
-
+		MCR.addReturned(returnedRules);
 		return rules;
 	}
 

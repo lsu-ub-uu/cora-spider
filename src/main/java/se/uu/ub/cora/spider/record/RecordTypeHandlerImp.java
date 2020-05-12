@@ -40,8 +40,10 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private RecordStorage recordStorage;
 	private DataGroup metadataGroup;
 	private Set<String> readWriteConstraints = new HashSet<>();
+	private Set<String> createConstraints = new HashSet<>();
 	private Set<String> writeConstraints = new HashSet<>();
-	private boolean constraintsNotLoaded = true;
+	private boolean constraintsForUpdateLoaded = false;
+	private boolean constraintsForCreateLoaded = false;
 
 	public static RecordTypeHandlerImp usingRecordStorageAndRecordTypeId(
 			RecordStorage recordStorage, String recordTypeId) {
@@ -123,21 +125,26 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	@Override
 	public Set<String> getRecordPartReadConstraints() {
-		if (constraintsNotLoaded) {
+		if (constraintsForUpdateNotLoaded()) {
 			collectAllConstraints();
 		}
 		return readWriteConstraints;
 	}
 
+	private boolean constraintsForUpdateNotLoaded() {
+		return !constraintsForUpdateLoaded;
+	}
+
 	private void collectAllConstraints() {
-		constraintsNotLoaded = false;
+		constraintsForUpdateLoaded = true;
 		for (DataGroup childReference : getAllChildReferences()) {
 			possiblyAddConstraint(childReference);
 		}
 	}
 
 	private List<DataGroup> getAllChildReferences() {
-		DataGroup childReferences = getMetadataGroup()
+		DataGroup metadataGroupForMetadata = getMetadataGroup();
+		DataGroup childReferences = metadataGroupForMetadata
 				.getFirstGroupWithNameInData("childReferences");
 		return childReferences.getAllGroupsWithNameInData("childReference");
 	}
@@ -197,7 +204,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	@Override
 	public Set<String> getRecordPartWriteConstraints() {
-		if (constraintsNotLoaded) {
+		if (constraintsForUpdateNotLoaded()) {
 			collectAllConstraints();
 		}
 		return writeConstraints;
@@ -273,5 +280,51 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		if (!hasLinkedSearch()) {
 			throw new DataMissingException("Unable to get searchId, no search exists");
 		}
+	}
+
+	@Override
+	public Set<String> getRecordPartCreateWriteConstraints() {
+		if (constraintsForCreateNotLoaded()) {
+			collectAllConstraintsForCreate();
+		}
+		return createConstraints;
+	}
+
+	private boolean constraintsForCreateNotLoaded() {
+		return !constraintsForCreateLoaded;
+	}
+
+	private void collectAllConstraintsForCreate() {
+		constraintsForCreateLoaded = true;
+		for (DataGroup childReference : getAllChildReferencesForCreate()) {
+			possiblyAddCreateConstraint(childReference);
+		}
+	}
+
+	private List<DataGroup> getAllChildReferencesForCreate() {
+		DataGroup metadataGroupForMetadata = getNewMetadataGroup();
+		DataGroup childReferences = metadataGroupForMetadata
+				.getFirstGroupWithNameInData("childReferences");
+		return childReferences.getAllGroupsWithNameInData("childReference");
+	}
+
+	private DataGroup getNewMetadataGroup() {
+		return recordStorage.read("metadataGroup", getNewMetadataId());
+	}
+
+	private void possiblyAddCreateConstraint(DataGroup childReference) {
+		if (hasConstraints(childReference)) {
+			addCreateConstraints(childReference);
+		}
+	}
+
+	private void addCreateConstraints(DataGroup childReference) {
+		String refNameInData = getRefNameInData(childReference);
+		createConstraints.add(refNameInData);
+	}
+
+	@Override
+	public boolean hasRecordPartCreateConstraint() {
+		return !getRecordPartCreateWriteConstraints().isEmpty();
 	}
 }

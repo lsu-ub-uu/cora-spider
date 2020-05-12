@@ -82,8 +82,8 @@ public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
 		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
-		spiderAuthorizator.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user,
-				READ, recordType, collectedTerms, false);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
+				recordType, collectedTerms);
 	}
 
 	private DataGroup getCollectedTermsForRecord(DataGroup recordRead) {

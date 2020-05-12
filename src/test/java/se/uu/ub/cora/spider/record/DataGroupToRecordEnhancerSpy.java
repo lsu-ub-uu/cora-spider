@@ -38,8 +38,11 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 	public DataGroup dataGroup;
 	public List<DataGroup> enhancedDataGroups = new ArrayList<>();
 	/**
-	 * addReadAction is default true, if set to false will no read action be added but instead an
-	 * AuthorizationException thrown as is specified in interface.
+	 * addReadAction is default true, if set to false will no read action be added. For method
+	 * {@link #enhance(User, String, DataGroup)} will an AuthorizationException be thrown, if method
+	 * {@link #enhanceIgnoringReadAccess(User, String, DataGroup)} is called, will no exception be
+	 * thrown and the enhanced record returned, as is specified in interface for
+	 * DataGroupToRecordEnhancer.
 	 */
 	public boolean addReadAction = true;
 	/**
@@ -59,12 +62,19 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 	public DataRecord enhance(User user, String recordType, DataGroup dataGroup) {
 		MCR.addCall("user", user, "recordType", recordType, "dataGroup", dataGroup);
 
-		if (throwOtherException) {
-			throw new RuntimeException();
-		}
-
 		if (!addReadAction) {
 			throw new AuthorizationException(recordType);
+		}
+
+		DataRecord dataGroupSpy = spyEnhanceDataGroupToRecord(user, recordType, dataGroup);
+		MCR.addReturned(dataGroupSpy);
+		return dataGroupSpy;
+	}
+
+	private DataRecord spyEnhanceDataGroupToRecord(User user, String recordType,
+			DataGroup dataGroup) {
+		if (throwOtherException) {
+			throw new RuntimeException();
 		}
 
 		enhancedDataGroups.add(dataGroup);
@@ -79,6 +89,13 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 				addReadAction = false;
 			}
 		}
+		return dataGroupSpy;
+	}
+
+	@Override
+	public DataRecord enhanceIgnoringReadAccess(User user, String recordType, DataGroup dataGroup) {
+		MCR.addCall("user", user, "recordType", recordType, "dataGroup", dataGroup);
+		DataRecord dataGroupSpy = spyEnhanceDataGroupToRecord(user, recordType, dataGroup);
 		MCR.addReturned(dataGroupSpy);
 		return dataGroupSpy;
 	}

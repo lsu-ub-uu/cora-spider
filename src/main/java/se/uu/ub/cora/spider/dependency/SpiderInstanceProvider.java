@@ -43,7 +43,6 @@ public final class SpiderInstanceProvider {
 
 	public static void setSpiderInstanceFactory(SpiderInstanceFactory factory) {
 		SpiderInstanceProvider.factory = factory;
-
 	}
 
 	public static SpiderRecordReader getSpiderRecordReader() {

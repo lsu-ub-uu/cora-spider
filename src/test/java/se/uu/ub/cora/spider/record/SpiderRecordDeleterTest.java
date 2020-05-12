@@ -141,9 +141,9 @@ public class SpiderRecordDeleterTest {
 
 		recordDeleter.deleteRecord("userId", "child1", "place:0002");
 
-		String methodName = "checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData";
+		String methodName = "checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "delete",
-				"child1", termCollector.MCR.getReturnValue("collectTerms", 0), false);
+				"child1", termCollector.MCR.getReturnValue("collectTerms", 0));
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "child1");
 
@@ -197,6 +197,18 @@ public class SpiderRecordDeleterTest {
 		setUpDependencyProvider();
 
 		recordDeleter.deleteRecord("userId", "place", "place:0003");
+	}
+
+	@Test
+	public void testAuthorizedToDeleteAndNoIncomingLinkToAbstractParent() {
+		recordStorage = new OldRecordStorageSpy();
+		setUpDependencyProvider();
+
+		recordDeleter.deleteRecord("userId", "place", "place:0001");
+
+		assertTrue(((OldRecordStorageSpy) recordStorage).deleteWasCalled);
+		assertEquals(((RecordIndexerSpy) recordIndexer).type, "place");
+		assertEquals(((RecordIndexerSpy) recordIndexer).id, "place:0001");
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)

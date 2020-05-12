@@ -232,8 +232,9 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		}
 	}
 
-	private void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user,
-			String action, String recordType, DataGroup collectedData) {
+	@Override
+	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
+			String recordType, DataGroup collectedData) {
 		if (!userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, recordType,
 				collectedData)) {
 			throw new AuthorizationException(USER_STRING + user.id + " is not authorized to "
@@ -268,12 +269,18 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		return rulesProvider;
 	}
 
+	// @Override
+	// public Set<String> getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
+	// User user, String action, String recordType, DataGroup collectedData) {
+	// // TODO Auto-generated method stub
+	// return null;
+	// }
+
 	@Override
-	public Set<String> checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(User user,
+	public Set<String> checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(User user,
 			String action, String recordType, DataGroup collectedData,
 			boolean calculateRecordPartPermissions) {
 		if (calculateRecordPartPermissions) {
-
 			checkUserIsActiveInStorage(user);
 			tryToGetMatchedRules(user, action, recordType, collectedData);
 			if ("read".equals(action)) {

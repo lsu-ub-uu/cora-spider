@@ -109,12 +109,18 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
 		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId, topDataGroup);
-		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
+		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectedTerms);
 
 		updateRecordInStorage(collectedTerms);
 		indexData(collectedTerms);
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup);
+	}
+
+	private void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(String recordType,
+			DataGroup collectedTerms) {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, UPDATE,
+				recordType, collectedTerms);
 	}
 
 	private User tryToGetActiveUser() {
@@ -135,8 +141,8 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 
 	private void checkUserIsAuthorisedToUpdateGivenCollectedData(DataGroup collectedTerms) {
 		writePermissions = spiderAuthorizator
-				.checkAndGetUserAuthorizationsForActionOnRecordTypeAndCollectedData(user, UPDATE,
-						recordType, collectedTerms,
+				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
+						user, UPDATE, recordType, collectedTerms,
 						recordTypeHandler.hasRecordPartWriteConstraint());
 	}
 
