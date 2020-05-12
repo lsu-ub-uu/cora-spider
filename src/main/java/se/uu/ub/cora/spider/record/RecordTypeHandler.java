@@ -148,6 +148,16 @@ public interface RecordTypeHandler {
 	boolean hasRecordPartWriteConstraint();
 
 	/**
+	 * hasRecordPartCreateConstraint is used to check if the record has constraints on its
+	 * recordParts on CREATE action. If a user has read constraints on a recordPart is it implied
+	 * that the user also has write constraint on that part.
+	 * 
+	 * @return A boolean, true if the record has at least one recordPart with write constraint, else
+	 *         false
+	 */
+	boolean hasRecordPartCreateConstraint();
+
+	/**
 	 * getRecordPartReadConstraints returns a Set with all the read constraints for the recordType.
 	 * Read constraints internally have the value "readWrite" as a read constraint also implies a
 	 * write constraint. The constraints are identified by nameInData, where nameInData is the name

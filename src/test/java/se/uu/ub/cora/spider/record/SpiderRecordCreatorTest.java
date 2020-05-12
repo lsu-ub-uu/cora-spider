@@ -589,7 +589,7 @@ public class SpiderRecordCreatorTest {
 
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 
-		recordTypeHandlerSpy.MCR.assertMethodWasCalled("hasRecordPartWriteConstraint");
+		recordTypeHandlerSpy.MCR.assertMethodWasCalled("hasRecordPartCreateConstraint");
 		dataRedactorSpy.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
 	}
 
@@ -605,7 +605,7 @@ public class SpiderRecordCreatorTest {
 
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 
-		recordTypeHandlerSpy.MCR.assertMethodWasCalled("hasRecordPartWriteConstraint");
+		recordTypeHandlerSpy.MCR.assertMethodWasCalled("hasRecordPartCreateConstraint");
 
 		assertDataRedactorRemoveChildrenForConstraintsWithoutPermissions(dataGroup);
 	}
@@ -623,12 +623,13 @@ public class SpiderRecordCreatorTest {
 		DataGroup dataGroup = setupRecordStorageAndDataGroup();
 		recordTypeHandlerSpy.shouldAutoGenerateId = true;
 		return dataGroup;
+
 	}
 
 	private void assertDataRedactorRemoveChildrenForConstraintsWithoutPermissions(
 			DataGroup dataGroup) {
 		Set<String> recordPartWriteConstraints = (Set<String>) recordTypeHandlerSpy.MCR
-				.getReturnValue("getRecordPartWriteConstraints", 0);
+				.getReturnValue("getRecordPartCreateWriteConstraints", 0);
 		Set<String> writePermissions = (Set<String>) spiderAuthorizator.MCR.getReturnValue(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);

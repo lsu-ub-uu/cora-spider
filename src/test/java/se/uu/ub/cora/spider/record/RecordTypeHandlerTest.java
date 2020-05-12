@@ -148,7 +148,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testGetRecordPartReadConstraintsOneReadConstraint() {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
-		storageSpy.numberOfChildrenWithReadConstraint = 1;
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
 		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
@@ -168,7 +168,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testGetRecordPartReadConstraintsReturnsSameInstance() {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
-		storageSpy.numberOfChildrenWithReadConstraint = 1;
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
 		recordTypeHandler.getRecordPartReadConstraints();
@@ -176,49 +176,72 @@ public class RecordTypeHandlerTest {
 		recordTypeHandler.getRecordPartWriteConstraints();
 		recordTypeHandler.getRecordPartWriteConstraints();
 
-		String childWithConstraint = "divaOrganisationRoot";
-		long childWithConstraintReadNumberOfTimes = storageSpy.ids.stream()
-				.filter(id -> childWithConstraint.equals(id)).count();
-		assertEquals(childWithConstraintReadNumberOfTimes, 1);
+		storageSpy.MCR.assertNumberOfCallsToMethod("read", 3);
+		storageSpy.MCR.assertParameters("read", 0, "recordType", "organisation");
+		storageSpy.MCR.assertParameters("read", 1, "metadataGroup", "organisation");
+		storageSpy.MCR.assertParameters("read", 2, "metadataTextVariable", "divaOrganisationRoot");
 	}
 
 	@Test
 	public void testGetRecordPartWriteConstraintsReturnsSameInstance() {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
-		storageSpy.numberOfChildrenWithReadConstraint = 1;
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
 
 		recordTypeHandler.getRecordPartWriteConstraints();
 		recordTypeHandler.getRecordPartWriteConstraints();
-		String childWithConstraint = "divaOrganisationRoot";
-		long childWithConstraintReadNumberOfTimes = storageSpy.ids.stream()
-				.filter(id -> childWithConstraint.equals(id)).count();
-		assertEquals(childWithConstraintReadNumberOfTimes, 1);
+
+		storageSpy.MCR.assertNumberOfCallsToMethod("read", 3);
+		storageSpy.MCR.assertParameters("read", 0, "recordType", "organisation");
+		storageSpy.MCR.assertParameters("read", 1, "metadataGroup", "organisation");
+		storageSpy.MCR.assertParameters("read", 2, "metadataTextVariable", "divaOrganisationRoot");
+	}
+
+	@Test
+	public void testGetRecordPartCreateConstraintsReturnsSameInstance() {
+		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
+		recordTypeHandler.getRecordPartCreateWriteConstraints();
+		recordTypeHandler.getRecordPartCreateWriteConstraints();
+
+		storageSpy.MCR.assertNumberOfCallsToMethod("read", 3);
+		storageSpy.MCR.assertParameters("read", 0, "recordType", "organisation");
+		storageSpy.MCR.assertParameters("read", 1, "metadataGroup", "organisationNew");
+		storageSpy.MCR.assertParameters("read", 2, "metadataTextVariable", "divaOrganisationRoot2");
 	}
 
 	@Test
 	public void testGetRecordPartReadConstraintsTwoReadConstraint() {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
-		storageSpy.numberOfChildrenWithReadConstraint = 2;
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 2;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
-		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
-		assertEquals(recordPartReadConstraints.size(), 2);
-		assertTrue(recordPartReadConstraints.contains("organisationRoot"));
-		assertTrue(recordPartReadConstraints.contains("showInPortal"));
+		Set<String> recordPartReadForUpdateConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
+		assertEquals(recordPartReadForUpdateConstraints.size(), 2);
+		assertTrue(recordPartReadForUpdateConstraints.contains("organisationRoot"));
+		assertTrue(recordPartReadForUpdateConstraints.contains("showInPortal"));
 
-		Set<String> recordPartWriteConstraints = recordTypeHandler.getRecordPartWriteConstraints();
-		assertEquals(recordPartWriteConstraints.size(), 2);
-		assertTrue(recordPartWriteConstraints.contains("organisationRoot"));
-		assertTrue(recordPartWriteConstraints.contains("showInPortal"));
+		Set<String> recordPartWriteForUpdateConstraints = recordTypeHandler
+				.getRecordPartWriteConstraints();
+		assertEquals(recordPartWriteForUpdateConstraints.size(), 2);
+		assertTrue(recordPartWriteForUpdateConstraints.contains("organisationRoot"));
+		assertTrue(recordPartWriteForUpdateConstraints.contains("showInPortal"));
 
+		Set<String> recordPartCreateConstraints = recordTypeHandler
+				.getRecordPartCreateWriteConstraints();
+		assertEquals(recordPartCreateConstraints.size(), 2);
+		assertTrue(recordPartCreateConstraints.contains("organisationRoot2"));
+		assertTrue(recordPartCreateConstraints.contains("showInPortal2"));
 	}
 
 	@Test
 	public void testGetRecordPartReadConstraintsOnlyReadWriteConstraintsAreAdded() {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
-		storageSpy.numberOfChildrenWithReadConstraint = 2;
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 2;
 		storageSpy.numberOfChildrenWithWriteConstraint = 1;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
@@ -233,6 +256,13 @@ public class RecordTypeHandlerTest {
 		assertTrue(recordPartWriteConstraints.contains("organisationRoot"));
 		assertTrue(recordPartWriteConstraints.contains("showInPortal"));
 		assertTrue(recordPartWriteConstraints.contains("showInDefence"));
+
+		Set<String> recordPartCreateConstraints = recordTypeHandler
+				.getRecordPartCreateWriteConstraints();
+		assertEquals(recordPartCreateConstraints.size(), 3);
+		assertTrue(recordPartCreateConstraints.contains("organisationRoot2"));
+		assertTrue(recordPartCreateConstraints.contains("showInPortal2"));
+		assertTrue(recordPartCreateConstraints.contains("showInDefence2"));
 	}
 
 	@Test
@@ -246,7 +276,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testHasRecordPartReadConstraintsOneConstraints() {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
-		storageSpy.numberOfChildrenWithReadConstraint = 1;
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
 		assertTrue(recordTypeHandler.hasRecordPartReadConstraint());
@@ -263,7 +293,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testHasRecordPartWriteConstraintsOneReadConstraint() {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
-		storageSpy.numberOfChildrenWithReadConstraint = 1;
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
 		storageSpy.numberOfChildrenWithWriteConstraint = 0;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
@@ -273,11 +303,39 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testHasRecordPartWriteConstraintsOneWriteConstraints() {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
-		storageSpy.numberOfChildrenWithReadConstraint = 0;
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 0;
 		storageSpy.numberOfChildrenWithWriteConstraint = 1;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
 		assertTrue(recordTypeHandler.hasRecordPartWriteConstraint());
+	}
+
+	@Test
+	public void testHasRecordPartCreateConstraintsNoConstraints() {
+		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
+		assertFalse(recordTypeHandler.hasRecordPartCreateConstraint());
+	}
+
+	@Test
+	public void testHasRecordPartCreateConstraintsOneReadConstraint() {
+		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.numberOfChildrenWithWriteConstraint = 0;
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
+		assertTrue(recordTypeHandler.hasRecordPartCreateConstraint());
+	}
+
+	@Test
+	public void testHasRecordPartCreateConstraintsOneWriteConstraints() {
+		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 0;
+		storageSpy.numberOfChildrenWithWriteConstraint = 1;
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
+		assertTrue(recordTypeHandler.hasRecordPartCreateConstraint());
 	}
 
 	@Test

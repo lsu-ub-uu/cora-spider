@@ -18,7 +18,7 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	public List<String> types = new ArrayList<>();
 	public List<String> ids = new ArrayList<>();
 	public String id;
-	public int numberOfChildrenWithReadConstraint = 0;
+	public int numberOfChildrenWithReadWriteConstraint = 0;
 	public int numberOfChildrenWithWriteConstraint = 0;
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
@@ -44,13 +44,13 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 					"divaOrganisationNameGroup");
 			childReferences.addChild(childReference);
 
-			if (numberOfChildrenWithReadConstraint > 0) {
+			if (numberOfChildrenWithReadWriteConstraint > 0) {
 				DataGroupSpy referenceWithConstraint = createChildWithConstraint(
 						"metadataTextVariable", "divaOrganisationRoot", "readWrite");
 				childReferences.addChild(referenceWithConstraint);
 
 			}
-			if (numberOfChildrenWithReadConstraint > 1) {
+			if (numberOfChildrenWithReadWriteConstraint > 1) {
 				DataGroupSpy referenceWithConstraint2 = createChildWithConstraint(
 						"metadataTextVariable", "showInPortalTextVar", "readWrite");
 				childReferences.addChild(referenceWithConstraint2);
@@ -75,13 +75,13 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 					"divaOrganisationNameGroup");
 			childReferences.addChild(childReference);
 
-			if (numberOfChildrenWithReadConstraint > 0) {
+			if (numberOfChildrenWithReadWriteConstraint > 0) {
 				DataGroupSpy referenceWithConstraint = createChildWithConstraint(
 						"metadataTextVariable", "divaOrganisationRoot2", "readWrite");
 				childReferences.addChild(referenceWithConstraint);
 
 			}
-			if (numberOfChildrenWithReadConstraint > 1) {
+			if (numberOfChildrenWithReadWriteConstraint > 1) {
 				DataGroupSpy referenceWithConstraint2 = createChildWithConstraint(
 						"metadataTextVariable", "showInPortalTextVar2", "readWrite");
 				childReferences.addChild(referenceWithConstraint2);
@@ -114,6 +114,24 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 		if ("metadataTextVariable".equals(type) && "showInDefenceTextVar".equals(id)) {
 			DataGroupSpy metadataTextVariable = new DataGroupSpy("metadata");
 			metadataTextVariable.addChild(new DataAtomicSpy("nameInData", "showInDefence"));
+			MCR.addReturned(metadataTextVariable);
+			return metadataTextVariable;
+		}
+		if ("metadataTextVariable".equals(type) && "divaOrganisationRoot2".equals(id)) {
+			DataGroupSpy metadataTextVariable = new DataGroupSpy("metadata");
+			metadataTextVariable.addChild(new DataAtomicSpy("nameInData", "organisationRoot2"));
+			MCR.addReturned(metadataTextVariable);
+			return metadataTextVariable;
+		}
+		if ("metadataTextVariable".equals(type) && "showInPortalTextVar2".equals(id)) {
+			DataGroupSpy metadataTextVariable = new DataGroupSpy("metadata");
+			metadataTextVariable.addChild(new DataAtomicSpy("nameInData", "showInPortal2"));
+			MCR.addReturned(metadataTextVariable);
+			return metadataTextVariable;
+		}
+		if ("metadataTextVariable".equals(type) && "showInDefenceTextVar2".equals(id)) {
+			DataGroupSpy metadataTextVariable = new DataGroupSpy("metadata");
+			metadataTextVariable.addChild(new DataAtomicSpy("nameInData", "showInDefence2"));
 			MCR.addReturned(metadataTextVariable);
 			return metadataTextVariable;
 		}

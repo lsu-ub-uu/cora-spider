@@ -157,7 +157,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private void possiblyRemoveRecordPartsUserIsNotAllowedToChange() {
-		if (recordTypeHandler.hasRecordPartWriteConstraint()) {
+		if (recordTypeHandler.hasRecordPartCreateConstraint()) {
 			removeRecordPartsUserIsNotAllowedToChange();
 		}
 	}
@@ -165,7 +165,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private void removeRecordPartsUserIsNotAllowedToChange() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		recordAsDataGroup = dataRedactor.removeChildrenForConstraintsWithoutPermissions(
-				recordAsDataGroup, recordTypeHandler.getRecordPartWriteConstraints(),
+				recordAsDataGroup, recordTypeHandler.getRecordPartCreateWriteConstraints(),
 				writePermissions);
 	}
 

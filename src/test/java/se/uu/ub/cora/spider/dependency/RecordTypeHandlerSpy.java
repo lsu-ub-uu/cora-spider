@@ -225,4 +225,24 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		return returnedSearchId;
 	}
 
+	@Override
+	public boolean hasRecordPartCreateConstraint() {
+		MCR.addCall();
+		boolean answer = false;
+		if ("readWrite".equals(recordPartConstraint)) {
+			answer = true;
+		} else if ("write".equals(recordPartConstraint)) {
+			answer = true;
+		}
+		MCR.addReturned(answer);
+		return answer;
+	}
+
+	@Override
+	public Set<String> getRecordPartCreateWriteConstraints() {
+		MCR.addCall();
+		MCR.addReturned(writeConstraints);
+		return writeConstraints;
+	}
+
 }
