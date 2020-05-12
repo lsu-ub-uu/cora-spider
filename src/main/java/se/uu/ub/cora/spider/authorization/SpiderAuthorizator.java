@@ -127,46 +127,6 @@ public interface SpiderAuthorizator {
 			String recordType, DataGroup collectedData);
 
 	/**
-	 * getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData is used to get all
-	 * recordPartPermissions that come from matched rules. RecordPart permissions are collected for
-	 * all rules that allow the user to perform the action on the specified recordType based on the
-	 * rules and the collectedData, the user is associated with.
-	 * <p>
-	 * Implementations MUST ensure that the user is active in storage, and collect only the
-	 * recordPart permissions that the user through its stored active rules has access to based on
-	 * the action and collected data for the recordType.
-	 * <p>
-	 * The returned set of recordPart permissions should be filtered so that it only contains those
-	 * recordPart permissions that are for the specified action and the specified recordType. If no
-	 * recordPart permissons are to be returned should and emtpy set be retured instead.
-	 * <p>
-	 * For a read action SHALL the matched rules read recordPart permissions be returned, and for
-	 * all other actions shall the rules write recordPart permissions be returned.
-	 * <p>
-	 * This method is very similar to
-	 * {@link #checkgetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(User, String, String, DataGroup)}
-	 * with the main difference beeing that this one returns an empty set instead of throwing an
-	 * excepiton if the User is not authorized as specified above.
-	 * 
-	 * @param user
-	 *            the logged in user (or guest)
-	 * @param action
-	 *            the action the user wants to perform, such as read, update, etc.
-	 * @param recordType
-	 *            the recordType the user wants to perform the action on
-	 * @param collectedData
-	 *            the collectedData to use extend the access check with
-	 * @return A set of recordPart permissions
-	 */
-	// Set<String> getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(User
-	// user,
-	// String action, String recordType, DataGroup collectedData);
-
-	/**
-	 * TODO: call to this with boolean true is more or
-	 * less:checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData and should be that instead
-	 * som the boolean can be removed from here
-	 * <p>
 	 * checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData is used to get
 	 * all recordPartPermissions that come from matched rules. RecordPart permissions are collected
 	 * for all rules that allow the user to perform the action on the specified recordType based on
