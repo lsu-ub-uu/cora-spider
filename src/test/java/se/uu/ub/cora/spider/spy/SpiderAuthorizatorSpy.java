@@ -32,8 +32,6 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
-	public Set<String> recordPartReadPermissions = new HashSet<>();
-
 	/**
 	 * authorizedForActionAndRecordType is used to authorize the a user for an action and
 	 * recordType. Default is true. If set to false the user is not authorized.
@@ -113,9 +111,14 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 					+ "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData from Spy");
 		}
 
-		recordPartReadPermissions.add("someRecordType.someMetadataId");
-		MCR.addReturned(recordPartReadPermissions);
-		return recordPartReadPermissions;
+		Set<String> recordPartPermissions = new HashSet<>();
+		if ("read".equals(action)) {
+			recordPartPermissions.add("someRecordType.someReadMetadataId");
+		} else if ("update".equals(action)) {
+			recordPartPermissions.add("someRecordType.someWriteMetadataId");
+		}
+		MCR.addReturned(recordPartPermissions);
+		return recordPartPermissions;
 	}
 
 	public void setNotAutorizedForActionOnRecordType(String action, String recordType) {

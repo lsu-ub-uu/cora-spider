@@ -26,6 +26,7 @@ import static org.testng.Assert.assertTrue;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -253,9 +254,12 @@ public class SpiderRecordUpdaterTest {
 		dataRedactorSpy.MCR
 				.assertMethodWasCalled("replaceChildrenForConstraintsWithoutPermissions");
 
+		Set<String> expectedPermissions = (Set<String>) authorizator.MCR.getReturnValue(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
+				0);
 		dataRedactorSpy.MCR.assertParameters("replaceChildrenForConstraintsWithoutPermissions", 0,
 				((OldRecordStorageSpy) recordStorage).aRecord, dataGroup,
-				recordTypeHandlerSpy.writeConstraints, authorizator.recordPartReadPermissions);
+				recordTypeHandlerSpy.writeConstraints, expectedPermissions);
 
 		DataGroup returnedRedactedDataGroup = (DataGroup) dataRedactorSpy.MCR
 				.getReturnValue("replaceChildrenForConstraintsWithoutPermissions", 0);

@@ -1298,12 +1298,20 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void assertReadPermissionsAreAddedToRecord(DataRecord record) {
+		String expectedPermissions = "someRecordType.someReadMetadataId";
+
 		authorizator.MCR.assertParameter(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
 				"action", READ);
-		authorizator.MCR.assertReturn(
-				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
-				record.getReadPermissions());
+		// authorizator.MCR.assertReturn(
+		// "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
+		// expectedPermissions);
+		Set<String> readPermissions = (Set<String>) authorizator.MCR.getReturnValue(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
+				0);
+
+		assertTrue(readPermissions.contains(expectedPermissions));
+		assertTrue(readPermissions.size() == 1);
 	}
 
 	@Test
@@ -1323,7 +1331,7 @@ public class DataGroupToRecordEnhancerTest {
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
 				someDataGroup);
 
-		assertEquals(record.getReadPermissions(), Collections.emptySet());
+		assertReadPermissionsAreAddedToRecordPublicData(record);
 	}
 
 	@Test
@@ -1370,6 +1378,9 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator.MCR.assertReturn(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
 				record.getWritePermissions());
+
+		assertEquals(record.getWritePermissions().size(), 1);
+		assertEquals(record.getReadPermissions().size(), 2);
 	}
 
 	@Test

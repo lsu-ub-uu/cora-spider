@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -139,13 +140,9 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void checkAndGetUserAuthorizationsForReadAction() {
-		try {
-			readRecordPartPermissions = spiderAuthorizator
-					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-							user, "read", recordType, collectedTerms, true);
-		} catch (Exception catchedException) {
-			throw catchedException;
-		}
+		readRecordPartPermissions = spiderAuthorizator
+				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
+						user, "read", recordType, collectedTerms, true);
 	}
 
 	private DataRecord createDataRecord(DataGroup dataGroup) {
@@ -326,8 +323,23 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void addRecordPartPermissions(DataRecord dataRecord) {
-		dataRecord.addReadPermissions(readRecordPartPermissions);
+		Set<String> readWriteRecordPartPermissions = calculateReadWritePermissions();
+		dataRecord.addReadPermissions(readWriteRecordPartPermissions);
 		dataRecord.addWritePermissions(writeRecordPartPermissions);
+	}
+
+	private Set<String> calculateReadWritePermissions() {
+		Set<String> readWriteRecordPartPermissions = new HashSet<>();
+		readWriteRecordPartPermissions.addAll(readRecordPartPermissions);
+		possiblyUnionWriteAndReadPermissionsIfNotPublicForRead(readWriteRecordPartPermissions);
+		return readWriteRecordPartPermissions;
+	}
+
+	private void possiblyUnionWriteAndReadPermissionsIfNotPublicForRead(
+			Set<String> readWriteRecordPartPermissions) {
+		if (!recordTypeHandler.isPublicForRead()) {
+			readWriteRecordPartPermissions.addAll(writeRecordPartPermissions);
+		}
 	}
 
 	private DataGroup redact(DataGroup dataGroup) {
