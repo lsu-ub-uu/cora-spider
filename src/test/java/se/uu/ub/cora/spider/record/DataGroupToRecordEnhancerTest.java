@@ -56,6 +56,7 @@ import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
+import se.uu.ub.cora.spider.data.DataRecordSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
@@ -1366,12 +1367,13 @@ public class DataGroupToRecordEnhancerTest {
 	public void testWritePermissionsAreAddedToRecord() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+				someDataGroup);
 
 		assertWritePermissionsAreAddedToRecord(record);
 	}
 
-	private void assertWritePermissionsAreAddedToRecord(DataRecord record) {
+	private void assertWritePermissionsAreAddedToRecord(DataRecordSpy record) {
 		authorizator.MCR.assertParameter(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
 				"action", UPDATE);
@@ -1379,16 +1381,25 @@ public class DataGroupToRecordEnhancerTest {
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
 				record.getWritePermissions());
 
-		assertEquals(record.getWritePermissions().size(), 1);
-		assertEquals(record.getReadPermissions().size(), 2);
+		record.MCR.assertNumberOfCallsToMethod("addReadPermissions", 2);
+		Set<String> call1 = (Set<String>) record.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("addReadPermissions", 0,
+						"readPermissions");
+		Set<String> call2 = (Set<String>) record.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("addReadPermissions", 1,
+						"readPermissions");
+
+		assertTrue(call1.contains("someRecordType.someReadMetadataId"));
+		assertTrue(call2.contains("someRecordType.someWriteMetadataId"));
+
 	}
 
 	@Test
 	public void testIRAWritePermissionsAreAddedToRecord() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+				SOME_RECORD_TYPE, someDataGroup);
 
 		assertWritePermissionsAreAddedToRecord(record);
 	}

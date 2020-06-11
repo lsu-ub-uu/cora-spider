@@ -34,8 +34,9 @@ public class DataRecordSpy implements DataRecord {
 	private List<Action> actions = new ArrayList<>();
 	private Collection<String> readPermissions;
 	private Collection<String> writePermissions;
+	public List<String> permissionsSentToRead = new ArrayList<>();
 
-	MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public DataRecordSpy(DataGroup dataGroup) {
 		MCR.addCall("dataGroup", dataGroup);

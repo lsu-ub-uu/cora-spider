@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.record;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -323,22 +322,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void addRecordPartPermissions(DataRecord dataRecord) {
-		Set<String> readWriteRecordPartPermissions = calculateReadWritePermissions();
-		dataRecord.addReadPermissions(readWriteRecordPartPermissions);
 		dataRecord.addWritePermissions(writeRecordPartPermissions);
-	}
-
-	private Set<String> calculateReadWritePermissions() {
-		Set<String> readWriteRecordPartPermissions = new HashSet<>();
-		readWriteRecordPartPermissions.addAll(readRecordPartPermissions);
-		possiblyUnionWriteAndReadPermissionsIfNotPublicForRead(readWriteRecordPartPermissions);
-		return readWriteRecordPartPermissions;
-	}
-
-	private void possiblyUnionWriteAndReadPermissionsIfNotPublicForRead(
-			Set<String> readWriteRecordPartPermissions) {
+		dataRecord.addReadPermissions(readRecordPartPermissions);
 		if (!recordTypeHandler.isPublicForRead()) {
-			readWriteRecordPartPermissions.addAll(writeRecordPartPermissions);
+			dataRecord.addReadPermissions(writeRecordPartPermissions);
 		}
 	}
 
