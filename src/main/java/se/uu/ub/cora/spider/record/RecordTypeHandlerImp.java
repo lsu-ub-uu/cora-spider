@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -41,7 +42,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private DataGroup metadataGroup;
 	private Set<String> readWriteConstraints = new HashSet<>();
 	private Set<String> createConstraints = new HashSet<>();
-	private Set<String> writeConstraints = new HashSet<>();
+	private Set<Constraint> writeConstraints = new HashSet<>();
 	private boolean constraintsForUpdateLoaded = false;
 	private boolean constraintsForCreateLoaded = false;
 
@@ -162,7 +163,8 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private void addWriteAndOrReadWriteConstraints(DataGroup childReference) {
 		String refNameInData = getRefNameInData(childReference);
 		String constraintValue = getRecordPartConstraintValue(childReference);
-		writeConstraints.add(refNameInData);
+		Constraint constraint = new Constraint(refNameInData);
+		writeConstraints.add(constraint);
 		possiblyAddReadWriteConstraint(refNameInData, constraintValue);
 	}
 
@@ -203,7 +205,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<String> getRecordPartWriteConstraints() {
+	public Set<Constraint> getRecordPartWriteConstraints() {
 		if (constraintsForUpdateNotLoaded()) {
 			collectAllConstraints();
 		}

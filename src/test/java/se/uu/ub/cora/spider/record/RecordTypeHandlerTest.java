@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2019, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -25,12 +25,14 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
@@ -137,7 +139,8 @@ public class RecordTypeHandlerTest {
 		assertEquals(storageSpy.type, "metadataGroup");
 		assertEquals(storageSpy.id, "organisation");
 		assertTrue(recordPartReadConstraints.isEmpty());
-		Set<String> recordPartWriteConstraints = recordTypeHandler.getRecordPartWriteConstraints();
+		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
+				.getRecordPartWriteConstraints();
 		assertTrue(recordPartWriteConstraints.isEmpty());
 
 		Set<String> recordPartCreateWriteConstraints = recordTypeHandler
@@ -155,9 +158,11 @@ public class RecordTypeHandlerTest {
 		assertEquals(recordPartReadConstraints.size(), 1);
 		assertTrue(recordPartReadConstraints.contains("organisationRoot"));
 
-		Set<String> recordPartWriteConstraints = recordTypeHandler.getRecordPartWriteConstraints();
+		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
+				.getRecordPartWriteConstraints();
 		assertEquals(recordPartWriteConstraints.size(), 1);
-		assertTrue(recordPartWriteConstraints.contains("organisationRoot"));
+		Constraint constraint = recordPartWriteConstraints.iterator().next();
+		assertEquals(constraint.getNameInData(), "organisationRoot");
 
 		Set<String> recordPartWriteCreateConstraints = recordTypeHandler
 				.getRecordPartCreateWriteConstraints();
@@ -225,11 +230,16 @@ public class RecordTypeHandlerTest {
 		assertTrue(recordPartReadForUpdateConstraints.contains("organisationRoot"));
 		assertTrue(recordPartReadForUpdateConstraints.contains("showInPortal"));
 
-		Set<String> recordPartWriteForUpdateConstraints = recordTypeHandler
+		Set<Constraint> recordPartWriteForUpdateConstraints = recordTypeHandler
 				.getRecordPartWriteConstraints();
 		assertEquals(recordPartWriteForUpdateConstraints.size(), 2);
-		assertTrue(recordPartWriteForUpdateConstraints.contains("organisationRoot"));
-		assertTrue(recordPartWriteForUpdateConstraints.contains("showInPortal"));
+
+		Constraint firstConstraint = recordPartWriteForUpdateConstraints.iterator().next();
+		Constraint secondConstraint = recordPartWriteForUpdateConstraints.iterator().next();
+
+		assertEquals(firstConstraint.getNameInData(), "organisationRoot");
+		assertEquals(secondConstraint.getNameInData(), "showInPortal");
+		// assertTrue(recordPartWriteForUpdateConstraints.contains("showInPortal"));
 
 		Set<String> recordPartCreateConstraints = recordTypeHandler
 				.getRecordPartCreateWriteConstraints();
@@ -251,11 +261,24 @@ public class RecordTypeHandlerTest {
 		assertTrue(recordPartReadConstraints.contains("showInPortal"));
 		assertFalse(recordPartReadConstraints.contains("showInDefence"));
 
-		Set<String> recordPartWriteConstraints = recordTypeHandler.getRecordPartWriteConstraints();
+		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
+				.getRecordPartWriteConstraints();
 		assertEquals(recordPartWriteConstraints.size(), 3);
-		assertTrue(recordPartWriteConstraints.contains("organisationRoot"));
-		assertTrue(recordPartWriteConstraints.contains("showInPortal"));
-		assertTrue(recordPartWriteConstraints.contains("showInDefence"));
+
+		Iterator<Constraint> iterator = recordPartWriteConstraints.iterator();
+		Constraint firstConstraint = iterator.next();
+		System.out.print(firstConstraint.getNameInData());
+		Constraint secondConstraint = iterator.next();
+		System.out.print(secondConstraint.getNameInData());
+		Constraint thirdConstraint = iterator.next();
+		System.out.print(thirdConstraint.getNameInData());
+
+		assertEquals(firstConstraint.getNameInData(), "showInDefence");
+		assertEquals(secondConstraint.getNameInData(), "showInPortal");
+		assertEquals(thirdConstraint.getNameInData(), "organisationRoot");
+		// assertTrue(recordPartWriteConstraints.contains("organisationRoot"));
+		// assertTrue(recordPartWriteConstraints.contains("showInPortal"));
+		// assertTrue(recordPartWriteConstraints.contains("showInDefence"));
 
 		Set<String> recordPartCreateConstraints = recordTypeHandler
 				.getRecordPartCreateWriteConstraints();

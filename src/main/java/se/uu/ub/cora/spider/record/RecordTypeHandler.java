@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.record;
 import java.util.List;
 import java.util.Set;
 
+import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.data.DataGroup;
 
 /**
@@ -183,7 +184,7 @@ public interface RecordTypeHandler {
 	 *         level dataGroup that has write constraints. If there are no write constrainst SHOULD
 	 *         an empty set returned.
 	 */
-	Set<String> getRecordPartWriteConstraints();
+	Set<Constraint> getRecordPartWriteConstraints();
 
 	/**
 	 * getRecordPartCreateWriteConstraints returns a Set with all the write constraints that are
