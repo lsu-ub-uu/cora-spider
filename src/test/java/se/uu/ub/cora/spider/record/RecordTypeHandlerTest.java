@@ -25,7 +25,6 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -234,12 +233,10 @@ public class RecordTypeHandlerTest {
 				.getRecordPartWriteConstraints();
 		assertEquals(recordPartWriteForUpdateConstraints.size(), 2);
 
-		Constraint firstConstraint = recordPartWriteForUpdateConstraints.iterator().next();
-		Constraint secondConstraint = recordPartWriteForUpdateConstraints.iterator().next();
-
-		assertEquals(firstConstraint.getNameInData(), "organisationRoot");
-		assertEquals(secondConstraint.getNameInData(), "showInPortal");
-		// assertTrue(recordPartWriteForUpdateConstraints.contains("showInPortal"));
+		assertTrue(containsConstraintWithNameInData(recordPartWriteForUpdateConstraints,
+				"showInPortal"));
+		assertTrue(containsConstraintWithNameInData(recordPartWriteForUpdateConstraints,
+				"organisationRoot"));
 
 		Set<String> recordPartCreateConstraints = recordTypeHandler
 				.getRecordPartCreateWriteConstraints();
@@ -265,20 +262,10 @@ public class RecordTypeHandlerTest {
 				.getRecordPartWriteConstraints();
 		assertEquals(recordPartWriteConstraints.size(), 3);
 
-		Iterator<Constraint> iterator = recordPartWriteConstraints.iterator();
-		Constraint firstConstraint = iterator.next();
-		System.out.print(firstConstraint.getNameInData());
-		Constraint secondConstraint = iterator.next();
-		System.out.print(secondConstraint.getNameInData());
-		Constraint thirdConstraint = iterator.next();
-		System.out.print(thirdConstraint.getNameInData());
-
-		assertEquals(firstConstraint.getNameInData(), "showInDefence");
-		assertEquals(secondConstraint.getNameInData(), "showInPortal");
-		assertEquals(thirdConstraint.getNameInData(), "organisationRoot");
-		// assertTrue(recordPartWriteConstraints.contains("organisationRoot"));
-		// assertTrue(recordPartWriteConstraints.contains("showInPortal"));
-		// assertTrue(recordPartWriteConstraints.contains("showInDefence"));
+		assertTrue(containsConstraintWithNameInData(recordPartWriteConstraints, "showInPortal"));
+		assertTrue(containsConstraintWithNameInData(recordPartWriteConstraints, "showInDefence"));
+		assertTrue(
+				containsConstraintWithNameInData(recordPartWriteConstraints, "organisationRoot"));
 
 		Set<String> recordPartCreateConstraints = recordTypeHandler
 				.getRecordPartCreateWriteConstraints();
@@ -286,6 +273,18 @@ public class RecordTypeHandlerTest {
 		assertTrue(recordPartCreateConstraints.contains("organisationRoot2"));
 		assertTrue(recordPartCreateConstraints.contains("showInPortal2"));
 		assertTrue(recordPartCreateConstraints.contains("showInDefence2"));
+	}
+
+	private boolean containsConstraintWithNameInData(Set<Constraint> constraints,
+			String nameInData) {
+
+		for (Constraint constraint : constraints) {
+			if (constraint.getNameInData().equals(nameInData)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	@Test
