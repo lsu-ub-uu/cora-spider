@@ -40,8 +40,8 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private String recordTypeId;
 	private RecordStorage recordStorage;
 	private DataGroup metadataGroup;
-	private Set<String> readWriteConstraints = new HashSet<>();
-	private Set<String> createConstraints = new HashSet<>();
+	private Set<Constraint> readWriteConstraints = new HashSet<>();
+	private Set<Constraint> createConstraints = new HashSet<>();
 	private Set<Constraint> writeConstraints = new HashSet<>();
 	private boolean constraintsForUpdateLoaded = false;
 	private boolean constraintsForCreateLoaded = false;
@@ -125,7 +125,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<String> getRecordPartReadConstraints() {
+	public Set<Constraint> getRecordPartReadConstraints() {
 		if (constraintsForUpdateNotLoaded()) {
 			collectAllConstraints();
 		}
@@ -182,7 +182,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void possiblyAddReadWriteConstraint(String refNameInData, String constraintValue) {
 		if (isReadWriteConstraint(constraintValue)) {
-			readWriteConstraints.add(refNameInData);
+			readWriteConstraints.add(new Constraint(refNameInData));
 		}
 	}
 
@@ -285,7 +285,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<String> getRecordPartCreateWriteConstraints() {
+	public Set<Constraint> getRecordPartCreateWriteConstraints() {
 		if (constraintsForCreateNotLoaded()) {
 			collectAllConstraintsForCreate();
 		}
@@ -322,7 +322,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void addCreateConstraints(DataGroup childReference) {
 		String refNameInData = getRefNameInData(childReference);
-		createConstraints.add(refNameInData);
+		createConstraints.add(new Constraint(refNameInData));
 	}
 
 	@Override

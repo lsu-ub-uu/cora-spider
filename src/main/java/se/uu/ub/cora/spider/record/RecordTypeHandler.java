@@ -168,7 +168,7 @@ public interface RecordTypeHandler {
 	 *         level dataGroup that has read constraints. If there are no read constrainst SHOULD an
 	 *         empty set returned.
 	 */
-	Set<String> getRecordPartReadConstraints();
+	Set<Constraint> getRecordPartReadConstraints();
 
 	/**
 	 * getRecordPartWriteConstraints returns a Set with all the write constraints that are specified
@@ -200,6 +200,6 @@ public interface RecordTypeHandler {
 	 *         level dataGroup that has write constraints. If there are no write constrainst SHOULD
 	 *         an empty set returned.
 	 */
-	Set<String> getRecordPartCreateWriteConstraints();
+	Set<Constraint> getRecordPartCreateWriteConstraints();
 
 }

@@ -252,11 +252,13 @@ public class RecordTypeHandlerTest {
 		storageSpy.numberOfChildrenWithWriteConstraint = 1;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
-		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
+		Set<Constraint> recordPartReadConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
 		assertEquals(recordPartReadConstraints.size(), 2);
-		assertTrue(recordPartReadConstraints.contains("organisationRoot"));
-		assertTrue(recordPartReadConstraints.contains("showInPortal"));
-		assertFalse(recordPartReadConstraints.contains("showInDefence"));
+
+		assertTrue(containsConstraintWithNameInData(recordPartReadConstraints, "organisationRoot"));
+		assertTrue(containsConstraintWithNameInData(recordPartReadConstraints, "showInPortal"));
+		assertFalse(containsConstraintWithNameInData(recordPartReadConstraints, "showInDefence"));
 
 		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
 				.getRecordPartWriteConstraints();
@@ -267,12 +269,13 @@ public class RecordTypeHandlerTest {
 		assertTrue(
 				containsConstraintWithNameInData(recordPartWriteConstraints, "organisationRoot"));
 
-		Set<String> recordPartCreateConstraints = recordTypeHandler
+		Set<Constraint> recordPartCreateConstraints = recordTypeHandler
 				.getRecordPartCreateWriteConstraints();
 		assertEquals(recordPartCreateConstraints.size(), 3);
-		assertTrue(recordPartCreateConstraints.contains("organisationRoot2"));
-		assertTrue(recordPartCreateConstraints.contains("showInPortal2"));
-		assertTrue(recordPartCreateConstraints.contains("showInDefence2"));
+		assertTrue(
+				containsConstraintWithNameInData(recordPartCreateConstraints, "organisationRoot2"));
+		assertTrue(containsConstraintWithNameInData(recordPartCreateConstraints, "showInPortal2"));
+		assertTrue(containsConstraintWithNameInData(recordPartCreateConstraints, "showInDefence2"));
 	}
 
 	private boolean containsConstraintWithNameInData(Set<Constraint> constraints,

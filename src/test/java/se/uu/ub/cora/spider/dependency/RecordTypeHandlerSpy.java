@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
@@ -54,7 +55,8 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	 */
 	public String recordPartConstraint = "";
 	// public boolean hasRecordPartReadContraintHasBeenCalled = false;
-	public Set<String> writeConstraints = new HashSet<String>();
+	public Set<String> writeStringConstraints = new HashSet<String>();
+	public Set<Constraint> writeConstraints = new HashSet<Constraint>();
 
 	public boolean hasParent = false;
 	public String parentId = "someParentId";
@@ -74,7 +76,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public boolean shouldAutoGenerateId = false;
 
 	public RecordTypeHandlerSpy() {
-		writeConstraints.add("someKey");
+		writeStringConstraints.add("someKey");
 	}
 
 	@Override
@@ -170,7 +172,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<String> getRecordPartWriteConstraints() {
+	public Set<Constraint> getRecordPartWriteConstraints() {
 		MCR.addCall();
 		MCR.addReturned(writeConstraints);
 		return writeConstraints;
@@ -241,8 +243,8 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	@Override
 	public Set<String> getRecordPartCreateWriteConstraints() {
 		MCR.addCall();
-		MCR.addReturned(writeConstraints);
-		return writeConstraints;
+		MCR.addReturned(writeStringConstraints);
+		return writeStringConstraints;
 	}
 
 }

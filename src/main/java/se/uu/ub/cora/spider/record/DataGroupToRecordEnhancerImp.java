@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.Action;
@@ -331,7 +332,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private DataGroup redact(DataGroup dataGroup) {
 		DataRedactor redactor = dependencyProvider.getDataRedactor();
-		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
+		Set<Constraint> recordPartReadConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
 		return redactor.removeChildrenForConstraintsWithoutPermissions(dataGroup,
 				recordPartReadConstraints, readRecordPartPermissions);
 	}
