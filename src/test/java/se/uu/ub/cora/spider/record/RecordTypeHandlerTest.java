@@ -134,7 +134,8 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
-		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
+		Set<Constraint> recordPartReadConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
 		assertEquals(storageSpy.type, "metadataGroup");
 		assertEquals(storageSpy.id, "organisation");
 		assertTrue(recordPartReadConstraints.isEmpty());
@@ -142,7 +143,7 @@ public class RecordTypeHandlerTest {
 				.getRecordPartWriteConstraints();
 		assertTrue(recordPartWriteConstraints.isEmpty());
 
-		Set<String> recordPartCreateWriteConstraints = recordTypeHandler
+		Set<Constraint> recordPartCreateWriteConstraints = recordTypeHandler
 				.getRecordPartCreateWriteConstraints();
 		assertTrue(recordPartCreateWriteConstraints.isEmpty());
 	}
@@ -153,9 +154,10 @@ public class RecordTypeHandlerTest {
 		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
-		Set<String> recordPartReadConstraints = recordTypeHandler.getRecordPartReadConstraints();
+		Set<Constraint> recordPartReadConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
 		assertEquals(recordPartReadConstraints.size(), 1);
-		assertTrue(recordPartReadConstraints.contains("organisationRoot"));
+		assertTrue(containsConstraintWithNameInData(recordPartReadConstraints, "organisationRoot"));
 
 		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
 				.getRecordPartWriteConstraints();
@@ -163,10 +165,11 @@ public class RecordTypeHandlerTest {
 		Constraint constraint = recordPartWriteConstraints.iterator().next();
 		assertEquals(constraint.getNameInData(), "organisationRoot");
 
-		Set<String> recordPartWriteCreateConstraints = recordTypeHandler
+		Set<Constraint> recordPartWriteCreateConstraints = recordTypeHandler
 				.getRecordPartCreateWriteConstraints();
 		assertEquals(recordPartWriteCreateConstraints.size(), 1);
-		assertTrue(recordPartWriteCreateConstraints.contains("organisationRoot2"));
+		assertTrue(containsConstraintWithNameInData(recordPartWriteCreateConstraints,
+				"organisationRoot2"));
 	}
 
 	@Test
@@ -223,11 +226,13 @@ public class RecordTypeHandlerTest {
 		storageSpy.numberOfChildrenWithReadWriteConstraint = 2;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(storageSpy, "organisation");
-		Set<String> recordPartReadForUpdateConstraints = recordTypeHandler
+		Set<Constraint> recordPartReadForUpdateConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();
 		assertEquals(recordPartReadForUpdateConstraints.size(), 2);
-		assertTrue(recordPartReadForUpdateConstraints.contains("organisationRoot"));
-		assertTrue(recordPartReadForUpdateConstraints.contains("showInPortal"));
+		assertTrue(containsConstraintWithNameInData(recordPartReadForUpdateConstraints,
+				"organisationRoot"));
+		assertTrue(containsConstraintWithNameInData(recordPartReadForUpdateConstraints,
+				"showInPortal"));
 
 		Set<Constraint> recordPartWriteForUpdateConstraints = recordTypeHandler
 				.getRecordPartWriteConstraints();
@@ -238,11 +243,12 @@ public class RecordTypeHandlerTest {
 		assertTrue(containsConstraintWithNameInData(recordPartWriteForUpdateConstraints,
 				"organisationRoot"));
 
-		Set<String> recordPartCreateConstraints = recordTypeHandler
+		Set<Constraint> recordPartCreateConstraints = recordTypeHandler
 				.getRecordPartCreateWriteConstraints();
 		assertEquals(recordPartCreateConstraints.size(), 2);
-		assertTrue(recordPartCreateConstraints.contains("organisationRoot2"));
-		assertTrue(recordPartCreateConstraints.contains("showInPortal2"));
+		assertTrue(
+				containsConstraintWithNameInData(recordPartCreateConstraints, "organisationRoot2"));
+		assertTrue(containsConstraintWithNameInData(recordPartCreateConstraints, "showInPortal2"));
 	}
 
 	@Test

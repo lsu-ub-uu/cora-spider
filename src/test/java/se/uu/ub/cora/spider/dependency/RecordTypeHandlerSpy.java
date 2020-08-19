@@ -55,7 +55,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	 */
 	public String recordPartConstraint = "";
 	// public boolean hasRecordPartReadContraintHasBeenCalled = false;
-	public Set<String> writeStringConstraints = new HashSet<String>();
+	public Set<Constraint> writeStringConstraints = new HashSet<Constraint>();
 	public Set<Constraint> writeConstraints = new HashSet<Constraint>();
 
 	public boolean hasParent = false;
@@ -76,7 +76,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public boolean shouldAutoGenerateId = false;
 
 	public RecordTypeHandlerSpy() {
-		writeStringConstraints.add("someKey");
+		writeStringConstraints.add(new Constraint("someKey"));
 	}
 
 	@Override
@@ -150,10 +150,10 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<String> getRecordPartReadConstraints() {
+	public Set<Constraint> getRecordPartReadConstraints() {
 		MCR.addCall();
-		Set<String> constraints = new HashSet<String>();
-		constraints.add("someKey");
+		Set<Constraint> constraints = new HashSet<Constraint>();
+		constraints.add(new Constraint("someKey"));
 		MCR.addReturned(constraints);
 		return constraints;
 	}
@@ -241,7 +241,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<String> getRecordPartCreateWriteConstraints() {
+	public Set<Constraint> getRecordPartCreateWriteConstraints() {
 		MCR.addCall();
 		MCR.addReturned(writeStringConstraints);
 		return writeStringConstraints;
