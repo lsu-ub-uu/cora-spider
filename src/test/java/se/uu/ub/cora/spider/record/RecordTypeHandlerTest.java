@@ -32,20 +32,25 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
+import se.uu.ub.cora.data.DataAttributeProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataAttributeFactorySpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 
 public class RecordTypeHandlerTest {
 	private OldRecordStorageSpy recordStorage;
-	private RecordStorageLightSpy recordStorgageLightSpy;
+	private RecordStorageLightSpy recordStorageLightSpy;
 	private String defaultRecordTypeId = "someRecordType";
 	private RecordTypeHandler recordTypeHandler;
+	private DataAttributeFactorySpy dataAttributeFactorySpy;
 
 	@BeforeMethod
 	public void setUp() {
 		recordStorage = new OldRecordStorageSpy();
-		recordStorgageLightSpy = new RecordStorageLightSpy();
+		recordStorageLightSpy = new RecordStorageLightSpy();
+		dataAttributeFactorySpy = new DataAttributeFactorySpy();
+		DataAttributeProvider.setDataAttributeFactory(dataAttributeFactorySpy);
 	}
 
 	@Test
@@ -167,6 +172,10 @@ public class RecordTypeHandlerTest {
 		assertEquals(recordPartReadConstraints.size(), 1);
 		assertTrue(containsConstraintWithNameInData(recordPartReadConstraints, "organisationRoot"));
 
+		Constraint organisationConstraint = getConstraintByNameInData(recordPartReadConstraints,
+				"organisationRoot");
+		assertTrue(organisationConstraint.getDataAttributes().isEmpty());
+
 		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
 				.getRecordPartWriteConstraints();
 		assertEquals(recordPartWriteConstraints.size(), 1);
@@ -178,6 +187,93 @@ public class RecordTypeHandlerTest {
 		assertEquals(recordPartWriteCreateConstraints.size(), 1);
 		assertTrue(containsConstraintWithNameInData(recordPartWriteCreateConstraints,
 				"organisationRoot2"));
+	}
+
+	private Constraint getConstraintByNameInData(Set<Constraint> constraints, String nameInData) {
+		for (Constraint constraint : constraints) {
+			if (constraint.getNameInData().equals(nameInData)) {
+				return constraint;
+			}
+		}
+		return null;
+	}
+
+	@Test
+	public void testGetRecordPartReadConstraintsOneReadConstraintWithAttribute() {
+		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
+				"organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.numberOfAttributes = 1;
+
+		Set<Constraint> recordPartReadConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
+		assertEquals(recordPartReadConstraints.size(), 2);
+		assertTrue(containsConstraintWithNameInData(recordPartReadConstraints, "organisationRoot"));
+
+		Constraint organisationReadConstraint = getConstraintByNameInData(recordPartReadConstraints,
+				"organisationRoot");
+
+		Constraint alternativeNameReadConstraint = getConstraintByNameInData(
+				recordPartReadConstraints, "organisationAlternativeName");
+
+		assertTrue(organisationReadConstraint.getDataAttributes().isEmpty());
+		assertEquals(alternativeNameReadConstraint.getDataAttributes().size(), 1);
+
+		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
+				.getRecordPartWriteConstraints();
+		assertEquals(recordPartWriteConstraints.size(), 2);
+
+		Constraint organisationWriteConstraint = getConstraintByNameInData(
+				recordPartWriteConstraints, "organisationRoot");
+		assertTrue(organisationWriteConstraint.getDataAttributes().isEmpty());
+
+		Constraint alternativeNameWriteConstraint = getConstraintByNameInData(
+				recordPartWriteConstraints, "organisationAlternativeName");
+
+		assertEquals(alternativeNameWriteConstraint.getDataAttributes().size(), 1);
+
+		assertEquals(dataAttributeFactorySpy.nameInDataList.get(0), "type");
+		assertEquals(dataAttributeFactorySpy.valueList.get(0), "default");
+
+	}
+
+	@Test
+	public void testGetRecordPartReadConstraintsOneReadConstraintWithTwoAttributes() {
+		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
+				"organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.numberOfAttributes = 2;
+
+		Set<Constraint> recordPartReadConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
+		assertEquals(recordPartReadConstraints.size(), 2);
+		assertTrue(containsConstraintWithNameInData(recordPartReadConstraints, "organisationRoot"));
+
+		Constraint organisationReadConstraint = getConstraintByNameInData(recordPartReadConstraints,
+				"organisationRoot");
+
+		Constraint alternativeNameReadConstraint = getConstraintByNameInData(
+				recordPartReadConstraints, "organisationAlternativeName");
+
+		assertTrue(organisationReadConstraint.getDataAttributes().isEmpty());
+		assertEquals(alternativeNameReadConstraint.getDataAttributes().size(), 2);
+
+		// Set<Constraint> recordPartWriteConstraints = recordTypeHandler
+		// .getRecordPartWriteConstraints();
+		// assertEquals(recordPartWriteConstraints.size(), 2);
+		//
+		// Constraint organisationWriteConstraint = getConstraintByNameInData(
+		// recordPartWriteConstraints, "organisationRoot");
+		// assertTrue(organisationWriteConstraint.getDataAttributes().isEmpty());
+		//
+		// Constraint alternativeNameWriteConstraint = getConstraintByNameInData(
+		// recordPartWriteConstraints, "organisationAlternativeName");
+		//
+		// assertEquals(alternativeNameWriteConstraint.getDataAttributes().size(), 1);
+		//
+		// assertEquals(dataAttributeFactorySpy.nameInDataList.get(0), "type");
+		// assertEquals(dataAttributeFactorySpy.valueList.get(0), "default");
+
 	}
 
 	@Test
@@ -373,9 +469,9 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testHasParent() {
-		addParentIdToContain(recordStorgageLightSpy, defaultRecordTypeId);
+		addParentIdToContain(recordStorageLightSpy, defaultRecordTypeId);
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 
 		boolean hasParent = recordTypeHandler.hasParent();
 		assertContainsWasRequestedForParentId();
@@ -383,14 +479,14 @@ public class RecordTypeHandlerTest {
 	}
 
 	private void assertContainsWasRequestedForParentId() {
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 		assertEquals((recordTypeDataGroup.nameInDatasSentToContains.get(0)), "parentId");
 	}
 
 	@Test
 	public void testHasNoParent() {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 		assertFalse(recordTypeHandler.hasParent());
 	}
 
@@ -408,12 +504,12 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testGetParentId() {
-		addParentIdToContain(recordStorgageLightSpy, defaultRecordTypeId);
+		addParentIdToContain(recordStorageLightSpy, defaultRecordTypeId);
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 
 		String parentId = recordTypeHandler.getParentId();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 
 		assertParentIdWasRequestedFromDataGroup(recordTypeDataGroup);
 		assertLinkedRecordIdWasRequestedAndReturned(recordTypeDataGroup, parentId);
@@ -437,7 +533,7 @@ public class RecordTypeHandlerTest {
 			+ "Unable to get parentId, no parents exists")
 	public void testGetParentIdThrowsExceptionWhenMissing() {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 
 		recordTypeHandler.getParentId();
 	}
@@ -445,7 +541,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testIsChildOfBinaryNoParent() {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 
 		boolean isChildOfBinary = recordTypeHandler.isChildOfBinary();
 
@@ -455,14 +551,14 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testIsChildOfBinaryHasParentButNotBinary() {
-		addParentIdToContain(recordStorgageLightSpy, defaultRecordTypeId);
+		addParentIdToContain(recordStorageLightSpy, defaultRecordTypeId);
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 
 		boolean isChildOfBinary = recordTypeHandler.isChildOfBinary();
 
 		assertContainsWasRequestedForParentId();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 		assertParentIdWasRequestedFromDataGroup(recordTypeDataGroup);
 
 		assertFalse(isChildOfBinary);
@@ -470,16 +566,16 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testIsChildOfBinaryHasParentIsBinary() {
-		addParentIdToContain(recordStorgageLightSpy, defaultRecordTypeId);
+		addParentIdToContain(recordStorageLightSpy, defaultRecordTypeId);
 		setUpPresetDataGroupToReturnParentIdBinary();
 
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 
 		boolean isChildOfBinary = recordTypeHandler.isChildOfBinary();
 
 		assertContainsWasRequestedForParentId();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 		assertParentIdWasRequestedFromDataGroup(recordTypeDataGroup);
 
 		assertTrue(isChildOfBinary);
@@ -490,18 +586,18 @@ public class RecordTypeHandlerTest {
 		DataGroupCheckCallsSpy parentIdChild = new DataGroupCheckCallsSpy();
 		parentIdChild.atomicValuesToReturn.put("linkedRecordId", "binary");
 		groupToReturnFromStorage.presetGroupChildrenToReturn.put("parentId", parentIdChild);
-		recordStorgageLightSpy.dataGroupReturnedFromSpy = groupToReturnFromStorage;
+		recordStorageLightSpy.dataGroupReturnedFromSpy = groupToReturnFromStorage;
 	}
 
 	@Test
 	public void testIsNotSearch() {
-		addRecordInfoToContain(recordStorgageLightSpy, defaultRecordTypeId);
+		addRecordInfoToContain(recordStorageLightSpy, defaultRecordTypeId);
 		setUpPresetDataGroupToReturnRecordId("NOTSearch");
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 
 		boolean isSearchType = recordTypeHandler.representsTheRecordTypeDefiningSearches();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 
 		assertRecordInfoWasRequestedFromDataGroup(recordTypeDataGroup);
 		assertIdWasRequestedFromRecordInfo(recordTypeDataGroup);
@@ -518,7 +614,7 @@ public class RecordTypeHandlerTest {
 		groupChild.atomicValuesToReturn.put("id", recordId);
 		groupToReturnFromStorage.presetGroupChildrenToReturn.put("recordInfo", groupChild);
 
-		recordStorgageLightSpy.dataGroupReturnedFromSpy = groupToReturnFromStorage;
+		recordStorageLightSpy.dataGroupReturnedFromSpy = groupToReturnFromStorage;
 	}
 
 	private void assertRecordInfoWasRequestedFromDataGroup(
@@ -534,13 +630,13 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testIsSearch() {
-		addRecordInfoToContain(recordStorgageLightSpy, defaultRecordTypeId);
+		addRecordInfoToContain(recordStorageLightSpy, defaultRecordTypeId);
 		setUpPresetDataGroupToReturnRecordId("search");
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 
 		boolean isSearchType = recordTypeHandler.representsTheRecordTypeDefiningSearches();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 
 		assertRecordInfoWasRequestedFromDataGroup(recordTypeDataGroup);
 		assertIdWasRequestedFromRecordInfo(recordTypeDataGroup);
@@ -549,13 +645,13 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testIsNotRecordType() {
-		addRecordInfoToContain(recordStorgageLightSpy, defaultRecordTypeId);
+		addRecordInfoToContain(recordStorageLightSpy, defaultRecordTypeId);
 		setUpPresetDataGroupToReturnRecordId("NOTRecordType");
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 
 		boolean isRecordType = recordTypeHandler.representsTheRecordTypeDefiningRecordTypes();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 
 		assertRecordInfoWasRequestedFromDataGroup(recordTypeDataGroup);
 		assertIdWasRequestedFromRecordInfo(recordTypeDataGroup);
@@ -564,13 +660,13 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testIsRecordType() {
-		addRecordInfoToContain(recordStorgageLightSpy, defaultRecordTypeId);
+		addRecordInfoToContain(recordStorageLightSpy, defaultRecordTypeId);
 		setUpPresetDataGroupToReturnRecordId("recordType");
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 
 		boolean isRecordType = recordTypeHandler.representsTheRecordTypeDefiningRecordTypes();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 
 		assertRecordInfoWasRequestedFromDataGroup(recordTypeDataGroup);
 		assertIdWasRequestedFromRecordInfo(recordTypeDataGroup);
@@ -580,9 +676,9 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testHasSearch() {
 		addChildToGroupIdReturnedFromStorageSpy("search", defaultRecordTypeId,
-				recordStorgageLightSpy);
+				recordStorageLightSpy);
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 
 		boolean hasSearch = recordTypeHandler.hasLinkedSearch();
 		assertContainsWasRequestedForSearch();
@@ -590,26 +686,26 @@ public class RecordTypeHandlerTest {
 	}
 
 	private void assertContainsWasRequestedForSearch() {
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 		assertEquals((recordTypeDataGroup.nameInDatasSentToContains.get(0)), "search");
 	}
 
 	@Test
 	public void testHasNoSearch() {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 		assertFalse(recordTypeHandler.hasLinkedSearch());
 	}
 
 	@Test
 	public void testGetSearchId() {
 		addChildToGroupIdReturnedFromStorageSpy("search", defaultRecordTypeId,
-				recordStorgageLightSpy);
+				recordStorageLightSpy);
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 
 		String searchId = recordTypeHandler.getSearchId();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorgageLightSpy.dataGroupReturnedFromSpy;
+		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 
 		assertSearchWasRequestedFromDataGroup(recordTypeDataGroup);
 		assertLinkedRecordIdWasRequestedAndReturned(recordTypeDataGroup, searchId);
@@ -624,7 +720,7 @@ public class RecordTypeHandlerTest {
 			+ "Unable to get searchId, no search exists")
 	public void testGetSearchIdThrowsExceptionWhenMissing() {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorgageLightSpy, defaultRecordTypeId);
+				.usingRecordStorageAndRecordTypeId(recordStorageLightSpy, defaultRecordTypeId);
 
 		recordTypeHandler.getSearchId();
 	}

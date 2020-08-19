@@ -25,11 +25,14 @@ import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
+import se.uu.ub.cora.data.DataAttribute;
+import se.uu.ub.cora.data.DataAttributeProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public final class RecordTypeHandlerImp implements RecordTypeHandler {
+	private static final String NAME_IN_DATA = "nameInData";
 	private static final String SEARCH = "search";
 	private static final String PARENT_ID = "parentId";
 	private static final String RECORD_PART_CONSTRAINT = "recordPartConstraint";
@@ -161,28 +164,55 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	private void addWriteAndOrReadWriteConstraints(DataGroup childReference) {
-		String refNameInData = getRefNameInData(childReference);
-		String constraintValue = getRecordPartConstraintValue(childReference);
+		String constraintType = getRecordPartConstraintType(childReference);
+
+		DataGroup childRef = getChildRef(childReference);
+		String refNameInData = childRef.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
 		Constraint constraint = new Constraint(refNameInData);
+
+		if (childRef.containsChildWithNameInData("attributeReferences")) {
+			DataGroup attributes = childRef.getFirstGroupWithNameInData("attributeReferences");
+
+			List<DataGroup> allGroupsWithNameInData = attributes.getAllGroupsWithNameInData("ref");
+
+			for (DataGroup refGroup : allGroupsWithNameInData) {
+				DataGroup collectionVar = recordStorage.read(
+						refGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_TYPE),
+						refGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID));
+
+				String attributeName = collectionVar
+						.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
+				String attributeValue = collectionVar
+						.getFirstAtomicValueWithNameInData("finalValue");
+				DataAttribute dataAttribute = DataAttributeProvider
+						.getDataAttributeUsingNameInDataAndValue(attributeName, attributeValue);
+				constraint.addAttribute(dataAttribute);
+
+			}
+		}
 		writeConstraints.add(constraint);
-		possiblyAddReadWriteConstraint(refNameInData, constraintValue);
+		possiblyAddReadWriteConstraint(constraintType, constraint);
 	}
 
 	private String getRefNameInData(DataGroup childReference) {
+		DataGroup metadataRefElement = getChildRef(childReference);
+		return metadataRefElement.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
+	}
+
+	private DataGroup getChildRef(DataGroup childReference) {
 		DataGroup ref = childReference.getFirstGroupWithNameInData("ref");
 		String linkedRecordType = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_TYPE);
 		String linkedRecordId = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-		DataGroup metadataRefElement = recordStorage.read(linkedRecordType, linkedRecordId);
-		return metadataRefElement.getFirstAtomicValueWithNameInData("nameInData");
+		return recordStorage.read(linkedRecordType, linkedRecordId);
 	}
 
-	private String getRecordPartConstraintValue(DataGroup childReference) {
+	private String getRecordPartConstraintType(DataGroup childReference) {
 		return childReference.getFirstAtomicValueWithNameInData(RECORD_PART_CONSTRAINT);
 	}
 
-	private void possiblyAddReadWriteConstraint(String refNameInData, String constraintValue) {
+	private void possiblyAddReadWriteConstraint(String constraintValue, Constraint constraint) {
 		if (isReadWriteConstraint(constraintValue)) {
-			readWriteConstraints.add(new Constraint(refNameInData));
+			readWriteConstraints.add(constraint);
 		}
 	}
 
