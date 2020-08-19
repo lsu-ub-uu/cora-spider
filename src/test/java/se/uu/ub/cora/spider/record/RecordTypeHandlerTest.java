@@ -174,7 +174,7 @@ public class RecordTypeHandlerTest {
 
 		Constraint organisationConstraint = getConstraintByNameInData(recordPartReadConstraints,
 				"organisationRoot");
-		assertTrue(organisationConstraint.getDataAttributes().isEmpty());
+		assertEquals(organisationConstraint.getDataAttributes().size(), 0);
 
 		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
 				.getRecordPartWriteConstraints();
@@ -205,36 +205,44 @@ public class RecordTypeHandlerTest {
 		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
 		storageSpy.numberOfAttributes = 1;
 
+		assertCorrectReadConstraintsWithOneAttributeForOneChild();
+
+		assertCorrectWriteConstraintsWithOneAttributeForOneChild();
+
+		assertEquals(dataAttributeFactorySpy.nameInDataList.get(0), "type");
+		assertEquals(dataAttributeFactorySpy.valueList.get(0), "default");
+
+	}
+
+	private void assertCorrectReadConstraintsWithOneAttributeForOneChild() {
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();
 		assertEquals(recordPartReadConstraints.size(), 2);
-		assertTrue(containsConstraintWithNameInData(recordPartReadConstraints, "organisationRoot"));
 
+		// TODO: assertConstraintExistWithNumberOfDataAttributes
 		Constraint organisationReadConstraint = getConstraintByNameInData(recordPartReadConstraints,
 				"organisationRoot");
 
 		Constraint alternativeNameReadConstraint = getConstraintByNameInData(
 				recordPartReadConstraints, "organisationAlternativeName");
 
-		assertTrue(organisationReadConstraint.getDataAttributes().isEmpty());
+		assertEquals(organisationReadConstraint.getDataAttributes().size(), 0);
 		assertEquals(alternativeNameReadConstraint.getDataAttributes().size(), 1);
+	}
 
+	private void assertCorrectWriteConstraintsWithOneAttributeForOneChild() {
 		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
 				.getRecordPartWriteConstraints();
 		assertEquals(recordPartWriteConstraints.size(), 2);
 
 		Constraint organisationWriteConstraint = getConstraintByNameInData(
 				recordPartWriteConstraints, "organisationRoot");
-		assertTrue(organisationWriteConstraint.getDataAttributes().isEmpty());
+		assertEquals(organisationWriteConstraint.getDataAttributes().size(), 0);
 
 		Constraint alternativeNameWriteConstraint = getConstraintByNameInData(
 				recordPartWriteConstraints, "organisationAlternativeName");
 
 		assertEquals(alternativeNameWriteConstraint.getDataAttributes().size(), 1);
-
-		assertEquals(dataAttributeFactorySpy.nameInDataList.get(0), "type");
-		assertEquals(dataAttributeFactorySpy.valueList.get(0), "default");
-
 	}
 
 	@Test
@@ -247,7 +255,6 @@ public class RecordTypeHandlerTest {
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();
 		assertEquals(recordPartReadConstraints.size(), 2);
-		assertTrue(containsConstraintWithNameInData(recordPartReadConstraints, "organisationRoot"));
 
 		Constraint organisationReadConstraint = getConstraintByNameInData(recordPartReadConstraints,
 				"organisationRoot");
@@ -255,7 +262,7 @@ public class RecordTypeHandlerTest {
 		Constraint alternativeNameReadConstraint = getConstraintByNameInData(
 				recordPartReadConstraints, "organisationAlternativeName");
 
-		assertTrue(organisationReadConstraint.getDataAttributes().isEmpty());
+		assertEquals(organisationReadConstraint.getDataAttributes().size(), 0);
 		assertEquals(alternativeNameReadConstraint.getDataAttributes().size(), 2);
 
 		// Set<Constraint> recordPartWriteConstraints = recordTypeHandler

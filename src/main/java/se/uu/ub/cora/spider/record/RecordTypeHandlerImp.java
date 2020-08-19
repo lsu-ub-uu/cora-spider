@@ -155,7 +155,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void possiblyAddConstraint(DataGroup childReference) {
 		if (hasConstraints(childReference)) {
-			addWriteAndOrReadWriteConstraints(childReference);
+			addWriteAndReadWriteConstraints(childReference);
 		}
 	}
 
@@ -163,40 +163,19 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return childReference.containsChildWithNameInData(RECORD_PART_CONSTRAINT);
 	}
 
-	private void addWriteAndOrReadWriteConstraints(DataGroup childReference) {
+	private void addWriteAndReadWriteConstraints(DataGroup childReference) {
 		String constraintType = getRecordPartConstraintType(childReference);
 
 		DataGroup childRef = getChildRef(childReference);
-		String refNameInData = childRef.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
-		Constraint constraint = new Constraint(refNameInData);
+		Constraint constraint = createConstraint(childRef);
 
-		if (childRef.containsChildWithNameInData("attributeReferences")) {
-			DataGroup attributes = childRef.getFirstGroupWithNameInData("attributeReferences");
-
-			List<DataGroup> allGroupsWithNameInData = attributes.getAllGroupsWithNameInData("ref");
-
-			for (DataGroup refGroup : allGroupsWithNameInData) {
-				DataGroup collectionVar = recordStorage.read(
-						refGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_TYPE),
-						refGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID));
-
-				String attributeName = collectionVar
-						.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
-				String attributeValue = collectionVar
-						.getFirstAtomicValueWithNameInData("finalValue");
-				DataAttribute dataAttribute = DataAttributeProvider
-						.getDataAttributeUsingNameInDataAndValue(attributeName, attributeValue);
-				constraint.addAttribute(dataAttribute);
-
-			}
-		}
+		possiblyAddAttributes(childRef, constraint);
 		writeConstraints.add(constraint);
 		possiblyAddReadWriteConstraint(constraintType, constraint);
 	}
 
-	private String getRefNameInData(DataGroup childReference) {
-		DataGroup metadataRefElement = getChildRef(childReference);
-		return metadataRefElement.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
+	private String getRecordPartConstraintType(DataGroup childReference) {
+		return childReference.getFirstAtomicValueWithNameInData(RECORD_PART_CONSTRAINT);
 	}
 
 	private DataGroup getChildRef(DataGroup childReference) {
@@ -206,8 +185,42 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return recordStorage.read(linkedRecordType, linkedRecordId);
 	}
 
-	private String getRecordPartConstraintType(DataGroup childReference) {
-		return childReference.getFirstAtomicValueWithNameInData(RECORD_PART_CONSTRAINT);
+	private Constraint createConstraint(DataGroup childRef) {
+		String refNameInData = childRef.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
+		return new Constraint(refNameInData);
+	}
+
+	private void possiblyAddAttributes(DataGroup childRef, Constraint constraint) {
+		if (childRef.containsChildWithNameInData("attributeReferences")) {
+			addAttributes(childRef, constraint);
+		}
+	}
+
+	private void addAttributes(DataGroup childRef, Constraint constraint) {
+		DataGroup attributeReferences = childRef.getFirstGroupWithNameInData("attributeReferences");
+		List<DataGroup> attributes = attributeReferences.getAllGroupsWithNameInData("ref");
+
+		for (DataGroup attribute : attributes) {
+			addAttribute(constraint, attribute);
+		}
+	}
+
+	private void addAttribute(Constraint constraint, DataGroup attribute) {
+		DataGroup collectionVar = getCollectionVar(attribute);
+		DataAttribute dataAttribute = createDataAttribute(collectionVar);
+		constraint.addAttribute(dataAttribute);
+	}
+
+	private DataGroup getCollectionVar(DataGroup attribute) {
+		return recordStorage.read(attribute.getFirstAtomicValueWithNameInData(LINKED_RECORD_TYPE),
+				attribute.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID));
+	}
+
+	private DataAttribute createDataAttribute(DataGroup collectionVar) {
+		String attributeName = collectionVar.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
+		String attributeValue = collectionVar.getFirstAtomicValueWithNameInData("finalValue");
+		return DataAttributeProvider.getDataAttributeUsingNameInDataAndValue(attributeName,
+				attributeValue);
 	}
 
 	private void possiblyAddReadWriteConstraint(String constraintValue, Constraint constraint) {
@@ -350,9 +363,15 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		}
 	}
 
+	// TODO:också med attribut
 	private void addCreateConstraints(DataGroup childReference) {
 		String refNameInData = getRefNameInData(childReference);
 		createConstraints.add(new Constraint(refNameInData));
+	}
+
+	private String getRefNameInData(DataGroup childReference) {
+		DataGroup metadataRefElement = getChildRef(childReference);
+		return metadataRefElement.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
 	}
 
 	@Override
