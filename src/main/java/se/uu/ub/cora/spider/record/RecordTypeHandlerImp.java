@@ -166,12 +166,16 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private void addWriteAndReadWriteConstraints(DataGroup childReference) {
 		String constraintType = getRecordPartConstraintType(childReference);
 
-		DataGroup childRef = getChildRef(childReference);
-		Constraint constraint = createConstraint(childRef);
-
-		possiblyAddAttributes(childRef, constraint);
+		Constraint constraint = createConstraintPossibyAddAttributes(childReference);
 		writeConstraints.add(constraint);
 		possiblyAddReadWriteConstraint(constraintType, constraint);
+	}
+
+	private Constraint createConstraintPossibyAddAttributes(DataGroup childReference) {
+		DataGroup childRef = getChildRef(childReference);
+		Constraint constraint = createConstraint(childRef);
+		possiblyAddAttributes(childRef, constraint);
+		return constraint;
 	}
 
 	private String getRecordPartConstraintType(DataGroup childReference) {
@@ -363,15 +367,9 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		}
 	}
 
-	// TODO:också med attribut
 	private void addCreateConstraints(DataGroup childReference) {
-		String refNameInData = getRefNameInData(childReference);
-		createConstraints.add(new Constraint(refNameInData));
-	}
-
-	private String getRefNameInData(DataGroup childReference) {
-		DataGroup metadataRefElement = getChildRef(childReference);
-		return metadataRefElement.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
+		Constraint constraint = createConstraintPossibyAddAttributes(childReference);
+		createConstraints.add(constraint);
 	}
 
 	@Override

@@ -214,6 +214,7 @@ public class RecordTypeHandlerTest {
 
 		assertCorrectReadConstraintsWithOneAttributeForOneChild();
 		assertCorrectWriteConstraintsWithOneAttributeForOneChild();
+		assertCorrectCreateWriteConstraintsWithOneAttributeForOneChild();
 
 		assertEquals(dataAttributeFactorySpy.nameInDataList.get(0), "type");
 		assertEquals(dataAttributeFactorySpy.valueList.get(0), "default");
@@ -223,6 +224,12 @@ public class RecordTypeHandlerTest {
 	private void assertCorrectReadConstraintsWithOneAttributeForOneChild() {
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();
+		assertCorrectConstraintsWithOneAttributeForOneChild(recordPartReadConstraints);
+		assertCorrectConstraintsWithOneAttributeForOneChild(recordPartReadConstraints);
+	}
+
+	private void assertCorrectConstraintsWithOneAttributeForOneChild(
+			Set<Constraint> recordPartReadConstraints) {
 		assertEquals(recordPartReadConstraints.size(), 2);
 
 		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "organisationRoot",
@@ -234,11 +241,17 @@ public class RecordTypeHandlerTest {
 	private void assertCorrectWriteConstraintsWithOneAttributeForOneChild() {
 		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
 				.getRecordPartWriteConstraints();
-		assertEquals(recordPartWriteConstraints.size(), 2);
+		assertCorrectConstraintsWithOneAttributeForOneChild(recordPartWriteConstraints);
+	}
 
-		assertConstraintExistWithNumberOfAttributes(recordPartWriteConstraints, "organisationRoot",
-				0);
-		assertConstraintExistWithNumberOfAttributes(recordPartWriteConstraints,
+	private void assertCorrectCreateWriteConstraintsWithOneAttributeForOneChild() {
+		Set<Constraint> recordPartCreateWriteConstraints = recordTypeHandler
+				.getRecordPartCreateWriteConstraints();
+		assertEquals(recordPartCreateWriteConstraints.size(), 2);
+
+		assertConstraintExistWithNumberOfAttributes(recordPartCreateWriteConstraints,
+				"organisationRoot2", 0);
+		assertConstraintExistWithNumberOfAttributes(recordPartCreateWriteConstraints,
 				"organisationAlternativeName", 1);
 	}
 
@@ -315,6 +328,7 @@ public class RecordTypeHandlerTest {
 		Set<Constraint> recordPartReadForUpdateConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();
 		assertEquals(recordPartReadForUpdateConstraints.size(), 2);
+
 		assertTrue(containsConstraintWithNameInData(recordPartReadForUpdateConstraints,
 				"organisationRoot"));
 		assertTrue(containsConstraintWithNameInData(recordPartReadForUpdateConstraints,
