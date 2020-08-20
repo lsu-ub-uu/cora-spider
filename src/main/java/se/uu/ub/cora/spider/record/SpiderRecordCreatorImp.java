@@ -199,6 +199,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void ensureIdExists(String recordType) {
 		if (recordTypeHandler.shouldAutoGenerateId()) {
+			// TODO: kolla att remove körs. Mutation testing visar att metodanropet kan tas bort
+			// utan att ngt test failar
 			removeIdIfPresentInData();
 			generateAndAddIdToRecordInfo(recordType);
 		}
@@ -206,6 +208,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void removeIdIfPresentInData() {
 		DataGroup recordInfo = recordAsDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
+		// TODO: Mutation testing visar att if:en kan negeras utan att ngt test failar
 		if (recordInfo.containsChildWithNameInData("id")) {
 			recordInfo.removeFirstChildWithNameInData("id");
 		}
