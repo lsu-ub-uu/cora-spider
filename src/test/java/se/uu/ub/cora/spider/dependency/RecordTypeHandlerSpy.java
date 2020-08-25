@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
@@ -54,7 +55,8 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	 */
 	public String recordPartConstraint = "";
 	// public boolean hasRecordPartReadContraintHasBeenCalled = false;
-	public Set<String> writeConstraints = new HashSet<String>();
+	public Set<Constraint> writeStringConstraints = new HashSet<Constraint>();
+	public Set<Constraint> writeConstraints = new HashSet<Constraint>();
 
 	public boolean hasParent = false;
 	public String parentId = "someParentId";
@@ -74,7 +76,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public boolean shouldAutoGenerateId = false;
 
 	public RecordTypeHandlerSpy() {
-		writeConstraints.add("someKey");
+		writeStringConstraints.add(new Constraint("someKey"));
 	}
 
 	@Override
@@ -148,10 +150,10 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<String> getRecordPartReadConstraints() {
+	public Set<Constraint> getRecordPartReadConstraints() {
 		MCR.addCall();
-		Set<String> constraints = new HashSet<String>();
-		constraints.add("someKey");
+		Set<Constraint> constraints = new HashSet<Constraint>();
+		constraints.add(new Constraint("someKey"));
 		MCR.addReturned(constraints);
 		return constraints;
 	}
@@ -170,7 +172,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<String> getRecordPartWriteConstraints() {
+	public Set<Constraint> getRecordPartWriteConstraints() {
 		MCR.addCall();
 		MCR.addReturned(writeConstraints);
 		return writeConstraints;
@@ -239,10 +241,10 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<String> getRecordPartCreateWriteConstraints() {
+	public Set<Constraint> getRecordPartCreateWriteConstraints() {
 		MCR.addCall();
-		MCR.addReturned(writeConstraints);
-		return writeConstraints;
+		MCR.addReturned(writeStringConstraints);
+		return writeStringConstraints;
 	}
 
 }

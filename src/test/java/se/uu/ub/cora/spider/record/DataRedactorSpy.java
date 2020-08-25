@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import java.util.Set;
 
+import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -42,7 +43,7 @@ public class DataRedactorSpy implements DataRedactor {
 
 	@Override
 	public DataGroup removeChildrenForConstraintsWithoutPermissions(DataGroup originalDataGroup,
-			Set<String> recordPartConstraints, Set<String> recordPartReadPermissions) {
+			Set<Constraint> recordPartConstraints, Set<String> recordPartReadPermissions) {
 		MCR.addCall("recordRead", originalDataGroup, "recordPartConstraints", recordPartConstraints,
 				"recordPartReadPermissions", recordPartReadPermissions);
 		DataGroupSpy returnedRemovedDataGroup = new DataGroupSpy("someDataGroupSpy");
@@ -60,7 +61,7 @@ public class DataRedactorSpy implements DataRedactor {
 
 	@Override
 	public DataGroup replaceChildrenForConstraintsWithoutPermissions(DataGroup originalDataGroup,
-			DataGroup changedDataGroup, Set<String> recordPartConstraints,
+			DataGroup changedDataGroup, Set<Constraint> recordPartConstraints,
 			Set<String> recordPartPermissions) {
 		MCR.addCall("originalDataGroup", originalDataGroup, "changedDataGroup", changedDataGroup,
 				"recordPartConstraints", recordPartConstraints, "recordPartPermissions",

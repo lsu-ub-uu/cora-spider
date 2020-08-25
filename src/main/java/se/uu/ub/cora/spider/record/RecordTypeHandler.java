@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.record;
 import java.util.List;
 import java.util.Set;
 
+import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.data.DataGroup;
 
 /**
@@ -163,11 +164,11 @@ public interface RecordTypeHandler {
 	 * write constraint. The constraints are identified by nameInData, where nameInData is the name
 	 * in data for the child in the top level dataGroup that is limited by the constraint.
 	 * 
-	 * @return A Set filled with read constraints, more precisly nameInData for children to the top
-	 *         level dataGroup that has read constraints. If there are no read constrainst SHOULD an
-	 *         empty set returned.
+	 * @return A Set filled with read constraints, more precisly nameInData and possibly attributes
+	 *         for children to the top level dataGroup that has read constraints. If there are no
+	 *         read constraints an empty set SHOULD be returned.
 	 */
-	Set<String> getRecordPartReadConstraints();
+	Set<Constraint> getRecordPartReadConstraints();
 
 	/**
 	 * getRecordPartWriteConstraints returns a Set with all the write constraints that are specified
@@ -179,11 +180,11 @@ public interface RecordTypeHandler {
 	 * This method is similar to {@link #getRecordPartCreateWriteConstraints()}, but this one
 	 * returnes constraints active when updating data.
 	 * 
-	 * @return A Set filled with write constraints, more precisly nameInData for children to the top
-	 *         level dataGroup that has write constraints. If there are no write constrainst SHOULD
-	 *         an empty set returned.
+	 * @return A Set filled with write constraints, more precisly nameInData and possibly attributes
+	 *         for children to the top level dataGroup that has write constraints. If there are no
+	 *         write constraints an empty set SHOULD be returned.
 	 */
-	Set<String> getRecordPartWriteConstraints();
+	Set<Constraint> getRecordPartWriteConstraints();
 
 	/**
 	 * getRecordPartCreateWriteConstraints returns a Set with all the write constraints that are
@@ -195,10 +196,10 @@ public interface RecordTypeHandler {
 	 * This method is similar to {@link #getRecordPartCreateWriteConstraints()}, but this one
 	 * returnes constraints active when creating data.
 	 * 
-	 * @return A Set filled with write constraints, more precisly nameInData for children to the top
-	 *         level dataGroup that has write constraints. If there are no write constrainst SHOULD
-	 *         an empty set returned.
+	 * @return A Set filled with write constraints, more precisly nameInData and possibly attributes
+	 *         for children to the top level dataGroup that has write constraints. If there are no
+	 *         write constraints an empty set SHOULD be returned.
 	 */
-	Set<String> getRecordPartCreateWriteConstraints();
+	Set<Constraint> getRecordPartCreateWriteConstraints();
 
 }

@@ -20,6 +20,8 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	public String id;
 	public int numberOfChildrenWithReadWriteConstraint = 0;
 	public int numberOfChildrenWithWriteConstraint = 0;
+	public int numberOfAttributes = 0;
+	public boolean addAttribute = false;
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
@@ -30,7 +32,8 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 		types.add(type);
 		ids.add(id);
 		this.id = id;
-		if ("recordType".equals(type) && "organisation".equals(id)) {
+		if ("recordType".equals(type) && "organisation".equals(id)
+				|| "recordType".equals(type) && "organisationChildWithAttribute".equals(id)) {
 			DataGroup returnedValue = DataCreator.createRecordTypeWithIdAndUserSuppliedId(id,
 					"true");
 			MCR.addReturned(returnedValue);
@@ -38,106 +41,180 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 
 		}
 		if ("metadataGroup".equals(type) && "organisation".equals(id)) {
-			DataGroupSpy dataGroupSpy = new DataGroupSpy("metadata");
-			DataGroupSpy childReferences = new DataGroupSpy("childReferences");
-			DataGroupSpy childReference = createChildReference("metadataGroup",
-					"divaOrganisationNameGroup");
-			childReferences.addChild(childReference);
+			return createMetadataGroupForOrganisation();
 
-			if (numberOfChildrenWithReadWriteConstraint > 0) {
-				DataGroupSpy referenceWithConstraint = createChildWithConstraint(
-						"metadataTextVariable", "divaOrganisationRoot", "readWrite");
-				childReferences.addChild(referenceWithConstraint);
+		}
+		if ("metadataGroup".equals(type) && "organisationChildWithAttribute".equals(id)) {
+			return createMetadataGroupForOrganisationWithChildWithAttribute();
 
-			}
-			if (numberOfChildrenWithReadWriteConstraint > 1) {
-				DataGroupSpy referenceWithConstraint2 = createChildWithConstraint(
-						"metadataTextVariable", "showInPortalTextVar", "readWrite");
-				childReferences.addChild(referenceWithConstraint2);
-
-			}
-			if (numberOfChildrenWithWriteConstraint > 0) {
-				DataGroupSpy referenceWithConstraint3 = createChildWithConstraint(
-						"metadataTextVariable", "showInDefenceTextVar", "write");
-				childReferences.addChild(referenceWithConstraint3);
-
-			}
-
-			dataGroupSpy.addChild(childReferences);
-			MCR.addReturned(dataGroupSpy);
-			return dataGroupSpy;
+		}
+		if ("metadataGroup".equals(type) && "organisationChildWithAttributeNew".equals(id)) {
+			return createMetadataGroupForOrganisationNewWithChildWithAttribute();
 
 		}
 		if ("metadataGroup".equals(type) && "organisationNew".equals(id)) {
-			DataGroupSpy dataGroupSpy = new DataGroupSpy("metadata");
-			DataGroupSpy childReferences = new DataGroupSpy("childReferences");
-			DataGroupSpy childReference = createChildReference("metadataGroup",
-					"divaOrganisationNameGroup");
-			childReferences.addChild(childReference);
-
-			if (numberOfChildrenWithReadWriteConstraint > 0) {
-				DataGroupSpy referenceWithConstraint = createChildWithConstraint(
-						"metadataTextVariable", "divaOrganisationRoot2", "readWrite");
-				childReferences.addChild(referenceWithConstraint);
-
-			}
-			if (numberOfChildrenWithReadWriteConstraint > 1) {
-				DataGroupSpy referenceWithConstraint2 = createChildWithConstraint(
-						"metadataTextVariable", "showInPortalTextVar2", "readWrite");
-				childReferences.addChild(referenceWithConstraint2);
-
-			}
-			if (numberOfChildrenWithWriteConstraint > 0) {
-				DataGroupSpy referenceWithConstraint3 = createChildWithConstraint(
-						"metadataTextVariable", "showInDefenceTextVar2", "write");
-				childReferences.addChild(referenceWithConstraint3);
-
-			}
-
-			dataGroupSpy.addChild(childReferences);
-			MCR.addReturned(dataGroupSpy);
-			return dataGroupSpy;
+			return createMetadataGroupForOrganisationNew();
 
 		}
 		if ("metadataTextVariable".equals(type) && "divaOrganisationRoot".equals(id)) {
-			DataGroupSpy metadataTextVariable = new DataGroupSpy("metadata");
-			metadataTextVariable.addChild(new DataAtomicSpy("nameInData", "organisationRoot"));
-			MCR.addReturned(metadataTextVariable);
-			return metadataTextVariable;
+			return createMetadataTextVariableUsingNameInData("organisationRoot");
 		}
 		if ("metadataTextVariable".equals(type) && "showInPortalTextVar".equals(id)) {
-			DataGroupSpy metadataTextVariable = new DataGroupSpy("metadata");
-			metadataTextVariable.addChild(new DataAtomicSpy("nameInData", "showInPortal"));
-			MCR.addReturned(metadataTextVariable);
-			return metadataTextVariable;
+			return createMetadataTextVariableUsingNameInData("showInPortal");
 		}
 		if ("metadataTextVariable".equals(type) && "showInDefenceTextVar".equals(id)) {
-			DataGroupSpy metadataTextVariable = new DataGroupSpy("metadata");
-			metadataTextVariable.addChild(new DataAtomicSpy("nameInData", "showInDefence"));
-			MCR.addReturned(metadataTextVariable);
-			return metadataTextVariable;
+			return createMetadataTextVariableUsingNameInData("showInDefence");
 		}
 		if ("metadataTextVariable".equals(type) && "divaOrganisationRoot2".equals(id)) {
-			DataGroupSpy metadataTextVariable = new DataGroupSpy("metadata");
-			metadataTextVariable.addChild(new DataAtomicSpy("nameInData", "organisationRoot2"));
-			MCR.addReturned(metadataTextVariable);
-			return metadataTextVariable;
+			return createMetadataTextVariableUsingNameInData("organisationRoot2");
 		}
 		if ("metadataTextVariable".equals(type) && "showInPortalTextVar2".equals(id)) {
-			DataGroupSpy metadataTextVariable = new DataGroupSpy("metadata");
-			metadataTextVariable.addChild(new DataAtomicSpy("nameInData", "showInPortal2"));
-			MCR.addReturned(metadataTextVariable);
-			return metadataTextVariable;
+			return createMetadataTextVariableUsingNameInData("showInPortal2");
 		}
 		if ("metadataTextVariable".equals(type) && "showInDefenceTextVar2".equals(id)) {
-			DataGroupSpy metadataTextVariable = new DataGroupSpy("metadata");
-			metadataTextVariable.addChild(new DataAtomicSpy("nameInData", "showInDefence2"));
-			MCR.addReturned(metadataTextVariable);
-			return metadataTextVariable;
+			return createMetadataTextVariableUsingNameInData("showInDefence2");
+		}
+		if ("metadataGroup".equals(type) && "organisationAlternativeNameGroup".equals(id)) {
+			DataGroupSpy metadataGroup = new DataGroupSpy("metadata");
+			metadataGroup.addChild(new DataAtomicSpy("nameInData", "organisationAlternativeName"));
+			if (numberOfAttributes > 0) {
+				DataGroupSpy attributeReferences = new DataGroupSpy("attributeReferences");
+				DataGroupSpy ref = createAttributeReference("textPartTypeCollectionVar", "0");
+				attributeReferences.addChild(ref);
+
+				if (numberOfAttributes > 1) {
+					DataGroupSpy ref2 = createAttributeReference("textPartLangCollectionVar", "0");
+					attributeReferences.addChild(ref2);
+				}
+				metadataGroup.addChild(attributeReferences);
+			}
+
+			MCR.addReturned(metadataGroup);
+			return metadataGroup;
+		}
+		if ("metadataCollectionVariable".equals(type) && "textPartTypeCollectionVar".equals(id)) {
+			DataGroupSpy metadataGroup = createMetadataGroupWithNameInDataAndFinalValue("type",
+					"default");
+			return metadataGroup;
+		}
+		if ("metadataCollectionVariable".equals(type) && "textPartLangCollectionVar".equals(id)) {
+			DataGroupSpy metadataGroup = createMetadataGroupWithNameInDataAndFinalValue("lang",
+					"sv");
+			return metadataGroup;
 		}
 		DataGroupSpy returnedValue = new DataGroupSpy(id);
 		MCR.addReturned(returnedValue);
 		return returnedValue;
+	}
+
+	private DataGroup createMetadataGroupForOrganisationNew() {
+		DataGroupSpy dataGroupSpy = new DataGroupSpy("metadata");
+		DataGroupSpy childReferences = new DataGroupSpy("childReferences");
+		DataGroupSpy childReference = createChildReference("metadataGroup",
+				"divaOrganisationNameGroup");
+		childReferences.addChild(childReference);
+
+		if (numberOfChildrenWithReadWriteConstraint > 0) {
+			DataGroupSpy referenceWithConstraint = createChildWithConstraint("metadataTextVariable",
+					"divaOrganisationRoot2", "readWrite");
+			childReferences.addChild(referenceWithConstraint);
+
+		}
+		if (numberOfChildrenWithReadWriteConstraint > 1) {
+			DataGroupSpy referenceWithConstraint2 = createChildWithConstraint(
+					"metadataTextVariable", "showInPortalTextVar2", "readWrite");
+			childReferences.addChild(referenceWithConstraint2);
+
+		}
+		if (numberOfChildrenWithWriteConstraint > 0) {
+			DataGroupSpy referenceWithConstraint3 = createChildWithConstraint(
+					"metadataTextVariable", "showInDefenceTextVar2", "write");
+			childReferences.addChild(referenceWithConstraint3);
+
+		}
+
+		dataGroupSpy.addChild(childReferences);
+		MCR.addReturned(dataGroupSpy);
+		return dataGroupSpy;
+	}
+
+	private DataGroupSpy createMetadataGroupWithNameInDataAndFinalValue(String nameInData,
+			String finalValue) {
+		DataGroupSpy metadataGroup = new DataGroupSpy("metadata");
+
+		metadataGroup.addChild(new DataAtomicSpy("nameInData", nameInData));
+		metadataGroup.addChild(new DataAtomicSpy("finalValue", finalValue));
+		return metadataGroup;
+	}
+
+	private DataGroupSpy createAttributeReference(String linkedRecordId, String repeatId) {
+		DataGroupSpy ref = new DataGroupSpy("ref");
+		ref.addChild(new DataAtomicSpy("linkedRecordType", "metadataCollectionVariable"));
+		ref.addChild(new DataAtomicSpy("linkedRecordId", linkedRecordId));
+		ref.setRepeatId(repeatId);
+		return ref;
+	}
+
+	private DataGroupSpy createMetadataTextVariableUsingNameInData(String nameInData) {
+		DataGroupSpy metadataTextVariable = new DataGroupSpy("metadata");
+		metadataTextVariable.addChild(new DataAtomicSpy("nameInData", nameInData));
+		MCR.addReturned(metadataTextVariable);
+		return metadataTextVariable;
+	}
+
+	private DataGroup createMetadataGroupForOrganisation() {
+		DataGroupSpy dataGroupSpy = new DataGroupSpy("metadata");
+		DataGroupSpy childReferences = new DataGroupSpy("childReferences");
+		DataGroupSpy childReference = createChildReference("metadataGroup",
+				"divaOrganisationNameGroup");
+		childReferences.addChild(childReference);
+
+		if (numberOfChildrenWithReadWriteConstraint > 0) {
+			DataGroupSpy referenceWithConstraint = createChildWithConstraint("metadataTextVariable",
+					"divaOrganisationRoot", "readWrite");
+			childReferences.addChild(referenceWithConstraint);
+
+		}
+		if (numberOfChildrenWithReadWriteConstraint > 1) {
+			DataGroupSpy referenceWithConstraint2 = createChildWithConstraint(
+					"metadataTextVariable", "showInPortalTextVar", "readWrite");
+			childReferences.addChild(referenceWithConstraint2);
+
+		}
+		if (numberOfChildrenWithWriteConstraint > 0) {
+			DataGroupSpy referenceWithConstraint3 = createChildWithConstraint(
+					"metadataTextVariable", "showInDefenceTextVar", "write");
+			childReferences.addChild(referenceWithConstraint3);
+
+		}
+
+		dataGroupSpy.addChild(childReferences);
+		MCR.addReturned(dataGroupSpy);
+		return dataGroupSpy;
+	}
+
+	private DataGroup createMetadataGroupForOrganisationWithChildWithAttribute() {
+		DataGroup metadataGroup = createMetadataGroupForOrganisation();
+		DataGroup childReferences = metadataGroup.getFirstGroupWithNameInData("childReferences");
+		if (numberOfChildrenWithReadWriteConstraint > 0) {
+			DataGroupSpy referenceWithConstraint = createChildWithConstraint("metadataGroup",
+					"organisationAlternativeNameGroup", "readWrite");
+			childReferences.addChild(referenceWithConstraint);
+		}
+
+		return metadataGroup;
+	}
+
+	private DataGroup createMetadataGroupForOrganisationNewWithChildWithAttribute() {
+		DataGroup metadataGroup = createMetadataGroupForOrganisationNew();
+		DataGroup childReferences = metadataGroup.getFirstGroupWithNameInData("childReferences");
+		if (numberOfChildrenWithReadWriteConstraint > 0) {
+			DataGroupSpy referenceWithConstraint = createChildWithConstraint("metadataGroup",
+					"organisationAlternativeNameGroup", "readWrite");
+			childReferences.addChild(referenceWithConstraint);
+		}
+
+		return metadataGroup;
 	}
 
 	private DataGroupSpy createChildWithConstraint(String linkedRecordType, String linkedRecordId,

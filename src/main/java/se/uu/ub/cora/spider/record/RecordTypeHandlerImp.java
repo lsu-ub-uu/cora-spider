@@ -24,11 +24,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import se.uu.ub.cora.bookkeeper.metadata.Constraint;
+import se.uu.ub.cora.data.DataAttribute;
+import se.uu.ub.cora.data.DataAttributeProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public final class RecordTypeHandlerImp implements RecordTypeHandler {
+	private static final String NAME_IN_DATA = "nameInData";
 	private static final String SEARCH = "search";
 	private static final String PARENT_ID = "parentId";
 	private static final String RECORD_PART_CONSTRAINT = "recordPartConstraint";
@@ -39,9 +43,9 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private String recordTypeId;
 	private RecordStorage recordStorage;
 	private DataGroup metadataGroup;
-	private Set<String> readWriteConstraints = new HashSet<>();
-	private Set<String> createConstraints = new HashSet<>();
-	private Set<String> writeConstraints = new HashSet<>();
+	private Set<Constraint> readWriteConstraints = new HashSet<>();
+	private Set<Constraint> createConstraints = new HashSet<>();
+	private Set<Constraint> writeConstraints = new HashSet<>();
 	private boolean constraintsForUpdateLoaded = false;
 	private boolean constraintsForCreateLoaded = false;
 
@@ -124,7 +128,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<String> getRecordPartReadConstraints() {
+	public Set<Constraint> getRecordPartReadConstraints() {
 		if (constraintsForUpdateNotLoaded()) {
 			collectAllConstraints();
 		}
@@ -151,7 +155,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void possiblyAddConstraint(DataGroup childReference) {
 		if (hasConstraints(childReference)) {
-			addWriteAndOrReadWriteConstraints(childReference);
+			addWriteAndReadWriteConstraints(childReference);
 		}
 	}
 
@@ -159,28 +163,73 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return childReference.containsChildWithNameInData(RECORD_PART_CONSTRAINT);
 	}
 
-	private void addWriteAndOrReadWriteConstraints(DataGroup childReference) {
-		String refNameInData = getRefNameInData(childReference);
-		String constraintValue = getRecordPartConstraintValue(childReference);
-		writeConstraints.add(refNameInData);
-		possiblyAddReadWriteConstraint(refNameInData, constraintValue);
+	private void addWriteAndReadWriteConstraints(DataGroup childReference) {
+		String constraintType = getRecordPartConstraintType(childReference);
+
+		Constraint constraint = createConstraintPossibyAddAttributes(childReference);
+		writeConstraints.add(constraint);
+		possiblyAddReadWriteConstraint(constraintType, constraint);
 	}
 
-	private String getRefNameInData(DataGroup childReference) {
-		DataGroup ref = childReference.getFirstGroupWithNameInData("ref");
-		String linkedRecordType = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_TYPE);
-		String linkedRecordId = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-		DataGroup metadataRefElement = recordStorage.read(linkedRecordType, linkedRecordId);
-		return metadataRefElement.getFirstAtomicValueWithNameInData("nameInData");
+	private Constraint createConstraintPossibyAddAttributes(DataGroup childReference) {
+		DataGroup childRef = getChildRef(childReference);
+		Constraint constraint = createConstraint(childRef);
+		possiblyAddAttributes(childRef, constraint);
+		return constraint;
 	}
 
-	private String getRecordPartConstraintValue(DataGroup childReference) {
+	private String getRecordPartConstraintType(DataGroup childReference) {
 		return childReference.getFirstAtomicValueWithNameInData(RECORD_PART_CONSTRAINT);
 	}
 
-	private void possiblyAddReadWriteConstraint(String refNameInData, String constraintValue) {
+	private DataGroup getChildRef(DataGroup childReference) {
+		DataGroup ref = childReference.getFirstGroupWithNameInData("ref");
+		String linkedRecordType = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_TYPE);
+		String linkedRecordId = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		return recordStorage.read(linkedRecordType, linkedRecordId);
+	}
+
+	private Constraint createConstraint(DataGroup childRef) {
+		String refNameInData = childRef.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
+		return new Constraint(refNameInData);
+	}
+
+	private void possiblyAddAttributes(DataGroup childRef, Constraint constraint) {
+		if (childRef.containsChildWithNameInData("attributeReferences")) {
+			addAttributes(childRef, constraint);
+		}
+	}
+
+	private void addAttributes(DataGroup childRef, Constraint constraint) {
+		DataGroup attributeReferences = childRef.getFirstGroupWithNameInData("attributeReferences");
+		List<DataGroup> attributes = attributeReferences.getAllGroupsWithNameInData("ref");
+
+		for (DataGroup attribute : attributes) {
+			addAttribute(constraint, attribute);
+		}
+	}
+
+	private void addAttribute(Constraint constraint, DataGroup attribute) {
+		DataGroup collectionVar = getCollectionVar(attribute);
+		DataAttribute dataAttribute = createDataAttribute(collectionVar);
+		constraint.addAttribute(dataAttribute);
+	}
+
+	private DataGroup getCollectionVar(DataGroup attribute) {
+		return recordStorage.read(attribute.getFirstAtomicValueWithNameInData(LINKED_RECORD_TYPE),
+				attribute.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID));
+	}
+
+	private DataAttribute createDataAttribute(DataGroup collectionVar) {
+		String attributeName = collectionVar.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
+		String attributeValue = collectionVar.getFirstAtomicValueWithNameInData("finalValue");
+		return DataAttributeProvider.getDataAttributeUsingNameInDataAndValue(attributeName,
+				attributeValue);
+	}
+
+	private void possiblyAddReadWriteConstraint(String constraintValue, Constraint constraint) {
 		if (isReadWriteConstraint(constraintValue)) {
-			readWriteConstraints.add(refNameInData);
+			readWriteConstraints.add(constraint);
 		}
 	}
 
@@ -203,7 +252,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<String> getRecordPartWriteConstraints() {
+	public Set<Constraint> getRecordPartWriteConstraints() {
 		if (constraintsForUpdateNotLoaded()) {
 			collectAllConstraints();
 		}
@@ -283,7 +332,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<String> getRecordPartCreateWriteConstraints() {
+	public Set<Constraint> getRecordPartCreateWriteConstraints() {
 		if (constraintsForCreateNotLoaded()) {
 			collectAllConstraintsForCreate();
 		}
@@ -319,8 +368,8 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	private void addCreateConstraints(DataGroup childReference) {
-		String refNameInData = getRefNameInData(childReference);
-		createConstraints.add(refNameInData);
+		Constraint constraint = createConstraintPossibyAddAttributes(childReference);
+		createConstraints.add(constraint);
 	}
 
 	@Override

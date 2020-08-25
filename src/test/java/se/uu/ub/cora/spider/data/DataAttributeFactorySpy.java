@@ -18,6 +18,9 @@
  */
 package se.uu.ub.cora.spider.data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import se.uu.ub.cora.data.DataAttribute;
 import se.uu.ub.cora.data.DataAttributeFactory;
 
@@ -25,12 +28,17 @@ public class DataAttributeFactorySpy implements DataAttributeFactory {
 
 	public String nameInData;
 	public String value;
+	public List<String> nameInDataList = new ArrayList<>();
+	public List<String> valueList = new ArrayList<>();
 	public DataAttributeSpy returnedDataAttribute;
 
 	@Override
 	public DataAttribute factorUsingNameInDataAndValue(String nameInData, String value) {
 		this.nameInData = nameInData;
 		this.value = value;
+
+		this.nameInDataList.add(nameInData);
+		this.valueList.add(value);
 
 		returnedDataAttribute = new DataAttributeSpy(nameInData, value);
 		return returnedDataAttribute;

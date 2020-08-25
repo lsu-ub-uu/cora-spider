@@ -35,6 +35,7 @@ public class DataGroupSpy implements DataGroup {
 	public List<DataElement> children = new ArrayList<>();
 	public String repeatId;
 	public Set<DataAttribute> attributes = new HashSet<>();
+	public List<String> removedNameInDatas = new ArrayList<>();
 
 	public DataGroupSpy(String nameInData) {
 		this.nameInData = nameInData;
@@ -164,6 +165,7 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public boolean removeFirstChildWithNameInData(String childNameInData) {
+		removedNameInDatas.add(childNameInData);
 		DataElement foundChild = tryToFindChildToRemove(childNameInData);
 		if (foundChild != null) {
 			children.remove(foundChild);
