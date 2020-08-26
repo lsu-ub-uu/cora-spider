@@ -185,4 +185,18 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 		return !children.isEmpty();
 	}
 
+	@Override
+	public List<DataElement> getAllChildrenWithNameInDataAndAttributes(String nameInData,
+			DataAttribute... childAttributes) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean removeAllChildrenWithNameInDataAndAttributes(String childNameInData,
+			DataAttribute... childAttributes) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }
