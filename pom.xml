@@ -34,9 +34,9 @@
 
 	<properties>
         <logger.version>2.1.0</logger.version>
-		<storage.version>3.6.0</storage.version>
+		<storage.version>3.7.0</storage.version>
 		<search.version>3.4.0</search.version>
-		<bookkeeper.version>4.8.0</bookkeeper.version>
+		<bookkeeper.version>4.9.0</bookkeeper.version>
 		<beefeater.version>3.2.0</beefeater.version>
 		<!-- new pitest version -->
 		<pitest-maven.version>1.5.1</pitest-maven.version>
@@ -72,11 +72,13 @@
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>bookkeeper</artifactId>
 			<version>${bookkeeper.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>beefeater</artifactId>
 			<version>${beefeater.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
