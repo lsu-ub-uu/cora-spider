@@ -51,6 +51,11 @@ public class RulesProviderSpy implements RulesProvider {
 		RulePartValuesImp rulePart = new RulePartValuesImp();
 		rule.addRulePart("action", rulePart);
 		rulePart.add("system.read");
+
+		RulePartValuesImp rulePermissionPart = new RulePartValuesImp();
+		rule.addRulePart("OWNING_ORGANISATION", rulePermissionPart);
+		rulePermissionPart.add("system.uu");
+
 		if (returnReadRecordPartPermissions) {
 			rule.addReadRecordPartPermission("organisation.isRoot");
 			rule.addReadRecordPartPermission("book.price");

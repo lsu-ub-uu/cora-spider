@@ -41,7 +41,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private static final String USER_STRING = "user with id ";
-	private Authorizator authorizator;
+	private Authorizator beefeaterAuthorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private RulesProvider rulesProvider;
 	private RecordStorage recordStorage;
@@ -53,7 +53,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider,
 			Authorizator authorizator, RulesProvider rulesProvider) {
 		this.dependencyProvider = dependencyProvider;
-		this.authorizator = authorizator;
+		this.beefeaterAuthorizator = authorizator;
 		this.rulesProvider = rulesProvider;
 		ruleCalculator = dependencyProvider.getPermissionRuleCalculator();
 		recordStorage = dependencyProvider.getRecordStorage();
@@ -68,7 +68,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	private boolean userSatisfiesRequiredRules(User user, List<Rule> requiredRules) {
 		List<Rule> providedRules = getActiveRulesForUser(user);
 
-		return authorizator.providedRulesSatisfiesRequiredRules(providedRules, requiredRules);
+		return beefeaterAuthorizator.providedRulesSatisfiesRequiredRules(providedRules,
+				requiredRules);
 	}
 
 	private List<Rule> getActiveRulesForUser(User user) {
@@ -170,7 +171,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		RulePartValuesImp rulePartValues = new RulePartValuesImp();
 		addAllValuesFromRulePartToRulePartValues(rulePartInUser, rulePartValues);
 		String permissionKey = getPermissionKeyUsingRulePart(rulePartInUser);
-		rule.addRulePart(permissionKey, rulePartValues);
+		rule.addRulePartIfKeyIsAbsent(permissionKey, rulePartValues);
 	}
 
 	private void addAllValuesFromRulePartToRulePartValues(DataGroup rulePart,
@@ -251,7 +252,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 						collectedData);
 
 		List<Rule> providedRules = getProvidedRulesForUser(user);
-		return authorizator.providedRulesSatisfiesRequiredRules(providedRules, requiredRules);
+		return beefeaterAuthorizator.providedRulesSatisfiesRequiredRules(providedRules,
+				requiredRules);
 	}
 
 	public SpiderDependencyProvider getDependencyProvider() {
@@ -261,7 +263,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	public Authorizator getAuthorizator() {
 		// needed for test
-		return authorizator;
+		return beefeaterAuthorizator;
 	}
 
 	public RulesProvider getRulesProvider() {
@@ -297,7 +299,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private void matchRules(List<Rule> requiredRules, List<Rule> providedRules) {
-		matchedRules = authorizator.providedRulesMatchRequiredRules(providedRules, requiredRules);
+		matchedRules = beefeaterAuthorizator.providedRulesMatchRequiredRules(providedRules,
+				requiredRules);
 	}
 
 	private void possiblyThrowAuthorizationExceptionWhenEmptyMatchedRules(User user, String action,

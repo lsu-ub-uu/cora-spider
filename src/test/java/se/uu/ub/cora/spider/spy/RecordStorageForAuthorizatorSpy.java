@@ -236,9 +236,9 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	}
 
 	private DataGroup createActiveUserWithIdAndAddDefaultRoles(String userId) {
-		DataGroup userWithPermissionTerm = createUserWithIdAndActiveStatus(userId, "active");
-		addRoleToUser("guest", userWithPermissionTerm);
-		return userWithPermissionTerm;
+		DataGroup user = createUserWithIdAndActiveStatus(userId, "active");
+		addRoleToUser("guest", user);
+		return user;
 	}
 
 	private DataGroup createPermissionTermWithIdAndValues(String permissionTermId,
