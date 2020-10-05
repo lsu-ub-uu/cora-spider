@@ -73,20 +73,6 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private List<Rule> getActiveRulesForUser(User user) {
-		List<Rule> providedRules = getProvidedRulesForUser(user);
-
-		// // THIS IS A SMALL HACK UNTIL WE HAVE RECORDRELATIONS AND CAN READ FROM
-		// USER, will be needed for userId, organisation, etc
-
-		providedRules.forEach(rule -> {
-			RulePartValuesImp userIdValues = new RulePartValuesImp();
-			userIdValues.add("system.*");
-			rule.addRulePart("createdBy", userIdValues);
-		});
-		return providedRules;
-	}
-
-	private List<Rule> getProvidedRulesForUser(User user) {
 		List<Rule> cachedProvidedRules = cachedProvidedRulesForUser.get(user.id);
 		if (cachedProvidedRules != null) {
 			return cachedProvidedRules;
@@ -251,7 +237,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
 						collectedData);
 
-		List<Rule> providedRules = getProvidedRulesForUser(user);
+		List<Rule> providedRules = getActiveRulesForUser(user);
 		return beefeaterAuthorizator.providedRulesSatisfiesRequiredRules(providedRules,
 				requiredRules);
 	}
@@ -293,7 +279,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
 						collectedData);
-		List<Rule> providedRules = getProvidedRulesForUser(user);
+		List<Rule> providedRules = getActiveRulesForUser(user);
 		matchRules(requiredRules, providedRules);
 		possiblyThrowAuthorizationExceptionWhenEmptyMatchedRules(user, action, recordType);
 	}
