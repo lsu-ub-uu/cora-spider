@@ -39,7 +39,7 @@
 		<storage.version>3.7.0</storage.version>
 		<search.version>3.5.0</search.version>
 		<bookkeeper.version>4.9.0</bookkeeper.version>
-		<beefeater.version>3.3-SNAPSHOT</beefeater.version>
+		<beefeater.version>3.3.0</beefeater.version>
 	</properties>
 
 	<scm>
