@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +31,7 @@ import java.util.Set;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.beefeater.authorization.Rule;
+import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
@@ -72,10 +74,32 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	private boolean userSatisfiesRequiredRules(User user, List<Rule> requiredRules) {
 		List<Rule> providedRules = getActiveRulesForUser(user);
 		for (Rule rule : providedRules) {
-			log.logInfoUsingMessage("providedRule: " + rule.keySet());
+			Set<String> keySet = rule.keySet();
+			log.logInfoUsingMessage("providedRule: " + keySet);
+			for (String key : keySet) {
+				log.logInfoUsingMessage("providedRuleKey: " + key);
+				RulePartValues rulePartValuesForKey = rule.getRulePartValuesForKey(key);
+				for (Iterator iterator = rulePartValuesForKey.iterator(); iterator.hasNext();) {
+					String value = (String) iterator.next();
+					log.logInfoUsingMessage("providedRuleValue: " + value);
+
+				}
+			}
+			log.logInfoUsingMessage("providedRule: " + keySet);
 		}
 		for (Rule rule : requiredRules) {
-			log.logInfoUsingMessage("requiredRule: " + rule.keySet());
+			Set<String> keySet = rule.keySet();
+			log.logInfoUsingMessage("requiredRule: " + keySet);
+			for (String key : keySet) {
+				log.logInfoUsingMessage("requiredRuleKey: " + key);
+				RulePartValues rulePartValuesForKey = rule.getRulePartValuesForKey(key);
+				for (Iterator iterator = rulePartValuesForKey.iterator(); iterator.hasNext();) {
+					String value = (String) iterator.next();
+					log.logInfoUsingMessage("requiredRuleValue: " + value);
+
+				}
+			}
+			log.logInfoUsingMessage("requiredRule: " + keySet);
 		}
 
 		return beefeaterAuthorizator.providedRulesSatisfiesRequiredRules(providedRules,
