@@ -33,7 +33,10 @@ import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.logger.Logger;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.record.SpiderRecordListReaderImp;
 import se.uu.ub.cora.spider.role.RulesProvider;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -49,6 +52,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	Set<String> cachedActiveUsers = new HashSet<>();
 	Map<String, List<Rule>> cachedProvidedRulesForUser = new HashMap<>();
 	private List<Rule> matchedRules;
+	private Logger log = LoggerProvider.getLoggerForClass(SpiderRecordListReaderImp.class);
 
 	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider,
 			Authorizator authorizator, RulesProvider rulesProvider) {
@@ -67,6 +71,12 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private boolean userSatisfiesRequiredRules(User user, List<Rule> requiredRules) {
 		List<Rule> providedRules = getActiveRulesForUser(user);
+		for (Rule rule : providedRules) {
+			log.logInfoUsingMessage("providedRule: " + rule.keySet());
+		}
+		for (Rule rule : requiredRules) {
+			log.logInfoUsingMessage("requiredRule: " + rule.keySet());
+		}
 
 		return beefeaterAuthorizator.providedRulesSatisfiesRequiredRules(providedRules,
 				requiredRules);
@@ -98,6 +108,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private void addRulesForRole(List<Rule> providedRules, String roleId,
 			DataGroup userAsDataGroup) {
+		log.logInfoUsingMessage("roleId" + roleId);
+
 		List<Rule> activeRulesFromRole = rulesProvider.getActiveRules(roleId);
 		List<DataGroup> userRolesFromUserDataGroup = userAsDataGroup
 				.getAllGroupsWithNameInData("userRole");
