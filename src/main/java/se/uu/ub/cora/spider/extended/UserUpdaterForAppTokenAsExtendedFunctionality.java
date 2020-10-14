@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,6 +23,7 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
@@ -47,22 +48,20 @@ public final class UserUpdaterForAppTokenAsExtendedFunctionality implements Exte
 	public void useExtendedFunctionality(String authToken, DataGroup appTokenDataGroup) {
 		DataGroup userAppTokenGroup = createUserAppTokenGroup(appTokenDataGroup);
 
-		User user = getUserFromAuthToken(authToken);
-		DataGroup spiderUserDataGroup = readUserFromStorage(user);
+		String userId = getUserIdFromAuthToken(authToken);
+		DataGroup spiderUserDataGroup = readUserFromStorage(userId);
 		spiderUserDataGroup.addChild(userAppTokenGroup);
 
-		updateUserInStorage(authToken, user, spiderUserDataGroup);
+		updateUserInStorage(authToken, userId, spiderUserDataGroup);
 	}
 
-	private User getUserFromAuthToken(String authToken) {
-		return dependencyProvider.getAuthenticator().getUserForToken(authToken);
+	private String getUserIdFromAuthToken(String authToken) {
+		Authenticator authenticator = dependencyProvider.getAuthenticator();
+		User userForToken = authenticator.getUserForToken(authToken);
+		return userForToken.id;
 	}
 
-	private DataGroup readUserFromStorage(User user) {
-		return findUser(user.id);
-	}
-
-	private DataGroup findUser(String userId) {
+	private DataGroup readUserFromStorage(String userId) {
 		return recordStorage.read("user", userId);
 	}
 
@@ -87,12 +86,13 @@ public final class UserUpdaterForAppTokenAsExtendedFunctionality implements Exte
 		return appTokenLink;
 	}
 
-	private void updateUserInStorage(String authToken, User user, DataGroup spiderUserDataGroup) {
+	private void updateUserInStorage(String authToken, String userId,
+			DataGroup spiderUserDataGroup) {
 		DataGroup recordInfo = spiderUserDataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup type = recordInfo.getFirstGroupWithNameInData("type");
 		String recordType = type.getFirstAtomicValueWithNameInData("linkedRecordId");
 
 		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
-		spiderRecordUpdater.updateRecord(authToken, recordType, user.id, spiderUserDataGroup);
+		spiderRecordUpdater.updateRecord(authToken, recordType, userId, spiderUserDataGroup);
 	}
 }
