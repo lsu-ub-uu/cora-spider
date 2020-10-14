@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,14 +30,10 @@ import java.util.Set;
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.beefeater.authorization.Rule;
-import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.logger.Logger;
-import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.record.SpiderRecordListReaderImp;
 import se.uu.ub.cora.spider.role.RulesProvider;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -54,7 +49,6 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	Set<String> cachedActiveUsers = new HashSet<>();
 	Map<String, List<Rule>> cachedProvidedRulesForUser = new HashMap<>();
 	private List<Rule> matchedRules;
-	private Logger log = LoggerProvider.getLoggerForClass(SpiderRecordListReaderImp.class);
 
 	private SpiderAuthorizatorImp(SpiderDependencyProvider dependencyProvider,
 			Authorizator authorizator, RulesProvider rulesProvider) {
@@ -73,34 +67,6 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private boolean userSatisfiesRequiredRules(User user, List<Rule> requiredRules) {
 		List<Rule> providedRules = getActiveRulesForUser(user);
-		for (Rule rule : providedRules) {
-			Set<String> keySet = rule.keySet();
-			log.logInfoUsingMessage("providedRule: " + keySet);
-			for (String key : keySet) {
-				log.logInfoUsingMessage("providedRuleKey: " + key);
-				RulePartValues rulePartValuesForKey = rule.getRulePartValuesForKey(key);
-				for (Iterator iterator = rulePartValuesForKey.iterator(); iterator.hasNext();) {
-					String value = (String) iterator.next();
-					log.logInfoUsingMessage("providedRuleValue: " + value);
-
-				}
-			}
-			log.logInfoUsingMessage("providedRule: " + keySet);
-		}
-		for (Rule rule : requiredRules) {
-			Set<String> keySet = rule.keySet();
-			log.logInfoUsingMessage("requiredRule: " + keySet);
-			for (String key : keySet) {
-				log.logInfoUsingMessage("requiredRuleKey: " + key);
-				RulePartValues rulePartValuesForKey = rule.getRulePartValuesForKey(key);
-				for (Iterator iterator = rulePartValuesForKey.iterator(); iterator.hasNext();) {
-					String value = (String) iterator.next();
-					log.logInfoUsingMessage("requiredRuleValue: " + value);
-
-				}
-			}
-			log.logInfoUsingMessage("requiredRule: " + keySet);
-		}
 
 		return beefeaterAuthorizator.providedRulesSatisfiesRequiredRules(providedRules,
 				requiredRules);
@@ -132,8 +98,6 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private void addRulesForRole(List<Rule> providedRules, String roleId,
 			DataGroup userAsDataGroup) {
-		log.logInfoUsingMessage("roleId" + roleId);
-
 		List<Rule> activeRulesFromRole = rulesProvider.getActiveRules(roleId);
 		List<DataGroup> userRolesFromUserDataGroup = userAsDataGroup
 				.getAllGroupsWithNameInData("userRole");

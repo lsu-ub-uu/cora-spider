@@ -22,8 +22,6 @@ package se.uu.ub.cora.spider.record;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.logger.Logger;
-import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -40,7 +38,6 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordStorage recordStorage;
 	private String recordType;
-	private Logger log = LoggerProvider.getLoggerForClass(SpiderRecordReaderImp.class);
 
 	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -68,21 +65,14 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 	}
 
 	private DataRecord tryToReadRecord(String recordId) {
-		log.logErrorUsingMessage("1");
 		tryToGetUserWithActiveToken();
-		log.logErrorUsingMessage("2");
-
 		checkUserIsAuthorizedForActionOnRecordType();
-		log.logErrorUsingMessage("2");
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
-		log.logErrorUsingMessage("3");
 		return tryToReadAndEnhanceRecord(recordRead);
 	}
 
 	private void tryToGetUserWithActiveToken() {
 		user = authenticator.getUserForToken(authToken);
-		log.logInfoUsingMessage("user: " + user);
-		log.logInfoUsingMessage("user.roles: " + user.roles);
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {

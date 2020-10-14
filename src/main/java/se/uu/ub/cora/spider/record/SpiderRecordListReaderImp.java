@@ -29,8 +29,6 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataListProvider;
 import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.logger.Logger;
-import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -48,7 +46,6 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	private StorageReadResult readResult;
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordTypeHandler recordTypeHandler;
-	private Logger log = LoggerProvider.getLoggerForClass(SpiderRecordListReaderImp.class);
 
 	private SpiderRecordListReaderImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -68,22 +65,14 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	@Override
 	public DataList readRecordList(String authToken, String recordType, DataGroup filter) {
-		log.logInfoUsingMessage("1");
 		this.recordType = recordType;
-		log.logInfoUsingMessage("2");
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		log.logInfoUsingMessage("3");
 		ensureActiveUserHasListPermissionUsingAuthToken(authToken);
-		log.logInfoUsingMessage("4");
 
 		readRecordList = DataListProvider.getDataListWithNameOfDataType(recordType);
-		log.logInfoUsingMessage("5");
 		validateFilterIfNotEmpty(filter, recordType);
-		log.logInfoUsingMessage("6");
 		readRecordsOfType(recordType, filter);
-		log.logInfoUsingMessage("7");
 		setFromToInReadRecordList();
-		log.logInfoUsingMessage("8");
 
 		return readRecordList;
 	}
@@ -95,8 +84,6 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 
 	private void tryToGetActiveUser(String authToken) {
 		user = authenticator.getUserForToken(authToken);
-		log.logInfoUsingMessage("user: " + user);
-		log.logInfoUsingMessage("user.roles: " + user.roles);
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {
