@@ -21,6 +21,21 @@ package se.uu.ub.cora.spider.extended;
 
 import se.uu.ub.cora.data.DataGroup;
 
+/**
+ * ExtendedFunctionality is functionality that can be plugged into Spider to extend its capabilities
+ * when handling records. It is a very open system, and almost any type of functionality can be
+ * added.
+ * 
+ */
 public interface ExtendedFunctionality {
+	/**
+	 * useExtendedFunctionality is called from different places in spider to use the
+	 * extendedFunctionality
+	 * 
+	 * @param authToken
+	 *            A String with the authToken representing the currently logged in user
+	 * @param dataGroup
+	 *            A DataGroup containing all data for the record currently being handled
+	 */
 	void useExtendedFunctionality(String authToken, DataGroup dataGroup);
 }

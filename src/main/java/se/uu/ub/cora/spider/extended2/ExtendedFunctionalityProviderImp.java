@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.spider.extended2;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
@@ -25,11 +26,20 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 
 public class ExtendedFunctionalityProviderImp implements ExtendedFunctionalityProvider {
 
+	private FunctionalityFactories extendedFactories;
+
+	public ExtendedFunctionalityProviderImp(FunctionalityFactories extendedFactories) {
+		this.extendedFactories = extendedFactories;
+	}
+
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
 			String recordType) {
-		// TODO Auto-generated method stub
-		return null;
+		List<ExtendedFunctionality> functionalities = new ArrayList<>();
+		for (FunctionalityFactory extendedFactory : extendedFactories.createBeforeMetadataValidation) {
+			functionalities.add(extendedFactory.factor());
+		}
+		return functionalities;
 	}
 
 	@Override
@@ -69,6 +79,10 @@ public class ExtendedFunctionalityProviderImp implements ExtendedFunctionalityPr
 	public List<ExtendedFunctionality> getFunctionalityAfterDelete(String recordType) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public FunctionalityFactories getExtendedFactories() {
+		return extendedFactories;
 	}
 
 }

@@ -18,15 +18,12 @@
  */
 package se.uu.ub.cora.spider.extended2;
 
-import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ServiceLoader;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 
 public class ExtendedFunctionalityInitializerTest {
 
@@ -37,35 +34,44 @@ public class ExtendedFunctionalityInitializerTest {
 	public void beforeMethod() {
 		initializer = new ExtendedFunctionalityInitializerImp();
 		starterSpy = new ExtendedFunctionalityStarterSpy();
-		initializer.setStarterSpy(starterSpy);
+		// initializer.setStarterSpy(starterSpy);
 	}
 
 	@Test
-	public void testStandardExtendedFunctionalityStarterCreatedOnStartup() throws Exception {
-		initializer = new ExtendedFunctionalityInitializerImp();
-		ExtendedFunctionalityStarter exImp = initializer.getStarter();
-		assertTrue(exImp instanceof ExtendedFunctionalityStarterImp);
-	}
-
-	@Test
-	public void testSetAndGetSpyExtendedFunctionalityStarter() throws Exception {
-		assertSame(initializer.getStarter(), starterSpy);
-	}
-
-	@Test
-	public void testExtendedFunctionalityIsSameAsStarterReturns() throws Exception {
-		ExtendedFunctionalityProvider exImp = initializer.getExtendedFunctionalityProvider();
-		assertSame(exImp, starterSpy.getExtendedFunctionalityProvider());
-	}
-
-	@Test
-	public void testImplementation1AddedToStarter() throws Exception {
-		ExtendedFunctionalityProvider exImp = initializer.getExtendedFunctionalityProvider();
-
-		Iterable<ExtendedFunctionalityForCreateBeforeMetadataValidation> iterable = starterSpy
-				.getCreateBeforeMetadataValidation();
+	public void testFunctionalityForCreateBeforeMetadataValidationFactory() {
+		ExtendedFunctionalityProviderImp provider = (ExtendedFunctionalityProviderImp) initializer
+				.getExtendedFunctionalityProvider();
+		FunctionalityFactories functionalityFactories = provider.getExtendedFactories();
+		Iterable<FunctionalityForCreateBeforeMetadataValidationFactory> iterable = functionalityFactories.createBeforeMetadataValidation;
 		assertTrue(iterable instanceof ServiceLoader);
 	}
+
+	// @Test
+	// public void testStandardExtendedFunctionalityStarterCreatedOnStartup() throws Exception {
+	// initializer = new ExtendedFunctionalityInitializerImp();
+	// ExtendedFunctionalityStarter exImp = initializer.getStarter();
+	// assertTrue(exImp instanceof ExtendedFunctionalityStarterImp);
+	// }
+	//
+	// @Test
+	// public void testSetAndGetSpyExtendedFunctionalityStarter() throws Exception {
+	// assertSame(initializer.getStarter(), starterSpy);
+	// }
+	//
+	// @Test
+	// public void testExtendedFunctionalityIsSameAsStarterReturns() throws Exception {
+	// ExtendedFunctionalityProvider exImp = initializer.getExtendedFunctionalityProvider();
+	// assertSame(exImp, starterSpy.getExtendedFunctionalityProvider());
+	// }
+	//
+	// @Test
+	// public void testImplementation1AddedToStarter() throws Exception {
+	// ExtendedFunctionalityProvider exImp = initializer.getExtendedFunctionalityProvider();
+	//
+	// Iterable<ExtendedFunctionalityForCreateBeforeMetadataValidation> iterable = starterSpy
+	// .getCreateBeforeMetadataValidation();
+	// assertTrue(iterable instanceof ServiceLoader);
+	// }
 
 	// @Test
 	// public void testRecordStorageProviderImplementationsArePassedOnToStarter() {

@@ -18,14 +18,54 @@
  */
 package se.uu.ub.cora.spider.extended2;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 
 public class ExtendedFunctionalityProviderTest {
 
+	private FunctionalityFactories functionalityFactories;
+	private ExtendedFunctionalityProviderImp provider;
+	private List<FunctionalityForCreateBeforeMetadataValidationFactory> list;
+
+	@BeforeMethod
+	public void setUp() {
+		functionalityFactories = new FunctionalityFactories();
+		list = new ArrayList<>();
+		functionalityFactories.createBeforeMetadataValidation = list;
+		provider = new ExtendedFunctionalityProviderImp(functionalityFactories);
+
+	}
+
 	@Test
-	public void init() {
-		ExtendedFunctionalityProvider provider = new ExtendedFunctionalityProviderImp();
+	public void testExtendedFactories() {
+		assertSame(provider.getExtendedFactories(), functionalityFactories);
+	}
+
+	@Test
+	public void testCreateBeforeMetadataValidationNoFunctionality() {
+		List<ExtendedFunctionality> functionality = provider
+				.getFunctionalityForCreateBeforeMetadataValidation("");
+		assertTrue(functionality.isEmpty());
+
+	}
+
+	@Test
+	public void testCreateBeforeMetadataValidationWithOneFunctionality() {
+		FunctionalityFactorySpy factorySpy = new FunctionalityFactorySpy();
+		list.add(factorySpy);
+		List<ExtendedFunctionality> functionality = provider
+				.getFunctionalityForCreateBeforeMetadataValidation("");
+		assertTrue(factorySpy.factorWasCalled);
+		assertEquals(functionality.get(0), factorySpy.returnedFunctionality);
+
 	}
 }

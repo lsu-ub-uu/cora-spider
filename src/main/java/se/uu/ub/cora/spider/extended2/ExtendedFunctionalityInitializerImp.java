@@ -26,28 +26,14 @@ public class ExtendedFunctionalityInitializerImp implements ExtendedFunctionalit
 	private ExtendedFunctionalityStarter starter = new ExtendedFunctionalityStarterImp();
 
 	ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
-		starter.setExtendedFunctionalityForCreateBeforeMetadataValidation(
-				ServiceLoader.load(ExtendedFunctionalityForCreateBeforeMetadataValidation.class));
-		return starter.getExtendedFunctionalityProvider();
-	}
+		FunctionalityFactories functionalityFactories = new FunctionalityFactories();
+		functionalityFactories.createBeforeMetadataValidation = ServiceLoader
+				.load(FunctionalityForCreateBeforeMetadataValidationFactory.class);
+		// starter.setExtendedFunctionalityForCreateBeforeMetadataValidation(
+		// ServiceLoader.load(ExtendedFunctionalityForCreateBeforeMetadataValidation.class));
 
-	/**
-	 * setStarterSpy is intended to use in tests only and is therefor package private
-	 * 
-	 * @param starterSpy
-	 *            A spy to check calls to the normaly internal starter
-	 */
-	void setStarterSpy(ExtendedFunctionalityStarter starterSpy) {
-		starter = starterSpy;
-	}
-
-	/**
-	 * getStarter is intended to use in tests only and is therefor package private
-	 * 
-	 * @return A starter used to check that a StarterImp is the default starter
-	 */
-	ExtendedFunctionalityStarter getStarter() {
-		return starter;
+		// return starter.getExtendedFunctionalityProvider();
+		return new ExtendedFunctionalityProviderImp(functionalityFactories);
 	}
 
 }
