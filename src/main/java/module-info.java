@@ -10,7 +10,7 @@ module se.uu.ub.cora.spider {
 	requires se.uu.ub.cora.logger;
 	requires se.uu.ub.cora.data;
 
-	uses se.uu.ub.cora.spider.extended2.FunctionalityForCreateBeforeMetadataValidationFactory;
+	uses se.uu.ub.cora.spider.extended2.ExtendedFunctionalityFactory;
 
 	exports se.uu.ub.cora.spider.authentication;
 	exports se.uu.ub.cora.spider.authorization;

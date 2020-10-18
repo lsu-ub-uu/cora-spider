@@ -28,57 +28,18 @@ import org.testng.annotations.Test;
 public class ExtendedFunctionalityInitializerTest {
 
 	private ExtendedFunctionalityInitializerImp initializer;
-	private ExtendedFunctionalityStarterSpy starterSpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		initializer = new ExtendedFunctionalityInitializerImp();
-		starterSpy = new ExtendedFunctionalityStarterSpy();
-		// initializer.setStarterSpy(starterSpy);
 	}
 
 	@Test
 	public void testFunctionalityForCreateBeforeMetadataValidationFactory() {
 		ExtendedFunctionalityProviderImp provider = (ExtendedFunctionalityProviderImp) initializer
 				.getExtendedFunctionalityProvider();
-		FunctionalityFactories functionalityFactories = provider.getExtendedFactories();
-		Iterable<FunctionalityForCreateBeforeMetadataValidationFactory> iterable = functionalityFactories.createBeforeMetadataValidation;
+		Iterable<ExtendedFunctionalityFactory> iterable = provider.getFunctionalityFactoryImplementations();
 		assertTrue(iterable instanceof ServiceLoader);
 	}
-
-	// @Test
-	// public void testStandardExtendedFunctionalityStarterCreatedOnStartup() throws Exception {
-	// initializer = new ExtendedFunctionalityInitializerImp();
-	// ExtendedFunctionalityStarter exImp = initializer.getStarter();
-	// assertTrue(exImp instanceof ExtendedFunctionalityStarterImp);
-	// }
-	//
-	// @Test
-	// public void testSetAndGetSpyExtendedFunctionalityStarter() throws Exception {
-	// assertSame(initializer.getStarter(), starterSpy);
-	// }
-	//
-	// @Test
-	// public void testExtendedFunctionalityIsSameAsStarterReturns() throws Exception {
-	// ExtendedFunctionalityProvider exImp = initializer.getExtendedFunctionalityProvider();
-	// assertSame(exImp, starterSpy.getExtendedFunctionalityProvider());
-	// }
-	//
-	// @Test
-	// public void testImplementation1AddedToStarter() throws Exception {
-	// ExtendedFunctionalityProvider exImp = initializer.getExtendedFunctionalityProvider();
-	//
-	// Iterable<ExtendedFunctionalityForCreateBeforeMetadataValidation> iterable = starterSpy
-	// .getCreateBeforeMetadataValidation();
-	// assertTrue(iterable instanceof ServiceLoader);
-	// }
-
-	// @Test
-	// public void testRecordStorageProviderImplementationsArePassedOnToStarter() {
-	// TheRestModuleStarterSpy starter = startTheRestModuleInitializerWithStarterSpy();
-	//
-	// Iterable<RecordStorageProvider> iterable = starter.recordStorageProviderImplementations;
-	// assertTrue(iterable instanceof ServiceLoader);
-	// }
 
 }

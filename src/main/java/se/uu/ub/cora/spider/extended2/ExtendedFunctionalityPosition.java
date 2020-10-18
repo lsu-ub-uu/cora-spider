@@ -18,7 +18,25 @@
  */
 package se.uu.ub.cora.spider.extended2;
 
-public class FunctionalityFactories {
-	public Iterable<FunctionalityForCreateBeforeMetadataValidationFactory> createBeforeMetadataValidation;
+/**
+ * ExtendedFunctionalityPosition is an Enum with the positions from where Spider calls
+ * extendedFunctionality.<br>
+ * <br>
+ * For create are the positions ordered as follows:<br>
+ * CREATE_BEFORE_METADATA_VALIDATION<br>
+ * CREATE_AFTER_METADATA_VALIDATION<br>
+ */
+public enum ExtendedFunctionalityPosition {
+	/**
+	 * CREATE_BEFORE_METADATA_VALIDATION, as the name suggests is the functionality plugged into a
+	 * create operation, before metadataValidation is done.
+	 */
+	CREATE_BEFORE_METADATA_VALIDATION,
+	/**
+	 * CREATE_AFTER_METADATA_VALIDATION, as the name suggests is the functionality plugged into a
+	 * create operation, after metadataValidation is done.
+	 * 
+	 */
+	CREATE_AFTER_METADATA_VALIDATION
 
 }

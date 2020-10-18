@@ -19,12 +19,20 @@
 package se.uu.ub.cora.spider.extended2;
 
 /**
- * FunctionalityForCreateBeforeMetadataValidationFactory is used to determin where functionality is
- * used for classes implementing this interface.<br>
- * As the name suggests is the functionality plugged into a create operation, before
- * metadataValidation is done.<br>
+ * ExtendedFunctionalityContext holds a combination of {@linkplain ExtendedFunctionalityPosition},
+ * recordType(String) and runAsNumber(int).
  */
-public interface FunctionalityForCreateBeforeMetadataValidationFactory
-		extends FunctionalityFactory {
+public class ExtendedFunctionalityContext {
+
+	ExtendedFunctionalityPosition extendedFunctionalityPosition;
+	String recordType;
+	int runAsNumber;
+
+	public ExtendedFunctionalityContext(ExtendedFunctionalityPosition extendedFunctionalityPosition,
+			String recordType, int runAsNumber) {
+		this.extendedFunctionalityPosition = extendedFunctionalityPosition;
+		this.recordType = recordType;
+		this.runAsNumber = runAsNumber;
+	}
 
 }

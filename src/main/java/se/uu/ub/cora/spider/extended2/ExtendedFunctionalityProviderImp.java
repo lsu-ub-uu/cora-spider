@@ -19,25 +19,53 @@
 package se.uu.ub.cora.spider.extended2;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 
 public class ExtendedFunctionalityProviderImp implements ExtendedFunctionalityProvider {
 
-	private FunctionalityFactories extendedFactories;
+	private Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories;
+	private Map<String, List<ExtendedFunctionalityFactory>> createBeforeMetadataValidation = new HashMap<>();
 
-	public ExtendedFunctionalityProviderImp(FunctionalityFactories extendedFactories) {
-		this.extendedFactories = extendedFactories;
+	public ExtendedFunctionalityProviderImp(
+			Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories) {
+		this.extendedFunctionalityFactories = extendedFunctionalityFactories;
+
+		sortFactories();
+	}
+
+	private void sortFactories() {
+		// List<ExtendedFunctionalityFactory> createBeforeMetadataValidationList = new
+		// ArrayList<>();
+		// for (ExtendedFunctionalityFactory extendedFactory : extendedFunctionalityFactories) {
+		// List<ExtendedFunctionalityContext> efcs = extendedFactory
+		// .getExtendedFunctionalityContexts();
+		// for (ExtendedFunctionalityContext efc : efcs) {
+		// if (ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION
+		// .equals(efc.extendedFunctionalityPosition)) {
+		// createBeforeMetadataValidationList.add(extendedFactory);
+		// }
+		// }
+		// }
 	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
 			String recordType) {
 		List<ExtendedFunctionality> functionalities = new ArrayList<>();
-		for (FunctionalityFactory extendedFactory : extendedFactories.createBeforeMetadataValidation) {
-			functionalities.add(extendedFactory.factor());
+		for (ExtendedFunctionalityFactory extendedFactory : extendedFunctionalityFactories) {
+			List<ExtendedFunctionalityContext> efcs = extendedFactory
+					.getExtendedFunctionalityContexts();
+			for (ExtendedFunctionalityContext efc : efcs) {
+				if (ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION.equals(
+						efc.extendedFunctionalityPosition) && recordType.equals(efc.recordType)) {
+					functionalities.add(extendedFactory.factor());
+				}
+			}
 		}
 		return functionalities;
 	}
@@ -81,8 +109,8 @@ public class ExtendedFunctionalityProviderImp implements ExtendedFunctionalityPr
 		return null;
 	}
 
-	public FunctionalityFactories getExtendedFactories() {
-		return extendedFactories;
+	public Iterable<ExtendedFunctionalityFactory> getFunctionalityFactoryImplementations() {
+		return extendedFunctionalityFactories;
 	}
 
 }

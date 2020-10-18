@@ -32,40 +32,107 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 
 public class ExtendedFunctionalityProviderTest {
 
-	private FunctionalityFactories functionalityFactories;
 	private ExtendedFunctionalityProviderImp provider;
-	private List<FunctionalityForCreateBeforeMetadataValidationFactory> list;
+	private List<ExtendedFunctionalityFactory> fakeImplementations;
 
 	@BeforeMethod
 	public void setUp() {
-		functionalityFactories = new FunctionalityFactories();
-		list = new ArrayList<>();
-		functionalityFactories.createBeforeMetadataValidation = list;
-		provider = new ExtendedFunctionalityProviderImp(functionalityFactories);
+		fakeImplementations = new ArrayList<>();
+		provider = new ExtendedFunctionalityProviderImp(fakeImplementations);
 
 	}
 
 	@Test
 	public void testExtendedFactories() {
-		assertSame(provider.getExtendedFactories(), functionalityFactories);
+		assertSame(provider.getFunctionalityFactoryImplementations(), fakeImplementations);
 	}
 
 	@Test
 	public void testCreateBeforeMetadataValidationNoFunctionality() {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForCreateBeforeMetadataValidation("");
+		ExtendedFunctionalityProviderImp noImplementationsProvider = new ExtendedFunctionalityProviderImp(
+				new ArrayList<>());
+		List<ExtendedFunctionality> functionality = noImplementationsProvider
+				.getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
 		assertTrue(functionality.isEmpty());
 
 	}
 
 	@Test
-	public void testCreateBeforeMetadataValidationWithOneFunctionality() {
-		FunctionalityFactorySpy factorySpy = new FunctionalityFactorySpy();
-		list.add(factorySpy);
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForCreateBeforeMetadataValidation("");
-		assertTrue(factorySpy.factorWasCalled);
-		assertEquals(functionality.get(0), factorySpy.returnedFunctionality);
+	public void testCreateBeforeMetadataValidationWithOneFunctionalityEmptyPositionAndEmptyType() {
+		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(null, "", 0);
 
+		List<ExtendedFunctionality> functionality = provider
+				.getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
+
+		assertNoFunctionalityWasReturned(factorySpy, functionality);
+	}
+
+	private ExtendedFunctionalityFactorySpy createFactorySpyInList(
+			ExtendedFunctionalityPosition extendedFunctionalityPosition, String recordType,
+			int runAsNumber) {
+		ExtendedFunctionalityContext efc = new ExtendedFunctionalityContext(
+				extendedFunctionalityPosition, recordType, runAsNumber);
+		List<ExtendedFunctionalityContext> extendedFunctionalityContexts = new ArrayList<>();
+		extendedFunctionalityContexts.add(efc);
+
+		ExtendedFunctionalityFactorySpy factorySpy = new ExtendedFunctionalityFactorySpy(
+				extendedFunctionalityContexts);
+		fakeImplementations.add(factorySpy);
+		return factorySpy;
+	}
+
+	private void assertNoFunctionalityWasReturned(ExtendedFunctionalityFactorySpy factorySpy,
+			List<ExtendedFunctionality> functionality) {
+		factorySpy.MCR.assertMethodNotCalled("factor");
+		assertTrue(functionality.isEmpty());
+	}
+
+	@Test
+	public void testCreateBeforeMetadataValidationWithOneFunctionalityWrongPositionAndEmptyType() {
+		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
+				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "", 0);
+
+		List<ExtendedFunctionality> functionality = provider
+				.getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
+
+		assertNoFunctionalityWasReturned(factorySpy, functionality);
+	}
+
+	@Test
+	public void testCreateBeforeMetadataValidationWithOneFunctionalityEmptyPositionWrongType() {
+		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(null,
+				"notTheRecordTypeWeAreLookingFor", 0);
+
+		List<ExtendedFunctionality> functionality = provider
+				.getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
+
+		assertNoFunctionalityWasReturned(factorySpy, functionality);
+	}
+
+	@Test
+	public void testCreateBeforeMetadataValidationWithOneFunctionalityWrongPositionAndWrongType() {
+		ExtendedFunctionalityPosition extendedFunctionalityPosition = ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
+		String recordType = "notTheRecordTypeWeAreLookingFor";
+		int runAsNumber = 0;
+		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
+				extendedFunctionalityPosition, recordType, runAsNumber);
+
+		List<ExtendedFunctionality> functionality = provider
+				.getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
+
+		assertNoFunctionalityWasReturned(factorySpy, functionality);
+	}
+
+	@Test
+	public void testCreateBeforeMetadataValidationWithOneFunctionalityRightPositionAndRightType() {
+		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
+				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "someRecordType",
+				0);
+
+		List<ExtendedFunctionality> functionality = provider
+				.getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
+
+		factorySpy.MCR.assertMethodWasCalled("factor");
+		assertEquals(functionality.get(0), factorySpy.MCR.getReturnValue("factor", 0));
 	}
 }

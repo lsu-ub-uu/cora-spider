@@ -22,18 +22,23 @@ import java.util.ServiceLoader;
 
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 
-public class ExtendedFunctionalityInitializerImp implements ExtendedFunctionalityInitializer {
-	private ExtendedFunctionalityStarter starter = new ExtendedFunctionalityStarterImp();
-
+/**
+ * ExtendedFunctionalityInitializerImp uses ServiceLoader to locate all implementations of
+ * {@linkplain ExtendedFunctionalityFactory}. The found implementations are passed along to
+ * {@linkplain ExtendedFunctionalityProvider} before returning an instance of the provider in the
+ * getExtendedFunctionalityProvider method.
+ */
+public class ExtendedFunctionalityInitializerImp {
+	/**
+	 * getExtendedFunctionalityProvider is used to get an instance of ExtendedFunctionalityProvider.
+	 * 
+	 * @return A ExtendedFunctionalityProvider with the found implementations of
+	 *         FunctionalityFactory
+	 */
 	ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
-		FunctionalityFactories functionalityFactories = new FunctionalityFactories();
-		functionalityFactories.createBeforeMetadataValidation = ServiceLoader
-				.load(FunctionalityForCreateBeforeMetadataValidationFactory.class);
-		// starter.setExtendedFunctionalityForCreateBeforeMetadataValidation(
-		// ServiceLoader.load(ExtendedFunctionalityForCreateBeforeMetadataValidation.class));
-
-		// return starter.getExtendedFunctionalityProvider();
-		return new ExtendedFunctionalityProviderImp(functionalityFactories);
+		Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories = ServiceLoader
+				.load(ExtendedFunctionalityFactory.class);
+		return new ExtendedFunctionalityProviderImp(extendedFunctionalityFactories);
 	}
 
 }
