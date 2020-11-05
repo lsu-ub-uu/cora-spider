@@ -60,6 +60,7 @@ public class ExtendedFunctionalityProviderTest {
 	@Test
 	public void testCreateBeforeMetadataValidationWithOneFunctionalityEmptyPositionAndEmptyType() {
 		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(null, "", 0);
+		provider = new ExtendedFunctionalityProviderImp(fakeImplementations);
 
 		List<ExtendedFunctionality> functionality = provider
 				.getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
@@ -91,6 +92,7 @@ public class ExtendedFunctionalityProviderTest {
 	public void testCreateBeforeMetadataValidationWithOneFunctionalityWrongPositionAndEmptyType() {
 		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
 				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "", 0);
+		provider = new ExtendedFunctionalityProviderImp(fakeImplementations);
 
 		List<ExtendedFunctionality> functionality = provider
 				.getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
@@ -102,6 +104,7 @@ public class ExtendedFunctionalityProviderTest {
 	public void testCreateBeforeMetadataValidationWithOneFunctionalityEmptyPositionWrongType() {
 		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(null,
 				"notTheRecordTypeWeAreLookingFor", 0);
+		provider = new ExtendedFunctionalityProviderImp(fakeImplementations);
 
 		List<ExtendedFunctionality> functionality = provider
 				.getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
@@ -116,6 +119,7 @@ public class ExtendedFunctionalityProviderTest {
 		int runAsNumber = 0;
 		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
 				extendedFunctionalityPosition, recordType, runAsNumber);
+		provider = new ExtendedFunctionalityProviderImp(fakeImplementations);
 
 		List<ExtendedFunctionality> functionality = provider
 				.getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
@@ -129,10 +133,32 @@ public class ExtendedFunctionalityProviderTest {
 				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "someRecordType",
 				0);
 
+		provider = new ExtendedFunctionalityProviderImp(fakeImplementations);
 		List<ExtendedFunctionality> functionality = provider
 				.getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
 
-		factorySpy.MCR.assertMethodWasCalled("factor");
 		assertEquals(functionality.get(0), factorySpy.MCR.getReturnValue("factor", 0));
+		factorySpy.MCR.assertParameters("factor", 0,
+				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "someRecordType");
 	}
+
+	// @Test
+	// public void testTwoFunctionalityFactoriesForSameTypeAndRecordTypeListInRightOrder() {
+	// ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
+	// ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "someRecordType",
+	// 1);
+	// ExtendedFunctionalityFactorySpy factorySpy2 = createFactorySpyInList(
+	// ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "someRecordType",
+	// 0);
+	//
+	// List<ExtendedFunctionality> functionality = provider
+	// .getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
+	//
+	// factorySpy.MCR.assertMethodWasCalled("factor");
+	// assertEquals(functionality.get(0), factorySpy2.MCR.getReturnValue("factor", 0));
+	//
+	// factorySpy.MCR.assertParameters("factor", 0,
+	// ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "someRecordType");
+	// }
+
 }

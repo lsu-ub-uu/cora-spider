@@ -30,6 +30,7 @@ public class ExtendedFunctionalityProviderImp implements ExtendedFunctionalityPr
 
 	private Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories;
 	private Map<String, List<ExtendedFunctionalityFactory>> createBeforeMetadataValidation = new HashMap<>();
+	private Map<ExtendedFunctionalityPosition, Map<String, List<ExtendedFunctionalityFactory>>> factories = new HashMap<>();
 
 	public ExtendedFunctionalityProviderImp(
 			Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories) {
@@ -39,32 +40,40 @@ public class ExtendedFunctionalityProviderImp implements ExtendedFunctionalityPr
 	}
 
 	private void sortFactories() {
-		// List<ExtendedFunctionalityFactory> createBeforeMetadataValidationList = new
-		// ArrayList<>();
-		// for (ExtendedFunctionalityFactory extendedFactory : extendedFunctionalityFactories) {
-		// List<ExtendedFunctionalityContext> efcs = extendedFactory
-		// .getExtendedFunctionalityContexts();
-		// for (ExtendedFunctionalityContext efc : efcs) {
-		// if (ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION
-		// .equals(efc.extendedFunctionalityPosition)) {
-		// createBeforeMetadataValidationList.add(extendedFactory);
-		// }
-		// }
-		// }
+
+		for (ExtendedFunctionalityFactory extendedFactory : extendedFunctionalityFactories) {
+			List<ExtendedFunctionalityContext> efcs = extendedFactory
+					.getExtendedFunctionalityContexts();
+			for (ExtendedFunctionalityContext efc : efcs) {
+				ExtendedFunctionalityPosition position = efc.extendedFunctionalityPosition;
+				if (!factories.containsKey(position)) {
+					factories.put(position, new HashMap<>());
+				}
+				Map<String, List<ExtendedFunctionalityFactory>> positionMap = factories
+						.get(position);
+				if (!positionMap.containsKey(efc.recordType)) {
+					positionMap.put(efc.recordType, new ArrayList<>());
+				}
+				positionMap.get(efc.recordType).add(extendedFactory);
+			}
+		}
 	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
 			String recordType) {
 		List<ExtendedFunctionality> functionalities = new ArrayList<>();
-		for (ExtendedFunctionalityFactory extendedFactory : extendedFunctionalityFactories) {
-			List<ExtendedFunctionalityContext> efcs = extendedFactory
-					.getExtendedFunctionalityContexts();
-			for (ExtendedFunctionalityContext efc : efcs) {
-				if (ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION.equals(
-						efc.extendedFunctionalityPosition) && recordType.equals(efc.recordType)) {
-					functionalities.add(extendedFactory.factor());
-				}
+		if (factories.containsKey(ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION)
+				&& factories.get(ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION)
+						.containsKey(recordType)) {
+
+			List<ExtendedFunctionalityFactory> currentFactories = factories
+					.get(ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION)
+					.get(recordType);
+			for (ExtendedFunctionalityFactory extendedFactory : currentFactories) {
+				functionalities.add(extendedFactory.factor(
+						ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION,
+						recordType));
 			}
 		}
 		return functionalities;

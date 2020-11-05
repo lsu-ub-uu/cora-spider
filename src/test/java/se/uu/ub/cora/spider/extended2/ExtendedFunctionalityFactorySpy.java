@@ -26,7 +26,7 @@ import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class ExtendedFunctionalityFactorySpy implements ExtendedFunctionalityFactory {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
-	private List<ExtendedFunctionalityContext> extendedFunctionalityContexts;
+	public List<ExtendedFunctionalityContext> extendedFunctionalityContexts;
 
 	public ExtendedFunctionalityFactorySpy(
 			List<ExtendedFunctionalityContext> extendedFunctionalityContexts) {
@@ -34,8 +34,10 @@ public class ExtendedFunctionalityFactorySpy implements ExtendedFunctionalityFac
 	}
 
 	@Override
-	public ExtendedFunctionality factor() {
-		MCR.addCall();
+	public ExtendedFunctionality factor(
+			ExtendedFunctionalityPosition createBeforeMetadataValidation, String recordType) {
+		MCR.addCall("createBeforeMetadataValidation", createBeforeMetadataValidation, "recordType",
+				recordType);
 		ExtendedFunctionality returnedFunctionality = new ExtendedFunctionalitySpy();
 		MCR.addReturned(returnedFunctionality);
 		return returnedFunctionality;
