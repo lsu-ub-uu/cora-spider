@@ -16,27 +16,17 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended2;
+package se.uu.ub.cora.spider.extendedfunctionality.internal;
+
+import java.util.List;
+
+import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 
 /**
- * ExtendedFunctionalityPosition is an Enum with the positions from where Spider calls
- * extendedFunctionality.<br>
- * <br>
- * For create are the positions ordered as follows:<br>
- * CREATE_BEFORE_METADATA_VALIDATION<br>
- * CREATE_AFTER_METADATA_VALIDATION<br>
+ * FactorySorter is an internal interface used to make the code clearer and testing easier.
  */
-public enum ExtendedFunctionalityPosition {
-	/**
-	 * CREATE_BEFORE_METADATA_VALIDATION, as the name suggests is the functionality plugged into a
-	 * create operation, before metadataValidation is done.
-	 */
-	CREATE_BEFORE_METADATA_VALIDATION,
-	/**
-	 * CREATE_AFTER_METADATA_VALIDATION, as the name suggests is the functionality plugged into a
-	 * create operation, after metadataValidation is done.
-	 * 
-	 */
-	CREATE_AFTER_METADATA_VALIDATION
-
+public interface FactorySorter {
+	List<ExtendedFunctionality> getFunctionalityForPositionAndRecordType(
+			ExtendedFunctionalityPosition position, String recordType);
 }

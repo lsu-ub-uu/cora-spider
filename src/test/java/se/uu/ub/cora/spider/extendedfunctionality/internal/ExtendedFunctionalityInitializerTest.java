@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended2;
+package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
 import static org.testng.Assert.assertTrue;
 
@@ -25,21 +25,26 @@ import java.util.ServiceLoader;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
+
 public class ExtendedFunctionalityInitializerTest {
 
-	private ExtendedFunctionalityInitializerImp initializer;
+	private ExtendedFunctionalityInitializer initializer;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		initializer = new ExtendedFunctionalityInitializerImp();
+		initializer = new ExtendedFunctionalityInitializer();
 	}
 
 	@Test
 	public void testFunctionalityForCreateBeforeMetadataValidationFactory() {
 		ExtendedFunctionalityProviderImp provider = (ExtendedFunctionalityProviderImp) initializer
 				.getExtendedFunctionalityProvider();
-		Iterable<ExtendedFunctionalityFactory> iterable = provider.getFunctionalityFactoryImplementations();
-		assertTrue(iterable instanceof ServiceLoader);
+		FactorySorterImp factorySorter = (FactorySorterImp) provider
+				.getFactorySorterNeededForTest();
+		Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories = factorySorter
+				.getExtendedFunctionalityFactoriesNeededForTest();
+		assertTrue(extendedFunctionalityFactories instanceof ServiceLoader);
 	}
 
 }

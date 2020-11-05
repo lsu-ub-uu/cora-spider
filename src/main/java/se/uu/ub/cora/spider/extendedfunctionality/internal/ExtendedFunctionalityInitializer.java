@@ -16,19 +16,20 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended2;
+package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
 import java.util.ServiceLoader;
 
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 
 /**
- * ExtendedFunctionalityInitializerImp uses ServiceLoader to locate all implementations of
+ * ExtendedFunctionalityInitializer uses ServiceLoader to locate all implementations of
  * {@linkplain ExtendedFunctionalityFactory}. The found implementations are passed along to
  * {@linkplain ExtendedFunctionalityProvider} before returning an instance of the provider in the
  * getExtendedFunctionalityProvider method.
  */
-public class ExtendedFunctionalityInitializerImp {
+public class ExtendedFunctionalityInitializer {
 	/**
 	 * getExtendedFunctionalityProvider is used to get an instance of ExtendedFunctionalityProvider.
 	 * 
@@ -38,7 +39,8 @@ public class ExtendedFunctionalityInitializerImp {
 	ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
 		Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories = ServiceLoader
 				.load(ExtendedFunctionalityFactory.class);
-		return new ExtendedFunctionalityProviderImp(extendedFunctionalityFactories);
+		FactorySorter factorySorter = new FactorySorterImp(extendedFunctionalityFactories);
+		return new ExtendedFunctionalityProviderImp(factorySorter);
 	}
 
 }

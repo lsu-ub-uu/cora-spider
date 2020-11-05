@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended2;
+package se.uu.ub.cora.spider.extendedfunctionality;
 
 /**
  * ExtendedFunctionalityContext holds a combination of {@linkplain ExtendedFunctionalityPosition},
@@ -24,9 +24,9 @@ package se.uu.ub.cora.spider.extended2;
  */
 public class ExtendedFunctionalityContext {
 
-	ExtendedFunctionalityPosition extendedFunctionalityPosition;
-	String recordType;
-	int runAsNumber;
+	public final ExtendedFunctionalityPosition extendedFunctionalityPosition;
+	public final String recordType;
+	public final int runAsNumber;
 
 	public ExtendedFunctionalityContext(ExtendedFunctionalityPosition extendedFunctionalityPosition,
 			String recordType, int runAsNumber) {

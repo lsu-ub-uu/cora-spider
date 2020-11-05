@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended2;
+package se.uu.ub.cora.spider.extendedfunctionality;
 
 import java.util.List;
 
@@ -33,13 +33,12 @@ public interface ExtendedFunctionalityFactory {
 	 * places in Spider. Factor should be implemented so that it creates an instance of
 	 * {@link ExtendedFunctionality}
 	 * 
-	 * @param createBeforeMetadataValidation
+	 * @param position
 	 * @param recordType
 	 * 
 	 * @return An instance of extended funtionality
 	 */
-	ExtendedFunctionality factor(ExtendedFunctionalityPosition createBeforeMetadataValidation,
-			String recordType);
+	ExtendedFunctionality factor(ExtendedFunctionalityPosition position, String recordType);
 
 	/**
 	 * getExtendedFunctionalityContexts should be implemented so that it returns a List with
