@@ -27,21 +27,27 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import se.uu.ub.cora.logger.Logger;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 
 public class FactorySorterImp implements FactorySorter {
+	private Logger log = LoggerProvider.getLoggerForClass(FactorySorterImp.class);
 	private Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories;
 	private Map<ExtendedFunctionalityPosition, Map<String, List<FactoryRunBy>>> factories = new EnumMap<>(
 			ExtendedFunctionalityPosition.class);
 
-	public FactorySorterImp(
-			Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories2) {
-		this.extendedFunctionalityFactories = extendedFunctionalityFactories2;
-
+	public FactorySorterImp(Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories) {
+		this.extendedFunctionalityFactories = extendedFunctionalityFactories;
+		logStartupMessage();
 		sortFactories();
+	}
+
+	private void logStartupMessage() {
+		log.logInfoUsingMessage("Extended functionality found and sorted as follows:");
 	}
 
 	private void sortFactories() {
@@ -95,14 +101,26 @@ public class FactorySorterImp implements FactorySorter {
 		for (Entry<ExtendedFunctionalityPosition, Map<String, List<FactoryRunBy>>> entry : factories
 				.entrySet()) {
 			Map<String, List<FactoryRunBy>> recordTypeMap = entry.getValue();
+			logPosition(entry);
 			orderListForRecordType(recordTypeMap);
 		}
 	}
 
+	private void logPosition(
+			Entry<ExtendedFunctionalityPosition, Map<String, List<FactoryRunBy>>> entry) {
+		log.logInfoUsingMessage(" position: " + entry.getKey());
+	}
+
 	private void orderListForRecordType(Map<String, List<FactoryRunBy>> recordTypeMap) {
 		for (Entry<String, List<FactoryRunBy>> entry2 : recordTypeMap.entrySet()) {
+			logRecordType(entry2);
 			sortListInEntry(entry2);
+			logFactories(entry2);
 		}
+	}
+
+	private void logRecordType(Entry<String, List<FactoryRunBy>> entry2) {
+		log.logInfoUsingMessage("  recordType: " + entry2.getKey());
 	}
 
 	private void sortListInEntry(Entry<String, List<FactoryRunBy>> entry) {
@@ -111,6 +129,12 @@ public class FactorySorterImp implements FactorySorter {
 				.sorted((o1, o2) -> o1.runAsNumber.compareTo(o2.runAsNumber))
 				.collect(Collectors.toList());
 		entry.setValue(sortedFactoryList);
+	}
+
+	private void logFactories(Entry<String, List<FactoryRunBy>> entry2) {
+		for (FactoryRunBy factoryRunBy : entry2.getValue()) {
+			log.logInfoUsingMessage("   class: " + factoryRunBy.factory.getClass().getName());
+		}
 	}
 
 	@Override

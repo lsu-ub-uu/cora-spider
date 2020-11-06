@@ -52,4 +52,9 @@ public class LoggerFactorySpy implements LoggerFactory {
 		return fatalMessages.get(messageNo);
 	}
 
+	public int getNoOfInfoLogMessagesUsingClassName(String className) {
+		List<String> infoMessages = (createdLoggers.get(className)).infoMessages;
+		return infoMessages.size();
+	}
+
 }

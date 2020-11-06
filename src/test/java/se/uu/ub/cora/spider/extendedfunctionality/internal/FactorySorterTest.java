@@ -31,19 +31,25 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactorySpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 
 public class FactorySorterTest {
+	private LoggerFactorySpy loggerFactorySpy;
+	private String testedClassName = "FactorySorterImp";
 
 	private List<ExtendedFunctionalityFactory> fakeImplementations;
 	private FactorySorterImp factorySorter;
 
 	@BeforeMethod
 	public void setUp() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		fakeImplementations = new ArrayList<>();
 		factorySorter = new FactorySorterImp(fakeImplementations);
 	}
@@ -98,6 +104,77 @@ public class FactorySorterTest {
 						"someRecordType");
 
 		assertNoFunctionalityWasReturned(factorySpy, functionality);
+	}
+
+	@Test
+	public void testLoggingOnStartup() {
+		setupTestForLogging();
+
+		expectedInfoLog(0, "Extended functionality found and sorted as follows:");
+		expectedInfoLog(1, " position: CREATE_BEFORE_METADATA_VALIDATION");
+		expectedInfoLog(2, "  recordType: someRecordType");
+		expectedInfoLog(3,
+				"   class: se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactorySpy");
+		expectedInfoLog(4,
+				"   class: se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactorySpy");
+		expectedInfoLog(5,
+				"   class: se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactorySpy");
+		expectedInfoLog(6,
+				"   class: se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactorySpy");
+		expectedInfoLog(7, " position: UPDATE_BEFORE_METADATA_VALIDATION");
+		expectedInfoLog(8, "  recordType: otherRecordType2");
+		expectedInfoLog(9,
+				"   class: se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactorySpy");
+		expectedInfoLog(10, " position: UPDATE_AFTER_METADATA_VALIDATION");
+		expectedInfoLog(11, "  recordType: otherRecordType");
+		expectedInfoLog(12,
+				"   class: se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactorySpy");
+		expectedInfoLog(13, " position: DELETE_AFTER");
+		expectedInfoLog(14, "  recordType: otherRecordType3");
+		expectedInfoLog(15,
+				"   class: se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactorySpy");
+		assertEquals(loggerFactorySpy.getNoOfInfoLogMessagesUsingClassName(testedClassName), 16);
+	}
+
+	private void setupTestForLogging() {
+		createFactorySpyInList(CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 1);
+		createFactorySpyInList(CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 0);
+		createFactorySpyInList(CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 500);
+		createFactorySpyInList(CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", -30);
+		createFactoryWithMoreEFFsInSpyInList(
+				ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION, "otherRecordType",
+				5);
+		factorySorter = new FactorySorterImp(fakeImplementations);
+
+		factorySorter.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
+				"someRecordType");
+	}
+
+	private void expectedInfoLog(int messageNo, String infoText) {
+		assertEquals(
+				loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, messageNo),
+				infoText);
+	}
+
+	private ExtendedFunctionalityFactorySpy createFactoryWithMoreEFFsInSpyInList(
+			ExtendedFunctionalityPosition extendedFunctionalityPosition, String recordType,
+			int runAsNumber) {
+		List<ExtendedFunctionalityContext> extendedFunctionalityContexts = new ArrayList<>();
+		ExtendedFunctionalityContext efc = new ExtendedFunctionalityContext(
+				extendedFunctionalityPosition, recordType, runAsNumber);
+		extendedFunctionalityContexts.add(efc);
+		ExtendedFunctionalityContext efc2 = new ExtendedFunctionalityContext(
+				ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION, recordType + "2",
+				2);
+		extendedFunctionalityContexts.add(efc2);
+		ExtendedFunctionalityContext efc3 = new ExtendedFunctionalityContext(
+				ExtendedFunctionalityPosition.DELETE_AFTER, recordType + "3", 2);
+		extendedFunctionalityContexts.add(efc3);
+
+		ExtendedFunctionalityFactorySpy factorySpy = new ExtendedFunctionalityFactorySpy(
+				extendedFunctionalityContexts);
+		fakeImplementations.add(factorySpy);
+		return factorySpy;
 	}
 
 	@Test
