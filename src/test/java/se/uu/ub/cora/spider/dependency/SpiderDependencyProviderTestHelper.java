@@ -54,11 +54,6 @@ public class SpiderDependencyProviderTestHelper extends SpiderDependencyProvider
 	}
 
 	@Override
-	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
-		return extendedFunctionalityProvider;
-	}
-
-	@Override
 	public Authenticator getAuthenticator() {
 		return authenticator;
 	}

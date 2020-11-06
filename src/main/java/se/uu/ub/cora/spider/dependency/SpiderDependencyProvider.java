@@ -49,6 +49,7 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityInitializer;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
 import se.uu.ub.cora.spider.record.RecordTypeHandlerImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
@@ -68,10 +69,13 @@ public abstract class SpiderDependencyProvider {
 	protected RecordIdGeneratorProvider recordIdGeneratorProvider;
 	protected MetadataStorageProvider metadataStorageProvider;
 	private Logger log = LoggerProvider.getLoggerForClass(SpiderDependencyProvider.class);
+	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 
 	public SpiderDependencyProvider(Map<String, String> initInfo) {
 		this.initInfo = initInfo;
 		readInitInfo();
+		// ExtendedFunctionalityInitializer initializer = new ExtendedFunctionalityInitializer();
+		// extendedFunctionalityProvider = initializer.getExtendedFunctionalityProvider();
 		try {
 			tryToInitialize();
 		} catch (InvocationTargetException e) {
@@ -198,7 +202,11 @@ public abstract class SpiderDependencyProvider {
 
 	protected abstract void readInitInfo();
 
-	public abstract ExtendedFunctionalityProvider getExtendedFunctionalityProvider();
+	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
+		ExtendedFunctionalityInitializer initializer = new ExtendedFunctionalityInitializer();
+		extendedFunctionalityProvider = initializer.getExtendedFunctionalityProvider();
+		return extendedFunctionalityProvider;
+	}
 
 	public abstract Authenticator getAuthenticator();
 

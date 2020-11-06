@@ -43,6 +43,8 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
 import se.uu.ub.cora.spider.record.RecordTypeHandlerImp;
@@ -90,6 +92,13 @@ public class SpiderDependencyProviderTest {
 	@Test
 	public void testReadInitInfoIsCalledOnStartup() throws Exception {
 		assertTrue(dependencyProvider.readInitInfoWasCalled);
+	}
+
+	@Test
+	public void testExtendedFunctionalityProviderIsSetOnStartup() throws Exception {
+		ExtendedFunctionalityProvider extendedFunctionalityProvider = dependencyProvider
+				.getExtendedFunctionalityProvider();
+		assertTrue(extendedFunctionalityProvider instanceof ExtendedFunctionalityProviderImp);
 	}
 
 	@Test

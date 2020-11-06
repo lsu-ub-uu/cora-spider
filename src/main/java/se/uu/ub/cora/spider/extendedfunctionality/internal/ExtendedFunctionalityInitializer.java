@@ -36,7 +36,7 @@ public class ExtendedFunctionalityInitializer {
 	 * @return A ExtendedFunctionalityProvider with the found implementations of
 	 *         FunctionalityFactory
 	 */
-	ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
+	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
 		Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories = ServiceLoader
 				.load(ExtendedFunctionalityFactory.class);
 		FactorySorter factorySorter = new FactorySorterImp(extendedFunctionalityFactories);
