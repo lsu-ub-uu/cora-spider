@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019 Uppsala University Library
+ * Copyright 2015, 2016, 2019, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -74,15 +74,19 @@ public abstract class SpiderDependencyProvider {
 	public SpiderDependencyProvider(Map<String, String> initInfo) {
 		this.initInfo = initInfo;
 		readInitInfo();
-		// ExtendedFunctionalityInitializer initializer = new ExtendedFunctionalityInitializer();
-		// extendedFunctionalityProvider = initializer.getExtendedFunctionalityProvider();
 		try {
 			tryToInitialize();
+			initializeExtendedFunctionality();
 		} catch (InvocationTargetException e) {
 			throw new RuntimeException(createInvocationErrorExceptionMessage(e), e);
 		} catch (Exception e) {
 			throw new RuntimeException(createExceptionMessage(e), e);
 		}
+	}
+
+	private void initializeExtendedFunctionality() {
+		ExtendedFunctionalityInitializer initializer = new ExtendedFunctionalityInitializer();
+		extendedFunctionalityProvider = initializer.getExtendedFunctionalityProvider();
 	}
 
 	private String createInvocationErrorExceptionMessage(InvocationTargetException e) {
@@ -203,8 +207,6 @@ public abstract class SpiderDependencyProvider {
 	protected abstract void readInitInfo();
 
 	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
-		ExtendedFunctionalityInitializer initializer = new ExtendedFunctionalityInitializer();
-		extendedFunctionalityProvider = initializer.getExtendedFunctionalityProvider();
 		return extendedFunctionalityProvider;
 	}
 

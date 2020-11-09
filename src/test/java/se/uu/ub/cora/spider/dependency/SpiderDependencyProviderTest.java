@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, 2019 Uppsala University Library
+ * Copyright 2018, 2019, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -90,15 +90,15 @@ public class SpiderDependencyProviderTest {
 	}
 
 	@Test
-	public void testReadInitInfoIsCalledOnStartup() throws Exception {
-		assertTrue(dependencyProvider.readInitInfoWasCalled);
-	}
-
-	@Test
-	public void testExtendedFunctionalityProviderIsSetOnStartup() throws Exception {
+	public void testGetExtendedFunctionalityProviderSetOnInit() throws Exception {
 		ExtendedFunctionalityProvider extendedFunctionalityProvider = dependencyProvider
 				.getExtendedFunctionalityProvider();
 		assertTrue(extendedFunctionalityProvider instanceof ExtendedFunctionalityProviderImp);
+	}
+
+	@Test
+	public void testReadInitInfoIsCalledOnStartup() throws Exception {
+		assertTrue(dependencyProvider.readInitInfoWasCalled);
 	}
 
 	@Test
@@ -163,6 +163,15 @@ public class SpiderDependencyProviderTest {
 		dependencyProvider.setRecordIdGeneratorProvider(recordIdGeneratorProvider);
 		assertEquals(dependencyProvider.getRecordIdGenerator(),
 				recordIdGeneratorProvider.getRecordIdGenerator());
+	}
+
+	@Test
+	public void testExtendedFunctionalityProviderReturnsSame() throws Exception {
+		ExtendedFunctionalityProvider extendedFunctionalityProvider1 = dependencyProvider
+				.getExtendedFunctionalityProvider();
+		ExtendedFunctionalityProvider extendedFunctionalityProvider2 = dependencyProvider
+				.getExtendedFunctionalityProvider();
+		assertSame(extendedFunctionalityProvider1, extendedFunctionalityProvider2);
 	}
 
 	@Test
