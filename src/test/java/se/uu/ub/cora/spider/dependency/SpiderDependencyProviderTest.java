@@ -45,6 +45,7 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderImp;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.FactorySorterImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
 import se.uu.ub.cora.spider.record.RecordTypeHandlerImp;
@@ -91,9 +92,12 @@ public class SpiderDependencyProviderTest {
 
 	@Test
 	public void testGetExtendedFunctionalityProviderSetOnInit() throws Exception {
-		ExtendedFunctionalityProvider extendedFunctionalityProvider = dependencyProvider
+		ExtendedFunctionalityProviderImp extendedFunctionalityProvider = (ExtendedFunctionalityProviderImp) dependencyProvider
 				.getExtendedFunctionalityProvider();
-		assertTrue(extendedFunctionalityProvider instanceof ExtendedFunctionalityProviderImp);
+
+		FactorySorterImp factorySorterNeededForTest = (FactorySorterImp) extendedFunctionalityProvider
+				.getFactorySorterNeededForTest();
+		assertSame(factorySorterNeededForTest.getDependencyProvider(), dependencyProvider);
 	}
 
 	@Test

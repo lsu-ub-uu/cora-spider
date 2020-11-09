@@ -64,6 +64,7 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
 		super(initInfo);
+		recordStorageProvider = new RecordStorageProviderSpy();
 	}
 
 	@Override
@@ -173,4 +174,5 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 		mapOfRecordTypeHandlerSpies.put(recordType, newRecordTypeHandlerSpy);
 		return newRecordTypeHandlerSpy;
 	}
+
 }

@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
@@ -39,8 +40,11 @@ public class FactorySorterImp implements FactorySorter {
 	private Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories;
 	private Map<ExtendedFunctionalityPosition, Map<String, List<FactoryRunBy>>> factories = new EnumMap<>(
 			ExtendedFunctionalityPosition.class);
+	private SpiderDependencyProvider dependencyProvider;
 
-	public FactorySorterImp(Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories) {
+	public FactorySorterImp(SpiderDependencyProvider dependencyProvider,
+			Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories) {
+		this.dependencyProvider = dependencyProvider;
 		this.extendedFunctionalityFactories = extendedFunctionalityFactories;
 		logStartupMessage();
 		sortFactories();
@@ -51,12 +55,13 @@ public class FactorySorterImp implements FactorySorter {
 	}
 
 	private void sortFactories() {
-		sortIntoMaps();
+		initializeFactoriesAndSortIntoMaps();
 		orderListsInFactories();
 	}
 
-	private void sortIntoMaps() {
+	private void initializeFactoriesAndSortIntoMaps() {
 		for (ExtendedFunctionalityFactory extendedFactory : extendedFunctionalityFactories) {
+			extendedFactory.initializeUsingDependencyProvider(dependencyProvider);
 			sortIntoMapForEachFactory(extendedFactory);
 		}
 	}
@@ -112,15 +117,15 @@ public class FactorySorterImp implements FactorySorter {
 	}
 
 	private void orderListForRecordType(Map<String, List<FactoryRunBy>> recordTypeMap) {
-		for (Entry<String, List<FactoryRunBy>> entry2 : recordTypeMap.entrySet()) {
-			logRecordType(entry2);
-			sortListInEntry(entry2);
-			logFactories(entry2);
+		for (Entry<String, List<FactoryRunBy>> entry : recordTypeMap.entrySet()) {
+			logRecordType(entry);
+			sortListInEntry(entry);
+			logFactories(entry);
 		}
 	}
 
-	private void logRecordType(Entry<String, List<FactoryRunBy>> entry2) {
-		log.logInfoUsingMessage("  recordType: " + entry2.getKey());
+	private void logRecordType(Entry<String, List<FactoryRunBy>> entry) {
+		log.logInfoUsingMessage("  recordType: " + entry.getKey());
 	}
 
 	private void sortListInEntry(Entry<String, List<FactoryRunBy>> entry) {
@@ -131,8 +136,8 @@ public class FactorySorterImp implements FactorySorter {
 		entry.setValue(sortedFactoryList);
 	}
 
-	private void logFactories(Entry<String, List<FactoryRunBy>> entry2) {
-		for (FactoryRunBy factoryRunBy : entry2.getValue()) {
+	private void logFactories(Entry<String, List<FactoryRunBy>> entry) {
+		for (FactoryRunBy factoryRunBy : entry.getValue()) {
 			log.logInfoUsingMessage("   class: " + factoryRunBy.factory.getClass().getName());
 		}
 	}
@@ -173,5 +178,9 @@ public class FactorySorterImp implements FactorySorter {
 
 	Iterable<ExtendedFunctionalityFactory> getExtendedFunctionalityFactoriesNeededForTest() {
 		return extendedFunctionalityFactories;
+	}
+
+	public SpiderDependencyProvider getDependencyProvider() {
+		return dependencyProvider;
 	}
 }

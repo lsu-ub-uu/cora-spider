@@ -18,22 +18,33 @@
  */
 package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.ServiceLoader;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.logger.LoggerFactory;
+import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
+import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 
 public class ExtendedFunctionalityInitializerTest {
 
 	private ExtendedFunctionalityInitializer initializer;
+	private SpiderDependencyProvider dependencyProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		initializer = new ExtendedFunctionalityInitializer();
+		LoggerFactory loggerFactory = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactory);
+		dependencyProvider = new SpiderDependencyProviderSpy(Collections.emptyMap());
+		initializer = new ExtendedFunctionalityInitializer(dependencyProvider);
 	}
 
 	@Test
@@ -42,6 +53,8 @@ public class ExtendedFunctionalityInitializerTest {
 				.getExtendedFunctionalityProvider();
 		FactorySorterImp factorySorter = (FactorySorterImp) provider
 				.getFactorySorterNeededForTest();
+		assertSame(factorySorter.getDependencyProvider(), dependencyProvider);
+
 		Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories = factorySorter
 				.getExtendedFunctionalityFactoriesNeededForTest();
 		assertTrue(extendedFunctionalityFactories instanceof ServiceLoader);

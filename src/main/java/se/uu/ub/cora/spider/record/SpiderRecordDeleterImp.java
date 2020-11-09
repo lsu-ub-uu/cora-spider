@@ -42,8 +42,10 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	private DataGroupTermCollector collectTermCollector;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private DataGroup dataGroupReadFromStorage;
+	private SpiderDependencyProvider dependencyProvider;
 
 	private SpiderRecordDeleterImp(SpiderDependencyProvider dependencyProvider) {
+		this.dependencyProvider = dependencyProvider;
 		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
@@ -136,6 +138,10 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		for (ExtendedFunctionality extendedFunctionality : functionalityBeforeDelete) {
 			extendedFunctionality.useExtendedFunctionality(authToken, readDataGroup);
 		}
+	}
+
+	public SpiderDependencyProvider getDependencyProvider() {
+		return dependencyProvider;
 	}
 
 }

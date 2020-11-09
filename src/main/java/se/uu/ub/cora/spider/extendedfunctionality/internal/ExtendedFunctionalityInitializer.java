@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
 import java.util.ServiceLoader;
 
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 
@@ -30,6 +31,12 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
  * getExtendedFunctionalityProvider method.
  */
 public class ExtendedFunctionalityInitializer {
+	private SpiderDependencyProvider dependencyProvider;
+
+	public ExtendedFunctionalityInitializer(SpiderDependencyProvider dependencyProvider) {
+		this.dependencyProvider = dependencyProvider;
+	}
+
 	/**
 	 * getExtendedFunctionalityProvider is used to get an instance of ExtendedFunctionalityProvider.
 	 * 
@@ -39,7 +46,8 @@ public class ExtendedFunctionalityInitializer {
 	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
 		Iterable<ExtendedFunctionalityFactory> extendedFunctionalityFactories = ServiceLoader
 				.load(ExtendedFunctionalityFactory.class);
-		FactorySorter factorySorter = new FactorySorterImp(extendedFunctionalityFactories);
+		FactorySorter factorySorter = new FactorySorterImp(dependencyProvider,
+				extendedFunctionalityFactories);
 		return new ExtendedFunctionalityProviderImp(factorySorter);
 	}
 

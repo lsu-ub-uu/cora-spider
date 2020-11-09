@@ -40,8 +40,10 @@ public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctio
 	private Authenticator authenticator;
 	private String recordTypeToIndex;
 	private String recordIdToIndex;
+	private SpiderDependencyProvider dependencyProvider;
 
 	public WorkOrderExecutorAsExtendedFunctionality(SpiderDependencyProvider dependencyProvider) {
+		this.dependencyProvider = dependencyProvider;
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 		this.recordStorage = dependencyProvider.getRecordStorage();
@@ -109,4 +111,9 @@ public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctio
 		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordIdToIndex);
 		recordIndexer.indexData(ids, collectedTerms, dataToIndex);
 	}
+
+	public SpiderDependencyProvider getDependencyProvider() {
+		return dependencyProvider;
+	}
+
 }

@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.extendedfunctionality;
 
 import java.util.List;
 
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
@@ -31,6 +32,11 @@ public class ExtendedFunctionalityFactorySpy implements ExtendedFunctionalityFac
 	public ExtendedFunctionalityFactorySpy(
 			List<ExtendedFunctionalityContext> extendedFunctionalityContexts) {
 		this.extendedFunctionalityContexts = extendedFunctionalityContexts;
+	}
+
+	@Override
+	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
+		MCR.addCall("dependencyProvider", dependencyProvider);
 	}
 
 	@Override

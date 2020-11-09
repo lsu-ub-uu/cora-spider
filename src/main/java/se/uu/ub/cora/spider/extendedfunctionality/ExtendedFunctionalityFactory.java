@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.extendedfunctionality;
 
 import java.util.List;
 
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 
 /**
@@ -28,10 +29,16 @@ import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
  */
 public interface ExtendedFunctionalityFactory {
 
+	void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider);
+
 	/**
 	 * Factor is used by spider to get an instans of ExtendedFunctionality to use in predetermined
 	 * places in Spider. Factor should be implemented so that it creates an instance of
-	 * {@link ExtendedFunctionality}
+	 * {@link ExtendedFunctionality} for the specified position and recordType.<br>
+	 * <br>
+	 * Factories implementing this interface will only be called for the positions and recordTypes,
+	 * specified by the
+	 * {@link ExtendedFunctionalityFactory#factor(ExtendedFunctionalityPosition, String)}method.
 	 * 
 	 * @param position
 	 * @param recordType
@@ -49,4 +56,5 @@ public interface ExtendedFunctionalityFactory {
 	 *         extendedFunctionalities that this factory produces, are intended to be called
 	 */
 	List<ExtendedFunctionalityContext> getExtendedFunctionalityContexts();
+
 }

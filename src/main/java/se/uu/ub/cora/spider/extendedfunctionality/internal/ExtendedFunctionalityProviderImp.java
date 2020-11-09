@@ -88,7 +88,7 @@ public class ExtendedFunctionalityProviderImp implements ExtendedFunctionalityPr
 		return factorySorter.getFunctionalityForPositionAndRecordType(DELETE_AFTER, recordType);
 	}
 
-	FactorySorter getFactorySorterNeededForTest() {
+	public FactorySorter getFactorySorterNeededForTest() {
 		return factorySorter;
 	}
 
