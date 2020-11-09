@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.extended;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidator;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 
 public final class MetadataConsistencyValidatorAsExtendedFunctionality
 		implements ExtendedFunctionality {

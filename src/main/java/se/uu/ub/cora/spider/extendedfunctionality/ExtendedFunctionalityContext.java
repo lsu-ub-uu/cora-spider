@@ -24,13 +24,13 @@ package se.uu.ub.cora.spider.extendedfunctionality;
  */
 public class ExtendedFunctionalityContext {
 
-	public final ExtendedFunctionalityPosition extendedFunctionalityPosition;
+	public final ExtendedFunctionalityPosition position;
 	public final String recordType;
 	public final int runAsNumber;
 
 	public ExtendedFunctionalityContext(ExtendedFunctionalityPosition extendedFunctionalityPosition,
 			String recordType, int runAsNumber) {
-		this.extendedFunctionalityPosition = extendedFunctionalityPosition;
+		this.position = extendedFunctionalityPosition;
 		this.recordType = recordType;
 		this.runAsNumber = runAsNumber;
 	}

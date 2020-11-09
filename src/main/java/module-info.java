@@ -1,3 +1,5 @@
+import se.uu.ub.cora.spider.workorder.WorkOrderExtendedFunctionalityFactory;
+
 /**
  * The spider module sits in the center of a Cora based system, managing data flow to and from other
  * modules to bring the parts together as a working system.
@@ -17,8 +19,10 @@ module se.uu.ub.cora.spider {
 	exports se.uu.ub.cora.spider.consistency;
 	exports se.uu.ub.cora.spider.data;
 	exports se.uu.ub.cora.spider.dependency;
-	exports se.uu.ub.cora.spider.extended;
 	exports se.uu.ub.cora.spider.extendedfunctionality;
 	exports se.uu.ub.cora.spider.record;
 	exports se.uu.ub.cora.spider.role;
+
+	provides se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory
+			with WorkOrderExtendedFunctionalityFactory;
 }

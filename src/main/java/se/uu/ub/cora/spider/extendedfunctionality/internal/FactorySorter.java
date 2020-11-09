@@ -20,7 +20,7 @@ package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
 import java.util.List;
 
-import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 
 /**

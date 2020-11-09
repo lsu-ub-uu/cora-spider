@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.workorder;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
@@ -31,6 +31,7 @@ import se.uu.ub.cora.logger.LoggerFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
@@ -66,7 +67,7 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 			ExtendedFunctionalityPosition position) {
 		ExtendedFunctionalityContext workOrderEnhancer = factory.getExtendedFunctionalityContexts()
 				.get(index);
-		assertEquals(workOrderEnhancer.extendedFunctionalityPosition, position);
+		assertEquals(workOrderEnhancer.position, position);
 		assertEquals(workOrderEnhancer.recordType, "workOrder");
 		assertEquals(workOrderEnhancer.runAsNumber, runAsNumber);
 	}
@@ -75,12 +76,12 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 	public void testWorkOrderCreateBeforeValidation() {
 		ExtendedFunctionality functionality = factory.factor(
 				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "workOrder");
-		assertTrue(functionality instanceof WorkOrderEnhancerAsExtendedFunctionality);
+		assertTrue(functionality instanceof WorkOrderEnhancer);
 	}
 
 	@Test
 	public void testWorkOrderCreateAfterValidation() {
-		WorkOrderExecutorAsExtendedFunctionality functionality = (WorkOrderExecutorAsExtendedFunctionality) factory
+		WorkOrderExecutor functionality = (WorkOrderExecutor) factory
 				.factor(ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION,
 						"workOrder");
 		assertSame(functionality.getDependencyProvider(), dependencyProviderSpy);
@@ -88,7 +89,7 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 
 	@Test
 	public void testWorkOrderCreateBeforeReturn() {
-		WorkOrderDeleterAsExtendedFunctionality functionality = (WorkOrderDeleterAsExtendedFunctionality) factory
+		WorkOrderDeleter functionality = (WorkOrderDeleter) factory
 				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN, "workOrder");
 		SpiderRecordDeleterImp recordDeleter = (SpiderRecordDeleterImp) functionality
 				.getRecordDeleter();

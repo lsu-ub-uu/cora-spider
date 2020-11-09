@@ -22,6 +22,9 @@ package se.uu.ub.cora.spider.extended;
 import java.util.ArrayList;
 import java.util.List;
 
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
+
 public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityProvider {
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateBeforeMetadataValidation = new ArrayList<>();
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateAfterMetadataValidation = new ArrayList<>();

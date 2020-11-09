@@ -35,8 +35,13 @@ import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.StreamStorageProviderSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleterImp;
+import se.uu.ub.cora.spider.workorder.WorkOrderDeleter;
+import se.uu.ub.cora.spider.workorder.WorkOrderEnhancer;
+import se.uu.ub.cora.spider.workorder.WorkOrderExecutor;
 
 public class BaseExtendedFunctionalityProviderTest {
 	private ExtendedFunctionalityProvider baseExtendedFunctionalityProvider;
@@ -89,7 +94,7 @@ public class BaseExtendedFunctionalityProviderTest {
 				.getFunctionalityForCreateBeforeMetadataValidation("workOrder");
 		assertEquals(bEFP.size(), 1);
 		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
-		assertTrue(extendedFunctionality instanceof WorkOrderEnhancerAsExtendedFunctionality);
+		assertTrue(extendedFunctionality instanceof WorkOrderEnhancer);
 	}
 
 	@Test
@@ -125,7 +130,7 @@ public class BaseExtendedFunctionalityProviderTest {
 				.getFunctionalityForCreateAfterMetadataValidation("workOrder");
 		assertEquals(bEFP.size(), 1);
 		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
-		assertTrue(extendedFunctionality instanceof WorkOrderExecutorAsExtendedFunctionality);
+		assertTrue(extendedFunctionality instanceof WorkOrderExecutor);
 	}
 
 	private void fetchAndAssertCreateAfterMetadataValidation(String recordType) {
@@ -162,8 +167,8 @@ public class BaseExtendedFunctionalityProviderTest {
 				.getFunctionalityForCreateBeforeReturn("workOrder");
 		assertEquals(bEFP.size(), 1);
 		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
-		assertTrue(extendedFunctionality instanceof WorkOrderDeleterAsExtendedFunctionality);
-		WorkOrderDeleterAsExtendedFunctionality woExtendedFunctionality = (WorkOrderDeleterAsExtendedFunctionality) extendedFunctionality;
+		assertTrue(extendedFunctionality instanceof WorkOrderDeleter);
+		WorkOrderDeleter woExtendedFunctionality = (WorkOrderDeleter) extendedFunctionality;
 		assertTrue(woExtendedFunctionality.getRecordDeleter() instanceof SpiderRecordDeleterImp);
 	}
 

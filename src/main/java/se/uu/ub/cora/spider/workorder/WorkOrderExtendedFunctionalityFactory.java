@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.workorder;
 
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
@@ -70,17 +71,17 @@ public class WorkOrderExtendedFunctionalityFactory implements ExtendedFunctional
 	}
 
 	private ExtendedFunctionality factorExecutor() {
-		return WorkOrderExecutorAsExtendedFunctionality.usingDependencyProvider(dependencyProvider);
+		return WorkOrderExecutor.usingDependencyProvider(dependencyProvider);
 	}
 
 	private ExtendedFunctionality factorDeleter() {
 		SpiderRecordDeleter recordDeleter = SpiderRecordDeleterImp
 				.usingDependencyProvider(dependencyProvider);
-		return WorkOrderDeleterAsExtendedFunctionality.usingDeleter(recordDeleter);
+		return WorkOrderDeleter.usingDeleter(recordDeleter);
 	}
 
-	private WorkOrderEnhancerAsExtendedFunctionality factorEnhancer() {
-		return new WorkOrderEnhancerAsExtendedFunctionality();
+	private WorkOrderEnhancer factorEnhancer() {
+		return new WorkOrderEnhancer();
 	}
 
 }

@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.extendedfunctionality.internal;
 import java.util.ServiceLoader;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 
 /**

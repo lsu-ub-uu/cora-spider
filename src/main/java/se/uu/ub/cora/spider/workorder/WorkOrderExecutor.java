@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.workorder;
 
 import java.util.List;
 
@@ -27,11 +27,12 @@ import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
 import se.uu.ub.cora.spider.record.RecordTypeHandlerImp;
 import se.uu.ub.cora.storage.RecordStorage;
 
-public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctionality {
+public class WorkOrderExecutor implements ExtendedFunctionality {
 
 	private RecordIndexer recordIndexer;
 	private DataGroupTermCollector collectTermCollector;
@@ -42,7 +43,7 @@ public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctio
 	private String recordIdToIndex;
 	private SpiderDependencyProvider dependencyProvider;
 
-	public WorkOrderExecutorAsExtendedFunctionality(SpiderDependencyProvider dependencyProvider) {
+	public WorkOrderExecutor(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
@@ -51,9 +52,9 @@ public class WorkOrderExecutorAsExtendedFunctionality implements ExtendedFunctio
 		this.authenticator = dependencyProvider.getAuthenticator();
 	}
 
-	public static WorkOrderExecutorAsExtendedFunctionality usingDependencyProvider(
+	public static WorkOrderExecutor usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
-		return new WorkOrderExecutorAsExtendedFunctionality(dependencyProvider);
+		return new WorkOrderExecutor(dependencyProvider);
 	}
 
 	@Override

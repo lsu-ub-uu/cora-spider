@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
@@ -76,7 +76,7 @@ public class FactorySorterImp implements FactorySorter {
 
 	private void sortByContext(ExtendedFunctionalityFactory extendedFactory,
 			ExtendedFunctionalityContext efc) {
-		ExtendedFunctionalityPosition position = efc.extendedFunctionalityPosition;
+		ExtendedFunctionalityPosition position = efc.position;
 		ensureContextHolderExists(efc, position);
 		factories.get(position).get(efc.recordType)
 				.add(new FactoryRunBy(extendedFactory, efc.runAsNumber));

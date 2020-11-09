@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.extendedfunctionality;
 import java.util.List;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 
 /**
  * ExtendedFunctionalityFactory is used to factor {@link ExtendedFunctionality}, to be used in

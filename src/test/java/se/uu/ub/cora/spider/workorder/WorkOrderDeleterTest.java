@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.workorder;
 
 import static org.testng.Assert.assertEquals;
 
@@ -42,10 +42,10 @@ import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderRecordDeleterSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 
-public class WorkOrderDeleterAsExtendedFunctionalityTest {
+public class WorkOrderDeleterTest {
 
 	SpiderDependencyProviderSpy dependencyProvider;
-	WorkOrderDeleterAsExtendedFunctionality extendedFunctionality;
+	WorkOrderDeleter extendedFunctionality;
 	DataGroupTermCollectorSpy termCollector;
 	SpiderAuthorizatorSpy authorizator;
 	AuthenticatorSpy authenticator;
@@ -76,7 +76,7 @@ public class WorkOrderDeleterAsExtendedFunctionalityTest {
 
 	private void setUpDependencyProvider() {
 		recordDeleter = new SpiderRecordDeleterSpy();
-		extendedFunctionality = WorkOrderDeleterAsExtendedFunctionality.usingDeleter(recordDeleter);
+		extendedFunctionality = WorkOrderDeleter.usingDeleter(recordDeleter);
 		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
 		authorizator = (SpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();
 		authenticator = (AuthenticatorSpy) dependencyProvider.getAuthenticator();

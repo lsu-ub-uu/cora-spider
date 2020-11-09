@@ -16,12 +16,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.workorder;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 
-public class WorkOrderEnhancerAsExtendedFunctionality implements ExtendedFunctionality {
+public class WorkOrderEnhancer implements ExtendedFunctionality {
 
 	@Override
 	public void useExtendedFunctionality(String authToken, DataGroup dataGroup) {

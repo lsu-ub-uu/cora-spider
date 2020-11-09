@@ -24,6 +24,7 @@ import java.util.UUID;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 
 public class AppTokenEnhancerAsExtendedFunctionality implements ExtendedFunctionality {
 

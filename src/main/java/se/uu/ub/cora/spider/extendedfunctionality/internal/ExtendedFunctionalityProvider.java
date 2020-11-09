@@ -18,9 +18,11 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
 import java.util.List;
+
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 
 public interface ExtendedFunctionalityProvider {
 	List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(

@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.extendedfunctionality;
 import java.util.List;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 

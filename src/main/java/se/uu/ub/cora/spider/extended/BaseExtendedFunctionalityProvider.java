@@ -28,7 +28,12 @@ import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidatorFactory;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
+import se.uu.ub.cora.spider.workorder.WorkOrderDeleter;
+import se.uu.ub.cora.spider.workorder.WorkOrderEnhancer;
+import se.uu.ub.cora.spider.workorder.WorkOrderExecutor;
 
 public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityProvider {
 
@@ -47,7 +52,7 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 			list.add(new AppTokenEnhancerAsExtendedFunctionality());
 		}
 		if (WORK_ORDER.equals(recordType)) {
-			list.add(new WorkOrderEnhancerAsExtendedFunctionality());
+			list.add(new WorkOrderEnhancer());
 		}
 		return list;
 	}
@@ -60,7 +65,7 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 			addConsistencyValidatorToListUsingRecordType(list, recordType);
 		}
 		if (WORK_ORDER.equals(recordType)) {
-			list.add(WorkOrderExecutorAsExtendedFunctionality
+			list.add(WorkOrderExecutor
 					.usingDependencyProvider(dependencyProvider));
 		}
 		return list;
@@ -83,7 +88,7 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 		SpiderInstanceFactory spiderInstanceFactory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
 		SpiderRecordDeleter spiderRecordDeleter = spiderInstanceFactory.factorSpiderRecordDeleter();
-		list.add(WorkOrderDeleterAsExtendedFunctionality.usingDeleter(spiderRecordDeleter));
+		list.add(WorkOrderDeleter.usingDeleter(spiderRecordDeleter));
 	}
 
 	@Override

@@ -16,24 +16,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.workorder;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 
-public final class WorkOrderDeleterAsExtendedFunctionality implements ExtendedFunctionality {
+public final class WorkOrderDeleter implements ExtendedFunctionality {
 
 	private SpiderRecordDeleter recordDeleter;
 
-	private WorkOrderDeleterAsExtendedFunctionality(SpiderRecordDeleter recordDeleter) {
+	private WorkOrderDeleter(SpiderRecordDeleter recordDeleter) {
 		this.recordDeleter = recordDeleter;
 	}
 
-	public static WorkOrderDeleterAsExtendedFunctionality usingDeleter(
+	public static WorkOrderDeleter usingDeleter(
 			SpiderRecordDeleter recordDeleter) {
-		return new WorkOrderDeleterAsExtendedFunctionality(recordDeleter);
+		return new WorkOrderDeleter(recordDeleter);
 	}
 
 	@Override

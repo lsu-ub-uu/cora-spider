@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.workorder;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -33,16 +33,16 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 
-public class WorkOrderEnhancerAsExtendedFunctionalityTest {
+public class WorkOrderEnhancerTest {
 
-	WorkOrderEnhancerAsExtendedFunctionality extendedFunctionality;
+	WorkOrderEnhancer extendedFunctionality;
 	private DataGroupFactory dataGroupFactory;
 
 	@BeforeMethod
 	public void setUp() {
 		dataGroupFactory = new DataGroupFactorySpy();
 		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
-		extendedFunctionality = new WorkOrderEnhancerAsExtendedFunctionality();
+		extendedFunctionality = new WorkOrderEnhancer();
 	}
 
 	@Test
