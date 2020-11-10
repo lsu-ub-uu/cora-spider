@@ -22,6 +22,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 
 import java.util.Collections;
+import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -30,6 +31,7 @@ import se.uu.ub.cora.logger.LoggerFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
@@ -73,40 +75,42 @@ public class MetadataValidatorExtendedFunctionalityFactoryTest {
 
 	@Test
 	public void testConsistencyValidatorCreateAfterValidationForMetadataGroup() {
-		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) factory
-				.factor(ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION,
-						"metadataGroup");
-
+		List<ExtendedFunctionality> functionalities = factory.factor(
+				ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION, "metadataGroup");
+		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) functionalities
+				.get(0);
 		assertEquals(functionality.getRecordType(), "metadataGroup");
 		assertSame(functionality.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
 	}
 
 	@Test
 	public void testConsistencyValidatorCreateAfterValidationForMetadataCollectionVariable() {
-		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) factory
-				.factor(ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION,
-						"metadataCollectionVariable");
-
+		List<ExtendedFunctionality> functionalities = factory.factor(
+				ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION,
+				"metadataCollectionVariable");
+		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) functionalities
+				.get(0);
 		assertEquals(functionality.getRecordType(), "metadataCollectionVariable");
 		assertSame(functionality.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
 	}
 
 	@Test
 	public void testConsistencyValidatorUpdateAfterValidationForMetadataGroup() {
-		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) factory
-				.factor(ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION,
-						"metadataGroup");
-
+		List<ExtendedFunctionality> functionalities = factory.factor(
+				ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION, "metadataGroup");
+		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) functionalities
+				.get(0);
 		assertEquals(functionality.getRecordType(), "metadataGroup");
 		assertSame(functionality.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
 	}
 
 	@Test
 	public void testConsistencyValidatorUpdateAfterValidationForMetadataCollectionVariable() {
-		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) factory
-				.factor(ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION,
-						"metadataCollectionVariable");
-
+		List<ExtendedFunctionality> functionalities = factory.factor(
+				ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION,
+				"metadataCollectionVariable");
+		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) functionalities
+				.get(0);
 		assertEquals(functionality.getRecordType(), "metadataCollectionVariable");
 		assertSame(functionality.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
 	}

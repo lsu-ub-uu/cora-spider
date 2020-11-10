@@ -22,6 +22,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -53,8 +54,9 @@ public class MetadataValidatorExtendedFunctionalityFactory implements ExtendedFu
 	}
 
 	@Override
-	public ExtendedFunctionality factor(ExtendedFunctionalityPosition position, String recordType) {
-		return createValidatorUsingRecordType(recordType);
+	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
+			String recordType) {
+		return Arrays.asList(createValidatorUsingRecordType(recordType));
 	}
 
 	private MetadataConsistencyGroupAndCollectionValidator createValidatorUsingRecordType(

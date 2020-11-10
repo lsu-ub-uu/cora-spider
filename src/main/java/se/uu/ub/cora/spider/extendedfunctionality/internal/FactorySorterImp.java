@@ -156,7 +156,7 @@ public class FactorySorterImp implements FactorySorter {
 		List<FactoryRunBy> currentFactories = factories.get(position).get(recordType);
 		List<ExtendedFunctionality> functionalities = new ArrayList<>();
 		for (FactoryRunBy extendedFactory : currentFactories) {
-			functionalities.add(extendedFactory.factory.factor(position, recordType));
+			functionalities.addAll(extendedFactory.factory.factor(position, recordType));
 		}
 		return functionalities;
 	}

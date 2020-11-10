@@ -43,14 +43,14 @@ public interface ExtendedFunctionalityFactory {
 	 * {@link ExtendedFunctionalityContext} for wich circumstances this factory produces
 	 * ExtendedFunctionality instances.
 	 * 
-	 * @return A List of ExtendedFunctionalityContext to determin under what cirumstances, the
+	 * @return A List of ExtendedFunctionalityContexts to determin under what cirumstances, the
 	 *         extendedFunctionalities that this factory produces, are intended to be called
 	 */
 	List<ExtendedFunctionalityContext> getExtendedFunctionalityContexts();
 
 	/**
 	 * Factor is used by spider to get an instans of ExtendedFunctionality to use in predetermined
-	 * places in Spider. Factor should be implemented so that it creates an instance of
+	 * places in Spider. Factor should be implemented so that it creates a list of
 	 * {@link ExtendedFunctionality} for the specified position and recordType.<br>
 	 * <br>
 	 * Factories implementing this interface will only be called for the positions and recordTypes,
@@ -62,8 +62,8 @@ public interface ExtendedFunctionalityFactory {
 	 * @param recordType
 	 *            The current recordType
 	 * 
-	 * @return An instance of extended funtionality
+	 * @return A List of instances of factored extended funtionalities
 	 */
-	ExtendedFunctionality factor(ExtendedFunctionalityPosition position, String recordType);
+	List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position, String recordType);
 
 }

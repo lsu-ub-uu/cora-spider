@@ -22,6 +22,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -51,11 +52,13 @@ public class ApptokenExtendedFunctionalityFactory implements ExtendedFunctionali
 	}
 
 	@Override
-	public ExtendedFunctionality factor(ExtendedFunctionalityPosition position, String recordType) {
+	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
+			String recordType) {
 		if (CREATE_BEFORE_METADATA_VALIDATION.equals(position)) {
-			return new AppTokenEnhancer();
+			return Arrays.asList(new AppTokenEnhancer());
 		}
-		return UserUpdaterForAppToken.usingSpiderDependencyProvider(dependencyProvider);
+		return Arrays
+				.asList(UserUpdaterForAppToken.usingSpiderDependencyProvider(dependencyProvider));
 	}
 
 	@Override

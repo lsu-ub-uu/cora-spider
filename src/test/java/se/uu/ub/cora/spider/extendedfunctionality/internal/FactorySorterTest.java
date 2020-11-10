@@ -228,9 +228,38 @@ public class FactorySorterTest {
 
 		factorySpy.MCR.assertParameter("initializeUsingDependencyProvider", 0, "dependencyProvider",
 				dependencyProvider);
-		assertEquals(functionality.get(0), factorySpy.MCR.getReturnValue("factor", 0));
+		assertSame(functionality.get(0), getFirstReturnedExtendedFunctionality(factorySpy));
 		factorySpy.MCR.assertParameters("factor", 0, CREATE_BEFORE_METADATA_VALIDATION,
 				"someRecordType");
+	}
+
+	private ExtendedFunctionality getFirstReturnedExtendedFunctionality(
+			ExtendedFunctionalityFactorySpy factorySpy) {
+		List<?> returnValue = (List<?>) factorySpy.MCR.getReturnValue("factor", 0);
+		ExtendedFunctionality extendedFunctionality = (ExtendedFunctionality) returnValue.get(0);
+		return extendedFunctionality;
+	}
+
+	@Test
+	public void testCreateBeforeMetadataValidationWithTwoInOneFactory() {
+		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
+				CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 0);
+		factorySpy.numberOfReturnedFunctionalities = 2;
+		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);
+
+		List<ExtendedFunctionality> functionality = factorySorter
+				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
+						"someRecordType");
+
+		factorySpy.MCR.assertParameter("initializeUsingDependencyProvider", 0, "dependencyProvider",
+				dependencyProvider);
+		assertSame(functionality.get(0), getFirstReturnedExtendedFunctionality(factorySpy));
+		factorySpy.MCR.assertParameters("factor", 0, CREATE_BEFORE_METADATA_VALIDATION,
+				"someRecordType");
+
+		List<?> returnValue = (List<?>) factorySpy.MCR.getReturnValue("factor", 0);
+		ExtendedFunctionality secondFunctionality = (ExtendedFunctionality) returnValue.get(1);
+		assertSame(functionality.get(1), secondFunctionality);
 	}
 
 	@Test
@@ -249,10 +278,10 @@ public class FactorySorterTest {
 				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
 						"someRecordType");
 
-		assertEquals(functionality.get(0), factorySpy4.MCR.getReturnValue("factor", 0));
-		assertEquals(functionality.get(1), factorySpy2.MCR.getReturnValue("factor", 0));
-		assertEquals(functionality.get(2), factorySpy.MCR.getReturnValue("factor", 0));
-		assertEquals(functionality.get(3), factorySpy3.MCR.getReturnValue("factor", 0));
+		assertSame(functionality.get(0), getFirstReturnedExtendedFunctionality(factorySpy4));
+		assertSame(functionality.get(1), getFirstReturnedExtendedFunctionality(factorySpy2));
+		assertSame(functionality.get(2), getFirstReturnedExtendedFunctionality(factorySpy));
+		assertSame(functionality.get(3), getFirstReturnedExtendedFunctionality(factorySpy3));
 	}
 
 	@Test
@@ -267,7 +296,7 @@ public class FactorySorterTest {
 				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
 						"someRecordType");
 
-		assertEquals(functionality.get(0), factorySpy.MCR.getReturnValue("factor", 0));
+		assertSame(functionality.get(0), getFirstReturnedExtendedFunctionality(factorySpy));
 
 		factorySpy2.MCR.assertMethodNotCalled("factor");
 		factorySpy.MCR.assertParameters("factor", 0, CREATE_BEFORE_METADATA_VALIDATION,
@@ -286,7 +315,7 @@ public class FactorySorterTest {
 				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
 						"someRecordType");
 
-		assertEquals(functionality.get(0), factorySpy.MCR.getReturnValue("factor", 0));
+		assertSame(functionality.get(0), getFirstReturnedExtendedFunctionality(factorySpy));
 
 		factorySpy2.MCR.assertMethodNotCalled("factor");
 		factorySpy.MCR.assertParameters("factor", 0, CREATE_BEFORE_METADATA_VALIDATION,

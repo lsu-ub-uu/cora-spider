@@ -23,15 +23,13 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Collections;
+import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.logger.LoggerFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.apptoken.AppTokenEnhancer;
-import se.uu.ub.cora.spider.apptoken.ApptokenExtendedFunctionalityFactory;
-import se.uu.ub.cora.spider.apptoken.UserUpdaterForAppToken;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -74,17 +72,20 @@ public class ApptokenExtendedFunctionalityFactoryTest {
 
 	@Test
 	public void testCreateBeforeValidationForApptoken() {
-		ExtendedFunctionality functionality = factory.factor(
+		List<ExtendedFunctionality> functionalities = factory.factor(
 				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "appToken");
-		assertTrue(functionality instanceof AppTokenEnhancer);
+		assertTrue(functionalities.get(0) instanceof AppTokenEnhancer);
 	}
 
 	@Test
 	public void testCreateBeforeReturnForApptoken() {
-		UserUpdaterForAppToken functionality = (UserUpdaterForAppToken) factory
+		List<ExtendedFunctionality> functionalities = factory
 				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN, "appToken");
-		assertSame(functionality.getDependencyProvider(), dependencyProviderSpy);
-		assertTrue(functionality instanceof UserUpdaterForAppToken);
+		UserUpdaterForAppToken extendedFunctionality = (UserUpdaterForAppToken) functionalities
+				.get(0);
+
+		assertSame(extendedFunctionality.getDependencyProvider(), dependencyProviderSpy);
+		assertTrue(extendedFunctionality instanceof UserUpdaterForAppToken);
 	}
 
 }

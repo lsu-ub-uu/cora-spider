@@ -23,6 +23,7 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Collections;
+import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -74,23 +75,25 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 
 	@Test
 	public void testWorkOrderCreateBeforeValidation() {
-		ExtendedFunctionality functionality = factory.factor(
+		List<ExtendedFunctionality> functionalities = factory.factor(
 				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "workOrder");
-		assertTrue(functionality instanceof WorkOrderEnhancer);
+		assertTrue(functionalities.get(0) instanceof WorkOrderEnhancer);
 	}
 
 	@Test
 	public void testWorkOrderCreateAfterValidation() {
-		WorkOrderExecutor functionality = (WorkOrderExecutor) factory
-				.factor(ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION,
-						"workOrder");
+		List<ExtendedFunctionality> functionalities = factory.factor(
+				ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION, "workOrder");
+
+		WorkOrderExecutor functionality = (WorkOrderExecutor) functionalities.get(0);
 		assertSame(functionality.getDependencyProvider(), dependencyProviderSpy);
 	}
 
 	@Test
 	public void testWorkOrderCreateBeforeReturn() {
-		WorkOrderDeleter functionality = (WorkOrderDeleter) factory
+		List<ExtendedFunctionality> functionalities = factory
 				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN, "workOrder");
+		WorkOrderDeleter functionality = (WorkOrderDeleter) functionalities.get(0);
 		SpiderRecordDeleterImp recordDeleter = (SpiderRecordDeleterImp) functionality
 				.getRecordDeleter();
 		assertSame(recordDeleter.getDependencyProvider(), dependencyProviderSpy);
