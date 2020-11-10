@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.extended.MetadataConsistencyValidatorAsExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
@@ -55,14 +54,12 @@ public class MetadataValidatorExtendedFunctionalityFactory implements ExtendedFu
 
 	@Override
 	public ExtendedFunctionality factor(ExtendedFunctionalityPosition position, String recordType) {
-		MetadataConsistencyGroupAndCollectionValidatorImp validator = createValidatorUsingRecordType(
-				recordType);
-		return MetadataConsistencyValidatorAsExtendedFunctionality.usingValidator(validator);
+		return createValidatorUsingRecordType(recordType);
 	}
 
-	private MetadataConsistencyGroupAndCollectionValidatorImp createValidatorUsingRecordType(
+	private MetadataConsistencyGroupAndCollectionValidator createValidatorUsingRecordType(
 			String recordType) {
-		return new MetadataConsistencyGroupAndCollectionValidatorImp(
+		return new MetadataConsistencyGroupAndCollectionValidator(
 				dependencyProvider.getRecordStorage(), recordType);
 	}
 

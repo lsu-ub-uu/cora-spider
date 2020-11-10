@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,17 +17,21 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.consistency;
+package se.uu.ub.cora.spider.extendedfunctionality;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 
-public class MetadataConsistencyValidatorSpy implements MetadataConsistencyValidator {
-
-	public boolean validationHasBeenCalled = false;
+public class ExtendedFunctionalitySpy implements ExtendedFunctionality {
+	public boolean extendedFunctionalityHasBeenCalled = false;
+	public String token;
+	public DataGroup dataGroupSentToExtendedFunctionality;
 
 	@Override
-	public void validateRules(DataGroup recordAsDataGroup) {
-		validationHasBeenCalled = true;
+	public void useExtendedFunctionality(String token, DataGroup dataGroup) {
+		this.token = token;
+		dataGroupSentToExtendedFunctionality = dataGroup;
+		extendedFunctionalityHasBeenCalled = true;
 	}
 
 }

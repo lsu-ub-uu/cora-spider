@@ -1,3 +1,5 @@
+import se.uu.ub.cora.spider.apptoken.ApptokenExtendedFunctionalityFactory;
+import se.uu.ub.cora.spider.consistency.MetadataValidatorExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.workorder.WorkOrderExtendedFunctionalityFactory;
 
 /**
@@ -24,5 +26,6 @@ module se.uu.ub.cora.spider {
 	exports se.uu.ub.cora.spider.role;
 
 	provides se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory
-			with WorkOrderExtendedFunctionalityFactory;
+			with WorkOrderExtendedFunctionalityFactory, ApptokenExtendedFunctionalityFactory,
+			MetadataValidatorExtendedFunctionalityFactory;
 }

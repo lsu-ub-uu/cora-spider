@@ -21,9 +21,9 @@ package se.uu.ub.cora.spider.extendedfunctionality.internal;
 import java.util.ArrayList;
 import java.util.List;
 
-import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class FactorySorterSpy implements FactorySorter {

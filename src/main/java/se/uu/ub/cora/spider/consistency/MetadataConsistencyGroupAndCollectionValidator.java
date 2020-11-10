@@ -22,26 +22,26 @@ package se.uu.ub.cora.spider.consistency;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
-public class MetadataConsistencyGroupAndCollectionValidatorImp
-		implements MetadataConsistencyValidator {
+public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedFunctionality {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private static final String REF_PARENT_ID = "refParentId";
 	private RecordStorage recordStorage;
 	private String recordType;
 	private DataGroup recordAsDataGroup;
 
-	public MetadataConsistencyGroupAndCollectionValidatorImp(RecordStorage recordStorage,
+	public MetadataConsistencyGroupAndCollectionValidator(RecordStorage recordStorage,
 			String recordType) {
 		this.recordStorage = recordStorage;
 		this.recordType = recordType;
 	}
 
 	@Override
-	public void validateRules(DataGroup recordAsDataGroup) {
+	public void useExtendedFunctionality(String authToken, DataGroup recordAsDataGroup) {
 		this.recordAsDataGroup = recordAsDataGroup;
 		if (dataGroupHasParent()) {
 			validateInheritanceRules();
@@ -222,4 +222,5 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 	public RecordStorage getRecordStorage() {
 		return recordStorage;
 	}
+
 }

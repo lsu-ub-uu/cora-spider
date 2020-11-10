@@ -30,7 +30,6 @@ import se.uu.ub.cora.logger.LoggerFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.extended.MetadataConsistencyValidatorAsExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
@@ -74,49 +73,41 @@ public class MetadataValidatorExtendedFunctionalityFactoryTest {
 
 	@Test
 	public void testConsistencyValidatorCreateAfterValidationForMetadataGroup() {
-		MetadataConsistencyValidatorAsExtendedFunctionality functionality = (MetadataConsistencyValidatorAsExtendedFunctionality) factory
+		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) factory
 				.factor(ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION,
 						"metadataGroup");
-		MetadataConsistencyGroupAndCollectionValidatorImp validator = (MetadataConsistencyGroupAndCollectionValidatorImp) functionality
-				.getValidator();
 
-		assertEquals(validator.getRecordType(), "metadataGroup");
-		assertSame(validator.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
+		assertEquals(functionality.getRecordType(), "metadataGroup");
+		assertSame(functionality.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
 	}
 
 	@Test
 	public void testConsistencyValidatorCreateAfterValidationForMetadataCollectionVariable() {
-		MetadataConsistencyValidatorAsExtendedFunctionality functionality = (MetadataConsistencyValidatorAsExtendedFunctionality) factory
+		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) factory
 				.factor(ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION,
 						"metadataCollectionVariable");
-		MetadataConsistencyGroupAndCollectionValidatorImp validator = (MetadataConsistencyGroupAndCollectionValidatorImp) functionality
-				.getValidator();
 
-		assertEquals(validator.getRecordType(), "metadataCollectionVariable");
-		assertSame(validator.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
+		assertEquals(functionality.getRecordType(), "metadataCollectionVariable");
+		assertSame(functionality.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
 	}
 
 	@Test
 	public void testConsistencyValidatorUpdateAfterValidationForMetadataGroup() {
-		MetadataConsistencyValidatorAsExtendedFunctionality functionality = (MetadataConsistencyValidatorAsExtendedFunctionality) factory
+		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) factory
 				.factor(ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION,
 						"metadataGroup");
-		MetadataConsistencyGroupAndCollectionValidatorImp validator = (MetadataConsistencyGroupAndCollectionValidatorImp) functionality
-				.getValidator();
 
-		assertEquals(validator.getRecordType(), "metadataGroup");
-		assertSame(validator.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
+		assertEquals(functionality.getRecordType(), "metadataGroup");
+		assertSame(functionality.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
 	}
 
 	@Test
 	public void testConsistencyValidatorUpdateAfterValidationForMetadataCollectionVariable() {
-		MetadataConsistencyValidatorAsExtendedFunctionality functionality = (MetadataConsistencyValidatorAsExtendedFunctionality) factory
+		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) factory
 				.factor(ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION,
 						"metadataCollectionVariable");
-		MetadataConsistencyGroupAndCollectionValidatorImp validator = (MetadataConsistencyGroupAndCollectionValidatorImp) functionality
-				.getValidator();
 
-		assertEquals(validator.getRecordType(), "metadataCollectionVariable");
-		assertSame(validator.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
+		assertEquals(functionality.getRecordType(), "metadataCollectionVariable");
+		assertSame(functionality.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
 	}
 }
