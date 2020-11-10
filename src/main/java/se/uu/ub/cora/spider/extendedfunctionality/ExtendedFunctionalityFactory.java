@@ -28,7 +28,25 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
  */
 public interface ExtendedFunctionalityFactory {
 
+	/**
+	 * initializeUsingDependencyProvider is called once when the system starts up, and should be
+	 * used to initialize the factory if needed. The systems {@link SpiderDependencyProvider} is
+	 * sent to the method to make it possible to start the factory.
+	 * 
+	 * @param dependencyProvider
+	 *            The systems populated SpiderDependencyProvider
+	 */
 	void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider);
+
+	/**
+	 * getExtendedFunctionalityContexts should be implemented so that it returns a List with
+	 * {@link ExtendedFunctionalityContext} for wich circumstances this factory produces
+	 * ExtendedFunctionality instances.
+	 * 
+	 * @return A List of ExtendedFunctionalityContext to determin under what cirumstances, the
+	 *         extendedFunctionalities that this factory produces, are intended to be called
+	 */
+	List<ExtendedFunctionalityContext> getExtendedFunctionalityContexts();
 
 	/**
 	 * Factor is used by spider to get an instans of ExtendedFunctionality to use in predetermined
@@ -40,20 +58,12 @@ public interface ExtendedFunctionalityFactory {
 	 * {@link ExtendedFunctionalityFactory#factor(ExtendedFunctionalityPosition, String)}method.
 	 * 
 	 * @param position
+	 *            The current {@link ExtendedFunctionalityPosition}
 	 * @param recordType
+	 *            The current recordType
 	 * 
 	 * @return An instance of extended funtionality
 	 */
 	ExtendedFunctionality factor(ExtendedFunctionalityPosition position, String recordType);
-
-	/**
-	 * getExtendedFunctionalityContexts should be implemented so that it returns a List with
-	 * {@link ExtendedFunctionalityContext} for wich circumstances this factory produces
-	 * ExtendedFunctionality instances.
-	 * 
-	 * @return A List of ExtendedFunctionalityContext to determin under what cirumstances, the
-	 *         extendedFunctionalities that this factory produces, are intended to be called
-	 */
-	List<ExtendedFunctionalityContext> getExtendedFunctionalityContexts();
 
 }

@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.apptoken;
 
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
@@ -28,19 +28,20 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.apptoken.AppTokenEnhancer;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 
-public class AppTokenEnhancerAsExtendedFunctionalityTest {
+public class AppTokenEnhancerTest {
 
-	private AppTokenEnhancerAsExtendedFunctionality extendedFunctionality;
+	private AppTokenEnhancer extendedFunctionality;
 	private DataAtomicFactorySpy dataAtomicFactory;
 
 	@BeforeMethod
 	public void setUp() {
 		dataAtomicFactory = new DataAtomicFactorySpy();
 		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
-		extendedFunctionality = new AppTokenEnhancerAsExtendedFunctionality();
+		extendedFunctionality = new AppTokenEnhancer();
 	}
 
 	@Test

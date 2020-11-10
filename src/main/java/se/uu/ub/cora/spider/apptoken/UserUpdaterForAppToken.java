@@ -17,7 +17,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.apptoken;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataAtomicProvider;
@@ -30,19 +30,19 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.storage.RecordStorage;
 
-public final class UserUpdaterForAppTokenAsExtendedFunctionality implements ExtendedFunctionality {
+public final class UserUpdaterForAppToken implements ExtendedFunctionality {
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordStorage recordStorage;
 
-	private UserUpdaterForAppTokenAsExtendedFunctionality(
+	private UserUpdaterForAppToken(
 			SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 		recordStorage = dependencyProvider.getRecordStorage();
 	}
 
-	public static UserUpdaterForAppTokenAsExtendedFunctionality usingSpiderDependencyProvider(
+	public static UserUpdaterForAppToken usingSpiderDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
-		return new UserUpdaterForAppTokenAsExtendedFunctionality(dependencyProvider);
+		return new UserUpdaterForAppToken(dependencyProvider);
 	}
 
 	@Override

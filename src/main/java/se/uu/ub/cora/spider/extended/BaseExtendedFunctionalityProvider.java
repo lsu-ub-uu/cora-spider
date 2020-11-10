@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import se.uu.ub.cora.spider.apptoken.AppTokenEnhancer;
+import se.uu.ub.cora.spider.apptoken.UserUpdaterForAppToken;
 import se.uu.ub.cora.spider.consistency.MetadataConsistencyValidatorFactory;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
@@ -49,7 +51,7 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 			String recordType) {
 		List<ExtendedFunctionality> list = new ArrayList<>();
 		if ("appToken".equals(recordType)) {
-			list.add(new AppTokenEnhancerAsExtendedFunctionality());
+			list.add(new AppTokenEnhancer());
 		}
 		if (WORK_ORDER.equals(recordType)) {
 			list.add(new WorkOrderEnhancer());
@@ -75,7 +77,7 @@ public class BaseExtendedFunctionalityProvider implements ExtendedFunctionalityP
 	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeReturn(String recordType) {
 		List<ExtendedFunctionality> list = new ArrayList<>();
 		if ("appToken".equals(recordType)) {
-			list.add(UserUpdaterForAppTokenAsExtendedFunctionality
+			list.add(UserUpdaterForAppToken
 					.usingSpiderDependencyProvider(dependencyProvider));
 		}
 		if (WORK_ORDER.equals(recordType)) {

@@ -30,6 +30,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.spider.apptoken.AppTokenEnhancer;
+import se.uu.ub.cora.spider.apptoken.UserUpdaterForAppToken;
 import se.uu.ub.cora.spider.dependency.RecordIdGeneratorProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -86,7 +88,7 @@ public class BaseExtendedFunctionalityProviderTest {
 				.getFunctionalityForCreateBeforeMetadataValidation("appToken");
 		assertEquals(bEFP.size(), 1);
 		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
-		assertTrue(extendedFunctionality instanceof AppTokenEnhancerAsExtendedFunctionality);
+		assertTrue(extendedFunctionality instanceof AppTokenEnhancer);
 	}
 
 	private void fetchAndAssertCreateBeforeMetadataValidationForWorkOrder() {
@@ -159,7 +161,7 @@ public class BaseExtendedFunctionalityProviderTest {
 				.getFunctionalityForCreateBeforeReturn("appToken");
 		assertEquals(bEFP.size(), 1);
 		ExtendedFunctionality extendedFunctionality = bEFP.get(0);
-		assertTrue(extendedFunctionality instanceof UserUpdaterForAppTokenAsExtendedFunctionality);
+		assertTrue(extendedFunctionality instanceof UserUpdaterForAppToken);
 	}
 
 	private void fetchAndAssertCreateBeforeReturnForWorkOrder() {

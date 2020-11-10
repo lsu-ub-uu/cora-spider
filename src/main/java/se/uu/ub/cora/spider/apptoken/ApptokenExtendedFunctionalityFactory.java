@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.apptoken;
 
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN;
@@ -39,7 +39,6 @@ public class ApptokenExtendedFunctionalityFactory implements ExtendedFunctionali
 	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 		createListOfContexts();
-
 	}
 
 	private void createListOfContexts() {
@@ -54,10 +53,9 @@ public class ApptokenExtendedFunctionalityFactory implements ExtendedFunctionali
 	@Override
 	public ExtendedFunctionality factor(ExtendedFunctionalityPosition position, String recordType) {
 		if (CREATE_BEFORE_METADATA_VALIDATION.equals(position)) {
-			return new AppTokenEnhancerAsExtendedFunctionality();
+			return new AppTokenEnhancer();
 		}
-		return UserUpdaterForAppTokenAsExtendedFunctionality
-				.usingSpiderDependencyProvider(dependencyProvider);
+		return UserUpdaterForAppToken.usingSpiderDependencyProvider(dependencyProvider);
 	}
 
 	@Override

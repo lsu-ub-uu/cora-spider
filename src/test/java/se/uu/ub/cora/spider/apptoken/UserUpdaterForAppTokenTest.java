@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.apptoken;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -35,6 +35,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.spider.apptoken.UserUpdaterForAppToken;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -47,15 +48,16 @@ import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactorySpy2;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.storage.RecordStorage;
 
-public class UserUpdaterForAppTokenAsExtendedFunctionalityTest {
+public class UserUpdaterForAppTokenTest {
 
-	private UserUpdaterForAppTokenAsExtendedFunctionality extendedFunctionality;
+	private UserUpdaterForAppToken extendedFunctionality;
 
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
@@ -86,7 +88,7 @@ public class UserUpdaterForAppTokenAsExtendedFunctionalityTest {
 		authenticator = new AuthenticatorSpy();
 		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
-		extendedFunctionality = UserUpdaterForAppTokenAsExtendedFunctionality
+		extendedFunctionality = UserUpdaterForAppToken
 				.usingSpiderDependencyProvider(dependencyProvider);
 	}
 

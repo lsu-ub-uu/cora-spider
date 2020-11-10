@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.apptoken;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
@@ -29,6 +29,9 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.logger.LoggerFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.spider.apptoken.AppTokenEnhancer;
+import se.uu.ub.cora.spider.apptoken.ApptokenExtendedFunctionalityFactory;
+import se.uu.ub.cora.spider.apptoken.UserUpdaterForAppToken;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -73,15 +76,15 @@ public class ApptokenExtendedFunctionalityFactoryTest {
 	public void testCreateBeforeValidationForApptoken() {
 		ExtendedFunctionality functionality = factory.factor(
 				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "appToken");
-		assertTrue(functionality instanceof AppTokenEnhancerAsExtendedFunctionality);
+		assertTrue(functionality instanceof AppTokenEnhancer);
 	}
 
 	@Test
 	public void testCreateBeforeReturnForApptoken() {
-		UserUpdaterForAppTokenAsExtendedFunctionality functionality = (UserUpdaterForAppTokenAsExtendedFunctionality) factory
+		UserUpdaterForAppToken functionality = (UserUpdaterForAppToken) factory
 				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN, "appToken");
 		assertSame(functionality.getDependencyProvider(), dependencyProviderSpy);
-		assertTrue(functionality instanceof UserUpdaterForAppTokenAsExtendedFunctionality);
+		assertTrue(functionality instanceof UserUpdaterForAppToken);
 	}
 
 }

@@ -17,7 +17,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.extended;
+package se.uu.ub.cora.spider.apptoken;
 
 import java.util.UUID;
 
@@ -26,7 +26,7 @@ import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 
-public class AppTokenEnhancerAsExtendedFunctionality implements ExtendedFunctionality {
+public class AppTokenEnhancer implements ExtendedFunctionality {
 
 	@Override
 	public void useExtendedFunctionality(String authToken, DataGroup dataGroup) {
