@@ -96,4 +96,8 @@ public final class UserUpdaterForAppTokenAsExtendedFunctionality implements Exte
 		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
 		spiderRecordUpdater.updateRecord(authToken, recordType, userId, spiderUserDataGroup);
 	}
+
+	public SpiderDependencyProvider getDependencyProvider() {
+		return dependencyProvider;
+	}
 }

@@ -19,6 +19,8 @@
 package se.uu.ub.cora.spider.extended;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 import java.util.Collections;
 
@@ -29,6 +31,7 @@ import se.uu.ub.cora.logger.LoggerFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
@@ -55,10 +58,6 @@ public class ApptokenExtendedFunctionalityFactoryTest {
 				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION);
 		assertCorrectContextUsingIndexNumberAndPosition(1, 0, "appToken",
 				ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN);
-		// assertCorrectContextUsingIndexNumberAndPosition(2, 0, "metadataGroup",
-		// ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION);
-		// assertCorrectContextUsingIndexNumberAndPosition(3, 0, "metadataCollectionVariable",
-		// ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION);
 	}
 
 	private void assertCorrectContextUsingIndexNumberAndPosition(int index, int runAsNumber,
@@ -70,59 +69,19 @@ public class ApptokenExtendedFunctionalityFactoryTest {
 		assertEquals(workOrderEnhancer.runAsNumber, runAsNumber);
 	}
 
-	// @Test
-	// public void testConsistencyValidatorCreateAfterValidationForMetadataGroup() {
-	// MetadataConsistencyValidatorAsExtendedFunctionality functionality =
-	// (MetadataConsistencyValidatorAsExtendedFunctionality) factory
-	// .factor(ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION,
-	// "metadataGroup");
-	// MetadataConsistencyGroupAndCollectionValidatorImp validator =
-	// (MetadataConsistencyGroupAndCollectionValidatorImp) functionality
-	// .getValidator();
-	//
-	// assertEquals(validator.getRecordType(), "metadataGroup");
-	// assertSame(validator.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
-	// }
+	@Test
+	public void testCreateBeforeValidationForApptoken() {
+		ExtendedFunctionality functionality = factory.factor(
+				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "appToken");
+		assertTrue(functionality instanceof AppTokenEnhancerAsExtendedFunctionality);
+	}
 
-	// @Test
-	// public void testConsistencyValidatorCreateAfterValidationForMetadataCollectionVariable() {
-	// MetadataConsistencyValidatorAsExtendedFunctionality functionality =
-	// (MetadataConsistencyValidatorAsExtendedFunctionality) factory
-	// .factor(ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION,
-	// "metadataCollectionVariable");
-	// MetadataConsistencyGroupAndCollectionValidatorImp validator =
-	// (MetadataConsistencyGroupAndCollectionValidatorImp) functionality
-	// .getValidator();
-	//
-	// assertEquals(validator.getRecordType(), "metadataCollectionVariable");
-	// assertSame(validator.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
-	// }
-	//
-	// @Test
-	// public void testConsistencyValidatorUpdateAfterValidationForMetadataGroup() {
-	// MetadataConsistencyValidatorAsExtendedFunctionality functionality =
-	// (MetadataConsistencyValidatorAsExtendedFunctionality) factory
-	// .factor(ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION,
-	// "metadataGroup");
-	// MetadataConsistencyGroupAndCollectionValidatorImp validator =
-	// (MetadataConsistencyGroupAndCollectionValidatorImp) functionality
-	// .getValidator();
-	//
-	// assertEquals(validator.getRecordType(), "metadataGroup");
-	// assertSame(validator.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
-	// }
-	//
-	// @Test
-	// public void testConsistencyValidatorUpdateAfterValidationForMetadataCollectionVariable() {
-	// MetadataConsistencyValidatorAsExtendedFunctionality functionality =
-	// (MetadataConsistencyValidatorAsExtendedFunctionality) factory
-	// .factor(ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION,
-	// "metadataCollectionVariable");
-	// MetadataConsistencyGroupAndCollectionValidatorImp validator =
-	// (MetadataConsistencyGroupAndCollectionValidatorImp) functionality
-	// .getValidator();
-	//
-	// assertEquals(validator.getRecordType(), "metadataCollectionVariable");
-	// assertSame(validator.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
-	// }
+	@Test
+	public void testCreateBeforeReturnForApptoken() {
+		UserUpdaterForAppTokenAsExtendedFunctionality functionality = (UserUpdaterForAppTokenAsExtendedFunctionality) factory
+				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN, "appToken");
+		assertSame(functionality.getDependencyProvider(), dependencyProviderSpy);
+		assertTrue(functionality instanceof UserUpdaterForAppTokenAsExtendedFunctionality);
+	}
+
 }

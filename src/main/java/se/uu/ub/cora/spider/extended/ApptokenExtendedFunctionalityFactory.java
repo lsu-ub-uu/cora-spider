@@ -33,9 +33,11 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 public class ApptokenExtendedFunctionalityFactory implements ExtendedFunctionalityFactory {
 
 	private List<ExtendedFunctionalityContext> contexts = new ArrayList<>();
+	private SpiderDependencyProvider dependencyProvider;
 
 	@Override
 	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
+		this.dependencyProvider = dependencyProvider;
 		createListOfContexts();
 
 	}
@@ -51,8 +53,11 @@ public class ApptokenExtendedFunctionalityFactory implements ExtendedFunctionali
 
 	@Override
 	public ExtendedFunctionality factor(ExtendedFunctionalityPosition position, String recordType) {
-		// TODO Auto-generated method stub
-		return null;
+		if (CREATE_BEFORE_METADATA_VALIDATION.equals(position)) {
+			return new AppTokenEnhancerAsExtendedFunctionality();
+		}
+		return UserUpdaterForAppTokenAsExtendedFunctionality
+				.usingSpiderDependencyProvider(dependencyProvider);
 	}
 
 	@Override
