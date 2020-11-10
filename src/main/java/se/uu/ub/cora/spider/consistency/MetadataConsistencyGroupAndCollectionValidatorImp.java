@@ -214,4 +214,12 @@ public class MetadataConsistencyGroupAndCollectionValidatorImp
 		DataGroup collectionItem = recordStorage.read("metadataCollectionItem", itemId);
 		return collectionItem.getFirstAtomicValueWithNameInData("nameInData");
 	}
+
+	public String getRecordType() {
+		return recordType;
+	}
+
+	public RecordStorage getRecordStorage() {
+		return recordStorage;
+	}
 }
