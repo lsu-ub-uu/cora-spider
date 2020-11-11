@@ -34,7 +34,9 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.data.DataAttributeProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataAttributeFactorySpy;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 
@@ -56,9 +58,15 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testAbstract() {
 		String id = "abstract";
+		RecordStorageMCRSpy recordStorage = new RecordStorageMCRSpy();
+
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, id);
-		assertTrue(recordTypeHandler.isAbstract());
+		boolean abstractValue = recordTypeHandler.isAbstract();
+		recordStorage.MCR.assertParameters("read", 0, "recordType", id);
+		DataGroupMCRSpy dataGroupMCR = (DataGroupMCRSpy) recordStorage.MCR.getReturnValue("read",
+				0);
+		dataGroupMCR.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "abstract");
 	}
 
 	@Test
@@ -721,4 +729,32 @@ public class RecordTypeHandlerTest {
 
 		recordTypeHandler.getSearchId();
 	}
+
+	@Test
+	public void testCreateWithDataGroup() {
+		DataGroupSpy dataGroupSpy = new DataGroupSpy("spyType");
+		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
+		recordInfo.addChild(new DataAtomicSpy("", ""));
+
+		String id = "spyType";
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordStorage, dataGroupSpy);
+		// assertSame(recordTypeHandler.getRecordType(), dataGroupSpy);
+	}
+
+	// @Test
+	// public void testGetImplentingRecordTypesNoImplementing() {
+	// RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+	// .usingRecordStorageAndRecordTypeId(recordStorageLightSpy,
+	// defaultRecordTypeId);
+	// List<String> implementingRecordIds =
+	//
+	// }
+	// @Test
+	// public void testGetImplentingRecordTypes() {
+	// RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+	// .usingRecordStorageAndRecordTypeId(recordStorageLightSpy,
+	// "parentRecordTypeWithImplementingChildren");
+	//
+	// }
 }

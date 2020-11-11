@@ -60,6 +60,11 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		recordType = recordStorage.read(RECORD_TYPE, recordTypeId);
 	}
 
+	public static RecordTypeHandler usingRecordStorageAndDataGroup(RecordStorage recordStorage,
+			DataGroup dataGroup) {
+		return null;
+	}
+
 	@Override
 	public boolean isAbstract() {
 		String abstractInRecordTypeDefinition = getAbstractFromRecordTypeDefinition();
@@ -376,4 +381,5 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	public boolean hasRecordPartCreateConstraint() {
 		return !getRecordPartCreateWriteConstraints().isEmpty();
 	}
+
 }
