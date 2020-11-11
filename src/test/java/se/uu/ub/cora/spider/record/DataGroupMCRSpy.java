@@ -19,7 +19,9 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAttribute;
@@ -31,6 +33,7 @@ public class DataGroupMCRSpy implements DataGroup {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	// List, map? map med nameInData och värde? Behövs det?
 	public String atomicValueToReturn = "";
+	public Map<String, String> atomicValues = new HashMap<>();
 
 	@Override
 	public void setRepeatId(String repeatId) {
@@ -102,7 +105,9 @@ public class DataGroupMCRSpy implements DataGroup {
 	@Override
 	public String getFirstAtomicValueWithNameInData(String nameInData) {
 		MCR.addCall("nameInData", nameInData);
-		return atomicValueToReturn;
+		String returnValue = atomicValues.get(nameInData);
+		MCR.addReturned(returnValue);
+		return returnValue;
 	}
 
 	@Override

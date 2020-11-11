@@ -60,9 +60,14 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		recordType = recordStorage.read(RECORD_TYPE, recordTypeId);
 	}
 
+	public RecordTypeHandlerImp(RecordStorage recordStorage, DataGroup dataGroup) {
+		this.recordStorage = recordStorage;
+		recordType = dataGroup;
+	}
+
 	public static RecordTypeHandler usingRecordStorageAndDataGroup(RecordStorage recordStorage,
 			DataGroup dataGroup) {
-		return null;
+		return new RecordTypeHandlerImp(recordStorage, dataGroup);
 	}
 
 	@Override

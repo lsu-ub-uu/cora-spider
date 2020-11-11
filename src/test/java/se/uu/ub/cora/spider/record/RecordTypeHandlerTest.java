@@ -46,9 +46,11 @@ public class RecordTypeHandlerTest {
 	private String defaultRecordTypeId = "someRecordType";
 	private RecordTypeHandler recordTypeHandler;
 	private DataAttributeFactorySpy dataAttributeFactorySpy;
+	private RecordStorageMCRSpy recordStorageMCR;
 
 	@BeforeMethod
 	public void setUp() {
+		recordStorageMCR = new RecordStorageMCRSpy();
 		recordStorage = new OldRecordStorageSpy();
 		recordStorageLightSpy = new RecordStorageLightSpy();
 		dataAttributeFactorySpy = new DataAttributeFactorySpy();
@@ -56,41 +58,122 @@ public class RecordTypeHandlerTest {
 	}
 
 	@Test
-	public void testAbstract() {
-		String id = "abstract";
-		RecordStorageMCRSpy recordStorage = new RecordStorageMCRSpy();
+	public void testInitializeFromStorage() throws Exception {
+		RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorageMCR, "someId");
 
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, id);
-		boolean abstractValue = recordTypeHandler.isAbstract();
-		recordStorage.MCR.assertParameters("read", 0, "recordType", id);
-		DataGroupMCRSpy dataGroupMCR = (DataGroupMCRSpy) recordStorage.MCR.getReturnValue("read",
-				0);
+		recordStorageMCR.MCR.assertParameters("read", 0, "recordType", "someId");
+	}
+
+	@Test
+	public void testInitializeFromDataGroup() throws Exception {
+		DataGroupMCRSpy dataGroup = setupForAtomicValue("abstract", "true");
+		RecordTypeHandlerImp.usingRecordStorageAndDataGroup(recordStorageMCR, dataGroup);
+
+		recordStorageMCR.MCR.assertMethodNotCalled("read");
+	}
+
+	@Test
+	public void testAbstract() {
+		setupForStorageAtomicValue("abstract", "true");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorageMCR,
+				"someId");
+
+		DataGroupMCRSpy dataGroupMCR = getRecordTypeDataGroupReadFromStorage();
+		assertAbstract(dataGroupMCR, true);
+	}
+
+	private void assertAbstract(DataGroupMCRSpy dataGroupMCR, boolean expected) {
+		assertEquals(recordTypeHandler.isAbstract(), expected);
 		dataGroupMCR.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "abstract");
 	}
 
-	@Test
-	public void testNotAbstract() {
-		String id = "spyType";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, id);
-		assertFalse(recordTypeHandler.isAbstract());
+	private DataGroupMCRSpy getRecordTypeDataGroupReadFromStorage() {
+		DataGroupMCRSpy dataGroup = (DataGroupMCRSpy) recordStorageMCR.MCR.getReturnValue("read",
+				0);
+		return dataGroup;
+	}
+
+	private DataGroupMCRSpy setupForStorageAtomicValue(String nameInData, String value) {
+		recordStorageMCR.dataGroup = setupForAtomicValue(nameInData, value);
+		return recordStorageMCR.dataGroup;
+	}
+
+	private DataGroupMCRSpy setupForAtomicValue(String nameInData, String value) {
+		DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
+		dataGroup.atomicValues.put(nameInData, value);
+		return dataGroup;
 	}
 
 	@Test
-	public void testShouldAutogenerateId() {
-		String id = "spyType";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, id);
-		assertTrue(recordTypeHandler.shouldAutoGenerateId());
+	public void testAbstractFromDataGroup() {
+		DataGroupMCRSpy dataGroup = setupForAtomicValue("abstract", "true");
+
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(recordStorageMCR,
+				dataGroup);
+
+		assertAbstract(dataGroup, true);
 	}
 
 	@Test
-	public void testShouldNotAutogenerateId() {
-		String id = "otherType";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, id);
-		assertFalse(recordTypeHandler.shouldAutoGenerateId());
+	public void testAbstractIsFalse() {
+		setupForStorageAtomicValue("abstract", "false");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorageMCR,
+				"someId");
+
+		DataGroupMCRSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
+		assertAbstract(dataGroup, false);
+	}
+
+	@Test
+	public void testAbstractIsFalseFromDataGroup() {
+		DataGroupMCRSpy dataGroup = setupForAtomicValue("abstract", "false");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(recordStorageMCR,
+				dataGroup);
+
+		assertAbstract(dataGroup, false);
+	}
+
+	@Test
+	public void testShouldAutoGenerateId() {
+		setupForStorageAtomicValue("userSuppliedId", "false");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorageMCR,
+				"someId");
+
+		DataGroupMCRSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
+		assertShouldAutoGenerateId(dataGroup, true);
+	}
+
+	@Test
+	public void testShouldAutoGenerateIdFromDataGroup() {
+		DataGroupMCRSpy dataGroup = setupForAtomicValue("userSuppliedId", "false");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(recordStorageMCR,
+				dataGroup);
+
+		assertShouldAutoGenerateId(dataGroup, true);
+	}
+
+	private void assertShouldAutoGenerateId(DataGroupMCRSpy dataGroupMCR, boolean expected) {
+		assertEquals(recordTypeHandler.shouldAutoGenerateId(), expected);
+		dataGroupMCR.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "userSuppliedId");
+	}
+
+	@Test
+	public void testShouldAutoGenerateIdFalse() {
+		setupForStorageAtomicValue("userSuppliedId", "true");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorageMCR,
+				"someId");
+
+		DataGroupMCRSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
+		assertShouldAutoGenerateId(dataGroup, false);
+	}
+
+	@Test
+	public void testShouldAutoGenerateIdFalseFromDataGroup() {
+		DataGroupMCRSpy dataGroup = setupForAtomicValue("userSuppliedId", "true");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(recordStorageMCR,
+				dataGroup);
+
+		assertShouldAutoGenerateId(dataGroup, false);
 	}
 
 	@Test

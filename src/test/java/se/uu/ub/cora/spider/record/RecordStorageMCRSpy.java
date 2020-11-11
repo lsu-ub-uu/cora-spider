@@ -19,6 +19,8 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
@@ -27,13 +29,15 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageMCRSpy implements RecordStorage {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
-	DataGroupMCRSpy dataGroupMCRSpy = new DataGroupMCRSpy();
+	public Map<String, String> atomicValues = new HashMap<>();
+
+	public DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
 
 	@Override
 	public DataGroup read(String type, String id) {
 		MCR.addCall("type", type, "id", id);
-		MCR.addReturned(dataGroupMCRSpy);
-		return dataGroupMCRSpy;
+		MCR.addReturned(dataGroup);
+		return dataGroup;
 	}
 
 	@Override
