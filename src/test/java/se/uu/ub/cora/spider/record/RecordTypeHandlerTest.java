@@ -200,6 +200,30 @@ public class RecordTypeHandlerTest {
 		assertUsedLink(dataGroup, "newMetadataId", newMetadataId);
 	}
 
+	@Test
+	public void testGetMetadataId() {
+		setupForLinkForStorageWithNameInDataAndRecordId("metadataId", "someMetadataId");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorageMCR,
+				"someRecordId");
+
+		String metadataId = recordTypeHandler.getMetadataId();
+
+		DataGroupMCRSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
+		assertUsedLink(dataGroup, "metadataId", metadataId);
+	}
+
+	@Test
+	public void testGetMetadataIdFromDataGroup() {
+		DataGroupMCRSpy dataGroup = setupForLinkWithNameInDataAndRecordId("metadataId",
+				"someMetadataId");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(recordStorageMCR,
+				dataGroup);
+
+		String metadataId = recordTypeHandler.getMetadataId();
+
+		assertUsedLink(dataGroup, "metadataId", metadataId);
+	}
+
 	private void assertUsedLink(DataGroupMCRSpy topGroup, String linkNameInData,
 			String returnedLinkedRecordId) {
 		topGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, linkNameInData);
