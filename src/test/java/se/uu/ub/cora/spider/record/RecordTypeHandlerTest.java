@@ -295,18 +295,50 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testGetMetadataGroup() {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, "book");
+		RecordTypeHandler recordTypeHandler = setUpRecordTypeWithMetadataIdForStorage();
 		DataGroup metadataGroup = recordTypeHandler.getMetadataGroup();
-		assertSame(metadataGroup, recordStorage.readDataGroup);
+
+		recordStorageMCR.MCR.assertParameters("read", 0, "recordType", "someRecordTypeId");
+		recordStorageMCR.MCR.assertParameters("read", 1, "metadataGroup", "someMetadataId");
+
+		DataGroupMCRSpy returnValue = (DataGroupMCRSpy) recordStorageMCR.MCR.getReturnValue("read",
+				1);
+		assertSame(metadataGroup, returnValue);
+	}
+
+	private RecordTypeHandler setUpRecordTypeWithMetadataIdForStorage() {
+		setupForLinkForStorageWithNameInDataAndRecordId("metadataId", "someMetadataId");
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(recordStorageMCR, "someRecordTypeId");
+		return recordTypeHandler;
 	}
 
 	@Test
 	public void testGetMetadataGroupTwiceReturnsSameInstance() {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, "book");
+		RecordTypeHandler recordTypeHandler = setUpRecordTypeWithMetadataIdForStorage();
+
 		DataGroup metadataGroup = recordTypeHandler.getMetadataGroup();
-		assertSame(metadataGroup, recordStorage.readDataGroup);
+		assertEquals(recordStorageMCR.MCR.getNumberOfCallsToMethod("read"), 2);
+
+		DataGroup metadataGroup2 = recordTypeHandler.getMetadataGroup();
+		assertEquals(recordStorageMCR.MCR.getNumberOfCallsToMethod("read"), 2);
+		assertSame(metadataGroup, metadataGroup2);
+	}
+
+	@Test
+	public void testGetMetadataGroupFromDataGroup() {
+		DataGroupMCRSpy dataGroup = setupForLinkWithNameInDataAndRecordId("metadataId",
+				"someMetadataId");
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordStorageMCR, dataGroup);
+
+		DataGroup metadataGroup = recordTypeHandler.getMetadataGroup();
+
+		recordStorageMCR.MCR.assertParameters("read", 0, "metadataGroup", "someMetadataId");
+		DataGroupMCRSpy returnValue = (DataGroupMCRSpy) recordStorageMCR.MCR.getReturnValue("read",
+				0);
+		assertSame(metadataGroup, returnValue);
+
 		DataGroup metadataGroup2 = recordTypeHandler.getMetadataGroup();
 		assertSame(metadataGroup, metadataGroup2);
 	}
