@@ -34,6 +34,7 @@ public class DataGroupMCRSpy implements DataGroup {
 	// List, map? map med nameInData och värde? Behövs det?
 	public String atomicValueToReturn = "";
 	public Map<String, String> atomicValues = new HashMap<>();
+	public Map<String, DataGroupMCRSpy> groupValues = new HashMap<>();
 
 	@Override
 	public void setRepeatId(String repeatId) {
@@ -117,9 +118,12 @@ public class DataGroupMCRSpy implements DataGroup {
 	}
 
 	@Override
-	public DataGroup getFirstGroupWithNameInData(String childNameInData) {
-		// TODO Auto-generated method stub
-		return null;
+	public DataGroup getFirstGroupWithNameInData(String nameInData) {
+		MCR.addCall("nameInData", nameInData);
+		DataGroupMCRSpy returnValue = groupValues.get(nameInData);
+
+		MCR.addReturned(returnValue);
+		return returnValue;
 	}
 
 	@Override

@@ -178,34 +178,95 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testGetNewMetadataId() {
-		String id = "otherType";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, id);
-		assertEquals(recordTypeHandler.getNewMetadataId(), "otherTypeNew");
+		setupForLinkForStorageWithNameInDataAndRecordId("newMetadataId", "someNewMetadataId");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorageMCR,
+				"someRecordId");
+
+		String newMetadataId = recordTypeHandler.getNewMetadataId();
+
+		DataGroupMCRSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
+		assertUsedLink(dataGroup, "newMetadataId", newMetadataId);
+	}
+
+	@Test
+	public void testGetNewMetadataIdFromDataGroup() {
+		DataGroupMCRSpy dataGroup = setupForLinkWithNameInDataAndRecordId("newMetadataId",
+				"someNewMetadataId");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(recordStorageMCR,
+				dataGroup);
+
+		String newMetadataId = recordTypeHandler.getNewMetadataId();
+
+		assertUsedLink(dataGroup, "newMetadataId", newMetadataId);
+	}
+
+	private void assertUsedLink(DataGroupMCRSpy topGroup, String linkNameInData,
+			String returnedLinkedRecordId) {
+		topGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, linkNameInData);
+
+		DataGroupMCRSpy linkGroup = (DataGroupMCRSpy) topGroup.MCR
+				.getReturnValue("getFirstGroupWithNameInData", 0);
+		String linkedRecordIdFromSpy = (String) linkGroup.MCR
+				.getReturnValue("getFirstAtomicValueWithNameInData", 0);
+		assertEquals(returnedLinkedRecordId, linkedRecordIdFromSpy);
+	}
+
+	private void setupForLinkForStorageWithNameInDataAndRecordId(String linkNameInData,
+			String linkedRecordId) {
+		DataGroupMCRSpy dataGroup = setupForLinkWithNameInDataAndRecordId(linkNameInData,
+				linkedRecordId);
+		recordStorageMCR.dataGroup = dataGroup;
+	}
+
+	private DataGroupMCRSpy setupForLinkWithNameInDataAndRecordId(String linkNameInData,
+			String linkedRecordId) {
+		DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
+		DataGroupMCRSpy link = setupForAtomicValue("linkedRecordId", linkedRecordId);
+		dataGroup.groupValues.put(linkNameInData, link);
+		return dataGroup;
 	}
 
 	@Test
 	public void testPublic() {
-		String id = "public";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, id);
-		assertTrue(recordTypeHandler.isPublicForRead());
+		setupForStorageAtomicValue("public", "true");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorageMCR,
+				"someId");
+
+		DataGroupMCRSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
+		assertIsPublicForRead(dataGroup, true);
+	}
+
+	private void assertIsPublicForRead(DataGroupMCRSpy dataGroupMCR, boolean expected) {
+		assertEquals(recordTypeHandler.isPublicForRead(), expected);
+		dataGroupMCR.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "public");
 	}
 
 	@Test
-	public void testNotPublic() {
-		String id = "notPublic";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, id);
-		assertFalse(recordTypeHandler.isPublicForRead());
+	public void testPublicFromDataGroup() {
+		DataGroupMCRSpy dataGroup = setupForAtomicValue("public", "true");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(recordStorageMCR,
+				dataGroup);
+
+		assertIsPublicForRead(dataGroup, true);
 	}
 
 	@Test
-	public void testPublicMissing() {
-		String id = "publicMissing";
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, id);
-		assertFalse(recordTypeHandler.isPublicForRead());
+	public void testPublicFalse() {
+		setupForStorageAtomicValue("public", "false");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorageMCR,
+				"someId");
+
+		DataGroupMCRSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
+		assertIsPublicForRead(dataGroup, false);
+	}
+
+	@Test
+	public void testPublicFalseFromDataGroup() {
+		DataGroupMCRSpy dataGroup = setupForAtomicValue("public", "false");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(recordStorageMCR,
+				dataGroup);
+
+		assertIsPublicForRead(dataGroup, false);
 	}
 
 	@Test

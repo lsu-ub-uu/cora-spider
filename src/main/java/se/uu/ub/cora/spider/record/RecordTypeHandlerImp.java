@@ -122,11 +122,8 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	@Override
 	public boolean isPublicForRead() {
-		if (recordType.containsChildWithNameInData("public")) {
-			String isPublic = recordType.getFirstAtomicValueWithNameInData("public");
-			return "true".equals(isPublic);
-		}
-		return false;
+		String isPublic = recordType.getFirstAtomicValueWithNameInData("public");
+		return "true".equals(isPublic);
 	}
 
 	@Override
