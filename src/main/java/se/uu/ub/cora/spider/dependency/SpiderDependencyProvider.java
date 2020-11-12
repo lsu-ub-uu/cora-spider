@@ -221,4 +221,9 @@ public abstract class SpiderDependencyProvider {
 		return RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorage, recordTypeId);
 	}
 
+	public String getInitInfoValueUsingKey(String key) {
+		ensureKeyExistsInInitInfo(key);
+		return initInfo.get(key);
+	}
+
 }

@@ -307,4 +307,17 @@ public class SpiderDependencyProviderTest {
 		assertTrue(recordPartFilter instanceof DataRedactorImp);
 	}
 
+	@Test
+	public void testGetValueFromInitInfo() {
+		String key = "foundKey";
+		String value = dependencyProvider.getInitInfoValueUsingKey(key);
+		assertEquals(value, "someValue");
+	}
+
+	@Test(expectedExceptions = SpiderInitializationException.class)
+	public void testGetValueFromInitInfoKeyDoesNotExist() {
+		String key = "NOTfoundKey";
+		dependencyProvider.getInitInfoValueUsingKey(key);
+	}
+
 }
