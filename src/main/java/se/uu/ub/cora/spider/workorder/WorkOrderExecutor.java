@@ -109,7 +109,7 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 	private void sendToIndex(DataGroup collectedTerms, DataGroup dataToIndex) {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordStorage, recordTypeToIndex);
-		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordIdToIndex);
+		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordIdToIndex);
 		recordIndexer.indexData(ids, collectedTerms, dataToIndex);
 	}
 

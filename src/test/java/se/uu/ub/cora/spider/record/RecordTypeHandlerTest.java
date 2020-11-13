@@ -59,17 +59,34 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testInitializeFromStorage() throws Exception {
-		RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorageMCR, "someId");
+		RecordTypeHandlerImp recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(recordStorageMCR, "someId");
 
 		recordStorageMCR.MCR.assertParameters("read", 0, "recordType", "someId");
+		assertEquals(recordTypeHandler.getRecordTypeId(), "someId");
 	}
 
 	@Test
 	public void testInitializeFromDataGroup() throws Exception {
-		DataGroupMCRSpy dataGroup = setupForAtomicValue("abstract", "true");
-		RecordTypeHandlerImp.usingRecordStorageAndDataGroup(recordStorageMCR, dataGroup);
+		DataGroupMCRSpy dataGroup = createTopDataGroup();
+
+		RecordTypeHandlerImp recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordStorageMCR, dataGroup);
 
 		recordStorageMCR.MCR.assertMethodNotCalled("read");
+		DataGroupMCRSpy recordInfoGroup = (DataGroupMCRSpy) dataGroup.MCR
+				.getReturnValue("getFirstGroupWithNameInData", 0);
+		String idFromSpy = (String) recordInfoGroup.MCR
+				.getReturnValue("getFirstAtomicValueWithNameInData", 0);
+		assertEquals(recordTypeHandler.getRecordTypeId(), idFromSpy);
+	}
+
+	private DataGroupMCRSpy createTopDataGroup() {
+		DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
+		DataGroupMCRSpy recordInfoGroup = new DataGroupMCRSpy();
+		recordInfoGroup.atomicValues.put("id", "recordIdFromSpy");
+		dataGroup.groupValues.put("recordInfo", recordInfoGroup);
+		return dataGroup;
 	}
 
 	@Test
@@ -341,6 +358,37 @@ public class RecordTypeHandlerTest {
 
 		DataGroup metadataGroup2 = recordTypeHandler.getMetadataGroup();
 		assertSame(metadataGroup, metadataGroup2);
+	}
+
+	@Test
+	public void testCreateListOfIndexIdsPossiblyIncludingParentNoParent() {
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(recordStorageMCR, "someRecordType");
+		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId("someRecordTypeId");
+		assertEquals(ids.size(), 1);
+		assertEquals(ids.get(0), "someRecordType_someRecordTypeId");
+	}
+
+	@Test
+	public void testCreateListOfIndexIdsPossiblyIncludingParentWithParent() {
+		setupForLinkForStorageWithNameInDataAndRecordId("parentId", "parentRecordType");
+
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(recordStorageMCR, "someRecordType");
+		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId("someRecordTypeId");
+		assertEquals(ids.size(), 2);
+		assertEquals(ids.get(0), "someRecordType_someRecordTypeId");
+		assertEquals(ids.get(1), "parentRecordType_someRecordTypeId");
+	}
+
+	@Test
+	public void testCreateListOfIndexIdsPossiblyIncludingParentFromDataGroupNoParent() {
+		DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordStorageMCR, dataGroup);
+		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId("someRecordTypeId");
+		assertEquals(ids.size(), 1);
+		assertEquals(ids.get(0), "someRecordType_someRecordTypeId");
 	}
 
 	@Test

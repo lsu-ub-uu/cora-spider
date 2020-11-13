@@ -119,7 +119,24 @@ public interface RecordTypeHandler {
 	 */
 	DataGroup getMetadataGroup();
 
-	List<String> createListOfPossibleIdsToThisRecord(String recordId);
+	/**
+	 * getCombinedIdsUsingRecordId returns a list of combined ids for a specified recordId based on
+	 * the recordType the recordTypeHandler currently handles. The returned list will contain two
+	 * ids if the recordType has an abstract parent and only one if the recordType does not have a
+	 * parent.<br>
+	 * <br>
+	 * The ids are a combination of the current recordTypes id and the entered recordId, for
+	 * example:<br>
+	 * the recordTypeHandler is currently used to handle the recordType metadataGroup and an id
+	 * "someGroupId" is entered, the generated ids will be:<br>
+	 * metadataGroup_someGroupId<br>
+	 * metadata_someGroupId
+	 * 
+	 * @param recordId
+	 *            A String with the recordId to get a list of combined ids for
+	 * @return A List of combined recordIds using the format recordTypeId_recordId
+	 */
+	List<String> getCombinedIdsUsingRecordId(String recordId);
 
 	/**
 	 * isPublicForRead is used to check if the record has been marked as PublicForRead which implies

@@ -309,7 +309,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void indexData(DataGroup collectedTerms) {
-		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
+		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
 		recordIndexer.indexData(ids, collectedTerms, topDataGroup);
 	}
 

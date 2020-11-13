@@ -250,7 +250,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms);
 
-		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
+		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
 		recordIndexer.indexData(ids, collectedTerms, recordAsDataGroup);
 	}
 

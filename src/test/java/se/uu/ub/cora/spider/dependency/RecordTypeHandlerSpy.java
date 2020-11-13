@@ -110,7 +110,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public List<String> createListOfPossibleIdsToThisRecord(String recordId) {
+	public List<String> getCombinedIdsUsingRecordId(String recordId) {
 		MCR.addCall("recordId", recordId);
 		List<String> fakeList = new ArrayList<>();
 		fakeList.add("fakeIdFromRecordTypeHandlerSpy");

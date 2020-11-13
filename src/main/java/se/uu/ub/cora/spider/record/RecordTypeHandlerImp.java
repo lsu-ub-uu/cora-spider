@@ -63,9 +63,11 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	public RecordTypeHandlerImp(RecordStorage recordStorage, DataGroup dataGroup) {
 		this.recordStorage = recordStorage;
 		recordType = dataGroup;
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		recordTypeId = recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
-	public static RecordTypeHandler usingRecordStorageAndDataGroup(RecordStorage recordStorage,
+	public static RecordTypeHandlerImp usingRecordStorageAndDataGroup(RecordStorage recordStorage,
 			DataGroup dataGroup) {
 		return new RecordTypeHandlerImp(recordStorage, dataGroup);
 	}
@@ -99,7 +101,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public List<String> createListOfPossibleIdsToThisRecord(String recordId) {
+	public List<String> getCombinedIdsUsingRecordId(String recordId) {
 		List<String> ids = new ArrayList<>();
 		ids.add(recordTypeId + "_" + recordId);
 		possiblyCreateIdForAbstractType(recordId, recordType, ids);
