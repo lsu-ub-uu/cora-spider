@@ -262,7 +262,7 @@ public class SpiderRecordCreatorTest {
 		DataGroup createdRecord = ((OldRecordStorageSpy) recordStorage).createRecord;
 
 		List<String> ids = (List<String>) recordTypeHandlerSpy.MCR
-				.getReturnValue("createListOfPossibleIdsToThisRecord", 0);
+				.getReturnValue("getCombinedIdsUsingRecordId", 0);
 		DataGroup collectedTerms = (DataGroup) termCollector.MCR.getReturnValue("collectTerms", 0);
 		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectedTerms, createdRecord);
 	}
