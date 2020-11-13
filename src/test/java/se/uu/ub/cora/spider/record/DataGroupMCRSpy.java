@@ -62,9 +62,11 @@ public class DataGroupMCRSpy implements DataGroup {
 
 	@Override
 	public boolean containsChildWithNameInData(String nameInData) {
-		return groupValues.containsKey(nameInData) || atomicValues.containsKey(nameInData);
-		// TODO Auto-generated method stub
-		// return false;
+		MCR.addCall("nameInData", nameInData);
+		boolean returnValue = groupValues.containsKey(nameInData)
+				|| atomicValues.containsKey(nameInData);
+		MCR.addReturned(returnValue);
+		return returnValue;
 	}
 
 	@Override
