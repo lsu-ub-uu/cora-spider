@@ -219,4 +219,17 @@ public interface RecordTypeHandler {
 	 */
 	Set<Constraint> getRecordPartCreateWriteConstraints();
 
+	/**
+	 * getImplementingRecordTypeHandlers should return a List of {@link RecordTypeHandler} for all
+	 * recordTypes that has the recordType that this recordTypeHandler handles as its parent.<br>
+	 * If this recordType is an implementing type or a type without a parent should an empty list be
+	 * returned. If this recordType is abstract but no implementing recordTypes exist should an
+	 * empty list be returned. If this recordType is abstract and implementing recordTypes exists,
+	 * should a list of the recordTypeHandlers for the implementing recordTypes be returned.
+	 * 
+	 * @return a list with RecordTypeHandlers representing recordTypes that implements the current
+	 *         recordType
+	 */
+	List<RecordTypeHandler> getImplementingRecordTypeHandlers();
+
 }

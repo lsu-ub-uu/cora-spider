@@ -38,6 +38,7 @@ import se.uu.ub.cora.spider.record.RecordTypeHandler;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 import se.uu.ub.cora.storage.RecordIdGenerator;
+import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 
 public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
@@ -61,6 +62,7 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public Map<String, RecordTypeHandlerSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	private RecordStorage recordStorage;
 
 	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
 		super(initInfo);

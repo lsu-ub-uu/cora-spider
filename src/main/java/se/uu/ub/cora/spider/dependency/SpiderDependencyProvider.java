@@ -51,6 +51,8 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityInitializer;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
+import se.uu.ub.cora.spider.record.RecordTypeHandlerFactory;
+import se.uu.ub.cora.spider.record.RecordTypeHandlerFactoryImp;
 import se.uu.ub.cora.spider.record.RecordTypeHandlerImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.storage.MetadataStorage;
@@ -218,7 +220,10 @@ public abstract class SpiderDependencyProvider {
 
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
 		RecordStorage recordStorage = getRecordStorage();
-		return RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorage, recordTypeId);
+		RecordTypeHandlerFactory recordTypeHandlerFactory = new RecordTypeHandlerFactoryImp(
+				recordStorage);
+		return RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordTypeHandlerFactory,
+				recordStorage, recordTypeId);
 	}
 
 	public String getInitInfoValueUsingKey(String key) {

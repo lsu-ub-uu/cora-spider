@@ -16,25 +16,11 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.data;
+package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupFactory;
 
-public class DataGroupFactorySpy implements DataGroupFactory {
+public interface RecordTypeHandlerFactory {
 
-	public DataGroupSpy returnedDataGroup;
-
-	@Override
-	public DataGroup factorUsingNameInData(String nameInData) {
-		returnedDataGroup = new DataGroupSpy(nameInData);
-		return returnedDataGroup;
-	}
-
-	@Override
-	public DataGroup factorAsLinkWithNameInDataTypeAndId(String nameInData, String recordType,
-			String recordId) {
-		return new DataGroupSpy(nameInData, recordType, recordId);
-	}
-
+	RecordTypeHandler factorUsingDataGroup(DataGroup dataGroup);
 }

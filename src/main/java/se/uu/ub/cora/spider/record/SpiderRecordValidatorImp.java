@@ -85,7 +85,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 
 	private String getMetadataIdForWorkOrder(String recordType) {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+				.usingRecordStorageAndRecordTypeId(null, recordStorage, recordType);
 		return recordTypeHandler.getNewMetadataId();
 	}
 
@@ -172,7 +172,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 
 	private String getMetadataId(String recordTypeToValidate) {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, recordTypeToValidate);
+				.usingRecordStorageAndRecordTypeId(null, recordStorage, recordTypeToValidate);
 		return validateNew() ? recordTypeHandler.getNewMetadataId()
 				: recordTypeHandler.getMetadataId();
 	}

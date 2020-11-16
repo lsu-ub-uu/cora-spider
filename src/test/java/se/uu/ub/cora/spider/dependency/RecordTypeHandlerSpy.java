@@ -247,4 +247,10 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		return writeStringConstraints;
 	}
 
+	@Override
+	public List<RecordTypeHandler> getImplementingRecordTypeHandlers() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

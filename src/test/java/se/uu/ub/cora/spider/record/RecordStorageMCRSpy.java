@@ -18,8 +18,10 @@
  */
 package se.uu.ub.cora.spider.record;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.data.DataGroup;
@@ -32,6 +34,7 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	public Map<String, String> atomicValues = new HashMap<>();
 
 	public DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
+	public List<DataGroup> dataGroups = new ArrayList<>();
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -68,8 +71,16 @@ public class RecordStorageMCRSpy implements RecordStorage {
 
 	@Override
 	public StorageReadResult readList(String type, DataGroup filter) {
-		// TODO Auto-generated method stub
-		return null;
+		MCR.addCall("type", type, "filter", filter);
+		StorageReadResult result = new StorageReadResult();
+		result.listOfDataGroups = dataGroups;
+		return result;
+	}
+
+	public void createThreeFakeGroupsInAnswerToList() {
+		dataGroups.add(new DataGroupMCRSpy("parentId1"));
+		dataGroups.add(new DataGroupMCRSpy("parentId2"));
+		dataGroups.add(new DataGroupMCRSpy("parentId3"));
 	}
 
 	@Override

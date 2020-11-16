@@ -31,10 +31,17 @@ import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class DataGroupMCRSpy implements DataGroup {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
-	// List, map? map med nameInData och värde? Behövs det?
 	public String atomicValueToReturn = "";
 	public Map<String, String> atomicValues = new HashMap<>();
 	public Map<String, DataGroupMCRSpy> groupValues = new HashMap<>();
+	private String nameInData;
+
+	public DataGroupMCRSpy() {
+	}
+
+	public DataGroupMCRSpy(String nameInData) {
+		this.nameInData = nameInData;
+	}
 
 	@Override
 	public void setRepeatId(String repeatId) {
@@ -50,8 +57,7 @@ public class DataGroupMCRSpy implements DataGroup {
 
 	@Override
 	public String getNameInData() {
-		// TODO Auto-generated method stub
-		return null;
+		return nameInData;
 	}
 
 	@Override

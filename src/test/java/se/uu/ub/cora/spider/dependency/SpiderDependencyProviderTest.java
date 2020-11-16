@@ -48,6 +48,8 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.extendedfunctionality.internal.FactorySorterImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
+import se.uu.ub.cora.spider.record.RecordTypeHandlerFactory;
+import se.uu.ub.cora.spider.record.RecordTypeHandlerFactoryImp;
 import se.uu.ub.cora.spider.record.RecordTypeHandlerImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.storage.MetadataStorageProvider;
@@ -299,6 +301,10 @@ public class SpiderDependencyProviderTest {
 		assertEquals(recordTypeHandler.getRecordTypeId(), recordTypeId);
 		assertTrue(recordTypeHandler.getRecordStorage() instanceof RecordStorage);
 		assertSame(recordStorageProvider.getRecordStorage(), recordTypeHandler.getRecordStorage());
+		RecordTypeHandlerFactoryImp recordTypeHandlerFactory = (RecordTypeHandlerFactoryImp) recordTypeHandler
+				.getRecordTypeHandlerFactory();
+		assertTrue(recordTypeHandlerFactory instanceof RecordTypeHandlerFactory);
+		assertSame(recordTypeHandlerFactory.getStorage(), recordTypeHandler.getRecordStorage());
 	}
 
 	@Test

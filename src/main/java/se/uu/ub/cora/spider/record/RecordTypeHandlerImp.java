@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.record;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,8 +29,10 @@ import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.data.DataAttribute;
 import se.uu.ub.cora.data.DataAttributeProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.StorageReadResult;
 
 public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private static final String NAME_IN_DATA = "nameInData";
@@ -48,28 +51,35 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private Set<Constraint> writeConstraints = new HashSet<>();
 	private boolean constraintsForUpdateLoaded = false;
 	private boolean constraintsForCreateLoaded = false;
+	private RecordTypeHandlerFactory recordTypeHandlerFactory;
 
 	public static RecordTypeHandlerImp usingRecordStorageAndRecordTypeId(
-			RecordStorage recordStorage, String recordTypeId) {
-		return new RecordTypeHandlerImp(recordStorage, recordTypeId);
+			RecordTypeHandlerFactory recordTypeHandlerFactory, RecordStorage recordStorage,
+			String recordTypeId) {
+		return new RecordTypeHandlerImp(recordTypeHandlerFactory, recordStorage, recordTypeId);
 	}
 
-	private RecordTypeHandlerImp(RecordStorage recordStorage, String recordTypeId) {
+	private RecordTypeHandlerImp(RecordTypeHandlerFactory recordTypeHandlerFactory,
+			RecordStorage recordStorage, String recordTypeId) {
+		this.recordTypeHandlerFactory = recordTypeHandlerFactory;
 		this.recordStorage = recordStorage;
 		this.recordTypeId = recordTypeId;
 		recordType = recordStorage.read(RECORD_TYPE, recordTypeId);
 	}
 
-	public RecordTypeHandlerImp(RecordStorage recordStorage, DataGroup dataGroup) {
+	private RecordTypeHandlerImp(RecordTypeHandlerFactory recordTypeHandlerFactory,
+			RecordStorage recordStorage, DataGroup dataGroup) {
+		this.recordTypeHandlerFactory = recordTypeHandlerFactory;
 		this.recordStorage = recordStorage;
 		recordType = dataGroup;
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		recordTypeId = recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
-	public static RecordTypeHandlerImp usingRecordStorageAndDataGroup(RecordStorage recordStorage,
+	public static RecordTypeHandlerImp usingRecordStorageAndDataGroup(
+			RecordTypeHandlerFactory recordTypeHandlerFactory, RecordStorage recordStorage,
 			DataGroup dataGroup) {
-		return new RecordTypeHandlerImp(recordStorage, dataGroup);
+		return new RecordTypeHandlerImp(recordTypeHandlerFactory, recordStorage, dataGroup);
 	}
 
 	@Override
@@ -384,6 +394,45 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	@Override
 	public boolean hasRecordPartCreateConstraint() {
 		return !getRecordPartCreateWriteConstraints().isEmpty();
+	}
+
+	@Override
+	public List<RecordTypeHandler> getImplementingRecordTypeHandlers() {
+		if (isAbstract()) {
+			return createListOfImplementingRecordTypeHandlers();
+		}
+		return Collections.emptyList();
+	}
+
+	private List<RecordTypeHandler> createListOfImplementingRecordTypeHandlers() {
+		List<RecordTypeHandler> list = new ArrayList<>();
+		StorageReadResult recordTypeList = getRecordTypeListFromStorage();
+		for (DataGroup dataGroup : recordTypeList.listOfDataGroups) {
+			addIfChildToCurrent(list, dataGroup);
+		}
+		return list;
+	}
+
+	private StorageReadResult getRecordTypeListFromStorage() {
+		return recordStorage.readList(RECORD_TYPE,
+				DataGroupProvider.getDataGroupUsingNameInData("filter"));
+	}
+
+	private void addIfChildToCurrent(List<RecordTypeHandler> list, DataGroup dataGroup) {
+		RecordTypeHandler recordTypeHandler = recordTypeHandlerFactory
+				.factorUsingDataGroup(dataGroup);
+		if (currentRecordTypeIsParentTo(recordTypeHandler)) {
+			list.add(recordTypeHandler);
+		}
+	}
+
+	private boolean currentRecordTypeIsParentTo(RecordTypeHandler recordTypeHandler) {
+		return recordTypeHandler.hasParent()
+				&& recordTypeHandler.getParentId().equals(recordTypeId);
+	}
+
+	public RecordTypeHandlerFactory getRecordTypeHandlerFactory() {
+		return recordTypeHandlerFactory;
 	}
 
 }
