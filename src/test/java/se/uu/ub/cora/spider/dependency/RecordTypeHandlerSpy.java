@@ -253,4 +253,10 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		return null;
 	}
 
+	@Override
+	public String getRecordTypeId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

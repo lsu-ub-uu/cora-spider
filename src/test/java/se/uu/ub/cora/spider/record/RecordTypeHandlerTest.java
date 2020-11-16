@@ -62,7 +62,7 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testInitializeFromStorage() throws Exception {
-		RecordTypeHandlerImp recordTypeHandler = RecordTypeHandlerImp
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(null, recordStorage, "someId");
 
 		recordStorage.MCR.assertParameters("read", 0, "recordType", "someId");
@@ -73,7 +73,7 @@ public class RecordTypeHandlerTest {
 	public void testInitializeFromDataGroup() throws Exception {
 		DataGroupMCRSpy dataGroup = createTopDataGroup();
 
-		RecordTypeHandlerImp recordTypeHandler = RecordTypeHandlerImp
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndDataGroup(null, recordStorage, dataGroup);
 
 		recordStorage.MCR.assertMethodNotCalled("read");
@@ -89,7 +89,7 @@ public class RecordTypeHandlerTest {
 	}
 
 	private void assertRecordTypeIdFetchedFromEnteredData(DataGroupMCRSpy dataGroup,
-			RecordTypeHandlerImp recordTypeHandler) {
+			RecordTypeHandler recordTypeHandler) {
 		DataGroupMCRSpy recordInfoGroup = (DataGroupMCRSpy) dataGroup.MCR
 				.getReturnValue("getFirstGroupWithNameInData", 0);
 		String idFromSpy = (String) recordInfoGroup.MCR
@@ -1028,7 +1028,7 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testGetImplentingRecordTypesNotAbstract() {
-		RecordTypeHandlerImp recordTypeHandler = RecordTypeHandlerImp
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(null, recordStorage, "someId");
 
 		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler.getImplementingRecordTypeHandlers();
@@ -1051,7 +1051,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testGetImplentingRecordTypesAbstractButNoImplementingChildren() {
 		setupForStorageAtomicValue("abstract", "true");
-		RecordTypeHandlerImp recordTypeHandler = RecordTypeHandlerImp
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(null, recordStorage, "someId");
 
 		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler.getImplementingRecordTypeHandlers();
@@ -1086,7 +1086,7 @@ public class RecordTypeHandlerTest {
 		setupForStorageAtomicValue("abstract", "true");
 		recordStorage.createThreeFakeGroupsInAnswerToList();
 		createHandlersInFactory();
-		RecordTypeHandlerImp recordTypeHandler = RecordTypeHandlerImp
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordTypeHandlerFactory, recordStorage,
 						"someId");
 

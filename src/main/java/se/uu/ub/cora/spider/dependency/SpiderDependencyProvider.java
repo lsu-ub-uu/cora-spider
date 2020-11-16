@@ -86,7 +86,7 @@ public abstract class SpiderDependencyProvider {
 		}
 	}
 
-	private void initializeExtendedFunctionality() {
+	protected void initializeExtendedFunctionality() {
 		ExtendedFunctionalityInitializer initializer = new ExtendedFunctionalityInitializer(this);
 		extendedFunctionalityProvider = initializer.getExtendedFunctionalityProvider();
 	}

@@ -232,4 +232,11 @@ public interface RecordTypeHandler {
 	 */
 	List<RecordTypeHandler> getImplementingRecordTypeHandlers();
 
+	/**
+	 * getRecordTypeId returns the id of the recordType handled by the RecordTypeHandler
+	 * 
+	 * @return recordTypeId as a String
+	 */
+	String getRecordTypeId();
+
 }

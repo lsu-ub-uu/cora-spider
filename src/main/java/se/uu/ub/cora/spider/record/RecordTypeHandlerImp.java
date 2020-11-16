@@ -53,7 +53,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private boolean constraintsForCreateLoaded = false;
 	private RecordTypeHandlerFactory recordTypeHandlerFactory;
 
-	public static RecordTypeHandlerImp usingRecordStorageAndRecordTypeId(
+	public static RecordTypeHandler usingRecordStorageAndRecordTypeId(
 			RecordTypeHandlerFactory recordTypeHandlerFactory, RecordStorage recordStorage,
 			String recordTypeId) {
 		return new RecordTypeHandlerImp(recordTypeHandlerFactory, recordStorage, recordTypeId);
@@ -76,7 +76,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		recordTypeId = recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
-	public static RecordTypeHandlerImp usingRecordStorageAndDataGroup(
+	public static RecordTypeHandler usingRecordStorageAndDataGroup(
 			RecordTypeHandlerFactory recordTypeHandlerFactory, RecordStorage recordStorage,
 			DataGroup dataGroup) {
 		return new RecordTypeHandlerImp(recordTypeHandlerFactory, recordStorage, dataGroup);
@@ -278,6 +278,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return writeConstraints;
 	}
 
+	@Override
 	public String getRecordTypeId() {
 		// needed for test
 		return recordTypeId;
