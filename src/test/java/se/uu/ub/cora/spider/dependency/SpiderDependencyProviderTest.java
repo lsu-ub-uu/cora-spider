@@ -19,6 +19,8 @@
 package se.uu.ub.cora.spider.dependency;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
@@ -92,10 +94,28 @@ public class SpiderDependencyProviderTest {
 		assertEquals(dependencyProvider.getInitInfoFromParent("foundKey"), "someValue");
 	}
 
+	// @Test
+	// public void testGetExtendedFunctionalityProviderSetOnInit() throws Exception {
+	// ExtendedFunctionalityProviderImp extendedFunctionalityProvider =
+	// (ExtendedFunctionalityProviderImp) dependencyProvider
+	// .getExtendedFunctionalityProvider();
+	//
+	// FactorySorterImp factorySorterNeededForTest = (FactorySorterImp)
+	// extendedFunctionalityProvider
+	// .getFactorySorterNeededForTest();
+	// assertSame(factorySorterNeededForTest.getDependencyProvider(), dependencyProvider);
+	// }
 	@Test
-	public void testGetExtendedFunctionalityProviderSetOnInit() throws Exception {
+	public void testGetExtendedFunctionalityProviderStartedOnCall() throws Exception {
 		ExtendedFunctionalityProviderImp extendedFunctionalityProvider = (ExtendedFunctionalityProviderImp) dependencyProvider
 				.getExtendedFunctionalityProvider();
+
+		assertNull(dependencyProvider.getExtendedFunctionalityProvider());
+		dependencyProvider.initializeExtendedFunctionality();
+
+		extendedFunctionalityProvider = (ExtendedFunctionalityProviderImp) dependencyProvider
+				.getExtendedFunctionalityProvider();
+		assertNotNull(dependencyProvider.getExtendedFunctionalityProvider());
 
 		FactorySorterImp factorySorterNeededForTest = (FactorySorterImp) extendedFunctionalityProvider
 				.getFactorySorterNeededForTest();

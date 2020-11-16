@@ -78,7 +78,6 @@ public abstract class SpiderDependencyProvider {
 		readInitInfo();
 		try {
 			tryToInitialize();
-			initializeExtendedFunctionality();
 		} catch (InvocationTargetException e) {
 			throw new RuntimeException(createInvocationErrorExceptionMessage(e), e);
 		} catch (Exception e) {
@@ -86,7 +85,7 @@ public abstract class SpiderDependencyProvider {
 		}
 	}
 
-	protected void initializeExtendedFunctionality() {
+	public void initializeExtendedFunctionality() {
 		ExtendedFunctionalityInitializer initializer = new ExtendedFunctionalityInitializer(this);
 		extendedFunctionalityProvider = initializer.getExtendedFunctionalityProvider();
 	}
