@@ -28,8 +28,8 @@ import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 
 public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		implements SpiderRecordDeleter {
@@ -42,8 +42,10 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	private DataGroupTermCollector collectTermCollector;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private DataGroup dataGroupReadFromStorage;
+	private SpiderDependencyProvider dependencyProvider;
 
 	private SpiderRecordDeleterImp(SpiderDependencyProvider dependencyProvider) {
+		this.dependencyProvider = dependencyProvider;
 		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
@@ -94,7 +96,7 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 
 	private String getMetadataIdFromRecordType(String recordType) {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(recordStorage, recordType);
+				.usingRecordStorageAndRecordTypeId(null, recordStorage, recordType);
 		return recordTypeHandler.getMetadataId();
 	}
 
@@ -136,6 +138,10 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		for (ExtendedFunctionality extendedFunctionality : functionalityBeforeDelete) {
 			extendedFunctionality.useExtendedFunctionality(authToken, readDataGroup);
 		}
+	}
+
+	public SpiderDependencyProvider getDependencyProvider() {
+		return dependencyProvider;
 	}
 
 }

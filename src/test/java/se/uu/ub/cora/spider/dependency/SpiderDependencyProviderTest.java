@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, 2019 Uppsala University Library
+ * Copyright 2018, 2019, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,6 +19,8 @@
 package se.uu.ub.cora.spider.dependency;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
@@ -43,8 +45,13 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderImp;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.FactorySorterImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
+import se.uu.ub.cora.spider.record.RecordTypeHandlerFactory;
+import se.uu.ub.cora.spider.record.RecordTypeHandlerFactoryImp;
 import se.uu.ub.cora.spider.record.RecordTypeHandlerImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.storage.MetadataStorageProvider;
@@ -85,6 +92,34 @@ public class SpiderDependencyProviderTest {
 	@Test
 	public void testInitInfoIsSetOnStartup() {
 		assertEquals(dependencyProvider.getInitInfoFromParent("foundKey"), "someValue");
+	}
+
+	// @Test
+	// public void testGetExtendedFunctionalityProviderSetOnInit() throws Exception {
+	// ExtendedFunctionalityProviderImp extendedFunctionalityProvider =
+	// (ExtendedFunctionalityProviderImp) dependencyProvider
+	// .getExtendedFunctionalityProvider();
+	//
+	// FactorySorterImp factorySorterNeededForTest = (FactorySorterImp)
+	// extendedFunctionalityProvider
+	// .getFactorySorterNeededForTest();
+	// assertSame(factorySorterNeededForTest.getDependencyProvider(), dependencyProvider);
+	// }
+	@Test
+	public void testGetExtendedFunctionalityProviderStartedOnCall() throws Exception {
+		ExtendedFunctionalityProviderImp extendedFunctionalityProvider = (ExtendedFunctionalityProviderImp) dependencyProvider
+				.getExtendedFunctionalityProvider();
+
+		assertNull(dependencyProvider.getExtendedFunctionalityProvider());
+		dependencyProvider.initializeExtendedFunctionality();
+
+		extendedFunctionalityProvider = (ExtendedFunctionalityProviderImp) dependencyProvider
+				.getExtendedFunctionalityProvider();
+		assertNotNull(dependencyProvider.getExtendedFunctionalityProvider());
+
+		FactorySorterImp factorySorterNeededForTest = (FactorySorterImp) extendedFunctionalityProvider
+				.getFactorySorterNeededForTest();
+		assertSame(factorySorterNeededForTest.getDependencyProvider(), dependencyProvider);
 	}
 
 	@Test
@@ -154,6 +189,15 @@ public class SpiderDependencyProviderTest {
 		dependencyProvider.setRecordIdGeneratorProvider(recordIdGeneratorProvider);
 		assertEquals(dependencyProvider.getRecordIdGenerator(),
 				recordIdGeneratorProvider.getRecordIdGenerator());
+	}
+
+	@Test
+	public void testExtendedFunctionalityProviderReturnsSame() throws Exception {
+		ExtendedFunctionalityProvider extendedFunctionalityProvider1 = dependencyProvider
+				.getExtendedFunctionalityProvider();
+		ExtendedFunctionalityProvider extendedFunctionalityProvider2 = dependencyProvider
+				.getExtendedFunctionalityProvider();
+		assertSame(extendedFunctionalityProvider1, extendedFunctionalityProvider2);
 	}
 
 	@Test
@@ -277,12 +321,29 @@ public class SpiderDependencyProviderTest {
 		assertEquals(recordTypeHandler.getRecordTypeId(), recordTypeId);
 		assertTrue(recordTypeHandler.getRecordStorage() instanceof RecordStorage);
 		assertSame(recordStorageProvider.getRecordStorage(), recordTypeHandler.getRecordStorage());
+		RecordTypeHandlerFactoryImp recordTypeHandlerFactory = (RecordTypeHandlerFactoryImp) recordTypeHandler
+				.getRecordTypeHandlerFactory();
+		assertTrue(recordTypeHandlerFactory instanceof RecordTypeHandlerFactory);
+		assertSame(recordTypeHandlerFactory.getStorage(), recordTypeHandler.getRecordStorage());
 	}
 
 	@Test
 	public void testGetRecordPartFilter() {
 		DataRedactor recordPartFilter = dependencyProvider.getDataRedactor();
 		assertTrue(recordPartFilter instanceof DataRedactorImp);
+	}
+
+	@Test
+	public void testGetValueFromInitInfo() {
+		String key = "foundKey";
+		String value = dependencyProvider.getInitInfoValueUsingKey(key);
+		assertEquals(value, "someValue");
+	}
+
+	@Test(expectedExceptions = SpiderInitializationException.class)
+	public void testGetValueFromInitInfoKeyDoesNotExist() {
+		String key = "NOTfoundKey";
+		dependencyProvider.getInitInfoValueUsingKey(key);
 	}
 
 }

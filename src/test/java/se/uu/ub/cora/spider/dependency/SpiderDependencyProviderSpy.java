@@ -32,12 +32,13 @@ import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
 import se.uu.ub.cora.spider.record.SpiderUploader;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 import se.uu.ub.cora.storage.RecordIdGenerator;
+import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 
 public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
@@ -61,9 +62,11 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public Map<String, RecordTypeHandlerSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	private RecordStorage recordStorage;
 
 	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
 		super(initInfo);
+		recordStorageProvider = new RecordStorageProviderSpy();
 	}
 
 	@Override
@@ -173,4 +176,5 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 		mapOfRecordTypeHandlerSpies.put(recordType, newRecordTypeHandlerSpy);
 		return newRecordTypeHandlerSpy;
 	}
+
 }

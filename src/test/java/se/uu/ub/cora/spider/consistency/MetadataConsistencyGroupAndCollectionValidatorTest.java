@@ -32,6 +32,7 @@ import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
@@ -40,11 +41,12 @@ import se.uu.ub.cora.storage.RecordStorage;
 
 public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	private RecordStorage recordStorage;
-	private MetadataConsistencyValidator validator;
+	private ExtendedFunctionality validator;
 	private String recordType;
 	private DataGroup recordAsDataGroup;
 	private DataGroupFactory dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
+	private String authToken = "someAuthToken";
 
 	@BeforeMethod
 	public void setUpDefaults() {
@@ -58,7 +60,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	}
 
 	private void setUpDependencies() {
-		validator = new MetadataConsistencyGroupAndCollectionValidatorImp(recordStorage,
+		validator = new MetadataConsistencyGroupAndCollectionValidator(recordStorage,
 				recordType);
 	}
 
@@ -71,7 +73,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testGroup"));
 		recordAsDataGroup.addChild(refParentId);
 		setUpDependencies();
-		validator.validateRules(recordAsDataGroup);
+		validator.useExtendedFunctionality(authToken, recordAsDataGroup);
 	}
 
 	@Test
@@ -88,7 +90,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 
 	private void exceptNoException() {
 		try {
-			validator.validateRules(recordAsDataGroup);
+			validator.useExtendedFunctionality(authToken, recordAsDataGroup);
 		} catch (Exception e) {
 			assertTrue(false);
 		}
@@ -116,7 +118,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 
 		recordAsDataGroup.addChild(refParentId);
 		setUpDependencies();
-		validator.validateRules(recordAsDataGroup);
+		validator.useExtendedFunctionality(authToken, recordAsDataGroup);
 	}
 
 	@Test
@@ -130,7 +132,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		recordAsDataGroup.addChild(refParentId);
 		setUpDependencies();
 		try {
-			validator.validateRules(recordAsDataGroup);
+			validator.useExtendedFunctionality(authToken, recordAsDataGroup);
 		} catch (Exception e) {
 			assertTrue(e.getCause() instanceof RecordNotFoundException);
 		}
@@ -148,7 +150,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 
 		recordAsDataGroup.addChild(refParentId);
 		setUpDependencies();
-		validator.validateRules(recordAsDataGroup);
+		validator.useExtendedFunctionality(authToken, recordAsDataGroup);
 	}
 
 	@Test
@@ -182,7 +184,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 
 		recordAsDataGroup.addChild(new DataAtomicSpy("finalValue", "doesNotExist"));
 		setUpDependencies();
-		validator.validateRules(recordAsDataGroup);
+		validator.useExtendedFunctionality(authToken, recordAsDataGroup);
 	}
 
 	@Test

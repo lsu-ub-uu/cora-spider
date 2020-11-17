@@ -36,6 +36,7 @@ public class DataGroupSpy implements DataGroup {
 	public String repeatId;
 	public Set<DataAttribute> attributes = new HashSet<>();
 	public List<String> removedNameInDatas = new ArrayList<>();
+	public List<String> requestedAtomicValues = new ArrayList<>();
 
 	public DataGroupSpy(String nameInData) {
 		this.nameInData = nameInData;
@@ -59,6 +60,7 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public String getFirstAtomicValueWithNameInData(String nameInData) {
+		requestedAtomicValues.add(nameInData);
 		for (DataElement dataElement : children) {
 			if (nameInData.equals(dataElement.getNameInData())) {
 				if (dataElement instanceof DataAtomic) {

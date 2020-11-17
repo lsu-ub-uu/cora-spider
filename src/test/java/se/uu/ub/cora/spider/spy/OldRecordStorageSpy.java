@@ -74,8 +74,10 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 		}
 
 		if ("abstract".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
-					"false", "true", "false");
+			readDataGroup = DataCreator
+					.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id, "false",
+							"true", "false");
+			return readDataGroup;
 		}
 		if ("abstract2".equals(id)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,

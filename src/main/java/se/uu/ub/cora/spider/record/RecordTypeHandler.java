@@ -119,7 +119,24 @@ public interface RecordTypeHandler {
 	 */
 	DataGroup getMetadataGroup();
 
-	List<String> createListOfPossibleIdsToThisRecord(String recordId);
+	/**
+	 * getCombinedIdsUsingRecordId returns a list of combined ids for a specified recordId based on
+	 * the recordType the recordTypeHandler currently handles. The returned list will contain two
+	 * ids if the recordType has an abstract parent and only one if the recordType does not have a
+	 * parent.<br>
+	 * <br>
+	 * The ids are a combination of the current recordTypes id and the entered recordId, for
+	 * example:<br>
+	 * the recordTypeHandler is currently used to handle the recordType metadataGroup and an id
+	 * "someGroupId" is entered, the generated ids will be:<br>
+	 * metadataGroup_someGroupId<br>
+	 * metadata_someGroupId
+	 * 
+	 * @param recordId
+	 *            A String with the recordId to get a list of combined ids for
+	 * @return A List of combined recordIds using the format recordTypeId_recordId
+	 */
+	List<String> getCombinedIdsUsingRecordId(String recordId);
 
 	/**
 	 * isPublicForRead is used to check if the record has been marked as PublicForRead which implies
@@ -201,5 +218,25 @@ public interface RecordTypeHandler {
 	 *         write constraints an empty set SHOULD be returned.
 	 */
 	Set<Constraint> getRecordPartCreateWriteConstraints();
+
+	/**
+	 * getImplementingRecordTypeHandlers should return a List of {@link RecordTypeHandler} for all
+	 * recordTypes that has the recordType that this recordTypeHandler handles as its parent.<br>
+	 * If this recordType is an implementing type or a type without a parent should an empty list be
+	 * returned. If this recordType is abstract but no implementing recordTypes exist should an
+	 * empty list be returned. If this recordType is abstract and implementing recordTypes exists,
+	 * should a list of the recordTypeHandlers for the implementing recordTypes be returned.
+	 * 
+	 * @return a list with RecordTypeHandlers representing recordTypes that implements the current
+	 *         recordType
+	 */
+	List<RecordTypeHandler> getImplementingRecordTypeHandlers();
+
+	/**
+	 * getRecordTypeId returns the id of the recordType handled by the RecordTypeHandler
+	 * 
+	 * @return recordTypeId as a String
+	 */
+	String getRecordTypeId();
 
 }

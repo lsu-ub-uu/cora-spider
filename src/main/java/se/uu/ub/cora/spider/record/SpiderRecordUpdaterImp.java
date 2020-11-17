@@ -38,8 +38,8 @@ import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 
 public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		implements SpiderRecordUpdater {
@@ -309,7 +309,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	}
 
 	private void indexData(DataGroup collectedTerms) {
-		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
+		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
 		recordIndexer.indexData(ids, collectedTerms, topDataGroup);
 	}
 

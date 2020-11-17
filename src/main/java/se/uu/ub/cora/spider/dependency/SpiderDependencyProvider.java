@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019 Uppsala University Library
+ * Copyright 2015, 2016, 2019, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -48,8 +48,11 @@ import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityInitializer;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.RecordTypeHandler;
+import se.uu.ub.cora.spider.record.RecordTypeHandlerFactory;
+import se.uu.ub.cora.spider.record.RecordTypeHandlerFactoryImp;
 import se.uu.ub.cora.spider.record.RecordTypeHandlerImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.storage.MetadataStorage;
@@ -68,6 +71,7 @@ public abstract class SpiderDependencyProvider {
 	protected RecordIdGeneratorProvider recordIdGeneratorProvider;
 	protected MetadataStorageProvider metadataStorageProvider;
 	private Logger log = LoggerProvider.getLoggerForClass(SpiderDependencyProvider.class);
+	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 
 	public SpiderDependencyProvider(Map<String, String> initInfo) {
 		this.initInfo = initInfo;
@@ -79,6 +83,11 @@ public abstract class SpiderDependencyProvider {
 		} catch (Exception e) {
 			throw new RuntimeException(createExceptionMessage(e), e);
 		}
+	}
+
+	public void initializeExtendedFunctionality() {
+		ExtendedFunctionalityInitializer initializer = new ExtendedFunctionalityInitializer(this);
+		extendedFunctionalityProvider = initializer.getExtendedFunctionalityProvider();
 	}
 
 	private String createInvocationErrorExceptionMessage(InvocationTargetException e) {
@@ -198,7 +207,9 @@ public abstract class SpiderDependencyProvider {
 
 	protected abstract void readInitInfo();
 
-	public abstract ExtendedFunctionalityProvider getExtendedFunctionalityProvider();
+	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
+		return extendedFunctionalityProvider;
+	}
 
 	public abstract Authenticator getAuthenticator();
 
@@ -208,7 +219,15 @@ public abstract class SpiderDependencyProvider {
 
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
 		RecordStorage recordStorage = getRecordStorage();
-		return RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordStorage, recordTypeId);
+		RecordTypeHandlerFactory recordTypeHandlerFactory = new RecordTypeHandlerFactoryImp(
+				recordStorage);
+		return RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordTypeHandlerFactory,
+				recordStorage, recordTypeId);
+	}
+
+	public String getInitInfoValueUsingKey(String key) {
+		ensureKeyExistsInInitInfo(key);
+		return initInfo.get(key);
 	}
 
 }

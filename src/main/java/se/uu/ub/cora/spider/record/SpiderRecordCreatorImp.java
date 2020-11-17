@@ -36,8 +36,8 @@ import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionality;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 
 public final class SpiderRecordCreatorImp extends SpiderRecordHandler
@@ -250,7 +250,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms);
 
-		List<String> ids = recordTypeHandler.createListOfPossibleIdsToThisRecord(recordId);
+		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
 		recordIndexer.indexData(ids, collectedTerms, recordAsDataGroup);
 	}
 

@@ -60,8 +60,8 @@ import se.uu.ub.cora.spider.dependency.RecordIdGeneratorProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionalityProviderSpy;
-import se.uu.ub.cora.spider.extended.ExtendedFunctionalitySpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
@@ -262,7 +262,7 @@ public class SpiderRecordCreatorTest {
 		DataGroup createdRecord = ((OldRecordStorageSpy) recordStorage).createRecord;
 
 		List<String> ids = (List<String>) recordTypeHandlerSpy.MCR
-				.getReturnValue("createListOfPossibleIdsToThisRecord", 0);
+				.getReturnValue("getCombinedIdsUsingRecordId", 0);
 		DataGroup collectedTerms = (DataGroup) termCollector.MCR.getReturnValue("collectTerms", 0);
 		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectedTerms, createdRecord);
 	}

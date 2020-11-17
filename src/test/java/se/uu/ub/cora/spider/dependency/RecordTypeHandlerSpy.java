@@ -110,7 +110,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public List<String> createListOfPossibleIdsToThisRecord(String recordId) {
+	public List<String> getCombinedIdsUsingRecordId(String recordId) {
 		MCR.addCall("recordId", recordId);
 		List<String> fakeList = new ArrayList<>();
 		fakeList.add("fakeIdFromRecordTypeHandlerSpy");
@@ -245,6 +245,18 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MCR.addCall();
 		MCR.addReturned(writeStringConstraints);
 		return writeStringConstraints;
+	}
+
+	@Override
+	public List<RecordTypeHandler> getImplementingRecordTypeHandlers() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getRecordTypeId() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
