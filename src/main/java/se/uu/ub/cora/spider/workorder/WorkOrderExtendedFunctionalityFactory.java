@@ -23,7 +23,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -63,13 +63,13 @@ public class WorkOrderExtendedFunctionalityFactory implements ExtendedFunctional
 	@Override
 	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
 			String recordType) {
-		if (CREATE_AFTER_METADATA_VALIDATION.equals(position)) {
-			return Arrays.asList(factorExecutor());
+		if (CREATE_AFTER_METADATA_VALIDATION == position) {
+			return Collections.singletonList(factorExecutor());
 		}
-		if (CREATE_BEFORE_RETURN.equals(position)) {
-			return Arrays.asList(factorDeleter());
+		if (CREATE_BEFORE_RETURN == position) {
+			return Collections.singletonList(factorDeleter());
 		}
-		return Arrays.asList(factorEnhancer());
+		return Collections.singletonList(factorEnhancer());
 	}
 
 	private ExtendedFunctionality factorExecutor() {
