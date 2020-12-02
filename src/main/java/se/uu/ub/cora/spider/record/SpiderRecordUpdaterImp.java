@@ -111,6 +111,13 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId, topDataGroup);
 		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectedTerms);
 
+		// changed
+		// DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup,
+		// recordType,
+		// recordId);
+		// checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+
+		// useExtendedFunctionalityBeforeStore(recordType, dataGroup);
 		updateRecordInStorage(collectedTerms);
 		indexData(collectedTerms);
 
