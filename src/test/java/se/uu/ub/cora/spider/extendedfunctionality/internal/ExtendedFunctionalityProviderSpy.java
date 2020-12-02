@@ -20,11 +20,12 @@
 package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
-import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 
 public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityProvider {
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateBeforeMetadataValidation = new ArrayList<>();
@@ -33,6 +34,8 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForUpdateAfterMetadataValidation = new ArrayList<>();
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateBeforeReturn = new ArrayList<>();
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityBeforeDelete = new ArrayList<>();
+	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForUpdateBeforeStore = new ArrayList<>();
+	public Map<String, String> recordTypes = new HashMap<>();
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
@@ -89,6 +92,13 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 	public List<ExtendedFunctionality> getFunctionalityAfterDelete(String recordType) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeStore(String recordType) {
+		recordTypes.put("updateBeforeStore", recordType);
+		return createListWithTwoExtendedFunctionalitySpies(
+				fetchedFunctionalityForUpdateBeforeStore);
 	}
 
 }
