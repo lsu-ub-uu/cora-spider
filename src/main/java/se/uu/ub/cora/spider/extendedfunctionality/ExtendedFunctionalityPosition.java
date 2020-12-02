@@ -18,6 +18,9 @@
  */
 package se.uu.ub.cora.spider.extendedfunctionality;
 
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.storage.RecordStorage;
+
 /**
  * ExtendedFunctionalityPosition is an Enum with the positions from where Spider calls
  * extendedFunctionality.<br>
@@ -65,6 +68,13 @@ public enum ExtendedFunctionalityPosition {
 	 * update operation, after metadataValidation is done.
 	 */
 	UPDATE_AFTER_METADATA_VALIDATION,
+
+	/**
+	 * UPDATE_BEFORE_STORE, as the name suggests is the functionality plugged into a update
+	 * operation, right before data is updated in storage, using the
+	 * {@link RecordStorage#update(String, String, DataGroup, DataGroup, DataGroup, String)} method.
+	 */
+	UPDATE_BEFORE_STORE,
 
 	/**
 	 * DELETE_BEFORE, as the name suggests is the functionality plugged into a delete operation,
