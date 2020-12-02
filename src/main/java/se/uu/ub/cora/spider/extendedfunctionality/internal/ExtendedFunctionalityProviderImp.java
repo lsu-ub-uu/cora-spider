@@ -25,6 +25,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_BEFORE;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE;
 
 import java.util.List;
 
@@ -89,6 +90,12 @@ public class ExtendedFunctionalityProviderImp implements ExtendedFunctionalityPr
 
 	public FactorySorter getFactorySorterNeededForTest() {
 		return factorySorter;
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeStore(String recordType) {
+		return factorySorter.getFunctionalityForPositionAndRecordType(UPDATE_BEFORE_STORE,
+				recordType);
 	}
 
 }

@@ -111,14 +111,12 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId, topDataGroup);
 		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectedTerms);
 
-		// changed
-		// DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup,
-		// recordType,
-		// recordId);
-		// checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup, recordType,
+				recordId);
+		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
-		// useExtendedFunctionalityBeforeStore(recordType, dataGroup);
-		updateRecordInStorage(collectedTerms);
+		useExtendedFunctionalityBeforeStore(recordType, dataGroup);
+		updateRecordInStorage(collectedTerms, collectedLinks);
 		indexData(collectedTerms);
 
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup);
@@ -304,15 +302,19 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		return typeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
-	private void updateRecordInStorage(DataGroup collectedTerms) {
-		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup, recordType,
-				recordId);
-		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+	private void updateRecordInStorage(DataGroup collectedTerms, DataGroup collectedLinks) {
 
 		String dataDivider = extractDataDividerFromData(topDataGroup);
 
 		recordStorage.update(recordType, recordId, topDataGroup, collectedTerms, collectedLinks,
 				dataDivider);
+	}
+
+	private void useExtendedFunctionalityBeforeStore(String recordTypeToCreate,
+			DataGroup dataGroup) {
+		List<ExtendedFunctionality> functionalityForUpdateBeforeStore = extendedFunctionalityProvider
+				.getFunctionalityForUpdateBeforeStore(recordTypeToCreate);
+		useExtendedFunctionality(dataGroup, functionalityForUpdateBeforeStore);
 	}
 
 	private void indexData(DataGroup collectedTerms) {

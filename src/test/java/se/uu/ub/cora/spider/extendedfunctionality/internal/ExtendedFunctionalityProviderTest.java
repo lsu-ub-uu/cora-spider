@@ -106,6 +106,15 @@ public class ExtendedFunctionalityProviderTest {
 		assertCorrectCallAndAnswerFor(ExtendedFunctionalityPosition.DELETE_AFTER, functionality);
 	}
 
+	@Test
+	public void testGetFunctionalityForUpdateBeforeStore() throws Exception {
+		List<ExtendedFunctionality> functionality = provider
+				.getFunctionalityForUpdateBeforeStore("someRecordType");
+
+		assertCorrectCallAndAnswerFor(ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE,
+				functionality);
+	}
+
 	private void assertCorrectCallAndAnswerFor(ExtendedFunctionalityPosition position,
 			List<ExtendedFunctionality> functionality) {
 		assertSpyCalledWithCorrectPosition(position);
