@@ -432,7 +432,7 @@ public class RecordTypeHandlerTest {
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();
 		assertEquals(storageSpy.type, "metadataGroup");
-		assertEquals(storageSpy.id, "organisation");
+		assertEquals(storageSpy.ids.get(0), "organisation");
 		assertTrue(recordPartReadConstraints.isEmpty());
 		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
 				.getRecordPartWriteConstraints();
@@ -561,6 +561,26 @@ public class RecordTypeHandlerTest {
 				"organisationAlternativeName", 2);
 	}
 
+	// new stuff here, for children to max 1
+	@Test
+	public void testGetRecordPartReadConstraintsWithGrandChild() {
+		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
+				"organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.numberOfGrandChildrenWithReadWriteConstraint = 1;
+		// storageSpy.numberOfAttributes = 2;
+
+		Set<Constraint> recordPartReadConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
+		assertEquals(recordPartReadConstraints.size(), 3);
+
+		// assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints,
+		// "organisationRoot",
+		// 0);
+		// assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints,
+		// "organisationAlternativeName", 2);
+	}
+
 	@Test
 	public void testGetRecordPartReadConstraintsReturnsSameInstance() {
 		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
@@ -572,10 +592,11 @@ public class RecordTypeHandlerTest {
 		recordTypeHandler.getRecordPartWriteConstraints();
 		recordTypeHandler.getRecordPartWriteConstraints();
 
-		storageSpy.MCR.assertNumberOfCallsToMethod("read", 3);
+		storageSpy.MCR.assertNumberOfCallsToMethod("read", 4);
 		storageSpy.MCR.assertParameters("read", 0, "recordType", "organisation");
 		storageSpy.MCR.assertParameters("read", 1, "metadataGroup", "organisation");
-		storageSpy.MCR.assertParameters("read", 2, "metadataTextVariable", "divaOrganisationRoot");
+		storageSpy.MCR.assertParameters("read", 2, "metadataGroup", "divaOrganisationNameGroup");
+		storageSpy.MCR.assertParameters("read", 3, "metadataTextVariable", "divaOrganisationRoot");
 	}
 
 	@Test
@@ -587,10 +608,11 @@ public class RecordTypeHandlerTest {
 		recordTypeHandler.getRecordPartWriteConstraints();
 		recordTypeHandler.getRecordPartWriteConstraints();
 
-		storageSpy.MCR.assertNumberOfCallsToMethod("read", 3);
+		storageSpy.MCR.assertNumberOfCallsToMethod("read", 4);
 		storageSpy.MCR.assertParameters("read", 0, "recordType", "organisation");
 		storageSpy.MCR.assertParameters("read", 1, "metadataGroup", "organisation");
-		storageSpy.MCR.assertParameters("read", 2, "metadataTextVariable", "divaOrganisationRoot");
+		storageSpy.MCR.assertParameters("read", 2, "metadataGroup", "divaOrganisationNameGroup");
+		storageSpy.MCR.assertParameters("read", 3, "metadataTextVariable", "divaOrganisationRoot");
 	}
 
 	@Test
@@ -1031,7 +1053,8 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(null, recordStorage, "someId");
 
-		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler.getImplementingRecordTypeHandlers();
+		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler
+				.getImplementingRecordTypeHandlers();
 		assertTrue(recordTypeHandlers.isEmpty());
 		recordStorage.MCR.assertMethodNotCalled("readList");
 	}
@@ -1043,7 +1066,8 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndDataGroup(null, recordStorage, dataGroup);
 
-		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler.getImplementingRecordTypeHandlers();
+		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler
+				.getImplementingRecordTypeHandlers();
 		assertTrue(recordTypeHandlers.isEmpty());
 		recordStorage.MCR.assertMethodNotCalled("readList");
 	}
@@ -1054,7 +1078,8 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(null, recordStorage, "someId");
 
-		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler.getImplementingRecordTypeHandlers();
+		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler
+				.getImplementingRecordTypeHandlers();
 
 		assertTrue(recordTypeHandlers.isEmpty());
 		DataGroupMCRSpy dataGroupMCR = getRecordTypeDataGroupReadFromStorage();
@@ -1075,7 +1100,8 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndDataGroup(null, recordStorage, dataGroup);
 
-		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler.getImplementingRecordTypeHandlers();
+		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler
+				.getImplementingRecordTypeHandlers();
 
 		assertTrue(recordTypeHandlers.isEmpty());
 		assertCallMadeToStorageForAbstractRecordType(dataGroup);

@@ -161,7 +161,25 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private void collectAllConstraints() {
 		constraintsForUpdateLoaded = true;
 		for (DataGroup childReference : getAllChildReferences()) {
-			possiblyAddConstraint(childReference);
+			DataGroup childRef = null;
+			if (hasConstraints(childReference)) {
+				childRef = getChildRef(childReference);
+				addWriteAndReadWriteConstraints(childReference, childRef);
+			}
+			DataGroup ref = childReference.getFirstGroupWithNameInData("ref");
+			String linkedRecordType = ref.getFirstAtomicValueWithNameInData("linkedRecordType");
+			if ("metadataGroup".equals(linkedRecordType)) {
+				if (childRef == null) {
+					childRef = getChildRef(childReference);
+				}
+				for (DataGroup childChildReference : getAllChildReferences(childRef)) {
+					if (hasConstraints(childChildReference)) {
+						DataGroup grandChildRef = getChildRef(childChildReference);
+						addWriteAndReadWriteConstraints(childChildReference, grandChildRef);
+					}
+				}
+			}
+			// glöm inte min max
 		}
 	}
 
@@ -172,26 +190,28 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return childReferences.getAllGroupsWithNameInData("childReference");
 	}
 
-	private void possiblyAddConstraint(DataGroup childReference) {
-		if (hasConstraints(childReference)) {
-			addWriteAndReadWriteConstraints(childReference);
-		}
+	private List<DataGroup> getAllChildReferences(DataGroup metadataGroupForMetadata) {
+		// DataGroup metadataGroupForMetadata = getMetadataGroup();
+		DataGroup childReferences = metadataGroupForMetadata
+				.getFirstGroupWithNameInData("childReferences");
+		return childReferences.getAllGroupsWithNameInData("childReference");
 	}
 
 	private boolean hasConstraints(DataGroup childReference) {
 		return childReference.containsChildWithNameInData(RECORD_PART_CONSTRAINT);
 	}
 
-	private void addWriteAndReadWriteConstraints(DataGroup childReference) {
+	private void addWriteAndReadWriteConstraints(DataGroup childReference, DataGroup childRef) {
 		String constraintType = getRecordPartConstraintType(childReference);
 
-		Constraint constraint = createConstraintPossibyAddAttributes(childReference);
+		Constraint constraint = createConstraintPossibyAddAttributes(childReference, childRef);
 		writeConstraints.add(constraint);
 		possiblyAddReadWriteConstraint(constraintType, constraint);
 	}
 
-	private Constraint createConstraintPossibyAddAttributes(DataGroup childReference) {
-		DataGroup childRef = getChildRef(childReference);
+	private Constraint createConstraintPossibyAddAttributes(DataGroup childReference,
+			DataGroup childRef) {
+		// DataGroup childRef = getChildRef(childReference);
 		Constraint constraint = createConstraint(childRef);
 		possiblyAddAttributes(childRef, constraint);
 		return constraint;
@@ -366,7 +386,10 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private void collectAllConstraintsForCreate() {
 		constraintsForCreateLoaded = true;
 		for (DataGroup childReference : getAllChildReferencesForCreate()) {
-			possiblyAddCreateConstraint(childReference);
+			if (hasConstraints(childReference)) {
+				DataGroup childRef = getChildRef(childReference);
+				addCreateConstraints(childReference, childRef);
+			}
 		}
 	}
 
@@ -381,14 +404,14 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return recordStorage.read("metadataGroup", getNewMetadataId());
 	}
 
-	private void possiblyAddCreateConstraint(DataGroup childReference) {
-		if (hasConstraints(childReference)) {
-			addCreateConstraints(childReference);
-		}
-	}
+	// private void possiblyAddCreateConstraint(DataGroup childReference) {
+	// if (hasConstraints(childReference)) {
+	// addCreateConstraints(childReference);
+	// }
+	// }
 
-	private void addCreateConstraints(DataGroup childReference) {
-		Constraint constraint = createConstraintPossibyAddAttributes(childReference);
+	private void addCreateConstraints(DataGroup childReference, DataGroup childRef) {
+		Constraint constraint = createConstraintPossibyAddAttributes(childReference, childRef);
 		createConstraints.add(constraint);
 	}
 
