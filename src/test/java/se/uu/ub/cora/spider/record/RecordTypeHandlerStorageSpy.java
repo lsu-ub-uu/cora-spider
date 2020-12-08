@@ -21,6 +21,7 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	public int numberOfChildrenWithReadWriteConstraint = 0;
 	public int numberOfChildrenWithWriteConstraint = 0;
 	public int numberOfGrandChildrenWithReadWriteConstraint = 0;
+	public String maxNoOfGrandChildren = "1";
 	public int numberOfAttributes = 0;
 	public boolean addAttribute = false;
 
@@ -75,11 +76,14 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 		if ("metadataTextVariable".equals(type) && "showInDefenceTextVar2".equals(id)) {
 			return createMetadataTextVariableUsingNameInData("showInDefence2");
 		}
+		if ("metadataTextVariable".equals(type) && "greatGrandChildTextVar".equals(id)) {
+			return createMetadataTextVariableUsingNameInData("greatGrandChild");
+		}
 		if ("metadataGroup".equals(type) && "organisationAlternativeNameGroup".equals(id)) {
-			DataGroupSpy metadataGroup = new DataGroupSpy("metadata");
-			metadataGroup.addChild(new DataAtomicSpy("nameInData", "organisationAlternativeName"));
-			DataGroupSpy childReferences = new DataGroupSpy("childReferences");
-			metadataGroup.addChild(childReferences);
+			DataGroupSpy metadataGroup = createMetadataGroupWithChildReferences(
+					"organisationAlternativeName");
+			DataGroup childReferences = metadataGroup
+					.getFirstGroupWithNameInData("childReferences");
 			if (numberOfAttributes > 0) {
 				DataGroupSpy attributeReferences = new DataGroupSpy("attributeReferences");
 				DataGroupSpy ref = createAttributeReference("textPartTypeCollectionVar", "0");
@@ -93,23 +97,36 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 			}
 			if (numberOfGrandChildrenWithReadWriteConstraint > 0) {
 				DataGroupSpy grandChildWithReadConstraint = createChildReferenceWithConstraint(
-						"metadataTextVariable", "showInPortalTextVar", "readWrite");
-				// DataGroup childReferences = metadataGroup
-				// .getFirstGroupWithNameInData("childReferences");
+						"metadataTextVariable", "showInPortalTextVar", "readWrite", "0", "1");
+				childReferences.addChild(grandChildWithReadConstraint);
+			}
+			if (numberOfGrandChildrenWithReadWriteConstraint > 1) {
+				DataGroupSpy grandChildWithReadConstraint = createChildReference("metadataGroup",
+						"grandChildGroup", "0", maxNoOfGrandChildren);
 				childReferences.addChild(grandChildWithReadConstraint);
 			}
 
 			MCR.addReturned(metadataGroup);
 			return metadataGroup;
 		}
+		if ("metadataGroup".equals(type) && "grandChildGroup".equals(id)) {
+			DataGroupSpy metadataGroup = createMetadataGroupWithChildReferences(id);
+
+			DataGroupSpy greatGrandChildWithReadConstraint = createChildReferenceWithConstraint(
+					"metadataTextVariable", "greatGrandChildTextVar", "readWrite", "0", "1");
+			DataGroup childReferences = metadataGroup
+					.getFirstGroupWithNameInData("childReferences");
+			childReferences.addChild(greatGrandChildWithReadConstraint);
+			MCR.addReturned(metadataGroup);
+			return metadataGroup;
+		}
 		if ("metadataGroup".equals(type) && "divaOrganisationNameGroup".equals(id)) {
-			DataGroupSpy metadataGroup = new DataGroupSpy("metadata");
-			metadataGroup.addChild(new DataAtomicSpy("nameInData", "organisationName"));
-			DataGroupSpy childReferences = new DataGroupSpy("childReferences");
-			metadataGroup.addChild(childReferences);
+			DataGroupSpy metadataGroup = createMetadataGroupWithChildReferences("organisationName");
 
 			DataGroupSpy grandChildWithReadConstraint = createChildReference("metadataTextVariable",
 					"showInPortalTextVar", "0", "1");
+			DataGroup childReferences = metadataGroup
+					.getFirstGroupWithNameInData("childReferences");
 			childReferences.addChild(grandChildWithReadConstraint);
 			MCR.addReturned(metadataGroup);
 			return metadataGroup;
@@ -129,6 +146,14 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 		return returnedValue;
 	}
 
+	private DataGroupSpy createMetadataGroupWithChildReferences(String nameInData) {
+		DataGroupSpy metadataGroup = new DataGroupSpy("metadata");
+		metadataGroup.addChild(new DataAtomicSpy("nameInData", nameInData));
+		DataGroupSpy childReferences = new DataGroupSpy("childReferences");
+		metadataGroup.addChild(childReferences);
+		return metadataGroup;
+	}
+
 	private DataGroup createMetadataGroupForOrganisationNew() {
 		DataGroupSpy dataGroupSpy = new DataGroupSpy("metadata");
 		DataGroupSpy childReferences = new DataGroupSpy("childReferences");
@@ -138,19 +163,19 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 
 		if (numberOfChildrenWithReadWriteConstraint > 0) {
 			DataGroupSpy referenceWithConstraint = createChildReferenceWithConstraint(
-					"metadataTextVariable", "divaOrganisationRoot2", "readWrite");
+					"metadataTextVariable", "divaOrganisationRoot2", "readWrite", "0", "1");
 			childReferences.addChild(referenceWithConstraint);
 
 		}
 		if (numberOfChildrenWithReadWriteConstraint > 1) {
 			DataGroupSpy referenceWithConstraint2 = createChildReferenceWithConstraint(
-					"metadataTextVariable", "showInPortalTextVar2", "readWrite");
+					"metadataTextVariable", "showInPortalTextVar2", "readWrite", "0", "1");
 			childReferences.addChild(referenceWithConstraint2);
 
 		}
 		if (numberOfChildrenWithWriteConstraint > 0) {
 			DataGroupSpy referenceWithConstraint3 = createChildReferenceWithConstraint(
-					"metadataTextVariable", "showInDefenceTextVar2", "write");
+					"metadataTextVariable", "showInDefenceTextVar2", "write", "0", "1");
 			childReferences.addChild(referenceWithConstraint3);
 
 		}
@@ -193,19 +218,19 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 
 		if (numberOfChildrenWithReadWriteConstraint > 0) {
 			DataGroupSpy referenceWithConstraint = createChildReferenceWithConstraint(
-					"metadataTextVariable", "divaOrganisationRoot", "readWrite");
+					"metadataTextVariable", "divaOrganisationRoot", "readWrite", "0", "1");
 			childReferences.addChild(referenceWithConstraint);
 
 		}
 		if (numberOfChildrenWithReadWriteConstraint > 1) {
 			DataGroupSpy referenceWithConstraint2 = createChildReferenceWithConstraint(
-					"metadataTextVariable", "showInPortalTextVar", "readWrite");
+					"metadataTextVariable", "showInPortalTextVar", "readWrite", "0", "1");
 			childReferences.addChild(referenceWithConstraint2);
 
 		}
 		if (numberOfChildrenWithWriteConstraint > 0) {
 			DataGroupSpy referenceWithConstraint3 = createChildReferenceWithConstraint(
-					"metadataTextVariable", "showInDefenceTextVar", "write");
+					"metadataTextVariable", "showInDefenceTextVar", "write", "0", "1");
 			childReferences.addChild(referenceWithConstraint3);
 
 		}
@@ -220,7 +245,7 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 		DataGroup childReferences = metadataGroup.getFirstGroupWithNameInData("childReferences");
 		if (numberOfChildrenWithReadWriteConstraint > 0) {
 			DataGroupSpy referenceWithConstraint = createChildReferenceWithConstraint(
-					"metadataGroup", "organisationAlternativeNameGroup", "readWrite");
+					"metadataGroup", "organisationAlternativeNameGroup", "readWrite", "0", "1");
 			childReferences.addChild(referenceWithConstraint);
 		}
 
@@ -232,7 +257,7 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 		DataGroup childReferences = metadataGroup.getFirstGroupWithNameInData("childReferences");
 		if (numberOfChildrenWithReadWriteConstraint > 0) {
 			DataGroupSpy referenceWithConstraint = createChildReferenceWithConstraint(
-					"metadataGroup", "organisationAlternativeNameGroup", "readWrite");
+					"metadataGroup", "organisationAlternativeNameGroup", "readWrite", "0", "1");
 			childReferences.addChild(referenceWithConstraint);
 		}
 
@@ -240,9 +265,9 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	}
 
 	private DataGroupSpy createChildReferenceWithConstraint(String linkedRecordType,
-			String linkedRecordId, String constraint) {
+			String linkedRecordId, String constraint, String repeatMin, String repeatMax) {
 		DataGroupSpy referenceWithConstraint = createChildReference(linkedRecordType,
-				linkedRecordId, "0", "1");
+				linkedRecordId, repeatMin, repeatMax);
 		referenceWithConstraint.addChild(new DataAtomicSpy("recordPartConstraint", constraint));
 		return referenceWithConstraint;
 	}

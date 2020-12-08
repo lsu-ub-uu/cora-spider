@@ -568,17 +568,55 @@ public class RecordTypeHandlerTest {
 				"organisationChildWithAttribute");
 		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
 		storageSpy.numberOfGrandChildrenWithReadWriteConstraint = 1;
-		// storageSpy.numberOfAttributes = 2;
 
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();
 		assertEquals(recordPartReadConstraints.size(), 3);
 
-		// assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints,
-		// "organisationRoot",
-		// 0);
-		// assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints,
-		// "organisationAlternativeName", 2);
+		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "organisationRoot",
+				0);
+		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints,
+				"organisationAlternativeName", 0);
+		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "showInPortal", 0);
+	}
+
+	@Test
+	public void testGetRecordPartReadConstraintsWithGreatGrandChild() {
+		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
+				"organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.numberOfGrandChildrenWithReadWriteConstraint = 2;
+
+		Set<Constraint> recordPartReadConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
+		assertEquals(recordPartReadConstraints.size(), 4);
+
+		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "organisationRoot",
+				0);
+		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints,
+				"organisationAlternativeName", 0);
+		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "showInPortal", 0);
+		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "greatGrandChild",
+				0);
+	}
+
+	@Test
+	public void testGetRecordPartReadConstraintsWithGreatGrandChildNOTMax1() {
+		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
+				"organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.numberOfGrandChildrenWithReadWriteConstraint = 2;
+		storageSpy.maxNoOfGrandChildren = "3";
+
+		Set<Constraint> recordPartReadConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
+		assertEquals(recordPartReadConstraints.size(), 3);
+
+		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "organisationRoot",
+				0);
+		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints,
+				"organisationAlternativeName", 0);
+		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "showInPortal", 0);
 	}
 
 	@Test

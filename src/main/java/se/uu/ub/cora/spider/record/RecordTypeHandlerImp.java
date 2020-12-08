@@ -160,38 +160,30 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void collectAllConstraints() {
 		constraintsForUpdateLoaded = true;
-		for (DataGroup childReference : getAllChildReferences()) {
+		List<DataGroup> allChildReferences = getAllChildReferences(getMetadataGroup());
+		collectConstraintsForChildReferences(allChildReferences);
+	}
+
+	private void collectConstraintsForChildReferences(List<DataGroup> allChildReferences) {
+		for (DataGroup childReference : allChildReferences) {
 			DataGroup childRef = null;
 			if (hasConstraints(childReference)) {
 				childRef = getChildRef(childReference);
 				addWriteAndReadWriteConstraints(childReference, childRef);
 			}
+			String repeatMax = childReference.getFirstAtomicValueWithNameInData("repeatMax");
 			DataGroup ref = childReference.getFirstGroupWithNameInData("ref");
 			String linkedRecordType = ref.getFirstAtomicValueWithNameInData("linkedRecordType");
-			if ("metadataGroup".equals(linkedRecordType)) {
+			if ("metadataGroup".equals(linkedRecordType) && "1".equals(repeatMax)) {
 				if (childRef == null) {
 					childRef = getChildRef(childReference);
 				}
-				for (DataGroup childChildReference : getAllChildReferences(childRef)) {
-					if (hasConstraints(childChildReference)) {
-						DataGroup grandChildRef = getChildRef(childChildReference);
-						addWriteAndReadWriteConstraints(childChildReference, grandChildRef);
-					}
-				}
+				collectConstraintsForChildReferences(getAllChildReferences(childRef));
 			}
-			// glöm inte min max
 		}
 	}
 
-	private List<DataGroup> getAllChildReferences() {
-		DataGroup metadataGroupForMetadata = getMetadataGroup();
-		DataGroup childReferences = metadataGroupForMetadata
-				.getFirstGroupWithNameInData("childReferences");
-		return childReferences.getAllGroupsWithNameInData("childReference");
-	}
-
 	private List<DataGroup> getAllChildReferences(DataGroup metadataGroupForMetadata) {
-		// DataGroup metadataGroupForMetadata = getMetadataGroup();
 		DataGroup childReferences = metadataGroupForMetadata
 				.getFirstGroupWithNameInData("childReferences");
 		return childReferences.getAllGroupsWithNameInData("childReference");
@@ -211,7 +203,6 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private Constraint createConstraintPossibyAddAttributes(DataGroup childReference,
 			DataGroup childRef) {
-		// DataGroup childRef = getChildRef(childReference);
 		Constraint constraint = createConstraint(childRef);
 		possiblyAddAttributes(childRef, constraint);
 		return constraint;
