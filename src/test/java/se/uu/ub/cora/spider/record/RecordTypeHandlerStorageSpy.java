@@ -24,6 +24,7 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	public String maxNoOfGrandChildren = "1";
 	public int numberOfAttributes = 0;
 	public boolean addAttribute = false;
+	public boolean useStandardMetadataGroupForNew = false;
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
@@ -51,12 +52,17 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 
 		}
 		if ("metadataGroup".equals(type) && "organisationChildWithAttributeNew".equals(id)) {
+			if (useStandardMetadataGroupForNew) {
+				return createMetadataGroupForOrganisationWithChildWithAttribute();
+			}
 			return createMetadataGroupForOrganisationNewWithChildWithAttribute();
 
 		}
 		if ("metadataGroup".equals(type) && "organisationNew".equals(id)) {
+			if (useStandardMetadataGroupForNew) {
+				return createMetadataGroupForOrganisation();
+			}
 			return createMetadataGroupForOrganisationNew();
-
 		}
 		if ("metadataTextVariable".equals(type) && "divaOrganisationRoot".equals(id)) {
 			return createMetadataTextVariableUsingNameInData("organisationRoot");

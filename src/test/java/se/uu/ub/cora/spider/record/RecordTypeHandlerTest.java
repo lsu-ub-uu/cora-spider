@@ -573,6 +573,11 @@ public class RecordTypeHandlerTest {
 				.getRecordPartReadConstraints();
 		assertEquals(recordPartReadConstraints.size(), 3);
 
+		assertCorrectConstraintsIncludingFirstLevelChild(recordPartReadConstraints);
+	}
+
+	private void assertCorrectConstraintsIncludingFirstLevelChild(
+			Set<Constraint> recordPartReadConstraints) {
 		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "organisationRoot",
 				0);
 		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints,
@@ -591,11 +596,7 @@ public class RecordTypeHandlerTest {
 				.getRecordPartReadConstraints();
 		assertEquals(recordPartReadConstraints.size(), 4);
 
-		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "organisationRoot",
-				0);
-		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints,
-				"organisationAlternativeName", 0);
-		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "showInPortal", 0);
+		assertCorrectConstraintsIncludingFirstLevelChild(recordPartReadConstraints);
 		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "greatGrandChild",
 				0);
 	}
@@ -612,11 +613,100 @@ public class RecordTypeHandlerTest {
 				.getRecordPartReadConstraints();
 		assertEquals(recordPartReadConstraints.size(), 3);
 
-		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "organisationRoot",
+		assertCorrectConstraintsIncludingFirstLevelChild(recordPartReadConstraints);
+	}
+
+	@Test
+	public void testGetRecordPartReadWriteConstraintsWithGrandChild() {
+		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
+				"organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.numberOfGrandChildrenWithReadWriteConstraint = 1;
+
+		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
+				.getRecordPartWriteConstraints();
+		assertEquals(recordPartWriteConstraints.size(), 3);
+
+		assertCorrectConstraintsIncludingFirstLevelChild(recordPartWriteConstraints);
+	}
+
+	@Test
+	public void testGetRecordPartReadWriteConstraintsWithGreatGrandChild() {
+		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
+				"organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.numberOfGrandChildrenWithReadWriteConstraint = 2;
+
+		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
+				.getRecordPartWriteConstraints();
+		assertEquals(recordPartWriteConstraints.size(), 4);
+
+		assertCorrectConstraintsIncludingFirstLevelChild(recordPartWriteConstraints);
+		assertConstraintExistWithNumberOfAttributes(recordPartWriteConstraints, "greatGrandChild",
 				0);
-		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints,
-				"organisationAlternativeName", 0);
-		assertConstraintExistWithNumberOfAttributes(recordPartReadConstraints, "showInPortal", 0);
+	}
+
+	@Test
+	public void testGetRecordPartReadWriteConstraintsWithGreatGrandChildNOTMax1() {
+		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
+				"organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.numberOfGrandChildrenWithReadWriteConstraint = 2;
+		storageSpy.maxNoOfGrandChildren = "3";
+
+		Set<Constraint> recordPartWriteConstraints = recordTypeHandler
+				.getRecordPartWriteConstraints();
+		assertEquals(recordPartWriteConstraints.size(), 3);
+
+		assertCorrectConstraintsIncludingFirstLevelChild(recordPartWriteConstraints);
+	}
+
+	@Test
+	public void testGetRecordPartCreateWriteConstraintsWithGrandChild() {
+		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
+				"organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.numberOfGrandChildrenWithReadWriteConstraint = 1;
+		storageSpy.useStandardMetadataGroupForNew = true;
+
+		Set<Constraint> recordPartCreateConstraints = recordTypeHandler
+				.getRecordPartCreateWriteConstraints();
+		assertEquals(recordPartCreateConstraints.size(), 3);
+
+		assertCorrectConstraintsIncludingFirstLevelChild(recordPartCreateConstraints);
+	}
+
+	@Test
+	public void testGetRecordPartCreateWriteConstraintsWithGreatGrandChild() {
+		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
+				"organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.numberOfGrandChildrenWithReadWriteConstraint = 2;
+		storageSpy.useStandardMetadataGroupForNew = true;
+
+		Set<Constraint> recordPartCreateConstraints = recordTypeHandler
+				.getRecordPartCreateWriteConstraints();
+		assertEquals(recordPartCreateConstraints.size(), 4);
+
+		assertCorrectConstraintsIncludingFirstLevelChild(recordPartCreateConstraints);
+		assertConstraintExistWithNumberOfAttributes(recordPartCreateConstraints, "greatGrandChild",
+				0);
+	}
+
+	@Test
+	public void testGetRecordPartCreateWriteConstraintsWithGreatGrandChildNOTMax1() {
+		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
+				"organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.numberOfGrandChildrenWithReadWriteConstraint = 2;
+		storageSpy.maxNoOfGrandChildren = "3";
+		storageSpy.useStandardMetadataGroupForNew = true;
+
+		Set<Constraint> recordPartCreateConstraints = recordTypeHandler
+				.getRecordPartCreateWriteConstraints();
+		assertEquals(recordPartCreateConstraints.size(), 3);
+
+		assertCorrectConstraintsIncludingFirstLevelChild(recordPartCreateConstraints);
 	}
 
 	@Test
@@ -662,10 +752,11 @@ public class RecordTypeHandlerTest {
 		recordTypeHandler.getRecordPartCreateWriteConstraints();
 		recordTypeHandler.getRecordPartCreateWriteConstraints();
 
-		storageSpy.MCR.assertNumberOfCallsToMethod("read", 3);
+		storageSpy.MCR.assertNumberOfCallsToMethod("read", 4);
 		storageSpy.MCR.assertParameters("read", 0, "recordType", "organisation");
 		storageSpy.MCR.assertParameters("read", 1, "metadataGroup", "organisationNew");
-		storageSpy.MCR.assertParameters("read", 2, "metadataTextVariable", "divaOrganisationRoot2");
+		storageSpy.MCR.assertParameters("read", 2, "metadataGroup", "divaOrganisationNameGroup");
+		storageSpy.MCR.assertParameters("read", 3, "metadataTextVariable", "divaOrganisationRoot2");
 	}
 
 	@Test

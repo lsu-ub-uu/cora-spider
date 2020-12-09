@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
+import se.uu.ub.cora.bookkeeper.metadata.ConstraintType;
 import se.uu.ub.cora.data.DataAttribute;
 import se.uu.ub.cora.data.DataAttributeProvider;
 import se.uu.ub.cora.data.DataGroup;
@@ -35,6 +36,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public final class RecordTypeHandlerImp implements RecordTypeHandler {
+	private static final String METADATA_GROUP = "metadataGroup";
 	private static final String REPEAT_MAX_WHEN_NOT_REPEATEBLE = "1";
 	private static final String NAME_IN_DATA = "nameInData";
 	private static final String SEARCH = "search";
@@ -142,7 +144,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	@Override
 	public DataGroup getMetadataGroup() {
 		if (metadataGroup == null) {
-			metadataGroup = recordStorage.read("metadataGroup", getMetadataId());
+			metadataGroup = recordStorage.read(METADATA_GROUP, getMetadataId());
 		}
 		return metadataGroup;
 	}
@@ -150,7 +152,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	@Override
 	public Set<Constraint> getRecordPartReadConstraints() {
 		if (constraintsForUpdateNotLoaded()) {
-			collectAllConstraints();
+			collectAllConstraintsForUpdate();
 		}
 		return readWriteConstraints;
 	}
@@ -159,34 +161,41 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return !constraintsForUpdateLoaded;
 	}
 
-	private void collectAllConstraints() {
+	private void collectAllConstraintsForUpdate() {
 		constraintsForUpdateLoaded = true;
 		List<DataGroup> allChildReferences = getAllChildReferences(getMetadataGroup());
-		collectConstraintsForChildReferences(allChildReferences);
-	}
-
-	private void collectConstraintsForChildReferences(List<DataGroup> allChildReferences) {
-		for (DataGroup childReference : allChildReferences) {
-			collectConstraintForChildReference(childReference);
+		Set<Constraint> collectedConstraints = new HashSet<>();
+		collectConstraintsForChildReferences(allChildReferences, collectedConstraints);
+		for (Constraint constraint : collectedConstraints) {
+			writeConstraints.add(constraint);
+			possiblyAddReadWriteConstraint(constraint);
 		}
 	}
 
-	private void collectConstraintForChildReference(DataGroup childReference) {
+	private void collectConstraintsForChildReferences(List<DataGroup> allChildReferences,
+			Set<Constraint> tempSet) {
+		for (DataGroup childReference : allChildReferences) {
+			collectConstraintForChildReference(childReference, tempSet);
+		}
+	}
+
+	private void collectConstraintForChildReference(DataGroup childReference,
+			Set<Constraint> tempSet) {
 		DataGroup childRef = null;
 		if (hasConstraints(childReference)) {
 			childRef = readChildRefFromStorage(childReference);
-			addWriteAndReadWriteConstraints(childReference, childRef);
+			addWriteAndReadWriteConstraints(childReference, childRef, tempSet);
 		}
-		possiblyCollectConstraintsFromChildrenToChildReference(childReference, childRef);
+		possiblyCollectConstraintsFromChildrenToChildReference(childReference, childRef, tempSet);
 	}
 
 	private void possiblyCollectConstraintsFromChildrenToChildReference(DataGroup childReference,
-			DataGroup childRef) {
+			DataGroup childRef, Set<Constraint> tempSet) {
 		String repeatMax = getRepeatMax(childReference);
 		String linkedRecordType = getLinkedRecordType(childReference);
 		if (isGroup(linkedRecordType) && notRepetable(repeatMax)) {
-			childRef = getChildRefIfNotInitialized(childReference, childRef);
-			collectConstraintsForChildReferences(getAllChildReferences(childRef));
+			childRef = ensureChildRefReadFromStorage(childReference, childRef);
+			collectConstraintsForChildReferences(getAllChildReferences(childRef), tempSet);
 		}
 	}
 
@@ -200,15 +209,14 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	private boolean isGroup(String linkedRecordType) {
-		return "metadataGroup".equals(linkedRecordType);
+		return METADATA_GROUP.equals(linkedRecordType);
 	}
 
 	private boolean notRepetable(String repeatMax) {
 		return REPEAT_MAX_WHEN_NOT_REPEATEBLE.equals(repeatMax);
 	}
 
-	// TODO: namn på metod?? IfNotAssigned? IfNotAlreadyFetchedFromStorsge...?
-	private DataGroup getChildRefIfNotInitialized(DataGroup childReference, DataGroup childRef) {
+	private DataGroup ensureChildRefReadFromStorage(DataGroup childReference, DataGroup childRef) {
 		if (childRef == null) {
 			childRef = readChildRefFromStorage(childReference);
 		}
@@ -225,16 +233,16 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return childReference.containsChildWithNameInData(RECORD_PART_CONSTRAINT);
 	}
 
-	private void addWriteAndReadWriteConstraints(DataGroup childReference, DataGroup childRef) {
+	private void addWriteAndReadWriteConstraints(DataGroup childReference, DataGroup childRef,
+			Set<Constraint> constraints) {
 		String constraintType = getRecordPartConstraintType(childReference);
 
-		Constraint constraint = createConstraintPossibyAddAttributes(childReference, childRef);
-		writeConstraints.add(constraint);
-		possiblyAddReadWriteConstraint(constraintType, constraint);
+		Constraint constraint = createConstraintPossibyAddAttributes(childRef);
+		constraint.setType(ConstraintType.fromString(constraintType));
+		constraints.add(constraint);
 	}
 
-	private Constraint createConstraintPossibyAddAttributes(DataGroup childReference,
-			DataGroup childRef) {
+	private Constraint createConstraintPossibyAddAttributes(DataGroup childRef) {
 		Constraint constraint = createConstraint(childRef);
 		possiblyAddAttributes(childRef, constraint);
 		return constraint;
@@ -289,14 +297,14 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 				attributeValue);
 	}
 
-	private void possiblyAddReadWriteConstraint(String constraintValue, Constraint constraint) {
-		if (isReadWriteConstraint(constraintValue)) {
+	private void possiblyAddReadWriteConstraint(Constraint constraint) {
+		if (isReadWriteConstraint(constraint.getType())) {
 			readWriteConstraints.add(constraint);
 		}
 	}
 
-	private boolean isReadWriteConstraint(String constraintValue) {
-		return "readWrite".equals(constraintValue);
+	private boolean isReadWriteConstraint(ConstraintType constraintType) {
+		return ConstraintType.READ_WRITE.equals(constraintType);
 	}
 
 	public RecordStorage getRecordStorage() {
@@ -316,7 +324,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	@Override
 	public Set<Constraint> getRecordPartWriteConstraints() {
 		if (constraintsForUpdateNotLoaded()) {
-			collectAllConstraints();
+			collectAllConstraintsForUpdate();
 		}
 		return writeConstraints;
 	}
@@ -408,11 +416,12 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void collectAllConstraintsForCreate() {
 		constraintsForCreateLoaded = true;
-		for (DataGroup childReference : getAllChildReferencesForCreate()) {
-			if (hasConstraints(childReference)) {
-				DataGroup childRef = readChildRefFromStorage(childReference);
-				addCreateConstraints(childReference, childRef);
-			}
+
+		List<DataGroup> allChildReferences = getAllChildReferencesForCreate();
+		Set<Constraint> collectedConstraints = new HashSet<>();
+		collectConstraintsForChildReferences(allChildReferences, collectedConstraints);
+		for (Constraint constraint : collectedConstraints) {
+			createConstraints.add(constraint);
 		}
 	}
 
@@ -424,18 +433,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	private DataGroup getNewMetadataGroup() {
-		return recordStorage.read("metadataGroup", getNewMetadataId());
-	}
-
-	// private void possiblyAddCreateConstraint(DataGroup childReference) {
-	// if (hasConstraints(childReference)) {
-	// addCreateConstraints(childReference);
-	// }
-	// }
-
-	private void addCreateConstraints(DataGroup childReference, DataGroup childRef) {
-		Constraint constraint = createConstraintPossibyAddAttributes(childReference, childRef);
-		createConstraints.add(constraint);
+		return recordStorage.read(METADATA_GROUP, getNewMetadataId());
 	}
 
 	@Override
