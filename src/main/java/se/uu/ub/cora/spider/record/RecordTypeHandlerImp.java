@@ -35,6 +35,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public final class RecordTypeHandlerImp implements RecordTypeHandler {
+	private static final String REPEAT_MAX_WHEN_NOT_REPEATEBLE = "1";
 	private static final String NAME_IN_DATA = "nameInData";
 	private static final String SEARCH = "search";
 	private static final String PARENT_ID = "parentId";
@@ -166,21 +167,52 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void collectConstraintsForChildReferences(List<DataGroup> allChildReferences) {
 		for (DataGroup childReference : allChildReferences) {
-			DataGroup childRef = null;
-			if (hasConstraints(childReference)) {
-				childRef = getChildRef(childReference);
-				addWriteAndReadWriteConstraints(childReference, childRef);
-			}
-			String repeatMax = childReference.getFirstAtomicValueWithNameInData("repeatMax");
-			DataGroup ref = childReference.getFirstGroupWithNameInData("ref");
-			String linkedRecordType = ref.getFirstAtomicValueWithNameInData("linkedRecordType");
-			if ("metadataGroup".equals(linkedRecordType) && "1".equals(repeatMax)) {
-				if (childRef == null) {
-					childRef = getChildRef(childReference);
-				}
-				collectConstraintsForChildReferences(getAllChildReferences(childRef));
-			}
+			collectConstraintForChildReference(childReference);
 		}
+	}
+
+	private void collectConstraintForChildReference(DataGroup childReference) {
+		DataGroup childRef = null;
+		if (hasConstraints(childReference)) {
+			childRef = readChildRefFromStorage(childReference);
+			addWriteAndReadWriteConstraints(childReference, childRef);
+		}
+		possiblyCollectConstraintsFromChildrenToChildReference(childReference, childRef);
+	}
+
+	private void possiblyCollectConstraintsFromChildrenToChildReference(DataGroup childReference,
+			DataGroup childRef) {
+		String repeatMax = getRepeatMax(childReference);
+		String linkedRecordType = getLinkedRecordType(childReference);
+		if (isGroup(linkedRecordType) && notRepetable(repeatMax)) {
+			childRef = getChildRefIfNotInitialized(childReference, childRef);
+			collectConstraintsForChildReferences(getAllChildReferences(childRef));
+		}
+	}
+
+	private String getRepeatMax(DataGroup childReference) {
+		return childReference.getFirstAtomicValueWithNameInData("repeatMax");
+	}
+
+	private String getLinkedRecordType(DataGroup childReference) {
+		DataGroup ref = childReference.getFirstGroupWithNameInData("ref");
+		return ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_TYPE);
+	}
+
+	private boolean isGroup(String linkedRecordType) {
+		return "metadataGroup".equals(linkedRecordType);
+	}
+
+	private boolean notRepetable(String repeatMax) {
+		return REPEAT_MAX_WHEN_NOT_REPEATEBLE.equals(repeatMax);
+	}
+
+	// TODO: namn på metod?? IfNotAssigned? IfNotAlreadyFetchedFromStorsge...?
+	private DataGroup getChildRefIfNotInitialized(DataGroup childReference, DataGroup childRef) {
+		if (childRef == null) {
+			childRef = readChildRefFromStorage(childReference);
+		}
+		return childRef;
 	}
 
 	private List<DataGroup> getAllChildReferences(DataGroup metadataGroupForMetadata) {
@@ -212,7 +244,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		return childReference.getFirstAtomicValueWithNameInData(RECORD_PART_CONSTRAINT);
 	}
 
-	private DataGroup getChildRef(DataGroup childReference) {
+	private DataGroup readChildRefFromStorage(DataGroup childReference) {
 		DataGroup ref = childReference.getFirstGroupWithNameInData("ref");
 		String linkedRecordType = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_TYPE);
 		String linkedRecordId = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
@@ -378,7 +410,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		constraintsForCreateLoaded = true;
 		for (DataGroup childReference : getAllChildReferencesForCreate()) {
 			if (hasConstraints(childReference)) {
-				DataGroup childRef = getChildRef(childReference);
+				DataGroup childRef = readChildRefFromStorage(childReference);
 				addCreateConstraints(childReference, childRef);
 			}
 		}
