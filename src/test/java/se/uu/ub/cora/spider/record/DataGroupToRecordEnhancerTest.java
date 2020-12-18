@@ -1307,7 +1307,7 @@ public class DataGroupToRecordEnhancerTest {
 		// authorizator.MCR.assertReturn(
 		// "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
 		// expectedPermissions);
-		Set<String> readPermissions = (Set<String>) authorizator.MCR.getReturnValue(
+		Set<?> readPermissions = (Set<?>) authorizator.MCR.getReturnValue(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
 
@@ -1382,12 +1382,10 @@ public class DataGroupToRecordEnhancerTest {
 				record.getWritePermissions());
 
 		record.MCR.assertNumberOfCallsToMethod("addReadPermissions", 2);
-		Set<String> call1 = (Set<String>) record.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("addReadPermissions", 0,
-						"readPermissions");
-		Set<String> call2 = (Set<String>) record.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("addReadPermissions", 1,
-						"readPermissions");
+		Set<?> call1 = (Set<?>) record.MCR.getValueForMethodNameAndCallNumberAndParameterName(
+				"addReadPermissions", 0, "readPermissions");
+		Set<?> call2 = (Set<?>) record.MCR.getValueForMethodNameAndCallNumberAndParameterName(
+				"addReadPermissions", 1, "readPermissions");
 
 		assertTrue(call1.contains("someRecordType.someReadMetadataId"));
 		assertTrue(call2.contains("someRecordType.someWriteMetadataId"));
@@ -1446,15 +1444,16 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void assertRedactCalledWithCorrectArguments() {
-		Set<String> usersReadRecordPartPermissions = (Set<String>) authorizator.MCR.getReturnValue(
+		Set<?> usersReadRecordPartPermissions = (Set<?>) authorizator.MCR.getReturnValue(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
 
-		Set<String> recordPartConstraints = (Set<String>) recordTypeHandlerSpy.MCR
+		Set<?> recordPartConstraints = (Set<?>) recordTypeHandlerSpy.MCR
 				.getReturnValue("getRecordPartReadConstraints", 0);
 
 		dataRedactor.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
-				someDataGroup, recordPartConstraints, usersReadRecordPartPermissions);
+				recordTypeHandlerSpy.getMetadataId(), someDataGroup, recordPartConstraints,
+				usersReadRecordPartPermissions);
 	}
 
 	private void assertAswerFromRedactorIsReturned(DataRecord record) {
@@ -1482,11 +1481,12 @@ public class DataGroupToRecordEnhancerTest {
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
 				someDataGroup);
 
-		Set<String> recordPartConstraints = (Set<String>) recordTypeHandlerSpy.MCR
+		Set<?> recordPartConstraints = (Set<?>) recordTypeHandlerSpy.MCR
 				.getReturnValue("getRecordPartReadConstraints", 0);
 
 		dataRedactor.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
-				someDataGroup, recordPartConstraints, Collections.emptySet());
+				recordTypeHandlerSpy.getMetadataId(), someDataGroup, recordPartConstraints,
+				Collections.emptySet());
 		assertAswerFromRedactorIsReturned(record);
 	}
 

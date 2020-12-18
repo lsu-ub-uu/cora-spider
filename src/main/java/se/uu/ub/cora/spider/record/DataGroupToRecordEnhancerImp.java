@@ -334,8 +334,9 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		DataRedactor redactor = dependencyProvider.getDataRedactor();
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();
-		return redactor.removeChildrenForConstraintsWithoutPermissions(dataGroup,
-				recordPartReadConstraints, readRecordPartPermissions);
+		return redactor.removeChildrenForConstraintsWithoutPermissions(
+				recordTypeHandler.getMetadataId(), dataGroup, recordPartReadConstraints,
+				readRecordPartPermissions);
 	}
 
 	private void addReadActionToAllRecordLinks(DataGroup dataGroup) {

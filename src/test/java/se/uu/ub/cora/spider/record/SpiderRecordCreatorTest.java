@@ -261,7 +261,7 @@ public class SpiderRecordCreatorTest {
 
 		DataGroup createdRecord = ((OldRecordStorageSpy) recordStorage).createRecord;
 
-		List<String> ids = (List<String>) recordTypeHandlerSpy.MCR
+		List<?> ids = (List<?>) recordTypeHandlerSpy.MCR
 				.getReturnValue("getCombinedIdsUsingRecordId", 0);
 		DataGroup collectedTerms = (DataGroup) termCollector.MCR.getReturnValue("collectTerms", 0);
 		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectedTerms, createdRecord);
@@ -634,13 +634,14 @@ public class SpiderRecordCreatorTest {
 
 	private void assertDataRedactorRemoveChildrenForConstraintsWithoutPermissions(
 			DataGroup dataGroup) {
-		Set<String> recordPartWriteConstraints = (Set<String>) recordTypeHandlerSpy.MCR
+		Set<?> recordPartWriteConstraints = (Set<?>) recordTypeHandlerSpy.MCR
 				.getReturnValue("getRecordPartCreateWriteConstraints", 0);
-		Set<String> writePermissions = (Set<String>) spiderAuthorizator.MCR.getReturnValue(
+		Set<?> writePermissions = (Set<?>) spiderAuthorizator.MCR.getReturnValue(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
 		dataRedactorSpy.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
-				dataGroup, recordPartWriteConstraints, writePermissions);
+				recordTypeHandlerSpy.getMetadataId(), dataGroup, recordPartWriteConstraints,
+				writePermissions);
 	}
 
 	@Test

@@ -42,10 +42,12 @@ public class DataRedactorSpy implements DataRedactor {
 	public DataGroup returnDataGroup;
 
 	@Override
-	public DataGroup removeChildrenForConstraintsWithoutPermissions(DataGroup originalDataGroup,
-			Set<Constraint> recordPartConstraints, Set<String> recordPartReadPermissions) {
-		MCR.addCall("recordRead", originalDataGroup, "recordPartConstraints", recordPartConstraints,
-				"recordPartReadPermissions", recordPartReadPermissions);
+	public DataGroup removeChildrenForConstraintsWithoutPermissions(String metadataId,
+			DataGroup originalDataGroup, Set<Constraint> recordPartConstraints,
+			Set<String> recordPartReadPermissions) {
+		MCR.addCall("metadataId", metadataId, "recordRead", originalDataGroup,
+				"recordPartConstraints", recordPartConstraints, "recordPartReadPermissions",
+				recordPartReadPermissions);
 		DataGroupSpy returnedRemovedDataGroup = new DataGroupSpy("someDataGroupSpy");
 		if (returnEnteredDataGroupAsAnswer) {
 			MCR.addReturned(originalDataGroup);
@@ -60,12 +62,12 @@ public class DataRedactorSpy implements DataRedactor {
 	}
 
 	@Override
-	public DataGroup replaceChildrenForConstraintsWithoutPermissions(DataGroup originalDataGroup,
-			DataGroup changedDataGroup, Set<Constraint> recordPartConstraints,
-			Set<String> recordPartPermissions) {
-		MCR.addCall("originalDataGroup", originalDataGroup, "changedDataGroup", changedDataGroup,
-				"recordPartConstraints", recordPartConstraints, "recordPartPermissions",
-				recordPartPermissions);
+	public DataGroup replaceChildrenForConstraintsWithoutPermissions(String metadataId,
+			DataGroup originalDataGroup, DataGroup changedDataGroup,
+			Set<Constraint> recordPartConstraints, Set<String> recordPartPermissions) {
+		MCR.addCall("metadataId", metadataId, "originalDataGroup", originalDataGroup,
+				"changedDataGroup", changedDataGroup, "recordPartConstraints",
+				recordPartConstraints, "recordPartPermissions", recordPartPermissions);
 		DataGroupSpy returnedReplacedDataGroup = new DataGroupSpy("someDataGroupSpy");
 		DataGroupSpy recordInfo = createRecordInfo();
 		returnedReplacedDataGroup.addChild(recordInfo);
