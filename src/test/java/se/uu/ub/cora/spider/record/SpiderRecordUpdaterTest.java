@@ -258,9 +258,8 @@ public class SpiderRecordUpdaterTest {
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
 		dataRedactorSpy.MCR.assertParameters("replaceChildrenForConstraintsWithoutPermissions", 0,
-				"fakeMetadataIdFromRecordTypeHandlerSpy",
-				((OldRecordStorageSpy) recordStorage).aRecord, dataGroup,
-				recordTypeHandlerSpy.writeConstraints, expectedPermissions);
+				recordTypeHandlerSpy.getMetadataId(), ((OldRecordStorageSpy) recordStorage).aRecord,
+				dataGroup, recordTypeHandlerSpy.writeConstraints, expectedPermissions);
 
 		DataGroup returnedRedactedDataGroup = (DataGroup) dataRedactorSpy.MCR
 				.getReturnValue("replaceChildrenForConstraintsWithoutPermissions", 0);
