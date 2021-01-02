@@ -55,6 +55,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private boolean constraintsForUpdateLoaded = false;
 	private boolean constraintsForCreateLoaded = false;
 	private RecordTypeHandlerFactory recordTypeHandlerFactory;
+	private Set<String> readChildren = new HashSet<>();
 
 	public static RecordTypeHandler usingRecordStorageAndRecordTypeId(
 			RecordTypeHandlerFactory recordTypeHandlerFactory, RecordStorage recordStorage,
@@ -195,7 +196,8 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		String linkedRecordType = getLinkedRecordType(childReference);
 		if (isGroup(linkedRecordType) && notRepetable(repeatMax)) {
 			childRef = ensureChildRefReadFromStorage(childReference, childRef);
-			collectConstraintsForChildReferences(getAllChildReferences(childRef), tempSet);
+			List<DataGroup> allChildReferences = getAllChildReferences(childRef);
+			collectConstraintsForChildReferences(allChildReferences, tempSet);
 		}
 	}
 
@@ -224,8 +226,15 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	private List<DataGroup> getAllChildReferences(DataGroup metadataGroupForMetadata) {
+		DataGroup recordInfo = metadataGroupForMetadata.getFirstGroupWithNameInData("recordInfo");
+		String id = recordInfo.getFirstAtomicValueWithNameInData("id");
+
+		if (readChildren.contains("metadataGroup_" + id)) {
+			return Collections.emptyList();
+		}
 		DataGroup childReferences = metadataGroupForMetadata
 				.getFirstGroupWithNameInData("childReferences");
+		readChildren.add("metadataGroup" + "_" + id);
 		return childReferences.getAllGroupsWithNameInData("childReference");
 	}
 

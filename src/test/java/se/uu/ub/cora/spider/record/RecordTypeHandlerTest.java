@@ -37,6 +37,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.spider.data.DataAttributeFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 
@@ -616,6 +617,37 @@ public class RecordTypeHandlerTest {
 		assertCorrectConstraintsIncludingFirstLevelChild(recordPartReadConstraints);
 	}
 
+	/**********************************************************************/
+	@Test
+	public void testRecursiveChildOnlyTraversedOnce() {
+		DataGroupSpy dataGroup = new DataGroupSpy("dataGroupNameInData");
+		dataGroup.addChild(dataGroup);
+
+		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
+				"organisationRecursiveChild");
+
+		Set<Constraint> recordPartReadConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
+		assertEquals(storageSpy.types.size(), 4);
+		assertEquals(storageSpy.ids.size(), 4);
+		assertEquals(storageSpy.ids.get(0), "organisationRecursiveChild");
+		assertEquals(storageSpy.ids.get(1), "organisationRecursiveChild");
+		assertEquals(storageSpy.ids.get(2), "divaOrganisationRecursiveNameGroup");
+		assertEquals(storageSpy.ids.get(3), "divaOrganisationRecursiveNameGroup");
+
+		DataGroupSpy returnValueNameGroup = (DataGroupSpy) storageSpy.MCR.getReturnValue("read", 2);
+		int recordInfoAndChildRefsRequested = 2;
+		assertEquals(returnValueNameGroup.requestedDataGroups.size(),
+				recordInfoAndChildRefsRequested);
+
+		DataGroupSpy returnValueNameGroup2 = (DataGroupSpy) storageSpy.MCR.getReturnValue("read",
+				3);
+		int onlyRecordInfoRequested = 1;
+		assertEquals(returnValueNameGroup2.requestedDataGroups.size(), onlyRecordInfoRequested);
+		assertTrue(recordPartReadConstraints.isEmpty());
+	}
+
+	/**********************************************************************/
 	@Test
 	public void testGetRecordPartReadWriteConstraintsWithGrandChild() {
 		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
