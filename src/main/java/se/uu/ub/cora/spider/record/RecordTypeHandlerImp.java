@@ -226,16 +226,28 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	private List<DataGroup> getAllChildReferences(DataGroup metadataGroupForMetadata) {
-		DataGroup recordInfo = metadataGroupForMetadata.getFirstGroupWithNameInData("recordInfo");
-		String id = recordInfo.getFirstAtomicValueWithNameInData("id");
-
-		if (readChildren.contains("metadataGroup_" + id)) {
+		String id = getIdFromMetadatagGroup(metadataGroupForMetadata);
+		if (childrenToGroupHasAlreadyBeenChecked(id)) {
 			return Collections.emptyList();
 		}
+		return addGroupToCheckedAndGetChildReferences(metadataGroupForMetadata, id);
+	}
+
+	private boolean childrenToGroupHasAlreadyBeenChecked(String id) {
+		return readChildren.contains(id);
+	}
+
+	private List<DataGroup> addGroupToCheckedAndGetChildReferences(
+			DataGroup metadataGroupForMetadata, String id) {
+		readChildren.add(id);
 		DataGroup childReferences = metadataGroupForMetadata
 				.getFirstGroupWithNameInData("childReferences");
-		readChildren.add("metadataGroup" + "_" + id);
 		return childReferences.getAllGroupsWithNameInData("childReference");
+	}
+
+	private String getIdFromMetadatagGroup(DataGroup metadataGroupForMetadata) {
+		DataGroup recordInfo = metadataGroupForMetadata.getFirstGroupWithNameInData("recordInfo");
+		return recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
 	private boolean hasConstraints(DataGroup childReference) {
