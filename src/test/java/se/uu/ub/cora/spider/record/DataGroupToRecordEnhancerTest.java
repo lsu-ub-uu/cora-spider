@@ -124,7 +124,7 @@ public class DataGroupToRecordEnhancerTest {
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.termCollector = termCollector;
-		dependencyProvider.dataRedactor = dataRedactor;
+		// dependencyProvider.dataRedactor = dataRedactor;
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
 		enhancer = new DataGroupToRecordEnhancerImp(dependencyProvider);
 	}
@@ -144,7 +144,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testReadActionPartOfEnhance() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertReadActionPartOfEnhance(record);
 	}
@@ -202,7 +202,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertReadActionPartOfEnhance(record);
 	}
@@ -224,7 +224,7 @@ public class DataGroupToRecordEnhancerTest {
 	private Exception runEnhanceAndCatchException() {
 		Exception auxiliaryException = null;
 		try {
-			enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+			enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, null);
 		} catch (AuthorizationException thrownException) {
 			auxiliaryException = thrownException;
 		}
@@ -245,7 +245,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForNoReadAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertCheckAndGetAuthorizationCalledForReadActionPartOfEnhance();
 
@@ -260,7 +260,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testReadActionPartOfEnhanceNotAuthorizedButPublicData() throws Exception {
 		setupForNoReadAccessButPublicData();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertReadActionPartOfEnhanceNotAuthorizedButPublicData(record);
 	}
@@ -284,7 +284,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForNoReadAccessButPublicData();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertReadActionPartOfEnhanceNotAuthorizedButPublicData(record);
 	}
@@ -293,7 +293,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testUpdateActionPartOfEnhance() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertUpdateActionPartOfEnhance(record);
 	}
@@ -320,7 +320,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertUpdateActionPartOfEnhance(record);
 	}
@@ -329,7 +329,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testUpdateActionPartOfEnhanceNotAuthorized() throws Exception {
 		setupForNoUpdateAccess();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertUpdateActionPartOfEnhanceNotAuthorized(record);
 	}
@@ -349,7 +349,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForNoUpdateAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertUpdateActionPartOfEnhanceNotAuthorized(record);
 	}
@@ -358,7 +358,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testIndexActionPartOfEnhance() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertIndexAction(record);
 	}
@@ -384,7 +384,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertIndexAction(record);
 	}
@@ -393,7 +393,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testIndexActionPartOfEnhanceNotAuthorized() throws Exception {
 		setupForNoIndexAccess();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertIndexActionNotAuthorized(record);
 	}
@@ -417,7 +417,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForNoIndexAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertIndexActionNotAuthorized(record);
 	}
@@ -426,7 +426,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testDeleteActionPartOfEnhance() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertDeleteAction(record);
 	}
@@ -452,7 +452,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertDeleteAction(record);
 	}
@@ -461,7 +461,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testDeleteActionPartOfEnhanceNotAuthorized() throws Exception {
 		setupForNoDeleteAccess();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertDeleteActionNotAuthorized(record);
 	}
@@ -485,7 +485,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForNoDeleteAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertDeleteActionNotAuthorized(record);
 	}
@@ -494,7 +494,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testDeleteActionPartOfEnhanceAuthorizedButHasIncomingLinks() throws Exception {
 		setupForDeleteButIncomingLinksExists();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertDeleteActionAuthorizedButHasIncomingLinks(record);
 	}
@@ -520,7 +520,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForDeleteButIncomingLinksExists();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertDeleteActionAuthorizedButHasIncomingLinks(record);
 	}
@@ -530,7 +530,7 @@ public class DataGroupToRecordEnhancerTest {
 			throws Exception {
 		setupForDeleteButIncomingLinksExistsForParentRecordType();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertDeleteActionAuthorizedButHasIncomingLinksAsParentRecordType(record);
 	}
@@ -567,7 +567,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForDeleteButIncomingLinksExistsForParentRecordType();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertDeleteActionAuthorizedButHasIncomingLinksAsParentRecordType(record);
 	}
@@ -576,7 +576,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testIncomingLinksActionPartOfEnhanceHasNoIncommingLinks() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertRecordDoesNotContainIncomingLinksAction(record);
 	}
@@ -590,7 +590,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertRecordDoesNotContainIncomingLinksAction(record);
 	}
@@ -599,7 +599,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testIncomingLinksActionPartOfEnhanceHasIncomingLinks() throws Exception {
 		setupForDeleteButIncomingLinksExists();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertRecordContainsIncomingLinksAction(record);
 	}
@@ -613,7 +613,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForDeleteButIncomingLinksExists();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertRecordContainsIncomingLinksAction(record);
 	}
@@ -622,7 +622,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testUploadActionPartOfEnhance() throws Exception {
 		setupForUploadAction();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertUploadAction(record);
 	}
@@ -655,7 +655,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForUploadAction();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertUploadAction(record);
 	}
@@ -664,7 +664,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testUploadActionPartOfEnhanceNotAuthorized() throws Exception {
 		setupForNoUploadAccess();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertUploadActionNotAuthorized(record);
 	}
@@ -689,7 +689,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForNoUploadAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertUploadActionNotAuthorized(record);
 	}
@@ -698,7 +698,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testUploadActionPartOfEnhanceNotChildOfBinary() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertUploadActionNotChildOfBinary(record);
 	}
@@ -720,7 +720,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertUploadActionNotChildOfBinary(record);
 	}
@@ -729,7 +729,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testSearchActionPartOfEnhanceForRecordTypeSearch() throws Exception {
 		setupForSearchAction();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertSearchActionForRecordTypeSearch(record);
 	}
@@ -768,7 +768,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForSearchAction();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertSearchActionForRecordTypeSearch(record);
 	}
@@ -777,7 +777,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testSearchActionPartOfEnhanceForRecordTypeSearchNotAuthorized() throws Exception {
 		setupForSearchActionNotAuthorized();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertSearchActionForRecordTypeSearchNotAuthorized(record);
 	}
@@ -807,7 +807,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForSearchActionNotAuthorized();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertSearchActionForRecordTypeSearchNotAuthorized(record);
 	}
@@ -816,7 +816,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testSearchActionPartOfEnhanceForRecordTypeSearchNoSearchType() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertSearchActionForRecordTypeSearchNoSearchType(record);
 	}
@@ -831,7 +831,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertSearchActionForRecordTypeSearchNoSearchType(record);
 	}
@@ -840,7 +840,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testCreateActionPartOfEnhanceForRecordTypeRecordType() throws Exception {
 		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForCreateAction();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertCreateActionForRecordTypeRecordType(recordTypeHandlerForRecordTypeInData, record);
 	}
@@ -875,7 +875,7 @@ public class DataGroupToRecordEnhancerTest {
 		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForCreateAction();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertCreateActionForRecordTypeRecordType(recordTypeHandlerForRecordTypeInData, record);
 	}
@@ -885,7 +885,7 @@ public class DataGroupToRecordEnhancerTest {
 			throws Exception {
 		setupForCreateActionNotAuthorized();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertCreateActionForRecordTypeRecordTypeNotAuthorized(record);
 	}
@@ -916,7 +916,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForCreateActionNotAuthorized();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertCreateActionForRecordTypeRecordTypeNotAuthorized(record);
 	}
@@ -925,7 +925,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testCreateActionPartOfEnhanceForRecordTypeRecordTypeIsAbstract() throws Exception {
 		setupForCreateActionAndAbstract();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertCreateActionForRecordTypeRecordTypeIsAbstract(record);
 	}
@@ -948,7 +948,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForCreateActionAndAbstract();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertCreateActionForRecordTypeRecordTypeIsAbstract(record);
 	}
@@ -958,7 +958,7 @@ public class DataGroupToRecordEnhancerTest {
 			throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertCreateActionForRecordTypeRecordTypeIsNotRecordType(record);
 	}
@@ -976,7 +976,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertCreateActionForRecordTypeRecordTypeIsNotRecordType(record);
 	}
@@ -985,7 +985,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testListActionPartOfEnhanceForRecordTypeRecordType() throws Exception {
 		setupForListAction();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertListActionForRecordTypeRecordType(record);
 	}
@@ -1012,7 +1012,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForListAction();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertListActionForRecordTypeRecordType(record);
 	}
@@ -1021,7 +1021,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testListActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized() throws Exception {
 		setupForListActionNotAuthorized();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertListActionForRecordTypeRecordTypeNotAuthorized(record);
 	}
@@ -1045,7 +1045,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForListActionNotAuthorized();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertListActionForRecordTypeRecordTypeNotAuthorized(record);
 	}
@@ -1054,7 +1054,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testListActionPartOfEnhanceForRecordTypeRecordTypeNotRecordType() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertListActionForRecordTypeRecordTypeNotRecordType(record);
 	}
@@ -1076,7 +1076,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertListActionForRecordTypeRecordTypeNotRecordType(record);
 	}
@@ -1085,7 +1085,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testValidateActionPartOfEnhanceForRecordTypeRecordType() throws Exception {
 		setupForListAction();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertValidateActionForRecordTypeRecordType(record);
 	}
@@ -1103,7 +1103,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForListAction();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertValidateActionForRecordTypeRecordType(record);
 	}
@@ -1113,7 +1113,7 @@ public class DataGroupToRecordEnhancerTest {
 			throws Exception {
 		setupForCreateActionNotAuthorized();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertValidateActionForRecordTypeRecordTypeNotAuthorized(record);
 	}
@@ -1132,7 +1132,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForCreateActionNotAuthorized();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertValidateActionForRecordTypeRecordTypeNotAuthorized(record);
 	}
@@ -1142,7 +1142,7 @@ public class DataGroupToRecordEnhancerTest {
 			throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertValidateActionForRecordTypeRecordTypeNotRecordType(record);
 	}
@@ -1163,7 +1163,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertValidateActionForRecordTypeRecordTypeNotRecordType(record);
 	}
@@ -1173,7 +1173,7 @@ public class DataGroupToRecordEnhancerTest {
 			throws Exception {
 		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordType();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertSearchActionForRecordTypeRecordType(recordTypeHandlerForRecordTypeInData, record);
 	}
@@ -1220,7 +1220,7 @@ public class DataGroupToRecordEnhancerTest {
 		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordType();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertSearchActionForRecordTypeRecordType(recordTypeHandlerForRecordTypeInData, record);
 	}
@@ -1230,7 +1230,7 @@ public class DataGroupToRecordEnhancerTest {
 			throws Exception {
 		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordTypeNotAuthorized();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertSearchActionForRecordTypeRecordTypeNotAuthorized(recordTypeHandlerForRecordTypeInData,
 				record);
@@ -1283,7 +1283,7 @@ public class DataGroupToRecordEnhancerTest {
 		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordTypeNotAuthorized();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertSearchActionForRecordTypeRecordTypeNotAuthorized(recordTypeHandlerForRecordTypeInData,
 				record);
@@ -1293,7 +1293,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testReadPermissionsAreAddedToRecord() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertReadPermissionsAreAddedToRecord(record);
 	}
@@ -1320,7 +1320,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertReadPermissionsAreAddedToRecord(record);
 	}
@@ -1330,7 +1330,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForNoReadAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertReadPermissionsAreAddedToRecordPublicData(record);
 	}
@@ -1339,7 +1339,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testReadPermissionsAreAddedToRecordPublicData() throws Exception {
 		setupForPublicRecord();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertReadPermissionsAreAddedToRecordPublicData(record);
 	}
@@ -1358,7 +1358,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForPublicRecord();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertReadPermissionsAreAddedToRecordPublicData(record);
 	}
@@ -1368,7 +1368,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertWritePermissionsAreAddedToRecord(record);
 	}
@@ -1397,7 +1397,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
-				SOME_RECORD_TYPE, someDataGroup);
+				SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertWritePermissionsAreAddedToRecord(record);
 	}
@@ -1406,7 +1406,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testWritePermissionsAreAddedToRecordNotAutorized() throws Exception {
 		setupForNoAccessOnUpdateActionOnRecordType();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertWritePermissionsAreAddedToRecordNotAutorized(record);
 	}
@@ -1428,7 +1428,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForNoAccessOnUpdateActionOnRecordType();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertWritePermissionsAreAddedToRecordNotAutorized(record);
 	}
@@ -1437,7 +1437,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testRedactData() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup);
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertRedactCalledWithCorrectArguments();
 		assertAswerFromRedactorIsReturned(record);
@@ -1468,7 +1468,7 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		assertRedactCalledWithCorrectArguments();
 		assertAswerFromRedactorIsReturned(record);
@@ -1479,7 +1479,7 @@ public class DataGroupToRecordEnhancerTest {
 		setupForNoReadAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup);
+				someDataGroup, dataRedactor);
 
 		Set<?> recordPartConstraints = (Set<?>) recordTypeHandlerSpy.MCR
 				.getReturnValue("getRecordPartReadConstraints", 0);
@@ -1494,7 +1494,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testLinksAreAddedToRedactedDataGroup() throws Exception {
 		setupReturnedDataGroupOnDataRedactorSpy();
 
-		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, someDataGroup);
+		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, someDataGroup, dataRedactor);
 
 		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
 	}
@@ -1509,8 +1509,8 @@ public class DataGroupToRecordEnhancerTest {
 	public void testIRALinksAreAddedToRedactedDataGroup() throws Exception {
 		setupReturnedDataGroupOnDataRedactorSpy();
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS,
-				someDataGroup);
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, someDataGroup,
+				dataRedactor);
 
 		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
 	}
@@ -1521,7 +1521,7 @@ public class DataGroupToRecordEnhancerTest {
 		// dataRedactor.returnDataGroup = dataGroup;
 		DataGroup dataGroup = setupReturnedDataGroupOnDataRedactorSpy();
 
-		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, dataGroup);
+		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, dataGroup, dataRedactor);
 
 		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
 	}
@@ -1532,7 +1532,8 @@ public class DataGroupToRecordEnhancerTest {
 		// dataRedactor.returnDataGroup = dataGroup;
 		DataGroup dataGroup = setupReturnedDataGroupOnDataRedactorSpy();
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, dataGroup);
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, dataGroup,
+				dataRedactor);
 
 		RecordLinkTestsAsserter.assertTopLevelLinkContainsReadActionOnly(record);
 	}
@@ -1546,7 +1547,7 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator.setNotAutorizedForActionOnRecordType(SEARCH, "toRecordType");
 		authorizator.setNotAutorizedForActionOnRecordType(READ, "toRecordType");
 
-		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, dataGroup);
+		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, dataGroup, dataRedactor);
 		RecordLinkTestsAsserter.assertTopLevelLinkDoesNotContainReadAction(record);
 	}
 
@@ -1560,7 +1561,8 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator.setNotAutorizedForActionOnRecordType(SEARCH, "toRecordType");
 		authorizator.setNotAutorizedForActionOnRecordType(READ, "toRecordType");
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup);
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup,
+				dataRedactor);
 		RecordLinkTestsAsserter.assertTopLevelLinkDoesNotContainReadAction(record);
 	}
 
@@ -1569,7 +1571,7 @@ public class DataGroupToRecordEnhancerTest {
 		String recordType = DATA_WITH_LINKS;
 		DataGroup dataGroup = recordStorage.read(recordType, "oneLinkOneLevelDown");
 		dataRedactor.returnDataGroup = dataGroup;
-		DataRecord record = enhancer.enhance(user, recordType, dataGroup);
+		DataRecord record = enhancer.enhance(user, recordType, dataGroup, dataRedactor);
 
 		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}
@@ -1579,7 +1581,8 @@ public class DataGroupToRecordEnhancerTest {
 		String recordType = DATA_WITH_LINKS;
 		DataGroup dataGroup = recordStorage.read(recordType, "oneLinkOneLevelDown");
 		dataRedactor.returnDataGroup = dataGroup;
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup);
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup,
+				dataRedactor);
 
 		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}
@@ -1589,7 +1592,7 @@ public class DataGroupToRecordEnhancerTest {
 		String recordType = "dataWithResourceLinks";
 		DataGroup dataGroup = recordStorage.read(recordType, "oneResourceLinkTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
-		DataRecord record = enhancer.enhance(user, recordType, dataGroup);
+		DataRecord record = enhancer.enhance(user, recordType, dataGroup, dataRedactor);
 
 		RecordLinkTestsAsserter.assertTopLevelResourceLinkContainsReadActionOnly(record);
 	}
@@ -1599,7 +1602,8 @@ public class DataGroupToRecordEnhancerTest {
 		String recordType = "dataWithResourceLinks";
 		DataGroup dataGroup = recordStorage.read(recordType, "oneResourceLinkTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup);
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup,
+				dataRedactor);
 
 		RecordLinkTestsAsserter.assertTopLevelResourceLinkContainsReadActionOnly(record);
 	}
@@ -1610,7 +1614,7 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read(recordType, "oneResourceLinkOneLevelDown");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhance(user, recordType, dataGroup);
+		DataRecord record = enhancer.enhance(user, recordType, dataGroup, dataRedactor);
 
 		RecordLinkTestsAsserter.assertOneLevelDownResourceLinkContainsReadActionOnly(record);
 	}
@@ -1621,7 +1625,8 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read(recordType, "oneResourceLinkOneLevelDown");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup);
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup,
+				dataRedactor);
 
 		RecordLinkTestsAsserter.assertOneLevelDownResourceLinkContainsReadActionOnly(record);
 	}
@@ -1633,7 +1638,7 @@ public class DataGroupToRecordEnhancerTest {
 				"oneLinkOneLevelDownTargetDoesNotExist");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhance(user, recordType, someDataGroup);
+		DataRecord record = enhancer.enhance(user, recordType, someDataGroup, dataRedactor);
 
 		assertReadRecordWithDataRecordLinkTargetDoesNotExist(record);
 	}
@@ -1654,7 +1659,8 @@ public class DataGroupToRecordEnhancerTest {
 				"oneLinkOneLevelDownTargetDoesNotExist");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, someDataGroup);
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, someDataGroup,
+				dataRedactor);
 
 		assertReadRecordWithDataRecordLinkTargetDoesNotExist(record);
 	}
@@ -1667,7 +1673,7 @@ public class DataGroupToRecordEnhancerTest {
 		dataRedactor.returnDataGroup = dataGroup;
 		recordStorage.publicReadForToRecordType = "true";
 
-		DataRecord record = enhancer.enhance(user, recordType, someDataGroup);
+		DataRecord record = enhancer.enhance(user, recordType, someDataGroup, dataRedactor);
 
 		assertLinkIsNotReadWhenRecordTypeIsPublic(record);
 	}
@@ -1691,7 +1697,8 @@ public class DataGroupToRecordEnhancerTest {
 		dataRedactor.returnDataGroup = dataGroup;
 		recordStorage.publicReadForToRecordType = "true";
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, someDataGroup);
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, someDataGroup,
+				dataRedactor);
 
 		assertLinkIsNotReadWhenRecordTypeIsPublic(record);
 	}
@@ -1704,7 +1711,7 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhance(user, recordType, someDataGroup);
+		DataRecord record = enhancer.enhance(user, recordType, someDataGroup, dataRedactor);
 
 		assertRecordTypeForLinkIsOnlyReadOnce(record);
 	}
@@ -1729,7 +1736,8 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, someDataGroup);
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, someDataGroup,
+				dataRedactor);
 
 		assertRecordTypeForLinkIsOnlyReadOnce(record);
 	}
@@ -1740,7 +1748,7 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhance(user, recordType, someDataGroup);
+		DataRecord record = enhancer.enhance(user, recordType, someDataGroup, dataRedactor);
 
 		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
 	}
@@ -1775,7 +1783,8 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, someDataGroup);
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, someDataGroup,
+				dataRedactor);
 
 		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
 	}
@@ -1789,7 +1798,7 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator.setNotAutorizedForActionOnRecordType(READ, "system");
 		authorizator.setNotAutorizedForActionOnRecordType(READ, "toRecordType");
 
-		DataRecord record = enhancer.enhance(user, recordType, dataGroup);
+		DataRecord record = enhancer.enhance(user, recordType, dataGroup, dataRedactor);
 
 		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecordNotAuthorized(record);
 	}
@@ -1828,7 +1837,8 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator.setNotAutorizedForActionOnRecordType(READ, "system");
 		authorizator.setNotAutorizedForActionOnRecordType(READ, "toRecordType");
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup);
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup,
+				dataRedactor);
 
 		assertTopLevelTwoLinksDoesNotContainReadAction(record);
 		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "toRecordType:toRecordId");

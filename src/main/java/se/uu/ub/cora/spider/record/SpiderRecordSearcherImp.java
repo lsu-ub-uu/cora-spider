@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
@@ -52,9 +53,11 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private DataGroup searchMetadata;
 	private List<DataGroup> recordTypeToSearchInGroups;
 	private int startRow = 1;
+	private SpiderDependencyProvider dependencyProvider;
 
 	private SpiderRecordSearcherImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
@@ -162,7 +165,9 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private void filterEnhanceAndAddToList(DataGroup dataGroup) {
 		String recordType = extractRecordTypeFromRecordInfo(dataGroup);
 		try {
-			DataRecord record = dataGroupToRecordEnhancer.enhance(user, recordType, dataGroup);
+			DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
+			DataRecord record = dataGroupToRecordEnhancer.enhance(user, recordType, dataGroup,
+					dataRedactor);
 			dataList.addData(record);
 		} catch (AuthorizationException noReadAuthorization) {
 			// do nothing

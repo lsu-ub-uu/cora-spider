@@ -78,6 +78,7 @@ public class SpiderRecordListReaderTest {
 	private DataListFactory dataListFactory;
 	private DataCopierFactory dataCopierFactory;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
+	private DataRedactorSpy dataRedactor;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -89,6 +90,7 @@ public class SpiderRecordListReaderTest {
 		recordStorage = new RecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		dataValidator = new DataValidatorSpy();
+		dataRedactor = new DataRedactorSpy();
 		recordEnhancer = new DataGroupToRecordEnhancerSpy();
 		setUpDependencyProvider();
 	}
@@ -125,6 +127,7 @@ public class SpiderRecordListReaderTest {
 
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.dataValidator = dataValidator;
+		dependencyProvider.dataRedactor = dataRedactor;
 		recordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordListReader = SpiderRecordListReaderImp
 				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProvider,
@@ -273,12 +276,12 @@ public class SpiderRecordListReaderTest {
 		String returnedRecordType1 = extractRecordTypeFromDataGroup(returnedDataGroup1);
 
 		recordEnhancer.MCR.assertParameters("enhance", 0, returnedUser, returnedRecordType1,
-				returnedDataGroup1);
+				returnedDataGroup1, dataRedactor);
 
 		DataGroup returnedDataGroup2 = listOfReturnedDataGroupsFromStorage.get(1);
 		String returnedRecordType2 = extractRecordTypeFromDataGroup(returnedDataGroup2);
 		recordEnhancer.MCR.assertParameters("enhance", 1, returnedUser, returnedRecordType2,
-				returnedDataGroup2);
+				returnedDataGroup2, dataRedactor);
 	}
 
 	private String extractRecordTypeFromDataGroup(DataGroup dataGroup) {

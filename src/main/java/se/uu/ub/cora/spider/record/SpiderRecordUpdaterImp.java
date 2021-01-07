@@ -118,8 +118,8 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		useExtendedFunctionalityBeforeStore(recordType, dataGroup);
 		updateRecordInStorage(collectedTerms, collectedLinks);
 		indexData(collectedTerms);
-
-		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup);
+		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
+		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup, dataRedactor);
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(String recordType,

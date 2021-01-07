@@ -103,7 +103,7 @@ public class SpiderRecordCreatorTest {
 	private DataCopierFactory dataCopierFactory;
 	private DataRecordFactory dataRecordFactorySpy;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
-	private DataRedactorSpy dataRedactorSpy;
+	private DataRedactorSpy dataRedactor;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -133,6 +133,7 @@ public class SpiderRecordCreatorTest {
 		dataRecordLinkFactory = new DataRecordLinkFactorySpy();
 		DataRecordLinkProvider.setDataRecordLinkFactory(dataRecordLinkFactory);
 		dataRecordFactorySpy = new DataRecordFactorySpy();
+		dataRedactor = new DataRedactorSpy();
 		DataRecordProvider.setDataRecordFactory(dataRecordFactorySpy);
 	}
 
@@ -154,9 +155,9 @@ public class SpiderRecordCreatorTest {
 		dependencyProvider.recordIndexer = recordIndexer;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
+		dependencyProvider.dataRedactor = dataRedactor;
 		recordCreator = SpiderRecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
-		dataRedactorSpy = dependencyProvider.dataRedactor;
 	}
 
 	@Test
@@ -239,7 +240,7 @@ public class SpiderRecordCreatorTest {
 	private void assertCallEnhanceIgnoringReadAccess(DataGroup dataGroup) {
 		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 		dataGroupToRecordEnhancer.MCR.assertParameters("enhanceIgnoringReadAccess", 0, user,
-				"spyType", dataGroup);
+				"spyType", dataGroup, dataRedactor);
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)
@@ -596,7 +597,7 @@ public class SpiderRecordCreatorTest {
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 
 		recordTypeHandlerSpy.MCR.assertMethodWasCalled("hasRecordPartCreateConstraint");
-		dataRedactorSpy.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
+		dataRedactor.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
 	}
 
 	private DataGroup setupForNoRecordPartConstraints() {
@@ -620,7 +621,7 @@ public class SpiderRecordCreatorTest {
 		DataGroup dataGroup = setupForAutoGenerateId();
 		DataGroup dataGroupReturnedFromRedactor = DataCreator2
 				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
-		dataRedactorSpy.returnDataGroup = dataGroupReturnedFromRedactor;
+		dataRedactor.returnDataGroup = dataGroupReturnedFromRedactor;
 		recordTypeHandlerSpy.recordPartConstraint = "write";
 		return dataGroup;
 	}
@@ -639,7 +640,7 @@ public class SpiderRecordCreatorTest {
 		Set<?> writePermissions = (Set<?>) spiderAuthorizator.MCR.getReturnValue(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
-		dataRedactorSpy.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
+		dataRedactor.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
 				recordTypeHandlerSpy.getMetadataId(), dataGroup, recordPartWriteConstraints,
 				writePermissions);
 	}
@@ -664,7 +665,7 @@ public class SpiderRecordCreatorTest {
 
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 
-		DataGroup redactedDataGroup = (DataGroup) dataRedactorSpy.MCR
+		DataGroup redactedDataGroup = (DataGroup) dataRedactor.MCR
 				.getReturnValue("removeChildrenForConstraintsWithoutPermissions", 0);
 
 		String newMetadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getNewMetadataId",

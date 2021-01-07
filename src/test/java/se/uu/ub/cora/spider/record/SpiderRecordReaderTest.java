@@ -52,6 +52,7 @@ public class SpiderRecordReaderTest {
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private LoggerFactorySpy loggerFactorySpy;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
+	private DataRedactorSpy dataRedactor;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -59,6 +60,7 @@ public class SpiderRecordReaderTest {
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageSpy();
+		dataRedactor = new DataRedactorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -75,7 +77,7 @@ public class SpiderRecordReaderTest {
 		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
 		recordStorageProviderSpy.recordStorage = recordStorage;
 		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
-
+		dependencyProvider.dataRedactor = dataRedactor;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 
 		recordReader = SpiderRecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -164,7 +166,7 @@ public class SpiderRecordReaderTest {
 		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 		DataGroup dataGroupFromStorage = (DataGroup) recordStorage.MCR.getReturnValue("read", 0);
 		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, user, SOME_RECORD_TYPE,
-				dataGroupFromStorage);
+				dataGroupFromStorage, dataRedactor);
 	}
 
 	@Test
@@ -185,7 +187,7 @@ public class SpiderRecordReaderTest {
 		recordStorage.MCR.assertMethodWasCalled("read");
 		DataGroup dataGroupFromStorage = (DataGroup) recordStorage.MCR.getReturnValue("read", 0);
 		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, user, "someNotAbstractType",
-				dataGroupFromStorage);
+				dataGroupFromStorage, dataRedactor);
 	}
 
 	@Test

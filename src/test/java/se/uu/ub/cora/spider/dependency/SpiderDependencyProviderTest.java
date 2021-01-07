@@ -346,6 +346,25 @@ public class SpiderDependencyProviderTest {
 		assertSame(metadataMatchData.getMetadataHolder(), metadataHolder);
 	}
 
+	// @Test
+	// public void testGetDataRedactorWhenAlreadyCreated() {
+	// DataRedactorImp dataRedactor = (DataRedactorImp) dependencyProvider.getDataRedactor();
+	// MetadataHolder metadataHolder = dataRedactor.getMetadataHolder();
+	//
+	// MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
+	// assertEquals(metadataElement.getId(), "someMetadata1");
+	// assertTrue(dataRedactor.getDataGroupRedactor() instanceof DataGroupRedactorImp);
+	// assertTrue(dataRedactor.getDataGroupWrapperFactory() instanceof DataGroupWrapperFactoryImp);
+	//
+	// MatcherFactoryImp matcherFactory = (MatcherFactoryImp) dataRedactor.getMatcherFactory();
+	// MetadataMatchDataImp metadataMatchData = (MetadataMatchDataImp) matcherFactory
+	// .getMetadataMatchData();
+	// assertSame(metadataMatchData.getMetadataHolder(), metadataHolder);
+	//
+	// DataRedactorImp dataRedactor2 = (DataRedactorImp) dependencyProvider.getDataRedactor();
+	// assertSame(dataRedactor, dataRedactor2);
+	// }
+
 	@Test
 	public void testGetValueFromInitInfo() {
 		String key = "foundKey";

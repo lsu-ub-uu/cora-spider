@@ -95,7 +95,7 @@ public class SpiderRecordUpdaterTest {
 	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataCopierFactory dataCopierFactory;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
-	private DataRedactorSpy dataRedactorSpy;
+	private DataRedactorSpy dataRedactor;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -108,6 +108,7 @@ public class SpiderRecordUpdaterTest {
 		linkCollector = new DataRecordLinkCollectorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
+		dataRedactor = new DataRedactorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		setUpDependencyProvider();
 	}
@@ -138,9 +139,9 @@ public class SpiderRecordUpdaterTest {
 		dependencyProvider.recordIndexer = recordIndexer;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
+		dependencyProvider.dataRedactor = dataRedactor;
 		recordUpdater = SpiderRecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
-		dataRedactorSpy = dependencyProvider.dataRedactor;
 	}
 
 	@Test
@@ -216,9 +217,8 @@ public class SpiderRecordUpdaterTest {
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
 
-		dataRedactorSpy.MCR
-				.assertMethodNotCalled("replaceChildrenForConstraintsWithoutPermissions");
-		dataRedactorSpy.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
+		dataRedactor.MCR.assertMethodNotCalled("replaceChildrenForConstraintsWithoutPermissions");
+		dataRedactor.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
 
 		dataValidator.MCR.assertParameter("validateData", 0, "dataGroup", dataGroup);
 	}
@@ -251,23 +251,22 @@ public class SpiderRecordUpdaterTest {
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
 
-		dataRedactorSpy.MCR
-				.assertMethodWasCalled("replaceChildrenForConstraintsWithoutPermissions");
+		dataRedactor.MCR.assertMethodWasCalled("replaceChildrenForConstraintsWithoutPermissions");
 
 		Set<?> expectedPermissions = (Set<?>) authorizator.MCR.getReturnValue(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
-		dataRedactorSpy.MCR.assertParameters("replaceChildrenForConstraintsWithoutPermissions", 0,
+		dataRedactor.MCR.assertParameters("replaceChildrenForConstraintsWithoutPermissions", 0,
 				recordTypeHandlerSpy.getMetadataId(), ((OldRecordStorageSpy) recordStorage).aRecord,
 				dataGroup, recordTypeHandlerSpy.writeConstraints, expectedPermissions);
 
-		DataGroup returnedRedactedDataGroup = (DataGroup) dataRedactorSpy.MCR
+		DataGroup returnedRedactedDataGroup = (DataGroup) dataRedactor.MCR
 				.getReturnValue("replaceChildrenForConstraintsWithoutPermissions", 0);
 		dataValidator.MCR.assertParameter("validateData", 0, "dataGroup",
 				returnedRedactedDataGroup);
 
 		// reading updated data
-		dataRedactorSpy.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
+		dataRedactor.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
 	}
 
 	@Test
@@ -280,10 +279,10 @@ public class SpiderRecordUpdaterTest {
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 				"spyType", "spyId", "cora"));
 		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
-		assertEquals(dataGroupToRecordEnhancer.user.id, "12345");
-		assertEquals(dataGroupToRecordEnhancer.recordType, "spyType");
-		assertEquals(dataGroupToRecordEnhancer.dataGroup.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id"), "spyId");
+
+		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, authenticator.returnedUser,
+				"spyType", dataGroup, dataRedactor);
+
 	}
 
 	@Test

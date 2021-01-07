@@ -80,6 +80,7 @@ public abstract class SpiderDependencyProvider {
 	protected MetadataStorageProvider metadataStorageProvider;
 	private Logger log = LoggerProvider.getLoggerForClass(SpiderDependencyProvider.class);
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
+	private DataRedactorImp dataRedactor;
 
 	public SpiderDependencyProvider(Map<String, String> initInfo) {
 		this.initInfo = initInfo;
@@ -208,6 +209,9 @@ public abstract class SpiderDependencyProvider {
 	}
 
 	public DataRedactor getDataRedactor() {
+		// if (dataRedactor != null) {
+		// return dataRedactor;
+		// }
 		MetadataStorage metadataStorage = metadataStorageProvider.getMetadataStorage();
 		MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
 		DataGroupRedactor dataGroupRedactor = new DataGroupRedactorImp();
@@ -215,8 +219,9 @@ public abstract class SpiderDependencyProvider {
 		MetadataMatchData metadataMatchData = MetadataMatchDataImp
 				.withMetadataHolder(metadataHolder);
 		MatcherFactory matcherFactory = new MatcherFactoryImp(metadataMatchData);
-		return new DataRedactorImp(metadataHolder, dataGroupRedactor, wrapperFactory,
+		dataRedactor = new DataRedactorImp(metadataHolder, dataGroupRedactor, wrapperFactory,
 				matcherFactory);
+		return dataRedactor;
 	}
 
 	protected abstract void tryToInitialize() throws Exception;

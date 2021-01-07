@@ -72,9 +72,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	@Override
-	public DataRecord enhance(User user, String recordType, DataGroup dataGroup) {
+	public DataRecord enhance(User user, String recordType, DataGroup dataGroup,
+			DataRedactor dataRedactor) {
 		commonSetupForEnhance(user, recordType, dataGroup);
-		return enhanceDataGroupToRecord(dataGroup);
+		return enhanceDataGroupToRecord(dataGroup, dataRedactor);
 	}
 
 	private void commonSetupForEnhance(User user, String recordType, DataGroup dataGroup) {
@@ -116,16 +117,17 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
-	private DataRecord enhanceDataGroupToRecord(DataGroup dataGroup) {
+	private DataRecord enhanceDataGroupToRecord(DataGroup dataGroup, DataRedactor dataRedactor) {
 		ensurePublicOrReadAccess();
-		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataGroup);
+		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataGroup, dataRedactor);
 	}
 
-	private DataRecord enhanceDataGroupToRecordUsingReadRecordPartPermissions(DataGroup dataGroup) {
+	private DataRecord enhanceDataGroupToRecordUsingReadRecordPartPermissions(DataGroup dataGroup,
+			DataRedactor dataRedactor) {
 		DataRecord dataRecord = createDataRecord(dataGroup);
 		addActions(dataRecord);
 		addRecordPartPermissions(dataRecord);
-		DataGroup redactedDataGroup = redact(dataGroup);
+		DataGroup redactedDataGroup = redact(dataGroup, dataRedactor);
 		dataRecord.setDataGroup(redactedDataGroup);
 		addReadActionToAllRecordLinks(redactedDataGroup);
 		return dataRecord;
@@ -330,11 +332,11 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		}
 	}
 
-	private DataGroup redact(DataGroup dataGroup) {
-		DataRedactor redactor = dependencyProvider.getDataRedactor();
+	private DataGroup redact(DataGroup dataGroup, DataRedactor dataRedactor) {
+		// DataRedactor redactor = dependencyProvider.getDataRedactor();
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();
-		return redactor.removeChildrenForConstraintsWithoutPermissions(
+		return dataRedactor.removeChildrenForConstraintsWithoutPermissions(
 				recordTypeHandler.getMetadataId(), dataGroup, recordPartReadConstraints,
 				readRecordPartPermissions);
 	}
@@ -443,14 +445,15 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	@Override
-	public DataRecord enhanceIgnoringReadAccess(User user, String recordType, DataGroup dataGroup) {
+	public DataRecord enhanceIgnoringReadAccess(User user, String recordType, DataGroup dataGroup,
+			DataRedactor dataRedactor) {
 		commonSetupForEnhance(user, recordType, dataGroup);
-		return enhanceDataGroupToRecord2(dataGroup);
+		return enhanceDataGroupToRecord2(dataGroup, dataRedactor);
 	}
 
-	private DataRecord enhanceDataGroupToRecord2(DataGroup dataGroup) {
+	private DataRecord enhanceDataGroupToRecord2(DataGroup dataGroup, DataRedactor dataRedactor) {
 		ensurePublicOrReadAccess2();
-		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataGroup);
+		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataGroup, dataRedactor);
 	}
 
 	private void ensurePublicOrReadAccess2() {

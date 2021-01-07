@@ -274,7 +274,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private DataRecord enhanceRecord() {
+		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		return dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user, recordType,
-				recordAsDataGroup);
+				recordAsDataGroup, dataRedactor);
 	}
 }
