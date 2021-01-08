@@ -34,12 +34,15 @@ import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataElement;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
-import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
+import se.uu.ub.cora.bookkeeper.recordpart.DataGroupRedactorImp;
+import se.uu.ub.cora.bookkeeper.recordpart.DataGroupWrapperFactoryImp;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorImp;
+import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactoryImp;
 import se.uu.ub.cora.bookkeeper.termcollector.CollectedDataCreatorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorImp;
+import se.uu.ub.cora.bookkeeper.validator.MetadataMatchDataImp;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
@@ -328,10 +331,39 @@ public class SpiderDependencyProviderTest {
 	}
 
 	@Test
-	public void testGetRecordPartFilter() {
-		DataRedactor recordPartFilter = dependencyProvider.getDataRedactor();
-		assertTrue(recordPartFilter instanceof DataRedactorImp);
+	public void testGetDataRedactor() {
+		DataRedactorImp dataRedactor = (DataRedactorImp) dependencyProvider.getDataRedactor();
+		MetadataHolder metadataHolder = dataRedactor.getMetadataHolder();
+
+		MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
+		assertEquals(metadataElement.getId(), "someMetadata1");
+		assertTrue(dataRedactor.getDataGroupRedactor() instanceof DataGroupRedactorImp);
+		assertTrue(dataRedactor.getDataGroupWrapperFactory() instanceof DataGroupWrapperFactoryImp);
+
+		MatcherFactoryImp matcherFactory = (MatcherFactoryImp) dataRedactor.getMatcherFactory();
+		MetadataMatchDataImp metadataMatchData = (MetadataMatchDataImp) matcherFactory
+				.getMetadataMatchData();
+		assertSame(metadataMatchData.getMetadataHolder(), metadataHolder);
 	}
+
+	// @Test
+	// public void testGetDataRedactorWhenAlreadyCreated() {
+	// DataRedactorImp dataRedactor = (DataRedactorImp) dependencyProvider.getDataRedactor();
+	// MetadataHolder metadataHolder = dataRedactor.getMetadataHolder();
+	//
+	// MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
+	// assertEquals(metadataElement.getId(), "someMetadata1");
+	// assertTrue(dataRedactor.getDataGroupRedactor() instanceof DataGroupRedactorImp);
+	// assertTrue(dataRedactor.getDataGroupWrapperFactory() instanceof DataGroupWrapperFactoryImp);
+	//
+	// MatcherFactoryImp matcherFactory = (MatcherFactoryImp) dataRedactor.getMatcherFactory();
+	// MetadataMatchDataImp metadataMatchData = (MetadataMatchDataImp) matcherFactory
+	// .getMetadataMatchData();
+	// assertSame(metadataMatchData.getMetadataHolder(), metadataHolder);
+	//
+	// DataRedactorImp dataRedactor2 = (DataRedactorImp) dependencyProvider.getDataRedactor();
+	// assertSame(dataRedactor, dataRedactor2);
+	// }
 
 	@Test
 	public void testGetValueFromInitInfo() {

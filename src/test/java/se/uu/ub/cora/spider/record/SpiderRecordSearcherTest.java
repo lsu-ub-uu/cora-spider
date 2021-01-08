@@ -35,6 +35,7 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataListFactory;
 import se.uu.ub.cora.data.DataListProvider;
+import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
@@ -78,6 +79,7 @@ public class SpiderRecordSearcherTest {
 	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataListFactory dataListFactory;
 	private DataCopierFactory dataCopierFactorySpy;
+	private DataRedactorSpy dataRedactor;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -90,6 +92,7 @@ public class SpiderRecordSearcherTest {
 		keyCalculator = new RuleCalculatorSpy();
 		recordSearch = new RecordSearchSpy();
 		termCollector = new DataGroupTermCollectorSpy();
+		dataRedactor = new DataRedactorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -119,6 +122,7 @@ public class SpiderRecordSearcherTest {
 		dependencyProvider.recordSearch = recordSearch;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		dependencyProvider.termCollector = termCollector;
+		dependencyProvider.dataRedactor = dataRedactor;
 		recordSearcher = SpiderRecordSearcherImp
 				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProvider,
 						dataGroupToRecordEnhancer);
@@ -207,6 +211,12 @@ public class SpiderRecordSearcherTest {
 		assertEquals(searchResult.getDataList().size(),
 				dataGroupToRecordEnhancer.enhancedDataGroups.size());
 		assertEquals(dataGroupToRecordEnhancer.recordType, "place");
+
+		DataRecord dataRecord = (DataRecord) searchResult.getDataList().get(0);
+
+		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, authenticator.returnedUser,
+				"place", dataRecord.getDataGroup(), dataRedactor);
+
 		assertEquals(searchResult.getFromNo(), "1");
 		assertEquals(searchResult.getToNo(), String.valueOf(searchResult.getDataList().size()));
 		assertEquals(searchResult.getTotalNumberOfTypeInStorage(),

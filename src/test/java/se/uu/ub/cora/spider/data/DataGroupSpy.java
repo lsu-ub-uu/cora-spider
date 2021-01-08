@@ -37,6 +37,7 @@ public class DataGroupSpy implements DataGroup {
 	public Set<DataAttribute> attributes = new HashSet<>();
 	public List<String> removedNameInDatas = new ArrayList<>();
 	public List<String> requestedAtomicValues = new ArrayList<>();
+	public List<String> requestedDataGroups = new ArrayList<>();
 
 	public DataGroupSpy(String nameInData) {
 		this.nameInData = nameInData;
@@ -73,6 +74,7 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public DataGroup getFirstGroupWithNameInData(String childNameInData) {
+		requestedDataGroups.add(childNameInData);
 		for (DataElement dataElement : children) {
 			if (childNameInData.equals(dataElement.getNameInData())) {
 				if (dataElement instanceof DataGroup) {

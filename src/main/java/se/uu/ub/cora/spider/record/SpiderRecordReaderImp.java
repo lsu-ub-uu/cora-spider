@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -87,7 +88,9 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 
 	private DataRecord tryToReadAndEnhanceRecord(DataGroup recordRead) {
 		String implementingRecordType = ensureImplementingRecordType(recordRead);
-		return dataGroupToRecordEnhancer.enhance(user, implementingRecordType, recordRead);
+		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
+		return dataGroupToRecordEnhancer.enhance(user, implementingRecordType, recordRead,
+				dataRedactor);
 	}
 
 	private String ensureImplementingRecordType(DataGroup recordRead) {

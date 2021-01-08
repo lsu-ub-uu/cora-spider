@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.record;
 import java.util.Collection;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
@@ -124,21 +125,23 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private void readRecordsOfType(String recordType, DataGroup filter) {
+		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		if (recordTypeHandler.isAbstract()) {
-			addChildrenOfAbstractTypeToReadRecordList(recordType, filter);
+			addChildrenOfAbstractTypeToReadRecordList(recordType, filter, dataRedactor);
 		} else {
-			readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(recordType, filter);
+			readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(recordType, filter,
+					dataRedactor);
 		}
 	}
 
 	private void addChildrenOfAbstractTypeToReadRecordList(String abstractRecordType,
-			DataGroup filter) {
+			DataGroup filter, DataRedactor dataRedactor) {
 		readResult = recordStorage.readAbstractList(abstractRecordType, filter);
 		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
 		for (DataGroup dataGroup : dataGroupList) {
 			String type = extractRecordTypeFromDataGroup(dataGroup);
 			this.recordType = type;
-			enhanceDataGroupAndPossiblyAddToRecordList(dataGroup, type);
+			enhanceDataGroupAndPossiblyAddToRecordList(dataGroup, type, dataRedactor);
 		}
 	}
 
@@ -150,23 +153,24 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	}
 
 	private void enhanceDataGroupAndPossiblyAddToRecordList(DataGroup dataGroup,
-			String recordTypeForRecord) {
+			String recordTypeForRecord, DataRedactor dataRedactor) {
 		try {
 			DataRecord dataRecord = dataGroupToRecordEnhancer.enhance(user, recordTypeForRecord,
-					dataGroup);
+					dataGroup, dataRedactor);
 			readRecordList.addData(dataRecord);
 		} catch (AuthorizationException noReadAuthorization) {
+			// do nothing
 		}
 
 	}
 
 	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String type,
-			DataGroup filter) {
+			DataGroup filter, DataRedactor dataRedactor) {
 		readResult = recordStorage.readList(type, filter);
 		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
 		this.recordType = type;
 		for (DataGroup dataGroup : dataGroupList) {
-			enhanceDataGroupAndPossiblyAddToRecordList(dataGroup, type);
+			enhanceDataGroupAndPossiblyAddToRecordList(dataGroup, type, dataRedactor);
 		}
 	}
 

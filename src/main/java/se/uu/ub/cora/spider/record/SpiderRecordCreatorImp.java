@@ -164,7 +164,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 
 	private void removeRecordPartsUserIsNotAllowedToChange() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		recordAsDataGroup = dataRedactor.removeChildrenForConstraintsWithoutPermissions(
+		recordAsDataGroup = dataRedactor.removeChildrenForConstraintsWithoutPermissions(metadataId,
 				recordAsDataGroup, recordTypeHandler.getRecordPartCreateWriteConstraints(),
 				writePermissions);
 	}
@@ -274,7 +274,8 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	}
 
 	private DataRecord enhanceRecord() {
+		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		return dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user, recordType,
-				recordAsDataGroup);
+				recordAsDataGroup, dataRedactor);
 	}
 }
