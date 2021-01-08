@@ -324,7 +324,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	private boolean isReadWriteConstraint(ConstraintType constraintType) {
-		return ConstraintType.READ_WRITE.equals(constraintType);
+		return ConstraintType.READ_WRITE == constraintType;
 	}
 
 	public RecordStorage getRecordStorage() {
