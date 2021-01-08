@@ -440,9 +440,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		List<DataGroup> allChildReferences = getAllChildReferencesForCreate();
 		Set<Constraint> collectedConstraints = new HashSet<>();
 		collectConstraintsForChildReferences(allChildReferences, collectedConstraints);
-		for (Constraint constraint : collectedConstraints) {
-			createConstraints.add(constraint);
-		}
+		createConstraints.addAll(collectedConstraints);
 	}
 
 	private List<DataGroup> getAllChildReferencesForCreate() {
