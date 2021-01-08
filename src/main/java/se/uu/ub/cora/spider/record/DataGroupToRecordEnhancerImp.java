@@ -333,7 +333,6 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private DataGroup redact(DataGroup dataGroup, DataRedactor dataRedactor) {
-		// DataRedactor redactor = dependencyProvider.getDataRedactor();
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();
 		return dataRedactor.removeChildrenForConstraintsWithoutPermissions(

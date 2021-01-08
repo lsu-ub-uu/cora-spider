@@ -159,6 +159,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 					dataGroup, dataRedactor);
 			readRecordList.addData(dataRecord);
 		} catch (AuthorizationException noReadAuthorization) {
+			// do nothing
 		}
 
 	}

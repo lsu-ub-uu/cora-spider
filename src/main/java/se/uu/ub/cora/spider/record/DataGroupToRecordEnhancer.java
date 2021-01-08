@@ -30,18 +30,19 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 /**
  * DataGroupToRecordEnhancer converts a {@link DataGroup} into a {@link DataRecord}. This includes
  * adding actions to the record and read actions to the links in the DataGroup. Use the
- * {@link #enhance(User, String, DataGroup, DataRedactor)} method to convert a DataGroup when read access is
- * required and {@link #enhanceIgnoringReadAccess(User, String, DataGroup, DataRedactor)} when the user might not
- * have read access, create etc.
+ * {@link #enhance(User, String, DataGroup, DataRedactor)} method to convert a DataGroup when read
+ * access is required and {@link #enhanceIgnoringReadAccess(User, String, DataGroup, DataRedactor)}
+ * when the user might not have read access, create etc.
  */
 public interface DataGroupToRecordEnhancer {
 	/**
 	 * Enhance converts a DataGroup into a DataRecord. It is very similar to
-	 * {@link #enhanceIgnoringReadAccess(User, String, DataGroup, DataRedactor)} except that it will not complete
-	 * if the User does not have read access to the enhanced record and it will instead throw an
-	 * exception. This method is intended to be used when enhancing the DataGroup as one of the last
-	 * steps before returning the data to the user, during actions that require read access such as
-	 * read, list, search etc. where the user must have permission to read the affected data.
+	 * {@link #enhanceIgnoringReadAccess(User, String, DataGroup, DataRedactor)} except that it will
+	 * not complete if the User does not have read access to the enhanced record and it will instead
+	 * throw an exception. This method is intended to be used when enhancing the DataGroup as one of
+	 * the last steps before returning the data to the user, during actions that require read access
+	 * such as read, list, search etc. where the user must have permission to read the affected
+	 * data.
 	 * <p>
 	 * The conversion has a few major parts.
 	 * <ol>
@@ -79,18 +80,20 @@ public interface DataGroupToRecordEnhancer {
 	 *            the abstract parent type if the recordType has a parent)
 	 * @param dataGroup
 	 *            A DataGroup with data to turn into a DataRecord
-	 * @param dataRedactor TODO
+	 * @param dataRedactor
+	 *            A DataRedactor to use when enhancing
 	 * @return A newly created DataRecord constructed as discussed above
 	 */
-	DataRecord enhance(User user, String recordType, DataGroup dataGroup, DataRedactor dataRedactor);
+	DataRecord enhance(User user, String recordType, DataGroup dataGroup,
+			DataRedactor dataRedactor);
 
 	/**
 	 * enhanceIgnoringReadAccess converts a DataGroup into a DataRecord. It is very similar to
-	 * {@link #enhance(User, String, DataGroup, DataRedactor)} except that it will complete even if the User does
-	 * not have read access to the enhanced record and not throw an exception. This method is
-	 * intended to be used when enhancing the DataGroup as one of the last steps before returning
-	 * the data to the user, during actions such as create where the user may only have permission
-	 * to create but no permissions to read the affected data.
+	 * {@link #enhance(User, String, DataGroup, DataRedactor)} except that it will complete even if
+	 * the User does not have read access to the enhanced record and not throw an exception. This
+	 * method is intended to be used when enhancing the DataGroup as one of the last steps before
+	 * returning the data to the user, during actions such as create where the user may only have
+	 * permission to create but no permissions to read the affected data.
 	 * <p>
 	 * The conversion has a few major parts.
 	 * <ol>
@@ -125,9 +128,11 @@ public interface DataGroupToRecordEnhancer {
 	 *            the abstract parent type if the recordType has a parent)
 	 * @param dataGroup
 	 *            A DataGroup with data to turn into a DataRecord
-	 * @param dataRedactor TODO
+	 * @param dataRedactor
+	 *            A DataRedactor to use when enhancing
 	 * @return A newly created DataRecord constructed as discussed above
 	 */
-	DataRecord enhanceIgnoringReadAccess(User user, String recordType, DataGroup dataGroup, DataRedactor dataRedactor);
+	DataRecord enhanceIgnoringReadAccess(User user, String recordType, DataGroup dataGroup,
+			DataRedactor dataRedactor);
 
 }
