@@ -76,8 +76,7 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 		this.recordTypeHandlerFactory = recordTypeHandlerFactory;
 		this.recordStorage = recordStorage;
 		recordType = dataGroup;
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		recordTypeId = recordInfo.getFirstAtomicValueWithNameInData("id");
+		recordTypeId = getIdFromMetadatagGroup(dataGroup);
 	}
 
 	public static RecordTypeHandler usingRecordStorageAndDataGroup(
