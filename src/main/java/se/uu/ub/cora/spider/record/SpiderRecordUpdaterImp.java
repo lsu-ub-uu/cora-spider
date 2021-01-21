@@ -30,6 +30,7 @@ import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
@@ -170,6 +171,17 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		replaceUpdatedInfoWithInfoFromPreviousRecord(recordInfo);
 		DataGroup updated = createUpdateInfoForThisUpdate(recordInfo);
 		recordInfo.addChild(updated);
+		recordInfo.removeFirstChildWithNameInData("createdBy");
+
+		DataGroup recordInfoStoredRecord = getRecordInfoFromStoredData();
+
+		DataGroup originalCreatedBy = recordInfoStoredRecord
+				.getFirstGroupWithNameInData("createdBy");
+		recordInfo.addChild(originalCreatedBy);
+		recordInfo.removeFirstChildWithNameInData("tsCreated");
+		DataAtomic originalTscreated = recordInfoStoredRecord
+				.getFirstDataAtomicWithNameInData("tsCreated");
+		recordInfo.addChild(originalTscreated);
 	}
 
 	private void replaceUpdatedInfoWithInfoFromPreviousRecord(DataGroup recordInfo) {

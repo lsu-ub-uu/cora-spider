@@ -70,6 +70,7 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 
 		if ("spyType".equals(type) && "spyId".equals(id)) {
 			readDataGroup = aRecord;
+			addCreatedInfoToRecordInfo(readDataGroup);
 			return aRecord;
 		}
 
@@ -335,6 +336,16 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 		dataGroupToReturn = new DataGroupSpy("someNameInData");
 		dataGroupToReturn.addChild(new DataGroupSpy("recordInfo"));
 		return dataGroupToReturn;
+	}
+
+	private void addCreatedInfoToRecordInfo(DataGroup readDataGroup) {
+		DataGroup recordInfo = readDataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup createdBy = new DataGroupSpy("createdBy");
+		createdBy.addChild(new DataAtomicSpy("linkedRecordType", "user"));
+		createdBy.addChild(new DataAtomicSpy("linkedRecordId", "4422"));
+		recordInfo.addChild(createdBy);
+		recordInfo.addChild(new DataAtomicSpy("tsCreated", "2014-08-01T00:00:00.000000Z"));
+		readDataGroup.addChild(recordInfo);
 	}
 
 	private DataGroup createCollectPermissionTermWIthKey(String key) {

@@ -65,6 +65,12 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 		}
 		DataGroup dataGroupToReturn = new DataGroupSpy("someNameInData");
 		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
+		DataGroup createdBy = new DataGroupSpy("createdBy");
+		createdBy.addChild(new DataAtomicSpy("linkedRecordType", "user"));
+		createdBy.addChild(new DataAtomicSpy("linkedRecordId", "4422"));
+
+		recordInfo.addChild(createdBy);
+		recordInfo.addChild(new DataAtomicSpy("tsCreated", "2014-08-01T00:00:00.000000Z"));
 		dataGroupToReturn.addChild(recordInfo);
 		if (alreadyCalled) {
 			DataGroup updated = new DataGroupSpy("updated");
@@ -74,6 +80,7 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 			updated.addChild(new DataAtomicSpy("tsUpdated", "2014-12-18 20:20:38.346"));
 
 			recordInfo.addChild(updated);
+
 		}
 		return dataGroupToReturn;
 	}

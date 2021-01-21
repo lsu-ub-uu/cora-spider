@@ -24,6 +24,8 @@ import java.util.Collection;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -51,8 +53,10 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndLink();
 			}
 			if (id.equals("oneLinkOneLevelDown")) {
-				return RecordLinkTestsDataCreator
+				DataGroup recordLinkGroup = RecordLinkTestsDataCreator
 						.createDataDataGroupWithRecordInfoAndLinkOneLevelDown();
+				addCreatedInfoToRecordInfo(recordLinkGroup);
+				return recordLinkGroup;
 			}
 		}
 		if (type.equals("toRecordType")) {
@@ -61,6 +65,16 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 			}
 		}
 		return null;
+	}
+
+	private void addCreatedInfoToRecordInfo(DataGroup readDataGroup) {
+		DataGroup recordInfo = readDataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup createdBy = new DataGroupSpy("createdBy");
+		createdBy.addChild(new DataAtomicSpy("linkedRecordType", "user"));
+		createdBy.addChild(new DataAtomicSpy("linkedRecordId", "6789"));
+		recordInfo.addChild(createdBy);
+		recordInfo.addChild(new DataAtomicSpy("tsCreated", "2016-10-01T00:00:00.000000Z"));
+		readDataGroup.addChild(recordInfo);
 	}
 
 	@Override

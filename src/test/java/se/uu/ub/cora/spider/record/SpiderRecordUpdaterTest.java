@@ -292,7 +292,7 @@ public class SpiderRecordUpdaterTest {
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = new DataGroupSpy("someRecordDataGroup");
-		addRecordInfo(dataGroup);
+		addRecordInfoWithCreatedInfo(dataGroup);
 
 		DataRecord updatedOnce = recordUpdater.updateRecord("someToken78678567", "spyType", "spyId",
 				dataGroup);
@@ -301,7 +301,7 @@ public class SpiderRecordUpdaterTest {
 		assertCorrectUserInfo(updatedOnce);
 	}
 
-	private void addRecordInfo(DataGroup topDataGroup) {
+	private void addRecordInfoWithCreatedInfo(DataGroup topDataGroup) {
 		DataGroup recordInfo = DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 				"spyType", "spyId", "cora");
 		DataGroup createdBy = createLinkWithNameInDataRecordTypeAndRecordId("createdBy", "user",
@@ -331,7 +331,7 @@ public class SpiderRecordUpdaterTest {
 		DataGroup updatedOnceRecordInfo = updatedOnceDataGroup
 				.getFirstGroupWithNameInData("recordInfo");
 		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(updatedOnceRecordInfo, "createdBy",
-				"6789");
+				"4422");
 		String tsCreated = updatedOnceRecordInfo.getFirstAtomicValueWithNameInData("tsCreated");
 		assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
 
@@ -376,7 +376,7 @@ public class SpiderRecordUpdaterTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 		DataGroup dataGroup = new DataGroupSpy("nameInData");
-		addRecordInfo(dataGroup);
+		addRecordInfoWithCreatedInfo(dataGroup);
 
 		RecordStorageUpdateMultipleTimesSpy recordStorageSpy = (RecordStorageUpdateMultipleTimesSpy) recordStorage;
 		updateStorageToReturnDataGroupIncludingUpdateInfo();
@@ -385,6 +385,7 @@ public class SpiderRecordUpdaterTest {
 		assertEquals(recordStorageSpy.types.size(), 1);
 
 		assertUpdatedRepeatIdsInGroupAsListed(updatedOnce, "0", "1");
+
 	}
 
 	private void updateStorageToReturnDataGroupIncludingUpdateInfo() {
@@ -397,7 +398,7 @@ public class SpiderRecordUpdaterTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 		DataGroup dataGroup = new DataGroupSpy("nameInData");
-		addRecordInfo(dataGroup);
+		addRecordInfoWithCreatedInfo(dataGroup);
 
 		DataRecord updatedOnceRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
 				"spyId", dataGroup);
@@ -410,12 +411,34 @@ public class SpiderRecordUpdaterTest {
 	}
 
 	@Test
-	public void testUpdateInfoSetFromPreviousUpdateIsNotReplacedByAlteredData() {
+	public void testCreateAndUpdateInfoSetFromPreviousUpdateIsNotReplacedByAlteredData() {
 		recordStorage = new RecordStorageUpdateMultipleTimesSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-		DataGroup dataGroup = new DataGroupSpy("nameInData");
-		addRecordInfo(dataGroup);
+
+		DataGroup dataGroupToUpdate = new DataGroupSpy("nameInData");
+		addRecordInfoWithCreatedInfo(dataGroupToUpdate);
+		addUpdatedInfoToRecordInfo(dataGroupToUpdate);
+
+		updateStorageToReturnDataGroupIncludingUpdateInfo();
+		DataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
+				"spyId", dataGroupToUpdate);
+
+		DataGroup firstUpdated = getFirstUpdatedInfo(updatedRecord);
+		String firstTsUpdated = firstUpdated.getFirstAtomicValueWithNameInData("tsUpdated");
+		String correctTsUpdated = "2014-12-18 20:20:38.346";
+
+		assertEquals(firstTsUpdated, correctTsUpdated);
+
+		DataGroup updatedDataGroup = updatedRecord.getDataGroup();
+		DataGroup recordInfo = updatedDataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup createdBy = recordInfo.getFirstGroupWithNameInData("createdBy");
+		assertEquals(createdBy.getFirstAtomicValueWithNameInData("linkedRecordId"), "4422");
+		assertEquals(recordInfo.getFirstAtomicValueWithNameInData("tsCreated"),
+				"2014-08-01T00:00:00.000000Z");
+	}
+
+	private void addUpdatedInfoToRecordInfo(DataGroup dataGroup) {
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup updated = new DataGroupSpy("updated");
 		updated.setRepeatId("0");
@@ -423,16 +446,6 @@ public class SpiderRecordUpdaterTest {
 		updated.addChild(updatedBy);
 		updated.addChild(new DataAtomicSpy("tsUpdated", "2010-12-13 20:20:38.346"));
 		recordInfo.addChild(updated);
-
-		updateStorageToReturnDataGroupIncludingUpdateInfo();
-		DataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
-				"spyId", dataGroup);
-
-		DataGroup firstUpdated = getFirstUpdatedInfo(updatedRecord);
-		String firstTsUpdated = firstUpdated.getFirstAtomicValueWithNameInData("tsUpdated");
-		String correctTsUpdated = "2014-12-18 20:20:38.346";
-
-		assertEquals(firstTsUpdated, correctTsUpdated);
 	}
 
 	private DataGroup getFirstUpdatedInfo(DataRecord updatedRecord) {
