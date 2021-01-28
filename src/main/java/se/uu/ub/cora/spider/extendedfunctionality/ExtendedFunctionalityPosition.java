@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Uppsala University Library
+ * Copyright 2020, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -86,6 +86,13 @@ public enum ExtendedFunctionalityPosition {
 	 * DELETE_AFTER, as the name suggests is the functionality plugged into a delete operation,
 	 * after it is done.
 	 */
-	DELETE_AFTER
+	DELETE_AFTER,
+
+	/**
+	 * UPDATE_AFTER_STORE, as the name suggests is the functionality plugged into a update
+	 * operation, right after data is updated in storage, using the
+	 * {@link RecordStorage#update(String, String, DataGroup, DataGroup, DataGroup, String)} method.
+	 */
+	UPDATE_AFTER_STORE
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Uppsala University Library
+ * Copyright 2020, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -24,6 +24,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_AFTER;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_BEFORE;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_STORE;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE;
 
@@ -95,6 +96,12 @@ public class ExtendedFunctionalityProviderImp implements ExtendedFunctionalityPr
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeStore(String recordType) {
 		return factorySorter.getFunctionalityForPositionAndRecordType(UPDATE_BEFORE_STORE,
+				recordType);
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterStore(String recordType) {
+		return factorySorter.getFunctionalityForPositionAndRecordType(UPDATE_AFTER_STORE,
 				recordType);
 	}
 
