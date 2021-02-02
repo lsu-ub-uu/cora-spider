@@ -35,6 +35,7 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateBeforeReturn = new ArrayList<>();
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityBeforeDelete = new ArrayList<>();
 	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForUpdateBeforeStore = new ArrayList<>();
+	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForUpdateAfterStore = new ArrayList<>();
 	public Map<String, String> recordTypes = new HashMap<>();
 
 	@Override
@@ -99,6 +100,12 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 		recordTypes.put("updateBeforeStore", recordType);
 		return createListWithTwoExtendedFunctionalitySpies(
 				fetchedFunctionalityForUpdateBeforeStore);
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterStore(String recordType) {
+		recordTypes.put("updateAfterStore", recordType);
+		return createListWithTwoExtendedFunctionalitySpies(fetchedFunctionalityForUpdateAfterStore);
 	}
 
 }

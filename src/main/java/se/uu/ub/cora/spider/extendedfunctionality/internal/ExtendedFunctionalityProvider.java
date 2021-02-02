@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2021 Uppsala University Library
  * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
@@ -42,4 +42,6 @@ public interface ExtendedFunctionalityProvider {
 	List<ExtendedFunctionality> getFunctionalityBeforeDelete(String recordType);
 
 	List<ExtendedFunctionality> getFunctionalityAfterDelete(String recordType);
+
+	List<ExtendedFunctionality> getFunctionalityForUpdateAfterStore(String recordType);
 }

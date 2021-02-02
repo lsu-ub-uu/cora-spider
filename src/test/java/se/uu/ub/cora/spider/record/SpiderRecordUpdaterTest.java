@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2020 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -540,6 +540,11 @@ public class SpiderRecordUpdaterTest {
 				extendedFunctionalityProvider.fetchedFunctionalityForUpdateBeforeStore, authToken,
 				dataGroup);
 		assertEquals(extendedFunctionalityProvider.recordTypes.get("updateBeforeStore"), "spyType");
+		assertFetchedFunctionalityHasBeenCalled(
+				extendedFunctionalityProvider.fetchedFunctionalityForUpdateAfterStore, authToken,
+				dataGroup);
+		assertEquals(extendedFunctionalityProvider.recordTypes.get("updateAfterStore"), "spyType");
+
 	}
 
 	private void assertFetchedFunctionalityHasBeenCalled(

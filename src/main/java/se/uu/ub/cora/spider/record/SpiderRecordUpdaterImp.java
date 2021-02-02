@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2020 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -119,6 +119,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		useExtendedFunctionalityBeforeStore(recordType, dataGroup);
 		updateRecordInStorage(collectedTerms, collectedLinks);
 		indexData(collectedTerms);
+		useExtendedFunctionalityAfterStore(recordType, dataGroup);
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup, dataRedactor);
 	}
@@ -332,6 +333,13 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private void indexData(DataGroup collectedTerms) {
 		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
 		recordIndexer.indexData(ids, collectedTerms, topDataGroup);
+	}
+
+	private void useExtendedFunctionalityAfterStore(String recordTypeToCreate,
+			DataGroup dataGroup) {
+		List<ExtendedFunctionality> functionalityForUpdateAfterStore = extendedFunctionalityProvider
+				.getFunctionalityForUpdateAfterStore(recordTypeToCreate);
+		useExtendedFunctionality(dataGroup, functionalityForUpdateAfterStore);
 	}
 
 }
