@@ -33,6 +33,8 @@ import se.uu.ub.cora.storage.RecordStorage;
  * For update are the positions ordered as follows:<br>
  * UPDATE_BEFORE_METADATA_VALIDATION<br>
  * UPDATE_AFTER_METADATA_VALIDATION<br>
+ * UPDATE_BEFORE_STORE<br>
+ * UPDATE_AFTER_STORE<br>
  * <br>
  * For delete are the positions ordered as follows:<br>
  * DELETE_BEFORE<br>
@@ -77,6 +79,13 @@ public enum ExtendedFunctionalityPosition {
 	UPDATE_BEFORE_STORE,
 
 	/**
+	 * UPDATE_AFTER_STORE, as the name suggests is the functionality plugged into a update
+	 * operation, right after data is updated in storage, using the
+	 * {@link RecordStorage#update(String, String, DataGroup, DataGroup, DataGroup, String)} method.
+	 */
+	UPDATE_AFTER_STORE,
+
+	/**
 	 * DELETE_BEFORE, as the name suggests is the functionality plugged into a delete operation,
 	 * before it is done.
 	 */
@@ -86,13 +95,5 @@ public enum ExtendedFunctionalityPosition {
 	 * DELETE_AFTER, as the name suggests is the functionality plugged into a delete operation,
 	 * after it is done.
 	 */
-	DELETE_AFTER,
-
-	/**
-	 * UPDATE_AFTER_STORE, as the name suggests is the functionality plugged into a update
-	 * operation, right after data is updated in storage, using the
-	 * {@link RecordStorage#update(String, String, DataGroup, DataGroup, DataGroup, String)} method.
-	 */
-	UPDATE_AFTER_STORE
-
+	DELETE_AFTER
 }
