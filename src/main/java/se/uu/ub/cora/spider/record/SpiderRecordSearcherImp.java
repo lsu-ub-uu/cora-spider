@@ -153,8 +153,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 
 	private DataList filterAndEnhanceSearchResult(SearchResult spiderSearchResult) {
 		dataList = DataListProvider.getDataListWithNameOfDataType("mix");
-		Collection<DataGroup> dataGroupList = spiderSearchResult.listOfDataGroups;
-		dataGroupList.forEach(this::filterEnhanceAndAddToList);
+		enhanceDataGroupsAndAddToList(spiderSearchResult);
 
 		dataList.setFromNo(String.valueOf(startRow));
 		dataList.setToNo(String.valueOf(startRow - 1 + dataList.getDataList().size()));
@@ -162,10 +161,15 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 		return dataList;
 	}
 
-	private void filterEnhanceAndAddToList(DataGroup dataGroup) {
+	private void enhanceDataGroupsAndAddToList(SearchResult spiderSearchResult) {
+		Collection<DataGroup> dataGroupList = spiderSearchResult.listOfDataGroups;
+		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
+		dataGroupList.forEach(dataGroup -> filterEnhanceAndAddToList(dataGroup, dataRedactor));
+	}
+
+	private void filterEnhanceAndAddToList(DataGroup dataGroup, DataRedactor dataRedactor) {
 		String recordType = extractRecordTypeFromRecordInfo(dataGroup);
 		try {
-			DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 			DataRecord record = dataGroupToRecordEnhancer.enhance(user, recordType, dataGroup,
 					dataRedactor);
 			dataList.addData(record);

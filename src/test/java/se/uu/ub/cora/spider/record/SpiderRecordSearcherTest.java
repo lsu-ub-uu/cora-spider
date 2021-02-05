@@ -80,6 +80,7 @@ public class SpiderRecordSearcherTest {
 	private DataListFactory dataListFactory;
 	private DataCopierFactory dataCopierFactorySpy;
 	private DataRedactorSpy dataRedactor;
+	private SpiderDependencyProviderSpy dependencyProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -110,7 +111,6 @@ public class SpiderRecordSearcherTest {
 	}
 
 	private void setUpDependencyProvider() {
-		SpiderDependencyProviderSpy dependencyProvider;
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
@@ -232,6 +232,15 @@ public class SpiderRecordSearcherTest {
 		assertEquals(numberOfMatchesFetched, 3);
 		assertEquals(searchResult.getFromNo(), "1");
 		assertEquals(searchResult.getToNo(), String.valueOf(numberOfMatchesFetched));
+	}
+
+	@Test
+	public void testSameRedactorUsedWhenEnhancing() {
+		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, ANOTHER_SEARCH_ID,
+				someSearchData);
+		int numberOfMatchesFetched = searchResult.getDataList().size();
+		assertEquals(numberOfMatchesFetched, 3);
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getDataRedactor", 1);
 	}
 
 	@Test
