@@ -61,7 +61,24 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 	public void useExtendedFunctionality(String authToken, DataGroup workOrder) {
 		recordTypeToIndex = getRecordTypeToIndexFromWorkOrder(workOrder);
 		recordIdToIndex = getRecordIdToIndexFromWorkOrder(workOrder);
-		indexDataIfUserIsAuthorized(authToken);
+
+		if (workOrderTypeIsDeleteFromIndex(workOrder)) {
+			deleteFromIndexIfUserIsAuthorized(authToken);
+		} else {
+			indexDataIfUserIsAuthorized(authToken);
+
+		}
+	}
+
+	private boolean workOrderTypeIsDeleteFromIndex(DataGroup workOrder) {
+		String workOrderType = workOrder.getFirstAtomicValueWithNameInData("type");
+		return "removeFromIndex".equals(workOrderType);
+	}
+
+	private void deleteFromIndexIfUserIsAuthorized(String authToken) {
+		if (userIsAuthorizedToIndex(authToken)) {
+			recordIndexer.deleteFromIndex(recordTypeToIndex, recordIdToIndex);
+		}
 	}
 
 	private String getRecordTypeToIndexFromWorkOrder(DataGroup workOrder) {

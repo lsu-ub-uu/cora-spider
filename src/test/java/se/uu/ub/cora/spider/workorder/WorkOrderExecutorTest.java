@@ -82,8 +82,7 @@ public class WorkOrderExecutorTest {
 	}
 
 	private void setUpDependencyProvider() {
-		extendedFunctionality = WorkOrderExecutor
-				.usingDependencyProvider(dependencyProvider);
+		extendedFunctionality = WorkOrderExecutor.usingDependencyProvider(dependencyProvider);
 		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
 		recordIndexer = (RecordIndexerSpy) dependencyProvider.getRecordIndexer();
 		authorizator = (SpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();
@@ -144,4 +143,26 @@ public class WorkOrderExecutorTest {
 		termCollector.MCR.assertMethodNotCalled("indexData");
 	}
 
+	@Test
+	public void testRemoveFromIndex() {
+		DataGroup workOrder = DataCreator2.createWorkOrderWithIdRecordTypeRecordIdAndWorkOrderType(
+				"someGeneratedId", "book", "book1", "removeFromIndex");
+
+		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+		recordIndexer.MCR.assertParameter("deleteFromIndex", 0, "type", "book");
+		recordIndexer.MCR.assertParameter("deleteFromIndex", 0, "id", "book1");
+
+	}
+
+	@Test
+	public void testRemoveFromIndexNoRightToIndexRecordType() {
+		authorizator.setNotAutorizedForActionOnRecordType("index", "book");
+
+		DataGroup workOrder = DataCreator2.createWorkOrderWithIdRecordTypeRecordIdAndWorkOrderType(
+				"someGeneratedId", "book", "book1", "removeFromIndex");
+
+		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+
+		recordIndexer.MCR.assertMethodNotCalled("deleteFromIndex");
+	}
 }

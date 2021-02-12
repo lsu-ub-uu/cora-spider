@@ -122,6 +122,13 @@ public final class DataCreator2 {
 
 	public static DataGroup createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(String id,
 			String recordType, String recordId) {
+		String workOrderType = "index";
+		return createWorkOrderWithIdRecordTypeRecordIdAndWorkOrderType(id, recordType, recordId,
+				workOrderType);
+	}
+
+	public static DataGroup createWorkOrderWithIdRecordTypeRecordIdAndWorkOrderType(String id,
+			String recordType, String recordId, String workOrderType) {
 		DataGroup workOrder = new DataGroupSpy("workOrder");
 		DataGroup recordInfo = new DataGroupSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", id));
@@ -133,7 +140,7 @@ public final class DataCreator2 {
 		workOrder.addChild(recordTypeLink);
 
 		workOrder.addChild(new DataAtomicSpy("recordId", recordId));
-		workOrder.addChild(new DataAtomicSpy("type", "index"));
+		workOrder.addChild(new DataAtomicSpy("type", workOrderType));
 		return workOrder;
 	}
 
