@@ -20,7 +20,6 @@
 package se.uu.ub.cora.spider.extendedfunctionality;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 
 public class ExtendedFunctionalitySpy implements ExtendedFunctionality {
 	public boolean extendedFunctionalityHasBeenCalled = false;
