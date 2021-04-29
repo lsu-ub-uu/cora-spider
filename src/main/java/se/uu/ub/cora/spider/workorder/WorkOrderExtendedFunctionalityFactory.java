@@ -32,7 +32,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleterImp;
+import se.uu.ub.cora.spider.record.internal.SpiderRecordDeleterImp;
 
 public class WorkOrderExtendedFunctionalityFactory implements ExtendedFunctionalityFactory {
 

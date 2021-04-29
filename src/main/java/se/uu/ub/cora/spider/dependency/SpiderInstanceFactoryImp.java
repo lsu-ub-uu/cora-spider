@@ -21,27 +21,27 @@
 package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.SpiderDownloader;
-import se.uu.ub.cora.spider.record.SpiderDownloaderImp;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordCreatorImp;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleterImp;
 import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
-import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReaderImp;
 import se.uu.ub.cora.spider.record.SpiderRecordListReader;
-import se.uu.ub.cora.spider.record.SpiderRecordListReaderImp;
 import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordReaderImp;
 import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
-import se.uu.ub.cora.spider.record.SpiderRecordSearcherImp;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdaterImp;
 import se.uu.ub.cora.spider.record.SpiderRecordValidator;
-import se.uu.ub.cora.spider.record.SpiderRecordValidatorImp;
 import se.uu.ub.cora.spider.record.SpiderUploader;
-import se.uu.ub.cora.spider.record.SpiderUploaderImp;
+import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
+import se.uu.ub.cora.spider.record.internal.SpiderDownloaderImp;
+import se.uu.ub.cora.spider.record.internal.SpiderRecordCreatorImp;
+import se.uu.ub.cora.spider.record.internal.SpiderRecordDeleterImp;
+import se.uu.ub.cora.spider.record.internal.SpiderRecordIncomingLinksReaderImp;
+import se.uu.ub.cora.spider.record.internal.SpiderRecordListReaderImp;
+import se.uu.ub.cora.spider.record.internal.SpiderRecordReaderImp;
+import se.uu.ub.cora.spider.record.internal.SpiderRecordSearcherImp;
+import se.uu.ub.cora.spider.record.internal.SpiderRecordUpdaterImp;
+import se.uu.ub.cora.spider.record.internal.SpiderRecordValidatorImp;
+import se.uu.ub.cora.spider.record.internal.SpiderUploaderImp;
 
 public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 

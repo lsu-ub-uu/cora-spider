@@ -27,7 +27,7 @@ import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.record.RecordTypeHandler;
+import se.uu.ub.cora.spider.record.internal.RecordTypeHandler;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class RecordTypeHandlerSpy implements RecordTypeHandler {

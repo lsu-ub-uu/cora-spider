@@ -41,8 +41,8 @@ import se.uu.ub.cora.spider.record.SpiderRecordReader;
 import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderRecordValidator;
-import se.uu.ub.cora.spider.record.SpiderRecordValidatorImp;
 import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.internal.SpiderRecordValidatorImp;
 
 public class SpiderInstanceFactoryTest {
 	private SpiderInstanceFactory factory;
