@@ -47,6 +47,7 @@ public class SpiderInstanceFactorySpy2 implements SpiderInstanceFactory {
 	public boolean searcherFactoryWasCalled = false;
 
 	public List<SpiderRecordUpdaterSpy> createdUpdaters = new ArrayList<>();
+	public String recordType;
 
 	@Override
 	public SpiderRecordReader factorSpiderRecordReader() {
@@ -61,13 +62,14 @@ public class SpiderInstanceFactorySpy2 implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public SpiderRecordCreator factorSpiderRecordCreator() {
+	public SpiderRecordCreator factorSpiderRecordCreator(String recordType) {
 		creatorFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderRecordUpdater factorSpiderRecordUpdater() {
+	public SpiderRecordUpdater factorSpiderRecordUpdater(String recordType) {
+		this.recordType = recordType;
 		updaterFactoryWasCalled = true;
 
 		SpiderRecordUpdaterSpy spiderRecordUpdaterSpy = new SpiderRecordUpdaterSpy();

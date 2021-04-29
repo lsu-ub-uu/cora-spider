@@ -473,4 +473,9 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 			readRecordPartPermissions = Collections.emptySet();
 		}
 	}
+
+	public SpiderDependencyProvider getDependencyProvider() {
+		// needed for test
+		return dependencyProvider;
+	}
 }

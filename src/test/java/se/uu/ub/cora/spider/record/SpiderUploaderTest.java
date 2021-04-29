@@ -95,7 +95,7 @@ public class SpiderUploaderTest {
 	private RecordIdGenerator idGenerator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
-	private SpiderInstanceFactory factory;
+	private SpiderInstanceFactory spiderInstanceFactory;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataGroupFactory dataGroupFactorySpy;
 	private DataAtomicFactory dataAtomicFactorySpy;
@@ -117,7 +117,7 @@ public class SpiderUploaderTest {
 		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		factory = new SpiderInstanceFactorySpy2();
+		spiderInstanceFactory = new SpiderInstanceFactorySpy2();
 		setUpDependencyProvider();
 
 	}
@@ -158,13 +158,13 @@ public class SpiderUploaderTest {
 		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.recordIndexer = recordIndexer;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
 		uploader = SpiderUploaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Test
 	public void testExternalDependenciesAreCalled() {
-		factory = new SpiderInstanceFactorySpy2();
+		spiderInstanceFactory = new SpiderInstanceFactorySpy2();
 		setUpDependencyProvider();
 		recordStorage = new OldRecordStorageSpy();
 		keyCalculator = new RuleCalculatorSpy();
@@ -183,8 +183,10 @@ public class SpiderUploaderTest {
 
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 
-		assertEquals(((SpiderInstanceFactorySpy2) factory).createdUpdaters.get(0).authToken,
+		SpiderInstanceFactorySpy2 spiderInstanceFactorySpy2 = (SpiderInstanceFactorySpy2) spiderInstanceFactory;
+		assertEquals(spiderInstanceFactorySpy2.createdUpdaters.get(0).authToken,
 				"someToken78678567");
+		assertEquals(spiderInstanceFactorySpy2.recordType, "image");
 
 	}
 

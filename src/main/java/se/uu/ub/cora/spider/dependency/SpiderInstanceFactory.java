@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2017, 2019 Uppsala University Library
+ * Copyright 2017, 2019, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -41,9 +41,9 @@ public interface SpiderInstanceFactory {
 
 	SpiderRecordListReader factorSpiderRecordListReader();
 
-	SpiderRecordCreator factorSpiderRecordCreator();
+	SpiderRecordCreator factorSpiderRecordCreator(String recordType);
 
-	SpiderRecordUpdater factorSpiderRecordUpdater();
+	SpiderRecordUpdater factorSpiderRecordUpdater(String recordType);
 
 	SpiderRecordDeleter factorSpiderRecordDeleter();
 

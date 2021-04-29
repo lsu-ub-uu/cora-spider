@@ -23,6 +23,7 @@ package se.uu.ub.cora.spider.dependency;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNotSame;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -32,8 +33,10 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
+import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.SpiderDownloader;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
+import se.uu.ub.cora.spider.record.SpiderRecordCreatorImp;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
 import se.uu.ub.cora.spider.record.SpiderRecordListReader;
@@ -102,8 +105,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordCreator() {
-		SpiderRecordCreator recordCreator = factory.factorSpiderRecordCreator();
-		SpiderRecordCreator recordCreator2 = factory.factorSpiderRecordCreator();
+		SpiderRecordCreator recordCreator = factory.factorSpiderRecordCreator("someRecordType");
+		SpiderRecordCreator recordCreator2 = factory.factorSpiderRecordCreator("someRecordType");
 		assertNotNull(recordCreator);
 		assertNotNull(recordCreator2);
 		assertNotSame(recordCreator, recordCreator2);
@@ -111,8 +114,10 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordUpdater() {
-		SpiderRecordUpdater recordUpdater = factory.factorSpiderRecordUpdater();
-		SpiderRecordUpdater recordUpdater2 = factory.factorSpiderRecordUpdater();
+		SpiderRecordUpdater recordUpdater = factory
+				.factorSpiderRecordUpdater("onlyDefaultUpdateImplemented");
+		SpiderRecordUpdater recordUpdater2 = factory
+				.factorSpiderRecordUpdater("onlyDefaultUpdateImplemented");
 		assertNotNull(recordUpdater);
 		assertNotNull(recordUpdater2);
 		assertNotSame(recordUpdater, recordUpdater2);
@@ -162,5 +167,31 @@ public class SpiderInstanceFactoryTest {
 		assertNotNull(recordValidator2);
 		assertNotSame(recordValidator, recordValidator2);
 		assertTrue(recordValidator instanceof SpiderRecordValidatorImp);
+	}
+
+	@Test
+	public void testDefaultCreatorImplementation() {
+
+		SpiderRecordCreatorImp spiderRecordCreator = (SpiderRecordCreatorImp) factory
+				.factorSpiderRecordCreator("someRecordType");
+
+		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) spiderRecordCreator
+				.getDataGroupToRecordEnhancer();
+
+		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
+
+	}
+
+	@Test
+	public void testIndexBatchJobCreatorImplementation() {
+
+		IndexBatchJobCreator indexBatchJobCreator = (IndexBatchJobCreator) factory
+				.factorSpiderRecordCreator("indexBatchJob");
+
+		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) indexBatchJobCreator
+				.getDataGroupToRecordEnhancer();
+
+		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
+
 	}
 }

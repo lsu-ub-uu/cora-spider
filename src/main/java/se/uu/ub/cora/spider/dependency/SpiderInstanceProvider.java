@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2018, 2019 Uppsala University Library
+ * Copyright 2015, 2018, 2019, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -53,12 +53,12 @@ public final class SpiderInstanceProvider {
 		return factory.factorSpiderRecordListReader();
 	}
 
-	public static SpiderRecordCreator getSpiderRecordCreator() {
-		return factory.factorSpiderRecordCreator();
+	public static SpiderRecordCreator getSpiderRecordCreator(String recordType) {
+		return factory.factorSpiderRecordCreator(recordType);
 	}
 
-	public static SpiderRecordUpdater getSpiderRecordUpdater() {
-		return factory.factorSpiderRecordUpdater();
+	public static SpiderRecordUpdater getSpiderRecordUpdater(String recordType) {
+		return factory.factorSpiderRecordUpdater(recordType);
 	}
 
 	public static SpiderRecordDeleter getSpiderRecordDeleter() {

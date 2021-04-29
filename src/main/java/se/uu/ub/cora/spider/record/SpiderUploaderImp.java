@@ -80,7 +80,8 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 
 		addOrReplaceResourceInfoToMetdataRecord(fileName, fileSize);
 
-		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
+		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider
+				.getSpiderRecordUpdater(type);
 		return spiderRecordUpdater.updateRecord(authToken, type, id, recordRead);
 	}
 

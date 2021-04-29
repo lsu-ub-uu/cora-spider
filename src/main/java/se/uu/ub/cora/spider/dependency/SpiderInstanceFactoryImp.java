@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019 Uppsala University Library
+ * Copyright 2015, 2016, 2019, 2021 Uppsala University Library
  * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
@@ -73,15 +73,18 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public SpiderRecordCreator factorSpiderRecordCreator() {
+	public SpiderRecordCreator factorSpiderRecordCreator(String recordType) {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
+		if ("indexBatchJob".equals(recordType)) {
+			return new IndexBatchJobCreator(dataGroupToRecordEnhancer);
+		}
 		return SpiderRecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
-	public SpiderRecordUpdater factorSpiderRecordUpdater() {
+	public SpiderRecordUpdater factorSpiderRecordUpdater(String recordType) {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
 		return SpiderRecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(

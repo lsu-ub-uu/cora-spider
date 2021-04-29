@@ -136,6 +136,7 @@ public class UserUpdaterForAppTokenTest {
 		assertEquals(apptokenLink.getFirstAtomicValueWithNameInData("linkedRecordId"),
 				"someAppTokenId");
 		assertNotNull(userAppTokenGroup.getRepeatId());
+		assertEquals(spiderInstanceFactory.recordType, "systemOneUser");
 	}
 
 }
