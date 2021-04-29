@@ -33,10 +33,8 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.SpiderDownloader;
 import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordCreatorImp;
 import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
 import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
 import se.uu.ub.cora.spider.record.SpiderRecordListReader;
@@ -44,8 +42,10 @@ import se.uu.ub.cora.spider.record.SpiderRecordReader;
 import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderRecordValidator;
-import se.uu.ub.cora.spider.record.SpiderRecordValidatorImp;
 import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
+import se.uu.ub.cora.spider.record.internal.SpiderRecordCreatorImp;
+import se.uu.ub.cora.spider.record.internal.SpiderRecordValidatorImp;
 
 public class SpiderInstanceFactoryTest {
 	private SpiderInstanceFactory factory;
