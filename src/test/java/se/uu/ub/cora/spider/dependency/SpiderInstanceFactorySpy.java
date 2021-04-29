@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2017, 2019 Uppsala University Library
+ * Copyright 2017, 2019, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -42,6 +42,7 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	public boolean downloaderFactoryWasCalled = false;
 	public boolean searcherFactoryWasCalled = false;
 	public boolean validatorFactoryWasCalled = false;
+	public String recordType;
 
 	@Override
 	public SpiderRecordReader factorSpiderRecordReader() {
@@ -56,14 +57,16 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public SpiderRecordCreator factorSpiderRecordCreator() {
+	public SpiderRecordCreator factorSpiderRecordCreator(String recordType) {
 		creatorFactoryWasCalled = true;
+		this.recordType = recordType;
 		return null;
 	}
 
 	@Override
-	public SpiderRecordUpdater factorSpiderRecordUpdater() {
+	public SpiderRecordUpdater factorSpiderRecordUpdater(String recordType) {
 		updaterFactoryWasCalled = true;
+		this.recordType = recordType;
 		return null;
 	}
 

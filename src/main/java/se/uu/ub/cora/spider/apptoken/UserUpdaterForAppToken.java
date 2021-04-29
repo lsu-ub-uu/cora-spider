@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2020 Uppsala University Library
+ * Copyright 2017, 2020, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -34,8 +34,7 @@ public final class UserUpdaterForAppToken implements ExtendedFunctionality {
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordStorage recordStorage;
 
-	private UserUpdaterForAppToken(
-			SpiderDependencyProvider dependencyProvider) {
+	private UserUpdaterForAppToken(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 		recordStorage = dependencyProvider.getRecordStorage();
 	}
@@ -93,7 +92,8 @@ public final class UserUpdaterForAppToken implements ExtendedFunctionality {
 		DataGroup type = recordInfo.getFirstGroupWithNameInData("type");
 		String recordType = type.getFirstAtomicValueWithNameInData("linkedRecordId");
 
-		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
+		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider
+				.getSpiderRecordUpdater(recordType);
 		spiderRecordUpdater.updateRecord(authToken, recordType, userId, spiderUserDataGroup);
 	}
 

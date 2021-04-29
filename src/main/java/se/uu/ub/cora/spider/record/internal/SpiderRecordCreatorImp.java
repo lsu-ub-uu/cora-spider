@@ -282,4 +282,9 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		return dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user, recordType,
 				recordAsDataGroup, dataRedactor);
 	}
+
+	public DataGroupToRecordEnhancer getDataGroupToRecordEnhancer() {
+		// needed for test
+		return dataGroupToRecordEnhancer;
+	}
 }
