@@ -1,0 +1,1 @@
+package se.uu.ub.cora.spider.recordtype;

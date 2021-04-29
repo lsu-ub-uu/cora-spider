@@ -35,6 +35,8 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.Uploader;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.StreamStorage;
 

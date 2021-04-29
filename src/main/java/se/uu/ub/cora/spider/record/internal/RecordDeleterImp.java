@@ -32,6 +32,8 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordDeleter;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 
 public final class RecordDeleterImp extends RecordHandler
 		implements RecordDeleter {

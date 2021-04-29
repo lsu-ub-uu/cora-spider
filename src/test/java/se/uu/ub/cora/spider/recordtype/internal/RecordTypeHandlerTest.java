@@ -17,7 +17,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.recordtype.internal;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -43,8 +43,9 @@ import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.DataGroupMCRSpy;
 import se.uu.ub.cora.spider.record.RecordStorageLightSpy;
 import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
-import se.uu.ub.cora.spider.record.internal.RecordTypeHandler;
-import se.uu.ub.cora.spider.record.internal.RecordTypeHandlerImp;
+import se.uu.ub.cora.spider.record.internal.DataGroupCheckCallsSpy;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 
 public class RecordTypeHandlerTest {
 	private RecordStorageLightSpy recordStorageLightSpy;

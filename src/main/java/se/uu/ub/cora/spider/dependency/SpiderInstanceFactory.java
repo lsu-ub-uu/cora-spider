@@ -21,9 +21,9 @@
 package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
-import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordSearcher;

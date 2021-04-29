@@ -52,10 +52,10 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderImp;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.FactorySorterImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.record.internal.RecordTypeHandler;
-import se.uu.ub.cora.spider.record.internal.RecordTypeHandlerFactory;
-import se.uu.ub.cora.spider.record.internal.RecordTypeHandlerFactoryImp;
-import se.uu.ub.cora.spider.record.internal.RecordTypeHandlerImp;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactory;
+import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactoryImp;
+import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.storage.MetadataStorageProvider;
 import se.uu.ub.cora.storage.RecordIdGeneratorProvider;

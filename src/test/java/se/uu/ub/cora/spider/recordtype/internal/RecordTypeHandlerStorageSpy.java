@@ -1,4 +1,4 @@
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.recordtype.internal;
 
 import java.util.ArrayList;
 import java.util.Collection;

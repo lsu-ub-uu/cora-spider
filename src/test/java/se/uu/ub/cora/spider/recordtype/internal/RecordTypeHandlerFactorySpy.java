@@ -16,14 +16,14 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.recordtype.internal;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.record.internal.RecordTypeHandler;
-import se.uu.ub.cora.spider.record.internal.RecordTypeHandlerFactory;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactory;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class RecordTypeHandlerFactorySpy implements RecordTypeHandlerFactory {

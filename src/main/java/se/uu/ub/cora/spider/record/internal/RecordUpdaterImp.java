@@ -44,6 +44,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 
 public final class RecordUpdaterImp extends RecordHandler
 		implements RecordUpdater {

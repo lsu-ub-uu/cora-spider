@@ -16,26 +16,12 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.recordtype.internal;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 
-public class RecordTypeHandlerFactoryImp implements RecordTypeHandlerFactory {
+public interface RecordTypeHandlerFactory {
 
-	private RecordStorage recordStorage;
-
-	public RecordTypeHandlerFactoryImp(RecordStorage recordStorage) {
-		this.recordStorage = recordStorage;
-	}
-
-	@Override
-	public RecordTypeHandler factorUsingDataGroup(DataGroup dataGroup) {
-		return RecordTypeHandlerImp.usingRecordStorageAndDataGroup(this, recordStorage, dataGroup);
-	}
-
-	public RecordStorage getStorage() {
-		return recordStorage;
-	}
-
+	RecordTypeHandler factorUsingDataGroup(DataGroup dataGroup);
 }
