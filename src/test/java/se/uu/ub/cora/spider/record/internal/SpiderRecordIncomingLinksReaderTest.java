@@ -48,7 +48,7 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataListFactorySpy;
 import se.uu.ub.cora.spider.record.MisuseException;
-import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
@@ -59,7 +59,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderRecordIncomingLinksReaderTest {
 
-	private SpiderRecordIncomingLinksReader incomingLinksReader;
+	private IncomingLinksReader incomingLinksReader;
 
 	private RecordStorage recordStorage;
 	private AuthenticatorSpy authenticator;
@@ -110,7 +110,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.termCollector = termCollector;
 
-		incomingLinksReader = SpiderRecordIncomingLinksReaderImp
+		incomingLinksReader = IncomingLinksReaderImp
 				.usingDependencyProvider(dependencyProvider);
 	}
 

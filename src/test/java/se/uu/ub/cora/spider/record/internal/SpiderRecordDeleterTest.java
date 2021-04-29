@@ -51,7 +51,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.MisuseException;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
+import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
@@ -67,7 +67,7 @@ public class SpiderRecordDeleterTest {
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderSpy dependencyProvider;
-	private SpiderRecordDeleter recordDeleter;
+	private RecordDeleter recordDeleter;
 	private RecordIndexer recordIndexer;
 	private DataGroupTermCollectorSpy termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
@@ -115,7 +115,7 @@ public class SpiderRecordDeleterTest {
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		recordDeleter = SpiderRecordDeleterImp.usingDependencyProvider(dependencyProvider);
+		recordDeleter = RecordDeleterImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)

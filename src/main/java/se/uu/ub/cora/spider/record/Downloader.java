@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -19,9 +19,10 @@
 
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataList;
+import se.uu.ub.cora.spider.data.SpiderInputStream;
 
-public interface SpiderRecordListReader {
-	DataList readRecordList(String authToken, String type, DataGroup filter);
+public interface Downloader {
+
+	SpiderInputStream download(String authToken, String type, String id, String resource);
+
 }

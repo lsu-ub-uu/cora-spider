@@ -38,10 +38,10 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
+import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.storage.RecordStorage;
 
-public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
+public final class RecordSearcherImp implements RecordSearcher {
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private static final String SEARCH = "search";
 	private Authenticator authenticator;
@@ -58,7 +58,7 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 	private int startRow = 1;
 	private SpiderDependencyProvider dependencyProvider;
 
-	private SpiderRecordSearcherImp(SpiderDependencyProvider dependencyProvider,
+	private RecordSearcherImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
@@ -70,10 +70,10 @@ public final class SpiderRecordSearcherImp implements SpiderRecordSearcher {
 
 	}
 
-	public static SpiderRecordSearcher usingDependencyProviderAndDataGroupToRecordEnhancer(
+	public static RecordSearcher usingDependencyProviderAndDataGroupToRecordEnhancer(
 			SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-		return new SpiderRecordSearcherImp(dependencyProvider, dataGroupToRecordEnhancer);
+		return new RecordSearcherImp(dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override

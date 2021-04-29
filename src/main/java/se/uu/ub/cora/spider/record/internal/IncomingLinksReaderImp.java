@@ -31,10 +31,10 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
-import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
 
-public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
-		implements SpiderRecordIncomingLinksReader {
+public class IncomingLinksReaderImp extends RecordHandler
+		implements IncomingLinksReader {
 	private static final String READ = "read";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -43,16 +43,16 @@ public class SpiderRecordIncomingLinksReaderImp extends SpiderRecordHandler
 	private User user;
 	private DataGroupTermCollector collectTermCollector;
 
-	public SpiderRecordIncomingLinksReaderImp(SpiderDependencyProvider dependencyProvider) {
+	public IncomingLinksReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
 	}
 
-	public static SpiderRecordIncomingLinksReader usingDependencyProvider(
+	public static IncomingLinksReader usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
-		return new SpiderRecordIncomingLinksReaderImp(dependencyProvider);
+		return new IncomingLinksReaderImp(dependencyProvider);
 	}
 
 	@Override

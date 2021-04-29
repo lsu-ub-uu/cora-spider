@@ -34,7 +34,7 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
-import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.record.internal.RecordTypeHandler;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 import se.uu.ub.cora.storage.RecordIdGenerator;
@@ -45,7 +45,7 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 
 	public SpiderAuthorizator spiderAuthorizator;
 	public PermissionRuleCalculator ruleCalculator;
-	public SpiderUploader uploader;
+	public Uploader uploader;
 	public DataValidator dataValidator;
 	public DataRecordLinkCollector linkCollector;
 	public RecordIdGenerator idGenerator;

@@ -27,7 +27,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
+import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public final class UserUpdaterForAppToken implements ExtendedFunctionality {
@@ -92,7 +92,7 @@ public final class UserUpdaterForAppToken implements ExtendedFunctionality {
 		DataGroup type = recordInfo.getFirstGroupWithNameInData("type");
 		String recordType = type.getFirstAtomicValueWithNameInData("linkedRecordId");
 
-		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider
+		RecordUpdater spiderRecordUpdater = SpiderInstanceProvider
 				.getSpiderRecordUpdater(recordType);
 		spiderRecordUpdater.updateRecord(authToken, recordType, userId, spiderUserDataGroup);
 	}

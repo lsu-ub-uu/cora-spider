@@ -33,19 +33,19 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.record.SpiderDownloader;
-import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
-import se.uu.ub.cora.spider.record.SpiderRecordListReader;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
-import se.uu.ub.cora.spider.record.SpiderRecordValidator;
-import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.record.RecordDeleter;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
+import se.uu.ub.cora.spider.record.RecordListReader;
+import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.record.RecordSearcher;
+import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.record.RecordValidator;
+import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.record.internal.SpiderRecordCreatorImp;
-import se.uu.ub.cora.spider.record.internal.SpiderRecordValidatorImp;
+import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
+import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
 
 public class SpiderInstanceFactoryTest {
 	private SpiderInstanceFactory factory;
@@ -76,8 +76,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordReader() {
-		SpiderRecordReader recordReader = factory.factorSpiderRecordReader();
-		SpiderRecordReader recordReader2 = factory.factorSpiderRecordReader();
+		RecordReader recordReader = factory.factorSpiderRecordReader();
+		RecordReader recordReader2 = factory.factorSpiderRecordReader();
 		assertNotNull(recordReader);
 		assertNotNull(recordReader2);
 		assertNotSame(recordReader, recordReader2);
@@ -85,9 +85,9 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordIncomingLinksReader() {
-		SpiderRecordIncomingLinksReader recordIncomingLInksReader = factory
+		IncomingLinksReader recordIncomingLInksReader = factory
 				.factorSpiderRecordIncomingLinksReader();
-		SpiderRecordIncomingLinksReader recordIncomingLInksReader2 = factory
+		IncomingLinksReader recordIncomingLInksReader2 = factory
 				.factorSpiderRecordIncomingLinksReader();
 		assertNotNull(recordIncomingLInksReader);
 		assertNotNull(recordIncomingLInksReader2);
@@ -96,8 +96,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordListReader() {
-		SpiderRecordListReader recordListReader = factory.factorSpiderRecordListReader();
-		SpiderRecordListReader recordListReader2 = factory.factorSpiderRecordListReader();
+		RecordListReader recordListReader = factory.factorSpiderRecordListReader();
+		RecordListReader recordListReader2 = factory.factorSpiderRecordListReader();
 		assertNotNull(recordListReader);
 		assertNotNull(recordListReader2);
 		assertNotSame(recordListReader, recordListReader2);
@@ -105,8 +105,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordCreator() {
-		SpiderRecordCreator recordCreator = factory.factorSpiderRecordCreator("someRecordType");
-		SpiderRecordCreator recordCreator2 = factory.factorSpiderRecordCreator("someRecordType");
+		RecordCreator recordCreator = factory.factorSpiderRecordCreator("someRecordType");
+		RecordCreator recordCreator2 = factory.factorSpiderRecordCreator("someRecordType");
 		assertNotNull(recordCreator);
 		assertNotNull(recordCreator2);
 		assertNotSame(recordCreator, recordCreator2);
@@ -114,9 +114,9 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordUpdater() {
-		SpiderRecordUpdater recordUpdater = factory
+		RecordUpdater recordUpdater = factory
 				.factorSpiderRecordUpdater("onlyDefaultUpdateImplemented");
-		SpiderRecordUpdater recordUpdater2 = factory
+		RecordUpdater recordUpdater2 = factory
 				.factorSpiderRecordUpdater("onlyDefaultUpdateImplemented");
 		assertNotNull(recordUpdater);
 		assertNotNull(recordUpdater2);
@@ -125,8 +125,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordDeleter() {
-		SpiderRecordDeleter recordDeleter = factory.factorSpiderRecordDeleter();
-		SpiderRecordDeleter recordDeleter2 = factory.factorSpiderRecordDeleter();
+		RecordDeleter recordDeleter = factory.factorSpiderRecordDeleter();
+		RecordDeleter recordDeleter2 = factory.factorSpiderRecordDeleter();
 		assertNotNull(recordDeleter);
 		assertNotNull(recordDeleter2);
 		assertNotSame(recordDeleter, recordDeleter2);
@@ -134,8 +134,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfUploader() {
-		SpiderUploader recordUploader = factory.factorSpiderUploader();
-		SpiderUploader recordUploader2 = factory.factorSpiderUploader();
+		Uploader recordUploader = factory.factorSpiderUploader();
+		Uploader recordUploader2 = factory.factorSpiderUploader();
 		assertNotNull(recordUploader);
 		assertNotNull(recordUploader2);
 		assertNotSame(recordUploader, recordUploader2);
@@ -143,8 +143,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void initMakeSureWeGetMultipleInstancesOfDownloader() {
-		SpiderDownloader recordDownloader = factory.factorSpiderDownloader();
-		SpiderDownloader recordDownloader2 = factory.factorSpiderDownloader();
+		Downloader recordDownloader = factory.factorSpiderDownloader();
+		Downloader recordDownloader2 = factory.factorSpiderDownloader();
 		assertNotNull(recordDownloader);
 		assertNotNull(recordDownloader2);
 		assertNotSame(recordDownloader, recordDownloader2);
@@ -152,8 +152,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void initMakeSureWeGetMultipleInstancesOfSearcher() {
-		SpiderRecordSearcher recordSearcher = factory.factorSpiderRecordSearcher();
-		SpiderRecordSearcher recordSearcher2 = factory.factorSpiderRecordSearcher();
+		RecordSearcher recordSearcher = factory.factorSpiderRecordSearcher();
+		RecordSearcher recordSearcher2 = factory.factorSpiderRecordSearcher();
 		assertNotNull(recordSearcher);
 		assertNotNull(recordSearcher2);
 		assertNotSame(recordSearcher, recordSearcher2);
@@ -161,18 +161,18 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordValidator() {
-		SpiderRecordValidator recordValidator = factory.factorSpiderRecordValidator();
-		SpiderRecordValidator recordValidator2 = factory.factorSpiderRecordValidator();
+		RecordValidator recordValidator = factory.factorSpiderRecordValidator();
+		RecordValidator recordValidator2 = factory.factorSpiderRecordValidator();
 		assertNotNull(recordValidator);
 		assertNotNull(recordValidator2);
 		assertNotSame(recordValidator, recordValidator2);
-		assertTrue(recordValidator instanceof SpiderRecordValidatorImp);
+		assertTrue(recordValidator instanceof RecordValidatorImp);
 	}
 
 	@Test
 	public void testDefaultCreatorImplementation() {
 
-		SpiderRecordCreatorImp spiderRecordCreator = (SpiderRecordCreatorImp) factory
+		RecordCreatorImp spiderRecordCreator = (RecordCreatorImp) factory
 				.factorSpiderRecordCreator("someRecordType");
 
 		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) spiderRecordCreator

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Olov McKie
+ * Copyright 2016 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,10 +19,13 @@
 
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.spider.data.SpiderInputStream;
+import java.io.InputStream;
 
-public interface SpiderDownloader {
+import se.uu.ub.cora.data.DataRecord;
 
-	SpiderInputStream download(String authToken, String type, String id, String resource);
+public interface Uploader {
+
+	DataRecord upload(String authToken, String type, String id, InputStream inputStream,
+			String fileName);
 
 }

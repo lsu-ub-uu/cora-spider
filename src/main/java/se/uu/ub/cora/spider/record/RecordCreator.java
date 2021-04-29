@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2015 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,13 +16,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataList;
+import se.uu.ub.cora.data.DataRecord;
 
-public interface SpiderRecordSearcher {
-
-	DataList search(String authToken, String searchId, DataGroup searchData);
+public interface RecordCreator {
+	DataRecord createAndStoreRecord(String authToken, String type, DataGroup record);
 
 }

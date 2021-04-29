@@ -19,20 +19,9 @@
 
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataList;
 
-public interface SpiderRecordReader {
-
-	/**
-	 * readRecord is used to read a record using a recordType and recordId. The method should check
-	 * user authorizathion for recordtype and recordParts. It returns a record as a DataRecord.
-	 * <p>
-	 * If user not authorized then it throws an {@link AuthenticationException}
-	 * 
-	 * @param authToken
-	 * @param type
-	 * @param id
-	 * @return
-	 */
-	DataRecord readRecord(String authToken, String type, String id);
+public interface RecordListReader {
+	DataList readRecordList(String authToken, String type, DataGroup filter);
 }

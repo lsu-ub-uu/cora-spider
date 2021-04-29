@@ -37,7 +37,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.record.internal.SpiderRecordDeleterImp;
+import se.uu.ub.cora.spider.record.internal.RecordDeleterImp;
 
 public class WorkOrderExtendedFunctionalityFactoryTest {
 
@@ -94,7 +94,7 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 		List<ExtendedFunctionality> functionalities = factory
 				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN, "workOrder");
 		WorkOrderDeleter functionality = (WorkOrderDeleter) functionalities.get(0);
-		SpiderRecordDeleterImp recordDeleter = (SpiderRecordDeleterImp) functionality
+		RecordDeleterImp recordDeleter = (RecordDeleterImp) functionality
 				.getRecordDeleter();
 		assertSame(recordDeleter.getDependencyProvider(), dependencyProviderSpy);
 	}

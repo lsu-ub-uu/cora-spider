@@ -27,10 +27,10 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
+import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.storage.RecordStorage;
 
-public final class SpiderRecordReaderImp implements SpiderRecordReader {
+public final class RecordReaderImp implements RecordReader {
 	private static final String READ = "read";
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private Authenticator authenticator;
@@ -42,7 +42,7 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 	private RecordStorage recordStorage;
 	private String recordType;
 
-	private SpiderRecordReaderImp(SpiderDependencyProvider dependencyProvider,
+	private RecordReaderImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 
 		this.dependencyProvider = dependencyProvider;
@@ -52,10 +52,10 @@ public final class SpiderRecordReaderImp implements SpiderRecordReader {
 		this.recordStorage = dependencyProvider.getRecordStorage();
 	}
 
-	public static SpiderRecordReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
+	public static RecordReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
 			SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-		return new SpiderRecordReaderImp(dependencyProvider, dataGroupToRecordEnhancer);
+		return new RecordReaderImp(dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override

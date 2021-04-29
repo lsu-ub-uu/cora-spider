@@ -21,27 +21,27 @@
 package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.record.SpiderDownloader;
-import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
-import se.uu.ub.cora.spider.record.SpiderRecordListReader;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
-import se.uu.ub.cora.spider.record.SpiderRecordValidator;
-import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.record.RecordDeleter;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
+import se.uu.ub.cora.spider.record.RecordListReader;
+import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.record.RecordSearcher;
+import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.record.RecordValidator;
+import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.record.internal.SpiderDownloaderImp;
-import se.uu.ub.cora.spider.record.internal.SpiderRecordCreatorImp;
-import se.uu.ub.cora.spider.record.internal.SpiderRecordDeleterImp;
-import se.uu.ub.cora.spider.record.internal.SpiderRecordIncomingLinksReaderImp;
-import se.uu.ub.cora.spider.record.internal.SpiderRecordListReaderImp;
-import se.uu.ub.cora.spider.record.internal.SpiderRecordReaderImp;
-import se.uu.ub.cora.spider.record.internal.SpiderRecordSearcherImp;
-import se.uu.ub.cora.spider.record.internal.SpiderRecordUpdaterImp;
-import se.uu.ub.cora.spider.record.internal.SpiderRecordValidatorImp;
-import se.uu.ub.cora.spider.record.internal.SpiderUploaderImp;
+import se.uu.ub.cora.spider.record.internal.DownloaderImp;
+import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
+import se.uu.ub.cora.spider.record.internal.RecordDeleterImp;
+import se.uu.ub.cora.spider.record.internal.IncomingLinksReaderImp;
+import se.uu.ub.cora.spider.record.internal.RecordListReaderImp;
+import se.uu.ub.cora.spider.record.internal.RecordReaderImp;
+import se.uu.ub.cora.spider.record.internal.RecordSearcherImp;
+import se.uu.ub.cora.spider.record.internal.RecordUpdaterImp;
+import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
+import se.uu.ub.cora.spider.record.internal.UploaderImp;
 
 public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
@@ -57,71 +57,71 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public SpiderRecordReader factorSpiderRecordReader() {
+	public RecordReader factorSpiderRecordReader() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
-		return SpiderRecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+		return RecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
-	public SpiderRecordListReader factorSpiderRecordListReader() {
+	public RecordListReader factorSpiderRecordListReader() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
-		return SpiderRecordListReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+		return RecordListReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
-	public SpiderRecordCreator factorSpiderRecordCreator(String recordType) {
+	public RecordCreator factorSpiderRecordCreator(String recordType) {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
 		if ("indexBatchJob".equals(recordType)) {
 			return new IndexBatchJobCreator(dataGroupToRecordEnhancer);
 		}
-		return SpiderRecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+		return RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
-	public SpiderRecordUpdater factorSpiderRecordUpdater(String recordType) {
+	public RecordUpdater factorSpiderRecordUpdater(String recordType) {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
-		return SpiderRecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+		return RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
-	public SpiderRecordDeleter factorSpiderRecordDeleter() {
-		return SpiderRecordDeleterImp.usingDependencyProvider(dependencyProvider);
+	public RecordDeleter factorSpiderRecordDeleter() {
+		return RecordDeleterImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
-	public SpiderUploader factorSpiderUploader() {
-		return SpiderUploaderImp.usingDependencyProvider(dependencyProvider);
+	public Uploader factorSpiderUploader() {
+		return UploaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
-	public SpiderDownloader factorSpiderDownloader() {
-		return SpiderDownloaderImp.usingDependencyProvider(dependencyProvider);
+	public Downloader factorSpiderDownloader() {
+		return DownloaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
-	public SpiderRecordSearcher factorSpiderRecordSearcher() {
+	public RecordSearcher factorSpiderRecordSearcher() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
-		return SpiderRecordSearcherImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+		return RecordSearcherImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
-	public SpiderRecordIncomingLinksReader factorSpiderRecordIncomingLinksReader() {
-		return SpiderRecordIncomingLinksReaderImp.usingDependencyProvider(dependencyProvider);
+	public IncomingLinksReader factorSpiderRecordIncomingLinksReader() {
+		return IncomingLinksReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
-	public SpiderRecordValidator factorSpiderRecordValidator() {
-		return SpiderRecordValidatorImp.usingDependencyProvider(dependencyProvider);
+	public RecordValidator factorSpiderRecordValidator() {
+		return RecordValidatorImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override

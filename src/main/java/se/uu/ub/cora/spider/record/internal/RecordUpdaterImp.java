@@ -43,10 +43,10 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
+import se.uu.ub.cora.spider.record.RecordUpdater;
 
-public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
-		implements SpiderRecordUpdater {
+public final class RecordUpdaterImp extends RecordHandler
+		implements RecordUpdater {
 	private static final String UPDATED_STRING = "updated";
 	private static final String TS_UPDATED = "tsUpdated";
 	private static final String UPDATED_BY = "updatedBy";
@@ -69,7 +69,7 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 	private DataGroup previouslyStoredRecord;
 	private Set<String> writePermissions;
 
-	private SpiderRecordUpdaterImp(SpiderDependencyProvider dependencyProvider,
+	private RecordUpdaterImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
@@ -83,10 +83,10 @@ public final class SpiderRecordUpdaterImp extends SpiderRecordHandler
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
-	public static SpiderRecordUpdaterImp usingDependencyProviderAndDataGroupToRecordEnhancer(
+	public static RecordUpdaterImp usingDependencyProviderAndDataGroupToRecordEnhancer(
 			SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-		return new SpiderRecordUpdaterImp(dependencyProvider, dataGroupToRecordEnhancer);
+		return new RecordUpdaterImp(dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override

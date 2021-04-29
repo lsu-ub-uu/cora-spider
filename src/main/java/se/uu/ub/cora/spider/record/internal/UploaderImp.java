@@ -33,12 +33,12 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
-import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.StreamStorage;
 
-public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploader {
+public final class UploaderImp extends SpiderBinary implements Uploader {
 	private static final String RESOURCE_INFO = "resourceInfo";
 	private SpiderAuthorizator spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
@@ -47,7 +47,7 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 	private DataGroupTermCollector termCollector;
 	private DataGroup recordRead;
 
-	private SpiderUploaderImp(SpiderDependencyProvider dependencyProvider) {
+	private UploaderImp(SpiderDependencyProvider dependencyProvider) {
 		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
@@ -56,9 +56,9 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 		termCollector = dependencyProvider.getDataGroupTermCollector();
 	}
 
-	public static SpiderUploaderImp usingDependencyProvider(
+	public static UploaderImp usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
-		return new SpiderUploaderImp(dependencyProvider);
+		return new UploaderImp(dependencyProvider);
 	}
 
 	@Override
@@ -82,7 +82,7 @@ public final class SpiderUploaderImp extends SpiderBinary implements SpiderUploa
 
 		addOrReplaceResourceInfoToMetdataRecord(fileName, fileSize);
 
-		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider
+		RecordUpdater spiderRecordUpdater = SpiderInstanceProvider
 				.getSpiderRecordUpdater(type);
 		return spiderRecordUpdater.updateRecord(authToken, type, id, recordRead);
 	}

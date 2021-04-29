@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2015 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,13 +19,20 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.io.InputStream;
-
 import se.uu.ub.cora.data.DataRecord;
 
-public interface SpiderUploader {
+public interface RecordReader {
 
-	DataRecord upload(String authToken, String type, String id, InputStream inputStream,
-			String fileName);
-
+	/**
+	 * readRecord is used to read a record using a recordType and recordId. The method should check
+	 * user authorizathion for recordtype and recordParts. It returns a record as a DataRecord.
+	 * <p>
+	 * If user not authorized then it throws an {@link AuthenticationException}
+	 * 
+	 * @param authToken
+	 * @param type
+	 * @param id
+	 * @return
+	 */
+	DataRecord readRecord(String authToken, String type, String id);
 }

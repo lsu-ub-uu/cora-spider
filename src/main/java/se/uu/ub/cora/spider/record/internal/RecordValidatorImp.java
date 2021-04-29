@@ -33,12 +33,12 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataException;
-import se.uu.ub.cora.spider.record.SpiderRecordValidator;
+import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 
-public final class SpiderRecordValidatorImp extends SpiderRecordHandler
-		implements SpiderRecordValidator {
+public final class RecordValidatorImp extends RecordHandler
+		implements RecordValidator {
 	private static final String ERROR_MESSAGES = "errorMessages";
 	private static final String VALIDATE = "validate";
 	private Authenticator authenticator;
@@ -51,7 +51,7 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 	private DataGroup validationResult;
 	private RecordIdGenerator idGenerator;
 
-	private SpiderRecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
+	private RecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.dataValidator = dependencyProvider.getDataValidator();
@@ -60,9 +60,9 @@ public final class SpiderRecordValidatorImp extends SpiderRecordHandler
 		this.idGenerator = dependencyProvider.getRecordIdGenerator();
 	}
 
-	public static SpiderRecordValidator usingDependencyProvider(
+	public static RecordValidator usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
-		return new SpiderRecordValidatorImp(dependencyProvider);
+		return new RecordValidatorImp(dependencyProvider);
 	}
 
 	@Override

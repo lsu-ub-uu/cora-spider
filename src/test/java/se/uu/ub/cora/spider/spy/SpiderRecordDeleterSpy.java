@@ -22,10 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
+import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 
-public class SpiderRecordDeleterSpy implements SpiderRecordDeleter {
+public class SpiderRecordDeleterSpy implements RecordDeleter {
 
     public List<String> deletedTypes = new ArrayList<>();
     public List<String> deletedIds = new ArrayList<>();

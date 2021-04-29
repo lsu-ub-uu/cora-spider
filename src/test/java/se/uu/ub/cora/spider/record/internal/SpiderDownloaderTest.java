@@ -54,7 +54,7 @@ import se.uu.ub.cora.spider.dependency.StreamStorageProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.MisuseException;
-import se.uu.ub.cora.spider.record.SpiderDownloader;
+import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.StreamStorageSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
@@ -69,7 +69,7 @@ public class SpiderDownloaderTest {
 	private StreamStorageSpy streamStorage;
 	private SpiderAuthorizatorSpy authorizator;
 	private RuleCalculatorSpy ruleCalculator;
-	private SpiderDownloader downloader;
+	private Downloader downloader;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataGroupFactory dataGroupFactory;
@@ -113,7 +113,7 @@ public class SpiderDownloaderTest {
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		downloader = SpiderDownloaderImp.usingDependencyProvider(dependencyProvider);
+		downloader = DownloaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Test

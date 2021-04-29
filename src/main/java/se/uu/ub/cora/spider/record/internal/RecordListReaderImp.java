@@ -36,11 +36,11 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.record.SpiderRecordListReader;
+import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.storage.StorageReadResult;
 
-public final class SpiderRecordListReaderImp extends SpiderRecordHandler
-		implements SpiderRecordListReader {
+public final class RecordListReaderImp extends RecordHandler
+		implements RecordListReader {
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataList readRecordList;
@@ -51,7 +51,7 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordTypeHandler recordTypeHandler;
 
-	private SpiderRecordListReaderImp(SpiderDependencyProvider dependencyProvider,
+	private RecordListReaderImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
@@ -61,10 +61,10 @@ public final class SpiderRecordListReaderImp extends SpiderRecordHandler
 		dataValidator = dependencyProvider.getDataValidator();
 	}
 
-	public static SpiderRecordListReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
+	public static RecordListReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
 			SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-		return new SpiderRecordListReaderImp(dependencyProvider, dataGroupToRecordEnhancer);
+		return new RecordListReaderImp(dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override

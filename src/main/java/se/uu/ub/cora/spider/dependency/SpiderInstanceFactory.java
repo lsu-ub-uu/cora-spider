@@ -20,39 +20,39 @@
 
 package se.uu.ub.cora.spider.dependency;
 
-import se.uu.ub.cora.spider.record.SpiderDownloader;
-import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
-import se.uu.ub.cora.spider.record.SpiderRecordListReader;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
-import se.uu.ub.cora.spider.record.SpiderRecordValidator;
-import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.record.RecordDeleter;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
+import se.uu.ub.cora.spider.record.RecordListReader;
+import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.record.RecordSearcher;
+import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.record.RecordValidator;
+import se.uu.ub.cora.spider.record.Uploader;
 
 public interface SpiderInstanceFactory {
 
 	String getDependencyProviderClassName();
 
-	SpiderRecordReader factorSpiderRecordReader();
+	RecordReader factorSpiderRecordReader();
 
-	SpiderRecordIncomingLinksReader factorSpiderRecordIncomingLinksReader();
+	IncomingLinksReader factorSpiderRecordIncomingLinksReader();
 
-	SpiderRecordListReader factorSpiderRecordListReader();
+	RecordListReader factorSpiderRecordListReader();
 
-	SpiderRecordCreator factorSpiderRecordCreator(String recordType);
+	RecordCreator factorSpiderRecordCreator(String recordType);
 
-	SpiderRecordUpdater factorSpiderRecordUpdater(String recordType);
+	RecordUpdater factorSpiderRecordUpdater(String recordType);
 
-	SpiderRecordDeleter factorSpiderRecordDeleter();
+	RecordDeleter factorSpiderRecordDeleter();
 
-	SpiderUploader factorSpiderUploader();
+	Uploader factorSpiderUploader();
 
-	SpiderDownloader factorSpiderDownloader();
+	Downloader factorSpiderDownloader();
 
-	SpiderRecordSearcher factorSpiderRecordSearcher();
+	RecordSearcher factorSpiderRecordSearcher();
 
-	SpiderRecordValidator factorSpiderRecordValidator();
+	RecordValidator factorSpiderRecordValidator();
 
 }

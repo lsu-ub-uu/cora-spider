@@ -31,10 +31,10 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
+import se.uu.ub.cora.spider.record.RecordDeleter;
 
-public final class SpiderRecordDeleterImp extends SpiderRecordHandler
-		implements SpiderRecordDeleter {
+public final class RecordDeleterImp extends RecordHandler
+		implements RecordDeleter {
 	private static final String DELETE = "delete";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -46,7 +46,7 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 	private DataGroup dataGroupReadFromStorage;
 	private SpiderDependencyProvider dependencyProvider;
 
-	private SpiderRecordDeleterImp(SpiderDependencyProvider dependencyProvider) {
+	private RecordDeleterImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
@@ -56,9 +56,9 @@ public final class SpiderRecordDeleterImp extends SpiderRecordHandler
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
-	public static SpiderRecordDeleterImp usingDependencyProvider(
+	public static RecordDeleterImp usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
-		return new SpiderRecordDeleterImp(dependencyProvider);
+		return new RecordDeleterImp(dependencyProvider);
 	}
 
 	@Override

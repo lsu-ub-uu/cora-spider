@@ -56,7 +56,7 @@ import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataListFactorySpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
-import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
+import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
@@ -76,7 +76,7 @@ public class SpiderRecordSearcherTest {
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
-	private SpiderRecordSearcher recordSearcher;
+	private RecordSearcher recordSearcher;
 	private DataValidatorSpy dataValidator;
 	private RecordSearch recordSearch;
 	private DataGroupTermCollectorSpy termCollector;
@@ -129,7 +129,7 @@ public class SpiderRecordSearcherTest {
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.dataRedactor = dataRedactor;
-		recordSearcher = SpiderRecordSearcherImp
+		recordSearcher = RecordSearcherImp
 				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProvider,
 						dataGroupToRecordEnhancer);
 	}

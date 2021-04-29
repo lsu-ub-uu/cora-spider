@@ -41,11 +41,11 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.MisuseException;
-import se.uu.ub.cora.spider.record.SpiderRecordCreator;
+import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 
-public final class SpiderRecordCreatorImp extends SpiderRecordHandler
-		implements SpiderRecordCreator {
+public final class RecordCreatorImp extends RecordHandler
+		implements RecordCreator {
 	private static final String TS_CREATED = "tsCreated";
 	private static final String CREATE = "create";
 	private Authenticator authenticator;
@@ -64,7 +64,7 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 	private SpiderDependencyProvider dependencyProvider;
 	private Set<String> writePermissions;
 
-	private SpiderRecordCreatorImp(SpiderDependencyProvider dependencyProvider,
+	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
@@ -79,10 +79,10 @@ public final class SpiderRecordCreatorImp extends SpiderRecordHandler
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
-	public static SpiderRecordCreatorImp usingDependencyProviderAndDataGroupToRecordEnhancer(
+	public static RecordCreatorImp usingDependencyProviderAndDataGroupToRecordEnhancer(
 			SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-		return new SpiderRecordCreatorImp(dependencyProvider, dataGroupToRecordEnhancer);
+		return new RecordCreatorImp(dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override

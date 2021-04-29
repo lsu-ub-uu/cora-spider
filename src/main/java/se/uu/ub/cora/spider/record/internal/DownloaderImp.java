@@ -27,11 +27,11 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.record.SpiderDownloader;
+import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.StreamStorage;
 
-public final class SpiderDownloaderImp extends SpiderBinary implements SpiderDownloader {
+public final class DownloaderImp extends SpiderBinary implements Downloader {
 	private static final String RESOURCE_INFO = "resourceInfo";
 	private static final String DOWNLOAD = "download";
 	private String resourceName;
@@ -39,16 +39,16 @@ public final class SpiderDownloaderImp extends SpiderBinary implements SpiderDow
 	private StreamStorage streamStorage;
 	private DataGroup recordRead;
 
-	private SpiderDownloaderImp(SpiderDependencyProvider dependencyProvider) {
+	private DownloaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
 		streamStorage = dependencyProvider.getStreamStorage();
 	}
 
-	public static SpiderDownloader usingDependencyProvider(
+	public static Downloader usingDependencyProvider(
 			SpiderDependencyProvider spiderDependencyProvider) {
-		return new SpiderDownloaderImp(spiderDependencyProvider);
+		return new DownloaderImp(spiderDependencyProvider);
 	}
 
 	@Override

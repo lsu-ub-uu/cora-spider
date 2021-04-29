@@ -23,17 +23,17 @@ package se.uu.ub.cora.spider.dependency;
 import java.util.ArrayList;
 import java.util.List;
 
-import se.uu.ub.cora.spider.record.SpiderDownloader;
-import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
-import se.uu.ub.cora.spider.record.SpiderRecordListReader;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
+import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.record.RecordDeleter;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
+import se.uu.ub.cora.spider.record.RecordListReader;
+import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.record.RecordSearcher;
+import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterSpy;
-import se.uu.ub.cora.spider.record.SpiderRecordValidator;
-import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.RecordValidator;
+import se.uu.ub.cora.spider.record.Uploader;
 
 public class SpiderInstanceFactorySpy2 implements SpiderInstanceFactory {
 	public boolean readerFactoryWasCalled = false;
@@ -50,25 +50,25 @@ public class SpiderInstanceFactorySpy2 implements SpiderInstanceFactory {
 	public String recordType;
 
 	@Override
-	public SpiderRecordReader factorSpiderRecordReader() {
+	public RecordReader factorSpiderRecordReader() {
 		readerFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderRecordListReader factorSpiderRecordListReader() {
+	public RecordListReader factorSpiderRecordListReader() {
 		listReaderFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderRecordCreator factorSpiderRecordCreator(String recordType) {
+	public RecordCreator factorSpiderRecordCreator(String recordType) {
 		creatorFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderRecordUpdater factorSpiderRecordUpdater(String recordType) {
+	public RecordUpdater factorSpiderRecordUpdater(String recordType) {
 		this.recordType = recordType;
 		updaterFactoryWasCalled = true;
 
@@ -78,37 +78,37 @@ public class SpiderInstanceFactorySpy2 implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public SpiderRecordDeleter factorSpiderRecordDeleter() {
+	public RecordDeleter factorSpiderRecordDeleter() {
 		deleterFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderUploader factorSpiderUploader() {
+	public Uploader factorSpiderUploader() {
 		uploaderFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderDownloader factorSpiderDownloader() {
+	public Downloader factorSpiderDownloader() {
 		downloaderFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderRecordSearcher factorSpiderRecordSearcher() {
+	public RecordSearcher factorSpiderRecordSearcher() {
 		searcherFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderRecordIncomingLinksReader factorSpiderRecordIncomingLinksReader() {
+	public IncomingLinksReader factorSpiderRecordIncomingLinksReader() {
 		incomingLinksReaderFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderRecordValidator factorSpiderRecordValidator() {
+	public RecordValidator factorSpiderRecordValidator() {
 		// TODO Auto-generated method stub
 		return null;
 	}

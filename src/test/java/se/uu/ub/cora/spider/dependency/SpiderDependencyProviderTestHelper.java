@@ -31,14 +31,14 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
-import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.storage.MetadataStorage;
 
 public class SpiderDependencyProviderTestHelper extends SpiderDependencyProvider {
 
 	public SpiderAuthorizator spiderAuthorizator;
 	public PermissionRuleCalculator ruleCalculator;
-	public SpiderUploader uploader;
+	public Uploader uploader;
 	public DataValidator dataValidator;
 	public DataRecordLinkCollector linkCollector;
 	public ExtendedFunctionalityProvider extendedFunctionalityProvider;

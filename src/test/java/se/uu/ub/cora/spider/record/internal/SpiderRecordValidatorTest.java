@@ -60,7 +60,7 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataRecordLinkFactorySpy;
 import se.uu.ub.cora.spider.record.RecordLinkTestsRecordStorage;
-import se.uu.ub.cora.spider.record.SpiderRecordValidator;
+import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
@@ -82,7 +82,7 @@ public class SpiderRecordValidatorTest {
 	private Authenticator authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
-	private SpiderRecordValidator recordValidator;
+	private RecordValidator recordValidator;
 	private DataValidatorSpy dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
@@ -141,7 +141,7 @@ public class SpiderRecordValidatorTest {
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.recordIndexer = recordIndexer;
-		recordValidator = SpiderRecordValidatorImp.usingDependencyProvider(dependencyProvider);
+		recordValidator = RecordValidatorImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Test

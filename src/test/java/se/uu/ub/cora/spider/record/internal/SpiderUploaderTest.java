@@ -69,7 +69,7 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataResourceLinkFactorySpy;
 import se.uu.ub.cora.spider.record.MisuseException;
-import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.record.StreamStorageSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
@@ -92,7 +92,7 @@ public class SpiderUploaderTest {
 	private StreamStorageSpy streamStorage;
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
-	private SpiderUploader uploader;
+	private Uploader uploader;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private DataGroupTermCollectorSpy termCollector;
@@ -164,7 +164,7 @@ public class SpiderUploaderTest {
 		dependencyProvider.recordIndexer = recordIndexer;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
-		uploader = SpiderUploaderImp.usingDependencyProvider(dependencyProvider);
+		uploader = UploaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Test
@@ -353,15 +353,15 @@ public class SpiderUploaderTest {
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testUpdateRecordUserNotAuthorisedToUpdateData() {
 
-		SpiderUploader uploader = setupWithUserNotAuthorized();
+		Uploader uploader = setupWithUserNotAuthorized();
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 		uploader.upload("someToken78678567", "image", "image:123456789", stream, "someFileName");
 	}
 
-	private SpiderUploader setupWithUserNotAuthorized() {
+	private Uploader setupWithUserNotAuthorized() {
 		authorizator.authorizedForActionAndRecordType = false;
 
-		SpiderUploader uploader = SpiderUploaderImp.usingDependencyProvider(dependencyProvider);
+		Uploader uploader = UploaderImp.usingDependencyProvider(dependencyProvider);
 		return uploader;
 	}
 

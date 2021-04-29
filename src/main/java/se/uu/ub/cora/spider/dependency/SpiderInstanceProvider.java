@@ -21,16 +21,16 @@ package se.uu.ub.cora.spider.dependency;
 
 import java.util.Map;
 
-import se.uu.ub.cora.spider.record.SpiderDownloader;
-import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
-import se.uu.ub.cora.spider.record.SpiderRecordListReader;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
-import se.uu.ub.cora.spider.record.SpiderRecordValidator;
-import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.record.RecordDeleter;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
+import se.uu.ub.cora.spider.record.RecordListReader;
+import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.record.RecordSearcher;
+import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.record.RecordValidator;
+import se.uu.ub.cora.spider.record.Uploader;
 
 public final class SpiderInstanceProvider {
 	private static SpiderInstanceFactory factory;
@@ -45,43 +45,43 @@ public final class SpiderInstanceProvider {
 		SpiderInstanceProvider.factory = factory;
 	}
 
-	public static SpiderRecordReader getSpiderRecordReader() {
+	public static RecordReader getSpiderRecordReader() {
 		return factory.factorSpiderRecordReader();
 	}
 
-	public static SpiderRecordListReader getSpiderRecordListReader() {
+	public static RecordListReader getSpiderRecordListReader() {
 		return factory.factorSpiderRecordListReader();
 	}
 
-	public static SpiderRecordCreator getSpiderRecordCreator(String recordType) {
+	public static RecordCreator getSpiderRecordCreator(String recordType) {
 		return factory.factorSpiderRecordCreator(recordType);
 	}
 
-	public static SpiderRecordUpdater getSpiderRecordUpdater(String recordType) {
+	public static RecordUpdater getSpiderRecordUpdater(String recordType) {
 		return factory.factorSpiderRecordUpdater(recordType);
 	}
 
-	public static SpiderRecordDeleter getSpiderRecordDeleter() {
+	public static RecordDeleter getSpiderRecordDeleter() {
 		return factory.factorSpiderRecordDeleter();
 	}
 
-	public static SpiderUploader getSpiderUploader() {
+	public static Uploader getSpiderUploader() {
 		return factory.factorSpiderUploader();
 	}
 
-	public static SpiderDownloader getSpiderDownloader() {
+	public static Downloader getSpiderDownloader() {
 		return factory.factorSpiderDownloader();
 	}
 
-	public static SpiderRecordSearcher getSpiderRecordSearcher() {
+	public static RecordSearcher getSpiderRecordSearcher() {
 		return factory.factorSpiderRecordSearcher();
 	}
 
-	public static SpiderRecordIncomingLinksReader getSpiderRecordIncomingLinksReader() {
+	public static IncomingLinksReader getSpiderRecordIncomingLinksReader() {
 		return factory.factorSpiderRecordIncomingLinksReader();
 	}
 
-	public static SpiderRecordValidator getSpiderRecordValidator() {
+	public static RecordValidator getSpiderRecordValidator() {
 		return factory.factorSpiderRecordValidator();
 	}
 

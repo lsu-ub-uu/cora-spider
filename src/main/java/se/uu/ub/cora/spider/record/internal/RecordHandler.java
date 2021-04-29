@@ -32,7 +32,7 @@ import se.uu.ub.cora.data.DataRecordLinkProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.storage.RecordStorage;
 
-public class SpiderRecordHandler {
+public class RecordHandler {
 	protected static final String LINKED_RECORD_ID = "linkedRecordId";
 	protected static final String RECORD_TYPE = "recordType";
 	protected static final String RECORD_INFO = "recordInfo";

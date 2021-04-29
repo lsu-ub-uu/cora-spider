@@ -64,7 +64,7 @@ import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.RecordLinkTestsRecordStorage;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
+import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
@@ -88,7 +88,7 @@ public class SpiderRecordUpdaterTest {
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
-	private SpiderRecordUpdater recordUpdater;
+	private RecordUpdater recordUpdater;
 	private DataValidatorSpy dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
@@ -146,7 +146,7 @@ public class SpiderRecordUpdaterTest {
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
 		dependencyProvider.dataRedactor = dataRedactor;
-		recordUpdater = SpiderRecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+		recordUpdater = RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
@@ -354,7 +354,7 @@ public class SpiderRecordUpdaterTest {
 		Instant now = Instant.now();
 		int nano = now.getNano();
 		Instant minusNanos = now.minusNanos(nano);
-		SpiderRecordUpdaterImp recordUpdater2 = (SpiderRecordUpdaterImp) recordUpdater;
+		RecordUpdaterImp recordUpdater2 = (RecordUpdaterImp) recordUpdater;
 		String formattedTS = recordUpdater2.formatInstantKeepingTrailingZeros(minusNanos);
 		assertEquals(formattedTS.substring(20), "000000Z");
 

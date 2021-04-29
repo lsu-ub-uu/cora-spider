@@ -57,7 +57,7 @@ import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataListFactorySpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
-import se.uu.ub.cora.spider.record.SpiderRecordListReader;
+import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
@@ -72,7 +72,7 @@ public class SpiderRecordListReaderTest {
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
-	private SpiderRecordListReader recordListReader;
+	private RecordListReader recordListReader;
 	private DataGroupToRecordEnhancerSpy recordEnhancer;
 	private DataValidatorSpy dataValidator;
 	private DataGroup emptyFilter;
@@ -135,7 +135,7 @@ public class SpiderRecordListReaderTest {
 		dependencyProvider.dataValidator = dataValidator;
 		dependencyProvider.dataRedactor = dataRedactor;
 		recordEnhancer = new DataGroupToRecordEnhancerSpy();
-		recordListReader = SpiderRecordListReaderImp
+		recordListReader = RecordListReaderImp
 				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProvider,
 						recordEnhancer);
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
