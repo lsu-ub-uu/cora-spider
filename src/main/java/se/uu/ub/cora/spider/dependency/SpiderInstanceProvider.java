@@ -45,44 +45,44 @@ public final class SpiderInstanceProvider {
 		SpiderInstanceProvider.factory = factory;
 	}
 
-	public static RecordReader getSpiderRecordReader() {
-		return factory.factorSpiderRecordReader();
+	public static RecordReader getRecordReader() {
+		return factory.factorRecordReader();
 	}
 
-	public static RecordListReader getSpiderRecordListReader() {
-		return factory.factorSpiderRecordListReader();
+	public static RecordListReader getRecordListReader() {
+		return factory.factorRecordListReader();
 	}
 
-	public static RecordCreator getSpiderRecordCreator(String recordType) {
-		return factory.factorSpiderRecordCreator(recordType);
+	public static RecordCreator getRecordCreator(String recordType) {
+		return factory.factorRecordCreator(recordType);
 	}
 
-	public static RecordUpdater getSpiderRecordUpdater(String recordType) {
-		return factory.factorSpiderRecordUpdater(recordType);
+	public static RecordUpdater getRecordUpdater(String recordType) {
+		return factory.factorRecordUpdater(recordType);
 	}
 
-	public static RecordDeleter getSpiderRecordDeleter() {
-		return factory.factorSpiderRecordDeleter();
+	public static RecordDeleter getRecordDeleter() {
+		return factory.factorRecordDeleter();
 	}
 
-	public static Uploader getSpiderUploader() {
-		return factory.factorSpiderUploader();
+	public static Uploader getUploader() {
+		return factory.factorUploader();
 	}
 
-	public static Downloader getSpiderDownloader() {
-		return factory.factorSpiderDownloader();
+	public static Downloader getDownloader() {
+		return factory.factorDownloader();
 	}
 
-	public static RecordSearcher getSpiderRecordSearcher() {
-		return factory.factorSpiderRecordSearcher();
+	public static RecordSearcher getRecordSearcher() {
+		return factory.factorRecordSearcher();
 	}
 
-	public static IncomingLinksReader getSpiderRecordIncomingLinksReader() {
-		return factory.factorSpiderRecordIncomingLinksReader();
+	public static IncomingLinksReader getIncomingLinksReader() {
+		return factory.factorIncomingLinksReader();
 	}
 
-	public static RecordValidator getSpiderRecordValidator() {
-		return factory.factorSpiderRecordValidator();
+	public static RecordValidator getRecordValidator() {
+		return factory.factorRecordValidator();
 	}
 
 	public static void setInitInfo(Map<String, String> initInfo) {

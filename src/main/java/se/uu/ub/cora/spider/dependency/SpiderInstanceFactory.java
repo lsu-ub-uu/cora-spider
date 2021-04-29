@@ -35,24 +35,24 @@ public interface SpiderInstanceFactory {
 
 	String getDependencyProviderClassName();
 
-	RecordReader factorSpiderRecordReader();
+	RecordReader factorRecordReader();
 
-	IncomingLinksReader factorSpiderRecordIncomingLinksReader();
+	IncomingLinksReader factorIncomingLinksReader();
 
-	RecordListReader factorSpiderRecordListReader();
+	RecordListReader factorRecordListReader();
 
-	RecordCreator factorSpiderRecordCreator(String recordType);
+	RecordCreator factorRecordCreator(String recordType);
 
-	RecordUpdater factorSpiderRecordUpdater(String recordType);
+	RecordUpdater factorRecordUpdater(String recordType);
 
-	RecordDeleter factorSpiderRecordDeleter();
+	RecordDeleter factorRecordDeleter();
 
-	Uploader factorSpiderUploader();
+	Uploader factorUploader();
 
-	Downloader factorSpiderDownloader();
+	Downloader factorDownloader();
 
-	RecordSearcher factorSpiderRecordSearcher();
+	RecordSearcher factorRecordSearcher();
 
-	RecordValidator factorSpiderRecordValidator();
+	RecordValidator factorRecordValidator();
 
 }

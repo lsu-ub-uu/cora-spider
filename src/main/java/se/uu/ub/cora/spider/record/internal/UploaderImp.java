@@ -83,7 +83,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		addOrReplaceResourceInfoToMetdataRecord(fileName, fileSize);
 
 		RecordUpdater spiderRecordUpdater = SpiderInstanceProvider
-				.getSpiderRecordUpdater(type);
+				.getRecordUpdater(type);
 		return spiderRecordUpdater.updateRecord(authToken, type, id, recordRead);
 	}
 

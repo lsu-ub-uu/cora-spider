@@ -45,63 +45,63 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	public String recordType;
 
 	@Override
-	public RecordReader factorSpiderRecordReader() {
+	public RecordReader factorRecordReader() {
 		readerFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public RecordListReader factorSpiderRecordListReader() {
+	public RecordListReader factorRecordListReader() {
 		listReaderFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public RecordCreator factorSpiderRecordCreator(String recordType) {
+	public RecordCreator factorRecordCreator(String recordType) {
 		creatorFactoryWasCalled = true;
 		this.recordType = recordType;
 		return null;
 	}
 
 	@Override
-	public RecordUpdater factorSpiderRecordUpdater(String recordType) {
+	public RecordUpdater factorRecordUpdater(String recordType) {
 		updaterFactoryWasCalled = true;
 		this.recordType = recordType;
 		return null;
 	}
 
 	@Override
-	public RecordDeleter factorSpiderRecordDeleter() {
+	public RecordDeleter factorRecordDeleter() {
 		deleterFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public Uploader factorSpiderUploader() {
+	public Uploader factorUploader() {
 		uploaderFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public Downloader factorSpiderDownloader() {
+	public Downloader factorDownloader() {
 		downloaderFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public RecordSearcher factorSpiderRecordSearcher() {
+	public RecordSearcher factorRecordSearcher() {
 		searcherFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public IncomingLinksReader factorSpiderRecordIncomingLinksReader() {
+	public IncomingLinksReader factorIncomingLinksReader() {
 		incomingLinksReaderFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public RecordValidator factorSpiderRecordValidator() {
+	public RecordValidator factorRecordValidator() {
 		validatorFactoryWasCalled = true;
 		return null;
 	}

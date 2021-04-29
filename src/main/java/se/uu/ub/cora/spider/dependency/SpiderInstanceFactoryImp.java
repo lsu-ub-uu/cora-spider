@@ -58,7 +58,7 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public RecordReader factorSpiderRecordReader() {
+	public RecordReader factorRecordReader() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
 		return RecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -66,7 +66,7 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public RecordListReader factorSpiderRecordListReader() {
+	public RecordListReader factorRecordListReader() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
 		return RecordListReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -74,7 +74,7 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public RecordCreator factorSpiderRecordCreator(String recordType) {
+	public RecordCreator factorRecordCreator(String recordType) {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
 		if ("indexBatchJob".equals(recordType)) {
@@ -85,7 +85,7 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public RecordUpdater factorSpiderRecordUpdater(String recordType) {
+	public RecordUpdater factorRecordUpdater(String recordType) {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
 		return RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -93,22 +93,22 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public RecordDeleter factorSpiderRecordDeleter() {
+	public RecordDeleter factorRecordDeleter() {
 		return RecordDeleterImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
-	public Uploader factorSpiderUploader() {
+	public Uploader factorUploader() {
 		return UploaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
-	public Downloader factorSpiderDownloader() {
+	public Downloader factorDownloader() {
 		return DownloaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
-	public RecordSearcher factorSpiderRecordSearcher() {
+	public RecordSearcher factorRecordSearcher() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
 		return RecordSearcherImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -116,12 +116,12 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public IncomingLinksReader factorSpiderRecordIncomingLinksReader() {
+	public IncomingLinksReader factorIncomingLinksReader() {
 		return IncomingLinksReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
-	public RecordValidator factorSpiderRecordValidator() {
+	public RecordValidator factorRecordValidator() {
 		return RecordValidatorImp.usingDependencyProvider(dependencyProvider);
 	}
 

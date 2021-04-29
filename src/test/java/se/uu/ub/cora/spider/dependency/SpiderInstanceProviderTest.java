@@ -61,7 +61,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForRecordReader() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getSpiderRecordReader();
+		SpiderInstanceProvider.getRecordReader();
 		assertTrue(factory.readerFactoryWasCalled);
 	}
 
@@ -69,7 +69,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForRecordIncomingLinksReader() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getSpiderRecordIncomingLinksReader();
+		SpiderInstanceProvider.getIncomingLinksReader();
 		assertTrue(factory.incomingLinksReaderFactoryWasCalled);
 	}
 
@@ -77,7 +77,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForListRecordReader() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getSpiderRecordListReader();
+		SpiderInstanceProvider.getRecordListReader();
 		assertTrue(factory.listReaderFactoryWasCalled);
 	}
 
@@ -85,7 +85,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForRecordCreator() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getSpiderRecordCreator("someRecordType");
+		SpiderInstanceProvider.getRecordCreator("someRecordType");
 		assertTrue(factory.creatorFactoryWasCalled);
 		assertEquals(factory.recordType, "someRecordType");
 	}
@@ -94,7 +94,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForRecordUpdater() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getSpiderRecordUpdater("someRecordType");
+		SpiderInstanceProvider.getRecordUpdater("someRecordType");
 		assertTrue(factory.updaterFactoryWasCalled);
 		assertEquals(factory.recordType, "someRecordType");
 	}
@@ -103,7 +103,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForRecordDeleter() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getSpiderRecordDeleter();
+		SpiderInstanceProvider.getRecordDeleter();
 		assertTrue(factory.deleterFactoryWasCalled);
 	}
 
@@ -111,7 +111,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForRecordUploader() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getSpiderUploader();
+		SpiderInstanceProvider.getUploader();
 		assertTrue(factory.uploaderFactoryWasCalled);
 	}
 
@@ -119,7 +119,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForRecordDownloader() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getSpiderDownloader();
+		SpiderInstanceProvider.getDownloader();
 		assertTrue(factory.downloaderFactoryWasCalled);
 	}
 
@@ -127,7 +127,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForRecordSearcher() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getSpiderRecordSearcher();
+		SpiderInstanceProvider.getRecordSearcher();
 		assertTrue(factory.searcherFactoryWasCalled);
 	}
 
@@ -142,7 +142,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryCreateIsCalledForRecordValidator() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getSpiderRecordValidator();
+		SpiderInstanceProvider.getRecordValidator();
 		assertTrue(factory.validatorFactoryWasCalled);
 	}
 }

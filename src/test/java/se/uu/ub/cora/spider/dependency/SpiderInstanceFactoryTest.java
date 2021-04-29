@@ -77,8 +77,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordReader() {
-		RecordReader recordReader = factory.factorSpiderRecordReader();
-		RecordReader recordReader2 = factory.factorSpiderRecordReader();
+		RecordReader recordReader = factory.factorRecordReader();
+		RecordReader recordReader2 = factory.factorRecordReader();
 		assertNotNull(recordReader);
 		assertNotNull(recordReader2);
 		assertNotSame(recordReader, recordReader2);
@@ -87,9 +87,9 @@ public class SpiderInstanceFactoryTest {
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordIncomingLinksReader() {
 		IncomingLinksReader recordIncomingLInksReader = factory
-				.factorSpiderRecordIncomingLinksReader();
+				.factorIncomingLinksReader();
 		IncomingLinksReader recordIncomingLInksReader2 = factory
-				.factorSpiderRecordIncomingLinksReader();
+				.factorIncomingLinksReader();
 		assertNotNull(recordIncomingLInksReader);
 		assertNotNull(recordIncomingLInksReader2);
 		assertNotSame(recordIncomingLInksReader, recordIncomingLInksReader2);
@@ -97,8 +97,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordListReader() {
-		RecordListReader recordListReader = factory.factorSpiderRecordListReader();
-		RecordListReader recordListReader2 = factory.factorSpiderRecordListReader();
+		RecordListReader recordListReader = factory.factorRecordListReader();
+		RecordListReader recordListReader2 = factory.factorRecordListReader();
 		assertNotNull(recordListReader);
 		assertNotNull(recordListReader2);
 		assertNotSame(recordListReader, recordListReader2);
@@ -106,8 +106,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordCreator() {
-		RecordCreator recordCreator = factory.factorSpiderRecordCreator("someRecordType");
-		RecordCreator recordCreator2 = factory.factorSpiderRecordCreator("someRecordType");
+		RecordCreator recordCreator = factory.factorRecordCreator("someRecordType");
+		RecordCreator recordCreator2 = factory.factorRecordCreator("someRecordType");
 		assertNotNull(recordCreator);
 		assertNotNull(recordCreator2);
 		assertNotSame(recordCreator, recordCreator2);
@@ -116,9 +116,9 @@ public class SpiderInstanceFactoryTest {
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordUpdater() {
 		RecordUpdater recordUpdater = factory
-				.factorSpiderRecordUpdater("onlyDefaultUpdateImplemented");
+				.factorRecordUpdater("onlyDefaultUpdateImplemented");
 		RecordUpdater recordUpdater2 = factory
-				.factorSpiderRecordUpdater("onlyDefaultUpdateImplemented");
+				.factorRecordUpdater("onlyDefaultUpdateImplemented");
 		assertNotNull(recordUpdater);
 		assertNotNull(recordUpdater2);
 		assertNotSame(recordUpdater, recordUpdater2);
@@ -126,8 +126,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordDeleter() {
-		RecordDeleter recordDeleter = factory.factorSpiderRecordDeleter();
-		RecordDeleter recordDeleter2 = factory.factorSpiderRecordDeleter();
+		RecordDeleter recordDeleter = factory.factorRecordDeleter();
+		RecordDeleter recordDeleter2 = factory.factorRecordDeleter();
 		assertNotNull(recordDeleter);
 		assertNotNull(recordDeleter2);
 		assertNotSame(recordDeleter, recordDeleter2);
@@ -135,8 +135,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfUploader() {
-		Uploader recordUploader = factory.factorSpiderUploader();
-		Uploader recordUploader2 = factory.factorSpiderUploader();
+		Uploader recordUploader = factory.factorUploader();
+		Uploader recordUploader2 = factory.factorUploader();
 		assertNotNull(recordUploader);
 		assertNotNull(recordUploader2);
 		assertNotSame(recordUploader, recordUploader2);
@@ -144,8 +144,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void initMakeSureWeGetMultipleInstancesOfDownloader() {
-		Downloader recordDownloader = factory.factorSpiderDownloader();
-		Downloader recordDownloader2 = factory.factorSpiderDownloader();
+		Downloader recordDownloader = factory.factorDownloader();
+		Downloader recordDownloader2 = factory.factorDownloader();
 		assertNotNull(recordDownloader);
 		assertNotNull(recordDownloader2);
 		assertNotSame(recordDownloader, recordDownloader2);
@@ -153,8 +153,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void initMakeSureWeGetMultipleInstancesOfSearcher() {
-		RecordSearcher recordSearcher = factory.factorSpiderRecordSearcher();
-		RecordSearcher recordSearcher2 = factory.factorSpiderRecordSearcher();
+		RecordSearcher recordSearcher = factory.factorRecordSearcher();
+		RecordSearcher recordSearcher2 = factory.factorRecordSearcher();
 		assertNotNull(recordSearcher);
 		assertNotNull(recordSearcher2);
 		assertNotSame(recordSearcher, recordSearcher2);
@@ -162,8 +162,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordValidator() {
-		RecordValidator recordValidator = factory.factorSpiderRecordValidator();
-		RecordValidator recordValidator2 = factory.factorSpiderRecordValidator();
+		RecordValidator recordValidator = factory.factorRecordValidator();
+		RecordValidator recordValidator2 = factory.factorRecordValidator();
 		assertNotNull(recordValidator);
 		assertNotNull(recordValidator2);
 		assertNotSame(recordValidator, recordValidator2);
@@ -174,7 +174,7 @@ public class SpiderInstanceFactoryTest {
 	public void testDefaultCreatorImplementation() {
 
 		RecordCreatorImp spiderRecordCreator = (RecordCreatorImp) factory
-				.factorSpiderRecordCreator("someRecordType");
+				.factorRecordCreator("someRecordType");
 
 		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) spiderRecordCreator
 				.getDataGroupToRecordEnhancer();
@@ -187,7 +187,7 @@ public class SpiderInstanceFactoryTest {
 	public void testIndexBatchJobCreatorImplementation() {
 
 		IndexBatchJobCreator indexBatchJobCreator = (IndexBatchJobCreator) factory
-				.factorSpiderRecordCreator("indexBatchJob");
+				.factorRecordCreator("indexBatchJob");
 
 		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) indexBatchJobCreator
 				.getDataGroupToRecordEnhancer();
