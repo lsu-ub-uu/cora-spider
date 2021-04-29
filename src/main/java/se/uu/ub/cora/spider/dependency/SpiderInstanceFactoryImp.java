@@ -36,6 +36,7 @@ import se.uu.ub.cora.spider.record.internal.DownloaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordDeleterImp;
 import se.uu.ub.cora.spider.record.internal.IncomingLinksReaderImp;
+import se.uu.ub.cora.spider.record.internal.IndexBatchJobCreator;
 import se.uu.ub.cora.spider.record.internal.RecordListReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordSearcherImp;

@@ -44,6 +44,7 @@ import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
+import se.uu.ub.cora.spider.record.internal.IndexBatchJobCreator;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
 
