@@ -34,7 +34,7 @@ import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.internal.DownloaderImp;
 import se.uu.ub.cora.spider.record.internal.IncomingLinksReaderImp;
-import se.uu.ub.cora.spider.record.internal.IndexBatchJobCreatorOtOtherBetterName;
+import se.uu.ub.cora.spider.record.internal.IndexBatchJobCreatorOrOtherBetterName;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordDeleterImp;
 import se.uu.ub.cora.spider.record.internal.RecordListReaderImp;
@@ -76,7 +76,7 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	@Override
 	public RecordCreator factorRecordCreator(String recordType) {
 		if ("indexBatchJob".equals(recordType)) {
-			return new IndexBatchJobCreatorOtOtherBetterName();
+			return new IndexBatchJobCreatorOrOtherBetterName();
 		}
 		return returnDefaultCreator();
 	}

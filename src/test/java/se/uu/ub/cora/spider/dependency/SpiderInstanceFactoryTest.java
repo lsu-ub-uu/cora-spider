@@ -44,7 +44,7 @@ import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.record.internal.IndexBatchJobCreatorOtOtherBetterName;
+import se.uu.ub.cora.spider.record.internal.IndexBatchJobCreatorOrOtherBetterName;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
 
@@ -183,7 +183,7 @@ public class SpiderInstanceFactoryTest {
 	public void testIndexBatchJobCreatorImplementation() {
 
 		RecordCreator recordCreator = factory.factorRecordCreator("indexBatchJob");
-		assertTrue(recordCreator instanceof IndexBatchJobCreatorOtOtherBetterName);
+		assertTrue(recordCreator instanceof IndexBatchJobCreatorOrOtherBetterName);
 
 	}
 }

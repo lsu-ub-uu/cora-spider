@@ -22,10 +22,12 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.record.RecordCreator;
 
-public class IndexBatchJobCreatorOtOtherBetterName implements RecordCreator {
+public class IndexBatchJobCreatorOrOtherBetterName implements RecordCreator {
 
 	@Override
-	public DataRecord createAndStoreRecord(String authToken, String type, DataGroup record) {
+	public DataRecord createAndStoreRecord(String authToken, String type, DataGroup dataGroup) {
+
+		// extract recordTypeToIndex from dataGroup
 
 		return null;
 	}
