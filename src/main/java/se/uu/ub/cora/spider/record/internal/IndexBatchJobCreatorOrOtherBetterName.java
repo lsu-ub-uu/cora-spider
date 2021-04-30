@@ -25,11 +25,58 @@ import se.uu.ub.cora.spider.record.RecordCreator;
 public class IndexBatchJobCreatorOrOtherBetterName implements RecordCreator {
 
 	@Override
-	public DataRecord createAndStoreRecord(String authToken, String type, DataGroup dataGroup) {
+	public DataRecord createAndStoreRecord(String authToken, String type, DataGroup filter) {
 
-		// extract recordTypeToIndex from dataGroup
+		// set from to to get 1 record in filter
+		// DataList readRecordList = SpiderInstanceProvider.getRecordListReader()
+		// .readRecordList(authToken, type, null);
+		// String totalNumberOfTypeInStorage = readRecordList.getTotalNumberOfTypeInStorage();
+		// set totalNumberOf records in indexBatchJobDataGroup
+
+		// create indexBatchJob dataGroup and send to create in storage
+		// createDataGroup();
+
+		// Thread t1 = new Thread(new OurClassThatImplementsRunnable ());
+		// t1.start();
+
+		// send to other class in its own thread
+		// loop records, send each to indexing
+		// list records as specified in indexBatchJob, in groups of 10
+		// read indexBatchJob (to see if it should be paused)
+		// update indexBatchJob with info about the ten just indexed
+		// get next group of 10 repeat
+
+		// when finished write status to indexBatchJob
 
 		return null;
 	}
+
+	// public DataGroup createDataGroup() {
+	// // spånar lite hur datagruppen ska se ut - kanske inte alls behöver allt detta i
+	// // testet
+	// DataGroupSpy indexBatchJob = new DataGroupSpy("indexBatchJob");
+	// DataGroupSpy recordTypeToIndex = new DataGroupSpy("recordTypeToIndex", "recordType",
+	// "someRecordType");
+	// indexBatchJob.addChild(recordTypeToIndex);
+	//
+	// indexBatchJob.addChild(new DataAtomicSpy("status", "active"));
+	//
+	// // filter måste väl vara en del av indexBatchJob?
+	// DataGroupSpy filter = new DataGroupSpy("filter");
+	// DataGroupSpy include = new DataGroupSpy("include");
+	// DataGroupSpy includePart = new DataGroupSpy("includePart");
+	// includePart.addChild(new DataAtomicSpy("domain", "uu"));
+	// include.addChild(includePart);
+	// filter.addChild(include);
+	//
+	// indexBatchJob.addChild(filter);
+	//
+	// // tsStarted
+	// // tsFinished
+	// // totalNumToIndex (totala anatalet som ska indexeras)
+	// // numberIndexed (antal som har indexerats)
+	// // errorList (meddelanden med info om poster som inte har kunnat indexeras)
+	// return indexBatchJob;
+	// }
 
 }

@@ -20,44 +20,13 @@ package se.uu.ub.cora.spider.record.internal;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.record.internal.IndexBatchJobCreatorOrOtherBetterName;
-
 public class IndexBatchJobCreatorOrOtherBetterNameTest {
 
 	@Test
 	public void testCreateAndStoreRecord() {
 		IndexBatchJobCreatorOrOtherBetterName batchJob = new IndexBatchJobCreatorOrOtherBetterName();
-		// DataGroup indexBatchJob = createDataGroup();
+		// DataGroup filter = createFilter();
 		// batchJob.createAndStoreRecord(null, null, indexBatchJob);
-	}
-
-	public DataGroup createDataGroup() {
-		// spånar lite hur datagruppen ska se ut - kanske inte alls behöver allt detta i
-		// testet
-		DataGroupSpy indexBatchJob = new DataGroupSpy("indexBatchJob");
-		DataGroupSpy recordTypeToIndex = new DataGroupSpy("recordTypeToIndex", "recordType",
-				"someRecordType");
-		indexBatchJob.addChild(recordTypeToIndex);
-
-		indexBatchJob.addChild(new DataAtomicSpy("status", "active"));
-
-		// filter måste väl vara en del av indexBatchJob?
-		DataGroupSpy filter = new DataGroupSpy("filter");
-		DataGroupSpy include = new DataGroupSpy("include");
-		DataGroupSpy includePart = new DataGroupSpy("includePart");
-		includePart.addChild(new DataAtomicSpy("domain", "uu"));
-		include.addChild(includePart);
-		filter.addChild(include);
-
-		filter.addChild(new DataAtomicSpy("start", "0"));
-		filter.addChild(new DataAtomicSpy("end", "200"));
-
-		indexBatchJob.addChild(filter);
-
-		return indexBatchJob;
 	}
 
 	// {
