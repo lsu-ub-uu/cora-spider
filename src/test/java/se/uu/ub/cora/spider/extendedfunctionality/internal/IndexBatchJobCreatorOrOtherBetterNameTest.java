@@ -59,4 +59,74 @@ public class IndexBatchJobCreatorOrOtherBetterNameTest {
 
 		return indexBatchJob;
 	}
+
+	// {
+	// "name": "indexBatchJob",
+	// "children": [
+	// {
+	// "name": "recordInfo",
+	// "children": [
+	// {
+	// "name": "id",
+	// "value": "indexBatchJob:001"
+	// },
+	// {
+	// "name": "type",
+	// "children": [
+	// {
+	// "name": "linkedRecordType",
+	// "value": "recordType"
+	// },
+	// {
+	// "name": "linkedRecordId",
+	// "value": "indexBatchJob"
+	// }
+	// ]
+	// }
+	// ]
+	// },
+	// {
+	// "name": "recordTypeToIndex",
+	// "children": [
+	// {
+	// "name": "linkedRecordType",
+	// "value": "recordType"
+	// },
+	// {
+	// "name": "linkedRecordId",
+	// "value": "person"
+	// }
+	// ]
+	// },
+	// {
+	// "name": "status",
+	// "value": "active"
+	// },
+	// {
+	// "name": "filter",
+	// "children": [
+	// {
+	// "name": "include",
+	// "children": [
+	// {
+	// "name": "includePart",
+	// "children": [
+	// {
+	// "name": "domain",
+	// "value": "uu"
+	// }
+	// ]
+	// }
+	// ]
+	// },{
+	// "name": "start",
+	// "value": "0"
+	// },{
+	// "name": "end",
+	// "value": "200"
+	// }
+	// ]
+	// }
+	// ]
+	// }
 }
