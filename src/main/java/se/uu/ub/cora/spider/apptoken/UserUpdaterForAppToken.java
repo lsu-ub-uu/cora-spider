@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2020 Uppsala University Library
+ * Copyright 2017, 2020, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -27,15 +27,14 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
+import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public final class UserUpdaterForAppToken implements ExtendedFunctionality {
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordStorage recordStorage;
 
-	private UserUpdaterForAppToken(
-			SpiderDependencyProvider dependencyProvider) {
+	private UserUpdaterForAppToken(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 		recordStorage = dependencyProvider.getRecordStorage();
 	}
@@ -93,7 +92,8 @@ public final class UserUpdaterForAppToken implements ExtendedFunctionality {
 		DataGroup type = recordInfo.getFirstGroupWithNameInData("type");
 		String recordType = type.getFirstAtomicValueWithNameInData("linkedRecordId");
 
-		SpiderRecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getSpiderRecordUpdater();
+		RecordUpdater spiderRecordUpdater = SpiderInstanceProvider
+				.getRecordUpdater(recordType);
 		spiderRecordUpdater.updateRecord(authToken, recordType, userId, spiderUserDataGroup);
 	}
 

@@ -31,8 +31,8 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleterImp;
+import se.uu.ub.cora.spider.record.RecordDeleter;
+import se.uu.ub.cora.spider.record.internal.RecordDeleterImp;
 
 public class WorkOrderExtendedFunctionalityFactory implements ExtendedFunctionalityFactory {
 
@@ -77,7 +77,7 @@ public class WorkOrderExtendedFunctionalityFactory implements ExtendedFunctional
 	}
 
 	private ExtendedFunctionality factorDeleter() {
-		SpiderRecordDeleter recordDeleter = SpiderRecordDeleterImp
+		RecordDeleter recordDeleter = RecordDeleterImp
 				.usingDependencyProvider(dependencyProvider);
 		return WorkOrderDeleter.usingDeleter(recordDeleter);
 	}

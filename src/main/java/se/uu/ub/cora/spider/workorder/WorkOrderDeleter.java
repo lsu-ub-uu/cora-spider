@@ -21,19 +21,19 @@ package se.uu.ub.cora.spider.workorder;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
+import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 
 public final class WorkOrderDeleter implements ExtendedFunctionality {
 
-	private SpiderRecordDeleter recordDeleter;
+	private RecordDeleter recordDeleter;
 
-	private WorkOrderDeleter(SpiderRecordDeleter recordDeleter) {
+	private WorkOrderDeleter(RecordDeleter recordDeleter) {
 		this.recordDeleter = recordDeleter;
 	}
 
 	public static WorkOrderDeleter usingDeleter(
-			SpiderRecordDeleter recordDeleter) {
+			RecordDeleter recordDeleter) {
 		return new WorkOrderDeleter(recordDeleter);
 	}
 
@@ -58,7 +58,7 @@ public final class WorkOrderDeleter implements ExtendedFunctionality {
 		}
 	}
 
-	public SpiderRecordDeleter getRecordDeleter() {
+	public RecordDeleter getRecordDeleter() {
 		// needed for test
 		return recordDeleter;
 	}

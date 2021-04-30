@@ -23,7 +23,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.data.DataRecordSpy;
 
-public class SpiderRecordUpdaterSpy implements SpiderRecordUpdater {
+public class SpiderRecordUpdaterSpy implements RecordUpdater {
 
 	public String authToken;
 	public String type;

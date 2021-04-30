@@ -315,8 +315,9 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 		}
 
 		if ("user".equals(type) && "dummy1".equals(id)) {
-			DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(
-					"systemOneUser", "true", "user");
+			DataGroup dataGroup = DataCreator2
+					.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("user", "dummy1",
+							"systemOneUser", "cora");
 			return dataGroup;
 		}
 
