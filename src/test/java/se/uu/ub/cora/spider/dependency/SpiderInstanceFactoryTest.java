@@ -34,9 +34,9 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
-import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordSearcher;
@@ -44,7 +44,7 @@ import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.record.internal.IndexBatchJobCreator;
+import se.uu.ub.cora.spider.record.internal.IndexBatchJobCreatorOtOtherBetterName;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
 
@@ -86,10 +86,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordIncomingLinksReader() {
-		IncomingLinksReader recordIncomingLInksReader = factory
-				.factorIncomingLinksReader();
-		IncomingLinksReader recordIncomingLInksReader2 = factory
-				.factorIncomingLinksReader();
+		IncomingLinksReader recordIncomingLInksReader = factory.factorIncomingLinksReader();
+		IncomingLinksReader recordIncomingLInksReader2 = factory.factorIncomingLinksReader();
 		assertNotNull(recordIncomingLInksReader);
 		assertNotNull(recordIncomingLInksReader2);
 		assertNotSame(recordIncomingLInksReader, recordIncomingLInksReader2);
@@ -115,10 +113,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordUpdater() {
-		RecordUpdater recordUpdater = factory
-				.factorRecordUpdater("onlyDefaultUpdateImplemented");
-		RecordUpdater recordUpdater2 = factory
-				.factorRecordUpdater("onlyDefaultUpdateImplemented");
+		RecordUpdater recordUpdater = factory.factorRecordUpdater("onlyDefaultUpdateImplemented");
+		RecordUpdater recordUpdater2 = factory.factorRecordUpdater("onlyDefaultUpdateImplemented");
 		assertNotNull(recordUpdater);
 		assertNotNull(recordUpdater2);
 		assertNotSame(recordUpdater, recordUpdater2);
@@ -186,13 +182,8 @@ public class SpiderInstanceFactoryTest {
 	@Test
 	public void testIndexBatchJobCreatorImplementation() {
 
-		IndexBatchJobCreator indexBatchJobCreator = (IndexBatchJobCreator) factory
-				.factorRecordCreator("indexBatchJob");
-
-		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) indexBatchJobCreator
-				.getDataGroupToRecordEnhancer();
-
-		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
+		RecordCreator recordCreator = factory.factorRecordCreator("indexBatchJob");
+		assertTrue(recordCreator instanceof IndexBatchJobCreatorOtOtherBetterName);
 
 	}
 }

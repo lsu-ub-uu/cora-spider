@@ -22,9 +22,9 @@ package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
-import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordSearcher;
@@ -33,10 +33,10 @@ import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.internal.DownloaderImp;
+import se.uu.ub.cora.spider.record.internal.IncomingLinksReaderImp;
+import se.uu.ub.cora.spider.record.internal.IndexBatchJobCreatorOtOtherBetterName;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordDeleterImp;
-import se.uu.ub.cora.spider.record.internal.IncomingLinksReaderImp;
-import se.uu.ub.cora.spider.record.internal.IndexBatchJobCreator;
 import se.uu.ub.cora.spider.record.internal.RecordListReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordSearcherImp;
@@ -75,11 +75,15 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	@Override
 	public RecordCreator factorRecordCreator(String recordType) {
+		if ("indexBatchJob".equals(recordType)) {
+			return new IndexBatchJobCreatorOtOtherBetterName();
+		}
+		return returnDefaultCreator();
+	}
+
+	private RecordCreator returnDefaultCreator() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
-		if ("indexBatchJob".equals(recordType)) {
-			return new IndexBatchJobCreator(dataGroupToRecordEnhancer);
-		}
 		return RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
 	}
