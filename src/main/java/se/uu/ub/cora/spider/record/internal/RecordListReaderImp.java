@@ -40,8 +40,7 @@ import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.StorageReadResult;
 
-public final class RecordListReaderImp extends RecordHandler
-		implements RecordListReader {
+public final class RecordListReaderImp extends RecordHandler implements RecordListReader {
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataList readRecordList;
@@ -56,9 +55,9 @@ public final class RecordListReaderImp extends RecordHandler
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
-		this.authenticator = dependencyProvider.getAuthenticator();
-		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
-		this.recordStorage = dependencyProvider.getRecordStorage();
+		authenticator = dependencyProvider.getAuthenticator();
+		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
+		recordStorage = dependencyProvider.getRecordStorage();
 		dataValidator = dependencyProvider.getDataValidator();
 	}
 

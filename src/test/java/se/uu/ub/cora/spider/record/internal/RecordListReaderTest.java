@@ -63,7 +63,7 @@ import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.storage.StorageReadResult;
 
-public class SpiderRecordListReaderTest {
+public class RecordListReaderTest {
 
 	private static final String SOME_USER_TOKEN = "someToken78678567";
 	private static final String SOME_RECORD_TYPE = "place";
