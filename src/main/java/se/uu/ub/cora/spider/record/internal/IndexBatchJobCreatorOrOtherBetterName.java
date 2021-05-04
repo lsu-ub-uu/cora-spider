@@ -25,10 +25,13 @@ import se.uu.ub.cora.spider.record.RecordListIndexer;
 public class IndexBatchJobCreatorOrOtherBetterName implements RecordListIndexer {
 
 	@Override
-	public DataRecord indexRecordList(String authToken, String type, DataGroup filter) {
-
+	public DataRecord indexRecordList(String authToken, String type,
+			DataGroup dataGroupSurroundingFilterAndOtherInfo) {
+		// validate filter
 		// set from to to get 1 record in filter
-		// DataList readRecordList = SpiderInstanceProvider.getRecordListReader()
+		// WRONG gör lite fel saker! DataList readRecordList =
+		// SpiderInstanceProvider.getRecordListReader()
+
 		// .readRecordList(authToken, type, null);
 		// String totalNumberOfTypeInStorage = readRecordList.getTotalNumberOfTypeInStorage();
 		// set totalNumberOf records in indexBatchJobDataGroup
@@ -43,6 +46,10 @@ public class IndexBatchJobCreatorOrOtherBetterName implements RecordListIndexer 
 		// loop records, send each to indexing
 		// list records as specified in indexBatchJob, in groups of 10
 		// read indexBatchJob (to see if it should be paused)
+
+		// WorkOrderExecutor contains code that indexes 1 record, break out to new class, use from
+		// there and in here
+
 		// update indexBatchJob with info about the ten just indexed
 		// get next group of 10 repeat
 
