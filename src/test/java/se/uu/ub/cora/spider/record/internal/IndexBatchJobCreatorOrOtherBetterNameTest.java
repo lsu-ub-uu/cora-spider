@@ -20,6 +20,8 @@ package se.uu.ub.cora.spider.record.internal;
 
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.spider.record.RecordListIndexer;
+
 public class IndexBatchJobCreatorOrOtherBetterNameTest {
 
 	@Test
