@@ -22,9 +22,10 @@ package se.uu.ub.cora.spider.dependency;
 import java.util.Map;
 
 import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
-import se.uu.ub.cora.spider.record.IncomingLinksReader;
+import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordSearcher;
@@ -83,6 +84,11 @@ public final class SpiderInstanceProvider {
 
 	public static RecordValidator getRecordValidator() {
 		return factory.factorRecordValidator();
+	}
+
+	public static RecordListIndexer getRecordListIndexer() {
+		// TODO: not tested yet
+		return factory.factorRecordListIndexer();
 	}
 
 	public static void setInitInfo(Map<String, String> initInfo) {
