@@ -20,12 +20,11 @@ package se.uu.ub.cora.spider.record.internal;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.spider.record.RecordCreator;
 
-public class IndexBatchJobCreatorOrOtherBetterName implements RecordCreator {
+public class IndexBatchJobCreatorOrOtherBetterName implements RecordListIndexer {
 
 	@Override
-	public DataRecord createAndStoreRecord(String authToken, String type, DataGroup filter) {
+	public DataRecord indexRecordList(String authToken, String type, DataGroup filter) {
 
 		// set from to to get 1 record in filter
 		// DataList readRecordList = SpiderInstanceProvider.getRecordListReader()

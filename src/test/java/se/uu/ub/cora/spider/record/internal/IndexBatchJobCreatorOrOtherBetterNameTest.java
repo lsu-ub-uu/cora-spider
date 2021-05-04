@@ -24,7 +24,7 @@ public class IndexBatchJobCreatorOrOtherBetterNameTest {
 
 	@Test
 	public void testCreateAndStoreRecord() {
-		IndexBatchJobCreatorOrOtherBetterName batchJob = new IndexBatchJobCreatorOrOtherBetterName();
+		RecordListIndexer batchJob = new IndexBatchJobCreatorOrOtherBetterName();
 		// DataGroup filter = createFilter();
 		// batchJob.createAndStoreRecord(null, null, indexBatchJob);
 	}
