@@ -43,11 +43,12 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	}
 
 	@Override
-	public DataRecord indexRecordList(String authToken, String type, DataGroup indexInfo) {
+	public DataRecord indexRecordList(String authToken, String type, DataGroup indexSettings) {
 		authenticator = dependencyProvider.getAuthenticator();
 		User user = authenticator.getUserForToken(authToken);
 		SpiderAuthorizator spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "index", type);
+		dependencyProvider.getDataValidator().validateIndexSettings(type, indexSettings);
 		return null;
 		// validate filter
 		// set from to to get 1 record in filter

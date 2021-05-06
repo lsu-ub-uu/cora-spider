@@ -28,6 +28,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
@@ -60,7 +61,7 @@ public class RecordListIndexerTest {
 	public void beforeMethod() {
 		setUpDependencyProvider();
 		// enhancerSpy = new DataGroupToRecordEnhancerSpy();
-		indexSettings = new DataGroupSpy("indexInfo");
+		indexSettings = new DataGroupSpy("indexSettings");
 
 		recordListIndexer = RecordListIndexerImp
 				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProviderSpy);
@@ -127,19 +128,29 @@ public class RecordListIndexerTest {
 
 	}
 
-	// @Test
-	// public void testEmptyFilter() throws Exception {
-	// recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexInfo);
-	// dataValidator.MCR.assertMethodNotCalled("validateListFilter");
-	// }
-	//
-
 	@Test
 	public void testNonEmptyFilterContainsPartGroupValidateListFilterIsCalled() {
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexSettings);
 
-		dataValidatorSpy.MCR.assertParameters("validateIndexFilter", 0, SOME_RECORD_TYPE,
+		dataValidatorSpy.MCR.assertParameters("validateIndexSettings", 0, SOME_RECORD_TYPE,
 				indexSettings);
 	}
+
+	@Test(expectedExceptions = DataValidationException.class, expectedExceptionsMessageRegExp = ""
+			+ "DataValidatorSpy, No indexSettings exists for recordType, " + SOME_RECORD_TYPE)
+	public void testErrorInIndexSettingOnValidation() throws Exception {
+		dataValidatorSpy.throwExcpetionIndexSettingsNotFound = true;
+
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexSettings);
+
+	}
+
+	// @Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+	// + "Data is not valid: \\[Data for list filter not vaild, DataValidatorSpy\\]")
+	// public void testIndexListInvalidIndexSettings() throws Exception {
+	// dataValidatorSpy.invalidIndexSettingsValidation = true;
+	//
+	// recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexSettings);
+	// }
 
 }

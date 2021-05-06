@@ -30,9 +30,11 @@ import se.uu.ub.cora.data.DataGroup;
 public class DataValidatorSpy implements DataValidator {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public boolean validValidation = true;
-	public boolean validListFilterValidation = true;
 	private Set<String> notValidForMetadataGroupId = new HashSet<>();
 	public boolean throwFilterNotFoundException = false;
+	public boolean throwExcpetionIndexSettingsNotFound = false;
+	public boolean validListFilterValidation = true;
+	public boolean invalidIndexSettingsValidation = false;
 
 	@Override
 	public ValidationAnswer validateData(String metadataGroupId, DataGroup dataGroup) {
@@ -63,6 +65,25 @@ public class DataValidatorSpy implements DataValidator {
 		if (!validListFilterValidation) {
 			validationAnswer.addErrorMessage("Data for list filter not vaild, DataValidatorSpy");
 		}
+		return validationAnswer;
+	}
+
+	@Override
+	public ValidationAnswer validateIndexSettings(String recordType, DataGroup indexSettings) {
+		MCR.addCall("recordType", recordType, "indexSettings", indexSettings);
+
+		if (throwExcpetionIndexSettingsNotFound) {
+			throw DataValidationException.withMessage(
+					"DataValidatorSpy, No indexSettings exists for recordType, " + recordType);
+		}
+
+		ValidationAnswer validationAnswer = new ValidationAnswer();
+		if (invalidIndexSettingsValidation) {
+			validationAnswer
+					.addErrorMessage("Data for list indexSettings not vaild, DataValidatorSpy");
+		}
+
+		MCR.addReturned(validationAnswer);
 		return validationAnswer;
 	}
 

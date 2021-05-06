@@ -179,7 +179,7 @@ public class SpiderInstanceFactoryTest {
 
 	}
 
-	@Test
+	@Test(enabled = false)
 	public void testIndexBatchJobCreatorImplementation() {
 
 		RecordCreator recordCreator = factory.factorRecordCreator("indexBatchJob");

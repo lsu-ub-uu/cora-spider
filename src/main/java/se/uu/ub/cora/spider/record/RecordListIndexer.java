@@ -24,6 +24,6 @@ import se.uu.ub.cora.data.DataRecord;
 
 public interface RecordListIndexer {
 
-	DataRecord indexRecordList(String authToken, String type, DataGroup indexInfo);
+	DataRecord indexRecordList(String authToken, String type, DataGroup indexSettings);
 
 }
