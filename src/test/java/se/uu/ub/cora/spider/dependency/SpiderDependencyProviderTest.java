@@ -52,6 +52,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderImp;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.FactorySorterImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
+import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactory;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactoryImp;
@@ -97,17 +98,6 @@ public class SpiderDependencyProviderTest {
 		assertEquals(dependencyProvider.getInitInfoFromParent("foundKey"), "someValue");
 	}
 
-	// @Test
-	// public void testGetExtendedFunctionalityProviderSetOnInit() throws Exception {
-	// ExtendedFunctionalityProviderImp extendedFunctionalityProvider =
-	// (ExtendedFunctionalityProviderImp) dependencyProvider
-	// .getExtendedFunctionalityProvider();
-	//
-	// FactorySorterImp factorySorterNeededForTest = (FactorySorterImp)
-	// extendedFunctionalityProvider
-	// .getFactorySorterNeededForTest();
-	// assertSame(factorySorterNeededForTest.getDependencyProvider(), dependencyProvider);
-	// }
 	@Test
 	public void testGetExtendedFunctionalityProviderStartedOnCall() throws Exception {
 		ExtendedFunctionalityProviderImp extendedFunctionalityProvider = (ExtendedFunctionalityProviderImp) dependencyProvider
@@ -346,25 +336,6 @@ public class SpiderDependencyProviderTest {
 		assertSame(metadataMatchData.getMetadataHolder(), metadataHolder);
 	}
 
-	// @Test
-	// public void testGetDataRedactorWhenAlreadyCreated() {
-	// DataRedactorImp dataRedactor = (DataRedactorImp) dependencyProvider.getDataRedactor();
-	// MetadataHolder metadataHolder = dataRedactor.getMetadataHolder();
-	//
-	// MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
-	// assertEquals(metadataElement.getId(), "someMetadata1");
-	// assertTrue(dataRedactor.getDataGroupRedactor() instanceof DataGroupRedactorImp);
-	// assertTrue(dataRedactor.getDataGroupWrapperFactory() instanceof DataGroupWrapperFactoryImp);
-	//
-	// MatcherFactoryImp matcherFactory = (MatcherFactoryImp) dataRedactor.getMatcherFactory();
-	// MetadataMatchDataImp metadataMatchData = (MetadataMatchDataImp) matcherFactory
-	// .getMetadataMatchData();
-	// assertSame(metadataMatchData.getMetadataHolder(), metadataHolder);
-	//
-	// DataRedactorImp dataRedactor2 = (DataRedactorImp) dependencyProvider.getDataRedactor();
-	// assertSame(dataRedactor, dataRedactor2);
-	// }
-
 	@Test
 	public void testGetValueFromInitInfo() {
 		String key = "foundKey";
@@ -378,4 +349,10 @@ public class SpiderDependencyProviderTest {
 		dependencyProvider.getInitInfoValueUsingKey(key);
 	}
 
+	@Test
+	public void testGetDataGroupToRecordEnhancer() throws Exception {
+		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) dependencyProvider
+				.getDataGroupToRecordEnhancer();
+		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
+	}
 }

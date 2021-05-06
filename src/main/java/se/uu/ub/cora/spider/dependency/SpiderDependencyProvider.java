@@ -58,6 +58,8 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityInitializer;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
+import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactory;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactoryImp;
@@ -215,8 +217,8 @@ public abstract class SpiderDependencyProvider {
 		MetadataMatchData metadataMatchData = MetadataMatchDataImp
 				.withMetadataHolder(metadataHolder);
 		MatcherFactory matcherFactory = new MatcherFactoryImp(metadataMatchData);
-		return new DataRedactorImp(metadataHolder, dataGroupRedactor,
-				wrapperFactory, matcherFactory);
+		return new DataRedactorImp(metadataHolder, dataGroupRedactor, wrapperFactory,
+				matcherFactory);
 	}
 
 	protected abstract void tryToInitialize() throws Exception;
@@ -244,6 +246,10 @@ public abstract class SpiderDependencyProvider {
 	public String getInitInfoValueUsingKey(String key) {
 		ensureKeyExistsInInitInfo(key);
 		return initInfo.get(key);
+	}
+
+	public DataGroupToRecordEnhancer getDataGroupToRecordEnhancer() {
+		return new DataGroupToRecordEnhancerImp(this);
 	}
 
 }

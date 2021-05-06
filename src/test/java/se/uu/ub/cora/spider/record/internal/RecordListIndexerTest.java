@@ -37,8 +37,8 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
+import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 
 public class RecordListIndexerTest {
@@ -47,23 +47,23 @@ public class RecordListIndexerTest {
 	private static final String SOME_RECORD_TYPE = "someRecordType";
 
 	private LoggerFactorySpy loggerFactorySpy;
-	private DataGroupToRecordEnhancerSpy enhancerSpy;
+	// private DataGroupToRecordEnhancerSpy enhancerSpy;
 	private SpiderDependencyProviderSpy dependencyProviderSpy;
 	private RecordListIndexerImp recordListIndexer;
 	private AuthenticatorSpy authenticatorSpy;
 
 	private SpiderAuthorizatorSpy authorizatorSpy;
-	private DataGroupSpy indexInfo;
+	private DataGroupSpy indexSettings;
+	private DataValidatorSpy dataValidatorSpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpDependencyProvider();
-		enhancerSpy = new DataGroupToRecordEnhancerSpy();
-		indexInfo = new DataGroupSpy("indexInfo");
+		// enhancerSpy = new DataGroupToRecordEnhancerSpy();
+		indexSettings = new DataGroupSpy("indexInfo");
 
 		recordListIndexer = RecordListIndexerImp
-				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProviderSpy,
-						enhancerSpy);
+				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProviderSpy);
 	}
 
 	private void setUpDependencyProvider() {
@@ -72,9 +72,11 @@ public class RecordListIndexerTest {
 		dependencyProviderSpy = new SpiderDependencyProviderSpy(new HashMap<>());
 		authenticatorSpy = new AuthenticatorSpy();
 		authorizatorSpy = new SpiderAuthorizatorSpy();
+		dataValidatorSpy = new DataValidatorSpy();
 
 		dependencyProviderSpy.authenticator = authenticatorSpy;
 		dependencyProviderSpy.spiderAuthorizator = authorizatorSpy;
+		dependencyProviderSpy.dataValidator = dataValidatorSpy;
 
 	}
 
@@ -88,7 +90,6 @@ public class RecordListIndexerTest {
 		SpiderDependencyProvider dependencyProvider = recordListIndexer.getDependencyProvider();
 		DataGroupToRecordEnhancer enhancer = recordListIndexer.getRecordEnhancer();
 		assertSame(dependencyProvider, dependencyProviderSpy);
-		assertSame(enhancer, enhancerSpy);
 
 	}
 
@@ -118,7 +119,7 @@ public class RecordListIndexerTest {
 
 	@Test
 	public void testUserIsAuthorizedForActionOnRecordTypeIncomingParameters() throws Exception {
-		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexInfo);
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexSettings);
 		User user = (User) authenticatorSpy.MCR.getReturnValue("getUserForToken", 0);
 
 		authorizatorSpy.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0, user,
@@ -132,12 +133,13 @@ public class RecordListIndexerTest {
 	// dataValidator.MCR.assertMethodNotCalled("validateListFilter");
 	// }
 	//
-	// @Test
-	// public void testNonEmptyFilterContainsPartGroupValidateListFilterIsCalled() {
-	// recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
-	//
-	// dataValidator.MCR.assertParameters("validateListFilter", 0, SOME_RECORD_TYPE,
-	// nonEmptyFilter);
-	// }
+
+	@Test
+	public void testNonEmptyFilterContainsPartGroupValidateListFilterIsCalled() {
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexSettings);
+
+		dataValidatorSpy.MCR.assertParameters("validateIndexFilter", 0, SOME_RECORD_TYPE,
+				indexSettings);
+	}
 
 }

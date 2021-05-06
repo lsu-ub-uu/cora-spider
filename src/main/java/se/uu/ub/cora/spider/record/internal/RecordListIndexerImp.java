@@ -33,20 +33,17 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	private DataGroupToRecordEnhancer enhancer;
 	private Authenticator authenticator;
 
-	private RecordListIndexerImp(SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer enhancer) {
+	private RecordListIndexerImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
-		this.enhancer = enhancer;
 	}
 
 	public static RecordListIndexerImp usingDependencyProviderAndDataGroupToRecordEnhancer(
-			SpiderDependencyProvider dependencyProvider, DataGroupToRecordEnhancer enhancer) {
-		return new RecordListIndexerImp(dependencyProvider, enhancer);
+			SpiderDependencyProvider dependencyProvider) {
+		return new RecordListIndexerImp(dependencyProvider);
 	}
 
 	@Override
 	public DataRecord indexRecordList(String authToken, String type, DataGroup indexInfo) {
-
 		authenticator = dependencyProvider.getAuthenticator();
 		User user = authenticator.getUserForToken(authToken);
 		SpiderAuthorizator spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
