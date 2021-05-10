@@ -78,7 +78,6 @@ public class RecordListIndexerTest {
 		dependencyProviderSpy.authenticator = authenticatorSpy;
 		dependencyProviderSpy.spiderAuthorizator = authorizatorSpy;
 		dependencyProviderSpy.dataValidator = dataValidatorSpy;
-
 	}
 
 	@Test
