@@ -34,7 +34,7 @@
 
 	<properties>
         <logger.version>2.2.0</logger.version>
-		<coradata.version>3.8.0</coradata.version>
+		<coradata.version>3.9-SNAPSHOT</coradata.version>
 		<json.version>2.2.0</json.version>
 		<storage.version>3.8.0</storage.version>
 		<search.version>3.6.0</search.version>

@@ -270,6 +270,13 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 			possiblyAddListAction(dataRecord);
 			possiblyAddValidateAction(dataRecord);
 			possiblyAddSearchAction(handledRecordTypeHandler, dataRecord);
+			possiblyAddBatchIndexAction(dataRecord);
+		}
+	}
+
+	private void possiblyAddBatchIndexAction(DataRecord dataRecord) {
+		if (userIsAuthorizedForActionOnRecordType("batch_index", handledRecordId)) {
+			dataRecord.addAction(Action.BATCH_INDEX);
 		}
 	}
 

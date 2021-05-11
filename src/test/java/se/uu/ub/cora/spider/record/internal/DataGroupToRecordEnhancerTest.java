@@ -384,6 +384,66 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
+	public void testBatchIndexActionPartOfEnhance() throws Exception {
+		createRecordStorageSpy();
+		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
+
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
+
+		assertBatchIndexAction(record);
+	}
+
+	private void assertBatchIndexAction(DataRecord record) {
+		assertTypeAndCollectedDataAuthorizationCalledForBatchIndexActionPartOfEnhance();
+		assertRecordContainsBatchIndexAction(record);
+	}
+
+	private void assertTypeAndCollectedDataAuthorizationCalledForBatchIndexActionPartOfEnhance() {
+		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user,
+				"batch_index", "someId");
+	}
+
+	private void assertRecordContainsBatchIndexAction(DataRecord record) {
+		assertTrue(record.getActions().contains(Action.BATCH_INDEX));
+	}
+
+	@Test
+	public void testIRABatchIndexActionPartOfEnhance() throws Exception {
+		createRecordStorageSpy();
+		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
+
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
+				someDataGroup, dataRedactor);
+
+		assertBatchIndexAction(record);
+	}
+
+	@Test
+	public void testBatchIndexActionPartOfEnhanceNotAuthorized() throws Exception {
+		setupForNoBatchIndexAccess();
+
+		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
+
+		assertBatchIndexActionNotAuthorized(record);
+	}
+
+	private void setupForNoBatchIndexAccess() {
+		createRecordStorageSpy();
+		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
+		authorizator.setNotAutorizedForAction("batch_index");
+	}
+
+	private void assertBatchIndexActionNotAuthorized(DataRecord record) {
+		assertTypeAndCollectedDataAuthorizationCalledForBatchIndexActionPartOfEnhance();
+		assertRecordDoesNotContainBatchIndexAction(record);
+	}
+
+	private void assertRecordDoesNotContainBatchIndexAction(DataRecord record) {
+		assertFalse(record.getActions().contains(Action.BATCH_INDEX));
+	}
+
+	/**********************/
+	@Test
 	public void testIRAIndexActionPartOfEnhance() throws Exception {
 		createRecordStorageSpy();
 
@@ -1215,7 +1275,7 @@ public class DataGroupToRecordEnhancerTest {
 				"linkedSearchId1");
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 4, user, SEARCH,
 				"linkedSearchId2");
-		authorizator.MCR.assertNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType", 5);
+		authorizator.MCR.assertNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType", 6);
 		assertRecordContainsSearchAction(record);
 	}
 
@@ -1265,7 +1325,7 @@ public class DataGroupToRecordEnhancerTest {
 		recordStorage.MCR.assertParameters("read", 0, SEARCH, returnedSearchId);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user, SEARCH,
 				"linkedSearchId1");
-		authorizator.MCR.assertNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType", 4);
+		authorizator.MCR.assertNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType", 5);
 		assertRecordDoesNotContainSearchAction(record);
 	}
 
