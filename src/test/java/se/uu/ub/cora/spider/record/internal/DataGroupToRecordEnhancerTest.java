@@ -57,7 +57,6 @@ import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
 import se.uu.ub.cora.spider.data.DataRecordSpy;
-import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -123,12 +122,9 @@ public class DataGroupToRecordEnhancerTest {
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
-		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		recordStorageProviderSpy.recordStorage = recordStorage;
-		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.termCollector = termCollector;
-		// dependencyProvider.dataRedactor = dataRedactor;
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
 		enhancer = new DataGroupToRecordEnhancerImp(dependencyProvider);
 	}
@@ -172,9 +168,7 @@ public class DataGroupToRecordEnhancerTest {
 
 	private RecordStorageSpy createRecordStorageSpy() {
 		RecordStorageSpy recordStorageSpy = new RecordStorageSpy();
-		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		recordStorageProviderSpy.recordStorage = recordStorageSpy;
-		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+		dependencyProvider.recordStorage = recordStorageSpy;
 		enhancer = new DataGroupToRecordEnhancerImp(dependencyProvider);
 		return recordStorageSpy;
 	}

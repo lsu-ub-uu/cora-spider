@@ -50,7 +50,7 @@ import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
 
 public class SpiderInstanceFactoryTest {
 	private SpiderInstanceFactory factory;
-	private SpiderDependencyProvider dependencyProvider;
+	private SpiderDependencyProviderSpy dependencyProvider;
 	private LoggerFactorySpy loggerFactorySpy;
 
 	@BeforeTest
@@ -58,14 +58,6 @@ public class SpiderInstanceFactoryTest {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
-
-		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
-		StreamStorageProviderSpy streamStorageProviderSpy = new StreamStorageProviderSpy();
-		dependencyProvider.setStreamStorageProvider(streamStorageProviderSpy);
-		RecordIdGeneratorProviderSpy recordIdGeneratorProviderSpy = new RecordIdGeneratorProviderSpy();
-		dependencyProvider.setRecordIdGeneratorProvider(recordIdGeneratorProviderSpy);
-
 		factory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
 	}
 

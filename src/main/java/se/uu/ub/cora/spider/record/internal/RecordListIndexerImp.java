@@ -50,6 +50,9 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		SpiderAuthorizator spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "index", recordType);
 		dependencyProvider.getDataValidator().validateIndexSettings(recordType, indexSettings);
+
+		// long totalNumberOfMatches = getTotalNumberOfMatchesFromStorage(recordType,
+		// indexSettings);
 		return null;
 		// validate filter
 		// set from to to get 1 record in filter
@@ -79,6 +82,25 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 		// when finished write status to indexBatchJob
 	}
+
+	// private long getTotalNumberOfMatchesFromStorage(String recordType, DataGroup indexSettings) {
+	// RecordStorage r;
+	// DataGroup filter = indexSettings.getFirstGroupWithNameInData("filter");
+	// String from = filter.getFirstAtomicValueWithNameInData("fromNo");
+	// filter.removeFirstChildWithNameInData("fromNo");
+	// DataAtomic atomicFrom = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("fromNo",
+	// "0");
+	// filter.addChild(atomicFrom);
+	//
+	// String to = filter.getFirstAtomicValueWithNameInData("toNo");
+	// filter.removeFirstChildWithNameInData("toNo");
+	// // might not work with 0?? or should it?
+	// DataAtomic atomicTo = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("toNo", "0");
+	// filter.addChild(atomicTo);
+	//
+	// StorageReadResult readList = r.readList(recordType, filter);
+	// return readList.totalNumberOfMatches;
+	// }
 
 	// Only for test
 	SpiderDependencyProvider getDependencyProvider() {

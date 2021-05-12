@@ -41,7 +41,6 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
@@ -104,10 +103,7 @@ public class SpiderRecordDeleterTest {
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
-
-		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		recordStorageProviderSpy.recordStorage = recordStorage;
-		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.recordIndexer = recordIndexer;

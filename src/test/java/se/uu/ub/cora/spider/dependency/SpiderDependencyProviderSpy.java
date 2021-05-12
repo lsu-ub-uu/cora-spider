@@ -19,7 +19,6 @@
 
 package se.uu.ub.cora.spider.dependency;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +32,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
@@ -41,7 +41,7 @@ import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 
-public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
+public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 
 	public SpiderAuthorizator spiderAuthorizator;
 	public PermissionRuleCalculator ruleCalculator;
@@ -62,10 +62,13 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 	public Map<String, RecordTypeHandlerSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
-	private RecordStorage recordStorage;
+	public RecordStorage recordStorage;
+	private RecordStorageProviderSpy recordStorageProvider;
+	public RecordIdGenerator recordIdGenerator;
 
+	// TODO: remove?
 	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
-		super(initInfo);
+		// super(initInfo);
 		recordStorageProvider = new RecordStorageProviderSpy();
 	}
 
@@ -132,26 +135,26 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 		return recordIndexer;
 	}
 
-	@Override
-	protected void tryToInitialize() throws Exception {
-		tryToInitializeWasCalled = true;
-		if (initInfo.containsKey("runtimeException")) {
-			throw new RuntimeException(initInfo.get("runtimeException"));
-		}
-		if (initInfo.containsKey("invocationTargetException")) {
-			throw new InvocationTargetException(
-					new RuntimeException(initInfo.get("invocationTargetException")));
-		}
-	}
+	// @Override
+	// protected void tryToInitialize() throws Exception {
+	// tryToInitializeWasCalled = true;
+	// if (initInfo.containsKey("runtimeException")) {
+	// throw new RuntimeException(initInfo.get("runtimeException"));
+	// }
+	// if (initInfo.containsKey("invocationTargetException")) {
+	// throw new InvocationTargetException(
+	// new RuntimeException(initInfo.get("invocationTargetException")));
+	// }
+	// }
 
-	@Override
-	protected void readInitInfo() {
-		readInitInfoWasCalled = true;
-	}
+	// @Override
+	// protected void readInitInfo() {
+	// readInitInfoWasCalled = true;
+	// }
 
-	public String getInitInfoFromParent(String key) {
-		return initInfo.get(key);
-	}
+	// public String getInitInfoFromParent(String key) {
+	// return initInfo.get(key);
+	// }
 
 	@Override
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
@@ -175,6 +178,27 @@ public class SpiderDependencyProviderSpy extends SpiderDependencyProvider {
 		RecordTypeHandlerSpy newRecordTypeHandlerSpy = new RecordTypeHandlerSpy();
 		mapOfRecordTypeHandlerSpies.put(recordType, newRecordTypeHandlerSpy);
 		return newRecordTypeHandlerSpy;
+	}
+
+	@Override
+	public RecordStorage getRecordStorage() {
+		return recordStorage;
+	}
+
+	@Override
+	public StreamStorage getStreamStorage() {
+		return streamStorage;
+	}
+
+	@Override
+	public RecordIdGenerator getRecordIdGenerator() {
+		return recordIdGenerator;
+	}
+
+	@Override
+	public DataGroupToRecordEnhancer getDataGroupToRecordEnhancer() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

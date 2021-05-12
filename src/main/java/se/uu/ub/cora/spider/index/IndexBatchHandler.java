@@ -11,8 +11,8 @@ public interface IndexBatchHandler {
 
 	/**
 	 * runIndexBatchJob takes a DataGroup with information about the recordType, and filter of
-	 * records to index. Calls to runIndexBatchJob MUST return directly and do the main work of
-	 * indexing in a different thread from the one calling this method.
+	 * records to index. Calls to runIndexBatchJob MUST return control directly and do the main work
+	 * of indexing in a different thread from the one calling this method.
 	 * 
 	 * @param indexBatchJob
 	 *            A DataGroup containing information about what to index, including RecordType, the

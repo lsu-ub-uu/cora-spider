@@ -42,13 +42,12 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataListFactorySpy;
-import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
+import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
@@ -102,16 +101,11 @@ public class SpiderRecordIncomingLinksReaderTest {
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
-
-		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		recordStorageProviderSpy.recordStorage = recordStorage;
-		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
-
+		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.termCollector = termCollector;
 
-		incomingLinksReader = IncomingLinksReaderImp
-				.usingDependencyProvider(dependencyProvider);
+		incomingLinksReader = IncomingLinksReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Test

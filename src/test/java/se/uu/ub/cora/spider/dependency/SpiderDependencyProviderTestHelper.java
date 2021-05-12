@@ -34,7 +34,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.storage.MetadataStorage;
 
-public class SpiderDependencyProviderTestHelper extends SpiderDependencyProvider {
+public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstract {
 
 	public SpiderAuthorizator spiderAuthorizator;
 	public PermissionRuleCalculator ruleCalculator;

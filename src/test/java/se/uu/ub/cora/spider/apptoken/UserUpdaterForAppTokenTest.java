@@ -43,7 +43,6 @@ import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactorySpy2;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
@@ -101,9 +100,10 @@ public class UserUpdaterForAppTokenTest {
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
 		dependencyProvider.dataValidator = dataValidator;
-		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		recordStorageProviderSpy.recordStorage = recordStorage;
-		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+		// RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
+		// recordStorageProviderSpy.recordStorage = recordStorage;
+		dependencyProvider.recordStorage = recordStorage;
+		// dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.linkCollector = linkCollector;

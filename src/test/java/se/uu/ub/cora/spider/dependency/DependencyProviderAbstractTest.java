@@ -63,12 +63,12 @@ import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorageProvider;
 
-public class SpiderDependencyProviderTest {
+public class DependencyProviderAbstractTest {
 
 	private Map<String, String> initInfo;
 	private SpiderDependencyProviderTestHelper dependencyProvider;
 	private LoggerFactorySpy loggerFactorySpy;
-	private String testedClassName = "SpiderDependencyProvider";
+	private String testedClassName = "DependencyProviderAbstract";
 	private RecordStorageProviderSpy recordStorageProvider;
 
 	@BeforeMethod

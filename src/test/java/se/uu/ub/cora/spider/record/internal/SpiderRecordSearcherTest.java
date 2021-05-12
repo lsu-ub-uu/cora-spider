@@ -48,7 +48,6 @@ import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
@@ -121,17 +120,14 @@ public class SpiderRecordSearcherTest {
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.dataValidator = dataValidator;
-		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		recordStorageProviderSpy.recordStorage = recordStorage;
-		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.ruleCalculator = keyCalculator;
 		dependencyProvider.recordSearch = recordSearch;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.dataRedactor = dataRedactor;
-		recordSearcher = RecordSearcherImp
-				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProvider,
-						dataGroupToRecordEnhancer);
+		recordSearcher = RecordSearcherImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)

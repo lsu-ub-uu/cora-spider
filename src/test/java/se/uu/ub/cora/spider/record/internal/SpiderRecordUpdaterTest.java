@@ -53,7 +53,6 @@ import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
-import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
@@ -135,9 +134,7 @@ public class SpiderRecordUpdaterTest {
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.dataValidator = dataValidator;
-		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		recordStorageProviderSpy.recordStorage = recordStorage;
-		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.linkCollector = linkCollector;
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;

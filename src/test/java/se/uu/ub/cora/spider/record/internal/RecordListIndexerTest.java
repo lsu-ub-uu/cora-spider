@@ -90,7 +90,6 @@ public class RecordListIndexerTest {
 		SpiderDependencyProvider dependencyProvider = recordListIndexer.getDependencyProvider();
 		DataGroupToRecordEnhancer enhancer = recordListIndexer.getRecordEnhancer();
 		assertSame(dependencyProvider, dependencyProviderSpy);
-
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class, expectedExceptionsMessageRegExp = ""
@@ -124,11 +123,10 @@ public class RecordListIndexerTest {
 
 		authorizatorSpy.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0, user,
 				"index", SOME_RECORD_TYPE);
-
 	}
 
 	@Test
-	public void testNonEmptyFilterContainsPartGroupValidateListFilterIsCalled() {
+	public void testNonEmptyIndexSettingsContainsPartGroupValidateListFilterIsCalled() {
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexSettings);
 
 		dataValidatorSpy.MCR.assertParameters("validateIndexSettings", 0, SOME_RECORD_TYPE,
@@ -140,6 +138,11 @@ public class RecordListIndexerTest {
 	public void testErrorInIndexSettingOnValidation() throws Exception {
 		dataValidatorSpy.throwExcpetionIndexSettingsNotFound = true;
 
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexSettings);
+	}
+
+	@Test
+	public void testVerifyReadExtraInformationForRecord() throws Exception {
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexSettings);
 
 	}
