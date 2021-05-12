@@ -442,7 +442,6 @@ public class DataGroupToRecordEnhancerTest {
 		assertFalse(record.getActions().contains(Action.BATCH_INDEX));
 	}
 
-	/**********************/
 	@Test
 	public void testIRAIndexActionPartOfEnhance() throws Exception {
 		createRecordStorageSpy();
