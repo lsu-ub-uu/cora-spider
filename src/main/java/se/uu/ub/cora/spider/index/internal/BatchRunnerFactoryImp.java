@@ -16,14 +16,18 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.index.internal;
 
-public class IndexBatchJobRunner implements Runnable {
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.index.BatchRunner;
+import se.uu.ub.cora.spider.index.BatchRunnerFactory;
+
+public class BatchRunnerFactoryImp implements BatchRunnerFactory {
 
 	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-
+	public BatchRunner factor(DataGroup dataGroup) {
+		// TODO: fix null
+		return new IndexBatchJobRunner(null, dataGroup);
 	}
 
 }
