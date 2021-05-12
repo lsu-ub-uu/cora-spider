@@ -16,18 +16,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.index.internal;
 
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-public class IndexBatchJobRunnerTest {
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
+
+public class IndexBatchJobTest {
 
 	@Test
 	public void testInit() {
-		IndexBatchJobRunner batchRunner = new IndexBatchJobRunner();
-		assertTrue(batchRunner instanceof Runnable);
+		String recordType = "someRecordType";
+		DataGroup dataGroupFilter = new DataGroupSpy("filter");
+
+		IndexBatchJob indexBatchJob = new IndexBatchJob(recordType, dataGroupFilter);
+		assertEquals(indexBatchJob.recordType, recordType);
+		assertEquals(indexBatchJob.filter, dataGroupFilter);
 	}
 
 }

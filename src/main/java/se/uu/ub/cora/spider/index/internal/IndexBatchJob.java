@@ -16,14 +16,17 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.index.internal;
 
-public class IndexBatchJobRunner implements Runnable {
+import se.uu.ub.cora.data.DataGroup;
 
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
+public class IndexBatchJob {
 
+	public String recordType;
+	public DataGroup filter;
+
+	public IndexBatchJob(String recordType, DataGroup dataGroupFilter) {
+		this.recordType = recordType;
+		this.filter = dataGroupFilter;
 	}
-
 }
