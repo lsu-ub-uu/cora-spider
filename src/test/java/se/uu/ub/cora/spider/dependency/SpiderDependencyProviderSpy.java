@@ -34,6 +34,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
+import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
@@ -62,7 +63,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	public Map<String, RecordTypeHandlerSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public RecordStorage recordStorage;
+	public RecordStorage recordStorage = new RecordStorageMCRSpy();
 	private RecordStorageProviderSpy recordStorageProvider;
 	public RecordIdGenerator recordIdGenerator;
 

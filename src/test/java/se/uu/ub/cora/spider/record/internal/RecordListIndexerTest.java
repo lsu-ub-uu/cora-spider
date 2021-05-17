@@ -19,26 +19,34 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
+import se.uu.ub.cora.data.DataAtomicProvider;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
+import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
+import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
+import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 
@@ -56,10 +64,13 @@ public class RecordListIndexerTest {
 	private SpiderAuthorizatorSpy authorizatorSpy;
 	private DataGroupSpy indexSettings;
 	private DataValidatorSpy dataValidatorSpy;
+	private DataGroupFactorySpy dataGroupFactory;
+	private DataAtomicFactorySpy dataAtomicFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpDependencyProvider();
+		setUpDataProviders();
 		// enhancerSpy = new DataGroupToRecordEnhancerSpy();
 		indexSettings = new DataGroupSpy("indexSettings");
 
@@ -78,6 +89,13 @@ public class RecordListIndexerTest {
 		dependencyProviderSpy.authenticator = authenticatorSpy;
 		dependencyProviderSpy.spiderAuthorizator = authorizatorSpy;
 		dependencyProviderSpy.dataValidator = dataValidatorSpy;
+	}
+
+	private void setUpDataProviders() {
+		dataGroupFactory = new DataGroupFactorySpy();
+		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
+		dataAtomicFactory = new DataAtomicFactorySpy();
+		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 	}
 
 	@Test
@@ -144,7 +162,29 @@ public class RecordListIndexerTest {
 	@Test
 	public void testVerifyReadExtraInformationForRecord() throws Exception {
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexSettings);
+	}
 
+	@Test
+	public void testGetTotalNumberOfMatchesFromStorageWithoutFilter() throws Exception {
+		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProviderSpy.recordStorage;
+		// recordStorage.totalNumberOfMatchesFromStorage = 45;
+
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexSettings);
+
+		recordStorage.MCR.assertParameter("readList", 0, "type", SOME_RECORD_TYPE);
+
+		DataGroup filter = getFilterFromMethodReadList(recordStorage);
+		assertEquals(filter.getFirstAtomicValueWithNameInData("fromNo"), "0");
+		assertEquals(filter.getFirstAtomicValueWithNameInData("toNo"), "0");
+
+		;
+	}
+
+	private DataGroup getFilterFromMethodReadList(RecordStorageMCRSpy recordStorage) {
+		Map<String, Object> parametersForReadList = recordStorage.MCR
+				.getParametersForMethodAndCallNumber("readList", 0);
+		DataGroup filter = (DataGroup) parametersForReadList.get("filter");
+		return filter;
 	}
 
 	// @Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""

@@ -35,6 +35,7 @@ public class RecordStorageMCRSpy implements RecordStorage {
 
 	public DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
 	public List<DataGroup> dataGroups = new ArrayList<>();
+	public int totalNumberOfMatchesFromStorage;
 
 	@Override
 	public DataGroup read(String type, String id) {

@@ -19,13 +19,18 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
+import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordListIndexerImp implements RecordListIndexer {
 
@@ -51,8 +56,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "index", recordType);
 		dependencyProvider.getDataValidator().validateIndexSettings(recordType, indexSettings);
 
-		// long totalNumberOfMatches = getTotalNumberOfMatchesFromStorage(recordType,
-		// indexSettings);
+		long totalNumberOfMatches = getTotalNumberOfMatchesFromStorage(recordType, indexSettings);
 		return null;
 		// validate filter
 		// set from to to get 1 record in filter
@@ -83,24 +87,34 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		// when finished write status to indexBatchJob
 	}
 
-	// private long getTotalNumberOfMatchesFromStorage(String recordType, DataGroup indexSettings) {
-	// RecordStorage r;
-	// DataGroup filter = indexSettings.getFirstGroupWithNameInData("filter");
-	// String from = filter.getFirstAtomicValueWithNameInData("fromNo");
-	// filter.removeFirstChildWithNameInData("fromNo");
-	// DataAtomic atomicFrom = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("fromNo",
-	// "0");
-	// filter.addChild(atomicFrom);
-	//
-	// String to = filter.getFirstAtomicValueWithNameInData("toNo");
-	// filter.removeFirstChildWithNameInData("toNo");
-	// // might not work with 0?? or should it?
-	// DataAtomic atomicTo = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("toNo", "0");
-	// filter.addChild(atomicTo);
-	//
-	// StorageReadResult readList = r.readList(recordType, filter);
-	// return readList.totalNumberOfMatches;
-	// }
+	private long getTotalNumberOfMatchesFromStorage(String recordType, DataGroup indexSettings) {
+		RecordStorage r = dependencyProvider.getRecordStorage();
+		// no filter
+		DataGroup filter = DataGroupProvider.getDataGroupUsingNameInData("filter");
+		DataAtomic fromNo = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("fromNo", "0");
+		filter.addChild(fromNo);
+		DataAtomic toNo = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("toNo", "0");
+		filter.addChild(toNo);
+		// DataGroup filter = indexSettings.getFirstGroupWithNameInData("filter");
+		// String from = filter.getFirstAtomicValueWithNameInData("fromNo");
+		// filter.removeFirstChildWithNameInData("fromNo");
+		// DataAtomic atomicFrom = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("fromNo",
+		// "0");
+		// filter.addChild(atomicFrom);
+		//
+		// String to = filter.getFirstAtomicValueWithNameInData("toNo");
+		// filter.removeFirstChildWithNameInData("toNo");
+		// // might not work with 0?? or should it?
+		// DataAtomic atomicTo = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("toNo",
+		// "0");
+		// filter.addChild(atomicTo);
+		//
+		// StorageReadResult readList = r.readList(recordType, filter);
+		StorageReadResult readList = r.readList(recordType, filter);
+		// return readList.totalNumberOfMatches;
+		// dataList.totalNo
+		return 0;
+	}
 
 	// Only for test
 	SpiderDependencyProvider getDependencyProvider() {
