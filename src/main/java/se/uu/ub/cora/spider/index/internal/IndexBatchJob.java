@@ -24,6 +24,7 @@ public class IndexBatchJob {
 
 	public String recordType;
 	public DataGroup filter;
+	public long totalNumberToIndex;
 
 	public IndexBatchJob(String recordType, DataGroup dataGroupFilter) {
 		this.recordType = recordType;

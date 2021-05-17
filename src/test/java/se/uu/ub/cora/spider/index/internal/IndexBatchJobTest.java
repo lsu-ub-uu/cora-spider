@@ -33,6 +33,7 @@ public class IndexBatchJobTest {
 		DataGroup dataGroupFilter = new DataGroupSpy("filter");
 
 		IndexBatchJob indexBatchJob = new IndexBatchJob(recordType, dataGroupFilter);
+
 		assertEquals(indexBatchJob.recordType, recordType);
 		assertEquals(indexBatchJob.filter, dataGroupFilter);
 	}

@@ -20,23 +20,29 @@ package se.uu.ub.cora.spider.index.internal;
 
 import static org.testng.Assert.assertSame;
 
+import java.util.HashMap;
+
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.index.BatchRunnerFactory;
 
 public class BatchRunnerFactoryTest {
 
 	@Test
-	public void testInit() {
-		BatchRunnerFactory factory = new BatchRunnerFactoryImp();
+	public void testFactor() {
+		SpiderDependencyProviderSpy dependencyProvider = new SpiderDependencyProviderSpy(
+				new HashMap<>());
+		BatchRunnerFactory factory = new BatchRunnerFactoryImp(dependencyProvider);
 		DataGroup dataGroupFilter = new DataGroupSpy("indexBatchJob");
 		IndexBatchJob indexBatchJob = new IndexBatchJob("someRecordType", dataGroupFilter);
 
 		IndexBatchJobRunner runner = (IndexBatchJobRunner) factory.factor(indexBatchJob);
-		assertSame(runner.getIndexBatchJob(), indexBatchJob);
 
+		assertSame(runner.getIndexBatchJob(), indexBatchJob);
+		assertSame(runner.getDependencyProvider(), dependencyProvider);
 	}
 
 }

@@ -38,6 +38,7 @@ public class DataGroupSpy implements DataGroup {
 	public List<String> removedNameInDatas = new ArrayList<>();
 	public List<String> requestedAtomicValues = new ArrayList<>();
 	public List<String> requestedDataGroups = new ArrayList<>();
+	public List<DataElement> addedChildren = new ArrayList<>();
 
 	public DataGroupSpy(String nameInData) {
 		this.nameInData = nameInData;
@@ -87,6 +88,7 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public void addChild(DataElement dataElement) {
+		addedChildren.add(dataElement);
 		children.add(dataElement);
 
 	}
