@@ -50,6 +50,7 @@ public class IndexBatchJobRunnerTest {
 	private RecordIndexerSpy recordIndexer;
 	private DataGroupTermCollectorSpy termCollector;
 	private DataAtomicFactorySpy dataAtomicFactory;
+	private IndexBatchJobStorerFactorySpy storerFactory;
 
 	@BeforeMethod
 	public void setUp() {
@@ -58,7 +59,8 @@ public class IndexBatchJobRunnerTest {
 		setUpSpies();
 		recordStorage.totalNumberOfMatches = 2;
 		recordStorage.endNumberToReturn = 2;
-		batchRunner = new IndexBatchJobRunner(dependencyProvider, indexBatchJob);
+		storerFactory = new IndexBatchJobStorerFactorySpy();
+		batchRunner = new IndexBatchJobRunner(dependencyProvider, indexBatchJob, storerFactory);
 	}
 
 	private void setUpProviders() {
@@ -71,7 +73,7 @@ public class IndexBatchJobRunnerTest {
 	private void createDefaultParameters() {
 		dataGroupFilter = new DataGroupSpy("filter");
 		indexBatchJob = new IndexBatchJob("someRecordType", dataGroupFilter);
-		indexBatchJob.totalNumberToIndex = 167;
+		indexBatchJob.totalNumberToIndex = 117;
 	}
 
 	private void setUpSpies() {
@@ -91,6 +93,7 @@ public class IndexBatchJobRunnerTest {
 
 		assertSame(batchRunner.getIndexBatchJob(), indexBatchJob);
 		assertSame(batchRunner.getDependencyProvider(), dependencyProvider);
+		assertSame(batchRunner.getBatchJobStorerFactory(), storerFactory);
 
 	}
 
@@ -100,41 +103,40 @@ public class IndexBatchJobRunnerTest {
 
 		recordStorage.MCR.assertParameter("readList", 0, "type", indexBatchJob.recordType);
 		recordStorage.MCR.assertParameter("readList", 0, "filter", dataGroupFilter);
-		recordStorage.MCR.assertNumberOfCallsToMethod("readList", 17);
+		recordStorage.MCR.assertNumberOfCallsToMethod("readList", 12);
 
+		assertAllFiltersAreSentCorrectlyToReadList();
+
+	}
+
+	private void assertAllFiltersAreSentCorrectlyToReadList() {
+		int firstIndex = 0;
+		int from = 0;
+		for (int i = 0; i < 12; i++) {
+			assertCorrectlyHandledFilter(firstIndex, from, i);
+			firstIndex = firstIndex + 2;
+			from = from + 10;
+		}
+	}
+
+	private void assertCorrectlyHandledFilter(int firstIndex, int from, int parameterIndex) {
+		int secondIndex = firstIndex + 1;
 		Map<String, Object> parameters = recordStorage.MCR
-				.getParametersForMethodAndCallNumber("readList", 0);
+				.getParametersForMethodAndCallNumber("readList", parameterIndex);
 
-		assertEquals(dataGroupFilter.removedNameInDatas.get(0), "from");
-		assertEquals(dataGroupFilter.removedNameInDatas.get(1), "to");
+		assertEquals(dataGroupFilter.removedNameInDatas.get(firstIndex), "fromNo");
+		assertEquals(dataGroupFilter.removedNameInDatas.get(secondIndex), "toNo");
 
-		assertEquals(dataAtomicFactory.nameInDatas.get(0), "from");
-		assertEquals(dataAtomicFactory.values.get(0), "0");
-		assertEquals(dataAtomicFactory.nameInDatas.get(1), "to");
-		assertEquals(dataAtomicFactory.values.get(1), "9");
+		assertEquals(dataAtomicFactory.nameInDatas.get(firstIndex), "fromNo");
+		assertEquals(dataAtomicFactory.values.get(firstIndex), String.valueOf(from));
+		assertEquals(dataAtomicFactory.nameInDatas.get(secondIndex), "toNo");
+		assertEquals(dataAtomicFactory.values.get(secondIndex), String.valueOf(from + 9));
 
 		DataGroupSpy filterSentToReadList = (DataGroupSpy) parameters.get("filter");
-		assertSame(filterSentToReadList.addedChildren.get(0),
-				dataAtomicFactory.returnedDataAtomics.get(0));
-		assertSame(filterSentToReadList.addedChildren.get(1),
-				dataAtomicFactory.returnedDataAtomics.get(1));
-
-		assertEquals(dataGroupFilter.removedNameInDatas.get(2), "from");
-		assertEquals(dataGroupFilter.removedNameInDatas.get(3), "to");
-
-		assertEquals(dataAtomicFactory.nameInDatas.get(2), "from");
-		assertEquals(dataAtomicFactory.values.get(2), "10");
-		assertEquals(dataAtomicFactory.nameInDatas.get(3), "to");
-		assertEquals(dataAtomicFactory.values.get(3), "19");
-
-		Map<String, Object> parameters2 = recordStorage.MCR
-				.getParametersForMethodAndCallNumber("readList", 1);
-		DataGroupSpy filterSentToReadList2 = (DataGroupSpy) parameters2.get("filter");
-		assertSame(filterSentToReadList2.addedChildren.get(2),
-				dataAtomicFactory.returnedDataAtomics.get(2));
-		assertSame(filterSentToReadList2.addedChildren.get(3),
-				dataAtomicFactory.returnedDataAtomics.get(3));
-
+		assertSame(filterSentToReadList.addedChildren.get(firstIndex),
+				dataAtomicFactory.returnedDataAtomics.get(firstIndex));
+		assertSame(filterSentToReadList.addedChildren.get(secondIndex),
+				dataAtomicFactory.returnedDataAtomics.get(secondIndex));
 	}
 
 	// @Test
@@ -164,37 +166,61 @@ public class IndexBatchJobRunnerTest {
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
 				recordTypeHandler.MCR.getReturnValue("getMetadataId", 0));
+
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
-				recordStorage.listOfDataGroups.get(0));
+				recordStorage.listOfListOfDataGroups.get(0).get(0));
 
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
 				recordTypeHandler.MCR.getReturnValue("getMetadataId", 0));
 
 		termCollector.MCR.assertParameter("collectTerms", 1, "dataGroup",
-				recordStorage.listOfDataGroups.get(1));
+				recordStorage.listOfListOfDataGroups.get(0).get(1));
+
+		int numOfBatchesTimesTwoWhichIsReturned = 24;
+		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms",
+				numOfBatchesTimesTwoWhichIsReturned);
 	}
 
 	@Test
 	public void testCorrectCallToIndex() {
 		batchRunner.run();
 		RecordTypeHandlerSpy recordTypeHandler = dependencyProvider.recordTypeHandlerSpy;
-		StorageReadResult storageReadResult = (StorageReadResult) recordStorage.MCR
-				.getReturnValue("readList", 0);
 
-		assertCorrectParametersSentToIndex(recordTypeHandler, storageReadResult, 0);
-		assertCorrectParametersSentToIndex(recordTypeHandler, storageReadResult, 1);
+		int indexDataCall = 0;
+		for (int i = 0; i < 12; i++) {
+			assertCorrectParametersSentToIndex(recordTypeHandler, i, indexDataCall, 0);
+			indexDataCall++;
+			assertCorrectParametersSentToIndex(recordTypeHandler, i, indexDataCall, 1);
+			indexDataCall++;
+		}
 	}
 
 	private void assertCorrectParametersSentToIndex(RecordTypeHandlerSpy recordTypeHandler,
-			StorageReadResult storageReadResult, int index) {
-		recordIndexer.MCR.assertParameter("indexData", index, "ids",
-				recordTypeHandler.MCR.getReturnValue("getCombinedIdsUsingRecordId", index));
+			int parameterIndex, int indexDataCall, int indexInReturnedList) {
+		StorageReadResult storageReadResult = (StorageReadResult) recordStorage.MCR
+				.getReturnValue("readList", parameterIndex);
 
-		recordIndexer.MCR.assertParameter("indexData", index, "recordIndexData",
-				termCollector.MCR.getReturnValue("collectTerms", index));
+		recordIndexer.MCR.assertParameter("indexData", parameterIndex, "ids", recordTypeHandler.MCR
+				.getReturnValue("getCombinedIdsUsingRecordId", parameterIndex));
+		recordIndexer.MCR.assertParameter("indexData", parameterIndex, "recordIndexData",
+				termCollector.MCR.getReturnValue("collectTerms", parameterIndex));
 
-		recordIndexer.MCR.assertParameter("indexData", index, "record",
-				storageReadResult.listOfDataGroups.get(index));
+		recordIndexer.MCR.assertParameter("indexData", indexDataCall, "record",
+				storageReadResult.listOfDataGroups.get(indexInReturnedList));
+	}
+
+	@Test
+	public void testCorrectCallToBatchJobStorer() {
+		indexBatchJob.numberOfIndexed = 3;
+		batchRunner.run();
+		assertEquals(storerFactory.indexBatchJobStorerSpies.size(), 12);
+
+		int expectedNumberOfIndexed = 10;
+		for (int i = 0; i < 12; i++) {
+			IndexBatchJobStorerSpy jobStorerSpy = storerFactory.indexBatchJobStorerSpies.get(i);
+			assertEquals(jobStorerSpy.numberOfIndexed, expectedNumberOfIndexed);
+			expectedNumberOfIndexed += 10;
+		}
 	}
 
 }

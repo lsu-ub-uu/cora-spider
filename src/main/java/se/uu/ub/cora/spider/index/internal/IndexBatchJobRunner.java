@@ -34,49 +34,38 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 	private SpiderDependencyProvider dependencyProvider;
 	private IndexBatchJob indexBatchJob;
+	private RecordStorage recordStorage;
+	private RecordTypeHandler recordTypeHandler;
+	private DataGroupTermCollector termCollector;
+	private RecordIndexer recordIndexer;
+	private BatchJobStorerFactory storerFactory;
 
 	public IndexBatchJobRunner(SpiderDependencyProvider dependencyProvider,
-			IndexBatchJob indexBatchJob) {
+			IndexBatchJob indexBatchJob, BatchJobStorerFactory storerFactory) {
 		this.dependencyProvider = dependencyProvider;
 		this.indexBatchJob = indexBatchJob;
+		this.storerFactory = storerFactory;
 	}
 
 	@Override
 	public void run() {
-		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
+		setNeededDependenciesInClass();
+
+		String metadataId = recordTypeHandler.getMetadataId();
 		DataGroup filter = indexBatchJob.filter;
-		RecordTypeHandler recordTypeHandler = dependencyProvider
-				.getRecordTypeHandler(indexBatchJob.recordType);
+		ensureNumberOfIndexedIsZero();
 		int numberRequestedFromListing = 0;
 		int from = 0;
 		int to = 9;
-		setFromAndToInFilter(filter, from, to);
+
 		while (numberRequestedFromListing < indexBatchJob.totalNumberToIndex) {
+			setFromAndToInFilter(filter, from, to);
 
-			// hur veta om abstract list?
-			// yttre loop som sätter antal att läsa i filtret
-			// TODO:läsa abstract list om abstract recordtype??
+			readAndIndexList(metadataId, filter);
 
-			StorageReadResult list = recordStorage.readList(indexBatchJob.recordType, filter);
-
-			String metadataId = recordTypeHandler.getMetadataId();
-
-			RecordIndexer recordIndexer = dependencyProvider.getRecordIndexer();
-			for (DataGroup dataGroup : list.listOfDataGroups) {
-				List<String> combinedIds = recordTypeHandler
-						.getCombinedIdsUsingRecordId(indexBatchJob.recordType);
-				DataGroupTermCollector termCollector = dependencyProvider
-						.getDataGroupTermCollector();
-				DataGroup collectedTerms = termCollector.collectTerms(metadataId, dataGroup);
-				// try {
-				recordIndexer.indexData(combinedIds, collectedTerms, dataGroup);
-				// }catch(){
-				// add to error list
-			}
 			numberRequestedFromListing = to;
 			from = to + 1;
 			to = to + 10;
-			setFromAndToInFilter(filter, from, to);
 
 		}
 		// set numOfIndexed
@@ -103,14 +92,54 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		// when finished write status to indexBatchJob
 	}
 
-	private void setFromAndToInFilter(DataGroup filter, int from, int to) {
-		filter.removeFirstChildWithNameInData("from");
-		filter.removeFirstChildWithNameInData("to");
+	private void setNeededDependenciesInClass() {
+		recordStorage = dependencyProvider.getRecordStorage();
+		recordTypeHandler = dependencyProvider.getRecordTypeHandler(indexBatchJob.recordType);
+		termCollector = dependencyProvider.getDataGroupTermCollector();
+		recordIndexer = dependencyProvider.getRecordIndexer();
+	}
 
-		filter.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("from",
+	private void ensureNumberOfIndexedIsZero() {
+		indexBatchJob.numberOfIndexed = 0;
+	}
+
+	private void readAndIndexList(String metadataId, DataGroup filter) {
+		StorageReadResult list = readList(recordStorage, filter);
+
+		for (DataGroup dataGroup : list.listOfDataGroups) {
+			List<String> combinedIds = recordTypeHandler
+					.getCombinedIdsUsingRecordId(indexBatchJob.recordType);
+			DataGroup collectedTerms = termCollector.collectTerms(metadataId, dataGroup);
+			// try {
+			recordIndexer.indexData(combinedIds, collectedTerms, dataGroup);
+			// }catch(){
+			// add to error list
+		}
+		storeBatchJob();
+	}
+
+	private void storeBatchJob() {
+		BatchJobStorer batchJobStorer = storerFactory.factor();
+		indexBatchJob.numberOfIndexed = indexBatchJob.numberOfIndexed + 10;
+		batchJobStorer.store(indexBatchJob);
+	}
+
+	private StorageReadResult readList(RecordStorage recordStorage, DataGroup filter) {
+		// hur veta om abstract list?
+		// TODO:läsa abstract list om abstract recordtype??
+
+		StorageReadResult list = recordStorage.readList(indexBatchJob.recordType, filter);
+		return list;
+	}
+
+	private void setFromAndToInFilter(DataGroup filter, int from, int to) {
+		filter.removeFirstChildWithNameInData("fromNo");
+		filter.removeFirstChildWithNameInData("toNo");
+
+		filter.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("fromNo",
 				String.valueOf(from)));
-		filter.addChild(
-				DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("to", String.valueOf(to)));
+		filter.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("toNo",
+				String.valueOf(to)));
 	}
 
 	SpiderDependencyProvider getDependencyProvider() {
@@ -119,6 +148,10 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 	IndexBatchJob getIndexBatchJob() {
 		return indexBatchJob;
+	}
+
+	BatchJobStorerFactory getBatchJobStorerFactory() {
+		return storerFactory;
 	}
 
 }

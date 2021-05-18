@@ -18,22 +18,15 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.index.BatchRunner;
-import se.uu.ub.cora.spider.index.BatchRunnerFactory;
+public class IndexBatchJobStorer implements BatchJobStorer {
 
-public class BatchRunnerFactoryImp implements BatchRunnerFactory {
-
-	private SpiderDependencyProvider dependencyProvider;
-
-	public BatchRunnerFactoryImp(SpiderDependencyProvider dependencyProvider) {
-		this.dependencyProvider = dependencyProvider;
-	}
+	public IndexBatchJob indexBatchJob;
 
 	@Override
-	public BatchRunner factor(IndexBatchJob indexBatchJob) {
-		// TODO:fix null to IndexBatchJobStorerFactory
-		return new IndexBatchJobRunner(dependencyProvider, indexBatchJob, null);
+	public String store(IndexBatchJob indexBatchJob) {
+		this.indexBatchJob = indexBatchJob;
+		// TODO Auto-generated method stub
+		return "";
 	}
 
 }

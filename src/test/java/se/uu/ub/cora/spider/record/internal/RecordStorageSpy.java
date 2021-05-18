@@ -44,6 +44,7 @@ public class RecordStorageSpy implements RecordStorage {
 	public Set<String> incomingLinksExistsForType = new HashSet<>();
 	public DataGroup returnForRead = null;
 	public int endNumberToReturn = 0;
+	public List<List<DataGroup>> listOfListOfDataGroups = new ArrayList<>();
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -98,6 +99,7 @@ public class RecordStorageSpy implements RecordStorage {
 		MCR.addCall("type", type, "filter", filter);
 		StorageReadResult createSpiderReadResult = createSpiderReadResult();
 		MCR.addReturned(createSpiderReadResult);
+		listOfListOfDataGroups.add(createSpiderReadResult.listOfDataGroups);
 		return createSpiderReadResult;
 	}
 
