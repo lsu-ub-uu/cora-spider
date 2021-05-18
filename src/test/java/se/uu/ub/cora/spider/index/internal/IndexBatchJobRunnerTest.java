@@ -200,6 +200,9 @@ public class IndexBatchJobRunnerTest {
 		StorageReadResult storageReadResult = (StorageReadResult) recordStorage.MCR
 				.getReturnValue("readList", parameterIndex);
 
+		recordTypeHandler.MCR.assertParameter("getCombinedIdsUsingRecordId", indexDataCall,
+				"recordId", "someId" + indexInReturnedList);
+
 		recordIndexer.MCR.assertParameter("indexData", parameterIndex, "ids", recordTypeHandler.MCR
 				.getReturnValue("getCombinedIdsUsingRecordId", parameterIndex));
 		recordIndexer.MCR.assertParameter("indexData", parameterIndex, "recordIndexData",
@@ -221,6 +224,11 @@ public class IndexBatchJobRunnerTest {
 			assertEquals(jobStorerSpy.numberOfIndexed, expectedNumberOfIndexed);
 			expectedNumberOfIndexed += 10;
 		}
+	}
+
+	@Test
+	public void testErrorIsStoredInIndexBatchJob() {
+
 	}
 
 }

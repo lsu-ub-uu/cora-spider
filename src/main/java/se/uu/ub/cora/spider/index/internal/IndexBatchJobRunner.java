@@ -18,7 +18,9 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataAtomicProvider;
@@ -39,6 +41,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	private DataGroupTermCollector termCollector;
 	private RecordIndexer recordIndexer;
 	private BatchJobStorerFactory storerFactory;
+	private Map<String, String> errors = new HashMap<>();
 
 	public IndexBatchJobRunner(SpiderDependencyProvider dependencyProvider,
 			IndexBatchJob indexBatchJob, BatchJobStorerFactory storerFactory) {
@@ -107,20 +110,25 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		StorageReadResult list = readList(recordStorage, filter);
 
 		for (DataGroup dataGroup : list.listOfDataGroups) {
-			List<String> combinedIds = recordTypeHandler
-					.getCombinedIdsUsingRecordId(indexBatchJob.recordType);
+			List<String> combinedIds = getCombinedIds(dataGroup);
 			DataGroup collectedTerms = termCollector.collectTerms(metadataId, dataGroup);
 			// try {
 			recordIndexer.indexData(combinedIds, collectedTerms, dataGroup);
 			// }catch(){
 			// add to error list
 		}
+		indexBatchJob.numberOfIndexed = indexBatchJob.numberOfIndexed + 10;
 		storeBatchJob();
+	}
+
+	private List<String> getCombinedIds(DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
+		return recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
 	}
 
 	private void storeBatchJob() {
 		BatchJobStorer batchJobStorer = storerFactory.factor();
-		indexBatchJob.numberOfIndexed = indexBatchJob.numberOfIndexed + 10;
 		batchJobStorer.store(indexBatchJob);
 	}
 

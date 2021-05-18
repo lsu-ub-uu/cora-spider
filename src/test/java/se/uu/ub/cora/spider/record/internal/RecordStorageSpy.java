@@ -124,6 +124,7 @@ public class RecordStorageSpy implements RecordStorage {
 			DataGroupSpy type = new DataGroupSpy("type");
 			recordInfo.addChild(type);
 			type.addChild(new DataAtomicSpy("linkedRecordId", "dummyRecordType"));
+			recordInfo.addChild(new DataAtomicSpy("id", "someId" + i));
 			listOfDataGroups.add(topDataGroup);
 			i++;
 		}
