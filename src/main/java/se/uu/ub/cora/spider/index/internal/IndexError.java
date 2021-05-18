@@ -18,23 +18,15 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
-import java.util.ArrayList;
-import java.util.List;
+public class IndexError {
 
-import se.uu.ub.cora.data.DataGroup;
+	public String recordId;
+	public String message;
+	// TODO:timestamp??
 
-public class IndexBatchJob {
-
-	public String recordType;
-	public DataGroup filter;
-	public long totalNumberToIndex;
-	public long numberOfIndexed;
-	public List<IndexError> errors = new ArrayList<>();
-	public String status;
-
-	public IndexBatchJob(String recordType, DataGroup dataGroupFilter) {
-		this.recordType = recordType;
-		this.filter = dataGroupFilter;
-		status = "started";
+	public IndexError(String recordId, String message) {
+		this.recordId = recordId;
+		this.message = message;
 	}
+
 }

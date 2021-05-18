@@ -18,9 +18,8 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataAtomicProvider;
@@ -41,7 +40,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	private DataGroupTermCollector termCollector;
 	private RecordIndexer recordIndexer;
 	private BatchJobStorerFactory storerFactory;
-	private Map<String, String> errors = new HashMap<>();
+	private List<IndexError> errors = new ArrayList<>();
 
 	public IndexBatchJobRunner(SpiderDependencyProvider dependencyProvider,
 			IndexBatchJob indexBatchJob, BatchJobStorerFactory storerFactory) {
@@ -64,13 +63,14 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		while (numberRequestedFromListing < indexBatchJob.totalNumberToIndex) {
 			setFromAndToInFilter(filter, from, to);
 
-			readAndIndexList(metadataId, filter);
+			readListAndIndexData(metadataId, filter);
 
 			numberRequestedFromListing = to;
 			from = to + 1;
 			to = to + 10;
 
 		}
+		updateIndexBatchJob();
 		// set numOfIndexed
 		// indexBatchJob.numOfIndexed = 10;
 		// IndexBatchJob.errors
@@ -85,9 +85,6 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		// loop records, send each to indexing
 		// list records as specified in indexBatchJob, in groups of 10
 		// read indexBatchJob (to see if it should be paused)
-
-		// WorkOrderExecutor contains code that indexes 1 record, break out to new class, use from
-		// there and in here
 
 		// update indexBatchJob with info about the ten just indexed
 		// get next group of 10 repeat
@@ -106,30 +103,14 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		indexBatchJob.numberOfIndexed = 0;
 	}
 
-	private void readAndIndexList(String metadataId, DataGroup filter) {
+	private void readListAndIndexData(String metadataId, DataGroup filter) {
 		StorageReadResult list = readList(recordStorage, filter);
 
 		for (DataGroup dataGroup : list.listOfDataGroups) {
-			List<String> combinedIds = getCombinedIds(dataGroup);
-			DataGroup collectedTerms = termCollector.collectTerms(metadataId, dataGroup);
-			// try {
-			recordIndexer.indexData(combinedIds, collectedTerms, dataGroup);
-			// }catch(){
-			// add to error list
+			indexData(metadataId, dataGroup);
 		}
 		indexBatchJob.numberOfIndexed = indexBatchJob.numberOfIndexed + 10;
 		storeBatchJob();
-	}
-
-	private List<String> getCombinedIds(DataGroup dataGroup) {
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
-		return recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
-	}
-
-	private void storeBatchJob() {
-		BatchJobStorer batchJobStorer = storerFactory.factor();
-		batchJobStorer.store(indexBatchJob);
 	}
 
 	private StorageReadResult readList(RecordStorage recordStorage, DataGroup filter) {
@@ -140,6 +121,33 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		return list;
 	}
 
+	private void indexData(String metadataId, DataGroup dataGroup) {
+		String recordId = getRecordId(dataGroup);
+		try {
+			tryToIndexData(metadataId, recordId, dataGroup);
+		} catch (Exception e) {
+			IndexError error = new IndexError(recordId, e.getMessage());
+			errors.add(error);
+
+		}
+	}
+
+	private String getRecordId(DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		return recordInfo.getFirstAtomicValueWithNameInData("id");
+	}
+
+	private void tryToIndexData(String metadataId, String recordId, DataGroup dataGroup) {
+		List<String> combinedIds = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
+		DataGroup collectedTerms = termCollector.collectTerms(metadataId, dataGroup);
+		recordIndexer.indexData(combinedIds, collectedTerms, dataGroup);
+	}
+
+	private void storeBatchJob() {
+		BatchJobStorer batchJobStorer = storerFactory.factor();
+		batchJobStorer.store(indexBatchJob);
+	}
+
 	private void setFromAndToInFilter(DataGroup filter, int from, int to) {
 		filter.removeFirstChildWithNameInData("fromNo");
 		filter.removeFirstChildWithNameInData("toNo");
@@ -148,6 +156,12 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 				String.valueOf(from)));
 		filter.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("toNo",
 				String.valueOf(to)));
+	}
+
+	private void updateIndexBatchJob() {
+		indexBatchJob.errors.addAll(errors);
+		indexBatchJob.status = "finished";
+		storeBatchJob();
 	}
 
 	SpiderDependencyProvider getDependencyProvider() {

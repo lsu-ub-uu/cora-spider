@@ -17,6 +17,7 @@ public class RecordIndexerSpy implements RecordIndexer {
 
 	public boolean indexDataHasBeenCalled = false;
 	public List<String> ids = new ArrayList<>();
+	public boolean throwErrorOnEvenCalls = false;
 
 	@Override
 	public void indexData(List<String> ids, DataGroup recordIndexData, DataGroup record) {
@@ -25,6 +26,11 @@ public class RecordIndexerSpy implements RecordIndexer {
 		this.recordIndexData = recordIndexData;
 		this.record = record;
 		indexDataHasBeenCalled = true;
+		if (throwErrorOnEvenCalls) {
+			if (MCR.getNumberOfCallsToMethod("indexData") % 2 == 0) {
+				throw new RuntimeException("Some error from spy");
+			}
+		}
 	}
 
 	@Override

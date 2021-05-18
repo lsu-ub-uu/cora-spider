@@ -23,6 +23,7 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
@@ -216,7 +217,7 @@ public class IndexBatchJobRunnerTest {
 	public void testCorrectCallToBatchJobStorer() {
 		indexBatchJob.numberOfIndexed = 3;
 		batchRunner.run();
-		assertEquals(storerFactory.indexBatchJobStorerSpies.size(), 12);
+		assertEquals(storerFactory.indexBatchJobStorerSpies.size(), 13);
 
 		int expectedNumberOfIndexed = 10;
 		for (int i = 0; i < 12; i++) {
@@ -228,7 +229,24 @@ public class IndexBatchJobRunnerTest {
 
 	@Test
 	public void testErrorIsStoredInIndexBatchJob() {
+		recordIndexer.throwErrorOnEvenCalls = true;
+		batchRunner.run();
+		IndexBatchJobStorerSpy indexBatchJobStorerSpy = storerFactory.indexBatchJobStorerSpies
+				.get(12);
+		List<IndexError> errors = indexBatchJobStorerSpy.indexBatchJob.errors;
+		assertEquals(errors.size(), 12);
+		assertEquals(errors.get(0).recordId, "someId1");
+		assertEquals(errors.get(0).message, "Some error from spy");
+		assertEquals(errors.get(11).recordId, "someId1");
+		assertEquals(errors.get(11).message, "Some error from spy");
+	}
 
+	@Test
+	public void testStatusInIndexBatchJob() {
+		batchRunner.run();
+		IndexBatchJobStorerSpy indexBatchJobStorerSpy = storerFactory.indexBatchJobStorerSpies
+				.get(12);
+		assertEquals(indexBatchJobStorerSpy.indexBatchJob.status, "finished");
 	}
 
 }
