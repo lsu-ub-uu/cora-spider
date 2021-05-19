@@ -42,9 +42,9 @@ public interface SpiderInstanceFactory {
 
 	RecordListReader factorRecordListReader();
 
-	RecordCreator factorRecordCreator(String recordType);
+	RecordCreator factorRecordCreator();
 
-	RecordUpdater factorRecordUpdater(String recordType);
+	RecordUpdater factorRecordUpdater();
 
 	RecordDeleter factorRecordDeleter();
 

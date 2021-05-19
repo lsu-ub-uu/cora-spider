@@ -58,14 +58,14 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public RecordCreator factorRecordCreator(String recordType) {
+	public RecordCreator factorRecordCreator() {
 		creatorFactoryWasCalled = true;
 		this.recordType = recordType;
 		return null;
 	}
 
 	@Override
-	public RecordUpdater factorRecordUpdater(String recordType) {
+	public RecordUpdater factorRecordUpdater() {
 		updaterFactoryWasCalled = true;
 		this.recordType = recordType;
 		return null;

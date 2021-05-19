@@ -100,10 +100,7 @@ public class UserUpdaterForAppTokenTest {
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
 		dependencyProvider.dataValidator = dataValidator;
-		// RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		// recordStorageProviderSpy.recordStorage = recordStorage;
 		dependencyProvider.recordStorage = recordStorage;
-		// dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
 
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.linkCollector = linkCollector;
@@ -136,7 +133,6 @@ public class UserUpdaterForAppTokenTest {
 		assertEquals(apptokenLink.getFirstAtomicValueWithNameInData("linkedRecordId"),
 				"someAppTokenId");
 		assertNotNull(userAppTokenGroup.getRepeatId());
-		assertEquals(spiderInstanceFactory.recordType, "systemOneUser");
 	}
 
 }

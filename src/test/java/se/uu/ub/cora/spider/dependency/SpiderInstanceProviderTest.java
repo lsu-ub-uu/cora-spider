@@ -87,7 +87,6 @@ public class SpiderInstanceProviderTest {
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		SpiderInstanceProvider.getRecordCreator("someRecordType");
 		assertTrue(factory.creatorFactoryWasCalled);
-		assertEquals(factory.recordType, "someRecordType");
 	}
 
 	@Test
@@ -96,7 +95,6 @@ public class SpiderInstanceProviderTest {
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		SpiderInstanceProvider.getRecordUpdater("someRecordType");
 		assertTrue(factory.updaterFactoryWasCalled);
-		assertEquals(factory.recordType, "someRecordType");
 	}
 
 	@Test

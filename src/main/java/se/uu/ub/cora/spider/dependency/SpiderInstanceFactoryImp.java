@@ -74,15 +74,7 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public RecordCreator factorRecordCreator(String recordType) {
-		if ("indexBatchJob".equals(recordType)) {
-			// return new IndexBatchJobCreatorOrOtherBetterName();
-			return null;
-		}
-		return returnDefaultCreator();
-	}
-
-	private RecordCreator returnDefaultCreator() {
+	public RecordCreator factorRecordCreator() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
 		return RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -90,7 +82,7 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public RecordUpdater factorRecordUpdater(String recordType) {
+	public RecordUpdater factorRecordUpdater() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
 		return RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(

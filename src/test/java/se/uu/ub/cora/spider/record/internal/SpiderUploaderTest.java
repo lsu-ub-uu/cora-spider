@@ -179,11 +179,6 @@ public class SpiderUploaderTest {
 
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 
-		SpiderInstanceFactorySpy2 spiderInstanceFactorySpy2 = (SpiderInstanceFactorySpy2) spiderInstanceFactory;
-		assertEquals(spiderInstanceFactorySpy2.createdUpdaters.get(0).authToken,
-				"someToken78678567");
-		assertEquals(spiderInstanceFactorySpy2.recordType, "image");
-
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)

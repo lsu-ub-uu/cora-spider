@@ -44,7 +44,6 @@ import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.record.internal.IndexBatchJobCreatorOrOtherBetterName;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
 
@@ -96,8 +95,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordCreator() {
-		RecordCreator recordCreator = factory.factorRecordCreator("someRecordType");
-		RecordCreator recordCreator2 = factory.factorRecordCreator("someRecordType");
+		RecordCreator recordCreator = factory.factorRecordCreator();
+		RecordCreator recordCreator2 = factory.factorRecordCreator();
 		assertNotNull(recordCreator);
 		assertNotNull(recordCreator2);
 		assertNotSame(recordCreator, recordCreator2);
@@ -105,8 +104,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordUpdater() {
-		RecordUpdater recordUpdater = factory.factorRecordUpdater("onlyDefaultUpdateImplemented");
-		RecordUpdater recordUpdater2 = factory.factorRecordUpdater("onlyDefaultUpdateImplemented");
+		RecordUpdater recordUpdater = factory.factorRecordUpdater();
+		RecordUpdater recordUpdater2 = factory.factorRecordUpdater();
 		assertNotNull(recordUpdater);
 		assertNotNull(recordUpdater2);
 		assertNotSame(recordUpdater, recordUpdater2);
@@ -160,22 +159,11 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void testDefaultCreatorImplementation() {
-
-		RecordCreatorImp spiderRecordCreator = (RecordCreatorImp) factory
-				.factorRecordCreator("someRecordType");
-
+		RecordCreatorImp spiderRecordCreator = (RecordCreatorImp) factory.factorRecordCreator();
 		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) spiderRecordCreator
 				.getDataGroupToRecordEnhancer();
 
 		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
-
-	}
-
-	@Test(enabled = false)
-	public void testIndexBatchJobCreatorImplementation() {
-
-		RecordCreator recordCreator = factory.factorRecordCreator("indexBatchJob");
-		assertTrue(recordCreator instanceof IndexBatchJobCreatorOrOtherBetterName);
 
 	}
 }
