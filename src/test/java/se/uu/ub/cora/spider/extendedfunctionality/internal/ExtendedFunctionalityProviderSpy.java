@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
 
 public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityProvider {
