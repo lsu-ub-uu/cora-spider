@@ -30,11 +30,13 @@ public class IndexBatchJobTest {
 	@Test
 	public void testInit() {
 		String recordType = "someRecordType";
+		String recordId = "someRecordId";
 		DataGroup dataGroupFilter = new DataGroupSpy("filter");
 
-		IndexBatchJob indexBatchJob = new IndexBatchJob(recordType, dataGroupFilter);
+		IndexBatchJob indexBatchJob = new IndexBatchJob(recordType, recordId, dataGroupFilter);
 
 		assertEquals(indexBatchJob.recordType, recordType);
+		assertEquals(indexBatchJob.recordId, recordId);
 		assertEquals(indexBatchJob.filter, dataGroupFilter);
 		assertEquals(indexBatchJob.status, "started");
 	}

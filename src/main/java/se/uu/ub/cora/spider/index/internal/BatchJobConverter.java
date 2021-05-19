@@ -18,16 +18,10 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
-public class IndexBatchJobStorerSpy implements BatchJobStorer {
+import se.uu.ub.cora.data.DataGroup;
 
-	public IndexBatchJob indexBatchJob;
-	public long numberOfIndexed;
+public interface BatchJobConverter {
 
-	@Override
-	public String store(IndexBatchJob indexBatchJob) {
-		this.indexBatchJob = indexBatchJob;
-		numberOfIndexed = indexBatchJob.numberSentToIndex;
-		return null;
-	}
+	DataGroup updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup);
 
 }

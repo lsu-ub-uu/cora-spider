@@ -73,7 +73,7 @@ public class IndexBatchJobRunnerTest {
 
 	private void createDefaultParameters() {
 		dataGroupFilter = new DataGroupSpy("filter");
-		indexBatchJob = new IndexBatchJob("someRecordType", dataGroupFilter);
+		indexBatchJob = new IndexBatchJob("someRecordType", "someRecordId", dataGroupFilter);
 		indexBatchJob.totalNumberToIndex = 117;
 	}
 
@@ -215,15 +215,15 @@ public class IndexBatchJobRunnerTest {
 
 	@Test
 	public void testCorrectCallToBatchJobStorer() {
-		indexBatchJob.numberOfIndexed = 3;
+		indexBatchJob.numberSentToIndex = 3;
 		batchRunner.run();
 		assertEquals(storerFactory.indexBatchJobStorerSpies.size(), 13);
 
-		int expectedNumberOfIndexed = 10;
+		int expectedNumberOfIndexedReturnedFromSpy = 2;
 		for (int i = 0; i < 12; i++) {
 			IndexBatchJobStorerSpy jobStorerSpy = storerFactory.indexBatchJobStorerSpies.get(i);
-			assertEquals(jobStorerSpy.numberOfIndexed, expectedNumberOfIndexed);
-			expectedNumberOfIndexed += 10;
+			assertEquals(jobStorerSpy.numberOfIndexed, expectedNumberOfIndexedReturnedFromSpy);
+			expectedNumberOfIndexedReturnedFromSpy += 2;
 		}
 	}
 
@@ -247,6 +247,8 @@ public class IndexBatchJobRunnerTest {
 		IndexBatchJobStorerSpy indexBatchJobStorerSpy = storerFactory.indexBatchJobStorerSpies
 				.get(12);
 		assertEquals(indexBatchJobStorerSpy.indexBatchJob.status, "finished");
+		assertEquals(indexBatchJobStorerSpy.indexBatchJob.numberSentToIndex, 24);
+
 	}
 
 }

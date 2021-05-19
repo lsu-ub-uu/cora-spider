@@ -18,16 +18,16 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
-public class IndexBatchJobStorerSpy implements BatchJobStorer {
+import static org.testng.Assert.assertTrue;
 
-	public IndexBatchJob indexBatchJob;
-	public long numberOfIndexed;
+import org.testng.annotations.Test;
 
-	@Override
-	public String store(IndexBatchJob indexBatchJob) {
-		this.indexBatchJob = indexBatchJob;
-		numberOfIndexed = indexBatchJob.numberSentToIndex;
-		return null;
+public class IndexBatchJobConverterFactoryTest {
+
+	@Test
+	public void testFactor() {
+		BatchJobConverterFactory converterFactory = new IndexBatchJobConverterFactory();
+		BatchJobConverter converter = converterFactory.factor();
+		assertTrue(converter instanceof IndexBatchJobConverter);
 	}
-
 }

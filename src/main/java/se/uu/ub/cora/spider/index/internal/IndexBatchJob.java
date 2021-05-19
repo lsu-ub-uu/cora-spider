@@ -28,12 +28,14 @@ public class IndexBatchJob {
 	public String recordType;
 	public DataGroup filter;
 	public long totalNumberToIndex;
-	public long numberOfIndexed;
+	public long numberSentToIndex;
 	public List<IndexError> errors = new ArrayList<>();
 	public String status;
+	public String recordId;
 
-	public IndexBatchJob(String recordType, DataGroup dataGroupFilter) {
+	public IndexBatchJob(String recordType, String recordId, DataGroup dataGroupFilter) {
 		this.recordType = recordType;
+		this.recordId = recordId;
 		this.filter = dataGroupFilter;
 		status = "started";
 	}

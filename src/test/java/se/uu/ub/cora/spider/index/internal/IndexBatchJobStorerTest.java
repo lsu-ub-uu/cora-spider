@@ -19,20 +19,95 @@
 package se.uu.ub.cora.spider.index.internal;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.record.internal.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
+import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 
 public class IndexBatchJobStorerTest {
+	private SpiderDependencyProviderSpy dependencyProvider;
+	private RecordStorageSpy recordStorage;
+	private IndexBatchJob indexBatchJob;
+	private BatchJobConverterFactorySpy converterFactory;
+	private DataGroupTermCollectorSpy termCollector;
+	private DataRecordLinkCollectorSpy linkCollector;
 
-	@Test
-	public void testInit() {
-		BatchJobStorer storer = new IndexBatchJobStorer();
-		IndexBatchJob indexBatchJob = new IndexBatchJob("someRecordType",
-				new DataGroupSpy("filter"));
-		String answer = storer.store(indexBatchJob);
-		assertEquals(answer, "");
+	@BeforeMethod
+	public void setUp() {
+		Map<String, String> initInfo = new HashMap<>();
+		recordStorage = new RecordStorageSpy();
+		termCollector = new DataGroupTermCollectorSpy();
+		linkCollector = new DataRecordLinkCollectorSpy();
+		dependencyProvider = new SpiderDependencyProviderSpy(initInfo);
+		dependencyProvider.recordStorage = recordStorage;
+		dependencyProvider.termCollector = termCollector;
+		dependencyProvider.linkCollector = linkCollector;
+
+		converterFactory = new BatchJobConverterFactorySpy();
+		createDefaultBatchJob();
 	}
 
+	@Test
+	public void testCorrectRead() {
+		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider, converterFactory);
+		storer.store(indexBatchJob);
+
+		recordStorage.MCR.assertParameter("read", 0, "type", "indexBatchJob");
+		recordStorage.MCR.assertParameter("read", 0, "id", "someRecordId");
+	}
+
+	@Test
+	public void testCorrectCallToLinkCollector() {
+		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider, converterFactory);
+		storer.store(indexBatchJob);
+
+		assertEquals(linkCollector.recordType, "indexBatchJob");
+		assertEquals(linkCollector.recordId, "someRecordId");
+		assertSame(linkCollector.dataGroup, converterFactory.returnedConverter.returnedDataGroup);
+		String metadataIdFromTypeHandler = (String) dependencyProvider.recordTypeHandlerSpy.MCR
+				.getReturnValue("getMetadataId", 0);
+		assertEquals(linkCollector.metadataId, metadataIdFromTypeHandler);
+	}
+
+	@Test
+	public void testStore() {
+		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider, converterFactory);
+		storer.store(indexBatchJob);
+
+		BatchJobConverterSpy returnedConverter = converterFactory.returnedConverter;
+		assertSame(returnedConverter.indexBatchJob, indexBatchJob);
+		assertSame(returnedConverter.dataGroup, recordStorage.MCR.getReturnValue("read", 0));
+
+		Map<String, Object> parameters = recordStorage.MCR
+				.getParametersForMethodAndCallNumber("update", 0);
+		assertSame(parameters.get("record"), returnedConverter.returnedDataGroup);
+		assertEquals(parameters.get("type"), "indexBatchJob");
+		assertEquals(parameters.get("id"), "someRecordId");
+		assertSame(parameters.get("linkList"), linkCollector.collectedDataLinks);
+	}
+
+	private void createDefaultBatchJob() {
+		indexBatchJob = new IndexBatchJob("someRecordType", "someRecordId",
+				new DataGroupSpy("filter"));
+		indexBatchJob.numberSentToIndex = 80;
+		createAndAddErrors();
+	}
+
+	private void createAndAddErrors() {
+		List<IndexError> errors = new ArrayList<>();
+		errors.add(new IndexError("someId3", "Error while indexing"));
+		errors.add(new IndexError("someId89", "IOException while indexing"));
+		indexBatchJob.errors.addAll(errors);
+	}
 }

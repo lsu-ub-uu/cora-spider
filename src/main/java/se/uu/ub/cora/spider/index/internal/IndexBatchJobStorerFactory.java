@@ -22,7 +22,7 @@ public class IndexBatchJobStorerFactory implements BatchJobStorerFactory {
 
 	@Override
 	public BatchJobStorer factor() {
-		return new IndexBatchJobStorer();
+		return new IndexBatchJobStorer(null, null);
 	}
 
 }

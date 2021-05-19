@@ -18,16 +18,12 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
-public class IndexBatchJobStorerSpy implements BatchJobStorer {
+public interface BatchJobConverterFactory {
 
-	public IndexBatchJob indexBatchJob;
-	public long numberOfIndexed;
-
-	@Override
-	public String store(IndexBatchJob indexBatchJob) {
-		this.indexBatchJob = indexBatchJob;
-		numberOfIndexed = indexBatchJob.numberSentToIndex;
-		return null;
-	}
+	/**
+	 * Creates a {@link BatchJobConverter}. A new instance of {@link BatchJobConverter} SHOULD be
+	 * created for each call.
+	 */
+	BatchJobConverter factor();
 
 }

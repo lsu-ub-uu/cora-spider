@@ -52,44 +52,10 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	@Override
 	public void run() {
 		setNeededDependenciesInClass();
-
 		String metadataId = recordTypeHandler.getMetadataId();
-		DataGroup filter = indexBatchJob.filter;
 		ensureNumberOfIndexedIsZero();
-		int numberRequestedFromListing = 0;
-		int from = 0;
-		int to = 9;
-
-		while (numberRequestedFromListing < indexBatchJob.totalNumberToIndex) {
-			setFromAndToInFilter(filter, from, to);
-
-			readListAndIndexData(metadataId, filter);
-
-			numberRequestedFromListing = to;
-			from = to + 1;
-			to = to + 10;
-
-		}
-		updateIndexBatchJob();
-		// set numOfIndexed
-		// indexBatchJob.numOfIndexed = 10;
-		// IndexBatchJob.errors
-
-		// send indexBatchJob to other place - storeThisShit
-		// convertBackToDataGRoup
-		// send dataGroup to update
-		// recordUpdater.update()
-		// recordStorage.update(metadataId, metadataId, dataGroup, collectedTerms, collectedTerms,
-		// metadataId);
-
-		// loop records, send each to indexing
-		// list records as specified in indexBatchJob, in groups of 10
-		// read indexBatchJob (to see if it should be paused)
-
-		// update indexBatchJob with info about the ten just indexed
-		// get next group of 10 repeat
-
-		// when finished write status to indexBatchJob
+		readListAndIndexDataInBatches(metadataId);
+		updateIndexBatchJobAsFinished();
 	}
 
 	private void setNeededDependenciesInClass() {
@@ -100,23 +66,65 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	}
 
 	private void ensureNumberOfIndexedIsZero() {
-		indexBatchJob.numberOfIndexed = 0;
+		indexBatchJob.numberSentToIndex = 0;
 	}
 
-	private void readListAndIndexData(String metadataId, DataGroup filter) {
-		StorageReadResult list = readList(recordStorage, filter);
+	private void readListAndIndexDataInBatches(String metadataId) {
+		int numberRequestedFromListing = 0;
+		int from = 0;
+		int to = 9;
 
-		for (DataGroup dataGroup : list.listOfDataGroups) {
+		while (numberRequestedFromListing < indexBatchJob.totalNumberToIndex) {
+			setFromAndToInFilter(from, to);
+			// TODO: ?? read indexBatchJob (to see if it should be paused)
+			readListAndIndexData(metadataId);
+
+			numberRequestedFromListing = to;
+			from = to + 1;
+			to = to + 10;
+
+		}
+	}
+
+	private void setFromAndToInFilter(int from, int to) {
+		DataGroup filter = indexBatchJob.filter;
+		removePreviousFromAndTo(filter);
+		addFromAndTo(from, to, filter);
+	}
+
+	private void removePreviousFromAndTo(DataGroup filter) {
+		filter.removeFirstChildWithNameInData("fromNo");
+		filter.removeFirstChildWithNameInData("toNo");
+	}
+
+	private void addFromAndTo(int from, int to, DataGroup filter) {
+		filter.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("fromNo",
+				String.valueOf(from)));
+		filter.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("toNo",
+				String.valueOf(to)));
+	}
+
+	private void readListAndIndexData(String metadataId) {
+		StorageReadResult readResult = readList(recordStorage);
+
+		for (DataGroup dataGroup : readResult.listOfDataGroups) {
 			indexData(metadataId, dataGroup);
 		}
-		indexBatchJob.numberOfIndexed = indexBatchJob.numberOfIndexed + 10;
+
+		increaseNumOfIndexedInBatchJob(readResult);
+	}
+
+	private void increaseNumOfIndexedInBatchJob(StorageReadResult readResult) {
+		int numberOfRecordsSentToIndex = readResult.listOfDataGroups.size();
+		indexBatchJob.numberSentToIndex = indexBatchJob.numberSentToIndex
+				+ numberOfRecordsSentToIndex;
 		storeBatchJob();
 	}
 
-	private StorageReadResult readList(RecordStorage recordStorage, DataGroup filter) {
+	private StorageReadResult readList(RecordStorage recordStorage) {
 		// hur veta om abstract list?
 		// TODO:läsa abstract list om abstract recordtype??
-
+		DataGroup filter = indexBatchJob.filter;
 		StorageReadResult list = recordStorage.readList(indexBatchJob.recordType, filter);
 		return list;
 	}
@@ -128,7 +136,6 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		} catch (Exception e) {
 			IndexError error = new IndexError(recordId, e.getMessage());
 			errors.add(error);
-
 		}
 	}
 
@@ -148,17 +155,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		batchJobStorer.store(indexBatchJob);
 	}
 
-	private void setFromAndToInFilter(DataGroup filter, int from, int to) {
-		filter.removeFirstChildWithNameInData("fromNo");
-		filter.removeFirstChildWithNameInData("toNo");
-
-		filter.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("fromNo",
-				String.valueOf(from)));
-		filter.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("toNo",
-				String.valueOf(to)));
-	}
-
-	private void updateIndexBatchJob() {
+	private void updateIndexBatchJobAsFinished() {
 		indexBatchJob.errors.addAll(errors);
 		indexBatchJob.status = "finished";
 		storeBatchJob();
