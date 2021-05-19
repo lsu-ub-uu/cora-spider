@@ -19,30 +19,16 @@
 package se.uu.ub.cora.spider.index.internal;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
 
 public class BatchJobConverterSpy implements BatchJobConverter {
 
 	public IndexBatchJob indexBatchJob;
 	public DataGroup dataGroup;
-	public DataGroupSpy returnedDataGroup;
 
 	@Override
-	public DataGroup updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+	public void updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
 		this.indexBatchJob = indexBatchJob;
 		this.dataGroup = dataGroup;
-		returnedDataGroup = new DataGroupSpy("indexBatchJob");
-		addRecordInfo();
-		return returnedDataGroup;
-	}
-
-	private void addRecordInfo() {
-		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
-		DataGroupSpy dataDivider = new DataGroupSpy("dataDivider");
-		dataDivider.addChild(new DataAtomicSpy("linkedRecordId", "someDataDivider"));
-		recordInfo.addChild(dataDivider);
-		returnedDataGroup.addChild(recordInfo);
 	}
 
 }

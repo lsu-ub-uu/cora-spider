@@ -55,7 +55,6 @@ public class IndexBatchJobConverterTest {
 
 	@Test
 	public void testUpdateNumOfProcessedRecordsInDataGroup() {
-
 		converter.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
 		assertEquals(indexBatchJobDataGroup.removedNameInDatas.get(0), "numOfProcessedRecords");
 		assertEquals(atomicFactory.nameInDatas.get(0), "numOfProcessedRecords");
@@ -69,8 +68,36 @@ public class IndexBatchJobConverterTest {
 		converter.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
 		List<DataGroup> errors2 = indexBatchJobDataGroup.getAllGroupsWithNameInData("error");
 		assertEquals(errors2.size(), 3);
+
+		assertCorrectError(0, "0", "someRecordId", "some read error message");
 		assertCorrectError(1, "1", "recordIdOne", "some index error message");
 		assertCorrectError(2, "2", "recordIdTwo", "some other index error message");
+	}
+
+	@Test
+	public void testStatusStartedDoesNotOverwriteStorage() {
+		indexBatchJob.status = "started";
+
+		assertStatusInUpdatedDataGroupEquals("someStatus");
+	}
+
+	@Test
+	public void testStatusPausedDoesNotOverwriteStorage() {
+		indexBatchJob.status = "paused";
+
+		assertStatusInUpdatedDataGroupEquals("someStatus");
+	}
+
+	@Test
+	public void testStatusFinishedDoesOverwriteStorage() {
+		indexBatchJob.status = "finished";
+
+		assertStatusInUpdatedDataGroupEquals("finished");
+	}
+
+	private void assertStatusInUpdatedDataGroupEquals(String expected) {
+		converter.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
+		assertEquals(indexBatchJobDataGroup.getFirstAtomicValueWithNameInData("status"), expected);
 	}
 
 	private void assertCorrectError(int index, String repeatId, String recordId, String message) {
@@ -84,12 +111,17 @@ public class IndexBatchJobConverterTest {
 	private DataGroupSpy createDataGroup() {
 		DataGroupSpy indexBatchJobDataGroup = new DataGroupSpy("indexBatchJob");
 		indexBatchJobDataGroup.addChild(new DataAtomicSpy("numOfProcessedRecords", "34"));
+		indexBatchJobDataGroup.addChild(new DataAtomicSpy("status", "someStatus"));
+		createAndAddErrorDataGroup(indexBatchJobDataGroup);
+		return indexBatchJobDataGroup;
+	}
+
+	private void createAndAddErrorDataGroup(DataGroupSpy indexBatchJobDataGroup) {
 		DataGroupSpy error = new DataGroupSpy("error");
 		error.setRepeatId("0");
 		error.addChild(new DataAtomicSpy("recordId", "someRecordId"));
-		error.addChild(new DataAtomicSpy("message", "some read message"));
+		error.addChild(new DataAtomicSpy("message", "some read error message"));
 		indexBatchJobDataGroup.addChild(error);
-		return indexBatchJobDataGroup;
 	}
 
 	private IndexBatchJob createIndexBatchJob() {
@@ -98,11 +130,15 @@ public class IndexBatchJobConverterTest {
 		indexBatchJob.numOfProcessedRecords = 67;
 		indexBatchJob.status = "started";
 		indexBatchJob.totalNumberToIndex = 198;
+		createAndAddErrors(indexBatchJob);
+		return indexBatchJob;
+	}
+
+	private void createAndAddErrors(IndexBatchJob indexBatchJob) {
 		List<IndexError> errors = new ArrayList<>();
 		errors.add(new IndexError("recordIdOne", "some index error message"));
 		errors.add(new IndexError("recordIdTwo", "some other index error message"));
 		indexBatchJob.errors = errors;
-		return indexBatchJob;
 	}
 
 }

@@ -26,20 +26,28 @@ import se.uu.ub.cora.data.DataGroupProvider;
 public class IndexBatchJobConverter implements BatchJobConverter {
 
 	@Override
-	public DataGroup updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+	public void updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
 		updateNumOfProcessedRecordsInDataGroup(indexBatchJob, dataGroup);
-
 		updateIndexErrorsInDataGroup(indexBatchJob, dataGroup);
+		possiblyUpdateStatus(indexBatchJob, dataGroup);
+	}
 
-		return null;
+	private void updateNumOfProcessedRecordsInDataGroup(IndexBatchJob indexBatchJob,
+			DataGroup dataGroup) {
+		dataGroup.removeFirstChildWithNameInData("numOfProcessedRecords");
+
+		DataAtomic updatedNumOfProcessedRecords = DataAtomicProvider
+				.getDataAtomicUsingNameInDataAndValue("numOfProcessedRecords",
+						String.valueOf(indexBatchJob.numOfProcessedRecords));
+
+		dataGroup.addChild(updatedNumOfProcessedRecords);
 	}
 
 	private void updateIndexErrorsInDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
 		for (IndexError indexError : indexBatchJob.errors) {
 			convertIndexErrorAndAddToDataGroup(dataGroup, indexError);
 		}
-
-		setConsecutiveRepeatIds(dataGroup);
+		setConsecutiveRepeatIdsForErrors(dataGroup);
 	}
 
 	private void convertIndexErrorAndAddToDataGroup(DataGroup dataGroup, IndexError indexError) {
@@ -51,22 +59,24 @@ public class IndexBatchJobConverter implements BatchJobConverter {
 		dataGroup.addChild(errorDataGroup);
 	}
 
-	private void setConsecutiveRepeatIds(DataGroup dataGroup) {
+	private void setConsecutiveRepeatIdsForErrors(DataGroup dataGroup) {
 		for (int i = 0; i < dataGroup.getAllGroupsWithNameInData("error").size(); i++) {
 			DataGroup errorDataGroup = dataGroup.getAllGroupsWithNameInData("error").get(i);
 			errorDataGroup.setRepeatId(String.valueOf(i));
 		}
 	}
 
-	private void updateNumOfProcessedRecordsInDataGroup(IndexBatchJob indexBatchJob,
-			DataGroup dataGroup) {
-		dataGroup.removeFirstChildWithNameInData("numOfProcessedRecords");
+	private void possiblyUpdateStatus(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+		if (newStatusIsFinished(indexBatchJob)) {
+			dataGroup.removeFirstChildWithNameInData("status");
+			DataAtomic status = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("status",
+					indexBatchJob.status);
+			dataGroup.addChild(status);
+		}
+	}
 
-		DataAtomic updatedNumOfProcessedRecordsDataAtomic = DataAtomicProvider
-				.getDataAtomicUsingNameInDataAndValue("numOfProcessedRecords",
-						String.valueOf(indexBatchJob.numOfProcessedRecords));
-
-		dataGroup.addChild(updatedNumOfProcessedRecordsDataAtomic);
+	private boolean newStatusIsFinished(IndexBatchJob indexBatchJob) {
+		return "finished".equals(indexBatchJob.status);
 	}
 
 }

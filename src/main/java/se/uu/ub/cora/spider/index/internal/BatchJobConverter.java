@@ -22,6 +22,6 @@ import se.uu.ub.cora.data.DataGroup;
 
 public interface BatchJobConverter {
 
-	DataGroup updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup);
+	void updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup);
 
 }

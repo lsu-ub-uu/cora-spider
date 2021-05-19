@@ -82,7 +82,6 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 			numberRequestedFromListing = to;
 			from = to + 1;
 			to = to + 10;
-			// TODO: reset errors efter varje loop
 		}
 	}
 
@@ -111,14 +110,8 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 			indexData(metadataId, dataGroup);
 		}
 
-		increaseNumOfIndexedInBatchJob(readResult);
-	}
-
-	private void increaseNumOfIndexedInBatchJob(StorageReadResult readResult) {
-		int numberOfRecordsSentToIndex = readResult.listOfDataGroups.size();
-		indexBatchJob.numOfProcessedRecords = indexBatchJob.numOfProcessedRecords
-				+ numberOfRecordsSentToIndex;
-		storeBatchJob();
+		updateAndStoreIndexBatchJob(readResult);
+		clearErrors();
 	}
 
 	private StorageReadResult readList(RecordStorage recordStorage) {
@@ -153,13 +146,29 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		recordIndexer.indexData(combinedIds, collectedTerms, dataGroup);
 	}
 
+	private void updateAndStoreIndexBatchJob(StorageReadResult readResult) {
+		indexBatchJob.errors.addAll(errors);
+		increaseNumOfIndexedInBatchJob(readResult);
+		storeBatchJob();
+	}
+
+	private void increaseNumOfIndexedInBatchJob(StorageReadResult readResult) {
+		int numberOfRecordsSentToIndex = readResult.listOfDataGroups.size();
+		indexBatchJob.numOfProcessedRecords = indexBatchJob.numOfProcessedRecords
+				+ numberOfRecordsSentToIndex;
+	}
+
 	private void storeBatchJob() {
 		BatchJobStorer batchJobStorer = storerFactory.factor();
 		batchJobStorer.store(indexBatchJob);
 	}
 
+	private void clearErrors() {
+		indexBatchJob.errors.clear();
+		errors.clear();
+	}
+
 	private void updateIndexBatchJobAsFinished() {
-		indexBatchJob.errors.addAll(errors);
 		indexBatchJob.status = "finished";
 		storeBatchJob();
 	}

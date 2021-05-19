@@ -234,14 +234,21 @@ public class IndexBatchJobRunnerTest {
 	public void testErrorIsStoredInIndexBatchJob() {
 		recordIndexer.throwErrorOnEvenCalls = true;
 		batchRunner.run();
+
+		for (int i = 0; i < 12; i++) {
+			IndexBatchJobStorerSpy indexBatchJobStorerSpy1 = storerFactory.indexBatchJobStorerSpies
+					.get(i);
+			List<IndexError> errors = indexBatchJobStorerSpy1.errors;
+			assertEquals(errors.size(), 1);
+			assertEquals(errors.get(0).recordId, "someId1");
+			assertEquals(errors.get(0).message, "Some error from spy");
+
+		}
+
 		IndexBatchJobStorerSpy indexBatchJobStorerSpy = storerFactory.indexBatchJobStorerSpies
 				.get(12);
 		List<IndexError> errors = indexBatchJobStorerSpy.indexBatchJob.errors;
-		assertEquals(errors.size(), 12);
-		assertEquals(errors.get(0).recordId, "someId1");
-		assertEquals(errors.get(0).message, "Some error from spy");
-		assertEquals(errors.get(11).recordId, "someId1");
-		assertEquals(errors.get(11).message, "Some error from spy");
+		assertEquals(errors.size(), 0);
 	}
 
 	@Test

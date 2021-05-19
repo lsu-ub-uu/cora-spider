@@ -18,16 +18,20 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class IndexBatchJobStorerSpy implements BatchJobStorer {
 
 	public IndexBatchJob indexBatchJob;
 	public long numberOfIndexed;
+	public List<IndexError> errors = new ArrayList<>();
 
 	@Override
-	public String store(IndexBatchJob indexBatchJob) {
+	public void store(IndexBatchJob indexBatchJob) {
 		this.indexBatchJob = indexBatchJob;
 		numberOfIndexed = indexBatchJob.numOfProcessedRecords;
-		return null;
+		errors.addAll(indexBatchJob.errors);
 	}
 
 }

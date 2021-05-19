@@ -18,17 +18,30 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertSame;
+
+import java.util.Collections;
 
 import org.testng.annotations.Test;
+
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 
 public class IndexBatchJobStorerFactoryTest {
 
 	@Test
 	public void testInit() {
-		BatchJobStorerFactory factory = new IndexBatchJobStorerFactory();
-		BatchJobStorer storer = factory.factor();
-		assertTrue(storer instanceof IndexBatchJobStorer);
+		SpiderDependencyProvider dependencyProvider = new SpiderDependencyProviderSpy(
+				Collections.emptyMap());
+		BatchJobConverterFactory converterFactory = new BatchJobConverterFactorySpy();
+
+		BatchJobStorerFactory factory = new IndexBatchJobStorerFactory(dependencyProvider,
+				converterFactory);
+
+		IndexBatchJobStorer storer = (IndexBatchJobStorer) factory.factor();
+		assertSame(storer.getDependencyProvider(), dependencyProvider);
+
+		assertSame(storer.getBatchJobConverterFactory(), converterFactory);
 	}
 
 }

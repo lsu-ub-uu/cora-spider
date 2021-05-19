@@ -20,6 +20,6 @@ package se.uu.ub.cora.spider.index.internal;
 
 public interface BatchJobStorer {
 
-	String store(IndexBatchJob indexBatchJob);
+	void store(IndexBatchJob indexBatchJob);
 
 }

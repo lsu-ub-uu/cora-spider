@@ -29,25 +29,23 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 
 	private IndexBatchJob indexBatchJob;
 	private SpiderDependencyProvider dependencyProvider;
-	private BatchJobConverterFactory converterFactory;
+	private BatchJobConverterFactory batchJobConverterFactory;
 	private RecordStorage recordStorage;
 	private static final String INDEX_BATCH_JOB = "indexBatchJob";
 
 	public IndexBatchJobStorer(SpiderDependencyProvider dependencyProvider,
 			BatchJobConverterFactory converterFactory) {
 		this.dependencyProvider = dependencyProvider;
-		this.converterFactory = converterFactory;
+		this.batchJobConverterFactory = converterFactory;
 	}
 
 	@Override
-	public String store(IndexBatchJob indexBatchJob) {
+	public void store(IndexBatchJob indexBatchJob) {
 		this.indexBatchJob = indexBatchJob;
 		recordStorage = dependencyProvider.getRecordStorage();
 		DataGroup completedDataGroup = completeStoredDataGroup(indexBatchJob);
 
 		storeUpdatedDataGroup(completedDataGroup);
-		// TODO: vad ska returneras
-		return "";
 	}
 
 	private void storeUpdatedDataGroup(DataGroup completedDataGroup) {
@@ -68,8 +66,9 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 
 	private DataGroup completeStoredDataGroup(IndexBatchJob indexBatchJob) {
 		DataGroup dataGroup = recordStorage.read(INDEX_BATCH_JOB, indexBatchJob.recordId);
-		BatchJobConverter converter = converterFactory.factor();
-		return converter.updateDataGroup(indexBatchJob, dataGroup);
+		BatchJobConverter converter = batchJobConverterFactory.factor();
+		converter.updateDataGroup(indexBatchJob, dataGroup);
+		return dataGroup;
 	}
 
 	private DataGroup collectTerms(DataGroup completedDataGroup, String metadataId) {
@@ -88,6 +87,14 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 		DataGroup recordInfo = convertedDataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
 		return dataDivider.getFirstAtomicValueWithNameInData("linkedRecordId");
+	}
+
+	SpiderDependencyProvider getDependencyProvider() {
+		return dependencyProvider;
+	}
+
+	BatchJobConverterFactory getBatchJobConverterFactory() {
+		return batchJobConverterFactory;
 	}
 
 }
