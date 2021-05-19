@@ -26,7 +26,7 @@ public class IndexBatchJobStorerSpy implements BatchJobStorer {
 	@Override
 	public String store(IndexBatchJob indexBatchJob) {
 		this.indexBatchJob = indexBatchJob;
-		numberOfIndexed = indexBatchJob.numberSentToIndex;
+		numberOfIndexed = indexBatchJob.numOfProcessedRecords;
 		return null;
 	}
 

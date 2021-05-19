@@ -66,7 +66,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	}
 
 	private void ensureNumberOfIndexedIsZero() {
-		indexBatchJob.numberSentToIndex = 0;
+		indexBatchJob.numOfProcessedRecords = 0;
 	}
 
 	private void readListAndIndexDataInBatches(String metadataId) {
@@ -82,7 +82,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 			numberRequestedFromListing = to;
 			from = to + 1;
 			to = to + 10;
-
+			// TODO: reset errors efter varje loop
 		}
 	}
 
@@ -116,7 +116,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 	private void increaseNumOfIndexedInBatchJob(StorageReadResult readResult) {
 		int numberOfRecordsSentToIndex = readResult.listOfDataGroups.size();
-		indexBatchJob.numberSentToIndex = indexBatchJob.numberSentToIndex
+		indexBatchJob.numOfProcessedRecords = indexBatchJob.numOfProcessedRecords
 				+ numberOfRecordsSentToIndex;
 		storeBatchJob();
 	}

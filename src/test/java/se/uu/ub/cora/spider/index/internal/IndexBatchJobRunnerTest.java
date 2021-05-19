@@ -218,7 +218,7 @@ public class IndexBatchJobRunnerTest {
 
 	@Test
 	public void testCorrectCallToBatchJobStorer() {
-		indexBatchJob.numberSentToIndex = 3;
+		indexBatchJob.numOfProcessedRecords = 3;
 		batchRunner.run();
 		assertEquals(storerFactory.indexBatchJobStorerSpies.size(), 13);
 
@@ -250,7 +250,7 @@ public class IndexBatchJobRunnerTest {
 		IndexBatchJobStorerSpy indexBatchJobStorerSpy = storerFactory.indexBatchJobStorerSpies
 				.get(12);
 		assertEquals(indexBatchJobStorerSpy.indexBatchJob.status, "finished");
-		assertEquals(indexBatchJobStorerSpy.indexBatchJob.numberSentToIndex, 24);
+		assertEquals(indexBatchJobStorerSpy.indexBatchJob.numOfProcessedRecords, 24);
 
 	}
 

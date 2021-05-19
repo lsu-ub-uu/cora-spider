@@ -18,14 +18,55 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
+import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupProvider;
 
 public class IndexBatchJobConverter implements BatchJobConverter {
 
 	@Override
 	public DataGroup updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		// TODO:fix
+		updateNumOfProcessedRecordsInDataGroup(indexBatchJob, dataGroup);
+
+		updateIndexErrorsInDataGroup(indexBatchJob, dataGroup);
+
 		return null;
+	}
+
+	private void updateIndexErrorsInDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+		for (IndexError indexError : indexBatchJob.errors) {
+			convertIndexErrorAndAddToDataGroup(dataGroup, indexError);
+		}
+
+		setConsecutiveRepeatIds(dataGroup);
+	}
+
+	private void convertIndexErrorAndAddToDataGroup(DataGroup dataGroup, IndexError indexError) {
+		DataGroup errorDataGroup = DataGroupProvider.getDataGroupUsingNameInData("error");
+		errorDataGroup.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("recordId",
+				indexError.recordId));
+		errorDataGroup.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("message",
+				indexError.message));
+		dataGroup.addChild(errorDataGroup);
+	}
+
+	private void setConsecutiveRepeatIds(DataGroup dataGroup) {
+		for (int i = 0; i < dataGroup.getAllGroupsWithNameInData("error").size(); i++) {
+			DataGroup errorDataGroup = dataGroup.getAllGroupsWithNameInData("error").get(i);
+			errorDataGroup.setRepeatId(String.valueOf(i));
+		}
+	}
+
+	private void updateNumOfProcessedRecordsInDataGroup(IndexBatchJob indexBatchJob,
+			DataGroup dataGroup) {
+		dataGroup.removeFirstChildWithNameInData("numOfProcessedRecords");
+
+		DataAtomic updatedNumOfProcessedRecordsDataAtomic = DataAtomicProvider
+				.getDataAtomicUsingNameInDataAndValue("numOfProcessedRecords",
+						String.valueOf(indexBatchJob.numOfProcessedRecords));
+
+		dataGroup.addChild(updatedNumOfProcessedRecordsDataAtomic);
 	}
 
 }

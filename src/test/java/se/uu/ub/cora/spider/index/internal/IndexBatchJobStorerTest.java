@@ -130,7 +130,7 @@ public class IndexBatchJobStorerTest {
 	private void createDefaultBatchJob() {
 		indexBatchJob = new IndexBatchJob("someRecordType", "someRecordId",
 				new DataGroupSpy("filter"));
-		indexBatchJob.numberSentToIndex = 80;
+		indexBatchJob.numOfProcessedRecords = 80;
 		createAndAddErrors();
 	}
 
