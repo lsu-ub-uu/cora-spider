@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.index.internal;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 
 public class BatchJobConverterSpy implements BatchJobConverter {
@@ -32,7 +33,16 @@ public class BatchJobConverterSpy implements BatchJobConverter {
 		this.indexBatchJob = indexBatchJob;
 		this.dataGroup = dataGroup;
 		returnedDataGroup = new DataGroupSpy("indexBatchJob");
+		addRecordInfo();
 		return returnedDataGroup;
+	}
+
+	private void addRecordInfo() {
+		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
+		DataGroupSpy dataDivider = new DataGroupSpy("dataDivider");
+		dataDivider.addChild(new DataAtomicSpy("linkedRecordId", "someDataDivider"));
+		recordInfo.addChild(dataDivider);
+		returnedDataGroup.addChild(recordInfo);
 	}
 
 }

@@ -106,24 +106,25 @@ public class IndexBatchJobRunnerTest {
 		recordStorage.MCR.assertParameter("readList", 0, "filter", dataGroupFilter);
 		recordStorage.MCR.assertNumberOfCallsToMethod("readList", 12);
 
-		assertAllFiltersAreSentCorrectlyToReadList();
+		assertAllFiltersAreSentCorrectlyToReadList("readList");
 
 	}
 
-	private void assertAllFiltersAreSentCorrectlyToReadList() {
+	private void assertAllFiltersAreSentCorrectlyToReadList(String methodName) {
 		int firstIndex = 0;
 		int from = 0;
 		for (int i = 0; i < 12; i++) {
-			assertCorrectlyHandledFilter(firstIndex, from, i);
+			assertCorrectlyHandledFilter(firstIndex, from, i, methodName);
 			firstIndex = firstIndex + 2;
 			from = from + 10;
 		}
 	}
 
-	private void assertCorrectlyHandledFilter(int firstIndex, int from, int parameterIndex) {
+	private void assertCorrectlyHandledFilter(int firstIndex, int from, int parameterIndex,
+			String methodName) {
 		int secondIndex = firstIndex + 1;
 		Map<String, Object> parameters = recordStorage.MCR
-				.getParametersForMethodAndCallNumber("readList", parameterIndex);
+				.getParametersForMethodAndCallNumber(methodName, parameterIndex);
 
 		assertEquals(dataGroupFilter.removedNameInDatas.get(firstIndex), "fromNo");
 		assertEquals(dataGroupFilter.removedNameInDatas.get(secondIndex), "toNo");
@@ -140,16 +141,18 @@ public class IndexBatchJobRunnerTest {
 				dataAtomicFactory.returnedDataAtomics.get(secondIndex));
 	}
 
-	// @Test
-	// public void testCorrectReadListWhenAbstract() {
-	// // recordTypeHandler.
-	// batchRunner.run();
-	//
-	// recordStorage.MCR.assertParameter("readAbstractList", 0, "type", indexBatchJob.recordType);
-	// recordStorage.MCR.assertParameter("readAbstractList", 0, "filter", dataGroupFilter);
-	//
-	// assertEquals(indexBatchJob.totalNumberToIndex, recordStorage.totalNumberOfMatches);
-	// }
+	@Test
+	public void testCorrectReadListWhenAbstract() {
+		RecordTypeHandlerSpy recordTypeHandler = dependencyProvider.recordTypeHandlerSpy;
+		recordTypeHandler.isAbstract = true;
+		batchRunner.run();
+
+		recordStorage.MCR.assertParameter("readAbstractList", 0, "type", indexBatchJob.recordType);
+		recordStorage.MCR.assertParameter("readAbstractList", 0, "filter", dataGroupFilter);
+
+		recordStorage.MCR.assertNumberOfCallsToMethod("readAbstractList", 12);
+		assertAllFiltersAreSentCorrectlyToReadList("readAbstractList");
+	}
 
 	@Test
 	public void testCorrectCallForRecordTypeWhenRun() {

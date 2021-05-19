@@ -29,6 +29,7 @@ import java.util.Map;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.record.internal.RecordStorageSpy;
@@ -68,6 +69,20 @@ public class IndexBatchJobStorerTest {
 	}
 
 	@Test
+	public void testCorrectCallToTermCollector() {
+		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider, converterFactory);
+		storer.store(indexBatchJob);
+		Map<String, Object> parameters = termCollector.MCR
+				.getParametersForMethodAndCallNumber("collectTerms", 0);
+		String metadataIdFromTypeHandler = (String) dependencyProvider.recordTypeHandlerSpy.MCR
+				.getReturnValue("getMetadataId", 0);
+		assertEquals(parameters.get("metadataId"), metadataIdFromTypeHandler);
+		assertSame(parameters.get("dataGroup"),
+				converterFactory.returnedConverter.returnedDataGroup);
+
+	}
+
+	@Test
 	public void testCorrectCallToLinkCollector() {
 		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider, converterFactory);
 		storer.store(indexBatchJob);
@@ -91,10 +106,25 @@ public class IndexBatchJobStorerTest {
 
 		Map<String, Object> parameters = recordStorage.MCR
 				.getParametersForMethodAndCallNumber("update", 0);
-		assertSame(parameters.get("record"), returnedConverter.returnedDataGroup);
+		DataGroupSpy convertedDataGroup = returnedConverter.returnedDataGroup;
+		assertSame(parameters.get("record"), convertedDataGroup);
 		assertEquals(parameters.get("type"), "indexBatchJob");
 		assertEquals(parameters.get("id"), "someRecordId");
 		assertSame(parameters.get("linkList"), linkCollector.collectedDataLinks);
+		assertSame(parameters.get("collectedTerms"),
+				termCollector.MCR.getReturnValue("collectTerms", 0));
+
+		String dataDivider = extractDataDivider(convertedDataGroup);
+
+		assertEquals(parameters.get("dataDivider"), dataDivider);
+	}
+
+	private String extractDataDivider(DataGroupSpy convertedDataGroup) {
+		DataGroup recordInfo = convertedDataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
+		String firstAtomicValueWithNameInData = dataDivider
+				.getFirstAtomicValueWithNameInData("linkedRecordId");
+		return firstAtomicValueWithNameInData;
 	}
 
 	private void createDefaultBatchJob() {

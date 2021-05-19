@@ -122,10 +122,13 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	}
 
 	private StorageReadResult readList(RecordStorage recordStorage) {
-		// hur veta om abstract list?
-		// TODO:läsa abstract list om abstract recordtype??
 		DataGroup filter = indexBatchJob.filter;
-		StorageReadResult list = recordStorage.readList(indexBatchJob.recordType, filter);
+		StorageReadResult list;
+		if (recordTypeHandler.isAbstract()) {
+			list = recordStorage.readAbstractList(indexBatchJob.recordType, filter);
+		} else {
+			list = recordStorage.readList(indexBatchJob.recordType, filter);
+		}
 		return list;
 	}
 
