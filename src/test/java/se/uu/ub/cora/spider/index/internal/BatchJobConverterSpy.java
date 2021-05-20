@@ -31,4 +31,10 @@ public class BatchJobConverterSpy implements BatchJobConverter {
 		this.dataGroup = dataGroup;
 	}
 
+	@Override
+	public DataGroup createDataGroup(IndexBatchJob indexBatchJob) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

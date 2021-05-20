@@ -19,6 +19,8 @@
 package se.uu.ub.cora.spider.index.internal;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,13 +46,18 @@ public class IndexBatchJobConverterTest {
 
 	@BeforeMethod
 	public void setUp() {
+		setUpProviders();
+
+		indexBatchJob = createIndexBatchJob();
+		indexBatchJobDataGroup = createDataGroup();
+		converter = new IndexBatchJobConverter();
+	}
+
+	private void setUpProviders() {
 		atomicFactory = new DataAtomicFactorySpy();
 		DataAtomicProvider.setDataAtomicFactory(atomicFactory);
 		dataGroupFactory = new DataGroupFactorySpy();
 		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
-		indexBatchJob = createIndexBatchJob();
-		indexBatchJobDataGroup = createDataGroup();
-		converter = new IndexBatchJobConverter();
 	}
 
 	@Test
@@ -66,8 +73,8 @@ public class IndexBatchJobConverterTest {
 	@Test
 	public void testUpdateErrorsinDataGroup() {
 		converter.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
-		List<DataGroup> errors2 = indexBatchJobDataGroup.getAllGroupsWithNameInData("error");
-		assertEquals(errors2.size(), 3);
+		List<DataGroup> errors = indexBatchJobDataGroup.getAllGroupsWithNameInData("error");
+		assertEquals(errors.size(), 3);
 
 		assertCorrectError(0, "0", "someRecordId", "some read error message");
 		assertCorrectError(1, "1", "recordIdOne", "some index error message");
@@ -77,6 +84,7 @@ public class IndexBatchJobConverterTest {
 	@Test
 	public void testStatusStartedDoesNotOverwriteStorage() {
 		indexBatchJob.status = "started";
+		converter.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
 
 		assertStatusInUpdatedDataGroupEquals("someStatus");
 	}
@@ -84,6 +92,7 @@ public class IndexBatchJobConverterTest {
 	@Test
 	public void testStatusPausedDoesNotOverwriteStorage() {
 		indexBatchJob.status = "paused";
+		converter.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
 
 		assertStatusInUpdatedDataGroupEquals("someStatus");
 	}
@@ -91,12 +100,12 @@ public class IndexBatchJobConverterTest {
 	@Test
 	public void testStatusFinishedDoesOverwriteStorage() {
 		indexBatchJob.status = "finished";
+		converter.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
 
 		assertStatusInUpdatedDataGroupEquals("finished");
 	}
 
 	private void assertStatusInUpdatedDataGroupEquals(String expected) {
-		converter.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
 		assertEquals(indexBatchJobDataGroup.getFirstAtomicValueWithNameInData("status"), expected);
 	}
 
@@ -111,6 +120,7 @@ public class IndexBatchJobConverterTest {
 	private DataGroupSpy createDataGroup() {
 		DataGroupSpy indexBatchJobDataGroup = new DataGroupSpy("indexBatchJob");
 		indexBatchJobDataGroup.addChild(new DataAtomicSpy("numOfProcessedRecords", "34"));
+		indexBatchJobDataGroup.addChild(new DataAtomicSpy("totalNumberToIndex", "34"));
 		indexBatchJobDataGroup.addChild(new DataAtomicSpy("status", "someStatus"));
 		createAndAddErrorDataGroup(indexBatchJobDataGroup);
 		return indexBatchJobDataGroup;
@@ -140,5 +150,86 @@ public class IndexBatchJobConverterTest {
 		errors.add(new IndexError("recordIdTwo", "some other index error message"));
 		indexBatchJob.errors = errors;
 	}
+
+	@Test
+	public void testCreateDataGroupFromIndexBatchJob() {
+		DataGroup createdDataGroup = converter.createDataGroup(indexBatchJob);
+		assertEquals(createdDataGroup.getNameInData(), "indexBatchJob");
+
+		assertCorrectRecordInfo(createdDataGroup);
+		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("recordType"),
+				"someRecordType");
+		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("status"), "started");
+		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("numOfProcessedRecords"),
+				"67");
+		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("totalNumberToIndex"),
+				"198");
+		assertSame(createdDataGroup.getFirstGroupWithNameInData("filter"), indexBatchJob.filter);
+
+		List<DataGroup> dataGroupErrors = createdDataGroup.getAllGroupsWithNameInData("error");
+
+		assertCorrectSetErrorsInDataGroup(dataGroupErrors);
+	}
+
+	private void assertCorrectRecordInfo(DataGroup createdDataGroup) {
+		DataGroup recordInfo = createdDataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
+		assertEquals(dataDivider.getFirstAtomicValueWithNameInData("linkedRecordType"), "system");
+		assertEquals(dataDivider.getFirstAtomicValueWithNameInData("linkedRecordId"), "cora");
+		assertFalse(recordInfo.containsChildWithNameInData("id"));
+	}
+
+	private void assertCorrectSetErrorsInDataGroup(List<DataGroup> dataGroupErrors) {
+		List<IndexError> indexErrors = indexBatchJob.errors;
+		assertCorrectErrorInDataGroup(dataGroupErrors, indexErrors, 0);
+		assertCorrectErrorInDataGroup(dataGroupErrors, indexErrors, 1);
+
+		assertEquals(dataGroupErrors.size(), 2);
+	}
+
+	private void assertCorrectErrorInDataGroup(List<DataGroup> dataGroupErrors,
+			List<IndexError> indexErrors, int index) {
+		DataGroup error = dataGroupErrors.get(index);
+		assertEquals(error.getFirstAtomicValueWithNameInData("recordId"),
+				indexErrors.get(index).recordId);
+		assertEquals(error.getFirstAtomicValueWithNameInData("message"),
+				indexErrors.get(index).message);
+		assertEquals(error.getRepeatId(), String.valueOf(index));
+	}
+
+	@Test
+	public void testCreateDataGroupFromIndexBatchJobEmptyErrors() {
+		DataGroup createdDataGroup = converter.createDataGroup(
+				new IndexBatchJob("place", "indexBatchJob:8978", new DataGroupSpy("filter")));
+		assertEquals(createdDataGroup.getNameInData(), "indexBatchJob");
+		assertFalse(createdDataGroup.containsChildWithNameInData("error"));
+
+	}
+
+	// TODO: is this needed?
+	// @Test
+	// public void testCreateIndexBatchJobFromDataGroup() {
+	// IndexBatchJob indexBatchJob = converter.createIndexBatchJob(indexBatchJobDataGroup);
+	// // assertEquals(indexBatchJob.filter.getNameInData(), "filter");
+	// // assertEquals(indexBatchJob.recordType, "");
+	// // assertEquals(indexBatchJob.recordId, "");
+	// // assertEquals(indexBatchJob.errors, Collections.emptyList());
+	// // assertEquals(indexBatchJob.status, "started");
+	// assertEquals(indexBatchJob.numOfProcessedRecords, 34);
+	// // assertEquals(indexBatchJob.totalNumberToIndex, 0);
+	// }
+	//
+	// @Test
+	// public void testCreateIndexBatchJobFromEmptyDataGroup() {
+	// DataGroupSpy emptyDataGroup = new DataGroupSpy("indexBatchJob");
+	// IndexBatchJob indexBatchJob = converter.createIndexBatchJob(emptyDataGroup);
+	// assertEquals(indexBatchJob.filter.getNameInData(), "filter");
+	// assertEquals(indexBatchJob.recordType, "");
+	// assertEquals(indexBatchJob.recordId, "");
+	// assertEquals(indexBatchJob.errors, Collections.emptyList());
+	// assertEquals(indexBatchJob.status, "started");
+	// assertEquals(indexBatchJob.numOfProcessedRecords, 34);
+	// assertEquals(indexBatchJob.totalNumberToIndex, 0);
+	// }
 
 }

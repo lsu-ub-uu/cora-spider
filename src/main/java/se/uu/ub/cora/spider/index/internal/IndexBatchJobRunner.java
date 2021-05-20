@@ -60,7 +60,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 	private void setNeededDependenciesInClass() {
 		recordStorage = dependencyProvider.getRecordStorage();
-		recordTypeHandler = dependencyProvider.getRecordTypeHandler(indexBatchJob.recordType);
+		recordTypeHandler = dependencyProvider.getRecordTypeHandler(indexBatchJob.recordTypeToIndex);
 		termCollector = dependencyProvider.getDataGroupTermCollector();
 		recordIndexer = dependencyProvider.getRecordIndexer();
 	}
@@ -118,9 +118,9 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		DataGroup filter = indexBatchJob.filter;
 		StorageReadResult list;
 		if (recordTypeHandler.isAbstract()) {
-			list = recordStorage.readAbstractList(indexBatchJob.recordType, filter);
+			list = recordStorage.readAbstractList(indexBatchJob.recordTypeToIndex, filter);
 		} else {
-			list = recordStorage.readList(indexBatchJob.recordType, filter);
+			list = recordStorage.readList(indexBatchJob.recordTypeToIndex, filter);
 		}
 		return list;
 	}

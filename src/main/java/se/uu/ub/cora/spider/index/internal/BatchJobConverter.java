@@ -24,4 +24,6 @@ public interface BatchJobConverter {
 
 	void updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup);
 
+	DataGroup createDataGroup(IndexBatchJob indexBatchJob);
+
 }

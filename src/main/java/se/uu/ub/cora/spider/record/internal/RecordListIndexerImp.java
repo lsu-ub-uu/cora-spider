@@ -57,6 +57,16 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		dependencyProvider.getDataValidator().validateIndexSettings(recordType, indexSettings);
 
 		long totalNumberOfMatches = getTotalNumberOfMatchesFromStorage(recordType, indexSettings);
+
+		// // indexSetting.getFilter??
+		// IndexBatchJob indexBatchJob = new IndexBatchJob("", "", indexSettings);
+		// indexBatchJob.totalNumberToIndex = totalNumberOfMatches;
+		// // not new, send in
+		// BatchJobConverterFactory converterFactory = new IndexBatchJobConverterFactory();
+		// BatchJobConverter converter = converterFactory.factor();
+		// DataGroup dataGroup = converter.createDataGroup(indexBatchJob);
+		// recordStorage.create(dataGroup);
+
 		return null;
 		// validate filter
 		// set from to to get 1 record in filter
@@ -67,6 +77,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		// String totalNumberOfTypeInStorage = readRecordList.getTotalNumberOfTypeInStorage();
 		// set totalNumberOf records in indexBatchJobDataGroup
 
+		//
 		// create indexBatchJob dataGroup and send to create in storage
 		// createDataGroup();
 

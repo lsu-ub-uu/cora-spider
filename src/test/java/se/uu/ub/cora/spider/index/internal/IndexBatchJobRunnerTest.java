@@ -102,7 +102,7 @@ public class IndexBatchJobRunnerTest {
 	public void testCorrectReadList() {
 		batchRunner.run();
 
-		recordStorage.MCR.assertParameter("readList", 0, "type", indexBatchJob.recordType);
+		recordStorage.MCR.assertParameter("readList", 0, "type", indexBatchJob.recordTypeToIndex);
 		recordStorage.MCR.assertParameter("readList", 0, "filter", dataGroupFilter);
 		recordStorage.MCR.assertNumberOfCallsToMethod("readList", 12);
 
@@ -147,7 +147,7 @@ public class IndexBatchJobRunnerTest {
 		recordTypeHandler.isAbstract = true;
 		batchRunner.run();
 
-		recordStorage.MCR.assertParameter("readAbstractList", 0, "type", indexBatchJob.recordType);
+		recordStorage.MCR.assertParameter("readAbstractList", 0, "type", indexBatchJob.recordTypeToIndex);
 		recordStorage.MCR.assertParameter("readAbstractList", 0, "filter", dataGroupFilter);
 
 		recordStorage.MCR.assertNumberOfCallsToMethod("readAbstractList", 12);
@@ -159,7 +159,7 @@ public class IndexBatchJobRunnerTest {
 		batchRunner.run();
 
 		dependencyProvider.MCR.assertParameter("getRecordTypeHandler", 0, "recordTypeId",
-				indexBatchJob.recordType);
+				indexBatchJob.recordTypeToIndex);
 	}
 
 	@Test

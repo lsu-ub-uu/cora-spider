@@ -35,7 +35,7 @@ public class IndexBatchJobTest {
 
 		IndexBatchJob indexBatchJob = new IndexBatchJob(recordType, recordId, dataGroupFilter);
 
-		assertEquals(indexBatchJob.recordType, recordType);
+		assertEquals(indexBatchJob.recordTypeToIndex, recordType);
 		assertEquals(indexBatchJob.recordId, recordId);
 		assertEquals(indexBatchJob.filter, dataGroupFilter);
 		assertEquals(indexBatchJob.status, "started");

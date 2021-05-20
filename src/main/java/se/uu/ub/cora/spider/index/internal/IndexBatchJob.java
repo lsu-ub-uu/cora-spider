@@ -26,15 +26,15 @@ import se.uu.ub.cora.data.DataGroup;
 public class IndexBatchJob {
 
 	public String recordId;
-	public String recordType;
-	public DataGroup filter;
+	public String recordTypeToIndex;
 	public long totalNumberToIndex;
 	public long numOfProcessedRecords;
-	public List<IndexError> errors = new ArrayList<>();
 	public String status;
+	public DataGroup filter;
+	public List<IndexError> errors = new ArrayList<>();
 
-	public IndexBatchJob(String recordType, String recordId, DataGroup dataGroupFilter) {
-		this.recordType = recordType;
+	public IndexBatchJob(String recordTypeToIndex, String recordId, DataGroup dataGroupFilter) {
+		this.recordTypeToIndex = recordTypeToIndex;
 		this.recordId = recordId;
 		this.filter = dataGroupFilter;
 		status = "started";
