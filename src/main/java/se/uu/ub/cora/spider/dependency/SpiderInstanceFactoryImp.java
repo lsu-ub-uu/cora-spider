@@ -20,6 +20,8 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import se.uu.ub.cora.spider.index.internal.BatchJobConverterFactory;
+import se.uu.ub.cora.spider.index.internal.IndexBatchJobConverterFactory;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
@@ -37,6 +39,7 @@ import se.uu.ub.cora.spider.record.internal.DownloaderImp;
 import se.uu.ub.cora.spider.record.internal.IncomingLinksReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordDeleterImp;
+import se.uu.ub.cora.spider.record.internal.RecordListIndexerImp;
 import se.uu.ub.cora.spider.record.internal.RecordListReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordSearcherImp;
@@ -129,8 +132,9 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	@Override
 	public RecordListIndexer factorRecordListIndexer() {
-		// TODO Auto-generated method stub
-		return null;
+		BatchJobConverterFactory batchJobConverterFactory = new IndexBatchJobConverterFactory();
+		return RecordListIndexerImp.usingDependencyProvider(dependencyProvider,
+				batchJobConverterFactory);
 	}
 
 }

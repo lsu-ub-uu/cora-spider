@@ -32,6 +32,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.spider.index.internal.IndexBatchJobConverterFactory;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
@@ -45,6 +46,7 @@ import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
+import se.uu.ub.cora.spider.record.internal.RecordListIndexerImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
 
 public class SpiderInstanceFactoryTest {
@@ -158,12 +160,25 @@ public class SpiderInstanceFactoryTest {
 	}
 
 	@Test
-	public void testDefaultCreatorImplementation() {
+	public void testCreatorImplementation() {
 		RecordCreatorImp spiderRecordCreator = (RecordCreatorImp) factory.factorRecordCreator();
 		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) spiderRecordCreator
 				.getDataGroupToRecordEnhancer();
 
 		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
+	}
 
+	@Test
+	public void makeSureWeGetCorrectAndMultipleInstancesOfRecordListIndexer() {
+		RecordListIndexerImp listIndexer = (RecordListIndexerImp) factory.factorRecordListIndexer();
+		assertSame(listIndexer.getDependencyProvider(), dependencyProvider);
+		assertTrue(
+				listIndexer.getBatchJobConverterFactory() instanceof IndexBatchJobConverterFactory);
+
+		RecordListIndexerImp listIndexer2 = (RecordListIndexerImp) factory
+				.factorRecordListIndexer();
+		assertSame(listIndexer2.getDependencyProvider(), dependencyProvider);
+
+		assertNotSame(listIndexer, listIndexer2);
 	}
 }

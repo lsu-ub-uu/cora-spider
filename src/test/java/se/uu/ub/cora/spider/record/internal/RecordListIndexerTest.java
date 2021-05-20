@@ -43,8 +43,9 @@ import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.index.internal.BatchJobConverterFactory;
+import se.uu.ub.cora.spider.index.internal.BatchJobConverterFactorySpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
@@ -66,6 +67,7 @@ public class RecordListIndexerTest {
 	private DataValidatorSpy dataValidatorSpy;
 	private DataGroupFactorySpy dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
+	private BatchJobConverterFactory converterFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -73,9 +75,10 @@ public class RecordListIndexerTest {
 		setUpDataProviders();
 		// enhancerSpy = new DataGroupToRecordEnhancerSpy();
 		indexSettings = new DataGroupSpy("indexSettings");
+		converterFactory = new BatchJobConverterFactorySpy();
 
-		recordListIndexer = RecordListIndexerImp
-				.usingDependencyProviderAndDataGroupToRecordEnhancer(dependencyProviderSpy);
+		recordListIndexer = RecordListIndexerImp.usingDependencyProvider(dependencyProviderSpy,
+				converterFactory);
 	}
 
 	private void setUpDependencyProvider() {
@@ -104,10 +107,12 @@ public class RecordListIndexerTest {
 	}
 
 	@Test
-	public void testConstructorStoresDependencyProviderAndEnhancer() throws Exception {
+	public void testConstructorStoresDependencyProviderAndBatchJobConverterFactory()
+			throws Exception {
 		SpiderDependencyProvider dependencyProvider = recordListIndexer.getDependencyProvider();
-		DataGroupToRecordEnhancer enhancer = recordListIndexer.getRecordEnhancer();
+		// DataGroupToRecordEnhancer enhancer = recordListIndexer.getRecordEnhancer();
 		assertSame(dependencyProvider, dependencyProviderSpy);
+		assertSame(recordListIndexer.getBatchJobConverterFactory(), converterFactory);
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class, expectedExceptionsMessageRegExp = ""

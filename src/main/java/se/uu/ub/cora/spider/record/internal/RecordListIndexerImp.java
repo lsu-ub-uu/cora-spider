@@ -27,6 +27,7 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.index.internal.BatchJobConverterFactory;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -37,14 +38,18 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	private SpiderDependencyProvider dependencyProvider;
 	private DataGroupToRecordEnhancer enhancer;
 	private Authenticator authenticator;
+	private BatchJobConverterFactory batchJobConverterFactory;
 
-	private RecordListIndexerImp(SpiderDependencyProvider dependencyProvider) {
+	private RecordListIndexerImp(SpiderDependencyProvider dependencyProvider,
+			BatchJobConverterFactory batchJobConverterFactory) {
 		this.dependencyProvider = dependencyProvider;
+		this.batchJobConverterFactory = batchJobConverterFactory;
 	}
 
-	public static RecordListIndexerImp usingDependencyProviderAndDataGroupToRecordEnhancer(
-			SpiderDependencyProvider dependencyProvider) {
-		return new RecordListIndexerImp(dependencyProvider);
+	public static RecordListIndexerImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider,
+			BatchJobConverterFactory batchJobConverterFactory) {
+		return new RecordListIndexerImp(dependencyProvider, batchJobConverterFactory);
 	}
 
 	@Override
@@ -58,14 +63,14 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 		long totalNumberOfMatches = getTotalNumberOfMatchesFromStorage(recordType, indexSettings);
 
-		// // indexSetting.getFilter??
-		// IndexBatchJob indexBatchJob = new IndexBatchJob("", "", indexSettings);
+		/************ how to create datagroup from IndexBatchJob *******************/
+		// IndexBatchJob indexBatchJob = new IndexBatchJob("", "", indexSetting.getFilter??);
 		// indexBatchJob.totalNumberToIndex = totalNumberOfMatches;
-		// // not new, send in
-		// BatchJobConverterFactory converterFactory = new IndexBatchJobConverterFactory();
-		// BatchJobConverter converter = converterFactory.factor();
+
+		// BatchJobConverter converter = batchJobConverterFactory.factor();
 		// DataGroup dataGroup = converter.createDataGroup(indexBatchJob);
 		// recordStorage.create(dataGroup);
+		/*******************************/
 
 		return null;
 		// validate filter
@@ -128,7 +133,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	}
 
 	// Only for test
-	SpiderDependencyProvider getDependencyProvider() {
+	public SpiderDependencyProvider getDependencyProvider() {
 		return dependencyProvider;
 	}
 
@@ -136,6 +141,10 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	DataGroupToRecordEnhancer getRecordEnhancer() {
 		// TODO Auto-generated method stub
 		return enhancer;
+	}
+
+	public BatchJobConverterFactory getBatchJobConverterFactory() {
+		return batchJobConverterFactory;
 	}
 
 }
