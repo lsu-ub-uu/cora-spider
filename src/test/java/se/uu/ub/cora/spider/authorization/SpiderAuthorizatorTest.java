@@ -693,6 +693,31 @@ public class SpiderAuthorizatorTest {
 	}
 
 	@Test
+	public void testSameStartOfRecordTypeDoesNotGiveRule() {
+		setupForUserWithOnePermissionTerm();
+		rulesProvider.returnReadRecordPartPermissions = true;
+		rulesProvider.addSameStartOfRecordTypeName = true;
+
+		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
+				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
+						user, READ, BOOK, collectedData, true);
+
+		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
+				0, READ, BOOK, collectedData);
+
+		List<Rule> providedRules = getProvidedRulesForFirstCallToProvidedRulesMatchRequiredRules();
+
+		assertUserRulesMatchWithProvidedRules(providedRules);
+
+		assertEquals(usersReadRecordPartPermissions.size(), 2);
+		assertTrue(usersReadRecordPartPermissions.contains("price"));
+		assertTrue(usersReadRecordPartPermissions.contains("placement"));
+
+		assertFalse(usersReadRecordPartPermissions.contains("placementOfBooklet"));
+		assertFalse(usersReadRecordPartPermissions.contains("booklet.placementOfBooklet"));
+	}
+
+	@Test
 	public void userWritePermissionsForCollectedRulesNoReturnedPermissions() {
 		setupForUserWithOnePermissionTerm();
 		rulesProvider.returnReadRecordPartPermissions = false;

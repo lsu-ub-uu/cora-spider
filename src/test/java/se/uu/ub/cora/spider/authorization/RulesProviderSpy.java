@@ -37,6 +37,7 @@ public class RulesProviderSpy implements RulesProvider {
 	public boolean returnWriteRecordPartPermissions = false;
 
 	MethodCallRecorder MCR = new MethodCallRecorder();
+	public boolean addSameStartOfRecordTypeName = false;
 
 	@Override
 	public List<Rule> getActiveRules(String roleId) {
