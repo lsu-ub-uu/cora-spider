@@ -326,7 +326,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private void possiblyAddRecordPartsOnlyForRecordType(String recordType,
 			Set<String> usersReadRecordPartPermissions, String readRecordPart) {
-		if (readRecordPart.startsWith(recordType)) {
+		if (readRecordPart.startsWith(recordType + ".")) {
 			String permissionWithoutRecordType = readRecordPart.replace(recordType + ".", "");
 			usersReadRecordPartPermissions.add(permissionWithoutRecordType);
 		}
