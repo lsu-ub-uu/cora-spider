@@ -37,6 +37,7 @@ public class RulesProviderSpy implements RulesProvider {
 	public boolean returnWriteRecordPartPermissions = false;
 
 	MethodCallRecorder MCR = new MethodCallRecorder();
+	public boolean addSameStartOfRecordTypeName = false;
 
 	@Override
 	public List<Rule> getActiveRules(String roleId) {
@@ -74,6 +75,9 @@ public class RulesProviderSpy implements RulesProvider {
 			rule2.addReadRecordPartPermission("organisation.isRoot");
 			rule2.addReadRecordPartPermission("organisation.isPublic");
 			rule2.addReadRecordPartPermission("book.placement");
+			if (addSameStartOfRecordTypeName) {
+				rule2.addReadRecordPartPermission("booklet.placementOfBooklet");
+			}
 		}
 		if (returnWriteRecordPartPermissions) {
 			rule2.addWriteRecordPartPermission("organisation.isRootWrite");
