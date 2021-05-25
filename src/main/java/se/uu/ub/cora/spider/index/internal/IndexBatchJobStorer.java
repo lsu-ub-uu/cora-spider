@@ -37,6 +37,7 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 			BatchJobConverterFactory converterFactory) {
 		this.dependencyProvider = dependencyProvider;
 		this.batchJobConverterFactory = converterFactory;
+		// TODO: send one BatchJobConverter instead of BatchJobConverterFactory
 	}
 
 	@Override

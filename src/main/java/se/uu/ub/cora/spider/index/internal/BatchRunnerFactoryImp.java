@@ -32,7 +32,7 @@ public class BatchRunnerFactoryImp implements BatchRunnerFactory {
 
 	@Override
 	public BatchRunner factor(IndexBatchJob indexBatchJob) {
-		// TODO:fix null to IndexBatchJobStorerFactory
+		// TODO:fix null to IndexBatchJobStorer
 		return new IndexBatchJobRunner(dependencyProvider, indexBatchJob, null);
 	}
 

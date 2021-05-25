@@ -47,6 +47,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		this.dependencyProvider = dependencyProvider;
 		this.indexBatchJob = indexBatchJob;
 		this.storerFactory = storerFactory;
+		// TODO: Instead of sending BatchJobStorerFactory, send one BatchJobStorer
 	}
 
 	@Override
@@ -60,7 +61,8 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 	private void setNeededDependenciesInClass() {
 		recordStorage = dependencyProvider.getRecordStorage();
-		recordTypeHandler = dependencyProvider.getRecordTypeHandler(indexBatchJob.recordTypeToIndex);
+		recordTypeHandler = dependencyProvider
+				.getRecordTypeHandler(indexBatchJob.recordTypeToIndex);
 		termCollector = dependencyProvider.getDataGroupTermCollector();
 		recordIndexer = dependencyProvider.getRecordIndexer();
 	}

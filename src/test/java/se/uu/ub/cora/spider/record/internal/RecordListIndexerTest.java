@@ -43,6 +43,7 @@ import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.index.IndexBatchHandler;
 import se.uu.ub.cora.spider.index.internal.BatchJobConverterFactory;
 import se.uu.ub.cora.spider.index.internal.BatchJobConverterFactorySpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -68,6 +69,7 @@ public class RecordListIndexerTest {
 	private DataGroupFactorySpy dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
 	private BatchJobConverterFactory converterFactory;
+	private IndexBatchHandler indexBatchHandler;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -76,9 +78,9 @@ public class RecordListIndexerTest {
 		// enhancerSpy = new DataGroupToRecordEnhancerSpy();
 		indexSettings = new DataGroupSpy("indexSettings");
 		converterFactory = new BatchJobConverterFactorySpy();
-
+		indexBatchHandler = new IndexBatchHandlerSpy();
 		recordListIndexer = RecordListIndexerImp.usingDependencyProvider(dependencyProviderSpy,
-				converterFactory);
+				converterFactory, indexBatchHandler);
 	}
 
 	private void setUpDependencyProvider() {
@@ -179,10 +181,9 @@ public class RecordListIndexerTest {
 		recordStorage.MCR.assertParameter("readList", 0, "type", SOME_RECORD_TYPE);
 
 		DataGroup filter = getFilterFromMethodReadList(recordStorage);
+		assertEquals(filter.getNameInData(), "filter");
 		assertEquals(filter.getFirstAtomicValueWithNameInData("fromNo"), "0");
 		assertEquals(filter.getFirstAtomicValueWithNameInData("toNo"), "0");
-
-		;
 	}
 
 	private DataGroup getFilterFromMethodReadList(RecordStorageMCRSpy recordStorage) {

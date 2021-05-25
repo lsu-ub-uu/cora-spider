@@ -133,8 +133,11 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	@Override
 	public RecordListIndexer factorRecordListIndexer() {
 		BatchJobConverterFactory batchJobConverterFactory = new IndexBatchJobConverterFactory();
+
+		// TODO: create IndexBatchHandler
+		// IndexBatchHandlerImp.usingBatchRunnerFactory();
 		return RecordListIndexerImp.usingDependencyProvider(dependencyProvider,
-				batchJobConverterFactory);
+				batchJobConverterFactory, null);
 	}
 
 }

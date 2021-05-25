@@ -16,26 +16,17 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.index.internal;
+package se.uu.ub.cora.spider.record.internal;
 
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.index.IndexBatchHandler;
+import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 
-public class IndexBatchJobStorerFactory implements BatchJobStorerFactory {
-
-	private SpiderDependencyProvider dependencyProvider;
-	private BatchJobConverterFactory converterFactory;
-
-	public IndexBatchJobStorerFactory(SpiderDependencyProvider dependencyProvider,
-			BatchJobConverterFactory converterFactory) {
-		this.dependencyProvider = dependencyProvider;
-		this.converterFactory = converterFactory;
-		// TODO: create converterFactory in this class instead of adding it from outside
-	}
+public class IndexBatchHandlerSpy implements IndexBatchHandler {
 
 	@Override
-	public BatchJobStorer factor() {
+	public void runIndexBatchJob(IndexBatchJob indexBatchJob) {
+		// TODO Auto-generated method stub
 
-		return new IndexBatchJobStorer(dependencyProvider, converterFactory);
 	}
 
 }

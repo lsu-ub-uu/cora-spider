@@ -27,7 +27,10 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.index.IndexBatchHandler;
 import se.uu.ub.cora.spider.index.internal.BatchJobConverterFactory;
+import se.uu.ub.cora.spider.index.internal.BatchJobStorer;
+import se.uu.ub.cora.spider.index.internal.IndexBatchJobStorerFactory;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -48,7 +51,8 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 	public static RecordListIndexerImp usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider,
-			BatchJobConverterFactory batchJobConverterFactory) {
+			BatchJobConverterFactory batchJobConverterFactory,
+			IndexBatchHandler indexBatchHandler) {
 		return new RecordListIndexerImp(dependencyProvider, batchJobConverterFactory);
 	}
 
@@ -63,6 +67,9 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 		long totalNumberOfMatches = getTotalNumberOfMatchesFromStorage(recordType, indexSettings);
 
+		BatchJobStorer batchJobStorage = IndexBatchJobStorerFactory.factor();
+		batchJobStorage.create(indexBatchJob);
+
 		/************ how to create datagroup from IndexBatchJob *******************/
 		// IndexBatchJob indexBatchJob = new IndexBatchJob("", "", indexSetting.getFilter??);
 		// indexBatchJob.totalNumberToIndex = totalNumberOfMatches;
@@ -71,6 +78,8 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		// DataGroup dataGroup = converter.createDataGroup(indexBatchJob);
 		// recordStorage.create(dataGroup);
 		/*******************************/
+
+		// IndexBatchHandlerImp.usingBatchRunnerFactory(batchRunnerFactory);
 
 		return null;
 		// validate filter
@@ -104,7 +113,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	}
 
 	private long getTotalNumberOfMatchesFromStorage(String recordType, DataGroup indexSettings) {
-		RecordStorage r = dependencyProvider.getRecordStorage();
+		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
 		// no filter
 		DataGroup filter = DataGroupProvider.getDataGroupUsingNameInData("filter");
 		DataAtomic fromNo = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("fromNo", "0");
@@ -126,7 +135,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		// filter.addChild(atomicTo);
 		//
 		// StorageReadResult readList = r.readList(recordType, filter);
-		StorageReadResult readList = r.readList(recordType, filter);
+		StorageReadResult readList = recordStorage.readList(recordType, filter);
 		// return readList.totalNumberOfMatches;
 		// dataList.totalNo
 		return 0;
