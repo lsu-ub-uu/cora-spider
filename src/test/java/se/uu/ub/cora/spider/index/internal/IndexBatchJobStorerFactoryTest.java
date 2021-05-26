@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.index.internal;
 
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 import java.util.Collections;
 
@@ -33,15 +34,13 @@ public class IndexBatchJobStorerFactoryTest {
 	public void testInit() {
 		SpiderDependencyProvider dependencyProvider = new SpiderDependencyProviderSpy(
 				Collections.emptyMap());
-		BatchJobConverterFactory converterFactory = new BatchJobConverterFactorySpy();
 
-		BatchJobStorerFactory factory = new IndexBatchJobStorerFactory(dependencyProvider,
-				converterFactory);
+		BatchJobStorerFactory factory = IndexBatchJobStorerFactory.usingDependencyProvider(dependencyProvider);
 
 		IndexBatchJobStorer storer = (IndexBatchJobStorer) factory.factor();
 		assertSame(storer.getDependencyProvider(), dependencyProvider);
 
-		assertSame(storer.getBatchJobConverterFactory(), converterFactory);
+		assertTrue(storer.getBatchJobConverterFactory() instanceof IndexBatchJobConverterFactory);
 	}
 
 }

@@ -22,20 +22,20 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public class IndexBatchJobStorerFactory implements BatchJobStorerFactory {
 
-	private SpiderDependencyProvider dependencyProvider;
-	private BatchJobConverterFactory converterFactory;
+	public static IndexBatchJobStorerFactory usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new IndexBatchJobStorerFactory(dependencyProvider);
+	}
 
-	public IndexBatchJobStorerFactory(SpiderDependencyProvider dependencyProvider,
-			BatchJobConverterFactory converterFactory) {
+	private SpiderDependencyProvider dependencyProvider;
+
+	private IndexBatchJobStorerFactory(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
-		this.converterFactory = converterFactory;
-		// TODO: create converterFactory in this class instead of adding it from outside
 	}
 
 	@Override
 	public BatchJobStorer factor() {
-
-		return new IndexBatchJobStorer(dependencyProvider, converterFactory);
+		return new IndexBatchJobStorer(dependencyProvider, new IndexBatchJobConverterFactory());
 	}
 
 }
