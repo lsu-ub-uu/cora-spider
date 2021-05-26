@@ -71,46 +71,9 @@ public interface RecordListIndexer {
 	 * @param recordType
 	 *            a String with the recordType for which records should be indexed
 	 * @param indexSettings
-	 *            a DataGroup with indexSettings
+	 *            a DataGroup with indexSettings with or without filter
 	 * @return
 	 */
 	DataRecord indexRecordList(String authToken, String recordType, DataGroup indexSettings);
-	// private Response handleError(String authToken, Exception error) {
-	//
-	// if (error instanceof RecordConflictException) {
-	// return buildResponseIncludingMessage(error, Response.Status.CONFLICT);
-	// }
-	//
-	// if (error instanceof MisuseException) {
-	// return buildResponseIncludingMessage(error, Response.Status.METHOD_NOT_ALLOWED);
-	// }
-	//
-	// if (errorIsCausedByDataProblem(error)) {
-	// return buildResponseIncludingMessage(error, Response.Status.BAD_REQUEST);
-	// }
-	//
-	// if (error instanceof RecordNotFoundException) {
-	// return buildResponseIncludingMessage(error, Response.Status.NOT_FOUND);
-	// }
-	//
-	// if (error instanceof URISyntaxException) {
-	// return buildResponse(Response.Status.BAD_REQUEST);
-	// }
-	//
-	// if (error instanceof AuthorizationException) {
-	// return handleAuthorizationException(authToken);
-	// }
-	//
-	// if (error instanceof AuthenticationException) {
-	// return buildResponse(Response.Status.UNAUTHORIZED);
-	// }
-	// log.logErrorUsingMessageAndException("Error handling request: " + error.getMessage(),
-	// error);
-	// return buildResponseIncludingMessage(error, Response.Status.INTERNAL_SERVER_ERROR);
-	// }
-	//
-	// private boolean errorIsCausedByDataProblem(Exception error) {
-	// return error instanceof JsonParseException || error instanceof DataException
-	// || error instanceof ConverterException || error instanceof DataMissingException;
-	// }
+
 }

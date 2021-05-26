@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.index.internal;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -99,9 +100,14 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 	}
 
 	@Override
-	public void create(IndexBatchJob indexBatchJob) {
+	public DataRecord create(IndexBatchJob indexBatchJob) {
 		// TODO Auto-generated method stub
-
+		// recordStorage.create(INDEX_BATCH_JOB, INDEX_BATCH_JOB, null, null, null,
+		// INDEX_BATCH_JOB);
+		// return recordStorage.read(INDEX_BATCH_JOB, INDEX_BATCH_JOB);
+		// dataGroupToRecordEnhancer.enhance(user, implementingRecordType, recordRead,
+		// dataRedactor);
+		return null;
 	}
 
 }

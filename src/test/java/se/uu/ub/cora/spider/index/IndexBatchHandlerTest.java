@@ -44,7 +44,7 @@ public class IndexBatchHandlerTest {
 	@Test
 	public void testInit() throws InterruptedException {
 		DataGroupSpy filter = new DataGroupSpy("batchIndexJob");
-		IndexBatchJob batchJob = new IndexBatchJob("someRecordType", "someRecordId", filter);
+		IndexBatchJob batchJob = new IndexBatchJob("someRecordType", 45, filter);
 
 		batchHandler.runIndexBatchJob(batchJob);
 

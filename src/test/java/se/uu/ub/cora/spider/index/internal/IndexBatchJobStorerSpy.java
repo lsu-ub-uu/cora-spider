@@ -21,6 +21,9 @@ package se.uu.ub.cora.spider.index.internal;
 import java.util.ArrayList;
 import java.util.List;
 
+import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataRecordSpy;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class IndexBatchJobStorerSpy implements BatchJobStorer {
@@ -40,8 +43,11 @@ public class IndexBatchJobStorerSpy implements BatchJobStorer {
 	}
 
 	@Override
-	public void create(IndexBatchJob indexBatchJob) {
+	public DataRecord create(IndexBatchJob indexBatchJob) {
 		MCR.addCall("indexBatchJob", indexBatchJob);
+		DataRecordSpy dataRecordSpy = new DataRecordSpy(new DataGroupSpy("someSpyDataGroup"));
+		MCR.addReturned(dataRecordSpy);
+		return dataRecordSpy;
 
 	}
 

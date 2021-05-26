@@ -38,6 +38,7 @@ import se.uu.ub.cora.spider.data.DataGroupSpy;
 
 public class IndexBatchJobConverterTest {
 
+	private static final String SOME_RECORD_TYPE = "someRecordType";
 	private DataAtomicFactorySpy atomicFactory;
 	private IndexBatchJob indexBatchJob;
 	private DataGroupSpy indexBatchJobDataGroup;
@@ -136,7 +137,7 @@ public class IndexBatchJobConverterTest {
 
 	private IndexBatchJob createIndexBatchJob() {
 		DataGroupSpy filter = new DataGroupSpy("filter");
-		IndexBatchJob indexBatchJob = new IndexBatchJob("someRecordType", "someRecordId", filter);
+		IndexBatchJob indexBatchJob = new IndexBatchJob(SOME_RECORD_TYPE, 10, filter);
 		indexBatchJob.numOfProcessedRecords = 67;
 		indexBatchJob.status = "started";
 		indexBatchJob.totalNumberToIndex = 198;
@@ -158,7 +159,7 @@ public class IndexBatchJobConverterTest {
 
 		assertCorrectRecordInfo(createdDataGroup);
 		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("recordType"),
-				"someRecordType");
+				SOME_RECORD_TYPE);
 		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("status"), "started");
 		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("numOfProcessedRecords"),
 				"67");
@@ -199,8 +200,8 @@ public class IndexBatchJobConverterTest {
 
 	@Test
 	public void testCreateDataGroupFromIndexBatchJobEmptyErrors() {
-		DataGroup createdDataGroup = converter.createDataGroup(
-				new IndexBatchJob("place", "indexBatchJob:8978", new DataGroupSpy("filter")));
+		DataGroup createdDataGroup = converter
+				.createDataGroup(new IndexBatchJob("place", 10, new DataGroupSpy("filter")));
 		assertEquals(createdDataGroup.getNameInData(), "indexBatchJob");
 		assertFalse(createdDataGroup.containsChildWithNameInData("error"));
 

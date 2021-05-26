@@ -26,6 +26,7 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
 import se.uu.ub.cora.spider.index.internal.BatchJobStorer;
@@ -36,8 +37,9 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordListIndexerImp implements RecordListIndexer {
 
+	private static final String FILTER = "filter";
+
 	private SpiderDependencyProvider dependencyProvider;
-	private Authenticator authenticator;
 	private BatchJobStorer batchJobStorer;
 	private IndexBatchHandler indexBatchHandler;
 
@@ -57,26 +59,19 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	@Override
 	public DataRecord indexRecordList(String authToken, String recordType,
 			DataGroup indexSettings) {
-		authenticator = dependencyProvider.getAuthenticator();
-		User user = authenticator.getUserForToken(authToken);
-		SpiderAuthorizator spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "index", recordType);
+		checkUserIsAuthenticatedAndAuthorized(authToken, recordType);
+
 		dependencyProvider.getDataValidator().validateIndexSettings(recordType, indexSettings);
 
-		long totalNumberOfMatches = getTotalNumberOfMatchesFromStorage(recordType, indexSettings);
+		DataGroup filter = extractFilterFromIndexSettingsOrCreateANewOne(indexSettings);
 
-		// IndexBatchJob indexBatchJob = IndexBatchJob.createForNew(recordTypeToIndex,
-		// totalNumberToIndex, filter);
-		IndexBatchJob indexBatchJob = new IndexBatchJob(null, null, null);
-		indexBatchJob.recordTypeToIndex = recordType;
-		indexBatchJob.totalNumberToIndex = totalNumberOfMatches;
-		batchJobStorer.create(indexBatchJob);
-		// IndexBatchHandler indexBatchHandler = null;
-		// indexBatchHandler.runIndexBatchJob(indexBatchJob);
+		long totalNumberOfMatches = getTotalNumberOfMatchesFromStorage(recordType, filter);
 
-		// BatchJobStorer batchJobStorage = IndexBatchJobStorerFactory.factor();
-		// batchJobStorer.create(indexBatchJob);
+		IndexBatchJob indexBatchJob = new IndexBatchJob(recordType, totalNumberOfMatches, filter);
+		DataRecord record = batchJobStorer.create(indexBatchJob);
+		indexBatchHandler.runIndexBatchJob(indexBatchJob);
 
+		return record;
 		/************ how to create datagroup from IndexBatchJob *******************/
 		// IndexBatchJob indexBatchJob = new IndexBatchJob("", "", indexSetting.getFilter??);
 		// indexBatchJob.totalNumberToIndex = totalNumberOfMatches;
@@ -86,9 +81,6 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		// recordStorage.create(dataGroup);
 		/*******************************/
 
-		// IndexBatchHandlerImp.usingBatchRunnerFactory(batchRunnerFactory);
-
-		return null;
 		// validate filter
 		// set from to to get 1 record in filter
 		// WRONG gör lite fel saker! DataList readRecordList =
@@ -119,10 +111,34 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		// when finished write status to indexBatchJob
 	}
 
-	private long getTotalNumberOfMatchesFromStorage(String recordType, DataGroup indexSettings) {
+	private void checkUserIsAuthenticatedAndAuthorized(String authToken, String recordType) {
+		Authenticator authenticator = dependencyProvider.getAuthenticator();
+		User user = authenticator.getUserForToken(authToken);
+		SpiderAuthorizator spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "index", recordType);
+	}
+
+	private DataGroup extractFilterFromIndexSettingsOrCreateANewOne(DataGroup indexSettings) {
+		DataGroup filter;
+		try {
+			filter = extractedFilter(indexSettings);
+		} catch (DataMissingException e) {
+			filter = createNewFilter();
+		}
+		return filter;
+	}
+
+	private DataGroup extractedFilter(DataGroup indexSettings) {
+		return indexSettings.getFirstGroupWithNameInData(FILTER);
+	}
+
+	private DataGroup createNewFilter() {
+		return DataGroupProvider.getDataGroupUsingNameInData(FILTER);
+	}
+
+	private long getTotalNumberOfMatchesFromStorage(String recordType, DataGroup filter) {
 		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		// no filter
-		DataGroup filter = DataGroupProvider.getDataGroupUsingNameInData("filter");
+		// TODO: Finns fromNo och ToNo från början i filtret. Om de finns kan vi bara ersätta dem??
 		DataAtomic fromNo = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("fromNo", "0");
 		filter.addChild(fromNo);
 		DataAtomic toNo = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("toNo", "0");
@@ -143,9 +159,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		//
 		// StorageReadResult readList = r.readList(recordType, filter);
 		StorageReadResult readList = recordStorage.readList(recordType, filter);
-		// return readList.totalNumberOfMatches;
-		// dataList.totalNo
-		return 0;
+		return readList.totalNumberOfMatches;
 	}
 
 	// // Only for test

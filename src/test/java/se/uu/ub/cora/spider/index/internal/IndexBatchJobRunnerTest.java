@@ -73,7 +73,7 @@ public class IndexBatchJobRunnerTest {
 
 	private void createDefaultParameters() {
 		dataGroupFilter = new DataGroupSpy("filter");
-		indexBatchJob = new IndexBatchJob("someRecordType", "someRecordId", dataGroupFilter);
+		indexBatchJob = new IndexBatchJob("someRecordType", 45, dataGroupFilter);
 		indexBatchJob.totalNumberToIndex = 117;
 	}
 
@@ -147,7 +147,8 @@ public class IndexBatchJobRunnerTest {
 		recordTypeHandler.isAbstract = true;
 		batchRunner.run();
 
-		recordStorage.MCR.assertParameter("readAbstractList", 0, "type", indexBatchJob.recordTypeToIndex);
+		recordStorage.MCR.assertParameter("readAbstractList", 0, "type",
+				indexBatchJob.recordTypeToIndex);
 		recordStorage.MCR.assertParameter("readAbstractList", 0, "filter", dataGroupFilter);
 
 		recordStorage.MCR.assertNumberOfCallsToMethod("readAbstractList", 12);

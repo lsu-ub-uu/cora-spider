@@ -37,8 +37,7 @@ public class BatchRunnerFactoryTest {
 				new HashMap<>());
 		BatchRunnerFactory factory = new BatchRunnerFactoryImp(dependencyProvider);
 		DataGroup dataGroupFilter = new DataGroupSpy("indexBatchJob");
-		IndexBatchJob indexBatchJob = new IndexBatchJob("someRecordType", "someRecordId",
-				dataGroupFilter);
+		IndexBatchJob indexBatchJob = new IndexBatchJob("someRecordType", 10, dataGroupFilter);
 
 		IndexBatchJobRunner runner = (IndexBatchJobRunner) factory.factor(indexBatchJob);
 
