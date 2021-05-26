@@ -85,7 +85,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForRecordCreator() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getRecordCreator("someRecordType");
+		SpiderInstanceProvider.getRecordCreator();
 		assertTrue(factory.creatorFactoryWasCalled);
 	}
 
@@ -93,7 +93,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForRecordUpdater() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getRecordUpdater("someRecordType");
+		SpiderInstanceProvider.getRecordUpdater();
 		assertTrue(factory.updaterFactoryWasCalled);
 	}
 

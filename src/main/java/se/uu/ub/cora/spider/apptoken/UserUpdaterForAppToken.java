@@ -93,7 +93,7 @@ public final class UserUpdaterForAppToken implements ExtendedFunctionality {
 		String recordType = type.getFirstAtomicValueWithNameInData("linkedRecordId");
 
 		RecordUpdater spiderRecordUpdater = SpiderInstanceProvider
-				.getRecordUpdater(recordType);
+				.getRecordUpdater();
 		spiderRecordUpdater.updateRecord(authToken, recordType, userId, spiderUserDataGroup);
 	}
 

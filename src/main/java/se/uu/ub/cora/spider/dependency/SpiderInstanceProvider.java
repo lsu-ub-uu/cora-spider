@@ -54,11 +54,11 @@ public final class SpiderInstanceProvider {
 		return factory.factorRecordListReader();
 	}
 
-	public static RecordCreator getRecordCreator(String recordType) {
+	public static RecordCreator getRecordCreator() {
 		return factory.factorRecordCreator();
 	}
 
-	public static RecordUpdater getRecordUpdater(String recordType) {
+	public static RecordUpdater getRecordUpdater() {
 		return factory.factorRecordUpdater();
 	}
 
