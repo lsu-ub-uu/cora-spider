@@ -21,9 +21,12 @@ package se.uu.ub.cora.spider.index;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 
 /**
- * IndexBatchHandler is responsible for running index batch jobs in batches, reading an appropriate
- * number of records from storage, extracting search terms, and sending the records and the
- * extracted search terms for indexing. <br>
+ * IndexBatchHandler is responsible for starting index batch job in a single thread. <br>
+ * 
+ * IndexBatchHandler is also responsible for running index batch jobs in batches, reading an
+ * appropriate number of records from storage, extracting search terms, and sending the records and
+ * the extracted search terms for indexing. <br>
+ * 
  */
 public interface IndexBatchHandler {
 

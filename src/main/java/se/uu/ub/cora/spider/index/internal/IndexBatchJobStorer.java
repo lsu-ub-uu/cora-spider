@@ -98,4 +98,10 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 		return batchJobConverterFactory;
 	}
 
+	@Override
+	public void create(IndexBatchJob indexBatchJob) {
+		// TODO Auto-generated method stub
+
+	}
+
 }

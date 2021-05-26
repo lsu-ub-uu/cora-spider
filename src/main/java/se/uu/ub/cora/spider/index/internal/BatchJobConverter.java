@@ -20,10 +20,33 @@ package se.uu.ub.cora.spider.index.internal;
 
 import se.uu.ub.cora.data.DataGroup;
 
+/**
+ * BatchJobConverter
+ * 
+ * 
+ */
+
 public interface BatchJobConverter {
 
+	/**
+	 * updateDataGroup
+	 * 
+	 * @param indexBatchJob
+	 *            An IndexBatchJob containing information about what to index, including RecordType,
+	 *            the number of records to index, and Filter
+	 * 
+	 * @param dataGroup
+	 *            Is the updated DataGroup containing the changes from indexBatchJob
+	 */
 	void updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup);
 
+	/**
+	 * createDataGroup
+	 * 
+	 * @param indexBatchJob
+	 *            An IndexBatchJob containing information about what to index, including RecordType,
+	 *            the number of records to index, and Filter
+	 */
 	DataGroup createDataGroup(IndexBatchJob indexBatchJob);
 
 }

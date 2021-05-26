@@ -20,12 +20,15 @@ package se.uu.ub.cora.spider.record.internal;
 
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class IndexBatchHandlerSpy implements IndexBatchHandler {
 
+	MethodCallRecorder MCR = new MethodCallRecorder();
+
 	@Override
 	public void runIndexBatchJob(IndexBatchJob indexBatchJob) {
-		// TODO Auto-generated method stub
+		MCR.addCall("indexBatchJob", indexBatchJob);
 
 	}
 

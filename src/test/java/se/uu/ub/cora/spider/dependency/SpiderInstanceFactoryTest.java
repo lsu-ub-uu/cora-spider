@@ -173,7 +173,7 @@ public class SpiderInstanceFactoryTest {
 		RecordListIndexerImp listIndexer = (RecordListIndexerImp) factory.factorRecordListIndexer();
 		assertSame(listIndexer.getDependencyProvider(), dependencyProvider);
 		assertTrue(
-				listIndexer.getBatchJobConverterFactory() instanceof IndexBatchJobConverterFactory);
+				listIndexer.getBatchJobStorer() instanceof IndexBatchJobConverterFactory);
 
 		RecordListIndexerImp listIndexer2 = (RecordListIndexerImp) factory
 				.factorRecordListIndexer();

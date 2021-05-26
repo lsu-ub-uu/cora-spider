@@ -21,17 +21,28 @@ package se.uu.ub.cora.spider.index.internal;
 import java.util.ArrayList;
 import java.util.List;
 
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
+
 public class IndexBatchJobStorerSpy implements BatchJobStorer {
 
 	public IndexBatchJob indexBatchJob;
 	public long numberOfIndexed;
 	public List<IndexError> errors = new ArrayList<>();
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
 	public void store(IndexBatchJob indexBatchJob) {
+		MCR.addCall("indexBatchJob", indexBatchJob);
+
 		this.indexBatchJob = indexBatchJob;
 		numberOfIndexed = indexBatchJob.numOfProcessedRecords;
 		errors.addAll(indexBatchJob.errors);
+	}
+
+	@Override
+	public void create(IndexBatchJob indexBatchJob) {
+		MCR.addCall("indexBatchJob", indexBatchJob);
+
 	}
 
 }

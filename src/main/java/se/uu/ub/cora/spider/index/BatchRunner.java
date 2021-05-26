@@ -18,7 +18,24 @@
  */
 package se.uu.ub.cora.spider.index;
 
+/**
+ * BatchRunner is responsible for running batch jobs in batches, reading an appropriate number of
+ * records from storage, extracting search terms, and sending the records and the extracted search
+ * terms for indexing. <br>
+ * 
+ * It is responsible to report about the indexed posts on each loop of the batch.
+ * 
+ * 
+ */
 public interface BatchRunner extends Runnable {
+
+	/**
+	 * run methods overrides Runnable run method. It is intended to start a newly created Thread.
+	 * 
+	 * Given a IndexBatchJob with a value containing the total number of post to index. With this
+	 * value run method will start a loop with X number of post which will be retrived från storage,
+	 * will be indexed and will be reported as indexed on the IndexBatchJob post
+	 */
 
 	@Override
 	void run();

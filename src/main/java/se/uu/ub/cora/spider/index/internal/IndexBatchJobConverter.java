@@ -45,10 +45,10 @@ public class IndexBatchJobConverter implements BatchJobConverter {
 
 	private void replaceAtomicChild(DataGroup dataGroup, String nameInData, String value) {
 		dataGroup.removeFirstChildWithNameInData(nameInData);
-		createAndAddAtomicValue(nameInData, value, dataGroup);
+		addAtomicValueToDataGroup(nameInData, value, dataGroup);
 	}
 
-	private void createAndAddAtomicValue(String nameInData, String value, DataGroup dataGroup) {
+	private void addAtomicValueToDataGroup(String nameInData, String value, DataGroup dataGroup) {
 		DataAtomic atomicChild = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(nameInData,
 				value);
 		dataGroup.addChild(atomicChild);
@@ -67,8 +67,8 @@ public class IndexBatchJobConverter implements BatchJobConverter {
 
 	private void convertIndexErrorAndAddToDataGroup(DataGroup dataGroup, IndexError indexError) {
 		DataGroup errorDataGroup = DataGroupProvider.getDataGroupUsingNameInData(ERROR);
-		createAndAddAtomicValue("recordId", indexError.recordId, errorDataGroup);
-		createAndAddAtomicValue("message", indexError.message, errorDataGroup);
+		addAtomicValueToDataGroup("recordId", indexError.recordId, errorDataGroup);
+		addAtomicValueToDataGroup("message", indexError.message, errorDataGroup);
 		dataGroup.addChild(errorDataGroup);
 	}
 
@@ -93,17 +93,17 @@ public class IndexBatchJobConverter implements BatchJobConverter {
 	@Override
 	public DataGroup createDataGroup(IndexBatchJob indexBatchJob) {
 		DataGroup dataGroup = DataGroupProvider.getDataGroupUsingNameInData("indexBatchJob");
-		createAndAddRecordInfo(dataGroup);
-		createAndAddRecordTypeToIndex(indexBatchJob, dataGroup);
-		createAndAddRecordStatus(indexBatchJob, dataGroup);
-		createAndAddNumberOfProcessedRecords(indexBatchJob, dataGroup);
-		createAndAddTotalNumberToIndex(indexBatchJob, dataGroup);
+		addRecordInfo(dataGroup);
+		addRecordTypeToIndex(indexBatchJob, dataGroup);
+		addRecordStatus(indexBatchJob, dataGroup);
+		addNumberOfProcessedRecords(indexBatchJob, dataGroup);
+		addTotalNumberToIndex(indexBatchJob, dataGroup);
 		addFilter(indexBatchJob, dataGroup);
 		addIndexErrorsToDataGroup(indexBatchJob, dataGroup);
 		return dataGroup;
 	}
 
-	private void createAndAddRecordInfo(DataGroup dataGroup) {
+	private void addRecordInfo(DataGroup dataGroup) {
 		DataGroup recordInfo = DataGroupProvider.getDataGroupUsingNameInData("recordInfo");
 		DataGroup dataDivider = DataGroupProvider
 				.getDataGroupAsLinkUsingNameInDataTypeAndId("dataDivider", "system", "cora");
@@ -111,24 +111,24 @@ public class IndexBatchJobConverter implements BatchJobConverter {
 		dataGroup.addChild(recordInfo);
 	}
 
-	private void createAndAddRecordTypeToIndex(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		createAndAddAtomicValue("recordType", indexBatchJob.recordTypeToIndex, dataGroup);
+	private void addRecordTypeToIndex(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+		addAtomicValueToDataGroup("recordType", indexBatchJob.recordTypeToIndex, dataGroup);
 	}
 
-	private void createAndAddRecordStatus(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		createAndAddAtomicValue("status", indexBatchJob.status, dataGroup);
+	private void addRecordStatus(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+		addAtomicValueToDataGroup("status", indexBatchJob.status, dataGroup);
 	}
 
-	private void createAndAddNumberOfProcessedRecords(IndexBatchJob indexBatchJob,
+	private void addNumberOfProcessedRecords(IndexBatchJob indexBatchJob,
 			DataGroup dataGroup) {
 		long numOfProcessedRecords = indexBatchJob.numOfProcessedRecords;
-		createAndAddAtomicValue(NUM_OF_PROCESSED_RECORDS, String.valueOf(numOfProcessedRecords),
+		addAtomicValueToDataGroup(NUM_OF_PROCESSED_RECORDS, String.valueOf(numOfProcessedRecords),
 				dataGroup);
 	}
 
-	private void createAndAddTotalNumberToIndex(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+	private void addTotalNumberToIndex(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
 		long totalNumberToIndex = indexBatchJob.totalNumberToIndex;
-		createAndAddAtomicValue("totalNumberToIndex", String.valueOf(totalNumberToIndex),
+		addAtomicValueToDataGroup("totalNumberToIndex", String.valueOf(totalNumberToIndex),
 				dataGroup);
 	}
 

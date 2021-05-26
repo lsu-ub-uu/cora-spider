@@ -18,8 +18,20 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
+/**
+ * BatchJobStorer is responsible for storing IndexBatchJob. <br>
+ */
 public interface BatchJobStorer {
 
+	/**
+	 * store method is responsible to store a IndexBatchJob on the specified storage on
+	 * depependencyProvider.
+	 * 
+	 * @param indexBatchJob
+	 *            An IndexBatchJob containing information about what to index, including RecordType,
+	 *            the number of records to index, and Filter
+	 */
 	void store(IndexBatchJob indexBatchJob);
 
+	void create(IndexBatchJob indexBatchJob);
 }

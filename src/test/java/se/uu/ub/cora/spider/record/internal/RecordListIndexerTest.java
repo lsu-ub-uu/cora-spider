@@ -20,7 +20,6 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -41,15 +40,14 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.index.IndexBatchHandler;
-import se.uu.ub.cora.spider.index.internal.BatchJobConverterFactory;
-import se.uu.ub.cora.spider.index.internal.BatchJobConverterFactorySpy;
+import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
+import se.uu.ub.cora.spider.index.internal.IndexBatchJobStorerSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 
 public class RecordListIndexerTest {
@@ -58,7 +56,6 @@ public class RecordListIndexerTest {
 	private static final String SOME_RECORD_TYPE = "someRecordType";
 
 	private LoggerFactorySpy loggerFactorySpy;
-	// private DataGroupToRecordEnhancerSpy enhancerSpy;
 	private SpiderDependencyProviderSpy dependencyProviderSpy;
 	private RecordListIndexerImp recordListIndexer;
 	private AuthenticatorSpy authenticatorSpy;
@@ -68,19 +65,19 @@ public class RecordListIndexerTest {
 	private DataValidatorSpy dataValidatorSpy;
 	private DataGroupFactorySpy dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
-	private BatchJobConverterFactory converterFactory;
-	private IndexBatchHandler indexBatchHandler;
+	private IndexBatchHandlerSpy indexBatchHandler;
+	private IndexBatchJobStorerSpy batchJobStorer;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpDependencyProvider();
 		setUpDataProviders();
-		// enhancerSpy = new DataGroupToRecordEnhancerSpy();
 		indexSettings = new DataGroupSpy("indexSettings");
-		converterFactory = new BatchJobConverterFactorySpy();
 		indexBatchHandler = new IndexBatchHandlerSpy();
+		batchJobStorer = new IndexBatchJobStorerSpy();
 		recordListIndexer = RecordListIndexerImp.usingDependencyProvider(dependencyProviderSpy,
-				converterFactory, indexBatchHandler);
+				batchJobStorer, indexBatchHandler);
+
 	}
 
 	private void setUpDependencyProvider() {
@@ -108,14 +105,15 @@ public class RecordListIndexerTest {
 		assertTrue(recordListIndexer instanceof RecordListIndexer);
 	}
 
-	@Test
-	public void testConstructorStoresDependencyProviderAndBatchJobConverterFactory()
-			throws Exception {
-		SpiderDependencyProvider dependencyProvider = recordListIndexer.getDependencyProvider();
-		// DataGroupToRecordEnhancer enhancer = recordListIndexer.getRecordEnhancer();
-		assertSame(dependencyProvider, dependencyProviderSpy);
-		assertSame(recordListIndexer.getBatchJobConverterFactory(), converterFactory);
-	}
+	// @Test
+	// public void testConstructorStoresDependencyProviderAndBatchJobConverterFactory()
+	// throws Exception {
+	// SpiderDependencyProvider dependencyProvider = recordListIndexer.getDependencyProvider();
+	// // DataGroupToRecordEnhancer enhancer = recordListIndexer.getRecordEnhancer();
+	// assertSame(dependencyProvider, dependencyProviderSpy);
+	// assertSame(recordListIndexer.getBatchJobStorer(), batchJobStorer);
+	// assertSame(recordListIndexer.getIndexBatchHandler(), batchJobStorer);
+	// }
 
 	@Test(expectedExceptions = AuthenticationException.class, expectedExceptionsMessageRegExp = ""
 			+ "Error from AuthenticatorSpy")
@@ -193,12 +191,28 @@ public class RecordListIndexerTest {
 		return filter;
 	}
 
-	// @Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
-	// + "Data is not valid: \\[Data for list filter not vaild, DataValidatorSpy\\]")
-	// public void testIndexListInvalidIndexSettings() throws Exception {
-	// dataValidatorSpy.invalidIndexSettingsValidation = true;
-	//
-	// recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexSettings);
-	// }
+	@Test
+	public void testIndexBatchJobIsCreatedAndStored() throws Exception {
+
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexSettings);
+
+		MethodCallRecorder MCR = batchJobStorer.MCR;
+		MCR.assertMethodWasCalled("create");
+		IndexBatchJob indexBatchJob = (IndexBatchJob) MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("create", 0, "indexBatchJob");
+
+		assertEquals(indexBatchJob.recordTypeToIndex, SOME_RECORD_TYPE);
+		assertEquals(indexBatchJob.totalNumberToIndex, 0);
+		assertEquals(indexBatchJob.filter.getNameInData(), "filter");
+	}
+
+	@Test
+	public void testStartBatchJob() throws Exception {
+
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, indexSettings);
+
+		indexBatchHandler.MCR.assertMethodWasCalled("runIndexBatchJob");
+
+	}
 
 }
