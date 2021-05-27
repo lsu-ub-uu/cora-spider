@@ -20,6 +20,12 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import se.uu.ub.cora.spider.index.BatchRunnerFactory;
+import se.uu.ub.cora.spider.index.IndexBatchHandler;
+import se.uu.ub.cora.spider.index.internal.BatchJobConverter;
+import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
+import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
+import se.uu.ub.cora.spider.index.internal.IndexBatchJobConverter;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
@@ -130,11 +136,12 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	@Override
 	public RecordListIndexer factorRecordListIndexer() {
-		// BatchJobConverterFactory batchJobConverterFactory = new IndexBatchJobConverterFactory();
-
-		// TODO: create IndexBatchHandler
-		// IndexBatchHandlerImp.usingBatchRunnerFactory();
-		return RecordListIndexerImp.usingDependencyProvider(dependencyProvider, null, null);
+		BatchRunnerFactory batchRunnerFactory = new BatchRunnerFactoryImp(dependencyProvider);
+		IndexBatchHandler indexBatchHandler = IndexBatchHandlerImp
+				.usingBatchRunnerFactory(batchRunnerFactory);
+		BatchJobConverter batchJobConverter = new IndexBatchJobConverter();
+		return RecordListIndexerImp.usingDependencyProvider(dependencyProvider, indexBatchHandler,
+				batchJobConverter);
 	}
 
 }

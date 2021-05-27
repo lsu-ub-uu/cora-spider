@@ -40,7 +40,10 @@ public class IndexBatchHandlerImp implements IndexBatchHandler {
 		BatchRunner batchRunner = factory.factor(indexBatchJob);
 		Thread t1 = new Thread(batchRunner);
 		t1.start();
+	}
 
+	public BatchRunnerFactory getBatchRunnerFactory() {
+		return factory;
 	}
 
 }

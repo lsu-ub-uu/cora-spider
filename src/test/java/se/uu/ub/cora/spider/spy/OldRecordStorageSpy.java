@@ -615,14 +615,6 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public boolean recordsExistForRecordType(String type) {
-		if ("child1_2".equals(type)) {
-			return false;
-		}
-		return true;
-	}
-
-	@Override
 	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
 			String id) {
 		return false;
@@ -660,6 +652,13 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 
 	@Override
 	public long getTotalNumberOfRecords(String type, DataGroup filter) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public long getTotalNumberOfAbstractRecords(String abstractType, List<String> implementingTypes,
+			DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

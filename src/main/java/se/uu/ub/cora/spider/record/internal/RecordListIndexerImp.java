@@ -109,4 +109,19 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		// TODO: If recordTypeAbstrtact call:
 		// recordStorage.getTotalNumberOfAbstractRecords(recordType, implementationList, filter)
 	}
+
+	// needed for test
+	public SpiderDependencyProvider getDependencyProvider() {
+		return dependencyProvider;
+	}
+
+	// needed for test
+	public IndexBatchHandler getIndexBatchHandler() {
+		return indexBatchHandler;
+	}
+
+	// needed for test
+	public BatchJobConverter getBatchJobConverter() {
+		return batchJobConverter;
+	}
 }

@@ -32,7 +32,9 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.index.internal.IndexBatchJobConverterFactory;
+import se.uu.ub.cora.spider.index.internal.BatchJobConverter;
+import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
+import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
@@ -172,8 +174,16 @@ public class SpiderInstanceFactoryTest {
 	public void makeSureWeGetCorrectAndMultipleInstancesOfRecordListIndexer() {
 		RecordListIndexerImp listIndexer = (RecordListIndexerImp) factory.factorRecordListIndexer();
 		assertSame(listIndexer.getDependencyProvider(), dependencyProvider);
-		assertTrue(
-				listIndexer.getBatchJobStorer() instanceof IndexBatchJobConverterFactory);
+
+		IndexBatchHandlerImp indexBatchHandler = (IndexBatchHandlerImp) listIndexer
+				.getIndexBatchHandler();
+		assertTrue(indexBatchHandler instanceof IndexBatchHandlerImp);
+		BatchRunnerFactoryImp batchRunnerFactory = (BatchRunnerFactoryImp) indexBatchHandler
+				.getBatchRunnerFactory();
+		assertTrue(batchRunnerFactory instanceof BatchRunnerFactoryImp);
+		assertSame(batchRunnerFactory.getDependencyProvider(), dependencyProvider);
+
+		assertTrue(listIndexer.getBatchJobConverter() instanceof BatchJobConverter);
 
 		RecordListIndexerImp listIndexer2 = (RecordListIndexerImp) factory
 				.factorRecordListIndexer();

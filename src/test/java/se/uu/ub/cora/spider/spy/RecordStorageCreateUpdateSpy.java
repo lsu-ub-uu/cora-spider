@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -447,12 +448,6 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordsExistForRecordType(String type) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
 	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
 			String id) {
 		return false;
@@ -460,6 +455,13 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
 	@Override
 	public long getTotalNumberOfRecords(String type, DataGroup filter) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public long getTotalNumberOfAbstractRecords(String abstractType, List<String> implementingTypes,
+			DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

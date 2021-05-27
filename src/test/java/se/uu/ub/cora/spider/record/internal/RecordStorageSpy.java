@@ -153,18 +153,27 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordsExistForRecordType(String type) {
-		MCR.addCall("type", type);
-		MCR.addReturned(null);
-		return false;
-	}
-
-	@Override
 	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
 			String id) {
 		MCR.addCall("type", type, "id", id);
 		MCR.addReturned(false);
 		return false;
+	}
+
+	@Override
+	public long getTotalNumberOfRecords(String type, DataGroup filter) {
+		MCR.addCall("type", type, "filter", filter);
+		MCR.addReturned(0);
+		return 0;
+	}
+
+	@Override
+	public long getTotalNumberOfAbstractRecords(String abstractType, List<String> implementingTypes,
+			DataGroup filter) {
+		MCR.addCall("abstractType", abstractType, "implementingTypes", implementingTypes, "filter",
+				filter);
+		MCR.addReturned(0);
+		return 0;
 	}
 
 }

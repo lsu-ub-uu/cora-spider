@@ -104,12 +104,6 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordsExistForRecordType(String type) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
 	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
 			String id) {
 		// TODO Auto-generated method stub
@@ -122,12 +116,6 @@ public class RecordStorageMCRSpy implements RecordStorage {
 		// TODO Auto-generated method stub
 		MCR.addReturned(totalNumberOfRecords);
 		return totalNumberOfRecords;
-	}
-
-	@Override
-	public long getTotalNumberOfAbstractRecords(String type, DataGroup filter) {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	@Override
