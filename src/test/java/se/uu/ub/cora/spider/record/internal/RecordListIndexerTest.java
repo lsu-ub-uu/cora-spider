@@ -24,7 +24,6 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -42,14 +41,16 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.dependency.RecordCreatorSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceFactorySpy;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.index.internal.BatchJobConverterSpy;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
-import se.uu.ub.cora.spider.index.internal.IndexBatchJobStorerSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
-import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 
 public class RecordListIndexerTest {
@@ -68,19 +69,20 @@ public class RecordListIndexerTest {
 	private DataGroupFactorySpy dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
 	private IndexBatchHandlerSpy indexBatchHandler;
-	private IndexBatchJobStorerSpy batchJobStorer;
 	private DataGroupSpy indexSettingsWithFilter;
+	private BatchJobConverterSpy batchJobConverterSpy;
+	private SpiderInstanceFactorySpy spiderInstanceFactorySpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpDependencyProvider();
 		setUpDataProviders();
 		indexSettingsWithoutFilter = new DataGroupSpy("indexSettings");
-		indexSettingsWithFilter = creatIndexSettingsWithFilter();
+		indexSettingsWithFilter = createIndexSettingsWithFilter();
 		indexBatchHandler = new IndexBatchHandlerSpy();
-		batchJobStorer = new IndexBatchJobStorerSpy();
+		batchJobConverterSpy = new BatchJobConverterSpy();
 		recordListIndexer = RecordListIndexerImp.usingDependencyProvider(dependencyProviderSpy,
-				batchJobStorer, indexBatchHandler);
+				indexBatchHandler, batchJobConverterSpy);
 
 	}
 
@@ -102,11 +104,13 @@ public class RecordListIndexerTest {
 		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
 		dataAtomicFactory = new DataAtomicFactorySpy();
 		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
+		spiderInstanceFactorySpy = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactorySpy);
 	}
 
-	private DataGroupSpy creatIndexSettingsWithFilter() {
+	private DataGroupSpy createIndexSettingsWithFilter() {
 		DataGroupSpy indexSettingsWithFilter = new DataGroupSpy("indexSettings");
-		DataGroup filter = DataGroupProvider.getDataGroupUsingNameInData("filter");
+		DataGroup filter = new DataGroupSpy("filter");
 		indexSettingsWithFilter.addChild(filter);
 		return indexSettingsWithFilter;
 	}
@@ -169,31 +173,17 @@ public class RecordListIndexerTest {
 	}
 
 	@Test
-	public void testVerifyReadExtraInformationForRecord() throws Exception {
-		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				indexSettingsWithoutFilter);
-	}
-
-	@Test
 	public void testGetTotalNumberOfMatchesFromStorageWithoutFilter() throws Exception {
 		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProviderSpy.recordStorage;
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
 
-		recordStorage.MCR.assertParameter("readList", 0, "type", SOME_RECORD_TYPE);
+		DataGroup createdFilter = (DataGroup) dataGroupFactory.MCR
+				.getReturnValue("factorUsingNameInData", 0);
 
-		DataGroup filter = getFilterFromMethodReadList(recordStorage);
-		assertEquals(filter.getNameInData(), "filter");
-		assertEquals(filter.getFirstAtomicValueWithNameInData("fromNo"), "0");
-		assertEquals(filter.getFirstAtomicValueWithNameInData("toNo"), "0");
-	}
+		recordStorage.MCR.assertParameter("getTotalNumberOfRecords", 0, "filter", createdFilter);
 
-	private DataGroup getFilterFromMethodReadList(RecordStorageMCRSpy recordStorage) {
-		Map<String, Object> parametersForReadList = recordStorage.MCR
-				.getParametersForMethodAndCallNumber("readList", 0);
-		DataGroup filter = (DataGroup) parametersForReadList.get("filter");
-		return filter;
 	}
 
 	@Test
@@ -203,52 +193,73 @@ public class RecordListIndexerTest {
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithFilter);
 
-		DataGroup filterFromIndexSettings = (DataGroup) indexSettingsWithFilter.MCR
+		indexSettingsWithFilter.MCR.assertParameters("getFirstGroupWithNameInData", 0, "filter");
+		DataGroup extractedFilterFromIndexSettings = (DataGroup) indexSettingsWithFilter.MCR
 				.getReturnValue("getFirstGroupWithNameInData", 0);
 
-		recordStorage.MCR.assertParameter("readList", 0, "type", SOME_RECORD_TYPE);
+		recordStorage.MCR.assertParameter("getTotalNumberOfRecords", 0, "filter",
+				extractedFilterFromIndexSettings);
 
-		DataGroup filterSentToStorage = getFilterFromMethodReadList(recordStorage);
-		assertSame(filterFromIndexSettings, filterSentToStorage);
-		assertEquals(filterSentToStorage.getNameInData(), "filter");
-		assertEquals(filterSentToStorage.getFirstAtomicValueWithNameInData("fromNo"), "0");
-		assertEquals(filterSentToStorage.getFirstAtomicValueWithNameInData("toNo"), "0");
 	}
 
 	@Test
-	public void testIndexBatchJobIsCreatedAndStoredNoFilter() throws Exception {
+	public void testIndexBatchJobIsCreatedWithoutFilter() throws Exception {
 		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProviderSpy.recordStorage;
-		recordStorage.totalNumberOfMatchesFromStorage = 45;
+		recordStorage.totalNumberOfRecords = 45;
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
 
-		MethodCallRecorder MCR = batchJobStorer.MCR;
-		MCR.assertMethodWasCalled("create");
-		IndexBatchJob indexBatchJob = (IndexBatchJob) MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("create", 0, "indexBatchJob");
+		batchJobConverterSpy.MCR.assertMethodWasCalled("createDataGroup");
+
+		DataGroup createdFilter = (DataGroup) dataGroupFactory.MCR
+				.getReturnValue("factorUsingNameInData", 0);
+
+		IndexBatchJob indexBatchJob = getParameterIndexBatchJobFromConverterSpy();
 
 		assertEquals(indexBatchJob.recordTypeToIndex, SOME_RECORD_TYPE);
 		assertEquals(indexBatchJob.totalNumberToIndex, 45);
-		assertEquals(indexBatchJob.filter.getNameInData(), "filter");
+		assertSame(indexBatchJob.filter, createdFilter);
+
 	}
 
 	@Test
-	public void testIndexBatchJobIsCreatedAndStoredWithFilter() throws Exception {
+	public void testIndexBatchJobIsCreatedWithFilter() throws Exception {
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithFilter);
 
-		MethodCallRecorder MCR = batchJobStorer.MCR;
-		MCR.assertMethodWasCalled("create");
-		IndexBatchJob indexBatchJob = (IndexBatchJob) MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("create", 0, "indexBatchJob");
+		DataGroup extractedFilterFromIndexSettings = (DataGroup) indexSettingsWithFilter.MCR
+				.getReturnValue("getFirstGroupWithNameInData", 0);
+
+		IndexBatchJob indexBatchJob = getParameterIndexBatchJobFromConverterSpy();
 
 		assertEquals(indexBatchJob.recordTypeToIndex, SOME_RECORD_TYPE);
 		assertEquals(indexBatchJob.totalNumberToIndex, 0);
 		assertEquals(indexBatchJob.filter.getNameInData(), "filter");
 
-		indexSettingsWithFilter.MCR.assertParameters("getFirstGroupWithNameInData", 0, "filter");
+		assertSame(indexBatchJob.filter, extractedFilterFromIndexSettings);
+	}
+
+	@Test
+	public void testConvertAndStoreIndexBatchJobRecord() throws Exception {
+
+		DataRecord finalRecord = recordListIndexer.indexRecordList(SOME_USER_TOKEN,
+				SOME_RECORD_TYPE, indexSettingsWithoutFilter);
+
+		RecordCreatorSpy recordCreatorSpy = (RecordCreatorSpy) spiderInstanceFactorySpy.MCR
+				.getReturnValue("factorRecordCreator", 0);
+		recordCreatorSpy.MCR.assertMethodWasCalled("createAndStoreRecord");
+
+		var indexBatchJobDataGroup = batchJobConverterSpy.MCR.getReturnValue("createDataGroup", 0);
+
+		recordCreatorSpy.MCR.assertParameters("createAndStoreRecord", 0, SOME_USER_TOKEN,
+				"indexBatchJob", indexBatchJobDataGroup);
+
+		DataRecord recordFromRecordCreator = (DataRecord) recordCreatorSpy.MCR
+				.getReturnValue("createAndStoreRecord", 0);
+
+		assertSame(finalRecord, recordFromRecordCreator);
 	}
 
 	@Test
@@ -257,21 +268,15 @@ public class RecordListIndexerTest {
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
 
-		IndexBatchJob indexBatchJob = (IndexBatchJob) batchJobStorer.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("create", 0, "indexBatchJob");
+		IndexBatchJob indexBatchJob = getParameterIndexBatchJobFromConverterSpy();
 
 		indexBatchHandler.MCR.assertParameters("runIndexBatchJob", 0, indexBatchJob);
 	}
 
-	@Test
-	public void testReturnRecordFromCreate() throws Exception {
-
-		DataRecord indexBatchJobRecord = recordListIndexer.indexRecordList(SOME_USER_TOKEN,
-				SOME_RECORD_TYPE, indexSettingsWithoutFilter);
-
-		DataRecord recordFromStorer = (DataRecord) batchJobStorer.MCR.getReturnValue("create", 0);
-
-		assertSame(indexBatchJobRecord, recordFromStorer);
+	private IndexBatchJob getParameterIndexBatchJobFromConverterSpy() {
+		return (IndexBatchJob) batchJobConverterSpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("createDataGroup", 0,
+						"indexBatchJob");
 	}
 
 }

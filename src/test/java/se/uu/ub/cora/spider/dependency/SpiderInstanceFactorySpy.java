@@ -31,6 +31,7 @@ import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.Uploader;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	public boolean readerFactoryWasCalled = false;
@@ -44,6 +45,8 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	public boolean searcherFactoryWasCalled = false;
 	public boolean validatorFactoryWasCalled = false;
 	public String recordType;
+
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
 	public RecordReader factorRecordReader() {
@@ -59,9 +62,12 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 
 	@Override
 	public RecordCreator factorRecordCreator() {
+		MCR.addCall();
 		creatorFactoryWasCalled = true;
 		this.recordType = recordType;
-		return null;
+		RecordCreator recordCreator = new RecordCreatorSpy();
+		MCR.addReturned(recordCreator);
+		return recordCreator;
 	}
 
 	@Override

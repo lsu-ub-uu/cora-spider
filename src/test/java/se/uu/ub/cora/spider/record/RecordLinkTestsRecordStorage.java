@@ -144,4 +144,10 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 		return recordIdExistsForRecordType;
 	}
 
+	@Override
+	public long getTotalNumberOfRecords(String type, DataGroup filter) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

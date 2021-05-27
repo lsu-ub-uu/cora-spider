@@ -19,22 +19,31 @@
 package se.uu.ub.cora.spider.index.internal;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class BatchJobConverterSpy implements BatchJobConverter {
 
 	public IndexBatchJob indexBatchJob;
 	public DataGroup dataGroup;
 
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+
 	@Override
 	public void updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+		MCR.addCall("indexBatchJob", indexBatchJob, "dataGroup", dataGroup);
+
 		this.indexBatchJob = indexBatchJob;
 		this.dataGroup = dataGroup;
 	}
 
 	@Override
 	public DataGroup createDataGroup(IndexBatchJob indexBatchJob) {
-		// TODO Auto-generated method stub
-		return null;
+		MCR.addCall("indexBatchJob", indexBatchJob);
+
+		DataGroupSpy dataGroupSpy = new DataGroupSpy("someDataGroup");
+		MCR.addReturned(dataGroupSpy);
+		return dataGroupSpy;
 	}
 
 }

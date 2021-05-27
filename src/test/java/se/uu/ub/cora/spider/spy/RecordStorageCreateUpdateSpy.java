@@ -288,8 +288,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			return group;
 		}
 		if ("image".equals(type) && "image:123456789".equals(id)) {
-			return DataCreator2.createRecordWithNameInDataAndIdAndLinkedRecordId(
-					"image", "image:123456789", "cora");
+			return DataCreator2.createRecordWithNameInDataAndIdAndLinkedRecordId("image",
+					"image:123456789", "cora");
 		}
 		DataGroup dataGroupToReturn = new DataGroupSpy("someNameInData");
 		createAndAddRecordInfo(dataGroupToReturn);
@@ -456,6 +456,12 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
 			String id) {
 		return false;
+	}
+
+	@Override
+	public long getTotalNumberOfRecords(String type, DataGroup filter) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

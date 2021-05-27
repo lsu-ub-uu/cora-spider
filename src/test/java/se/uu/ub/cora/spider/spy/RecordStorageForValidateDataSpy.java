@@ -279,4 +279,10 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 		return false;
 	}
 
+	@Override
+	public long getTotalNumberOfRecords(String type, DataGroup filter) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

@@ -20,21 +20,29 @@ package se.uu.ub.cora.spider.data;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class DataGroupFactorySpy implements DataGroupFactory {
 
 	public DataGroupSpy returnedDataGroup;
 
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+
 	@Override
 	public DataGroup factorUsingNameInData(String nameInData) {
+		MCR.addCall("nameInData", nameInData);
 		returnedDataGroup = new DataGroupSpy(nameInData);
+		MCR.addReturned(returnedDataGroup);
 		return returnedDataGroup;
 	}
 
 	@Override
 	public DataGroup factorAsLinkWithNameInDataTypeAndId(String nameInData, String recordType,
 			String recordId) {
-		return new DataGroupSpy(nameInData, recordType, recordId);
+		MCR.addCall("nameInData", nameInData, "recordType", recordType);
+		DataGroupSpy dataGroupSpy = new DataGroupSpy(nameInData, recordType, recordId);
+		MCR.addReturned(dataGroupSpy);
+		return dataGroupSpy;
 	}
 
 }

@@ -16,27 +16,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.index.internal;
-
-import java.util.ArrayList;
-import java.util.List;
+package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.data.DataRecordSpy;
+import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
-public class IndexBatchJob {
+public class RecordCreatorSpy implements RecordCreator {
 
-	public String recordId;
-	public String recordTypeToIndex;
-	public long totalNumberToIndex;
-	public long numOfProcessedRecords;
-	public String status;
-	public DataGroup filter;
-	public List<IndexError> errors = new ArrayList<>();
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
-	public IndexBatchJob(String recordTypeToIndex, long totalNumberToIndex,
-			DataGroup dataGroupFilter) {
-		this.recordTypeToIndex = recordTypeToIndex;
-		this.totalNumberToIndex = totalNumberToIndex;
-		this.filter = dataGroupFilter;
+	@Override
+	public DataRecord createAndStoreRecord(String authToken, String type, DataGroup record) {
+		MCR.addCall("authToken", authToken, "type", type, "record", record);
+
+		DataRecordSpy dataRecordSpy = new DataRecordSpy(record);
+		MCR.addReturned(dataRecordSpy);
+		return dataRecordSpy;
 	}
+
 }
