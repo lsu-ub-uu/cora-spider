@@ -35,7 +35,7 @@ public class RecordStorageMCRSpy implements RecordStorage {
 
 	public DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
 	public List<DataGroup> dataGroups = new ArrayList<>();
-	public int totalNumberOfMatchesFromStorage = 0;
+	public int totalNumberOfRecords = 0;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -75,7 +75,7 @@ public class RecordStorageMCRSpy implements RecordStorage {
 		MCR.addCall("type", type, "filter", filter);
 		StorageReadResult result = new StorageReadResult();
 		result.listOfDataGroups = dataGroups;
-		result.totalNumberOfMatches = totalNumberOfMatchesFromStorage;
+		result.totalNumberOfMatches = totalNumberOfRecords;
 		return result;
 	}
 
@@ -114,6 +114,20 @@ public class RecordStorageMCRSpy implements RecordStorage {
 			String id) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public long getTotalNumberOfRecords(String type, DataGroup filter) {
+		MCR.addCall("type", type, "filter", filter);
+		// TODO Auto-generated method stub
+		MCR.addReturned(totalNumberOfRecords);
+		return totalNumberOfRecords;
+	}
+
+	@Override
+	public long getTotalNumberOfAbstractRecords(String type, DataGroup filter) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

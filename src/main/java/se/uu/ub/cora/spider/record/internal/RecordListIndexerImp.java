@@ -19,21 +19,17 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
 import se.uu.ub.cora.spider.index.internal.BatchJobStorer;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordListIndexerImp implements RecordListIndexer {
 
@@ -68,7 +64,15 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		long totalNumberOfMatches = getTotalNumberOfMatchesFromStorage(recordType, filter);
 
 		IndexBatchJob indexBatchJob = new IndexBatchJob(recordType, totalNumberOfMatches, filter);
+
+		// TODO: make sure converter do something with indexBatchJob.recordId
+		// BatchJobConverter converter = batchJobConverterFactory.factor();
+		// DataGroup dataGroup = converter.createDataGroup(indexBatchJob);
+		// RecordCreator recordCreator = SpiderInstanceProvider.getRecordCreator();
+		// DataRecord record = recordCreator.createAndStoreRecord(authToken, "indexBatchJob",
+		// dataGroup);
 		DataRecord record = batchJobStorer.create(indexBatchJob);
+
 		indexBatchHandler.runIndexBatchJob(indexBatchJob);
 
 		return record;
@@ -76,8 +80,6 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		// IndexBatchJob indexBatchJob = new IndexBatchJob("", "", indexSetting.getFilter??);
 		// indexBatchJob.totalNumberToIndex = totalNumberOfMatches;
 
-		// BatchJobConverter converter = batchJobConverterFactory.factor();
-		// DataGroup dataGroup = converter.createDataGroup(indexBatchJob);
 		// recordStorage.create(dataGroup);
 		/*******************************/
 
@@ -119,13 +121,10 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	}
 
 	private DataGroup extractFilterFromIndexSettingsOrCreateANewOne(DataGroup indexSettings) {
-		DataGroup filter;
-		try {
-			filter = extractedFilter(indexSettings);
-		} catch (DataMissingException e) {
-			filter = createNewFilter();
+		if (indexSettings.containsChildWithNameInData(FILTER)) {
+			return extractedFilter(indexSettings);
 		}
-		return filter;
+		return createNewFilter();
 	}
 
 	private DataGroup extractedFilter(DataGroup indexSettings) {
@@ -138,28 +137,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 	private long getTotalNumberOfMatchesFromStorage(String recordType, DataGroup filter) {
 		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		// TODO: Finns fromNo och ToNo från början i filtret. Om de finns kan vi bara ersätta dem??
-		DataAtomic fromNo = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("fromNo", "0");
-		filter.addChild(fromNo);
-		DataAtomic toNo = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("toNo", "0");
-		filter.addChild(toNo);
-		// DataGroup filter = indexSettings.getFirstGroupWithNameInData("filter");
-		// String from = filter.getFirstAtomicValueWithNameInData("fromNo");
-		// filter.removeFirstChildWithNameInData("fromNo");
-		// DataAtomic atomicFrom = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("fromNo",
-		// "0");
-		// filter.addChild(atomicFrom);
-		//
-		// String to = filter.getFirstAtomicValueWithNameInData("toNo");
-		// filter.removeFirstChildWithNameInData("toNo");
-		// // might not work with 0?? or should it?
-		// DataAtomic atomicTo = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("toNo",
-		// "0");
-		// filter.addChild(atomicTo);
-		//
-		// StorageReadResult readList = r.readList(recordType, filter);
-		StorageReadResult readList = recordStorage.readList(recordType, filter);
-		return readList.totalNumberOfMatches;
+		return recordStorage.getTotalNumberOfRecords(recordType, filter);
 	}
 
 	// // Only for test

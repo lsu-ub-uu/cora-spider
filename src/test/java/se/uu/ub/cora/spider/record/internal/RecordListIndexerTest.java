@@ -24,7 +24,6 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -76,7 +75,7 @@ public class RecordListIndexerTest {
 		setUpDependencyProvider();
 		setUpDataProviders();
 		indexSettingsWithoutFilter = new DataGroupSpy("indexSettings");
-		indexSettingsWithFilter = creatIndexSettingsWithFilter();
+		indexSettingsWithFilter = createIndexSettingsWithFilter();
 		indexBatchHandler = new IndexBatchHandlerSpy();
 		batchJobStorer = new IndexBatchJobStorerSpy();
 		recordListIndexer = RecordListIndexerImp.usingDependencyProvider(dependencyProviderSpy,
@@ -104,9 +103,9 @@ public class RecordListIndexerTest {
 		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 	}
 
-	private DataGroupSpy creatIndexSettingsWithFilter() {
+	private DataGroupSpy createIndexSettingsWithFilter() {
 		DataGroupSpy indexSettingsWithFilter = new DataGroupSpy("indexSettings");
-		DataGroup filter = DataGroupProvider.getDataGroupUsingNameInData("filter");
+		DataGroup filter = new DataGroupSpy("filter");
 		indexSettingsWithFilter.addChild(filter);
 		return indexSettingsWithFilter;
 	}
@@ -168,11 +167,50 @@ public class RecordListIndexerTest {
 				indexSettingsWithoutFilter);
 	}
 
-	@Test
-	public void testVerifyReadExtraInformationForRecord() throws Exception {
-		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				indexSettingsWithoutFilter);
-	}
+	// @Test
+	// public void testVerifyReadExtraInformationForRecord() throws Exception {
+	// recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+	// indexSettingsWithoutFilter);
+	// }
+
+	// @Test
+	// public void testExtractFilterFromIndesSettingsWhenIndexSettingsWithFilter() throws Exception
+	// {
+	// RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy)
+	// dependencyProviderSpy.recordStorage;
+	//
+	// recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+	// indexSettingsWithFilter);
+	//
+	// indexSettingsWithFilter.MCR.assertParameters("getFirstGroupWithNameInData", 0, "filter");
+	// DataGroup extractedFilterFromIndexSettings = (DataGroup) indexSettingsWithFilter.MCR
+	// .getReturnValue("getFirstGroupWithNameInData", 0);
+	//
+	// recordStorage.MCR.assertParameter("getTotalNumberOfRecords", 0, "filter",
+	// extractedFilterFromIndexSettings);
+	//
+	// }
+	//
+	// @Test
+	// public void testCreateNewFilterWhenIndexSettingsWithoutFilter() throws Exception {
+	// RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy)
+	// dependencyProviderSpy.recordStorage;
+	//
+	// recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+	// indexSettingsWithoutFilter);
+	//
+	// indexSettingsWithoutFilter.MCR.assertParameters("getFirstGroupWithNameInData", 0, "filter");
+	// Object noFilterReturned = indexSettingsWithoutFilter.MCR
+	// .getReturnValue("getFirstGroupWithNameInData", 0);
+	//
+	// assertNull(noFilterReturned);
+	//
+	// Map<String, Object> parameters = recordStorage.MCR
+	// .getParametersForMethodAndCallNumber("getTotalNumberOfRecords", 0);
+	// DataGroup filter = (DataGroup) parameters.get("filter");
+	//
+	// assertTrue(filter instanceof DataGroup);
+	// }
 
 	@Test
 	public void testGetTotalNumberOfMatchesFromStorageWithoutFilter() throws Exception {
@@ -181,19 +219,11 @@ public class RecordListIndexerTest {
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
 
-		recordStorage.MCR.assertParameter("readList", 0, "type", SOME_RECORD_TYPE);
+		DataGroup createdFilter = (DataGroup) dataGroupFactory.MCR
+				.getReturnValue("factorUsingNameInData", 0);
 
-		DataGroup filter = getFilterFromMethodReadList(recordStorage);
-		assertEquals(filter.getNameInData(), "filter");
-		assertEquals(filter.getFirstAtomicValueWithNameInData("fromNo"), "0");
-		assertEquals(filter.getFirstAtomicValueWithNameInData("toNo"), "0");
-	}
+		recordStorage.MCR.assertParameter("getTotalNumberOfRecords", 0, "filter", createdFilter);
 
-	private DataGroup getFilterFromMethodReadList(RecordStorageMCRSpy recordStorage) {
-		Map<String, Object> parametersForReadList = recordStorage.MCR
-				.getParametersForMethodAndCallNumber("readList", 0);
-		DataGroup filter = (DataGroup) parametersForReadList.get("filter");
-		return filter;
 	}
 
 	@Test
@@ -203,22 +233,19 @@ public class RecordListIndexerTest {
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithFilter);
 
-		DataGroup filterFromIndexSettings = (DataGroup) indexSettingsWithFilter.MCR
+		indexSettingsWithFilter.MCR.assertParameters("getFirstGroupWithNameInData", 0, "filter");
+		DataGroup extractedFilterFromIndexSettings = (DataGroup) indexSettingsWithFilter.MCR
 				.getReturnValue("getFirstGroupWithNameInData", 0);
 
-		recordStorage.MCR.assertParameter("readList", 0, "type", SOME_RECORD_TYPE);
+		recordStorage.MCR.assertParameter("getTotalNumberOfRecords", 0, "filter",
+				extractedFilterFromIndexSettings);
 
-		DataGroup filterSentToStorage = getFilterFromMethodReadList(recordStorage);
-		assertSame(filterFromIndexSettings, filterSentToStorage);
-		assertEquals(filterSentToStorage.getNameInData(), "filter");
-		assertEquals(filterSentToStorage.getFirstAtomicValueWithNameInData("fromNo"), "0");
-		assertEquals(filterSentToStorage.getFirstAtomicValueWithNameInData("toNo"), "0");
 	}
 
 	@Test
-	public void testIndexBatchJobIsCreatedAndStoredNoFilter() throws Exception {
+	public void testIndexBatchJobIsCreatedAndStoredWithoutFilter() throws Exception {
 		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProviderSpy.recordStorage;
-		recordStorage.totalNumberOfMatchesFromStorage = 45;
+		recordStorage.totalNumberOfRecords = 45;
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);

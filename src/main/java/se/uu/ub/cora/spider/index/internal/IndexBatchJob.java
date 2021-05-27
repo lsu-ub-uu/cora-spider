@@ -33,10 +33,10 @@ public class IndexBatchJob {
 	public DataGroup filter;
 	public List<IndexError> errors = new ArrayList<>();
 
-	public IndexBatchJob(String recordTypeToIndex, long totalNumberToIndex2,
+	public IndexBatchJob(String recordTypeToIndex, long totalNumberToIndex,
 			DataGroup dataGroupFilter) {
 		this.recordTypeToIndex = recordTypeToIndex;
-		this.totalNumberToIndex = totalNumberToIndex2;
+		this.totalNumberToIndex = totalNumberToIndex;
 		this.filter = dataGroupFilter;
 	}
 }

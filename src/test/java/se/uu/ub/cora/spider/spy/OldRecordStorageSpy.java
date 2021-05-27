@@ -658,4 +658,10 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 		return null;
 	}
 
+	@Override
+	public long getTotalNumberOfRecords(String type, DataGroup filter) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }
