@@ -63,6 +63,8 @@ public class IndexBatchJobConverterTest {
 
 	@Test
 	public void testUpdateNumOfProcessedRecordsInDataGroup() {
+		indexBatchJob.numOfProcessedRecords = 67;
+
 		converter.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
 		assertEquals(indexBatchJobDataGroup.removedNameInDatas.get(0), "numOfProcessedRecords");
 		assertEquals(atomicFactory.nameInDatas.get(0), "numOfProcessedRecords");
@@ -138,9 +140,6 @@ public class IndexBatchJobConverterTest {
 	private IndexBatchJob createIndexBatchJob() {
 		DataGroupSpy filter = new DataGroupSpy("filter");
 		IndexBatchJob indexBatchJob = new IndexBatchJob(SOME_RECORD_TYPE, 10, filter);
-		indexBatchJob.numOfProcessedRecords = 67;
-		indexBatchJob.status = "started";
-		indexBatchJob.totalNumberToIndex = 198;
 		createAndAddErrors(indexBatchJob);
 		return indexBatchJob;
 	}
@@ -162,9 +161,9 @@ public class IndexBatchJobConverterTest {
 				SOME_RECORD_TYPE);
 		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("status"), "started");
 		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("numOfProcessedRecords"),
-				"67");
+				"0");
 		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("totalNumberToIndex"),
-				"198");
+				"10");
 		assertSame(createdDataGroup.getFirstGroupWithNameInData("filter"), indexBatchJob.filter);
 
 		List<DataGroup> dataGroupErrors = createdDataGroup.getAllGroupsWithNameInData("error");

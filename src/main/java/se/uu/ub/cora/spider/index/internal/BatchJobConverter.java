@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.index.internal;
 import se.uu.ub.cora.data.DataGroup;
 
 /**
- * BatchJobConverter
+ * BatchJobConverter is responsible for
  * 
  * 
  */

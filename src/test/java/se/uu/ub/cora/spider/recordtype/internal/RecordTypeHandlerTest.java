@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2019, 2020 Uppsala University Library
+ * Copyright 2016, 2019, 2020, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -45,7 +45,6 @@ import se.uu.ub.cora.spider.record.RecordStorageLightSpy;
 import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.record.internal.DataGroupCheckCallsSpy;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 
 public class RecordTypeHandlerTest {
 	private RecordStorageLightSpy recordStorageLightSpy;
@@ -1227,7 +1226,7 @@ public class RecordTypeHandlerTest {
 	}
 
 	@Test
-	public void testDatGroupGetImplentingRecordTypesNotAbstract() {
+	public void testGetGroupGetImplentingRecordTypesNotAbstract() {
 		DataGroupMCRSpy dataGroup = createTopDataGroup();
 
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
@@ -1324,4 +1323,35 @@ public class RecordTypeHandlerTest {
 		spy2.parentId = "someOtherId";
 		recordTypeHandlerFactory.recordTypeHandlersToReturn.add(spy2);
 	}
+
+	@Test
+	public void testGetListOfImplementingRecordTypeIds() {
+		RecordTypeHandlerExtendedForTest rthft = new RecordTypeHandlerExtendedForTest(2);
+
+		List<String> listOfIds = rthft.getListOfImplementingRecordTypeIds();
+		assertEquals(listOfIds.size(), 2);
+		assertEquals(listOfIds.get(0), "fakeMetadataIdFromRecordTypeHandlerSpy");
+		assertEquals(listOfIds.get(1), "fakeMetadataIdFromRecordTypeHandlerSpy");
+	}
+}
+
+class RecordTypeHandlerExtendedForTest extends RecordTypeHandlerImp {
+	List<RecordTypeHandler> implementingRecordTypesSpies = new ArrayList<>();
+
+	public RecordTypeHandlerExtendedForTest(int numberOfSpies) {
+		for (int j = 0; j < numberOfSpies; j++) {
+			addRecordTypeHandlerSpyToList();
+		}
+	}
+
+	private void addRecordTypeHandlerSpyToList() {
+		RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
+		implementingRecordTypesSpies.add(recordTypeHandlerSpy);
+	}
+
+	@Override
+	public List<RecordTypeHandler> getImplementingRecordTypeHandlers() {
+		return implementingRecordTypesSpies;
+	}
+
 }

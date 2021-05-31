@@ -29,7 +29,7 @@ public class IndexBatchJob {
 	public String recordTypeToIndex;
 	public long totalNumberToIndex;
 	public long numOfProcessedRecords;
-	public String status;
+	public String status = "started";
 	public DataGroup filter;
 	public List<IndexError> errors = new ArrayList<>();
 

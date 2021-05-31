@@ -161,14 +161,14 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecords(String type, DataGroup filter) {
+	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
 		MCR.addCall("type", type, "filter", filter);
 		MCR.addReturned(0);
 		return 0;
 	}
 
 	@Override
-	public long getTotalNumberOfAbstractRecords(String abstractType, List<String> implementingTypes,
+	public long getTotalNumberOfRecordsForAbstractType(String abstractType, List<String> implementingTypes,
 			DataGroup filter) {
 		MCR.addCall("abstractType", abstractType, "implementingTypes", implementingTypes, "filter",
 				filter);

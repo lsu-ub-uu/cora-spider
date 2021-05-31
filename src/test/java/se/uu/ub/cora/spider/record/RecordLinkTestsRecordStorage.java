@@ -139,13 +139,13 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecords(String type, DataGroup filter) {
+	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public long getTotalNumberOfAbstractRecords(String abstractType, List<String> implementingTypes,
+	public long getTotalNumberOfRecordsForAbstractType(String abstractType, List<String> implementingTypes,
 			DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;

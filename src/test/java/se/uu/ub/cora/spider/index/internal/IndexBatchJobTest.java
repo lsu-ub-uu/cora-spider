@@ -39,5 +39,8 @@ public class IndexBatchJobTest {
 		assertEquals(indexBatchJob.recordTypeToIndex, recordType);
 		assertEquals(indexBatchJob.totalNumberToIndex, totalNumberToIndex);
 		assertEquals(indexBatchJob.filter, dataGroupFilter);
+		assertEquals(indexBatchJob.numOfProcessedRecords, 0);
+		assertEquals(indexBatchJob.status, "started");
+
 	}
 }

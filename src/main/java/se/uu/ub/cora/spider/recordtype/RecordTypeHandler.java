@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2017, 2019, 2020 Uppsala University Library
+ * Copyright 2016, 2017, 2019, 2020, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -221,16 +221,31 @@ public interface RecordTypeHandler {
 
 	/**
 	 * getImplementingRecordTypeHandlers should return a List of {@link RecordTypeHandler} for all
-	 * recordTypes that has the recordType that this recordTypeHandler handles as its parent.<br>
+	 * recordTypes that has the recordType that this recordTypeHandler handles as its parent.
+	 * <p>
 	 * If this recordType is an implementing type or a type without a parent should an empty list be
 	 * returned. If this recordType is abstract but no implementing recordTypes exist should an
 	 * empty list be returned. If this recordType is abstract and implementing recordTypes exists,
 	 * should a list of the recordTypeHandlers for the implementing recordTypes be returned.
 	 * 
 	 * @return a list with RecordTypeHandlers representing recordTypes that implements the current
-	 *         recordType
+	 *         abstract recordType
 	 */
 	List<RecordTypeHandler> getImplementingRecordTypeHandlers();
+
+	/**
+	 * getListOfImplementingRecordTypeIds should return a List of recordTypeIds for all recordTypes
+	 * that has the recordType that this recordTypeHandler handles as its parent.
+	 * <p>
+	 * If this recordType is an implementing type or a type without a parent should an empty list be
+	 * returned. If this recordType is abstract but no implementing recordTypes exist should an
+	 * empty list be returned. If this recordType is abstract and implementing recordTypes exists,
+	 * should a list of the recordTypeIds for the implementing recordTypes be returned.
+	 * 
+	 * @return a list with recordTypeIds representing recordTypes that implements the current
+	 *         abstract recordType
+	 */
+	List<String> getListOfImplementingRecordTypeIds();
 
 	/**
 	 * getRecordTypeId returns the id of the recordType handled by the RecordTypeHandler

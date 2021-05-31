@@ -111,18 +111,18 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecords(String type, DataGroup filter) {
+	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
 		MCR.addCall("type", type, "filter", filter);
-		// TODO Auto-generated method stub
 		MCR.addReturned(totalNumberOfRecords);
 		return totalNumberOfRecords;
 	}
 
 	@Override
-	public long getTotalNumberOfAbstractRecords(String type, List<String> implementingTypes,
+	public long getTotalNumberOfRecordsForAbstractType(String type, List<String> implementingTypes,
 			DataGroup filter) {
-		// TODO Auto-generated method stub
-		return 0;
+		MCR.addCall("type", type, "implementingTypes", implementingTypes, "filter", filter);
+		MCR.addReturned(totalNumberOfRecords);
+		return totalNumberOfRecords;
 	}
 
 }

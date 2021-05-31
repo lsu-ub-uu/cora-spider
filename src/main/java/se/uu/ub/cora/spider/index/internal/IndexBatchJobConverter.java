@@ -26,7 +26,6 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 
 public class IndexBatchJobConverter implements BatchJobConverter {
-
 	private static final String NUM_OF_PROCESSED_RECORDS = "numOfProcessedRecords";
 	private static final String ERROR = "error";
 
@@ -119,8 +118,7 @@ public class IndexBatchJobConverter implements BatchJobConverter {
 		addAtomicValueToDataGroup("status", indexBatchJob.status, dataGroup);
 	}
 
-	private void addNumberOfProcessedRecords(IndexBatchJob indexBatchJob,
-			DataGroup dataGroup) {
+	private void addNumberOfProcessedRecords(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
 		long numOfProcessedRecords = indexBatchJob.numOfProcessedRecords;
 		addAtomicValueToDataGroup(NUM_OF_PROCESSED_RECORDS, String.valueOf(numOfProcessedRecords),
 				dataGroup);

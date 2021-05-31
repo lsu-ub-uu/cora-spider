@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.dependency;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -257,6 +258,14 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public String getRecordTypeId() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public List<String> getListOfImplementingRecordTypeIds() {
+		MCR.addCall();
+		List<String> emptyList = Collections.emptyList();
+		MCR.addReturned(emptyList);
+		return emptyList;
 	}
 
 }

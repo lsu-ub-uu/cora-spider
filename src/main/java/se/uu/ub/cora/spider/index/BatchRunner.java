@@ -23,18 +23,18 @@ package se.uu.ub.cora.spider.index;
  * records from storage, extracting search terms, and sending the records and the extracted search
  * terms for indexing. <br>
  * 
- * It is responsible to report about the indexed posts on each loop of the batch.
+ * It is responsible to report about the indexed records on each loop of the batch.
  * 
  * 
  */
 public interface BatchRunner extends Runnable {
 
 	/**
-	 * run methods overrides Runnable run method. It is intended to start a newly created Thread.
-	 * 
-	 * Given a IndexBatchJob with a value containing the total number of post to index. With this
-	 * value run method will start a loop with X number of post which will be retrived från storage,
-	 * will be indexed and will be reported as indexed on the IndexBatchJob post
+	 * run methods overrides Runnable run method. It is intended to run in a newly created Thread.
+	 * <p>
+	 * Given a IndexBatchJob with a value containing the total number of records to index. With this
+	 * value run method will start a loop with X number of post which will be retrived from storage,
+	 * will be indexed and will be reported as indexed on the IndexBatchJob record
 	 */
 
 	@Override

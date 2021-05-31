@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2019, 2020 Uppsala University Library
+ * Copyright 2016, 2019, 2020, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -36,7 +36,7 @@ import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
-public final class RecordTypeHandlerImp implements RecordTypeHandler {
+public class RecordTypeHandlerImp implements RecordTypeHandler {
 	private static final String METADATA_GROUP = "metadataGroup";
 	private static final String REPEAT_MAX_WHEN_NOT_REPEATEBLE = "1";
 	private static final String NAME_IN_DATA = "nameInData";
@@ -57,6 +57,10 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private boolean constraintsForCreateLoaded = false;
 	private RecordTypeHandlerFactory recordTypeHandlerFactory;
 	private Set<String> readChildren = new HashSet<>();
+
+	RecordTypeHandlerImp() {
+		// only for test
+	}
 
 	public static RecordTypeHandler usingRecordStorageAndRecordTypeId(
 			RecordTypeHandlerFactory recordTypeHandlerFactory, RecordStorage recordStorage,
@@ -493,6 +497,16 @@ public final class RecordTypeHandlerImp implements RecordTypeHandler {
 	private boolean currentRecordTypeIsParentTo(RecordTypeHandler recordTypeHandler) {
 		return recordTypeHandler.hasParent()
 				&& recordTypeHandler.getParentId().equals(recordTypeId);
+	}
+
+	@Override
+	public List<String> getListOfImplementingRecordTypeIds() {
+		List<String> ids = new ArrayList<>();
+		List<RecordTypeHandler> implementingHandlers = getImplementingRecordTypeHandlers();
+		for (RecordTypeHandler recordTypeHandler : implementingHandlers) {
+			ids.add(recordTypeHandler.getMetadataId());
+		}
+		return ids;
 	}
 
 	public RecordTypeHandlerFactory getRecordTypeHandlerFactory() {
