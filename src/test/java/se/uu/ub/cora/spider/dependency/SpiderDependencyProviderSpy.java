@@ -202,4 +202,10 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		return null;
 	}
 
+	@Override
+	public String getInitInfoValueUsingKey(String key) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

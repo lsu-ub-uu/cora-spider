@@ -66,4 +66,6 @@ public interface SpiderDependencyProvider {
 
 	DataGroupToRecordEnhancer getDataGroupToRecordEnhancer();
 
+	String getInitInfoValueUsingKey(String key);
+
 }

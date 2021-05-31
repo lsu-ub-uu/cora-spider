@@ -98,4 +98,10 @@ public class MetadataStorageSpy implements MetadataStorage {
 		return null;
 	}
 
+	@Override
+	public void deleteByTypeAndId(String recordType, String recordId) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

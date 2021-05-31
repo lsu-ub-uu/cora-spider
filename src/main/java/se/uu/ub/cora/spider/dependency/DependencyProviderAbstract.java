@@ -258,6 +258,7 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 				recordStorage, recordTypeId);
 	}
 
+	@Override
 	public String getInitInfoValueUsingKey(String key) {
 		ensureKeyExistsInInitInfo(key);
 		return initInfo.get(key);
