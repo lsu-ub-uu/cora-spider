@@ -21,8 +21,8 @@ package se.uu.ub.cora.spider.index.internal;
 public class IndexBatchJobConverterFactory implements BatchJobConverterFactory {
 
 	@Override
-	public BatchJobConverter factor() {
-		return new IndexBatchJobConverter();
+	public DataGroupHandlerForIndexBatchJob factor() {
+		return new DataGroupHandlerForIndexBatchJobImp();
 	}
 
 }

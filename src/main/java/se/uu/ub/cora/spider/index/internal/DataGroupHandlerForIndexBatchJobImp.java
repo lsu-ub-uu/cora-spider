@@ -25,7 +25,7 @@ import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 
-public class IndexBatchJobConverter implements BatchJobConverter {
+public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForIndexBatchJob {
 	private static final String NUM_OF_PROCESSED_RECORDS = "numOfProcessedRecords";
 	private static final String ERROR = "error";
 

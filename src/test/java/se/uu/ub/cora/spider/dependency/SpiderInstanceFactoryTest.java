@@ -32,7 +32,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.index.internal.BatchJobConverter;
+import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJob;
 import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
 import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -183,7 +183,7 @@ public class SpiderInstanceFactoryTest {
 		assertTrue(batchRunnerFactory instanceof BatchRunnerFactoryImp);
 		assertSame(batchRunnerFactory.getDependencyProvider(), dependencyProvider);
 
-		assertTrue(listIndexer.getBatchJobConverter() instanceof BatchJobConverter);
+		assertTrue(listIndexer.getBatchJobConverter() instanceof DataGroupHandlerForIndexBatchJob);
 
 		RecordListIndexerImp listIndexer2 = (RecordListIndexerImp) factory
 				.factorRecordListIndexer();

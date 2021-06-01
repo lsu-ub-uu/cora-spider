@@ -26,13 +26,20 @@ import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class RecordCreatorSpy implements RecordCreator {
 
+	public DataRecord recordToReturn = null;
+
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
 	public DataRecord createAndStoreRecord(String authToken, String type, DataGroup record) {
 		MCR.addCall("authToken", authToken, "type", type, "record", record);
+		DataRecordSpy dataRecordSpy = null;
+		if (recordToReturn != null) {
 
-		DataRecordSpy dataRecordSpy = new DataRecordSpy(record);
+			dataRecordSpy = (DataRecordSpy) recordToReturn;
+		} else {
+			dataRecordSpy = new DataRecordSpy(record);
+		}
 		MCR.addReturned(dataRecordSpy);
 		return dataRecordSpy;
 	}

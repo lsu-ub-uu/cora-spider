@@ -34,10 +34,13 @@ public interface IndexBatchHandler {
 	 * runIndexBatchJob takes an IndexBatchJob with information about the recordType, and filter of
 	 * records to index. Calls to runIndexBatchJob MUST return control directly and do the main work
 	 * of indexing in a different thread from the one calling this method.
+	 * <p>
+	 * Note, a record must exist in RecordStorage with the recordId as set in indexBatchJob (and
+	 * recordType indexBatchJob), before a call to this method can be made.
 	 * 
 	 * @param indexBatchJob
-	 *            An IndexBatchJob containing information about what to index, including RecordType,
-	 *            the number of records to index, and Filter
+	 *            An IndexBatchJob containing information about what to index, including RecordId,
+	 *            RecordTypeToIndex, the number of records to index, and Filter
 	 */
 	void runIndexBatchJob(IndexBatchJob indexBatchJob);
 }

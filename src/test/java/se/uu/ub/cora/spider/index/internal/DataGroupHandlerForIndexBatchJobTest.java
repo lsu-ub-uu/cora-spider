@@ -36,13 +36,13 @@ import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 
-public class IndexBatchJobConverterTest {
+public class DataGroupHandlerForIndexBatchJobTest {
 
 	private static final String SOME_RECORD_TYPE = "someRecordType";
 	private DataAtomicFactorySpy atomicFactory;
 	private IndexBatchJob indexBatchJob;
 	private DataGroupSpy indexBatchJobDataGroup;
-	private IndexBatchJobConverter converter;
+	private DataGroupHandlerForIndexBatchJobImp converter;
 	private DataGroupFactorySpy dataGroupFactory;
 
 	@BeforeMethod
@@ -51,7 +51,7 @@ public class IndexBatchJobConverterTest {
 
 		indexBatchJob = createIndexBatchJob();
 		indexBatchJobDataGroup = createDataGroup();
-		converter = new IndexBatchJobConverter();
+		converter = new DataGroupHandlerForIndexBatchJobImp();
 	}
 
 	private void setUpProviders() {

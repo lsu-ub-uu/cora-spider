@@ -20,6 +20,7 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
@@ -45,6 +46,7 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	public boolean searcherFactoryWasCalled = false;
 	public boolean validatorFactoryWasCalled = false;
 	public String recordType;
+	public DataRecord recordToReturnForRecordCreator = null;
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
@@ -65,7 +67,10 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 		MCR.addCall();
 		creatorFactoryWasCalled = true;
 		this.recordType = recordType;
-		RecordCreator recordCreator = new RecordCreatorSpy();
+		RecordCreatorSpy recordCreator = new RecordCreatorSpy();
+		if (recordToReturnForRecordCreator != null) {
+			recordCreator.recordToReturn = recordToReturnForRecordCreator;
+		}
 		MCR.addReturned(recordCreator);
 		return recordCreator;
 	}

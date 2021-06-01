@@ -39,8 +39,10 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataRecordSpy;
 import se.uu.ub.cora.spider.dependency.RecordCreatorSpy;
 import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
@@ -82,6 +84,7 @@ public class RecordListIndexerTest {
 		indexSettingsWithFilter = createIndexSettingsWithFilter();
 		indexBatchHandler = new IndexBatchHandlerSpy();
 		batchJobConverterSpy = new BatchJobConverterSpy();
+		setUpRecordCreatorToReturnRecordWithId("someRecordId");
 		recordListIndexer = RecordListIndexerImp.usingDependencyProvider(dependencyProviderSpy,
 				indexBatchHandler, batchJobConverterSpy);
 
@@ -265,6 +268,29 @@ public class RecordListIndexerTest {
 	}
 
 	@Test
+	public void testRecordIdInIndexBatchJobIsSetFromIdCreatedInRecordWhenCreating()
+			throws Exception {
+
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				indexSettingsWithoutFilter);
+
+		IndexBatchJob indexBatchJob = getParameterIndexBatchJobFromConverterSpy();
+		assertEquals(indexBatchJob.recordId, "someRecordId");
+	}
+
+	@Test
+	public void testRecordIdInIndexBatchJobIsSetFromIdCreatedInRecordWhenCreatingDifferentId()
+			throws Exception {
+		setUpRecordCreatorToReturnRecordWithId("someOtherRecordId");
+
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				indexSettingsWithoutFilter);
+
+		IndexBatchJob indexBatchJob = getParameterIndexBatchJobFromConverterSpy();
+		assertEquals(indexBatchJob.recordId, "someOtherRecordId");
+	}
+
+	@Test
 	public void testIndexBatchJobIsStarted() throws Exception {
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
@@ -308,4 +334,13 @@ public class RecordListIndexerTest {
 
 	}
 
+	private void setUpRecordCreatorToReturnRecordWithId(String recordId) {
+		DataGroupSpy dataGroupSpy = new DataGroupSpy("indexBatchJob");
+		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
+		dataGroupSpy.addChild(recordInfo);
+		recordInfo.addChild(new DataAtomicSpy("recordId", recordId));
+
+		DataRecordSpy dataRecordSpy = new DataRecordSpy(dataGroupSpy);
+		spiderInstanceFactorySpy.recordToReturnForRecordCreator = dataRecordSpy;
+	}
 }

@@ -27,7 +27,7 @@ public class IndexBatchJobConverterFactoryTest {
 	@Test
 	public void testFactor() {
 		BatchJobConverterFactory converterFactory = new IndexBatchJobConverterFactory();
-		BatchJobConverter converter = converterFactory.factor();
-		assertTrue(converter instanceof IndexBatchJobConverter);
+		DataGroupHandlerForIndexBatchJob converter = converterFactory.factor();
+		assertTrue(converter instanceof DataGroupHandlerForIndexBatchJobImp);
 	}
 }

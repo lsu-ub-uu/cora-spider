@@ -30,7 +30,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
-import se.uu.ub.cora.spider.index.internal.BatchJobConverter;
+import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJob;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
@@ -41,23 +41,18 @@ import se.uu.ub.cora.storage.RecordStorage;
  * 
  */
 public class RecordListIndexerImp implements RecordListIndexer {
-
 	private static final String FILTER = "filter";
-
 	private SpiderDependencyProvider dependencyProvider;
 	private IndexBatchHandler indexBatchHandler;
-	private BatchJobConverter batchJobConverter;
-
+	private DataGroupHandlerForIndexBatchJob batchJobConverter;
 	private String authToken;
-
 	private String recordType;
-
 	private DataGroup indexSettings;
-
 	private RecordTypeHandler recordTypeHandler;
 
 	private RecordListIndexerImp(SpiderDependencyProvider dependencyProvider,
-			IndexBatchHandler indexBatchHandler, BatchJobConverter batchJobConverter) {
+			IndexBatchHandler indexBatchHandler,
+			DataGroupHandlerForIndexBatchJob batchJobConverter) {
 		this.dependencyProvider = dependencyProvider;
 		this.indexBatchHandler = indexBatchHandler;
 		this.batchJobConverter = batchJobConverter;
@@ -65,7 +60,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 	public static RecordListIndexerImp usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider, IndexBatchHandler indexBatchHandler,
-			BatchJobConverter batchJobConverter) {
+			DataGroupHandlerForIndexBatchJob batchJobConverter) {
 		return new RecordListIndexerImp(dependencyProvider, indexBatchHandler, batchJobConverter);
 	}
 
@@ -76,11 +71,17 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		this.recordType = recordType;
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		this.indexSettings = indexSettings;
+		return storeAndRunBatchJob();
+	}
 
+	private DataRecord storeAndRunBatchJob() {
 		checkUserIsAuthenticatedAndAuthorized();
 		validateIndexSettingAccordingToMetadata();
 		IndexBatchJob indexBatchJob = collectInformationForIndexBatchJob(indexSettings);
 		DataRecord createdRecord = storeIndexBatchJobInStorage(authToken, indexBatchJob);
+
+		setRecordIdInIndexBatchJobFromCreatedRecord(indexBatchJob, createdRecord);
+
 		indexBatchHandler.runIndexBatchJob(indexBatchJob);
 		return createdRecord;
 	}
@@ -126,7 +127,8 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		return recordStorage.getTotalNumberOfRecordsForType(recordType, filter);
 	}
 
-	private long getTotalNumberOfRecordsForAbstractType(DataGroup filter, RecordStorage recordStorage) {
+	private long getTotalNumberOfRecordsForAbstractType(DataGroup filter,
+			RecordStorage recordStorage) {
 		List<String> implementingRecordTypeIds = recordTypeHandler
 				.getListOfImplementingRecordTypeIds();
 		return recordStorage.getTotalNumberOfRecordsForAbstractType(recordType,
@@ -139,10 +141,20 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	}
 
 	private DataRecord storeIndexBatchJobInStorage(String authToken, IndexBatchJob indexBatchJob) {
-		// TODO: indexBatchJob has no recordId nor status
 		DataGroup createDataGroup = batchJobConverter.createDataGroup(indexBatchJob);
 		RecordCreator recordCreator = SpiderInstanceProvider.getRecordCreator();
 		return recordCreator.createAndStoreRecord(authToken, "indexBatchJob", createDataGroup);
+	}
+
+	private void setRecordIdInIndexBatchJobFromCreatedRecord(IndexBatchJob indexBatchJob,
+			DataRecord createdRecord) {
+		indexBatchJob.recordId = extractRecordIdFromDataRecord(createdRecord);
+	}
+
+	private String extractRecordIdFromDataRecord(DataRecord dataRecord) {
+		DataGroup topLevelDataGroup = dataRecord.getDataGroup();
+		DataGroup recordInfo = topLevelDataGroup.getFirstGroupWithNameInData("recordInfo");
+		return recordInfo.getFirstAtomicValueWithNameInData("recordId");
 	}
 
 	// needed for test
@@ -156,7 +168,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	}
 
 	// needed for test
-	public BatchJobConverter getBatchJobConverter() {
+	public DataGroupHandlerForIndexBatchJob getBatchJobConverter() {
 		return batchJobConverter;
 	}
 }

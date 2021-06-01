@@ -22,7 +22,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
-public class BatchJobConverterSpy implements BatchJobConverter {
+public class BatchJobConverterSpy implements DataGroupHandlerForIndexBatchJob {
 
 	public IndexBatchJob indexBatchJob;
 	public DataGroup dataGroup;

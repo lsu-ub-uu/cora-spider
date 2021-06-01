@@ -456,27 +456,18 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	public DataRecord enhanceIgnoringReadAccess(User user, String recordType, DataGroup dataGroup,
 			DataRedactor dataRedactor) {
 		commonSetupForEnhance(user, recordType, dataGroup);
-		return enhanceDataGroupToRecord2(dataGroup, dataRedactor);
+		return enhanceDataGroupToRecordIgnoringReadAccess(dataGroup, dataRedactor);
 	}
 
-	private DataRecord enhanceDataGroupToRecord2(DataGroup dataGroup, DataRedactor dataRedactor) {
-		ensurePublicOrReadAccess2();
+	private DataRecord enhanceDataGroupToRecordIgnoringReadAccess(DataGroup dataGroup,
+			DataRedactor dataRedactor) {
+		setNoReadPermissionsIfUserHasNoReadAccess();
 		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataGroup, dataRedactor);
 	}
 
-	private void ensurePublicOrReadAccess2() {
-		if (!recordTypeHandler.isPublicForRead()) {
-			checkAndGetUserAuthorizationsForReadAction2();
-		} else {
-			readRecordPartPermissions = Collections.emptySet();
-		}
-	}
-
-	private void checkAndGetUserAuthorizationsForReadAction2() {
+	private void setNoReadPermissionsIfUserHasNoReadAccess() {
 		try {
-			readRecordPartPermissions = spiderAuthorizator
-					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-							user, "read", recordType, collectedTerms, true);
+			ensurePublicOrReadAccess();
 		} catch (Exception catchedException) {
 			addActionRead = false;
 			readRecordPartPermissions = Collections.emptySet();

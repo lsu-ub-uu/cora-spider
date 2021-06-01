@@ -21,9 +21,9 @@ package se.uu.ub.cora.spider.index.internal;
 public interface BatchJobConverterFactory {
 
 	/**
-	 * Creates a {@link BatchJobConverter}. A new instance of {@link BatchJobConverter} SHOULD be
+	 * Creates a {@link DataGroupHandlerForIndexBatchJob}. A new instance of {@link DataGroupHandlerForIndexBatchJob} SHOULD be
 	 * created for each call.
 	 */
-	BatchJobConverter factor();
+	DataGroupHandlerForIndexBatchJob factor();
 
 }

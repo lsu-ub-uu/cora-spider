@@ -21,12 +21,12 @@ package se.uu.ub.cora.spider.index.internal;
 import se.uu.ub.cora.data.DataGroup;
 
 /**
- * BatchJobConverter is responsible for
+ * DataGroupHandlerForIndexBatchJob is responsible for
  * 
  * 
  */
 
-public interface BatchJobConverter {
+public interface DataGroupHandlerForIndexBatchJob {
 
 	/**
 	 * updateDataGroup

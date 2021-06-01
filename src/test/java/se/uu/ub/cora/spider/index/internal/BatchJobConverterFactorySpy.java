@@ -23,7 +23,7 @@ public class BatchJobConverterFactorySpy implements BatchJobConverterFactory {
 	public BatchJobConverterSpy returnedConverter;
 
 	@Override
-	public BatchJobConverter factor() {
+	public DataGroupHandlerForIndexBatchJob factor() {
 		returnedConverter = new BatchJobConverterSpy();
 		return returnedConverter;
 	}
