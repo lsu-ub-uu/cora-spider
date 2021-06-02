@@ -63,14 +63,13 @@ public class DataGroupHandlerForIndexBatchJobTest {
 
 	@Test
 	public void testUpdateNumOfProcessedRecordsInDataGroup() {
-		indexBatchJob.numOfProcessedRecords = 67;
+		indexBatchJob.numberOfProcessedRecords = 67;
 
 		converter.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
-		assertEquals(indexBatchJobDataGroup.removedNameInDatas.get(0), "numOfProcessedRecords");
-		assertEquals(atomicFactory.nameInDatas.get(0), "numOfProcessedRecords");
-		assertEquals(
-				indexBatchJobDataGroup.getFirstAtomicValueWithNameInData("numOfProcessedRecords"),
-				"67");
+		assertEquals(indexBatchJobDataGroup.removedNameInDatas.get(0), "numberOfProcessedRecords");
+		assertEquals(atomicFactory.nameInDatas.get(0), "numberOfProcessedRecords");
+		assertEquals(indexBatchJobDataGroup
+				.getFirstAtomicValueWithNameInData("numberOfProcessedRecords"), "67");
 	}
 
 	@Test
@@ -160,7 +159,7 @@ public class DataGroupHandlerForIndexBatchJobTest {
 		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("recordType"),
 				SOME_RECORD_TYPE);
 		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("status"), "started");
-		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("numOfProcessedRecords"),
+		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("numberOfProcessedRecords"),
 				"0");
 		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("totalNumberToIndex"),
 				"10");

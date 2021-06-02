@@ -28,7 +28,7 @@ public class IndexBatchJob {
 	public String recordId;
 	public String recordTypeToIndex;
 	public long totalNumberToIndex = 0;
-	public long numOfProcessedRecords = 0;
+	public long numberOfProcessedRecords = 0;
 	public String status = "started";
 	public DataGroup filter;
 	public List<IndexError> errors = new ArrayList<>();

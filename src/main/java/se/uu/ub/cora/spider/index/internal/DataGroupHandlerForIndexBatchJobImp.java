@@ -26,7 +26,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 
 public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForIndexBatchJob {
-	private static final String NUM_OF_PROCESSED_RECORDS = "numOfProcessedRecords";
+	private static final String NUM_OF_PROCESSED_RECORDS = "numberOfProcessedRecords";
 	private static final String ERROR = "error";
 
 	@Override
@@ -39,7 +39,7 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 	private void updateNumOfProcessedRecordsInDataGroup(IndexBatchJob indexBatchJob,
 			DataGroup dataGroup) {
 		replaceAtomicChild(dataGroup, NUM_OF_PROCESSED_RECORDS,
-				String.valueOf(indexBatchJob.numOfProcessedRecords));
+				String.valueOf(indexBatchJob.numberOfProcessedRecords));
 	}
 
 	private void replaceAtomicChild(DataGroup dataGroup, String nameInData, String value) {
@@ -119,7 +119,7 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 	}
 
 	private void addNumberOfProcessedRecords(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		long numOfProcessedRecords = indexBatchJob.numOfProcessedRecords;
+		long numOfProcessedRecords = indexBatchJob.numberOfProcessedRecords;
 		addAtomicValueToDataGroup(NUM_OF_PROCESSED_RECORDS, String.valueOf(numOfProcessedRecords),
 				dataGroup);
 	}
