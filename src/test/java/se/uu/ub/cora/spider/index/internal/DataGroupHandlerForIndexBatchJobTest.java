@@ -138,6 +138,8 @@ public class DataGroupHandlerForIndexBatchJobTest {
 
 	private IndexBatchJob createIndexBatchJob() {
 		DataGroupSpy filter = new DataGroupSpy("filter");
+		DataGroupSpy include = new DataGroupSpy("include");
+		filter.addChild(include);
 		IndexBatchJob indexBatchJob = new IndexBatchJob(SOME_RECORD_TYPE, 10, filter);
 		createAndAddErrors(indexBatchJob);
 		return indexBatchJob;
@@ -156,7 +158,7 @@ public class DataGroupHandlerForIndexBatchJobTest {
 		assertEquals(createdDataGroup.getNameInData(), "indexBatchJob");
 
 		assertCorrectRecordInfo(createdDataGroup);
-		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("recordType"),
+		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("recordTypeToIndex"),
 				SOME_RECORD_TYPE);
 		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("status"), "started");
 		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("numberOfProcessedRecords"),
@@ -168,6 +170,15 @@ public class DataGroupHandlerForIndexBatchJobTest {
 		List<DataGroup> dataGroupErrors = createdDataGroup.getAllGroupsWithNameInData("error");
 
 		assertCorrectSetErrorsInDataGroup(dataGroupErrors);
+	}
+
+	@Test
+	public void testCreateDataGroupFromIndexBatchJobNoFilterIfFilterIsEmpty() throws Exception {
+		DataGroupSpy emptyFilter = new DataGroupSpy("filter");
+		indexBatchJob.filter = emptyFilter;
+
+		DataGroup createdDataGroup = converter.createDataGroup(indexBatchJob);
+		assertFalse(createdDataGroup.containsChildWithNameInData("filter"));
 	}
 
 	private void assertCorrectRecordInfo(DataGroup createdDataGroup) {

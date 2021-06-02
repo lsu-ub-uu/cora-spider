@@ -52,6 +52,7 @@ public class IndexBatchJobRunnerTest {
 	private DataGroupTermCollectorSpy termCollector;
 	private DataAtomicFactorySpy dataAtomicFactory;
 	private IndexBatchJobStorerFactorySpy storerFactory;
+	private IndexBatchJobStorerSpy storerSpy;
 
 	@BeforeMethod
 	public void setUp() {
@@ -61,7 +62,8 @@ public class IndexBatchJobRunnerTest {
 		recordStorage.totalNumberOfMatches = 2;
 		recordStorage.endNumberToReturn = 2;
 		storerFactory = new IndexBatchJobStorerFactorySpy();
-		batchRunner = new IndexBatchJobRunner(dependencyProvider, indexBatchJob, storerFactory);
+		storerSpy = new IndexBatchJobStorerSpy();
+		batchRunner = new IndexBatchJobRunner(dependencyProvider, storerSpy, indexBatchJob);
 	}
 
 	private void setUpProviders() {
@@ -94,8 +96,7 @@ public class IndexBatchJobRunnerTest {
 
 		assertSame(batchRunner.getIndexBatchJob(), indexBatchJob);
 		assertSame(batchRunner.getDependencyProvider(), dependencyProvider);
-		assertSame(batchRunner.getBatchJobStorerFactory(), storerFactory);
-
+		assertSame(batchRunner.getBatchJobStorer(), storerSpy);
 	}
 
 	@Test
@@ -221,12 +222,12 @@ public class IndexBatchJobRunnerTest {
 	public void testCorrectCallToBatchJobStorer() {
 		indexBatchJob.numberOfProcessedRecords = 3;
 		batchRunner.run();
-		assertEquals(storerFactory.indexBatchJobStorerSpies.size(), 13);
+		storerSpy.MCR.assertNumberOfCallsToMethod("store", 13);
 
-		int expectedNumberOfIndexedReturnedFromSpy = 2;
+		long expectedNumberOfIndexedReturnedFromSpy = 2;
 		for (int i = 0; i < 12; i++) {
-			IndexBatchJobStorerSpy jobStorerSpy = storerFactory.indexBatchJobStorerSpies.get(i);
-			assertEquals(jobStorerSpy.numberOfIndexed, expectedNumberOfIndexedReturnedFromSpy);
+			storerSpy.MCR.assertParameter("store", i, "numberOfProcessedRecords",
+					expectedNumberOfIndexedReturnedFromSpy);
 			expectedNumberOfIndexedReturnedFromSpy += 2;
 		}
 	}
@@ -237,29 +238,31 @@ public class IndexBatchJobRunnerTest {
 		batchRunner.run();
 
 		for (int i = 0; i < 12; i++) {
-			IndexBatchJobStorerSpy indexBatchJobStorerSpy1 = storerFactory.indexBatchJobStorerSpies
-					.get(i);
-			List<IndexError> errors = indexBatchJobStorerSpy1.errors;
+			List<IndexError> errors = (List<IndexError>) storerSpy.MCR
+					.getValueForMethodNameAndCallNumberAndParameterName("store", i, "errors");
 			assertEquals(errors.size(), 1);
 			assertEquals(errors.get(0).recordId, "someId1");
 			assertEquals(errors.get(0).message, "Some error from spy");
 
 		}
 
-		IndexBatchJobStorerSpy indexBatchJobStorerSpy = storerFactory.indexBatchJobStorerSpies
-				.get(12);
-		List<IndexError> errors = indexBatchJobStorerSpy.indexBatchJob.errors;
+		List<IndexError> errors = (List<IndexError>) storerSpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("store", 12, "errors");
 		assertEquals(errors.size(), 0);
 	}
 
 	@Test
 	public void testStatusInIndexBatchJob() {
 		batchRunner.run();
-		IndexBatchJobStorerSpy indexBatchJobStorerSpy = storerFactory.indexBatchJobStorerSpies
-				.get(12);
-		assertEquals(indexBatchJobStorerSpy.indexBatchJob.status, "finished");
-		assertEquals(indexBatchJobStorerSpy.indexBatchJob.numberOfProcessedRecords, 24);
-
+		storerSpy.MCR.assertNumberOfCallsToMethod("store", 13);
+		storerSpy.MCR.assertParameter("store", 0, "status", "started");
+		storerSpy.MCR.assertParameter("store", 0, "numberOfProcessedRecords", 2L);
+		storerSpy.MCR.assertParameter("store", 10, "status", "started");
+		storerSpy.MCR.assertParameter("store", 10, "numberOfProcessedRecords", 22L);
+		storerSpy.MCR.assertParameter("store", 11, "status", "started");
+		storerSpy.MCR.assertParameter("store", 11, "numberOfProcessedRecords", 24L);
+		storerSpy.MCR.assertParameter("store", 12, "status", "finished");
+		storerSpy.MCR.assertParameter("store", 12, "numberOfProcessedRecords", 24L);
 	}
 
 }

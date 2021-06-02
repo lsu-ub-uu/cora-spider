@@ -97,7 +97,7 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 		addRecordStatus(indexBatchJob, dataGroup);
 		addNumberOfProcessedRecords(indexBatchJob, dataGroup);
 		addTotalNumberToIndex(indexBatchJob, dataGroup);
-		addFilter(indexBatchJob, dataGroup);
+		possiblyAddFilter(indexBatchJob, dataGroup);
 		addIndexErrorsToDataGroup(indexBatchJob, dataGroup);
 		return dataGroup;
 	}
@@ -111,7 +111,7 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 	}
 
 	private void addRecordTypeToIndex(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		addAtomicValueToDataGroup("recordType", indexBatchJob.recordTypeToIndex, dataGroup);
+		addAtomicValueToDataGroup("recordTypeToIndex", indexBatchJob.recordTypeToIndex, dataGroup);
 	}
 
 	private void addRecordStatus(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
@@ -130,8 +130,10 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 				dataGroup);
 	}
 
-	private void addFilter(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		dataGroup.addChild(indexBatchJob.filter);
+	private void possiblyAddFilter(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+		if (indexBatchJob.filter.hasChildren()) {
+			dataGroup.addChild(indexBatchJob.filter);
+		}
 	}
 
 	// TODO: is this needed?

@@ -21,17 +21,21 @@ package se.uu.ub.cora.spider.index.internal;
 import se.uu.ub.cora.data.DataRecord;
 
 /**
- * BatchJobStorer is responsible for storing IndexBatchJob. <br>
+ * BatchJobStorer is responsible for storing IndexBatchJobs.
  */
 public interface BatchJobStorer {
 
 	/**
-	 * store method is responsible to store a IndexBatchJob on the specified storage on
-	 * depependencyProvider.
+	 * store updates an existing indexBatchJob record in storage using the supplied IndexBatchJob.
+	 * <p>
+	 * This is done by first reading the indexBatchJob record from storage updating the record using
+	 * information from the supplied indexBatchJob and then sending the updated record back to
+	 * storage.
+	 * <p>
+	 * The information that is updated is, numberOfProcessedRecords, errors and status
 	 * 
 	 * @param indexBatchJob
-	 *            An IndexBatchJob containing information about what to index, including RecordType,
-	 *            the number of records to index, and Filter
+	 *            An {@link IndexBatchJob} containing updated information
 	 */
 	void store(IndexBatchJob indexBatchJob);
 

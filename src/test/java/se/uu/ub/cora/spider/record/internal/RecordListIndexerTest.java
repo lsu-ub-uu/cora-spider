@@ -338,7 +338,7 @@ public class RecordListIndexerTest {
 		DataGroupSpy dataGroupSpy = new DataGroupSpy("indexBatchJob");
 		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
 		dataGroupSpy.addChild(recordInfo);
-		recordInfo.addChild(new DataAtomicSpy("recordId", recordId));
+		recordInfo.addChild(new DataAtomicSpy("id", recordId));
 
 		DataRecordSpy dataRecordSpy = new DataRecordSpy(dataGroupSpy);
 		spiderInstanceFactorySpy.recordToReturnForRecordCreator = dataRecordSpy;

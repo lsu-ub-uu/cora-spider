@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.index.internal;
 
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 
@@ -43,6 +44,15 @@ public class BatchRunnerFactoryTest {
 
 		assertSame(runner.getIndexBatchJob(), indexBatchJob);
 		assertSame(runner.getDependencyProvider(), dependencyProvider);
+
+		assertCorrectIndexBatchJobStorer(runner);
+	}
+
+	private void assertCorrectIndexBatchJobStorer(IndexBatchJobRunner runner) {
+		IndexBatchJobStorer batchJobStorer = (IndexBatchJobStorer) runner.getBatchJobStorer();
+		assertTrue(batchJobStorer instanceof IndexBatchJobStorer);
+		assertTrue(batchJobStorer
+				.getBatchJobConverterFactory() instanceof IndexBatchJobConverterFactory);
 	}
 
 }

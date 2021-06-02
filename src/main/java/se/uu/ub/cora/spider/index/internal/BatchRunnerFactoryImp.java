@@ -32,9 +32,10 @@ public class BatchRunnerFactoryImp implements BatchRunnerFactory {
 
 	@Override
 	public BatchRunner factor(IndexBatchJob indexBatchJob) {
-		// TODO:fix null to IndexBatchJobStorer
-
-		return new IndexBatchJobRunner(dependencyProvider, indexBatchJob, null);
+		IndexBatchJobConverterFactory converterFactory = new IndexBatchJobConverterFactory();
+		IndexBatchJobStorer indexBatchJobStorer = new IndexBatchJobStorer(dependencyProvider,
+				converterFactory);
+		return new IndexBatchJobRunner(dependencyProvider, indexBatchJobStorer, indexBatchJob);
 	}
 
 	public SpiderDependencyProvider getDependencyProvider() {

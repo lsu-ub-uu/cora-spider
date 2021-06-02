@@ -39,15 +39,14 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	private RecordTypeHandler recordTypeHandler;
 	private DataGroupTermCollector termCollector;
 	private RecordIndexer recordIndexer;
-	private BatchJobStorerFactory storerFactory;
+	private BatchJobStorer storer;
 	private List<IndexError> errors = new ArrayList<>();
 
-	public IndexBatchJobRunner(SpiderDependencyProvider dependencyProvider,
-			IndexBatchJob indexBatchJob, BatchJobStorerFactory storerFactory) {
+	public IndexBatchJobRunner(SpiderDependencyProvider dependencyProvider, BatchJobStorer storer,
+			IndexBatchJob indexBatchJob) {
 		this.dependencyProvider = dependencyProvider;
+		this.storer = storer;
 		this.indexBatchJob = indexBatchJob;
-		this.storerFactory = storerFactory;
-		// TODO: Instead of sending BatchJobStorerFactory, send one BatchJobStorer
 	}
 
 	@Override
@@ -156,13 +155,11 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 	private void increaseNumOfIndexedInBatchJob(StorageReadResult readResult) {
 		int numberOfRecordsSentToIndex = readResult.listOfDataGroups.size();
-		indexBatchJob.numberOfProcessedRecords = indexBatchJob.numberOfProcessedRecords
-				+ numberOfRecordsSentToIndex;
+		indexBatchJob.numberOfProcessedRecords += numberOfRecordsSentToIndex;
 	}
 
 	private void storeBatchJob() {
-		BatchJobStorer batchJobStorer = storerFactory.factor();
-		batchJobStorer.store(indexBatchJob);
+		storer.store(indexBatchJob);
 	}
 
 	private void clearErrors() {
@@ -183,8 +180,8 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		return indexBatchJob;
 	}
 
-	BatchJobStorerFactory getBatchJobStorerFactory() {
-		return storerFactory;
+	BatchJobStorer getBatchJobStorer() {
+		return storer;
 	}
 
 }

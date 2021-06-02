@@ -154,7 +154,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	private String extractRecordIdFromDataRecord(DataRecord dataRecord) {
 		DataGroup topLevelDataGroup = dataRecord.getDataGroup();
 		DataGroup recordInfo = topLevelDataGroup.getFirstGroupWithNameInData("recordInfo");
-		return recordInfo.getFirstAtomicValueWithNameInData("recordId");
+		return recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
 	// needed for test
