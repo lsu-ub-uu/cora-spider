@@ -72,8 +72,8 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 	private void readListAndIndexDataInBatches(String metadataId) {
 		int numberRequestedFromListing = 0;
-		int from = 0;
-		int to = 9;
+		int from = 1;
+		int to = 10;
 
 		while (numberRequestedFromListing < indexBatchJob.totalNumberToIndex) {
 			setFromAndToInFilter(from, to);
