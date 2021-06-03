@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.dependency;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,7 +28,7 @@ import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.record.RecordTypeHandler;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class RecordTypeHandlerSpy implements RecordTypeHandler {
@@ -257,6 +258,14 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public String getRecordTypeId() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public List<String> getListOfImplementingRecordTypeIds() {
+		MCR.addCall();
+		List<String> emptyList = Collections.emptyList();
+		MCR.addReturned(emptyList);
+		return emptyList;
 	}
 
 }

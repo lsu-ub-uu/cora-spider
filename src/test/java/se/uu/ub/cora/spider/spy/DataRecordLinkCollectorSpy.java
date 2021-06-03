@@ -31,11 +31,13 @@ public class DataRecordLinkCollectorSpy implements DataRecordLinkCollector {
 	public DataGroup collectedDataLinks = new DataGroupSpy("collectedDataLinks");
 	public String recordType;
 	public String recordId;
+	public DataGroup dataGroup;
 
 	@Override
 	public DataGroup collectLinks(String metadataId, DataGroup dataGroup, String fromRecordType,
 			String fromRecordId) {
 		this.metadataId = metadataId;
+		this.dataGroup = dataGroup;
 		this.recordType = fromRecordType;
 		this.recordId = fromRecordId;
 		collectLinksWasCalled = true;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2018, 2019 Uppsala University Library
+ * Copyright 2015, 2018, 2019, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,16 +21,17 @@ package se.uu.ub.cora.spider.dependency;
 
 import java.util.Map;
 
-import se.uu.ub.cora.spider.record.SpiderDownloader;
-import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
-import se.uu.ub.cora.spider.record.SpiderRecordListReader;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
-import se.uu.ub.cora.spider.record.SpiderRecordValidator;
-import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
+import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.record.RecordDeleter;
+import se.uu.ub.cora.spider.record.RecordListIndexer;
+import se.uu.ub.cora.spider.record.RecordListReader;
+import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.record.RecordSearcher;
+import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.record.RecordValidator;
+import se.uu.ub.cora.spider.record.Uploader;
 
 public final class SpiderInstanceProvider {
 	private static SpiderInstanceFactory factory;
@@ -45,44 +46,48 @@ public final class SpiderInstanceProvider {
 		SpiderInstanceProvider.factory = factory;
 	}
 
-	public static SpiderRecordReader getSpiderRecordReader() {
-		return factory.factorSpiderRecordReader();
+	public static RecordReader getRecordReader() {
+		return factory.factorRecordReader();
 	}
 
-	public static SpiderRecordListReader getSpiderRecordListReader() {
-		return factory.factorSpiderRecordListReader();
+	public static RecordListReader getRecordListReader() {
+		return factory.factorRecordListReader();
 	}
 
-	public static SpiderRecordCreator getSpiderRecordCreator() {
-		return factory.factorSpiderRecordCreator();
+	public static RecordCreator getRecordCreator() {
+		return factory.factorRecordCreator();
 	}
 
-	public static SpiderRecordUpdater getSpiderRecordUpdater() {
-		return factory.factorSpiderRecordUpdater();
+	public static RecordUpdater getRecordUpdater() {
+		return factory.factorRecordUpdater();
 	}
 
-	public static SpiderRecordDeleter getSpiderRecordDeleter() {
-		return factory.factorSpiderRecordDeleter();
+	public static RecordDeleter getRecordDeleter() {
+		return factory.factorRecordDeleter();
 	}
 
-	public static SpiderUploader getSpiderUploader() {
-		return factory.factorSpiderUploader();
+	public static Uploader getUploader() {
+		return factory.factorUploader();
 	}
 
-	public static SpiderDownloader getSpiderDownloader() {
-		return factory.factorSpiderDownloader();
+	public static Downloader getDownloader() {
+		return factory.factorDownloader();
 	}
 
-	public static SpiderRecordSearcher getSpiderRecordSearcher() {
-		return factory.factorSpiderRecordSearcher();
+	public static RecordSearcher getRecordSearcher() {
+		return factory.factorRecordSearcher();
 	}
 
-	public static SpiderRecordIncomingLinksReader getSpiderRecordIncomingLinksReader() {
-		return factory.factorSpiderRecordIncomingLinksReader();
+	public static IncomingLinksReader getIncomingLinksReader() {
+		return factory.factorIncomingLinksReader();
 	}
 
-	public static SpiderRecordValidator getSpiderRecordValidator() {
-		return factory.factorSpiderRecordValidator();
+	public static RecordValidator getRecordValidator() {
+		return factory.factorRecordValidator();
+	}
+
+	public static RecordListIndexer getRecordListIndexer() {
+		return factory.factorRecordListIndexer();
 	}
 
 	public static void setInitInfo(Map<String, String> initInfo) {

@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2017, 2019 Uppsala University Library
+ * Copyright 2017, 2019, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,19 +20,21 @@
 
 package se.uu.ub.cora.spider.dependency;
 
-import se.uu.ub.cora.spider.record.SpiderDownloader;
-import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
-import se.uu.ub.cora.spider.record.SpiderRecordListReader;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
-import se.uu.ub.cora.spider.record.SpiderRecordValidator;
-import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
+import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.record.RecordDeleter;
+import se.uu.ub.cora.spider.record.RecordListIndexer;
+import se.uu.ub.cora.spider.record.RecordListReader;
+import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.record.RecordSearcher;
+import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.record.RecordValidator;
+import se.uu.ub.cora.spider.record.Uploader;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
-	public boolean readerFactoryWasCalled = false;
 	public boolean incomingLinksReaderFactoryWasCalled = false;
 	public boolean listReaderFactoryWasCalled = false;
 	public boolean creatorFactoryWasCalled = false;
@@ -42,63 +44,79 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	public boolean downloaderFactoryWasCalled = false;
 	public boolean searcherFactoryWasCalled = false;
 	public boolean validatorFactoryWasCalled = false;
+	public String recordType;
+	public DataRecord recordToReturnForRecordCreator = null;
+
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
-	public SpiderRecordReader factorSpiderRecordReader() {
-		readerFactoryWasCalled = true;
-		return null;
+	public RecordReader factorRecordReader() {
+		MCR.addCall();
+
+		RecordReader recordReader = new RecordReaderSpy();
+
+		MCR.addReturned(recordReader);
+		return recordReader;
 	}
 
 	@Override
-	public SpiderRecordListReader factorSpiderRecordListReader() {
+	public RecordListReader factorRecordListReader() {
 		listReaderFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderRecordCreator factorSpiderRecordCreator() {
+	public RecordCreator factorRecordCreator() {
+		MCR.addCall();
 		creatorFactoryWasCalled = true;
-		return null;
+		this.recordType = recordType;
+		RecordCreatorSpy recordCreator = new RecordCreatorSpy();
+		if (recordToReturnForRecordCreator != null) {
+			recordCreator.recordToReturn = recordToReturnForRecordCreator;
+		}
+		MCR.addReturned(recordCreator);
+		return recordCreator;
 	}
 
 	@Override
-	public SpiderRecordUpdater factorSpiderRecordUpdater() {
+	public RecordUpdater factorRecordUpdater() {
 		updaterFactoryWasCalled = true;
+		this.recordType = recordType;
 		return null;
 	}
 
 	@Override
-	public SpiderRecordDeleter factorSpiderRecordDeleter() {
+	public RecordDeleter factorRecordDeleter() {
 		deleterFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderUploader factorSpiderUploader() {
+	public Uploader factorUploader() {
 		uploaderFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderDownloader factorSpiderDownloader() {
+	public Downloader factorDownloader() {
 		downloaderFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderRecordSearcher factorSpiderRecordSearcher() {
+	public RecordSearcher factorRecordSearcher() {
 		searcherFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderRecordIncomingLinksReader factorSpiderRecordIncomingLinksReader() {
+	public IncomingLinksReader factorIncomingLinksReader() {
 		incomingLinksReaderFactoryWasCalled = true;
 		return null;
 	}
 
 	@Override
-	public SpiderRecordValidator factorSpiderRecordValidator() {
+	public RecordValidator factorRecordValidator() {
 		validatorFactoryWasCalled = true;
 		return null;
 	}
@@ -106,6 +124,14 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	@Override
 	public String getDependencyProviderClassName() {
 		return "someDependencyProviderClassNameFromSpy";
+	}
+
+	@Override
+	public RecordListIndexer factorRecordListIndexer() {
+		MCR.addCall();
+		RecordListIndexer recordListIndexer = new RecordListIndexerSpy();
+		MCR.addReturned(recordListIndexer);
+		return recordListIndexer;
 	}
 
 }

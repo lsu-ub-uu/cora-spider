@@ -237,16 +237,23 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordsExistForRecordType(String type) {
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+			String id) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
-			String id) {
+	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
 		// TODO Auto-generated method stub
-		return false;
+		return 0;
+	}
+
+	@Override
+	public long getTotalNumberOfRecordsForAbstractType(String abstractType, List<String> implementingTypes,
+			DataGroup filter) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

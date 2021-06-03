@@ -35,7 +35,6 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
@@ -64,9 +63,7 @@ public class WorkOrderExecutorTest {
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
 		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
-		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		recordStorageProviderSpy.recordStorage = new OldRecordStorageSpy();
-		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+		dependencyProvider.recordStorage = new OldRecordStorageSpy();
 		dependencyProvider.authenticator = new AuthenticatorSpy();
 		dependencyProvider.spiderAuthorizator = new SpiderAuthorizatorSpy();
 		setUpDependencyProvider();
@@ -117,9 +114,7 @@ public class WorkOrderExecutorTest {
 
 	@Test
 	public void testIndexDataForChildOfAbstract() {
-		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		recordStorageProviderSpy.recordStorage = new RecordStorageCreateUpdateSpy();
-		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+		dependencyProvider.recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
 				"someGeneratedId", "image", "image1");

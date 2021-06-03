@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2017, 2019 Uppsala University Library
+ * Copyright 2017, 2019, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,39 +20,42 @@
 
 package se.uu.ub.cora.spider.dependency;
 
-import se.uu.ub.cora.spider.record.SpiderDownloader;
-import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
-import se.uu.ub.cora.spider.record.SpiderRecordListReader;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
-import se.uu.ub.cora.spider.record.SpiderRecordValidator;
-import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
+import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.record.RecordDeleter;
+import se.uu.ub.cora.spider.record.RecordListIndexer;
+import se.uu.ub.cora.spider.record.RecordListReader;
+import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.record.RecordSearcher;
+import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.record.RecordValidator;
+import se.uu.ub.cora.spider.record.Uploader;
 
 public interface SpiderInstanceFactory {
 
 	String getDependencyProviderClassName();
 
-	SpiderRecordReader factorSpiderRecordReader();
+	RecordReader factorRecordReader();
 
-	SpiderRecordIncomingLinksReader factorSpiderRecordIncomingLinksReader();
+	IncomingLinksReader factorIncomingLinksReader();
 
-	SpiderRecordListReader factorSpiderRecordListReader();
+	RecordListReader factorRecordListReader();
 
-	SpiderRecordCreator factorSpiderRecordCreator();
+	RecordCreator factorRecordCreator();
 
-	SpiderRecordUpdater factorSpiderRecordUpdater();
+	RecordUpdater factorRecordUpdater();
 
-	SpiderRecordDeleter factorSpiderRecordDeleter();
+	RecordDeleter factorRecordDeleter();
 
-	SpiderUploader factorSpiderUploader();
+	Uploader factorUploader();
 
-	SpiderDownloader factorSpiderDownloader();
+	Downloader factorDownloader();
 
-	SpiderRecordSearcher factorSpiderRecordSearcher();
+	RecordSearcher factorRecordSearcher();
 
-	SpiderRecordValidator factorSpiderRecordValidator();
+	RecordValidator factorRecordValidator();
+
+	RecordListIndexer factorRecordListIndexer();
 
 }

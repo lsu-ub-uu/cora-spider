@@ -25,20 +25,21 @@ import java.util.Map;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProvider;
-import se.uu.ub.cora.spider.record.SpiderUploader;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.storage.MetadataStorage;
 
-public class SpiderDependencyProviderTestHelper extends SpiderDependencyProvider {
+public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstract {
 
 	public SpiderAuthorizator spiderAuthorizator;
 	public PermissionRuleCalculator ruleCalculator;
-	public SpiderUploader uploader;
+	public Uploader uploader;
 	public DataValidator dataValidator;
 	public DataRecordLinkCollector linkCollector;
 	public ExtendedFunctionalityProvider extendedFunctionalityProvider;
@@ -48,6 +49,8 @@ public class SpiderDependencyProviderTestHelper extends SpiderDependencyProvider
 	public RecordIndexer recordIndexer;
 	public boolean readInitInfoWasCalled;
 	public boolean tryToInitializeWasCalled;
+	DataValidatorFactoySpy dataValidatorFactory = new DataValidatorFactoySpy();
+	boolean standardDataValidatorFactory = false;
 
 	public SpiderDependencyProviderTestHelper(Map<String, String> initInfo) {
 		super(initInfo);
@@ -96,6 +99,14 @@ public class SpiderDependencyProviderTestHelper extends SpiderDependencyProvider
 	@Override
 	public void ensureKeyExistsInInitInfo(String key) {
 		super.ensureKeyExistsInInitInfo(key);
+	}
+
+	@Override
+	DataValidatorFactory getDataValidatorFactory() {
+		if (standardDataValidatorFactory) {
+			return super.getDataValidatorFactory();
+		}
+		return dataValidatorFactory;
 	}
 
 }

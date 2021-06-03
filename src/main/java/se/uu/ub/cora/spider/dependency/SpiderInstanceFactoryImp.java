@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019 Uppsala University Library
+ * Copyright 2015, 2016, 2019, 2021 Uppsala University Library
  * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
@@ -20,28 +20,36 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import se.uu.ub.cora.spider.index.BatchRunnerFactory;
+import se.uu.ub.cora.spider.index.IndexBatchHandler;
+import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJob;
+import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
+import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
+import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobImp;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.record.SpiderDownloader;
-import se.uu.ub.cora.spider.record.SpiderDownloaderImp;
-import se.uu.ub.cora.spider.record.SpiderRecordCreator;
-import se.uu.ub.cora.spider.record.SpiderRecordCreatorImp;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleter;
-import se.uu.ub.cora.spider.record.SpiderRecordDeleterImp;
-import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReader;
-import se.uu.ub.cora.spider.record.SpiderRecordIncomingLinksReaderImp;
-import se.uu.ub.cora.spider.record.SpiderRecordListReader;
-import se.uu.ub.cora.spider.record.SpiderRecordListReaderImp;
-import se.uu.ub.cora.spider.record.SpiderRecordReader;
-import se.uu.ub.cora.spider.record.SpiderRecordReaderImp;
-import se.uu.ub.cora.spider.record.SpiderRecordSearcher;
-import se.uu.ub.cora.spider.record.SpiderRecordSearcherImp;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdater;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdaterImp;
-import se.uu.ub.cora.spider.record.SpiderRecordValidator;
-import se.uu.ub.cora.spider.record.SpiderRecordValidatorImp;
-import se.uu.ub.cora.spider.record.SpiderUploader;
-import se.uu.ub.cora.spider.record.SpiderUploaderImp;
+import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
+import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.record.RecordDeleter;
+import se.uu.ub.cora.spider.record.RecordListIndexer;
+import se.uu.ub.cora.spider.record.RecordListReader;
+import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.record.RecordSearcher;
+import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.record.RecordValidator;
+import se.uu.ub.cora.spider.record.Uploader;
+import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
+import se.uu.ub.cora.spider.record.internal.DownloaderImp;
+import se.uu.ub.cora.spider.record.internal.IncomingLinksReaderImp;
+import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
+import se.uu.ub.cora.spider.record.internal.RecordDeleterImp;
+import se.uu.ub.cora.spider.record.internal.RecordListIndexerImp;
+import se.uu.ub.cora.spider.record.internal.RecordListReaderImp;
+import se.uu.ub.cora.spider.record.internal.RecordReaderImp;
+import se.uu.ub.cora.spider.record.internal.RecordSearcherImp;
+import se.uu.ub.cora.spider.record.internal.RecordUpdaterImp;
+import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
+import se.uu.ub.cora.spider.record.internal.UploaderImp;
 
 public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
@@ -57,73 +65,83 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public SpiderRecordReader factorSpiderRecordReader() {
+	public RecordReader factorRecordReader() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
-		return SpiderRecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+		return RecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
-	public SpiderRecordListReader factorSpiderRecordListReader() {
+	public RecordListReader factorRecordListReader() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
-		return SpiderRecordListReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+		return RecordListReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
-	public SpiderRecordCreator factorSpiderRecordCreator() {
+	public RecordCreator factorRecordCreator() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
-		return SpiderRecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+		return RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
-	public SpiderRecordUpdater factorSpiderRecordUpdater() {
+	public RecordUpdater factorRecordUpdater() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
-		return SpiderRecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+		return RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
-	public SpiderRecordDeleter factorSpiderRecordDeleter() {
-		return SpiderRecordDeleterImp.usingDependencyProvider(dependencyProvider);
+	public RecordDeleter factorRecordDeleter() {
+		return RecordDeleterImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
-	public SpiderUploader factorSpiderUploader() {
-		return SpiderUploaderImp.usingDependencyProvider(dependencyProvider);
+	public Uploader factorUploader() {
+		return UploaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
-	public SpiderDownloader factorSpiderDownloader() {
-		return SpiderDownloaderImp.usingDependencyProvider(dependencyProvider);
+	public Downloader factorDownloader() {
+		return DownloaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
-	public SpiderRecordSearcher factorSpiderRecordSearcher() {
+	public RecordSearcher factorRecordSearcher() {
 		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
 				dependencyProvider);
-		return SpiderRecordSearcherImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+		return RecordSearcherImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
 	}
 
 	@Override
-	public SpiderRecordIncomingLinksReader factorSpiderRecordIncomingLinksReader() {
-		return SpiderRecordIncomingLinksReaderImp.usingDependencyProvider(dependencyProvider);
+	public IncomingLinksReader factorIncomingLinksReader() {
+		return IncomingLinksReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
-	public SpiderRecordValidator factorSpiderRecordValidator() {
-		return SpiderRecordValidatorImp.usingDependencyProvider(dependencyProvider);
+	public RecordValidator factorRecordValidator() {
+		return RecordValidatorImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
 	public String getDependencyProviderClassName() {
 		return dependencyProvider.getClass().getName();
+	}
+
+	@Override
+	public RecordListIndexer factorRecordListIndexer() {
+		BatchRunnerFactory batchRunnerFactory = new BatchRunnerFactoryImp(dependencyProvider);
+		IndexBatchHandler indexBatchHandler = IndexBatchHandlerImp
+				.usingBatchRunnerFactory(batchRunnerFactory);
+		DataGroupHandlerForIndexBatchJob dataGroupHandlerForIndexBatchJob = new DataGroupHandlerForIndexBatchJobImp();
+		return RecordListIndexerImp.usingDependencyProvider(dependencyProvider, indexBatchHandler,
+				dataGroupHandlerForIndexBatchJob);
 	}
 
 }

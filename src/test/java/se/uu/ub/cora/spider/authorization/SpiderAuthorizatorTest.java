@@ -42,7 +42,6 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.dependency.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.RecordStorageForAuthorizatorSpy;
@@ -88,22 +87,14 @@ public class SpiderAuthorizatorTest {
 	}
 
 	private void setUpDependencyProvider() {
-		RecordStorageProviderSpy recordStorageProviderSpy = setupRecorStorageProvider();
-
 		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.setRecordStorageProvider(recordStorageProviderSpy);
+		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.ruleCalculator = ruleCalculator;
 
 		spiderAuthorizator = SpiderAuthorizatorImp
 				.usingSpiderDependencyProviderAndAuthorizatorAndRulesProvider(dependencyProvider,
 						beefeaterAuthorizator, rulesProvider);
-	}
-
-	private RecordStorageProviderSpy setupRecorStorageProvider() {
-		RecordStorageProviderSpy recordStorageProviderSpy = new RecordStorageProviderSpy();
-		recordStorageProviderSpy.recordStorage = recordStorage;
-		return recordStorageProviderSpy;
 	}
 
 	@Test

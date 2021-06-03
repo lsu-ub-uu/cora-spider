@@ -22,6 +22,7 @@ import java.util.ServiceLoader;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 
 /**
  * ExtendedFunctionalityInitializer uses ServiceLoader to locate all implementations of

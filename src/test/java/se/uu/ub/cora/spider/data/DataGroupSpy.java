@@ -28,6 +28,7 @@ import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAttribute;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class DataGroupSpy implements DataGroup {
 
@@ -38,6 +39,8 @@ public class DataGroupSpy implements DataGroup {
 	public List<String> removedNameInDatas = new ArrayList<>();
 	public List<String> requestedAtomicValues = new ArrayList<>();
 	public List<String> requestedDataGroups = new ArrayList<>();
+	public List<DataElement> addedChildren = new ArrayList<>();
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public DataGroupSpy(String nameInData) {
 		this.nameInData = nameInData;
@@ -74,11 +77,14 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public DataGroup getFirstGroupWithNameInData(String childNameInData) {
+		MCR.addCall("childNameInData", childNameInData);
 		requestedDataGroups.add(childNameInData);
 		for (DataElement dataElement : children) {
 			if (childNameInData.equals(dataElement.getNameInData())) {
 				if (dataElement instanceof DataGroup) {
-					return ((DataGroup) dataElement);
+					DataGroup dataGroup = (DataGroup) dataElement;
+					MCR.addReturned(dataGroup);
+					return dataGroup;
 				}
 			}
 		}
@@ -87,6 +93,7 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public void addChild(DataElement dataElement) {
+		addedChildren.add(dataElement);
 		children.add(dataElement);
 
 	}

@@ -32,6 +32,7 @@ import java.util.List;
 
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 
 public class ExtendedFunctionalityProviderImp implements ExtendedFunctionalityProvider {
 	private FactorySorter factorySorter;

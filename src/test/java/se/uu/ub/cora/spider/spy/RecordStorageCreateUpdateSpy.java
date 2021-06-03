@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -288,8 +289,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			return group;
 		}
 		if ("image".equals(type) && "image:123456789".equals(id)) {
-			return DataCreator2.createRecordWithNameInDataAndIdAndLinkedRecordId(
-					"image", "image:123456789", "cora");
+			return DataCreator2.createRecordWithNameInDataAndIdAndLinkedRecordId("image",
+					"image:123456789", "cora");
 		}
 		DataGroup dataGroupToReturn = new DataGroupSpy("someNameInData");
 		createAndAddRecordInfo(dataGroupToReturn);
@@ -447,15 +448,22 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordsExistForRecordType(String type) {
-		// TODO Auto-generated method stub
+	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+			String id) {
 		return false;
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
-			String id) {
-		return false;
+	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public long getTotalNumberOfRecordsForAbstractType(String abstractType, List<String> implementingTypes,
+			DataGroup filter) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

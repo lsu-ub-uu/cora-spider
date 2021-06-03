@@ -18,20 +18,29 @@
  */
 package se.uu.ub.cora.spider.data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicFactory;
 
 public class DataAtomicFactorySpy implements DataAtomicFactory {
 
+	public List<String> nameInDatas = new ArrayList<>();
+	public List<String> values = new ArrayList<>();
 	public String nameInData;
 	public String value;
 	public DataAtomic reurnedDataAtomic;
+	public List<DataAtomic> returnedDataAtomics = new ArrayList<>();
 
 	@Override
 	public DataAtomic factorUsingNameInDataAndValue(String nameInData, String value) {
 		this.nameInData = nameInData;
+		nameInDatas.add(nameInData);
 		this.value = value;
+		values.add(value);
 		reurnedDataAtomic = new DataAtomicSpy(nameInData, value);
+		returnedDataAtomics.add(reurnedDataAtomic);
 		return reurnedDataAtomic;
 	}
 
