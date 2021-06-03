@@ -136,6 +136,14 @@ public class SpiderInstanceProviderTest {
 	}
 
 	@Test
+	public void makeSureFactoryCreateIsCalledForRecordValidator() {
+		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.getRecordValidator();
+		assertTrue(factory.validatorFactoryWasCalled);
+	}
+
+	@Test
 	public void makeSureFactoryIsCalledForRecordListIndexer() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
@@ -153,11 +161,4 @@ public class SpiderInstanceProviderTest {
 		assertEquals(SpiderInstanceProvider.getInitInfo(), initInfo);
 	}
 
-	@Test
-	public void makeSureFactoryCreateIsCalledForRecordValidator() {
-		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getRecordValidator();
-		assertTrue(factory.validatorFactoryWasCalled);
-	}
 }
