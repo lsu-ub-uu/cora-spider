@@ -38,7 +38,7 @@
 		<json.version>2.3.0</json.version>
 		<storage.version>4.0.0</storage.version>
 		<search.version>3.6.0</search.version>
-		<bookkeeper.version>5.0-SNAPSHOT</bookkeeper.version>
+		<bookkeeper.version>5.0.0</bookkeeper.version>
 		<beefeater.version>3.4.0</beefeater.version>
 	</properties>
 
