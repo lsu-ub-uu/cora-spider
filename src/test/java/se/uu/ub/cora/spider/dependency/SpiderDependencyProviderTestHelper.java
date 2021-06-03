@@ -25,6 +25,7 @@ import java.util.Map;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -48,6 +49,8 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 	public RecordIndexer recordIndexer;
 	public boolean readInitInfoWasCalled;
 	public boolean tryToInitializeWasCalled;
+	DataValidatorFactoySpy dataValidatorFactory = new DataValidatorFactoySpy();
+	boolean standardDataValidatorFactory = false;
 
 	public SpiderDependencyProviderTestHelper(Map<String, String> initInfo) {
 		super(initInfo);
@@ -96,6 +99,14 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 	@Override
 	public void ensureKeyExistsInInitInfo(String key) {
 		super.ensureKeyExistsInInitInfo(key);
+	}
+
+	@Override
+	DataValidatorFactory getDataValidatorFactory() {
+		if (standardDataValidatorFactory) {
+			return super.getDataValidatorFactory();
+		}
+		return dataValidatorFactory;
 	}
 
 }

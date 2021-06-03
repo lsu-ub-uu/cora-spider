@@ -40,8 +40,9 @@ import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactoryImp;
 import se.uu.ub.cora.bookkeeper.termcollector.CollectedDataCreatorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
+import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
-import se.uu.ub.cora.bookkeeper.validator.DataValidatorImp;
 import se.uu.ub.cora.bookkeeper.validator.MetadataMatchDataImp;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.logger.LoggerProvider;
@@ -247,27 +248,26 @@ public class DependencyProviderAbstractTest {
 
 	@Test
 	public void testDataValidatorHasCorrectDependecies() {
-		MetadataStorageSpy metadataStorage = (MetadataStorageSpy) dependencyProvider
+		MetadataStorageSpy metadataStorageOriginal = (MetadataStorageSpy) dependencyProvider
 				.getMetadataStorage();
 
-		DataValidatorImp dataValidator = (DataValidatorImp) dependencyProvider.getDataValidator();
-		assertTrue(dataValidator instanceof DataValidatorImp);
-		assertSame(dataValidator.getMetadataStorage(), dependencyProvider.getMetadataStorage());
-		assertCorrectRecordTypeHolder(dataValidator.getRecordTypeHolder(), metadataStorage);
+		DataValidator dataValidator = dependencyProvider.getDataValidator();
+		DataValidatorFactoySpy dataValidatorFactorySpy = dependencyProvider.dataValidatorFactory;
+		dataValidatorFactorySpy.MCR.assertParameters("factor", 0,
+				dependencyProvider.getMetadataStorage());
+		dataValidatorFactorySpy.MCR.assertReturn("factor", 0, dataValidator);
 
-		DataValidatorFactoryImp dataValidatorFactory = (DataValidatorFactoryImp) dataValidator
-				.getDataValidatorFactory();
+		Map<String, DataGroup> recordTypeHolder = (Map<String, DataGroup>) dataValidatorFactorySpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("factor", 0,
+						"recordTypeHolder");
+		assertCorrectRecordTypeHolder(recordTypeHolder, metadataStorageOriginal);
 
-		assertTrue(metadataStorage.getMetadataElementsWasCalled);
-
-		assertCorrectRecordTypeHolder(dataValidatorFactory.getRecordTypeHolder(), metadataStorage);
-		assertCorrectMetadataHolder(dataValidatorFactory);
-
+		MetadataHolder metadataHolder = (MetadataHolder) dataValidatorFactorySpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("factor", 0, "metadataHolder");
+		assertCorrectMetadataHolder(metadataHolder);
 	}
 
-	private void assertCorrectMetadataHolder(DataValidatorFactoryImp dataValidatorFactory) {
-		MetadataHolder metadataHolder = dataValidatorFactory.getMetadataHolder();
-
+	private void assertCorrectMetadataHolder(MetadataHolder metadataHolder) {
 		MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
 		assertEquals(metadataElement.getId(), "someMetadata1");
 	}
@@ -276,6 +276,13 @@ public class DependencyProviderAbstractTest {
 			MetadataStorageSpy metadataStorage) {
 		assertEquals(recordTypeHolder.get("someId1"), metadataStorage.recordTypes.get(0));
 		assertEquals(recordTypeHolder.get("someId2"), metadataStorage.recordTypes.get(1));
+	}
+
+	@Test
+	public void testGetDataValidatorFactory() throws Exception {
+		dependencyProvider.standardDataValidatorFactory = true;
+		DataValidatorFactory dataValidatorFactory = dependencyProvider.getDataValidatorFactory();
+		assertTrue(dataValidatorFactory instanceof DataValidatorFactoryImp);
 	}
 
 	@Test
@@ -355,4 +362,5 @@ public class DependencyProviderAbstractTest {
 				.getDataGroupToRecordEnhancer();
 		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
 	}
+
 }

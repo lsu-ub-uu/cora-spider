@@ -43,7 +43,6 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
-import se.uu.ub.cora.bookkeeper.validator.DataValidatorImp;
 import se.uu.ub.cora.bookkeeper.validator.MetadataMatchData;
 import se.uu.ub.cora.bookkeeper.validator.MetadataMatchDataImp;
 import se.uu.ub.cora.data.DataGroup;
@@ -159,9 +158,12 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 				metadataStorage.getRecordTypes());
 		MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
 
-		DataValidatorFactory dataValidatorFactory = new DataValidatorFactoryImp(recordTypeHolder,
-				metadataHolder);
-		return new DataValidatorImp(metadataStorage, dataValidatorFactory, recordTypeHolder);
+		DataValidatorFactory dataValidatorFactory = getDataValidatorFactory();
+		return dataValidatorFactory.factor(metadataStorage, recordTypeHolder, metadataHolder);
+	}
+
+	DataValidatorFactory getDataValidatorFactory() {
+		return new DataValidatorFactoryImp();
 	}
 
 	private Map<String, DataGroup> createRecordTypeHolder(Collection<DataGroup> recordTypes) {
