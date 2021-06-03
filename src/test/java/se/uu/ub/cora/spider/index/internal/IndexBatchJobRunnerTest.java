@@ -51,7 +51,6 @@ public class IndexBatchJobRunnerTest {
 	private RecordIndexerSpy recordIndexer;
 	private DataGroupTermCollectorSpy termCollector;
 	private DataAtomicFactorySpy dataAtomicFactory;
-	private IndexBatchJobStorerFactorySpy storerFactory;
 	private IndexBatchJobStorerSpy storerSpy;
 
 	@BeforeMethod
@@ -61,7 +60,6 @@ public class IndexBatchJobRunnerTest {
 		setUpSpies();
 		recordStorage.totalNumberOfMatches = 2;
 		recordStorage.endNumberToReturn = 2;
-		storerFactory = new IndexBatchJobStorerFactorySpy();
 		storerSpy = new IndexBatchJobStorerSpy();
 		batchRunner = new IndexBatchJobRunner(dependencyProvider, storerSpy, indexBatchJob);
 	}

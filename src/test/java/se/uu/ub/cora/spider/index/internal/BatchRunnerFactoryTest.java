@@ -52,7 +52,7 @@ public class BatchRunnerFactoryTest {
 		IndexBatchJobStorer batchJobStorer = (IndexBatchJobStorer) runner.getBatchJobStorer();
 		assertTrue(batchJobStorer instanceof IndexBatchJobStorer);
 		assertTrue(batchJobStorer
-				.getBatchJobConverterFactory() instanceof IndexBatchJobConverterFactory);
+				.getDataGroupHandlerForIndexBatchJob() instanceof DataGroupHandlerForIndexBatchJobImp);
 	}
 
 }

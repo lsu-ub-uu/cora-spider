@@ -18,8 +18,6 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
-import se.uu.ub.cora.data.DataRecord;
-
 /**
  * BatchJobStorer is responsible for storing IndexBatchJobs.
  */
@@ -39,5 +37,4 @@ public interface BatchJobStorer {
 	 */
 	void store(IndexBatchJob indexBatchJob);
 
-	DataRecord create(IndexBatchJob indexBatchJob);
 }

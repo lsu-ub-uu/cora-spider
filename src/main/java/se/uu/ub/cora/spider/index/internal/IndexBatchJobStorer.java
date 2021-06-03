@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.index.internal;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -30,14 +29,14 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 
 	private IndexBatchJob indexBatchJob;
 	private SpiderDependencyProvider dependencyProvider;
-	private BatchJobConverterFactory batchJobConverterFactory;
 	private RecordStorage recordStorage;
 	private static final String INDEX_BATCH_JOB = "indexBatchJob";
+	private DataGroupHandlerForIndexBatchJob dataGroupHandlerForIndexBatchJob;
 
 	public IndexBatchJobStorer(SpiderDependencyProvider dependencyProvider,
-			BatchJobConverterFactory converterFactory) {
+			DataGroupHandlerForIndexBatchJob dataGroupHandlerForIndexBatchJob) {
 		this.dependencyProvider = dependencyProvider;
-		this.batchJobConverterFactory = converterFactory;
+		this.dataGroupHandlerForIndexBatchJob = dataGroupHandlerForIndexBatchJob;
 		recordStorage = dependencyProvider.getRecordStorage();
 		// TODO: send one BatchJobConverter instead of BatchJobConverterFactory
 	}
@@ -68,8 +67,7 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 
 	private DataGroup completeStoredDataGroup(IndexBatchJob indexBatchJob) {
 		DataGroup dataGroup = recordStorage.read(INDEX_BATCH_JOB, indexBatchJob.recordId);
-		DataGroupHandlerForIndexBatchJob converter = batchJobConverterFactory.factor();
-		converter.updateDataGroup(indexBatchJob, dataGroup);
+		dataGroupHandlerForIndexBatchJob.updateDataGroup(indexBatchJob, dataGroup);
 		return dataGroup;
 	}
 
@@ -95,19 +93,7 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 		return dependencyProvider;
 	}
 
-	BatchJobConverterFactory getBatchJobConverterFactory() {
-		return batchJobConverterFactory;
+	DataGroupHandlerForIndexBatchJob getDataGroupHandlerForIndexBatchJob() {
+		return dataGroupHandlerForIndexBatchJob;
 	}
-
-	@Override
-	public DataRecord create(IndexBatchJob indexBatchJob) {
-		// TODO Auto-generated method stub
-		// recordStorage.create(INDEX_BATCH_JOB, INDEX_BATCH_JOB, null, null, null,
-		// INDEX_BATCH_JOB);
-		// return recordStorage.read(INDEX_BATCH_JOB, INDEX_BATCH_JOB);
-		// dataGroupToRecordEnhancer.enhance(user, implementingRecordType, recordRead,
-		// dataRedactor);
-		return null;
-	}
-
 }

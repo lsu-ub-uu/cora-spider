@@ -48,7 +48,7 @@ import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactorySpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.index.internal.BatchJobConverterSpy;
+import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobSpy;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
@@ -73,7 +73,7 @@ public class RecordListIndexerTest {
 	private DataAtomicFactorySpy dataAtomicFactory;
 	private IndexBatchHandlerSpy indexBatchHandler;
 	private DataGroupSpy indexSettingsWithFilter;
-	private BatchJobConverterSpy batchJobConverterSpy;
+	private DataGroupHandlerForIndexBatchJobSpy batchJobConverterSpy;
 	private SpiderInstanceFactorySpy spiderInstanceFactorySpy;
 
 	@BeforeMethod
@@ -83,7 +83,7 @@ public class RecordListIndexerTest {
 		indexSettingsWithoutFilter = new DataGroupSpy("indexSettings");
 		indexSettingsWithFilter = createIndexSettingsWithFilter();
 		indexBatchHandler = new IndexBatchHandlerSpy();
-		batchJobConverterSpy = new BatchJobConverterSpy();
+		batchJobConverterSpy = new DataGroupHandlerForIndexBatchJobSpy();
 		setUpRecordCreatorToReturnRecordWithId("someRecordId");
 		recordListIndexer = RecordListIndexerImp.usingDependencyProvider(dependencyProviderSpy,
 				indexBatchHandler, batchJobConverterSpy);

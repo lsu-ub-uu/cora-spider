@@ -41,9 +41,9 @@ public class IndexBatchJobStorerTest {
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private RecordStorageSpy recordStorage;
 	private IndexBatchJob indexBatchJob;
-	private BatchJobConverterFactorySpy converterFactory;
 	private DataGroupTermCollectorSpy termCollector;
 	private DataRecordLinkCollectorSpy linkCollector;
+	private DataGroupHandlerForIndexBatchJobSpy dataGroupHandlerForIndexBatchJobSpy;
 
 	@BeforeMethod
 	public void setUp() {
@@ -56,7 +56,8 @@ public class IndexBatchJobStorerTest {
 		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.linkCollector = linkCollector;
 
-		converterFactory = new BatchJobConverterFactorySpy();
+		dataGroupHandlerForIndexBatchJobSpy = new DataGroupHandlerForIndexBatchJobSpy();
+
 		createDefaultBatchJob();
 
 		DataGroupSpy indexBatchJobDataGroup = createIndexBatchJobDataGroup();
@@ -75,7 +76,8 @@ public class IndexBatchJobStorerTest {
 
 	@Test
 	public void testCorrectRead() {
-		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider, converterFactory);
+		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider,
+				dataGroupHandlerForIndexBatchJobSpy);
 		storer.store(indexBatchJob);
 
 		recordStorage.MCR.assertParameter("read", 0, "type", "indexBatchJob");
@@ -84,7 +86,8 @@ public class IndexBatchJobStorerTest {
 
 	@Test
 	public void testCorrectCallToTermCollector() {
-		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider, converterFactory);
+		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider,
+				dataGroupHandlerForIndexBatchJobSpy);
 		storer.store(indexBatchJob);
 		Map<String, Object> parameters = termCollector.MCR
 				.getParametersForMethodAndCallNumber("collectTerms", 0);
@@ -97,7 +100,8 @@ public class IndexBatchJobStorerTest {
 
 	@Test
 	public void testCorrectCallToLinkCollector() {
-		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider, converterFactory);
+		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider,
+				dataGroupHandlerForIndexBatchJobSpy);
 		storer.store(indexBatchJob);
 
 		assertEquals(linkCollector.recordType, "indexBatchJob");
@@ -110,17 +114,19 @@ public class IndexBatchJobStorerTest {
 
 	@Test
 	public void testCorrectCallToConverter() {
-		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider, converterFactory);
+		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider,
+				dataGroupHandlerForIndexBatchJobSpy);
 		storer.store(indexBatchJob);
-		BatchJobConverterSpy returnedConverter = converterFactory.returnedConverter;
-		assertSame(returnedConverter.indexBatchJob, indexBatchJob);
-		assertSame(returnedConverter.dataGroup, recordStorage.MCR.getReturnValue("read", 0));
+		assertSame(dataGroupHandlerForIndexBatchJobSpy.indexBatchJob, indexBatchJob);
+		assertSame(dataGroupHandlerForIndexBatchJobSpy.dataGroup,
+				recordStorage.MCR.getReturnValue("read", 0));
 
 	}
 
 	@Test
 	public void testStore() {
-		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider, converterFactory);
+		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider,
+				dataGroupHandlerForIndexBatchJobSpy);
 		storer.store(indexBatchJob);
 
 		Map<String, Object> parameters = recordStorage.MCR
