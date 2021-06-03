@@ -35,7 +35,6 @@ import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 
 public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
-	public boolean readerFactoryWasCalled = false;
 	public boolean incomingLinksReaderFactoryWasCalled = false;
 	public boolean listReaderFactoryWasCalled = false;
 	public boolean creatorFactoryWasCalled = false;
@@ -53,7 +52,6 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	@Override
 	public RecordReader factorRecordReader() {
 		MCR.addCall();
-		readerFactoryWasCalled = true;
 
 		RecordReader recordReader = new RecordReaderSpy();
 
