@@ -48,9 +48,6 @@ import se.uu.ub.cora.bookkeeper.validator.MetadataMatchDataImp;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.search.RecordIndexer;
-import se.uu.ub.cora.search.RecordSearch;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -241,15 +238,6 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
 		return extendedFunctionalityProvider;
 	}
-
-	@Override
-	public abstract Authenticator getAuthenticator();
-
-	@Override
-	public abstract RecordSearch getRecordSearch();
-
-	@Override
-	public abstract RecordIndexer getRecordIndexer();
 
 	@Override
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {

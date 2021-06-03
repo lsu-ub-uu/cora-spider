@@ -33,6 +33,8 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
+	private static final int FROM_NUMBER = 1;
+	private static final int TO_NUMBER = 10;
 	private SpiderDependencyProvider dependencyProvider;
 	private IndexBatchJob indexBatchJob;
 	private RecordStorage recordStorage;
@@ -41,6 +43,9 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	private RecordIndexer recordIndexer;
 	private BatchJobStorer storer;
 	private List<IndexError> errors = new ArrayList<>();
+	private int numberRequestedFromListing = 0;
+	private int from = FROM_NUMBER;
+	private int to = TO_NUMBER;
 
 	public IndexBatchJobRunner(SpiderDependencyProvider dependencyProvider, BatchJobStorer storer,
 			IndexBatchJob indexBatchJob) {
@@ -71,17 +76,14 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	}
 
 	private void readListAndIndexDataInBatches(String metadataId) {
-		int numberRequestedFromListing = 0;
-		int from = 1;
-		int to = 10;
 
 		while (numberRequestedFromListing < indexBatchJob.totalNumberToIndex) {
 			setFromAndToInFilter(from, to);
 			readListAndIndexData(metadataId);
 
 			numberRequestedFromListing = to;
-			from = to + 1;
-			to = to + 10;
+			from = to + FROM_NUMBER;
+			to = to + TO_NUMBER;
 			to = possiblySetToNoToTotalNumberOfRecords(to);
 		}
 	}

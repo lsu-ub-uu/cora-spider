@@ -20,8 +20,8 @@ package se.uu.ub.cora.spider.index.internal;
 
 public class IndexError {
 
-	public String recordId;
-	public String message;
+	String recordId;
+	String message;
 
 	public IndexError(String recordId, String message) {
 		this.recordId = recordId;

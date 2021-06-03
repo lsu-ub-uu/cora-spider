@@ -45,9 +45,6 @@ public interface RecordListIndexer {
 	 * the user is no longer active. If the user is active or not is determined by the part of the
 	 * system that provided the authToken to the User.
 	 * <p>
-	 * TODO: does both authenticator and authorizator ensure that the user is active in storage, if
-	 * so twice is a bit much?
-	 * <p>
 	 * Implementations MUST ensure that the user represented by the authToken, is allowed to perform
 	 * the action "index" on the specified recordType based on the rules the user is associated
 	 * with. This can be done using the
