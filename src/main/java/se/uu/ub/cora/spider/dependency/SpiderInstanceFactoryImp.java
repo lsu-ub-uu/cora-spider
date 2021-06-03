@@ -139,9 +139,9 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 		BatchRunnerFactory batchRunnerFactory = new BatchRunnerFactoryImp(dependencyProvider);
 		IndexBatchHandler indexBatchHandler = IndexBatchHandlerImp
 				.usingBatchRunnerFactory(batchRunnerFactory);
-		DataGroupHandlerForIndexBatchJob batchJobConverter = new DataGroupHandlerForIndexBatchJobImp();
+		DataGroupHandlerForIndexBatchJob dataGroupHandlerForIndexBatchJob = new DataGroupHandlerForIndexBatchJobImp();
 		return RecordListIndexerImp.usingDependencyProvider(dependencyProvider, indexBatchHandler,
-				batchJobConverter);
+				dataGroupHandlerForIndexBatchJob);
 	}
 
 }

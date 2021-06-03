@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
@@ -32,10 +33,11 @@ import se.uu.ub.cora.spider.index.BatchRunnerFactory;
 
 public class BatchRunnerFactoryTest {
 
+	private SpiderDependencyProviderSpy dependencyProvider;
+
 	@Test
 	public void testFactor() {
-		SpiderDependencyProviderSpy dependencyProvider = new SpiderDependencyProviderSpy(
-				new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
 		BatchRunnerFactory factory = new BatchRunnerFactoryImp(dependencyProvider);
 		DataGroup dataGroupFilter = new DataGroupSpy("indexBatchJob");
 		IndexBatchJob indexBatchJob = new IndexBatchJob("someRecordType", 10, dataGroupFilter);
@@ -53,6 +55,7 @@ public class BatchRunnerFactoryTest {
 		assertTrue(batchJobStorer instanceof IndexBatchJobStorer);
 		assertTrue(batchJobStorer
 				.getDataGroupHandlerForIndexBatchJob() instanceof DataGroupHandlerForIndexBatchJobImp);
+		assertEquals(batchJobStorer.getDependencyProvider(), dependencyProvider);
 	}
 
 }

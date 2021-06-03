@@ -16,16 +16,19 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.index.internal;
+package se.uu.ub.cora.spider.dependency;
 
-public class IndexError {
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.record.RecordListIndexer;
 
-	public String recordId;
-	public String message;
+public class RecordListIndexerSpy implements RecordListIndexer {
 
-	public IndexError(String recordId, String message) {
-		this.recordId = recordId;
-		this.message = message;
+	@Override
+	public DataRecord indexRecordList(String authToken, String recordType,
+			DataGroup indexSettings) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

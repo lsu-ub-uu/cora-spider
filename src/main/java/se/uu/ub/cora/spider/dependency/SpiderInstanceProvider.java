@@ -87,7 +87,6 @@ public final class SpiderInstanceProvider {
 	}
 
 	public static RecordListIndexer getRecordListIndexer() {
-		// TODO: not tested yet
 		return factory.factorRecordListIndexer();
 	}
 

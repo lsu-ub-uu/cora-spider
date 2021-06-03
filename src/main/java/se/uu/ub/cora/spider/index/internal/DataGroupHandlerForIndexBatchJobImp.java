@@ -135,17 +135,4 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 			dataGroup.addChild(indexBatchJob.filter);
 		}
 	}
-
-	// TODO: is this needed?
-	// public IndexBatchJob createIndexBatchJob(DataGroup dataGroup) {
-	// IndexBatchJob indexBatchJob = new IndexBatchJob("", "",
-	// DataGroupProvider.getDataGroupUsingNameInData("filter"));
-	// if (dataGroup.containsChildWithNameInData(NUM_OF_PROCESSED_RECORDS)) {
-	// String numOfRecords = dataGroup
-	// .getFirstAtomicValueWithNameInData(NUM_OF_PROCESSED_RECORDS);
-	// indexBatchJob.numOfProcessedRecords = Long.valueOf(numOfRecords);
-	// }
-	// return indexBatchJob;
-	// }
-
 }

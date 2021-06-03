@@ -16,16 +16,17 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.index.internal;
+package se.uu.ub.cora.spider.dependency;
 
-public class IndexError {
+import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.record.RecordReader;
 
-	public String recordId;
-	public String message;
+public class RecordReaderSpy implements RecordReader {
 
-	public IndexError(String recordId, String message) {
-		this.recordId = recordId;
-		this.message = message;
+	@Override
+	public DataRecord readRecord(String authToken, String type, String id) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

@@ -52,8 +52,13 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 
 	@Override
 	public RecordReader factorRecordReader() {
+		MCR.addCall();
 		readerFactoryWasCalled = true;
-		return null;
+
+		RecordReader recordReader = new RecordReaderSpy();
+
+		MCR.addReturned(recordReader);
+		return recordReader;
 	}
 
 	@Override
@@ -125,8 +130,10 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 
 	@Override
 	public RecordListIndexer factorRecordListIndexer() {
-		// TODO Auto-generated method stub
-		return null;
+		MCR.addCall();
+		RecordListIndexer recordListIndexer = new RecordListIndexerSpy();
+		MCR.addReturned(recordListIndexer);
+		return recordListIndexer;
 	}
 
 }

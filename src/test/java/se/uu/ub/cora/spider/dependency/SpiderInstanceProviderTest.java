@@ -32,6 +32,9 @@ import java.util.Map;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.spider.record.RecordListIndexer;
+import se.uu.ub.cora.spider.record.RecordReader;
+
 public class SpiderInstanceProviderTest {
 	@Test
 	public void testPrivateConstructor() throws Exception {
@@ -61,8 +64,11 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForRecordReader() {
 		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getRecordReader();
-		assertTrue(factory.readerFactoryWasCalled);
+
+		var recordReader = SpiderInstanceProvider.getRecordReader();
+
+		assertTrue(recordReader instanceof RecordReader);
+		factory.MCR.assertMethodWasCalled("factorRecordReader");
 	}
 
 	@Test
@@ -127,6 +133,17 @@ public class SpiderInstanceProviderTest {
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		SpiderInstanceProvider.getRecordSearcher();
 		assertTrue(factory.searcherFactoryWasCalled);
+	}
+
+	@Test
+	public void makeSureFactoryIsCalledForRecordListIndexer() {
+		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+
+		var recordListIndexer = SpiderInstanceProvider.getRecordListIndexer();
+
+		assertTrue(recordListIndexer instanceof RecordListIndexer);
+		factory.MCR.assertMethodWasCalled("factorRecordListIndexer");
 	}
 
 	@Test

@@ -38,7 +38,6 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupHandlerForIndexBatchJob = dataGroupHandlerForIndexBatchJob;
 		recordStorage = dependencyProvider.getRecordStorage();
-		// TODO: send one BatchJobConverter instead of BatchJobConverterFactory
 	}
 
 	@Override
