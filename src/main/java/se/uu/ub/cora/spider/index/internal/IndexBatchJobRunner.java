@@ -77,12 +77,12 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 		while (numberRequestedFromListing < indexBatchJob.totalNumberToIndex) {
 			setFromAndToInFilter(from, to);
-			// TODO: ?? read indexBatchJob (to see if it should be paused)
 			readListAndIndexData(metadataId);
 
 			numberRequestedFromListing = to;
 			from = to + 1;
 			to = to + 10;
+			to = possiblySetToNoToTotalNumberOfRecords(to);
 		}
 	}
 
@@ -165,6 +165,13 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	private void clearErrors() {
 		indexBatchJob.errors.clear();
 		errors.clear();
+	}
+
+	private int possiblySetToNoToTotalNumberOfRecords(int to) {
+		if (to > indexBatchJob.totalNumberToIndex) {
+			to = (int) indexBatchJob.totalNumberToIndex;
+		}
+		return to;
 	}
 
 	private void updateIndexBatchJobAsFinished() {
