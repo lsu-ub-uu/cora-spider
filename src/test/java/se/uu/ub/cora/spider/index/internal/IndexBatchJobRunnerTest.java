@@ -131,7 +131,12 @@ public class IndexBatchJobRunnerTest {
 		assertEquals(dataAtomicFactory.nameInDatas.get(firstIndex), "fromNo");
 		assertEquals(dataAtomicFactory.values.get(firstIndex), String.valueOf(from));
 		assertEquals(dataAtomicFactory.nameInDatas.get(secondIndex), "toNo");
-		assertEquals(dataAtomicFactory.values.get(secondIndex), String.valueOf(from + 9));
+
+		String toNo = String.valueOf(from + 9);
+		if (parameterIndex == 11) {
+			toNo = "117";
+		}
+		assertEquals(dataAtomicFactory.values.get(secondIndex), toNo);
 
 		DataGroupSpy filterSentToReadList = (DataGroupSpy) parameters.get("filter");
 		assertSame(filterSentToReadList.addedChildren.get(firstIndex),
