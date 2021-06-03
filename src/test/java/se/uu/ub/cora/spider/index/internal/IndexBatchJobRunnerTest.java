@@ -113,7 +113,7 @@ public class IndexBatchJobRunnerTest {
 
 	private void assertAllFiltersAreSentCorrectlyToReadList(String methodName) {
 		int firstIndex = 0;
-		int from = 0;
+		int from = 1;
 		for (int i = 0; i < 12; i++) {
 			assertCorrectlyHandledFilter(firstIndex, from, i, methodName);
 			firstIndex = firstIndex + 2;
