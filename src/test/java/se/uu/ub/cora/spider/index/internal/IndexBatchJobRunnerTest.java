@@ -268,4 +268,19 @@ public class IndexBatchJobRunnerTest {
 		storerSpy.MCR.assertParameter("store", 12, "numberOfProcessedRecords", 24L);
 	}
 
+	@Test
+	public void testCorrectToInFilterWhenSmallerThanDefaultTen() {
+		indexBatchJob.totalNumberToIndex = 4;
+		batchRunner = new IndexBatchJobRunner(dependencyProvider, storerSpy, indexBatchJob);
+		batchRunner.run();
+
+		recordStorage.MCR.assertParameter("readList", 0, "type", indexBatchJob.recordTypeToIndex);
+		Map<String, Object> parameters = recordStorage.MCR
+				.getParametersForMethodAndCallNumber("readList", 0);
+		DataGroupSpy filter = (DataGroupSpy) parameters.get("filter");
+
+		assertEquals(filter.getFirstAtomicValueWithNameInData("toNo"), "4");
+
+	}
+
 }

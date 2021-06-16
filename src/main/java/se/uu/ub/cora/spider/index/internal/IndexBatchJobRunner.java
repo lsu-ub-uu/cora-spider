@@ -78,6 +78,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	private void readListAndIndexDataInBatches(String metadataId) {
 
 		while (numberRequestedFromListing < indexBatchJob.totalNumberToIndex) {
+			possiblySetToNumToTotalNumberToIndex();
 			setFromAndToInFilter(from, to);
 			readListAndIndexData(metadataId);
 
@@ -85,6 +86,12 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 			from = to + FROM_NUMBER;
 			to = to + TO_NUMBER;
 			to = possiblySetToNoToTotalNumberOfRecords(to);
+		}
+	}
+
+	private void possiblySetToNumToTotalNumberToIndex() {
+		if (indexBatchJob.totalNumberToIndex < to) {
+			to = (int) indexBatchJob.totalNumberToIndex;
 		}
 	}
 
