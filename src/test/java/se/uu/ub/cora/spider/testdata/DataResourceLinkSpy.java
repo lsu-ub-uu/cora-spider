@@ -199,4 +199,16 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 		return false;
 	}
 
+	@Override
+	public boolean hasReadAction() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public String getMimeType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

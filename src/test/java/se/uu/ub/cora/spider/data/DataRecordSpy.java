@@ -109,4 +109,34 @@ public class DataRecordSpy implements DataRecord {
 		this.writePermissions = writePermissions;
 	}
 
+	@Override
+	public String getType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean hasActions() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean hasReadPermissions() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean hasWritePermissions() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

@@ -202,4 +202,22 @@ public class DataRecordLinkSpy implements DataGroup, DataRecordLink {
 		return false;
 	}
 
+	@Override
+	public boolean hasReadAction() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public String getLinkedRecordId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getLinkedRecordType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
