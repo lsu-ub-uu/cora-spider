@@ -5,6 +5,7 @@ import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.search.RecordIndexer;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class RecordIndexerSpy implements RecordIndexer {
 

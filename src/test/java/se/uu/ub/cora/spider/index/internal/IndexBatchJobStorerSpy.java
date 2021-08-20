@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.index.internal;
 import java.util.ArrayList;
 import java.util.List;
 
-import se.uu.ub.cora.spider.spy.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class IndexBatchJobStorerSpy implements BatchJobStorer {
 

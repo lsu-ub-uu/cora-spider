@@ -29,10 +29,10 @@ import java.util.Set;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class RecordStorageSpy implements RecordStorage {
 	public MethodCallRecorder MCR = new MethodCallRecorder();

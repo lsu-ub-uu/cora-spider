@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.spy.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class ExtendedFunctionalityFactorySpy implements ExtendedFunctionalityFactory {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
