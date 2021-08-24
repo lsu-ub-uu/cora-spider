@@ -40,7 +40,7 @@
 		<search.version>3.8.0</search.version>
 		<bookkeeper.version>6.1.0</bookkeeper.version>
 		<beefeater.version>3.5.0</beefeater.version>
-		<testutils.version>1.0-SNAPSHOT</testutils.version>
+		<testutils.version>1.1.0</testutils.version>
 	</properties>
 
 	<scm>
