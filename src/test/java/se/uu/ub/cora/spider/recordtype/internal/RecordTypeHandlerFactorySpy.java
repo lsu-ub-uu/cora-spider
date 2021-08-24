@@ -23,8 +23,7 @@ import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactory;
-import se.uu.ub.cora.spider.spy.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class RecordTypeHandlerFactorySpy implements RecordTypeHandlerFactory {
 

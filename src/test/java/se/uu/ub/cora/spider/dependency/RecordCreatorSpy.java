@@ -22,7 +22,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.data.DataRecordSpy;
 import se.uu.ub.cora.spider.record.RecordCreator;
-import se.uu.ub.cora.spider.spy.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class RecordCreatorSpy implements RecordCreator {
 

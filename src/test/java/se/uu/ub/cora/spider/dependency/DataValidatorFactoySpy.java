@@ -25,8 +25,8 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
-import se.uu.ub.cora.spider.spy.MethodCallRecorder;
 import se.uu.ub.cora.storage.MetadataStorage;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataValidatorFactoySpy implements DataValidatorFactory {
 

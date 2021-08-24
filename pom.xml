@@ -40,6 +40,7 @@
 		<search.version>3.8.0</search.version>
 		<bookkeeper.version>6.1.0</bookkeeper.version>
 		<beefeater.version>3.5.0</beefeater.version>
+		<testutils.version>1.1.0</testutils.version>
 	</properties>
 
 	<scm>
@@ -96,6 +97,12 @@
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 			<version>${testng.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>testutils</artifactId>
+			<version>${testutils.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

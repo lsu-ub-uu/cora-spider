@@ -24,7 +24,7 @@ import java.util.List;
 
 import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authorization.Rule;
-import se.uu.ub.cora.spider.spy.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class BeefeaterAuthorizatorSpy implements Authorizator {
 

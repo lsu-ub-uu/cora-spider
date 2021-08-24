@@ -32,7 +32,7 @@ import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.Uploader;
-import se.uu.ub.cora.spider.spy.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	public boolean incomingLinksReaderFactoryWasCalled = false;

@@ -24,8 +24,6 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.spider.record.DataGroupMCRSpy;
 import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactoryImp;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class RecordTypeHandlerFactoryTest {

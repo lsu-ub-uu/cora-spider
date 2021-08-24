@@ -20,7 +20,7 @@ package se.uu.ub.cora.spider.record.internal;
 
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
-import se.uu.ub.cora.spider.spy.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class IndexBatchHandlerSpy implements IndexBatchHandler {
 

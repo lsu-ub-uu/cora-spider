@@ -20,7 +20,7 @@ package se.uu.ub.cora.spider.data;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
-import se.uu.ub.cora.spider.spy.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataGroupFactorySpy implements DataGroupFactory {
 
