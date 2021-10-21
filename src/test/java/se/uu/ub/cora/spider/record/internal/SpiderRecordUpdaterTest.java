@@ -191,7 +191,7 @@ public class SpiderRecordUpdaterTest {
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
 				"fakeMetadataIdFromRecordTypeHandlerSpy");
 
-		assertEquals(((RecordIndexerSpy) recordIndexer).recordIndexData,
+		assertEquals(((RecordIndexerSpy) recordIndexer).collectedData,
 				termCollector.MCR.getReturnValue("collectTerms", 1));
 	}
 

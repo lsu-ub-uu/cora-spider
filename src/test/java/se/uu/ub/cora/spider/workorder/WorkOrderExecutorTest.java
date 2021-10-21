@@ -34,6 +34,7 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
+import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -101,7 +102,7 @@ public class WorkOrderExecutorTest {
 
 		assertTrue(recordIndexer.indexDataHasBeenCalled);
 
-		recordIndexer.MCR.assertParameter("indexData", 0, "recordIndexData",
+		recordIndexer.MCR.assertParameter("indexData", 0, "collectedData",
 				termCollector.MCR.getReturnValue("collectTerms", 0));
 
 		DataGroup recordInfo2 = recordIndexer.record.getFirstGroupWithNameInData("recordInfo");
@@ -159,5 +160,50 @@ public class WorkOrderExecutorTest {
 		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
 
 		recordIndexer.MCR.assertMethodNotCalled("deleteFromIndex");
+	}
+
+	@Test
+	public void testIndexDataPerformCommitFalseInWorkOrder() {
+		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
+				"someGeneratedId", "book", "book1");
+		workOrder.addChild(new DataAtomicSpy("performCommit", "false"));
+		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "bookGroup");
+
+		DataGroup dataGroup = (DataGroup) termCollector.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("collectTerms", 0, "dataGroup");
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		assertEquals(recordInfo.getFirstAtomicValueWithNameInData("id"), "book1");
+
+		recordIndexer.MCR.assertMethodWasCalled("indexDataWithoutExplicitCommit");
+		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", 0, "collectedData",
+				termCollector.MCR.getReturnValue("collectTerms", 0));
+
+		DataGroup recordInfo2 = recordIndexer.record.getFirstGroupWithNameInData("recordInfo");
+		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
+
+		List<String> ids = recordIndexer.ids;
+		assertEquals(ids.get(0), "book_book1");
+		assertEquals(ids.size(), 1);
+	}
+
+	@Test
+	public void testIndexDataPerformCommitTrueInWorkOrder() {
+		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
+				"someGeneratedId", "book", "book1");
+		workOrder.addChild(new DataAtomicSpy("performCommit", "true"));
+		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+
+		recordIndexer.MCR.assertMethodWasCalled("indexData");
+		recordIndexer.MCR.assertParameter("indexData", 0, "collectedData",
+				termCollector.MCR.getReturnValue("collectTerms", 0));
+
+		DataGroup recordInfo2 = recordIndexer.record.getFirstGroupWithNameInData("recordInfo");
+		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
+
+		List<String> ids = recordIndexer.ids;
+		assertEquals(ids.get(0), "book_book1");
+		assertEquals(ids.size(), 1);
 	}
 }

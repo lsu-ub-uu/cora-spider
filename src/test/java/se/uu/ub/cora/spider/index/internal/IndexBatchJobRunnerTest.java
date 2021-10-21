@@ -214,7 +214,7 @@ public class IndexBatchJobRunnerTest {
 
 		recordIndexer.MCR.assertParameter("indexData", parameterIndex, "ids", recordTypeHandler.MCR
 				.getReturnValue("getCombinedIdsUsingRecordId", parameterIndex));
-		recordIndexer.MCR.assertParameter("indexData", parameterIndex, "recordIndexData",
+		recordIndexer.MCR.assertParameter("indexData", parameterIndex, "collectedData",
 				termCollector.MCR.getReturnValue("collectTerms", parameterIndex));
 
 		recordIndexer.MCR.assertParameter("indexData", indexDataCall, "record",
