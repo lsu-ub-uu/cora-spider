@@ -37,7 +37,7 @@
 		<coradata.version>5.1.0</coradata.version>
 		<json.version>2.5.0</json.version>
 		<storage.version>4.2.0</storage.version>
-		<search.version>3.8.0</search.version>
+		<search.version>3.9-SNAPSHOT</search.version>
 		<bookkeeper.version>6.1.0</bookkeeper.version>
 		<beefeater.version>3.5.0</beefeater.version>
 		<testutils.version>1.1.0</testutils.version>

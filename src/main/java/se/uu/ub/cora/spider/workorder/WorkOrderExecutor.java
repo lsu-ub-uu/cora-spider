@@ -62,12 +62,26 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 		recordTypeToIndex = getRecordTypeToIndexFromWorkOrder(workOrder);
 		recordIdToIndex = getRecordIdToIndexFromWorkOrder(workOrder);
 
+		boolean performExplicitCommit = getPerformExplicitCommit(workOrder);
 		if (workOrderTypeIsDeleteFromIndex(workOrder)) {
 			deleteFromIndexIfUserIsAuthorized(authToken);
 		} else {
-			indexDataIfUserIsAuthorized(authToken);
+			indexDataIfUserIsAuthorized(authToken, performExplicitCommit);
 
 		}
+	}
+
+	private boolean getPerformExplicitCommit(DataGroup workOrder) {
+		boolean performCommit = true;
+		if (workOrder.containsChildWithNameInData("performCommit")
+				&& performExplicitCommitIsFalse(workOrder)) {
+			performCommit = false;
+		}
+		return performCommit;
+	}
+
+	private boolean performExplicitCommitIsFalse(DataGroup workOrder) {
+		return "false".equals(workOrder.getFirstAtomicValueWithNameInData("performCommit"));
 	}
 
 	private boolean workOrderTypeIsDeleteFromIndex(DataGroup workOrder) {
@@ -90,9 +104,9 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 		return workOrder.getFirstAtomicValueWithNameInData("recordId");
 	}
 
-	private void indexDataIfUserIsAuthorized(String authToken) {
+	private void indexDataIfUserIsAuthorized(String authToken, boolean performCommit) {
 		if (userIsAuthorizedToIndex(authToken)) {
-			indexData();
+			indexData(performCommit);
 		}
 	}
 
@@ -102,10 +116,10 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 				recordTypeToIndex);
 	}
 
-	private void indexData() {
+	private void indexData(boolean performCommit) {
 		DataGroup dataToIndex = readRecordToIndexFromStorage();
 		DataGroup collectedTerms = getCollectedTerms(dataToIndex);
-		sendToIndex(collectedTerms, dataToIndex);
+		sendToIndex(collectedTerms, dataToIndex, performCommit);
 	}
 
 	private DataGroup readRecordToIndexFromStorage() {
@@ -123,11 +137,20 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 		return metadataIdLink.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
-	private void sendToIndex(DataGroup collectedTerms, DataGroup dataToIndex) {
+	private void sendToIndex(DataGroup collectedTerms, DataGroup dataToIndex,
+			boolean performCommit) {
+		List<String> ids = getCombinedIds();
+		if (performCommit) {
+			recordIndexer.indexData(ids, collectedTerms, dataToIndex);
+		} else {
+			recordIndexer.indexDataWithoutExplicitCommit(ids, collectedTerms, dataToIndex);
+		}
+	}
+
+	private List<String> getCombinedIds() {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(null, recordStorage, recordTypeToIndex);
-		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordIdToIndex);
-		recordIndexer.indexData(ids, collectedTerms, dataToIndex);
+		return recordTypeHandler.getCombinedIdsUsingRecordId(recordIdToIndex);
 	}
 
 	public SpiderDependencyProvider getDependencyProvider() {
