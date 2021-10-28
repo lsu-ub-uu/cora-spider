@@ -153,7 +153,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	private void tryToIndexData(String metadataId, String recordId, DataGroup dataGroup) {
 		List<String> combinedIds = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
 		DataGroup collectedTerms = termCollector.collectTerms(metadataId, dataGroup);
-		recordIndexer.indexData(combinedIds, collectedTerms, dataGroup);
+		recordIndexer.indexDataWithoutExplicitCommit(combinedIds, collectedTerms, dataGroup);
 	}
 
 	private void updateAndStoreIndexBatchJob(StorageReadResult readResult) {

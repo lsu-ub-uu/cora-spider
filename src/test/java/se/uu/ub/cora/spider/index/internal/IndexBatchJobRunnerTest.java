@@ -212,12 +212,13 @@ public class IndexBatchJobRunnerTest {
 		recordTypeHandler.MCR.assertParameter("getCombinedIdsUsingRecordId", indexDataCall,
 				"recordId", "someId" + indexInReturnedList);
 
-		recordIndexer.MCR.assertParameter("indexData", parameterIndex, "ids", recordTypeHandler.MCR
-				.getReturnValue("getCombinedIdsUsingRecordId", parameterIndex));
-		recordIndexer.MCR.assertParameter("indexData", parameterIndex, "collectedData",
-				termCollector.MCR.getReturnValue("collectTerms", parameterIndex));
+		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", parameterIndex, "ids",
+				recordTypeHandler.MCR.getReturnValue("getCombinedIdsUsingRecordId",
+						parameterIndex));
+		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", parameterIndex,
+				"collectedData", termCollector.MCR.getReturnValue("collectTerms", parameterIndex));
 
-		recordIndexer.MCR.assertParameter("indexData", indexDataCall, "record",
+		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", indexDataCall, "record",
 				storageReadResult.listOfDataGroups.get(indexInReturnedList));
 	}
 

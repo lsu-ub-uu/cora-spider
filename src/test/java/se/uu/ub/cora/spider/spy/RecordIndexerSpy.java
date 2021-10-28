@@ -48,7 +48,11 @@ public class RecordIndexerSpy implements RecordIndexer {
 		this.ids = ids;
 		this.collectedData = collectedData;
 		this.record = record;
-
+		if (throwErrorOnEvenCalls) {
+			if (MCR.getNumberOfCallsToMethod("indexDataWithoutExplicitCommit") % 2 == 0) {
+				throw new RuntimeException("Some error from spy");
+			}
+		}
 	}
 
 }
