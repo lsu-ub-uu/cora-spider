@@ -34,6 +34,7 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 		updateNumOfProcessedRecordsInDataGroup(indexBatchJob, dataGroup);
 		addIndexErrorsToDataGroup(indexBatchJob, dataGroup);
 		possiblyUpdateStatus(indexBatchJob, dataGroup);
+		addUpdateInfo(dataGroup);
 	}
 
 	private void updateNumOfProcessedRecordsInDataGroup(IndexBatchJob indexBatchJob,
@@ -87,6 +88,39 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 
 	private boolean newStatusIsFinished(IndexBatchJob indexBatchJob) {
 		return "finished".equals(indexBatchJob.status);
+	}
+
+	private void addUpdateInfo(DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+
+		addUpdatedDataGroup(recordInfo);
+		setNewRepeatIdsForUpdatedGroups(recordInfo);
+	}
+
+	private void addUpdatedDataGroup(DataGroup recordInfo) {
+		DataGroup updatedDataGroup = DataGroupProvider.getDataGroupUsingNameInData("updated");
+
+		DataGroup updatedBy = createUpdatedByUsingRecordInfo(recordInfo);
+		updatedDataGroup.addChild(updatedBy);
+
+		recordInfo.addChild(updatedDataGroup);
+	}
+
+	private DataGroup createUpdatedByUsingRecordInfo(DataGroup recordInfo) {
+		DataGroup createdBy = recordInfo.getFirstGroupWithNameInData("createdBy");
+		String userType = createdBy.getFirstAtomicValueWithNameInData("linkedRecordType");
+		String userId = createdBy.getFirstAtomicValueWithNameInData("linkedRecordId");
+		DataGroup updatedBy = DataGroupProvider
+				.getDataGroupAsLinkUsingNameInDataTypeAndId("updatedBy", userType, userId);
+		return updatedBy;
+	}
+
+	private void setNewRepeatIdsForUpdatedGroups(DataGroup recordInfo) {
+		int repeatIdCounter = 0;
+		for (DataGroup updated : recordInfo.getAllGroupsWithNameInData("updated")) {
+			updated.setRepeatId(String.valueOf(repeatIdCounter));
+			repeatIdCounter++;
+		}
 	}
 
 	@Override
