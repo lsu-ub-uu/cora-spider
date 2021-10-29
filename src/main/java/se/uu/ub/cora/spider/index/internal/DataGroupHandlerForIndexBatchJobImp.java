@@ -110,9 +110,8 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 		DataGroup createdBy = recordInfo.getFirstGroupWithNameInData("createdBy");
 		String userType = createdBy.getFirstAtomicValueWithNameInData("linkedRecordType");
 		String userId = createdBy.getFirstAtomicValueWithNameInData("linkedRecordId");
-		DataGroup updatedBy = DataGroupProvider
+		return DataGroupProvider
 				.getDataGroupAsLinkUsingNameInDataTypeAndId("updatedBy", userType, userId);
-		return updatedBy;
 	}
 
 	private void setNewRepeatIdsForUpdatedGroups(DataGroup recordInfo) {
