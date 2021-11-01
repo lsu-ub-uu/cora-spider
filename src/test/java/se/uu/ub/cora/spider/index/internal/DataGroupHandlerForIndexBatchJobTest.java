@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.index.internal;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
@@ -40,6 +42,8 @@ import se.uu.ub.cora.spider.data.DataGroupSpy;
 public class DataGroupHandlerForIndexBatchJobTest {
 
 	private static final String SOME_RECORD_TYPE = "someRecordType";
+	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
+
 	private DataAtomicFactorySpy atomicFactory;
 	private IndexBatchJob indexBatchJob;
 	private DataGroupSpy indexBatchJobDataGroup;
@@ -77,7 +81,19 @@ public class DataGroupHandlerForIndexBatchJobTest {
 
 		DataElement addedChildToUpdated = addedUpdatedGroup.addedChildren.get(0);
 		assertSame(addedChildToUpdated, addedUpdatedBy);
+
+		assertCorrectTsUpdated(addedUpdatedGroup);
+
 		assertEquals(addedUpdatedGroup.repeatId, "1");
+	}
+
+	private void assertCorrectTsUpdated(DataGroupSpy addedUpdatedGroup) {
+		DataAtomic tsUpdated = (DataAtomic) addedUpdatedGroup.addedChildren.get(1);
+		assertTrue(tsUpdated.getValue().matches(TIMESTAMP_FORMAT));
+
+		DataGroup recordInfo = indexBatchJobDataGroup.getFirstGroupWithNameInData("recordInfo");
+		String tsCreated = recordInfo.getFirstAtomicValueWithNameInData("tsCreated");
+		assertFalse(tsUpdated.getValue().equals(tsCreated));
 	}
 
 	private void assertDataGroupFactoryFactoredCorrectly() {
@@ -194,6 +210,7 @@ public class DataGroupHandlerForIndexBatchJobTest {
 		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
 		DataGroupSpy createdBy = new DataGroupSpy("createdBy", "user", "someSuperUser");
 		recordInfo.addChild(createdBy);
+		recordInfo.addChild(new DataAtomicSpy("tsCreated", "2021-05-03T14:12:11.657482Z"));
 		createAndAddUpdatedDataGroup(recordInfo);
 		return recordInfo;
 	}
@@ -294,31 +311,5 @@ public class DataGroupHandlerForIndexBatchJobTest {
 		assertFalse(createdDataGroup.containsChildWithNameInData("error"));
 
 	}
-
-	// TODO: is this needed?
-	// @Test
-	// public void testCreateIndexBatchJobFromDataGroup() {
-	// IndexBatchJob indexBatchJob = converter.createIndexBatchJob(indexBatchJobDataGroup);
-	// // assertEquals(indexBatchJob.filter.getNameInData(), "filter");
-	// // assertEquals(indexBatchJob.recordType, "");
-	// // assertEquals(indexBatchJob.recordId, "");
-	// // assertEquals(indexBatchJob.errors, Collections.emptyList());
-	// // assertEquals(indexBatchJob.status, "started");
-	// assertEquals(indexBatchJob.numOfProcessedRecords, 34);
-	// // assertEquals(indexBatchJob.totalNumberToIndex, 0);
-	// }
-	//
-	// @Test
-	// public void testCreateIndexBatchJobFromEmptyDataGroup() {
-	// DataGroupSpy emptyDataGroup = new DataGroupSpy("indexBatchJob");
-	// IndexBatchJob indexBatchJob = converter.createIndexBatchJob(emptyDataGroup);
-	// assertEquals(indexBatchJob.filter.getNameInData(), "filter");
-	// assertEquals(indexBatchJob.recordType, "");
-	// assertEquals(indexBatchJob.recordId, "");
-	// assertEquals(indexBatchJob.errors, Collections.emptyList());
-	// assertEquals(indexBatchJob.status, "started");
-	// assertEquals(indexBatchJob.numOfProcessedRecords, 34);
-	// assertEquals(indexBatchJob.totalNumberToIndex, 0);
-	// }
 
 }

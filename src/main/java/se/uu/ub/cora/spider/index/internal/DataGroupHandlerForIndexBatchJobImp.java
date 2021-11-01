@@ -18,6 +18,9 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataAtomic;
@@ -99,19 +102,37 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 
 	private void addUpdatedDataGroup(DataGroup recordInfo) {
 		DataGroup updatedDataGroup = DataGroupProvider.getDataGroupUsingNameInData("updated");
+		createAndAddUpdatedBy(recordInfo, updatedDataGroup);
+		createAndAddTsUpdated(updatedDataGroup);
+		recordInfo.addChild(updatedDataGroup);
+	}
 
+	private void createAndAddUpdatedBy(DataGroup recordInfo, DataGroup updatedDataGroup) {
 		DataGroup updatedBy = createUpdatedByUsingRecordInfo(recordInfo);
 		updatedDataGroup.addChild(updatedBy);
-
-		recordInfo.addChild(updatedDataGroup);
 	}
 
 	private DataGroup createUpdatedByUsingRecordInfo(DataGroup recordInfo) {
 		DataGroup createdBy = recordInfo.getFirstGroupWithNameInData("createdBy");
 		String userType = createdBy.getFirstAtomicValueWithNameInData("linkedRecordType");
 		String userId = createdBy.getFirstAtomicValueWithNameInData("linkedRecordId");
-		return DataGroupProvider
-				.getDataGroupAsLinkUsingNameInDataTypeAndId("updatedBy", userType, userId);
+		return DataGroupProvider.getDataGroupAsLinkUsingNameInDataTypeAndId("updatedBy", userType,
+				userId);
+	}
+
+	private void createAndAddTsUpdated(DataGroup updatedDataGroup) {
+		String currentLocalDateTime = getCurrentTimestampAsString();
+		updatedDataGroup.addChild(DataAtomicProvider
+				.getDataAtomicUsingNameInDataAndValue("tsUpdated", currentLocalDateTime));
+	}
+
+	protected String getCurrentTimestampAsString() {
+		return formatInstantKeepingTrailingZeros(Instant.now());
+	}
+
+	protected String formatInstantKeepingTrailingZeros(Instant instant) {
+		DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendInstant(6).toFormatter();
+		return formatter.format(instant);
 	}
 
 	private void setNewRepeatIdsForUpdatedGroups(DataGroup recordInfo) {
