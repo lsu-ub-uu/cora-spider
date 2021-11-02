@@ -87,8 +87,8 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 
 	private void checkNoConflictOnRecordId(String recordType, String recordId) {
 		if (recordWithTypeAndIdAlreadyExists(recordType, recordId)) {
-			throw new RecordConflictException(
-					"Record with recordId: " + recordId + " already exists");
+			throw RecordConflictException
+					.withMessage("Record with recordId: " + recordId + " already exists");
 		}
 	}
 
@@ -412,8 +412,8 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType, List<String> implementingTypes,
-			DataGroup filter) {
+	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
+			List<String> implementingTypes, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

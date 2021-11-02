@@ -46,7 +46,8 @@ public class RecordStorageDuplicateSpy implements RecordStorage {
 	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
 			DataGroup linkList, String dataDivider) {
 		if (requiredIds.contains(id)) {
-			throw new RecordConflictException("Record with recordId: " + id + " already exists");
+			throw RecordConflictException
+					.withMessage("Record with recordId: " + id + " already exists");
 
 		}
 		requiredIds.add(id);
@@ -102,8 +103,8 @@ public class RecordStorageDuplicateSpy implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType, List<String> implementingTypes,
-			DataGroup filter) {
+	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
+			List<String> implementingTypes, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
