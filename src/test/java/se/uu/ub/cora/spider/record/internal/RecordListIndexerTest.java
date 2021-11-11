@@ -176,6 +176,16 @@ public class RecordListIndexerTest {
 				indexSettingsWithoutFilter);
 	}
 
+	@Test(expectedExceptions = DataValidationException.class, expectedExceptionsMessageRegExp = ""
+			+ "Error while validating index settings against defined "
+			+ "metadata: \\[DataValidatorSpy not valid 1, DataValidatorSpy not valid 2\\]")
+	public void testErrorIsThrownOnFilterValidationFailure() throws Exception {
+		dataValidatorSpy.invalidIndexSettingsValidation = true;
+
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				indexSettingsWithoutFilter);
+	}
+
 	@Test
 	public void testGetTotalNumberOfMatchesFromStorageWithoutFilter() throws Exception {
 		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProviderSpy.recordStorage;

@@ -80,12 +80,16 @@ public class DataValidatorSpy implements DataValidator {
 
 		ValidationAnswer validationAnswer = new ValidationAnswer();
 		if (invalidIndexSettingsValidation) {
-			validationAnswer
-					.addErrorMessage("Data for list indexSettings not vaild, DataValidatorSpy");
+			addErrorMessage(validationAnswer, 1);
+			addErrorMessage(validationAnswer, 2);
 		}
 
 		MCR.addReturned(validationAnswer);
 		return validationAnswer;
+	}
+
+	private void addErrorMessage(ValidationAnswer validationAnswer, int value) {
+		validationAnswer.addErrorMessage("DataValidatorSpy not valid " + value);
 	}
 
 }

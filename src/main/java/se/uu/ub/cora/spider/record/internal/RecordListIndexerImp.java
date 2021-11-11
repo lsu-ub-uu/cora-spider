@@ -21,7 +21,9 @@ package se.uu.ub.cora.spider.record.internal;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataRecord;
@@ -95,7 +97,18 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 	private void validateIndexSettingAccordingToMetadata() {
 		DataValidator dataValidator = dependencyProvider.getDataValidator();
-		dataValidator.validateIndexSettings(recordType, indexSettings);
+		ValidationAnswer validationAnswer = dataValidator.validateIndexSettings(recordType,
+				indexSettings);
+		throwDataValidationExceptionIfValidationHasErrors(validationAnswer);
+
+	}
+
+	private void throwDataValidationExceptionIfValidationHasErrors(ValidationAnswer validationAnswer) {
+		if (validationAnswer.dataIsInvalid()) {
+			throw DataValidationException
+					.withMessage("Error while validating index settings against defined metadata: "
+							+ validationAnswer.getErrorMessages());
+		}
 	}
 
 	private IndexBatchJob collectInformationForIndexBatchJob(DataGroup indexSettings) {
