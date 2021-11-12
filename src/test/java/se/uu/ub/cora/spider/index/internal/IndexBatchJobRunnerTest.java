@@ -43,8 +43,9 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public class IndexBatchJobRunnerTest {
 
+	private static final int INDEX_BATCH_SIZE = 1000;
 	private SpiderDependencyProviderSpy dependencyProvider;
-	private DataGroupSpy dataGroupFilter;
+	private DataGroupSpy indexBatchJobFilter;
 	private RecordStorageSpy recordStorage;
 	private IndexBatchJob indexBatchJob;
 	private IndexBatchJobRunner batchRunner;
@@ -52,6 +53,7 @@ public class IndexBatchJobRunnerTest {
 	private DataGroupTermCollectorSpy termCollector;
 	private DataAtomicFactorySpy dataAtomicFactory;
 	private IndexBatchJobStorerSpy storerSpy;
+	long lastLoopBeforeEnd;
 
 	@BeforeMethod
 	public void setUp() {
@@ -59,9 +61,10 @@ public class IndexBatchJobRunnerTest {
 		createDefaultParameters();
 		setUpSpies();
 		recordStorage.totalNumberOfMatches = 2;
-		recordStorage.endNumberToReturn = 2;
+		recordStorage.numberToReturnForReadList = 2;
 		storerSpy = new IndexBatchJobStorerSpy();
 		batchRunner = new IndexBatchJobRunner(dependencyProvider, storerSpy, indexBatchJob);
+		lastLoopBeforeEnd = (indexBatchJob.totalNumberToIndex / INDEX_BATCH_SIZE);
 	}
 
 	private void setUpProviders() {
@@ -72,9 +75,9 @@ public class IndexBatchJobRunnerTest {
 	}
 
 	private void createDefaultParameters() {
-		dataGroupFilter = new DataGroupSpy("filter");
-		indexBatchJob = new IndexBatchJob("someRecordType", 45, dataGroupFilter);
-		indexBatchJob.totalNumberToIndex = 117;
+		indexBatchJobFilter = new DataGroupSpy("filter");
+		indexBatchJob = new IndexBatchJob("someRecordType", 45, indexBatchJobFilter);
+		indexBatchJob.totalNumberToIndex = 11700;
 	}
 
 	private void setUpSpies() {
@@ -102,47 +105,53 @@ public class IndexBatchJobRunnerTest {
 		batchRunner.run();
 
 		recordStorage.MCR.assertParameter("readList", 0, "type", indexBatchJob.recordTypeToIndex);
-		recordStorage.MCR.assertParameter("readList", 0, "filter", dataGroupFilter);
+		recordStorage.MCR.assertParameter("readList", 0, "filter", indexBatchJobFilter);
 		recordStorage.MCR.assertNumberOfCallsToMethod("readList", 12);
 
 		assertAllFiltersAreSentCorrectlyToReadList("readList");
-
 	}
 
 	private void assertAllFiltersAreSentCorrectlyToReadList(String methodName) {
-		int firstIndex = 0;
 		int from = 1;
-		for (int i = 0; i < 12; i++) {
-			assertCorrectlyHandledFilter(firstIndex, from, i, methodName);
-			firstIndex = firstIndex + 2;
-			from = from + 10;
+		String toNo;
+		for (int batchLoopNumber = 0; batchLoopNumber < 12; batchLoopNumber++) {
+			toNo = String.valueOf(from + INDEX_BATCH_SIZE - 1);
+			if (batchLoopNumber == lastLoopBeforeEnd) {
+				toNo = Long.valueOf(indexBatchJob.totalNumberToIndex).toString();
+			}
+			assertCorrectFilterForOneLoopInBatch(String.valueOf(from), toNo, batchLoopNumber,
+					methodName);
+			from = from + INDEX_BATCH_SIZE;
 		}
 	}
 
-	private void assertCorrectlyHandledFilter(int firstIndex, int from, int parameterIndex,
+	private void assertCorrectFilterForOneLoopInBatch(String from, String to, int batchLoopNumber,
 			String methodName) {
-		int secondIndex = firstIndex + 1;
-		Map<String, Object> parameters = recordStorage.MCR
-				.getParametersForMethodAndCallNumber(methodName, parameterIndex);
+		DataGroupSpy filterSentToReadList = getFilterFromRecordStorageUsingBatchLoopNumberAndMethodName(
+				batchLoopNumber, methodName);
+		int callNoForLoop1 = batchLoopNumber * 2;
+		int callNoForLoop2 = callNoForLoop1 + 1;
 
-		assertEquals(dataGroupFilter.removedNameInDatas.get(firstIndex), "fromNo");
-		assertEquals(dataGroupFilter.removedNameInDatas.get(secondIndex), "toNo");
+		assertAtomicValueUpdatedInFilter(filterSentToReadList, "fromNo", from, callNoForLoop1);
+		assertAtomicValueUpdatedInFilter(filterSentToReadList, "toNo", to, callNoForLoop2);
+	}
 
-		assertEquals(dataAtomicFactory.nameInDatas.get(firstIndex), "fromNo");
-		assertEquals(dataAtomicFactory.values.get(firstIndex), String.valueOf(from));
-		assertEquals(dataAtomicFactory.nameInDatas.get(secondIndex), "toNo");
+	private void assertAtomicValueUpdatedInFilter(DataGroupSpy filterSentToReadList, String name,
+			String value, int callNoForLoop) {
+		indexBatchJobFilter.MCR.assertParameters("removeFirstChildWithNameInData", callNoForLoop,
+				name);
+		dataAtomicFactory.MCR.assertParameters("factorUsingNameInDataAndValue", callNoForLoop, name,
+				value);
+		filterSentToReadList.MCR.assertParameters("addChild", callNoForLoop, dataAtomicFactory.MCR
+				.getReturnValue("factorUsingNameInDataAndValue", callNoForLoop));
+	}
 
-		String toNo = String.valueOf(from + 9);
-		if (parameterIndex == 11) {
-			toNo = "117";
-		}
-		assertEquals(dataAtomicFactory.values.get(secondIndex), toNo);
-
-		DataGroupSpy filterSentToReadList = (DataGroupSpy) parameters.get("filter");
-		assertSame(filterSentToReadList.addedChildren.get(firstIndex),
-				dataAtomicFactory.returnedDataAtomics.get(firstIndex));
-		assertSame(filterSentToReadList.addedChildren.get(secondIndex),
-				dataAtomicFactory.returnedDataAtomics.get(secondIndex));
+	private DataGroupSpy getFilterFromRecordStorageUsingBatchLoopNumberAndMethodName(
+			int batchLoopNumber, String methodName) {
+		DataGroupSpy filterSentToReadList = (DataGroupSpy) recordStorage.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(methodName, batchLoopNumber,
+						"filter");
+		return filterSentToReadList;
 	}
 
 	@Test
@@ -153,7 +162,7 @@ public class IndexBatchJobRunnerTest {
 
 		recordStorage.MCR.assertParameter("readAbstractList", 0, "type",
 				indexBatchJob.recordTypeToIndex);
-		recordStorage.MCR.assertParameter("readAbstractList", 0, "filter", dataGroupFilter);
+		recordStorage.MCR.assertParameter("readAbstractList", 0, "filter", indexBatchJobFilter);
 
 		recordStorage.MCR.assertNumberOfCallsToMethod("readAbstractList", 12);
 		assertAllFiltersAreSentCorrectlyToReadList("readAbstractList");
@@ -230,7 +239,7 @@ public class IndexBatchJobRunnerTest {
 
 		long expectedNumberOfIndexedReturnedFromSpy = 2;
 		for (int i = 0; i < 12; i++) {
-			storerSpy.MCR.assertParameter("store", i, "numberOfProcessedRecords",
+			storerSpy.MCR.assertParameter("store", i, "indexBatchJob.numberOfProcessedRecords",
 					expectedNumberOfIndexedReturnedFromSpy);
 			expectedNumberOfIndexedReturnedFromSpy += 2;
 		}
@@ -243,7 +252,8 @@ public class IndexBatchJobRunnerTest {
 
 		for (int i = 0; i < 12; i++) {
 			List<IndexError> errors = (List<IndexError>) storerSpy.MCR
-					.getValueForMethodNameAndCallNumberAndParameterName("store", i, "errors");
+					.getValueForMethodNameAndCallNumberAndParameterName("store", i,
+							"indexBatchJob.errors");
 			assertEquals(errors.size(), 1);
 			assertEquals(errors.get(0).recordId, "someId1");
 			assertEquals(errors.get(0).message, "Some error from spy");
@@ -251,22 +261,29 @@ public class IndexBatchJobRunnerTest {
 		}
 
 		List<IndexError> errors = (List<IndexError>) storerSpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("store", 12, "errors");
+				.getValueForMethodNameAndCallNumberAndParameterName("store", 12,
+						"indexBatchJob.errors");
 		assertEquals(errors.size(), 0);
 	}
 
 	@Test
 	public void testStatusInIndexBatchJob() {
+		recordStorage.numberToReturnForReadList = 2;
+
 		batchRunner.run();
+
 		storerSpy.MCR.assertNumberOfCallsToMethod("store", 13);
-		storerSpy.MCR.assertParameter("store", 0, "status", "started");
-		storerSpy.MCR.assertParameter("store", 0, "numberOfProcessedRecords", 2L);
-		storerSpy.MCR.assertParameter("store", 10, "status", "started");
-		storerSpy.MCR.assertParameter("store", 10, "numberOfProcessedRecords", 22L);
-		storerSpy.MCR.assertParameter("store", 11, "status", "started");
-		storerSpy.MCR.assertParameter("store", 11, "numberOfProcessedRecords", 24L);
-		storerSpy.MCR.assertParameter("store", 12, "status", "finished");
-		storerSpy.MCR.assertParameter("store", 12, "numberOfProcessedRecords", 24L);
+		storerSpy.MCR.assertParameter("store", 0, "indexBatchJob.status", "started");
+		storerSpy.MCR.assertParameter("store", 0, "indexBatchJob.numberOfProcessedRecords", 2L);
+
+		storerSpy.MCR.assertParameter("store", 10, "indexBatchJob.status", "started");
+		storerSpy.MCR.assertParameter("store", 10, "indexBatchJob.numberOfProcessedRecords", 22L);
+
+		storerSpy.MCR.assertParameter("store", 11, "indexBatchJob.status", "started");
+		storerSpy.MCR.assertParameter("store", 11, "indexBatchJob.numberOfProcessedRecords", 24L);
+
+		storerSpy.MCR.assertParameter("store", 12, "indexBatchJob.status", "finished");
+		storerSpy.MCR.assertParameter("store", 12, "indexBatchJob.numberOfProcessedRecords", 24L);
 	}
 
 	@Test
@@ -281,7 +298,6 @@ public class IndexBatchJobRunnerTest {
 		DataGroupSpy filter = (DataGroupSpy) parameters.get("filter");
 
 		assertEquals(filter.getFirstAtomicValueWithNameInData("toNo"), "4");
-
 	}
 
 }

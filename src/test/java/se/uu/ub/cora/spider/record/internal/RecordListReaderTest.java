@@ -242,7 +242,7 @@ public class RecordListReaderTest {
 
 	@Test
 	public void testEnhanceIsCalledForRecordsReturnedFromStorage() throws Exception {
-		recordStorage.endNumberToReturn = 2;
+		recordStorage.numberToReturnForReadList = 2;
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
@@ -262,7 +262,7 @@ public class RecordListReaderTest {
 	@Test
 	public void testEnhanceIsCalledForRecordsReturnedFromStorageForAbstract() {
 		recordTypeHandlerSpy.isAbstract = true;
-		recordStorage.endNumberToReturn = 2;
+		recordStorage.numberToReturnForReadList = 2;
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
@@ -293,7 +293,7 @@ public class RecordListReaderTest {
 
 	@Test
 	public void testEnhancedDataIsReturnedInDataList() throws Exception {
-		recordStorage.endNumberToReturn = 2;
+		recordStorage.numberToReturnForReadList = 2;
 
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				emptyFilter);
@@ -311,7 +311,7 @@ public class RecordListReaderTest {
 
 	@Test
 	public void testEnhancedDataIsReturnedInDataListForAbstract() throws Exception {
-		recordStorage.endNumberToReturn = 2;
+		recordStorage.numberToReturnForReadList = 2;
 		recordTypeHandlerSpy.isAbstract = true;
 
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
@@ -331,7 +331,7 @@ public class RecordListReaderTest {
 	@Test
 	public void testOnlyRecordsWithReadActionFromEnhancerIsReturnedNoRecordHasReadAction()
 			throws Exception {
-		recordStorage.endNumberToReturn = 2;
+		recordStorage.numberToReturnForReadList = 2;
 		recordEnhancer.addReadAction = false;
 
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
@@ -343,7 +343,7 @@ public class RecordListReaderTest {
 
 	@Test
 	public void testOnlyRecordsWithReadActionFromEnhancerIsReturned() throws Exception {
-		recordStorage.endNumberToReturn = 3;
+		recordStorage.numberToReturnForReadList = 3;
 		recordEnhancer.addReadActionOnlyFirst = true;
 
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
@@ -359,7 +359,7 @@ public class RecordListReaderTest {
 		recordEnhancer.addReadAction = true;
 
 		recordStorage.totalNumberOfMatches = 25;
-		recordStorage.endNumberToReturn = 7;
+		recordStorage.numberToReturnForReadList = 7;
 		recordStorage.start = 4;
 
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
@@ -375,7 +375,7 @@ public class RecordListReaderTest {
 		recordEnhancer.throwOtherException = true;
 
 		recordStorage.totalNumberOfMatches = 25;
-		recordStorage.endNumberToReturn = 7;
+		recordStorage.numberToReturnForReadList = 7;
 		recordStorage.start = 4;
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
@@ -384,7 +384,7 @@ public class RecordListReaderTest {
 	@Test
 	public void testTotalNumberInDataListIsFromStorageOtherNumbers() throws Exception {
 		recordStorage.totalNumberOfMatches = 20;
-		recordStorage.endNumberToReturn = 10;
+		recordStorage.numberToReturnForReadList = 10;
 		recordStorage.start = 1;
 
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
@@ -398,7 +398,7 @@ public class RecordListReaderTest {
 	@Test
 	public void testTotalNumberInDataListIsFromStorageNonHasReadAction() throws Exception {
 		recordStorage.totalNumberOfMatches = 20;
-		recordStorage.endNumberToReturn = 10;
+		recordStorage.numberToReturnForReadList = 10;
 		recordStorage.start = 1;
 		recordEnhancer.addReadAction = false;
 

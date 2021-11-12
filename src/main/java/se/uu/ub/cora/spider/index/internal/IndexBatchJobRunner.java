@@ -34,7 +34,7 @@ import se.uu.ub.cora.storage.StorageReadResult;
 public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 	private static final int FROM_NUMBER = 1;
-	private static final int TO_NUMBER = 10;
+	private static final int TO_NUMBER = 1000;
 	private SpiderDependencyProvider dependencyProvider;
 	private IndexBatchJob indexBatchJob;
 	private RecordStorage recordStorage;
@@ -76,7 +76,6 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	}
 
 	private void readListAndIndexDataInBatches(String metadataId) {
-
 		while (numberRequestedFromListing < indexBatchJob.totalNumberToIndex) {
 			possiblySetToNumToTotalNumberToIndex();
 			setFromAndToInFilter(from, to);
@@ -114,28 +113,27 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	}
 
 	private void readListAndIndexData(String metadataId) {
-		StorageReadResult readResult = readList(recordStorage);
-
-		for (DataGroup dataGroup : readResult.listOfDataGroups) {
-			indexData(metadataId, dataGroup);
-		}
-
+		StorageReadResult readResult = readList();
+		indexData(metadataId, readResult);
 		updateAndStoreIndexBatchJob(readResult);
 		clearErrors();
 	}
 
-	private StorageReadResult readList(RecordStorage recordStorage) {
-		DataGroup filter = indexBatchJob.filter;
-		StorageReadResult list;
-		if (recordTypeHandler.isAbstract()) {
-			list = recordStorage.readAbstractList(indexBatchJob.recordTypeToIndex, filter);
-		} else {
-			list = recordStorage.readList(indexBatchJob.recordTypeToIndex, filter);
+	private void indexData(String metadataId, StorageReadResult readResult) {
+		for (DataGroup dataGroup : readResult.listOfDataGroups) {
+			indexRecord(metadataId, dataGroup);
 		}
-		return list;
 	}
 
-	private void indexData(String metadataId, DataGroup dataGroup) {
+	private StorageReadResult readList() {
+		DataGroup filter = indexBatchJob.filter;
+		if (recordTypeHandler.isAbstract()) {
+			return recordStorage.readAbstractList(indexBatchJob.recordTypeToIndex, filter);
+		}
+		return recordStorage.readList(indexBatchJob.recordTypeToIndex, filter);
+	}
+
+	private void indexRecord(String metadataId, DataGroup dataGroup) {
 		String recordId = getRecordId(dataGroup);
 		try {
 			tryToIndexData(metadataId, recordId, dataGroup);

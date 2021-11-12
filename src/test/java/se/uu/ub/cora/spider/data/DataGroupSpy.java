@@ -93,6 +93,7 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public void addChild(DataElement dataElement) {
+		MCR.addCall("dataElement", dataElement);
 		addedChildren.add(dataElement);
 		children.add(dataElement);
 
@@ -176,12 +177,15 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public boolean removeFirstChildWithNameInData(String childNameInData) {
+		MCR.addCall("childNameInData", childNameInData);
 		removedNameInDatas.add(childNameInData);
 		DataElement foundChild = tryToFindChildToRemove(childNameInData);
 		if (foundChild != null) {
 			children.remove(foundChild);
+			MCR.addReturned(true);
 			return true;
 		}
+		MCR.addReturned(false);
 		return false;
 	}
 

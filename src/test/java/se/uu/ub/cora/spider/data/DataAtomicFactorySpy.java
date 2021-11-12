@@ -23,9 +23,11 @@ import java.util.List;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicFactory;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataAtomicFactorySpy implements DataAtomicFactory {
 
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public List<String> nameInDatas = new ArrayList<>();
 	public List<String> values = new ArrayList<>();
 	public String nameInData;
@@ -39,8 +41,11 @@ public class DataAtomicFactorySpy implements DataAtomicFactory {
 		nameInDatas.add(nameInData);
 		this.value = value;
 		values.add(value);
+
+		MCR.addCall("nameInData", nameInData, "value", value);
 		reurnedDataAtomic = new DataAtomicSpy(nameInData, value);
 		returnedDataAtomics.add(reurnedDataAtomic);
+		MCR.addReturned(reurnedDataAtomic);
 		return reurnedDataAtomic;
 	}
 
