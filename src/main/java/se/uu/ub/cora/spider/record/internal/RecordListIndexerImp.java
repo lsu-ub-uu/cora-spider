@@ -78,7 +78,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 	private DataRecord storeAndRunBatchJob() {
 		checkUserIsAuthenticatedAndAuthorized();
-		validateIndexSettingAccordingToMetadata();
+		validateIndexSettingAccordingToMetadataIfNotEmpty();
 		IndexBatchJob indexBatchJob = collectInformationForIndexBatchJob(indexSettings);
 		DataRecord createdRecord = storeIndexBatchJobInStorage(authToken, indexBatchJob);
 
@@ -95,15 +95,21 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "index", recordType);
 	}
 
+	private void validateIndexSettingAccordingToMetadataIfNotEmpty() {
+		if (indexSettings.hasChildren()) {
+			validateIndexSettingAccordingToMetadata();
+		}
+	}
+
 	private void validateIndexSettingAccordingToMetadata() {
 		DataValidator dataValidator = dependencyProvider.getDataValidator();
 		ValidationAnswer validationAnswer = dataValidator.validateIndexSettings(recordType,
 				indexSettings);
 		throwDataValidationExceptionIfValidationHasErrors(validationAnswer);
-
 	}
 
-	private void throwDataValidationExceptionIfValidationHasErrors(ValidationAnswer validationAnswer) {
+	private void throwDataValidationExceptionIfValidationHasErrors(
+			ValidationAnswer validationAnswer) {
 		if (validationAnswer.dataIsInvalid()) {
 			throw DataValidationException
 					.withMessage("Error while validating index settings against defined metadata: "

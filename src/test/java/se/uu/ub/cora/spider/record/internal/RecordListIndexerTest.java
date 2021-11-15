@@ -68,11 +68,11 @@ public class RecordListIndexerTest {
 
 	private SpiderAuthorizatorSpy authorizatorSpy;
 	private DataGroupSpy indexSettingsWithoutFilter;
+	private DataGroupSpy indexSettingsWithFilter;
 	private DataValidatorSpy dataValidatorSpy;
 	private DataGroupFactorySpy dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
 	private IndexBatchHandlerSpy indexBatchHandler;
-	private DataGroupSpy indexSettingsWithFilter;
 	private DataGroupHandlerForIndexBatchJobSpy batchJobConverterSpy;
 	private SpiderInstanceFactorySpy spiderInstanceFactorySpy;
 
@@ -161,10 +161,18 @@ public class RecordListIndexerTest {
 	@Test
 	public void testNonEmptyIndexSettingsContainsPartGroupValidateListFilterIsCalled() {
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				indexSettingsWithoutFilter);
+				indexSettingsWithFilter);
 
 		dataValidatorSpy.MCR.assertParameters("validateIndexSettings", 0, SOME_RECORD_TYPE,
+				indexSettingsWithFilter);
+	}
+
+	@Test
+	public void testEmptyIndexSettingsValidateListFilterIsNOTCalled() {
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
+
+		dataValidatorSpy.MCR.assertMethodNotCalled("validateIndexSettings");
 	}
 
 	@Test(expectedExceptions = DataValidationException.class, expectedExceptionsMessageRegExp = ""
@@ -173,7 +181,7 @@ public class RecordListIndexerTest {
 		dataValidatorSpy.throwExcpetionIndexSettingsNotFound = true;
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				indexSettingsWithoutFilter);
+				indexSettingsWithFilter);
 	}
 
 	@Test(expectedExceptions = DataValidationException.class, expectedExceptionsMessageRegExp = ""
@@ -183,7 +191,7 @@ public class RecordListIndexerTest {
 		dataValidatorSpy.invalidIndexSettingsValidation = true;
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				indexSettingsWithoutFilter);
+				indexSettingsWithFilter);
 	}
 
 	@Test
