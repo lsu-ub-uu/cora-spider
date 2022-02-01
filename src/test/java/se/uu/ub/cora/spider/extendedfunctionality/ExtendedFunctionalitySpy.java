@@ -21,14 +21,18 @@
 package se.uu.ub.cora.spider.extendedfunctionality;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class ExtendedFunctionalitySpy implements ExtendedFunctionality {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+
 	public boolean extendedFunctionalityHasBeenCalled = false;
 	public String token;
 	public DataGroup dataGroupSentToExtendedFunctionality;
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
+		MCR.addCall("data", data);
 		token = data.authToken;
 		dataGroupSentToExtendedFunctionality = data.dataGroup;
 		extendedFunctionalityHasBeenCalled = true;

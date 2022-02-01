@@ -165,13 +165,22 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private void useExtendedFunctionality(DataGroup dataGroup,
-			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
-		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
-			ExtendedFunctionalityData data = new ExtendedFunctionalityData();
-			data.authToken = authToken;
-			data.dataGroup = dataGroup;
+			List<ExtendedFunctionality> functionalityList) {
+		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
+			ExtendedFunctionalityData data = createExtendedFunctionalityData(dataGroup);
 			extendedFunctionality.useExtendedFunctionality(data);
 		}
+	}
+
+	private ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.recordType = recordType;
+		data.recordId = recordId;
+		data.authToken = authToken;
+		data.user = user;
+		data.previouslyStoredTopDataGroup = previouslyStoredRecord;
+		data.dataGroup = dataGroup;
+		return data;
 	}
 
 	private void updateRecordInfo() {

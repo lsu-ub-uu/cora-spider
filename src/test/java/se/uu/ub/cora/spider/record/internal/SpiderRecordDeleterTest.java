@@ -27,6 +27,7 @@ import java.util.HashMap;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataAtomicFactory;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
@@ -45,7 +46,7 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
@@ -54,6 +55,7 @@ import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
+import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
@@ -144,7 +146,8 @@ public class SpiderRecordDeleterTest {
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "delete",
 				"child1", termCollector.MCR.getReturnValue("collectTerms", 0));
 
-		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "child1");
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
+				dependencyProvider.recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0));
 
 		OldRecordStorageSpy recordStorageSpy = (OldRecordStorageSpy) recordStorage;
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
@@ -152,33 +155,28 @@ public class SpiderRecordDeleterTest {
 	}
 
 	@Test
-	public void testExtendedFunctionalityBeforeDelete() {
-		recordStorage = new OldRecordStorageSpy();
+	public void testExtendedFunctionalityIsCalled() {
+		RecordStorageCreateUpdateSpy recordStorageSpy = new RecordStorageCreateUpdateSpy();
+		recordStorage = recordStorageSpy;
 		setUpDependencyProvider();
-		String recordId = "place:0002";
-		String recordType = "child1";
-		recordDeleter.deleteRecord("userId", recordType, recordId);
+		String recordType = "spyType";
+		String recordId = "spyId";
+		String authToken = "someToken78678567";
 
-		OldRecordStorageSpy recordStorageSpy = (OldRecordStorageSpy) recordStorage;
-		assertEquals(recordStorageSpy.numOfTimesReadWasCalled, 3);
-		assertEquals(recordStorageSpy.types.get(0), recordType);
-		assertEquals(recordStorageSpy.ids.get(0), recordId);
+		recordDeleter.deleteRecord(authToken, recordType, recordId);
 
-		ExtendedFunctionalitySpy extendedFunctionality = extendedFunctionalityProvider.fetchedFunctionalityBeforeDelete
-				.get(0);
-		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
-		DataGroup dataGoupSentToExtended = extendedFunctionality.dataGroupSentToExtendedFunctionality;
-		assertCorrectDataInGroupSentToExtended(recordId, recordType, dataGoupSentToExtended);
+		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
+		expectedData.recordType = recordType;
+		expectedData.recordId = recordId;
+		expectedData.authToken = authToken;
+		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.previouslyStoredTopDataGroup = null;
+		expectedData.dataGroup = (DataGroup) recordStorageSpy.MCR.getReturnValue("read", 0);
 
-	}
-
-	private void assertCorrectDataInGroupSentToExtended(String recordId, String recordType,
-			DataGroup dataGoupSentToExtended) {
-		DataGroup recordInfo = dataGoupSentToExtended.getFirstGroupWithNameInData("recordInfo");
-		String id = recordInfo.getFirstAtomicValueWithNameInData("id");
-		assertEquals(id, recordId);
-		DataGroup type = recordInfo.getFirstGroupWithNameInData("type");
-		assertEquals(type.getFirstAtomicValueWithNameInData("linkedRecordId"), recordType);
+		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
+				"getFunctionalityBeforeDelete", expectedData);
+		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
+				"getFunctionalityAfterDelete", expectedData);
 	}
 
 	@Test(expectedExceptions = MisuseException.class)

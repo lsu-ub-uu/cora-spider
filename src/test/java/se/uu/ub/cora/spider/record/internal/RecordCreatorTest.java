@@ -58,7 +58,7 @@ import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
 import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
@@ -215,19 +215,31 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testExtendedFunctionallityIsCalled() {
+	public void testExtendedFunctionalityIsCalled() {
+		RecordStorageCreateUpdateSpy recordStorageSpy = new RecordStorageCreateUpdateSpy();
+		recordStorage = recordStorageSpy;
+		String recordType = "spyType";
 		String authToken = "someToken78678567";
 		DataGroup dataGroup = setupRecordStorageAndDataGroup();
 		recordTypeHandlerSpy.shouldAutoGenerateId = true;
 
-		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
+		recordCreator.createAndStoreRecord(authToken, recordType, dataGroup);
 
-		assertFetchedFunctionalityHasBeenCalled(authToken,
-				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeMetadataValidation);
-		assertFetchedFunctionalityHasBeenCalled(authToken,
-				extendedFunctionalityProvider.fetchedFunctionalityForCreateAfterMetadataValidation);
-		assertFetchedFunctionalityHasBeenCalled(authToken,
-				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeReturn);
+		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
+		expectedData.recordType = recordType;
+		expectedData.recordId = null;
+		expectedData.authToken = authToken;
+		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.previouslyStoredTopDataGroup = null;
+		expectedData.dataGroup = dataGroup;
+
+		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
+				"getFunctionalityForCreateBeforeMetadataValidation", expectedData);
+		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
+				"getFunctionalityForCreateAfterMetadataValidation", expectedData);
+		expectedData.recordId = "1";
+		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
+				"getFunctionalityForCreateBeforeReturn", expectedData);
 	}
 
 	@Test
@@ -268,18 +280,6 @@ public class RecordCreatorTest {
 				.getReturnValue("getCombinedIdsUsingRecordId", 0);
 		DataGroup collectedTerms = (DataGroup) termCollector.MCR.getReturnValue("collectTerms", 0);
 		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectedTerms, createdRecord);
-	}
-
-	private void assertFetchedFunctionalityHasBeenCalled(String authToken,
-			List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateAfterMetadataValidation) {
-		ExtendedFunctionalitySpy extendedFunctionality = fetchedFunctionalityForCreateAfterMetadataValidation
-				.get(0);
-		assertEquals(extendedFunctionality.token, authToken);
-		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
-		ExtendedFunctionalitySpy extendedFunctionality2 = fetchedFunctionalityForCreateAfterMetadataValidation
-				.get(0);
-		assertEquals(extendedFunctionality2.token, authToken);
-		assertTrue(extendedFunctionality2.extendedFunctionalityHasBeenCalled);
 	}
 
 	@Test(expectedExceptions = DataException.class)
@@ -487,7 +487,8 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testUnauthorizedForCreateOnRecordTypeShouldShouldNotAccessStorage() {
-		recordStorage = new OldRecordStorageSpy();
+		OldRecordStorageSpy oldRecordStorage = new OldRecordStorageSpy();
+		recordStorage = oldRecordStorage;
 		spiderAuthorizator.authorizedForActionAndRecordType = false;
 		setUpDependencyProvider();
 
@@ -501,14 +502,12 @@ public class RecordCreatorTest {
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);
-		assertFalse(((OldRecordStorageSpy) recordStorage).readWasCalled);
-		assertFalse(((OldRecordStorageSpy) recordStorage).updateWasCalled);
-		assertFalse(((OldRecordStorageSpy) recordStorage).deleteWasCalled);
-		assertFalse(((OldRecordStorageSpy) recordStorage).createWasCalled);
-		assertEquals(
-				extendedFunctionalityProvider.fetchedFunctionalityForCreateBeforeMetadataValidation
-						.size(),
-				0);
+		assertFalse(oldRecordStorage.readWasCalled);
+		assertFalse(oldRecordStorage.updateWasCalled);
+		assertFalse(oldRecordStorage.deleteWasCalled);
+		assertFalse(oldRecordStorage.createWasCalled);
+		extendedFunctionalityProvider.MCR.assertNumberOfCallsToMethod(
+				"getFunctionalityForCreateBeforeMetadataValidation", 0);
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""

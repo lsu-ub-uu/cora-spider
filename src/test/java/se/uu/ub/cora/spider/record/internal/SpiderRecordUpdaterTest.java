@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2020, 2021 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020, 2021, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -31,6 +31,7 @@ import java.util.Set;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicFactory;
@@ -55,7 +56,7 @@ import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
@@ -524,45 +525,36 @@ public class SpiderRecordUpdaterTest {
 	@Test
 	public void testExtendedFunctionalityIsCalled() {
 		authorizator = new SpiderAuthorizatorSpy();
-		recordStorage = new OldRecordStorageSpy();
+		RecordStorageCreateUpdateSpy recordStorageSpy = new RecordStorageCreateUpdateSpy();
+		recordStorage = recordStorageSpy;
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
+		String recordType = "spyType";
+		String recordId = "spyId";
 		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
-				"nameInData", "spyId", "spyType", "cora");
+				"nameInData", recordId, recordType, "cora");
 		String authToken = "someToken78678567";
-		recordUpdater.updateRecord(authToken, "spyType", "spyId", dataGroup);
 
-		assertFetchedFunctionalityHasBeenCalled(
-				extendedFunctionalityProvider.fetchedFunctionalityForUpdateBeforeMetadataValidation,
-				authToken, dataGroup);
-		assertFetchedFunctionalityHasBeenCalled(
-				extendedFunctionalityProvider.fetchedFunctionalityForUpdateAfterMetadataValidation,
-				authToken, dataGroup);
-		assertFetchedFunctionalityHasBeenCalled(
-				extendedFunctionalityProvider.fetchedFunctionalityForUpdateBeforeStore, authToken,
-				dataGroup);
-		assertEquals(extendedFunctionalityProvider.recordTypes.get("updateBeforeStore"), "spyType");
-		assertFetchedFunctionalityHasBeenCalled(
-				extendedFunctionalityProvider.fetchedFunctionalityForUpdateAfterStore, authToken,
-				dataGroup);
-		assertEquals(extendedFunctionalityProvider.recordTypes.get("updateAfterStore"), "spyType");
+		recordUpdater.updateRecord(authToken, recordType, recordId, dataGroup);
 
-	}
+		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
+		expectedData.recordType = recordType;
+		expectedData.recordId = recordId;
+		expectedData.authToken = authToken;
+		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.previouslyStoredTopDataGroup = (DataGroup) recordStorageSpy.MCR
+				.getReturnValue("read", 0);
+		expectedData.dataGroup = dataGroup;
 
-	private void assertFetchedFunctionalityHasBeenCalled(
-			List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateAfterMetadataValidation,
-			String authToken, DataGroup dataGroup) {
-		ExtendedFunctionalitySpy extendedFunctionality = fetchedFunctionalityForCreateAfterMetadataValidation
-				.get(0);
-		assertTrue(extendedFunctionality.extendedFunctionalityHasBeenCalled);
-		assertEquals(extendedFunctionality.token, authToken);
-		assertEquals(extendedFunctionality.dataGroupSentToExtendedFunctionality, dataGroup);
-		ExtendedFunctionalitySpy extendedFunctionality2 = fetchedFunctionalityForCreateAfterMetadataValidation
-				.get(0);
-		assertEquals(extendedFunctionality2.token, authToken);
-		assertEquals(extendedFunctionality2.dataGroupSentToExtendedFunctionality, dataGroup);
-		assertTrue(extendedFunctionality2.extendedFunctionalityHasBeenCalled);
+		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
+				"getFunctionalityForUpdateBeforeMetadataValidation", expectedData);
+		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
+				"getFunctionalityForUpdateAfterMetadataValidation", expectedData);
+		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
+				"getFunctionalityForUpdateBeforeStore", expectedData);
+		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
+				"getFunctionalityForUpdateAfterStore", expectedData);
 	}
 
 	@Test

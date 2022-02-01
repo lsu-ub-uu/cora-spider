@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.spider.extendedfunctionality;
 
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
 
 /**
@@ -34,5 +35,33 @@ public class ExtendedFunctionalityData {
 	 * A DataGroup containing all data for the record currently being handled
 	 */
 	public DataGroup dataGroup;
+	/**
+	 * A String with the recordType of the record currently being handled
+	 */
+	public String recordType;
+
+	/**
+	 * A String with the recordId of the record currently being handled
+	 * <p>
+	 * <b>Note! the recordId is not set for calls for
+	 * getFunctionalityForCreateBeforeMetadataValidation and
+	 * getFunctionalityForCreateAfterMetadataValidation as it is not yet determined what it shall
+	 * be.</b>
+	 */
+	public String recordId;
+
+	/**
+	 * A User with the currently active user
+	 */
+	public User user;
+
+	/**
+	 * The TopDataGroup for the record currently being handled as it was read from storage at the
+	 * begining of the current operation.
+	 * <p>
+	 * <b>Note! this dataGroup is only set for calls made to extended functionality when updating a
+	 * record.</b>
+	 */
+	public DataGroup previouslyStoredTopDataGroup;
 
 }
