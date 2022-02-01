@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -29,14 +29,14 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 
-public final class RecordDeleterImp extends RecordHandler
-		implements RecordDeleter {
+public final class RecordDeleterImp extends RecordHandler implements RecordDeleter {
 	private static final String DELETE = "delete";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -137,10 +137,13 @@ public final class RecordDeleterImp extends RecordHandler
 		useExtendedFunctionality(dataGroupReadFromStorage, functionalityBeforeDelete);
 	}
 
-	private void useExtendedFunctionality(DataGroup readDataGroup,
+	private void useExtendedFunctionality(DataGroup dataGroup,
 			List<ExtendedFunctionality> functionalityBeforeDelete) {
 		for (ExtendedFunctionality extendedFunctionality : functionalityBeforeDelete) {
-			extendedFunctionality.useExtendedFunctionality(authToken, readDataGroup);
+			ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+			data.authToken = authToken;
+			data.dataGroup = dataGroup;
+			extendedFunctionality.useExtendedFunctionality(data);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2019 Uppsala University Library
+ * Copyright 2017, 2019, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -37,6 +37,7 @@ import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
@@ -91,7 +92,7 @@ public class WorkOrderExecutorTest {
 	public void testIndexData() {
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
 				"someGeneratedId", "book", "book1");
-		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+		callExtendedFunctionalityWithGroup(workOrder);
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "bookGroup");
 
@@ -113,13 +114,20 @@ public class WorkOrderExecutorTest {
 		assertEquals(ids.size(), 1);
 	}
 
+	private void callExtendedFunctionalityWithGroup(DataGroup workOrder) {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.authToken = "someToken";
+		data.dataGroup = workOrder;
+		extendedFunctionality.useExtendedFunctionality(data);
+	}
+
 	@Test
 	public void testIndexDataForChildOfAbstract() {
 		dependencyProvider.recordStorage = new RecordStorageCreateUpdateSpy();
 		setUpDependencyProvider();
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
 				"someGeneratedId", "image", "image1");
-		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+		callExtendedFunctionalityWithGroup(workOrder);
 
 		List<String> ids = recordIndexer.ids;
 		assertEquals(ids.get(0), "image_image1");
@@ -133,7 +141,7 @@ public class WorkOrderExecutorTest {
 
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
 				"someGeneratedId", "book", "book1");
-		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+		callExtendedFunctionalityWithGroup(workOrder);
 
 		termCollector.MCR.assertMethodNotCalled("collectTerms");
 		termCollector.MCR.assertMethodNotCalled("indexData");
@@ -144,7 +152,7 @@ public class WorkOrderExecutorTest {
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdRecordTypeRecordIdAndWorkOrderType(
 				"someGeneratedId", "book", "book1", "removeFromIndex");
 
-		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+		callExtendedFunctionalityWithGroup(workOrder);
 		recordIndexer.MCR.assertParameter("deleteFromIndex", 0, "type", "book");
 		recordIndexer.MCR.assertParameter("deleteFromIndex", 0, "id", "book1");
 
@@ -157,7 +165,7 @@ public class WorkOrderExecutorTest {
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdRecordTypeRecordIdAndWorkOrderType(
 				"someGeneratedId", "book", "book1", "removeFromIndex");
 
-		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+		callExtendedFunctionalityWithGroup(workOrder);
 
 		recordIndexer.MCR.assertMethodNotCalled("deleteFromIndex");
 	}
@@ -167,7 +175,7 @@ public class WorkOrderExecutorTest {
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
 				"someGeneratedId", "book", "book1");
 		workOrder.addChild(new DataAtomicSpy("performCommit", "false"));
-		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+		callExtendedFunctionalityWithGroup(workOrder);
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "bookGroup");
 
@@ -193,7 +201,7 @@ public class WorkOrderExecutorTest {
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
 				"someGeneratedId", "book", "book1");
 		workOrder.addChild(new DataAtomicSpy("performCommit", "true"));
-		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+		callExtendedFunctionalityWithGroup(workOrder);
 
 		recordIndexer.MCR.assertMethodWasCalled("indexData");
 		recordIndexer.MCR.assertParameter("indexData", 0, "collectedData",

@@ -1,5 +1,4 @@
 /*
- * Copyright 2016 Olov McKie
  * Copyright 2022 Uppsala University Library
  * 
  * This file is part of Cora.
@@ -17,21 +16,23 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.spider.extendedfunctionality;
 
 import se.uu.ub.cora.data.DataGroup;
 
-public class ExtendedFunctionalitySpy implements ExtendedFunctionality {
-	public boolean extendedFunctionalityHasBeenCalled = false;
-	public String token;
-	public DataGroup dataGroupSentToExtendedFunctionality;
+/**
+ * ExtendedFunctionalityData contains data, useful when implementing an extended functionality. The
+ * data is, recordId, recordType, authToken, user, dataGroup, previouslyStoredDataGroup.
+ */
+public class ExtendedFunctionalityData {
+	/**
+	 * A String with the authToken representing the currently logged in user
+	 */
+	public String authToken;
 
-	@Override
-	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		token = data.authToken;
-		dataGroupSentToExtendedFunctionality = data.dataGroup;
-		extendedFunctionalityHasBeenCalled = true;
-	}
+	/**
+	 * A DataGroup containing all data for the record currently being handled
+	 */
+	public DataGroup dataGroup;
 
 }

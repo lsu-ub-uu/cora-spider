@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,8 +19,6 @@
 
 package se.uu.ub.cora.spider.extendedfunctionality;
 
-import se.uu.ub.cora.data.DataGroup;
-
 /**
  * ExtendedFunctionality is functionality that can be plugged into Spider to extend its capabilities
  * when handling records. It is a very open system, and almost any type of functionality can be
@@ -28,14 +26,13 @@ import se.uu.ub.cora.data.DataGroup;
  * 
  */
 public interface ExtendedFunctionality {
+
 	/**
 	 * useExtendedFunctionality is called from different places in spider to use the
 	 * extendedFunctionality
 	 * 
-	 * @param authToken
-	 *            A String with the authToken representing the currently logged in user
-	 * @param dataGroup
-	 *            A DataGroup containing all data for the record currently being handled
+	 * @param data
+	 *            An ExtendedFunctionalityData populated with authToken, dataGroup, etc.
 	 */
-	void useExtendedFunctionality(String authToken, DataGroup dataGroup);
+	void useExtendedFunctionality(ExtendedFunctionalityData data);
 }
