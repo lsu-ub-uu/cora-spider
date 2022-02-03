@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -29,14 +29,13 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 
-public final class RecordDeleterImp extends RecordHandler
-		implements RecordDeleter {
+public final class RecordDeleterImp extends RecordHandler implements RecordDeleter {
 	private static final String DELETE = "delete";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -67,6 +66,7 @@ public final class RecordDeleterImp extends RecordHandler
 	public void deleteRecord(String authToken, String recordType, String recordId) {
 		this.authToken = authToken;
 		this.recordType = recordType;
+		this.recordId = recordId;
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 		dataGroupReadFromStorage = recordStorage.read(recordType, recordId);
@@ -74,9 +74,10 @@ public final class RecordDeleterImp extends RecordHandler
 		checkUserIsAuthorizedToDeleteStoredRecord(recordType);
 		checkNoIncomingLinksExists(recordType, recordId);
 
-		useExtendedFunctionalityBeforeDelete(recordType);
+		useExtendedFunctionalityBeforeDelete();
 		recordStorage.deleteByTypeAndId(recordType, recordId);
 		recordIndexer.deleteFromIndex(recordType, recordId);
+		useExtendedFunctionalityAfterDelete();
 	}
 
 	private void tryToGetActiveUser() {
@@ -99,8 +100,7 @@ public final class RecordDeleterImp extends RecordHandler
 	}
 
 	private String getMetadataIdFromRecordType(String recordType) {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorage, recordType);
+		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		return recordTypeHandler.getMetadataId();
 	}
 
@@ -131,17 +131,35 @@ public final class RecordDeleterImp extends RecordHandler
 		return parentGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
-	private void useExtendedFunctionalityBeforeDelete(String recordType) {
+	private void useExtendedFunctionalityBeforeDelete() {
 		List<ExtendedFunctionality> functionalityBeforeDelete = extendedFunctionalityProvider
 				.getFunctionalityBeforeDelete(recordType);
 		useExtendedFunctionality(dataGroupReadFromStorage, functionalityBeforeDelete);
 	}
 
-	private void useExtendedFunctionality(DataGroup readDataGroup,
-			List<ExtendedFunctionality> functionalityBeforeDelete) {
-		for (ExtendedFunctionality extendedFunctionality : functionalityBeforeDelete) {
-			extendedFunctionality.useExtendedFunctionality(authToken, readDataGroup);
+	private void useExtendedFunctionality(DataGroup dataGroup,
+			List<ExtendedFunctionality> functionalityList) {
+		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
+			ExtendedFunctionalityData data = createExtendedFunctionalityData(dataGroup);
+			extendedFunctionality.useExtendedFunctionality(data);
 		}
+	}
+
+	private ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.recordType = recordType;
+		data.recordId = recordId;
+		data.authToken = authToken;
+		data.user = user;
+		data.previouslyStoredTopDataGroup = null;
+		data.dataGroup = dataGroup;
+		return data;
+	}
+
+	private void useExtendedFunctionalityAfterDelete() {
+		List<ExtendedFunctionality> functionalityAfterDelete = extendedFunctionalityProvider
+				.getFunctionalityAfterDelete(recordType);
+		useExtendedFunctionality(dataGroupReadFromStorage, functionalityAfterDelete);
 	}
 
 	public SpiderDependencyProvider getDependencyProvider() {

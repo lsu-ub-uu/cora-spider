@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,6 +23,7 @@ import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -41,8 +42,8 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 	}
 
 	@Override
-	public void useExtendedFunctionality(String authToken, DataGroup recordAsDataGroup) {
-		this.recordAsDataGroup = recordAsDataGroup;
+	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
+		this.recordAsDataGroup = data.dataGroup;
 		if (dataGroupHasParent()) {
 			validateInheritanceRules();
 		}

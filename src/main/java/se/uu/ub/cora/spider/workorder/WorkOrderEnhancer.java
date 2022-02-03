@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,11 +21,13 @@ package se.uu.ub.cora.spider.workorder;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
 public class WorkOrderEnhancer implements ExtendedFunctionality {
 
 	@Override
-	public void useExtendedFunctionality(String authToken, DataGroup dataGroup) {
+	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
+		DataGroup dataGroup = data.dataGroup;
 		if (recordInfoIsMissing(dataGroup)) {
 			addRecordInfo(dataGroup);
 		}
@@ -43,7 +45,7 @@ public class WorkOrderEnhancer implements ExtendedFunctionality {
 	}
 
 	private DataGroup createDataDivider() {
-		return DataGroupProvider
-				.getDataGroupAsLinkUsingNameInDataTypeAndId("dataDivider", "system", "cora");
+		return DataGroupProvider.getDataGroupAsLinkUsingNameInDataTypeAndId("dataDivider", "system",
+				"cora");
 	}
 }

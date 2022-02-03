@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Uppsala University Library
+ * Copyright 2018, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.workorder;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 
@@ -32,13 +33,14 @@ public final class WorkOrderDeleter implements ExtendedFunctionality {
 		this.recordDeleter = recordDeleter;
 	}
 
-	public static WorkOrderDeleter usingDeleter(
-			RecordDeleter recordDeleter) {
+	public static WorkOrderDeleter usingDeleter(RecordDeleter recordDeleter) {
 		return new WorkOrderDeleter(recordDeleter);
 	}
 
 	@Override
-	public void useExtendedFunctionality(String authToken, DataGroup dataGroup) {
+	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
+		String authToken = data.authToken;
+		DataGroup dataGroup = data.dataGroup;
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		String recordType = extractRecordType(recordInfo);
 		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");

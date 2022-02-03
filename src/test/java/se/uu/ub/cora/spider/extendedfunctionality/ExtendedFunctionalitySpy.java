@@ -1,6 +1,7 @@
 /*
  * Copyright 2016 Olov McKie
- *
+ * Copyright 2022 Uppsala University Library
+ * 
  * This file is part of Cora.
  *
  *     Cora is free software: you can redistribute it and/or modify
@@ -20,16 +21,20 @@
 package se.uu.ub.cora.spider.extendedfunctionality;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class ExtendedFunctionalitySpy implements ExtendedFunctionality {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+
 	public boolean extendedFunctionalityHasBeenCalled = false;
 	public String token;
 	public DataGroup dataGroupSentToExtendedFunctionality;
 
 	@Override
-	public void useExtendedFunctionality(String token, DataGroup dataGroup) {
-		this.token = token;
-		dataGroupSentToExtendedFunctionality = dataGroup;
+	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
+		MCR.addCall("data", data);
+		token = data.authToken;
+		dataGroupSentToExtendedFunctionality = data.dataGroup;
 		extendedFunctionalityHasBeenCalled = true;
 	}
 

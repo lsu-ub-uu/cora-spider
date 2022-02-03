@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2019 Uppsala University Library
+ * Copyright 2017, 2019, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -46,6 +46,7 @@ import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactorySpy2;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterSpy;
@@ -120,7 +121,7 @@ public class UserUpdaterForAppTokenTest {
 						"someAppTokenId", "cora"));
 		minimalAppTokenGroup.addChild(new DataAtomicSpy("note", "my device!"));
 
-		extendedFunctionality.useExtendedFunctionality("dummy1Token", minimalAppTokenGroup);
+		callExtendedFunctionalityWithGroup(minimalAppTokenGroup);
 		SpiderRecordUpdaterSpy spiderRecordUpdaterSpy = spiderInstanceFactory.createdUpdaters
 				.get(0);
 		DataGroup updatedUserDataGroup = spiderRecordUpdaterSpy.record;
@@ -135,4 +136,10 @@ public class UserUpdaterForAppTokenTest {
 		assertNotNull(userAppTokenGroup.getRepeatId());
 	}
 
+	private void callExtendedFunctionalityWithGroup(DataGroup minimalGroup) {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.authToken = "dummy1Token";
+		data.dataGroup = minimalGroup;
+		extendedFunctionality.useExtendedFunctionality(data);
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -37,6 +37,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
@@ -45,8 +46,7 @@ import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 
-public final class RecordCreatorImp extends RecordHandler
-		implements RecordCreator {
+public final class RecordCreatorImp extends RecordHandler implements RecordCreator {
 	private static final String TS_CREATED = "tsCreated";
 	private static final String CREATE = "create";
 	private Authenticator authenticator;
@@ -137,10 +137,22 @@ public final class RecordCreatorImp extends RecordHandler
 	}
 
 	private void useExtendedFunctionality(DataGroup dataGroup,
-			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
-		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
-			extendedFunctionality.useExtendedFunctionality(authToken, dataGroup);
+			List<ExtendedFunctionality> functionalityList) {
+		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
+			ExtendedFunctionalityData data = createExtendedFunctionalityData(dataGroup);
+			extendedFunctionality.useExtendedFunctionality(data);
 		}
+	}
+
+	private ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.recordType = recordType;
+		data.recordId = recordId;
+		data.authToken = authToken;
+		data.user = user;
+		data.previouslyStoredTopDataGroup = null;
+		data.dataGroup = dataGroup;
+		return data;
 	}
 
 	private void validateRecord() {

@@ -1,5 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
+ * Copyright 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,94 +20,128 @@
 
 package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
+import static org.testng.Assert.assertEquals;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityProvider {
-	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateBeforeMetadataValidation = new ArrayList<>();
-	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateAfterMetadataValidation = new ArrayList<>();
-	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForUpdateBeforeMetadataValidation = new ArrayList<>();
-	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForUpdateAfterMetadataValidation = new ArrayList<>();
-	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForCreateBeforeReturn = new ArrayList<>();
-	public List<ExtendedFunctionalitySpy> fetchedFunctionalityBeforeDelete = new ArrayList<>();
-	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForUpdateBeforeStore = new ArrayList<>();
-	public List<ExtendedFunctionalitySpy> fetchedFunctionalityForUpdateAfterStore = new ArrayList<>();
-	public Map<String, String> recordTypes = new HashMap<>();
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
 			String recordType) {
-		return createListWithTwoExtendedFunctionalitySpies(
-				fetchedFunctionalityForCreateBeforeMetadataValidation);
+		MCR.addCall("recordType", recordType);
+		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
+		MCR.addReturned(out);
+		return out;
 	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateAfterMetadataValidation(
 			String recordType) {
-		return createListWithTwoExtendedFunctionalitySpies(
-				fetchedFunctionalityForCreateAfterMetadataValidation);
+		MCR.addCall("recordType", recordType);
+		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
+		MCR.addReturned(out);
+		return out;
 	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeReturn(String recordType) {
-		return createListWithTwoExtendedFunctionalitySpies(
-				fetchedFunctionalityForCreateBeforeReturn);
+		MCR.addCall("recordType", recordType);
+		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
+		MCR.addReturned(out);
+		return out;
 	}
 
-	private List<ExtendedFunctionality> createListWithTwoExtendedFunctionalitySpies(
-			List<ExtendedFunctionalitySpy> fetchedFunctionalityList) {
+	private List<ExtendedFunctionality> createListWithTwoExtendedFunctionalitySpies() {
 		ArrayList<ExtendedFunctionality> listOfExtendedFunctionality = new ArrayList<>();
 		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
 		listOfExtendedFunctionality.add(extendedFunctionalitySpy);
-		fetchedFunctionalityList.add(extendedFunctionalitySpy);
 		ExtendedFunctionalitySpy extendedFunctionalitySpy2 = new ExtendedFunctionalitySpy();
 		listOfExtendedFunctionality.add(extendedFunctionalitySpy2);
-		fetchedFunctionalityList.add(extendedFunctionalitySpy2);
 		return listOfExtendedFunctionality;
 	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeMetadataValidation(
 			String recordType) {
-		return createListWithTwoExtendedFunctionalitySpies(
-				fetchedFunctionalityForUpdateBeforeMetadataValidation);
+		MCR.addCall("recordType", recordType);
+		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
+		MCR.addReturned(out);
+		return out;
 	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterMetadataValidation(
 			String recordType) {
-		return createListWithTwoExtendedFunctionalitySpies(
-				fetchedFunctionalityForUpdateAfterMetadataValidation);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityBeforeDelete(String recordType) {
-		return createListWithTwoExtendedFunctionalitySpies(fetchedFunctionalityBeforeDelete);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityAfterDelete(String recordType) {
-		// TODO Auto-generated method stub
-		return null;
+		MCR.addCall("recordType", recordType);
+		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
+		MCR.addReturned(out);
+		return out;
 	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeStore(String recordType) {
-		recordTypes.put("updateBeforeStore", recordType);
-		return createListWithTwoExtendedFunctionalitySpies(
-				fetchedFunctionalityForUpdateBeforeStore);
+		MCR.addCall("recordType", recordType);
+		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
+		MCR.addReturned(out);
+		return out;
 	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterStore(String recordType) {
-		recordTypes.put("updateAfterStore", recordType);
-		return createListWithTwoExtendedFunctionalitySpies(fetchedFunctionalityForUpdateAfterStore);
+		MCR.addCall("recordType", recordType);
+		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
+		MCR.addReturned(out);
+		return out;
 	}
 
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityBeforeDelete(String recordType) {
+		MCR.addCall("recordType", recordType);
+		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
+		MCR.addReturned(out);
+		return out;
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityAfterDelete(String recordType) {
+		MCR.addCall("recordType", recordType);
+		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
+		MCR.addReturned(out);
+		return out;
+	}
+
+	public void assertCallToMethodAndFunctionalityCalledWithData(String methodName,
+			ExtendedFunctionalityData expectedData) {
+		MCR.assertParameter(methodName, 0, "recordType", expectedData.recordType);
+		MCR.assertNumberOfCallsToMethod(methodName, 1);
+		List<ExtendedFunctionalitySpy> exSpyList = (List<ExtendedFunctionalitySpy>) MCR
+				.getReturnValue(methodName, 0);
+
+		assertExtendedFunctionalityIsCalledWithExpectedData(exSpyList.get(0), expectedData);
+		assertExtendedFunctionalityIsCalledWithExpectedData(exSpyList.get(1), expectedData);
+	}
+
+	private void assertExtendedFunctionalityIsCalledWithExpectedData(ExtendedFunctionalitySpy exSpy,
+			ExtendedFunctionalityData expectedData) {
+		String methodName2 = "useExtendedFunctionality";
+		exSpy.MCR.assertMethodWasCalled(methodName2);
+		exSpy.MCR.assertNumberOfCallsToMethod(methodName2, 1);
+		ExtendedFunctionalityData data = (ExtendedFunctionalityData) exSpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(methodName2, 0, "data");
+		assertEquals(data.recordType, expectedData.recordType);
+		assertEquals(data.recordId, expectedData.recordId);
+		assertEquals(data.authToken, expectedData.authToken);
+		assertEquals(data.user, expectedData.user);
+		assertEquals(data.previouslyStoredTopDataGroup, expectedData.previouslyStoredTopDataGroup);
+		assertEquals(data.dataGroup, expectedData.dataGroup);
+	}
 }

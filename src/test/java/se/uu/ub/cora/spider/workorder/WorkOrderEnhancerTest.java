@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -32,6 +32,7 @@ import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
 public class WorkOrderEnhancerTest {
 
@@ -53,7 +54,7 @@ public class WorkOrderEnhancerTest {
 	@Test
 	public void testAddRecordInfo() {
 		DataGroup workOrder = new DataGroupSpy("workOrder");
-		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+		callExtendedFunctionalityWithGroup(workOrder);
 
 		DataGroup recordInfo = (DataGroup) workOrder.getFirstChildWithNameInData("recordInfo");
 		assertTrue(recordInfo.containsChildWithNameInData("dataDivider"));
@@ -66,11 +67,18 @@ public class WorkOrderEnhancerTest {
 		assertEquals(linkedRecordId.getValue(), "cora");
 	}
 
+	private void callExtendedFunctionalityWithGroup(DataGroup workOrder) {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.authToken = "someToken";
+		data.dataGroup = workOrder;
+		extendedFunctionality.useExtendedFunctionality(data);
+	}
+
 	@Test
 	public void testRecordInfoAlreadyExistsNotReplacedByExtendedFunctionality() {
 		DataGroup workOrder = new DataGroupSpy("workOrder");
 		workOrder.addChild(new DataGroupSpy("recordInfo"));
-		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+		callExtendedFunctionalityWithGroup(workOrder);
 
 		assertEquals(workOrder.getChildren().size(), 1);
 

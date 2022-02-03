@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2020, 2021 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020, 2021, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -40,14 +40,14 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 
-public final class RecordUpdaterImp extends RecordHandler
-		implements RecordUpdater {
+public final class RecordUpdaterImp extends RecordHandler implements RecordUpdater {
 	private static final String UPDATED_STRING = "updated";
 	private static final String TS_UPDATED = "tsUpdated";
 	private static final String UPDATED_BY = "updatedBy";
@@ -165,10 +165,22 @@ public final class RecordUpdaterImp extends RecordHandler
 	}
 
 	private void useExtendedFunctionality(DataGroup dataGroup,
-			List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation) {
-		for (ExtendedFunctionality extendedFunctionality : functionalityForCreateAfterMetadataValidation) {
-			extendedFunctionality.useExtendedFunctionality(authToken, dataGroup);
+			List<ExtendedFunctionality> functionalityList) {
+		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
+			ExtendedFunctionalityData data = createExtendedFunctionalityData(dataGroup);
+			extendedFunctionality.useExtendedFunctionality(data);
 		}
+	}
+
+	private ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.recordType = recordType;
+		data.recordId = recordId;
+		data.authToken = authToken;
+		data.user = user;
+		data.previouslyStoredTopDataGroup = previouslyStoredRecord;
+		data.dataGroup = dataGroup;
+		return data;
 	}
 
 	private void updateRecordInfo() {

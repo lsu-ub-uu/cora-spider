@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -25,11 +25,13 @@ import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
 public class AppTokenEnhancer implements ExtendedFunctionality {
 
 	@Override
-	public void useExtendedFunctionality(String authToken, DataGroup dataGroup) {
+	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
+		DataGroup dataGroup = data.dataGroup;
 		DataAtomic token = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("token",
 				generateToken());
 		dataGroup.addChild(token);

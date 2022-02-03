@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, 2019 Uppsala University Library
+ * Copyright 2018, 2019, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -33,6 +33,7 @@ import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
@@ -81,7 +82,7 @@ public class WorkOrderDeleterTest {
 	public void testDeleteData() {
 		DataGroup workOrder = createWorkOrderUsingId("someGeneratedId");
 
-		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+		callExtendedFunctionalityWithGroup(workOrder);
 		assertEquals(recordDeleter.deletedTypes.size(), 1);
 		assertEquals(recordDeleter.deletedTypes.get(0), "workOrder");
 		assertEquals(recordDeleter.deletedIds.get(0), "someGeneratedId");
@@ -102,13 +103,20 @@ public class WorkOrderDeleterTest {
 		recordInfo.addChild(type);
 	}
 
+	private void callExtendedFunctionalityWithGroup(DataGroup workOrder) {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.authToken = "someToken";
+		data.dataGroup = workOrder;
+		extendedFunctionality.useExtendedFunctionality(data);
+	}
+
 	@Test
 	public void testDeleteDataWithNoRightToDeleteRecordType() {
 		Set<String> actions = new HashSet<>();
 		actions.add("delete");
 
 		DataGroup workOrder = createWorkOrderUsingId("someGeneratedIdDeleteNotAllowed");
-		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+		callExtendedFunctionalityWithGroup(workOrder);
 		assertEquals(recordDeleter.deletedTypes.size(), 0);
 	}
 
@@ -118,7 +126,7 @@ public class WorkOrderDeleterTest {
 		actions.add("delete");
 
 		DataGroup workOrder = createWorkOrderUsingId("nonExistingId");
-		extendedFunctionality.useExtendedFunctionality("someToken", workOrder);
+		callExtendedFunctionalityWithGroup(workOrder);
 		assertEquals(recordDeleter.deletedTypes.size(), 0);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -33,6 +33,7 @@ import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
@@ -60,8 +61,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	}
 
 	private void setUpDependencies() {
-		validator = new MetadataConsistencyGroupAndCollectionValidator(recordStorage,
-				recordType);
+		validator = new MetadataConsistencyGroupAndCollectionValidator(recordStorage, recordType);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: childItem: childTwo does not exist in parent")
@@ -73,7 +73,14 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testGroup"));
 		recordAsDataGroup.addChild(refParentId);
 		setUpDependencies();
-		validator.useExtendedFunctionality(authToken, recordAsDataGroup);
+		callValidatorUseExtendedFunctionality();
+	}
+
+	private void callValidatorUseExtendedFunctionality() {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.authToken = authToken;
+		data.dataGroup = recordAsDataGroup;
+		validator.useExtendedFunctionality(data);
 	}
 
 	@Test
@@ -90,7 +97,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 
 	private void exceptNoException() {
 		try {
-			validator.useExtendedFunctionality(authToken, recordAsDataGroup);
+			callValidatorUseExtendedFunctionality();
 		} catch (Exception e) {
 			assertTrue(false);
 		}
@@ -118,7 +125,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 
 		recordAsDataGroup.addChild(refParentId);
 		setUpDependencies();
-		validator.useExtendedFunctionality(authToken, recordAsDataGroup);
+		callValidatorUseExtendedFunctionality();
 	}
 
 	@Test
@@ -132,7 +139,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		recordAsDataGroup.addChild(refParentId);
 		setUpDependencies();
 		try {
-			validator.useExtendedFunctionality(authToken, recordAsDataGroup);
+			callValidatorUseExtendedFunctionality();
 		} catch (Exception e) {
 			assertTrue(e.getCause() instanceof RecordNotFoundException);
 		}
@@ -150,7 +157,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 
 		recordAsDataGroup.addChild(refParentId);
 		setUpDependencies();
-		validator.useExtendedFunctionality(authToken, recordAsDataGroup);
+		callValidatorUseExtendedFunctionality();
 	}
 
 	@Test
@@ -184,7 +191,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 
 		recordAsDataGroup.addChild(new DataAtomicSpy("finalValue", "doesNotExist"));
 		setUpDependencies();
-		validator.useExtendedFunctionality(authToken, recordAsDataGroup);
+		callValidatorUseExtendedFunctionality();
 	}
 
 	@Test

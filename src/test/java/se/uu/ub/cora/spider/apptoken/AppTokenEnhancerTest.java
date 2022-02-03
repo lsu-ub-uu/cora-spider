@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -30,6 +30,7 @@ import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
 public class AppTokenEnhancerTest {
 
@@ -51,19 +52,26 @@ public class AppTokenEnhancerTest {
 	@Test
 	public void generateAndAddAppToken() {
 		DataGroup minimalGroup = new DataGroupSpy("appToken");
-		extendedFunctionality.useExtendedFunctionality("someToken", minimalGroup);
+		callExtendedFunctionalityWithGroup(minimalGroup);
 		DataAtomic token = (DataAtomic) minimalGroup.getFirstChildWithNameInData("token");
 		assertTrue(token.getValue().length() > 30);
+	}
+
+	private void callExtendedFunctionalityWithGroup(DataGroup minimalGroup) {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.authToken = "someToken";
+		data.dataGroup = minimalGroup;
+		extendedFunctionality.useExtendedFunctionality(data);
 	}
 
 	@Test
 	public void generateAndAddAppTokenDifferentTokens() {
 		DataGroup minimalGroup = new DataGroupSpy("appToken");
-		extendedFunctionality.useExtendedFunctionality("someToken", minimalGroup);
+		callExtendedFunctionalityWithGroup(minimalGroup);
 		DataAtomic token = (DataAtomic) minimalGroup.getFirstChildWithNameInData("token");
 
 		DataGroup minimalGroup2 = new DataGroupSpy("appToken");
-		extendedFunctionality.useExtendedFunctionality("someToken", minimalGroup2);
+		callExtendedFunctionalityWithGroup(minimalGroup2);
 		DataAtomic token2 = (DataAtomic) minimalGroup2.getFirstChildWithNameInData("token");
 
 		assertNotEquals(token.getValue(), token2.getValue());
