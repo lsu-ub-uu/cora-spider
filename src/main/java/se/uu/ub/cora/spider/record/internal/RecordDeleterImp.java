@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.record.internal;
 
 import java.util.List;
 
-import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.search.RecordIndexer;
@@ -29,7 +28,6 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -39,8 +37,6 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 	private static final String DELETE = "delete";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
-	private String authToken;
-	private User user;
 	private RecordIndexer recordIndexer;
 	private DataGroupTermCollector collectTermCollector;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
@@ -135,25 +131,6 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 		List<ExtendedFunctionality> functionalityBeforeDelete = extendedFunctionalityProvider
 				.getFunctionalityBeforeDelete(recordType);
 		useExtendedFunctionality(dataGroupReadFromStorage, functionalityBeforeDelete);
-	}
-
-	private void useExtendedFunctionality(DataGroup dataGroup,
-			List<ExtendedFunctionality> functionalityList) {
-		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
-			ExtendedFunctionalityData data = createExtendedFunctionalityData(dataGroup);
-			extendedFunctionality.useExtendedFunctionality(data);
-		}
-	}
-
-	private ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
-		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
-		data.recordType = recordType;
-		data.recordId = recordId;
-		data.authToken = authToken;
-		data.user = user;
-		data.previouslyStoredTopDataGroup = null;
-		data.dataGroup = dataGroup;
-		return data;
 	}
 
 	private void useExtendedFunctionalityAfterDelete() {

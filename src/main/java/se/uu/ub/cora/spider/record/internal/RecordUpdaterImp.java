@@ -59,8 +59,6 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private DataRecordLinkCollector linkCollector;
 	private String metadataId;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
-	private String authToken;
-	private User user;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataGroupTermCollector dataGroupTermCollector;
 	private RecordIndexer recordIndexer;
@@ -164,22 +162,10 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		useExtendedFunctionality(dataGroup, functionalityForUpdateBeforeMetadataValidation);
 	}
 
-	private void useExtendedFunctionality(DataGroup dataGroup,
-			List<ExtendedFunctionality> functionalityList) {
-		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
-			ExtendedFunctionalityData data = createExtendedFunctionalityData(dataGroup);
-			extendedFunctionality.useExtendedFunctionality(data);
-		}
-	}
-
-	private ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
-		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
-		data.recordType = recordType;
-		data.recordId = recordId;
-		data.authToken = authToken;
-		data.user = user;
+	@Override
+	protected ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
+		ExtendedFunctionalityData data = super.createExtendedFunctionalityData(dataGroup);
 		data.previouslyStoredTopDataGroup = previouslyStoredRecord;
-		data.dataGroup = dataGroup;
 		return data;
 	}
 

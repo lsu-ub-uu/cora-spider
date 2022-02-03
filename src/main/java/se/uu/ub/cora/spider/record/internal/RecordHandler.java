@@ -22,13 +22,17 @@ package se.uu.ub.cora.spider.record.internal;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.util.List;
 
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.DataRecordLinkProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -41,6 +45,8 @@ public class RecordHandler {
 	protected String recordType;
 	protected String recordId;
 	protected DataGroup recordAsDataGroup;
+	protected String authToken;
+	protected User user;
 
 	protected DataGroup getRecordTypeDefinition() {
 		return recordStorage.read(RECORD_TYPE, recordType);
@@ -128,5 +134,23 @@ public class RecordHandler {
 				.getDataAtomicUsingNameInDataAndValue("linkedRecordType", "user"));
 		dataGroup.addChild(
 				DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(LINKED_RECORD_ID, userId));
+	}
+
+	protected void useExtendedFunctionality(DataGroup dataGroup,
+			List<ExtendedFunctionality> functionalityList) {
+		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
+			ExtendedFunctionalityData data = createExtendedFunctionalityData(dataGroup);
+			extendedFunctionality.useExtendedFunctionality(data);
+		}
+	}
+
+	protected ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.recordType = recordType;
+		data.recordId = recordId;
+		data.authToken = authToken;
+		data.user = user;
+		data.dataGroup = dataGroup;
+		return data;
 	}
 }
