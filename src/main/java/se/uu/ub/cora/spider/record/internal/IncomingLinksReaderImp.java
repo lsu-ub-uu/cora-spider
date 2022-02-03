@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.record.internal;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
@@ -30,19 +29,16 @@ import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
-import se.uu.ub.cora.spider.record.IncomingLinksReader;
 
-public class IncomingLinksReaderImp extends RecordHandler
-		implements IncomingLinksReader {
+public class IncomingLinksReaderImp extends RecordHandler implements IncomingLinksReader {
 	private static final String READ = "read";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
-	private String authToken;
 	private RecordTypeHandler recordTypeHandler;
-	private User user;
 	private DataGroupTermCollector collectTermCollector;
 
 	public IncomingLinksReaderImp(SpiderDependencyProvider dependencyProvider) {

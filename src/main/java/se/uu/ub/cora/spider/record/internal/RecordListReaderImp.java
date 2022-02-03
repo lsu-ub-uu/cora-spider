@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.record.internal;
 
 import java.util.Collection;
 
-import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
@@ -44,7 +43,6 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataList readRecordList;
-	private User user;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataValidator dataValidator;
 	private StorageReadResult readResult;

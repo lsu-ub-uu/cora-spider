@@ -39,16 +39,13 @@ import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 
-public final class RecordValidatorImp extends RecordHandler
-		implements RecordValidator {
+public final class RecordValidatorImp extends RecordHandler implements RecordValidator {
 	private static final String ERROR_MESSAGES = "errorMessages";
 	private static final String VALIDATE = "validate";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
-	private String authToken;
-	private User user;
 	private String metadataToValidate;
 	private DataGroup validationResult;
 	private RecordIdGenerator idGenerator;
@@ -113,9 +110,9 @@ public final class RecordValidatorImp extends RecordHandler
 
 		createValidationResultDataGroup();
 		validateRecordUsingValidationRecord(validationRecord, recordTypeToValidate);
-		DataRecord record = DataRecordProvider.getDataRecordWithDataGroup(validationResult);
-		addReadActionToComplyWithRecordStructure(record);
-		return record;
+		DataRecord dataRecord = DataRecordProvider.getDataRecordWithDataGroup(validationResult);
+		addReadActionToComplyWithRecordStructure(dataRecord);
+		return dataRecord;
 	}
 
 	private String getRecordTypeToValidate(DataGroup validationRecord) {
@@ -288,7 +285,7 @@ public final class RecordValidatorImp extends RecordHandler
 		}
 	}
 
-	private void addReadActionToComplyWithRecordStructure(DataRecord record) {
-		record.addAction(se.uu.ub.cora.data.Action.READ);
+	private void addReadActionToComplyWithRecordStructure(DataRecord dataRecord) {
+		dataRecord.addAction(se.uu.ub.cora.data.Action.READ);
 	}
 }
