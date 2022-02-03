@@ -139,4 +139,10 @@ public class DataRecordSpy implements DataRecord {
 		return false;
 	}
 
+	@Override
+	public String getSearchId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
