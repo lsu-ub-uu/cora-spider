@@ -56,6 +56,8 @@ public interface ExtendedFunctionalityFactory {
 	 * Factories implementing this interface will only be called for the positions and recordTypes,
 	 * specified by the
 	 * {@link ExtendedFunctionalityFactory#factor(ExtendedFunctionalityPosition, String)}method.
+	 * <p>
+	 * <b>Note! Implementations of the factor method MUST be threadsafe.</b>
 	 * 
 	 * @param position
 	 *            The current {@link ExtendedFunctionalityPosition}
