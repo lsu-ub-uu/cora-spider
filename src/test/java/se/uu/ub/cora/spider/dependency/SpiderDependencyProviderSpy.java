@@ -40,6 +40,7 @@ import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
+import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
@@ -204,6 +205,12 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 
 	@Override
 	public String getInitInfoValueUsingKey(String key) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public RecordArchive getRecordArchive() {
 		// TODO Auto-generated method stub
 		return null;
 	}

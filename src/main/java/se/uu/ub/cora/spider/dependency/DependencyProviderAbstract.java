@@ -69,10 +69,13 @@ import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.StreamStorageProvider;
+import se.uu.ub.cora.storage.archive.RecordArchive;
+import se.uu.ub.cora.storage.archive.RecordArchiveProvider;
 
 public abstract class DependencyProviderAbstract implements SpiderDependencyProvider {
 	protected Map<String, String> initInfo;
 	protected RecordStorageProvider recordStorageProvider;
+	protected RecordArchiveProvider recordArchiveProvider;
 	protected StreamStorageProvider streamStorageProvider;
 	protected RecordIdGeneratorProvider recordIdGeneratorProvider;
 	protected MetadataStorageProvider metadataStorageProvider;
@@ -117,6 +120,15 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	public final void setRecordStorageProvider(RecordStorageProvider recordStorageProvider) {
 		this.recordStorageProvider = recordStorageProvider;
+	}
+
+	@Override
+	public RecordArchive getRecordArchive() {
+		return recordArchiveProvider.getRecordArchive();
+	}
+
+	public void setRecordArchiveProvider(RecordArchiveProvider recordArchiveProvider) {
+		this.recordArchiveProvider = recordArchiveProvider;
 	}
 
 	@Override

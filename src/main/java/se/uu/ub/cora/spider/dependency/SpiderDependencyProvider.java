@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 2021 Uppsala University Library
+ * Copyright 2015, 2021, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -33,10 +33,13 @@ import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
+import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public interface SpiderDependencyProvider {
 
 	RecordStorage getRecordStorage();
+
+	RecordArchive getRecordArchive();
 
 	StreamStorage getStreamStorage();
 
