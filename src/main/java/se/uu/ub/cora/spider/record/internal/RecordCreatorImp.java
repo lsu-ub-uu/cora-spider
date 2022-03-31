@@ -43,6 +43,7 @@ import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordIdGenerator;
+import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordCreatorImp extends RecordHandler implements RecordCreator {
 	private static final String TS_CREATED = "tsCreated";
@@ -60,6 +61,9 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private RecordIndexer recordIndexer;
 	private SpiderDependencyProvider dependencyProvider;
 	private Set<String> writePermissions;
+	private DataGroup collectedTerms;
+	private DataGroup collectedLinks;
+	private RecordArchive recordArchive;
 
 	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -74,6 +78,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		this.dataGroupTermCollector = dependencyProvider.getDataGroupTermCollector();
 		this.recordIndexer = dependencyProvider.getRecordIndexer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
+		recordArchive = dependencyProvider.getRecordArchive();
 	}
 
 	public static RecordCreatorImp usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -100,9 +105,14 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordAsDataGroup);
 		validateRecord();
 		useExtendedFunctionalityAfterMetadataValidation(recordType, recordAsDataGroup);
-		createAndStoreRecord();
+		completeRecordAndCollectInformationSpecifiedInMetadata();
+		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms);
+		if (recordTypeHandler.storeInArchive()) {
+			recordArchive.create(recordType, recordId, recordAsDataGroup);
+		}
+		indexRecord(collectedTerms);
 		useExtendedFunctionalityBeforeReturn(recordType, recordAsDataGroup);
-		return enhanceRecord();
+		return enhanceDataGroupToRecord();
 	}
 
 	private void checkActionAuthorizationForUser() {
@@ -143,11 +153,11 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType) {
-		DataGroup collectedTerms = dataGroupTermCollector.collectTermsWithoutTypeAndId(metadataId,
-				recordAsDataGroup);
+		DataGroup uncheckedCollectedTerms = dataGroupTermCollector
+				.collectTermsWithoutTypeAndId(metadataId, recordAsDataGroup);
 		writePermissions = spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, CREATE, recordType, collectedTerms, true);
+						user, CREATE, recordType, uncheckedCollectedTerms, true);
 	}
 
 	private void possiblyRemoveRecordPartsUserIsNotAllowedToChange() {
@@ -176,11 +186,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = extendedFunctionalityProvider
 				.getFunctionalityForCreateAfterMetadataValidation(recordTypeToCreate);
 		useExtendedFunctionality(dataGroup, functionalityForCreateAfterMetadataValidation);
-	}
-
-	private void createAndStoreRecord() {
-		ensureCompleteRecordInfo(user.id, recordType);
-		finalizeAndStoreRecord();
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
@@ -233,17 +238,16 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 				currentTimestamp));
 	}
 
-	private void finalizeAndStoreRecord() {
-		DataGroup collectedTerms;
+	private void completeRecordAndCollectInformationSpecifiedInMetadata() {
+		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = extractIdFromData();
-
 		collectedTerms = dataGroupTermCollector.collectTerms(metadataId, recordAsDataGroup);
-
-		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup,
-				recordType, recordId);
+		collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup, recordType,
+				recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
-		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms);
+	}
 
+	private void indexRecord(DataGroup collectedTerms) {
 		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
 		recordIndexer.indexData(ids, collectedTerms, recordAsDataGroup);
 	}
@@ -267,7 +271,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		useExtendedFunctionality(dataGroup, extendedFunctionalityList);
 	}
 
-	private DataRecord enhanceRecord() {
+	private DataRecord enhanceDataGroupToRecord() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		return dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user, recordType,
 				recordAsDataGroup, dataRedactor);

@@ -63,6 +63,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
+import se.uu.ub.cora.spider.record.DataGroupMCRSpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRecordLinkFactorySpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
@@ -74,6 +75,7 @@ import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
+import se.uu.ub.cora.spider.spy.RecordArchiveSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageDuplicateSpy;
@@ -110,6 +112,7 @@ public class RecordCreatorTest {
 	private DataRecordFactory dataRecordFactorySpy;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
+	private RecordArchiveSpy recordArchive;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -124,6 +127,7 @@ public class RecordCreatorTest {
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
+		recordArchive = new RecordArchiveSpy();
 		setUpDependencyProvider();
 	}
 
@@ -155,6 +159,7 @@ public class RecordCreatorTest {
 		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.recordIndexer = recordIndexer;
+		dependencyProvider.recordArchive = recordArchive;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
 		dependencyProvider.dataRedactor = dataRedactor;
@@ -675,4 +680,38 @@ public class RecordCreatorTest {
 		dataValidator.MCR.assertParameters("validateData", 0, newMetadataId, redactedDataGroup);
 	}
 
+	@Test
+	public void testStoreInArchiveTrue() throws Exception {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+		recordTypeHandlerSpy.storeInArchive = true;
+		DataGroupMCRSpy recordSpy = createDataGroupForCreate();
+
+		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", recordSpy);
+
+		recordArchive.MCR.assertParameters("create", 0, "spyType", "someRecordId", recordSpy);
+	}
+
+	private DataGroupMCRSpy createDataGroupForCreate() {
+		DataGroupMCRSpy recordSpy = new DataGroupMCRSpy();
+		DataGroupMCRSpy recordInfoSpy = new DataGroupMCRSpy();
+		recordSpy.groupValues.put("recordInfo", recordInfoSpy);
+		DataGroupMCRSpy dataDividerSpy = new DataGroupMCRSpy();
+		recordInfoSpy.groupValues.put("dataDivider", dataDividerSpy);
+		recordInfoSpy.atomicValues.put("id", "someRecordId");
+		dataDividerSpy.atomicValues.put("linkedRecordId", "uu");
+		return recordSpy;
+	}
+
+	@Test
+	public void testStoreInArchiveFalse() throws Exception {
+		recordStorage = new RecordStorageSpy();
+		setUpDependencyProvider();
+		recordTypeHandlerSpy.storeInArchive = false;
+		DataGroupMCRSpy recordSpy = createDataGroupForCreate();
+
+		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", recordSpy);
+
+		recordArchive.MCR.assertMethodNotCalled("create");
+	}
 }

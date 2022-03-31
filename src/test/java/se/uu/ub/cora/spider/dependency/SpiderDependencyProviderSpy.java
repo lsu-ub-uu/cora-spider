@@ -67,6 +67,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	public RecordStorage recordStorage = new RecordStorageMCRSpy();
 	private RecordStorageProviderSpy recordStorageProvider;
 	public RecordIdGenerator recordIdGenerator;
+	public RecordArchive recordArchive;
 
 	// TODO: remove?
 	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
@@ -211,8 +212,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 
 	@Override
 	public RecordArchive getRecordArchive() {
-		// TODO Auto-generated method stub
-		return null;
+		return recordArchive;
 	}
 
 }

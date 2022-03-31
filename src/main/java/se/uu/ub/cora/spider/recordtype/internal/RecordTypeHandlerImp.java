@@ -514,4 +514,9 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 		return recordTypeHandlerFactory;
 	}
 
+	@Override
+	public boolean storeInArchive() {
+		String storeInArchive = recordType.getFirstAtomicValueWithNameInData("storeInArchive");
+		return "true".equals(storeInArchive);
+	}
 }
