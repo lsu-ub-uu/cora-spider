@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2019, 2020, 2021 Uppsala University Library
+ * Copyright 2016, 2019, 2020, 2021, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -1332,6 +1332,50 @@ public class RecordTypeHandlerTest {
 		assertEquals(listOfIds.size(), 2);
 		assertEquals(listOfIds.get(0), "fakeMetadataIdFromRecordTypeHandlerSpy");
 		assertEquals(listOfIds.get(1), "fakeMetadataIdFromRecordTypeHandlerSpy");
+	}
+
+	// from here
+	@Test
+	public void testShouldStoreInArchive() {
+		setupForStorageAtomicValue("storeInArchive", "false");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(null,
+				recordStorage, "someId");
+
+		DataGroupMCRSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
+		assertShouldStoreInArchive(dataGroup, false);
+	}
+
+	private void assertShouldStoreInArchive(DataGroupMCRSpy dataGroupMCR, boolean expected) {
+		assertEquals(recordTypeHandler.storeInArchive(), expected);
+		dataGroupMCR.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "storeInArchive");
+	}
+
+	@Test
+	public void testStoreInArchiveFromDataGroup() {
+		DataGroupMCRSpy dataGroup = setupDataGroupWithAtomicValue("storeInArchive", "true");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(null, recordStorage,
+				dataGroup);
+
+		assertShouldStoreInArchive(dataGroup, true);
+	}
+
+	@Test
+	public void testStoreInArchiveTrue() {
+		setupForStorageAtomicValue("storeInArchive", "true");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(null,
+				recordStorage, "someId");
+
+		DataGroupMCRSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
+		assertShouldStoreInArchive(dataGroup, true);
+	}
+
+	@Test
+	public void testShouldStoreInArchiveFalseFromDataGroup() {
+		DataGroupMCRSpy dataGroup = setupDataGroupWithAtomicValue("userSuppliedId", "false");
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(null, recordStorage,
+				dataGroup);
+
+		assertShouldStoreInArchive(dataGroup, false);
 	}
 }
 

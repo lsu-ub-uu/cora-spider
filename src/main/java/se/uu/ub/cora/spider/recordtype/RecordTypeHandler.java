@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2017, 2019, 2020, 2021 Uppsala University Library
+ * Copyright 2016, 2017, 2019, 2020, 2021, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -253,5 +253,7 @@ public interface RecordTypeHandler {
 	 * @return recordTypeId as a String
 	 */
 	String getRecordTypeId();
+
+	boolean storeInArchive();
 
 }

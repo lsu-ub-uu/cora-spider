@@ -170,6 +170,14 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
+	public void testSetGetRecordArchive() {
+		RecordArchiveProviderSpy recordArchiveProvider = new RecordArchiveProviderSpy();
+		dependencyProvider.setRecordArchiveProvider(recordArchiveProvider);
+		assertEquals(dependencyProvider.getRecordArchive(),
+				recordArchiveProvider.getRecordArchive());
+	}
+
+	@Test
 	public void testSetGetStreamStorage() {
 		StreamStorageProviderSpy streamStorageProvider = new StreamStorageProviderSpy();
 		dependencyProvider.setStreamStorageProvider(streamStorageProvider);

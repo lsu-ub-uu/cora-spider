@@ -32,7 +32,10 @@ import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class RecordTypeHandlerSpy implements RecordTypeHandler {
+
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+
+	public boolean storeInArchive = false;
 
 	/**
 	 * isPublicForRead is default false, if set to true, the recordType is considered totaly public
@@ -266,6 +269,14 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		List<String> emptyList = Collections.emptyList();
 		MCR.addReturned(emptyList);
 		return emptyList;
+	}
+
+	@Override
+	public boolean storeInArchive() {
+		MCR.addCall();
+
+		MCR.addReturned(storeInArchive);
+		return storeInArchive;
 	}
 
 }
