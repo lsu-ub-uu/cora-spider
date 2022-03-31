@@ -211,4 +211,10 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 		return null;
 	}
 
+	@Override
+	public boolean hasAttributes() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }
