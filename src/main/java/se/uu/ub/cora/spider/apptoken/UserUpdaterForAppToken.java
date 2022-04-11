@@ -23,6 +23,7 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataRecordLinkProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
@@ -31,6 +32,11 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.storage.RecordStorage;
 
+/**
+ * UserUpdaterForAppToken updates the user record in storage for the current user with information
+ * about the appToken that is currently beeing created. The added information consist of the note
+ * information and a link to the appToken beeing created.
+ */
 public final class UserUpdaterForAppToken implements ExtendedFunctionality {
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordStorage recordStorage;
@@ -80,6 +86,11 @@ public final class UserUpdaterForAppToken implements ExtendedFunctionality {
 	}
 
 	private DataGroup createAppTokenLink(DataGroup appTokenDataGroup) {
+		String id = appTokenDataGroup.getFirstGroupWithNameInData("recordInfo")
+				.getFirstAtomicValueWithNameInData("id");
+		DataRecordLinkProvider.getDataRecordLinkAsLinkUsingNameInDataTypeAndId("appTokenLink",
+				"appToken", id);
+
 		DataGroup appTokenLink = DataGroupProvider.getDataGroupUsingNameInData("appTokenLink");
 		appTokenLink.addChild(DataAtomicProvider
 				.getDataAtomicUsingNameInDataAndValue("linkedRecordType", "appToken"));

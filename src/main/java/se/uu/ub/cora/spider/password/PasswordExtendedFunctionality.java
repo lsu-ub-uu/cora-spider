@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2022 Uppsala University Library
+ * Copyright 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,32 +16,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.password;
 
-package se.uu.ub.cora.spider.apptoken;
-
-import java.util.UUID;
-
-import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataAtomicProvider;
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
-/**
- * AppTokenEnhancer generates an appToken and adds it to the appToken instance that is beeing
- * created.
- */
-public class AppTokenEnhancer implements ExtendedFunctionality {
+public class PasswordExtendedFunctionality implements ExtendedFunctionality {
+
+	public static PasswordExtendedFunctionality usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new PasswordExtendedFunctionality(dependencyProvider);
+	}
+
+	private PasswordExtendedFunctionality(SpiderDependencyProvider dependencyProvider) {
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		DataGroup dataGroup = data.dataGroup;
-		DataAtomic token = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("token",
-				generateToken());
-		dataGroup.addChild(token);
+		// TODO Auto-generated method stub
+
 	}
 
-	private String generateToken() {
-		return UUID.randomUUID().toString();
-	}
 }

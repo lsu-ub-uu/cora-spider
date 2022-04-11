@@ -325,10 +325,10 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 				dataDivider);
 	}
 
-	private void useExtendedFunctionalityBeforeStore(String recordTypeToCreate,
+	private void useExtendedFunctionalityBeforeStore(String recordTypeToUpdate,
 			DataGroup dataGroup) {
 		List<ExtendedFunctionality> functionalityForUpdateBeforeStore = extendedFunctionalityProvider
-				.getFunctionalityForUpdateBeforeStore(recordTypeToCreate);
+				.getFunctionalityForUpdateBeforeStore(recordTypeToUpdate);
 		useExtendedFunctionality(dataGroup, functionalityForUpdateBeforeStore);
 	}
 

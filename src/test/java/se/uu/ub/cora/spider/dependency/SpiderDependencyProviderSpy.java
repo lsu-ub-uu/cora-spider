@@ -138,27 +138,6 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		return recordIndexer;
 	}
 
-	// @Override
-	// protected void tryToInitialize() throws Exception {
-	// tryToInitializeWasCalled = true;
-	// if (initInfo.containsKey("runtimeException")) {
-	// throw new RuntimeException(initInfo.get("runtimeException"));
-	// }
-	// if (initInfo.containsKey("invocationTargetException")) {
-	// throw new InvocationTargetException(
-	// new RuntimeException(initInfo.get("invocationTargetException")));
-	// }
-	// }
-
-	// @Override
-	// protected void readInitInfo() {
-	// readInitInfoWasCalled = true;
-	// }
-
-	// public String getInitInfoFromParent(String key) {
-	// return initInfo.get(key);
-	// }
-
 	@Override
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
 		MCR.addCall("recordTypeId", recordTypeId);
@@ -200,13 +179,11 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 
 	@Override
 	public DataGroupToRecordEnhancer getDataGroupToRecordEnhancer() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String getInitInfoValueUsingKey(String key) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

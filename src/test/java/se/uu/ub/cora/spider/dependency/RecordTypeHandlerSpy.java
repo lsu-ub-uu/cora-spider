@@ -19,7 +19,6 @@
 package se.uu.ub.cora.spider.dependency;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -78,6 +77,8 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	 * return true instead of false.
 	 */
 	public boolean shouldAutoGenerateId = false;
+
+	public List<String> listOfimplementingTypesIds = new ArrayList<>();
 
 	public RecordTypeHandlerSpy() {
 		writeStringConstraints.add(new Constraint("someKey"));
@@ -266,9 +267,9 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	@Override
 	public List<String> getListOfImplementingRecordTypeIds() {
 		MCR.addCall();
-		List<String> emptyList = Collections.emptyList();
-		MCR.addReturned(emptyList);
-		return emptyList;
+
+		MCR.addReturned(listOfimplementingTypesIds);
+		return listOfimplementingTypesIds;
 	}
 
 	@Override
