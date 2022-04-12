@@ -35,6 +35,14 @@ public class DataGroupMCRSpy implements DataGroup {
 	public Map<String, String> atomicValues = new HashMap<>();
 	public Map<String, DataGroupMCRSpy> groupValues = new HashMap<>();
 	private String nameInData;
+	/**
+	 * returnValues contains return values for all methods. Key is methodName and value can is a
+	 * list of objects.
+	 * <p>
+	 * If no value exists to return for a method is the simplest possible object returned, an empty
+	 * string or a spy object
+	 */
+	public Map<String, List<Object>> returnValues = new HashMap<>();
 
 	public DataGroupMCRSpy() {
 	}
@@ -68,7 +76,20 @@ public class DataGroupMCRSpy implements DataGroup {
 
 	@Override
 	public boolean containsChildWithNameInData(String nameInData) {
+		// MethodMockMeNow
+		// MethodReturnValues
+		// var returnValue = MRV.getReturnValue(nameInData);
+
+		int numberToReturn = MCR.getNumberOfCallsToMethod("containsChildWithNameInData");
 		MCR.addCall("nameInData", nameInData);
+
+		if (returnValues.containsKey("containsChildWithNameInData")) {
+			List<Object> list = returnValues.get("containsChildWithNameInData");
+			Object returnValue = list.get(numberToReturn);
+			MCR.addReturned(returnValue);
+			return (boolean) returnValue;
+		}
+
 		boolean returnValue = groupValues.containsKey(nameInData)
 				|| atomicValues.containsKey(nameInData);
 		MCR.addReturned(returnValue);
@@ -77,7 +98,6 @@ public class DataGroupMCRSpy implements DataGroup {
 
 	@Override
 	public void addChild(DataElement dataElement) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -108,7 +128,8 @@ public class DataGroupMCRSpy implements DataGroup {
 
 	@Override
 	public DataElement getFirstChildWithNameInData(String nameInData) {
-		// TODO Auto-generated method stub
+		MCR.addCall("nameInData", nameInData);
+
 		return null;
 	}
 
@@ -156,7 +177,8 @@ public class DataGroupMCRSpy implements DataGroup {
 
 	@Override
 	public boolean removeAllChildrenWithNameInData(String childNameInData) {
-		// TODO Auto-generated method stub
+		MCR.addCall("childNameInData", childNameInData);
+
 		return false;
 	}
 

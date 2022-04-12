@@ -13,6 +13,7 @@ module se.uu.ub.cora.spider {
 	requires transitive se.uu.ub.cora.search;
 	requires se.uu.ub.cora.logger;
 	requires se.uu.ub.cora.data;
+	requires se.uu.ub.cora.password;
 
 	uses se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 

@@ -18,24 +18,88 @@
  */
 package se.uu.ub.cora.spider.password;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+import java.util.List;
+
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.password.texthasher.TextHasher;
+import se.uu.ub.cora.password.texthasher.TextHasherFactory;
+import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
+import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 
 public class PasswordExtendedFunctionalityFactoryTest {
-	@Test
-	public void testInit() throws Exception {
-		PasswordExtendedFunctionalityFactory factory = new PasswordExtendedFunctionalityFactory();
-		// useExtendedFunctionalityBeforeStore
-		SpiderDependencyProviderSpy dependencyProvider = new SpiderDependencyProviderSpy(null);
-		factory.initializeUsingDependencyProvider(dependencyProvider);
+	PasswordExtendedFunctionalityFactory factory;
+	SpiderDependencyProviderSpy dependencyProvider;
+	private TextHasherFactorySpy textHasherFactorySpy;
 
+	@BeforeMethod
+	public void beforeMethod() {
+		factory = new PasswordExtendedFunctionalityFactory();
+		dependencyProvider = new SpiderDependencyProviderSpy(null);
+		RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
+		dependencyProvider.mapOfRecordTypeHandlerSpies.put("user", recordTypeHandlerSpy);
+		recordTypeHandlerSpy.listOfimplementingTypesIds.add("coraUser");
+		recordTypeHandlerSpy.listOfimplementingTypesIds.add("otherUser");
+		factory.initializeUsingDependencyProvider(dependencyProvider);
+		textHasherFactorySpy = new TextHasherFactorySpy();
+	}
+
+	@Test
+	public void testInitCreatesContextsForAllKnownImplementationsOfUser() throws Exception {
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "user");
 
-		// List<ExtendedFunctionalityContext> extendedFunctionalityContexts = factory
-		// .getExtendedFunctionalityContexts();
-		// ExtendedFunctionalityContext firstContext = extendedFunctionalityContexts.get(0);
-		// assertEquals(firstContext.recordType, "user");
+		List<ExtendedFunctionalityContext> extendedFunctionalityContexts = factory
+				.getExtendedFunctionalityContexts();
 
+		ExtendedFunctionalityContext firstContext = extendedFunctionalityContexts.get(0);
+		assertEquals(firstContext.position, ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE);
+		assertEquals(firstContext.recordType, "coraUser");
+
+		ExtendedFunctionalityContext secondContext = extendedFunctionalityContexts.get(1);
+		assertEquals(secondContext.position, ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE);
+		assertEquals(secondContext.recordType, "otherUser");
 	}
+
+	@Test
+	public void testFactoryHasADefaultTextHasherFactory() throws Exception {
+		PasswordExtendedFunctionalityFactoryOnlyForTest testFactor = new PasswordExtendedFunctionalityFactoryOnlyForTest();
+		assertTrue(testFactor.onlyForTestGetTextHasherFactory() instanceof TextHasherFactoryImp);
+	}
+
+	@Test
+	public void testFactorSetDependencyProviderAndCreatedTextHasher() throws Exception {
+		PasswordExtendedFunctionalityFactoryOnlyForTest factory = new PasswordExtendedFunctionalityFactoryOnlyForTest();
+		factory.initializeUsingDependencyProvider(dependencyProvider);
+		factory.onlyForTestSetTextHasherFactory(textHasherFactorySpy);
+
+		List<ExtendedFunctionality> extendedFunctionalities = factory.factor(null, null);
+
+		assertEquals(extendedFunctionalities.size(), 1);
+		PasswordExtendedFunctionality extendedFunctionality = (PasswordExtendedFunctionality) extendedFunctionalities
+				.get(0);
+		assertEquals(extendedFunctionality.onlyForTestGetDependencyProvider(), dependencyProvider);
+		TextHasher hasherSpy1 = extendedFunctionality.onlyForTestGetTextHasher();
+		textHasherFactorySpy.MCR.assertReturn("factor", 0, hasherSpy1);
+	}
+
+	class PasswordExtendedFunctionalityFactoryOnlyForTest
+			extends PasswordExtendedFunctionalityFactory {
+
+		TextHasherFactory onlyForTestGetTextHasherFactory() {
+			return textHasherFactory;
+		}
+
+		void onlyForTestSetTextHasherFactory(TextHasherFactory textHasherFactory) {
+			this.textHasherFactory = textHasherFactory;
+		}
+	}
+
 }

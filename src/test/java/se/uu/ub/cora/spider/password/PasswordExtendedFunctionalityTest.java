@@ -18,17 +18,92 @@
  */
 package se.uu.ub.cora.spider.password;
 
+import static org.testng.Assert.assertEquals;
+
+import java.util.List;
+
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderTestHelper;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.record.DataGroupMCRSpy;
 
 public class PasswordExtendedFunctionalityTest {
+	SpiderDependencyProvider dependencyProvider;
+	TextHasherSpy textHasher;
+	PasswordExtendedFunctionality extended;
+	private ExtendedFunctionalityData exData;
+	private DataGroupMCRSpy dataRecordGroup;
+
+	@BeforeMethod
+	public void beforeMethod() {
+		dependencyProvider = new SpiderDependencyProviderSpy(null);
+		textHasher = new TextHasherSpy();
+		extended = PasswordExtendedFunctionality
+				.usingDependencyProviderAndTextHasher(dependencyProvider, textHasher);
+		exData = new ExtendedFunctionalityData();
+		dataRecordGroup = new DataGroupMCRSpy();
+		exData.dataGroup = dataRecordGroup;
+	}
+
 	@Test
-	public void testInit() throws Exception {
-		SpiderDependencyProvider dependencyProvider = new SpiderDependencyProviderTestHelper(null);
-		PasswordExtendedFunctionality extended = PasswordExtendedFunctionality
-				.usingDependencyProvider(dependencyProvider);
+	public void testOnlyForTest() throws Exception {
+		SpiderDependencyProvider returnedProvider = extended.onlyForTestGetDependencyProvider();
+		assertEquals(returnedProvider, dependencyProvider);
+		TextHasher returnedHasher = extended.onlyForTestGetTextHasher();
+		assertEquals(returnedHasher, textHasher);
+	}
+
+	@Test
+	public void testUseExtended_clearTextPasswordIsRemovedFromUserPriorToStoring()
+			throws Exception {
+		dataRecordGroup.returnValues.put("containsChildWithNameInData", List.of(true));
+
+		extended.useExtendedFunctionality(exData);
+
+		dataRecordGroup.MCR.assertParameters("containsChildWithNameInData", 0, "plainTextPassword");
+		dataRecordGroup.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0,
+				"plainTextPassword");
+		dataRecordGroup.MCR.assertParameters("removeAllChildrenWithNameInData", 0,
+				"plainTextPassword");
+	}
+
+	@Test
+	public void testUseExtended_clearTextPasswordIsNotPresentNoGetOrRemove() throws Exception {
+		dataRecordGroup.returnValues.put("containsChildWithNameInData", List.of(false));
+
+		extended.useExtendedFunctionality(exData);
+
+		dataRecordGroup.MCR.assertParameters("containsChildWithNameInData", 0, "plainTextPassword");
+		dataRecordGroup.MCR.assertMethodNotCalled("getFirstAtomicValueWithNameInData");
+		dataRecordGroup.MCR.assertMethodNotCalled("removeAllChildrenWithNameInData");
+	}
+
+	@Test
+	public void testHashClearTextPassword() throws Exception {
+		// MRV.setReturnValue("containsChildWithNameInData", List.of(true), "paramAValue",
+		// "paramBValue");
+		// MRV.setReturnValue("containsChildWithNameInData", List.of(true), "plainTextPassword");
+		dataRecordGroup.returnValues.put("containsChildWithNameInData", List.of(true),
+				"plainTextPassword");
+		dataRecordGroup.returnValues.put("containsChildWithNameInData", List.of(true),
+				"passwordLink");
+
+		extended.useExtendedFunctionality(exData);
+		var plainTextPassword = dataRecordGroup.MCR
+				.getReturnValue("getFirstAtomicValueWithNameInData", 0);
+		textHasher.MCR.assertParameters("hashText", 0, plainTextPassword);
+	}
+
+	@Test
+	public void testName() throws Exception {
+		dataRecordGroup.returnValues.put("containsChildWithNameInData", List.of(true));
+		dataRecordGroup.returnValues.put("containsChildWithNameInData", List.of(true));
+
+		extended.useExtendedFunctionality(exData);
 
 	}
 	// check if user has filled out clearTextPassword

@@ -34,6 +34,7 @@ import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataRecordLinkProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
@@ -49,6 +50,7 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
+import se.uu.ub.cora.spider.record.DataRecordLinkFactorySpy;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
@@ -78,6 +80,7 @@ public class UserUpdaterForAppTokenTest {
 		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
 		dataAtomicFactory = new DataAtomicFactorySpy();
 		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
+		DataRecordLinkProvider.setDataRecordLinkFactory(new DataRecordLinkFactorySpy());
 		setUpFactoriesAndProviders();
 
 		spiderInstanceFactory = new SpiderInstanceFactorySpy2();

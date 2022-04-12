@@ -1,8 +1,29 @@
+/*
+ * Copyright 2022 Uppsala University Library
+ *
+ * This file is part of Cora.
+ *
+ *     Cora is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     Cora is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package se.uu.ub.cora.spider.password;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import se.uu.ub.cora.password.texthasher.TextHasherFactory;
+import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
@@ -14,6 +35,7 @@ public class PasswordExtendedFunctionalityFactory implements ExtendedFunctionali
 
 	List<ExtendedFunctionalityContext> contexts = new ArrayList<>();
 	private SpiderDependencyProvider dependencyProvider;
+	TextHasherFactory textHasherFactory = new TextHasherFactoryImp();
 
 	@Override
 	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
@@ -43,11 +65,10 @@ public class PasswordExtendedFunctionalityFactory implements ExtendedFunctionali
 	@Override
 	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
 			String recordType) {
-		// TODO: test dependencyProvider to constructor
-		// return Collections.singletonList(new PasswordExtendedFunctionality());
-		// return Collections.singletonList(
-		// PasswordExtendedFunctionality.usingDependencyProvider(dependencyProvider));
-		return null;
+
+		return Collections
+				.singletonList(PasswordExtendedFunctionality.usingDependencyProviderAndTextHasher(
+						dependencyProvider, textHasherFactory.factor()));
 	}
 
 }

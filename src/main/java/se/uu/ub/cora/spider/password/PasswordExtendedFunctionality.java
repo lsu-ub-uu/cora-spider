@@ -18,25 +18,45 @@
  */
 package se.uu.ub.cora.spider.password;
 
+import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
 public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
-	public static PasswordExtendedFunctionality usingDependencyProvider(
-			SpiderDependencyProvider dependencyProvider) {
-		return new PasswordExtendedFunctionality(dependencyProvider);
+	private SpiderDependencyProvider dependencyProvider;
+	private TextHasher textHasher;
+
+	public static PasswordExtendedFunctionality usingDependencyProviderAndTextHasher(
+			SpiderDependencyProvider dependencyProvider, TextHasher textHasher) {
+		return new PasswordExtendedFunctionality(dependencyProvider, textHasher);
 	}
 
-	private PasswordExtendedFunctionality(SpiderDependencyProvider dependencyProvider) {
-		// TODO Auto-generated constructor stub
+	private PasswordExtendedFunctionality(SpiderDependencyProvider dependencyProvider,
+			TextHasher textHasher) {
+		this.dependencyProvider = dependencyProvider;
+		this.textHasher = textHasher;
 	}
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		// TODO Auto-generated method stub
 
+		if (data.dataGroup.containsChildWithNameInData("plainTextPassword")) {
+			String plainTextPassword = data.dataGroup
+					.getFirstAtomicValueWithNameInData("plainTextPassword");
+			textHasher.hashText(plainTextPassword);
+			data.dataGroup.removeAllChildrenWithNameInData("plainTextPassword");
+		}
+
+	}
+
+	SpiderDependencyProvider onlyForTestGetDependencyProvider() {
+		return dependencyProvider;
+	}
+
+	public TextHasher onlyForTestGetTextHasher() {
+		return textHasher;
 	}
 
 }
