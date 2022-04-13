@@ -41,21 +41,19 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-
 		if (data.dataGroup.containsChildWithNameInData("plainTextPassword")) {
 			String plainTextPassword = data.dataGroup
 					.getFirstAtomicValueWithNameInData("plainTextPassword");
 			textHasher.hashText(plainTextPassword);
 			data.dataGroup.removeAllChildrenWithNameInData("plainTextPassword");
 		}
-
 	}
 
 	SpiderDependencyProvider onlyForTestGetDependencyProvider() {
 		return dependencyProvider;
 	}
 
-	public TextHasher onlyForTestGetTextHasher() {
+	TextHasher onlyForTestGetTextHasher() {
 		return textHasher;
 	}
 

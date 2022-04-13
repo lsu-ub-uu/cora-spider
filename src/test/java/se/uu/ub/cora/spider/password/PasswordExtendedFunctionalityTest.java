@@ -58,9 +58,9 @@ public class PasswordExtendedFunctionalityTest {
 	}
 
 	@Test
-	public void testUseExtended_clearTextPasswordIsRemovedFromUserPriorToStoring()
-			throws Exception {
-		dataRecordGroup.returnValues.put("containsChildWithNameInData", List.of(true));
+	public void testClearTextPasswordIsRemovedFromDataRecordGroup() throws Exception {
+		dataRecordGroup.MRV.setReturnValues("containsChildWithNameInData", List.of(true),
+				"plainTextPassword");
 
 		extended.useExtendedFunctionality(exData);
 
@@ -72,8 +72,9 @@ public class PasswordExtendedFunctionalityTest {
 	}
 
 	@Test
-	public void testUseExtended_clearTextPasswordIsNotPresentNoGetOrRemove() throws Exception {
-		dataRecordGroup.returnValues.put("containsChildWithNameInData", List.of(false));
+	public void testIfClearTextPasswordIsNotPresentNoGetOrRemove() throws Exception {
+		dataRecordGroup.MRV.setReturnValues("containsChildWithNameInData", List.of(false),
+				"plainTextPassword");
 
 		extended.useExtendedFunctionality(exData);
 
@@ -83,16 +84,12 @@ public class PasswordExtendedFunctionalityTest {
 	}
 
 	@Test
-	public void testHashClearTextPassword() throws Exception {
-		// MRV.setReturnValue("containsChildWithNameInData", List.of(true), "paramAValue",
-		// "paramBValue");
-		// MRV.setReturnValue("containsChildWithNameInData", List.of(true), "plainTextPassword");
-		dataRecordGroup.returnValues.put("containsChildWithNameInData", List.of(true),
+	public void testClearTextPasswordIsHashed() throws Exception {
+		dataRecordGroup.MRV.setReturnValues("containsChildWithNameInData", List.of(true),
 				"plainTextPassword");
-		dataRecordGroup.returnValues.put("containsChildWithNameInData", List.of(true),
-				"passwordLink");
 
 		extended.useExtendedFunctionality(exData);
+
 		var plainTextPassword = dataRecordGroup.MCR
 				.getReturnValue("getFirstAtomicValueWithNameInData", 0);
 		textHasher.MCR.assertParameters("hashText", 0, plainTextPassword);
@@ -100,8 +97,10 @@ public class PasswordExtendedFunctionalityTest {
 
 	@Test
 	public void testName() throws Exception {
-		dataRecordGroup.returnValues.put("containsChildWithNameInData", List.of(true));
-		dataRecordGroup.returnValues.put("containsChildWithNameInData", List.of(true));
+		dataRecordGroup.MRV.setReturnValues("containsChildWithNameInData", List.of(true),
+				"plainTextPassword");
+		dataRecordGroup.MRV.setReturnValues("containsChildWithNameInData", List.of(true),
+				"passwordLink");
 
 		extended.useExtendedFunctionality(exData);
 

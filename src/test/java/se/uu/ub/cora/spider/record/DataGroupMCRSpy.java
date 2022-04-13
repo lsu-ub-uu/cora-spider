@@ -28,9 +28,11 @@ import se.uu.ub.cora.data.DataAttribute;
 import se.uu.ub.cora.data.DataElement;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class DataGroupMCRSpy implements DataGroup {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 	public String atomicValueToReturn = "";
 	public Map<String, String> atomicValues = new HashMap<>();
 	public Map<String, DataGroupMCRSpy> groupValues = new HashMap<>();
@@ -80,18 +82,23 @@ public class DataGroupMCRSpy implements DataGroup {
 		// MethodReturnValues
 		// var returnValue = MRV.getReturnValue(nameInData);
 
-		int numberToReturn = MCR.getNumberOfCallsToMethod("containsChildWithNameInData");
+		// int numberToReturn = MCR.getNumberOfCallsToMethod("containsChildWithNameInData");
+		// MCR.addCall("nameInData", nameInData);
+		//
+		// if (returnValues.containsKey("containsChildWithNameInData")) {
+		// List<Object> list = returnValues.get("containsChildWithNameInData");
+		// Object returnValue = list.get(numberToReturn);
+		// MCR.addReturned(returnValue);
+		// return (boolean) returnValue;
+		// }
+		//
+		// boolean returnValue = groupValues.containsKey(nameInData)
+		// || atomicValues.containsKey(nameInData);
+		// MCR.addReturned(returnValue);
+		// return returnValue;
+
 		MCR.addCall("nameInData", nameInData);
-
-		if (returnValues.containsKey("containsChildWithNameInData")) {
-			List<Object> list = returnValues.get("containsChildWithNameInData");
-			Object returnValue = list.get(numberToReturn);
-			MCR.addReturned(returnValue);
-			return (boolean) returnValue;
-		}
-
-		boolean returnValue = groupValues.containsKey(nameInData)
-				|| atomicValues.containsKey(nameInData);
+		boolean returnValue = (boolean) MRV.getReturnValue(nameInData);
 		MCR.addReturned(returnValue);
 		return returnValue;
 	}
