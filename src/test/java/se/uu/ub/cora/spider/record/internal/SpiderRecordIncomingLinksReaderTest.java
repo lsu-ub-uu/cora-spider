@@ -126,8 +126,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 		assertEquals(linkedRecordType.getValue(), "place");
 		assertEquals(linkedRecordId.getValue(), "place:0002");
-		assertEquals(from.getActions().size(), 1);
-		assertTrue(from.getActions().contains(se.uu.ub.cora.data.Action.READ));
+		assertTrue(from.hasReadAction());
 
 		DataRecordLinkSpy to = (DataRecordLinkSpy) link.getFirstChildWithNameInData("to");
 		DataAtomic toLinkedRecordType = (DataAtomic) to
@@ -164,8 +163,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 		assertEquals(linkedRecordType.getValue(), "place");
 		assertEquals(linkedRecordId.getValue(), "place:0004");
-		assertEquals(from.getActions().size(), 1);
-		assertTrue(from.getActions().contains(se.uu.ub.cora.data.Action.READ));
+		assertTrue(from.hasReadAction());
 
 		DataRecordLinkSpy to = (DataRecordLinkSpy) link.getFirstChildWithNameInData("to");
 		DataAtomic toLinkedRecordType = (DataAtomic) to

@@ -30,7 +30,7 @@ import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.Action;
-import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataRecord;
@@ -350,12 +350,12 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void addReadActionToAllRecordLinks(DataGroup dataGroup) {
-		for (DataElement dataChild : dataGroup.getChildren()) {
+		for (DataChild dataChild : dataGroup.getChildren()) {
 			addReadActionToDataRecordLink(dataChild);
 		}
 	}
 
-	private void addReadActionToDataRecordLink(DataElement dataChild) {
+	private void addReadActionToDataRecordLink(DataChild dataChild) {
 		possiblyAddReadActionIfLink(dataChild);
 
 		if (isGroup(dataChild)) {
@@ -363,31 +363,31 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		}
 	}
 
-	private void possiblyAddReadActionIfLink(DataElement dataChild) {
+	private void possiblyAddReadActionIfLink(DataChild dataChild) {
 		if (isLink(dataChild)) {
 			possiblyAddReadAction(dataChild);
 		}
 	}
 
-	private boolean isLink(DataElement dataChild) {
+	private boolean isLink(DataChild dataChild) {
 		return isRecordLink(dataChild) || isResourceLink(dataChild);
 	}
 
-	private boolean isRecordLink(DataElement dataChild) {
+	private boolean isRecordLink(DataChild dataChild) {
 		return dataChild instanceof DataRecordLink;
 	}
 
-	private boolean isResourceLink(DataElement dataChild) {
+	private boolean isResourceLink(DataChild dataChild) {
 		return dataChild instanceof DataResourceLink;
 	}
 
-	private void possiblyAddReadAction(DataElement dataChild) {
+	private void possiblyAddReadAction(DataChild dataChild) {
 		if (isAuthorizedToReadLink(dataChild)) {
 			((DataLink) dataChild).addAction(Action.READ);
 		}
 	}
 
-	private boolean isAuthorizedToReadLink(DataElement dataChild) {
+	private boolean isAuthorizedToReadLink(DataChild dataChild) {
 		if (isRecordLink(dataChild)) {
 			return isAuthorizedToReadRecordLink((DataLink) dataChild);
 		}
@@ -444,7 +444,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 				action, recordType, linkedRecordCollectedTerms);
 	}
 
-	private boolean isGroup(DataElement dataChild) {
+	private boolean isGroup(DataChild dataChild) {
 		return dataChild instanceof DataGroup;
 	}
 

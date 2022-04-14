@@ -24,6 +24,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -33,9 +34,11 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicFactory;
 import se.uu.ub.cora.data.DataAtomicProvider;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordFactory;
 import se.uu.ub.cora.data.DataRecordLinkFactory;
@@ -73,6 +76,7 @@ import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class SpiderRecordValidatorTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
@@ -89,6 +93,8 @@ public class SpiderRecordValidatorTest {
 	private RecordIndexer recordIndexer;
 	private RecordIdGenerator idGenerator;
 	private LoggerFactorySpy loggerFactorySpy;
+	private DataFactorySpy dataFactorySpy;
+
 	private DataGroupFactory dataGroupFactorySpy;
 	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataRecordFactory dataRecordFactorySpy;
@@ -113,6 +119,9 @@ public class SpiderRecordValidatorTest {
 	private void setUpFactoriesAndProviders() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
+
 		dataGroupFactorySpy = new DataGroupFactorySpy();
 		DataGroupProvider.setDataGroupFactory(dataGroupFactorySpy);
 		dataAtomicFactorySpy = new DataAtomicFactorySpy();
@@ -291,26 +300,36 @@ public class SpiderRecordValidatorTest {
 		DataGroup recordInfo = validationResult.getFirstGroupWithNameInData("recordInfo");
 		assertEquals(recordInfo.getFirstAtomicValueWithNameInData("id"), generatorSpy.generatedId);
 
-		DataGroup recordTypeGroup = recordInfo.getFirstGroupWithNameInData("type");
-		assertEquals(recordTypeGroup.getFirstAtomicValueWithNameInData("linkedRecordType"),
-				"recordType");
-		assertEquals(recordTypeGroup.getFirstAtomicValueWithNameInData("linkedRecordId"),
-				"validationOrder");
+		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
+				"type", "recordType", "validationOrder");
+		var typeLink = dataFactorySpy.MCR
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
+		assertDataChildFoundInChildren(typeLink, recordInfo.getChildren());
 
 		String tsCreated = recordInfo.getFirstAtomicValueWithNameInData("tsCreated");
 		assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
 
-		DataGroup createdBy = recordInfo.getFirstGroupWithNameInData("createdBy");
-		String createdByType = createdBy.getFirstAtomicValueWithNameInData("linkedRecordType");
-		assertEquals(createdByType, "user");
-		String createdById = createdBy.getFirstAtomicValueWithNameInData("linkedRecordId");
-		assertEquals(createdById, "12345");
+		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 1,
+				"createdBy", "user", "12345");
+		var createdByLink = dataFactorySpy.MCR
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 1);
+		assertDataChildFoundInChildren(createdByLink, recordInfo.getChildren());
 
 		DataGroup updated = recordInfo.getFirstGroupWithNameInData("updated");
 		String tsUpdated = updated.getFirstAtomicValueWithNameInData("tsUpdated");
 		assertTrue(tsUpdated.matches(TIMESTAMP_FORMAT));
 		assertFalse(recordInfo.containsChildWithNameInData("tsUpdated"));
 		assertEquals(updated.getRepeatId(), "0");
+	}
+
+	private void assertDataChildFoundInChildren(Object createdByLink, List<DataChild> children) {
+		boolean createdByAdded = false;
+		for (DataChild dataChild : children) {
+			if (dataChild == createdByLink) {
+				createdByAdded = true;
+			}
+		}
+		assertTrue(createdByAdded);
 	}
 
 	@Test
