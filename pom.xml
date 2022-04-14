@@ -34,14 +34,13 @@
 
 	<properties>
         <logger.version>2.5.0</logger.version>
-		<coradata.version>7.0-SNAPSHOT</coradata.version>
+		<coradata.version>6.2.0</coradata.version>
 		<json.version>3.3.0</json.version>
 		<storage.version>6.1.0</storage.version>
 		<search.version>4.3.0</search.version>
 		<bookkeeper.version>6.7.0</bookkeeper.version>
 		<beefeater.version>3.7.0</beefeater.version>
 		<testutils.version>1.3.0</testutils.version>
-		<testspies.version>1.0-SNAPSHOT</testspies.version>
 	</properties>
 
 	<scm>
@@ -104,12 +103,6 @@
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>testutils</artifactId>
 			<version>${testutils.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>se.uu.ub.cora</groupId>
-			<artifactId>testspies</artifactId>
-			<version>${testspies.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

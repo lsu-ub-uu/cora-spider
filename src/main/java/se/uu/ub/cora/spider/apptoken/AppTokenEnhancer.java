@@ -1,6 +1,5 @@
 /*
  * Copyright 2017, 2022 Uppsala University Library
- * Copyright 2022 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -23,8 +22,8 @@ package se.uu.ub.cora.spider.apptoken;
 import java.util.UUID;
 
 import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
@@ -33,7 +32,7 @@ public class AppTokenEnhancer implements ExtendedFunctionality {
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
 		DataGroup dataGroup = data.dataGroup;
-		DataAtomic token = DataProvider.createAtomicUsingNameInDataAndValue("token",
+		DataAtomic token = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("token",
 				generateToken());
 		dataGroup.addChild(token);
 	}

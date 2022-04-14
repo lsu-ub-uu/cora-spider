@@ -1,6 +1,5 @@
 /*
  * Copyright 2017, 2022 Uppsala University Library
- * Copyright 2022 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -26,21 +25,22 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
+import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
-import se.uu.ub.cora.testspies.data.DataGroupSpy;
 
 public class AppTokenEnhancerTest {
 
 	private AppTokenEnhancer extendedFunctionality;
-	private DataFactorySpy dataFactory;
+	private DataAtomicFactorySpy dataAtomicFactory;
 
 	@BeforeMethod
 	public void setUp() {
-		dataFactory = new DataFactorySpy();
-		DataProvider.onlyForTestSetDataFactory(dataFactory);
+		dataAtomicFactory = new DataAtomicFactorySpy();
+		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 		extendedFunctionality = new AppTokenEnhancer();
 	}
 
@@ -51,16 +51,10 @@ public class AppTokenEnhancerTest {
 
 	@Test
 	public void generateAndAddAppToken() {
-		DataGroupSpy minimalGroup = new DataGroupSpy();
-
+		DataGroup minimalGroup = new DataGroupSpy("appToken");
 		callExtendedFunctionalityWithGroup(minimalGroup);
-
-		dataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "token");
-		String tokenValue = getCreatedAtomicValueFromFactorySpyForCallNumber(0);
-		var createdAtomic = dataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				0);
-		assertTrue(tokenValue.length() > 30);
-		minimalGroup.MCR.assertParameters("addChild", 0, createdAtomic);
+		DataAtomic token = (DataAtomic) minimalGroup.getFirstChildWithNameInData("token");
+		assertTrue(token.getValue().length() > 30);
 	}
 
 	private void callExtendedFunctionalityWithGroup(DataGroup minimalGroup) {
@@ -70,22 +64,16 @@ public class AppTokenEnhancerTest {
 		extendedFunctionality.useExtendedFunctionality(data);
 	}
 
-	private String getCreatedAtomicValueFromFactorySpyForCallNumber(int callNumber) {
-		return (String) dataFactory.MCR.getValueForMethodNameAndCallNumberAndParameterName(
-				"factorAtomicUsingNameInDataAndValue", callNumber, "value");
-	}
-
 	@Test
 	public void generateAndAddAppTokenDifferentTokens() {
-		DataGroup minimalGroup = new DataGroupSpy();
-		DataGroup minimalGroup2 = new DataGroupSpy();
-
+		DataGroup minimalGroup = new DataGroupSpy("appToken");
 		callExtendedFunctionalityWithGroup(minimalGroup);
+		DataAtomic token = (DataAtomic) minimalGroup.getFirstChildWithNameInData("token");
+
+		DataGroup minimalGroup2 = new DataGroupSpy("appToken");
 		callExtendedFunctionalityWithGroup(minimalGroup2);
+		DataAtomic token2 = (DataAtomic) minimalGroup2.getFirstChildWithNameInData("token");
 
-		String tokenValue = getCreatedAtomicValueFromFactorySpyForCallNumber(0);
-		String tokenValue2 = getCreatedAtomicValueFromFactorySpyForCallNumber(1);
-
-		assertNotEquals(tokenValue, tokenValue2);
+		assertNotEquals(token.getValue(), token2.getValue());
 	}
 }
