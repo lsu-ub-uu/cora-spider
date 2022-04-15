@@ -204,13 +204,25 @@ public class DataRecordLinkSpy implements DataGroup, DataRecordLink {
 
 	@Override
 	public String getLinkedRecordId() {
-		// TODO Auto-generated method stub
+		for (DataChild dataElement : children) {
+			if ("linkedRecordId".equals(dataElement.getNameInData())) {
+				if (dataElement instanceof DataAtomic) {
+					return ((DataAtomic) dataElement).getValue();
+				}
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public String getLinkedRecordType() {
-		// TODO Auto-generated method stub
+		for (DataChild dataElement : children) {
+			if ("linkedRecordType".equals(dataElement.getNameInData())) {
+				if (dataElement instanceof DataAtomic) {
+					return ((DataAtomic) dataElement).getValue();
+				}
+			}
+		}
 		return null;
 	}
 
