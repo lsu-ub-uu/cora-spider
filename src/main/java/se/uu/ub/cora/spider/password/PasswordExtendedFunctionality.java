@@ -44,8 +44,8 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		if (data.dataGroup.containsChildWithNameInData("plainTextPassword")) {
 			String plainTextPassword = data.dataGroup
 					.getFirstAtomicValueWithNameInData("plainTextPassword");
-			textHasher.hashText(plainTextPassword);
 			data.dataGroup.removeAllChildrenWithNameInData("plainTextPassword");
+			textHasher.hashText(plainTextPassword);
 		}
 	}
 

@@ -29,14 +29,16 @@ import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.record.DataGroupMCRSpy;
+import se.uu.ub.cora.testspies.data.DataGroupSpy;
 
 public class PasswordExtendedFunctionalityTest {
 	SpiderDependencyProvider dependencyProvider;
 	TextHasherSpy textHasher;
 	PasswordExtendedFunctionality extended;
 	private ExtendedFunctionalityData exData;
-	private DataGroupMCRSpy dataRecordGroup;
+
+	// private DataGroupMCRSpy dataRecordGroup;
+	private DataGroupSpy dataRecordGroup;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -45,7 +47,8 @@ public class PasswordExtendedFunctionalityTest {
 		extended = PasswordExtendedFunctionality
 				.usingDependencyProviderAndTextHasher(dependencyProvider, textHasher);
 		exData = new ExtendedFunctionalityData();
-		dataRecordGroup = new DataGroupMCRSpy();
+		// dataRecordGroup = new DataGroupMCRSpy();
+		dataRecordGroup = new DataGroupSpy();
 		exData.dataGroup = dataRecordGroup;
 	}
 

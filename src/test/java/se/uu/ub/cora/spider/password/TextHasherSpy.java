@@ -18,25 +18,32 @@
  */
 package se.uu.ub.cora.spider.password;
 
+import java.util.function.Supplier;
+
 import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class TextHasherSpy implements TextHasher {
 
-	MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public TextHasherSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("hashText", String::new);
+		MRV.setDefaultReturnValuesSupplier("matches", (Supplier<Boolean>) () -> false);
+	}
 
 	@Override
 	public String hashText(String plainText) {
-		MCR.addCall("plainText", plainText);
-
-		return null;
+		return (String) MCR.addCallAndReturnFromMRV("plainText", plainText);
 	}
 
 	@Override
 	public boolean matches(String plainText, String hashedText) {
-		MCR.addCall("plainText", plainText, "hashedText", hashedText);
-
-		return false;
+		return (boolean) MCR.addCallAndReturnFromMRV("plainText", plainText, "hashedText",
+				hashedText);
 	}
 
 }
