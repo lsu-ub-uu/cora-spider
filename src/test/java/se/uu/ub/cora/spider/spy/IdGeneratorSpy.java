@@ -20,16 +20,19 @@
 package se.uu.ub.cora.spider.spy;
 
 import se.uu.ub.cora.storage.RecordIdGenerator;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class IdGeneratorSpy implements RecordIdGenerator {
-
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public boolean getIdForTypeWasCalled = false;
 	public String generatedId = "";
 
 	@Override
 	public String getIdForType(String type) {
+		MCR.addCall("type", type);
 		getIdForTypeWasCalled = true;
 		generatedId = "1";
+		MCR.addReturned(generatedId);
 		return generatedId;
 	}
 

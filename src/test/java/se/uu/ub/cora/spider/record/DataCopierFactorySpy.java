@@ -21,16 +21,16 @@ package se.uu.ub.cora.spider.record;
 import java.util.ArrayList;
 import java.util.List;
 
-import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.copier.DataCopier;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 
 public class DataCopierFactorySpy implements DataCopierFactory {
-	public List<DataElement> dataElements = new ArrayList<>();
+	public List<DataChild> dataElements = new ArrayList<>();
 	public List<DataCopierSpy> factoredDataCopiers = new ArrayList<>();
 
 	@Override
-	public DataCopier factorForDataElement(DataElement dataElement) {
+	public DataCopier factorForDataElement(DataChild dataElement) {
 		dataElements.add(dataElement);
 		DataCopierSpy dataCopier = new DataCopierSpy(dataElement);
 		factoredDataCopiers.add(dataCopier);

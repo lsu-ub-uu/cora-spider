@@ -18,19 +18,19 @@
  */
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.copier.DataCopier;
 
 public class DataCopierSpy implements DataCopier {
 
-	private DataElement dataElement;
+	private DataChild dataElement;
 
-	public DataCopierSpy(DataElement dataElement) {
+	public DataCopierSpy(DataChild dataElement) {
 		this.dataElement = dataElement;
 	}
 
 	@Override
-	public DataElement copy() {
+	public DataChild copy() {
 		// if (dataElement instanceof DataRecordLink) {
 		// return dataElement;
 		// return new DataRecordLinkSpy(dataElement.getNameInData());

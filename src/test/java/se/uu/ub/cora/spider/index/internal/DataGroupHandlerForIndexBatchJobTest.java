@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicProvider;
-import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
@@ -79,7 +79,7 @@ public class DataGroupHandlerForIndexBatchJobTest {
 		DataGroupSpy addedUpdatedBy = (DataGroupSpy) dataGroupFactory.MCR
 				.getReturnValue("factorAsLinkWithNameInDataTypeAndId", 0);
 
-		DataElement addedChildToUpdated = addedUpdatedGroup.addedChildren.get(0);
+		DataChild addedChildToUpdated = addedUpdatedGroup.addedChildren.get(0);
 		assertSame(addedChildToUpdated, addedUpdatedBy);
 
 		assertCorrectTsUpdated(addedUpdatedGroup);

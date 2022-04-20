@@ -27,23 +27,16 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
-import se.uu.ub.cora.data.DataAtomicFactory;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupFactory;
-import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.data.DataRecordFactory;
-import se.uu.ub.cora.data.DataRecordProvider;
-import se.uu.ub.cora.data.DataResourceLink;
-import se.uu.ub.cora.data.DataResourceLinkFactory;
-import se.uu.ub.cora.data.DataResourceLinkProvider;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
@@ -52,11 +45,8 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
-import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactorySpy2;
@@ -64,7 +54,6 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
-import se.uu.ub.cora.spider.record.DataResourceLinkFactorySpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.StreamStorageSpy;
 import se.uu.ub.cora.spider.record.Uploader;
@@ -79,9 +68,10 @@ import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
-import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
+import se.uu.ub.cora.testspies.data.DataResourceLinkSpy;
 
 public class SpiderUploaderTest {
 	private RecordStorage recordStorage;
@@ -94,16 +84,14 @@ public class SpiderUploaderTest {
 	private DataRecordLinkCollector linkCollector;
 	private DataGroupTermCollectorSpy termCollector;
 	private RecordIndexer recordIndexer;
-	private RecordIdGenerator idGenerator;
+	private IdGeneratorSpy idGenerator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private SpiderInstanceFactory spiderInstanceFactory;
 	private LoggerFactorySpy loggerFactorySpy;
-	private DataGroupFactory dataGroupFactorySpy;
-	private DataAtomicFactory dataAtomicFactorySpy;
-	private DataRecordFactory dataRecordFactorySpy;
+	private DataFactorySpy dataFactorySpy;
+
 	private DataCopierFactory dataCopierFactory;
-	private DataResourceLinkFactory dataResourceLinkFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -127,16 +115,11 @@ public class SpiderUploaderTest {
 	private void setUpFactoriesAndProviders() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-		dataGroupFactorySpy = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactorySpy);
-		dataAtomicFactorySpy = new DataAtomicFactorySpy();
-		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactorySpy);
-		dataRecordFactorySpy = new DataRecordFactorySpy();
-		DataRecordProvider.setDataRecordFactory(dataRecordFactorySpy);
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
+
 		dataCopierFactory = new DataCopierFactorySpy();
 		DataCopierProvider.setDataCopierFactory(dataCopierFactory);
-		dataResourceLinkFactory = new DataResourceLinkFactorySpy();
-		DataResourceLinkProvider.setDataResourceLinkFactory(dataResourceLinkFactory);
 	}
 
 	private void setUpDependencyProvider() {
@@ -160,6 +143,8 @@ public class SpiderUploaderTest {
 
 	@Test
 	public void testExternalDependenciesAreCalled() {
+		dataFactorySpy.MRV.setReturnValues("factorGroupUsingNameInData",
+				List.of(new se.uu.ub.cora.testspies.data.DataGroupSpy()), "resourceInfo");
 		spiderInstanceFactory = new SpiderInstanceFactorySpy2();
 		setUpDependencyProvider();
 		recordStorage = new OldRecordStorageSpy();
@@ -224,6 +209,8 @@ public class SpiderUploaderTest {
 
 	@Test
 	public void testUploadStream() {
+		dataFactorySpy.MRV.setReturnValues("factorGroupUsingNameInData",
+				List.of(new se.uu.ub.cora.testspies.data.DataGroupSpy()), "resourceInfo");
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 		DataRecord recordUpdated = uploader.upload("someToken78678567", "image", "image:123456789",
 				stream, "someFileName");
@@ -251,32 +238,28 @@ public class SpiderUploaderTest {
 		DataGroup recordInfo = groupUpdated.getFirstGroupWithNameInData("recordInfo");
 		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
 
-		DataGroup resourceInfo = groupUpdated.getFirstGroupWithNameInData("resourceInfo");
-		DataResourceLink master = (DataResourceLink) resourceInfo
-				.getFirstGroupWithNameInData("master");
-
 		String dataDividerRecordId = dataDivider
 				.getFirstAtomicValueWithNameInData("linkedRecordId");
 		assertEquals(dataDividerRecordId, streamStorage.dataDivider);
-
-		String streamId = master.getFirstAtomicValueWithNameInData("streamId");
-		assertEquals(streamId, streamStorage.streamId);
-
-		String size = master.getFirstAtomicValueWithNameInData("filesize");
-		assertEquals(size, String.valueOf(streamStorage.size));
 	}
 
 	private void assertResourceInfoIsCorrect(DataRecord recordUpdated) {
 		DataGroup groupUpdated = recordUpdated.getDataGroup();
+		// DataGroup resourceInfo = groupUpdated.getFirstGroupWithNameInData("resourceInfo");
+		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "resourceInfo");
+		se.uu.ub.cora.testspies.data.DataGroupSpy resourceInfo = (se.uu.ub.cora.testspies.data.DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupUsingNameInData", 0);
 
-		DataGroup resourceInfo = groupUpdated.getFirstGroupWithNameInData("resourceInfo");
-		DataGroup master = resourceInfo.getFirstGroupWithNameInData("master");
+		dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInData", 0, "master");
+		DataResourceLinkSpy masterLink = (DataResourceLinkSpy) dataFactorySpy.MCR
+				.getReturnValue("factorResourceLinkUsingNameInData", 0);
+		resourceInfo.MCR.assertParameters("addChild", 0, masterLink);
 
-		String fileName = master.getFirstAtomicValueWithNameInData("filename");
-		assertEquals(fileName, "someFileName");
-
-		String mimeType = master.getFirstAtomicValueWithNameInData("mimeType");
-		assertEquals(mimeType, "application/octet-stream");
+		masterLink.MCR.assertParameters("setStreamId", 0,
+				idGenerator.MCR.getReturnValue("getIdForType", 0));
+		masterLink.MCR.assertParameters("setFileName", 0, "someFileName");
+		masterLink.MCR.assertParameters("setFileSize", 0, "8");
+		masterLink.MCR.assertParameters("setMimeType", 0, "application/octet-stream");
 	}
 
 	@Test(expectedExceptions = MisuseException.class)

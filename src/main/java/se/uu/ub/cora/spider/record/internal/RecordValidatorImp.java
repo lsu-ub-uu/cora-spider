@@ -27,7 +27,9 @@ import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -131,26 +133,19 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		recordInfo.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("id",
 				idGenerator.getIdForType(recordType)));
 
-		DataGroup recordTypeGroup = createTypeDataGroup(recordType);
-		recordInfo.addChild(recordTypeGroup);
+		DataRecordLink typeLink = DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("type",
+				"recordType", recordType);
+		recordInfo.addChild(typeLink);
 
 		addCreatedInfoToRecordInfoUsingUserId(recordInfo, user.id);
 		addUpdatedInfoToRecordInfoUsingUserId(recordInfo, user.id);
 		validationResult.addChild(recordInfo);
 	}
 
-	private DataGroup createTypeDataGroup(String recordType) {
-		DataGroup type = DataGroupProvider.getDataGroupUsingNameInData("type");
-		type.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("linkedRecordType",
-				"recordType"));
-		type.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("linkedRecordId",
-				recordType));
-		return type;
-	}
-
 	private void addCreatedInfoToRecordInfoUsingUserId(DataGroup recordInfo, String userId) {
-		DataGroup createdByGroup = createLinkToUserUsingUserIdAndNameInData(userId, "createdBy");
-		recordInfo.addChild(createdByGroup);
+		DataRecordLink createdByLink = DataProvider
+				.createRecordLinkUsingNameInDataAndTypeAndId("createdBy", "user", userId);
+		recordInfo.addChild(createdByLink);
 		String currentLocalDateTime = getCurrentTimestampAsString();
 		recordInfo.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_CREATED,
 				currentLocalDateTime));

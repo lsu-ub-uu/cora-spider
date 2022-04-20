@@ -26,11 +26,11 @@ import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataAtomicProvider;
-import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.data.DataRecordLinkProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
@@ -53,7 +53,7 @@ public class RecordHandler {
 	}
 
 	protected void checkToPartOfLinkedDataExistsInStorage(DataGroup collectedLinks) {
-		for (DataElement dataElement : collectedLinks.getChildren()) {
+		for (DataChild dataElement : collectedLinks.getChildren()) {
 			extractToGroupAndCheckDataExistsInStorage((DataGroup) dataElement);
 		}
 	}
@@ -111,8 +111,9 @@ public class RecordHandler {
 	}
 
 	private void addUserInfoToUpdatedGroup(String userId, DataGroup updatedGroup) {
-		DataGroup updatedByGroup = createLinkToUserUsingUserIdAndNameInData(userId, "updatedBy");
-		updatedGroup.addChild(updatedByGroup);
+		DataRecordLink updatedByLink = createLinkToUserUsingNameInDataAndUserId("updatedBy",
+				userId);
+		updatedGroup.addChild(updatedByLink);
 	}
 
 	private void addTimestampToUpdateGroup(DataGroup recordInfo, DataGroup updatedGroup) {
@@ -122,18 +123,9 @@ public class RecordHandler {
 				tsCreatedUsedAsFirstTsUpdate));
 	}
 
-	protected DataGroup createLinkToUserUsingUserIdAndNameInData(String userId, String nameInData) {
-		DataRecordLink createdByGroup = DataRecordLinkProvider
-				.getDataRecordLinkUsingNameInData(nameInData);
-		addLinkToUserUsingUserId(createdByGroup, userId);
-		return createdByGroup;
-	}
-
-	private void addLinkToUserUsingUserId(DataGroup dataGroup, String userId) {
-		dataGroup.addChild(DataAtomicProvider
-				.getDataAtomicUsingNameInDataAndValue("linkedRecordType", "user"));
-		dataGroup.addChild(
-				DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(LINKED_RECORD_ID, userId));
+	protected DataRecordLink createLinkToUserUsingNameInDataAndUserId(String nameInData,
+			String userId) {
+		return DataProvider.createRecordLinkUsingNameInDataAndTypeAndId(nameInData, "user", userId);
 	}
 
 	protected void useExtendedFunctionality(DataGroup dataGroup,

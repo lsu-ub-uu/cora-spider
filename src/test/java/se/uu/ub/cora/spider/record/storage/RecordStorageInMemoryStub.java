@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.copier.DataCopier;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
@@ -121,7 +121,7 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 	}
 
 	private void storeLinksInIncomingLinks(DataGroup incomingLinkList) {
-		for (DataElement linkElement : incomingLinkList.getChildren()) {
+		for (DataChild linkElement : incomingLinkList.getChildren()) {
 			storeLinkInIncomingLinks((DataGroup) linkElement);
 		}
 	}
@@ -322,12 +322,12 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 
 	private void removeIncomingLinks(String recordType, String recordId) {
 		DataGroup oldLinkList = readLinkList(recordType, recordId);
-		for (DataElement linkElement : oldLinkList.getChildren()) {
+		for (DataChild linkElement : oldLinkList.getChildren()) {
 			removeIncomingLink(linkElement);
 		}
 	}
 
-	private void removeIncomingLink(DataElement linkElement) {
+	private void removeIncomingLink(DataChild linkElement) {
 		DataGroup link = (DataGroup) linkElement;
 		DataGroup recordLinkTo = link.getFirstGroupWithNameInData("to");
 		if (incomingLinksContainsToType(recordLinkTo)) {

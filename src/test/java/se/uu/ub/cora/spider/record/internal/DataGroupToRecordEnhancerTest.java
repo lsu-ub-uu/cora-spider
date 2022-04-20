@@ -1705,8 +1705,7 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroupOneLevelDown = recordDataGroup
 				.getFirstGroupWithNameInData("oneLevelDownTargetDoesNotExist");
 		DataLink link = (DataLink) dataGroupOneLevelDown.getFirstChildWithNameInData("link");
-		assertFalse(link.getActions().contains(Action.READ));
-		assertEquals(link.getActions().size(), 0);
+		assertFalse(link.hasReadAction());
 	}
 
 	@Test

@@ -20,7 +20,7 @@
 package se.uu.ub.cora.spider.consistency;
 
 import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -72,7 +72,7 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 		DataGroup childReferences = (DataGroup) recordAsDataGroup
 				.getFirstChildWithNameInData("childReferences");
 
-		for (DataElement childReference : childReferences.getChildren()) {
+		for (DataChild childReference : childReferences.getChildren()) {
 			String childNameInData = getNameInDataFromChildReference(childReference);
 			if (!ensureChildExistInParent(childNameInData)) {
 				throw new DataException("Data is not valid: childItem: " + childNameInData
@@ -81,7 +81,7 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 		}
 	}
 
-	protected String getNameInDataFromChildReference(DataElement childReference) {
+	protected String getNameInDataFromChildReference(DataChild childReference) {
 		DataGroup childReferenceGroup = (DataGroup) childReference;
 
 		DataGroup ref = childReferenceGroup.getFirstGroupWithNameInData("ref");
@@ -101,7 +101,7 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 
 	protected boolean ensureChildExistInParent(String childNameInData) {
 		DataGroup parentChildReferences = getParentChildReferences();
-		for (DataElement parentChildReference : parentChildReferences.getChildren()) {
+		for (DataChild parentChildReference : parentChildReferences.getChildren()) {
 			if (isSameNameInData(childNameInData, parentChildReference)) {
 				return true;
 			}
@@ -121,7 +121,7 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 		return refParentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
-	protected boolean isSameNameInData(String childNameInData, DataElement parentChildReference) {
+	protected boolean isSameNameInData(String childNameInData, DataChild parentChildReference) {
 		String parentChildNameInData = getNameInDataFromChildReference(parentChildReference);
 		return childNameInData.equals(parentChildNameInData);
 	}
@@ -134,7 +134,7 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 		DataGroup references = getItemReferences();
 		DataGroup parentReferences = extractParentItemReferences();
 
-		for (DataElement itemReference : references.getChildren()) {
+		for (DataChild itemReference : references.getChildren()) {
 			String childItemId = extractRefItemIdFromRefItemGroup((DataGroup) itemReference);
 			if (!ensureChildItemExistsInParent(childItemId, parentReferences)) {
 				throw new DataException("Data is not valid: childItem: " + childItemId
@@ -172,7 +172,7 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 	}
 
 	private boolean ensureChildItemExistsInParent(String childItemId, DataGroup parentReferences) {
-		for (DataElement itemReference : parentReferences.getChildren()) {
+		for (DataChild itemReference : parentReferences.getChildren()) {
 			String parentItemId = extractRefItemIdFromRefItemGroup((DataGroup) itemReference);
 			if (isParentItemSameAsChildItem(childItemId, parentItemId)) {
 				return true;
@@ -201,7 +201,7 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 
 	private boolean validateFinalValue(String finalValue) {
 		DataGroup references = getItemReferences();
-		for (DataElement reference : references.getChildren()) {
+		for (DataChild reference : references.getChildren()) {
 			String itemNameInData = extractNameInDataFromReference((DataGroup) reference);
 			if (finalValue.equals(itemNameInData)) {
 				return true;

@@ -34,7 +34,9 @@ import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -202,7 +204,9 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		DataGroup recordInfoStoredRecord = getRecordInfoFromStoredData();
 		List<DataGroup> updatedGroups = recordInfoStoredRecord
 				.getAllGroupsWithNameInData(UPDATED_STRING);
-		updatedGroups.forEach(recordInfo::addChild);
+		for (DataGroup dataGroup : updatedGroups) {
+			recordInfo.addChild(dataGroup);
+		}
 	}
 
 	private DataGroup getRecordInfoFromStoredData() {
@@ -242,7 +246,8 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private void setUpdatedBy(DataGroup updated) {
-		DataGroup updatedBy = createUpdatedByLink();
+		DataRecordLink updatedBy = DataProvider
+				.createRecordLinkUsingNameInDataAndTypeAndId(UPDATED_BY, "user", user.id);
 		updated.addChild(updatedBy);
 	}
 
@@ -250,15 +255,6 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		String currentLocalDateTime = getCurrentTimestampAsString();
 		updated.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_UPDATED,
 				currentLocalDateTime));
-	}
-
-	private DataGroup createUpdatedByLink() {
-		DataGroup updatedBy = DataGroupProvider.getDataGroupUsingNameInData(UPDATED_BY);
-		updatedBy.addChild(DataAtomicProvider
-				.getDataAtomicUsingNameInDataAndValue("linkedRecordType", "user"));
-		updatedBy.addChild(
-				DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(LINKED_RECORD_ID, user.id));
-		return updatedBy;
 	}
 
 	private void possiblyReplaceRecordPartsUserIsNotAllowedToChange() {
