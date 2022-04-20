@@ -29,8 +29,9 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -217,22 +218,15 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void addTypeToRecordInfo(String recordType, DataGroup recordInfo) {
-		DataGroup type = createTypeDataGroup(recordType);
-		recordInfo.addChild(type);
-	}
-
-	private DataGroup createTypeDataGroup(String recordType) {
-		DataGroup type = DataGroupProvider.getDataGroupUsingNameInData("type");
-		type.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("linkedRecordType",
-				"recordType"));
-		type.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("linkedRecordId",
-				recordType));
-		return type;
+		DataRecordLink typeLink = DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("type",
+				"recordType", recordType);
+		recordInfo.addChild(typeLink);
 	}
 
 	private void addCreatedInfoToRecordInfoUsingUserId(DataGroup recordInfo, String userId) {
-		DataGroup createdByGroup = createLinkToUserUsingUserIdAndNameInData(userId, "createdBy");
-		recordInfo.addChild(createdByGroup);
+		DataRecordLink createdByLink = createLinkToUserUsingNameInDataAndUserId("createdBy",
+				userId);
+		recordInfo.addChild(createdByLink);
 		String currentTimestamp = getCurrentTimestampAsString();
 		recordInfo.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_CREATED,
 				currentTimestamp));

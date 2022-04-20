@@ -28,7 +28,7 @@ import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RuleImp;
 import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -63,22 +63,22 @@ public class RulesProviderImp implements RulesProvider {
 
 	private List<Rule> getActiveRulesForRole(DataGroup readRole) {
 		List<Rule> listOfRules = new ArrayList<>();
-		List<DataElement> children = readRole.getChildren();
-		Stream<DataElement> permissionRuleLinks = children.stream()
+		List<DataChild> children = readRole.getChildren();
+		Stream<DataChild> permissionRuleLinks = children.stream()
 				.filter(child -> "permissionRuleLink".equals(child.getNameInData()));
 
 		permissionRuleLinks.forEach(rule -> possiblyAddRuleToListOfRules(rule, listOfRules));
 		return listOfRules;
 	}
 
-	private void possiblyAddRuleToListOfRules(DataElement dataElementRule, List<Rule> listOfRules) {
+	private void possiblyAddRuleToListOfRules(DataChild dataElementRule, List<Rule> listOfRules) {
 		DataGroup readRule = getLinkedRuleFromStorage(dataElementRule);
 		if (ruleIsActive(readRule)) {
 			addRuleToListOfRules(listOfRules, readRule);
 		}
 	}
 
-	private DataGroup getLinkedRuleFromStorage(DataElement dataElementRule) {
+	private DataGroup getLinkedRuleFromStorage(DataChild dataElementRule) {
 		String ruleId = ((DataGroup) dataElementRule)
 				.getFirstAtomicValueWithNameInData("linkedRecordId");
 		return recordStorage.read("permissionRule", ruleId);
@@ -112,7 +112,7 @@ public class RulesProviderImp implements RulesProvider {
 
 	private RulePartValuesImp createRulePartValuesForRulePart(DataGroup rulePart) {
 		RulePartValuesImp ruleValues = new RulePartValuesImp();
-		List<DataElement> children = rulePart.getChildren();
+		List<DataChild> children = rulePart.getChildren();
 		children.forEach(ruleValue -> ruleValues.add(((DataAtomic) ruleValue).getValue()));
 		return ruleValues;
 	}

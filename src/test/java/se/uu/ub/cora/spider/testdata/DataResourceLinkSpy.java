@@ -25,14 +25,14 @@ import java.util.List;
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAttribute;
-import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataResourceLink;
 
 public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 
 	private String nameInData;
-	public List<DataElement> children = new ArrayList<>();
+	public List<DataChild> children = new ArrayList<>();
 	public List<Action> actions = new ArrayList<>();
 
 	public DataResourceLinkSpy(String nameInData) {
@@ -57,13 +57,8 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 	}
 
 	@Override
-	public List<Action> getActions() {
-		return actions;
-	}
-
-	@Override
 	public String getFirstAtomicValueWithNameInData(String nameInData) {
-		for (DataElement dataElement : children) {
+		for (DataChild dataElement : children) {
 			if (nameInData.equals(dataElement.getNameInData())) {
 				if (dataElement instanceof DataAtomic) {
 					return ((DataAtomic) dataElement).getValue();
@@ -75,7 +70,7 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 
 	@Override
 	public DataGroup getFirstGroupWithNameInData(String childNameInData) {
-		for (DataElement dataElement : children) {
+		for (DataChild dataElement : children) {
 			if (childNameInData.equals(dataElement.getNameInData())) {
 				if (dataElement instanceof DataGroup) {
 					return ((DataGroup) dataElement);
@@ -86,12 +81,12 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 	}
 
 	@Override
-	public void addChild(DataElement dataElement) {
+	public void addChild(DataChild dataElement) {
 		children.add(dataElement);
 	}
 
 	@Override
-	public List<DataElement> getChildren() {
+	public List<DataChild> getChildren() {
 		return children;
 	}
 
@@ -114,7 +109,7 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 	}
 
 	@Override
-	public DataElement getFirstChildWithNameInData(String nameInData) {
+	public DataChild getFirstChildWithNameInData(String nameInData) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -157,13 +152,13 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 	}
 
 	@Override
-	public void addChildren(Collection<DataElement> dataElements) {
+	public void addChildren(Collection<DataChild> dataElements) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public List<DataElement> getAllChildrenWithNameInData(String nameInData) {
+	public List<DataChild> getAllChildrenWithNameInData(String nameInData) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -186,7 +181,7 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 	}
 
 	@Override
-	public List<DataElement> getAllChildrenWithNameInDataAndAttributes(String nameInData,
+	public List<DataChild> getAllChildrenWithNameInDataAndAttributes(String nameInData,
 			DataAttribute... childAttributes) {
 		// TODO Auto-generated method stub
 		return null;
@@ -201,8 +196,7 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 
 	@Override
 	public boolean hasReadAction() {
-		// TODO Auto-generated method stub
-		return false;
+		return actions.contains(Action.READ);
 	}
 
 	@Override
@@ -215,6 +209,55 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 	public boolean hasAttributes() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public Collection<DataAtomic> getAllDataAtomicsWithNameInDataAndAttributes(
+			String childNameInData, DataAttribute... childAttributes) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setStreamId(String streamId) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public String getStreamId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setFileName(String filename) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public String getFileName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setFileSize(String fileSize) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public String getFileSize() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setMimeType(String mimeType) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

@@ -36,9 +36,11 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicFactory;
 import se.uu.ub.cora.data.DataAtomicProvider;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
@@ -81,6 +83,7 @@ import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class SpiderRecordUpdaterTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
@@ -97,6 +100,8 @@ public class SpiderRecordUpdaterTest {
 	private DataGroupTermCollectorSpy termCollector;
 	private RecordIndexer recordIndexer;
 	private LoggerFactorySpy loggerFactorySpy;
+	private DataFactorySpy dataFactorySpy;
+
 	private DataGroupFactory dataGroupFactorySpy;
 	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataCopierFactory dataCopierFactory;
@@ -122,6 +127,9 @@ public class SpiderRecordUpdaterTest {
 	private void setUpFactoriesAndProviders() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
+
 		dataGroupFactorySpy = new DataGroupFactorySpy();
 		DataGroupProvider.setDataGroupFactory(dataGroupFactorySpy);
 		dataAtomicFactorySpy = new DataAtomicFactorySpy();
@@ -336,15 +344,30 @@ public class SpiderRecordUpdaterTest {
 				.getFirstGroupWithNameInData("recordInfo");
 		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(updatedOnceRecordInfo, "createdBy",
 				"4422");
+
 		String tsCreated = updatedOnceRecordInfo.getFirstAtomicValueWithNameInData("tsCreated");
 		assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
 
 		DataGroup updated = updatedOnceRecordInfo.getFirstGroupWithNameInData("updated");
+		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
+				"updatedBy", "user", "12345");
+		var updatedByLink = dataFactorySpy.MCR
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
+		assertDataChildFoundInChildren(updatedByLink, updated.getChildren());
 
-		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(updated, "updatedBy", "12345");
 		String tsUpdated = updated.getFirstAtomicValueWithNameInData("tsUpdated");
 		assertTrue(tsUpdated.matches(TIMESTAMP_FORMAT));
 		assertFalse(tsUpdated.equals(tsCreated));
+	}
+
+	private void assertDataChildFoundInChildren(Object createdByLink, List<DataChild> children) {
+		boolean createdByAdded = false;
+		for (DataChild dataChild : children) {
+			if (dataChild == createdByLink) {
+				createdByAdded = true;
+			}
+		}
+		assertTrue(createdByAdded);
 	}
 
 	@Test

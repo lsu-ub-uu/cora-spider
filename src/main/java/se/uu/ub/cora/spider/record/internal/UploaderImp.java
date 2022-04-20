@@ -22,13 +22,10 @@ package se.uu.ub.cora.spider.record.internal;
 import java.io.InputStream;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
-import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataResourceLink;
-import se.uu.ub.cora.data.DataResourceLinkProvider;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -58,8 +55,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		termCollector = dependencyProvider.getDataGroupTermCollector();
 	}
 
-	public static UploaderImp usingDependencyProvider(
-			SpiderDependencyProvider dependencyProvider) {
+	public static UploaderImp usingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
 		return new UploaderImp(dependencyProvider);
 	}
 
@@ -84,8 +80,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 
 		addOrReplaceResourceInfoToMetdataRecord(fileName, fileSize);
 
-		RecordUpdater spiderRecordUpdater = SpiderInstanceProvider
-				.getRecordUpdater();
+		RecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getRecordUpdater();
 		return spiderRecordUpdater.updateRecord(authToken, type, id, recordRead);
 	}
 
@@ -143,28 +138,15 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 	}
 
 	private void addResourceInfoToMetadataRecord(String fileName, long fileSize) {
-		DataGroup resourceInfo = DataGroupProvider.getDataGroupUsingNameInData(RESOURCE_INFO);
+		// DataGroup resourceInfo = DataGroupProvider.getDataGroupUsingNameInData(RESOURCE_INFO);
+		DataGroup resourceInfo = DataProvider.createGroupUsingNameInData(RESOURCE_INFO);
 		recordRead.addChild(resourceInfo);
-
-		DataResourceLink master = DataResourceLinkProvider
-				.getDataResourceLinkUsingNameInData("master");
+		DataResourceLink master = DataProvider.createResourceLinkUsingNameInData("master");
 		resourceInfo.addChild(master);
-
-		DataAtomic streamId2 = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("streamId",
-				streamId);
-		master.addChild(streamId2);
-
-		DataAtomic uploadedFileName = DataAtomicProvider
-				.getDataAtomicUsingNameInDataAndValue("filename", fileName);
-		master.addChild(uploadedFileName);
-
-		DataAtomic size = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("filesize",
-				String.valueOf(fileSize));
-		master.addChild(size);
-
-		DataAtomic mimeType = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("mimeType",
-				"application/octet-stream");
-		master.addChild(mimeType);
+		master.setStreamId(streamId);
+		master.setFileName(fileName);
+		master.setFileSize(String.valueOf(fileSize));
+		master.setMimeType("application/octet-stream");
 	}
 
 	private void replaceResourceInfoToMetadataRecord(String fileName, long fileSize) {
