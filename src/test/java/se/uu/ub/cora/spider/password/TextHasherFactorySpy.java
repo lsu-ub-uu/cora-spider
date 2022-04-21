@@ -22,18 +22,20 @@ package se.uu.ub.cora.spider.password;
 import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.password.texthasher.TextHasherFactory;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class TextHasherFactorySpy implements TextHasherFactory {
 
-	MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public TextHasherFactorySpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("factor", TextHasherSpy::new);
+	}
 
 	@Override
 	public TextHasher factor() {
-		MCR.addCall();
-
-		TextHasher textHasher = new TextHasherSpy();
-		MCR.addReturned(textHasher);
-		return textHasher;
+		return (TextHasher) MCR.addCallAndReturnFromMRV();
 	}
-
 }
