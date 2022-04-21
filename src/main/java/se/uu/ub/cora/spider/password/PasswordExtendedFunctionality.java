@@ -18,6 +18,9 @@
  */
 package se.uu.ub.cora.spider.password;
 
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -41,12 +44,44 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		if (data.dataGroup.containsChildWithNameInData("plainTextPassword")) {
-			String plainTextPassword = data.dataGroup
-					.getFirstAtomicValueWithNameInData("plainTextPassword");
-			data.dataGroup.removeAllChildrenWithNameInData("plainTextPassword");
-			textHasher.hashText(plainTextPassword);
+		if (plainTextPasswordIsSet(data)) {
+			handleSetPassword(data);
+			DataGroup systemSecret = DataProvider.createGroupUsingNameInData("systemSecret");
+
+			DataGroup recordInfo = DataProvider.createGroupUsingNameInData("recordInfo");
+			systemSecret.addChild(recordInfo);
+
+			DataGroup usersRecordInfo = data.dataGroup.getFirstGroupWithNameInData("recordInfo");
+			DataRecordLink userDataDivider = (DataRecordLink) usersRecordInfo
+					.getFirstChildWithNameInData("dataDivider");
+			String usersDataDividerId = userDataDivider.getLinkedRecordId();
+
+			DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("dataDivider", "system",
+					usersDataDividerId);
+
+			//
+			// DataRecordGroup systemSecret =
+			// DataProvider.createRecordGroupUsingNameInData("systemSecret");
+			// systemSecret.setDataDivider("diva");
+			// data.authToken
 		}
+
+	}
+
+	// private void createRecord(String recordTypeToCreate, DataGroup dataGroupToCreate) {
+	// RecordCreator spiderRecordCreatorOutput = SpiderInstanceProvider.getRecordCreator();
+	// spiderRecordCreatorOutput.createAndStoreRecord(authToken, recordTypeToCreate,
+	// dataGroupToCreate);
+	// }
+	private boolean plainTextPasswordIsSet(ExtendedFunctionalityData data) {
+		return data.dataGroup.containsChildWithNameInData("plainTextPassword");
+	}
+
+	private void handleSetPassword(ExtendedFunctionalityData data) {
+		String plainTextPassword = data.dataGroup
+				.getFirstAtomicValueWithNameInData("plainTextPassword");
+		data.dataGroup.removeAllChildrenWithNameInData("plainTextPassword");
+		textHasher.hashText(plainTextPassword);
 	}
 
 	SpiderDependencyProvider onlyForTestGetDependencyProvider() {
