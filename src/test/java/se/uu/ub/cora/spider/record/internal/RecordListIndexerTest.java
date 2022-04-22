@@ -43,11 +43,11 @@ import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataRecordSpy;
-import se.uu.ub.cora.spider.dependency.RecordCreatorSpy;
-import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceFactorySpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.dependency.spy.RecordCreatorSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderInstanceFactorySpy1;
 import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobSpy;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -74,7 +74,7 @@ public class RecordListIndexerTest {
 	private DataAtomicFactorySpy dataAtomicFactory;
 	private IndexBatchHandlerSpy indexBatchHandler;
 	private DataGroupHandlerForIndexBatchJobSpy batchJobConverterSpy;
-	private SpiderInstanceFactorySpy spiderInstanceFactorySpy;
+	private SpiderInstanceFactorySpy1 spiderInstanceFactorySpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -108,7 +108,7 @@ public class RecordListIndexerTest {
 		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
 		dataAtomicFactory = new DataAtomicFactorySpy();
 		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
-		spiderInstanceFactorySpy = new SpiderInstanceFactorySpy();
+		spiderInstanceFactorySpy = new SpiderInstanceFactorySpy1();
 		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactorySpy);
 	}
 

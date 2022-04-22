@@ -32,6 +32,7 @@ import java.util.Map;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.spider.dependency.spy.SpiderInstanceFactorySpy1;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.record.RecordReader;
 
@@ -45,7 +46,7 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void testGetDependencyProviderClassName() {
-		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		assertEquals(SpiderInstanceProvider.getDependencyProviderClassName(),
 				"someDependencyProviderClassNameFromSpy");
@@ -62,7 +63,7 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordReader() {
-		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 
 		var recordReader = SpiderInstanceProvider.getRecordReader();
@@ -73,7 +74,7 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordIncomingLinksReader() {
-		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		SpiderInstanceProvider.getIncomingLinksReader();
 		assertTrue(factory.incomingLinksReaderFactoryWasCalled);
@@ -81,7 +82,7 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void makeSureFactoryIsCalledForListRecordReader() {
-		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		SpiderInstanceProvider.getRecordListReader();
 		assertTrue(factory.listReaderFactoryWasCalled);
@@ -89,7 +90,7 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordCreator() {
-		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		SpiderInstanceProvider.getRecordCreator();
 		assertTrue(factory.creatorFactoryWasCalled);
@@ -97,7 +98,7 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordUpdater() {
-		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		SpiderInstanceProvider.getRecordUpdater();
 		assertTrue(factory.updaterFactoryWasCalled);
@@ -105,7 +106,7 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordDeleter() {
-		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		SpiderInstanceProvider.getRecordDeleter();
 		assertTrue(factory.deleterFactoryWasCalled);
@@ -113,7 +114,7 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordUploader() {
-		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		SpiderInstanceProvider.getUploader();
 		assertTrue(factory.uploaderFactoryWasCalled);
@@ -121,7 +122,7 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordDownloader() {
-		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		SpiderInstanceProvider.getDownloader();
 		assertTrue(factory.downloaderFactoryWasCalled);
@@ -129,7 +130,7 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordSearcher() {
-		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		SpiderInstanceProvider.getRecordSearcher();
 		assertTrue(factory.searcherFactoryWasCalled);
@@ -137,7 +138,7 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void makeSureFactoryCreateIsCalledForRecordValidator() {
-		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 		SpiderInstanceProvider.getRecordValidator();
 		assertTrue(factory.validatorFactoryWasCalled);
@@ -145,7 +146,7 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordListIndexer() {
-		SpiderInstanceFactorySpy factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
 		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 
 		var recordListIndexer = SpiderInstanceProvider.getRecordListIndexer();

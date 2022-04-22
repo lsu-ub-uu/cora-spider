@@ -1,4 +1,4 @@
-package se.uu.ub.cora.spider.dependency;
+package se.uu.ub.cora.spider.dependency.spy;
 
 import java.util.Map;
 

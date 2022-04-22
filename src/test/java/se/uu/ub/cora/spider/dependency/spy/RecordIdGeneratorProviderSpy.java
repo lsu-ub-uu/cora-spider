@@ -16,16 +16,15 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.dependency;
+package se.uu.ub.cora.spider.dependency.spy;
 
 import java.util.Map;
 
-import se.uu.ub.cora.spider.record.StreamStorageSpy;
-import se.uu.ub.cora.storage.StreamStorage;
-import se.uu.ub.cora.storage.StreamStorageProvider;
+import se.uu.ub.cora.storage.RecordIdGenerator;
+import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
 
-public class StreamStorageProviderSpy implements StreamStorageProvider {
-	public StreamStorage streamStorage = new StreamStorageSpy();
+public class RecordIdGeneratorProviderSpy implements RecordIdGeneratorProvider {
+	public RecordIdGenerator recordIdGenerator = new RecordIdGeneratorSpy();
 
 	@Override
 	public int getOrderToSelectImplementionsBy() {
@@ -40,8 +39,8 @@ public class StreamStorageProviderSpy implements StreamStorageProvider {
 	}
 
 	@Override
-	public StreamStorage getStreamStorage() {
-		return streamStorage;
+	public RecordIdGenerator getRecordIdGenerator() {
+		return recordIdGenerator;
 	}
 
 }

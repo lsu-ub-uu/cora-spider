@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Uppsala University Library
+ * Copyright 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,32 +16,19 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.dependency;
+package se.uu.ub.cora.spider.dependency.spy;
 
-import java.util.Map;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.record.RecordListIndexer;
 
-import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
-import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.RecordStorageProvider;
-
-public class RecordStorageProviderSpy implements RecordStorageProvider {
-	public RecordStorage recordStorage = new OldRecordStorageSpy();
+public class RecordListIndexerSpy implements RecordListIndexer {
 
 	@Override
-	public int getOrderToSelectImplementionsBy() {
+	public DataRecord indexRecordList(String authToken, String recordType,
+			DataGroup indexSettings) {
 		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public void startUsingInitInfo(Map<String, String> initInfo) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public RecordStorage getRecordStorage() {
-		return recordStorage;
+		return null;
 	}
 
 }

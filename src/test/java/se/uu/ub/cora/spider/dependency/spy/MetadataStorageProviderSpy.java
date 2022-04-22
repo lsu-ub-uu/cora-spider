@@ -16,18 +16,31 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.dependency;
+package se.uu.ub.cora.spider.dependency.spy;
 
-import se.uu.ub.cora.storage.RecordIdGenerator;
+import java.util.Map;
 
-public class RecordIdGeneratorSpy implements RecordIdGenerator {
+import se.uu.ub.cora.storage.MetadataStorage;
+import se.uu.ub.cora.storage.MetadataStorageProvider;
 
-	public RecordIdGenerator recordIdGenerator;
+public class MetadataStorageProviderSpy implements MetadataStorageProvider {
+	public MetadataStorage metadataStorage = new MetadataStorageSpy();
 
 	@Override
-	public String getIdForType(String type) {
+	public int getOrderToSelectImplementionsBy() {
 		// TODO Auto-generated method stub
-		return null;
+		return 0;
+	}
+
+	@Override
+	public void startUsingInitInfo(Map<String, String> initInfo) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public MetadataStorage getMetadataStorage() {
+		return metadataStorage;
 	}
 
 }

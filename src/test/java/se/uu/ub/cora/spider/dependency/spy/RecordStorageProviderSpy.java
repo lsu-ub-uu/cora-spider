@@ -16,15 +16,16 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.dependency;
+package se.uu.ub.cora.spider.dependency.spy;
 
 import java.util.Map;
 
-import se.uu.ub.cora.storage.MetadataStorage;
-import se.uu.ub.cora.storage.MetadataStorageProvider;
+import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
+import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.RecordStorageProvider;
 
-public class MetadataStorageProviderSpy implements MetadataStorageProvider {
-	public MetadataStorage metadataStorage = new MetadataStorageSpy();
+public class RecordStorageProviderSpy implements RecordStorageProvider {
+	public RecordStorage recordStorage = new OldRecordStorageSpy();
 
 	@Override
 	public int getOrderToSelectImplementionsBy() {
@@ -39,8 +40,8 @@ public class MetadataStorageProviderSpy implements MetadataStorageProvider {
 	}
 
 	@Override
-	public MetadataStorage getMetadataStorage() {
-		return metadataStorage;
+	public RecordStorage getRecordStorage() {
+		return recordStorage;
 	}
 
 }

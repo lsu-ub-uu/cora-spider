@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.dependency;
+package se.uu.ub.cora.spider.dependency.spy;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
@@ -41,7 +41,7 @@ public class RecordCreatorSpy implements RecordCreator {
 			dataRecordSpy = new DataRecordSpy(record);
 		}
 		MCR.addReturned(dataRecordSpy);
-		return dataRecordSpy;
+		return (DataRecord) MCR.addCallAndReturnFromMRV();
 	}
 
 }

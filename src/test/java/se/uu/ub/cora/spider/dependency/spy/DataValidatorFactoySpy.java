@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.dependency;
+package se.uu.ub.cora.spider.dependency.spy;
 
 import java.util.Map;
 
@@ -30,7 +30,7 @@ import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataValidatorFactoySpy implements DataValidatorFactory {
 
-	MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
 	public DataValidator factor(MetadataStorage metadataStorage,

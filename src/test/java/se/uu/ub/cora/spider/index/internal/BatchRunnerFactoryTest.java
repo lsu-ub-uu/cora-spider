@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.index.BatchRunnerFactory;
 
 public class BatchRunnerFactoryTest {

@@ -18,9 +18,10 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.dependency;
+package se.uu.ub.cora.spider.dependency.spy;
 
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
@@ -34,7 +35,7 @@ import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
-public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
+public class SpiderInstanceFactorySpy1 implements SpiderInstanceFactory {
 	public boolean incomingLinksReaderFactoryWasCalled = false;
 	public boolean listReaderFactoryWasCalled = false;
 	public boolean creatorFactoryWasCalled = false;

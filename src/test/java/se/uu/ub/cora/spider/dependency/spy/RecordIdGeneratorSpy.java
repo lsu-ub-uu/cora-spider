@@ -16,31 +16,18 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.dependency;
-
-import java.util.Map;
+package se.uu.ub.cora.spider.dependency.spy;
 
 import se.uu.ub.cora.storage.RecordIdGenerator;
-import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
 
-public class RecordIdGeneratorProviderSpy implements RecordIdGeneratorProvider {
-	public RecordIdGenerator recordIdGenerator = new RecordIdGeneratorSpy();
+public class RecordIdGeneratorSpy implements RecordIdGenerator {
+
+	public RecordIdGenerator recordIdGenerator;
 
 	@Override
-	public int getOrderToSelectImplementionsBy() {
+	public String getIdForType(String type) {
 		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public void startUsingInitInfo(Map<String, String> initInfo) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public RecordIdGenerator getRecordIdGenerator() {
-		return recordIdGenerator;
+		return null;
 	}
 
 }
