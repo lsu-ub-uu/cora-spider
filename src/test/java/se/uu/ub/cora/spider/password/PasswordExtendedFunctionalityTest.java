@@ -37,16 +37,19 @@ import se.uu.ub.cora.testspies.data.DataGroupSpy;
 import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 import se.uu.ub.cora.testspies.data.DataRecordSpy;
 import se.uu.ub.cora.testspies.spider.RecordCreatorSpy;
+import se.uu.ub.cora.testspies.spider.RecordReaderSpy;
+import se.uu.ub.cora.testspies.spider.RecordUpdaterSpy;
 import se.uu.ub.cora.testspies.spider.SpiderInstanceFactorySpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class PasswordExtendedFunctionalityTest {
+	private static final String PASSWORD = "password";
 	private static final String SYSTEM_SECRET_TYPE = "systemSecret";
 	SpiderDependencyProvider dependencyProvider;
 	TextHasherSpy textHasher;
 	PasswordExtendedFunctionality extended;
-	private ExtendedFunctionalityData exData;
+	private ExtendedFunctionalityData efData;
 
 	private DataFactorySpy dataFactory;
 	private DataGroupSpy dataRecordGroup;
@@ -76,8 +79,8 @@ public class PasswordExtendedFunctionalityTest {
 		dataRecordGroup = new DataGroupSpy();
 		rGroupMCR = dataRecordGroup.MCR;
 		rGroupMRV = dataRecordGroup.MRV;
-		rGroupMRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
-				(Supplier<Boolean>) () -> true);
+		rGroupMRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				((Supplier<Boolean>) () -> true), "plainTextPassword");
 
 		setupDataDividerForDataRecordGroup();
 	}
@@ -92,11 +95,11 @@ public class PasswordExtendedFunctionalityTest {
 	}
 
 	private void createExtendedFunctionallityData() {
-		exData = new ExtendedFunctionalityData();
-		exData.dataGroup = dataRecordGroup;
-		exData.authToken = "fakeToken";
-		exData.recordType = "fakeType";
-		exData.recordId = "fakeId";
+		efData = new ExtendedFunctionalityData();
+		efData.dataGroup = dataRecordGroup;
+		efData.authToken = "fakeToken";
+		efData.recordType = "fakeType";
+		efData.recordId = "fakeId";
 	}
 
 	@Test
@@ -112,7 +115,7 @@ public class PasswordExtendedFunctionalityTest {
 		rGroupMRV.setReturnValues("containsChildWithNameInData", List.of(false),
 				"plainTextPassword");
 
-		extended.useExtendedFunctionality(exData);
+		extended.useExtendedFunctionality(efData);
 
 		rGroupMCR.assertParameters("containsChildWithNameInData", 0, "plainTextPassword");
 		rGroupMCR.assertMethodNotCalled("getFirstAtomicValueWithNameInData");
@@ -121,10 +124,21 @@ public class PasswordExtendedFunctionalityTest {
 	}
 
 	@Test
-	public void testClearTextPasswordIsRemovedFromDataRecordGroup() throws Exception {
-		String tsUpdated = setUpSpiesForCreateReturningDataRecordWithTsUpdated();
+	public void testClearTextPasswordIsRemovedFromDataRecordGroupCreate() throws Exception {
+		setUpSpiesForCreateReturningDataRecordWithTsUpdated();
 
-		extended.useExtendedFunctionality(exData);
+		extended.useExtendedFunctionality(efData);
+
+		rGroupMCR.assertParameters("containsChildWithNameInData", 0, "plainTextPassword");
+		rGroupMCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "plainTextPassword");
+		rGroupMCR.assertParameters("removeAllChildrenWithNameInData", 0, "plainTextPassword");
+	}
+
+	@Test
+	public void testClearTextPasswordIsRemovedFromDataRecordGroupUpdate() throws Exception {
+		setUpSpiesForUpdateReturningDataRecordWithTsUpdated();
+
+		extended.useExtendedFunctionality(efData);
 
 		rGroupMCR.assertParameters("containsChildWithNameInData", 0, "plainTextPassword");
 		rGroupMCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "plainTextPassword");
@@ -133,20 +147,24 @@ public class PasswordExtendedFunctionalityTest {
 
 	@Test
 	public void testClearTextPasswordIsHashed() throws Exception {
-		String tsUpdated = setUpSpiesForCreateReturningDataRecordWithTsUpdated();
+		setUpSpiesForCreateReturningDataRecordWithTsUpdated();
 
-		extended.useExtendedFunctionality(exData);
+		extended.useExtendedFunctionality(efData);
 
+		assertPlainTextHashed();
+	}
+
+	private void assertPlainTextHashed() {
 		var plainTextPassword = rGroupMCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
 		textHasher.MCR.assertParameters("hashText", 0, plainTextPassword);
 	}
 
 	@Test
 	public void testCreateNewPasswordRecord() throws Exception {
-		String tsUpdated = setUpSpiesForCreateReturningDataRecordWithTsUpdated();
+		setUpSpiesForCreateReturningDataRecordWithTsUpdated();
 		rGroupMRV.setReturnValues("containsChildWithNameInData", List.of(false), "passwordLink");
 
-		extended.useExtendedFunctionality(exData);
+		extended.useExtendedFunctionality(efData);
 
 		dataFactory.MCR.assertParameters("factorGroupUsingNameInData", 0, SYSTEM_SECRET_TYPE);
 		DataGroupSpy secret = (DataGroupSpy) dataFactory.MCR
@@ -154,7 +172,7 @@ public class PasswordExtendedFunctionalityTest {
 
 		assertRecordInfoWithDataDividerAddedTo(secret);
 
-		assertHashedPasswordIsAddedTo(secret);
+		assertHashedPasswordIsAddedToGroupAsNumber(secret, 1);
 
 	}
 
@@ -173,26 +191,26 @@ public class PasswordExtendedFunctionalityTest {
 		recordInfo.MCR.assertParameters("addChild", 0, dataDivider);
 	}
 
-	private void assertHashedPasswordIsAddedTo(DataGroupSpy secret) {
+	private void assertHashedPasswordIsAddedToGroupAsNumber(DataGroupSpy secret, int addedAsNo) {
 		var hashedPassword = textHasher.MCR.getReturnValue("hashText", 0);
 		dataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "secret",
 				hashedPassword);
 		var hashedPasswordAtomic = dataFactory.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
-		secret.MCR.assertParameters("addChild", 1, hashedPasswordAtomic);
+		secret.MCR.assertParameters("addChild", addedAsNo, hashedPasswordAtomic);
 	}
 
 	@Test
 	public void testSystemSecretIsCreatedForNewPassword() throws Exception {
-		String tsUpdated = setUpSpiesForCreateReturningDataRecordWithTsUpdated();
+		setUpSpiesForCreateReturningDataRecordWithTsUpdated();
 
-		extended.useExtendedFunctionality(exData);
+		extended.useExtendedFunctionality(efData);
 
 		DataGroupSpy secret = (DataGroupSpy) dataFactory.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
 		RecordCreatorSpy recordCreator = (RecordCreatorSpy) spiderInstanceFactory.MCR
 				.getReturnValue("factorRecordCreator", 0);
-		recordCreator.MCR.assertParameters("createAndStoreRecord", 0, exData.authToken,
+		recordCreator.MCR.assertParameters("createAndStoreRecord", 0, efData.authToken,
 				SYSTEM_SECRET_TYPE, secret);
 	}
 
@@ -200,7 +218,7 @@ public class PasswordExtendedFunctionalityTest {
 	public void testUserUpdatedWithInformationAboutNewPassword() throws Exception {
 		String tsUpdated = setUpSpiesForCreateReturningDataRecordWithTsUpdated();
 
-		extended.useExtendedFunctionality(exData);
+		extended.useExtendedFunctionality(efData);
 
 		RecordCreatorSpy recordCreator = (RecordCreatorSpy) spiderInstanceFactory.MCR
 				.getReturnValue("factorRecordCreator", 0);
@@ -208,8 +226,8 @@ public class PasswordExtendedFunctionalityTest {
 				.getReturnValue("createAndStoreRecord", 0);
 		var secretId = secretRecord.MCR.getReturnValue("getId", 0);
 
-		dataFactory.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 1,
-				"password", SYSTEM_SECRET_TYPE, secretId);
+		dataFactory.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 1, PASSWORD,
+				SYSTEM_SECRET_TYPE, secretId);
 		var secretLink = dataFactory.MCR
 				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 1);
 		rGroupMCR.assertParameters("addChild", 0, secretLink);
@@ -223,14 +241,10 @@ public class PasswordExtendedFunctionalityTest {
 				.getReturnValue("getFirstGroupWithNameInData", 0);
 		recordInfoGroup.MCR.assertParameter("getAllGroupsWithNameInData", 0, "nameInData",
 				"updated");
-		dataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1,
-				"tsPasswordUpdated", tsUpdated);
-		var tsUpdatedAtomic = dataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				1);
-		rGroupMCR.assertParameters("addChild", 1, tsUpdatedAtomic);
+		int assertChildCall = 1;
+		assertCreateAtomicTsUpdatedPassword(tsUpdated, assertChildCall);
 
 	}
-	// check if user has filled out clearTextPassword
 
 	private String setUpSpiesForCreateReturningDataRecordWithTsUpdated() {
 		RecordCreatorSpy recordCreatorSpy = new RecordCreatorSpy();
@@ -256,12 +270,95 @@ public class PasswordExtendedFunctionalityTest {
 		return tsUpdated;
 	}
 
-	// hash password
-	// empty clearTextPw field
+	@Test
+	public void testUpdatePassword() throws Exception {
+		setUpSpiesForUpdateReturningDataRecordWithTsUpdated();
 
-	// check if password instance exists
-	// -- if not, create password instance, link to user
+		extended.useExtendedFunctionality(efData);
 
-	// -- if true, update password hash in instance
+		assertPlainTextHashed();
+		spiderInstanceFactory.MCR.assertMethodNotCalled("factorRecordCreator");
 
+		RecordReaderSpy recordReader = (RecordReaderSpy) spiderInstanceFactory.MCR
+				.getReturnValue("factorRecordReader", 0);
+
+		DataRecordLinkSpy passwordLink = (DataRecordLinkSpy) rGroupMCR
+				.getReturnValue("getFirstChildWithNameInData", 0);
+
+		recordReader.MCR.assertParameters("readRecord", 0, efData.authToken, SYSTEM_SECRET_TYPE,
+				passwordLink.getLinkedRecordId());
+
+		DataRecordSpy systemSecret = (DataRecordSpy) recordReader.MCR.getReturnValue("readRecord",
+				0);
+
+		DataGroupSpy systemSecretG = (DataGroupSpy) systemSecret.MCR.getReturnValue("getDataGroup",
+				0);
+		systemSecretG.MCR.assertParameters("removeAllChildrenWithNameInData", 0, PASSWORD);
+		assertHashedPasswordIsAddedToGroupAsNumber(systemSecretG, 0);
+
+		RecordUpdaterSpy recordUpdater = (RecordUpdaterSpy) spiderInstanceFactory.MCR
+				.getReturnValue("factorRecordUpdater", 0);
+
+		recordUpdater.MCR.assertParameters("updateRecord", 0, efData.authToken, SYSTEM_SECRET_TYPE,
+				passwordLink.getLinkedRecordId(), systemSecretG);
+
+		String tsUpdated = "2022-04-23T13:55:55.827000Z";
+
+		rGroupMCR.assertParameters("removeAllChildrenWithNameInData", 1, "tsPasswordUpdated");
+		int assertChildCall = 0;
+		assertCreateAtomicTsUpdatedPassword(tsUpdated, assertChildCall);
+
+	}
+
+	private void assertCreateAtomicTsUpdatedPassword(String tsUpdated, int assertChildCall) {
+		dataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1,
+				"tsPasswordUpdated", tsUpdated);
+		var tsUpdatedAtomic = dataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
+				1);
+		rGroupMCR.assertParameters("addChild", assertChildCall, tsUpdatedAtomic);
+	}
+
+	private String setUpSpiesForUpdateReturningDataRecordWithTsUpdated() {
+		rGroupMRV.setReturnValues("containsChildWithNameInData", List.of(true), "passwordLink");
+
+		DataRecordLinkSpy passwordLink = new DataRecordLinkSpy();
+
+		passwordLink.MRV.setSpecificReturnValuesSupplier("getLinkedRecordId",
+				(Supplier<String>) () -> "passwordLinkId");
+
+		rGroupMRV.setSpecificReturnValuesSupplier("getFirstChildWithNameInData",
+				(Supplier<DataRecordLinkSpy>) () -> passwordLink, "passwordLink");
+
+		RecordReaderSpy recordReaderSpy = new RecordReaderSpy();
+		spiderInstanceFactory.MRV.setReturnValues("factorRecordReader", List.of(recordReaderSpy));
+		DataRecordSpy readDataRecord = new DataRecordSpy();
+		recordReaderSpy.MRV.setDefaultReturnValuesSupplier("readRecord",
+				(Supplier<DataRecordSpy>) () -> readDataRecord);
+
+		DataGroupSpy readRecordGroup = new DataGroupSpy();
+		readDataRecord.MRV.setReturnValues("getDataGroup", List.of(readRecordGroup));
+
+		RecordUpdaterSpy recordUpdaterSpy = new RecordUpdaterSpy();
+		spiderInstanceFactory.MRV.setReturnValues("factorRecordUpdater", List.of(recordUpdaterSpy));
+
+		DataRecordSpy updatedDataRecord = new DataRecordSpy();
+		recordUpdaterSpy.MRV.setDefaultReturnValuesSupplier("updateRecord",
+				(Supplier<DataRecordSpy>) () -> updatedDataRecord);
+
+		DataGroupSpy updatedRecordGroup = new DataGroupSpy();
+		updatedDataRecord.MRV.setReturnValues("getDataGroup", List.of(updatedRecordGroup));
+
+		DataGroupSpy updatedRecordInfo = new DataGroupSpy();
+		updatedRecordGroup.MRV.setReturnValues("getFirstGroupWithNameInData",
+				List.of(updatedRecordInfo), "recordInfo");
+		DataGroupSpy updatedGroup = new DataGroupSpy();
+		List<DataGroupSpy> updatedList = List.of(new DataGroupSpy(), updatedGroup);
+		updatedRecordInfo.MRV.setReturnValues("getAllGroupsWithNameInData", List.of(updatedList),
+				"updated");
+
+		String tsUpdated = "2022-04-23T13:55:55.827000Z";
+		updatedGroup.MRV.setReturnValues("getFirstAtomicValueWithNameInData", List.of(tsUpdated),
+				"tsUpdated");
+		return tsUpdated;
+	}
 }

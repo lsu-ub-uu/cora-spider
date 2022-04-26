@@ -25,7 +25,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -135,7 +135,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	}
 
 	private DataGroup createNewFilter() {
-		return DataGroupProvider.getDataGroupUsingNameInData(FILTER);
+		return DataProvider.createGroupUsingNameInData(FILTER);
 	}
 
 	private long getTotalNumberOfMatchesFromStorageUsingFilter(DataGroup filter) {
@@ -167,13 +167,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 	private void setRecordIdInIndexBatchJobFromCreatedRecord(IndexBatchJob indexBatchJob,
 			DataRecord createdRecord) {
-		indexBatchJob.recordId = extractRecordIdFromDataRecord(createdRecord);
-	}
-
-	private String extractRecordIdFromDataRecord(DataRecord dataRecord) {
-		DataGroup topLevelDataGroup = dataRecord.getDataGroup();
-		DataGroup recordInfo = topLevelDataGroup.getFirstGroupWithNameInData("recordInfo");
-		return recordInfo.getFirstAtomicValueWithNameInData("id");
+		indexBatchJob.recordId = createdRecord.getId();
 	}
 
 	// needed for test

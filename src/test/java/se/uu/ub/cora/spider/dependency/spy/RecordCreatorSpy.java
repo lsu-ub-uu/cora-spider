@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2021, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,28 +20,27 @@ package se.uu.ub.cora.spider.dependency.spy;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.spider.data.DataRecordSpy;
 import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.testspies.data.DataRecordSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class RecordCreatorSpy implements RecordCreator {
 
 	public DataRecord recordToReturn = null;
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public RecordCreatorSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("createAndStoreRecord", DataRecordSpy::new);
+	}
 
 	@Override
 	public DataRecord createAndStoreRecord(String authToken, String type, DataGroup record) {
-		MCR.addCall("authToken", authToken, "type", type, "record", record);
-		DataRecordSpy dataRecordSpy = null;
-		if (recordToReturn != null) {
-
-			dataRecordSpy = (DataRecordSpy) recordToReturn;
-		} else {
-			dataRecordSpy = new DataRecordSpy(record);
-		}
-		MCR.addReturned(dataRecordSpy);
-		return (DataRecord) MCR.addCallAndReturnFromMRV();
+		return (DataRecord) MCR.addCallAndReturnFromMRV("authToken", authToken, "type", type,
+				"record", record);
 	}
 
 }

@@ -24,44 +24,41 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.data.DataRecordSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordCreatorSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderInstanceFactorySpy1;
 import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobSpy;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
-import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
+import se.uu.ub.cora.testspies.data.DataGroupSpy;
+import se.uu.ub.cora.testspies.data.DataRecordSpy;
+import se.uu.ub.cora.testspies.spider.SpiderInstanceFactorySpy;
 
 public class RecordListIndexerTest {
 
 	private static final String SOME_USER_TOKEN = "someToken123456789";
 	private static final String SOME_RECORD_TYPE = "someRecordType";
 
-	private LoggerFactorySpy loggerFactorySpy;
+	private DataFactorySpy dataFactory;
 	private SpiderDependencyProviderSpy dependencyProviderSpy;
 	private RecordListIndexerImp recordListIndexer;
 	private AuthenticatorSpy authenticatorSpy;
@@ -70,18 +67,23 @@ public class RecordListIndexerTest {
 	private DataGroupSpy indexSettingsWithoutFilter;
 	private DataGroupSpy indexSettingsWithFilter;
 	private DataValidatorSpy dataValidatorSpy;
-	private DataGroupFactorySpy dataGroupFactory;
-	private DataAtomicFactorySpy dataAtomicFactory;
 	private IndexBatchHandlerSpy indexBatchHandler;
 	private DataGroupHandlerForIndexBatchJobSpy batchJobConverterSpy;
-	private SpiderInstanceFactorySpy1 spiderInstanceFactorySpy;
+	private SpiderInstanceFactorySpy spiderInstanceFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
+		dataFactory = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactory);
+
 		setUpDependencyProvider();
 		setUpDataProviders();
-		indexSettingsWithoutFilter = new DataGroupSpy("indexSettings");
-		indexSettingsWithFilter = createIndexSettingsWithFilter();
+		indexSettingsWithoutFilter = new DataGroupSpy();
+		indexSettingsWithoutFilter.MRV.setDefaultReturnValuesSupplier("hasChildren",
+				(Supplier<Boolean>) () -> false);
+		indexSettingsWithFilter = new DataGroupSpy();
+		indexSettingsWithFilter.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
+				(Supplier<Boolean>) () -> true);
 		indexBatchHandler = new IndexBatchHandlerSpy();
 		batchJobConverterSpy = new DataGroupHandlerForIndexBatchJobSpy();
 		setUpRecordCreatorToReturnRecordWithId("someRecordId");
@@ -91,8 +93,6 @@ public class RecordListIndexerTest {
 	}
 
 	private void setUpDependencyProvider() {
-		loggerFactorySpy = new LoggerFactorySpy();
-		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		dependencyProviderSpy = new SpiderDependencyProviderSpy(new HashMap<>());
 		authenticatorSpy = new AuthenticatorSpy();
 		authorizatorSpy = new SpiderAuthorizatorSpy();
@@ -104,19 +104,8 @@ public class RecordListIndexerTest {
 	}
 
 	private void setUpDataProviders() {
-		dataGroupFactory = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
-		dataAtomicFactory = new DataAtomicFactorySpy();
-		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
-		spiderInstanceFactorySpy = new SpiderInstanceFactorySpy1();
-		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactorySpy);
-	}
-
-	private DataGroupSpy createIndexSettingsWithFilter() {
-		DataGroupSpy indexSettingsWithFilter = new DataGroupSpy("indexSettings");
-		DataGroup filter = new DataGroupSpy("filter");
-		indexSettingsWithFilter.addChild(filter);
-		return indexSettingsWithFilter;
+		spiderInstanceFactory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
 	}
 
 	@Test
@@ -201,8 +190,8 @@ public class RecordListIndexerTest {
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
 
-		DataGroup createdFilter = (DataGroup) dataGroupFactory.MCR
-				.getReturnValue("factorUsingNameInData", 0);
+		DataGroup createdFilter = (DataGroup) dataFactory.MCR
+				.getReturnValue("factorGroupUsingNameInData", 0);
 
 		recordStorage.MCR.assertParameter("getTotalNumberOfRecordsForType", 0, "filter",
 				createdFilter);
@@ -235,8 +224,8 @@ public class RecordListIndexerTest {
 
 		batchJobConverterSpy.MCR.assertMethodWasCalled("createDataGroup");
 
-		DataGroup createdFilter = (DataGroup) dataGroupFactory.MCR
-				.getReturnValue("factorUsingNameInData", 0);
+		DataGroup createdFilter = (DataGroup) dataFactory.MCR
+				.getReturnValue("factorGroupUsingNameInData", 0);
 
 		IndexBatchJob indexBatchJob = getParameterIndexBatchJobFromConverterSpy();
 
@@ -259,7 +248,6 @@ public class RecordListIndexerTest {
 
 		assertEquals(indexBatchJob.recordTypeToIndex, SOME_RECORD_TYPE);
 		assertEquals(indexBatchJob.totalNumberToIndex, 0);
-		assertEquals(indexBatchJob.filter.getNameInData(), "filter");
 
 		assertSame(indexBatchJob.filter, extractedFilterFromIndexSettings);
 	}
@@ -270,7 +258,7 @@ public class RecordListIndexerTest {
 		DataRecord finalRecord = recordListIndexer.indexRecordList(SOME_USER_TOKEN,
 				SOME_RECORD_TYPE, indexSettingsWithoutFilter);
 
-		RecordCreatorSpy recordCreatorSpy = (RecordCreatorSpy) spiderInstanceFactorySpy.MCR
+		RecordCreatorSpy recordCreatorSpy = (RecordCreatorSpy) spiderInstanceFactory.MCR
 				.getReturnValue("factorRecordCreator", 0);
 		recordCreatorSpy.MCR.assertMethodWasCalled("createAndStoreRecord");
 
@@ -288,19 +276,23 @@ public class RecordListIndexerTest {
 	@Test
 	public void testRecordIdInIndexBatchJobIsSetFromIdCreatedInRecordWhenCreating()
 			throws Exception {
-
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
 
 		IndexBatchJob indexBatchJob = getParameterIndexBatchJobFromConverterSpy();
+
 		assertEquals(indexBatchJob.recordId, "someRecordId");
 	}
 
 	@Test
 	public void testRecordIdInIndexBatchJobIsSetFromIdCreatedInRecordWhenCreatingDifferentId()
 			throws Exception {
-		setUpRecordCreatorToReturnRecordWithId("someOtherRecordId");
-
+		RecordCreatorSpy recordCreatorSpy = new RecordCreatorSpy();
+		spiderInstanceFactory.MRV.setReturnValues("factorRecordCreator", List.of(recordCreatorSpy));
+		DataRecordSpy dataRecord = new DataRecordSpy();
+		recordCreatorSpy.MRV.setDefaultReturnValuesSupplier("createAndStoreRecord",
+				(Supplier<DataRecordSpy>) () -> dataRecord);
+		dataRecord.MRV.setReturnValues("getId", List.of("someOtherRecordId"));
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
 
@@ -344,8 +336,8 @@ public class RecordListIndexerTest {
 		var listOfImplementingRecordTypeIds = recordTypeHandler.MCR
 				.getReturnValue("getListOfImplementingRecordTypeIds", 0);
 
-		DataGroup createdFilter = (DataGroup) dataGroupFactory.MCR
-				.getReturnValue("factorUsingNameInData", 0);
+		DataGroup createdFilter = (DataGroup) dataFactory.MCR
+				.getReturnValue("factorGroupUsingNameInData", 0);
 
 		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForAbstractType", 0,
 				SOME_RECORD_TYPE, listOfImplementingRecordTypeIds, createdFilter);
@@ -353,12 +345,11 @@ public class RecordListIndexerTest {
 	}
 
 	private void setUpRecordCreatorToReturnRecordWithId(String recordId) {
-		DataGroupSpy dataGroupSpy = new DataGroupSpy("indexBatchJob");
-		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
-		dataGroupSpy.addChild(recordInfo);
-		recordInfo.addChild(new DataAtomicSpy("id", recordId));
-
-		DataRecordSpy dataRecordSpy = new DataRecordSpy(dataGroupSpy);
-		spiderInstanceFactorySpy.recordToReturnForRecordCreator = dataRecordSpy;
+		RecordCreatorSpy recordCreatorSpy = new RecordCreatorSpy();
+		spiderInstanceFactory.MRV.setReturnValues("factorRecordCreator", List.of(recordCreatorSpy));
+		DataRecordSpy dataRecord = new DataRecordSpy();
+		recordCreatorSpy.MRV.setDefaultReturnValuesSupplier("createAndStoreRecord",
+				(Supplier<DataRecordSpy>) () -> dataRecord);
+		dataRecord.MRV.setReturnValues("getId", List.of("someRecordId"));
 	}
 }
