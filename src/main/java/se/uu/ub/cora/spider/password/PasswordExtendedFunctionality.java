@@ -20,9 +20,9 @@ package se.uu.ub.cora.spider.password;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
@@ -32,9 +32,9 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordStorage;
 
 /**
@@ -104,22 +104,38 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	}
 
 	private void createSystemSecretAndUpdateUser(String hashedPassword) {
-		DataRecord systemSecretRecord = createAndStoreSystemSecretRecord(hashedPassword);
-		addLinkToSystemSecret(systemSecretRecord);
-		setTimestampWhenPasswordHasBeenStored(systemSecretRecord);
+		String systemSecretId = createAndStoreSystemSecretRecord(hashedPassword);
+		addLinkToSystemSecret(systemSecretId);
+		setTimestampWhenPasswordHasBeenStored();
 	}
 
-	private DataRecord createAndStoreSystemSecretRecord(String hashedPassword) {
+	private String createAndStoreSystemSecretRecord(String hashedPassword) {
 		DataGroup systemSecret = createSystemSecretGroupWithRecordInfoAndHashedPassword(
 				hashedPassword);
 		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		// RecordIdGenerator recordIdGenerator = dependencyProvider.getRecordIdGenerator();
-		// recordIdGenerator.getIdForType(SYSTEM_SECRET_TYPE);
-		//
-		recordStorage.create(SYSTEM_SECRET_TYPE, null, null, null, null, null);
-		// recordStorage.create(type, id, dataRecord, collectedTerms, linkedList, dataDivider);
-		RecordCreator recordCreator = SpiderInstanceProvider.getRecordCreator();
-		return recordCreator.createAndStoreRecord(data.authToken, SYSTEM_SECRET_TYPE, systemSecret);
+		RecordIdGenerator recordIdGenerator = dependencyProvider.getRecordIdGenerator();
+		String systemSecretId = recordIdGenerator.getIdForType(SYSTEM_SECRET_TYPE);
+
+		DataGroup collectedTerms = createCollectedTerms(systemSecretId);
+		DataGroup collectedDataLinks = DataProvider
+				.createGroupUsingNameInData("collectedDataLinks");
+
+		String dataDivider = readDataDividerFromUserGroup();
+
+		recordStorage.create(SYSTEM_SECRET_TYPE, systemSecretId, systemSecret, collectedTerms,
+				collectedDataLinks, dataDivider);
+		return systemSecretId;
+	}
+
+	private DataGroup createCollectedTerms(String systemSecretId) {
+		DataGroup collectedTerms = DataProvider.createGroupUsingNameInData("collectedData");
+		DataChild collectedTermsType = DataProvider.createAtomicUsingNameInDataAndValue("type",
+				SYSTEM_SECRET_TYPE);
+		DataChild collectedTermsId = DataProvider.createAtomicUsingNameInDataAndValue("id",
+				systemSecretId);
+		collectedTerms.addChild(collectedTermsType);
+		collectedTerms.addChild(collectedTermsId);
+		return collectedTerms;
 	}
 
 	// private DataGroup createDataGroupWithTypeAndId(String type, String id) {
@@ -141,47 +157,53 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		return systemSecret;
 	}
 
-	private void createAndAddRecordInfoForSystemSecret(DataGroup systemSecret) {
-		DataGroup recordInfo = DataProvider.createGroupUsingNameInData(RECORD_INFO);
-		systemSecret.addChild(recordInfo);
+	// private void createAndAddRecordInfoForSystemSecret(DataGroup systemSecret) {
+	// DataGroup recordInfo = DataProvider.createGroupUsingNameInData(RECORD_INFO);
+	// systemSecret.addChild(recordInfo);
+	//
+	// DataRecordLink dataDivider = createDataDivider();
+	// recordInfo.addChild(dataDivider);
+	// }
 
-		DataRecordLink dataDivider = createDataDivider();
-		recordInfo.addChild(dataDivider);
-	}
-
-	private void addLinkToSystemSecret(DataRecord systemSecretRecord) {
-		var secretLink = createLinkPointingToSecretRecord(systemSecretRecord);
+	private void addLinkToSystemSecret(String systemSecretRecordId) {
+		var secretLink = createLinkPointingToSecretRecord(systemSecretRecordId);
 		userGroup.addChild(secretLink);
 	}
 
-	private void setTimestampWhenPasswordHasBeenStored(DataRecord systemSecretRecord) {
-		DataAtomic tsPasswordUpdated = createAtomicLatestTsUpdatedFromRecord(systemSecretRecord);
+	private void setTimestampWhenPasswordHasBeenStored() {
+		DataAtomic tsPasswordUpdated = createAtomicLatestTsUpdatedFromRecord();
 		userGroup.addChild(tsPasswordUpdated);
 	}
 
 	private void updateSystemSecretAndUpdateUser(String hashedPassword) {
 		String systemSecretId = readSystemSecretId();
-		DataRecord systemSecretRecord = replacePasswordInSystemSecret(systemSecretId,
-				hashedPassword);
-		DataAtomic tsPasswordUpdated = updateTsPasswordUpdatedUsingTsUppdate(systemSecretRecord);
+		replacePasswordInSystemSecret(systemSecretId, hashedPassword);
+		DataAtomic tsPasswordUpdated = updateTsPasswordUpdatedUsingTsUppdate();
 		userGroup.addChild(tsPasswordUpdated);
 	}
 
-	private DataAtomic updateTsPasswordUpdatedUsingTsUppdate(DataRecord systemSecretRecord) {
+	private DataAtomic updateTsPasswordUpdatedUsingTsUppdate() {
 		userGroup.removeAllChildrenWithNameInData("tsPasswordUpdated");
-		return createAtomicLatestTsUpdatedFromRecord(systemSecretRecord);
+		return createAtomicLatestTsUpdatedFromRecord();
 	}
 
-	private DataRecord replacePasswordInSystemSecret(String systemSecretId, String hashedPassword) {
-		DataRecord systemSecret = readSystemSecretRecord(systemSecretId);
-		DataGroup systemSecretG = removeOldPassword(systemSecret);
+	private void replacePasswordInSystemSecret(String systemSecretId, String hashedPassword) {
+		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
+		DataGroup systemSecretG = recordStorage.read(SYSTEM_SECRET_TYPE, systemSecretId);
+		systemSecretG.removeAllChildrenWithNameInData(PASSWORD);
+
+		// DataRecord systemSecret = readSystemSecretRecord(systemSecretId);
+		// DataGroup systemSecretG = removeOldPassword(systemSecret);
 		addHashedPasswordToGroup(hashedPassword, systemSecretG);
-		return updateSystemSecretRecord(systemSecretId, systemSecretG);
+
+		recordStorage.update(SYSTEM_SECRET_TYPE, systemSecretId, null, null, null, null);
+
+		// updateSystemSecretRecord(systemSecretId, systemSecretG);
 	}
 
-	private DataRecord updateSystemSecretRecord(String systemSecretId, DataGroup systemSecretG) {
+	private void updateSystemSecretRecord(String systemSecretId, DataGroup systemSecretG) {
 		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
-		return recordUpdater.updateRecord(data.authToken, SYSTEM_SECRET_TYPE, systemSecretId,
+		recordUpdater.updateRecord(data.authToken, SYSTEM_SECRET_TYPE, systemSecretId,
 				systemSecretG);
 	}
 
@@ -192,6 +214,9 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	}
 
 	private DataRecord readSystemSecretRecord(String systemSecretId) {
+		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
+		DataGroup read = recordStorage.read(SYSTEM_SECRET_TYPE, systemSecretId);
+
 		RecordReader recordReader = SpiderInstanceProvider.getRecordReader();
 		return recordReader.readRecord(data.authToken, SYSTEM_SECRET_TYPE, systemSecretId);
 	}
@@ -202,8 +227,8 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		return passwordLink.getLinkedRecordId();
 	}
 
-	private DataAtomic createAtomicLatestTsUpdatedFromRecord(DataRecord systemSecretRecord) {
-		DataGroup recordInfo = getRecordInfoFromRecord(systemSecretRecord);
+	private DataAtomic createAtomicLatestTsUpdatedFromRecord() {
+		// DataGroup recordInfo = getRecordInfoFromRecord(systemSecretRecord);
 
 		// String tsUpdated = getLatestTsUpdatedValue(recordInfo);
 		String tsUpdated = getCurrentFormattedTime();
@@ -216,31 +241,33 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		return currentDateTime.format(dateTimeFormatter);
 	}
 
-	private DataGroup getRecordInfoFromRecord(DataRecord systemSecretRecord) {
-		DataGroup secretGroup = systemSecretRecord.getDataGroup();
-		return secretGroup.getFirstGroupWithNameInData(RECORD_INFO);
-	}
+	// private DataGroup getRecordInfoFromRecord(DataRecord systemSecretRecord) {
+	// DataGroup secretGroup = systemSecretRecord.getDataGroup();
+	// return secretGroup.getFirstGroupWithNameInData(RECORD_INFO);
+	// }
+	//
+	// private String getLatestTsUpdatedValue(DataGroup recordInfo) {
+	// List<DataGroup> allGroupsWithNameInData = recordInfo.getAllGroupsWithNameInData("updated");
+	// DataGroup latestTsUpdated = allGroupsWithNameInData.get(allGroupsWithNameInData.size() - 1);
+	// return latestTsUpdated.getFirstAtomicValueWithNameInData("tsUpdated");
+	// }
 
-	private String getLatestTsUpdatedValue(DataGroup recordInfo) {
-		List<DataGroup> allGroupsWithNameInData = recordInfo.getAllGroupsWithNameInData("updated");
-		DataGroup latestTsUpdated = allGroupsWithNameInData.get(allGroupsWithNameInData.size() - 1);
-		return latestTsUpdated.getFirstAtomicValueWithNameInData("tsUpdated");
-	}
-
-	private DataRecordLink createLinkPointingToSecretRecord(DataRecord systemSecretRecord) {
-		String systemSecretRecordId = systemSecretRecord.getId();
+	private DataRecordLink createLinkPointingToSecretRecord(String systemSecretRecordId) {
 		return DataProvider.createRecordLinkUsingNameInDataAndTypeAndId(PASSWORD,
 				SYSTEM_SECRET_TYPE, systemSecretRecordId);
 	}
 
-	private DataRecordLink createDataDivider() {
+	// private DataRecordLink createDataDivider() {
+	// String usersDataDividerId = readDataDividerFromUserGroup();
+	// return DataProvider.createRecordLinkUsingNameInDataAndTypeAndId(DATA_DIVIDER, "system",
+	// usersDataDividerId);
+	// }
+
+	private String readDataDividerFromUserGroup() {
 		DataGroup usersRecordInfo = userGroup.getFirstGroupWithNameInData(RECORD_INFO);
 		DataRecordLink userDataDivider = (DataRecordLink) usersRecordInfo
 				.getFirstChildWithNameInData(DATA_DIVIDER);
-		String usersDataDividerId = userDataDivider.getLinkedRecordId();
-
-		return DataProvider.createRecordLinkUsingNameInDataAndTypeAndId(DATA_DIVIDER, "system",
-				usersDataDividerId);
+		return userDataDivider.getLinkedRecordId();
 	}
 
 	private void addHashedPasswordToGroup(String hashedPassword, DataGroup systemSecret) {

@@ -65,7 +65,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	public Map<String, RecordTypeHandlerSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public RecordStorageMCRSpy recordStorage = new RecordStorageMCRSpy();
+	public RecordStorage recordStorage = new RecordStorageMCRSpy();
 	private RecordStorageProviderSpy recordStorageProvider;
 	public RecordIdGenerator recordIdGenerator;
 	public RecordArchive recordArchive;

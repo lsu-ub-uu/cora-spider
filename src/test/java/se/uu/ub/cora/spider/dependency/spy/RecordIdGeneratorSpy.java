@@ -19,15 +19,24 @@
 package se.uu.ub.cora.spider.dependency.spy;
 
 import se.uu.ub.cora.storage.RecordIdGenerator;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class RecordIdGeneratorSpy implements RecordIdGenerator {
 
 	public RecordIdGenerator recordIdGenerator;
 
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public RecordIdGeneratorSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("getIdForType", String::new);
+	}
+
 	@Override
 	public String getIdForType(String type) {
-		// TODO Auto-generated method stub
-		return null;
+		return (String) MCR.addCallAndReturnFromMRV("type", type);
 	}
 
 }
