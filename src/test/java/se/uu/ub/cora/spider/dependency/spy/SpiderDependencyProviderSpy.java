@@ -65,7 +65,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	public Map<String, RecordTypeHandlerSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public RecordStorage recordStorage = new RecordStorageMCRSpy();
+	public RecordStorageMCRSpy recordStorage = new RecordStorageMCRSpy();
 	private RecordStorageProviderSpy recordStorageProvider;
 	public RecordIdGenerator recordIdGenerator;
 	public RecordArchive recordArchive;
@@ -165,6 +165,8 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 
 	@Override
 	public RecordStorage getRecordStorage() {
+		MCR.addCall();
+		MCR.addReturned(recordStorage);
 		return recordStorage;
 	}
 
@@ -175,6 +177,8 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 
 	@Override
 	public RecordIdGenerator getRecordIdGenerator() {
+		MCR.addCall();
+		MCR.addReturned(recordIdGenerator);
 		return recordIdGenerator;
 	}
 

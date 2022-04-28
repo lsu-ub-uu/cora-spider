@@ -18,6 +18,8 @@
  */
 package se.uu.ub.cora.spider.password;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataAtomic;
@@ -33,6 +35,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.storage.RecordStorage;
 
 /**
  * PasswordExtendedFunctionality encrypts and stores a users password as a systemSecret, if it is
@@ -47,6 +50,11 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	private static final String RECORD_INFO = "recordInfo";
 	private static final String PLAIN_TEXT_PASSWORD = "plainTextPassword";
 	private static final String SYSTEM_SECRET_TYPE = "systemSecret";
+
+	private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+	private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter
+			.ofPattern(DATE_TIME_PATTERN);
+
 	private SpiderDependencyProvider dependencyProvider;
 	private TextHasher textHasher;
 	private ExtendedFunctionalityData data;
@@ -104,15 +112,31 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	private DataRecord createAndStoreSystemSecretRecord(String hashedPassword) {
 		DataGroup systemSecret = createSystemSecretGroupWithRecordInfoAndHashedPassword(
 				hashedPassword);
+		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
+		// RecordIdGenerator recordIdGenerator = dependencyProvider.getRecordIdGenerator();
+		// recordIdGenerator.getIdForType(SYSTEM_SECRET_TYPE);
+		//
+		recordStorage.create(SYSTEM_SECRET_TYPE, null, null, null, null, null);
+		// recordStorage.create(type, id, dataRecord, collectedTerms, linkedList, dataDivider);
 		RecordCreator recordCreator = SpiderInstanceProvider.getRecordCreator();
 		return recordCreator.createAndStoreRecord(data.authToken, SYSTEM_SECRET_TYPE, systemSecret);
 	}
+
+	// private DataGroup createDataGroupWithTypeAndId(String type, String id) {
+	// DataGroup collectedData = DataGroupProvider.getDataGroupUsingNameInData("collectedData");
+	// collectedData
+	// .addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("type", type));
+	// collectedData.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("id", id));
+	// return collectedData;
+	// }
+	// DataGroup collectedDataLinks = DataGroupProvider
+	// .getDataGroupUsingNameInData("collectedDataLinks");
 
 	private DataGroup createSystemSecretGroupWithRecordInfoAndHashedPassword(
 			String hashedPassword) {
 		DataGroup systemSecret = DataProvider.createGroupUsingNameInData(SYSTEM_SECRET_TYPE);
 
-		createAndAddRecordInfoForSystemSecret(systemSecret);
+		// createAndAddRecordInfoForSystemSecret(systemSecret);
 		addHashedPasswordToGroup(hashedPassword, systemSecret);
 		return systemSecret;
 	}
@@ -180,9 +204,16 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
 	private DataAtomic createAtomicLatestTsUpdatedFromRecord(DataRecord systemSecretRecord) {
 		DataGroup recordInfo = getRecordInfoFromRecord(systemSecretRecord);
-		String tsUpdated = getLatestTsUpdatedValue(recordInfo);
+
+		// String tsUpdated = getLatestTsUpdatedValue(recordInfo);
+		String tsUpdated = getCurrentFormattedTime();
 
 		return DataProvider.createAtomicUsingNameInDataAndValue("tsPasswordUpdated", tsUpdated);
+	}
+
+	private static String getCurrentFormattedTime() {
+		LocalDateTime currentDateTime = LocalDateTime.now();
+		return currentDateTime.format(dateTimeFormatter);
 	}
 
 	private DataGroup getRecordInfoFromRecord(DataRecord systemSecretRecord) {

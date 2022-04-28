@@ -19,7 +19,11 @@
 package se.uu.ub.cora.spider.password;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -32,6 +36,7 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
 import se.uu.ub.cora.testspies.data.DataFactorySpy;
 import se.uu.ub.cora.testspies.data.DataGroupSpy;
 import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
@@ -46,7 +51,7 @@ import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 public class PasswordExtendedFunctionalityTest {
 	private static final String PASSWORD = "password";
 	private static final String SYSTEM_SECRET_TYPE = "systemSecret";
-	SpiderDependencyProvider dependencyProvider;
+	SpiderDependencyProviderSpy dependencyProvider;
 	TextHasherSpy textHasher;
 	PasswordExtendedFunctionality extended;
 	private ExtendedFunctionalityData efData;
@@ -57,6 +62,8 @@ public class PasswordExtendedFunctionalityTest {
 	private MethodReturnValues rGroupMRV;
 	private DataRecordLinkSpy dataDivider;
 	private SpiderInstanceFactorySpy spiderInstanceFactory;
+	private static final String DATE_PATTERN = "yyyy-MM-dd HH:mm:ss";
+	private DateTimeFormatter dateTimePattern = DateTimeFormatter.ofPattern(DATE_PATTERN);;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -72,6 +79,9 @@ public class PasswordExtendedFunctionalityTest {
 
 		spiderInstanceFactory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
+
+		RecordStorageMCRSpy recordStorage = dependencyProvider.recordStorage;
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataGroupSpy::new);
 
 	}
 
@@ -170,9 +180,9 @@ public class PasswordExtendedFunctionalityTest {
 		DataGroupSpy secret = (DataGroupSpy) dataFactory.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
 
-		assertRecordInfoWithDataDividerAddedTo(secret);
+		// assertRecordInfoWithDataDividerAddedTo(secret);
 
-		assertHashedPasswordIsAddedToGroupAsNumber(secret, 1);
+		assertHashedPasswordIsAddedToGroupAsNumber(secret, 0);
 
 	}
 
@@ -208,17 +218,27 @@ public class PasswordExtendedFunctionalityTest {
 
 		DataGroupSpy secret = (DataGroupSpy) dataFactory.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
-		RecordCreatorSpy recordCreator = (RecordCreatorSpy) spiderInstanceFactory.MCR
-				.getReturnValue("factorRecordCreator", 0);
-		recordCreator.MCR.assertParameters("createAndStoreRecord", 0, efData.authToken,
-				SYSTEM_SECRET_TYPE, secret);
+
+		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProvider.MCR
+				.getReturnValue("getRecordStorage", 0);
+
+		recordStorage.MCR.assertParameters("create", 0, SYSTEM_SECRET_TYPE);
+
+		// RecordCreatorSpy recordCreator = (RecordCreatorSpy) spiderInstanceFactory.MCR
+		// .getReturnValue("factorRecordCreator", 0);
+		// recordCreator.MCR.assertParameters("createAndStoreRecord", 0, efData.authToken,
+		// SYSTEM_SECRET_TYPE, secret);
 	}
 
 	@Test
 	public void testUserUpdatedWithInformationAboutNewPassword() throws Exception {
-		String tsUpdated = setUpSpiesForCreateReturningDataRecordWithTsUpdated();
+		// String tsUpdated = setUpSpiesForCreateReturningDataRecordWithTsUpdated();
+
+		LocalDateTime dateTimeBefore = whatTimeIsIt().minus(2, ChronoUnit.SECONDS);
 
 		extended.useExtendedFunctionality(efData);
+
+		LocalDateTime dateTimeAfter = whatTimeIsIt().plus(2, ChronoUnit.SECONDS);
 
 		RecordCreatorSpy recordCreator = (RecordCreatorSpy) spiderInstanceFactory.MCR
 				.getReturnValue("factorRecordCreator", 0);
@@ -226,24 +246,67 @@ public class PasswordExtendedFunctionalityTest {
 				.getReturnValue("createAndStoreRecord", 0);
 		var secretId = secretRecord.MCR.getReturnValue("getId", 0);
 
-		dataFactory.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 1, PASSWORD,
+		dataFactory.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0, PASSWORD,
 				SYSTEM_SECRET_TYPE, secretId);
 		var secretLink = dataFactory.MCR
-				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 1);
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
 		rGroupMCR.assertParameters("addChild", 0, secretLink);
 
 		DataGroupSpy secretGroup = (DataGroupSpy) secretRecord.MCR.getReturnValue("getDataGroup",
 				0);
 
-		secretGroup.MCR.assertParameter("getFirstGroupWithNameInData", 0, "nameInData",
-				"recordInfo");
-		DataGroupSpy recordInfoGroup = (DataGroupSpy) secretGroup.MCR
-				.getReturnValue("getFirstGroupWithNameInData", 0);
-		recordInfoGroup.MCR.assertParameter("getAllGroupsWithNameInData", 0, "nameInData",
-				"updated");
-		int assertChildCall = 1;
-		assertCreateAtomicTsUpdatedPassword(tsUpdated, assertChildCall);
+		// secretGroup.MCR.assertParameter("getFirstGroupWithNameInData", 0, "nameInData",
+		// "recordInfo");
+		// DataGroupSpy recordInfoGroup = (DataGroupSpy) secretGroup.MCR
+		// .getReturnValue("getFirstGroupWithNameInData", 0);
+		// recordInfoGroup.MCR.assertParameter("getAllGroupsWithNameInData", 0, "nameInData",
+		// "updated");
+		// assertCreateAtomicTsUpdatedPassword(tsUpdated, assertChildCall);
+		//
+		assertedTsUpdated(1, dateTimeBefore, dateTimeAfter);
+	}
 
+	private void assertedTsUpdated(int assertChildCall, LocalDateTime dateTimeBefore,
+			LocalDateTime dateTimeAfter) {
+		dataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", assertChildCall,
+				"tsPasswordUpdated");
+		String tsUpdated = (String) dataFactory.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"factorAtomicUsingNameInDataAndValue", assertChildCall, "value");
+
+		LocalDateTime updatedDateTime = LocalDateTime.parse(tsUpdated, dateTimePattern);
+		assertTrue(dateTimeBefore.isBefore(updatedDateTime));
+		assertTrue(dateTimeAfter.isAfter(updatedDateTime));
+	}
+
+	// private void assertCreateAtomicTsUpdatedPassword2(String tsUpdated, int assertChildCall) {
+	// dataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1,
+	// "tsPasswordUpdated", tsUpdated);
+	// var tsUpdatedAtomic = dataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
+	// 1);
+	// LocalDateTime createdDateTime = LocalDateTime.parse(tsUpdated, dateTimePattern);
+	// rGroupMCR.assertParameters("addChild", assertChildCall, tsUpdatedAtomic);
+	// }
+
+	// @Test
+	// public void testDeletedAfterDateTime() throws Exception {
+	// setFactoryClassNamesToSpies();
+	//
+	// LocalDateTime dateTimeBefore = whatTimeIsIt().minus(2, ChronoUnit.SECONDS);
+	// FedoraToDbBatch.main(args);
+	// LocalDateTime dateTimeAfter = whatTimeIsIt().plus(2, ChronoUnit.SECONDS);
+	// FedoraReaderSpy fedoraReader = getFedoraReader();
+	//
+	// fedoraReader.MCR.assertParameters("readPidsForTypeDeletedAfter", 0, "authority-person");
+	// LocalDateTime batchStartedDateTime = getBatchStartedDateTime(fedoraReader);
+	//
+	// assertTrue(dateTimeBefore.isBefore(batchStartedDateTime));
+	// assertTrue(dateTimeAfter.isAfter(batchStartedDateTime));
+	//
+	// }
+
+	private LocalDateTime whatTimeIsIt() {
+		return LocalDateTime.now();
 	}
 
 	private String setUpSpiesForCreateReturningDataRecordWithTsUpdated() {
@@ -274,7 +337,11 @@ public class PasswordExtendedFunctionalityTest {
 	public void testUpdatePassword() throws Exception {
 		setUpSpiesForUpdateReturningDataRecordWithTsUpdated();
 
+		LocalDateTime dateTimeBefore = whatTimeIsIt().minus(2, ChronoUnit.SECONDS);
+
 		extended.useExtendedFunctionality(efData);
+
+		LocalDateTime dateTimeAfter = whatTimeIsIt().plus(2, ChronoUnit.SECONDS);
 
 		assertPlainTextHashed();
 		spiderInstanceFactory.MCR.assertMethodNotCalled("factorRecordCreator");
@@ -302,11 +369,8 @@ public class PasswordExtendedFunctionalityTest {
 		recordUpdater.MCR.assertParameters("updateRecord", 0, efData.authToken, SYSTEM_SECRET_TYPE,
 				passwordLink.getLinkedRecordId(), systemSecretG);
 
-		String tsUpdated = "2022-04-23T13:55:55.827000Z";
-
 		rGroupMCR.assertParameters("removeAllChildrenWithNameInData", 1, "tsPasswordUpdated");
-		int assertChildCall = 0;
-		assertCreateAtomicTsUpdatedPassword(tsUpdated, assertChildCall);
+		assertedTsUpdated(1, dateTimeBefore, dateTimeAfter);
 
 	}
 
