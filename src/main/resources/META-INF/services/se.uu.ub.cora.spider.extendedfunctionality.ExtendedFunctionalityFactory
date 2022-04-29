@@ -1,3 +1,4 @@
 se.uu.ub.cora.spider.workorder.WorkOrderExtendedFunctionalityFactory
 se.uu.ub.cora.spider.apptoken.ApptokenExtendedFunctionalityFactory
 se.uu.ub.cora.spider.consistency.MetadataValidatorExtendedFunctionalityFactory
+se.uu.ub.cora.spider.password.PasswordExtendedFunctionalityFactory

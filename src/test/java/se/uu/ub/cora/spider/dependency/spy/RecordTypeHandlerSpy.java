@@ -260,8 +260,10 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public String getRecordTypeId() {
-		// TODO Auto-generated method stub
-		return null;
+		MCR.addCall();
+		String returnValue = "fakeRecordTypeIdFromRecordTypeHandlerSpy";
+		MCR.addReturned(returnValue);
+		return returnValue;
 	}
 
 	@Override

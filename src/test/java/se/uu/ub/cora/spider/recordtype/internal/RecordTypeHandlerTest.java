@@ -1341,8 +1341,8 @@ public class RecordTypeHandlerTest {
 
 		List<String> listOfIds = rthft.getListOfImplementingRecordTypeIds();
 		assertEquals(listOfIds.size(), 2);
-		assertEquals(listOfIds.get(0), "fakeMetadataIdFromRecordTypeHandlerSpy");
-		assertEquals(listOfIds.get(1), "fakeMetadataIdFromRecordTypeHandlerSpy");
+		assertEquals(listOfIds.get(0), "fakeRecordTypeIdFromRecordTypeHandlerSpy");
+		assertEquals(listOfIds.get(1), "fakeRecordTypeIdFromRecordTypeHandlerSpy");
 	}
 
 	// from here
