@@ -31,11 +31,12 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.data.DataAtomicFactory;
 import se.uu.ub.cora.data.DataAtomicProvider;
+import se.uu.ub.cora.data.DataFactory;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLinkProvider;
-import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -49,12 +50,12 @@ import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderInstanceFactorySpy2;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
-import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataRecordLinkFactorySpy;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class UserUpdaterForAppTokenTest {
 
@@ -70,18 +71,21 @@ public class UserUpdaterForAppTokenTest {
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 
 	private SpiderInstanceFactorySpy2 spiderInstanceFactory;
-	private LoggerFactorySpy loggerFactorySpy;
+	private DataFactory dataFactory;
+
 	private DataGroupFactory dataGroupFactory;
 	private DataAtomicFactory dataAtomicFactory;
 
 	@BeforeMethod
 	public void setUp() {
+		dataFactory = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactory);
+
 		dataGroupFactory = new DataGroupFactorySpy();
 		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
 		dataAtomicFactory = new DataAtomicFactorySpy();
 		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 		DataRecordLinkProvider.setDataRecordLinkFactory(new DataRecordLinkFactorySpy());
-		setUpFactoriesAndProviders();
 
 		spiderInstanceFactory = new SpiderInstanceFactorySpy2();
 		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
@@ -92,11 +96,6 @@ public class UserUpdaterForAppTokenTest {
 		setUpDependencyProvider();
 		extendedFunctionality = UserUpdaterForAppToken
 				.usingSpiderDependencyProvider(dependencyProvider);
-	}
-
-	private void setUpFactoriesAndProviders() {
-		loggerFactorySpy = new LoggerFactorySpy();
-		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 	}
 
 	private void setUpDependencyProvider() {
@@ -125,6 +124,7 @@ public class UserUpdaterForAppTokenTest {
 		minimalAppTokenGroup.addChild(new DataAtomicSpy("note", "my device!"));
 
 		callExtendedFunctionalityWithGroup(minimalAppTokenGroup);
+
 		SpiderRecordUpdaterSpy spiderRecordUpdaterSpy = spiderInstanceFactory.createdUpdaters
 				.get(0);
 		DataGroup updatedUserDataGroup = spiderRecordUpdaterSpy.record;

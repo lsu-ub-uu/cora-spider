@@ -70,7 +70,6 @@ public class SpiderInstanceFactorySpy1 implements SpiderInstanceFactory {
 	public RecordCreator factorRecordCreator() {
 		MCR.addCall();
 		creatorFactoryWasCalled = true;
-		this.recordType = recordType;
 		RecordCreatorSpy recordCreator = new RecordCreatorSpy();
 		if (recordToReturnForRecordCreator != null) {
 			recordCreator.recordToReturn = recordToReturnForRecordCreator;
@@ -82,7 +81,6 @@ public class SpiderInstanceFactorySpy1 implements SpiderInstanceFactory {
 	@Override
 	public RecordUpdater factorRecordUpdater() {
 		updaterFactoryWasCalled = true;
-		this.recordType = recordType;
 		return null;
 	}
 

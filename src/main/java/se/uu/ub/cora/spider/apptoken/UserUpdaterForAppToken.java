@@ -23,7 +23,6 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
-import se.uu.ub.cora.data.DataRecordLinkProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
@@ -86,10 +85,10 @@ public final class UserUpdaterForAppToken implements ExtendedFunctionality {
 	}
 
 	private DataGroup createAppTokenLink(DataGroup appTokenDataGroup) {
-		String id = appTokenDataGroup.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id");
-		DataRecordLinkProvider.getDataRecordLinkAsLinkUsingNameInDataTypeAndId("appTokenLink",
-				"appToken", id);
+		// String id = appTokenDataGroup.getFirstGroupWithNameInData("recordInfo")
+		// .getFirstAtomicValueWithNameInData("id");
+		// DataRecordLinkProvider.getDataRecordLinkAsLinkUsingNameInDataTypeAndId("appTokenLink",
+		// "appToken", id);
 
 		DataGroup appTokenLink = DataGroupProvider.getDataGroupUsingNameInData("appTokenLink");
 		appTokenLink.addChild(DataAtomicProvider
