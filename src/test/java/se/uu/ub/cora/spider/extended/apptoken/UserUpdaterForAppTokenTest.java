@@ -48,7 +48,6 @@ import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderInstanceFactorySpy2;
-import se.uu.ub.cora.spider.extended.apptoken.UserUpdaterForAppToken;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.record.DataRecordLinkFactorySpy;

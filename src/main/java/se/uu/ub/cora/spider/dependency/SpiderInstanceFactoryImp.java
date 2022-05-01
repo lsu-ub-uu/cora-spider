@@ -22,10 +22,10 @@ package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.spider.index.BatchRunnerFactory;
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
-import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJob;
 import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
-import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
+import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJob;
 import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobImp;
+import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;

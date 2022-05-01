@@ -32,7 +32,6 @@ import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.extended.workorder.WorkOrderEnhancer;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
 public class WorkOrderEnhancerTest {

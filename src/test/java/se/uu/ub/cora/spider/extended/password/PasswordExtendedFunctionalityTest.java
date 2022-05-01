@@ -36,7 +36,6 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.extended.password.PasswordExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.testspies.RecordCreatorSpy;

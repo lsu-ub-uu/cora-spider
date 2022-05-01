@@ -30,7 +30,6 @@ import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.extended.apptoken.AppTokenEnhancer;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
 public class AppTokenEnhancerTest {

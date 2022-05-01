@@ -31,8 +31,6 @@ import se.uu.ub.cora.password.texthasher.TextHasherFactory;
 import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.extended.password.PasswordExtendedFunctionality;
-import se.uu.ub.cora.spider.extended.password.PasswordExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
