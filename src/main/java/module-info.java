@@ -1,7 +1,7 @@
-import se.uu.ub.cora.spider.apptoken.ApptokenExtendedFunctionalityFactory;
-import se.uu.ub.cora.spider.consistency.MetadataValidatorExtendedFunctionalityFactory;
+import se.uu.ub.cora.spider.extended.apptoken.ApptokenExtendedFunctionalityFactory;
+import se.uu.ub.cora.spider.extended.consistency.MetadataValidatorExtendedFunctionalityFactory;
+import se.uu.ub.cora.spider.extended.workorder.WorkOrderExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
-import se.uu.ub.cora.spider.workorder.WorkOrderExtendedFunctionalityFactory;
 
 /**
  * The spider module sits in the center of a Cora based system, managing data flow to and from other
