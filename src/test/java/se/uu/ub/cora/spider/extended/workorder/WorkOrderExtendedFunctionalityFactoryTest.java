@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.logger.LoggerFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
@@ -49,7 +49,7 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 		LoggerFactory loggerFactory = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactory);
 		factory = new WorkOrderExtendedFunctionalityFactory();
-		dependencyProviderSpy = new SpiderDependencyProviderSpy(Collections.emptyMap());
+		dependencyProviderSpy = new SpiderDependencyProviderOldSpy(Collections.emptyMap());
 		factory.initializeUsingDependencyProvider(dependencyProviderSpy);
 	}
 

@@ -36,7 +36,7 @@ import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
@@ -48,7 +48,7 @@ import se.uu.ub.cora.spider.testdata.DataCreator2;
 
 public class WorkOrderExecutorTest {
 
-	SpiderDependencyProviderSpy dependencyProvider;
+	SpiderDependencyProviderOldSpy dependencyProvider;
 	WorkOrderExecutor extendedFunctionality;
 	DataGroupTermCollectorSpy termCollector;
 	RecordIndexerSpy recordIndexer;
@@ -62,7 +62,7 @@ public class WorkOrderExecutorTest {
 	public void setUp() {
 		setUpFactoriesAndProviders();
 
-		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
 		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.recordStorage = new OldRecordStorageSpy();

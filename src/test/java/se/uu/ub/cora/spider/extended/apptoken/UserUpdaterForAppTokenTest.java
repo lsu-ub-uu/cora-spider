@@ -18,96 +18,51 @@
  */
 package se.uu.ub.cora.spider.extended.apptoken;
 
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.List;
+import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.validator.DataValidator;
-import se.uu.ub.cora.data.DataAtomicFactory;
-import se.uu.ub.cora.data.DataAtomicProvider;
-import se.uu.ub.cora.data.DataFactory;
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupFactory;
-import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
-import se.uu.ub.cora.data.DataRecordLinkProvider;
-import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderInstanceFactorySpy2;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
-import se.uu.ub.cora.spider.record.DataRecordLinkFactorySpy;
-import se.uu.ub.cora.spider.record.SpiderRecordUpdaterSpy;
-import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
-import se.uu.ub.cora.spider.testdata.DataCreator2;
-import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.spider.spy.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.testspies.data.DataAtomicSpy;
 import se.uu.ub.cora.testspies.data.DataFactorySpy;
+import se.uu.ub.cora.testspies.data.DataGroupSpy;
+import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
+import se.uu.ub.cora.testspies.spider.RecordUpdaterSpy;
+import se.uu.ub.cora.testspies.spider.SpiderInstanceFactorySpy;
 
 public class UserUpdaterForAppTokenTest {
 
 	private UserUpdaterForAppToken extendedFunctionality;
 
-	private RecordStorage recordStorage;
-	private Authenticator authenticator;
-	private SpiderAuthorizator spiderAuthorizator;
-	private PermissionRuleCalculator ruleCalculator;
-	private DataValidator dataValidator;
-	private DataRecordLinkCollector linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
-	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 
-	private SpiderInstanceFactorySpy2 spiderInstanceFactory;
-	private DataFactory dataFactory;
+	private SpiderInstanceFactorySpy spiderInstanceFactory;
+	private DataFactorySpy dataFactory;
 
-	private DataGroupFactory dataGroupFactory;
-	private DataAtomicFactory dataAtomicFactory;
+	private DataGroupSpy userGroupFromStorage;
 
 	@BeforeMethod
 	public void setUp() {
 		dataFactory = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactory);
-
-		dataGroupFactory = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
-		dataAtomicFactory = new DataAtomicFactorySpy();
-		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
-		DataRecordLinkProvider.setDataRecordLinkFactory(new DataRecordLinkFactorySpy());
-
-		spiderInstanceFactory = new SpiderInstanceFactorySpy2();
+		dependencyProvider = new SpiderDependencyProviderSpy();
+		spiderInstanceFactory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
+		userGroupFromStorage = setupReturnUserFromStorage();
 
-		dependencyProvider = new SpiderDependencyProviderSpy(Collections.emptyMap());
-		authenticator = new AuthenticatorSpy();
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
 		extendedFunctionality = UserUpdaterForAppToken
 				.usingSpiderDependencyProvider(dependencyProvider);
-	}
-
-	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
-		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
-		dependencyProvider.dataValidator = dataValidator;
-		dependencyProvider.recordStorage = recordStorage;
-
-		dependencyProvider.ruleCalculator = ruleCalculator;
-		dependencyProvider.linkCollector = linkCollector;
-		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 	}
 
 	@Test
@@ -116,33 +71,129 @@ public class UserUpdaterForAppTokenTest {
 	}
 
 	@Test
-	public void useExtendedFunctionality() {
-		DataGroup minimalAppTokenGroup = new DataGroupSpy("appToken");
-		minimalAppTokenGroup.addChild(
-				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("appToken",
-						"someAppTokenId", "cora"));
-		minimalAppTokenGroup.addChild(new DataAtomicSpy("note", "my device!"));
+	public void testUserAppTokenGroupToBeAddedToUserCreatedCorrectly() {
+		DataGroupSpy tokenGroup = setUpAppTokenGroupWithTypeAndIdAndNote("someType", "someId",
+				"some note");
+		long before = System.nanoTime();
 
-		callExtendedFunctionalityWithGroup(minimalAppTokenGroup);
+		callExtendedFunctionalityWithGroup(tokenGroup);
 
-		SpiderRecordUpdaterSpy spiderRecordUpdaterSpy = spiderInstanceFactory.createdUpdaters
-				.get(0);
-		DataGroup updatedUserDataGroup = spiderRecordUpdaterSpy.record;
-		DataGroup userAppTokenGroup = (DataGroup) updatedUserDataGroup
-				.getFirstChildWithNameInData("userAppTokenGroup");
-		assertEquals(userAppTokenGroup.getFirstAtomicValueWithNameInData("note"), "my device!");
-		DataGroup apptokenLink = userAppTokenGroup.getFirstGroupWithNameInData("appTokenLink");
-		assertEquals(apptokenLink.getFirstAtomicValueWithNameInData("linkedRecordType"),
-				"appToken");
-		assertEquals(apptokenLink.getFirstAtomicValueWithNameInData("linkedRecordId"),
-				"someAppTokenId");
-		assertNotNull(userAppTokenGroup.getRepeatId());
+		long after = System.nanoTime();
+		dataFactory.MCR.assertParameters("factorGroupUsingNameInData", 0, "userAppTokenGroup");
+		DataGroupSpy userAppTokenGroup = (DataGroupSpy) dataFactory.MCR
+				.getReturnValue("factorGroupUsingNameInData", 0);
+
+		DataRecordLinkSpy appTokenLink = assertAndFetchLinkPointsToHandledAppToken(tokenGroup);
+		userAppTokenGroup.MCR.assertParameters("addChild", 0, appTokenLink);
+
+		DataAtomicSpy noteGroup = assertAndFetchNoteCreatedFromHandledAppToken(tokenGroup);
+		userAppTokenGroup.MCR.assertParameters("addChild", 1, noteGroup);
+
+		assertRepeatIdIsSetToTime(before, after, userAppTokenGroup);
+	}
+
+	private void assertRepeatIdIsSetToTime(long before, long after,
+			DataGroupSpy userAppTokenGroup) {
+		userAppTokenGroup.MCR.assertMethodWasCalled("setRepeatId");
+		String repeatId = (String) userAppTokenGroup.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("setRepeatId", 0, "repeatId");
+		long created = Long.valueOf(repeatId);
+		assertTrue(before < created);
+		assertTrue(created < after);
+	}
+
+	private DataAtomicSpy assertAndFetchNoteCreatedFromHandledAppToken(DataGroupSpy tokenGroup) {
+		tokenGroup.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "note");
+		String note = (String) tokenGroup.MCR.getReturnValue("getFirstAtomicValueWithNameInData",
+				0);
+		dataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "note", note);
+		DataAtomicSpy noteGroup = (DataAtomicSpy) dataFactory.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
+		return noteGroup;
+	}
+
+	private DataRecordLinkSpy assertAndFetchLinkPointsToHandledAppToken(DataGroupSpy tokenGroup) {
+		tokenGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "recordInfo");
+		DataGroupSpy recordInfo = (DataGroupSpy) tokenGroup.MCR
+				.getReturnValue("getFirstGroupWithNameInData", 0);
+		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "id");
+		String id = (String) recordInfo.MCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
+
+		dataFactory.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
+				"appTokenLink", "appToken", id);
+		return (DataRecordLinkSpy) dataFactory.MCR
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
+	}
+
+	private DataGroupSpy setUpAppTokenGroupWithTypeAndIdAndNote(String type, String id,
+			String note) {
+		DataGroupSpy appToken = new DataGroupSpy();
+
+		DataGroupSpy recordInfo = new DataGroupSpy();
+		appToken.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				(Supplier<DataGroupSpy>) () -> recordInfo, "recordInfo");
+		recordInfo.MRV.setReturnValues("getFirstAtomicValueWithNameInData", List.of(id), "id");
+
+		appToken.MRV.setReturnValues("getFirstAtomicValueWithNameInData", List.of(note), "note");
+		return appToken;
 	}
 
 	private void callExtendedFunctionalityWithGroup(DataGroup minimalGroup) {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
-		data.authToken = "dummy1Token";
+		data.authToken = "someAuthToken";
 		data.dataGroup = minimalGroup;
+		User user = new User("someUserId");
+		data.user = user;
 		extendedFunctionality.useExtendedFunctionality(data);
 	}
+
+	@Test
+	public void testUserUpdatedInStorageWithAddedAppTokenGroup() {
+		DataGroupSpy tokenGroup = setUpAppTokenGroupWithTypeAndIdAndNote("someType", "someId",
+				"some note");
+		callExtendedFunctionalityWithGroup(tokenGroup);
+
+		DataGroupSpy userAppTokenGroup = (DataGroupSpy) dataFactory.MCR
+				.getReturnValue("factorGroupUsingNameInData", 0);
+
+		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProvider.MCR
+				.getReturnValue("getRecordStorage", 0);
+		recordStorage.MCR.assertParameters("read", 0, "user", "someUserId");
+		DataGroupSpy userFromStorage = (DataGroupSpy) recordStorage.MCR.getReturnValue("read", 0);
+		userFromStorage.MCR.assertParameters("addChild", 0, userAppTokenGroup);
+
+		spiderInstanceFactory.MCR.assertParameters("factorRecordUpdater", 0);
+		RecordUpdaterSpy recordUpdater = (RecordUpdaterSpy) spiderInstanceFactory.MCR
+				.getReturnValue("factorRecordUpdater", 0);
+
+		userGroupFromStorage.MCR.assertParameters("getFirstGroupWithNameInData", 0, "recordInfo");
+		DataGroupSpy recordInfo = (DataGroupSpy) userGroupFromStorage.MCR
+				.getReturnValue("getFirstGroupWithNameInData", 0);
+		recordInfo.MCR.assertParameters("getFirstChildWithNameInData", 0, "type");
+		DataRecordLinkSpy typeLink = (DataRecordLinkSpy) recordInfo.MCR
+				.getReturnValue("getFirstChildWithNameInData", 0);
+
+		typeLink.MCR.assertParameters("getLinkedRecordId", 0);
+		String type = (String) typeLink.MCR.getReturnValue("getLinkedRecordId", 0);
+
+		recordUpdater.MCR.assertParameters("updateRecord", 0, "someAuthToken", type, "someUserId",
+				userGroupFromStorage);
+	}
+
+	private DataGroupSpy setupReturnUserFromStorage() {
+		DataGroupSpy user = new DataGroupSpy();
+		DataGroupSpy recordInfo = new DataGroupSpy();
+		user.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				(Supplier<DataGroupSpy>) () -> recordInfo, "recordInfo");
+		DataRecordLinkSpy typeLink = new DataRecordLinkSpy();
+		recordInfo.MRV.setReturnValues("getFirstChildWithNameInData", List.of(typeLink), "type");
+		typeLink.MRV.setReturnValues("getLinkedRecordId", List.of("someType"));
+
+		RecordStorageSpy recordStorage = new RecordStorageSpy();
+		dependencyProvider.MRV.setReturnValues("getRecordStorage", List.of(recordStorage));
+
+		recordStorage.MRV.setReturnValues("read", List.of(user), "user", "someUserId");
+		return user;
+	}
+
 }

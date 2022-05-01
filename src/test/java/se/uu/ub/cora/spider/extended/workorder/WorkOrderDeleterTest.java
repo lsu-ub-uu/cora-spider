@@ -32,7 +32,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
@@ -44,7 +44,7 @@ import se.uu.ub.cora.spider.testdata.DataCreator2;
 
 public class WorkOrderDeleterTest {
 
-	SpiderDependencyProviderSpy dependencyProvider;
+	SpiderDependencyProviderOldSpy dependencyProvider;
 	WorkOrderDeleter extendedFunctionality;
 	DataGroupTermCollectorSpy termCollector;
 	SpiderAuthorizatorSpy authorizator;
@@ -56,7 +56,7 @@ public class WorkOrderDeleterTest {
 	public void setUp() {
 		setUpFactoriesAndProviders();
 
-		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
 		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.authenticator = new AuthenticatorSpy();

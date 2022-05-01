@@ -44,7 +44,7 @@ import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
-public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
+public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider {
 
 	public SpiderAuthorizator spiderAuthorizator;
 	public PermissionRuleCalculator ruleCalculator;
@@ -71,7 +71,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	public RecordArchive recordArchive;
 
 	// TODO: remove?
-	public SpiderDependencyProviderSpy(Map<String, String> initInfo) {
+	public SpiderDependencyProviderOldSpy(Map<String, String> initInfo) {
 		// super(initInfo);
 		recordStorageProvider = new RecordStorageProviderSpy();
 	}

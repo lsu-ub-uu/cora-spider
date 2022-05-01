@@ -35,7 +35,7 @@ import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.testspies.RecordCreatorSpy;
@@ -53,7 +53,7 @@ public class PasswordExtendedFunctionalityTest {
 	private static final String SECRET = "secret";
 	private static final String PASSWORD_NAME_IN_DATA = "passwordLink";
 	private static final String SYSTEM_SECRET_TYPE = "systemSecret";
-	SpiderDependencyProviderSpy dependencyProvider;
+	SpiderDependencyProviderOldSpy dependencyProvider;
 	TextHasherSpy textHasher;
 	PasswordExtendedFunctionality extended;
 	private ExtendedFunctionalityData efData;
@@ -73,7 +73,7 @@ public class PasswordExtendedFunctionalityTest {
 		dataFactory = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactory);
 
-		dependencyProvider = new SpiderDependencyProviderSpy(null);
+		dependencyProvider = new SpiderDependencyProviderOldSpy(null);
 		textHasher = new TextHasherSpy();
 		extended = PasswordExtendedFunctionality
 				.usingDependencyProviderAndTextHasher(dependencyProvider, textHasher);

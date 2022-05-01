@@ -30,20 +30,20 @@ import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.password.texthasher.TextHasherFactory;
 import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 
 public class PasswordExtendedFunctionalityFactoryTest {
 	PasswordExtendedFunctionalityFactory factory;
-	SpiderDependencyProviderSpy dependencyProvider;
+	SpiderDependencyProviderOldSpy dependencyProvider;
 	private TextHasherFactorySpy textHasherFactorySpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		factory = new PasswordExtendedFunctionalityFactory();
-		dependencyProvider = new SpiderDependencyProviderSpy(null);
+		dependencyProvider = new SpiderDependencyProviderOldSpy(null);
 		RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
 		dependencyProvider.mapOfRecordTypeHandlerSpies.put("user", recordTypeHandlerSpy);
 		recordTypeHandlerSpy.listOfimplementingTypesIds.add("coraUser");

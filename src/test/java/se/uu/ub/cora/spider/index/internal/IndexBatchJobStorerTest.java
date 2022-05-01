@@ -32,14 +32,14 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.record.internal.RecordStorageSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
+import se.uu.ub.cora.spider.record.internal.RecordStorageOldSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 
 public class IndexBatchJobStorerTest {
-	private SpiderDependencyProviderSpy dependencyProvider;
-	private RecordStorageSpy recordStorage;
+	private SpiderDependencyProviderOldSpy dependencyProvider;
+	private RecordStorageOldSpy recordStorage;
 	private IndexBatchJob indexBatchJob;
 	private DataGroupTermCollectorSpy termCollector;
 	private DataRecordLinkCollectorSpy linkCollector;
@@ -48,10 +48,10 @@ public class IndexBatchJobStorerTest {
 	@BeforeMethod
 	public void setUp() {
 		Map<String, String> initInfo = new HashMap<>();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new RecordStorageOldSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
-		dependencyProvider = new SpiderDependencyProviderSpy(initInfo);
+		dependencyProvider = new SpiderDependencyProviderOldSpy(initInfo);
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.linkCollector = linkCollector;

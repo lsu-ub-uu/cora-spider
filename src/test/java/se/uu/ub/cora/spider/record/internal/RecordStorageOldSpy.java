@@ -34,7 +34,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
-public class RecordStorageSpy implements RecordStorage {
+public class RecordStorageOldSpy implements RecordStorage {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public long start = 0;

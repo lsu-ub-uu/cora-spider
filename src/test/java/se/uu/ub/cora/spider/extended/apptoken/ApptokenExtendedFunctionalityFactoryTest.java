@@ -28,15 +28,12 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.logger.LoggerFactory;
-import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
-import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 
 public class ApptokenExtendedFunctionalityFactoryTest {
 
@@ -45,10 +42,8 @@ public class ApptokenExtendedFunctionalityFactoryTest {
 
 	@BeforeMethod
 	public void setUp() {
-		LoggerFactory loggerFactory = new LoggerFactorySpy();
-		LoggerProvider.setLoggerFactory(loggerFactory);
 		factory = new ApptokenExtendedFunctionalityFactory();
-		dependencyProviderSpy = new SpiderDependencyProviderSpy(Collections.emptyMap());
+		dependencyProviderSpy = new SpiderDependencyProviderOldSpy(Collections.emptyMap());
 		factory.initializeUsingDependencyProvider(dependencyProviderSpy);
 	}
 
@@ -84,7 +79,7 @@ public class ApptokenExtendedFunctionalityFactoryTest {
 		UserUpdaterForAppToken extendedFunctionality = (UserUpdaterForAppToken) functionalities
 				.get(0);
 
-		assertSame(extendedFunctionality.getDependencyProvider(), dependencyProviderSpy);
+		assertSame(extendedFunctionality.onlyForTestGetDependencyProvider(), dependencyProviderSpy);
 		assertTrue(extendedFunctionality instanceof UserUpdaterForAppToken);
 	}
 

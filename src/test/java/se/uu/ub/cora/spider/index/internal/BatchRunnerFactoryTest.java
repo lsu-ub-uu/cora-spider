@@ -28,16 +28,16 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.index.BatchRunnerFactory;
 
 public class BatchRunnerFactoryTest {
 
-	private SpiderDependencyProviderSpy dependencyProvider;
+	private SpiderDependencyProviderOldSpy dependencyProvider;
 
 	@Test
 	public void testFactor() {
-		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
 		BatchRunnerFactory factory = new BatchRunnerFactoryImp(dependencyProvider);
 		DataGroup dataGroupFilter = new DataGroupSpy("indexBatchJob");
 		IndexBatchJob indexBatchJob = new IndexBatchJob("someRecordType", 10, dataGroupFilter);

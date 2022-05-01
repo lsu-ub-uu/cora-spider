@@ -19,11 +19,10 @@
 
 package se.uu.ub.cora.spider.extended.apptoken;
 
-import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.data.DataAtomicProvider;
+import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
-import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -56,17 +55,10 @@ public final class UserUpdaterForAppToken implements ExtendedFunctionality {
 		DataGroup appTokenDataGroup = data.dataGroup;
 		DataGroup userAppTokenGroup = createUserAppTokenGroup(appTokenDataGroup);
 
-		String userId = getUserIdFromAuthToken(authToken);
+		String userId = data.user.id;
 		DataGroup spiderUserDataGroup = readUserFromStorage(userId);
 		spiderUserDataGroup.addChild(userAppTokenGroup);
-
 		updateUserInStorage(authToken, userId, spiderUserDataGroup);
-	}
-
-	private String getUserIdFromAuthToken(String authToken) {
-		Authenticator authenticator = dependencyProvider.getAuthenticator();
-		User userForToken = authenticator.getUserForToken(authToken);
-		return userForToken.id;
 	}
 
 	private DataGroup readUserFromStorage(String userId) {
@@ -74,42 +66,36 @@ public final class UserUpdaterForAppToken implements ExtendedFunctionality {
 	}
 
 	private DataGroup createUserAppTokenGroup(DataGroup appTokenDataGroup) {
-		DataGroup userAppTokenGroup = DataGroupProvider
-				.getDataGroupUsingNameInData("userAppTokenGroup");
-		DataGroup appTokenLink = createAppTokenLink(appTokenDataGroup);
+		DataGroup userAppTokenGroup = DataProvider.createGroupUsingNameInData("userAppTokenGroup");
+
+		DataRecordLink appTokenLink = createLinkPointingToHandledAppToken(appTokenDataGroup);
 		userAppTokenGroup.addChild(appTokenLink);
-		userAppTokenGroup.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("note",
-				appTokenDataGroup.getFirstAtomicValueWithNameInData("note")));
+
+		String note = appTokenDataGroup.getFirstAtomicValueWithNameInData("note");
+		DataAtomic noteAtomic = DataProvider.createAtomicUsingNameInDataAndValue("note", note);
+		userAppTokenGroup.addChild(noteAtomic);
 		userAppTokenGroup.setRepeatId(String.valueOf(System.nanoTime()));
 		return userAppTokenGroup;
 	}
 
-	private DataGroup createAppTokenLink(DataGroup appTokenDataGroup) {
-		// String id = appTokenDataGroup.getFirstGroupWithNameInData("recordInfo")
-		// .getFirstAtomicValueWithNameInData("id");
-		// DataRecordLinkProvider.getDataRecordLinkAsLinkUsingNameInDataTypeAndId("appTokenLink",
-		// "appToken", id);
-
-		DataGroup appTokenLink = DataGroupProvider.getDataGroupUsingNameInData("appTokenLink");
-		appTokenLink.addChild(DataAtomicProvider
-				.getDataAtomicUsingNameInDataAndValue("linkedRecordType", "appToken"));
-		appTokenLink.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(
-				"linkedRecordId", appTokenDataGroup.getFirstGroupWithNameInData("recordInfo")
-						.getFirstAtomicValueWithNameInData("id")));
-		return appTokenLink;
+	private DataRecordLink createLinkPointingToHandledAppToken(DataGroup appTokenDataGroup) {
+		DataGroup recordInfo = appTokenDataGroup.getFirstGroupWithNameInData("recordInfo");
+		String id = recordInfo.getFirstAtomicValueWithNameInData("id");
+		return DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("appTokenLink", "appToken",
+				id);
 	}
 
 	private void updateUserInStorage(String authToken, String userId,
 			DataGroup spiderUserDataGroup) {
 		DataGroup recordInfo = spiderUserDataGroup.getFirstGroupWithNameInData("recordInfo");
-		DataGroup type = recordInfo.getFirstGroupWithNameInData("type");
-		String recordType = type.getFirstAtomicValueWithNameInData("linkedRecordId");
+		DataRecordLink type = (DataRecordLink) recordInfo.getFirstChildWithNameInData("type");
+		String recordType = type.getLinkedRecordId();
 
 		RecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getRecordUpdater();
 		spiderRecordUpdater.updateRecord(authToken, recordType, userId, spiderUserDataGroup);
 	}
 
-	public SpiderDependencyProvider getDependencyProvider() {
+	SpiderDependencyProvider onlyForTestGetDependencyProvider() {
 		return dependencyProvider;
 	}
 }

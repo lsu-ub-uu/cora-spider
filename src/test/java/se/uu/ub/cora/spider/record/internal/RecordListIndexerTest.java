@@ -41,7 +41,7 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordCreatorSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobSpy;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
@@ -59,7 +59,7 @@ public class RecordListIndexerTest {
 	private static final String SOME_RECORD_TYPE = "someRecordType";
 
 	private DataFactorySpy dataFactory;
-	private SpiderDependencyProviderSpy dependencyProviderSpy;
+	private SpiderDependencyProviderOldSpy dependencyProviderSpy;
 	private RecordListIndexerImp recordListIndexer;
 	private AuthenticatorSpy authenticatorSpy;
 
@@ -93,7 +93,7 @@ public class RecordListIndexerTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProviderSpy = new SpiderDependencyProviderSpy(new HashMap<>());
+		dependencyProviderSpy = new SpiderDependencyProviderOldSpy(new HashMap<>());
 		authenticatorSpy = new AuthenticatorSpy();
 		authorizatorSpy = new SpiderAuthorizatorSpy();
 		dataValidatorSpy = new DataValidatorSpy();

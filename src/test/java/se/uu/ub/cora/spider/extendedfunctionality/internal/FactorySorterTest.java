@@ -33,7 +33,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
@@ -54,7 +54,7 @@ public class FactorySorterTest {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		fakeImplementations = new ArrayList<>();
-		dependencyProvider = new SpiderDependencyProviderSpy(Collections.emptyMap());
+		dependencyProvider = new SpiderDependencyProviderOldSpy(Collections.emptyMap());
 		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);
 	}
 

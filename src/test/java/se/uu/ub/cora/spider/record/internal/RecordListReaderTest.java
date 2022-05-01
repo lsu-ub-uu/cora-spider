@@ -49,7 +49,7 @@ import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
@@ -67,7 +67,7 @@ public class RecordListReaderTest {
 	private static final String SOME_USER_TOKEN = "someToken78678567";
 	private static final String SOME_RECORD_TYPE = "place";
 
-	private RecordStorageSpy recordStorage;
+	private RecordStorageOldSpy recordStorage;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
@@ -92,7 +92,7 @@ public class RecordListReaderTest {
 		nonEmptyFilter = createNonEmptyFilter();
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new RecordStorageOldSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		dataValidator = new DataValidatorSpy();
 		dataRedactor = new DataRedactorSpy();
@@ -121,7 +121,7 @@ public class RecordListReaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		SpiderDependencyProviderSpy dependencyProvider = new SpiderDependencyProviderSpy(
+		SpiderDependencyProviderOldSpy dependencyProvider = new SpiderDependencyProviderOldSpy(
 				new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
