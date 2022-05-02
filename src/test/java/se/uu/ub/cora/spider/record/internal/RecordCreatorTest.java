@@ -56,8 +56,8 @@ import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
-import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -100,7 +100,7 @@ public class RecordCreatorTest {
 	private RecordCreator recordCreator;
 	private DataValidatorSpy dataValidator;
 	private DataRecordLinkCollector linkCollector;
-	private SpiderDependencyProviderSpy dependencyProvider;
+	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private DataGroupTermCollectorSpy termCollector;
@@ -154,7 +154,7 @@ public class RecordCreatorTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = spiderAuthorizator;
 		dependencyProvider.dataValidator = dataValidator;
@@ -709,7 +709,7 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testStoreInArchiveTrue() throws Exception {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new RecordStorageOldSpy();
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.storeInArchive = true;
 		DataGroupMCRSpy recordSpy = createDataGroupForCreate();
@@ -732,7 +732,7 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testStoreInArchiveFalse() throws Exception {
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new RecordStorageOldSpy();
 		setUpDependencyProvider();
 		recordTypeHandlerSpy.storeInArchive = false;
 		DataGroupMCRSpy recordSpy = createDataGroupForCreate();

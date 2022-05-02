@@ -505,7 +505,7 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 		List<String> ids = new ArrayList<>(aSlightlyLargerNumberThanHowManyRecordTypesExist);
 		List<RecordTypeHandler> implementingHandlers = getImplementingRecordTypeHandlers();
 		for (RecordTypeHandler recordTypeHandler : implementingHandlers) {
-			ids.add(recordTypeHandler.getMetadataId());
+			ids.add(recordTypeHandler.getRecordTypeId());
 		}
 		return ids;
 	}

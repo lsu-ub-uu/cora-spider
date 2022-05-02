@@ -32,6 +32,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
 import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJob;
 import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
@@ -53,14 +54,14 @@ import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
 
 public class SpiderInstanceFactoryTest {
 	private SpiderInstanceFactory factory;
-	private SpiderDependencyProviderSpy dependencyProvider;
+	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private LoggerFactorySpy loggerFactorySpy;
 
 	@BeforeTest
 	public void setUp() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
 		factory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
 	}
 

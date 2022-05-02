@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.logger.LoggerFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 
@@ -43,7 +43,7 @@ public class ExtendedFunctionalityInitializerTest {
 	public void beforeMethod() {
 		LoggerFactory loggerFactory = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactory);
-		dependencyProvider = new SpiderDependencyProviderSpy(Collections.emptyMap());
+		dependencyProvider = new SpiderDependencyProviderOldSpy(Collections.emptyMap());
 		initializer = new ExtendedFunctionalityInitializer(dependencyProvider);
 	}
 

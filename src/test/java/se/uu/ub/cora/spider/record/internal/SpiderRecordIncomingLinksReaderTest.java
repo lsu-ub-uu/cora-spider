@@ -42,7 +42,7 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataListFactorySpy;
@@ -64,7 +64,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
-	private SpiderDependencyProviderSpy dependencyProvider;
+	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private DataGroupTermCollectorSpy termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataGroupFactory dataGroupFactory;
@@ -98,7 +98,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;

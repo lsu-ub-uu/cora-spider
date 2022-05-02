@@ -34,8 +34,8 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
@@ -46,10 +46,10 @@ public class SpiderRecordReaderTest {
 	private static final String SOME_RECORD_ID = "place:0001";
 	private static final String SOME_USER_TOKEN = "someToken78678567";
 	private static final String SOME_RECORD_TYPE = "someRecordType";
-	private RecordStorageSpy recordStorage;
+	private RecordStorageOldSpy recordStorage;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
-	private SpiderDependencyProviderSpy dependencyProvider;
+	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private RecordReader recordReader;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private LoggerFactorySpy loggerFactorySpy;
@@ -61,7 +61,7 @@ public class SpiderRecordReaderTest {
 		setUpFactoriesAndProviders();
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
-		recordStorage = new RecordStorageSpy();
+		recordStorage = new RecordStorageOldSpy();
 		dataRedactor = new DataRedactorSpy();
 		setUpDependencyProvider();
 	}
@@ -72,7 +72,7 @@ public class SpiderRecordReaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 

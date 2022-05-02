@@ -39,7 +39,7 @@ import se.uu.ub.cora.spider.data.DataAttributeFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
-import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.DataGroupMCRSpy;
 import se.uu.ub.cora.spider.record.RecordStorageLightSpy;
 import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
@@ -294,7 +294,10 @@ public class RecordTypeHandlerTest {
 			String linkedRecordId) {
 		DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
 		DataGroupMCRSpy link = setupForAtomicValue("linkedRecordId", linkedRecordId);
+		// TODO:remove?
 		dataGroup.groupValues.put(linkNameInData, link);
+		dataGroup.MRV.setReturnValues("containsChildWithNameInData", List.of(true), linkNameInData);
+		dataGroup.MRV.setReturnValues("getFirstGroupWithNameInData", List.of(link), linkNameInData);
 		return dataGroup;
 	}
 
@@ -400,9 +403,14 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testGetCombinedIdsUsingRecordIdNoParent() {
+		DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
+		dataGroup.MRV.setReturnValues("containsChildWithNameInData", List.of(false), "parentId");
+		recordStorage.dataGroup = dataGroup;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(null, recordStorage, "someRecordType");
+
 		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId("someRecordTypeId");
+
 		assertEquals(ids.size(), 1);
 		assertEquals(ids.get(0), "someRecordType_someRecordTypeId");
 	}
@@ -422,6 +430,9 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testGetCombinedIdsUsingRecordIdFromDataGroupNoParent() {
 		DataGroupMCRSpy dataGroup = createTopDataGroup();
+		// DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
+		dataGroup.MRV.setReturnValues("containsChildWithNameInData", List.of(false), "parentId");
+		recordStorage.dataGroup = dataGroup;
 
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndDataGroup(null, recordStorage, dataGroup);
@@ -1330,8 +1341,8 @@ public class RecordTypeHandlerTest {
 
 		List<String> listOfIds = rthft.getListOfImplementingRecordTypeIds();
 		assertEquals(listOfIds.size(), 2);
-		assertEquals(listOfIds.get(0), "fakeMetadataIdFromRecordTypeHandlerSpy");
-		assertEquals(listOfIds.get(1), "fakeMetadataIdFromRecordTypeHandlerSpy");
+		assertEquals(listOfIds.get(0), "fakeRecordTypeIdFromRecordTypeHandlerSpy");
+		assertEquals(listOfIds.get(1), "fakeRecordTypeIdFromRecordTypeHandlerSpy");
 	}
 
 	// from here

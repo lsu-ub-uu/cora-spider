@@ -28,13 +28,23 @@ import se.uu.ub.cora.data.DataAttribute;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class DataGroupMCRSpy implements DataGroup {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 	public String atomicValueToReturn = "";
 	public Map<String, String> atomicValues = new HashMap<>();
 	public Map<String, DataGroupMCRSpy> groupValues = new HashMap<>();
 	private String nameInData;
+	/**
+	 * returnValues contains return values for all methods. Key is methodName and value can is a
+	 * list of objects.
+	 * <p>
+	 * If no value exists to return for a method is the simplest possible object returned, an empty
+	 * string or a spy object
+	 */
+	public Map<String, List<Object>> returnValues = new HashMap<>();
 
 	public DataGroupMCRSpy() {
 	}
@@ -68,16 +78,33 @@ public class DataGroupMCRSpy implements DataGroup {
 
 	@Override
 	public boolean containsChildWithNameInData(String nameInData) {
+		// MethodMockMeNow
+		// MethodReturnValues
+		// var returnValue = MRV.getReturnValue(nameInData);
+
+		// int numberToReturn = MCR.getNumberOfCallsToMethod("containsChildWithNameInData");
+		// MCR.addCall("nameInData", nameInData);
+		//
+		// if (returnValues.containsKey("containsChildWithNameInData")) {
+		// List<Object> list = returnValues.get("containsChildWithNameInData");
+		// Object returnValue = list.get(numberToReturn);
+		// MCR.addReturned(returnValue);
+		// return (boolean) returnValue;
+		// }
+		//
+		// boolean returnValue = groupValues.containsKey(nameInData)
+		// || atomicValues.containsKey(nameInData);
+		// MCR.addReturned(returnValue);
+		// return returnValue;
+
 		MCR.addCall("nameInData", nameInData);
-		boolean returnValue = groupValues.containsKey(nameInData)
-				|| atomicValues.containsKey(nameInData);
+		boolean returnValue = (boolean) MRV.getReturnValue(nameInData);
 		MCR.addReturned(returnValue);
 		return returnValue;
 	}
 
 	@Override
 	public void addChild(DataChild dataElement) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -108,7 +135,8 @@ public class DataGroupMCRSpy implements DataGroup {
 
 	@Override
 	public DataChild getFirstChildWithNameInData(String nameInData) {
-		// TODO Auto-generated method stub
+		MCR.addCall("nameInData", nameInData);
+
 		return null;
 	}
 
@@ -156,7 +184,8 @@ public class DataGroupMCRSpy implements DataGroup {
 
 	@Override
 	public boolean removeAllChildrenWithNameInData(String childNameInData) {
-		// TODO Auto-generated method stub
+		MCR.addCall("childNameInData", childNameInData);
+
 		return false;
 	}
 

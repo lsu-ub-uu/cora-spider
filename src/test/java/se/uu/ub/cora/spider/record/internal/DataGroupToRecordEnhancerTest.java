@@ -57,8 +57,8 @@ import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
 import se.uu.ub.cora.spider.data.DataRecordSpy;
-import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
@@ -80,7 +80,7 @@ public class DataGroupToRecordEnhancerTest {
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
-	private SpiderDependencyProviderSpy dependencyProvider;
+	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private User user;
 	private DataGroupToRecordEnhancer enhancer;
 	private DataGroupTermCollectorSpy termCollector;
@@ -119,7 +119,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
@@ -166,8 +166,8 @@ public class DataGroupToRecordEnhancerTest {
 		assertTrue(record.getActions().contains(Action.READ));
 	}
 
-	private RecordStorageSpy createRecordStorageSpy() {
-		RecordStorageSpy recordStorageSpy = new RecordStorageSpy();
+	private RecordStorageOldSpy createRecordStorageSpy() {
+		RecordStorageOldSpy recordStorageSpy = new RecordStorageOldSpy();
 		dependencyProvider.recordStorage = recordStorageSpy;
 		enhancer = new DataGroupToRecordEnhancerImp(dependencyProvider);
 		return recordStorageSpy;
@@ -557,14 +557,14 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void setupForDeleteButIncomingLinksExists() {
-		RecordStorageSpy recordStorageSpy = createRecordStorageSpy();
+		RecordStorageOldSpy recordStorageSpy = createRecordStorageSpy();
 		recordStorageSpy.incomingLinksExistsForType.add(SOME_RECORD_TYPE);
 	}
 
 	private void assertDeleteActionAuthorizedButHasIncomingLinks(DataRecord record) {
 		assertTypeAndCollectedDataAuthorizationCalledForDeleteActionPartOfEnhance();
 
-		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) dependencyProvider
+		RecordStorageOldSpy recordStorageSpy = (RecordStorageOldSpy) dependencyProvider
 				.getRecordStorage();
 		recordStorageSpy.MCR.assertNumberOfCallsToMethod("linksExistForRecord", 1);
 		recordStorageSpy.MCR.assertParameters("linksExistForRecord", 0, SOME_RECORD_TYPE, "someId");
@@ -595,7 +595,7 @@ public class DataGroupToRecordEnhancerTest {
 	private void setupForDeleteButIncomingLinksExistsForParentRecordType() {
 		createRecordStorageSpy();
 		recordTypeHandlerSpy.hasParent = true;
-		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) dependencyProvider
+		RecordStorageOldSpy recordStorageSpy = (RecordStorageOldSpy) dependencyProvider
 				.getRecordStorage();
 		recordStorageSpy.incomingLinksExistsForType.add("someParentId");
 	}
@@ -603,7 +603,7 @@ public class DataGroupToRecordEnhancerTest {
 	private void assertDeleteActionAuthorizedButHasIncomingLinksAsParentRecordType(
 			DataRecord record) {
 		assertTypeAndCollectedDataAuthorizationCalledForDeleteActionPartOfEnhance();
-		RecordStorageSpy recordStorageSpy = (RecordStorageSpy) dependencyProvider
+		RecordStorageOldSpy recordStorageSpy = (RecordStorageOldSpy) dependencyProvider
 				.getRecordStorage();
 
 		recordStorageSpy.MCR.assertParameters("linksExistForRecord", 0, SOME_RECORD_TYPE, "someId");
@@ -1262,7 +1262,7 @@ public class DataGroupToRecordEnhancerTest {
 		String returnedSearchId = (String) recordTypeHandlerForRecordTypeInData.MCR
 				.getReturnValue("getSearchId", 0);
 
-		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProvider.getRecordStorage();
+		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider.getRecordStorage();
 		recordStorage.MCR.assertParameters("read", 0, SEARCH, returnedSearchId);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user, SEARCH,
 				"linkedSearchId1");
@@ -1314,7 +1314,7 @@ public class DataGroupToRecordEnhancerTest {
 		recordTypeHandlerForRecordTypeInData.MCR.assertMethodWasCalled("hasLinkedSearch");
 		String returnedSearchId = (String) recordTypeHandlerForRecordTypeInData.MCR
 				.getReturnValue("getSearchId", 0);
-		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProvider.getRecordStorage();
+		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider.getRecordStorage();
 		recordStorage.MCR.assertParameters("read", 0, SEARCH, returnedSearchId);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user, SEARCH,
 				"linkedSearchId1");
@@ -1330,7 +1330,7 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup recordTypeToSearchIn2 = new DataGroupSpy("recordTypeToSearchIn");
 		searchGroupLinkedFromRecordType.addChild(recordTypeToSearchIn2);
 		recordTypeToSearchIn2.addChild(new DataAtomicSpy("linkedRecordId", "linkedSearchId2"));
-		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProvider.getRecordStorage();
+		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider.getRecordStorage();
 		recordStorage.returnForRead = searchGroupLinkedFromRecordType;
 	}
 

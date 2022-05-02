@@ -33,10 +33,10 @@ import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.dependency.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.dependency.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.record.internal.RecordStorageSpy;
+import se.uu.ub.cora.spider.record.internal.RecordStorageOldSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.storage.StorageReadResult;
@@ -44,9 +44,9 @@ import se.uu.ub.cora.storage.StorageReadResult;
 public class IndexBatchJobRunnerTest {
 
 	private static final int INDEX_BATCH_SIZE = 1000;
-	private SpiderDependencyProviderSpy dependencyProvider;
+	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private DataGroupSpy indexBatchJobFilter;
-	private RecordStorageSpy recordStorage;
+	private RecordStorageOldSpy recordStorage;
 	private IndexBatchJob indexBatchJob;
 	private IndexBatchJobRunner batchRunner;
 	private RecordIndexerSpy recordIndexer;
@@ -82,8 +82,8 @@ public class IndexBatchJobRunnerTest {
 
 	private void setUpSpies() {
 		Map<String, String> initInfo = new HashMap<>();
-		dependencyProvider = new SpiderDependencyProviderSpy(initInfo);
-		recordStorage = new RecordStorageSpy();
+		dependencyProvider = new SpiderDependencyProviderOldSpy(initInfo);
+		recordStorage = new RecordStorageOldSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.termCollector = termCollector;

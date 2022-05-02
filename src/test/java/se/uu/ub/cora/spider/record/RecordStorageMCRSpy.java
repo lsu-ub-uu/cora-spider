@@ -20,35 +20,40 @@ package se.uu.ub.cora.spider.record;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class RecordStorageMCRSpy implements RecordStorage {
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public Map<String, String> atomicValues = new HashMap<>();
 
 	public DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
 	public List<DataGroup> dataGroups = new ArrayList<>();
 	public int totalNumberOfRecords = 0;
 
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public RecordStorageMCRSpy() {
+		MCR.useMRV(MRV);
+		// MRV.setDefaultReturnValuesSupplier("read", DataGroupMCRSpy::new);
+		MRV.setDefaultReturnValuesSupplier("read", ((Supplier<DataGroupMCRSpy>) () -> dataGroup));
+	}
+
 	@Override
 	public DataGroup read(String type, String id) {
-		MCR.addCall("type", type, "id", id);
-		MCR.addReturned(dataGroup);
-		return dataGroup;
+		return (DataGroup) MCR.addCallAndReturnFromMRV("type", type, "id", id);
 	}
 
 	@Override
 	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
 			DataGroup linkList, String dataDivider) {
-		// TODO Auto-generated method stub
-
+		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", collectedTerms,
+				"linkList", linkList, "dataDivider", dataDivider);
 	}
 
 	@Override
@@ -66,8 +71,8 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	@Override
 	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
 			DataGroup linkList, String dataDivider) {
-		// TODO Auto-generated method stub
-
+		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", collectedTerms,
+				"linkList", linkList, "dataDivider", dataDivider);
 	}
 
 	@Override
