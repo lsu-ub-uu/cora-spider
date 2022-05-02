@@ -40,10 +40,6 @@ import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.data.DataRecordFactory;
-import se.uu.ub.cora.data.DataRecordLinkFactory;
-import se.uu.ub.cora.data.DataRecordLinkProvider;
-import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
@@ -55,7 +51,6 @@ import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupSpy;
-import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -65,7 +60,6 @@ import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupMCRSpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
-import se.uu.ub.cora.spider.record.DataRecordLinkFactorySpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordCreator;
@@ -110,9 +104,7 @@ public class RecordCreatorTest {
 
 	private DataGroupFactory dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
-	private DataRecordLinkFactory dataRecordLinkFactory;
 	private DataCopierFactory dataCopierFactory;
-	private DataRecordFactory dataRecordFactorySpy;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
 	private RecordArchiveSpy recordArchive;
@@ -146,11 +138,7 @@ public class RecordCreatorTest {
 		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 		dataCopierFactory = new DataCopierFactorySpy();
 		DataCopierProvider.setDataCopierFactory(dataCopierFactory);
-		dataRecordLinkFactory = new DataRecordLinkFactorySpy();
-		DataRecordLinkProvider.setDataRecordLinkFactory(dataRecordLinkFactory);
-		dataRecordFactorySpy = new DataRecordFactorySpy();
 		dataRedactor = new DataRedactorSpy();
-		DataRecordProvider.setDataRecordFactory(dataRecordFactorySpy);
 	}
 
 	private void setUpDependencyProvider() {

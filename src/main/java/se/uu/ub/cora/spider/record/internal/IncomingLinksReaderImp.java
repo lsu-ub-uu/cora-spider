@@ -112,6 +112,10 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 		}
 	}
 
+	protected DataGroup getRecordTypeDefinition() {
+		return recordStorage.read(RECORD_TYPE, recordType);
+	}
+
 	private boolean recordTypeHasParent(DataGroup recordTypeDataGroup) {
 		return recordTypeDataGroup.containsChildWithNameInData("parentId");
 	}

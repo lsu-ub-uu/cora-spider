@@ -48,10 +48,6 @@ public class RecordHandler {
 	protected String authToken;
 	protected User user;
 
-	protected DataGroup getRecordTypeDefinition() {
-		return recordStorage.read(RECORD_TYPE, recordType);
-	}
-
 	protected void checkToPartOfLinkedDataExistsInStorage(DataGroup collectedLinks) {
 		for (DataChild dataElement : collectedLinks.getChildren()) {
 			extractToGroupAndCheckDataExistsInStorage((DataGroup) dataElement);

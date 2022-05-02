@@ -70,15 +70,15 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
-		this.authenticator = dependencyProvider.getAuthenticator();
-		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
-		this.dataValidator = dependencyProvider.getDataValidator();
-		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.idGenerator = dependencyProvider.getRecordIdGenerator();
-		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		this.dataGroupTermCollector = dependencyProvider.getDataGroupTermCollector();
-		this.recordIndexer = dependencyProvider.getRecordIndexer();
-		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
+		authenticator = dependencyProvider.getAuthenticator();
+		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
+		dataValidator = dependencyProvider.getDataValidator();
+		recordStorage = dependencyProvider.getRecordStorage();
+		idGenerator = dependencyProvider.getRecordIdGenerator();
+		linkCollector = dependencyProvider.getDataRecordLinkCollector();
+		dataGroupTermCollector = dependencyProvider.getDataGroupTermCollector();
+		recordIndexer = dependencyProvider.getRecordIndexer();
+		extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 		recordArchive = dependencyProvider.getRecordArchive();
 	}
 
@@ -190,29 +190,27 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
-		ensureIdExists(recordType);
 		DataGroup recordInfo = recordAsDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
+		ensureIdExists(recordType, recordInfo);
 		addTypeToRecordInfo(recordType, recordInfo);
 		addCreatedInfoToRecordInfoUsingUserId(recordInfo, userId);
 		addUpdatedInfoToRecordInfoUsingUserId(recordInfo, userId);
 	}
 
-	private void ensureIdExists(String recordType) {
+	private void ensureIdExists(String recordType, DataGroup recordInfo) {
 		if (recordTypeHandler.shouldAutoGenerateId()) {
-			removeIdIfPresentInData();
-			generateAndAddIdToRecordInfo(recordType);
+			removeIdIfPresentInData(recordInfo);
+			generateAndAddIdToRecordInfo(recordType, recordInfo);
 		}
 	}
 
-	private void removeIdIfPresentInData() {
-		DataGroup recordInfo = recordAsDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
+	private void removeIdIfPresentInData(DataGroup recordInfo) {
 		if (recordInfo.containsChildWithNameInData("id")) {
 			recordInfo.removeFirstChildWithNameInData("id");
 		}
 	}
 
-	private void generateAndAddIdToRecordInfo(String recordType) {
-		DataGroup recordInfo = recordAsDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
+	private void generateAndAddIdToRecordInfo(String recordType, DataGroup recordInfo) {
 		recordInfo.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("id",
 				idGenerator.getIdForType(recordType)));
 	}
