@@ -37,7 +37,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.spider.data.DataAttributeFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.DataGroupMCRSpy;
@@ -636,7 +636,7 @@ public class RecordTypeHandlerTest {
 	/**********************************************************************/
 	@Test
 	public void testRecursiveChildOnlyTraversedOnce() {
-		DataGroupSpy dataGroup = new DataGroupSpy("dataGroupNameInData");
+		DataGroupOldSpy dataGroup = new DataGroupOldSpy("dataGroupNameInData");
 		dataGroup.addChild(dataGroup);
 
 		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
@@ -651,12 +651,12 @@ public class RecordTypeHandlerTest {
 		assertEquals(storageSpy.ids.get(2), "divaOrganisationRecursiveNameGroup");
 		assertEquals(storageSpy.ids.get(3), "divaOrganisationRecursiveNameGroup");
 
-		DataGroupSpy returnValueNameGroup = (DataGroupSpy) storageSpy.MCR.getReturnValue("read", 2);
+		DataGroupOldSpy returnValueNameGroup = (DataGroupOldSpy) storageSpy.MCR.getReturnValue("read", 2);
 		int recordInfoAndChildRefsRequested = 2;
 		assertEquals(returnValueNameGroup.requestedDataGroups.size(),
 				recordInfoAndChildRefsRequested);
 
-		DataGroupSpy returnValueNameGroup2 = (DataGroupSpy) storageSpy.MCR.getReturnValue("read",
+		DataGroupOldSpy returnValueNameGroup2 = (DataGroupOldSpy) storageSpy.MCR.getReturnValue("read",
 				3);
 		int onlyRecordInfoRequested = 1;
 		assertEquals(returnValueNameGroup2.requestedDataGroups.size(), onlyRecordInfoRequested);

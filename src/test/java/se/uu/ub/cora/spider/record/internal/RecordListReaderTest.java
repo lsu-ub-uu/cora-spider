@@ -47,7 +47,7 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -88,7 +88,7 @@ public class RecordListReaderTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
-		emptyFilter = new DataGroupSpy("filter");
+		emptyFilter = new DataGroupOldSpy("filter");
 		nonEmptyFilter = createNonEmptyFilter();
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
@@ -101,8 +101,8 @@ public class RecordListReaderTest {
 	}
 
 	private DataGroup createNonEmptyFilter() {
-		DataGroup filter = new DataGroupSpy("filter");
-		DataGroup part = new DataGroupSpy("part");
+		DataGroup filter = new DataGroupOldSpy("filter");
+		DataGroup part = new DataGroupOldSpy("part");
 		filter.addChild(part);
 		return filter;
 	}
@@ -192,7 +192,7 @@ public class RecordListReaderTest {
 
 	@Test
 	public void testNonEmptyFilterContainsStartGroupValidateListFilterIsCalled() {
-		emptyFilter.addChild(new DataGroupSpy("start"));
+		emptyFilter.addChild(new DataGroupOldSpy("start"));
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
 		dataValidator.MCR.assertParameters("validateListFilter", 0, SOME_RECORD_TYPE, emptyFilter);
@@ -200,7 +200,7 @@ public class RecordListReaderTest {
 
 	@Test
 	public void testNonEmptyFilterContainsRowsGroupValidateListFilterIsCalled() {
-		emptyFilter.addChild(new DataGroupSpy("rows"));
+		emptyFilter.addChild(new DataGroupOldSpy("rows"));
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
 		dataValidator.MCR.assertParameters("validateListFilter", 0, SOME_RECORD_TYPE, emptyFilter);

@@ -26,7 +26,7 @@ import java.util.List;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.DataRecordLinkSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -63,9 +63,9 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 		if (recordToReturnOnRead != null) {
 			return recordToReturnOnRead;
 		}
-		DataGroup dataGroupToReturn = new DataGroupSpy("someNameInData");
-		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
-		DataGroup createdBy = new DataGroupSpy("createdBy");
+		DataGroup dataGroupToReturn = new DataGroupOldSpy("someNameInData");
+		DataGroupOldSpy recordInfo = new DataGroupOldSpy("recordInfo");
+		DataGroup createdBy = new DataGroupOldSpy("createdBy");
 		createdBy.addChild(new DataAtomicSpy("linkedRecordType", "user"));
 		createdBy.addChild(new DataAtomicSpy("linkedRecordId", "4422"));
 
@@ -73,7 +73,7 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 		recordInfo.addChild(new DataAtomicSpy("tsCreated", "2014-08-01T00:00:00.000000Z"));
 		dataGroupToReturn.addChild(recordInfo);
 		if (alreadyCalled) {
-			DataGroup updated = new DataGroupSpy("updated");
+			DataGroup updated = new DataGroupOldSpy("updated");
 			updated.setRepeatId("0");
 			DataRecordLink updatedBy = new DataRecordLinkSpy("updatedBy");
 			updated.addChild(updatedBy);
@@ -186,8 +186,8 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 	}
 
 	private void addRolesToUser(DataGroup user) {
-		DataGroup outerUserRole = new DataGroupSpy("userRole");
-		DataGroup innerUserRole = new DataGroupSpy("userRole");
+		DataGroup outerUserRole = new DataGroupOldSpy("userRole");
+		DataGroup innerUserRole = new DataGroupOldSpy("userRole");
 		innerUserRole.addChild(new DataAtomicSpy("linkedRecordType", "permissionRole"));
 		innerUserRole.addChild(new DataAtomicSpy("linkedRecordId", "guest"));
 		outerUserRole.addChild(innerUserRole);
@@ -195,8 +195,8 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 	}
 
 	private DataGroup createUserWithIdAndActiveStatus(String userId, String activeStatus) {
-		DataGroup inactiveUser = new DataGroupSpy("user");
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		DataGroup inactiveUser = new DataGroupOldSpy("user");
+		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", userId));
 		inactiveUser.addChild(recordInfo);
 		inactiveUser.addChild(new DataAtomicSpy("activeStatus", activeStatus));
@@ -204,7 +204,7 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 	}
 
 	private DataGroup createChildWithRecordTypeAndRecordId(String recordType, String recordId) {
-		DataGroup child1 = new DataGroupSpy(recordId);
+		DataGroup child1 = new DataGroupOldSpy(recordId);
 		child1.addChild(
 				DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
 		return child1;

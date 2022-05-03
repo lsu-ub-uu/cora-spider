@@ -24,7 +24,7 @@ import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.storage.MetadataStorage;
 
 public class MetadataStorageSpy implements MetadataStorage {
@@ -54,10 +54,10 @@ public class MetadataStorageSpy implements MetadataStorage {
 	}
 
 	private void createAndAddTexts(String id, DataGroup spyDataGroup) {
-		DataGroup textId = new DataGroupSpy("textId");
+		DataGroup textId = new DataGroupOldSpy("textId");
 		textId.addChild(new DataAtomicSpy("linkedRecordId", id + "Text"));
 		spyDataGroup.addChild(textId);
-		DataGroup defTextId = new DataGroupSpy("defTextId");
+		DataGroup defTextId = new DataGroupOldSpy("defTextId");
 		defTextId.addChild(new DataAtomicSpy("linkedRecordId", id + "DefText"));
 		spyDataGroup.addChild(defTextId);
 	}
@@ -85,8 +85,8 @@ public class MetadataStorageSpy implements MetadataStorage {
 	}
 
 	private DataGroup createRecordTypeDataGroup(String nameInData, String id) {
-		DataGroup spyDataGroup = new DataGroupSpy(nameInData);
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		DataGroup spyDataGroup = new DataGroupOldSpy(nameInData);
+		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", id));
 		spyDataGroup.addChild(recordInfo);
 		return spyDataGroup;

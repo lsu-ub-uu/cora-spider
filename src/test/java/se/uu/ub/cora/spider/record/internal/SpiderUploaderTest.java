@@ -45,7 +45,7 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
@@ -151,7 +151,7 @@ public class SpiderUploaderTest {
 		keyCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 				"spyType", "spyId", "cora"));
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));

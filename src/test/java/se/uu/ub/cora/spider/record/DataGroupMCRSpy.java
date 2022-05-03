@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAttribute;
@@ -36,7 +37,7 @@ public class DataGroupMCRSpy implements DataGroup {
 	public String atomicValueToReturn = "";
 	public Map<String, String> atomicValues = new HashMap<>();
 	public Map<String, DataGroupMCRSpy> groupValues = new HashMap<>();
-	private String nameInData;
+	public String nameInData;
 	/**
 	 * returnValues contains return values for all methods. Key is methodName and value can is a
 	 * list of objects.
@@ -47,10 +48,16 @@ public class DataGroupMCRSpy implements DataGroup {
 	public Map<String, List<Object>> returnValues = new HashMap<>();
 
 	public DataGroupMCRSpy() {
-	}
-
-	public DataGroupMCRSpy(String nameInData) {
-		this.nameInData = nameInData;
+		MCR.useMRV(MRV);
+		// MRV.setDefaultReturnValuesSupplier("hasReadAction", (Supplier<Boolean>) () -> false);
+		// MRV.setDefaultReturnValuesSupplier("getRepeatId", String::new);
+		// MRV.setDefaultReturnValuesSupplier("getNameInData", String::new);
+		MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
+				(Supplier<Boolean>) () -> false);
+		// MRV.setDefaultReturnValuesSupplier("getAttribute", DataAttributeSpy::new);
+		// MRV.setDefaultReturnValuesSupplier("getAttributes", ArrayList<DataAttribute>::new);
+		// MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", String::new);
+		// MRV.setDefaultReturnValuesSupplier("getLinkedRecordType", String::new);
 	}
 
 	@Override
@@ -96,6 +103,7 @@ public class DataGroupMCRSpy implements DataGroup {
 		// || atomicValues.containsKey(nameInData);
 		// MCR.addReturned(returnValue);
 		// return returnValue;
+		// MRC
 
 		MCR.addCall("nameInData", nameInData);
 		boolean returnValue = (boolean) MRV.getReturnValue(nameInData);

@@ -23,7 +23,7 @@ import static org.testng.Assert.assertEquals;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 
 public class IndexBatchJobTest {
 
@@ -31,7 +31,7 @@ public class IndexBatchJobTest {
 	public void testInit() {
 		String recordType = "someRecordType";
 		long totalNumberToIndex = 53;
-		DataGroup dataGroupFilter = new DataGroupSpy("filter");
+		DataGroup dataGroupFilter = new DataGroupOldSpy("filter");
 
 		IndexBatchJob indexBatchJob = new IndexBatchJob(recordType, totalNumberToIndex,
 				dataGroupFilter);

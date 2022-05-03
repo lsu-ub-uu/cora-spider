@@ -32,4 +32,9 @@ public class RecordArchiveSpy implements RecordArchive {
 
 	}
 
+	@Override
+	public void update(String type, String id, DataGroup dataRecord) {
+		MCR.addCall("type", type, "id", id, "dataRecord", dataRecord);
+	}
+
 }

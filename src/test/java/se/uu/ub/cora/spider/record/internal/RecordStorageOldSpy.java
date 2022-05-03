@@ -28,7 +28,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
@@ -53,7 +53,7 @@ public class RecordStorageOldSpy implements RecordStorage {
 		if (null != returnForRead) {
 			dataGroup = returnForRead;
 		} else {
-			dataGroup = new DataGroupSpy("recordType");
+			dataGroup = new DataGroupOldSpy("recordType");
 
 			DataGroup recordInfo = DataCreator
 					.createRecordInfoWithRecordTypeAndRecordId("recordType", "metadata");
@@ -118,10 +118,10 @@ public class RecordStorageOldSpy implements RecordStorage {
 	private void addRecordsToList() {
 		int i = (int) start;
 		while (i < numberToReturnForReadList) {
-			DataGroupSpy topDataGroup = new DataGroupSpy("dummy");
-			DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
+			DataGroupOldSpy topDataGroup = new DataGroupOldSpy("dummy");
+			DataGroupOldSpy recordInfo = new DataGroupOldSpy("recordInfo");
 			topDataGroup.addChild(recordInfo);
-			DataGroupSpy type = new DataGroupSpy("type");
+			DataGroupOldSpy type = new DataGroupOldSpy("type");
 			recordInfo.addChild(type);
 			type.addChild(new DataAtomicSpy("linkedRecordId", "dummyRecordType"));
 			recordInfo.addChild(new DataAtomicSpy("id", "someId" + i));

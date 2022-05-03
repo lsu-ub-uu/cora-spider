@@ -29,7 +29,7 @@ import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
 public class AppTokenEnhancerTest {
@@ -51,7 +51,7 @@ public class AppTokenEnhancerTest {
 
 	@Test
 	public void generateAndAddAppToken() {
-		DataGroup minimalGroup = new DataGroupSpy("appToken");
+		DataGroup minimalGroup = new DataGroupOldSpy("appToken");
 		callExtendedFunctionalityWithGroup(minimalGroup);
 		DataAtomic token = (DataAtomic) minimalGroup.getFirstChildWithNameInData("token");
 		assertTrue(token.getValue().length() > 30);
@@ -66,11 +66,11 @@ public class AppTokenEnhancerTest {
 
 	@Test
 	public void generateAndAddAppTokenDifferentTokens() {
-		DataGroup minimalGroup = new DataGroupSpy("appToken");
+		DataGroup minimalGroup = new DataGroupOldSpy("appToken");
 		callExtendedFunctionalityWithGroup(minimalGroup);
 		DataAtomic token = (DataAtomic) minimalGroup.getFirstChildWithNameInData("token");
 
-		DataGroup minimalGroup2 = new DataGroupSpy("appToken");
+		DataGroup minimalGroup2 = new DataGroupOldSpy("appToken");
 		callExtendedFunctionalityWithGroup(minimalGroup2);
 		DataAtomic token2 = (DataAtomic) minimalGroup2.getFirstChildWithNameInData("token");
 

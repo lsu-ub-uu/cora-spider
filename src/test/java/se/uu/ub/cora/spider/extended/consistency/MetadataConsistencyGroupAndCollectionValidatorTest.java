@@ -31,7 +31,7 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
@@ -57,7 +57,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		recordType = "metadataGroup";
-		recordAsDataGroup = new DataGroupSpy("nameInData");
+		recordAsDataGroup = new DataGroupOldSpy("nameInData");
 	}
 
 	private void setUpDependencies() {
@@ -68,7 +68,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	public void testMetadataGroupChildDoesNotExistInParent() {
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		recordAsDataGroup = DataCreator2.createMetadataGroupWithTwoChildren();
-		DataGroup refParentId = new DataGroupSpy("refParentId");
+		DataGroup refParentId = new DataGroupOldSpy("refParentId");
 		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
 		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testGroup"));
 		recordAsDataGroup.addChild(refParentId);
@@ -87,7 +87,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	public void testMetadataGroupChildWithDifferentIdButSameNameInDataExistInParent() {
 
 		recordAsDataGroup = DataCreator2.createMetadataGroupWithTwoChildren();
-		DataGroup refParentId = new DataGroupSpy("refParentId");
+		DataGroup refParentId = new DataGroupOldSpy("refParentId");
 		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
 		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testGroupWithTwoChildren"));
 		recordAsDataGroup.addChild(refParentId);
@@ -106,7 +106,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testMetadataGroupChildWithOneChild() {
 		recordAsDataGroup = DataCreator2.createMetadataGroupWithOneChild();
-		DataGroup refParentId = new DataGroupSpy("refParentId");
+		DataGroup refParentId = new DataGroupOldSpy("refParentId");
 		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
 		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testGroupWithOneChild"));
 
@@ -119,7 +119,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	public void testMetadataGroupChildDoesNotExistInStorage() {
 		recordAsDataGroup = DataCreator2.createMetadataGroupWithThreeChildren();
 
-		DataGroup refParentId = new DataGroupSpy("refParentId");
+		DataGroup refParentId = new DataGroupOldSpy("refParentId");
 		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
 		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testGroupWithThreeChildren"));
 
@@ -132,7 +132,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	public void testMetadataGroupChildDoesNotExistInStorageExceptionIsSentAlong() {
 		recordAsDataGroup = DataCreator2.createMetadataGroupWithThreeChildren();
 
-		DataGroup refParentId = new DataGroupSpy("refParentId");
+		DataGroup refParentId = new DataGroupOldSpy("refParentId");
 		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
 		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testGroupWithThreeChildren"));
 
@@ -150,7 +150,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		recordType = "metadataCollectionVariable";
 		recordAsDataGroup = DataCreator2.createMetadataGroupWithCollectionVariableAsChild();
 
-		DataGroup refParentId = new DataGroupSpy("refParentId");
+		DataGroup refParentId = new DataGroupOldSpy("refParentId");
 		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
 		refParentId.addChild(
 				new DataAtomicSpy("linkedRecordId", "testParentMissingItemCollectionVar"));
@@ -165,7 +165,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		recordType = "metadataCollectionVariable";
 		recordAsDataGroup = DataCreator2.createMetadataGroupWithCollectionVariableAsChild();
 
-		DataGroup refParentId = new DataGroupSpy("refParentId");
+		DataGroup refParentId = new DataGroupOldSpy("refParentId");
 		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
 		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testParentCollectionVar"));
 

@@ -85,9 +85,15 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	}
 
 	public void createThreeFakeGroupsInAnswerToList() {
-		dataGroups.add(new DataGroupMCRSpy("parentId1"));
-		dataGroups.add(new DataGroupMCRSpy("parentId2"));
-		dataGroups.add(new DataGroupMCRSpy("parentId3"));
+		DataGroupMCRSpy spy1 = new DataGroupMCRSpy();
+		spy1.nameInData = "parentId1";
+		DataGroupMCRSpy spy2 = new DataGroupMCRSpy();
+		spy1.nameInData = "parentId2";
+		DataGroupMCRSpy spy3 = new DataGroupMCRSpy();
+		spy1.nameInData = "parentId3";
+		dataGroups.add(spy1);
+		dataGroups.add(spy2);
+		dataGroups.add(spy3);
 	}
 
 	@Override

@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.testdata;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 
 public final class DataCreator {
@@ -46,7 +46,7 @@ public final class DataCreator {
 	}
 
 	private static DataGroup getFilterChild(String filterMetadataId) {
-		DataGroup filter = new DataGroupSpy("filter");
+		DataGroup filter = new DataGroupOldSpy("filter");
 		filter.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
 		filter.addChild(new DataAtomicSpy("linkedRecordId", filterMetadataId));
 		return filter;
@@ -57,7 +57,7 @@ public final class DataCreator {
 		// TODO Auto-generated method stub
 		String idWithCapitalFirst = id.substring(0, 1).toUpperCase() + id.substring(1);
 
-		DataGroup dataGroup = new DataGroupSpy(RECORD_TYPE);
+		DataGroup dataGroup = new DataGroupOldSpy(RECORD_TYPE);
 		dataGroup.addChild(createRecordInfoWithRecordTypeAndRecordId(RECORD_TYPE, id));
 
 		dataGroup.addChild(
@@ -115,7 +115,7 @@ public final class DataCreator {
 
 	public static DataGroup createRecordInfoWithRecordTypeAndRecordId(String recordType,
 			String recordId) {
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		DataRecordLinkSpy typeGroup = new DataRecordLinkSpy("type");
 		typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
 		typeGroup.addChild(new DataAtomicSpy("linkedRecordId", recordType));
@@ -133,15 +133,15 @@ public final class DataCreator {
 	}
 
 	public static DataGroup createDataForRecordToRecordLink() {
-		DataGroup recordToRecordLink = new DataGroupSpy("recordToRecordLink");
+		DataGroup recordToRecordLink = new DataGroupOldSpy("recordToRecordLink");
 
-		DataGroup from = new DataGroupSpy("from");
+		DataGroup from = new DataGroupOldSpy("from");
 		from.addChild(new DataAtomicSpy("linkedRecordType", "dataWithLinks"));
 		from.addChild(new DataAtomicSpy("linkedRecordId", "someId"));
 
 		recordToRecordLink.addChild(from);
 
-		DataGroup to = new DataGroupSpy("to");
+		DataGroup to = new DataGroupOldSpy("to");
 		to.addChild(new DataAtomicSpy("linkedRecordType", "toRecordType"));
 		to.addChild(new DataAtomicSpy("linkedRecordId", "toRecordId"));
 		to.addChild(to);
@@ -152,7 +152,7 @@ public final class DataCreator {
 
 	public static DataGroup createDataGroupWithNameInDataTypeAndId(String nameInData,
 			String recordType, String recordId) {
-		DataGroup dataGroup = new DataGroupSpy(nameInData);
+		DataGroup dataGroup = new DataGroupOldSpy(nameInData);
 		DataGroup recordInfo = DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType,
 				recordId);
 		dataGroup.addChild(recordInfo);

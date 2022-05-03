@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.record.internal.RecordStorageOldSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
@@ -60,14 +60,14 @@ public class IndexBatchJobStorerTest {
 
 		createDefaultBatchJob();
 
-		DataGroupSpy indexBatchJobDataGroup = createIndexBatchJobDataGroup();
+		DataGroupOldSpy indexBatchJobDataGroup = createIndexBatchJobDataGroup();
 		recordStorage.returnForRead = indexBatchJobDataGroup;
 	}
 
-	private DataGroupSpy createIndexBatchJobDataGroup() {
-		DataGroupSpy defaultDataGroup = new DataGroupSpy("indexBatchJob");
-		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
-		DataGroupSpy dataDivider = new DataGroupSpy("dataDivider");
+	private DataGroupOldSpy createIndexBatchJobDataGroup() {
+		DataGroupOldSpy defaultDataGroup = new DataGroupOldSpy("indexBatchJob");
+		DataGroupOldSpy recordInfo = new DataGroupOldSpy("recordInfo");
+		DataGroupOldSpy dataDivider = new DataGroupOldSpy("dataDivider");
 		dataDivider.addChild(new DataAtomicSpy("linkedRecordId", "someDataDivider"));
 		recordInfo.addChild(dataDivider);
 		defaultDataGroup.addChild(recordInfo);
@@ -131,7 +131,7 @@ public class IndexBatchJobStorerTest {
 
 		Map<String, Object> parameters = recordStorage.MCR
 				.getParametersForMethodAndCallNumber("update", 0);
-		DataGroupSpy returnedDataGroupFromRead = (DataGroupSpy) recordStorage.MCR
+		DataGroupOldSpy returnedDataGroupFromRead = (DataGroupOldSpy) recordStorage.MCR
 				.getReturnValue("read", 0);
 		assertSame(parameters.get("record"), returnedDataGroupFromRead);
 		assertEquals(parameters.get("type"), "indexBatchJob");
@@ -143,7 +143,7 @@ public class IndexBatchJobStorerTest {
 		assertEquals(parameters.get("dataDivider"), dataDivider);
 	}
 
-	private String extractDataDivider(DataGroupSpy convertedDataGroup) {
+	private String extractDataDivider(DataGroupOldSpy convertedDataGroup) {
 		DataGroup recordInfo = convertedDataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
 		String firstAtomicValueWithNameInData = dataDivider
@@ -152,7 +152,7 @@ public class IndexBatchJobStorerTest {
 	}
 
 	private void createDefaultBatchJob() {
-		indexBatchJob = new IndexBatchJob("someRecordType", 45, new DataGroupSpy("filter"));
+		indexBatchJob = new IndexBatchJob("someRecordType", 45, new DataGroupOldSpy("filter"));
 		indexBatchJob.numberOfProcessedRecords = 80;
 		indexBatchJob.recordId = "someRecordId";
 		createAndAddErrors();

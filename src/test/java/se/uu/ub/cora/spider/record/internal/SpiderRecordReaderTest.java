@@ -33,7 +33,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -173,10 +173,10 @@ public class SpiderRecordReaderTest {
 	public void testEnhancerCalledCorrectlyWhenAbstractRecordType() throws Exception {
 		recordTypeHandlerSpy.isAbstract = true;
 
-		DataGroup dataGroup = new DataGroupSpy("someNameInData");
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		DataGroup dataGroup = new DataGroupOldSpy("someNameInData");
+		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		dataGroup.addChild(recordInfo);
-		DataGroup type = new DataGroupSpy("type");
+		DataGroup type = new DataGroupOldSpy("type");
 		recordInfo.addChild(type);
 		type.addChild(new DataAtomicSpy("linkedRecordId", "someNotAbstractType"));
 		recordStorage.returnForRead = dataGroup;

@@ -47,7 +47,7 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
@@ -68,7 +68,7 @@ public class SpiderRecordSearcherTest {
 	private static final String A_SEARCH_ID = "aSearchId";
 	private static final String ANOTHER_SEARCH_ID = "anotherSearchId";
 	private static final String SOME_AUTH_TOKEN = "someToken78678567";
-	private final DataGroup someSearchData = new DataGroupSpy("search");
+	private final DataGroup someSearchData = new DataGroupOldSpy("search");
 
 	private RecordStorage recordStorage;
 	private AuthenticatorSpy authenticator;

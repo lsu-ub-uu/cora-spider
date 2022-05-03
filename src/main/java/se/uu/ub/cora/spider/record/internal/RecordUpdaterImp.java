@@ -48,6 +48,7 @@ import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordUpdaterImp extends RecordHandler implements RecordUpdater {
 	private static final String UPDATED_STRING = "updated";
@@ -69,19 +70,21 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private SpiderDependencyProvider dependencyProvider;
 	private DataGroup previouslyStoredRecord;
 	private Set<String> writePermissions;
+	private RecordArchive recordArchive;
 
 	private RecordUpdaterImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
-		this.authenticator = dependencyProvider.getAuthenticator();
-		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
-		this.dataValidator = dependencyProvider.getDataValidator();
-		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		this.dataGroupTermCollector = dependencyProvider.getDataGroupTermCollector();
-		this.recordIndexer = dependencyProvider.getRecordIndexer();
-		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
+		authenticator = dependencyProvider.getAuthenticator();
+		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
+		dataValidator = dependencyProvider.getDataValidator();
+		recordStorage = dependencyProvider.getRecordStorage();
+		linkCollector = dependencyProvider.getDataRecordLinkCollector();
+		dataGroupTermCollector = dependencyProvider.getDataGroupTermCollector();
+		recordIndexer = dependencyProvider.getRecordIndexer();
+		extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
+		recordArchive = dependencyProvider.getRecordArchive();
 	}
 
 	public static RecordUpdaterImp usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -92,9 +95,9 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	@Override
 	public DataRecord updateRecord(String authToken, String recordType, String recordId,
-			DataGroup dataGroup) {
+			DataGroup recordGroup) {
 		this.authToken = authToken;
-		this.topDataGroup = dataGroup;
+		topDataGroup = recordGroup;
 		this.recordType = recordType;
 		this.recordId = recordId;
 		user = tryToGetActiveUser();
@@ -104,13 +107,13 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		metadataId = recordTypeHandler.getMetadataId();
 
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
-		useExtendedFunctionalityBeforeMetadataValidation(recordType, dataGroup);
+		useExtendedFunctionalityBeforeMetadataValidation(recordType, topDataGroup);
 
 		updateRecordInfo();
 		possiblyReplaceRecordPartsUserIsNotAllowedToChange();
 
 		validateIncomingDataAsSpecifiedInMetadata();
-		useExtendedFunctionalityAfterMetadataValidation(recordType, dataGroup);
+		useExtendedFunctionalityAfterMetadataValidation(recordType, topDataGroup);
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
 		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId, topDataGroup);
@@ -120,10 +123,13 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 				recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
-		useExtendedFunctionalityBeforeStore(recordType, dataGroup);
+		useExtendedFunctionalityBeforeStore(recordType, topDataGroup);
 		updateRecordInStorage(collectedTerms, collectedLinks);
+		if (recordTypeHandler.storeInArchive()) {
+			recordArchive.update(recordType, recordId, topDataGroup);
+		}
 		indexData(collectedTerms);
-		useExtendedFunctionalityAfterStore(recordType, dataGroup);
+		useExtendedFunctionalityAfterStore(recordType, topDataGroup);
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup, dataRedactor);
 	}
@@ -191,7 +197,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private void replaceUpdatedInfoWithInfoFromPreviousRecord(DataGroup recordInfo) {
 		removeUpdateInfoFromIncomingData(recordInfo);
-		addRecordInfoFromReadData(recordInfo);
+		addUpdateToRecordInfoFromReadData(recordInfo);
 	}
 
 	private void removeUpdateInfoFromIncomingData(DataGroup recordInfo) {
@@ -200,7 +206,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		}
 	}
 
-	private void addRecordInfoFromReadData(DataGroup recordInfo) {
+	private void addUpdateToRecordInfoFromReadData(DataGroup recordInfo) {
 		DataGroup recordInfoStoredRecord = getRecordInfoFromStoredData();
 		List<DataGroup> updatedGroups = recordInfoStoredRecord
 				.getAllGroupsWithNameInData(UPDATED_STRING);
@@ -311,6 +317,8 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private String extractTypeFromRecordInfo(DataGroup recordInfo) {
 		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
 		return typeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		// DataRecordLink type = (DataRecordLink) recordInfo.getFirstChildWithNameInData("type");
+		// return type.getLinkedRecordId();
 	}
 
 	private void updateRecordInStorage(DataGroup collectedTerms, DataGroup collectedLinks) {

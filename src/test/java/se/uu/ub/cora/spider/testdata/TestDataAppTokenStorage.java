@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.testdata;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.record.storage.RecordStorageInMemoryStub;
 
 public class TestDataAppTokenStorage {
@@ -37,13 +37,13 @@ public class TestDataAppTokenStorage {
 		addRecordTypeAppToken(recordsInMemory);
 		addRecordTypeImage(recordsInMemory);
 
-		DataGroup dummyUser1 = new DataGroupSpy("user");
+		DataGroup dummyUser1 = new DataGroupOldSpy("user");
 		recordsInMemory.create("systemOneUser", "dummy1", dummyUser1, null,
-				new DataGroupSpy("collectedLinksList"), "systemOne");
+				new DataGroupOldSpy("collectedLinksList"), "systemOne");
 
-		DataGroup dummyUser2 = new DataGroupSpy("user");
+		DataGroup dummyUser2 = new DataGroupOldSpy("user");
 		recordsInMemory.create("systemTwoUser", "dummy2", dummyUser2, null,
-				new DataGroupSpy("collectedLinksList"), "systemOne");
+				new DataGroupOldSpy("collectedLinksList"), "systemOne");
 
 		// DataGroup dummyUser2 = new DataGroupSpy("user");
 		// String inactiveUserJson =
@@ -67,7 +67,7 @@ public class TestDataAppTokenStorage {
 
 	private static void addRecordType(RecordStorageInMemoryStub recordsInMemory) {
 		String recordType = "recordType";
-		DataGroup dataGroup = new DataGroupSpy(recordType);
+		DataGroup dataGroup = new DataGroupOldSpy(recordType);
 
 		DataGroup recordInfo = DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType,
 				"metadata");
@@ -75,7 +75,7 @@ public class TestDataAppTokenStorage {
 
 		dataGroup.addChild(new DataAtomicSpy("abstract", "false"));
 		recordsInMemory.create(recordType, "metadata", dataGroup, null,
-				new DataGroupSpy("collectedLinksList"), "cora");
+				new DataGroupOldSpy("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeRecordType(RecordStorageInMemoryStub recordsInMemory) {
@@ -84,7 +84,7 @@ public class TestDataAppTokenStorage {
 				.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead("recordType",
 						"true", "false", "false");
 		recordsInMemory.create(recordType, "recordType", dataGroup, null,
-				new DataGroupSpy("collectedLinksList"), "cora");
+				new DataGroupOldSpy("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeImage(RecordStorageInMemoryStub recordsInMemory) {
@@ -92,7 +92,7 @@ public class TestDataAppTokenStorage {
 		DataGroup dataGroup = DataCreator
 				.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "true", "binary");
 		recordsInMemory.create(recordType, "image", dataGroup, null,
-				new DataGroupSpy("collectedLinksList"), "cora");
+				new DataGroupOldSpy("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeUser(RecordStorageInMemoryStub recordsInMemory) {
@@ -101,7 +101,7 @@ public class TestDataAppTokenStorage {
 				.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead("user", "true",
 						"true", "false");
 		recordsInMemory.create(recordType, "user", dataGroup, null,
-				new DataGroupSpy("collectedLinksList"), "cora");
+				new DataGroupOldSpy("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeSystemOneUser(RecordStorageInMemoryStub recordsInMemory) {
@@ -109,7 +109,7 @@ public class TestDataAppTokenStorage {
 		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(
 				"systemOneUser", "true", "user");
 		recordsInMemory.create(recordType, "systemOneUser", dataGroup, null,
-				new DataGroupSpy("collectedLinksList"), "cora");
+				new DataGroupOldSpy("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeSystemTwoUser(RecordStorageInMemoryStub recordsInMemory) {
@@ -117,7 +117,7 @@ public class TestDataAppTokenStorage {
 		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(
 				"systemTwoUser", "true", "user");
 		recordsInMemory.create(recordType, "systemTwoUser", dataGroup, null,
-				new DataGroupSpy("collectedLinksList"), "cora");
+				new DataGroupOldSpy("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeWithParent(RecordStorageInMemoryStub recordsInMemory) {
@@ -125,7 +125,7 @@ public class TestDataAppTokenStorage {
 		DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(
 				"systemTwoUser", "true", "user");
 		recordsInMemory.create(recordType, "recordTypeWithParent", dataGroup, null,
-				new DataGroupSpy("collectedLinksList"), "cora");
+				new DataGroupOldSpy("collectedLinksList"), "cora");
 	}
 
 	private static void addRecordTypeAppToken(RecordStorageInMemoryStub recordsInMemory) {
@@ -134,7 +134,7 @@ public class TestDataAppTokenStorage {
 				.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead("appToken",
 						"false", "false", "false");
 		recordsInMemory.create(recordType, "appToken", dataGroup, null,
-				new DataGroupSpy("collectedLinksList"), "cora");
+				new DataGroupOldSpy("collectedLinksList"), "cora");
 
 	}
 }

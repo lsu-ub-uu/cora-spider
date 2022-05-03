@@ -25,7 +25,7 @@ import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataRedactorSpy implements DataRedactor {
@@ -48,7 +48,7 @@ public class DataRedactorSpy implements DataRedactor {
 		MCR.addCall("metadataId", metadataId, "recordRead", originalDataGroup,
 				"recordPartConstraints", recordPartConstraints, "recordPartReadPermissions",
 				recordPartReadPermissions);
-		DataGroupSpy returnedRemovedDataGroup = new DataGroupSpy("someDataGroupSpy");
+		DataGroupOldSpy returnedRemovedDataGroup = new DataGroupOldSpy("someDataGroupSpy");
 		if (returnEnteredDataGroupAsAnswer) {
 			MCR.addReturned(originalDataGroup);
 			return originalDataGroup;
@@ -68,8 +68,8 @@ public class DataRedactorSpy implements DataRedactor {
 		MCR.addCall("metadataId", metadataId, "originalDataGroup", originalDataGroup,
 				"changedDataGroup", changedDataGroup, "recordPartConstraints",
 				recordPartConstraints, "recordPartPermissions", recordPartPermissions);
-		DataGroupSpy returnedReplacedDataGroup = new DataGroupSpy("someDataGroupSpy");
-		DataGroupSpy recordInfo = createRecordInfo();
+		DataGroupOldSpy returnedReplacedDataGroup = new DataGroupOldSpy("someDataGroupSpy");
+		DataGroupOldSpy recordInfo = createRecordInfo();
 		returnedReplacedDataGroup.addChild(recordInfo);
 		if (returnEnteredDataGroupAsAnswer) {
 			MCR.addReturned(originalDataGroup);
@@ -83,13 +83,13 @@ public class DataRedactorSpy implements DataRedactor {
 		return returnedReplacedDataGroup;
 	}
 
-	private DataGroupSpy createRecordInfo() {
-		DataGroupSpy recordInfo = new DataGroupSpy("recordInfo");
+	private DataGroupOldSpy createRecordInfo() {
+		DataGroupOldSpy recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", "spyId"));
-		DataGroupSpy type = new DataGroupSpy("type");
+		DataGroupOldSpy type = new DataGroupOldSpy("type");
 		type.addChild(new DataAtomicSpy("linkedRecordId", "spyType"));
 		recordInfo.addChild(type);
-		DataGroupSpy dataDivider = new DataGroupSpy("dataDivider");
+		DataGroupOldSpy dataDivider = new DataGroupOldSpy("dataDivider");
 		dataDivider.addChild(new DataAtomicSpy("linkedRecordId", "someSystem"));
 		recordInfo.addChild(dataDivider);
 		return recordInfo;

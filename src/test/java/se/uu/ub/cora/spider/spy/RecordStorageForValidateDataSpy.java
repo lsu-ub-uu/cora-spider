@@ -25,7 +25,7 @@ import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -59,8 +59,8 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 					"No records exists with recordType: " + type + " and recordId " + id);
 		}
 
-		DataGroup dataGroupToReturn = new DataGroupSpy("someNameInData");
-		dataGroupToReturn.addChild(new DataGroupSpy("recordInfo"));
+		DataGroup dataGroupToReturn = new DataGroupOldSpy("someNameInData");
+		dataGroupToReturn.addChild(new DataGroupOldSpy("recordInfo"));
 		return dataGroupToReturn;
 	}
 
@@ -204,7 +204,7 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 
 	private DataGroup createPermissionTermWithIdAndValues(String permissionTermId,
 			String... value) {
-		DataGroup permissionTerm = new DataGroupSpy("permissionTermRulePart");
+		DataGroup permissionTerm = new DataGroupOldSpy("permissionTermRulePart");
 		DataGroup rule = createLinkWithNameInDataRecordtypeAndRecordId("rule",
 				"collectPermissionTerm", permissionTermId);
 		permissionTerm.addChild(rule);
@@ -217,7 +217,7 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 
 	private DataGroup createLinkWithNameInDataRecordtypeAndRecordId(String nameInData,
 			String linkedRecordType, String linkedRecordId) {
-		DataGroup link = new DataGroupSpy(nameInData);
+		DataGroup link = new DataGroupOldSpy(nameInData);
 		link.addChild(new DataAtomicSpy("linkedRecordType", linkedRecordType));
 		link.addChild(new DataAtomicSpy("linkedRecordId", linkedRecordId));
 		return link;
@@ -229,8 +229,8 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 	}
 
 	private DataGroup createUserRoleWithId(String roleId) {
-		DataGroup outerUserRole = new DataGroupSpy("userRole");
-		DataGroup innerUserRole = new DataGroupSpy("userRole");
+		DataGroup outerUserRole = new DataGroupOldSpy("userRole");
+		DataGroup innerUserRole = new DataGroupOldSpy("userRole");
 		innerUserRole.addChild(new DataAtomicSpy("linkedRecordType", "permissionRole"));
 		innerUserRole.addChild(new DataAtomicSpy("linkedRecordId", roleId));
 		outerUserRole.addChild(innerUserRole);
@@ -238,8 +238,8 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 	}
 
 	private DataGroup createUserWithIdAndActiveStatus(String userId, String activeStatus) {
-		DataGroup inactiveUser = new DataGroupSpy("user");
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		DataGroup inactiveUser = new DataGroupOldSpy("user");
+		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", userId));
 		inactiveUser.addChild(recordInfo);
 		inactiveUser.addChild(new DataAtomicSpy("activeStatus", activeStatus));
@@ -247,7 +247,7 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 	}
 
 	private DataGroup createChildWithRecordTypeAndRecordId(String recordType, String recordId) {
-		DataGroup child1 = new DataGroupSpy(recordId);
+		DataGroup child1 = new DataGroupOldSpy(recordId);
 		child1.addChild(
 				DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
 		return child1;

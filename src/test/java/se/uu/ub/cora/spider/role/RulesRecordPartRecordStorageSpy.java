@@ -24,7 +24,7 @@ import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
@@ -42,7 +42,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 		if ("permissionRule".equals(type) && "ruleWithOneReadPermissionPart".equals(id)) {
 			DataGroup rule = createBasicPermissionRule();
 
-			DataGroup readPermission = new DataGroupSpy("readPermissions");
+			DataGroup readPermission = new DataGroupOldSpy("readPermissions");
 			createAndAddReadPermission(readPermission, "organisation.rootOrganisation", "0");
 			rule.addChild(readPermission);
 			rule.addChild(new DataAtomicSpy("activeStatus", "active"));
@@ -53,7 +53,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 		if ("permissionRule".equals(type) && "ruleWithTwoReadPermissionPart".equals(id)) {
 			DataGroup rule = createBasicPermissionRule();
 
-			DataGroup readPermission = new DataGroupSpy("readPermissions");
+			DataGroup readPermission = new DataGroupOldSpy("readPermissions");
 			createAndAddReadPermission(readPermission, "organisation.showInPortal", "0");
 			createAndAddReadPermission(readPermission, "organisation.showInDefence", "1");
 			rule.addChild(readPermission);
@@ -71,7 +71,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 		if ("permissionRule".equals(type) && "ruleWithOneWritePermissionPart".equals(id)) {
 			DataGroup rule = createBasicPermissionRule();
 
-			DataGroup writePermission = new DataGroupSpy("writePermissions");
+			DataGroup writePermission = new DataGroupOldSpy("writePermissions");
 			createAndAddWritePermission(writePermission, "organisation.topOrganisation", "0");
 			rule.addChild(writePermission);
 			rule.addChild(new DataAtomicSpy("activeStatus", "active"));
@@ -82,7 +82,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 		if ("permissionRule".equals(type) && "ruleWithTwoWritePermissionPart".equals(id)) {
 			DataGroup rule = createBasicPermissionRule();
 
-			DataGroup writePermission = new DataGroupSpy("writePermissions");
+			DataGroup writePermission = new DataGroupOldSpy("writePermissions");
 			createAndAddWritePermission(writePermission, "organisation.showInAdvancedSearch", "0");
 			createAndAddWritePermission(writePermission, "organisation.showInBrowse", "1");
 			rule.addChild(writePermission);
@@ -101,11 +101,11 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 				&& "ruleWithOneReadPermissionPartTwoWritePermissionPart".equals(id)) {
 			DataGroup rule = createBasicPermissionRule();
 
-			DataGroup readPermission = new DataGroupSpy("readPermissions");
+			DataGroup readPermission = new DataGroupOldSpy("readPermissions");
 			createAndAddReadPermission(readPermission, "organisation.showInPortal", "0");
 			rule.addChild(readPermission);
 
-			DataGroup writePermission = new DataGroupSpy("writePermissions");
+			DataGroup writePermission = new DataGroupOldSpy("writePermissions");
 			createAndAddWritePermission(writePermission, "organisation.showInAdvancedSearch", "0");
 			createAndAddWritePermission(writePermission, "organisation.showInBrowse", "1");
 			rule.addChild(writePermission);
@@ -115,13 +115,13 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 			return rule;
 		}
 
-		DataGroup dataGroupToReturn = new DataGroupSpy("someNameInData");
-		dataGroupToReturn.addChild(new DataGroupSpy("recordInfo"));
+		DataGroup dataGroupToReturn = new DataGroupOldSpy("someNameInData");
+		dataGroupToReturn.addChild(new DataGroupOldSpy("recordInfo"));
 		return dataGroupToReturn;
 	}
 
 	private DataGroup createBasicPermissionRule() {
-		DataGroup rule = new DataGroupSpy("permissionRule");
+		DataGroup rule = new DataGroupOldSpy("permissionRule");
 		DataGroup permissionRulePart = createPermissionRulePart("action", "system.create",
 				"system.read");
 		rule.addChild(permissionRulePart);
@@ -141,7 +141,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 	}
 
 	private DataGroup createRoleWithReadPermissions() {
-		DataGroup permissionRole = new DataGroupSpy("permissionRole");
+		DataGroup permissionRole = new DataGroupOldSpy("permissionRole");
 		addPermissionRuleToRoleUsingRuleId(permissionRole, "ruleWithOneReadPermissionPart");
 		addPermissionRuleToRoleUsingRuleId(permissionRole, "ruleWithTwoReadPermissionPart");
 		permissionRole.addChild(new DataAtomicSpy("activeStatus", "active"));
@@ -150,14 +150,14 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 	}
 
 	private void addPermissionRuleToRoleUsingRuleId(DataGroup permissionRole, String ruleId) {
-		DataGroup permissionRuleLink = new DataGroupSpy("permissionRuleLink");
+		DataGroup permissionRuleLink = new DataGroupOldSpy("permissionRuleLink");
 		permissionRuleLink.addChild(new DataAtomicSpy("linkedRecordType", "permissionRule"));
 		permissionRuleLink.addChild(new DataAtomicSpy("linkedRecordId", ruleId));
 		permissionRole.addChild(permissionRuleLink);
 	}
 
 	private DataGroup createRoleWithWritePermissions() {
-		DataGroup permissionRole = new DataGroupSpy("permissionRole");
+		DataGroup permissionRole = new DataGroupOldSpy("permissionRole");
 		addPermissionRuleToRoleUsingRuleId(permissionRole, "ruleWithOneWritePermissionPart");
 		addPermissionRuleToRoleUsingRuleId(permissionRole, "ruleWithTwoWritePermissionPart");
 
@@ -167,7 +167,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 	}
 
 	private DataGroup createRoleWithReadAndWritePermissions() {
-		DataGroup permissionRole = new DataGroupSpy("permissionRole");
+		DataGroup permissionRole = new DataGroupOldSpy("permissionRole");
 		addPermissionRuleToRoleUsingRuleId(permissionRole,
 				"ruleWithOneReadPermissionPartTwoWritePermissionPart");
 
@@ -177,7 +177,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 	}
 
 	private DataGroup createPermissionRulePart(String permissionType, String... value) {
-		DataGroup permissionRulePart = new DataGroupSpy("permissionRulePart");
+		DataGroup permissionRulePart = new DataGroupOldSpy("permissionRulePart");
 		for (int idx = 0; idx < value.length; idx++) {
 			permissionRulePart.addChild(
 					new DataAtomicSpy("permissionRulePartValue", value[idx], String.valueOf(idx)));

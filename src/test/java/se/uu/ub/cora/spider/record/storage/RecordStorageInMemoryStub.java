@@ -30,7 +30,7 @@ import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.copier.DataCopier;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.storage.MetadataStorage;
 import se.uu.ub.cora.storage.MetadataTypes;
 import se.uu.ub.cora.storage.RecordConflictException;
@@ -39,7 +39,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage {
-	private DataGroup emptyFilter = new DataGroupSpy("filter");
+	private DataGroup emptyFilter = new DataGroupOldSpy("filter");
 	protected Map<String, Map<String, DataGroup>> records = new HashMap<>();
 	protected Map<String, Map<String, DataGroup>> linkLists = new HashMap<>();
 	protected Map<String, Map<String, Map<String, Map<String, List<DataGroup>>>>> incomingLinks = new HashMap<>();
@@ -240,7 +240,7 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 	public DataGroup readLinkList(String recordType, String recordId) {
 		checkRecordExists(recordType, recordId);
 		if (!linkLists.get(recordType).containsKey(recordId)) {
-			return new DataGroupSpy("collectedDataLinks");
+			return new DataGroupOldSpy("collectedDataLinks");
 		}
 		return linkLists.get(recordType).get(recordId);
 	}

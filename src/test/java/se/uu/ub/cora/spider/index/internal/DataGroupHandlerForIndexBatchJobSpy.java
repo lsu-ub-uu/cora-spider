@@ -19,7 +19,7 @@
 package se.uu.ub.cora.spider.index.internal;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataGroupHandlerForIndexBatchJobSpy implements DataGroupHandlerForIndexBatchJob {
@@ -41,7 +41,7 @@ public class DataGroupHandlerForIndexBatchJobSpy implements DataGroupHandlerForI
 	public DataGroup createDataGroup(IndexBatchJob indexBatchJob) {
 		MCR.addCall("indexBatchJob", indexBatchJob);
 
-		DataGroupSpy dataGroupSpy = new DataGroupSpy("someDataGroup");
+		DataGroupOldSpy dataGroupSpy = new DataGroupOldSpy("someDataGroup");
 		MCR.addReturned(dataGroupSpy);
 		return dataGroupSpy;
 	}

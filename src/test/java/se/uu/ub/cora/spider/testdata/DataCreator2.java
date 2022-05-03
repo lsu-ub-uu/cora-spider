@@ -22,13 +22,13 @@ package se.uu.ub.cora.spider.testdata;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 
 public final class DataCreator2 {
 
 	public static DataGroup createRecordInfoWithRecordType(String recordType) {
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
-		DataGroup typeGroup = new DataGroupSpy("type");
+		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
+		DataGroup typeGroup = new DataGroupOldSpy("type");
 		typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
 		typeGroup.addChild(new DataAtomicSpy("linkedRecordId", recordType));
 		recordInfo.addChild(typeGroup);
@@ -45,7 +45,7 @@ public final class DataCreator2 {
 
 	public static DataGroup createRecordInfoWithIdAndLinkedRecordId(String id,
 			String linkedRecordId) {
-		DataGroup createRecordInfo = new DataGroupSpy("recordInfo");
+		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
 		DataGroup dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
 		createRecordInfo.addChild(dataDivider);
 		createRecordInfo.addChild(new DataAtomicSpy("id", id));
@@ -54,7 +54,7 @@ public final class DataCreator2 {
 
 	public static DataGroup createRecordWithNameInDataAndIdAndLinkedRecordId(String nameInData,
 			String id, String linkedRecordId) {
-		DataGroup record = new DataGroupSpy(nameInData);
+		DataGroup record = new DataGroupOldSpy(nameInData);
 		DataGroup createRecordInfo = createRecordInfoWithIdAndLinkedRecordId(id, linkedRecordId);
 		record.addChild(createRecordInfo);
 		return record;
@@ -63,14 +63,14 @@ public final class DataCreator2 {
 	// TODO:samordna recordInfos!
 	public static DataGroup createRecordWithNameInDataAndLinkedRecordId(String nameInData,
 			String linkedRecordId) {
-		DataGroup record = new DataGroupSpy(nameInData);
+		DataGroup record = new DataGroupOldSpy(nameInData);
 		DataGroup createRecordInfo = createRecordInfoWithLinkedRecordId(linkedRecordId);
 		record.addChild(createRecordInfo);
 		return record;
 	}
 
 	public static DataGroup createRecordInfoWithLinkedRecordId(String linkedRecordId) {
-		DataGroup createRecordInfo = new DataGroupSpy("recordInfo");
+		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
 		DataGroup dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
 		createRecordInfo.addChild(dataDivider);
 		return createRecordInfo;
@@ -85,12 +85,12 @@ public final class DataCreator2 {
 
 	public static DataGroup createSearchWithIdAndRecordTypeToSearchIn(String id,
 			String idRecordTypeToSearchIn) {
-		DataGroup search = new DataGroupSpy("search");
+		DataGroup search = new DataGroupOldSpy("search");
 		DataGroup recordInfo = DataCreator2.createRecordInfoWithRecordType("search");
 		recordInfo.addChild(new DataAtomicSpy("id", id));
 		search.addChild(recordInfo);
 
-		DataGroup recordTypeToSearchIn = new DataGroupSpy("recordTypeToSearchIn");
+		DataGroup recordTypeToSearchIn = new DataGroupOldSpy("recordTypeToSearchIn");
 		recordTypeToSearchIn.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
 		recordTypeToSearchIn.addChild(new DataAtomicSpy("linkedRecordId", idRecordTypeToSearchIn));
 		search.addChild(recordTypeToSearchIn);
@@ -99,7 +99,7 @@ public final class DataCreator2 {
 
 	public static DataGroup createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
 			String nameInData, String id, String recordType, String linkedRecordId) {
-		DataGroup record = new DataGroupSpy(nameInData);
+		DataGroup record = new DataGroupOldSpy(nameInData);
 		DataGroup createRecordInfo = createRecordInfoWithIdAndTypeAndLinkedRecordId(id, recordType,
 				linkedRecordId);
 		record.addChild(createRecordInfo);
@@ -108,7 +108,7 @@ public final class DataCreator2 {
 
 	public static DataGroup createRecordInfoWithIdAndTypeAndLinkedRecordId(String id,
 			String recordType, String linkedRecordId) {
-		DataGroup createRecordInfo = new DataGroupSpy("recordInfo");
+		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
 		createRecordInfo.addChild(new DataAtomicSpy("id", id));
 		DataRecordLinkSpy typeGroup = new DataRecordLinkSpy("type");
 		typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
@@ -129,12 +129,12 @@ public final class DataCreator2 {
 
 	public static DataGroup createWorkOrderWithIdRecordTypeRecordIdAndWorkOrderType(String id,
 			String recordType, String recordId, String workOrderType) {
-		DataGroup workOrder = new DataGroupSpy("workOrder");
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		DataGroup workOrder = new DataGroupOldSpy("workOrder");
+		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", id));
 		workOrder.addChild(recordInfo);
 
-		DataGroup recordTypeLink = new DataGroupSpy("recordType");
+		DataGroup recordTypeLink = new DataGroupOldSpy("recordType");
 		recordTypeLink.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
 		recordTypeLink.addChild(new DataAtomicSpy("linkedRecordId", recordType));
 		workOrder.addChild(recordTypeLink);
@@ -147,11 +147,11 @@ public final class DataCreator2 {
 	public static DataGroup createRecordWithNameInDataAndIdAndTypeAndLinkedRecordIdAndCreatedBy(
 			String nameInData, String id, String recordType, String linkedRecordId,
 			String createdBy) {
-		DataGroup record = new DataGroupSpy(nameInData);
+		DataGroup record = new DataGroupOldSpy(nameInData);
 		DataGroup createRecordInfo = createRecordInfoWithIdAndTypeAndLinkedRecordId(id, recordType,
 				linkedRecordId);
 		record.addChild(createRecordInfo);
-		DataGroup createdByGroup = new DataGroupSpy("createdBy");
+		DataGroup createdByGroup = new DataGroupOldSpy("createdBy");
 		createdByGroup.addChild(new DataAtomicSpy("linkedRecordType", "user"));
 		createdByGroup.addChild(new DataAtomicSpy("linkedRecordId", createdBy));
 		createRecordInfo.addChild(createdByGroup);
@@ -159,8 +159,8 @@ public final class DataCreator2 {
 	}
 
 	public static DataGroup createMetadataGroupWithTwoChildren() {
-		DataGroup dataGroup = new DataGroupSpy("metadata");
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		DataGroup dataGroup = new DataGroupOldSpy("metadata");
+		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", "testNewGroup"));
 		recordInfo.addChild(new DataAtomicSpy("type", "metadataGroup"));
 		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));
@@ -173,7 +173,7 @@ public final class DataCreator2 {
 	}
 
 	private static DataGroup createChildReferences() {
-		DataGroup childReferences = new DataGroupSpy("childReferences");
+		DataGroup childReferences = new DataGroupOldSpy("childReferences");
 
 		childReferences.addChild(createChildReference("childOne", "1", "1"));
 		childReferences.addChild(createChildReference("childTwo", "0", "2"));
@@ -182,9 +182,9 @@ public final class DataCreator2 {
 	}
 
 	private static DataGroup createChildReference(String ref, String repeatMin, String repeatMax) {
-		DataGroup childReference = new DataGroupSpy("childReference");
+		DataGroup childReference = new DataGroupOldSpy("childReference");
 
-		DataGroup refGroup = new DataGroupSpy("ref");
+		DataGroup refGroup = new DataGroupOldSpy("ref");
 		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", "metadataGroup");
 		refGroup.addChild(linkedRecordType);
 		DataAtomic linkedRecordId = new DataAtomicSpy("linkedRecordId", ref);
@@ -211,8 +211,8 @@ public final class DataCreator2 {
 	}
 
 	public static DataGroup createMetadataGroupWithCollectionVariableAsChild() {
-		DataGroup dataGroup = new DataGroupSpy("metadata");
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		DataGroup dataGroup = new DataGroupOldSpy("metadata");
+		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", "testCollectionVar"));
 		recordInfo.addChild(new DataAtomicSpy("type", "collectionVariable"));
 		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));
@@ -223,15 +223,15 @@ public final class DataCreator2 {
 	}
 
 	public static DataGroup createRefCollectionIdWithLinkedRecordid(String linkedRecordId) {
-		DataGroup refCollection = new DataGroupSpy("refCollection");
+		DataGroup refCollection = new DataGroupOldSpy("refCollection");
 		refCollection.addChild(new DataAtomicSpy("linkedRecordType", "metadataItemCollection"));
 		refCollection.addChild(new DataAtomicSpy("linkedRecordId", linkedRecordId));
 		return refCollection;
 	}
 
 	public static DataGroup createMetadataGroupWithOneChild() {
-		DataGroup dataGroup = new DataGroupSpy("metadata");
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		DataGroup dataGroup = new DataGroupOldSpy("metadata");
+		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", "testNewGroup"));
 		recordInfo.addChild(new DataAtomicSpy("type", "metadataGroup"));
 		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));
@@ -244,7 +244,7 @@ public final class DataCreator2 {
 	}
 
 	private static DataGroup createChildReference() {
-		DataGroup childReferences = new DataGroupSpy("childReferences");
+		DataGroup childReferences = new DataGroupOldSpy("childReferences");
 
 		childReferences.addChild(createChildReference("childOne", "1", "1"));
 
@@ -252,8 +252,8 @@ public final class DataCreator2 {
 	}
 
 	public static DataGroup createMetadataGroupWithRecordLinkAsChild() {
-		DataGroup dataGroup = new DataGroupSpy("metadata");
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		DataGroup dataGroup = new DataGroupOldSpy("metadata");
+		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", "testRecordLink"));
 		recordInfo.addChild(new DataAtomicSpy("type", "recordLink"));
 		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));

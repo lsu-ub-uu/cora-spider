@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -45,7 +45,7 @@ public class IndexBatchJobRunnerTest {
 
 	private static final int INDEX_BATCH_SIZE = 1000;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
-	private DataGroupSpy indexBatchJobFilter;
+	private DataGroupOldSpy indexBatchJobFilter;
 	private RecordStorageOldSpy recordStorage;
 	private IndexBatchJob indexBatchJob;
 	private IndexBatchJobRunner batchRunner;
@@ -75,7 +75,7 @@ public class IndexBatchJobRunnerTest {
 	}
 
 	private void createDefaultParameters() {
-		indexBatchJobFilter = new DataGroupSpy("filter");
+		indexBatchJobFilter = new DataGroupOldSpy("filter");
 		indexBatchJob = new IndexBatchJob("someRecordType", 45, indexBatchJobFilter);
 		indexBatchJob.totalNumberToIndex = 11700;
 	}
@@ -127,7 +127,7 @@ public class IndexBatchJobRunnerTest {
 
 	private void assertCorrectFilterForOneLoopInBatch(String from, String to, int batchLoopNumber,
 			String methodName) {
-		DataGroupSpy filterSentToReadList = getFilterFromRecordStorageUsingBatchLoopNumberAndMethodName(
+		DataGroupOldSpy filterSentToReadList = getFilterFromRecordStorageUsingBatchLoopNumberAndMethodName(
 				batchLoopNumber, methodName);
 		int callNoForLoop1 = batchLoopNumber * 2;
 		int callNoForLoop2 = callNoForLoop1 + 1;
@@ -136,7 +136,7 @@ public class IndexBatchJobRunnerTest {
 		assertAtomicValueUpdatedInFilter(filterSentToReadList, "toNo", to, callNoForLoop2);
 	}
 
-	private void assertAtomicValueUpdatedInFilter(DataGroupSpy filterSentToReadList, String name,
+	private void assertAtomicValueUpdatedInFilter(DataGroupOldSpy filterSentToReadList, String name,
 			String value, int callNoForLoop) {
 		indexBatchJobFilter.MCR.assertParameters("removeFirstChildWithNameInData", callNoForLoop,
 				name);
@@ -146,9 +146,9 @@ public class IndexBatchJobRunnerTest {
 				.getReturnValue("factorUsingNameInDataAndValue", callNoForLoop));
 	}
 
-	private DataGroupSpy getFilterFromRecordStorageUsingBatchLoopNumberAndMethodName(
+	private DataGroupOldSpy getFilterFromRecordStorageUsingBatchLoopNumberAndMethodName(
 			int batchLoopNumber, String methodName) {
-		DataGroupSpy filterSentToReadList = (DataGroupSpy) recordStorage.MCR
+		DataGroupOldSpy filterSentToReadList = (DataGroupOldSpy) recordStorage.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName(methodName, batchLoopNumber,
 						"filter");
 		return filterSentToReadList;
@@ -295,7 +295,7 @@ public class IndexBatchJobRunnerTest {
 		recordStorage.MCR.assertParameter("readList", 0, "type", indexBatchJob.recordTypeToIndex);
 		Map<String, Object> parameters = recordStorage.MCR
 				.getParametersForMethodAndCallNumber("readList", 0);
-		DataGroupSpy filter = (DataGroupSpy) parameters.get("filter");
+		DataGroupOldSpy filter = (DataGroupOldSpy) parameters.get("filter");
 
 		assertEquals(filter.getFirstAtomicValueWithNameInData("toNo"), "4");
 	}

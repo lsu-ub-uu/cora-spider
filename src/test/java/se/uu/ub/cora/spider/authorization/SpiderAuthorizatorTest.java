@@ -41,7 +41,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.RecordStorageForAuthorizatorSpy;
@@ -78,7 +78,7 @@ public class SpiderAuthorizatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		rulesProvider = new RulesProviderSpy();
 		setUpDependencyProvider();
-		collectedData = new DataGroupSpy("collectedData");
+		collectedData = new DataGroupOldSpy("collectedData");
 	}
 
 	private void createTestUser() {

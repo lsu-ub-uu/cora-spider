@@ -26,7 +26,7 @@ import java.util.Set;
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
@@ -148,7 +148,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	@Override
 	public DataGroup getMetadataGroup() {
 		MCR.addCall();
-		DataGroup metadataDataGroup = new DataGroupSpy("organisationGroup");
+		DataGroup metadataDataGroup = new DataGroupOldSpy("organisationGroup");
 		metadataDataGroup.addChild(new DataAtomicSpy("nameInData", "organisation"));
 		MCR.addReturned(metadataDataGroup);
 		return metadataDataGroup;

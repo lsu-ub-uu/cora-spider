@@ -30,7 +30,7 @@ import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
-public class DataGroupSpy implements DataGroup {
+public class DataGroupOldSpy implements DataGroup {
 
 	public String nameInData;
 	public List<DataChild> children = new ArrayList<>();
@@ -42,11 +42,11 @@ public class DataGroupSpy implements DataGroup {
 	public List<DataChild> addedChildren = new ArrayList<>();
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
-	public DataGroupSpy(String nameInData) {
+	public DataGroupOldSpy(String nameInData) {
 		this.nameInData = nameInData;
 	}
 
-	public DataGroupSpy(String nameInData, String recordType, String recordId) {
+	public DataGroupOldSpy(String nameInData, String recordType, String recordId) {
 		this.nameInData = nameInData;
 		addChild(new DataAtomicSpy("linkedRecordType", recordType));
 		addChild(new DataAtomicSpy("linkedRecordId", recordId));

@@ -24,14 +24,14 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 
 public class RecordLinkTestsDataCreator {
 
 	private static final String DATA_WITH_LINKS = "dataWithLinks";
 
 	public static DataGroup createDataDataGroupWithLink() {
-		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
+		DataGroup dataGroup = new DataGroupOldSpy(DATA_WITH_LINKS);
 
 		DataLink recordLink = createDataLink();
 		dataGroup.addChild(recordLink);
@@ -48,7 +48,7 @@ public class RecordLinkTestsDataCreator {
 	}
 
 	public static DataGroup createDataDataGroupWithLinkNotAuthorized() {
-		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
+		DataGroup dataGroup = new DataGroupOldSpy(DATA_WITH_LINKS);
 
 		DataRecordLinkSpy recordLink = new DataRecordLinkSpy("link");
 		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", "toRecordType");
@@ -61,8 +61,8 @@ public class RecordLinkTestsDataCreator {
 	}
 
 	public static DataGroup createDataDataGroupWithLinkOneLevelDown() {
-		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
-		DataGroup oneLevelDown = new DataGroupSpy("oneLevelDown");
+		DataGroup dataGroup = new DataGroupOldSpy(DATA_WITH_LINKS);
+		DataGroup oneLevelDown = new DataGroupOldSpy("oneLevelDown");
 		dataGroup.addChild(oneLevelDown);
 
 		DataRecordLinkSpy recordLink = new DataRecordLinkSpy("link");
@@ -78,8 +78,8 @@ public class RecordLinkTestsDataCreator {
 	}
 
 	public static DataGroup createDataDataGroupWithLinkOneLevelDownTargetDoesNotExist() {
-		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
-		DataGroup oneLevelDown = new DataGroupSpy("oneLevelDownTargetDoesNotExist");
+		DataGroup dataGroup = new DataGroupOldSpy(DATA_WITH_LINKS);
+		DataGroup oneLevelDown = new DataGroupOldSpy("oneLevelDownTargetDoesNotExist");
 		dataGroup.addChild(oneLevelDown);
 
 		DataRecordLinkSpy recordLink = new DataRecordLinkSpy("link");
@@ -102,7 +102,7 @@ public class RecordLinkTestsDataCreator {
 	}
 
 	public static DataGroup createDataGroupWithRecordInfoAndTwoLinks() {
-		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
+		DataGroup dataGroup = new DataGroupOldSpy(DATA_WITH_LINKS);
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 				DATA_WITH_LINKS, "towLinksTopLevel", "cora"));
 
@@ -153,7 +153,7 @@ public class RecordLinkTestsDataCreator {
 	}
 
 	public static DataGroup createDataDataGroupWithResourceLink() {
-		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
+		DataGroup dataGroup = new DataGroupOldSpy(DATA_WITH_LINKS);
 		dataGroup.addChild(createDataResourceLink());
 		return dataGroup;
 	}
@@ -169,8 +169,8 @@ public class RecordLinkTestsDataCreator {
 	}
 
 	public static DataGroup createDataDataGroupWithResourceLinkOneLevelDown() {
-		DataGroup dataGroup = new DataGroupSpy(DATA_WITH_LINKS);
-		DataGroup oneLevelDown = new DataGroupSpy("oneLevelDown");
+		DataGroup dataGroup = new DataGroupOldSpy(DATA_WITH_LINKS);
+		DataGroup oneLevelDown = new DataGroupOldSpy("oneLevelDown");
 		dataGroup.addChild(oneLevelDown);
 
 		oneLevelDown.addChild(createDataResourceLink());
@@ -179,11 +179,11 @@ public class RecordLinkTestsDataCreator {
 	}
 
 	public static DataGroup createLinkChildAsDataRecordDataGroup() {
-		DataGroup dataGroup = new DataGroupSpy("toRecordType");
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		DataGroup dataGroup = new DataGroupOldSpy("toRecordType");
+		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", "recordLinkNotAuthorized"));
 
-		DataGroup type = new DataGroupSpy("type");
+		DataGroup type = new DataGroupOldSpy("type");
 		type.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
 		type.addChild(new DataAtomicSpy("linkedRecordId", "toRecordType"));
 		recordInfo.addChild(type);

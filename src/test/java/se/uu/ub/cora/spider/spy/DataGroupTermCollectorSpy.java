@@ -20,7 +20,7 @@ package se.uu.ub.cora.spider.spy;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
@@ -30,7 +30,7 @@ public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
 	public DataGroup collectTerms(String metadataId, DataGroup dataGroup) {
 		MCR.addCall("metadataId", metadataId, "dataGroup", dataGroup);
 
-		DataGroup collectedTerms = new DataGroupSpy("collectedData");
+		DataGroup collectedTerms = new DataGroupOldSpy("collectedData");
 
 		MCR.addReturned(collectedTerms);
 		return collectedTerms;
@@ -40,7 +40,7 @@ public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
 	public DataGroup collectTermsWithoutTypeAndId(String metadataGroupId, DataGroup dataGroup) {
 		MCR.addCall("metadataId", metadataGroupId, "dataGroup", dataGroup);
 
-		DataGroup collectedTerms = new DataGroupSpy("collectedData");
+		DataGroup collectedTerms = new DataGroupOldSpy("collectedData");
 
 		MCR.addReturned(collectedTerms);
 		return collectedTerms;

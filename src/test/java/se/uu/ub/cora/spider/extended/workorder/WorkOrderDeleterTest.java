@@ -31,7 +31,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -97,7 +97,7 @@ public class WorkOrderDeleterTest {
 
 	private void addTypeToRecordInfo(DataGroup workOrder) {
 		DataGroup recordInfo = workOrder.getFirstGroupWithNameInData("recordInfo");
-		DataGroup type = new DataGroupSpy("type");
+		DataGroup type = new DataGroupOldSpy("type");
 		type.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
 		type.addChild(new DataAtomicSpy("linkedRecordId", "workOrder"));
 		recordInfo.addChild(type);

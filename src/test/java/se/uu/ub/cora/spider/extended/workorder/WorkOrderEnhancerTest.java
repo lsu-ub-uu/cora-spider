@@ -31,7 +31,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
 public class WorkOrderEnhancerTest {
@@ -53,7 +53,7 @@ public class WorkOrderEnhancerTest {
 
 	@Test
 	public void testAddRecordInfo() {
-		DataGroup workOrder = new DataGroupSpy("workOrder");
+		DataGroup workOrder = new DataGroupOldSpy("workOrder");
 		callExtendedFunctionalityWithGroup(workOrder);
 
 		DataGroup recordInfo = (DataGroup) workOrder.getFirstChildWithNameInData("recordInfo");
@@ -76,8 +76,8 @@ public class WorkOrderEnhancerTest {
 
 	@Test
 	public void testRecordInfoAlreadyExistsNotReplacedByExtendedFunctionality() {
-		DataGroup workOrder = new DataGroupSpy("workOrder");
-		workOrder.addChild(new DataGroupSpy("recordInfo"));
+		DataGroup workOrder = new DataGroupOldSpy("workOrder");
+		workOrder.addChild(new DataGroupOldSpy("recordInfo"));
 		callExtendedFunctionalityWithGroup(workOrder);
 
 		assertEquals(workOrder.getChildren().size(), 1);

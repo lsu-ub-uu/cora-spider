@@ -24,14 +24,14 @@ import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataGroupFactorySpy implements DataGroupFactory {
 
-	public DataGroupSpy returnedDataGroup;
+	public DataGroupOldSpy returnedDataGroup;
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
 	public DataGroup factorUsingNameInData(String nameInData) {
 		MCR.addCall("nameInData", nameInData);
-		returnedDataGroup = new DataGroupSpy(nameInData);
+		returnedDataGroup = new DataGroupOldSpy(nameInData);
 		MCR.addReturned(returnedDataGroup);
 		return returnedDataGroup;
 	}
@@ -40,7 +40,7 @@ public class DataGroupFactorySpy implements DataGroupFactory {
 	public DataGroup factorAsLinkWithNameInDataTypeAndId(String nameInData, String recordType,
 			String recordId) {
 		MCR.addCall("nameInData", nameInData, "recordType", recordType, "recordId", recordId);
-		DataGroupSpy dataGroupSpy = new DataGroupSpy(nameInData, recordType, recordId);
+		DataGroupOldSpy dataGroupSpy = new DataGroupOldSpy(nameInData, recordType, recordId);
 		MCR.addReturned(dataGroupSpy);
 		return dataGroupSpy;
 	}

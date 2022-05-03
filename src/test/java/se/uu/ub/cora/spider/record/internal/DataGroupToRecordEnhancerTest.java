@@ -54,7 +54,7 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
 import se.uu.ub.cora.spider.data.DataRecordSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
@@ -130,11 +130,11 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private DataGroup createDummyDataGroupForRecord(String id) {
-		DataGroup dataGroup = new DataGroupSpy("someNameInData");
-		DataGroup recordInfo = new DataGroupSpy("recordInfo");
+		DataGroup dataGroup = new DataGroupOldSpy("someNameInData");
+		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		dataGroup.addChild(recordInfo);
 		recordInfo.addChild(new DataAtomicSpy("id", id));
-		DataGroup type = new DataGroupSpy("type");
+		DataGroup type = new DataGroupOldSpy("type");
 		recordInfo.addChild(type);
 		type.addChild(new DataAtomicSpy("linkedRecordId", "someLinkedRecordId"));
 		return dataGroup;
@@ -798,10 +798,10 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void addSearchChildsToSomeType() {
-		DataGroup recordTypeToSearchIn1 = new DataGroupSpy("recordTypeToSearchIn");
+		DataGroup recordTypeToSearchIn1 = new DataGroupOldSpy("recordTypeToSearchIn");
 		someDataGroup.addChild(recordTypeToSearchIn1);
 		recordTypeToSearchIn1.addChild(new DataAtomicSpy("linkedRecordId", "linkedSearchId1"));
-		DataGroup recordTypeToSearchIn2 = new DataGroupSpy("recordTypeToSearchIn");
+		DataGroup recordTypeToSearchIn2 = new DataGroupOldSpy("recordTypeToSearchIn");
 		someDataGroup.addChild(recordTypeToSearchIn2);
 		recordTypeToSearchIn2.addChild(new DataAtomicSpy("linkedRecordId", "linkedSearchId2"));
 	}
@@ -1323,11 +1323,11 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void createAndSetReturnDataGroupForReadInStorageForReadOfLinkedSearch() {
-		DataGroupSpy searchGroupLinkedFromRecordType = new DataGroupSpy("someSearchId");
-		DataGroup recordTypeToSearchIn1 = new DataGroupSpy("recordTypeToSearchIn");
+		DataGroupOldSpy searchGroupLinkedFromRecordType = new DataGroupOldSpy("someSearchId");
+		DataGroup recordTypeToSearchIn1 = new DataGroupOldSpy("recordTypeToSearchIn");
 		searchGroupLinkedFromRecordType.addChild(recordTypeToSearchIn1);
 		recordTypeToSearchIn1.addChild(new DataAtomicSpy("linkedRecordId", "linkedSearchId1"));
-		DataGroup recordTypeToSearchIn2 = new DataGroupSpy("recordTypeToSearchIn");
+		DataGroup recordTypeToSearchIn2 = new DataGroupOldSpy("recordTypeToSearchIn");
 		searchGroupLinkedFromRecordType.addChild(recordTypeToSearchIn2);
 		recordTypeToSearchIn2.addChild(new DataAtomicSpy("linkedRecordId", "linkedSearchId2"));
 		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider.getRecordStorage();

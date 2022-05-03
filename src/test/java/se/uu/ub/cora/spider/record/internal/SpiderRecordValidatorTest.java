@@ -53,7 +53,7 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
@@ -153,7 +153,7 @@ public class SpiderRecordValidatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		DataGroup recordToValidate = new DataGroupSpy("nameInData");
+		DataGroup recordToValidate = new DataGroupOldSpy("nameInData");
 		recordToValidate.addChild(
 				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
 						"spyId", "cora"));
@@ -175,11 +175,11 @@ public class SpiderRecordValidatorTest {
 
 	private DataGroup createValidationOrderWithMetadataToValidateAndValidateLinks(
 			String metadataToValidate, String validateLinks) {
-		DataGroup validationOrder = new DataGroupSpy("validationOrder");
+		DataGroup validationOrder = new DataGroupOldSpy("validationOrder");
 		validationOrder.addChild(new DataAtomicSpy("metadataToValidate", metadataToValidate));
 		validationOrder.addChild(new DataAtomicSpy("validateLinks", validateLinks));
 
-		DataGroup recordTypeGroup = new DataGroupSpy("recordType");
+		DataGroup recordTypeGroup = new DataGroupOldSpy("recordType");
 		recordTypeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
 		recordTypeGroup.addChild(new DataAtomicSpy("linkedRecordId", "text"));
 		validationOrder.addChild(recordTypeGroup);
@@ -192,7 +192,7 @@ public class SpiderRecordValidatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 				"spyType", "spyId", "cora"));
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
@@ -217,7 +217,7 @@ public class SpiderRecordValidatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 				"spyType", "spyId", "cora"));
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
@@ -245,14 +245,14 @@ public class SpiderRecordValidatorTest {
 	}
 
 	private DataGroup createDataGroupPlace() {
-		DataGroup dataGroup = new DataGroupSpy("typeWithUserGeneratedId");
+		DataGroup dataGroup = new DataGroupOldSpy("typeWithUserGeneratedId");
 		createAndAddRecordInfo(dataGroup);
 		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
 		return dataGroup;
 	}
 
 	private void createAndAddRecordInfo(DataGroup dataGroup) {
-		DataGroup createRecordInfo = new DataGroupSpy("recordInfo");
+		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
 		createRecordInfo.addChild(new DataAtomicSpy("id", "place"));
 		createRecordInfo.addChild(new DataAtomicSpy("type", "recordType"));
 		dataGroup.addChild(createRecordInfo);
@@ -481,7 +481,7 @@ public class SpiderRecordValidatorTest {
 
 		setUpDependencyProvider();
 
-		DataGroup dataGroup = new DataGroupSpy("nameInData");
+		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 				"spyType", "spyId", "cora"));
 
