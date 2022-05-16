@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.index.BatchRunner;
@@ -76,6 +76,8 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	}
 
 	private void readListAndIndexDataInBatches(String metadataId) {
+		// try {
+
 		while (numberRequestedFromListing < indexBatchJob.totalNumberToIndex) {
 			possiblySetToNumToTotalNumberToIndex();
 			setFromAndToInFilter(from, to);
@@ -86,6 +88,11 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 			to = to + TO_NUMBER;
 			to = possiblySetToNoToTotalNumberOfRecords(to);
 		}
+		// }catch (Exception e) {
+		//// handle error
+		// // TODO: handle exception
+		// indexBatchJob.errors.add(null)
+		// }
 	}
 
 	private void possiblySetToNumToTotalNumberToIndex() {
@@ -106,10 +113,10 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	}
 
 	private void addFromAndTo(int from, int to, DataGroup filter) {
-		filter.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("fromNo",
-				String.valueOf(from)));
-		filter.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("toNo",
-				String.valueOf(to)));
+		filter.addChild(
+				DataProvider.createAtomicUsingNameInDataAndValue("fromNo", String.valueOf(from)));
+		filter.addChild(
+				DataProvider.createAtomicUsingNameInDataAndValue("toNo", String.valueOf(to)));
 	}
 
 	private void readListAndIndexData(String metadataId) {
