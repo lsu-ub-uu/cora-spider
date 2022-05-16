@@ -26,12 +26,13 @@ import java.util.function.Supplier;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
+import se.uu.ub.cora.testspies.data.DataGroupSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class RecordStorageMCRSpy implements RecordStorage {
 
-	public DataGroupMCRSpy dataGroupForRead = new DataGroupMCRSpy();
+	public DataGroupSpy dataGroupForRead = new DataGroupSpy();
 	public List<DataGroup> dataGroupsForReadList = new ArrayList<>();
 	public int totalNumberOfRecords = 0;
 
@@ -40,8 +41,8 @@ public class RecordStorageMCRSpy implements RecordStorage {
 
 	public RecordStorageMCRSpy() {
 		MCR.useMRV(MRV);
-		// MRV.setDefaultReturnValuesSupplier("read", DataGroupMCRSpy::new);
-		MRV.setDefaultReturnValuesSupplier("read", ((Supplier<DataGroupMCRSpy>) () -> dataGroupForRead));
+		MRV.setDefaultReturnValuesSupplier("read",
+				((Supplier<DataGroupSpy>) () -> dataGroupForRead));
 	}
 
 	@Override
@@ -86,11 +87,11 @@ public class RecordStorageMCRSpy implements RecordStorage {
 
 	public void createFakeGroupsInAnswerToList(int numberOfFakeGroups) {
 		for (int i = 0; i < numberOfFakeGroups; i++) {
-			dataGroupsForReadList.add(new DataGroupMCRSpy());
+			dataGroupsForReadList.add(new DataGroupSpy());
 		}
 
-		// DataGroupMCRSpy spy2 = new DataGroupMCRSpy();
-		// DataGroupMCRSpy spy3 = new DataGroupMCRSpy();
+		// DataGroupSpy spy2 = new DataGroupSpy();
+		// DataGroupSpy spy3 = new DataGroupSpy();
 		// dataGroups.add(spy2);
 		// dataGroups.add(spy3);
 	}

@@ -20,13 +20,11 @@ package se.uu.ub.cora.spider.recordtype.internal;
 
 import static org.testng.Assert.assertSame;
 
-import java.util.List;
-
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.spider.record.DataGroupMCRSpy;
 import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.testspies.data.DataGroupSpy;
 
 public class RecordTypeHandlerFactoryTest {
 
@@ -41,7 +39,7 @@ public class RecordTypeHandlerFactoryTest {
 	public void testFactor() {
 		RecordStorage recordStorage = new RecordStorageMCRSpy();
 		RecordTypeHandlerFactoryImp factory = new RecordTypeHandlerFactoryImp(recordStorage);
-		DataGroupMCRSpy dataGroup = createTopDataGroup();
+		DataGroupSpy dataGroup = createTopDataGroup();
 		RecordTypeHandlerImp recordTypeHandler = (RecordTypeHandlerImp) factory
 				.factorUsingDataGroup(dataGroup);
 		assertSame(recordTypeHandler.getRecordStorage(), recordStorage);
@@ -49,13 +47,8 @@ public class RecordTypeHandlerFactoryTest {
 
 	}
 
-	private DataGroupMCRSpy createTopDataGroup() {
-		DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
-		DataGroupMCRSpy recordInfoGroup = new DataGroupMCRSpy();
-		recordInfoGroup.MRV.setReturnValues("getFirstAtomicValueWithNameInData",
-				List.of("recordIdFromSpy"), "id");
-		dataGroup.groupValues.put("recordInfo", recordInfoGroup);
-		return dataGroup;
+	private DataGroupSpy createTopDataGroup() {
+		return new DataGroupSpy();
 	}
 
 }
