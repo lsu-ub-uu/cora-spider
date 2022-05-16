@@ -31,8 +31,8 @@ import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class RecordStorageMCRSpy implements RecordStorage {
 
-	public DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
-	public List<DataGroup> dataGroups = new ArrayList<>();
+	public DataGroupMCRSpy dataGroupForRead = new DataGroupMCRSpy();
+	public List<DataGroup> dataGroupsForReadList = new ArrayList<>();
 	public int totalNumberOfRecords = 0;
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
@@ -41,7 +41,7 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	public RecordStorageMCRSpy() {
 		MCR.useMRV(MRV);
 		// MRV.setDefaultReturnValuesSupplier("read", DataGroupMCRSpy::new);
-		MRV.setDefaultReturnValuesSupplier("read", ((Supplier<DataGroupMCRSpy>) () -> dataGroup));
+		MRV.setDefaultReturnValuesSupplier("read", ((Supplier<DataGroupMCRSpy>) () -> dataGroupForRead));
 	}
 
 	@Override
@@ -79,21 +79,20 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	public StorageReadResult readList(String type, DataGroup filter) {
 		MCR.addCall("type", type, "filter", filter);
 		StorageReadResult result = new StorageReadResult();
-		result.listOfDataGroups = dataGroups;
+		result.listOfDataGroups = dataGroupsForReadList;
 		result.totalNumberOfMatches = totalNumberOfRecords;
 		return result;
 	}
 
-	public void createThreeFakeGroupsInAnswerToList() {
-		DataGroupMCRSpy spy1 = new DataGroupMCRSpy();
-		spy1.nameInData = "parentId1";
-		DataGroupMCRSpy spy2 = new DataGroupMCRSpy();
-		spy1.nameInData = "parentId2";
-		DataGroupMCRSpy spy3 = new DataGroupMCRSpy();
-		spy1.nameInData = "parentId3";
-		dataGroups.add(spy1);
-		dataGroups.add(spy2);
-		dataGroups.add(spy3);
+	public void createFakeGroupsInAnswerToList(int numberOfFakeGroups) {
+		for (int i = 0; i < numberOfFakeGroups; i++) {
+			dataGroupsForReadList.add(new DataGroupMCRSpy());
+		}
+
+		// DataGroupMCRSpy spy2 = new DataGroupMCRSpy();
+		// DataGroupMCRSpy spy3 = new DataGroupMCRSpy();
+		// dataGroups.add(spy2);
+		// dataGroups.add(spy3);
 	}
 
 	@Override

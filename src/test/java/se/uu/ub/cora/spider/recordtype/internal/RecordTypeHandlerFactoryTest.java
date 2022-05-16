@@ -20,6 +20,8 @@ package se.uu.ub.cora.spider.recordtype.internal;
 
 import static org.testng.Assert.assertSame;
 
+import java.util.List;
+
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.spider.record.DataGroupMCRSpy;
@@ -50,7 +52,8 @@ public class RecordTypeHandlerFactoryTest {
 	private DataGroupMCRSpy createTopDataGroup() {
 		DataGroupMCRSpy dataGroup = new DataGroupMCRSpy();
 		DataGroupMCRSpy recordInfoGroup = new DataGroupMCRSpy();
-		recordInfoGroup.atomicValues.put("id", "recordIdFromSpy");
+		recordInfoGroup.MRV.setReturnValues("getFirstAtomicValueWithNameInData",
+				List.of("recordIdFromSpy"), "id");
 		dataGroup.groupValues.put("recordInfo", recordInfoGroup);
 		return dataGroup;
 	}

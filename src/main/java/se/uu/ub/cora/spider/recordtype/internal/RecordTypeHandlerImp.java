@@ -28,9 +28,8 @@ import java.util.Set;
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.metadata.ConstraintType;
 import se.uu.ub.cora.data.DataAttribute;
-import se.uu.ub.cora.data.DataAttributeProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -318,8 +317,7 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	private DataAttribute createDataAttribute(DataGroup collectionVar) {
 		String attributeName = collectionVar.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
 		String attributeValue = collectionVar.getFirstAtomicValueWithNameInData("finalValue");
-		return DataAttributeProvider.getDataAttributeUsingNameInDataAndValue(attributeName,
-				attributeValue);
+		return DataProvider.createAttributeUsingNameInDataAndValue(attributeName, attributeValue);
 	}
 
 	private void possiblyAddReadWriteConstraint(Constraint constraint) {
@@ -483,14 +481,18 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private StorageReadResult getRecordTypeListFromStorage() {
 		return recordStorage.readList(RECORD_TYPE,
-				DataGroupProvider.getDataGroupUsingNameInData("filter"));
+				DataProvider.createGroupUsingNameInData("filter"));
 	}
 
 	private void addIfChildToCurrent(List<RecordTypeHandler> list, DataGroup dataGroup) {
 		RecordTypeHandler recordTypeHandler = recordTypeHandlerFactory
 				.factorUsingDataGroup(dataGroup);
 		if (currentRecordTypeIsParentTo(recordTypeHandler)) {
-			list.add(recordTypeHandler);
+			if (recordTypeHandler.isAbstract()) {
+				list.addAll(recordTypeHandler.getImplementingRecordTypeHandlers());
+			} else {
+				list.add(recordTypeHandler);
+			}
 		}
 	}
 

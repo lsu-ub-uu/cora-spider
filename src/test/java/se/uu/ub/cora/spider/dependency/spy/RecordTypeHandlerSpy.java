@@ -29,10 +29,12 @@ import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
 	public boolean storeInArchive = false;
 
@@ -62,6 +64,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public Set<Constraint> writeConstraints = new HashSet<Constraint>();
 
 	public boolean hasParent = false;
+	public String id = "id";
 	public String parentId = "someParentId";
 
 	public boolean isChildOfBinary = false;
@@ -81,7 +84,9 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public List<String> listOfimplementingTypesIds = new ArrayList<>();
 
 	public RecordTypeHandlerSpy() {
+		MCR.useMRV(MRV);
 		writeStringConstraints.add(new Constraint("someKey"));
+		MRV.setDefaultReturnValuesSupplier("getImplementingRecordTypeHandlers", ArrayList::new);
 	}
 
 	@Override
@@ -254,8 +259,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public List<RecordTypeHandler> getImplementingRecordTypeHandlers() {
-		// TODO Auto-generated method stub
-		return null;
+		return (List<RecordTypeHandler>) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override

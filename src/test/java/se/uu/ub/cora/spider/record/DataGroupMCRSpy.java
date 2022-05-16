@@ -35,7 +35,7 @@ public class DataGroupMCRSpy implements DataGroup {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 	public String atomicValueToReturn = "";
-	public Map<String, String> atomicValues = new HashMap<>();
+	// public Map<String, String> atomicValues = new HashMap<>();
 	public Map<String, DataGroupMCRSpy> groupValues = new HashMap<>();
 	public String nameInData;
 	/**
@@ -52,6 +52,8 @@ public class DataGroupMCRSpy implements DataGroup {
 		// MRV.setDefaultReturnValuesSupplier("hasReadAction", (Supplier<Boolean>) () -> false);
 		// MRV.setDefaultReturnValuesSupplier("getRepeatId", String::new);
 		// MRV.setDefaultReturnValuesSupplier("getNameInData", String::new);
+		MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				(Supplier<String>) () -> null);
 		MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
 				(Supplier<Boolean>) () -> false);
 		// MRV.setDefaultReturnValuesSupplier("getAttribute", DataAttributeSpy::new);
@@ -150,10 +152,11 @@ public class DataGroupMCRSpy implements DataGroup {
 
 	@Override
 	public String getFirstAtomicValueWithNameInData(String nameInData) {
-		MCR.addCall("nameInData", nameInData);
-		String returnValue = atomicValues.get(nameInData);
-		MCR.addReturned(returnValue);
-		return returnValue;
+		// MCR.addCall("nameInData", nameInData);
+		// String returnValue = atomicValues.get(nameInData);
+		// MCR.addReturned(returnValue);
+		// return returnValue;
+		return (String) MCR.addCallAndReturnFromMRV("nameInData", nameInData);
 	}
 
 	@Override

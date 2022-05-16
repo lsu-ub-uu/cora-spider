@@ -18,29 +18,25 @@
  */
 package se.uu.ub.cora.spider.recordtype.internal;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class RecordTypeHandlerFactorySpy implements RecordTypeHandlerFactory {
 
-	// public RecordTypeHandlerFactorySpy(RecordStorageMCRSpy recordStorage) {
-	// // TODO Auto-generated constructor stub
-	// }
 	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public List<RecordTypeHandler> recordTypeHandlersToReturn = new ArrayList<>();
-	private int returnedHandlers = 0;
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public RecordTypeHandlerFactorySpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("factorUsingDataGroup", RecordTypeHandlerSpy::new);
+	}
 
 	@Override
 	public RecordTypeHandler factorUsingDataGroup(DataGroup dataGroup) {
-		MCR.addCall("dataGroup", dataGroup);
-		RecordTypeHandler returned = recordTypeHandlersToReturn.get(returnedHandlers);
-		MCR.addReturned(returned);
-		returnedHandlers++;
-		return returned;
+		return (RecordTypeHandler) MCR.addCallAndReturnFromMRV("dataGroup", dataGroup);
 	}
 
 }
