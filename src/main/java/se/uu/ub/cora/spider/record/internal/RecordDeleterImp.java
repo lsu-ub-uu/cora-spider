@@ -23,6 +23,7 @@ import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -123,8 +124,9 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 	}
 
 	private String extractParentId(DataGroup handledRecordTypeDataGroup) {
-		DataGroup parentGroup = handledRecordTypeDataGroup.getFirstGroupWithNameInData("parentId");
-		return parentGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+		DataRecordLink parentGroup = (DataRecordLink) handledRecordTypeDataGroup
+				.getFirstChildWithNameInData("parentId");
+		return parentGroup.getLinkedRecordId();
 	}
 
 	private void useExtendedFunctionalityBeforeDelete() {

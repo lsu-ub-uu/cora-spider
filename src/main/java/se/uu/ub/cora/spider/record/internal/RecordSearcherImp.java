@@ -30,6 +30,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataListProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.search.SearchResult;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -183,7 +184,8 @@ public final class RecordSearcherImp implements RecordSearcher {
 
 	private String extractRecordTypeFromRecordInfo(DataGroup dataGroup) {
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
-		return typeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataRecordLink typeGroup = (DataRecordLink) recordInfo.getFirstChildWithNameInData("type");
+		return typeGroup.getLinkedRecordId();
+
 	}
 }

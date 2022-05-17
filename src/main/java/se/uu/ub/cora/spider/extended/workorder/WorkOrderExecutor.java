@@ -23,6 +23,7 @@ import java.util.List;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -99,8 +100,12 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 	}
 
 	private String getRecordTypeToIndexFromWorkOrder(DataGroup workOrder) {
-		DataGroup recordTypeLink = workOrder.getFirstGroupWithNameInData("recordType");
-		return recordTypeLink.getFirstAtomicValueWithNameInData("linkedRecordId");
+		// DataGroup recordTypeLink = workOrder.getFirstGroupWithNameInData("recordType");
+		// return recordTypeLink.getFirstAtomicValueWithNameInData("linkedRecordId");
+		DataRecordLink recordTypeLink = (DataRecordLink) workOrder
+				.getFirstChildWithNameInData("recordType");
+		return recordTypeLink.getLinkedRecordId();
+
 	}
 
 	private String getRecordIdToIndexFromWorkOrder(DataGroup workOrder) {
@@ -136,8 +141,11 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 
 	private String getMetadataIdFromRecordType(String recordType) {
 		DataGroup readRecordType = recordStorage.read("recordType", recordType);
-		DataGroup metadataIdLink = readRecordType.getFirstGroupWithNameInData("metadataId");
-		return metadataIdLink.getFirstAtomicValueWithNameInData("linkedRecordId");
+		// DataGroup metadataIdLink = readRecordType.getFirstGroupWithNameInData("metadataId");
+		// return metadataIdLink.getFirstAtomicValueWithNameInData("linkedRecordId");
+		DataRecordLink metadataId = (DataRecordLink) readRecordType
+				.getFirstChildWithNameInData("metadataId");
+		return metadataId.getLinkedRecordId();
 	}
 
 	private void sendToIndex(DataGroup collectedTerms, DataGroup dataToIndex,

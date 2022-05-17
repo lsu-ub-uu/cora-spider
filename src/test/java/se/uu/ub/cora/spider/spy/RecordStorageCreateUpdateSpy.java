@@ -22,14 +22,17 @@ package se.uu.ub.cora.spider.spy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
+import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class RecordStorageCreateUpdateSpy implements RecordStorage {
@@ -115,10 +118,16 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			group.addChild(new DataAtomicSpy("abstract", "false"));
 			group.addChild(new DataGroupOldSpy("recordInfo"));
 
-			DataGroup parentIdGroup = new DataGroupOldSpy("parentId");
-			parentIdGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-			parentIdGroup.addChild(new DataAtomicSpy("linkedRecordId", "binary"));
-			group.addChild(parentIdGroup);
+			// DataGroup parentIdGroup = new DataGroupOldSpy("parentId");
+			// parentIdGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
+			// parentIdGroup.addChild(new DataAtomicSpy("linkedRecordId", "binary"));
+			// group.addChild(parentIdGroup);
+			DataRecordLinkSpy linkSpy = new DataRecordLinkSpy();
+			linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData",
+					(Supplier<String>) () -> "parentId");
+			linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+					(Supplier<String>) () -> "binary");
+			group.addChild(linkSpy);
 			MCR.addReturned(group);
 			return group;
 		}
@@ -339,10 +348,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
 	private void addMetadataIdAndMetadataIdNew(DataGroup group, String metadataId,
 			String metadataIdNew) {
-		group.addChild(createChildWithNamInDataLinkedTypeLinkedId("newMetadataId", "metadataGroup",
-				metadataId));
-		group.addChild(createChildWithNamInDataLinkedTypeLinkedId("metadataId", "metadataGroup",
-				metadataIdNew));
+		group.addChild(createLinkWithLinkedId("newMetadataId", "metadataGroup", metadataId));
+		group.addChild(createLinkWithLinkedId("metadataId", "metadataGroup", metadataIdNew));
 	}
 
 	private DataGroup createChildReference(String refId, String repeatMin, String repeatMax) {
@@ -358,12 +365,14 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		return childReference;
 	}
 
-	private static DataGroup createChildWithNamInDataLinkedTypeLinkedId(String nameInData,
-			String linkedRecordType, String id) {
-		DataGroup metadataId = new DataGroupOldSpy(nameInData);
-		metadataId.addChild(new DataAtomicSpy("linkedRecordType", linkedRecordType));
-		metadataId.addChild(new DataAtomicSpy("linkedRecordId", id));
-		return metadataId;
+	private static DataRecordLink createLinkWithLinkedId(String nameInData, String linkedRecordType,
+			String id) {
+		DataRecordLinkSpy linkSpy = new DataRecordLinkSpy();
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData",
+				(Supplier<String>) () -> nameInData);
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+				(Supplier<String>) () -> id);
+		return linkSpy;
 	}
 
 	private void createAndAddItemReference(DataGroup collectionItemReferences,
@@ -420,10 +429,11 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		recordInfoMetadataGroup.addChild(new DataAtomicSpy("id", "metadataGroup"));
 		metadataGroupGroup.addChild(recordInfoMetadataGroup);
 
-		DataGroup parentIdGroup = new DataGroupOldSpy("parentId");
-		parentIdGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-		parentIdGroup.addChild(new DataAtomicSpy("linkedRecordId", "binary"));
-		metadataGroupGroup.addChild(parentIdGroup);
+		// DataGroup par entIdGroup = new DataGroupOldSpy("parentId");
+		// parentIdGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
+		// parentIdGroup.addChild(new DataAtomicSpy("linkedRecordId", "binary"));
+		// metadataGroupGroup.addChild(parentIdGroup);
+		metadataGroupGroup.addChild(createLinkWithLinkedId("parentId", "recordType", "binary"));
 
 		recordTypeList.add(metadataGroupGroup);
 
@@ -432,10 +442,11 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		recordInfoTextVariable.addChild(new DataAtomicSpy("id", "metadataTextVariable"));
 		metadataTextVariable.addChild(recordInfoTextVariable);
 
-		DataGroup parentIdGroupTextVar = new DataGroupOldSpy("parentId");
-		parentIdGroupTextVar.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-		parentIdGroupTextVar.addChild(new DataAtomicSpy("linkedRecordId", "binary"));
-		metadataTextVariable.addChild(parentIdGroupTextVar);
+		// DataGroup parentIdGroupTextVar = new DataGroupOldSpy("parentId");
+		// parentIdGroupTextVar.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
+		// parentIdGroupTextVar.addChild(new DataAtomicSpy("linkedRecordId", "binary"));
+		// metadataTextVariable.addChild(parentIdGroupTextVar);
+		metadataTextVariable.addChild(createLinkWithLinkedId("parentId", "recordType", "binary"));
 
 		// metadataTextVariable.addChild(new DataAtomicSpy("parentId",
 		// "metadata"));
@@ -445,10 +456,12 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		DataGroup recordInfoPresentationVar = new DataGroupOldSpy("recordInfo");
 		recordInfoPresentationVar.addChild(new DataAtomicSpy("id", "presentationVar"));
 
-		DataGroup parentIdGroupPresentationVar = new DataGroupOldSpy("parentId");
-		parentIdGroupPresentationVar.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-		parentIdGroupPresentationVar.addChild(new DataAtomicSpy("linkedRecordId", "binary"));
-		presentationVar.addChild(parentIdGroupPresentationVar);
+		// DataGroup parentIdGroupPresentationVar = new DataGroupOldSpy("parentId");
+		// parentIdGroupPresentationVar.addChild(new DataAtomicSpy("linkedRecordType",
+		// "recordType"));
+		// parentIdGroupPresentationVar.addChild(new DataAtomicSpy("linkedRecordId", "binary"));
+		// presentationVar.addChild(parentIdGroupPresentationVar);
+		presentationVar.addChild(createLinkWithLinkedId("parentId", "recordType", "binary"));
 		presentationVar.addChild(recordInfoTextVariable);
 
 		// presentationVar.addChild(new DataAtomicSpy("parentId",

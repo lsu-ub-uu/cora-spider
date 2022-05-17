@@ -129,8 +129,9 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 	}
 
 	private String extractParentId(DataGroup recordTypeDataGroup) {
-		DataGroup parent = recordTypeDataGroup.getFirstGroupWithNameInData("parentId");
-		return parent.getFirstAtomicValueWithNameInData("linkedRecordId");
+		DataRecordLink parent = (DataRecordLink) recordTypeDataGroup
+				.getFirstChildWithNameInData("parentId");
+		return parent.getLinkedRecordId();
 	}
 
 	private DataList convertLinksPointingToRecordToDataList(Collection<DataGroup> dataGroupLinks) {

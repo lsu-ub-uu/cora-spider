@@ -32,6 +32,7 @@ import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevel
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -46,6 +47,7 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordFactory;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
@@ -67,6 +69,7 @@ import se.uu.ub.cora.spider.record.RecordLinkTestsAsserter;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class DataGroupToRecordEnhancerTest {
 	private static final String UPDATE = "update";
@@ -134,10 +137,23 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		dataGroup.addChild(recordInfo);
 		recordInfo.addChild(new DataAtomicSpy("id", id));
-		DataGroup type = new DataGroupOldSpy("type");
-		recordInfo.addChild(type);
-		type.addChild(new DataAtomicSpy("linkedRecordId", "someLinkedRecordId"));
+		// DataGroup type = new DataGroupOldSpy("type");
+		// recordInfo.addChild(type);
+		// type.addChild(new DataAtomicSpy("linkedRecordId", "someLinkedRecordId"));
+		recordInfo
+				.addChild(createLinkWithLinkedId("type", "linkedRecordType", "someLinkedRecordId"));
+
 		return dataGroup;
+	}
+
+	private DataRecordLink createLinkWithLinkedId(String nameInData, String linkedRecordType,
+			String id) {
+		DataRecordLinkSpy linkSpy = new DataRecordLinkSpy();
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData",
+				(Supplier<String>) () -> nameInData);
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+				(Supplier<String>) () -> id);
+		return linkSpy;
 	}
 
 	@Test
@@ -1262,7 +1278,8 @@ public class DataGroupToRecordEnhancerTest {
 		String returnedSearchId = (String) recordTypeHandlerForRecordTypeInData.MCR
 				.getReturnValue("getSearchId", 0);
 
-		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider.getRecordStorage();
+		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
+				.getRecordStorage();
 		recordStorage.MCR.assertParameters("read", 0, SEARCH, returnedSearchId);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user, SEARCH,
 				"linkedSearchId1");
@@ -1314,7 +1331,8 @@ public class DataGroupToRecordEnhancerTest {
 		recordTypeHandlerForRecordTypeInData.MCR.assertMethodWasCalled("hasLinkedSearch");
 		String returnedSearchId = (String) recordTypeHandlerForRecordTypeInData.MCR
 				.getReturnValue("getSearchId", 0);
-		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider.getRecordStorage();
+		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
+				.getRecordStorage();
 		recordStorage.MCR.assertParameters("read", 0, SEARCH, returnedSearchId);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user, SEARCH,
 				"linkedSearchId1");
@@ -1330,7 +1348,8 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup recordTypeToSearchIn2 = new DataGroupOldSpy("recordTypeToSearchIn");
 		searchGroupLinkedFromRecordType.addChild(recordTypeToSearchIn2);
 		recordTypeToSearchIn2.addChild(new DataAtomicSpy("linkedRecordId", "linkedSearchId2"));
-		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider.getRecordStorage();
+		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
+				.getRecordStorage();
 		recordStorage.returnForRead = searchGroupLinkedFromRecordType;
 	}
 

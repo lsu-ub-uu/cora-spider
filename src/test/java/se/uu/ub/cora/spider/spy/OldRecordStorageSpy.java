@@ -162,8 +162,8 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 		}
 		if ("recordType".equals(type) && "book".equals(id)) {
 			DataGroup book = new DataGroupOldSpy("recordType");
-			book.addChild(DataCreator.createChildWithNamInDataLinkedTypeLinkedId("metadataId",
-					"metadataGroup", "bookGroup"));
+			book.addChild(
+					DataCreator.createLinkWithLinkedId("metadataId", "metadataGroup", "bookGroup"));
 			return book;
 		}
 		if ("recordType".equals(type) && "abstractAuthority".equals(id)) {
@@ -657,8 +657,8 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType, List<String> implementingTypes,
-			DataGroup filter) {
+	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
+			List<String> implementingTypes, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

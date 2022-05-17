@@ -315,10 +315,10 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private String extractTypeFromRecordInfo(DataGroup recordInfo) {
-		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
-		return typeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-		// DataRecordLink type = (DataRecordLink) recordInfo.getFirstChildWithNameInData("type");
-		// return type.getLinkedRecordId();
+		// DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
+		// return typeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataRecordLink type = (DataRecordLink) recordInfo.getFirstChildWithNameInData("type");
+		return type.getLinkedRecordId();
 	}
 
 	private void updateRecordInStorage(DataGroup collectedTerms, DataGroup collectedLinks) {

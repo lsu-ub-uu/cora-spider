@@ -24,8 +24,8 @@ import java.util.Set;
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataRedactorSpy implements DataRedactor {
@@ -84,15 +84,18 @@ public class DataRedactorSpy implements DataRedactor {
 	}
 
 	private DataGroupOldSpy createRecordInfo() {
-		DataGroupOldSpy recordInfo = new DataGroupOldSpy("recordInfo");
-		recordInfo.addChild(new DataAtomicSpy("id", "spyId"));
-		DataGroupOldSpy type = new DataGroupOldSpy("type");
-		type.addChild(new DataAtomicSpy("linkedRecordId", "spyType"));
-		recordInfo.addChild(type);
-		DataGroupOldSpy dataDivider = new DataGroupOldSpy("dataDivider");
-		dataDivider.addChild(new DataAtomicSpy("linkedRecordId", "someSystem"));
-		recordInfo.addChild(dataDivider);
-		return recordInfo;
+		// DataGroupOldSpy recordInfo = new DataGroupOldSpy("recordInfo");
+		// recordInfo.addChild(new DataAtomicSpy("id", "spyId"));
+		// DataGroupOldSpy type = new DataGroupOldSpy("type");
+		// type.addChild(new DataAtomicSpy("linkedRecordId", "spyType"));
+		// recordInfo.addChild(type);
+		// DataGroupOldSpy dataDivider = new DataGroupOldSpy("dataDivider");
+		// dataDivider.addChild(new DataAtomicSpy("linkedRecordId", "someSystem"));
+		// recordInfo.addChild(dataDivider);
+		// return recordInfo;
+		return (DataGroupOldSpy) DataCreator2
+				.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType", "spyId",
+						"someSystem");
 	}
 
 }

@@ -19,19 +19,21 @@
 
 package se.uu.ub.cora.spider.testdata;
 
+import java.util.function.Supplier;
+
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public final class DataCreator2 {
 
 	public static DataGroup createRecordInfoWithRecordType(String recordType) {
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
-		DataGroup typeGroup = new DataGroupOldSpy("type");
-		typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-		typeGroup.addChild(new DataAtomicSpy("linkedRecordId", recordType));
-		recordInfo.addChild(typeGroup);
+		recordInfo.addChild(createLinkWithLinkedId("type", "recordType", recordType));
+
 		return recordInfo;
 	}
 
@@ -46,10 +48,24 @@ public final class DataCreator2 {
 	public static DataGroup createRecordInfoWithIdAndLinkedRecordId(String id,
 			String linkedRecordId) {
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
-		DataGroup dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
+		DataRecordLink dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
 		createRecordInfo.addChild(dataDivider);
 		createRecordInfo.addChild(new DataAtomicSpy("id", id));
 		return createRecordInfo;
+	}
+
+	public static DataRecordLink createLinkWithLinkedId(String nameInData, String linkedRecordType,
+			String id) {
+		DataRecordLinkSpy linkSpy = new DataRecordLinkSpy();
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData",
+				(Supplier<String>) () -> nameInData);
+		// linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
+		// (Supplier<String>) () -> linkedRecordType + "asdf");
+		// linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
+		// (Supplier<String>) () -> id + "asdf");
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+				(Supplier<String>) () -> id);
+		return linkSpy;
 	}
 
 	public static DataGroup createRecordWithNameInDataAndIdAndLinkedRecordId(String nameInData,
@@ -71,16 +87,36 @@ public final class DataCreator2 {
 
 	public static DataGroup createRecordInfoWithLinkedRecordId(String linkedRecordId) {
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
-		DataGroup dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
+		DataRecordLink dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
 		createRecordInfo.addChild(dataDivider);
 		return createRecordInfo;
 	}
 
-	public static DataGroup createDataDividerWithLinkedRecordId(String linkedRecordId) {
-		DataRecordLinkSpy dataDivider = new DataRecordLinkSpy("dataDivider");
-		dataDivider.addChild(new DataAtomicSpy("linkedRecordType", "system"));
-		dataDivider.addChild(new DataAtomicSpy("linkedRecordId", linkedRecordId));
-		return dataDivider;
+	// public static DataRecordLink createDataDividerWithLinkedRecordId(String linkedRecordId) {
+	//
+	// DataRecordLinkSpy recordTypeLink = new DataRecordLinkSpy();
+	// recordTypeLink.MRV.setDefaultReturnValuesSupplier("getNameInData",
+	// (Supplier<String>) () -> "dataDivider");
+	// recordTypeLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+	// (Supplier<String>) () -> linkedRecordId);
+	// return recordTypeLink;
+	// }
+	public static DataRecordLink createDataDividerWithLinkedRecordId(String linkedRecordId) {
+		// DataRecordLinkSpy dataDivider = new DataRecordLinkSpy("dataDivider");
+		// dataDivider.addChild(new DataAtomicSpy("linkedRecordType", "system"));
+		// dataDivider.addChild(new DataAtomicSpy("linkedRecordId", linkedRecordId));
+		// return createLinkWithLinkedId("dataDivider", "system", linkedRecordId);
+
+		DataRecordLinkSpy linkSpy = new DataRecordLinkSpy();
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData",
+				(Supplier<String>) () -> "dataDivider");
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
+				(Supplier<String>) () -> "system");
+		// linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
+		// (Supplier<String>) () -> id + "asdf");
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+				(Supplier<String>) () -> linkedRecordId);
+		return linkSpy;
 	}
 
 	public static DataGroup createSearchWithIdAndRecordTypeToSearchIn(String id,
@@ -110,12 +146,20 @@ public final class DataCreator2 {
 			String recordType, String linkedRecordId) {
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
 		createRecordInfo.addChild(new DataAtomicSpy("id", id));
-		DataRecordLinkSpy typeGroup = new DataRecordLinkSpy("type");
-		typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-		typeGroup.addChild(new DataAtomicSpy("linkedRecordId", recordType));
-		createRecordInfo.addChild(typeGroup);
+		// DataRecordLinkSpy typeGroup = new DataRecordLinkSpy("type");
+		// typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
+		// typeGroup.addChild(new DataAtomicSpy("linkedRecordId", recordType));
+		// createRecordInfo.addChild(typeGroup);
 
-		DataGroup dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
+		// DataRecordLinkSpy recordTypeLink = new DataRecordLinkSpy();
+		// recordTypeLink.MRV.setDefaultReturnValuesSupplier("getNameInData",
+		// (Supplier<String>) () -> "type");
+		// recordTypeLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+		// (Supplier<String>) () -> recordType);
+		// createRecordInfo.addChild(recordTypeLink);
+		createRecordInfo.addChild(createLinkWithLinkedId("type", "recordType", recordType));
+
+		DataRecordLink dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
 		createRecordInfo.addChild(dataDivider);
 		return createRecordInfo;
 	}
@@ -134,9 +178,16 @@ public final class DataCreator2 {
 		recordInfo.addChild(new DataAtomicSpy("id", id));
 		workOrder.addChild(recordInfo);
 
-		DataGroup recordTypeLink = new DataGroupOldSpy("recordType");
-		recordTypeLink.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-		recordTypeLink.addChild(new DataAtomicSpy("linkedRecordId", recordType));
+		// DataGroup recordTypeLink = new DataGroupOldSpy("recordType");
+		// recordTypeLink.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
+		// recordTypeLink.addChild(new DataAtomicSpy("linkedRecordId", recordType));
+		// workOrder.addChild(recordTypeLink);
+
+		DataRecordLinkSpy recordTypeLink = new DataRecordLinkSpy();
+		recordTypeLink.MRV.setDefaultReturnValuesSupplier("getNameInData",
+				(Supplier<String>) () -> "recordType");
+		recordTypeLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+				(Supplier<String>) () -> recordType);
 		workOrder.addChild(recordTypeLink);
 
 		workOrder.addChild(new DataAtomicSpy("recordId", recordId));

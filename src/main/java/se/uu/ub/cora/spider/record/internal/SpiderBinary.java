@@ -2,6 +2,7 @@ package se.uu.ub.cora.spider.record.internal;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -32,14 +33,16 @@ public abstract class SpiderBinary {
 	}
 
 	private String getParentId(DataGroup recordTypeDefinition) {
-		DataGroup parentIdGroup = recordTypeDefinition.getFirstGroupWithNameInData("parentId");
-		return parentIdGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+		DataRecordLink parentIdGroup = (DataRecordLink) recordTypeDefinition
+				.getFirstChildWithNameInData("parentId");
+		return parentIdGroup.getLinkedRecordId();
 	}
 
 	protected String extractDataDividerFromData(DataGroup dataGroup) {
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
-		return dataDivider.getFirstAtomicValueWithNameInData("linkedRecordId");
+		DataRecordLink dataDivider = (DataRecordLink) recordInfo
+				.getFirstChildWithNameInData("dataDivider");
+		return dataDivider.getLinkedRecordId();
 	}
 
 	protected void tryToGetActiveUser() {
