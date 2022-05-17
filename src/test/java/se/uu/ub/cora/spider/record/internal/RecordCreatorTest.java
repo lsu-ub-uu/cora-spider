@@ -84,6 +84,7 @@ import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.testspies.data.DataFactorySpy;
 import se.uu.ub.cora.testspies.data.DataGroupSpy;
+import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class RecordCreatorTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
@@ -713,8 +714,8 @@ public class RecordCreatorTest {
 		DataGroupSpy recordInfoSpy = new DataGroupSpy();
 		recordSpy.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
 				(Supplier<DataGroupSpy>) () -> recordInfoSpy, "recordInfo");
-		DataGroupSpy dataDividerSpy = new DataGroupSpy();
-		recordInfoSpy.MRV.setReturnValues("getFirstGroupWithNameInData", List.of(dataDividerSpy),
+		DataRecordLinkSpy dataDividerSpy = new DataRecordLinkSpy();
+		recordInfoSpy.MRV.setReturnValues("getFirstChildWithNameInData", List.of(dataDividerSpy),
 				"dataDivider");
 		recordInfoSpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				(Supplier<String>) () -> "someRecordId", "id");

@@ -27,14 +27,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import se.uu.ub.cora.data.Action;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class RecordLinkTestsAsserter {
 	public static void assertTopLevelLinkContainsReadActionOnly(DataRecord record) {
-		DataLink link = getLinkFromRecord(record);
-		assertTrue(link.hasReadAction());
+		DataRecordLinkSpy link = getLinkFromRecord(record);
+		// assertTrue(link.hasReadAction());
+		link.MCR.assertParameters("addAction", 0, Action.READ);
 	}
 
 	public static void assertTopLevelLinkContainsReadActionOnly(DataGroup dataGroup) {
@@ -42,34 +46,36 @@ public class RecordLinkTestsAsserter {
 		assertTrue(link.hasReadAction());
 	}
 
-	private static DataLink getLinkFromRecord(DataRecord record) {
+	private static DataRecordLinkSpy getLinkFromRecord(DataRecord record) {
 		DataGroup dataGroup = record.getDataGroup();
-		DataLink link = (DataLink) dataGroup.getFirstChildWithNameInData("link");
+		DataRecordLinkSpy link = (DataRecordLinkSpy) dataGroup.getFirstChildWithNameInData("link");
 		return link;
 	}
 
 	public static void assertTopLevelTwoLinksContainReadActionOnly(DataRecord record) {
-		List<DataLink> links = getLinksFromRecord(record);
-		for (DataLink link : links) {
-			assertTrue(link.hasReadAction());
+		List<DataRecordLinkSpy> links = getLinksFromRecord(record);
+		for (DataRecordLinkSpy link : links) {
+			// assertTrue(link.hasReadAction());
+			link.MCR.assertParameters("addAction", 0, Action.READ);
 		}
 		assertEquals(links.size(), 2);
 	}
 
 	public static void assertTopLevelTwoLinksDoesNotContainReadAction(DataRecord record) {
-		List<DataLink> links = getLinksFromRecord(record);
-		for (DataLink link : links) {
-			assertFalse(link.hasReadAction());
+		List<DataRecordLinkSpy> links = getLinksFromRecord(record);
+		for (DataRecordLinkSpy link : links) {
+			// assertFalse(link.hasReadAction());
+			link.MCR.assertMethodNotCalled("addAction");
 		}
 		assertEquals(links.size(), 2);
 	}
 
-	private static List<DataLink> getLinksFromRecord(DataRecord record) {
+	private static List<DataRecordLinkSpy> getLinksFromRecord(DataRecord record) {
 		DataGroup dataGroup = record.getDataGroup();
-		List<DataGroup> links = dataGroup.getAllGroupsWithNameInData("link");
-		List<DataLink> links2 = new ArrayList<DataLink>();
-		for (DataGroup DataGroup2 : links) {
-			links2.add((DataLink) DataGroup2);
+		List<DataChild> links = dataGroup.getAllChildrenWithNameInData("link");
+		List<DataRecordLinkSpy> links2 = new ArrayList<DataRecordLinkSpy>();
+		for (DataChild DataGroup2 : links) {
+			links2.add((DataRecordLinkSpy) DataGroup2);
 		}
 		return links2;
 	}
@@ -78,8 +84,10 @@ public class RecordLinkTestsAsserter {
 		DataGroup dataGroup = record.getDataGroup();
 		DataGroup dataGroupOneLevelDown = (DataGroup) dataGroup
 				.getFirstChildWithNameInData("oneLevelDown");
-		DataLink link = (DataLink) dataGroupOneLevelDown.getFirstChildWithNameInData("link");
-		assertTrue(link.hasReadAction());
+		DataRecordLinkSpy link = (DataRecordLinkSpy) dataGroupOneLevelDown
+				.getFirstChildWithNameInData("link");
+		// assertTrue(link.hasReadAction());
+		link.MCR.assertParameters("addAction", 0, Action.READ);
 	}
 
 	public static void assertTopLevelResourceLinkContainsReadActionOnly(DataRecord record) {

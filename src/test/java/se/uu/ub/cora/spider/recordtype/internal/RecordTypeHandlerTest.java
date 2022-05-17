@@ -39,18 +39,18 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.record.RecordStorageLightSpy;
 import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
-import se.uu.ub.cora.spider.record.internal.DataGroupCheckCallsSpy;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.testspies.data.DataFactorySpy;
 import se.uu.ub.cora.testspies.data.DataGroupSpy;
+import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class RecordTypeHandlerTest {
+	private static final String RECORD_TYPE = "recordType";
+	private static final String SOME_ID = "someId";
+	private static final String SOME_RECORD_TYPE_ID = "someRecordTypeId";
 	private DataFactorySpy dataFactorySpy;
 	private static final String ABSTRACT = "abstract";
-	private RecordStorageLightSpy recordStorageLightSpy;
-	private String defaultRecordTypeId = "someRecordType";
 	private RecordTypeHandler recordTypeHandler;
 	private RecordStorageMCRSpy recordStorage;
 	private RecordTypeHandlerFactorySpy recordTypeHandlerFactory;
@@ -62,16 +62,15 @@ public class RecordTypeHandlerTest {
 
 		recordStorage = new RecordStorageMCRSpy();
 		recordTypeHandlerFactory = new RecordTypeHandlerFactorySpy();
-		recordStorageLightSpy = new RecordStorageLightSpy();
 	}
 
 	@Test
 	public void testInitializeFromStorage() throws Exception {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorage, "someId");
+				.usingRecordStorageAndRecordTypeId(null, recordStorage, SOME_ID);
 
-		recordStorage.MCR.assertParameters("read", 0, "recordType", "someId");
-		assertEquals(recordTypeHandler.getRecordTypeId(), "someId");
+		recordStorage.MCR.assertParameters("read", 0, RECORD_TYPE, SOME_ID);
+		assertEquals(recordTypeHandler.getRecordTypeId(), SOME_ID);
 	}
 
 	@Test
@@ -79,23 +78,27 @@ public class RecordTypeHandlerTest {
 		DataGroupSpy dataGroup = createTopDataGroup();
 
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndDataGroup(null, recordStorage, dataGroup);
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		recordStorage.MCR.assertMethodNotCalled("read");
-		assertRecordTypeIdFetchedFromEnteredData(dataGroup, recordTypeHandler);
+		assertLinkFetchedFromEnteredData(dataGroup, recordTypeHandler);
 	}
 
 	private DataGroupSpy createTopDataGroup() {
+		return createTopDataGroupWithId("");
+	}
+
+	private DataGroupSpy createTopDataGroupWithId(String id) {
 		DataGroupSpy dataGroup = new DataGroupSpy();
 		DataGroupSpy recordInfoGroup = new DataGroupSpy();
 		recordInfoGroup.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				(Supplier<String>) () -> "recordIdFromSpy");
+				(Supplier<String>) () -> id);
 		dataGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
 				(Supplier<DataGroupSpy>) () -> recordInfoGroup, "recordInfo");
 		return dataGroup;
 	}
 
-	private void assertRecordTypeIdFetchedFromEnteredData(DataGroupSpy dataGroup,
+	private void assertLinkFetchedFromEnteredData(DataGroupSpy dataGroup,
 			RecordTypeHandler recordTypeHandler) {
 		DataGroupSpy recordInfoGroup = (DataGroupSpy) dataGroup.MCR
 				.getReturnValue("getFirstGroupWithNameInData", 0);
@@ -108,7 +111,7 @@ public class RecordTypeHandlerTest {
 	public void testAbstract() {
 		setupForStorageAtomicValue(ABSTRACT, "true");
 		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(null,
-				recordStorage, "someId");
+				recordStorage, SOME_ID);
 
 		DataGroupSpy dataGroupMCR = getRecordTypeDataGroupReadFromStorage();
 		assertAbstract(dataGroupMCR, true);
@@ -138,19 +141,12 @@ public class RecordTypeHandlerTest {
 		return topDataGroup;
 	}
 
-	private DataGroupSpy setupForAtomicValue(String nameInData, String value) {
-		DataGroupSpy dataGroup = new DataGroupSpy();
-		dataGroup.MRV.setReturnValues("getFirstAtomicValueWithNameInData", List.of(value),
-				nameInData);
-		return dataGroup;
-	}
-
 	@Test
 	public void testAbstractFromDataGroup() {
 		DataGroupSpy dataGroup = setupDataGroupWithAtomicValue(ABSTRACT, "true");
 
-		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(null, recordStorage,
-				dataGroup);
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		assertAbstract(dataGroup, true);
 	}
@@ -159,7 +155,7 @@ public class RecordTypeHandlerTest {
 	public void testAbstractIsFalse() {
 		setupForStorageAtomicValue(ABSTRACT, "false");
 		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(null,
-				recordStorage, "someId");
+				recordStorage, SOME_ID);
 
 		DataGroupSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
 		assertAbstract(dataGroup, false);
@@ -168,8 +164,8 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testAbstractIsFalseFromDataGroup() {
 		DataGroupSpy dataGroup = setupDataGroupWithAtomicValue(ABSTRACT, "false");
-		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(null, recordStorage,
-				dataGroup);
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		assertAbstract(dataGroup, false);
 	}
@@ -178,7 +174,7 @@ public class RecordTypeHandlerTest {
 	public void testShouldAutoGenerateId() {
 		setupForStorageAtomicValue("userSuppliedId", "false");
 		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(null,
-				recordStorage, "someId");
+				recordStorage, SOME_ID);
 
 		DataGroupSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
 		assertShouldAutoGenerateId(dataGroup, true);
@@ -187,8 +183,8 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testShouldAutoGenerateIdFromDataGroup() {
 		DataGroupSpy dataGroup = setupDataGroupWithAtomicValue("userSuppliedId", "false");
-		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(null, recordStorage,
-				dataGroup);
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		assertShouldAutoGenerateId(dataGroup, true);
 	}
@@ -202,7 +198,7 @@ public class RecordTypeHandlerTest {
 	public void testShouldAutoGenerateIdFalse() {
 		setupForStorageAtomicValue("userSuppliedId", "true");
 		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(null,
-				recordStorage, "someId");
+				recordStorage, SOME_ID);
 
 		DataGroupSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
 		assertShouldAutoGenerateId(dataGroup, false);
@@ -211,8 +207,8 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testShouldAutoGenerateIdFalseFromDataGroup() {
 		DataGroupSpy dataGroup = setupDataGroupWithAtomicValue("userSuppliedId", "true");
-		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(null, recordStorage,
-				dataGroup);
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		assertShouldAutoGenerateId(dataGroup, false);
 	}
@@ -233,8 +229,8 @@ public class RecordTypeHandlerTest {
 	public void testGetNewMetadataIdFromDataGroup() {
 		DataGroupSpy dataGroup = setupDataGroupWithLinkUsingNameInDataAndRecordId("newMetadataId",
 				"someNewMetadataId");
-		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(null, recordStorage,
-				dataGroup);
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		String newMetadataId = recordTypeHandler.getNewMetadataId();
 
@@ -257,8 +253,9 @@ public class RecordTypeHandlerTest {
 	public void testGetMetadataIdFromDataGroup() {
 		DataGroupSpy dataGroup = setupDataGroupWithLinkUsingNameInDataAndRecordId("metadataId",
 				"someMetadataId");
-		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(null, recordStorage,
-				dataGroup);
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		String metadataId = recordTypeHandler.getMetadataId();
 
@@ -273,18 +270,18 @@ public class RecordTypeHandlerTest {
 
 	private void assertUsedLinkFromDataGroup(DataGroupSpy topGroup, String linkNameInData,
 			String returnedLinkedRecordId) {
-		int callNumber = 1;
+		int callNumber = 0;
 		assertUsedLinkCallNo(topGroup, linkNameInData, returnedLinkedRecordId, callNumber);
 	}
 
 	private void assertUsedLinkCallNo(DataGroupSpy topGroup, String linkNameInData,
 			String returnedLinkedRecordId, int callNumber) {
-		topGroup.MCR.assertParameters("getFirstGroupWithNameInData", callNumber, linkNameInData);
+		topGroup.MCR.assertParameters("getFirstChildWithNameInData", callNumber, linkNameInData);
 
-		DataGroupSpy linkGroup = (DataGroupSpy) topGroup.MCR
-				.getReturnValue("getFirstGroupWithNameInData", callNumber);
-		String linkedRecordIdFromSpy = (String) linkGroup.MCR
-				.getReturnValue("getFirstAtomicValueWithNameInData", 0);
+		DataRecordLinkSpy linkGroup = (DataRecordLinkSpy) topGroup.MCR
+				.getReturnValue("getFirstChildWithNameInData", callNumber);
+		String linkedRecordIdFromSpy = (String) linkGroup.MCR.getReturnValue("getLinkedRecordId",
+				0);
 		assertEquals(returnedLinkedRecordId, linkedRecordIdFromSpy);
 	}
 
@@ -298,19 +295,25 @@ public class RecordTypeHandlerTest {
 	private DataGroupSpy setupForLinkWithNameInDataAndRecordId(String linkNameInData,
 			String linkedRecordId) {
 		DataGroupSpy dataGroup = new DataGroupSpy();
-		DataGroupSpy link = setupForAtomicValue("linkedRecordId", linkedRecordId);
+		DataRecordLinkSpy link = createLink(linkedRecordId);
 		dataGroup.MRV.setReturnValues("containsChildWithNameInData", List.of(true), linkNameInData);
-		dataGroup.MRV.setReturnValues("getFirstGroupWithNameInData", List.of(link), linkNameInData);
+		dataGroup.MRV.setReturnValues("getFirstChildWithNameInData", List.of(link), linkNameInData);
 		return dataGroup;
+	}
+
+	private DataRecordLinkSpy createLink(String value) {
+		DataRecordLinkSpy recordLink = new DataRecordLinkSpy();
+		recordLink.MRV.setReturnValues("getLinkedRecordId", List.of(value));
+		return recordLink;
 	}
 
 	private DataGroupSpy setupDataGroupWithLinkUsingNameInDataAndRecordId(String linkNameInData,
 			String linkedRecordId) {
 		DataGroupSpy topDataGroup = createTopDataGroup();
-		DataGroupSpy link = setupForAtomicValue("linkedRecordId", linkedRecordId);
+		DataRecordLinkSpy link = createLink(linkedRecordId);
 		topDataGroup.MRV.setReturnValues("containsChildWithNameInData", List.of(true),
 				linkNameInData);
-		topDataGroup.MRV.setReturnValues("getFirstGroupWithNameInData", List.of(link),
+		topDataGroup.MRV.setReturnValues("getFirstChildWithNameInData", List.of(link),
 				linkNameInData);
 		return topDataGroup;
 	}
@@ -319,7 +322,7 @@ public class RecordTypeHandlerTest {
 	public void testPublic() {
 		setupForStorageAtomicValue("public", "true");
 		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(null,
-				recordStorage, "someId");
+				recordStorage, SOME_ID);
 
 		DataGroupSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
 		assertIsPublicForRead(dataGroup, true);
@@ -333,8 +336,8 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testPublicFromDataGroup() {
 		DataGroupSpy dataGroup = setupDataGroupWithAtomicValue("public", "true");
-		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(null, recordStorage,
-				dataGroup);
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		assertIsPublicForRead(dataGroup, true);
 	}
@@ -343,7 +346,7 @@ public class RecordTypeHandlerTest {
 	public void testPublicFalse() {
 		setupForStorageAtomicValue("public", "false");
 		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(null,
-				recordStorage, "someId");
+				recordStorage, SOME_ID);
 
 		DataGroupSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
 		assertIsPublicForRead(dataGroup, false);
@@ -352,8 +355,8 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testPublicFalseFromDataGroup() {
 		DataGroupSpy dataGroup = setupDataGroupWithAtomicValue("public", "false");
-		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(null, recordStorage,
-				dataGroup);
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		assertIsPublicForRead(dataGroup, false);
 	}
@@ -363,7 +366,7 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandler recordTypeHandler = setUpRecordTypeWithMetadataIdForStorage();
 		DataGroup metadataGroup = recordTypeHandler.getMetadataGroup();
 
-		recordStorage.MCR.assertParameters("read", 0, "recordType", "someRecordTypeId");
+		recordStorage.MCR.assertParameters("read", 0, RECORD_TYPE, SOME_RECORD_TYPE_ID);
 		recordStorage.MCR.assertParameters("read", 1, "metadataGroup", "someMetadataId");
 
 		DataGroupSpy returnValue = (DataGroupSpy) recordStorage.MCR.getReturnValue("read", 1);
@@ -373,7 +376,7 @@ public class RecordTypeHandlerTest {
 	private RecordTypeHandler setUpRecordTypeWithMetadataIdForStorage() {
 		setupForLinkForStorageWithNameInDataAndRecordId("metadataId", "someMetadataId");
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorage, "someRecordTypeId");
+				.usingRecordStorageAndRecordTypeId(null, recordStorage, SOME_RECORD_TYPE_ID);
 		return recordTypeHandler;
 	}
 
@@ -395,7 +398,7 @@ public class RecordTypeHandlerTest {
 				"someMetadataId");
 
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndDataGroup(null, recordStorage, dataGroup);
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		DataGroup metadataGroup = recordTypeHandler.getMetadataGroup();
 
@@ -415,7 +418,7 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(null, recordStorage, "someRecordType");
 
-		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId("someRecordTypeId");
+		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(SOME_RECORD_TYPE_ID);
 
 		assertEquals(ids.size(), 1);
 		assertEquals(ids.get(0), "someRecordType_someRecordTypeId");
@@ -426,25 +429,82 @@ public class RecordTypeHandlerTest {
 		setupForLinkForStorageWithNameInDataAndRecordId("parentId", "parentRecordType");
 
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorage, "someRecordType");
-		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId("someRecordTypeId");
+				.usingRecordStorageAndRecordTypeId(recordTypeHandlerFactory, recordStorage,
+						"someRecordType");
+		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(SOME_RECORD_TYPE_ID);
 		assertEquals(ids.size(), 2);
 		assertEquals(ids.get(0), "someRecordType_someRecordTypeId");
-		assertEquals(ids.get(1), "parentRecordType_someRecordTypeId");
+		assertEquals(ids.get(1), "fakeCombinedIdFromRecordTypeHandlerSpy");
 	}
 
 	@Test
 	public void testGetCombinedIdsUsingRecordIdFromDataGroupNoParent() {
-		DataGroupSpy dataGroup = createTopDataGroup();
-		// DataGroupSpy dataGroup = new DataGroupSpy();
+		DataGroupSpy dataGroup = createTopDataGroupWithId("someCoolId");
 		dataGroup.MRV.setReturnValues("containsChildWithNameInData", List.of(false), "parentId");
 		recordStorage.dataGroupForRead = dataGroup;
 
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndDataGroup(null, recordStorage, dataGroup);
-		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId("someRecordTypeId");
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
+		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(SOME_RECORD_TYPE_ID);
 		assertEquals(ids.size(), 1);
-		assertEquals(ids.get(0), "recordIdFromSpy_someRecordTypeId");
+		assertEquals(ids.get(0), "someCoolId_someRecordTypeId");
+	}
+
+	@Test
+	public void testGetCombinedIdsUsingRecordIdFromDataGroupSeveralParentAncestors()
+			throws Exception {
+		DataGroupSpy dataRecordGroup = createDataRecordGroupWithIdAndParentId(
+				"implementingRecordType", "parentRecordType");
+
+		setRecordTypeHandlerFactoryToReturnHandlerWithCombinedId("parentRecordType_someRecordId",
+				"someRecordId");
+
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(
+				recordTypeHandlerFactory, recordStorage, dataRecordGroup);
+
+		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId("someRecordId");
+
+		assertEquals(ids.get(0), "implementingRecordType_someRecordId");
+		assertEquals(ids.get(1), "parentRecordType_someRecordId");
+		assertEquals(ids.size(), 2);
+
+		recordStorage.MCR.assertParameters("read", 0, RECORD_TYPE, "parentRecordType");
+		var parentDataGroup = recordStorage.MCR.getReturnValue("read", 0);
+		recordTypeHandlerFactory.MCR.assertParameters("factorUsingDataGroup", 0, parentDataGroup);
+		RecordTypeHandlerSpy parentRecordTypeHandler = (RecordTypeHandlerSpy) recordTypeHandlerFactory.MCR
+				.getReturnValue("factorUsingDataGroup", 0);
+		parentRecordTypeHandler.MCR.assertParameters("getCombinedIdsUsingRecordId", 0,
+				"someRecordId");
+		List<String> parentCombinedIds = (List<String>) parentRecordTypeHandler.MCR
+				.getReturnValue("getCombinedIdsUsingRecordId", 0);
+		assertEquals(parentCombinedIds.get(0), ids.get(1));
+	}
+
+	private void setRecordTypeHandlerFactoryToReturnHandlerWithCombinedId(String combinedId,
+			String recordId) {
+		List<RecordTypeHandlerSpy> list = new ArrayList<>();
+		RecordTypeHandlerSpy parentRecordTypeHandler = createTypeHandlerSpy("parentRecordType",
+				"grandpaRecordType", true);
+		parentRecordTypeHandler.MRV.setReturnValues("getCombinedIdsUsingRecordId",
+				List.of(List.of(combinedId)), recordId);
+		list.add(parentRecordTypeHandler);
+
+		Iterator<RecordTypeHandlerSpy> iterator = list.iterator();
+		recordTypeHandlerFactory.MRV.setDefaultReturnValuesSupplier("factorUsingDataGroup",
+				(Supplier<RecordTypeHandlerSpy>) () -> iterator.next());
+	}
+
+	private DataGroupSpy createDataRecordGroupWithIdAndParentId(String id, String parentId) {
+		DataGroupSpy topDataGroup = createTopDataGroupWithId(id);
+		topDataGroup.MRV.setReturnValues("containsChildWithNameInData", List.of(true), "parentId");
+
+		DataRecordLinkSpy linkToParent = new DataRecordLinkSpy();
+		linkToParent.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+				(Supplier<String>) () -> parentId);
+
+		topDataGroup.MRV.setSpecificReturnValuesSupplier("getFirstChildWithNameInData",
+				(Supplier<DataRecordLinkSpy>) () -> linkToParent, "parentId");
+		return topDataGroup;
 	}
 
 	@Test
@@ -776,7 +836,7 @@ public class RecordTypeHandlerTest {
 		recordTypeHandler.getRecordPartWriteConstraints();
 
 		storageSpy.MCR.assertNumberOfCallsToMethod("read", 4);
-		storageSpy.MCR.assertParameters("read", 0, "recordType", "organisation");
+		storageSpy.MCR.assertParameters("read", 0, RECORD_TYPE, "organisation");
 		storageSpy.MCR.assertParameters("read", 1, "metadataGroup", "organisation");
 		storageSpy.MCR.assertParameters("read", 2, "metadataGroup", "divaOrganisationNameGroup");
 		storageSpy.MCR.assertParameters("read", 3, "metadataTextVariable", "divaOrganisationRoot");
@@ -792,7 +852,7 @@ public class RecordTypeHandlerTest {
 		recordTypeHandler.getRecordPartWriteConstraints();
 
 		storageSpy.MCR.assertNumberOfCallsToMethod("read", 4);
-		storageSpy.MCR.assertParameters("read", 0, "recordType", "organisation");
+		storageSpy.MCR.assertParameters("read", 0, RECORD_TYPE, "organisation");
 		storageSpy.MCR.assertParameters("read", 1, "metadataGroup", "organisation");
 		storageSpy.MCR.assertParameters("read", 2, "metadataGroup", "divaOrganisationNameGroup");
 		storageSpy.MCR.assertParameters("read", 3, "metadataTextVariable", "divaOrganisationRoot");
@@ -808,7 +868,7 @@ public class RecordTypeHandlerTest {
 		recordTypeHandler.getRecordPartCreateWriteConstraints();
 
 		storageSpy.MCR.assertNumberOfCallsToMethod("read", 4);
-		storageSpy.MCR.assertParameters("read", 0, "recordType", "organisation");
+		storageSpy.MCR.assertParameters("read", 0, RECORD_TYPE, "organisation");
 		storageSpy.MCR.assertParameters("read", 1, "metadataGroup", "organisationNew");
 		storageSpy.MCR.assertParameters("read", 2, "metadataGroup", "divaOrganisationNameGroup");
 		storageSpy.MCR.assertParameters("read", 3, "metadataTextVariable", "divaOrganisationRoot2");
@@ -961,273 +1021,199 @@ public class RecordTypeHandlerTest {
 
 	@Test
 	public void testHasParent() {
-		addParentIdToContain(recordStorageLightSpy, defaultRecordTypeId);
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		DataGroupSpy dataGroup = setupDataGroupWithLinkUsingNameInDataAndRecordId("parentId",
+				"someParentId");
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		boolean hasParent = recordTypeHandler.hasParent();
-		assertContainsWasRequestedForParentId();
-		assertTrue(hasParent);
-	}
 
-	private void assertContainsWasRequestedForParentId() {
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
-		assertEquals((recordTypeDataGroup.nameInDatasSentToContains.get(0)), "parentId");
+		dataGroup.MCR.assertParameters("containsChildWithNameInData", 0, "parentId");
+		dataGroup.MCR.assertReturn("containsChildWithNameInData", 0, hasParent);
 	}
 
 	@Test
 	public void testHasNoParent() {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		DataGroupSpy dataGroup = createTopDataGroup();
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
+
 		assertFalse(recordTypeHandler.hasParent());
-	}
-
-	private void addParentIdToContain(RecordStorageLightSpy recordStorgageSpy, String id) {
-		String childNameInData = "parentId";
-		addChildToGroupIdReturnedFromStorageSpy(childNameInData, id, recordStorgageSpy);
-	}
-
-	private void addChildToGroupIdReturnedFromStorageSpy(String childNameInData, String id,
-			RecordStorageLightSpy recordStorgageSpy) {
-		List<String> childrenToContain = new ArrayList<>();
-		childrenToContain.add(childNameInData);
-		recordStorgageSpy.childrenToContainInDataGroup.put(id, childrenToContain);
 	}
 
 	@Test
 	public void testGetParentId() {
-		addParentIdToContain(recordStorageLightSpy, defaultRecordTypeId);
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		DataGroupSpy dataGroup = setupDataGroupWithLinkUsingNameInDataAndRecordId("parentId",
+				"someParentId");
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		String parentId = recordTypeHandler.getParentId();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 
-		assertParentIdWasRequestedFromDataGroup(recordTypeDataGroup);
-		assertLinkedRecordIdWasRequestedAndReturned(recordTypeDataGroup, parentId);
-	}
-
-	private void assertParentIdWasRequestedFromDataGroup(
-			DataGroupCheckCallsSpy dataGroupReturnedFromSpy) {
-		assertEquals((dataGroupReturnedFromSpy.requestedFirstGroupWithNameInData.get(0)),
-				"parentId");
-	}
-
-	private void assertLinkedRecordIdWasRequestedAndReturned(
-			DataGroupCheckCallsSpy dataGroupReturnedFromSpy, String parentId) {
-		DataGroupCheckCallsSpy returnedParentGroup = dataGroupReturnedFromSpy.returnedChildrenGroups
-				.get(0);
-		assertEquals(returnedParentGroup.requestedFirstAtomicValue.get(0), "linkedRecordId");
-		assertEquals(parentId, returnedParentGroup.returnedAtomicValues.get(0));
+		assertUsedLinkFromDataGroup(dataGroup, "parentId", parentId);
 	}
 
 	@Test(expectedExceptions = DataMissingException.class, expectedExceptionsMessageRegExp = ""
 			+ "Unable to get parentId, no parents exists")
 	public void testGetParentIdThrowsExceptionWhenMissing() {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		DataGroupSpy dataGroup = createTopDataGroup();
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		recordTypeHandler.getParentId();
 	}
 
 	@Test
 	public void testIsChildOfBinaryNoParent() {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		DataGroupSpy dataGroup = createTopDataGroup();
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		boolean isChildOfBinary = recordTypeHandler.isChildOfBinary();
 
-		assertContainsWasRequestedForParentId();
 		assertFalse(isChildOfBinary);
+		dataGroup.MCR.assertParameters("containsChildWithNameInData", 0, "parentId");
 	}
 
 	@Test
 	public void testIsChildOfBinaryHasParentButNotBinary() {
-		addParentIdToContain(recordStorageLightSpy, defaultRecordTypeId);
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		DataGroupSpy dataGroup = setupDataGroupWithLinkUsingNameInDataAndRecordId("parentId",
+				"NOT_binary");
 
-		boolean isChildOfBinary = recordTypeHandler.isChildOfBinary();
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
-		assertContainsWasRequestedForParentId();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
-		assertParentIdWasRequestedFromDataGroup(recordTypeDataGroup);
+		assertFalse(recordTypeHandler.isChildOfBinary());
 
-		assertFalse(isChildOfBinary);
+		dataGroup.MCR.assertParameters("containsChildWithNameInData", 0, "parentId");
+		dataGroup.MCR.assertParameters("getFirstChildWithNameInData", 0, "parentId");
 	}
 
 	@Test
 	public void testIsChildOfBinaryHasParentIsBinary() {
-		addParentIdToContain(recordStorageLightSpy, defaultRecordTypeId);
-		setUpPresetDataGroupToReturnParentIdBinary();
+		DataGroupSpy dataGroup = setupDataGroupWithLinkUsingNameInDataAndRecordId("parentId",
+				"binary");
 
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
-		boolean isChildOfBinary = recordTypeHandler.isChildOfBinary();
+		assertTrue(recordTypeHandler.isChildOfBinary());
 
-		assertContainsWasRequestedForParentId();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
-		assertParentIdWasRequestedFromDataGroup(recordTypeDataGroup);
-
-		assertTrue(isChildOfBinary);
-	}
-
-	private void setUpPresetDataGroupToReturnParentIdBinary() {
-		DataGroupCheckCallsSpy groupToReturnFromStorage = new DataGroupCheckCallsSpy();
-		DataGroupCheckCallsSpy parentIdChild = new DataGroupCheckCallsSpy();
-		parentIdChild.atomicValuesToReturn.put("linkedRecordId", "binary");
-		groupToReturnFromStorage.presetGroupChildrenToReturn.put("parentId", parentIdChild);
-		recordStorageLightSpy.dataGroupReturnedFromSpy = groupToReturnFromStorage;
+		dataGroup.MCR.assertParameters("containsChildWithNameInData", 0, "parentId");
+		dataGroup.MCR.assertParameters("getFirstChildWithNameInData", 0, "parentId");
 	}
 
 	@Test
 	public void testIsNotSearch() {
-		addRecordInfoToContain(recordStorageLightSpy, defaultRecordTypeId);
-		setUpPresetDataGroupToReturnRecordId("NOTSearch");
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		DataGroupSpy dataGroup = createTopDataGroupWithId("notSearch");
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		boolean isSearchType = recordTypeHandler.representsTheRecordTypeDefiningSearches();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 
-		assertRecordInfoWasRequestedFromDataGroup(recordTypeDataGroup);
-		assertIdWasRequestedFromRecordInfo(recordTypeDataGroup);
 		assertFalse(isSearchType);
+		assertIdIsReadFromRecordInfo(dataGroup);
 	}
 
-	private void addRecordInfoToContain(RecordStorageLightSpy recordStorgageSpy, String id) {
-		addChildToGroupIdReturnedFromStorageSpy("recordInfo", id, recordStorgageSpy);
-	}
-
-	private void setUpPresetDataGroupToReturnRecordId(String recordId) {
-		DataGroupCheckCallsSpy groupToReturnFromStorage = new DataGroupCheckCallsSpy();
-		DataGroupCheckCallsSpy groupChild = new DataGroupCheckCallsSpy();
-		groupChild.atomicValuesToReturn.put("id", recordId);
-		groupToReturnFromStorage.presetGroupChildrenToReturn.put("recordInfo", groupChild);
-
-		recordStorageLightSpy.dataGroupReturnedFromSpy = groupToReturnFromStorage;
-	}
-
-	private void assertRecordInfoWasRequestedFromDataGroup(
-			DataGroupCheckCallsSpy recordTypeDataGroup) {
-		assertEquals((recordTypeDataGroup.requestedFirstGroupWithNameInData.get(0)), "recordInfo");
-	}
-
-	private void assertIdWasRequestedFromRecordInfo(DataGroupCheckCallsSpy recordTypeDataGroup) {
-		DataGroupCheckCallsSpy returnedRecordInfoGroup = recordTypeDataGroup.returnedChildrenGroups
-				.get(0);
-		assertEquals(returnedRecordInfoGroup.requestedFirstAtomicValue.get(0), "id");
+	private void assertIdIsReadFromRecordInfo(DataGroupSpy dataGroup) {
+		dataGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "recordInfo");
+		DataGroupSpy recordInfo = (DataGroupSpy) dataGroup.MCR
+				.getReturnValue("getFirstGroupWithNameInData", 0);
+		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "id");
 	}
 
 	@Test
 	public void testIsSearch() {
-		addRecordInfoToContain(recordStorageLightSpy, defaultRecordTypeId);
-		setUpPresetDataGroupToReturnRecordId("search");
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		DataGroupSpy dataGroup = createTopDataGroupWithId("search");
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		boolean isSearchType = recordTypeHandler.representsTheRecordTypeDefiningSearches();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 
-		assertRecordInfoWasRequestedFromDataGroup(recordTypeDataGroup);
-		assertIdWasRequestedFromRecordInfo(recordTypeDataGroup);
 		assertTrue(isSearchType);
+		assertIdIsReadFromRecordInfo(dataGroup);
 	}
 
 	@Test
 	public void testIsNotRecordType() {
-		addRecordInfoToContain(recordStorageLightSpy, defaultRecordTypeId);
-		setUpPresetDataGroupToReturnRecordId("NOTRecordType");
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		DataGroupSpy dataGroup = createTopDataGroupWithId("notRecordType");
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		boolean isRecordType = recordTypeHandler.representsTheRecordTypeDefiningRecordTypes();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 
-		assertRecordInfoWasRequestedFromDataGroup(recordTypeDataGroup);
-		assertIdWasRequestedFromRecordInfo(recordTypeDataGroup);
 		assertFalse(isRecordType);
+		assertIdIsReadFromRecordInfo(dataGroup);
 	}
 
 	@Test
 	public void testIsRecordType() {
-		addRecordInfoToContain(recordStorageLightSpy, defaultRecordTypeId);
-		setUpPresetDataGroupToReturnRecordId("recordType");
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		DataGroupSpy dataGroup = createTopDataGroupWithId(RECORD_TYPE);
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		boolean isRecordType = recordTypeHandler.representsTheRecordTypeDefiningRecordTypes();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 
-		assertRecordInfoWasRequestedFromDataGroup(recordTypeDataGroup);
-		assertIdWasRequestedFromRecordInfo(recordTypeDataGroup);
 		assertTrue(isRecordType);
+		assertIdIsReadFromRecordInfo(dataGroup);
 	}
 
 	@Test
 	public void testHasSearch() {
-		addChildToGroupIdReturnedFromStorageSpy("search", defaultRecordTypeId,
-				recordStorageLightSpy);
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		DataGroupSpy dataGroup = setupDataGroupWithLinkUsingNameInDataAndRecordId("search",
+				"someSearchId");
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		boolean hasSearch = recordTypeHandler.hasLinkedSearch();
-		assertContainsWasRequestedForSearch();
 		assertTrue(hasSearch);
-	}
 
-	private void assertContainsWasRequestedForSearch() {
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
-		assertEquals((recordTypeDataGroup.nameInDatasSentToContains.get(0)), "search");
+		dataGroup.MCR.assertParameters("containsChildWithNameInData", 0, "search");
 	}
 
 	@Test
 	public void testHasNoSearch() {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
-		assertFalse(recordTypeHandler.hasLinkedSearch());
+		DataGroupSpy dataGroup = createTopDataGroup();
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
+
+		boolean hasSearch = recordTypeHandler.hasLinkedSearch();
+		assertFalse(hasSearch);
+
+		dataGroup.MCR.assertParameters("containsChildWithNameInData", 0, "search");
 	}
 
 	@Test
 	public void testGetSearchId() {
-		addChildToGroupIdReturnedFromStorageSpy("search", defaultRecordTypeId,
-				recordStorageLightSpy);
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		DataGroupSpy dataGroup = setupDataGroupWithLinkUsingNameInDataAndRecordId("search",
+				"someSearchId");
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		String searchId = recordTypeHandler.getSearchId();
-		DataGroupCheckCallsSpy recordTypeDataGroup = recordStorageLightSpy.dataGroupReturnedFromSpy;
 
-		assertSearchWasRequestedFromDataGroup(recordTypeDataGroup);
-		assertLinkedRecordIdWasRequestedAndReturned(recordTypeDataGroup, searchId);
-	}
-
-	private void assertSearchWasRequestedFromDataGroup(
-			DataGroupCheckCallsSpy dataGroupReturnedFromSpy) {
-		assertEquals((dataGroupReturnedFromSpy.requestedFirstGroupWithNameInData.get(0)), "search");
+		assertUsedLinkCallNo(dataGroup, "search", searchId, 0);
 	}
 
 	@Test(expectedExceptions = DataMissingException.class, expectedExceptionsMessageRegExp = ""
 			+ "Unable to get searchId, no search exists")
 	public void testGetSearchIdThrowsExceptionWhenMissing() {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorageLightSpy,
-						defaultRecordTypeId);
+		DataGroupSpy dataGroup = createTopDataGroup();
+
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		recordTypeHandler.getSearchId();
 	}
@@ -1235,7 +1221,7 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testGetImplentingRecordTypesNotAbstract() {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorage, "someId");
+				.usingRecordStorageAndRecordTypeId(null, recordStorage, SOME_ID);
 
 		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler
 				.getImplementingRecordTypeHandlers();
@@ -1248,7 +1234,7 @@ public class RecordTypeHandlerTest {
 		DataGroupSpy dataGroup = createTopDataGroup();
 
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndDataGroup(null, recordStorage, dataGroup);
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler
 				.getImplementingRecordTypeHandlers();
@@ -1260,7 +1246,7 @@ public class RecordTypeHandlerTest {
 	public void testGetImplentingRecordTypesAbstractButNoImplementingChildren() {
 		setupForStorageAtomicValue(ABSTRACT, "true");
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorage, "someId");
+				.usingRecordStorageAndRecordTypeId(null, recordStorage, SOME_ID);
 
 		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler
 				.getImplementingRecordTypeHandlers();
@@ -1272,7 +1258,7 @@ public class RecordTypeHandlerTest {
 
 	private void assertCallMadeToStorageForAbstractRecordType(DataGroupSpy dataGroupMCR) {
 		dataGroupMCR.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, ABSTRACT);
-		recordStorage.MCR.assertParameter("readList", 0, "type", "recordType");
+		recordStorage.MCR.assertParameter("readList", 0, "type", RECORD_TYPE);
 		DataGroup filter = (DataGroup) recordStorage.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("readList", 0, "filter");
 		assertEquals(filter, dataFactorySpy.MCR.getReturnValue("factorGroupUsingNameInData", 0));
@@ -1282,7 +1268,7 @@ public class RecordTypeHandlerTest {
 	public void testDataGroupGetImplentingRecordTypesAbstractButNoImplementingChildren() {
 		DataGroupSpy dataGroup = setupDataGroupWithAtomicValue(ABSTRACT, "true");
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndDataGroup(null, recordStorage, dataGroup);
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		List<RecordTypeHandler> recordTypeHandlers = recordTypeHandler
 				.getImplementingRecordTypeHandlers();
@@ -1296,8 +1282,8 @@ public class RecordTypeHandlerTest {
 		setupForStorageAtomicValue(ABSTRACT, "true");
 
 		List<RecordTypeHandlerSpy> list = new ArrayList<>();
-		list.add(createTypeHandlerSpy("someId", "", true));
-		list.add(createTypeHandlerSpy("id2", "someId", false));
+		list.add(createTypeHandlerSpy(SOME_ID, "", true));
+		list.add(createTypeHandlerSpy("id2", SOME_ID, false));
 		list.add(createTypeHandlerSpy("id3", "someOtherId", false));
 
 		Iterator<RecordTypeHandlerSpy> iterator = list.iterator();
@@ -1308,7 +1294,7 @@ public class RecordTypeHandlerTest {
 
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(recordTypeHandlerFactory, recordStorage,
-						"someId");
+						SOME_ID);
 
 		List<RecordTypeHandler> returnedTypeHandlers = recordTypeHandler
 				.getImplementingRecordTypeHandlers();
@@ -1363,7 +1349,7 @@ public class RecordTypeHandlerTest {
 			throws Exception {
 
 		setupForStorageAtomicValue(ABSTRACT, "true");
-		String startRecordId = "someId";
+		String startRecordId = SOME_ID;
 
 		List<RecordTypeHandlerSpy> list = new ArrayList<>();
 		RecordTypeHandlerSpy id5 = createTypeHandlerSpy("id5", "otherId1", false);
@@ -1420,7 +1406,7 @@ public class RecordTypeHandlerTest {
 	public void testShouldStoreInArchive() {
 		setupForStorageAtomicValue("storeInArchive", "false");
 		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(null,
-				recordStorage, "someId");
+				recordStorage, SOME_ID);
 
 		DataGroupSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
 		assertShouldStoreInArchive(dataGroup, false);
@@ -1434,8 +1420,8 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testStoreInArchiveFromDataGroup() {
 		DataGroupSpy dataGroup = setupDataGroupWithAtomicValue("storeInArchive", "true");
-		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(null, recordStorage,
-				dataGroup);
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		assertShouldStoreInArchive(dataGroup, true);
 	}
@@ -1444,7 +1430,7 @@ public class RecordTypeHandlerTest {
 	public void testStoreInArchiveTrue() {
 		setupForStorageAtomicValue("storeInArchive", "true");
 		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(null,
-				recordStorage, "someId");
+				recordStorage, SOME_ID);
 
 		DataGroupSpy dataGroup = getRecordTypeDataGroupReadFromStorage();
 		assertShouldStoreInArchive(dataGroup, true);
@@ -1453,8 +1439,8 @@ public class RecordTypeHandlerTest {
 	@Test
 	public void testShouldStoreInArchiveFalseFromDataGroup() {
 		DataGroupSpy dataGroup = setupDataGroupWithAtomicValue("userSuppliedId", "false");
-		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndDataGroup(null, recordStorage,
-				dataGroup);
+		recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndDataGroup(recordTypeHandlerFactory, recordStorage, dataGroup);
 
 		assertShouldStoreInArchive(dataGroup, false);
 	}

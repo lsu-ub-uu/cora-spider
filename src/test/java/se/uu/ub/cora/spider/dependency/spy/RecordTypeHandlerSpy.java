@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.data.DataGroup;
@@ -87,6 +88,8 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MCR.useMRV(MRV);
 		writeStringConstraints.add(new Constraint("someKey"));
 		MRV.setDefaultReturnValuesSupplier("getImplementingRecordTypeHandlers", ArrayList::new);
+		MRV.setDefaultReturnValuesSupplier("getCombinedIdsUsingRecordId",
+				(Supplier<List<String>>) () -> List.of("fakeCombinedIdFromRecordTypeHandlerSpy"));
 	}
 
 	@Override
@@ -121,11 +124,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public List<String> getCombinedIdsUsingRecordId(String recordId) {
-		MCR.addCall("recordId", recordId);
-		List<String> fakeList = new ArrayList<>();
-		fakeList.add("fakeIdFromRecordTypeHandlerSpy");
-		MCR.addReturned(fakeList);
-		return fakeList;
+		return (List<String>) MCR.addCallAndReturnFromMRV("recordId", recordId);
 	}
 
 	@Override

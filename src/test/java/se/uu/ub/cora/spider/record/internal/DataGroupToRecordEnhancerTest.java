@@ -32,28 +32,24 @@ import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevel
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.Action;
-import se.uu.ub.cora.data.DataAtomicFactory;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupFactory;
-import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordFactory;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
 import se.uu.ub.cora.spider.data.DataRecordSpy;
@@ -67,6 +63,7 @@ import se.uu.ub.cora.spider.record.RecordLinkTestsAsserter;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class DataGroupToRecordEnhancerTest {
 	private static final String UPDATE = "update";
@@ -85,8 +82,6 @@ public class DataGroupToRecordEnhancerTest {
 	private DataGroupToRecordEnhancer enhancer;
 	private DataGroupTermCollectorSpy termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
-	private DataGroupFactory dataGroupFactorySpy;
-	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataRecordFactory dataRecordFactorySpy;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
@@ -110,10 +105,7 @@ public class DataGroupToRecordEnhancerTest {
 	private void setUpFactoriesAndProviders() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-		dataGroupFactorySpy = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactorySpy);
-		dataAtomicFactorySpy = new DataAtomicFactorySpy();
-		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactorySpy);
+
 		dataRecordFactorySpy = new DataRecordFactorySpy();
 		DataRecordProvider.setDataRecordFactory(dataRecordFactorySpy);
 	}
@@ -134,10 +126,20 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		dataGroup.addChild(recordInfo);
 		recordInfo.addChild(new DataAtomicSpy("id", id));
-		DataGroup type = new DataGroupOldSpy("type");
-		recordInfo.addChild(type);
-		type.addChild(new DataAtomicSpy("linkedRecordId", "someLinkedRecordId"));
+		recordInfo
+				.addChild(createLinkWithLinkedId("type", "linkedRecordType", "someLinkedRecordId"));
+
 		return dataGroup;
+	}
+
+	private DataRecordLink createLinkWithLinkedId(String nameInData, String linkedRecordType,
+			String id) {
+		DataRecordLinkSpy linkSpy = new DataRecordLinkSpy();
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData",
+				(Supplier<String>) () -> nameInData);
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+				(Supplier<String>) () -> id);
+		return linkSpy;
 	}
 
 	@Test
@@ -1262,7 +1264,8 @@ public class DataGroupToRecordEnhancerTest {
 		String returnedSearchId = (String) recordTypeHandlerForRecordTypeInData.MCR
 				.getReturnValue("getSearchId", 0);
 
-		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider.getRecordStorage();
+		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
+				.getRecordStorage();
 		recordStorage.MCR.assertParameters("read", 0, SEARCH, returnedSearchId);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user, SEARCH,
 				"linkedSearchId1");
@@ -1314,7 +1317,8 @@ public class DataGroupToRecordEnhancerTest {
 		recordTypeHandlerForRecordTypeInData.MCR.assertMethodWasCalled("hasLinkedSearch");
 		String returnedSearchId = (String) recordTypeHandlerForRecordTypeInData.MCR
 				.getReturnValue("getSearchId", 0);
-		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider.getRecordStorage();
+		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
+				.getRecordStorage();
 		recordStorage.MCR.assertParameters("read", 0, SEARCH, returnedSearchId);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user, SEARCH,
 				"linkedSearchId1");
@@ -1330,7 +1334,8 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup recordTypeToSearchIn2 = new DataGroupOldSpy("recordTypeToSearchIn");
 		searchGroupLinkedFromRecordType.addChild(recordTypeToSearchIn2);
 		recordTypeToSearchIn2.addChild(new DataAtomicSpy("linkedRecordId", "linkedSearchId2"));
-		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider.getRecordStorage();
+		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
+				.getRecordStorage();
 		recordStorage.returnForRead = searchGroupLinkedFromRecordType;
 	}
 
@@ -1361,9 +1366,6 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator.MCR.assertParameter(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
 				"action", READ);
-		// authorizator.MCR.assertReturn(
-		// "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
-		// expectedPermissions);
 		Set<?> readPermissions = (Set<?>) authorizator.MCR.getReturnValue(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
@@ -1574,8 +1576,6 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
-		// DataGroup dataGroup = recordStorage.read(DATA_WITH_LINKS, "oneLinkTopLevel");
-		// dataRedactor.returnDataGroup = dataGroup;
 		DataGroup dataGroup = setupReturnedDataGroupOnDataRedactorSpy();
 
 		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, dataGroup, dataRedactor);
@@ -1585,8 +1585,6 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testIRAReadRecordWithDataRecordLinkHasReadActionTopLevel() {
-		// DataGroup dataGroup = recordStorage.read(DATA_WITH_LINKS, "oneLinkTopLevel");
-		// dataRedactor.returnDataGroup = dataGroup;
 		DataGroup dataGroup = setupReturnedDataGroupOnDataRedactorSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, dataGroup,
@@ -1741,8 +1739,9 @@ public class DataGroupToRecordEnhancerTest {
 
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, DATA_WITH_LINKS);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "toRecordType");
-		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "system");
-		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "recordType");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 3, "system");
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 4);
 	}
 
 	@Test
@@ -1779,9 +1778,10 @@ public class DataGroupToRecordEnhancerTest {
 				"toRecordType:recordLinkNotAuthorized");
 
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, DATA_WITH_LINKS);
-		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "system");
-		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "toRecordType");
-		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "recordType");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "system");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 3, "toRecordType");
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 4);
 	}
 
 	@Test
@@ -1818,7 +1818,8 @@ public class DataGroupToRecordEnhancerTest {
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
-		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 3);
+		termCollector.MCR.assertParameter("collectTerms", 3, "metadataId", metadataId);
+		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 4);
 
 		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, user, READ, DATA_WITH_LINKS);
@@ -1828,9 +1829,10 @@ public class DataGroupToRecordEnhancerTest {
 		String methodName2 = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName2, 0, user, "index", DATA_WITH_LINKS);
 		authorizator.MCR.assertParameters(methodName2, 1, user, "delete", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "system");
-		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "toRecordType");
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 4);
+		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "recordType");
+		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "system");
+		authorizator.MCR.assertParameters(methodName2, 4, user, READ, "toRecordType");
+		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 5);
 	}
 
 	@Test
@@ -1869,7 +1871,8 @@ public class DataGroupToRecordEnhancerTest {
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
-		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 3);
+		termCollector.MCR.assertParameter("collectTerms", 3, "metadataId", metadataId);
+		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 4);
 
 		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, user, READ, DATA_WITH_LINKS);
@@ -1879,9 +1882,10 @@ public class DataGroupToRecordEnhancerTest {
 		String methodName2 = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName2, 0, user, "index", DATA_WITH_LINKS);
 		authorizator.MCR.assertParameters(methodName2, 1, user, "delete", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "system");
-		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "toRecordType");
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 4);
+		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "recordType");
+		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "system");
+		authorizator.MCR.assertParameters(methodName2, 4, user, READ, "toRecordType");
+		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 5);
 	}
 
 	@Test
@@ -1904,7 +1908,8 @@ public class DataGroupToRecordEnhancerTest {
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
-		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 3);
+		termCollector.MCR.assertParameter("collectTerms", 3, "metadataId", metadataId);
+		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 4);
 
 		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, user, READ, DATA_WITH_LINKS);
@@ -1914,8 +1919,9 @@ public class DataGroupToRecordEnhancerTest {
 		String methodName2 = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName2, 0, user, "index", DATA_WITH_LINKS);
 		authorizator.MCR.assertParameters(methodName2, 1, user, "delete", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "system");
-		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "toRecordType");
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 4);
+		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "recordType");
+		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "system");
+		authorizator.MCR.assertParameters(methodName2, 4, user, READ, "toRecordType");
+		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 5);
 	}
 }

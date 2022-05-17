@@ -18,31 +18,30 @@
  */
 package se.uu.ub.cora.spider.extended.workorder;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+
+import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupFactory;
-import se.uu.ub.cora.data.DataGroupProvider;
-import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
+import se.uu.ub.cora.testspies.data.DataGroupSpy;
 
 public class WorkOrderEnhancerTest {
 
 	WorkOrderEnhancer extendedFunctionality;
-	private DataGroupFactory dataGroupFactory;
+	private DataFactorySpy dataFactorySpy;
 
 	@BeforeMethod
 	public void setUp() {
-		dataGroupFactory = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
+
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
+
 		extendedFunctionality = new WorkOrderEnhancer();
 	}
 
@@ -53,18 +52,18 @@ public class WorkOrderEnhancerTest {
 
 	@Test
 	public void testAddRecordInfo() {
-		DataGroup workOrder = new DataGroupOldSpy("workOrder");
+		DataGroupSpy workOrder = new DataGroupSpy();
 		callExtendedFunctionalityWithGroup(workOrder);
 
-		DataGroup recordInfo = (DataGroup) workOrder.getFirstChildWithNameInData("recordInfo");
-		assertTrue(recordInfo.containsChildWithNameInData("dataDivider"));
-		DataGroup dataDivider = (DataGroup) recordInfo.getFirstChildWithNameInData("dataDivider");
-		DataAtomic linkedRecordType = (DataAtomic) dataDivider
-				.getFirstChildWithNameInData("linkedRecordType");
-		assertEquals(linkedRecordType.getValue(), "system");
-		DataAtomic linkedRecordId = (DataAtomic) dataDivider
-				.getFirstChildWithNameInData("linkedRecordId");
-		assertEquals(linkedRecordId.getValue(), "cora");
+		DataGroupSpy recordInfo = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupUsingNameInData", 0);
+		workOrder.MCR.assertParameters("addChild", 0, recordInfo);
+
+		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
+				"dataDivider", "system", "cora");
+		var dataDivider = dataFactorySpy.MCR
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
+		recordInfo.MCR.assertParameters("addChild", 0, dataDivider);
 	}
 
 	private void callExtendedFunctionalityWithGroup(DataGroup workOrder) {
@@ -76,13 +75,13 @@ public class WorkOrderEnhancerTest {
 
 	@Test
 	public void testRecordInfoAlreadyExistsNotReplacedByExtendedFunctionality() {
-		DataGroup workOrder = new DataGroupOldSpy("workOrder");
-		workOrder.addChild(new DataGroupOldSpy("recordInfo"));
+		DataGroupSpy workOrder = new DataGroupSpy();
+		workOrder.MRV.setReturnValues("containsChildWithNameInData", List.of(true), "recordInfo");
+
 		callExtendedFunctionalityWithGroup(workOrder);
 
-		assertEquals(workOrder.getChildren().size(), 1);
-
-		DataGroup recordInfo = (DataGroup) workOrder.getFirstChildWithNameInData("recordInfo");
-		assertFalse(recordInfo.containsChildWithNameInData("dataDivider"));
+		dataFactorySpy.MCR.assertMethodNotCalled("factorGroupUsingNameInData");
+		dataFactorySpy.MCR.assertMethodNotCalled("factorRecordLinkUsingNameInDataAndTypeAndId");
+		workOrder.MCR.assertMethodNotCalled("addChild");
 	}
 }

@@ -19,7 +19,8 @@
 package se.uu.ub.cora.spider.extended.workorder;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
@@ -38,14 +39,15 @@ public class WorkOrderEnhancer implements ExtendedFunctionality {
 	}
 
 	private void addRecordInfo(DataGroup dataGroup) {
-		DataGroup recordInfo = DataGroupProvider.getDataGroupUsingNameInData("recordInfo");
-		DataGroup dataDivider = createDataDivider();
-		recordInfo.addChild(dataDivider);
+		DataGroup recordInfo = DataProvider.createGroupUsingNameInData("recordInfo");
 		dataGroup.addChild(recordInfo);
+
+		DataRecordLink dataDivider = createDataDivider();
+		recordInfo.addChild(dataDivider);
 	}
 
-	private DataGroup createDataDivider() {
-		return DataGroupProvider.getDataGroupAsLinkUsingNameInDataTypeAndId("dataDivider", "system",
+	private DataRecordLink createDataDivider() {
+		return DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("dataDivider", "system",
 				"cora");
 	}
 }

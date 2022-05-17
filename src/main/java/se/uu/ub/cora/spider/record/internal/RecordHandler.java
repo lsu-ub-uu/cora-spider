@@ -80,8 +80,9 @@ public class RecordHandler {
 
 	protected String extractDataDividerFromData(DataGroup dataGroup) {
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData(RECORD_INFO);
-		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
-		return dataDivider.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataRecordLink dataDivider = (DataRecordLink) recordInfo
+				.getFirstChildWithNameInData("dataDivider");
+		return dataDivider.getLinkedRecordId();
 	}
 
 	protected String getCurrentTimestampAsString() {

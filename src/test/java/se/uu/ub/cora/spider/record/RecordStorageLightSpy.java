@@ -118,8 +118,8 @@ public class RecordStorageLightSpy implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType, List<String> implementingTypes,
-			DataGroup filter) {
+	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
+			List<String> implementingTypes, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

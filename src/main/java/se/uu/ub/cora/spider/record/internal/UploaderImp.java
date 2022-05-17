@@ -138,7 +138,6 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 	}
 
 	private void addResourceInfoToMetadataRecord(String fileName, long fileSize) {
-		// DataGroup resourceInfo = DataGroupProvider.getDataGroupUsingNameInData(RESOURCE_INFO);
 		DataGroup resourceInfo = DataProvider.createGroupUsingNameInData(RESOURCE_INFO);
 		recordRead.addChild(resourceInfo);
 		DataResourceLink master = DataProvider.createResourceLinkUsingNameInData("master");

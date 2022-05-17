@@ -28,7 +28,7 @@ import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
-import se.uu.ub.cora.spider.testdata.DataRecordLinkSpy;
+import se.uu.ub.cora.spider.testspies.DataRecordLinkSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;

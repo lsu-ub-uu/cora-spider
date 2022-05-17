@@ -30,6 +30,7 @@ import se.uu.ub.cora.bookkeeper.metadata.ConstraintType;
 import se.uu.ub.cora.data.DataAttribute;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -44,8 +45,8 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	private static final String RECORD_PART_CONSTRAINT = "recordPartConstraint";
 	private static final String LINKED_RECORD_TYPE = "linkedRecordType";
 	private static final String LINKED_RECORD_ID = "linkedRecordId";
-	private DataGroup recordType;
 	private static final String RECORD_TYPE = "recordType";
+	private DataGroup recordType;
 	private String recordTypeId;
 	private RecordStorage recordStorage;
 	private DataGroup metadataGroup;
@@ -107,14 +108,16 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	@Override
 	public String getNewMetadataId() {
-		DataGroup newMetadataGroup = recordType.getFirstGroupWithNameInData("newMetadataId");
-		return newMetadataGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataRecordLink metadataLink = (DataRecordLink) recordType
+				.getFirstChildWithNameInData("newMetadataId");
+		return metadataLink.getLinkedRecordId();
 	}
 
 	@Override
 	public String getMetadataId() {
-		DataGroup metadataIdGroup = recordType.getFirstGroupWithNameInData("metadataId");
-		return metadataIdGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataRecordLink metadataLink = (DataRecordLink) recordType
+				.getFirstChildWithNameInData("metadataId");
+		return metadataLink.getLinkedRecordId();
 	}
 
 	@Override
@@ -134,9 +137,17 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void createIdAsAbstractType(String recordId, DataGroup recordTypeDefinition,
 			List<String> ids) {
-		DataGroup parentGroup = recordTypeDefinition.getFirstGroupWithNameInData(PARENT_ID);
-		String abstractParentType = parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-		ids.add(abstractParentType + "_" + recordId);
+		String abstractParentType = getParentRecordType(recordTypeDefinition);
+		DataGroup parentGroup = recordStorage.read(RECORD_TYPE, abstractParentType);
+		RecordTypeHandler recordTypeHandlerParent = recordTypeHandlerFactory
+				.factorUsingDataGroup(parentGroup);
+		ids.addAll(recordTypeHandlerParent.getCombinedIdsUsingRecordId(recordId));
+	}
+
+	private String getParentRecordType(DataGroup recordTypeDefinition) {
+		DataRecordLink metadataLink = (DataRecordLink) recordTypeDefinition
+				.getFirstChildWithNameInData(PARENT_ID);
+		return metadataLink.getLinkedRecordId();
 	}
 
 	@Override
@@ -370,8 +381,9 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	private String extractParentId() {
-		DataGroup parentGroup = recordType.getFirstGroupWithNameInData(PARENT_ID);
-		return parentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataRecordLink parentLink = (DataRecordLink) recordType
+				.getFirstChildWithNameInData(PARENT_ID);
+		return parentLink.getLinkedRecordId();
 	}
 
 	private void throwErrorIfNoParent() {
@@ -415,8 +427,8 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	@Override
 	public String getSearchId() {
 		throwErrorIfNoSearch();
-		DataGroup searchGroup = recordType.getFirstGroupWithNameInData(SEARCH);
-		return searchGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataRecordLink searchLink = (DataRecordLink) recordType.getFirstChildWithNameInData(SEARCH);
+		return searchLink.getLinkedRecordId();
 	}
 
 	private void throwErrorIfNoSearch() {

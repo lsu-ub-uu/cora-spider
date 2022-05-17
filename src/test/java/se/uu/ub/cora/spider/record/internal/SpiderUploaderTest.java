@@ -37,6 +37,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
@@ -236,10 +237,11 @@ public class SpiderUploaderTest {
 	private void assertStreamStorageCalledCorrectly(DataRecord recordUpdated) {
 		DataGroup groupUpdated = recordUpdated.getDataGroup();
 		DataGroup recordInfo = groupUpdated.getFirstGroupWithNameInData("recordInfo");
-		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
+		DataRecordLink dataDivider = (DataRecordLink) recordInfo
+				.getFirstChildWithNameInData("dataDivider");
 
-		String dataDividerRecordId = dataDivider
-				.getFirstAtomicValueWithNameInData("linkedRecordId");
+		String dataDividerRecordId = dataDivider.getLinkedRecordId();
+
 		assertEquals(dataDividerRecordId, streamStorage.dataDivider);
 	}
 

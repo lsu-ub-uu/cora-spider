@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.testdata;
+package se.uu.ub.cora.spider.testspies;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,15 +27,15 @@ import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAttribute;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataResourceLink;
+import se.uu.ub.cora.data.DataRecordLink;
 
-public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
+public class DataRecordLinkSpy implements DataGroup, DataRecordLink {
 
 	private String nameInData;
 	public List<DataChild> children = new ArrayList<>();
 	public List<Action> actions = new ArrayList<>();
 
-	public DataResourceLinkSpy(String nameInData) {
+	public DataRecordLinkSpy(String nameInData) {
 		this.nameInData = nameInData;
 	}
 
@@ -110,7 +110,11 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 
 	@Override
 	public DataChild getFirstChildWithNameInData(String nameInData) {
-		// TODO Auto-generated method stub
+		for (DataChild dataElement : children) {
+			if (nameInData.equals(dataElement.getNameInData())) {
+				return dataElement;
+			}
+		}
 		return null;
 	}
 
@@ -134,7 +138,6 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 
 	@Override
 	public boolean removeFirstChildWithNameInData(String childNameInData) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -200,8 +203,26 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 	}
 
 	@Override
-	public String getMimeType() {
-		// TODO Auto-generated method stub
+	public String getLinkedRecordId() {
+		for (DataChild dataElement : children) {
+			if ("linkedRecordId".equals(dataElement.getNameInData())) {
+				if (dataElement instanceof DataAtomic) {
+					return ((DataAtomic) dataElement).getValue();
+				}
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public String getLinkedRecordType() {
+		for (DataChild dataElement : children) {
+			if ("linkedRecordType".equals(dataElement.getNameInData())) {
+				if (dataElement instanceof DataAtomic) {
+					return ((DataAtomic) dataElement).getValue();
+				}
+			}
+		}
 		return null;
 	}
 
@@ -216,48 +237,6 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 			String childNameInData, DataAttribute... childAttributes) {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	public void setStreamId(String streamId) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public String getStreamId() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setFileName(String filename) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public String getFileName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setFileSize(String fileSize) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public String getFileSize() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setMimeType(String mimeType) {
-		// TODO Auto-generated method stub
-
 	}
 
 }
