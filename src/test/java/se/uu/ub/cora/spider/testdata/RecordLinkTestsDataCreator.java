@@ -19,12 +19,13 @@
 
 package se.uu.ub.cora.spider.testdata;
 
-import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.spider.testspies.DataResourceLinkSpy;
+import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class RecordLinkTestsDataCreator {
 
@@ -39,23 +40,14 @@ public class RecordLinkTestsDataCreator {
 	}
 
 	private static DataRecordLink createDataLink() {
-		DataRecordLinkSpy recordLink = new DataRecordLinkSpy("link");
-		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", "toRecordType");
-		recordLink.addChild(linkedRecordType);
-		DataAtomic linkedRecordId = new DataAtomicSpy("linkedRecordId", "toRecordId");
-		recordLink.addChild(linkedRecordId);
-		return recordLink;
+		return DataCreator2.createLinkWithLinkedId("link", "toRecordType", "toRecordId");
 	}
 
 	public static DataGroup createDataDataGroupWithLinkNotAuthorized() {
 		DataGroup dataGroup = new DataGroupOldSpy(DATA_WITH_LINKS);
 
-		DataRecordLinkSpy recordLink = new DataRecordLinkSpy("link");
-		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", "toRecordType");
-		recordLink.addChild(linkedRecordType);
-		DataAtomic linkedRecordId = new DataAtomicSpy("linkedRecordId", "recordLinkNotAuthorized");
-		recordLink.addChild(linkedRecordId);
-
+		DataRecordLink recordLink = DataCreator2.createLinkWithLinkedId("link", "toRecordType",
+				"recordLinkNotAuthorized");
 		dataGroup.addChild(recordLink);
 		return dataGroup;
 	}
@@ -65,14 +57,7 @@ public class RecordLinkTestsDataCreator {
 		DataGroup oneLevelDown = new DataGroupOldSpy("oneLevelDown");
 		dataGroup.addChild(oneLevelDown);
 
-		DataRecordLinkSpy recordLink = new DataRecordLinkSpy("link");
-
-		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", "toRecordType");
-		recordLink.addChild(linkedRecordType);
-
-		DataAtomic linkedRecordId = new DataAtomicSpy("linkedRecordId", "toRecordId");
-		recordLink.addChild(linkedRecordId);
-
+		DataRecordLink recordLink = createDataLink();
 		oneLevelDown.addChild(recordLink);
 		return dataGroup;
 	}
@@ -82,14 +67,8 @@ public class RecordLinkTestsDataCreator {
 		DataGroup oneLevelDown = new DataGroupOldSpy("oneLevelDownTargetDoesNotExist");
 		dataGroup.addChild(oneLevelDown);
 
-		DataRecordLinkSpy recordLink = new DataRecordLinkSpy("link");
-
-		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", "toRecordType");
-		recordLink.addChild(linkedRecordType);
-
-		DataAtomic linkedRecordId = new DataAtomicSpy("linkedRecordId", "nonExistingRecordId");
-		recordLink.addChild(linkedRecordId);
-
+		DataRecordLink recordLink = DataCreator2.createLinkWithLinkedId("link", "toRecordType",
+				"nonExistingRecordId");
 		oneLevelDown.addChild(recordLink);
 		return dataGroup;
 	}

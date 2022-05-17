@@ -20,7 +20,7 @@ package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.data.DataResourceLinkFactory;
-import se.uu.ub.cora.spider.testdata.DataResourceLinkSpy;
+import se.uu.ub.cora.spider.testspies.DataResourceLinkSpy;
 
 public class DataResourceLinkFactorySpy implements DataResourceLinkFactory {
 

@@ -1380,9 +1380,6 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator.MCR.assertParameter(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
 				"action", READ);
-		// authorizator.MCR.assertReturn(
-		// "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
-		// expectedPermissions);
 		Set<?> readPermissions = (Set<?>) authorizator.MCR.getReturnValue(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
@@ -1593,8 +1590,6 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testReadRecordWithDataRecordLinkHasReadActionTopLevel() {
-		// DataGroup dataGroup = recordStorage.read(DATA_WITH_LINKS, "oneLinkTopLevel");
-		// dataRedactor.returnDataGroup = dataGroup;
 		DataGroup dataGroup = setupReturnedDataGroupOnDataRedactorSpy();
 
 		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, dataGroup, dataRedactor);
@@ -1604,8 +1599,6 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testIRAReadRecordWithDataRecordLinkHasReadActionTopLevel() {
-		// DataGroup dataGroup = recordStorage.read(DATA_WITH_LINKS, "oneLinkTopLevel");
-		// dataRedactor.returnDataGroup = dataGroup;
 		DataGroup dataGroup = setupReturnedDataGroupOnDataRedactorSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, dataGroup,
@@ -1760,9 +1753,6 @@ public class DataGroupToRecordEnhancerTest {
 
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, DATA_WITH_LINKS);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "toRecordType");
-		// dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "system");
-		// dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
-
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "recordType");
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 3, "system");
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 4);
@@ -1802,10 +1792,6 @@ public class DataGroupToRecordEnhancerTest {
 				"toRecordType:recordLinkNotAuthorized");
 
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, DATA_WITH_LINKS);
-		// dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "system");
-		// dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "toRecordType");
-		// dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
-
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "recordType");
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "system");
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 3, "toRecordType");
@@ -1846,9 +1832,7 @@ public class DataGroupToRecordEnhancerTest {
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
-		// termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 3);
-
-		// termCollector.MCR.assertParameter("collectTerms", 3, "metadataId", metadataId);
+		termCollector.MCR.assertParameter("collectTerms", 3, "metadataId", metadataId);
 		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 4);
 
 		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";

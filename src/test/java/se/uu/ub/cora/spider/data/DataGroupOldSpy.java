@@ -214,8 +214,13 @@ public class DataGroupOldSpy implements DataGroup {
 
 	@Override
 	public List<DataChild> getAllChildrenWithNameInData(String nameInData) {
-		// TODO Auto-generated method stub
-		return null;
+		List<DataChild> matchingDataGroups = new ArrayList<>();
+		for (DataChild dataElement : children) {
+			if (nameInData.equals(dataElement.getNameInData())) {
+				matchingDataGroups.add(dataElement);
+			}
+		}
+		return matchingDataGroups;
 	}
 
 	@Override

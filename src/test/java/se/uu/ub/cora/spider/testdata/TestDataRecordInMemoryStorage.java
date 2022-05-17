@@ -24,6 +24,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.record.storage.RecordStorageInMemoryStub;
+import se.uu.ub.cora.spider.testspies.DataRecordLinkSpy;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class TestDataRecordInMemoryStorage {
