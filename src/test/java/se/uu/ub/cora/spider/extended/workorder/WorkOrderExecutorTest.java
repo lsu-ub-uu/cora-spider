@@ -27,15 +27,11 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupFactory;
-import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -55,8 +51,6 @@ public class WorkOrderExecutorTest {
 	SpiderAuthorizatorSpy authorizator;
 	AuthenticatorSpy authenticator;
 	private LoggerFactorySpy loggerFactorySpy;
-	private DataGroupFactory dataGroupFactory;
-	private DataAtomicFactorySpy dataAtomicFactory;
 
 	@BeforeMethod
 	public void setUp() {
@@ -68,16 +62,14 @@ public class WorkOrderExecutorTest {
 		dependencyProvider.recordStorage = new OldRecordStorageSpy();
 		dependencyProvider.authenticator = new AuthenticatorSpy();
 		dependencyProvider.spiderAuthorizator = new SpiderAuthorizatorSpy();
+
 		setUpDependencyProvider();
+
 	}
 
 	private void setUpFactoriesAndProviders() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-		dataGroupFactory = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
-		dataAtomicFactory = new DataAtomicFactorySpy();
-		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 	}
 
 	private void setUpDependencyProvider() {
@@ -109,9 +101,7 @@ public class WorkOrderExecutorTest {
 		DataGroup recordInfo2 = recordIndexer.record.getFirstGroupWithNameInData("recordInfo");
 		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
 
-		List<String> ids = recordIndexer.ids;
-		assertEquals(ids.get(0), "book_book1");
-		assertEquals(ids.size(), 1);
+		assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType("book");
 	}
 
 	private void callExtendedFunctionalityWithGroup(DataGroup workOrder) {
@@ -127,12 +117,20 @@ public class WorkOrderExecutorTest {
 		setUpDependencyProvider();
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
 				"someGeneratedId", "image", "image1");
+
 		callExtendedFunctionalityWithGroup(workOrder);
 
+		assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType("image");
+	}
+
+	private void assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType(
+			String recordType) {
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, recordType);
+		RecordTypeHandlerSpy recordTypeHandler = (RecordTypeHandlerSpy) dependencyProvider.MCR
+				.getReturnValue("getRecordTypeHandler", 0);
+
 		List<String> ids = recordIndexer.ids;
-		assertEquals(ids.get(0), "image_image1");
-		assertEquals(ids.get(1), "binary_image1");
-		assertEquals(ids.size(), 2);
+		recordTypeHandler.MCR.assertReturn("getCombinedIdsUsingRecordId", 0, ids);
 	}
 
 	@Test
@@ -191,9 +189,7 @@ public class WorkOrderExecutorTest {
 		DataGroup recordInfo2 = recordIndexer.record.getFirstGroupWithNameInData("recordInfo");
 		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
 
-		List<String> ids = recordIndexer.ids;
-		assertEquals(ids.get(0), "book_book1");
-		assertEquals(ids.size(), 1);
+		assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType("book");
 	}
 
 	@Test
@@ -210,8 +206,6 @@ public class WorkOrderExecutorTest {
 		DataGroup recordInfo2 = recordIndexer.record.getFirstGroupWithNameInData("recordInfo");
 		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
 
-		List<String> ids = recordIndexer.ids;
-		assertEquals(ids.get(0), "book_book1");
-		assertEquals(ids.size(), 1);
+		assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType("book");
 	}
 }

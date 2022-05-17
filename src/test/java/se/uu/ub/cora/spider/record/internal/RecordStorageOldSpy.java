@@ -32,10 +32,13 @@ import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
+import se.uu.ub.cora.testspies.data.DataGroupSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class RecordStorageOldSpy implements RecordStorage {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
 	public long start = 0;
 	public long totalNumberOfMatches = 0;
@@ -45,6 +48,11 @@ public class RecordStorageOldSpy implements RecordStorage {
 	public DataGroup returnForRead = null;
 	public int numberToReturnForReadList = 0;
 	public List<List<DataGroup>> listOfListOfDataGroups = new ArrayList<>();
+
+	public RecordStorageOldSpy() {
+		MCR.useMRV(MRV);
+
+	}
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -98,8 +106,8 @@ public class RecordStorageOldSpy implements RecordStorage {
 	public StorageReadResult readList(String type, DataGroup filter) {
 		MCR.addCall("type", type, "filter", filter);
 		StorageReadResult createSpiderReadResult = createSpiderReadResult();
-		MCR.addReturned(createSpiderReadResult);
 		listOfListOfDataGroups.add(createSpiderReadResult.listOfDataGroups);
+		MCR.addReturned(createSpiderReadResult);
 		return createSpiderReadResult;
 	}
 
@@ -111,17 +119,26 @@ public class RecordStorageOldSpy implements RecordStorage {
 			listOfDataGroups = new ArrayList<>();
 			addRecordsToList();
 		}
+		// readResult.listOfDataGroups = addDataGroupsToList(numberToReturnForReadList);
 		readResult.listOfDataGroups = listOfDataGroups;
 		return readResult;
+	}
+
+	private List<DataGroup> addDataGroupsToList(int numberToReturnForReadList) {
+		List<DataGroup> list = new ArrayList<>();
+		for (int i = 0; i < numberToReturnForReadList; i++) {
+			list.add(new DataGroupSpy());
+		}
+		return list;
 	}
 
 	private void addRecordsToList() {
 		int i = (int) start;
 		while (i < numberToReturnForReadList) {
-			DataGroupOldSpy topDataGroup = new DataGroupOldSpy("dummy");
-			DataGroupOldSpy recordInfo = new DataGroupOldSpy("recordInfo");
+			DataGroup topDataGroup = new DataGroupOldSpy("dummy");
+			DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 			topDataGroup.addChild(recordInfo);
-			DataGroupOldSpy type = new DataGroupOldSpy("type");
+			DataGroup type = new DataGroupOldSpy("type");
 			recordInfo.addChild(type);
 			type.addChild(new DataAtomicSpy("linkedRecordId", "dummyRecordType"));
 			recordInfo.addChild(new DataAtomicSpy("id", "someId" + i));
@@ -168,8 +185,8 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType, List<String> implementingTypes,
-			DataGroup filter) {
+	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
+			List<String> implementingTypes, DataGroup filter) {
 		MCR.addCall("abstractType", abstractType, "implementingTypes", implementingTypes, "filter",
 				filter);
 		MCR.addReturned(0);

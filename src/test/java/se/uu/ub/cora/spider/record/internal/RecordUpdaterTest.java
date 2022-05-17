@@ -603,7 +603,7 @@ public class RecordUpdaterTest {
 		DataGroup indexedRecord = recordIndexerSpy.record;
 		assertEquals(indexedRecord, updatedRecord);
 		List<String> ids = recordIndexerSpy.ids;
-		assertEquals(ids.get(0), "fakeIdFromRecordTypeHandlerSpy");
+		assertEquals(ids.get(0), "fakeCombinedIdFromRecordTypeHandlerSpy");
 		assertEquals(ids.size(), 1);
 	}
 
@@ -621,7 +621,7 @@ public class RecordUpdaterTest {
 		DataGroup indexedRecord = recordIndexerSpy.record;
 		assertEquals(indexedRecord, updatedRecord);
 		List<String> ids = recordIndexerSpy.ids;
-		assertEquals(ids.get(0), "fakeIdFromRecordTypeHandlerSpy");
+		assertEquals(ids.get(0), "fakeCombinedIdFromRecordTypeHandlerSpy");
 		assertEquals(ids.size(), 1);
 	}
 

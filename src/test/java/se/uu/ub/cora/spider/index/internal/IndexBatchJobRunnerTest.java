@@ -186,7 +186,10 @@ public class IndexBatchJobRunnerTest {
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
 				recordTypeHandler.MCR.getReturnValue("getMetadataId", 0));
 
+		// List<DataGroup> listOfReadList1 = ((StorageReadResult) recordStorage.MCR
+		// .getReturnValue("readList", 0)).listOfDataGroups;
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
+				// , listOfReadList1);
 				recordStorage.listOfListOfDataGroups.get(0).get(0));
 
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
@@ -265,6 +268,14 @@ public class IndexBatchJobRunnerTest {
 				.getValueForMethodNameAndCallNumberAndParameterName("store", 12,
 						"indexBatchJob.errors");
 		assertEquals(errors.size(), 0);
+	}
+
+	@Test
+	public void testUnexpectedError() throws Exception {
+		// recordStorage;
+
+		batchRunner.run();
+
 	}
 
 	@Test

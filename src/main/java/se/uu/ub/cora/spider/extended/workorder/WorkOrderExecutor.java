@@ -31,7 +31,6 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class WorkOrderExecutor implements ExtendedFunctionality {
@@ -100,8 +99,6 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 	}
 
 	private String getRecordTypeToIndexFromWorkOrder(DataGroup workOrder) {
-		// DataGroup recordTypeLink = workOrder.getFirstGroupWithNameInData("recordType");
-		// return recordTypeLink.getFirstAtomicValueWithNameInData("linkedRecordId");
 		DataRecordLink recordTypeLink = (DataRecordLink) workOrder
 				.getFirstChildWithNameInData("recordType");
 		return recordTypeLink.getLinkedRecordId();
@@ -141,8 +138,6 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 
 	private String getMetadataIdFromRecordType(String recordType) {
 		DataGroup readRecordType = recordStorage.read("recordType", recordType);
-		// DataGroup metadataIdLink = readRecordType.getFirstGroupWithNameInData("metadataId");
-		// return metadataIdLink.getFirstAtomicValueWithNameInData("linkedRecordId");
 		DataRecordLink metadataId = (DataRecordLink) readRecordType
 				.getFirstChildWithNameInData("metadataId");
 		return metadataId.getLinkedRecordId();
@@ -159,8 +154,8 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 	}
 
 	private List<String> getCombinedIds() {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorage, recordTypeToIndex);
+		RecordTypeHandler recordTypeHandler = dependencyProvider
+				.getRecordTypeHandler(recordTypeToIndex);
 		return recordTypeHandler.getCombinedIdsUsingRecordId(recordIdToIndex);
 	}
 
