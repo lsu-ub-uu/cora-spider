@@ -137,10 +137,17 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void createIdAsAbstractType(String recordId, DataGroup recordTypeDefinition,
 			List<String> ids) {
+		String abstractParentType = getParentRecordType(recordTypeDefinition);
+		DataGroup parentGroup = recordStorage.read(RECORD_TYPE, abstractParentType);
+		RecordTypeHandler recordTypeHandlerParent = recordTypeHandlerFactory
+				.factorUsingDataGroup(parentGroup);
+		ids.addAll(recordTypeHandlerParent.getCombinedIdsUsingRecordId(recordId));
+	}
+
+	private String getParentRecordType(DataGroup recordTypeDefinition) {
 		DataRecordLink metadataLink = (DataRecordLink) recordTypeDefinition
 				.getFirstChildWithNameInData(PARENT_ID);
-		String abstractParentType = metadataLink.getLinkedRecordId();
-		ids.add(abstractParentType + "_" + recordId);
+		return metadataLink.getLinkedRecordId();
 	}
 
 	@Override
