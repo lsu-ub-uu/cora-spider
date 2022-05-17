@@ -39,11 +39,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.Action;
-import se.uu.ub.cora.data.DataAtomicFactory;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupFactory;
-import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordFactory;
@@ -53,9 +49,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
 import se.uu.ub.cora.spider.data.DataRecordSpy;
@@ -88,8 +82,6 @@ public class DataGroupToRecordEnhancerTest {
 	private DataGroupToRecordEnhancer enhancer;
 	private DataGroupTermCollectorSpy termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
-	private DataGroupFactory dataGroupFactorySpy;
-	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataRecordFactory dataRecordFactorySpy;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
@@ -113,10 +105,7 @@ public class DataGroupToRecordEnhancerTest {
 	private void setUpFactoriesAndProviders() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-		dataGroupFactorySpy = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactorySpy);
-		dataAtomicFactorySpy = new DataAtomicFactorySpy();
-		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactorySpy);
+
 		dataRecordFactorySpy = new DataRecordFactorySpy();
 		DataRecordProvider.setDataRecordFactory(dataRecordFactorySpy);
 	}
@@ -137,9 +126,6 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		dataGroup.addChild(recordInfo);
 		recordInfo.addChild(new DataAtomicSpy("id", id));
-		// DataGroup type = new DataGroupOldSpy("type");
-		// recordInfo.addChild(type);
-		// type.addChild(new DataAtomicSpy("linkedRecordId", "someLinkedRecordId"));
 		recordInfo
 				.addChild(createLinkWithLinkedId("type", "linkedRecordType", "someLinkedRecordId"));
 
