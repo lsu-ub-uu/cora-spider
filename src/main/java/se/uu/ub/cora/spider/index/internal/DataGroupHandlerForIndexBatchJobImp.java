@@ -27,6 +27,8 @@ import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordLink;
 
 public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForIndexBatchJob {
 	private static final String NUM_OF_PROCESSED_RECORDS = "numberOfProcessedRecords";
@@ -52,9 +54,8 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 	}
 
 	private void addAtomicValueToDataGroup(String nameInData, String value, DataGroup dataGroup) {
-		DataAtomic atomicChild = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(nameInData,
-				value);
-		dataGroup.addChild(atomicChild);
+		DataAtomic atomic = DataProvider.createAtomicUsingNameInDataAndValue(nameInData, value);
+		dataGroup.addChild(atomic);
 	}
 
 	private void addIndexErrorsToDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
@@ -63,16 +64,20 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 	}
 
 	private void createAndAddErrors(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+		int i = 0;
 		for (IndexError indexError : indexBatchJob.errors) {
-			convertIndexErrorAndAddToDataGroup(dataGroup, indexError);
+			convertIndexErrorAndAddToDataGroup(dataGroup, indexError, i);
+			i++;
 		}
 	}
 
-	private void convertIndexErrorAndAddToDataGroup(DataGroup dataGroup, IndexError indexError) {
-		DataGroup errorDataGroup = DataGroupProvider.getDataGroupUsingNameInData(ERROR);
-		addAtomicValueToDataGroup("recordId", indexError.recordId, errorDataGroup);
-		addAtomicValueToDataGroup("message", indexError.message, errorDataGroup);
-		dataGroup.addChild(errorDataGroup);
+	private void convertIndexErrorAndAddToDataGroup(DataGroup dataGroup, IndexError indexError,
+			int repeatId) {
+		DataGroup error = DataProvider.createGroupUsingNameInData(ERROR);
+		dataGroup.addChild(error);
+		error.setRepeatId(String.valueOf(repeatId));
+		addAtomicValueToDataGroup("recordId", indexError.recordId, error);
+		addAtomicValueToDataGroup("message", indexError.message, error);
 	}
 
 	private void setConsecutiveRepeatIdsForErrors(DataGroup dataGroup) {
@@ -145,7 +150,7 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 
 	@Override
 	public DataGroup createDataGroup(IndexBatchJob indexBatchJob) {
-		DataGroup dataGroup = DataGroupProvider.getDataGroupUsingNameInData("indexBatchJob");
+		DataGroup dataGroup = DataProvider.createGroupUsingNameInData("indexBatchJob");
 		addRecordInfo(dataGroup);
 		addRecordTypeToIndex(indexBatchJob, dataGroup);
 		addRecordStatus(indexBatchJob, dataGroup);
@@ -157,9 +162,9 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 	}
 
 	private void addRecordInfo(DataGroup dataGroup) {
-		DataGroup recordInfo = DataGroupProvider.getDataGroupUsingNameInData("recordInfo");
-		DataGroup dataDivider = DataGroupProvider
-				.getDataGroupAsLinkUsingNameInDataTypeAndId("dataDivider", "system", "cora");
+		DataGroup recordInfo = DataProvider.createGroupUsingNameInData("recordInfo");
+		DataRecordLink dataDivider = DataProvider
+				.createRecordLinkUsingNameInDataAndTypeAndId("dataDivider", "system", "cora");
 		recordInfo.addChild(dataDivider);
 		dataGroup.addChild(recordInfo);
 	}
