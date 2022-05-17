@@ -59,10 +59,8 @@ public final class DataCreator2 {
 		DataRecordLinkSpy linkSpy = new DataRecordLinkSpy();
 		linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData",
 				(Supplier<String>) () -> nameInData);
-		// linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
-		// (Supplier<String>) () -> linkedRecordType + "asdf");
-		// linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
-		// (Supplier<String>) () -> id + "asdf");
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
+				(Supplier<String>) () -> linkedRecordType);
 		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
 				(Supplier<String>) () -> id);
 		return linkSpy;

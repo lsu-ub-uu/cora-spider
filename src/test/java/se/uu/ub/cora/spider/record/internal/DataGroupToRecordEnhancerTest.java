@@ -1760,8 +1760,12 @@ public class DataGroupToRecordEnhancerTest {
 
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, DATA_WITH_LINKS);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "toRecordType");
-		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "system");
-		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
+		// dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "system");
+		// dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
+
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "recordType");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 3, "system");
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 4);
 	}
 
 	@Test
@@ -1798,9 +1802,14 @@ public class DataGroupToRecordEnhancerTest {
 				"toRecordType:recordLinkNotAuthorized");
 
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, DATA_WITH_LINKS);
-		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "system");
-		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "toRecordType");
-		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
+		// dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "system");
+		// dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "toRecordType");
+		// dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
+
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "recordType");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "system");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 3, "toRecordType");
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 4);
 	}
 
 	@Test
@@ -1837,7 +1846,10 @@ public class DataGroupToRecordEnhancerTest {
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
-		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 3);
+		// termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 3);
+
+		// termCollector.MCR.assertParameter("collectTerms", 3, "metadataId", metadataId);
+		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 4);
 
 		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, user, READ, DATA_WITH_LINKS);
@@ -1847,9 +1859,10 @@ public class DataGroupToRecordEnhancerTest {
 		String methodName2 = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName2, 0, user, "index", DATA_WITH_LINKS);
 		authorizator.MCR.assertParameters(methodName2, 1, user, "delete", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "system");
-		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "toRecordType");
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 4);
+		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "recordType");
+		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "system");
+		authorizator.MCR.assertParameters(methodName2, 4, user, READ, "toRecordType");
+		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 5);
 	}
 
 	@Test
@@ -1888,7 +1901,8 @@ public class DataGroupToRecordEnhancerTest {
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
-		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 3);
+		termCollector.MCR.assertParameter("collectTerms", 3, "metadataId", metadataId);
+		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 4);
 
 		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, user, READ, DATA_WITH_LINKS);
@@ -1898,9 +1912,10 @@ public class DataGroupToRecordEnhancerTest {
 		String methodName2 = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName2, 0, user, "index", DATA_WITH_LINKS);
 		authorizator.MCR.assertParameters(methodName2, 1, user, "delete", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "system");
-		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "toRecordType");
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 4);
+		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "recordType");
+		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "system");
+		authorizator.MCR.assertParameters(methodName2, 4, user, READ, "toRecordType");
+		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 5);
 	}
 
 	@Test
@@ -1923,7 +1938,8 @@ public class DataGroupToRecordEnhancerTest {
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
-		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 3);
+		termCollector.MCR.assertParameter("collectTerms", 3, "metadataId", metadataId);
+		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 4);
 
 		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName, 0, user, READ, DATA_WITH_LINKS);
@@ -1933,8 +1949,9 @@ public class DataGroupToRecordEnhancerTest {
 		String methodName2 = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		authorizator.MCR.assertParameters(methodName2, 0, user, "index", DATA_WITH_LINKS);
 		authorizator.MCR.assertParameters(methodName2, 1, user, "delete", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "system");
-		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "toRecordType");
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 4);
+		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "recordType");
+		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "system");
+		authorizator.MCR.assertParameters(methodName2, 4, user, READ, "toRecordType");
+		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 5);
 	}
 }
