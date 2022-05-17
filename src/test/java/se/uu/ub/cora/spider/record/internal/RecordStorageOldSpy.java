@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -32,7 +33,6 @@ import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
-import se.uu.ub.cora.testspies.data.DataGroupSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -51,7 +51,8 @@ public class RecordStorageOldSpy implements RecordStorage {
 
 	public RecordStorageOldSpy() {
 		MCR.useMRV(MRV);
-
+		MRV.setDefaultReturnValuesSupplier("readList",
+				(Supplier<StorageReadResult>) () -> createSpiderReadResult());
 	}
 
 	@Override
@@ -104,11 +105,7 @@ public class RecordStorageOldSpy implements RecordStorage {
 
 	@Override
 	public StorageReadResult readList(String type, DataGroup filter) {
-		MCR.addCall("type", type, "filter", filter);
-		StorageReadResult createSpiderReadResult = createSpiderReadResult();
-		listOfListOfDataGroups.add(createSpiderReadResult.listOfDataGroups);
-		MCR.addReturned(createSpiderReadResult);
-		return createSpiderReadResult;
+		return (StorageReadResult) MCR.addCallAndReturnFromMRV("type", type, "filter", filter);
 	}
 
 	private StorageReadResult createSpiderReadResult() {
@@ -119,17 +116,8 @@ public class RecordStorageOldSpy implements RecordStorage {
 			listOfDataGroups = new ArrayList<>();
 			addRecordsToList();
 		}
-		// readResult.listOfDataGroups = addDataGroupsToList(numberToReturnForReadList);
 		readResult.listOfDataGroups = listOfDataGroups;
 		return readResult;
-	}
-
-	private List<DataGroup> addDataGroupsToList(int numberToReturnForReadList) {
-		List<DataGroup> list = new ArrayList<>();
-		for (int i = 0; i < numberToReturnForReadList; i++) {
-			list.add(new DataGroupSpy());
-		}
-		return list;
 	}
 
 	private void addRecordsToList() {

@@ -43,6 +43,8 @@ import se.uu.ub.cora.testspies.data.DataGroupSpy;
 
 public class IndexBatchJobRunnerTest {
 
+	private static final String FINISHED = "finished";
+	private static final String STARTED = "started";
 	private static final int INDEX_BATCH_SIZE = 1000;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private DataGroupSpy indexBatchJobFilter;
@@ -186,17 +188,17 @@ public class IndexBatchJobRunnerTest {
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
 				recordTypeHandler.MCR.getReturnValue("getMetadataId", 0));
 
-		// List<DataGroup> listOfReadList1 = ((StorageReadResult) recordStorage.MCR
-		// .getReturnValue("readList", 0)).listOfDataGroups;
+		StorageReadResult srr1 = (StorageReadResult) recordStorage.MCR.getReturnValue("readList",
+				0);
+
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
-				// , listOfReadList1);
-				recordStorage.listOfListOfDataGroups.get(0).get(0));
+				srr1.listOfDataGroups.get(0));
 
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
 				recordTypeHandler.MCR.getReturnValue("getMetadataId", 0));
 
 		termCollector.MCR.assertParameter("collectTerms", 1, "dataGroup",
-				recordStorage.listOfListOfDataGroups.get(0).get(1));
+				srr1.listOfDataGroups.get(1));
 
 		int numOfBatchesTimesTwoWhichIsReturned = 24;
 		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms",
@@ -272,10 +274,19 @@ public class IndexBatchJobRunnerTest {
 
 	@Test
 	public void testUnexpectedError() throws Exception {
-		// recordStorage;
+		recordStorage.MRV.setAlwaysThrowException("readList",
+				new RuntimeException("readList failed"));
 
 		batchRunner.run();
 
+		IndexBatchJob indexBatchJob = (IndexBatchJob) storerSpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("store", 0, "indexBatchJob");
+		List<IndexError> errors = indexBatchJob.errors;
+		assertEquals(errors.size(), 1);
+		assertEquals(errors.get(0).recordId, "IndexBatchJobRunner");
+		assertEquals(errors.get(0).message, "readList failed");
+		assertEquals(indexBatchJob.status, FINISHED);
+		// finished
 	}
 
 	@Test
@@ -285,16 +296,16 @@ public class IndexBatchJobRunnerTest {
 		batchRunner.run();
 
 		storerSpy.MCR.assertNumberOfCallsToMethod("store", 13);
-		storerSpy.MCR.assertParameter("store", 0, "indexBatchJob.status", "started");
+		storerSpy.MCR.assertParameter("store", 0, "indexBatchJob.status", STARTED);
 		storerSpy.MCR.assertParameter("store", 0, "indexBatchJob.numberOfProcessedRecords", 2L);
 
-		storerSpy.MCR.assertParameter("store", 10, "indexBatchJob.status", "started");
+		storerSpy.MCR.assertParameter("store", 10, "indexBatchJob.status", STARTED);
 		storerSpy.MCR.assertParameter("store", 10, "indexBatchJob.numberOfProcessedRecords", 22L);
 
-		storerSpy.MCR.assertParameter("store", 11, "indexBatchJob.status", "started");
+		storerSpy.MCR.assertParameter("store", 11, "indexBatchJob.status", STARTED);
 		storerSpy.MCR.assertParameter("store", 11, "indexBatchJob.numberOfProcessedRecords", 24L);
 
-		storerSpy.MCR.assertParameter("store", 12, "indexBatchJob.status", "finished");
+		storerSpy.MCR.assertParameter("store", 12, "indexBatchJob.status", FINISHED);
 		storerSpy.MCR.assertParameter("store", 12, "indexBatchJob.numberOfProcessedRecords", 24L);
 	}
 

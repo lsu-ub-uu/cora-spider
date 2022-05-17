@@ -76,16 +76,16 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	}
 
 	private void readListAndIndexDataInBatches(String metadataId) {
-		// try {
+		try {
 
-		while (numberRequestedFromListing < indexBatchJob.totalNumberToIndex) {
-			indexOneBatch(metadataId);
+			while (numberRequestedFromListing < indexBatchJob.totalNumberToIndex) {
+				indexOneBatch(metadataId);
+			}
+		} catch (Exception e) {
+			IndexError error = new IndexError("IndexBatchJobRunner", e.getMessage());
+			indexBatchJob.errors.add(error);
+			updateIndexBatchJobAsFinished();
 		}
-		// }catch (Exception e) {
-		//// handle error
-		// // TODO: handle exception
-		// indexBatchJob.errors.add(null)
-		// }
 	}
 
 	private void indexOneBatch(String metadataId) {
