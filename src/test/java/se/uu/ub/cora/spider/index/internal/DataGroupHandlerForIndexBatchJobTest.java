@@ -18,218 +18,187 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataAtomicProvider;
-import se.uu.ub.cora.data.DataChild;
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
-import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.testspies.data.DataAtomicSpy;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
+import se.uu.ub.cora.testspies.data.DataGroupSpy;
 
 public class DataGroupHandlerForIndexBatchJobTest {
 
 	private static final String SOME_RECORD_TYPE = "someRecordType";
-	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
 
-	private DataAtomicFactorySpy atomicFactory;
+	private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'";
+	private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter
+			.ofPattern(DATE_TIME_PATTERN);
+
 	private IndexBatchJob indexBatchJob;
-	private DataGroupOldSpy indexBatchJobDataGroup;
 	private DataGroupHandlerForIndexBatchJobImp dataGroupHandler;
-	private DataGroupFactorySpy dataGroupFactory;
+	private DataFactorySpy dataFactorySpy;
+	/**
+	 * numberOfFactoredAtomics
+	 */
+	int nfa = 0;
+	/**
+	 * numberOfFactoredRecordLinks
+	 */
+	int nfrl = 0;
+	/**
+	 * numberOfFactoredGroups
+	 */
+	int nfg = 0;
 
 	@BeforeMethod
-	public void setUp() {
+	public void beforeMethod() {
+		nfa = 0;
+		nfrl = 0;
+		nfg = 0;
 		setUpProviders();
 
 		indexBatchJob = createIndexBatchJob();
-		indexBatchJobDataGroup = createDataGroup();
 		dataGroupHandler = new DataGroupHandlerForIndexBatchJobImp();
 	}
 
 	private void setUpProviders() {
-		atomicFactory = new DataAtomicFactorySpy();
-		DataAtomicProvider.setDataAtomicFactory(atomicFactory);
-		dataGroupFactory = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 	}
+
+	String dataGroupLayout = """
+			indexBatchJob
+				recordInfo
+					createdBy user someSuperUser
+					tsCreated 2021-05-03T14:12:11.657482Z
+					updated
+						tsUpdated 2021-06-02T14:45:11.657482Z
+						updatedBy user someUserId
+				numOfProcessedRecords 34
+				totalNumberToIndex 34
+				status someStatus
+				error
+					recordId someRecordId
+					message some read error message
+				""";
+
+	Integer callsToAddChildForCheckingIndexBatchJob = 0;
+	Integer callsToRemoveFirstChildWithNameForIndexBatchJob = 0;
 
 	@Test
-	public void testSetUpdateTimestampOnUpdate() {
+	public void testUpdateDataGroupWithInfoFromIndexBatchJobForUpdate() {
+		callsToAddChildForCheckingIndexBatchJob = 0;
+		callsToRemoveFirstChildWithNameForIndexBatchJob = 0;
+		DataGroupSpy existingIndexBatchJob = new DataGroupSpy();
+		// setListOfErrors
+		List<DataGroupSpy> listOfErrorsSpies = List.of(new DataGroupSpy(), new DataGroupSpy());
+		int firstErrorRepeatId = listOfErrorsSpies.size() + 1;
+		existingIndexBatchJob.MRV.setReturnValues("getAllGroupsWithNameInData",
+				List.of(listOfErrorsSpies), "error");
 
-		dataGroupHandler.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
+		// recordInfoSpy
+		DataGroupSpy recordInfoG = new DataGroupSpy();
+		existingIndexBatchJob.MRV.setReturnValues("getFirstGroupWithNameInData",
+				List.of(recordInfoG), "recordInfo");
+		// setListOfUpdated
+		List<DataGroupSpy> listOfUpdatedSpies = List.of(new DataGroupSpy());
+		int firstUpdatedRepeatId = listOfUpdatedSpies.size() + 1;
+		recordInfoG.MRV.setReturnValues("getAllGroupsWithNameInData", List.of(listOfUpdatedSpies),
+				"updated");
 
-		assertDataGroupFactoryFactoredCorrectly();
+		LocalDateTime dateTimeBefore = whatTimeIsIt().minus(2, ChronoUnit.SECONDS);
+		dataGroupHandler.updateDataGroup(indexBatchJob, existingIndexBatchJob);
+		LocalDateTime dateTimeAfter = whatTimeIsIt().plus(2, ChronoUnit.SECONDS);
 
-		DataGroupOldSpy addedUpdatedGroup = (DataGroupOldSpy) dataGroupFactory.MCR
-				.getReturnValue("factorUsingNameInData", 2);
-
-		DataGroupOldSpy addedUpdatedBy = (DataGroupOldSpy) dataGroupFactory.MCR
-				.getReturnValue("factorAsLinkWithNameInDataTypeAndId", 0);
-
-		DataChild addedChildToUpdated = addedUpdatedGroup.addedChildren.get(0);
-		assertSame(addedChildToUpdated, addedUpdatedBy);
-
-		assertCorrectTsUpdated(addedUpdatedGroup);
-
-		assertEquals(addedUpdatedGroup.repeatId, "1");
+		assertNumberOfProcessedRecords(existingIndexBatchJob);
+		assertErrorsFromBatchJobAddedToGroupAndFirstRepeatId(existingIndexBatchJob,
+				firstErrorRepeatId);
+		assertStatus(existingIndexBatchJob);
+		assertNewUpdatedAddedToRecordInfo(existingIndexBatchJob, firstUpdatedRepeatId,
+				dateTimeBefore, dateTimeAfter);
 	}
 
-	private void assertCorrectTsUpdated(DataGroupOldSpy addedUpdatedGroup) {
-		DataAtomic tsUpdated = (DataAtomic) addedUpdatedGroup.addedChildren.get(1);
-		assertTrue(tsUpdated.getValue().matches(TIMESTAMP_FORMAT));
+	private void assertNewUpdatedAddedToRecordInfo(DataGroupSpy existingIndexBatchJob,
+			int firstUpdatedRepeatId, LocalDateTime dateTimeBefore, LocalDateTime dateTimeAfter) {
+		existingIndexBatchJob.MCR.assertParameters("getFirstGroupWithNameInData", 0, "recordInfo");
+		DataGroupSpy recordInfo = (DataGroupSpy) existingIndexBatchJob.MCR
+				.getReturnValue("getFirstGroupWithNameInData", 0);
 
-		DataGroup recordInfo = indexBatchJobDataGroup.getFirstGroupWithNameInData("recordInfo");
-		String tsCreated = recordInfo.getFirstAtomicValueWithNameInData("tsCreated");
-		assertFalse(tsUpdated.getValue().equals(tsCreated));
+		recordInfo.MCR.assertParameters("getAllGroupsWithNameInData", 0, "updated");
+
+		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", nfg, "updated");
+		DataGroupSpy updated = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupUsingNameInData", nfg);
+		recordInfo.MCR.assertParameters("addChild", 0, updated);
+		updated.MCR.assertParameters("setRepeatId", 0, String.valueOf(firstUpdatedRepeatId));
+		callsToAddChildForCheckingIndexBatchJob++;
+		nfg++;
+
+		assertUpdateBy(updated);
+		assertTsUpdated(dateTimeBefore, dateTimeAfter, updated);
 	}
 
-	private void assertDataGroupFactoryFactoredCorrectly() {
-		dataGroupFactory.MCR.assertParameter("factorUsingNameInData", 2, "nameInData", "updated");
-		dataGroupFactory.MCR.assertParameter("factorAsLinkWithNameInDataTypeAndId", 0, "nameInData",
-				"updatedBy");
-		dataGroupFactory.MCR.assertParameter("factorAsLinkWithNameInDataTypeAndId", 0, "recordType",
-				"user");
-		dataGroupFactory.MCR.assertParameter("factorAsLinkWithNameInDataTypeAndId", 0, "recordId",
-				"someSuperUser");
+	private void assertUpdateBy(DataGroupSpy updated) {
+		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", nfrl,
+				"updatedBy", "user", "system");
+		var updatedBy = dataFactorySpy.MCR
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", nfrl);
+		updated.MCR.assertParameters("addChild", 0, updatedBy);
+		nfrl++;
 	}
 
-	@Test
-	public void testRepeatIdInUpdatedDataGroups() {
-		DataGroup recordInfo = indexBatchJobDataGroup.getFirstGroupWithNameInData("recordInfo");
-		addUpdatedToRecordInfo(recordInfo, "1");
-		addUpdatedToRecordInfo(recordInfo, "3");
-		addUpdatedToRecordInfo(recordInfo, "7");
+	private void assertTsUpdated(LocalDateTime dateTimeBefore, LocalDateTime dateTimeAfter,
+			DataGroupSpy updated) {
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", nfa,
+				"tsUpdated");
+		DataAtomicSpy tsUpdated = (DataAtomicSpy) dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", nfa);
+		String tsUpdatedValue = (String) dataFactorySpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"factorAtomicUsingNameInDataAndValue", nfa, "value");
+		nfa++;
 
-		dataGroupHandler.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
-		DataGroupOldSpy addedUpdatedGroup = (DataGroupOldSpy) dataGroupFactory.MCR
-				.getReturnValue("factorUsingNameInData", 2);
-		assertEquals(addedUpdatedGroup.repeatId, "4");
+		LocalDateTime tsUpdatedDateTime = LocalDateTime.parse(tsUpdatedValue, dateTimeFormatter);
+		assertTrue(dateTimeBefore.isBefore(tsUpdatedDateTime));
+		assertTrue(dateTimeAfter.isAfter(tsUpdatedDateTime));
 
-		assertRepeatIdsWereReplacedWhenNewGroupWasAdded(recordInfo);
-
+		updated.MCR.assertParameters("addChild", 1, tsUpdated);
 	}
 
-	private void assertRepeatIdsWereReplacedWhenNewGroupWasAdded(DataGroup recordInfo) {
-		List<DataGroup> updatedGroups = recordInfo.getAllGroupsWithNameInData("updated");
-		assertEquals(updatedGroups.get(0).getRepeatId(), "0");
-		assertEquals(updatedGroups.get(1).getRepeatId(), "1");
-		assertEquals(updatedGroups.get(2).getRepeatId(), "2");
-		assertEquals(updatedGroups.get(3).getRepeatId(), "3");
-		assertEquals(updatedGroups.get(4).getRepeatId(), "4");
+	private LocalDateTime whatTimeIsIt() {
+		return LocalDateTime.now();
 	}
 
-	private void addUpdatedToRecordInfo(DataGroup recordInfo, String repeatId) {
-		DataGroupOldSpy updated = new DataGroupOldSpy("updated");
-		updated.setRepeatId(repeatId);
-		recordInfo.addChild(updated);
+	private void assertNumberOfProcessedRecords(DataGroupSpy existingIndexBatchJob) {
+		existingIndexBatchJob.MCR.assertParameters("removeFirstChildWithNameInData",
+				callsToRemoveFirstChildWithNameForIndexBatchJob, "numberOfProcessedRecords");
+		callsToRemoveFirstChildWithNameForIndexBatchJob++;
+
+		assertFactoredAtomicWithNameAndValueAddedToAsNo("numberOfProcessedRecords",
+				String.valueOf(indexBatchJob.numberOfProcessedRecords), existingIndexBatchJob,
+				callsToAddChildForCheckingIndexBatchJob);
+		callsToAddChildForCheckingIndexBatchJob++;
 	}
 
-	@Test
-	public void testUpdateNumOfProcessedRecordsInDataGroup() {
-		indexBatchJob.numberOfProcessedRecords = 67;
+	private void assertStatus(DataGroupSpy existingIndexBatchJob) {
+		existingIndexBatchJob.MCR.assertParameters("removeFirstChildWithNameInData",
+				callsToRemoveFirstChildWithNameForIndexBatchJob, "status");
+		callsToRemoveFirstChildWithNameForIndexBatchJob++;
 
-		dataGroupHandler.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
-		assertEquals(indexBatchJobDataGroup.removedNameInDatas.get(0), "numberOfProcessedRecords");
-		assertEquals(atomicFactory.nameInDatas.get(0), "numberOfProcessedRecords");
-		assertEquals(indexBatchJobDataGroup
-				.getFirstAtomicValueWithNameInData("numberOfProcessedRecords"), "67");
-	}
+		assertFactoredAtomicWithNameAndValueAddedToAsNo("status",
+				String.valueOf(indexBatchJob.status), existingIndexBatchJob,
+				callsToAddChildForCheckingIndexBatchJob);
+		callsToAddChildForCheckingIndexBatchJob++;
 
-	@Test
-	public void testUpdateErrorsinDataGroup() {
-		dataGroupHandler.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
-		List<DataGroup> errors = indexBatchJobDataGroup.getAllGroupsWithNameInData("error");
-		assertEquals(errors.size(), 3);
-
-		assertCorrectError(0, "0", "someRecordId", "some read error message");
-		assertCorrectError(1, "1", "recordIdOne", "some index error message");
-		assertCorrectError(2, "2", "recordIdTwo", "some other index error message");
-	}
-
-	@Test
-	public void testStatusStartedDoesNotOverwriteStorage() {
-		indexBatchJob.status = "started";
-		dataGroupHandler.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
-
-		assertStatusInUpdatedDataGroupEquals("someStatus");
-	}
-
-	@Test
-	public void testStatusPausedDoesNotOverwriteStorage() {
-		indexBatchJob.status = "paused";
-		dataGroupHandler.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
-
-		assertStatusInUpdatedDataGroupEquals("someStatus");
-	}
-
-	@Test
-	public void testStatusFinishedDoesOverwriteStorage() {
-		indexBatchJob.status = "finished";
-		dataGroupHandler.updateDataGroup(indexBatchJob, indexBatchJobDataGroup);
-
-		assertStatusInUpdatedDataGroupEquals("finished");
-	}
-
-	private void assertStatusInUpdatedDataGroupEquals(String expected) {
-		assertEquals(indexBatchJobDataGroup.getFirstAtomicValueWithNameInData("status"), expected);
-	}
-
-	private void assertCorrectError(int index, String repeatId, String recordId, String message) {
-		List<DataGroup> errors = indexBatchJobDataGroup.getAllGroupsWithNameInData("error");
-		DataGroup error = errors.get(index);
-		assertEquals(error.getRepeatId(), repeatId);
-		assertEquals(error.getFirstAtomicValueWithNameInData("recordId"), recordId);
-		assertEquals(error.getFirstAtomicValueWithNameInData("message"), message);
-	}
-
-	private DataGroupOldSpy createDataGroup() {
-		DataGroupOldSpy indexBatchJobDataGroup = new DataGroupOldSpy("indexBatchJob");
-		indexBatchJobDataGroup.addChild(new DataAtomicSpy("numOfProcessedRecords", "34"));
-		indexBatchJobDataGroup.addChild(new DataAtomicSpy("totalNumberToIndex", "34"));
-		indexBatchJobDataGroup.addChild(new DataAtomicSpy("status", "someStatus"));
-		createAndAddErrorDataGroup(indexBatchJobDataGroup);
-		DataGroupOldSpy recordInfo = createRecordInfo();
-		indexBatchJobDataGroup.addChild(recordInfo);
-		return indexBatchJobDataGroup;
-	}
-
-	private DataGroupOldSpy createRecordInfo() {
-		DataGroupOldSpy recordInfo = new DataGroupOldSpy("recordInfo");
-		DataGroupOldSpy createdBy = new DataGroupOldSpy("createdBy", "user", "someSuperUser");
-		recordInfo.addChild(createdBy);
-		recordInfo.addChild(new DataAtomicSpy("tsCreated", "2021-05-03T14:12:11.657482Z"));
-		createAndAddUpdatedDataGroup(recordInfo);
-		return recordInfo;
-	}
-
-	private void createAndAddErrorDataGroup(DataGroupOldSpy indexBatchJobDataGroup) {
-		DataGroupOldSpy error = new DataGroupOldSpy("error");
-		error.setRepeatId("0");
-		error.addChild(new DataAtomicSpy("recordId", "someRecordId"));
-		error.addChild(new DataAtomicSpy("message", "some read error message"));
-		indexBatchJobDataGroup.addChild(error);
-	}
-
-	private void createAndAddUpdatedDataGroup(DataGroupOldSpy recordInfo) {
-		DataGroupOldSpy updatedDataGroup = new DataGroupOldSpy("updated");
-		updatedDataGroup.setRepeatId("0");
-		updatedDataGroup.addChild(new DataAtomicSpy("tsUpdated", "2021-06-02T14:45:11.657482Z"));
-		DataGroupOldSpy updatedBy = new DataGroupOldSpy("updatedBy", "user", "someUserId");
-		updatedDataGroup.addChild(updatedBy);
-		recordInfo.addChild(updatedDataGroup);
 	}
 
 	private IndexBatchJob createIndexBatchJob() {
@@ -249,23 +218,94 @@ public class DataGroupHandlerForIndexBatchJobTest {
 	}
 
 	@Test
-	public void testCreateDataGroupFromIndexBatchJob() {
-		DataGroup createdDataGroup = dataGroupHandler.createDataGroup(indexBatchJob);
-		assertEquals(createdDataGroup.getNameInData(), "indexBatchJob");
+	public void testConvertIndexBatchJobToDataGroupForCreate() {
+		DataGroupSpy createdGroup = (DataGroupSpy) dataGroupHandler.createDataGroup(indexBatchJob);
 
-		assertCorrectRecordInfo(createdDataGroup);
-		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("recordTypeToIndex"),
-				SOME_RECORD_TYPE);
-		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("status"), "started");
-		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("numberOfProcessedRecords"),
-				"0");
-		assertEquals(createdDataGroup.getFirstAtomicValueWithNameInData("totalNumberToIndex"),
-				"10");
-		assertSame(createdDataGroup.getFirstGroupWithNameInData("filter"), indexBatchJob.filter);
+		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", nfg, "indexBatchJob");
+		dataFactorySpy.MCR.assertReturn("factorGroupUsingNameInData", nfg, createdGroup);
+		nfg++;
 
-		List<DataGroup> dataGroupErrors = createdDataGroup.getAllGroupsWithNameInData("error");
+		assertCorrectRecordInfo(createdGroup);
 
-		assertCorrectSetErrorsInDataGroup(dataGroupErrors);
+		assertFactoredAtomicWithNameAndValueAddedToAsNo("recordTypeToIndex",
+				indexBatchJob.recordTypeToIndex, createdGroup,
+				callsToAddChildForCheckingIndexBatchJob);
+		callsToAddChildForCheckingIndexBatchJob++;
+		assertFactoredAtomicWithNameAndValueAddedToAsNo("status", "started", createdGroup,
+				callsToAddChildForCheckingIndexBatchJob);
+		callsToAddChildForCheckingIndexBatchJob++;
+		assertFactoredAtomicWithNameAndValueAddedToAsNo("numberOfProcessedRecords", "0",
+				createdGroup, callsToAddChildForCheckingIndexBatchJob);
+		callsToAddChildForCheckingIndexBatchJob++;
+		assertFactoredAtomicWithNameAndValueAddedToAsNo("totalNumberToIndex", "10", createdGroup,
+				callsToAddChildForCheckingIndexBatchJob);
+		callsToAddChildForCheckingIndexBatchJob++;
+		createdGroup.MCR.assertParameters("addChild", callsToAddChildForCheckingIndexBatchJob,
+				indexBatchJob.filter);
+		callsToAddChildForCheckingIndexBatchJob++;
+
+		assertErrorsFromBatchJobAddedToGroupAndFirstRepeatId(createdGroup, 1);
+		createdGroup.MCR.assertNumberOfCallsToMethod("addChild",
+				callsToAddChildForCheckingIndexBatchJob);
+	}
+
+	private void assertCorrectRecordInfo(DataGroupSpy createdDataGroup) {
+		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", nfg, "recordInfo");
+		DataGroupSpy recordInfo = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupUsingNameInData", nfg);
+		nfg++;
+
+		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", nfrl,
+				"dataDivider", "system", "cora");
+		var dataDivider = dataFactorySpy.MCR
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", nfrl);
+		nfrl++;
+
+		recordInfo.MCR.assertParameters("addChild", 0, dataDivider);
+		createdDataGroup.MCR.assertParameters("addChild", callsToAddChildForCheckingIndexBatchJob,
+				recordInfo);
+		callsToAddChildForCheckingIndexBatchJob++;
+	}
+
+	private void assertFactoredAtomicWithNameAndValueAddedToAsNo(String name, String value,
+			DataGroupSpy createdDataGroup, int addedNo) {
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", nfa, name,
+				value);
+		DataAtomicSpy factoredAtomic = (DataAtomicSpy) dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", nfa);
+		createdDataGroup.MCR.assertParameters("addChild", addedNo, factoredAtomic);
+		nfa++;
+	}
+
+	private void assertErrorsFromBatchJobAddedToGroupAndFirstRepeatId(DataGroupSpy addedToGroup,
+			int startRepeatId) {
+		int repeatId = startRepeatId;
+		for (IndexError indexError : indexBatchJob.errors) {
+			assertFactoredGroupWithNameAndRepeatIdAddedToAsNo("error", String.valueOf(repeatId),
+					addedToGroup, callsToAddChildForCheckingIndexBatchJob);
+			callsToAddChildForCheckingIndexBatchJob++;
+
+			DataGroupSpy errorGroup = (DataGroupSpy) dataFactorySpy.MCR
+					.getReturnValue("factorGroupUsingNameInData", nfg);
+			nfg++;
+
+			assertFactoredAtomicWithNameAndValueAddedToAsNo("recordId", indexError.recordId,
+					errorGroup, 0);
+			assertFactoredAtomicWithNameAndValueAddedToAsNo("message", indexError.message,
+					errorGroup, 1);
+			repeatId++;
+		}
+	}
+
+	private void assertFactoredGroupWithNameAndRepeatIdAddedToAsNo(String name, String repeatId,
+			DataGroupSpy createdGroup, int addedNo) {
+		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", nfg, name);
+		DataGroupSpy factoredGroup = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupUsingNameInData", nfg);
+		if (!"".equals(repeatId)) {
+			factoredGroup.MCR.assertParameters("setRepeatId", 0, repeatId);
+		}
+		createdGroup.MCR.assertParameters("addChild", addedNo, factoredGroup);
 	}
 
 	@Test
@@ -273,42 +313,16 @@ public class DataGroupHandlerForIndexBatchJobTest {
 		DataGroupOldSpy emptyFilter = new DataGroupOldSpy("filter");
 		indexBatchJob.filter = emptyFilter;
 
-		DataGroup createdDataGroup = dataGroupHandler.createDataGroup(indexBatchJob);
-		assertFalse(createdDataGroup.containsChildWithNameInData("filter"));
-	}
-
-	private void assertCorrectRecordInfo(DataGroup createdDataGroup) {
-		DataGroup recordInfo = createdDataGroup.getFirstGroupWithNameInData("recordInfo");
-		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
-		assertEquals(dataDivider.getFirstAtomicValueWithNameInData("linkedRecordType"), "system");
-		assertEquals(dataDivider.getFirstAtomicValueWithNameInData("linkedRecordId"), "cora");
-		assertFalse(recordInfo.containsChildWithNameInData("id"));
-	}
-
-	private void assertCorrectSetErrorsInDataGroup(List<DataGroup> dataGroupErrors) {
-		List<IndexError> indexErrors = indexBatchJob.errors;
-		assertCorrectErrorInDataGroup(dataGroupErrors, indexErrors, 0);
-		assertCorrectErrorInDataGroup(dataGroupErrors, indexErrors, 1);
-
-		assertEquals(dataGroupErrors.size(), 2);
-	}
-
-	private void assertCorrectErrorInDataGroup(List<DataGroup> dataGroupErrors,
-			List<IndexError> indexErrors, int index) {
-		DataGroup error = dataGroupErrors.get(index);
-		assertEquals(error.getFirstAtomicValueWithNameInData("recordId"),
-				indexErrors.get(index).recordId);
-		assertEquals(error.getFirstAtomicValueWithNameInData("message"),
-				indexErrors.get(index).message);
-		assertEquals(error.getRepeatId(), String.valueOf(index));
+		DataGroupSpy createdGroup = (DataGroupSpy) dataGroupHandler.createDataGroup(indexBatchJob);
+		createdGroup.MCR.assertNumberOfCallsToMethod("addChild", 7);
 	}
 
 	@Test
 	public void testCreateDataGroupFromIndexBatchJobEmptyErrors() {
-		DataGroup createdDataGroup = dataGroupHandler
+		DataGroupSpy createdGroup = (DataGroupSpy) dataGroupHandler
 				.createDataGroup(new IndexBatchJob("place", 10, new DataGroupOldSpy("filter")));
-		assertEquals(createdDataGroup.getNameInData(), "indexBatchJob");
-		assertFalse(createdDataGroup.containsChildWithNameInData("error"));
+
+		createdGroup.MCR.assertNumberOfCallsToMethod("addChild", 5);
 
 	}
 

@@ -18,31 +18,32 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.util.List;
 
 import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordLink;
 
 public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForIndexBatchJob {
 	private static final String NUM_OF_PROCESSED_RECORDS = "numberOfProcessedRecords";
 	private static final String ERROR = "error";
+	private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'";
+	private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter
+			.ofPattern(DATE_TIME_PATTERN);
 
 	@Override
-	public void updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		updateNumOfProcessedRecordsInDataGroup(indexBatchJob, dataGroup);
-		addIndexErrorsToDataGroup(indexBatchJob, dataGroup);
-		possiblyUpdateStatus(indexBatchJob, dataGroup);
-		addUpdateInfo(dataGroup);
+	public void updateDataGroup(IndexBatchJob indexBatchJob, DataGroup existingIndexBatchJob) {
+		updateNumOfProcessedRecordsInDataGroup(indexBatchJob, existingIndexBatchJob);
+		addIndexErrorsToDataGroup(indexBatchJob, existingIndexBatchJob);
+		updateStatusWhenJobbIsFinished(indexBatchJob, existingIndexBatchJob);
+		addUpdateRecordInfo(existingIndexBatchJob);
 	}
 
 	private void updateNumOfProcessedRecordsInDataGroup(IndexBatchJob indexBatchJob,
-			DataGroup dataGroup) {
-		replaceAtomicChild(dataGroup, NUM_OF_PROCESSED_RECORDS,
+			DataGroup existingIndexBatchJob) {
+		replaceAtomicChild(existingIndexBatchJob, NUM_OF_PROCESSED_RECORDS,
 				String.valueOf(indexBatchJob.numberOfProcessedRecords));
 	}
 
@@ -52,100 +53,73 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 	}
 
 	private void addAtomicValueToDataGroup(String nameInData, String value, DataGroup dataGroup) {
-		DataAtomic atomicChild = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(nameInData,
-				value);
-		dataGroup.addChild(atomicChild);
+		DataAtomic atomic = DataProvider.createAtomicUsingNameInDataAndValue(nameInData, value);
+		dataGroup.addChild(atomic);
 	}
 
 	private void addIndexErrorsToDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		createAndAddErrors(indexBatchJob, dataGroup);
-		setConsecutiveRepeatIdsForErrors(dataGroup);
-	}
-
-	private void createAndAddErrors(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+		int repeatId = initilizeRepeatIdForError(dataGroup);
 		for (IndexError indexError : indexBatchJob.errors) {
-			convertIndexErrorAndAddToDataGroup(dataGroup, indexError);
+			convertIndexErrorAndAddToDataGroup(dataGroup, indexError, repeatId);
+			repeatId++;
 		}
 	}
 
-	private void convertIndexErrorAndAddToDataGroup(DataGroup dataGroup, IndexError indexError) {
-		DataGroup errorDataGroup = DataGroupProvider.getDataGroupUsingNameInData(ERROR);
-		addAtomicValueToDataGroup("recordId", indexError.recordId, errorDataGroup);
-		addAtomicValueToDataGroup("message", indexError.message, errorDataGroup);
-		dataGroup.addChild(errorDataGroup);
+	private int initilizeRepeatIdForError(DataGroup dataGroup) {
+		return (dataGroup.getAllGroupsWithNameInData(ERROR).size()) + 1;
 	}
 
-	private void setConsecutiveRepeatIdsForErrors(DataGroup dataGroup) {
-		List<DataGroup> errors = dataGroup.getAllGroupsWithNameInData(ERROR);
-		for (int i = 0; i < errors.size(); i++) {
-			DataGroup errorDataGroup = errors.get(i);
-			errorDataGroup.setRepeatId(String.valueOf(i));
-		}
+	private void convertIndexErrorAndAddToDataGroup(DataGroup dataGroup, IndexError indexError,
+			int repeatId) {
+		DataGroup error = DataProvider.createGroupUsingNameInData(ERROR);
+		dataGroup.addChild(error);
+		error.setRepeatId(String.valueOf(repeatId));
+		addAtomicValueToDataGroup("recordId", indexError.recordId, error);
+		addAtomicValueToDataGroup("message", indexError.message, error);
 	}
 
-	private void possiblyUpdateStatus(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		if (newStatusIsFinished(indexBatchJob)) {
-			replaceAtomicChild(dataGroup, "status", String.valueOf(indexBatchJob.status));
-		}
+	private void updateStatusWhenJobbIsFinished(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+		replaceAtomicChild(dataGroup, "status", String.valueOf(indexBatchJob.status));
 	}
 
-	private boolean newStatusIsFinished(IndexBatchJob indexBatchJob) {
-		return "finished".equals(indexBatchJob.status);
-	}
-
-	private void addUpdateInfo(DataGroup dataGroup) {
+	private void addUpdateRecordInfo(DataGroup dataGroup) {
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-
 		addUpdatedDataGroup(recordInfo);
-		setNewRepeatIdsForUpdatedGroups(recordInfo);
 	}
 
 	private void addUpdatedDataGroup(DataGroup recordInfo) {
-		DataGroup updatedDataGroup = DataGroupProvider.getDataGroupUsingNameInData("updated");
-		createAndAddUpdatedBy(recordInfo, updatedDataGroup);
+		DataGroup updatedDataGroup = DataProvider.createGroupUsingNameInData("updated");
+		createAndAddUpdatedBy(updatedDataGroup);
 		createAndAddTsUpdated(updatedDataGroup);
+		setRepeatIdOnUpdated(recordInfo, updatedDataGroup);
 		recordInfo.addChild(updatedDataGroup);
 	}
 
-	private void createAndAddUpdatedBy(DataGroup recordInfo, DataGroup updatedDataGroup) {
-		DataGroup updatedBy = createUpdatedByUsingRecordInfo(recordInfo);
+	private void setRepeatIdOnUpdated(DataGroup recordInfo, DataGroup updatedDataGroup) {
+		int numberOfUpdated = recordInfo.getAllGroupsWithNameInData("updated").size();
+		updatedDataGroup.setRepeatId(String.valueOf(numberOfUpdated + 1));
+	}
+
+	private void createAndAddUpdatedBy(DataGroup updatedDataGroup) {
+		DataRecordLink updatedBy = DataProvider
+				.createRecordLinkUsingNameInDataAndTypeAndId("updatedBy", "user", "system");
 		updatedDataGroup.addChild(updatedBy);
 	}
 
-	private DataGroup createUpdatedByUsingRecordInfo(DataGroup recordInfo) {
-		DataGroup createdBy = recordInfo.getFirstGroupWithNameInData("createdBy");
-		String userType = createdBy.getFirstAtomicValueWithNameInData("linkedRecordType");
-		String userId = createdBy.getFirstAtomicValueWithNameInData("linkedRecordId");
-		return DataGroupProvider.getDataGroupAsLinkUsingNameInDataTypeAndId("updatedBy", userType,
-				userId);
-	}
-
 	private void createAndAddTsUpdated(DataGroup updatedDataGroup) {
-		String currentLocalDateTime = getCurrentTimestampAsString();
-		updatedDataGroup.addChild(DataAtomicProvider
-				.getDataAtomicUsingNameInDataAndValue("tsUpdated", currentLocalDateTime));
+		DataAtomic tsUpdated = DataProvider.createAtomicUsingNameInDataAndValue("tsUpdated",
+				getCurrentFormattedTime());
+		updatedDataGroup.addChild(tsUpdated);
 	}
 
-	protected String getCurrentTimestampAsString() {
-		return formatInstantKeepingTrailingZeros(Instant.now());
-	}
-
-	protected String formatInstantKeepingTrailingZeros(Instant instant) {
-		DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendInstant(6).toFormatter();
-		return formatter.format(instant);
-	}
-
-	private void setNewRepeatIdsForUpdatedGroups(DataGroup recordInfo) {
-		int repeatIdCounter = 0;
-		for (DataGroup updated : recordInfo.getAllGroupsWithNameInData("updated")) {
-			updated.setRepeatId(String.valueOf(repeatIdCounter));
-			repeatIdCounter++;
-		}
+	private static String getCurrentFormattedTime() {
+		LocalDateTime currentDateTime = LocalDateTime.now();
+		return currentDateTime.format(dateTimeFormatter);
 	}
 
 	@Override
 	public DataGroup createDataGroup(IndexBatchJob indexBatchJob) {
-		DataGroup dataGroup = DataGroupProvider.getDataGroupUsingNameInData("indexBatchJob");
+		DataGroup dataGroup = DataProvider.createGroupUsingNameInData("indexBatchJob");
 		addRecordInfo(dataGroup);
 		addRecordTypeToIndex(indexBatchJob, dataGroup);
 		addRecordStatus(indexBatchJob, dataGroup);
@@ -157,9 +131,9 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 	}
 
 	private void addRecordInfo(DataGroup dataGroup) {
-		DataGroup recordInfo = DataGroupProvider.getDataGroupUsingNameInData("recordInfo");
-		DataGroup dataDivider = DataGroupProvider
-				.getDataGroupAsLinkUsingNameInDataTypeAndId("dataDivider", "system", "cora");
+		DataGroup recordInfo = DataProvider.createGroupUsingNameInData("recordInfo");
+		DataRecordLink dataDivider = DataProvider
+				.createRecordLinkUsingNameInDataAndTypeAndId("dataDivider", "system", "cora");
 		recordInfo.addChild(dataDivider);
 		dataGroup.addChild(recordInfo);
 	}

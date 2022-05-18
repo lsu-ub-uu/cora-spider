@@ -46,12 +46,6 @@ public class DataGroupOldSpy implements DataGroup {
 		this.nameInData = nameInData;
 	}
 
-	public DataGroupOldSpy(String nameInData, String recordType, String recordId) {
-		this.nameInData = nameInData;
-		addChild(new DataAtomicSpy("linkedRecordType", recordType));
-		addChild(new DataAtomicSpy("linkedRecordId", recordId));
-	}
-
 	@Override
 	public String getRepeatId() {
 		return repeatId;
