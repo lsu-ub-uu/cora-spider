@@ -39,10 +39,11 @@ public class DataGroupFactorySpy implements DataGroupFactory {
 	@Override
 	public DataGroup factorAsLinkWithNameInDataTypeAndId(String nameInData, String recordType,
 			String recordId) {
-		MCR.addCall("nameInData", nameInData, "recordType", recordType, "recordId", recordId);
-		DataGroupOldSpy dataGroupSpy = new DataGroupOldSpy(nameInData, recordType, recordId);
-		MCR.addReturned(dataGroupSpy);
-		return dataGroupSpy;
+		// MCR.addCall("nameInData", nameInData, "recordType", recordType, "recordId", recordId);
+		// DataGroupOldSpy dataGroupSpy = new DataGroupOldSpy(nameInData, recordType, recordId);
+		// MCR.addReturned(dataGroupSpy);
+		// return dataGroupSpy;
+		return null;
 	}
 
 }
