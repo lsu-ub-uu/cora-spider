@@ -41,6 +41,7 @@ import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.testspies.data.DataChildFilterSpy;
 import se.uu.ub.cora.testspies.data.DataFactorySpy;
 import se.uu.ub.cora.testspies.data.DataGroupSpy;
 import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
@@ -565,7 +566,11 @@ public class RecordTypeHandlerTest {
 			Set<Constraint> recordPartReadConstraints, String constraintName, int numOfAttributes) {
 		Constraint organisationReadConstraint = getConstraintByNameInData(recordPartReadConstraints,
 				constraintName);
-		assertEquals(organisationReadConstraint.getDataAttributes().size(), numOfAttributes);
+		// assertEquals(organisationReadConstraint.getDataAttributes().size(), numOfAttributes);
+		DataChildFilterSpy childFilter = (DataChildFilterSpy) organisationReadConstraint
+				.getDataChildFilter();
+		childFilter.MCR.assertNumberOfCallsToMethod("addAttributeUsingNameInDataAndPossibleValues",
+				numOfAttributes);
 	}
 
 	private Constraint getConstraintByNameInData(Set<Constraint> constraints, String nameInData) {
@@ -577,6 +582,7 @@ public class RecordTypeHandlerTest {
 		return null;
 	}
 
+	// HERE
 	@Test
 	public void testGetRecordPartReadConstraintsOneReadConstraintWithAttribute() {
 		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
@@ -588,16 +594,20 @@ public class RecordTypeHandlerTest {
 		assertCorrectWriteConstraintsWithOneAttributeForOneChild();
 		assertCorrectCreateWriteConstraintsWithOneAttributeForOneChild();
 
-		dataFactorySpy.MCR.assertParameters("factorAttributeUsingNameInDataAndValue", 0, "type",
-				"default");
-
+		// dataFactorySpy.MCR.assertParameters("factorAttributeUsingNameInDataAndValue", 0, "type",
+		// "default");
+		dataFactorySpy.MCR.assertMethodNotCalled("factorAttributeUsingNameInDataAndValue");
+		DataChildFilterSpy filterSpy = (DataChildFilterSpy) dataFactorySpy.MCR
+				.getReturnValue("factorDataChildFilterUsingNameInData", 0);
+		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorDataChildFilterUsingNameInData", 0);
+		filterSpy.MCR.assertParameters("addAttributeUsingNameInDataAndPossibleValues", 0, "type");
 	}
 
 	private void assertCorrectReadConstraintsWithOneAttributeForOneChild() {
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();
 		assertCorrectConstraintsWithOneAttributeForOneChild(recordPartReadConstraints);
-		assertCorrectConstraintsWithOneAttributeForOneChild(recordPartReadConstraints);
+		// assertCorrectConstraintsWithOneAttributeForOneChild(recordPartReadConstraints);
 	}
 
 	private void assertCorrectConstraintsWithOneAttributeForOneChild(

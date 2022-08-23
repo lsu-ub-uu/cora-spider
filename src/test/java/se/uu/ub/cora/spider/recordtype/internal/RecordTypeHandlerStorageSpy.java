@@ -104,7 +104,8 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 				attributeReferences.addChild(ref);
 
 				if (numberOfAttributes > 1) {
-					DataGroupOldSpy ref2 = createAttributeReference("textPartLangCollectionVar", "0");
+					DataGroupOldSpy ref2 = createAttributeReference("textPartLangCollectionVar",
+							"0");
 					attributeReferences.addChild(ref2);
 				}
 				metadataGroup.addChild(attributeReferences);
@@ -136,11 +137,11 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 			return metadataGroup;
 		}
 		if ("metadataGroup".equals(type) && "divaOrganisationNameGroup".equals(id)) {
-			DataGroupOldSpy metadataGroup = createMetadataGroupWithChildReferences("organisationName",
-					"divaOrganisationNameGroup");
+			DataGroupOldSpy metadataGroup = createMetadataGroupWithChildReferences(
+					"organisationName", "divaOrganisationNameGroup");
 
-			DataGroupOldSpy grandChildWithReadConstraint = createChildReference("metadataTextVariable",
-					"showInPortalTextVar", "0", "1");
+			DataGroupOldSpy grandChildWithReadConstraint = createChildReference(
+					"metadataTextVariable", "showInPortalTextVar", "0", "1");
 			DataGroup childReferences = metadataGroup
 					.getFirstGroupWithNameInData("childReferences");
 			childReferences.addChild(grandChildWithReadConstraint);
@@ -158,8 +159,8 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 			DataGroupOldSpy childReferences = new DataGroupOldSpy("childReferences");
 			metadataGroup.addChild(childReferences);
 
-			DataGroupOldSpy grandChildWithReadConstraint = createChildReference("metadataTextVariable",
-					"showInPortalTextVar", "0", "1");
+			DataGroupOldSpy grandChildWithReadConstraint = createChildReference(
+					"metadataTextVariable", "showInPortalTextVar", "0", "1");
 			childReferences.addChild(grandChildWithReadConstraint);
 
 			DataGroupOldSpy recursiveChild = createChildReference("metadataGroup",
@@ -174,6 +175,8 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 					"default");
 			return metadataGroup;
 		}
+		// TODO: if ("metadataCollectionVariable".equals(type) &&
+		// "choosableAttributesCollectionVar".equals(id))
 		if ("metadataCollectionVariable".equals(type) && "textPartLangCollectionVar".equals(id)) {
 			DataGroupOldSpy metadataGroup = createMetadataGroupWithNameInDataAndFinalValue("lang",
 					"sv");
@@ -184,7 +187,8 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 		return returnedValue;
 	}
 
-	private DataGroupOldSpy createMetadataGroupWithChildReferences(String nameInData, String groupId) {
+	private DataGroupOldSpy createMetadataGroupWithChildReferences(String nameInData,
+			String groupId) {
 		DataGroupOldSpy metadataGroup = createBasicMetadataGroup(groupId);
 		metadataGroup.addChild(new DataAtomicSpy("nameInData", nameInData));
 		DataGroupOldSpy childReferences = new DataGroupOldSpy("childReferences");
@@ -405,8 +409,8 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType, List<String> implementingTypes,
-			DataGroup filter) {
+	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
+			List<String> implementingTypes, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

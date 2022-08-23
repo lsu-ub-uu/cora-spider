@@ -277,14 +277,14 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 		constraints.add(constraint);
 	}
 
+	private String getRecordPartConstraintType(DataGroup childReference) {
+		return childReference.getFirstAtomicValueWithNameInData(RECORD_PART_CONSTRAINT);
+	}
+
 	private Constraint createConstraintPossibyAddAttributes(DataGroup childRef) {
 		Constraint constraint = createConstraint(childRef);
 		possiblyAddAttributes(childRef, constraint);
 		return constraint;
-	}
-
-	private String getRecordPartConstraintType(DataGroup childReference) {
-		return childReference.getFirstAtomicValueWithNameInData(RECORD_PART_CONSTRAINT);
 	}
 
 	private DataGroup readChildRefFromStorage(DataGroup childReference) {
@@ -316,8 +316,13 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void addAttribute(Constraint constraint, DataGroup attribute) {
 		DataGroup collectionVar = getCollectionVar(attribute);
-		DataAttribute dataAttribute = createDataAttribute(collectionVar);
-		constraint.addAttribute(dataAttribute);
+		// DataAttribute dataAttribute = createDataAttribute(collectionVar);
+		// constraint.addAttribute(dataAttribute);
+		// add...
+		String attributeName = collectionVar.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
+		// TODO: if final value use that, else, read collection add all choices..
+		String attributeValue = collectionVar.getFirstAtomicValueWithNameInData("finalValue");
+		constraint.addAttributeUsingNameInDataAndPossibleValues("kalle", Set.of("Anka"));
 	}
 
 	private DataGroup getCollectionVar(DataGroup attribute) {
