@@ -46,52 +46,79 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 			}
 		}
 		if ("metadataGroup".equals(type) && "organisation".equals(id)) {
-			return createMetadataGroupForOrganisation();
+			// return createMetadataGroupForOrganisation();
+			DataGroup metadata = createMetadataGroupForOrganisation();
+			MCR.addReturned(metadata);
+			return metadata;
 
 		}
+
 		if ("metadataGroup".equals(type) && "organisationChildWithAttribute".equals(id)) {
-			return createMetadataGroupForOrganisationWithChildWithAttribute();
-
+			DataGroup metadata = createMetadataGroupForOrganisationWithChildWithAttribute();
+			MCR.addReturned(metadata);
+			return metadata;
 		}
+		if ("metadataGroup".equals(type) && "organisationChildWithAttributeNew".equals(id)) {
+			if (useStandardMetadataGroupForNew) {
+				DataGroup metadata = createMetadataGroupForOrganisationWithChildWithAttribute();
+				MCR.addReturned(metadata);
+				return metadata;
+			}
+			DataGroup metadata = createMetadataGroupForOrganisationNewWithChildWithAttribute();
+			MCR.addReturned(metadata);
+			return metadata;
+		}
+
 		if ("metadataGroup".equals(type) && "organisationRecursiveChild".equals(id)) {
 			DataGroup returnedValue = createMetadataGroupForOrganisationRecursiveChild();
 			MCR.addReturned(returnedValue);
 			return returnedValue;
 
 		}
-		if ("metadataGroup".equals(type) && "organisationChildWithAttributeNew".equals(id)) {
-			if (useStandardMetadataGroupForNew) {
-				return createMetadataGroupForOrganisationWithChildWithAttribute();
-			}
-			return createMetadataGroupForOrganisationNewWithChildWithAttribute();
-
-		}
 		if ("metadataGroup".equals(type) && "organisationNew".equals(id)) {
 			if (useStandardMetadataGroupForNew) {
-				return createMetadataGroupForOrganisation();
+				DataGroup metadata = createMetadataGroupForOrganisation();
+				MCR.addReturned(metadata);
+				return metadata;
 			}
-			return createMetadataGroupForOrganisationNew();
+			DataGroup metadata = createMetadataGroupForOrganisationNew();
+			MCR.addReturned(metadata);
+			return metadata;
 		}
 		if ("metadataTextVariable".equals(type) && "divaOrganisationRoot".equals(id)) {
-			return createMetadataTextVariableUsingNameInData("organisationRoot");
+			DataGroup metadata = createMetadataTextVariableUsingNameInData("organisationRoot");
+			MCR.addReturned(metadata);
+			return metadata;
 		}
 		if ("metadataTextVariable".equals(type) && "showInPortalTextVar".equals(id)) {
-			return createMetadataTextVariableUsingNameInData("showInPortal");
+			DataGroup metadata = createMetadataTextVariableUsingNameInData("showInPortal");
+			MCR.addReturned(metadata);
+			return metadata;
 		}
 		if ("metadataTextVariable".equals(type) && "showInDefenceTextVar".equals(id)) {
-			return createMetadataTextVariableUsingNameInData("showInDefence");
+			DataGroup metadata = createMetadataTextVariableUsingNameInData("showInDefence");
+			MCR.addReturned(metadata);
+			return metadata;
 		}
 		if ("metadataTextVariable".equals(type) && "divaOrganisationRoot2".equals(id)) {
-			return createMetadataTextVariableUsingNameInData("organisationRoot2");
+			DataGroup metadata = createMetadataTextVariableUsingNameInData("organisationRoot2");
+			MCR.addReturned(metadata);
+			return metadata;
 		}
 		if ("metadataTextVariable".equals(type) && "showInPortalTextVar2".equals(id)) {
-			return createMetadataTextVariableUsingNameInData("showInPortal2");
+			DataGroup metadata = createMetadataTextVariableUsingNameInData("showInPortal2");
+			MCR.addReturned(metadata);
+			return metadata;
 		}
 		if ("metadataTextVariable".equals(type) && "showInDefenceTextVar2".equals(id)) {
-			return createMetadataTextVariableUsingNameInData("showInDefence2");
+			DataGroup metadata = createMetadataTextVariableUsingNameInData("showInDefence2");
+			MCR.addReturned(metadata);
+			return metadata;
 		}
 		if ("metadataTextVariable".equals(type) && "greatGrandChildTextVar".equals(id)) {
-			return createMetadataTextVariableUsingNameInData("greatGrandChild");
+			DataGroupOldSpy metadata = createMetadataTextVariableUsingNameInData("greatGrandChild");
+			MCR.addReturned(metadata);
+			return metadata;
 		}
 		if ("metadataGroup".equals(type) && "organisationAlternativeNameGroup".equals(id)) {
 			DataGroupOldSpy metadataGroup = createMetadataGroupWithChildReferences(
@@ -173,13 +200,23 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 		if ("metadataCollectionVariable".equals(type) && "textPartTypeCollectionVar".equals(id)) {
 			DataGroupOldSpy metadataGroup = createMetadataGroupWithNameInDataAndFinalValue("type",
 					"default");
+			MCR.addReturned(metadataGroup);
 			return metadataGroup;
 		}
 		// TODO: if ("metadataCollectionVariable".equals(type) &&
 		// "choosableAttributesCollectionVar".equals(id))
+		// if ("metadataCollectionVariable".equals(type) &&
+		// "choosableAttributesCollectionVar".equals(id)) {
+		//
+		// DataGroupSpy metadataGroup = new DataGroupSpy();
+		// metadataGroup.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+		// Supplier, "bla");
+		// return metadataGroup;
+		// }
 		if ("metadataCollectionVariable".equals(type) && "textPartLangCollectionVar".equals(id)) {
 			DataGroupOldSpy metadataGroup = createMetadataGroupWithNameInDataAndFinalValue("lang",
 					"sv");
+			MCR.addReturned(metadataGroup);
 			return metadataGroup;
 		}
 		DataGroupOldSpy returnedValue = new DataGroupOldSpy(id);

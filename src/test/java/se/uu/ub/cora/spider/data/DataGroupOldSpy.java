@@ -58,11 +58,14 @@ public class DataGroupOldSpy implements DataGroup {
 
 	@Override
 	public String getFirstAtomicValueWithNameInData(String nameInData) {
+		MCR.addCall("nameInData", nameInData);
 		requestedAtomicValues.add(nameInData);
 		for (DataChild dataElement : children) {
 			if (nameInData.equals(dataElement.getNameInData())) {
 				if (dataElement instanceof DataAtomic) {
-					return ((DataAtomic) dataElement).getValue();
+					String value = ((DataAtomic) dataElement).getValue();
+					MCR.addReturned(value);
+					return value;
 				}
 			}
 		}
@@ -100,11 +103,14 @@ public class DataGroupOldSpy implements DataGroup {
 
 	@Override
 	public boolean containsChildWithNameInData(String nameInData) {
+		MCR.addCall("nameInData", nameInData);
 		for (DataChild dataElement : children) {
 			if (nameInData.equals(dataElement.getNameInData())) {
+				MCR.addReturned(true);
 				return true;
 			}
 		}
+		MCR.addReturned(false);
 		return false;
 	}
 

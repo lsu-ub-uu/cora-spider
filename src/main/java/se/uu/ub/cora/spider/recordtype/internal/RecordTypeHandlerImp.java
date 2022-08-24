@@ -321,8 +321,11 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 		// add...
 		String attributeName = collectionVar.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
 		// TODO: if final value use that, else, read collection add all choices..
+		collectionVar.containsChildWithNameInData("finalValue");
 		String attributeValue = collectionVar.getFirstAtomicValueWithNameInData("finalValue");
-		constraint.addAttributeUsingNameInDataAndPossibleValues("kalle", Set.of("Anka"));
+		// constraint.addAttributeUsingNameInDataAndPossibleValues("kalle", Set.of("Anka"));
+		constraint.addAttributeUsingNameInDataAndPossibleValues(attributeName,
+				Set.of(attributeValue));
 	}
 
 	private DataGroup getCollectionVar(DataGroup attribute) {
@@ -333,6 +336,23 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	private DataAttribute createDataAttribute(DataGroup collectionVar) {
 		String attributeName = collectionVar.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
 		String attributeValue = collectionVar.getFirstAtomicValueWithNameInData("finalValue");
+		// TODO: Read refCollection link
+		// DataGroup refCollectionLink = collectionVar.getFirstGroupWithNameInData("refCollection");
+		// String collectionId =
+		// refCollectionLink.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		// DataGroup possibleAttributesCollection = recordStorage.read("metadataItemCollection",
+		// collectionId);
+		// DataGroup collectionItemReferences = possibleAttributesCollection
+		// .getFirstGroupWithNameInData("collectionItemReferences");
+		// List<DataGroup> allGroupsWithNameInData = collectionItemReferences
+		// .getAllGroupsWithNameInData("ref");
+		// for (DataGroup refGroup : allGroupsWithNameInData) {
+		// String itemId = refGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		// DataGroup itemGroup = recordStorage.read("collectionItem", itemId);
+		// String itemValue = itemGroup.getFirstAtomicValueWithNameInData("nameInData");
+		// Add itemValue to Set<String> possibleValues
+		// }
+
 		return DataProvider.createAttributeUsingNameInDataAndValue(attributeName, attributeValue);
 	}
 

@@ -584,28 +584,82 @@ public class RecordTypeHandlerTest {
 
 	// HERE
 	@Test
-	public void testGetRecordPartReadConstraintsOneReadConstraintWithAttribute() {
+	public void testGetRecordPartReadConstraintsTwoReadConstraintWithAttribute() {
+		// - Two read constraints organisationRoot, organisationAlternativeName
+		// organisationAlternativeName constraint exists dependning on
+		// storageSpy.numberOfChildrenWithReadWriteConstraint
+		// - OrganisationRoot has no attributes
+		// - OrganisationAlternativeName has 0 to 2 attributes depending on
+		// storageSpy.numberOfAttributes
+
 		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
 				"organisationChildWithAttribute");
 		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
 		storageSpy.numberOfAttributes = 1;
 
-		assertCorrectReadConstraintsWithOneAttributeForOneChild();
+		Set<Constraint> recordPartReadConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
+
+		storageSpy.MCR.assertNumberOfCallsToMethod("read", 6);
+
+		DataGroupOldSpy collectionVarSpy = (DataGroupOldSpy) storageSpy.MCR.getReturnValue("read",
+				5);
+		collectionVarSpy.MCR.assertParameters("containsChildWithNameInData", 0, "finalValue");
+		collectionVarSpy.MCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "finalValue");
+
+		assertEquals(recordPartReadConstraints.size(), 2);
+		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorDataChildFilterUsingNameInData", 2);
+		dataFactorySpy.MCR.assertParameters("factorDataChildFilterUsingNameInData", 0,
+				"organisationRoot");
+		dataFactorySpy.MCR.assertParameters("factorDataChildFilterUsingNameInData", 1,
+				"organisationAlternativeName");
+
+		DataChildFilterSpy organisationRootChildFilter = (DataChildFilterSpy) dataFactorySpy.MCR
+				.getReturnValue("factorDataChildFilterUsingNameInData", 0);
+		organisationRootChildFilter.MCR
+				.assertMethodNotCalled("addAttributeUsingNameInDataAndPossibleValues");
+
+		DataChildFilterSpy organisationAlternativeNameChildFilter = (DataChildFilterSpy) dataFactorySpy.MCR
+				.getReturnValue("factorDataChildFilterUsingNameInData", 1);
+		organisationAlternativeNameChildFilter.MCR
+				.assertParameters("addAttributeUsingNameInDataAndPossibleValues", 0, "type");
+		Set<String> possibleValues = (Set<String>) organisationAlternativeNameChildFilter.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"addAttributeUsingNameInDataAndPossibleValues", 0, "possibleValues");
+		assertEquals(possibleValues.size(), 1);
+		assertEquals(possibleValues.toArray()[0], "default");
+	}
+
+	@Test
+	public void testGetRecordPartReadConstraintsOneReadConstraintWithAttributeOLD() {
+		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
+				"organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.numberOfAttributes = 1;
+
+		Set<Constraint> recordPartReadConstraints = recordTypeHandler
+				.getRecordPartReadConstraints();
+
+		// assertCorrectReadConstraintsWithOneAttributeForOneChild(recordPartReadConstraints);
+		assertCorrectConstraintsWithOneAttributeForOneChild(recordPartReadConstraints);
 		assertCorrectWriteConstraintsWithOneAttributeForOneChild();
 		assertCorrectCreateWriteConstraintsWithOneAttributeForOneChild();
 
 		// dataFactorySpy.MCR.assertParameters("factorAttributeUsingNameInDataAndValue", 0, "type",
 		// "default");
+
 		dataFactorySpy.MCR.assertMethodNotCalled("factorAttributeUsingNameInDataAndValue");
 		DataChildFilterSpy filterSpy = (DataChildFilterSpy) dataFactorySpy.MCR
 				.getReturnValue("factorDataChildFilterUsingNameInData", 0);
+		// dataFactorySpy.MCR.assertParameters("factorDataChildFilterUsingNameInData", 1, "");
 		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorDataChildFilterUsingNameInData", 0);
 		filterSpy.MCR.assertParameters("addAttributeUsingNameInDataAndPossibleValues", 0, "type");
 	}
 
-	private void assertCorrectReadConstraintsWithOneAttributeForOneChild() {
-		Set<Constraint> recordPartReadConstraints = recordTypeHandler
-				.getRecordPartReadConstraints();
+	private void assertCorrectReadConstraintsWithOneAttributeForOneChild(
+			Set<Constraint> recordPartReadConstraints) {
+		// Set<Constraint> recordPartReadConstraints = recordTypeHandler
+		// .getRecordPartReadConstraints();
 		assertCorrectConstraintsWithOneAttributeForOneChild(recordPartReadConstraints);
 		// assertCorrectConstraintsWithOneAttributeForOneChild(recordPartReadConstraints);
 	}
