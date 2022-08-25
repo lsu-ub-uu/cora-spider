@@ -25,6 +25,7 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +48,7 @@ import se.uu.ub.cora.testspies.data.DataGroupSpy;
 import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class RecordTypeHandlerTest {
+	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private static final String RECORD_TYPE = "recordType";
 	private static final String SOME_ID = "someId";
 	private static final String SOME_RECORD_TYPE_ID = "someRecordTypeId";
@@ -55,6 +57,7 @@ public class RecordTypeHandlerTest {
 	private RecordTypeHandler recordTypeHandler;
 	private RecordStorageMCRSpy recordStorage;
 	private RecordTypeHandlerFactorySpy recordTypeHandlerFactory;
+	private RecordTypeHandlerStorageSpy storageSpy;
 
 	@BeforeMethod
 	public void setUp() {
@@ -584,7 +587,7 @@ public class RecordTypeHandlerTest {
 
 	// HERE
 	@Test
-	public void testGetRecordPartReadConstraintsTwoReadConstraintWithAttribute() {
+	public void testGetRecordPartReadConstraintsTwoReadConstraintsOneWithAttributes() {
 		// - Two read constraints organisationRoot, organisationAlternativeName
 		// organisationAlternativeName constraint exists dependning on
 		// storageSpy.numberOfChildrenWithReadWriteConstraint
@@ -592,42 +595,155 @@ public class RecordTypeHandlerTest {
 		// - OrganisationAlternativeName has 0 to 2 attributes depending on
 		// storageSpy.numberOfAttributes
 
-		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
-				"organisationChildWithAttribute");
+		storageSpy = setUpHandlerWithStorageSpyUsingTypeId("organisationChildWithAttribute");
 		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
-		storageSpy.numberOfAttributes = 1;
+		storageSpy.attributesIdsToAddToConstraint.add("textPartTypeCollectionVar");
+		storageSpy.attributesIdsToAddToConstraint.add("textPartLangCollectionVar");
 
-		Set<Constraint> recordPartReadConstraints = recordTypeHandler
-				.getRecordPartReadConstraints();
+		Set<Constraint> constraints = recordTypeHandler.getRecordPartReadConstraints();
 
-		storageSpy.MCR.assertNumberOfCallsToMethod("read", 6);
+		assertEquals(constraints.size(), 2);
 
-		DataGroupOldSpy collectionVarSpy = (DataGroupOldSpy) storageSpy.MCR.getReturnValue("read",
-				5);
-		collectionVarSpy.MCR.assertParameters("containsChildWithNameInData", 0, "finalValue");
-		collectionVarSpy.MCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "finalValue");
+		assertThatTheFirstConstraintIsCorrectWithoutAttributes();
+		assertTheSecondConstraintIsCorrectWithTwoAttributes();
+	}
 
-		assertEquals(recordPartReadConstraints.size(), 2);
+	private void assertThatTheFirstConstraintIsCorrectWithoutAttributes() {
 		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorDataChildFilterUsingNameInData", 2);
+
 		dataFactorySpy.MCR.assertParameters("factorDataChildFilterUsingNameInData", 0,
 				"organisationRoot");
-		dataFactorySpy.MCR.assertParameters("factorDataChildFilterUsingNameInData", 1,
-				"organisationAlternativeName");
-
-		DataChildFilterSpy organisationRootChildFilter = (DataChildFilterSpy) dataFactorySpy.MCR
+		DataChildFilterSpy firstConstraintChildFilter = (DataChildFilterSpy) dataFactorySpy.MCR
 				.getReturnValue("factorDataChildFilterUsingNameInData", 0);
-		organisationRootChildFilter.MCR
+		firstConstraintChildFilter.MCR
 				.assertMethodNotCalled("addAttributeUsingNameInDataAndPossibleValues");
+	}
 
-		DataChildFilterSpy organisationAlternativeNameChildFilter = (DataChildFilterSpy) dataFactorySpy.MCR
+	private void assertTheSecondConstraintIsCorrectWithTwoAttributes() {
+		assertConstraintWithAttribute(1, "organisationAlternativeName",
+				"textPartTypeCollectionVar");
+		assertConstraintAttribute(1, "organisationAlternativeName", "textPartTypeCollectionVar", 5,
+				"default", 0);
+		assertConstraintAttribute(1, "organisationAlternativeName", "textPartLangCollectionVar", 6,
+				"sv", 1);
+	}
+
+	private void assertConstraintWithAttribute(int constraintNumber, String constraintNameInData,
+			String metadataIdForAttribute) {
+		dataFactorySpy.MCR.assertParameters("factorDataChildFilterUsingNameInData",
+				constraintNumber, constraintNameInData);
+	}
+
+	private void assertConstraintAttribute(int constraintNumber, String constraintNameInData,
+			String metadataIdForAttribute, int attributeReadNumber,
+			String possibleValuesForAttribute, int attributeNumberInConstraint) {
+
+		storageSpy.MCR.assertParameters("read", attributeReadNumber, "metadataCollectionVariable",
+				metadataIdForAttribute);
+		DataGroupOldSpy secondAttributecollectionVarSpy = (DataGroupOldSpy) storageSpy.MCR
+				.getReturnValue("read", attributeReadNumber);
+		secondAttributecollectionVarSpy.MCR.assertParameters("containsChildWithNameInData", 0,
+				"finalValue");
+		secondAttributecollectionVarSpy.MCR.assertParameters("getFirstAtomicValueWithNameInData", 1,
+				"finalValue");
+
+		DataChildFilterSpy childFilter = (DataChildFilterSpy) dataFactorySpy.MCR
+				.getReturnValue("factorDataChildFilterUsingNameInData", constraintNumber);
+		Set<String> possibleValuesSecondAttrib = (Set<String>) childFilter.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"addAttributeUsingNameInDataAndPossibleValues", attributeNumberInConstraint,
+						"possibleValues");
+		assertEquals(possibleValuesSecondAttrib.size(), 1);
+		assertEquals(possibleValuesSecondAttrib.toArray()[0], possibleValuesForAttribute);
+	}
+
+	@Test
+
+	public void testConstraintWithAnAttributeWithSeveralPossibleValues() throws Exception {
+		storageSpy = setUpHandlerWithStorageSpyUsingTypeId("organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
+		storageSpy.attributesIdsToAddToConstraint.add("choosableAttributeCollectionVar");
+
+		Set<Constraint> constraints = recordTypeHandler.getRecordPartReadConstraints();
+
+		String collectionId = assertChossableAttributeCollectionVar();
+
+		List<DataGroupSpy> allItemRefs = assertCollectionItemReferences(collectionId);
+
+		Collection<String> possibleValues = assertItemValuesAndGetAllPossibleValues(allItemRefs);
+
+		DataChildFilterSpy childFilter = (DataChildFilterSpy) dataFactorySpy.MCR
 				.getReturnValue("factorDataChildFilterUsingNameInData", 1);
-		organisationAlternativeNameChildFilter.MCR
-				.assertParameters("addAttributeUsingNameInDataAndPossibleValues", 0, "type");
-		Set<String> possibleValues = (Set<String>) organisationAlternativeNameChildFilter.MCR
+		Set<String> possibleValuesSentToChildFilter = (Set<String>) childFilter.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName(
 						"addAttributeUsingNameInDataAndPossibleValues", 0, "possibleValues");
-		assertEquals(possibleValues.size(), 1);
-		assertEquals(possibleValues.toArray()[0], "default");
+		assertEquals(possibleValuesSentToChildFilter.size(), 2);
+		assertEquals(possibleValuesSentToChildFilter.size(), possibleValues.size());
+		assertTrue(possibleValuesSentToChildFilter.containsAll(possibleValues));
+
+		assertEquals(constraints.size(), 2);
+		assertEquals(((Constraint) constraints.toArray()[1]).getDataChildFilter(), childFilter);
+
+	}
+
+	private List<DataGroupSpy> assertCollectionItemReferences(String collectionId) {
+		storageSpy.MCR.assertParameters("read", 6, "metadataItemCollection", collectionId);
+		DataGroupSpy possibleAttributesCollection = (DataGroupSpy) storageSpy.MCR
+				.getReturnValue("read", 6);
+		possibleAttributesCollection.MCR.assertParameters("getFirstGroupWithNameInData", 0,
+				"collectionItemReferences");
+		DataGroupSpy collectionItemReferences = (DataGroupSpy) possibleAttributesCollection.MCR
+				.getReturnValue("getFirstGroupWithNameInData", 0);
+		collectionItemReferences.MCR.assertParameters("getAllGroupsWithNameInData", 0, "ref");
+		List<DataGroupSpy> allItemRefs = (List<DataGroupSpy>) collectionItemReferences.MCR
+				.getReturnValue("getAllGroupsWithNameInData", 0);
+		return allItemRefs;
+	}
+
+	private String assertChossableAttributeCollectionVar() {
+		storageSpy.MCR.assertParameters("read", 5, "metadataCollectionVariable",
+				"choosableAttributeCollectionVar");
+		DataGroupSpy collectionVar = (DataGroupSpy) storageSpy.MCR.getReturnValue("read", 5);
+		collectionVar.MCR.assertParameters("containsChildWithNameInData", 0, "finalValue");
+		collectionVar.MCR.assertParameters("getFirstGroupWithNameInData", 0, "refCollection");
+		DataGroupSpy refCollection = (DataGroupSpy) collectionVar.MCR
+				.getReturnValue("getFirstGroupWithNameInData", 0);
+		refCollection.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0,
+				LINKED_RECORD_ID);
+		String collectionId = (String) refCollection.MCR
+				.getReturnValue("getFirstAtomicValueWithNameInData", 0);
+		return collectionId;
+	}
+
+	private Collection<String> assertItemValuesAndGetAllPossibleValues(
+			List<DataGroupSpy> allItemRefs) {
+		assertEquals(allItemRefs.size(), 2);
+		return assertItemValues(allItemRefs);
+	}
+
+	private Collection<String> assertItemValues(List<DataGroupSpy> allItemRefs) {
+		Collection<String> possibleValues = new ArrayList<>();
+		int nextReadCallNumber = 7;
+		for (DataGroupSpy itemRef : allItemRefs) {
+			assertItemValue(possibleValues, nextReadCallNumber, itemRef);
+			nextReadCallNumber++;
+		}
+		return possibleValues;
+	}
+
+	private void assertItemValue(Collection<String> possibleValues, int nextReadCallNumber,
+
+			DataGroupSpy itemRef) {
+		itemRef.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, LINKED_RECORD_ID);
+		String itemId = (String) itemRef.MCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
+		storageSpy.MCR.assertParameters("read", nextReadCallNumber, "metadataCollectionItem",
+				itemId);
+		DataGroupSpy itemGroup = (DataGroupSpy) storageSpy.MCR.getReturnValue("read",
+				nextReadCallNumber);
+		itemGroup.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "nameInData");
+		String itemValue = (String) itemGroup.MCR
+				.getReturnValue("getFirstAtomicValueWithNameInData", 0);
+		possibleValues.add(itemValue);
 	}
 
 	@Test
@@ -635,7 +751,7 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
 				"organisationChildWithAttribute");
 		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
-		storageSpy.numberOfAttributes = 1;
+		storageSpy.attributesIdsToAddToConstraint.add("textPartTypeCollectionVar");
 
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();
@@ -652,8 +768,9 @@ public class RecordTypeHandlerTest {
 		DataChildFilterSpy filterSpy = (DataChildFilterSpy) dataFactorySpy.MCR
 				.getReturnValue("factorDataChildFilterUsingNameInData", 0);
 		// dataFactorySpy.MCR.assertParameters("factorDataChildFilterUsingNameInData", 1, "");
-		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorDataChildFilterUsingNameInData", 0);
-		filterSpy.MCR.assertParameters("addAttributeUsingNameInDataAndPossibleValues", 0, "type");
+		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorDataChildFilterUsingNameInData", 4);
+		// filterSpy.MCR.assertParameters("addAttributeUsingNameInDataAndPossibleValues", 0,
+		// "type");
 	}
 
 	private void assertCorrectReadConstraintsWithOneAttributeForOneChild(
@@ -696,7 +813,9 @@ public class RecordTypeHandlerTest {
 		RecordTypeHandlerStorageSpy storageSpy = setUpHandlerWithStorageSpyUsingTypeId(
 				"organisationChildWithAttribute");
 		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
-		storageSpy.numberOfAttributes = 2;
+		// storageSpy.numberOfAttributes = 2;
+		storageSpy.attributesIdsToAddToConstraint.add("textPartTypeCollectionVar");
+		storageSpy.attributesIdsToAddToConstraint.add("textPartLangCollectionVar");
 
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();

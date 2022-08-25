@@ -22,12 +22,12 @@ package se.uu.ub.cora.spider.recordtype.internal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.metadata.ConstraintType;
-import se.uu.ub.cora.data.DataAttribute;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
@@ -50,9 +50,9 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	private String recordTypeId;
 	private RecordStorage recordStorage;
 	private DataGroup metadataGroup;
-	private Set<Constraint> readWriteConstraints = new HashSet<>();
-	private Set<Constraint> createConstraints = new HashSet<>();
-	private Set<Constraint> writeConstraints = new HashSet<>();
+	private Set<Constraint> readWriteConstraints = new LinkedHashSet<>();
+	private Set<Constraint> createConstraints = new LinkedHashSet<>();
+	private Set<Constraint> writeConstraints = new LinkedHashSet<>();
 	private boolean constraintsForUpdateLoaded = false;
 	private boolean constraintsForCreateLoaded = false;
 	private RecordTypeHandlerFactory recordTypeHandlerFactory;
@@ -179,7 +179,7 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	private void collectAllConstraintsForUpdate() {
 		constraintsForUpdateLoaded = true;
 		List<DataGroup> allChildReferences = getAllChildReferences(getMetadataGroup());
-		Set<Constraint> collectedConstraints = new HashSet<>();
+		Set<Constraint> collectedConstraints = new LinkedHashSet<>();
 		collectConstraintsForChildReferences(allChildReferences, collectedConstraints);
 		for (Constraint constraint : collectedConstraints) {
 			writeConstraints.add(constraint);
@@ -307,53 +307,59 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	private void addAttributes(DataGroup childRef, Constraint constraint) {
 		DataGroup attributeReferences = childRef.getFirstGroupWithNameInData("attributeReferences");
-		List<DataGroup> attributes = attributeReferences.getAllGroupsWithNameInData("ref");
+		List<DataGroup> attributeRefs = attributeReferences.getAllGroupsWithNameInData("ref");
 
-		for (DataGroup attribute : attributes) {
-			addAttribute(constraint, attribute);
+		for (DataGroup attributeRef : attributeRefs) {
+			addAttributeToConstraintForAttributeRef(constraint, attributeRef);
 		}
 	}
 
-	private void addAttribute(Constraint constraint, DataGroup attribute) {
-		DataGroup collectionVar = getCollectionVar(attribute);
-		// DataAttribute dataAttribute = createDataAttribute(collectionVar);
-		// constraint.addAttribute(dataAttribute);
-		// add...
-		String attributeName = collectionVar.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
-		// TODO: if final value use that, else, read collection add all choices..
-		collectionVar.containsChildWithNameInData("finalValue");
-		String attributeValue = collectionVar.getFirstAtomicValueWithNameInData("finalValue");
-		// constraint.addAttributeUsingNameInDataAndPossibleValues("kalle", Set.of("Anka"));
-		constraint.addAttributeUsingNameInDataAndPossibleValues(attributeName,
-				Set.of(attributeValue));
+	private void addAttributeToConstraintForAttributeRef(Constraint constraint,
+			DataGroup attributeRef) {
+		DataGroup collectionVar = getCollectionVarFromStorageForAttributeRef(attributeRef);
+		if (collectionVar.containsChildWithNameInData("finalValue")) {
+			addFinalValueAttribute(constraint, collectionVar);
+		} else {
+			addMultivalueAttribute(constraint, collectionVar);
+		}
 	}
 
-	private DataGroup getCollectionVar(DataGroup attribute) {
+	private DataGroup getCollectionVarFromStorageForAttributeRef(DataGroup attribute) {
 		return recordStorage.read(attribute.getFirstAtomicValueWithNameInData(LINKED_RECORD_TYPE),
 				attribute.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID));
 	}
 
-	private DataAttribute createDataAttribute(DataGroup collectionVar) {
+	private void addFinalValueAttribute(Constraint constraint, DataGroup collectionVar) {
 		String attributeName = collectionVar.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
 		String attributeValue = collectionVar.getFirstAtomicValueWithNameInData("finalValue");
-		// TODO: Read refCollection link
-		// DataGroup refCollectionLink = collectionVar.getFirstGroupWithNameInData("refCollection");
-		// String collectionId =
-		// refCollectionLink.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-		// DataGroup possibleAttributesCollection = recordStorage.read("metadataItemCollection",
-		// collectionId);
-		// DataGroup collectionItemReferences = possibleAttributesCollection
-		// .getFirstGroupWithNameInData("collectionItemReferences");
-		// List<DataGroup> allGroupsWithNameInData = collectionItemReferences
-		// .getAllGroupsWithNameInData("ref");
-		// for (DataGroup refGroup : allGroupsWithNameInData) {
-		// String itemId = refGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-		// DataGroup itemGroup = recordStorage.read("collectionItem", itemId);
-		// String itemValue = itemGroup.getFirstAtomicValueWithNameInData("nameInData");
-		// Add itemValue to Set<String> possibleValues
-		// }
+		constraint.addAttributeUsingNameInDataAndPossibleValues(attributeName,
+				Set.of(attributeValue));
+	}
 
-		return DataProvider.createAttributeUsingNameInDataAndValue(attributeName, attributeValue);
+	private void addMultivalueAttribute(Constraint constraint, DataGroup collectionVar) {
+		String attributeName = collectionVar.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
+		Set<String> possibleAttributeValues = getPossibleAttributeValues(collectionVar);
+		constraint.addAttributeUsingNameInDataAndPossibleValues(attributeName,
+				possibleAttributeValues);
+	}
+
+	private Set<String> getPossibleAttributeValues(DataGroup collectionVar) {
+		DataGroup refCollectionLink = collectionVar.getFirstGroupWithNameInData("refCollection");
+		String collectionId = refCollectionLink.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataGroup possibleAttributesCollection = recordStorage.read("metadataItemCollection",
+				collectionId);
+		DataGroup collectionItemReferences = possibleAttributesCollection
+				.getFirstGroupWithNameInData("collectionItemReferences");
+		List<DataGroup> allItemRefs = collectionItemReferences.getAllGroupsWithNameInData("ref");
+
+		Set<String> possibleValues = new LinkedHashSet<>();
+		for (DataGroup itemRef : allItemRefs) {
+			String itemId = itemRef.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+			DataGroup itemGroup = recordStorage.read("metadataCollectionItem", itemId);
+			String itemValue = itemGroup.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
+			possibleValues.add(itemValue);
+		}
+		return possibleValues;
 	}
 
 	private void possiblyAddReadWriteConstraint(Constraint constraint) {

@@ -26,6 +26,7 @@ import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAttribute;
 import se.uu.ub.cora.data.DataChild;
+import se.uu.ub.cora.data.DataChildFilter;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataResourceLink;
 
@@ -258,6 +259,18 @@ public class DataResourceLinkSpy implements DataGroup, DataResourceLink {
 	public void setMimeType(String mimeType) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public List<DataChild> getAllChildrenMatchingFilter(DataChildFilter childFilter) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean removeAllChildrenMatchingFilter(DataChildFilter childFilter) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }
