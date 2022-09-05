@@ -27,6 +27,7 @@ import java.util.Set;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAttribute;
 import se.uu.ub.cora.data.DataChild;
+import se.uu.ub.cora.data.DataChildFilter;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
@@ -58,11 +59,14 @@ public class DataGroupOldSpy implements DataGroup {
 
 	@Override
 	public String getFirstAtomicValueWithNameInData(String nameInData) {
+		MCR.addCall("nameInData", nameInData);
 		requestedAtomicValues.add(nameInData);
 		for (DataChild dataElement : children) {
 			if (nameInData.equals(dataElement.getNameInData())) {
 				if (dataElement instanceof DataAtomic) {
-					return ((DataAtomic) dataElement).getValue();
+					String value = ((DataAtomic) dataElement).getValue();
+					MCR.addReturned(value);
+					return value;
 				}
 			}
 		}
@@ -100,11 +104,14 @@ public class DataGroupOldSpy implements DataGroup {
 
 	@Override
 	public boolean containsChildWithNameInData(String nameInData) {
+		MCR.addCall("nameInData", nameInData);
 		for (DataChild dataElement : children) {
 			if (nameInData.equals(dataElement.getNameInData())) {
+				MCR.addReturned(true);
 				return true;
 			}
 		}
+		MCR.addReturned(false);
 		return false;
 	}
 
@@ -264,6 +271,18 @@ public class DataGroupOldSpy implements DataGroup {
 			String childNameInData, DataAttribute... childAttributes) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public List<DataChild> getAllChildrenMatchingFilter(DataChildFilter childFilter) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean removeAllChildrenMatchingFilter(DataChildFilter childFilter) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }
