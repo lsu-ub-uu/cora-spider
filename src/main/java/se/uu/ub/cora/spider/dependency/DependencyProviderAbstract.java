@@ -37,7 +37,6 @@ import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactory;
 import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactoryImp;
-import se.uu.ub.cora.bookkeeper.termcollector.CollectedDataCreatorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
@@ -202,9 +201,7 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	@Override
 	public DataGroupTermCollector getDataGroupTermCollector() {
-		CollectedDataCreatorImp collectedDataCreatorImp = new CollectedDataCreatorImp();
-		return new DataGroupTermCollectorImp(metadataStorageProvider.getMetadataStorage(),
-				collectedDataCreatorImp);
+		return new DataGroupTermCollectorImp(metadataStorageProvider.getMetadataStorage());
 	}
 
 	@Override

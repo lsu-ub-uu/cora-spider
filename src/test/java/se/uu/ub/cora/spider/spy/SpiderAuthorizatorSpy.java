@@ -21,11 +21,12 @@ package se.uu.ub.cora.spider.spy;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collectterms.PermissionTerm;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
@@ -84,9 +85,9 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData) {
+			String recordType, List<PermissionTerm> permissionTerms) {
 		MCR.addCall("user", user, "action", action, "recordType", recordType, "collectedData",
-				collectedData);
+				permissionTerms);
 
 		if (!authorizedForActionAndRecordTypeAndCollectedData
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
@@ -100,11 +101,11 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 
 	@Override
 	public Set<String> checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-			User user, String action, String recordType, DataGroup collectedData,
+			User user, String action, String recordType, List<PermissionTerm> permissionTerms,
 			boolean calculateRecordPartPermissions) {
 
 		MCR.addCall("user", user, "action", action, "recordType", recordType, "collectedData",
-				collectedData, "calculateRecordPartPermissions", calculateRecordPartPermissions);
+				permissionTerms, "calculateRecordPartPermissions", calculateRecordPartPermissions);
 
 		if (!authorizedForActionAndRecordTypeAndCollectedData
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
@@ -148,9 +149,9 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData) {
+			String recordType, List<PermissionTerm> permissionTerms) {
 		MCR.addCall("user", user, "action", action, "recordType", recordType, "collectedData",
-				collectedData);
+				permissionTerms);
 		if (!authorizedForActionAndRecordTypeAndCollectedData
 				|| notAuthorizedForActionOnRecordType(action, recordType)) {
 			throw new AuthorizationException(

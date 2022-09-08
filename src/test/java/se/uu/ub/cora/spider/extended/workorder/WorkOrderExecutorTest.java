@@ -19,15 +19,15 @@
 package se.uu.ub.cora.spider.extended.workorder;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
-import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.collectterms.CollectTerms;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -41,6 +41,7 @@ import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class WorkOrderExecutorTest {
 
@@ -51,6 +52,7 @@ public class WorkOrderExecutorTest {
 	SpiderAuthorizatorSpy authorizator;
 	AuthenticatorSpy authenticator;
 	private LoggerFactorySpy loggerFactorySpy;
+	private DataFactorySpy dataFactorySpy;
 
 	@BeforeMethod
 	public void setUp() {
@@ -70,9 +72,12 @@ public class WorkOrderExecutorTest {
 	private void setUpFactoriesAndProviders() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 	}
 
 	private void setUpDependencyProvider() {
+
 		extendedFunctionality = WorkOrderExecutor.usingDependencyProvider(dependencyProvider);
 		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
 		recordIndexer = (RecordIndexerSpy) dependencyProvider.getRecordIndexer();
@@ -93,15 +98,19 @@ public class WorkOrderExecutorTest {
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		assertEquals(recordInfo.getFirstAtomicValueWithNameInData("id"), "book1");
 
-		assertTrue(recordIndexer.indexDataHasBeenCalled);
+		recordIndexer.MCR.assertMethodWasCalled("indexData");
 
-		recordIndexer.MCR.assertParameter("indexData", 0, "collectedData",
-				termCollector.MCR.getReturnValue("collectTerms", 0));
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
+				0);
+		recordIndexer.MCR.assertParameter("indexData", 0, "indexTerms", collectTerms.indexTerms);
 
-		DataGroup recordInfo2 = recordIndexer.record.getFirstGroupWithNameInData("recordInfo");
+		DataGroup dataRecordGroup = (DataGroup) recordIndexer.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("indexData", 0, "record");
+
+		DataGroup recordInfo2 = dataRecordGroup.getFirstGroupWithNameInData("recordInfo");
 		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
 
-		assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType("book");
+		assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType("book", "indexData");
 	}
 
 	private void callExtendedFunctionalityWithGroup(DataGroup workOrder) {
@@ -120,16 +129,17 @@ public class WorkOrderExecutorTest {
 
 		callExtendedFunctionalityWithGroup(workOrder);
 
-		assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType("image");
+		assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType("image", "indexData");
 	}
 
-	private void assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType(
-			String recordType) {
+	private void assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType(String recordType,
+			String methodCalled) {
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, recordType);
 		RecordTypeHandlerSpy recordTypeHandler = (RecordTypeHandlerSpy) dependencyProvider.MCR
 				.getReturnValue("getRecordTypeHandler", 0);
 
-		List<String> ids = recordIndexer.ids;
+		var ids = recordIndexer.MCR.getValueForMethodNameAndCallNumberAndParameterName(methodCalled,
+				0, "ids");
 		recordTypeHandler.MCR.assertReturn("getCombinedIdsUsingRecordId", 0, ids);
 	}
 
@@ -183,13 +193,20 @@ public class WorkOrderExecutorTest {
 		assertEquals(recordInfo.getFirstAtomicValueWithNameInData("id"), "book1");
 
 		recordIndexer.MCR.assertMethodWasCalled("indexDataWithoutExplicitCommit");
-		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", 0, "collectedData",
-				termCollector.MCR.getReturnValue("collectTerms", 0));
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
+				0);
+		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", 0, "indexTerms",
+				collectTerms.indexTerms);
 
-		DataGroup recordInfo2 = recordIndexer.record.getFirstGroupWithNameInData("recordInfo");
+		DataGroup dataRecordGroup = (DataGroup) recordIndexer.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"indexDataWithoutExplicitCommit", 0, "record");
+
+		DataGroup recordInfo2 = dataRecordGroup.getFirstGroupWithNameInData("recordInfo");
 		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
 
-		assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType("book");
+		assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType("book",
+				"indexDataWithoutExplicitCommit");
 	}
 
 	@Test
@@ -200,12 +217,15 @@ public class WorkOrderExecutorTest {
 		callExtendedFunctionalityWithGroup(workOrder);
 
 		recordIndexer.MCR.assertMethodWasCalled("indexData");
-		recordIndexer.MCR.assertParameter("indexData", 0, "collectedData",
-				termCollector.MCR.getReturnValue("collectTerms", 0));
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
+				0);
+		recordIndexer.MCR.assertParameter("indexData", 0, "indexTerms", collectTerms.indexTerms);
 
-		DataGroup recordInfo2 = recordIndexer.record.getFirstGroupWithNameInData("recordInfo");
+		DataGroup dataRecordGroup = (DataGroup) recordIndexer.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("indexData", 0, "record");
+		DataGroup recordInfo2 = dataRecordGroup.getFirstGroupWithNameInData("recordInfo");
 		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
 
-		assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType("book");
+		assertRecordIndexerIdsSetToCombinedFromRecordTypeHandlerForType("book", "indexData");
 	}
 }

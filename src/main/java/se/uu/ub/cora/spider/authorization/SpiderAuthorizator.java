@@ -19,10 +19,12 @@
 
 package se.uu.ub.cora.spider.authorization;
 
+import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collectterms.PermissionTerm;
 
 public interface SpiderAuthorizator {
 
@@ -80,7 +82,7 @@ public interface SpiderAuthorizator {
 	 * stored active rules has access to the action and collected data on the recordType.
 	 * <p>
 	 * This method is very similar to
-	 * {@link #checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String, DataGroup)}
+	 * {@link #checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String, List)}
 	 * with the main difference beeing that this one returns a boolean instead of throwing an
 	 * excepiton.
 	 * 
@@ -90,13 +92,13 @@ public interface SpiderAuthorizator {
 	 *            the action the user wants to perform, such as read, update, etc.
 	 * @param recordType
 	 *            the recordType the user wants to perform the action on
-	 * @param collectedData
+	 * @param permissionTerms
 	 *            the collectedData to use extend the access check with
 	 * @return a boolean, true if the user is allowed to perform the action on the specified
 	 *         recordType else false
 	 */
 	boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData);
+			String recordType, List<PermissionTerm> permissionTerms);
 
 	/**
 	 * checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData is used to check if a user is
@@ -110,7 +112,7 @@ public interface SpiderAuthorizator {
 	 * If the user is not authorized MUST implementations throw an {@link AuthorizationException}
 	 * <p>
 	 * This method is very similar to
-	 * {@link #userIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String, DataGroup)}
+	 * {@link #userIsAuthorizedForActionOnRecordTypeAndCollectedData(User, String, String, List)}
 	 * with the main difference beeing that this one throws an excepiton instead of returning a
 	 * boolean.
 	 * 
@@ -120,11 +122,11 @@ public interface SpiderAuthorizator {
 	 *            the action the user wants to perform, such as read, update, etc.
 	 * @param recordType
 	 *            the recordType the user wants to perform the action on
-	 * @param collectedData
+	 * @param permissionTerms
 	 *            the collectedData to use extend the access check with
 	 */
 	void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData);
+			String recordType, List<PermissionTerm> permissionTerms);
 
 	/**
 	 * checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData is used to get
@@ -157,14 +159,14 @@ public interface SpiderAuthorizator {
 	 *            the action the user wants to perform, such as read, update, etc.
 	 * @param recordType
 	 *            the recordType the user wants to perform the action on
-	 * @param collectedData
+	 * @param permissionTerms
 	 *            the collectedData to use extend the access check with
 	 * @param calculateRecordPartPermissions,
 	 *            a boolean, if recordPartPermissions should be calculated
 	 * @return A set of recordPart permissions
 	 */
 	Set<String> checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-			User user, String action, String recordType, DataGroup collectedData,
+			User user, String action, String recordType, List<PermissionTerm> permissionTerms,
 			boolean calculateRecordPartPermissions);
 
 }

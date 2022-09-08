@@ -44,10 +44,10 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.collectterms.CollectTerms;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
@@ -102,7 +102,7 @@ public class RecordUpdaterTest {
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private DataGroupTermCollectorSpy termCollector;
-	private RecordIndexer recordIndexer;
+	private RecordIndexerSpy recordIndexer;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
 
@@ -206,8 +206,10 @@ public class RecordUpdaterTest {
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
 				"fakeMetadataIdFromRecordTypeHandlerSpy");
 
-		assertEquals(((RecordIndexerSpy) recordIndexer).collectedData,
-				termCollector.MCR.getReturnValue("collectTerms", 1));
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
+				1);
+		recordIndexer.MCR.assertParameter("indexData", 0, "indexTerms", collectTerms.indexTerms);
+
 	}
 
 	@Test
@@ -599,7 +601,7 @@ public class RecordUpdaterTest {
 				dataGroup);
 
 		DataGroup updatedRecord = ((RecordStorageCreateUpdateSpy) recordStorage).updateRecord;
-		RecordIndexerSpy recordIndexerSpy = (RecordIndexerSpy) recordIndexer;
+		RecordIndexerSpy recordIndexerSpy = recordIndexer;
 		DataGroup indexedRecord = recordIndexerSpy.record;
 		assertEquals(indexedRecord, updatedRecord);
 		List<String> ids = recordIndexerSpy.ids;
@@ -617,7 +619,7 @@ public class RecordUpdaterTest {
 		recordUpdater.updateRecord("someToken78678567", "image", "someImage", dataGroup);
 
 		DataGroup updatedRecord = ((RecordStorageCreateUpdateSpy) recordStorage).updateRecord;
-		RecordIndexerSpy recordIndexerSpy = (RecordIndexerSpy) recordIndexer;
+		RecordIndexerSpy recordIndexerSpy = recordIndexer;
 		DataGroup indexedRecord = recordIndexerSpy.record;
 		assertEquals(indexedRecord, updatedRecord);
 		List<String> ids = recordIndexerSpy.ids;
