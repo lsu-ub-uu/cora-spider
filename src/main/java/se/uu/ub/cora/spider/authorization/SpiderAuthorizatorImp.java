@@ -276,10 +276,10 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private void tryToGetMatchedRules(User user, String action, String recordType,
-			DataGroup collectedData) {
+			List<PermissionTerm> permissionTerms) {
 		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
-						collectedData);
+						permissionTerms);
 		List<Rule> providedRules = getActiveRulesForUser(user);
 		matchRules(requiredRules, providedRules);
 		possiblyThrowAuthorizationExceptionWhenEmptyMatchedRules(user, action, recordType);

@@ -494,7 +494,7 @@ public class RecordCreatorTest {
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
 				"fakeMetadataIdFromRecordTypeHandlerSpy");
-		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).collectedTerms,
+		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).storageTerms,
 				termCollector.MCR.getReturnValue("collectTerms", 0));
 	}
 

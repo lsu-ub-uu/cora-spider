@@ -37,6 +37,7 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.data.DataResourceLink;
+import se.uu.ub.cora.data.collectterms.CollectTerms;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
@@ -59,7 +60,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private String handledRecordId;
 
 	private RecordTypeHandler recordTypeHandler;
-	private DataGroup collectedTerms;
+	private CollectTerms collectedTerms;
 	private Map<String, RecordTypeHandler> cachedRecordTypeHandlers = new HashMap<>();
 	private Map<String, Boolean> cachedAuthorizedToReadRecordLink = new HashMap<>();
 	private Set<String> readRecordPartPermissions;
@@ -105,7 +106,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		cachedRecordTypeHandlers.put(recordType, recordTypeHandlerToLoad);
 	}
 
-	private DataGroup getCollectedTermsForRecord(DataGroup dataGroup) {
+	private CollectTerms getCollectedTermsForRecord(DataGroup dataGroup) {
 		String metadataId = getMetadataIdFromRecordType();
 		return termCollector.collectTerms(metadataId, dataGroup);
 	}
@@ -146,7 +147,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private void checkAndGetUserAuthorizationsForReadAction() {
 		readRecordPartPermissions = spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, "read", recordType, collectedTerms, true);
+						user, "read", recordType, collectedTerms.permissionTerms, true);
 	}
 
 	private DataRecord createDataRecord(DataGroup dataGroup) {
@@ -175,7 +176,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		try {
 			writeRecordPartPermissions = spiderAuthorizator
 					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-							user, "update", recordType, collectedTerms, true);
+							user, "update", recordType, collectedTerms.permissionTerms, true);
 
 			dataRecord.addAction(Action.UPDATE);
 		} catch (Exception catchedException) {
@@ -192,7 +193,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private boolean userIsAuthorizedForActionOnRecordTypeAndCollectedTerms(String action,
 			String recordType) {
 		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				action, recordType, collectedTerms);
+				action, recordType, collectedTerms.permissionTerms);
 	}
 
 	private boolean incomingLinksExistsForRecord() {
@@ -438,10 +439,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private boolean userIsAuthorizedForActionOnRecordLinkAndData(String action, String recordType,
 			DataGroup dataGroup) {
-		DataGroup linkedRecordCollectedTerms = getCollectedTermsForRecord(dataGroup);
+		CollectTerms linkedRecordCollectedTerms = getCollectedTermsForRecord(dataGroup);
 
 		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				action, recordType, linkedRecordCollectedTerms);
+				action, recordType, linkedRecordCollectedTerms.permissionTerms);
 	}
 
 	private boolean isGroup(DataChild dataChild) {

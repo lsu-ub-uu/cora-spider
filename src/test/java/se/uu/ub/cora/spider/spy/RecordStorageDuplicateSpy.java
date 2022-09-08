@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collectterms.StorageTerm;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.RecordConflictException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -65,7 +66,7 @@ public class RecordStorageDuplicateSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
+	public void update(String type, String id, DataGroup record, List<StorageTerm> collectedTerms,
 			DataGroup linkList, String dataDivider) {
 
 	}

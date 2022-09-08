@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.spy;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collectterms.StorageTerm;
 import se.uu.ub.cora.spider.record.internal.DataGroupCheckCallsSpy;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
@@ -74,7 +75,7 @@ public class RecordStorageLightSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
+	public void update(String type, String id, DataGroup record, List<StorageTerm> collectedTerms,
 			DataGroup linkList, String dataDivider) {
 		// TODO Auto-generated method stub
 

@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collectterms.StorageTerm;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
@@ -97,9 +98,9 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
+	public void update(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
 			DataGroup linkList, String dataDivider) {
-		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", collectedTerms,
+		MCR.addCall("type", type, "id", id, "record", record, "storageTerms", storageTerms,
 				"linkList", linkList, "dataDivider", dataDivider);
 	}
 

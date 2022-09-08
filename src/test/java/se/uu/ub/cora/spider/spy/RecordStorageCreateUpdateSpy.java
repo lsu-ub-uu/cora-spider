@@ -26,6 +26,7 @@ import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.collectterms.StorageTerm;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
@@ -46,7 +47,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	public DataGroup group;
 	public String type;
 	public String id;
-	public DataGroup collectedTerms;
+	public List<StorageTerm> storageTerms;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -390,7 +391,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		this.type = type;
 		this.id = id;
 		createRecord = record;
-		this.collectedTerms = collectedTerms;
+		// this.storageTerms = collectedTerms;
 		this.dataDivider = dataDivider;
 		createWasCalled = true;
 	}
@@ -407,10 +408,10 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
+	public void update(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
 			DataGroup linkList, String dataDivider) {
 		updateRecord = record;
-		this.collectedTerms = collectedTerms;
+		this.storageTerms = storageTerms;
 		this.dataDivider = dataDivider;
 	}
 

@@ -25,7 +25,7 @@ import java.util.List;
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RuleImp;
 import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collectterms.PermissionTerm;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
@@ -54,8 +54,8 @@ public class RuleCalculatorSpy implements PermissionRuleCalculator {
 
 	@Override
 	public List<Rule> calculateRulesForActionAndRecordTypeAndCollectedData(String action,
-			String recordType, DataGroup collectedData) {
-		MCR.addCall("action", action, "recordType", recordType, "collectedData", collectedData);
+			String recordType, List<PermissionTerm> permissionTerms) {
+		MCR.addCall("action", action, "recordType", recordType, "permissionTerms", permissionTerms);
 		MCR.addReturned(returnedRules);
 		return returnedRules;
 	}

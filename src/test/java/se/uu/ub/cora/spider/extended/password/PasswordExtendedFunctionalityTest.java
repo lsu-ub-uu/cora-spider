@@ -37,7 +37,7 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
+import se.uu.ub.cora.spider.spy.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.testspies.RecordCreatorSpy;
 import se.uu.ub.cora.spider.testspies.RecordReaderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;

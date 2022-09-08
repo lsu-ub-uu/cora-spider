@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.authorization;
 
 import static org.testng.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
@@ -30,6 +31,7 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collectterms.PermissionTerm;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 
@@ -57,11 +59,10 @@ public class BasePermissionRuleCalculatorTest {
 
 	@Test
 	public void testWithCollectedDataNoPermissions() {
-		DataGroup collectedData = new DataGroupOldSpy("collectedData");
-
+		List<PermissionTerm> permissionTerms = new ArrayList<>();
 		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
-						collectedData);
+						permissionTerms);
 		assertEquals(requiredRules.size(), 1);
 
 		Rule requiredRule = requiredRules.get(0);
@@ -71,18 +72,14 @@ public class BasePermissionRuleCalculatorTest {
 
 	@Test
 	public void testWithCollectedDataOnePermissions() {
-		DataGroup collectedData = new DataGroupOldSpy("collectedData");
-		DataGroup permission = new DataGroupOldSpy("permission");
-		collectedData.addChild(permission);
-
-		DataGroup collectedDataTerm = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
-				"0", "someTermId", "someTermValue", "SOME_PERMISSION_KEY");
-
-		permission.addChild(collectedDataTerm);
+		PermissionTerm permissionTerm = new PermissionTerm("someTermId", "someTermValue",
+				"SOME_PERMISSION_KEY");
+		List<PermissionTerm> permissionTerms = new ArrayList<>();
+		permissionTerms.add(permissionTerm);
 
 		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
-						collectedData);
+						permissionTerms);
 		assertEquals(requiredRules.size(), 1);
 
 		Rule requiredRule = requiredRules.get(0);
@@ -107,21 +104,17 @@ public class BasePermissionRuleCalculatorTest {
 
 	@Test
 	public void testWithCollectedDataTwoPermissions() {
-		DataGroup collectedData = new DataGroupOldSpy("collectedData");
-		DataGroup permission = new DataGroupOldSpy("permission");
-		collectedData.addChild(permission);
-
-		DataGroup collectedDataTerm = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
-				"0", "someTermId", "someTermValue", "SOME_PERMISSION_KEY");
-		permission.addChild(collectedDataTerm);
-
-		DataGroup collectedDataTerm2 = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
-				"1", "otherTermId", "otherTermValue", "OTHER_PERMISSION_KEY");
-		permission.addChild(collectedDataTerm2);
+		PermissionTerm permissionTerm1 = new PermissionTerm("someTermId", "someTermValue",
+				"SOME_PERMISSION_KEY");
+		PermissionTerm permissionTerm2 = new PermissionTerm("otherTermId", "otherTermValue",
+				"OTHER_PERMISSION_KEY");
+		List<PermissionTerm> permissionTerms = new ArrayList<>();
+		permissionTerms.add(permissionTerm1);
+		permissionTerms.add(permissionTerm2);
 
 		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
-						collectedData);
+						permissionTerms);
 		assertEquals(requiredRules.size(), 1);
 
 		Rule requiredRule = requiredRules.get(0);
@@ -135,21 +128,17 @@ public class BasePermissionRuleCalculatorTest {
 
 	@Test
 	public void testWithCollectedDataOnePermissionsTwice() {
-		DataGroup collectedData = new DataGroupOldSpy("collectedData");
-		DataGroup permission = new DataGroupOldSpy("permission");
-		collectedData.addChild(permission);
-
-		DataGroup collectedDataTerm = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
-				"0", "someTermId", "someTermValue", "SOME_PERMISSION_KEY");
-		permission.addChild(collectedDataTerm);
-
-		DataGroup collectedDataTerm2 = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
-				"1", "someTermId", "someTermValue2", "SOME_PERMISSION_KEY");
-		permission.addChild(collectedDataTerm2);
+		PermissionTerm permissionTerm1 = new PermissionTerm("someTermId", "someTermValue",
+				"SOME_PERMISSION_KEY");
+		PermissionTerm permissionTerm2 = new PermissionTerm("someTermId", "someTermValue2",
+				"SOME_PERMISSION_KEY");
+		List<PermissionTerm> permissionTerms = new ArrayList<>();
+		permissionTerms.add(permissionTerm1);
+		permissionTerms.add(permissionTerm2);
 
 		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
-						collectedData);
+						permissionTerms);
 		assertEquals(requiredRules.size(), 2);
 
 		Rule requiredRule = requiredRules.get(0);
@@ -167,28 +156,23 @@ public class BasePermissionRuleCalculatorTest {
 
 	@Test
 	public void testWithCollectedDataTwoPermissionsRepeated() {
-		DataGroup collectedData = new DataGroupOldSpy("collectedData");
-		DataGroup permission = new DataGroupOldSpy("permission");
-		collectedData.addChild(permission);
-
-		DataGroup collectedDataTerm = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
-				"0", "someTermId", "someTermValue", "SOME_PERMISSION_KEY");
-		permission.addChild(collectedDataTerm);
-		DataGroup collectedDataTerm1 = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
-				"1", "someTermId", "someTermValue2", "SOME_PERMISSION_KEY");
-		permission.addChild(collectedDataTerm1);
-
-		DataGroup collectedDataTerm2 = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
-				"1", "otherTermId", "otherTermValue", "OTHER_PERMISSION_KEY");
-		permission.addChild(collectedDataTerm2);
-
-		DataGroup collectedDataTerm3 = createCollectedDataTermUsingRepeatIdAndTermIdAndTermValueAndPermissionKey(
-				"2", "otherTermId", "otherTermValue2", "OTHER_PERMISSION_KEY");
-		permission.addChild(collectedDataTerm3);
+		PermissionTerm permissionTerm1 = new PermissionTerm("someTermId", "someTermValue",
+				"SOME_PERMISSION_KEY");
+		PermissionTerm permissionTerm2 = new PermissionTerm("someTermId", "someTermValue2",
+				"SOME_PERMISSION_KEY");
+		PermissionTerm permissionTerm3 = new PermissionTerm("otherTermId", "otherTermValue",
+				"OTHER_PERMISSION_KEY");
+		PermissionTerm permissionTerm4 = new PermissionTerm("otherTermId", "otherTermValue2",
+				"OTHER_PERMISSION_KEY");
+		List<PermissionTerm> permissionTerms = new ArrayList<>();
+		permissionTerms.add(permissionTerm1);
+		permissionTerms.add(permissionTerm2);
+		permissionTerms.add(permissionTerm3);
+		permissionTerms.add(permissionTerm4);
 
 		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
-						collectedData);
+						permissionTerms);
 		assertEquals(requiredRules.size(), 4);
 
 		Rule requiredRule = requiredRules.get(0);

@@ -21,13 +21,14 @@
 package se.uu.ub.cora.spider.authorization;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RuleImp;
 import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collectterms.PermissionTerm;
 
 public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 
@@ -58,22 +59,23 @@ public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 
 	@Override
 	public List<Rule> calculateRulesForActionAndRecordTypeAndCollectedData(String action,
-			String recordType, DataGroup collectedData) {
-		if (thereAreCollectedPermissionValuesFromData(collectedData)) {
+			String recordType, List<PermissionTerm> permissionTerms) {
+		if (thereAreCollectedPermissionValuesFromData(permissionTerms)) {
 			return createRulesForActionAndRecordTypeAndCollectedData(action, recordType,
-					collectedData);
+					permissionTerms);
 		}
 		return calculateRulesForActionAndRecordType(action, recordType);
 	}
 
-	private boolean thereAreCollectedPermissionValuesFromData(DataGroup collectedData) {
-		return collectedData.containsChildWithNameInData("permission");
+	private boolean thereAreCollectedPermissionValuesFromData(
+			Collection<PermissionTerm> permissionTerms) {
+		return !permissionTerms.isEmpty();
 	}
 
 	private List<Rule> createRulesForActionAndRecordTypeAndCollectedData(String action,
-			String recordType, DataGroup collectedData) {
+			String recordType, List<PermissionTerm> permissionTerms) {
 		Map<String, List<RulePartValuesImp>> sortedRulePartValues = CollectedDataPermissionRulePartExtractor
-				.extractRulePartsSortedByPermissionKeyFromCollectedData(collectedData);
+				.extractRulePartsSortedByPermissionKeyFromCollectedData(permissionTerms);
 		return createRulesFromActionAndRecordTypeAndSortedRulePartValues(action, recordType,
 				sortedRulePartValues);
 	}

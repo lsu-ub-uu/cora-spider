@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collectterms.StorageTerm;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 import se.uu.ub.cora.testspies.data.DataGroupSpy;
@@ -70,10 +71,11 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
+	public void update(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
 			DataGroup linkList, String dataDivider) {
-		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", collectedTerms,
+		MCR.addCall("type", type, "id", id, "record", record, "storageTerms", storageTerms,
 				"linkList", linkList, "dataDivider", dataDivider);
+
 	}
 
 	@Override

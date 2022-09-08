@@ -33,6 +33,7 @@ import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
+import se.uu.ub.cora.spider.spy.RulesRecordPartRecordStorageSpy;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class RulesProviderTest {

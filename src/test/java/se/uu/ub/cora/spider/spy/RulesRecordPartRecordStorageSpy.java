@@ -16,13 +16,14 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.role;
+package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collectterms.StorageTerm;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -30,7 +31,7 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 
-	List<DataGroup> returnedReadDataGroups = new ArrayList<>();
+	public List<DataGroup> returnedReadDataGroups = new ArrayList<>();
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -206,7 +207,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
+	public void update(String type, String id, DataGroup record, List<StorageTerm> collectedTerms,
 			DataGroup linkList, String dataDivider) {
 		// TODO Auto-generated method stub
 
@@ -250,8 +251,8 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType, List<String> implementingTypes,
-			DataGroup filter) {
+	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
+			List<String> implementingTypes, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

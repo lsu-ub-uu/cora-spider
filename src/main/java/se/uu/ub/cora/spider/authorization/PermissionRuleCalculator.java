@@ -22,13 +22,13 @@ package se.uu.ub.cora.spider.authorization;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collectterms.PermissionTerm;
 
 public interface PermissionRuleCalculator {
 
 	List<Rule> calculateRulesForActionAndRecordType(String action, String recordType);
 
 	List<Rule> calculateRulesForActionAndRecordTypeAndCollectedData(String action,
-			String recordType, DataGroup collectedData);
+			String recordType, List<PermissionTerm> permissionTerms);
 
 }

@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collectterms.StorageTerm;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 import se.uu.ub.cora.testspies.data.DataGroupSpy;
@@ -70,7 +71,7 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup dataRecord, DataGroup collectedTerms,
+	public void update(String type, String id, DataGroup dataRecord, List<StorageTerm> storageTerm,
 			DataGroup linkList, String dataDivider) {
 		// TODO Auto-generated method stub
 

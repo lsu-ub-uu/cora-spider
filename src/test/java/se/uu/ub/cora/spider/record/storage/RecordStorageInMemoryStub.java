@@ -28,6 +28,7 @@ import java.util.Map;
 
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collectterms.StorageTerm;
 import se.uu.ub.cora.data.copier.DataCopier;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
@@ -312,7 +313,7 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 
 	@Override
 	public void update(String recordType, String recordId, DataGroup record,
-			DataGroup collectedTerms, DataGroup linkList, String dataDivider) {
+			List<StorageTerm> collectedTerms, DataGroup linkList, String dataDivider) {
 		checkRecordExists(recordType, recordId);
 		removeIncomingLinks(recordType, recordId);
 		// storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);

@@ -25,6 +25,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -37,17 +38,19 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataFactory;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.collectterms.PermissionTerm;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.RecordStorageForAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class SpiderAuthorizatorTest {
 
@@ -55,6 +58,7 @@ public class SpiderAuthorizatorTest {
 	private static final String BOOK = "book";
 
 	private LoggerFactorySpy loggerFactorySpy;
+	private DataFactory dataFactorySpy;
 	private User user;
 	private BeefeaterAuthorizatorSpy beefeaterAuthorizator;
 	private Authenticator authenticator;
@@ -65,10 +69,13 @@ public class SpiderAuthorizatorTest {
 
 	private SpiderAuthorizatorImp spiderAuthorizator;
 
-	private DataGroup collectedData;
+	private List<PermissionTerm> permissionTerms;
 
 	@BeforeMethod
 	public void beforeMethod() {
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
+
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		createTestUser();
@@ -78,7 +85,8 @@ public class SpiderAuthorizatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		rulesProvider = new RulesProviderSpy();
 		setUpDependencyProvider();
-		collectedData = new DataGroupOldSpy("collectedData");
+		// permissionTerms = new DataGroupOldSpy("collectedData");
+		permissionTerms = new ArrayList<PermissionTerm>();
 	}
 
 	private void createTestUser() {
@@ -251,7 +259,7 @@ public class SpiderAuthorizatorTest {
 
 		spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						nonExistingUser, READ, BOOK, collectedData, false);
+						nonExistingUser, READ, BOOK, permissionTerms, false);
 	}
 
 	private User setupForNonExistingUser() {
@@ -267,7 +275,7 @@ public class SpiderAuthorizatorTest {
 		try {
 			spiderAuthorizator
 					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-							nonExistingUser, READ, BOOK, collectedData, false);
+							nonExistingUser, READ, BOOK, permissionTerms, false);
 		} catch (Exception e) {
 			assertTrue(e.getCause() instanceof RecordNotFoundException);
 		}
@@ -280,7 +288,7 @@ public class SpiderAuthorizatorTest {
 
 		spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						inactiveUser, READ, BOOK, collectedData, false);
+						inactiveUser, READ, BOOK, permissionTerms, false);
 	}
 
 	@Test
@@ -288,7 +296,7 @@ public class SpiderAuthorizatorTest {
 		setupForUserWithRoleGuest2();
 		spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, READ, BOOK, collectedData, false);
+						user, READ, BOOK, permissionTerms, false);
 
 		assertOtherSupportClassesUsedCorrectly();
 	}
@@ -299,14 +307,14 @@ public class SpiderAuthorizatorTest {
 
 		spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, READ, BOOK, collectedData, false);
+						user, READ, BOOK, permissionTerms, false);
 
 		assertCheckUserSatisfiesActionForCollectedDataWithPermissionTermForUser();
 	}
 
 	private void assertCheckUserSatisfiesActionForCollectedDataWithPermissionTermForUser() {
 		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
-				0, READ, BOOK, collectedData);
+				0, READ, BOOK, permissionTerms);
 
 		List<Rule> providedRules = getProvidedRulesForFirstCallToProvidedRulesSatisfiesRequiredRules();
 		Iterator<String> roleIterator = user.roles.iterator();
@@ -330,7 +338,7 @@ public class SpiderAuthorizatorTest {
 
 		spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, READ, BOOK, collectedData, false);
+						user, READ, BOOK, permissionTerms, false);
 		List<Rule> providedRules = (List<Rule>) beefeaterAuthorizator.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName(
 						"providedRulesSatisfiesRequiredRules", 0, "providedRules");
@@ -347,10 +355,10 @@ public class SpiderAuthorizatorTest {
 
 		spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, READ, BOOK, collectedData, false);
+						user, READ, BOOK, permissionTerms, false);
 
 		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
-				0, READ, BOOK, collectedData);
+				0, READ, BOOK, permissionTerms);
 
 		List<Rule> providedRules = getProvidedRulesForFirstCallToProvidedRulesSatisfiesRequiredRules();
 
@@ -408,7 +416,7 @@ public class SpiderAuthorizatorTest {
 
 		spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, READ, BOOK, collectedData, false);
+						user, READ, BOOK, permissionTerms, false);
 	}
 
 	@Test
@@ -417,7 +425,7 @@ public class SpiderAuthorizatorTest {
 
 		boolean authorized = spiderAuthorizator
 				.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ, BOOK,
-						collectedData);
+						permissionTerms);
 		assertTrue(authorized);
 
 		assertOtherSupportClassesUsedCorrectly();
@@ -433,14 +441,14 @@ public class SpiderAuthorizatorTest {
 		setupForUserWithRoleGuest2();
 
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
-				BOOK, collectedData);
+				BOOK, permissionTerms);
 
 		assertOtherSupportClassesUsedCorrectly();
 	}
 
 	private void assertOtherSupportClassesUsedCorrectly() {
 		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
-				0, READ, BOOK, collectedData);
+				0, READ, BOOK, permissionTerms);
 
 		List<Rule> providedRules = getProvidedRulesForFirstCallToProvidedRulesSatisfiesRequiredRules();
 
@@ -464,7 +472,7 @@ public class SpiderAuthorizatorTest {
 
 		boolean authorized = spiderAuthorizator
 				.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ, BOOK,
-						collectedData);
+						permissionTerms);
 		assertTrue(authorized);
 
 		assertUserSatisfiesActionForCollectedDataWithPermissionTermForUser();
@@ -472,7 +480,7 @@ public class SpiderAuthorizatorTest {
 
 	private void assertUserSatisfiesActionForCollectedDataWithPermissionTermForUser() {
 		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
-				0, READ, BOOK, collectedData);
+				0, READ, BOOK, permissionTerms);
 
 		List<Rule> providedRules = getProvidedRulesForFirstCallToProvidedRulesSatisfiesRequiredRules();
 
@@ -503,7 +511,7 @@ public class SpiderAuthorizatorTest {
 		setupForUserWithOnePermissionTerm();
 
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
-				BOOK, collectedData);
+				BOOK, permissionTerms);
 
 		assertUserSatisfiesActionForCollectedDataWithPermissionTermForUser();
 	}
@@ -514,7 +522,7 @@ public class SpiderAuthorizatorTest {
 
 		boolean authorized = spiderAuthorizator
 				.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ, BOOK,
-						collectedData);
+						permissionTerms);
 		assertTrue(authorized);
 		assertUserSatisfiesActionForCollectedDataWithPermissionTermWithTwoRolesAndPermissionTermsForUser();
 	}
@@ -522,7 +530,7 @@ public class SpiderAuthorizatorTest {
 	private void assertUserSatisfiesActionForCollectedDataWithPermissionTermWithTwoRolesAndPermissionTermsForUser() {
 
 		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
-				0, READ, BOOK, collectedData);
+				0, READ, BOOK, permissionTerms);
 
 		List<Rule> providedRules = getProvidedRulesForFirstCallToProvidedRulesSatisfiesRequiredRules();
 
@@ -564,7 +572,7 @@ public class SpiderAuthorizatorTest {
 		setupUserWithTwoRolesPermissionTerm();
 
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
-				BOOK, collectedData);
+				BOOK, permissionTerms);
 
 		assertUserSatisfiesActionForCollectedDataWithPermissionTermWithTwoRolesAndPermissionTermsForUser();
 	}
@@ -582,7 +590,7 @@ public class SpiderAuthorizatorTest {
 
 		boolean authorized = spiderAuthorizator
 				.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ, BOOK,
-						collectedData);
+						permissionTerms);
 		assertFalse(authorized);
 	}
 
@@ -591,7 +599,7 @@ public class SpiderAuthorizatorTest {
 		setupForprovidedRulesDoesNotSatisfiyRequiredRules();
 
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
-				BOOK, collectedData);
+				BOOK, permissionTerms);
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
@@ -602,7 +610,7 @@ public class SpiderAuthorizatorTest {
 
 		spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						nonExistingUser, READ, BOOK, collectedData, true);
+						nonExistingUser, READ, BOOK, permissionTerms, true);
 	}
 
 	@Test
@@ -613,7 +621,7 @@ public class SpiderAuthorizatorTest {
 		try {
 			spiderAuthorizator
 					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-							nonExistingUser, READ, BOOK, collectedData, true);
+							nonExistingUser, READ, BOOK, permissionTerms, true);
 		} catch (Exception e) {
 			assertTrue(e.getCause() instanceof RecordNotFoundException);
 		}
@@ -627,7 +635,7 @@ public class SpiderAuthorizatorTest {
 
 		spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						inactiveUser, READ, BOOK, collectedData, true);
+						inactiveUser, READ, BOOK, permissionTerms, true);
 	}
 
 	@Test
@@ -635,10 +643,10 @@ public class SpiderAuthorizatorTest {
 		setupForUserWithRoleGuest2();
 		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, READ, BOOK, collectedData, true);
+						user, READ, BOOK, permissionTerms, true);
 
 		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
-				0, READ, BOOK, collectedData);
+				0, READ, BOOK, permissionTerms);
 
 		List<Rule> providedRules = getProvidedRulesForFirstCallToProvidedRulesMatchRequiredRules();
 
@@ -674,10 +682,10 @@ public class SpiderAuthorizatorTest {
 
 		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, READ, BOOK, collectedData, true);
+						user, READ, BOOK, permissionTerms, true);
 
 		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
-				0, READ, BOOK, collectedData);
+				0, READ, BOOK, permissionTerms);
 
 		List<Rule> providedRules = getProvidedRulesForFirstCallToProvidedRulesMatchRequiredRules();
 
@@ -700,10 +708,10 @@ public class SpiderAuthorizatorTest {
 
 		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, READ, BOOK, collectedData, true);
+						user, READ, BOOK, permissionTerms, true);
 
 		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
-				0, READ, BOOK, collectedData);
+				0, READ, BOOK, permissionTerms);
 
 		List<Rule> providedRules = getProvidedRulesForFirstCallToProvidedRulesMatchRequiredRules();
 
@@ -725,7 +733,7 @@ public class SpiderAuthorizatorTest {
 
 		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, "update", BOOK, collectedData, true);
+						user, "update", BOOK, permissionTerms, true);
 
 		assertEquals(usersReadRecordPartPermissions.size(), 0);
 	}
@@ -738,7 +746,7 @@ public class SpiderAuthorizatorTest {
 
 		Set<String> usersReadRecordPartPermissions = spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, "update", BOOK, collectedData, true);
+						user, "update", BOOK, permissionTerms, true);
 
 		assertEquals(usersReadRecordPartPermissions.size(), 2);
 		assertTrue(usersReadRecordPartPermissions.contains("priceWrite"));
@@ -751,10 +759,10 @@ public class SpiderAuthorizatorTest {
 
 		spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, READ, BOOK, collectedData, true);
+						user, READ, BOOK, permissionTerms, true);
 
 		ruleCalculator.MCR.assertParameters("calculateRulesForActionAndRecordTypeAndCollectedData",
-				0, READ, BOOK, collectedData);
+				0, READ, BOOK, permissionTerms);
 
 		List<Rule> providedRules = getProvidedRulesForFirstCallToProvidedRulesMatchRequiredRules();
 
@@ -800,6 +808,6 @@ public class SpiderAuthorizatorTest {
 
 		spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, READ, BOOK, collectedData, true);
+						user, READ, BOOK, permissionTerms, true);
 	}
 }
