@@ -24,6 +24,7 @@ import java.util.List;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.collectterms.CollectTerms;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.index.BatchRunner;
@@ -161,8 +162,9 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 	private void tryToIndexData(String metadataId, String recordId, DataGroup dataGroup) {
 		List<String> combinedIds = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
-		DataGroup collectedTerms = termCollector.collectTerms(metadataId, dataGroup);
-		recordIndexer.indexDataWithoutExplicitCommit(combinedIds, collectedTerms, dataGroup);
+		CollectTerms collectedTerms = termCollector.collectTerms(metadataId, dataGroup);
+		recordIndexer.indexDataWithoutExplicitCommit(combinedIds, collectedTerms.indexTerms,
+				dataGroup);
 	}
 
 	private void updateAndStoreIndexBatchJob(StorageReadResult readResult) {

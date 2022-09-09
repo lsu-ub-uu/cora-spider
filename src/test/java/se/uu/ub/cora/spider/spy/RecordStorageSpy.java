@@ -52,7 +52,7 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup dataRecord, DataGroup collectedTerms,
+	public void create(String type, String id, DataGroup dataRecord, List<StorageTerm> storageTerms,
 			DataGroup linkList, String dataDivider) {
 		// TODO Auto-generated method stub
 

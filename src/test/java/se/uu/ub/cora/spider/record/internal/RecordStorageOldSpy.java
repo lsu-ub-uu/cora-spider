@@ -75,9 +75,9 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
+	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
 			DataGroup linkList, String dataDivider) {
-		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", collectedTerms,
+		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", storageTerms,
 				"linkList", linkList, "dataDivider", dataDivider);
 	}
 

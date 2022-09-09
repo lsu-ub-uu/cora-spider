@@ -157,8 +157,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType) {
-		// DataGroup uncheckedCollectedTerms = dataGroupTermCollector
-		// .collectTermsWithoutTypeAndId(metadataId, recordAsDataGroup);
 		CollectTerms uncheckedCollectedTerms = dataGroupTermCollector.collectTerms(metadataId,
 				recordAsDataGroup);
 		writePermissions = spiderAuthorizator

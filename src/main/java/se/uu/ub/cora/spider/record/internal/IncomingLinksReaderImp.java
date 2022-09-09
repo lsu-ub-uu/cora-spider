@@ -26,6 +26,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataListProvider;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.collectterms.CollectTerms;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -81,12 +82,12 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 	}
 
 	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
-		DataGroup collectedTerms = getCollectedTermsForRecord(recordRead);
+		CollectTerms collectTerms = getCollectedTermsForRecord(recordRead);
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
-				recordType, collectedTerms);
+				recordType, collectTerms.permissionTerms);
 	}
 
-	private DataGroup getCollectedTermsForRecord(DataGroup recordRead) {
+	private CollectTerms getCollectedTermsForRecord(DataGroup recordRead) {
 		String metadataId = recordTypeHandler.getMetadataId();
 		return collectTermCollector.collectTerms(metadataId, recordRead);
 	}

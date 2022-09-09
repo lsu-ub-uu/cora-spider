@@ -63,7 +63,7 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 
 	@Override
 	public void create(String recordType, String recordId, DataGroup record,
-			DataGroup collectedTerms, DataGroup linkList, String dataDivider) {
+			List<StorageTerm> storageTerms, DataGroup linkList, String dataDivider) {
 		ensureStorageExistsForRecordType(recordType);
 		checkNoConflictOnRecordId(recordType, recordId);
 		// storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);

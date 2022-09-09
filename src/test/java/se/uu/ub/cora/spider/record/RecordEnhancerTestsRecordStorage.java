@@ -152,7 +152,7 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
+	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
 			DataGroup linkList, String dataDivider) {
 		createWasRead = true;
 

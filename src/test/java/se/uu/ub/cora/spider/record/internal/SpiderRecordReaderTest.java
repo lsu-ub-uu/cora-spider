@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
@@ -41,11 +42,13 @@ import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class SpiderRecordReaderTest {
 	private static final String SOME_RECORD_ID = "place:0001";
 	private static final String SOME_USER_TOKEN = "someToken78678567";
 	private static final String SOME_RECORD_TYPE = "someRecordType";
+	private DataFactorySpy dataFactorySpy;
 	private RecordStorageOldSpy recordStorage;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
@@ -69,6 +72,8 @@ public class SpiderRecordReaderTest {
 	private void setUpFactoriesAndProviders() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 	}
 
 	private void setUpDependencyProvider() {

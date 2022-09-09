@@ -33,6 +33,8 @@ import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataListProvider;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.collectterms.CollectTerms;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
@@ -55,8 +57,11 @@ import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.spider.testspies.DataRecordLinkSpy;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class SpiderRecordIncomingLinksReaderTest {
+	private LoggerFactorySpy loggerFactorySpy;
+	private DataFactorySpy dataFactorySpy;
 
 	private IncomingLinksReader incomingLinksReader;
 
@@ -66,7 +71,6 @@ public class SpiderRecordIncomingLinksReaderTest {
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private DataGroupTermCollectorSpy termCollector;
-	private LoggerFactorySpy loggerFactorySpy;
 	private DataGroupFactory dataGroupFactory;
 	private DataAtomicFactorySpy dataAtomicFactory;
 	private DataListFactorySpy dataListFactory;
@@ -85,6 +89,8 @@ public class SpiderRecordIncomingLinksReaderTest {
 	}
 
 	private void setUpFactoriesAndProviders() {
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		dataGroupFactory = new DataGroupFactorySpy();
@@ -137,8 +143,10 @@ public class SpiderRecordIncomingLinksReaderTest {
 		assertEquals(toLinkedRecordId.getValue(), "place:0001");
 
 		String methodName = "checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData";
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
+				0);
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "read",
-				"place", termCollector.MCR.getReturnValue("collectTerms", 0));
+				"place", collectTerms.permissionTerms);
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "place");
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",

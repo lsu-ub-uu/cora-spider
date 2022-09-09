@@ -386,12 +386,12 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
+	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
 			DataGroup linkList, String dataDivider) {
 		this.type = type;
 		this.id = id;
 		createRecord = record;
-		// this.storageTerms = collectedTerms;
+		this.storageTerms = storageTerms;
 		this.dataDivider = dataDivider;
 		createWasCalled = true;
 	}
