@@ -31,6 +31,7 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
@@ -40,9 +41,11 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactorySpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class FactorySorterTest {
 	private LoggerFactorySpy loggerFactorySpy;
+	private DataFactorySpy dataFactorySpy;
 	private String testedClassName = "FactorySorterImp";
 
 	private List<ExtendedFunctionalityFactory> fakeImplementations;
@@ -53,6 +56,8 @@ public class FactorySorterTest {
 	public void setUp() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		fakeImplementations = new ArrayList<>();
 		dependencyProvider = new SpiderDependencyProviderOldSpy(Collections.emptyMap());
 		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);

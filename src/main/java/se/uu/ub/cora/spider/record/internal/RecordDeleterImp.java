@@ -24,6 +24,7 @@ import java.util.List;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.collectterms.CollectTerms;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -86,12 +87,12 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 	}
 
 	private void checkUserIsAuthorizedToDeleteStoredRecord(String recordType) {
-		DataGroup collectedTerms = getCollectedTermsForPreviouslyReadRecord(recordType);
+		CollectTerms collectTerms = getCollectedTermsForPreviouslyReadRecord(recordType);
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, DELETE,
-				recordType, collectedTerms);
+				recordType, collectTerms.permissionTerms);
 	}
 
-	private DataGroup getCollectedTermsForPreviouslyReadRecord(String recordType) {
+	private CollectTerms getCollectedTermsForPreviouslyReadRecord(String recordType) {
 		String metadataId = getMetadataIdFromRecordType(recordType);
 		return collectTermCollector.collectTerms(metadataId, dataGroupReadFromStorage);
 	}

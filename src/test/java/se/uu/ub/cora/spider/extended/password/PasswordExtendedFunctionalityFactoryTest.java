@@ -26,6 +26,7 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.password.texthasher.TextHasherFactory;
 import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
@@ -34,14 +35,18 @@ import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class PasswordExtendedFunctionalityFactoryTest {
 	PasswordExtendedFunctionalityFactory factory;
 	SpiderDependencyProviderOldSpy dependencyProvider;
 	private TextHasherFactorySpy textHasherFactorySpy;
+	private DataFactorySpy dataFactorySpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		factory = new PasswordExtendedFunctionalityFactory();
 		dependencyProvider = new SpiderDependencyProviderOldSpy(null);
 		RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();

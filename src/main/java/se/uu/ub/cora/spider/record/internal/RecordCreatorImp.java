@@ -32,6 +32,9 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.collectterms.CollectTerms;
+import se.uu.ub.cora.data.collectterms.IndexTerm;
+import se.uu.ub.cora.data.collectterms.StorageTerm;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -62,7 +65,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private RecordIndexer recordIndexer;
 	private SpiderDependencyProvider dependencyProvider;
 	private Set<String> writePermissions;
-	private DataGroup collectedTerms;
+	private CollectTerms collectedTerms;
 	private DataGroup collectedLinks;
 	private RecordArchive recordArchive;
 
@@ -107,11 +110,11 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		validateRecord();
 		useExtendedFunctionalityAfterMetadataValidation(recordType, recordAsDataGroup);
 		completeRecordAndCollectInformationSpecifiedInMetadata();
-		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms);
+		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms.storageTerms);
 		if (recordTypeHandler.storeInArchive()) {
 			recordArchive.create(recordType, recordId, recordAsDataGroup);
 		}
-		indexRecord(collectedTerms);
+		indexRecord(collectedTerms.indexTerms);
 		useExtendedFunctionalityBeforeReturn(recordType, recordAsDataGroup);
 		return enhanceDataGroupToRecord();
 	}
@@ -154,11 +157,13 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType) {
-		DataGroup uncheckedCollectedTerms = dataGroupTermCollector
-				.collectTermsWithoutTypeAndId(metadataId, recordAsDataGroup);
+		// DataGroup uncheckedCollectedTerms = dataGroupTermCollector
+		// .collectTermsWithoutTypeAndId(metadataId, recordAsDataGroup);
+		CollectTerms uncheckedCollectedTerms = dataGroupTermCollector.collectTerms(metadataId,
+				recordAsDataGroup);
 		writePermissions = spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, CREATE, recordType, uncheckedCollectedTerms, true);
+						user, CREATE, recordType, uncheckedCollectedTerms.permissionTerms, true);
 	}
 
 	private void possiblyRemoveRecordPartsUserIsNotAllowedToChange() {
@@ -239,16 +244,16 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 	}
 
-	private void indexRecord(DataGroup collectedTerms) {
+	private void indexRecord(List<IndexTerm> indexTerms) {
 		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
-		recordIndexer.indexData(ids, collectedTerms, recordAsDataGroup);
+		recordIndexer.indexData(ids, indexTerms, recordAsDataGroup);
 	}
 
 	private void createRecordInStorage(DataGroup topLevelDataGroup, DataGroup collectedLinks,
-			DataGroup collectedTerms) {
+			List<StorageTerm> storageTerms) {
 		String dataDivider = extractDataDividerFromData(recordAsDataGroup);
-		recordStorage.create(recordType, recordId, topLevelDataGroup, collectedTerms,
-				collectedLinks, dataDivider);
+		recordStorage.create(recordType, recordId, topLevelDataGroup, storageTerms, collectedLinks,
+				dataDivider);
 	}
 
 	private String extractIdFromData() {
