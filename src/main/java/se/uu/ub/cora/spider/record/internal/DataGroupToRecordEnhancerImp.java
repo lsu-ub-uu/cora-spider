@@ -37,7 +37,7 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.data.DataResourceLink;
-import se.uu.ub.cora.data.collectterms.CollectTerms;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;

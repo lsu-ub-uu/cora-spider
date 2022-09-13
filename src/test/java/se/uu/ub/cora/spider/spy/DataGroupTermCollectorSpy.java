@@ -20,7 +20,7 @@ package se.uu.ub.cora.spider.spy;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.collectterms.CollectTerms;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataGroupTermCollectorSpy implements DataGroupTermCollector {

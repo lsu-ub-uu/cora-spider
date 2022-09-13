@@ -23,7 +23,8 @@ import java.util.Collection;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.collectterms.StorageTerm;
+import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -189,7 +190,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 
 	@Override
 	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
-			DataGroup linkList, String dataDivider) {
+			List<RecordToRecordLink> links, String dataDivider) {
 		// TODO Auto-generated method stub
 
 	}
@@ -208,7 +209,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 
 	@Override
 	public void update(String type, String id, DataGroup record, List<StorageTerm> collectedTerms,
-			DataGroup linkList, String dataDivider) {
+			List<RecordToRecordLink> links, String dataDivider) {
 		// TODO Auto-generated method stub
 
 	}

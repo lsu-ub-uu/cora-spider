@@ -32,9 +32,10 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.data.collectterms.CollectTerms;
-import se.uu.ub.cora.data.collectterms.IndexTerm;
-import se.uu.ub.cora.data.collectterms.StorageTerm;
+import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.collected.IndexTerm;
+import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -66,7 +67,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private SpiderDependencyProvider dependencyProvider;
 	private Set<String> writePermissions;
 	private CollectTerms collectedTerms;
-	private DataGroup collectedLinks;
+	private List<RecordToRecordLink> collectedLinks;
 	private RecordArchive recordArchive;
 
 	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
@@ -247,8 +248,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		recordIndexer.indexData(ids, indexTerms, recordAsDataGroup);
 	}
 
-	private void createRecordInStorage(DataGroup topLevelDataGroup, DataGroup collectedLinks,
-			List<StorageTerm> storageTerms) {
+	private void createRecordInStorage(DataGroup topLevelDataGroup,
+			List<RecordToRecordLink> collectedLinks, List<StorageTerm> storageTerms) {
 		String dataDivider = extractDataDividerFromData(recordAsDataGroup);
 		recordStorage.create(recordType, recordId, topLevelDataGroup, storageTerms, collectedLinks,
 				dataDivider);

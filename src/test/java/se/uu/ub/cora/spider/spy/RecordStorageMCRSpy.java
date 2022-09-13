@@ -24,7 +24,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.collectterms.StorageTerm;
+import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 import se.uu.ub.cora.testspies.data.DataGroupSpy;
@@ -44,6 +45,9 @@ public class RecordStorageMCRSpy implements RecordStorage {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("read",
 				((Supplier<DataGroupSpy>) () -> dataGroupForRead));
+		MRV.setDefaultReturnValuesSupplier(
+				"recordExistsForAbstractOrImplementingRecordTypeAndRecordId",
+				(Supplier<Boolean>) () -> false);
 	}
 
 	@Override
@@ -53,9 +57,9 @@ public class RecordStorageMCRSpy implements RecordStorage {
 
 	@Override
 	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
-			DataGroup linkList, String dataDivider) {
+			List<RecordToRecordLink> links, String dataDivider) {
 		MCR.addCall("type", type, "id", id, "record", record, "storageTerms", storageTerms,
-				"linkList", linkList, "dataDivider", dataDivider);
+				"linkList", links, "dataDivider", dataDivider);
 	}
 
 	@Override
@@ -72,9 +76,9 @@ public class RecordStorageMCRSpy implements RecordStorage {
 
 	@Override
 	public void update(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
-			DataGroup linkList, String dataDivider) {
+			List<RecordToRecordLink> links, String dataDivider) {
 		MCR.addCall("type", type, "id", id, "record", record, "storageTerms", storageTerms,
-				"linkList", linkList, "dataDivider", dataDivider);
+				"linkList", links, "dataDivider", dataDivider);
 
 	}
 
@@ -119,8 +123,7 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	@Override
 	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
 			String id) {
-		// TODO Auto-generated method stub
-		return false;
+		return (boolean) MCR.addCallAndReturnFromMRV("type", type, "id", id);
 	}
 
 	@Override

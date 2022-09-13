@@ -24,7 +24,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.collectterms.PermissionTerm;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 
 public interface SpiderAuthorizator {
 

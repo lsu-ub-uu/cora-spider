@@ -118,11 +118,10 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		DataGroup systemSecret = createSystemSecretGroupWithRecordInfoAndHashedPassword(
 				hashedPassword, systemSecretId);
 		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		DataGroup collectedDataLinks = createCollectedDataLinks();
 		String dataDivider = readDataDividerFromUserGroup();
 
 		recordStorage.create(SYSTEM_SECRET_TYPE, systemSecretId, systemSecret,
-				Collections.emptyList(), collectedDataLinks, dataDivider);
+				Collections.emptyList(), Collections.emptyList(), dataDivider);
 		return systemSecretId;
 	}
 
@@ -152,10 +151,6 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		DataAtomic hashedPasswordAtomic = DataProvider.createAtomicUsingNameInDataAndValue(SECRET,
 				hashedPassword);
 		systemSecret.addChild(hashedPasswordAtomic);
-	}
-
-	private DataGroup createCollectedDataLinks() {
-		return DataProvider.createGroupUsingNameInData("collectedDataLinks");
 	}
 
 	private void addLinkToSystemSecret(String systemSecretRecordId) {
@@ -192,11 +187,10 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		systemSecretG.removeAllChildrenWithNameInData(SECRET);
 
 		addHashedPasswordToGroup(hashedPassword, systemSecretG);
-		DataGroup collectedDataLinks = createCollectedDataLinks();
 		String dataDivider = readDataDividerFromUserGroup();
 
 		recordStorage.update(SYSTEM_SECRET_TYPE, systemSecretId, systemSecretG,
-				Collections.emptyList(), collectedDataLinks, dataDivider);
+				Collections.emptyList(), Collections.emptyList(), dataDivider);
 	}
 
 	private DataAtomic updateTsPasswordUpdatedUsingTsUppdate() {

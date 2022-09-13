@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.data.collectterms.PermissionTerm;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;

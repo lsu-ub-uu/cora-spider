@@ -33,7 +33,7 @@ import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.collectterms.PermissionTerm;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.role.RulesProvider;
 import se.uu.ub.cora.storage.RecordNotFoundException;

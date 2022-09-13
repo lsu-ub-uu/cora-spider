@@ -40,7 +40,7 @@ import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.data.DataFactory;
 import se.uu.ub.cora.data.DataProvider;
-import se.uu.ub.cora.data.collectterms.PermissionTerm;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;

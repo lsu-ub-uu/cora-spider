@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
-import se.uu.ub.cora.data.collectterms.CollectTerms;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
@@ -109,14 +109,14 @@ public class IndexBatchJobStorerTest {
 	public void testCorrectCallToLinkCollector() {
 		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider,
 				dataGroupHandlerForIndexBatchJobSpy);
+
 		storer.store(indexBatchJob);
 
-		assertEquals(linkCollector.recordType, "indexBatchJob");
-		assertEquals(linkCollector.recordId, "someRecordId");
-		assertSame(linkCollector.dataGroup, recordStorage.MCR.getReturnValue("read", 0));
 		String metadataIdFromTypeHandler = (String) dependencyProvider.recordTypeHandlerSpy.MCR
 				.getReturnValue("getMetadataId", 0);
-		assertEquals(linkCollector.metadataId, metadataIdFromTypeHandler);
+		var dataGroup = recordStorage.MCR.getReturnValue("read", 0);
+		linkCollector.MCR.assertParameters("collectLinks", 0, metadataIdFromTypeHandler, dataGroup,
+				"indexBatchJob", "someRecordId");
 	}
 
 	@Test
@@ -131,7 +131,6 @@ public class IndexBatchJobStorerTest {
 	}
 
 	@Test
-
 	public void testStore() {
 		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider,
 				dataGroupHandlerForIndexBatchJobSpy);
@@ -144,7 +143,7 @@ public class IndexBatchJobStorerTest {
 		assertSame(parameters.get("record"), returnedDataGroupFromRead);
 		assertEquals(parameters.get("type"), "indexBatchJob");
 		assertEquals(parameters.get("id"), "someRecordId");
-		assertSame(parameters.get("linkList"), linkCollector.collectedDataLinks);
+		linkCollector.MCR.assertReturn("collectLinks", 0, parameters.get("linkList"));
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				0);
 		assertSame(parameters.get("storageTerms"), collectTerms.storageTerms);

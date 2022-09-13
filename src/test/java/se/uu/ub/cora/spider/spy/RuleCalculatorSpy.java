@@ -25,7 +25,7 @@ import java.util.List;
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RuleImp;
 import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
-import se.uu.ub.cora.data.collectterms.PermissionTerm;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 

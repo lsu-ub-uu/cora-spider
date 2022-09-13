@@ -37,7 +37,8 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.data.collectterms.CollectTerms;
+import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.collected.RecordToRecordLink;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -120,8 +121,8 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(metadataId, topDataGroup);
 		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectTerms);
 
-		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup, recordType,
-				recordId);
+		List<RecordToRecordLink> collectedLinks = linkCollector.collectLinks(metadataId,
+				topDataGroup, recordType, recordId);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		useExtendedFunctionalityBeforeStore(recordType, topDataGroup);
@@ -316,13 +317,12 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private String extractTypeFromRecordInfo(DataGroup recordInfo) {
-		// DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
-		// return typeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		DataRecordLink type = (DataRecordLink) recordInfo.getFirstChildWithNameInData("type");
 		return type.getLinkedRecordId();
 	}
 
-	private void updateRecordInStorage(CollectTerms collectTerms, DataGroup collectedLinks) {
+	private void updateRecordInStorage(CollectTerms collectTerms,
+			List<RecordToRecordLink> collectedLinks) {
 
 		String dataDivider = extractDataDividerFromData(topDataGroup);
 

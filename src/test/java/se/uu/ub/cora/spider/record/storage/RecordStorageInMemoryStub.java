@@ -28,7 +28,8 @@ import java.util.Map;
 
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.collectterms.StorageTerm;
+import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.data.copier.DataCopier;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
@@ -63,12 +64,12 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 
 	@Override
 	public void create(String recordType, String recordId, DataGroup record,
-			List<StorageTerm> storageTerms, DataGroup linkList, String dataDivider) {
+			List<StorageTerm> storageTerms, List<RecordToRecordLink> links, String dataDivider) {
 		ensureStorageExistsForRecordType(recordType);
 		checkNoConflictOnRecordId(recordType, recordId);
 		// storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
 		storeRecordByRecordTypeAndRecordId(recordType, recordId, record);
-		storeLinks(recordType, recordId, linkList);
+		storeLinks(recordType, recordId, links);
 	}
 
 	protected void ensureStorageExistsForRecordType(String recordType) {
@@ -108,9 +109,9 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 		return records.get(recordType).put(recordId, recordIndependentOfEnteredRecord);
 	}
 
-	protected void storeLinks(String recordType, String recordId, DataGroup linkList) {
-		if (linkList.getChildren().size() > 0) {
-			DataGroup linkListIndependentFromEntered = createIndependentCopy(linkList);
+	protected void storeLinks(String recordType, String recordId, List<RecordToRecordLink> links) {
+		if (links.size() > 0) {
+			DataGroup linkListIndependentFromEntered = createIndependentCopy(links);
 			storeLinkList(recordType, recordId, linkListIndependentFromEntered);
 			storeLinksInIncomingLinks(linkListIndependentFromEntered);
 		}
@@ -313,12 +314,12 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 
 	@Override
 	public void update(String recordType, String recordId, DataGroup record,
-			List<StorageTerm> collectedTerms, DataGroup linkList, String dataDivider) {
+			List<StorageTerm> collectedTerms, List<RecordToRecordLink> links, String dataDivider) {
 		checkRecordExists(recordType, recordId);
 		removeIncomingLinks(recordType, recordId);
 		// storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
 		storeRecordByRecordTypeAndRecordId(recordType, recordId, record);
-		storeLinks(recordType, recordId, linkList);
+		storeLinks(recordType, recordId, links);
 	}
 
 	private void removeIncomingLinks(String recordType, String recordId) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,29 +19,37 @@
 
 package se.uu.ub.cora.spider.spy;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class DataRecordLinkCollectorSpy implements DataRecordLinkCollector {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public boolean collectLinksWasCalled = false;
-	public String metadataId = null;
-
-	public DataGroup collectedDataLinks = new DataGroupOldSpy("collectedDataLinks");
-	public String recordType;
-	public String recordId;
-	public DataGroup dataGroup;
+	public DataRecordLinkCollectorSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("collectLinks",
+				(Supplier<List<RecordToRecordLink>>) () -> new ArrayList<>());
+	}
 
 	@Override
-	public DataGroup collectLinks(String metadataId, DataGroup dataGroup, String fromRecordType,
-			String fromRecordId) {
-		this.metadataId = metadataId;
-		this.dataGroup = dataGroup;
-		this.recordType = fromRecordType;
-		this.recordId = fromRecordId;
-		collectLinksWasCalled = true;
-		return collectedDataLinks;
+	public List<RecordToRecordLink> collectLinks(String metadataId, DataGroup dataGroup,
+			String fromRecordType, String fromRecordId) {
+		return (List<RecordToRecordLink>) MCR.addCallAndReturnFromMRV("metadataId", metadataId,
+				"dataGroup", dataGroup, "fromRecordType", fromRecordType, "fromRecordId",
+				fromRecordId);
+		// MCR.addCall("metadataId", metadataId, "dataGroup", dataGroup, "fromRecordType",
+		// fromRecordType, "fromRecordId", fromRecordId);
+		// List<RecordToRecordLink> links = new ArrayList<>();
+		// MCR.addReturned(links);
+		// return links;
 	}
 
 }

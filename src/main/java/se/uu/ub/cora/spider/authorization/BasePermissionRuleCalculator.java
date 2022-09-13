@@ -28,7 +28,7 @@ import java.util.Map;
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RuleImp;
 import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
-import se.uu.ub.cora.data.collectterms.PermissionTerm;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 
 public class BasePermissionRuleCalculator implements PermissionRuleCalculator {
 

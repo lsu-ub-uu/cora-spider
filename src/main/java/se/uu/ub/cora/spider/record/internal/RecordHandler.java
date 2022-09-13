@@ -26,11 +26,11 @@ import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataAtomicProvider;
-import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.collected.RecordToRecordLink;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
@@ -48,25 +48,16 @@ public class RecordHandler {
 	protected String authToken;
 	protected User user;
 
-	protected void checkToPartOfLinkedDataExistsInStorage(DataGroup collectedLinks) {
-		for (DataChild dataElement : collectedLinks.getChildren()) {
-			extractToGroupAndCheckDataExistsInStorage((DataGroup) dataElement);
+	protected void checkToPartOfLinkedDataExistsInStorage(List<RecordToRecordLink> collectedLinks) {
+		for (RecordToRecordLink recordToRecordLink : collectedLinks) {
+			extractToGroupAndCheckDataExistsInStorage(recordToRecordLink);
 		}
 	}
 
-	private void extractToGroupAndCheckDataExistsInStorage(DataGroup dataElement) {
-		DataGroup to = extractToGroupFromRecordLink(dataElement);
-		String toRecordId = extractAtomicValueFromGroup(LINKED_RECORD_ID, to);
-		String toRecordType = extractAtomicValueFromGroup("linkedRecordType", to);
+	private void extractToGroupAndCheckDataExistsInStorage(RecordToRecordLink recordToRecordLink) {
+		String toRecordType = recordToRecordLink.toType();
+		String toRecordId = recordToRecordLink.toId();
 		checkRecordTypeAndRecordIdExistsInStorage(toRecordId, toRecordType);
-	}
-
-	private String extractAtomicValueFromGroup(String nameInDataToExtract, DataGroup to) {
-		return to.getFirstAtomicValueWithNameInData(nameInDataToExtract);
-	}
-
-	private DataGroup extractToGroupFromRecordLink(DataGroup recordToRecordLink) {
-		return recordToRecordLink.getFirstGroupWithNameInData("to");
 	}
 
 	private void checkRecordTypeAndRecordIdExistsInStorage(String recordId, String recordType) {

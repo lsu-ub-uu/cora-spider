@@ -236,12 +236,10 @@ public class PasswordExtendedFunctionalityTest {
 				.getReturnValue("getRecordStorage", 0);
 
 		String systemSecretId = assertAndReturnSystemSecretId();
-		// DataGroupSpy collectedTerms = assertAndReturnCollectedTerms(systemSecretId, 2, 2);
-		DataGroupSpy collectedDataLinks = assertAndReturnCollectedDataLinks(2);
 		String dataDividerValue = (String) dataDivider.MCR.getReturnValue("getLinkedRecordId", 0);
 
 		recordStorage.MCR.assertParameters("create", 0, SYSTEM_SECRET_TYPE, systemSecretId, secret,
-				Collections.emptyList(), collectedDataLinks, dataDividerValue);
+				Collections.emptyList(), Collections.emptyList(), dataDividerValue);
 
 		assertLinkToSystemSecret(systemSecretId, 1);
 	}
@@ -347,11 +345,11 @@ public class PasswordExtendedFunctionalityTest {
 		secretFromStorage.MCR.assertParameters("removeAllChildrenWithNameInData", 0, SECRET);
 		assertHashedPasswordIsAddedToGroupAsNumber(secretFromStorage, 0, 0);
 
-		var collectedDataLinks = assertAndReturnCollectedDataLinks(0);
 		var dataDividerValue = dataDivider.MCR.getReturnValue("getLinkedRecordId", 0);
 
 		recordStorage.MCR.assertParameters("update", 0, SYSTEM_SECRET_TYPE, systemSecretId,
-				secretFromStorage, Collections.emptyList(), collectedDataLinks, dataDividerValue);
+				secretFromStorage, Collections.emptyList(), Collections.emptyList(),
+				dataDividerValue);
 
 		rGroupMCR.assertParameters("removeAllChildrenWithNameInData", 1, "tsPasswordUpdated");
 		assertedTsUpdated(1, dateTimeBefore, dateTimeAfter);
