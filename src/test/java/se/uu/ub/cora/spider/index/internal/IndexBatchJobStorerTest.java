@@ -115,8 +115,7 @@ public class IndexBatchJobStorerTest {
 		String metadataIdFromTypeHandler = (String) dependencyProvider.recordTypeHandlerSpy.MCR
 				.getReturnValue("getMetadataId", 0);
 		var dataGroup = recordStorage.MCR.getReturnValue("read", 0);
-		linkCollector.MCR.assertParameters("collectLinks", 0, metadataIdFromTypeHandler, dataGroup,
-				"indexBatchJob", "someRecordId");
+		linkCollector.MCR.assertParameters("collectLinks", 0, metadataIdFromTypeHandler, dataGroup);
 	}
 
 	@Test

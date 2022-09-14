@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
+import java.util.List;
+
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
@@ -31,6 +33,7 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.DataRecordProvider;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -89,6 +92,8 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private String getMetadataIdForWorkOrder(String recordType) {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(null, recordStorage, recordType);
+		// RecordTypeHandler recordTypeHandler =
+		// dependencyProvider.getRecordTypeHandler(recordType);
 		return recordTypeHandler.getNewMetadataId();
 	}
 
@@ -169,6 +174,8 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private String getMetadataId(String recordTypeToValidate) {
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
 				.usingRecordStorageAndRecordTypeId(null, recordStorage, recordTypeToValidate);
+		// RecordTypeHandler recordTypeHandler =
+		// dependencyProvider.getRecordTypeHandler(recordTypeToValidate);
 		return validateNew() ? recordTypeHandler.getNewMetadataId()
 				: recordTypeHandler.getMetadataId();
 	}
@@ -242,12 +249,11 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void ensureLinksExist(String recordTypeToValidate, String recordIdToUse,
 			String metadataId) {
-		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup,
-				recordTypeToValidate, recordIdToUse);
+		List<Link> collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup);
 		checkIfLinksExist(collectedLinks);
 	}
 
-	private void checkIfLinksExist(DataGroup collectedLinks) {
+	private void checkIfLinksExist(List<Link> collectedLinks) {
 		try {
 			checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 		} catch (DataException exception) {

@@ -26,9 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.data.copier.DataCopier;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
@@ -43,8 +42,8 @@ import se.uu.ub.cora.storage.StorageReadResult;
 public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage {
 	private DataGroup emptyFilter = new DataGroupOldSpy("filter");
 	protected Map<String, Map<String, DataGroup>> records = new HashMap<>();
-	protected Map<String, Map<String, DataGroup>> linkLists = new HashMap<>();
-	protected Map<String, Map<String, Map<String, Map<String, List<DataGroup>>>>> incomingLinks = new HashMap<>();
+	protected Map<String, Map<String, List<Link>>> linkLists = new HashMap<>();
+	protected Map<String, Map<String, Map<String, Map<String, List<Link>>>>> incomingLinks = new HashMap<>();
 
 	public RecordStorageInMemoryStub() {
 		// Make it possible to use default empty record storage
@@ -64,12 +63,12 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 
 	@Override
 	public void create(String recordType, String recordId, DataGroup record,
-			List<StorageTerm> storageTerms, List<RecordToRecordLink> links, String dataDivider) {
+			List<StorageTerm> storageTerms, List<Link> links, String dataDivider) {
 		ensureStorageExistsForRecordType(recordType);
 		checkNoConflictOnRecordId(recordType, recordId);
 		// storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
 		storeRecordByRecordTypeAndRecordId(recordType, recordId, record);
-		storeLinks(recordType, recordId, links);
+		// storeLinks(recordType, recordId, links);
 	}
 
 	protected void ensureStorageExistsForRecordType(String recordType) {
@@ -84,7 +83,9 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 
 	private void createHolderForRecordTypeInStorage(String recordType) {
 		records.put(recordType, new HashMap<String, DataGroup>());
-		linkLists.put(recordType, new HashMap<String, DataGroup>());
+		// TODO: must do stuff :)
+		// linkLists.put(recordType, new HashMap<String, DataGroup>());
+
 	}
 
 	private void checkNoConflictOnRecordId(String recordType, String recordId) {
@@ -109,36 +110,37 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 		return records.get(recordType).put(recordId, recordIndependentOfEnteredRecord);
 	}
 
-	protected void storeLinks(String recordType, String recordId, List<RecordToRecordLink> links) {
+	protected void storeLinks(String recordType, String recordId, List<Link> links) {
 		if (links.size() > 0) {
-			DataGroup linkListIndependentFromEntered = createIndependentCopy(links);
-			storeLinkList(recordType, recordId, linkListIndependentFromEntered);
-			storeLinksInIncomingLinks(linkListIndependentFromEntered);
+			// DataGroup linkListIndependentFromEntered = createIndependentCopy(links);
+
+			storeLinkList(recordType, recordId, links);
+			storeLinksInIncomingLinks(recordType, recordId, links);
 		}
 	}
 
-	private void storeLinkList(String recordType, String recordId,
-			DataGroup linkListIndependentFromEntered) {
-		linkLists.get(recordType).put(recordId, linkListIndependentFromEntered);
+	private void storeLinkList(String recordType, String recordId, List<Link> links) {
+		linkLists.get(recordType).put(recordId, links);
 	}
 
-	private void storeLinksInIncomingLinks(DataGroup incomingLinkList) {
-		for (DataChild linkElement : incomingLinkList.getChildren()) {
-			storeLinkInIncomingLinks((DataGroup) linkElement);
+	private void storeLinksInIncomingLinks(String recordType, String recordId, List<Link> links) {
+		for (Link linkElement : links) {
+			storeLinkInIncomingLinks2(recordType, recordId, linkElement);
 		}
 	}
 
-	private void storeLinkInIncomingLinks(DataGroup link) {
-		Map<String, Map<String, List<DataGroup>>> toPartOfIncomingLinks = getIncomingLinkStorageForLink(
-				link);
-		storeLinkInIncomingLinks(link, toPartOfIncomingLinks);
+	private void storeLinkInIncomingLinks2(String recordType, String recordId, Link linkElement) {
+		Map<String, Map<String, List<Link>>> toPartOfIncomingLinks = getIncomingLinkStorageForLink(
+				linkElement);
+		storeLinkInIncomingLinks(recordType, recordId, linkElement, toPartOfIncomingLinks);
 	}
 
-	private Map<String, Map<String, List<DataGroup>>> getIncomingLinkStorageForLink(
-			DataGroup link) {
-		DataGroup to = link.getFirstGroupWithNameInData("to");
-		String toType = extractLinkedRecordTypeValue(to);
-		String toId = extractLinkedRecordIdValue(to);
+	private Map<String, Map<String, List<Link>>> getIncomingLinkStorageForLink(Link link) {
+		// DataGroup to = link.getFirstGroupWithNameInData("to");
+		// String toType = extractLinkedRecordTypeValue(to);
+		// String toId = extractLinkedRecordIdValue(to);
+		String toType = link.type();
+		String toId = link.id();
 
 		ensureInIncomingLinksHolderForRecordTypeAndRecordId(toType, toId);
 
@@ -170,11 +172,13 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 		return !incomingLinksHolderForRecordIdExists(toType, toId);
 	}
 
-	private void storeLinkInIncomingLinks(DataGroup link,
-			Map<String, Map<String, List<DataGroup>>> toPartOfIncomingLinks) {
-		DataGroup from = link.getFirstGroupWithNameInData("from");
-		String fromType = extractLinkedRecordTypeValue(from);
-		String fromId = extractLinkedRecordIdValue(from);
+	private void storeLinkInIncomingLinks(String recordType, String recordId, Link link,
+			Map<String, Map<String, List<Link>>> toPartOfIncomingLinks) {
+		// DataGroup from = link.getFirstGroupWithNameInData("from");
+		// String fromType = extractLinkedRecordTypeValue(from);
+		// String fromId = extractLinkedRecordIdValue(from);
+		String fromType = recordType;
+		String fromId = recordId;
 
 		ensureIncomingLinksHolderExistsForFromRecordType(toPartOfIncomingLinks, fromType);
 
@@ -183,14 +187,14 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 	}
 
 	private void ensureIncomingLinksHolderExistsForFromRecordType(
-			Map<String, Map<String, List<DataGroup>>> toPartOfIncomingLinks, String fromType) {
+			Map<String, Map<String, List<Link>>> toPartOfIncomingLinks, String fromType) {
 		if (!toPartOfIncomingLinks.containsKey(fromType)) {
 			toPartOfIncomingLinks.put(fromType, new HashMap<>());
 		}
 	}
 
 	private void ensureIncomingLinksHolderExistsForFromRecordId(
-			Map<String, List<DataGroup>> fromPartOfIncomingLinks, String fromId) {
+			Map<String, List<Link>> fromPartOfIncomingLinks, String fromId) {
 		if (!fromPartOfIncomingLinks.containsKey(fromId)) {
 			fromPartOfIncomingLinks.put(fromId, new ArrayList<>());
 		}
@@ -239,10 +243,10 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 	}
 
 	@Override
-	public DataGroup readLinkList(String recordType, String recordId) {
+	public List<Link> readLinkList(String recordType, String recordId) {
 		checkRecordExists(recordType, recordId);
 		if (!linkLists.get(recordType).containsKey(recordId)) {
-			return new DataGroupOldSpy("collectedDataLinks");
+			return Collections.emptyList();
 		}
 		return linkLists.get(recordType).get(recordId);
 	}
@@ -271,30 +275,31 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 
 	private Collection<DataGroup> generateLinkCollectionFromStoredLinks(String type, String id) {
 		List<DataGroup> generatedLinkList = new ArrayList<>();
-		Map<String, Map<String, List<DataGroup>>> linkStorageForRecord = incomingLinks.get(type)
-				.get(id);
+		Map<String, Map<String, List<Link>>> linkStorageForRecord = incomingLinks.get(type).get(id);
 		addLinksForRecordFromAllRecordTypes(generatedLinkList, linkStorageForRecord);
 		return generatedLinkList;
 	}
 
 	private void addLinksForRecordFromAllRecordTypes(List<DataGroup> generatedLinkList,
-			Map<String, Map<String, List<DataGroup>>> linkStorageForRecord) {
-		for (Map<String, List<DataGroup>> mapOfId : linkStorageForRecord.values()) {
+			Map<String, Map<String, List<Link>>> linkStorageForRecord) {
+		for (Map<String, List<Link>> mapOfId : linkStorageForRecord.values()) {
 			addLinksForRecordForThisRecordType(generatedLinkList, mapOfId);
 		}
 	}
 
 	private void addLinksForRecordForThisRecordType(List<DataGroup> generatedLinkList,
-			Map<String, List<DataGroup>> mapOfId) {
-		for (List<DataGroup> recordToRecordLinkList : mapOfId.values()) {
+			Map<String, List<Link>> mapOfId) {
+		for (List<Link> recordToRecordLinkList : mapOfId.values()) {
 			addLinksFromRecordToRecordLinkList(generatedLinkList, recordToRecordLinkList);
 		}
 	}
 
 	private void addLinksFromRecordToRecordLinkList(List<DataGroup> generatedLinkList,
-			List<DataGroup> recordToRecordLinkList) {
-		for (DataGroup recordToRecordLink : recordToRecordLinkList) {
-			generatedLinkList.add(recordToRecordLink);
+			List<Link> recordToRecordLinkList) {
+		// for (DataGroup recordToRecordLink : recordToRecordLinkList) {
+		for (Link recordToRecordLink : recordToRecordLinkList) {
+			// TODO: must do stuff.. :) like create a new dataGroup...
+			// generatedLinkList.add(recordToRecordLink);
 		}
 	}
 
@@ -314,31 +319,33 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 
 	@Override
 	public void update(String recordType, String recordId, DataGroup record,
-			List<StorageTerm> collectedTerms, List<RecordToRecordLink> links, String dataDivider) {
+			List<StorageTerm> collectedTerms, List<Link> links, String dataDivider) {
 		checkRecordExists(recordType, recordId);
 		removeIncomingLinks(recordType, recordId);
 		// storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
 		storeRecordByRecordTypeAndRecordId(recordType, recordId, record);
-		storeLinks(recordType, recordId, links);
+		// storeLinks(recordType, recordId, links);
 	}
 
 	private void removeIncomingLinks(String recordType, String recordId) {
-		DataGroup oldLinkList = readLinkList(recordType, recordId);
-		for (DataChild linkElement : oldLinkList.getChildren()) {
-			removeIncomingLink(linkElement);
+		List<Link> oldLinkList = readLinkList(recordType, recordId);
+		for (Link linkElement : oldLinkList) {
+			removeIncomingLink(recordType, recordId, linkElement);
 		}
 	}
 
-	private void removeIncomingLink(DataChild linkElement) {
-		DataGroup link = (DataGroup) linkElement;
-		DataGroup recordLinkTo = link.getFirstGroupWithNameInData("to");
-		if (incomingLinksContainsToType(recordLinkTo)) {
-			Map<String, Map<String, List<DataGroup>>> toPartOfIncomingLinks = extractToPartOfIncomingLinks(
-					recordLinkTo);
-
-			removeLinkAndFromHolderFromIncomingLinks(link, toPartOfIncomingLinks);
-
-			removeToHolderFromIncomingLinks(recordLinkTo, toPartOfIncomingLinks);
+	private void removeIncomingLink(String recordType, String recordId, Link linkElement) {
+		// DataGroup link = (DataGroup) linkElement;
+		// DataGroup recordLinkTo = link.getFirstGroupWithNameInData("to");
+		if (incomingLinks.containsKey(linkElement.type())) {
+			// if (incomingLinksContainsToType(recordLinkTo)) {
+			Map<String, Map<String, List<Link>>> toPartOfIncomingLinks = extractToPartOfIncomingLinks(
+					linkElement);
+			// TODO: must du stuff :)
+			// removeLinkAndFromHolderFromIncomingLinks(recordType, recordId,
+			// toPartOfIncomingLinks);
+			//
+			// removeToHolderFromIncomingLinks(recordLinkTo, toPartOfIncomingLinks);
 		}
 	}
 
@@ -347,17 +354,19 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 		return incomingLinks.containsKey(toType);
 	}
 
-	private Map<String, Map<String, List<DataGroup>>> extractToPartOfIncomingLinks(DataGroup to) {
-		String toType = extractLinkedRecordTypeValue(to);
-		String toId = extractLinkedRecordIdValue(to);
-		return incomingLinks.get(toType).get(toId);
+	private Map<String, Map<String, List<Link>>> extractToPartOfIncomingLinks(Link linkElement) {
+		// String toType = extractLinkedRecordTypeValue(linkElement);
+		// String toId = extractLinkedRecordIdValue(linkElement);
+		return incomingLinks.get(linkElement.type()).get(linkElement.id());
 	}
 
-	private void removeLinkAndFromHolderFromIncomingLinks(DataGroup link,
+	private void removeLinkAndFromHolderFromIncomingLinks(String recordType, String recordId,
 			Map<String, Map<String, List<DataGroup>>> linksForToPart) {
-		DataGroup from = link.getFirstGroupWithNameInData("from");
-		String fromType = extractLinkedRecordTypeValue(from);
-		String fromId = extractLinkedRecordIdValue(from);
+		// DataGroup from = link.getFirstGroupWithNameInData("from");
+		// String fromType = extractLinkedRecordTypeValue(from);
+		// String fromId = extractLinkedRecordIdValue(from);
+		String fromType = recordType;
+		String fromId = recordId;
 
 		linksForToPart.get(fromType).remove(fromId);
 

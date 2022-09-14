@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.RecordConflictException;
@@ -46,7 +46,7 @@ public class RecordStorageDuplicateSpy implements RecordStorage {
 
 	@Override
 	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
-			List<RecordToRecordLink> links, String dataDivider) {
+			List<Link> links, String dataDivider) {
 		if (requiredIds.contains(id)) {
 			throw RecordConflictException
 					.withMessage("Record with recordId: " + id + " already exists");
@@ -68,7 +68,7 @@ public class RecordStorageDuplicateSpy implements RecordStorage {
 
 	@Override
 	public void update(String type, String id, DataGroup record, List<StorageTerm> collectedTerms,
-			List<RecordToRecordLink> links, String dataDivider) {
+			List<Link> links, String dataDivider) {
 
 	}
 

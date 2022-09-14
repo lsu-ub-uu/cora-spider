@@ -38,7 +38,7 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
-import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -121,8 +121,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(metadataId, topDataGroup);
 		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectTerms);
 
-		List<RecordToRecordLink> collectedLinks = linkCollector.collectLinks(metadataId,
-				topDataGroup, recordType, recordId);
+		List<Link> collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		useExtendedFunctionalityBeforeStore(recordType, topDataGroup);
@@ -321,8 +320,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		return type.getLinkedRecordId();
 	}
 
-	private void updateRecordInStorage(CollectTerms collectTerms,
-			List<RecordToRecordLink> collectedLinks) {
+	private void updateRecordInStorage(CollectTerms collectTerms, List<Link> collectedLinks) {
 
 		String dataDivider = extractDataDividerFromData(topDataGroup);
 

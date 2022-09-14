@@ -41,7 +41,7 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.collected.CollectTerms;
-import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
@@ -577,9 +577,9 @@ public class RecordCreatorTest {
 	}
 
 	private void setupLinkCollectorToReturnALinkSoThatWeCheckThatTheLinkedRecordExistsInStorage() {
-		RecordToRecordLink link = new RecordToRecordLink("fromType", "fromId", "toType", "toId");
+		Link link = new Link("toType", "toId");
 		linkCollector.MRV.setDefaultReturnValuesSupplier("collectLinks",
-				(Supplier<List<RecordToRecordLink>>) () -> List.of(link));
+				(Supplier<List<Link>>) () -> List.of(link));
 	}
 
 	@Test

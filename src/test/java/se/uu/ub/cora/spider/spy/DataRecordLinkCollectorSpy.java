@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -36,20 +36,13 @@ public class DataRecordLinkCollectorSpy implements DataRecordLinkCollector {
 	public DataRecordLinkCollectorSpy() {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("collectLinks",
-				(Supplier<List<RecordToRecordLink>>) () -> new ArrayList<>());
+				(Supplier<List<Link>>) () -> new ArrayList<>());
 	}
 
 	@Override
-	public List<RecordToRecordLink> collectLinks(String metadataId, DataGroup dataGroup,
-			String fromRecordType, String fromRecordId) {
-		return (List<RecordToRecordLink>) MCR.addCallAndReturnFromMRV("metadataId", metadataId,
-				"dataGroup", dataGroup, "fromRecordType", fromRecordType, "fromRecordId",
-				fromRecordId);
-		// MCR.addCall("metadataId", metadataId, "dataGroup", dataGroup, "fromRecordType",
-		// fromRecordType, "fromRecordId", fromRecordId);
-		// List<RecordToRecordLink> links = new ArrayList<>();
-		// MCR.addReturned(links);
-		// return links;
+	public List<Link> collectLinks(String metadataId, DataGroup dataGroup) {
+		return (List<Link>) MCR.addCallAndReturnFromMRV("metadataId", metadataId, "dataGroup",
+				dataGroup);
 	}
 
 }

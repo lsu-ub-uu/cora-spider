@@ -34,7 +34,7 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.IndexTerm;
-import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -67,7 +67,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private SpiderDependencyProvider dependencyProvider;
 	private Set<String> writePermissions;
 	private CollectTerms collectedTerms;
-	private List<RecordToRecordLink> collectedLinks;
+	private List<Link> collectedLinks;
 	private RecordArchive recordArchive;
 
 	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
@@ -238,8 +238,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = extractIdFromData();
 		collectedTerms = dataGroupTermCollector.collectTerms(metadataId, recordAsDataGroup);
-		collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup, recordType,
-				recordId);
+		collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 	}
 
@@ -249,7 +248,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void createRecordInStorage(DataGroup topLevelDataGroup,
-			List<RecordToRecordLink> collectedLinks, List<StorageTerm> storageTerms) {
+			List<Link> collectedLinks, List<StorageTerm> storageTerms) {
 		String dataDivider = extractDataDividerFromData(recordAsDataGroup);
 		recordStorage.create(recordType, recordId, topLevelDataGroup, storageTerms, collectedLinks,
 				dataDivider);

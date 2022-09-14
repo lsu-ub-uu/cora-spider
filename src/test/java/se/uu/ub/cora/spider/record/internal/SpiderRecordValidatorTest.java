@@ -25,11 +25,11 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicFactory;
@@ -44,6 +44,7 @@ import se.uu.ub.cora.data.DataRecordFactory;
 import se.uu.ub.cora.data.DataRecordLinkFactory;
 import se.uu.ub.cora.data.DataRecordLinkProvider;
 import se.uu.ub.cora.data.DataRecordProvider;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -71,7 +72,6 @@ import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageForValidateDataSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
-import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.RecordIdGenerator;
@@ -86,7 +86,7 @@ public class SpiderRecordValidatorTest {
 	private PermissionRuleCalculator ruleCalculator;
 	private RecordValidator recordValidator;
 	private DataValidatorSpy dataValidator;
-	private DataRecordLinkCollector linkCollector;
+	private DataRecordLinkCollectorSpy linkCollector;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private DataGroupTermCollector termCollector;
@@ -164,13 +164,8 @@ public class SpiderRecordValidatorTest {
 				recordToValidate);
 
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
-
 		dataValidator.MCR.assertMethodWasCalled("validateData");
-
-		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "textNew");
-		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).recordType, "text");
-		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).recordId, null);
-
+		linkCollector.MCR.assertParameters("collectLinks", 0, "textNew", recordToValidate);
 	}
 
 	private DataGroup createValidationOrderWithMetadataToValidateAndValidateLinks(
@@ -204,10 +199,7 @@ public class SpiderRecordValidatorTest {
 
 		dataValidator.MCR.assertMethodWasCalled("validateData");
 
-		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId, "text");
-		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).recordType, "text");
-		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).recordId, "spyId");
-
+		linkCollector.MCR.assertParameters("collectLinks", 0, "text", dataGroup);
 	}
 
 	@Test
@@ -224,8 +216,7 @@ public class SpiderRecordValidatorTest {
 				"existing", "false");
 		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
 				dataGroup);
-
-		assertFalse(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
+		linkCollector.MCR.methodWasCalled("collectLinks");
 	}
 
 	@Test
@@ -351,11 +342,7 @@ public class SpiderRecordValidatorTest {
 
 	@Test
 	public void testLinkedRecordIdDoesNotExist() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		linkCollector = DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
-		setUpDependencyProvider();
-
-		((RecordLinkTestsRecordStorage) recordStorage).recordIdExistsForRecordType = false;
+		fillCollectLinksReturnValue();
 
 		DataGroup dataGroup = RecordLinkTestsDataCreator
 				.createDataDataGroupWithRecordInfoAndLinkOneLevelDown();
@@ -378,10 +365,10 @@ public class SpiderRecordValidatorTest {
 	public void testValidateRecordInvalidDataAndLinksDoesNotExist() {
 		recordStorage = new RecordLinkTestsRecordStorage();
 		dataValidator.setNotValidForMetadataGroupId("dataWithLinksNew");
-		linkCollector = DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
 		setUpDependencyProvider();
-
 		((RecordLinkTestsRecordStorage) recordStorage).recordIdExistsForRecordType = false;
+
+		fillCollectLinksReturnValue();
 
 		DataGroup dataGroup = RecordLinkTestsDataCreator
 				.createDataDataGroupWithRecordInfoAndLinkOneLevelDown();
@@ -408,11 +395,7 @@ public class SpiderRecordValidatorTest {
 
 	@Test
 	public void testLinkedRecordIdDoesNotExistDoesNotMatterWhenLinksAreNotChecked() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		linkCollector = DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
-		setUpDependencyProvider();
-
-		((RecordLinkTestsRecordStorage) recordStorage).recordIdExistsForRecordType = false;
+		fillCollectLinksReturnValue();
 
 		DataGroup dataGroup = RecordLinkTestsDataCreator
 				.createDataDataGroupWithRecordInfoAndLinkOneLevelDown();
@@ -423,6 +406,12 @@ public class SpiderRecordValidatorTest {
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "true");
 
+	}
+
+	private void fillCollectLinksReturnValue() {
+		Link link = new Link("toRecordType", "toRecordId");
+		linkCollector.MRV.setDefaultReturnValuesSupplier("collectLinks",
+				(Supplier<List<Link>>) () -> List.of(link));
 	}
 
 	@Test

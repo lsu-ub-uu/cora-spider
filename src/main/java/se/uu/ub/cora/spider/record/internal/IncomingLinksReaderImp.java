@@ -61,6 +61,8 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 		this.recordId = recordId;
 		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(null,
 				recordStorage, recordType);
+		// recordTypeHandler =
+		// dependencyProvider.getRecordTypeHandler(recordType);
 		tryToGetActiveUser();
 		checkRecordsRecordTypeNotAbstract();
 		DataGroup recordRead = recordStorage.read(recordType, recordId);
@@ -144,6 +146,7 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 	private DataList createDataListForRecordToRecordLinks(Collection<DataGroup> links) {
 		DataList recordToRecordList = DataListProvider
 				.getDataListWithNameOfDataType("recordToRecordLink");
+		// DataProvider.createListWithNameOfDataType("recordToRecordLink");
 		recordToRecordList.setFromNo("1");
 		recordToRecordList.setToNo(Integer.toString(links.size()));
 		recordToRecordList.setTotalNo(Integer.toString(links.size()));

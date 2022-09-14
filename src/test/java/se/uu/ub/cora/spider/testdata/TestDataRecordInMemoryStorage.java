@@ -24,7 +24,7 @@ import java.util.List;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.record.storage.RecordStorageInMemoryStub;
@@ -34,7 +34,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 public class TestDataRecordInMemoryStorage {
 
 	private static String dataDivider = "cora";
-	private static List<RecordToRecordLink> emptyLinkList = Collections.emptyList();
+	private static List<Link> emptyLinkList = Collections.emptyList();
 
 	public static RecordStorageInMemoryStub createRecordStorageInMemoryWithTestData() {
 		RecordStorageInMemoryStub recordsInMemory = new RecordStorageInMemoryStub();
@@ -97,8 +97,7 @@ public class TestDataRecordInMemoryStorage {
 		DataRecordLinkSpy dataRecordLink = new DataRecordLinkSpy("link");
 		dataGroup.addChild(dataRecordLink);
 		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0001", dataRecordLink);
-		RecordToRecordLink link = new RecordToRecordLink("place", "place:0002", "place",
-				"place:0001");
+		Link link = new Link("place", "place:0001");
 
 		recordsInMemory.create("place", "place:0002", dataGroup, null, List.of(link), "cora");
 	}
@@ -131,8 +130,7 @@ public class TestDataRecordInMemoryStorage {
 		//
 		// collectedLinksList.addChild(recordToRecordLink);
 
-		RecordToRecordLink link = new RecordToRecordLink("place", "place:0004", "authority",
-				"place:0003");
+		Link link = new Link("authority", "place:0003");
 
 		recordsInMemory.create("place", "place:0004", dataGroup, null, List.of(link), "cora");
 	}
@@ -146,7 +144,7 @@ public class TestDataRecordInMemoryStorage {
 		dataRecordLink.addChild(linkedRecordId);
 	}
 
-	private static List<RecordToRecordLink> createLinkList() {
+	private static List<Link> createLinkList() {
 		// DataGroup collectedLinksList = emptyLinkList;
 		// DataGroup recordToRecordLink = new DataGroupOldSpy("recordToRecordLink");
 		//
@@ -159,8 +157,7 @@ public class TestDataRecordInMemoryStorage {
 		//
 		// collectedLinksList.addChild(recordToRecordLink);
 
-		RecordToRecordLink link = new RecordToRecordLink("place", "place:0002", "place",
-				"place:0001");
+		Link link = new Link("place", "place:0001");
 
 		return List.of(link);
 	}

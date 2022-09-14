@@ -24,7 +24,7 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
-import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -55,7 +55,7 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 	private void storeUpdatedDataGroup(DataGroup completedDataGroup) {
 		String metadataId = getMetadataIdFromRecordTypeHandler();
 		CollectTerms collectedTerms = collectTerms(completedDataGroup, metadataId);
-		List<RecordToRecordLink> collectedLinks = collectLinks(metadataId, completedDataGroup);
+		List<Link> collectedLinks = collectLinks(metadataId, completedDataGroup);
 		String dataDivider = extractDataDivider(completedDataGroup);
 
 		recordStorage.update(INDEX_BATCH_JOB, indexBatchJob.recordId, completedDataGroup,
@@ -80,10 +80,9 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 		return dataGroupTermCollector.collectTerms(metadataId, completedDataGroup);
 	}
 
-	private List<RecordToRecordLink> collectLinks(String metadataId, DataGroup completedDataGroup) {
+	private List<Link> collectLinks(String metadataId, DataGroup completedDataGroup) {
 		DataRecordLinkCollector linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		return linkCollector.collectLinks(metadataId, completedDataGroup, INDEX_BATCH_JOB,
-				indexBatchJob.recordId);
+		return linkCollector.collectLinks(metadataId, completedDataGroup);
 	}
 
 	private String extractDataDivider(DataGroup convertedDataGroup) {

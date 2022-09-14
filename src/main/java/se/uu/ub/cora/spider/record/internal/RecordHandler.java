@@ -30,7 +30,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
@@ -48,15 +48,15 @@ public class RecordHandler {
 	protected String authToken;
 	protected User user;
 
-	protected void checkToPartOfLinkedDataExistsInStorage(List<RecordToRecordLink> collectedLinks) {
-		for (RecordToRecordLink recordToRecordLink : collectedLinks) {
+	protected void checkToPartOfLinkedDataExistsInStorage(List<Link> collectedLinks) {
+		for (Link recordToRecordLink : collectedLinks) {
 			extractToGroupAndCheckDataExistsInStorage(recordToRecordLink);
 		}
 	}
 
-	private void extractToGroupAndCheckDataExistsInStorage(RecordToRecordLink recordToRecordLink) {
-		String toRecordType = recordToRecordLink.toType();
-		String toRecordId = recordToRecordLink.toId();
+	private void extractToGroupAndCheckDataExistsInStorage(Link recordToRecordLink) {
+		String toRecordType = recordToRecordLink.type();
+		String toRecordId = recordToRecordLink.id();
 		checkRecordTypeAndRecordIdExistsInStorage(toRecordId, toRecordType);
 	}
 

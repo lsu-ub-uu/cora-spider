@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.collected.RecordToRecordLink;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
@@ -57,7 +57,7 @@ public class RecordStorageMCRSpy implements RecordStorage {
 
 	@Override
 	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
-			List<RecordToRecordLink> links, String dataDivider) {
+			List<Link> links, String dataDivider) {
 		MCR.addCall("type", type, "id", id, "record", record, "storageTerms", storageTerms,
 				"linkList", links, "dataDivider", dataDivider);
 	}
@@ -76,7 +76,7 @@ public class RecordStorageMCRSpy implements RecordStorage {
 
 	@Override
 	public void update(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
-			List<RecordToRecordLink> links, String dataDivider) {
+			List<Link> links, String dataDivider) {
 		MCR.addCall("type", type, "id", id, "record", record, "storageTerms", storageTerms,
 				"linkList", links, "dataDivider", dataDivider);
 
