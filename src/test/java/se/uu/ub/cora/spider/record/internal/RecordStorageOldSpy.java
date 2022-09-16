@@ -146,13 +146,6 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public DataGroup readLinkList(String type, String id) {
-		MCR.addCall("type", type, "id", id);
-		MCR.addReturned(null);
-		return null;
-	}
-
-	@Override
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
 		MCR.addCall("type", type, "id", id);
 		MCR.addReturned(null);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,13 +18,14 @@
  */
 package se.uu.ub.cora.spider.record.internal;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
-import se.uu.ub.cora.data.DataListProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -33,7 +34,6 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 
 public class IncomingLinksReaderImp extends RecordHandler implements IncomingLinksReader {
 	private static final String READ = "read";
@@ -41,8 +41,12 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 	private SpiderAuthorizator spiderAuthorizator;
 	private RecordTypeHandler recordTypeHandler;
 	private DataGroupTermCollector collectTermCollector;
+	private SpiderDependencyProvider dependencyProvider;
+	private String missuseErrorMessage = "Read incomming links is not allowed for abstract "
+			+ "recordType: {0} and recordId: {1}";
 
 	public IncomingLinksReaderImp(SpiderDependencyProvider dependencyProvider) {
+		this.dependencyProvider = dependencyProvider;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
@@ -59,14 +63,11 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 		this.authToken = authToken;
 		this.recordType = recordType;
 		this.recordId = recordId;
-		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(null,
-				recordStorage, recordType);
-		// recordTypeHandler =
-		// dependencyProvider.getRecordTypeHandler(recordType);
-		tryToGetActiveUser();
-		checkRecordsRecordTypeNotAbstract();
-		DataGroup recordRead = recordStorage.read(recordType, recordId);
+		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 
+		tryToGetActiveUser();
+		throwExceptionIfRecordIsAbstract();
+		DataGroup recordRead = recordStorage.read(recordType, recordId);
 		checkUserIsAuthorisedToReadData(recordRead);
 
 		return collectLinksAndConvertToDataList();
@@ -76,10 +77,10 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 		user = authenticator.getUserForToken(authToken);
 	}
 
-	private void checkRecordsRecordTypeNotAbstract() {
+	private void throwExceptionIfRecordIsAbstract() {
 		if (recordTypeHandler.isAbstract()) {
-			throw new MisuseException("Reading for record: " + recordId
-					+ " on the abstract recordType:" + recordType + " is not allowed");
+			throw new MisuseException(
+					MessageFormat.format(missuseErrorMessage, recordType, recordId));
 		}
 	}
 
@@ -96,45 +97,23 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 
 	private DataList collectLinksAndConvertToDataList() {
 		Collection<DataGroup> links = new ArrayList<>();
-		addLinksPointingToRecord(links);
+		addLinksPointingToRecord(recordType, links);
 		possiblyAddLinksPointingToRecordByParentRecordType(links);
 
 		return convertLinksPointingToRecordToDataList(links);
 	}
 
-	private void addLinksPointingToRecord(Collection<DataGroup> links) {
+	private void addLinksPointingToRecord(String recordType2, Collection<DataGroup> links) {
 		Collection<DataGroup> linksPointingToRecord = recordStorage
-				.generateLinkCollectionPointingToRecord(recordType, recordId);
+				.generateLinkCollectionPointingToRecord(recordType2, recordId);
 		links.addAll(linksPointingToRecord);
 	}
 
 	private void possiblyAddLinksPointingToRecordByParentRecordType(Collection<DataGroup> links) {
-		DataGroup recordTypeDataGroup = getRecordTypeDefinition();
-		if (recordTypeHasParent(recordTypeDataGroup)) {
-			addLinksPointingToRecordByParentRecordType(links, recordTypeDataGroup);
+		if (recordTypeHandler.hasParent()) {
+			String parentId = recordTypeHandler.getParentId();
+			addLinksPointingToRecord(parentId, links);
 		}
-	}
-
-	protected DataGroup getRecordTypeDefinition() {
-		return recordStorage.read(RECORD_TYPE, recordType);
-	}
-
-	private boolean recordTypeHasParent(DataGroup recordTypeDataGroup) {
-		return recordTypeDataGroup.containsChildWithNameInData("parentId");
-	}
-
-	private void addLinksPointingToRecordByParentRecordType(Collection<DataGroup> links,
-			DataGroup recordTypeDataGroup) {
-		String parentId = extractParentId(recordTypeDataGroup);
-		Collection<DataGroup> linksPointingToParentType = recordStorage
-				.generateLinkCollectionPointingToRecord(parentId, recordId);
-		links.addAll(linksPointingToParentType);
-	}
-
-	private String extractParentId(DataGroup recordTypeDataGroup) {
-		DataRecordLink parent = (DataRecordLink) recordTypeDataGroup
-				.getFirstChildWithNameInData("parentId");
-		return parent.getLinkedRecordId();
 	}
 
 	private DataList convertLinksPointingToRecordToDataList(Collection<DataGroup> dataGroupLinks) {
@@ -144,9 +123,9 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 	}
 
 	private DataList createDataListForRecordToRecordLinks(Collection<DataGroup> links) {
-		DataList recordToRecordList = DataListProvider
-				.getDataListWithNameOfDataType("recordToRecordLink");
-		// DataProvider.createListWithNameOfDataType("recordToRecordLink");
+		DataList recordToRecordList = DataProvider
+				.createListWithNameOfDataType("recordToRecordLink");
+
 		recordToRecordList.setFromNo("1");
 		recordToRecordList.setToNo(Integer.toString(links.size()));
 		recordToRecordList.setTotalNo(Integer.toString(links.size()));

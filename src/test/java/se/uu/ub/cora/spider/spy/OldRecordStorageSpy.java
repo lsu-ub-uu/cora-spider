@@ -605,12 +605,6 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public DataGroup readLinkList(String type, String id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;

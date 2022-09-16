@@ -242,8 +242,7 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 		}
 	}
 
-	@Override
-	public List<Link> readLinkList(String recordType, String recordId) {
+	private List<Link> readLinkList(String recordType, String recordId) {
 		checkRecordExists(recordType, recordId);
 		if (!linkLists.get(recordType).containsKey(recordId)) {
 			return Collections.emptyList();

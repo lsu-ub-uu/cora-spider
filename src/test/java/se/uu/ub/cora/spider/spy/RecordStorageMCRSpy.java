@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -48,6 +49,8 @@ public class RecordStorageMCRSpy implements RecordStorage {
 		MRV.setDefaultReturnValuesSupplier(
 				"recordExistsForAbstractOrImplementingRecordTypeAndRecordId",
 				(Supplier<Boolean>) () -> false);
+		MRV.setDefaultReturnValuesSupplier("generateLinkCollectionPointingToRecord",
+				(Supplier<List<DataGroup>>) () -> Collections.emptyList());
 	}
 
 	@Override
@@ -109,15 +112,8 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	}
 
 	@Override
-	public DataGroup readLinkList(String type, String id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
-		// TODO Auto-generated method stub
-		return null;
+		return (Collection<DataGroup>) MCR.addCallAndReturnFromMRV("type", type, "id", id);
 	}
 
 	@Override
