@@ -27,6 +27,7 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.logger.LoggerFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -36,16 +37,20 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class MetadataValidatorExtendedFunctionalityFactoryTest {
 
 	private ExtendedFunctionalityFactory factory;
 	private SpiderDependencyProvider dependencyProviderSpy;
+	private DataFactorySpy dataFactorySpy;
 
 	@BeforeMethod
 	public void setUp() {
 		LoggerFactory loggerFactory = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactory);
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		factory = new MetadataValidatorExtendedFunctionalityFactory();
 		dependencyProviderSpy = new SpiderDependencyProviderOldSpy(Collections.emptyMap());
 		factory.initializeUsingDependencyProvider(dependencyProviderSpy);

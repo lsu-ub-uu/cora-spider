@@ -37,6 +37,8 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -116,28 +118,27 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		useExtendedFunctionalityAfterMetadataValidation(recordType, topDataGroup);
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
-		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId, topDataGroup);
-		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectedTerms);
+		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(metadataId, topDataGroup);
+		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectTerms);
 
-		DataGroup collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup, recordType,
-				recordId);
+		List<Link> collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		useExtendedFunctionalityBeforeStore(recordType, topDataGroup);
-		updateRecordInStorage(collectedTerms, collectedLinks);
+		updateRecordInStorage(collectTerms, collectedLinks);
 		if (recordTypeHandler.storeInArchive()) {
 			recordArchive.update(recordType, recordId, topDataGroup);
 		}
-		indexData(collectedTerms);
+		indexData(collectTerms);
 		useExtendedFunctionalityAfterStore(recordType, topDataGroup);
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup, dataRedactor);
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(String recordType,
-			DataGroup collectedTerms) {
+			CollectTerms collectTerms) {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, UPDATE,
-				recordType, collectedTerms);
+				recordType, collectTerms.permissionTerms);
 	}
 
 	private User tryToGetActiveUser() {
@@ -150,16 +151,16 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
 		previouslyStoredRecord = recordStorage.read(recordType, recordId);
-		DataGroup collectedTerms = dataGroupTermCollector.collectTerms(metadataId,
+		CollectTerms collectedTerms = dataGroupTermCollector.collectTerms(metadataId,
 				previouslyStoredRecord);
 
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
 	}
 
-	private void checkUserIsAuthorisedToUpdateGivenCollectedData(DataGroup collectedTerms) {
+	private void checkUserIsAuthorisedToUpdateGivenCollectedData(CollectTerms collectedTerms) {
 		writePermissions = spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, UPDATE, recordType, collectedTerms,
+						user, UPDATE, recordType, collectedTerms.permissionTerms,
 						recordTypeHandler.hasRecordPartWriteConstraint());
 	}
 
@@ -315,18 +316,16 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private String extractTypeFromRecordInfo(DataGroup recordInfo) {
-		// DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
-		// return typeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		DataRecordLink type = (DataRecordLink) recordInfo.getFirstChildWithNameInData("type");
 		return type.getLinkedRecordId();
 	}
 
-	private void updateRecordInStorage(DataGroup collectedTerms, DataGroup collectedLinks) {
+	private void updateRecordInStorage(CollectTerms collectTerms, List<Link> collectedLinks) {
 
 		String dataDivider = extractDataDividerFromData(topDataGroup);
 
-		recordStorage.update(recordType, recordId, topDataGroup, collectedTerms, collectedLinks,
-				dataDivider);
+		recordStorage.update(recordType, recordId, topDataGroup, collectTerms.storageTerms,
+				collectedLinks, dataDivider);
 	}
 
 	private void useExtendedFunctionalityBeforeStore(String recordTypeToUpdate,
@@ -336,9 +335,9 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		useExtendedFunctionality(dataGroup, functionalityForUpdateBeforeStore);
 	}
 
-	private void indexData(DataGroup collectedTerms) {
+	private void indexData(CollectTerms collectTerms) {
 		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
-		recordIndexer.indexData(ids, collectedTerms, topDataGroup);
+		recordIndexer.indexData(ids, collectTerms.indexTerms, topDataGroup);
 	}
 
 	private void useExtendedFunctionalityAfterStore(String recordTypeToCreate,

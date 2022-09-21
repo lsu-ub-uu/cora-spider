@@ -31,6 +31,7 @@ import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevel
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -41,10 +42,13 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataLink;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordFactory;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.DataRecordProvider;
+import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
@@ -63,6 +67,7 @@ import se.uu.ub.cora.spider.record.RecordLinkTestsAsserter;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class DataGroupToRecordEnhancerTest {
@@ -82,6 +87,7 @@ public class DataGroupToRecordEnhancerTest {
 	private DataGroupToRecordEnhancer enhancer;
 	private DataGroupTermCollectorSpy termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
+	private DataFactorySpy dataFactorySpy;
 	private DataRecordFactory dataRecordFactorySpy;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
@@ -105,6 +111,8 @@ public class DataGroupToRecordEnhancerTest {
 	private void setUpFactoriesAndProviders() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 
 		dataRecordFactorySpy = new DataRecordFactorySpy();
 		DataRecordProvider.setDataRecordFactory(dataRecordFactorySpy);
@@ -157,11 +165,11 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void assertCheckAndGetAuthorizationCalledForReadActionPartOfEnhance() {
-		DataGroup returnedCollectedTermsForRecordType = getAssertedCollectedTermsForRecordType(
-				SOME_RECORD_TYPE, someDataGroup);
+		var permissionTerms = getAssertedCollectedPermissionTermsForRecordType(SOME_RECORD_TYPE,
+				someDataGroup);
 		authorizator.MCR.assertParameters(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
-				user, READ, SOME_RECORD_TYPE, returnedCollectedTermsForRecordType, true);
+				user, READ, SOME_RECORD_TYPE, permissionTerms, true);
 	}
 
 	private void assertRecordContainsReadAction(DataRecord record) {
@@ -175,7 +183,7 @@ public class DataGroupToRecordEnhancerTest {
 		return recordStorageSpy;
 	}
 
-	private DataGroup getAssertedCollectedTermsForRecordType(String recordType,
+	private List<PermissionTerm> getAssertedCollectedPermissionTermsForRecordType(String recordType,
 			DataGroup dataGroup) {
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, recordType);
 		RecordTypeHandlerSpy recordTypeHandler = (RecordTypeHandlerSpy) dependencyProvider.MCR
@@ -191,10 +199,9 @@ public class DataGroupToRecordEnhancerTest {
 
 		termCollectorSpy.MCR.assertParameters("collectTerms", 0, metadataIdFromRecordTypeHandler,
 				dataGroup);
-		DataGroup returnedCollectedTermsForRecordType = (DataGroup) termCollectorSpy.MCR
-				.getReturnValue("collectTerms", 0);
+		return ((CollectTerms) termCollectorSpy.MCR.getReturnValue("collectTerms",
+				0)).permissionTerms;
 
-		return returnedCollectedTermsForRecordType;
 	}
 
 	@Test
@@ -308,11 +315,11 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void assertCheckAndGetAuthorizationCalledForUpdateActionPartOfEnhance() {
-		DataGroup returnedCollectedTermsForRecordType = getAssertedCollectedTermsForRecordType(
-				SOME_RECORD_TYPE, someDataGroup);
+		var permissionTerms = getAssertedCollectedPermissionTermsForRecordType(SOME_RECORD_TYPE,
+				someDataGroup);
 		authorizator.MCR.assertParameters(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
-				user, UPDATE, SOME_RECORD_TYPE, returnedCollectedTermsForRecordType, true);
+				user, UPDATE, SOME_RECORD_TYPE, permissionTerms, true);
 	}
 
 	@Test
@@ -369,10 +376,10 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void assertTypeAndCollectedDataAuthorizationCalledForIndexActionPartOfEnhance() {
-		DataGroup returnedCollectedTermsForRecordType = getAssertedCollectedTermsForRecordType(
-				SOME_RECORD_TYPE, someDataGroup);
+		var permissionTerms = getAssertedCollectedPermissionTermsForRecordType(SOME_RECORD_TYPE,
+				someDataGroup);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
-				0, user, "index", SOME_RECORD_TYPE, returnedCollectedTermsForRecordType);
+				0, user, "index", SOME_RECORD_TYPE, permissionTerms);
 	}
 
 	private void assertRecordContainsIndexAction(DataRecord record) {
@@ -500,10 +507,10 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void assertTypeAndCollectedDataAuthorizationCalledForDeleteActionPartOfEnhance() {
-		DataGroup returnedCollectedTermsForRecordType = getAssertedCollectedTermsForRecordType(
-				SOME_RECORD_TYPE, someDataGroup);
+		var permissionTerms = getAssertedCollectedPermissionTermsForRecordType(SOME_RECORD_TYPE,
+				someDataGroup);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
-				1, user, "delete", SOME_RECORD_TYPE, returnedCollectedTermsForRecordType);
+				1, user, "delete", SOME_RECORD_TYPE, permissionTerms);
 	}
 
 	@Test
@@ -699,10 +706,10 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void assertTypeAndCollectedDataAuthorizationCalledForUploadActionPartOfEnhance() {
-		DataGroup returnedCollectedTermsForRecordType = getAssertedCollectedTermsForRecordType(
-				SOME_RECORD_TYPE, someDataGroup);
+		var permissionTerms = getAssertedCollectedPermissionTermsForRecordType(SOME_RECORD_TYPE,
+				someDataGroup);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
-				2, user, "upload", SOME_RECORD_TYPE, returnedCollectedTermsForRecordType);
+				2, user, "upload", SOME_RECORD_TYPE, permissionTerms);
 	}
 
 	private void assertRecordContainsUploadAction(DataRecord record) {

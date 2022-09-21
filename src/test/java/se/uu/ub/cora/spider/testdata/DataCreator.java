@@ -25,7 +25,6 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
-import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public final class DataCreator {
@@ -50,12 +49,12 @@ public final class DataCreator {
 		return dataGroup;
 	}
 
-	private static DataGroup getFilterChild(String filterMetadataId) {
-		DataGroup filter = new DataGroupOldSpy("filter");
-		filter.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
-		filter.addChild(new DataAtomicSpy("linkedRecordId", filterMetadataId));
-		return filter;
-	}
+	// private static DataGroup getFilterChild(String filterMetadataId) {
+	// DataGroup filter = new DataGroupOldSpy("filter");
+	// filter.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
+	// filter.addChild(new DataAtomicSpy("linkedRecordId", filterMetadataId));
+	// return filter;
+	// }
 
 	public static DataGroup createRecordTypeWithIdAndUserSuppliedId(String id,
 			String userSuppliedId) {
@@ -124,31 +123,35 @@ public final class DataCreator {
 		return linkSpy;
 	}
 
-	public static DataRecordLinkCollectorSpy getDataRecordLinkCollectorSpyWithCollectedLinkAdded() {
-		DataGroup recordToRecordLink = createDataForRecordToRecordLink();
+	// public static DataRecordLinkCollectorSpy
+	// getDataRecordLinkCollectorSpyWithCollectedLinkAdded() {
+	// DataGroup recordToRecordLink = createDataForRecordToRecordLink();
+	//
+	// DataRecordLinkCollectorSpy linkCollector = new DataRecordLinkCollectorSpy();
+	// linkCollector.collectedDataLinks.addChild(recordToRecordLink);
+	// return linkCollector;
+	// }
 
-		DataRecordLinkCollectorSpy linkCollector = new DataRecordLinkCollectorSpy();
-		linkCollector.collectedDataLinks.addChild(recordToRecordLink);
-		return linkCollector;
-	}
-
-	public static DataGroup createDataForRecordToRecordLink() {
-		DataGroup recordToRecordLink = new DataGroupOldSpy("recordToRecordLink");
-
-		DataGroup from = new DataGroupOldSpy("from");
-		from.addChild(new DataAtomicSpy("linkedRecordType", "dataWithLinks"));
-		from.addChild(new DataAtomicSpy("linkedRecordId", "someId"));
-
-		recordToRecordLink.addChild(from);
-
-		DataGroup to = new DataGroupOldSpy("to");
-		to.addChild(new DataAtomicSpy("linkedRecordType", "toRecordType"));
-		to.addChild(new DataAtomicSpy("linkedRecordId", "toRecordId"));
-		to.addChild(to);
-
-		recordToRecordLink.addChild(to);
-		return recordToRecordLink;
-	}
+	// public static List<RecordToRecordLink> createDataForRecordToRecordLink() {
+	// DataGroup recordToRecordLink = new DataGroupOldSpy("recordToRecordLink");
+	//
+	// DataGroup from = new DataGroupOldSpy("from");
+	// from.addChild(new DataAtomicSpy("linkedRecordType", "dataWithLinks"));
+	// from.addChild(new DataAtomicSpy("linkedRecordId", "someId"));
+	//
+	// recordToRecordLink.addChild(from);
+	//
+	// DataGroup to = new DataGroupOldSpy("to");
+	// to.addChild(new DataAtomicSpy("linkedRecordType", "toRecordType"));
+	// to.addChild(new DataAtomicSpy("linkedRecordId", "toRecordId"));
+	// to.addChild(to);
+	//
+	// recordToRecordLink.addChild(to);
+	// RecordToRecordLink link = new RecordToRecordLink("dataWithLinks", "someId", "toRecordType",
+	// "toRecordId")
+	//
+	// return List.of(link);
+	// }
 
 	public static DataGroup createDataGroupWithNameInDataTypeAndId(String nameInData,
 			String recordType, String recordId) {

@@ -38,6 +38,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
@@ -230,8 +231,10 @@ public class SpiderUploaderTest {
 				recordStorage.read("image", "image:123456789"));
 
 		String methodName2 = "checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData";
+		CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
+				.getReturnValue("collectTerms", 0);
 		authorizator.MCR.assertParameters(methodName2, 0, authenticator.returnedUser, "upload",
-				"image", termCollector.MCR.getReturnValue("collectTerms", 0));
+				"image", collectedTerms.permissionTerms);
 	}
 
 	private void assertStreamStorageCalledCorrectly(DataRecord recordUpdated) {

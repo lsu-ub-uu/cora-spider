@@ -35,6 +35,7 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataListFactory;
 import se.uu.ub.cora.data.DataListProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
@@ -63,11 +64,14 @@ import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class SpiderRecordSearcherTest {
 	private static final String A_SEARCH_ID = "aSearchId";
 	private static final String ANOTHER_SEARCH_ID = "anotherSearchId";
 	private static final String SOME_AUTH_TOKEN = "someToken78678567";
+	private DataFactorySpy dataFactorySpy;
+
 	private final DataGroup someSearchData = new DataGroupOldSpy("search");
 
 	private RecordStorage recordStorage;
@@ -105,6 +109,8 @@ public class SpiderRecordSearcherTest {
 	private void setUpFactoriesAndProviders() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		dataGroupFactorySpy = new DataGroupFactorySpy();
 		DataGroupProvider.setDataGroupFactory(dataGroupFactorySpy);
 		dataAtomicFactorySpy = new DataAtomicFactorySpy();

@@ -33,8 +33,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicFactory;
 import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataChild;
@@ -44,10 +42,12 @@ import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.collected.Link;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
@@ -66,7 +66,6 @@ import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
-import se.uu.ub.cora.spider.record.RecordLinkTestsRecordStorage;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
@@ -74,14 +73,12 @@ import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordArchiveSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
+import se.uu.ub.cora.spider.spy.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageUpdateMultipleTimesSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
-import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
-import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.testspies.data.DataFactorySpy;
@@ -90,19 +87,19 @@ import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class RecordUpdaterTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
-	private RecordStorage recordStorage;
+	private RecordStorageMCRSpy recordStorage;
 	private RecordArchiveSpy recordArchive;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private RecordUpdater recordUpdater;
 	private DataValidatorSpy dataValidator;
-	private DataRecordLinkCollector linkCollector;
+	private DataRecordLinkCollectorSpy linkCollector;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private DataGroupTermCollectorSpy termCollector;
-	private RecordIndexer recordIndexer;
+	private RecordIndexerSpy recordIndexer;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
 
@@ -118,7 +115,7 @@ public class RecordUpdaterTest {
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
-		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
+		recordStorage = new RecordStorageMCRSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
@@ -144,6 +141,10 @@ public class RecordUpdaterTest {
 	}
 
 	private void setUpDependencyProvider() {
+		setUpDependencyProvider(recordStorage);
+	}
+
+	private void setUpDependencyProvider(RecordStorage recordStorage) {
 		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
@@ -164,10 +165,6 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testExternalDependenciesAreCalled() {
-		recordStorage = new OldRecordStorageSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		setUpDependencyProvider();
-
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
@@ -177,19 +174,22 @@ public class RecordUpdaterTest {
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 		dataValidator.MCR.assertMethodWasCalled("validateData");
 
-		assertTrue(((OldRecordStorageSpy) recordStorage).updateWasCalled);
-		assertTrue(((DataRecordLinkCollectorSpy) linkCollector).collectLinksWasCalled);
-		assertEquals(((DataRecordLinkCollectorSpy) linkCollector).metadataId,
-				"fakeMetadataIdFromRecordTypeHandlerSpy");
+		linkCollector.MCR.assertParameters("collectLinks", 0,
+				"fakeMetadataIdFromRecordTypeHandlerSpy", dataGroup);
+
+		CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
+				.getReturnValue("collectTerms", 1);
+
+		var links = linkCollector.MCR.getReturnValue("collectLinks", 0);
+
+		recordStorage.MCR.assertParameters("update", 0, "spyType", "spyId", dataGroup,
+				collectedTerms.storageTerms, links);
 
 		assertCorrectSearchTermCollectorAndIndexer();
 	}
 
 	@Test
 	public void testRecordTypeHandlerFetchedFromDependencyProvider() {
-		recordStorage = new OldRecordStorageSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		setUpDependencyProvider();
 
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 
@@ -206,15 +206,14 @@ public class RecordUpdaterTest {
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
 				"fakeMetadataIdFromRecordTypeHandlerSpy");
 
-		assertEquals(((RecordIndexerSpy) recordIndexer).collectedData,
-				termCollector.MCR.getReturnValue("collectTerms", 1));
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
+				1);
+		recordIndexer.MCR.assertParameter("indexData", 0, "indexTerms", collectTerms.indexTerms);
+
 	}
 
 	@Test
 	public void testCorrectSpiderAuthorizatorForNoRecordPartConstraints() throws Exception {
-		recordStorage = new OldRecordStorageSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		setUpDependencyProvider();
 
 		recordTypeHandlerSpy.recordPartConstraint = "";
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
@@ -225,13 +224,12 @@ public class RecordUpdaterTest {
 
 		authorizator.MCR.assertParameters(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
-				authenticator.returnedUser, "update", "spyType",
-				termCollector.MCR.getReturnValue("collectTerms", 0), false);
+				authenticator.returnedUser, "update", "spyType", getPermissionTermUsingCallNo(0),
+				false);
 
 		authorizator.MCR.assertParameters(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0,
-				authenticator.returnedUser, "update", "spyType",
-				termCollector.MCR.getReturnValue("collectTerms", 1));
+				authenticator.returnedUser, "update", "spyType", getPermissionTermUsingCallNo(1));
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
 
@@ -243,10 +241,6 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testCorrectSpiderAuthorizatorForWriteRecordPartConstraints() throws Exception {
-		recordStorage = new OldRecordStorageSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		setUpDependencyProvider();
-
 		recordTypeHandlerSpy.recordPartConstraint = "write";
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 
@@ -257,16 +251,15 @@ public class RecordUpdaterTest {
 
 		authorizator.MCR.assertParameters(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
-				authenticator.returnedUser, "update", "spyType",
-				termCollector.MCR.getReturnValue("collectTerms", 0), true);
+				authenticator.returnedUser, "update", "spyType", getPermissionTermUsingCallNo(0),
+				true);
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				1);
 
 		authorizator.MCR.assertParameters(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0,
-				authenticator.returnedUser, "update", "spyType",
-				termCollector.MCR.getReturnValue("collectTerms", 1));
+				authenticator.returnedUser, "update", "spyType", getPermissionTermUsingCallNo(1));
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
 
@@ -276,7 +269,7 @@ public class RecordUpdaterTest {
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
 		dataRedactor.MCR.assertParameters("replaceChildrenForConstraintsWithoutPermissions", 0,
-				recordTypeHandlerSpy.getMetadataId(), ((OldRecordStorageSpy) recordStorage).aRecord,
+				recordTypeHandlerSpy.getMetadataId(), recordStorage.MCR.getReturnValue("read", 0),
 				dataGroup, recordTypeHandlerSpy.writeConstraints, expectedPermissions);
 
 		DataGroup returnedRedactedDataGroup = (DataGroup) dataRedactor.MCR
@@ -288,12 +281,13 @@ public class RecordUpdaterTest {
 		dataRedactor.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
 	}
 
+	private List<PermissionTerm> getPermissionTermUsingCallNo(int callNumber) {
+		return ((CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
+				callNumber)).permissionTerms;
+	}
+
 	@Test
 	public void testRecordEnhancerCalled() {
-		authorizator = new SpiderAuthorizatorSpy();
-		recordStorage = new OldRecordStorageSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		setUpDependencyProvider();
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 				"spyType", "spyId", "cora"));
@@ -301,15 +295,12 @@ public class RecordUpdaterTest {
 
 		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, authenticator.returnedUser,
 				"spyType", dataGroup, dataRedactor);
-
 	}
 
 	@Test
 	public void testCorrectRecordInfoInUpdatedRecord() {
-		recordStorage = new OldRecordStorageSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		setUpDependencyProvider();
-
+		OldRecordStorageSpy oldRecordStorage = new OldRecordStorageSpy();
+		setUpDependencyProvider(oldRecordStorage);
 		DataGroup dataGroup = new DataGroupOldSpy("someRecordDataGroup");
 		addRecordInfoWithCreatedInfo(dataGroup);
 
@@ -406,31 +397,29 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testCorrectUpdateInfoWhenRecordHasAlreadyBeenUpdated() {
-		recordStorage = new RecordStorageUpdateMultipleTimesSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		setUpDependencyProvider();
+		RecordStorageUpdateMultipleTimesSpy recordStorage = new RecordStorageUpdateMultipleTimesSpy();
+		setUpDependencyProvider(recordStorage);
+
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		addRecordInfoWithCreatedInfo(dataGroup);
 
-		RecordStorageUpdateMultipleTimesSpy recordStorageSpy = (RecordStorageUpdateMultipleTimesSpy) recordStorage;
-		updateStorageToReturnDataGroupIncludingUpdateInfo();
+		updateStorageToReturnDataGroupIncludingUpdateInfo(recordStorage);
 		DataRecord updatedOnce = recordUpdater.updateRecord("someToken78678567", "spyType", "spyId",
 				dataGroup);
-		assertEquals(recordStorageSpy.types.size(), 1);
-
+		assertEquals(recordStorage.types.size(), 1);
 		assertUpdatedRepeatIdsInGroupAsListed(updatedOnce, "0", "1");
 
 	}
 
-	private void updateStorageToReturnDataGroupIncludingUpdateInfo() {
-		((RecordStorageUpdateMultipleTimesSpy) recordStorage).alreadyCalled = true;
+	private void updateStorageToReturnDataGroupIncludingUpdateInfo(
+			RecordStorageUpdateMultipleTimesSpy recordStorage) {
+		recordStorage.alreadyCalled = true;
 	}
 
 	@Test
 	public void testNewUpdatedInRecordInfoHasRepeatIdPlusOne() {
-		recordStorage = new RecordStorageUpdateMultipleTimesSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		setUpDependencyProvider();
+		RecordStorageUpdateMultipleTimesSpy recordStorage = new RecordStorageUpdateMultipleTimesSpy();
+		setUpDependencyProvider(recordStorage);
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		addRecordInfoWithCreatedInfo(dataGroup);
 
@@ -438,7 +427,7 @@ public class RecordUpdaterTest {
 				"spyId", dataGroup);
 		assertCorrectUserInfo(updatedOnceRecord);
 
-		updateStorageToReturnDataGroupIncludingUpdateInfo();
+		updateStorageToReturnDataGroupIncludingUpdateInfo(recordStorage);
 		DataRecord updatedTwice = recordUpdater.updateRecord("someToken78678567", "spyType",
 				"spyId", dataGroup);
 		assertUpdatedRepeatIdsInGroupAsListed(updatedTwice, "0", "1");
@@ -446,15 +435,14 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testCreateAndUpdateInfoSetFromPreviousUpdateIsNotReplacedByAlteredData() {
-		recordStorage = new RecordStorageUpdateMultipleTimesSpy();
-		ruleCalculator = new RuleCalculatorSpy();
-		setUpDependencyProvider();
+		RecordStorageUpdateMultipleTimesSpy recordStorage = new RecordStorageUpdateMultipleTimesSpy();
+		setUpDependencyProvider(recordStorage);
 
 		DataGroup dataGroupToUpdate = new DataGroupOldSpy("nameInData");
 		addRecordInfoWithCreatedInfo(dataGroupToUpdate);
 		addUpdatedInfoToRecordInfo(dataGroupToUpdate);
 
-		updateStorageToReturnDataGroupIncludingUpdateInfo();
+		updateStorageToReturnDataGroupIncludingUpdateInfo(recordStorage);
 		DataRecord updatedRecord = recordUpdater.updateRecord("someToken78678567", "spyType",
 				"spyId", dataGroupToUpdate);
 
@@ -476,7 +464,6 @@ public class RecordUpdaterTest {
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup updated = new DataGroupOldSpy("updated");
 		updated.setRepeatId("0");
-		// DataRecordLink updatedBy = new DataRecordLinkSpy("updatedBy");
 		DataRecordLinkSpy updatedBy = new DataRecordLinkSpy();
 		updated.addChild(updatedBy);
 		updated.addChild(new DataAtomicSpy("tsUpdated", "2010-12-13 20:20:38.346"));
@@ -492,9 +479,6 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testUserIsAuthorizedForPreviousVersionOfData() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
 		DataGroup dataGroup = getDataGroupToUpdate();
 		dataGroup.addChild(new DataAtomicSpy("notStoredValue", "hej"));
 
@@ -504,7 +488,7 @@ public class RecordUpdaterTest {
 		authorizator.MCR.assertParameters(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
 				authenticator.returnedUser, "update", "typeWithAutoGeneratedId",
-				termCollector.MCR.getReturnValue("collectTerms", 0), false);
+				getPermissionTermUsingCallNo(0), false);
 
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
@@ -513,7 +497,7 @@ public class RecordUpdaterTest {
 		authorizator.MCR.assertParameters(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0,
 				authenticator.returnedUser, "update", "typeWithAutoGeneratedId",
-				termCollector.MCR.getReturnValue("collectTerms", 1));
+				getPermissionTermUsingCallNo(1));
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
 	}
@@ -521,8 +505,6 @@ public class RecordUpdaterTest {
 	@Test(expectedExceptions = AuthenticationException.class)
 	public void testAuthenticationNotAuthenticated() {
 		authenticator.throwAuthenticationException = true;
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
 		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
 				"nameInData", "spyId", "spyType", "cora");
 		recordUpdater.updateRecord("dummyNonAuthenticatedToken", "spyType", "spyId", dataGroup);
@@ -530,9 +512,6 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testUnauthorizedForUpdateOnRecordTypeShouldNotAccessStorage() {
-		recordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider();
-
 		authorizator.authorizedForActionAndRecordType = false;
 
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
@@ -546,21 +525,16 @@ public class RecordUpdaterTest {
 			assertEquals(e.getClass(), AuthorizationException.class);
 			exceptionWasCaught = true;
 		}
+
 		assertTrue(exceptionWasCaught);
-		assertFalse(((OldRecordStorageSpy) recordStorage).readWasCalled);
-		assertFalse(((OldRecordStorageSpy) recordStorage).updateWasCalled);
-		assertFalse(((OldRecordStorageSpy) recordStorage).deleteWasCalled);
-		assertFalse(((OldRecordStorageSpy) recordStorage).createWasCalled);
+		recordStorage.MCR.assertMethodNotCalled("read");
+		recordStorage.MCR.assertMethodNotCalled("update");
+		recordStorage.MCR.assertMethodNotCalled("delete");
+		recordStorage.MCR.assertMethodNotCalled("create");
 	}
 
 	@Test
 	public void testExtendedFunctionalityIsCalled() {
-		authorizator = new SpiderAuthorizatorSpy();
-		RecordStorageCreateUpdateSpy recordStorageSpy = new RecordStorageCreateUpdateSpy();
-		recordStorage = recordStorageSpy;
-		ruleCalculator = new RuleCalculatorSpy();
-		setUpDependencyProvider();
-
 		String recordType = "spyType";
 		String recordId = "spyId";
 		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
@@ -574,7 +548,7 @@ public class RecordUpdaterTest {
 		expectedData.recordId = recordId;
 		expectedData.authToken = authToken;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
-		expectedData.previouslyStoredTopDataGroup = (DataGroup) recordStorageSpy.MCR
+		expectedData.previouslyStoredTopDataGroup = (DataGroup) recordStorage.MCR
 				.getReturnValue("read", 0);
 		expectedData.dataGroup = dataGroup;
 
@@ -590,56 +564,46 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testIndexerIsCalled() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
 		DataGroup dataGroup = getDataGroupToUpdate();
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
 				dataGroup);
 
-		DataGroup updatedRecord = ((RecordStorageCreateUpdateSpy) recordStorage).updateRecord;
-		RecordIndexerSpy recordIndexerSpy = (RecordIndexerSpy) recordIndexer;
-		DataGroup indexedRecord = recordIndexerSpy.record;
-		assertEquals(indexedRecord, updatedRecord);
-		List<String> ids = recordIndexerSpy.ids;
-		assertEquals(ids.get(0), "fakeCombinedIdFromRecordTypeHandlerSpy");
-		assertEquals(ids.size(), 1);
+		var recordToSentToStorage = (DataGroup) recordStorage.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("update", 0, "record");
+		var ids = recordTypeHandlerSpy.MCR.getReturnValue("getCombinedIdsUsingRecordId", 0);
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
+				1);
+		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectTerms.indexTerms,
+				recordToSentToStorage);
 	}
 
 	@Test
 	public void testIndexerIsCalledForChildOfAbstract() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
 		DataGroup dataGroup = getDataGroupForImageToUpdate();
 
 		recordUpdater.updateRecord("someToken78678567", "image", "someImage", dataGroup);
 
-		DataGroup updatedRecord = ((RecordStorageCreateUpdateSpy) recordStorage).updateRecord;
-		RecordIndexerSpy recordIndexerSpy = (RecordIndexerSpy) recordIndexer;
-		DataGroup indexedRecord = recordIndexerSpy.record;
-		assertEquals(indexedRecord, updatedRecord);
-		List<String> ids = recordIndexerSpy.ids;
-		assertEquals(ids.get(0), "fakeCombinedIdFromRecordTypeHandlerSpy");
-		assertEquals(ids.size(), 1);
+		var recordToSentToStorage = (DataGroup) recordStorage.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("update", 0, "record");
+		var ids = recordTypeHandlerSpy.MCR.getReturnValue("getCombinedIdsUsingRecordId", 0);
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
+				1);
+		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectTerms.indexTerms,
+				recordToSentToStorage);
 	}
 
 	private DataGroup getDataGroupForImageToUpdate() {
 		DataGroup dataGroup = new DataGroupOldSpy("binary");
 		DataGroup createRecordInfo = DataCreator2
 				.createRecordInfoWithIdAndLinkedRecordId("someImage", "cora");
-		// DataGroup typeGroup = new DataGroupOldSpy("type");
-		// typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-		// typeGroup.addChild(new DataAtomicSpy("linkedRecordId", "image"));
-		// createRecordInfo.addChild(typeGroup);
 		createRecordInfo.addChild(createLinkWithLinkedId("type", "linkedRecordType", "image"));
 		dataGroup.addChild(createRecordInfo);
 		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
 		return dataGroup;
 	}
 
-	public static DataRecordLink createLinkWithLinkedId(String nameInData, String linkedRecordType,
+	private DataRecordLink createLinkWithLinkedId(String nameInData, String linkedRecordType,
 			String id) {
 		DataRecordLinkSpy linkSpy = new DataRecordLinkSpy();
 		linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData",
@@ -653,9 +617,6 @@ public class RecordUpdaterTest {
 		DataGroup dataGroup = new DataGroupOldSpy("typeWithUserGeneratedId");
 		DataGroup createRecordInfo = DataCreator2
 				.createRecordInfoWithIdAndLinkedRecordId("somePlace", "cora");
-		// DataGroup typeGroup = new DataGroupOldSpy("type");
-		// typeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-		// typeGroup.addChild(new DataAtomicSpy("linkedRecordId", "typeWithAutoGeneratedId"));
 		createRecordInfo.addChild(
 				createLinkWithLinkedId("type", "linkedRecordType", "typeWithAutoGeneratedId"));
 
@@ -666,22 +627,16 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testUpdateRecordDataDividerExtractedFromData() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
 		DataGroup dataGroup = getDataGroupToUpdate();
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
 				dataGroup);
 
-		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).dataDivider, "cora");
+		recordStorage.MCR.assertParameter("update", 0, "dataDivider", "cora");
 	}
 
 	@Test
 	public void testCreateRecordCollectedTermsSentAlong() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
 		DataGroup dataGroup = getDataGroupToUpdate();
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
@@ -689,19 +644,17 @@ public class RecordUpdaterTest {
 
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
 				"fakeMetadataIdFromRecordTypeHandlerSpy");
-		assertEquals(((RecordStorageCreateUpdateSpy) recordStorage).collectedTerms,
-				termCollector.MCR.getReturnValue("collectTerms", 1));
-
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
+				1);
+		recordStorage.MCR.assertParameter("update", 0, "storageTerms", collectTerms.storageTerms);
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testUpdateNotFound() {
+		recordStorage.MRV.setAlwaysThrowException("read", new RecordNotFoundException("message"));
+
 		DataGroup record = new DataGroupOldSpy("authority");
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
-		DataAtomic idData = new DataAtomicSpy("id", "NOT_FOUND");
-		recordInfo.addChild(idData);
-		recordInfo.addChild(new DataAtomicSpy("type", "recordType"));
-		recordInfo.addChild(new DataAtomicSpy("createdBy", "someToken78678567"));
 
 		record.addChild(recordInfo);
 		recordUpdater.updateRecord("someToken78678567", "recordType", "NOT_FOUND", record);
@@ -709,18 +662,12 @@ public class RecordUpdaterTest {
 
 	@Test(expectedExceptions = DataMissingException.class)
 	public void testUpdateRecordRecordInfoMissing() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
 		DataGroup group = new DataGroupOldSpy("authority");
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "place", group);
 	}
 
 	@Test(expectedExceptions = DataMissingException.class)
 	public void testUpdateRecordRecordInfoContentMissing() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
 		DataGroup group = new DataGroupOldSpy("authority");
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
 		group.addChild(createRecordInfo);
@@ -729,9 +676,6 @@ public class RecordUpdaterTest {
 
 	@Test(expectedExceptions = DataException.class)
 	public void testUpdateRecordInvalidData() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
 		dataValidator.validValidation = false;
 
 		DataGroup dataGroup = new DataGroupOldSpy("typeWithUserGeneratedId");
@@ -746,17 +690,14 @@ public class RecordUpdaterTest {
 				dataGroup);
 	}
 
-	@Test(expectedExceptions = RecordNotFoundException.class)
-	public void testNonExistingRecordType() {
-		DataGroup record = new DataGroupOldSpy("authority");
-		recordUpdater.updateRecord("someToken78678567", "recordType_NOT_EXISTING", "id", record);
-	}
+	// @Test(expectedExceptions = RecordNotFoundException.class)
+	// public void testNonExistingRecordType() {
+	// DataGroup record = new DataGroupOldSpy("authority");
+	// recordUpdater.updateRecord("someToken78678567", "recordType_NOT_EXISTING", "id", record);
+	// }
 
 	@Test(expectedExceptions = DataException.class)
 	public void testUpdateRecordIncomingNameInDatasDoNotMatch() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
 		DataGroup dataGroup = new DataGroupOldSpy("typeWithUserGeneratedId");
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
 		createRecordInfo.addChild(new DataAtomicSpy("id", "place"));
@@ -770,9 +711,6 @@ public class RecordUpdaterTest {
 
 	@Test(expectedExceptions = DataException.class)
 	public void testUpdateRecordIncomingDataTypesDoNotMatch() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
 		DataGroup dataGroup = new DataGroupOldSpy("typeWithUserGeneratedId_NOT_THE_SAME");
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
 		createRecordInfo.addChild(new DataAtomicSpy("id", "place"));
@@ -787,9 +725,6 @@ public class RecordUpdaterTest {
 
 	@Test(expectedExceptions = DataException.class)
 	public void testUpdateRecordIncomingDataIdDoNotMatch() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-
 		DataGroup dataGroup = new DataGroupOldSpy("typeWithUserGeneratedId_NOT_THE_SAME");
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
 		createRecordInfo.addChild(new DataAtomicSpy("id", "place"));
@@ -802,24 +737,19 @@ public class RecordUpdaterTest {
 
 	@Test(expectedExceptions = DataException.class)
 	public void testLinkedRecordIdDoesNotExist() {
-		recordStorage = new RecordLinkTestsRecordStorage();
-		linkCollector = DataCreator.getDataRecordLinkCollectorSpyWithCollectedLinkAdded();
-		setUpDependencyProvider();
-
-		((RecordLinkTestsRecordStorage) recordStorage).recordIdExistsForRecordType = false;
+		Link links = new Link("toType", "toId");
+		linkCollector.MRV.setDefaultReturnValuesSupplier("collectLinks",
+				(Supplier<List<Link>>) () -> List.of(links));
 
 		DataGroup dataGroup = RecordLinkTestsDataCreator
 				.createDataDataGroupWithRecordInfoAndLinkOneLevelDown();
+
 		recordUpdater.updateRecord("someToken78678567", "dataWithLinks", "oneLinkOneLevelDown",
 				dataGroup);
 	}
 
 	@Test
 	public void testStoreInArchiveTrue() throws Exception {
-		recordStorage = new RecordStorageOldSpy();
-		RecordStorageOldSpy oldRecordStorage = (RecordStorageOldSpy) recordStorage;
-		setUpDependencyProvider();
-		oldRecordStorage.returnForRead = new DataGroupSpy();
 
 		recordTypeHandlerSpy.storeInArchive = true;
 		DataGroupSpy recordSpy = createDataGroupForUpdate();
@@ -834,7 +764,6 @@ public class RecordUpdaterTest {
 		DataGroupSpy recordInfoSpy = new DataGroupSpy();
 		recordSpy.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
 				(Supplier<DataGroupSpy>) () -> recordInfoSpy, "recordInfo");
-		// DataGroupSpy dataDividerSpy = new DataGroupSpy();
 		DataRecordLinkSpy dataDividerSpy = new DataRecordLinkSpy();
 		recordInfoSpy.MRV.setReturnValues("getFirstChildWithNameInData", List.of(dataDividerSpy),
 				"dataDivider");
@@ -853,11 +782,6 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testStoreInArchiveFalse() throws Exception {
-		recordStorage = new RecordStorageOldSpy();
-		RecordStorageOldSpy oldRecordStorage = (RecordStorageOldSpy) recordStorage;
-		setUpDependencyProvider();
-		oldRecordStorage.returnForRead = new DataGroupSpy();
-
 		recordTypeHandlerSpy.storeInArchive = false;
 		DataGroupSpy recordSpy = createDataGroupForUpdate();
 

@@ -18,9 +18,13 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
+import java.util.List;
+
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -50,12 +54,12 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 
 	private void storeUpdatedDataGroup(DataGroup completedDataGroup) {
 		String metadataId = getMetadataIdFromRecordTypeHandler();
-		DataGroup collectedTerms = collectTerms(completedDataGroup, metadataId);
-		DataGroup collectedLinks = collectLinks(metadataId, completedDataGroup);
+		CollectTerms collectedTerms = collectTerms(completedDataGroup, metadataId);
+		List<Link> collectedLinks = collectLinks(metadataId, completedDataGroup);
 		String dataDivider = extractDataDivider(completedDataGroup);
 
 		recordStorage.update(INDEX_BATCH_JOB, indexBatchJob.recordId, completedDataGroup,
-				collectedTerms, collectedLinks, dataDivider);
+				collectedTerms.storageTerms, collectedLinks, dataDivider);
 	}
 
 	private String getMetadataIdFromRecordTypeHandler() {
@@ -70,16 +74,15 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 		return dataGroup;
 	}
 
-	private DataGroup collectTerms(DataGroup completedDataGroup, String metadataId) {
+	private CollectTerms collectTerms(DataGroup completedDataGroup, String metadataId) {
 		DataGroupTermCollector dataGroupTermCollector = dependencyProvider
 				.getDataGroupTermCollector();
 		return dataGroupTermCollector.collectTerms(metadataId, completedDataGroup);
 	}
 
-	private DataGroup collectLinks(String metadataId, DataGroup completedDataGroup) {
+	private List<Link> collectLinks(String metadataId, DataGroup completedDataGroup) {
 		DataRecordLinkCollector linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		return linkCollector.collectLinks(metadataId, completedDataGroup, INDEX_BATCH_JOB,
-				indexBatchJob.recordId);
+		return linkCollector.collectLinks(metadataId, completedDataGroup);
 	}
 
 	private String extractDataDivider(DataGroup convertedDataGroup) {

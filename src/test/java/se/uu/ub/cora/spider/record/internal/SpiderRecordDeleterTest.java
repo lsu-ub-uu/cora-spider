@@ -33,6 +33,8 @@ import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
@@ -61,8 +63,12 @@ import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class SpiderRecordDeleterTest {
+	private LoggerFactorySpy loggerFactorySpy;
+	private DataFactorySpy dataFactorySpy;
+
 	private RecordStorage recordStorage;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
@@ -71,7 +77,7 @@ public class SpiderRecordDeleterTest {
 	private RecordDeleter recordDeleter;
 	private RecordIndexer recordIndexer;
 	private DataGroupTermCollectorSpy termCollector;
-	private LoggerFactorySpy loggerFactorySpy;
+
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private DataGroupFactory dataGroupFactory;
 	private DataAtomicFactory dataAtomicFactory;
@@ -93,6 +99,8 @@ public class SpiderRecordDeleterTest {
 	private void setUpFactoriesAndProviders() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		dataGroupFactory = new DataGroupFactorySpy();
 		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
 		dataAtomicFactory = new DataAtomicFactorySpy();
@@ -143,8 +151,10 @@ public class SpiderRecordDeleterTest {
 		recordDeleter.deleteRecord("userId", "child1", "place:0002");
 
 		String methodName = "checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData";
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
+				0);
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "delete",
-				"child1", termCollector.MCR.getReturnValue("collectTerms", 0));
+				"child1", collectTerms.permissionTerms);
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
 				dependencyProvider.recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0));

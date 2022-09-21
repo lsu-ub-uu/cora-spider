@@ -28,6 +28,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collected.Link;
+import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
@@ -74,10 +76,10 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
-			DataGroup linkList, String dataDivider) {
-		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", collectedTerms,
-				"linkList", linkList, "dataDivider", dataDivider);
+	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
+			List<Link> links, String dataDivider) {
+		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", storageTerms,
+				"linkList", links, "dataDivider", dataDivider);
 	}
 
 	@Override
@@ -97,10 +99,10 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
-			DataGroup linkList, String dataDivider) {
-		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", collectedTerms,
-				"linkList", linkList, "dataDivider", dataDivider);
+	public void update(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
+			List<Link> links, String dataDivider) {
+		MCR.addCall("type", type, "id", id, "record", record, "storageTerms", storageTerms,
+				"linkList", links, "dataDivider", dataDivider);
 	}
 
 	@Override
@@ -141,13 +143,6 @@ public class RecordStorageOldSpy implements RecordStorage {
 		StorageReadResult createSpiderReadResult = createSpiderReadResult();
 		MCR.addReturned(createSpiderReadResult);
 		return createSpiderReadResult;
-	}
-
-	@Override
-	public DataGroup readLinkList(String type, String id) {
-		MCR.addCall("type", type, "id", id);
-		MCR.addReturned(null);
-		return null;
 	}
 
 	@Override

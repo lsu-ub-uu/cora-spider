@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
@@ -207,6 +208,7 @@ public class IndexBatchJobRunnerTest {
 
 	@Test
 	public void testCorrectCallToIndex() {
+
 		batchRunner.run();
 		RecordTypeHandlerSpy recordTypeHandler = dependencyProvider.recordTypeHandlerSpy;
 
@@ -217,6 +219,7 @@ public class IndexBatchJobRunnerTest {
 			assertCorrectParametersSentToIndex(recordTypeHandler, i, indexDataCall, 1);
 			indexDataCall++;
 		}
+
 	}
 
 	private void assertCorrectParametersSentToIndex(RecordTypeHandlerSpy recordTypeHandler,
@@ -230,8 +233,10 @@ public class IndexBatchJobRunnerTest {
 		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", parameterIndex, "ids",
 				recordTypeHandler.MCR.getReturnValue("getCombinedIdsUsingRecordId",
 						parameterIndex));
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
+				parameterIndex);
 		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", parameterIndex,
-				"collectedData", termCollector.MCR.getReturnValue("collectTerms", parameterIndex));
+				"indexTerms", collectTerms.indexTerms);
 
 		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", indexDataCall, "record",
 				storageReadResult.listOfDataGroups.get(indexInReturnedList));

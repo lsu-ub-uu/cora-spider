@@ -33,6 +33,7 @@ import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.role.RulesProvider;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -221,9 +222,9 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData) {
+			String recordType, List<PermissionTerm> permissionTerms) {
 		if (!userIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, recordType,
-				collectedData)) {
+				permissionTerms)) {
 			throw new AuthorizationException(USER_STRING + user.id + " is not authorized to "
 					+ action + " a record of type: " + recordType);
 		}
@@ -231,11 +232,11 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
-			String recordType, DataGroup collectedData) {
+			String recordType, List<PermissionTerm> permissionTerms) {
 		checkUserIsActiveInStorage(user);
 		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
-						collectedData);
+						permissionTerms);
 
 		List<Rule> providedRules = getActiveRulesForUser(user);
 		return beefeaterAuthorizator.providedRulesSatisfiesRequiredRules(providedRules,
@@ -259,26 +260,26 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	@Override
 	public Set<String> checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-			User user, String action, String recordType, DataGroup collectedData,
+			User user, String action, String recordType, List<PermissionTerm> permissionTerms,
 			boolean calculateRecordPartPermissions) {
 		if (calculateRecordPartPermissions) {
 			checkUserIsActiveInStorage(user);
-			tryToGetMatchedRules(user, action, recordType, collectedData);
+			tryToGetMatchedRules(user, action, recordType, permissionTerms);
 			if ("read".equals(action)) {
 				return collectReadRecordPartPermissions(recordType);
 			}
 			return collectWriteRecordPartPermissions(recordType);
 		}
 		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, action, recordType,
-				collectedData);
+				permissionTerms);
 		return Collections.emptySet();
 	}
 
 	private void tryToGetMatchedRules(User user, String action, String recordType,
-			DataGroup collectedData) {
+			List<PermissionTerm> permissionTerms) {
 		List<Rule> requiredRules = ruleCalculator
 				.calculateRulesForActionAndRecordTypeAndCollectedData(action, recordType,
-						collectedData);
+						permissionTerms);
 		List<Rule> providedRules = getActiveRulesForUser(user);
 		matchRules(requiredRules, providedRules);
 		possiblyThrowAuthorizationExceptionWhenEmptyMatchedRules(user, action, recordType);

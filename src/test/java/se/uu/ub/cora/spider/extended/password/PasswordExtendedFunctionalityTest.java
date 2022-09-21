@@ -24,6 +24,7 @@ import static org.testng.Assert.assertTrue;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -37,7 +38,7 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.record.RecordStorageMCRSpy;
+import se.uu.ub.cora.spider.spy.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.testspies.RecordCreatorSpy;
 import se.uu.ub.cora.spider.testspies.RecordReaderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;
@@ -235,12 +236,10 @@ public class PasswordExtendedFunctionalityTest {
 				.getReturnValue("getRecordStorage", 0);
 
 		String systemSecretId = assertAndReturnSystemSecretId();
-		DataGroupSpy collectedTerms = assertAndReturnCollectedTerms(systemSecretId, 2, 2);
-		DataGroupSpy collectedDataLinks = assertAndReturnCollectedDataLinks(3);
 		String dataDividerValue = (String) dataDivider.MCR.getReturnValue("getLinkedRecordId", 0);
 
 		recordStorage.MCR.assertParameters("create", 0, SYSTEM_SECRET_TYPE, systemSecretId, secret,
-				collectedTerms, collectedDataLinks, dataDividerValue);
+				Collections.emptyList(), Collections.emptyList(), dataDividerValue);
 
 		assertLinkToSystemSecret(systemSecretId, 1);
 	}
@@ -267,27 +266,6 @@ public class PasswordExtendedFunctionalityTest {
 		rGroupMCR.assertParameters("addChild", 0, secretLink);
 	}
 
-	private DataGroupSpy assertAndReturnCollectedTerms(String systemSecretId,
-			int factorGroupCallNumber, int factorAtomicCallNumber) {
-		dataFactory.MCR.assertParameters("factorGroupUsingNameInData", factorGroupCallNumber,
-				"collectedData");
-		dataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue",
-				factorAtomicCallNumber, "type", SYSTEM_SECRET_TYPE);
-		dataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue",
-				factorAtomicCallNumber + 1, "id", systemSecretId);
-
-		DataGroupSpy collectedTerms = (DataGroupSpy) dataFactory.MCR
-				.getReturnValue("factorGroupUsingNameInData", factorGroupCallNumber);
-		var collectedTermsType = dataFactory.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", factorAtomicCallNumber);
-		var collectedTermsId = dataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				factorAtomicCallNumber + 1);
-
-		collectedTerms.MCR.assertParameters("addChild", 0, collectedTermsType);
-		collectedTerms.MCR.assertParameters("addChild", 1, collectedTermsId);
-		return collectedTerms;
-	}
-
 	@Test
 	public void testUserUpdatedWithInformationAboutNewPassword() throws Exception {
 		LocalDateTime dateTimeBefore = whatTimeIsIt().minus(2, ChronoUnit.SECONDS);
@@ -296,7 +274,7 @@ public class PasswordExtendedFunctionalityTest {
 
 		LocalDateTime dateTimeAfter = whatTimeIsIt().plus(2, ChronoUnit.SECONDS);
 
-		assertedTsUpdated(4, dateTimeBefore, dateTimeAfter);
+		assertedTsUpdated(2, dateTimeBefore, dateTimeAfter);
 	}
 
 	private void assertedTsUpdated(int assertChildCall, LocalDateTime dateTimeBefore,
@@ -367,15 +345,14 @@ public class PasswordExtendedFunctionalityTest {
 		secretFromStorage.MCR.assertParameters("removeAllChildrenWithNameInData", 0, SECRET);
 		assertHashedPasswordIsAddedToGroupAsNumber(secretFromStorage, 0, 0);
 
-		var collectedTerms = assertAndReturnCollectedTerms(systemSecretId, 0, 1);
-		var collectedDataLinks = assertAndReturnCollectedDataLinks(1);
 		var dataDividerValue = dataDivider.MCR.getReturnValue("getLinkedRecordId", 0);
 
 		recordStorage.MCR.assertParameters("update", 0, SYSTEM_SECRET_TYPE, systemSecretId,
-				secretFromStorage, collectedTerms, collectedDataLinks, dataDividerValue);
+				secretFromStorage, Collections.emptyList(), Collections.emptyList(),
+				dataDividerValue);
 
 		rGroupMCR.assertParameters("removeAllChildrenWithNameInData", 1, "tsPasswordUpdated");
-		assertedTsUpdated(3, dateTimeBefore, dateTimeAfter);
+		assertedTsUpdated(1, dateTimeBefore, dateTimeAfter);
 
 	}
 

@@ -20,29 +20,20 @@ package se.uu.ub.cora.spider.spy;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
-	public DataGroup collectTerms(String metadataId, DataGroup dataGroup) {
+	public CollectTerms collectTerms(String metadataId, DataGroup dataGroup) {
 		MCR.addCall("metadataId", metadataId, "dataGroup", dataGroup);
 
-		DataGroup collectedTerms = new DataGroupOldSpy("collectedData");
+		CollectTerms collectTerms = new CollectTerms();
 
-		MCR.addReturned(collectedTerms);
-		return collectedTerms;
+		MCR.addReturned(collectTerms);
+		return collectTerms;
 	}
 
-	@Override
-	public DataGroup collectTermsWithoutTypeAndId(String metadataGroupId, DataGroup dataGroup) {
-		MCR.addCall("metadataId", metadataGroupId, "dataGroup", dataGroup);
-
-		DataGroup collectedTerms = new DataGroupOldSpy("collectedData");
-
-		MCR.addReturned(collectedTerms);
-		return collectedTerms;
-	}
 }

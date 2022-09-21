@@ -26,6 +26,8 @@ import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.collected.Link;
+import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
@@ -46,7 +48,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	public DataGroup group;
 	public String type;
 	public String id;
-	public DataGroup collectedTerms;
+	public List<StorageTerm> storageTerms;
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -385,12 +387,12 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
-			DataGroup linkList, String dataDivider) {
+	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
+			List<Link> links, String dataDivider) {
 		this.type = type;
 		this.id = id;
 		createRecord = record;
-		this.collectedTerms = collectedTerms;
+		this.storageTerms = storageTerms;
 		this.dataDivider = dataDivider;
 		createWasCalled = true;
 	}
@@ -407,10 +409,10 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
-			DataGroup linkList, String dataDivider) {
+	public void update(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
+			List<Link> links, String dataDivider) {
 		updateRecord = record;
-		this.collectedTerms = collectedTerms;
+		this.storageTerms = storageTerms;
 		this.dataDivider = dataDivider;
 	}
 
@@ -475,12 +477,6 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 
 	@Override
 	public StorageReadResult readAbstractList(String type, DataGroup filter) {
-		return null;
-	}
-
-	@Override
-	public DataGroup readLinkList(String type, String id) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

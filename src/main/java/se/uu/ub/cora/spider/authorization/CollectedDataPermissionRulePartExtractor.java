@@ -24,58 +24,48 @@ import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 
 public final class CollectedDataPermissionRulePartExtractor {
 	private static final String SYSTEM = "system.";
-	private DataGroup collectedData;
+	private List<PermissionTerm> permissionTerms;
 	private Map<String, List<RulePartValuesImp>> sortedRulePartValues = new HashMap<>();
 
-	private CollectedDataPermissionRulePartExtractor(DataGroup collectedData) {
-		this.collectedData = collectedData;
+	private CollectedDataPermissionRulePartExtractor(List<PermissionTerm> permissionTerms) {
+		this.permissionTerms = permissionTerms;
 	}
 
 	static Map<String, List<RulePartValuesImp>> extractRulePartsSortedByPermissionKeyFromCollectedData(
-			DataGroup collectedData) {
+			List<PermissionTerm> permissionTerms) {
 		CollectedDataPermissionRulePartExtractor instance = new CollectedDataPermissionRulePartExtractor(
-				collectedData);
+				permissionTerms);
 		return instance.sortPermissionsByPermissionKey();
 	}
 
 	private Map<String, List<RulePartValuesImp>> sortPermissionsByPermissionKey() {
-		DataGroup permission = collectedData.getFirstGroupWithNameInData("permission");
-		List<DataGroup> collectedDataTerms = permission
-				.getAllGroupsWithNameInData("collectedDataTerm");
-		sortCollectedDataTermsByPermissionKey(collectedDataTerms);
+		sortCollectedDataTermsByPermissionKey(permissionTerms);
 		return sortedRulePartValues;
 	}
 
-	private void sortCollectedDataTermsByPermissionKey(List<DataGroup> collectedDataTerms) {
-		for (DataGroup collectedDataTerm : collectedDataTerms) {
-			sortCollectedDataTermIntoRulePartValuesBasedOnPermissionKey(collectedDataTerm);
+	private void sortCollectedDataTermsByPermissionKey(List<PermissionTerm> permissionTerms) {
+		for (PermissionTerm permissionTerm : permissionTerms) {
+			sortCollectedDataTermIntoRulePartValuesBasedOnPermissionKey(permissionTerm);
 		}
 	}
 
 	private void sortCollectedDataTermIntoRulePartValuesBasedOnPermissionKey(
-			DataGroup collectedDataTerm) {
-		String permissionKey = extractPermissionKeyFromCollectedDataTerm(collectedDataTerm);
-		RulePartValuesImp rulePartValues = createRulePartValuesForCollectedDataTerm(
-				collectedDataTerm);
+			PermissionTerm permissionTerm) {
+		RulePartValuesImp rulePartValues = createRulePartValuesForCollectedDataTerm(permissionTerm);
 
-		ensureSortedRulePartValuesHasListForPermissionKey(permissionKey);
-		addRulePartValuesToSortedRulePartValuesUnderKey(permissionKey, rulePartValues);
-	}
-
-	private String extractPermissionKeyFromCollectedDataTerm(DataGroup collectedDataTerm) {
-		DataGroup extraData = collectedDataTerm.getFirstGroupWithNameInData("extraData");
-		return extraData.getFirstAtomicValueWithNameInData("permissionKey");
+		ensureSortedRulePartValuesHasListForPermissionKey(permissionTerm.permissionKey());
+		addRulePartValuesToSortedRulePartValuesUnderKey(permissionTerm.permissionKey(),
+				rulePartValues);
 	}
 
 	private RulePartValuesImp createRulePartValuesForCollectedDataTerm(
-			DataGroup collectedDataTerm) {
-		String value = collectedDataTerm.getFirstAtomicValueWithNameInData("collectTermValue");
+			PermissionTerm permissionTerm) {
 		RulePartValuesImp rulePartValues = new RulePartValuesImp();
-		rulePartValues.add(SYSTEM + value);
+		rulePartValues.add(SYSTEM + permissionTerm.value());
 		return rulePartValues;
 	}
 

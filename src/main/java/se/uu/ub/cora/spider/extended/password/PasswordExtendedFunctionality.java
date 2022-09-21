@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.extended.password;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataChild;
@@ -117,14 +118,10 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		DataGroup systemSecret = createSystemSecretGroupWithRecordInfoAndHashedPassword(
 				hashedPassword, systemSecretId);
 		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-
-		DataGroup collectedTerms = createCollectedTerms(systemSecretId);
-		DataGroup collectedDataLinks = createCollectedDataLinks();
-
 		String dataDivider = readDataDividerFromUserGroup();
 
-		recordStorage.create(SYSTEM_SECRET_TYPE, systemSecretId, systemSecret, collectedTerms,
-				collectedDataLinks, dataDivider);
+		recordStorage.create(SYSTEM_SECRET_TYPE, systemSecretId, systemSecret,
+				Collections.emptyList(), Collections.emptyList(), dataDivider);
 		return systemSecretId;
 	}
 
@@ -154,21 +151,6 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		DataAtomic hashedPasswordAtomic = DataProvider.createAtomicUsingNameInDataAndValue(SECRET,
 				hashedPassword);
 		systemSecret.addChild(hashedPasswordAtomic);
-	}
-
-	private DataGroup createCollectedTerms(String systemSecretId) {
-		DataGroup collectedTerms = DataProvider.createGroupUsingNameInData("collectedData");
-		DataChild collectedTermsType = DataProvider.createAtomicUsingNameInDataAndValue(TYPE,
-				SYSTEM_SECRET_TYPE);
-		DataChild collectedTermsId = DataProvider.createAtomicUsingNameInDataAndValue("id",
-				systemSecretId);
-		collectedTerms.addChild(collectedTermsType);
-		collectedTerms.addChild(collectedTermsId);
-		return collectedTerms;
-	}
-
-	private DataGroup createCollectedDataLinks() {
-		return DataProvider.createGroupUsingNameInData("collectedDataLinks");
 	}
 
 	private void addLinkToSystemSecret(String systemSecretRecordId) {
@@ -205,12 +187,10 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		systemSecretG.removeAllChildrenWithNameInData(SECRET);
 
 		addHashedPasswordToGroup(hashedPassword, systemSecretG);
-		DataGroup collectedTerms = createCollectedTerms(systemSecretId);
-		DataGroup collectedDataLinks = createCollectedDataLinks();
 		String dataDivider = readDataDividerFromUserGroup();
 
-		recordStorage.update(SYSTEM_SECRET_TYPE, systemSecretId, systemSecretG, collectedTerms,
-				collectedDataLinks, dataDivider);
+		recordStorage.update(SYSTEM_SECRET_TYPE, systemSecretId, systemSecretG,
+				Collections.emptyList(), Collections.emptyList(), dataDivider);
 	}
 
 	private DataAtomic updateTsPasswordUpdatedUsingTsUppdate() {

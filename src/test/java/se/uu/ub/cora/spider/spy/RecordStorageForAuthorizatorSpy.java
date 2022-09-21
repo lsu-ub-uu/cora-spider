@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collected.Link;
+import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -135,8 +137,8 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
-			DataGroup linkList, String dataDivider) {
+	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
+			List<Link> links, String dataDivider) {
 		createWasCalled = true;
 		createRecord = record;
 	}
@@ -161,8 +163,8 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
-			DataGroup linkList, String dataDivider) {
+	public void update(String type, String id, DataGroup record, List<StorageTerm> collectedTerms,
+			List<Link> links, String dataDivider) {
 		updateWasCalled = true;
 	}
 
@@ -286,12 +288,6 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	}
 
 	@Override
-	public DataGroup readLinkList(String type, String id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
@@ -310,8 +306,8 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType, List<String> implementingTypes,
-			DataGroup filter) {
+	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
+			List<String> implementingTypes, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

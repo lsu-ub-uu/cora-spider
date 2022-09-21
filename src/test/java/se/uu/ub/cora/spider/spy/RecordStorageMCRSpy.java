@@ -16,14 +16,17 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.collected.Link;
+import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 import se.uu.ub.cora.testspies.data.DataGroupSpy;
@@ -43,6 +46,11 @@ public class RecordStorageMCRSpy implements RecordStorage {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("read",
 				((Supplier<DataGroupSpy>) () -> dataGroupForRead));
+		MRV.setDefaultReturnValuesSupplier(
+				"recordExistsForAbstractOrImplementingRecordTypeAndRecordId",
+				(Supplier<Boolean>) () -> false);
+		MRV.setDefaultReturnValuesSupplier("generateLinkCollectionPointingToRecord",
+				(Supplier<List<DataGroup>>) () -> Collections.emptyList());
 	}
 
 	@Override
@@ -51,10 +59,10 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
-			DataGroup linkList, String dataDivider) {
-		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", collectedTerms,
-				"linkList", linkList, "dataDivider", dataDivider);
+	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
+			List<Link> links, String dataDivider) {
+		MCR.addCall("type", type, "id", id, "record", record, "storageTerms", storageTerms,
+				"linkList", links, "dataDivider", dataDivider);
 	}
 
 	@Override
@@ -70,10 +78,11 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
-			DataGroup linkList, String dataDivider) {
-		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", collectedTerms,
-				"linkList", linkList, "dataDivider", dataDivider);
+	public void update(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
+			List<Link> links, String dataDivider) {
+		MCR.addCall("type", type, "id", id, "record", record, "storageTerms", storageTerms,
+				"linkList", links, "dataDivider", dataDivider);
+
 	}
 
 	@Override
@@ -103,22 +112,14 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	}
 
 	@Override
-	public DataGroup readLinkList(String type, String id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
-		// TODO Auto-generated method stub
-		return null;
+		return (Collection<DataGroup>) MCR.addCallAndReturnFromMRV("type", type, "id", id);
 	}
 
 	@Override
 	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
 			String id) {
-		// TODO Auto-generated method stub
-		return false;
+		return (boolean) MCR.addCallAndReturnFromMRV("type", type, "id", id);
 	}
 
 	@Override

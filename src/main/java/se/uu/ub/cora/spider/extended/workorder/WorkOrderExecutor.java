@@ -24,6 +24,8 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.collected.IndexTerm;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -123,7 +125,7 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 
 	private void indexData(boolean performCommit) {
 		DataGroup dataToIndex = readRecordToIndexFromStorage();
-		DataGroup collectedTerms = getCollectedTerms(dataToIndex);
+		CollectTerms collectedTerms = getCollectedTerms(dataToIndex);
 		sendToIndex(collectedTerms, dataToIndex, performCommit);
 	}
 
@@ -131,7 +133,7 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 		return recordStorage.read(recordTypeToIndex, recordIdToIndex);
 	}
 
-	private DataGroup getCollectedTerms(DataGroup dataToIndex) {
+	private CollectTerms getCollectedTerms(DataGroup dataToIndex) {
 		String metadataId = getMetadataIdFromRecordType(recordTypeToIndex);
 		return collectTermCollector.collectTerms(metadataId, dataToIndex);
 	}
@@ -143,13 +145,14 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 		return metadataId.getLinkedRecordId();
 	}
 
-	private void sendToIndex(DataGroup collectedTerms, DataGroup dataToIndex,
+	private void sendToIndex(CollectTerms collectedTerms, DataGroup dataToIndex,
 			boolean performCommit) {
 		List<String> ids = getCombinedIds();
+		List<IndexTerm> indexTerms = collectedTerms.indexTerms;
 		if (performCommit) {
-			recordIndexer.indexData(ids, collectedTerms, dataToIndex);
+			recordIndexer.indexData(ids, indexTerms, dataToIndex);
 		} else {
-			recordIndexer.indexDataWithoutExplicitCommit(ids, collectedTerms, dataToIndex);
+			recordIndexer.indexDataWithoutExplicitCommit(ids, indexTerms, dataToIndex);
 		}
 	}
 

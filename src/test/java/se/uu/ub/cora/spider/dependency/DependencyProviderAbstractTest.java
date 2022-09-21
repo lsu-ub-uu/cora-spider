@@ -38,7 +38,6 @@ import se.uu.ub.cora.bookkeeper.recordpart.DataGroupRedactorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.DataGroupWrapperFactoryImp;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactoryImp;
-import se.uu.ub.cora.bookkeeper.termcollector.CollectedDataCreatorImp;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
@@ -314,10 +313,8 @@ public class DependencyProviderAbstractTest {
 		DataGroupTermCollectorImp dataGroupTermCollector = (DataGroupTermCollectorImp) dependencyProvider
 				.getDataGroupTermCollector();
 		assertTrue(dataGroupTermCollector instanceof DataGroupTermCollectorImp);
-		assertSame(dataGroupTermCollector.getMetadataStorage(),
+		assertSame(dataGroupTermCollector.onlyForTestGetMetadataStorage(),
 				dependencyProvider.getMetadataStorage());
-		assertTrue(dataGroupTermCollector
-				.getCollectedDataCreator() instanceof CollectedDataCreatorImp);
 	}
 
 	@Test

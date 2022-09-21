@@ -34,15 +34,15 @@
 
 	<properties>
         <logger.version>2.5.0</logger.version>
-		<coradata.version>7.1.0</coradata.version>
+		<coradata.version>7.2-SNAPSHOT</coradata.version>
 		<json.version>3.3.0</json.version>
-		<storage.version>6.4.0</storage.version>
-		<search.version>4.5.0</search.version>
-		<bookkeeper.version>7.1.0</bookkeeper.version>
+		<storage.version>7.0-SNAPSHOT</storage.version>
+		<search.version>5.0-SNAPSHOT</search.version>
+		<bookkeeper.version>8.0-SNAPSHOT</bookkeeper.version>
 		<beefeater.version>3.7.0</beefeater.version>
 		<password.version>1.0.0</password.version>
 		<testutils.version>1.5.0</testutils.version>
-		<testspies.version>1.2.0</testspies.version>
+		<testspies.version>1.3-SNAPSHOT</testspies.version>
 	</properties>
 
 

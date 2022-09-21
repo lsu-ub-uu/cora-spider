@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.record;
 
+import java.util.List;
+
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.data.Action;
@@ -67,7 +69,7 @@ public interface DataGroupToRecordEnhancer {
 	 * 
 	 * The implementations MUST throw an {@link AuthorizationException} if the user does NOT have
 	 * authorization to read the record including security check against collected data, using
-	 * {@link SpiderAuthorizator#checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(User, String, String, DataGroup, boolean)}
+	 * {@link SpiderAuthorizator#checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(User, String, String, List, boolean)}
 	 * or similar method.
 	 * <p>
 	 * If no exception is thrown and the returned DataRecord contains {@link Action#READ} it is

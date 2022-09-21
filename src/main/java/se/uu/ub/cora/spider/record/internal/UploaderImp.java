@@ -26,6 +26,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataResourceLink;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -89,12 +90,12 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 	}
 
 	private void checkUserIsAuthorisedToUploadData(DataGroup recordRead) {
-		DataGroup collectedTerms = getCollectedTermsForRecord(recordType, recordRead);
+		CollectTerms collectedTerms = getCollectedTermsForRecord(recordType, recordRead);
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				"upload", recordType, collectedTerms);
+				"upload", recordType, collectedTerms.permissionTerms);
 	}
 
-	private DataGroup getCollectedTermsForRecord(String recordType, DataGroup recordRead) {
+	private CollectTerms getCollectedTermsForRecord(String recordType, DataGroup recordRead) {
 		String metadataId = getMetadataIdFromRecordType(recordType);
 		return termCollector.collectTerms(metadataId, recordRead);
 	}

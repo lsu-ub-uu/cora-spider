@@ -30,12 +30,15 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.record.internal.RecordStorageOldSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class IndexBatchJobStorerTest {
 	private SpiderDependencyProviderOldSpy dependencyProvider;
@@ -44,9 +47,13 @@ public class IndexBatchJobStorerTest {
 	private DataGroupTermCollectorSpy termCollector;
 	private DataRecordLinkCollectorSpy linkCollector;
 	private DataGroupHandlerForIndexBatchJobSpy dataGroupHandlerForIndexBatchJobSpy;
+	private DataFactorySpy dataFactory;
 
 	@BeforeMethod
 	public void setUp() {
+		dataFactory = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactory);
+
 		Map<String, String> initInfo = new HashMap<>();
 		recordStorage = new RecordStorageOldSpy();
 		termCollector = new DataGroupTermCollectorSpy();
@@ -102,14 +109,13 @@ public class IndexBatchJobStorerTest {
 	public void testCorrectCallToLinkCollector() {
 		BatchJobStorer storer = new IndexBatchJobStorer(dependencyProvider,
 				dataGroupHandlerForIndexBatchJobSpy);
+
 		storer.store(indexBatchJob);
 
-		assertEquals(linkCollector.recordType, "indexBatchJob");
-		assertEquals(linkCollector.recordId, "someRecordId");
-		assertSame(linkCollector.dataGroup, recordStorage.MCR.getReturnValue("read", 0));
 		String metadataIdFromTypeHandler = (String) dependencyProvider.recordTypeHandlerSpy.MCR
 				.getReturnValue("getMetadataId", 0);
-		assertEquals(linkCollector.metadataId, metadataIdFromTypeHandler);
+		var dataGroup = recordStorage.MCR.getReturnValue("read", 0);
+		linkCollector.MCR.assertParameters("collectLinks", 0, metadataIdFromTypeHandler, dataGroup);
 	}
 
 	@Test
@@ -136,9 +142,10 @@ public class IndexBatchJobStorerTest {
 		assertSame(parameters.get("record"), returnedDataGroupFromRead);
 		assertEquals(parameters.get("type"), "indexBatchJob");
 		assertEquals(parameters.get("id"), "someRecordId");
-		assertSame(parameters.get("linkList"), linkCollector.collectedDataLinks);
-		assertSame(parameters.get("collectedTerms"),
-				termCollector.MCR.getReturnValue("collectTerms", 0));
+		linkCollector.MCR.assertReturn("collectLinks", 0, parameters.get("linkList"));
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
+				0);
+		assertSame(parameters.get("storageTerms"), collectTerms.storageTerms);
 		String dataDivider = extractDataDivider(returnedDataGroupFromRead);
 		assertEquals(parameters.get("dataDivider"), dataDivider);
 	}
