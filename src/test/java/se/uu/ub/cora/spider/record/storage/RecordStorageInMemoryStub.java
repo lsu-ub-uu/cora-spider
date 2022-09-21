@@ -201,7 +201,7 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 	}
 
 	@Override
-	public StorageReadResult readList(String type, DataGroup filter) {
+	public StorageReadResult readList(List<String> type, DataGroup filter) {
 		Map<String, DataGroup> typeRecords = records.get(type);
 		if (null == typeRecords) {
 			throw new RecordNotFoundException("No records exists with recordType: " + type);
@@ -222,7 +222,7 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
 			String id) {
 		return false;
 	}
@@ -416,7 +416,7 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
+	public long getTotalNumberOfRecordsForType(List<String> type, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

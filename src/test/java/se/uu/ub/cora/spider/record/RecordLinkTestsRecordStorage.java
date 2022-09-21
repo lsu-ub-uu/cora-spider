@@ -106,7 +106,7 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(String type, DataGroup filter) {
+	public StorageReadResult readList(List<String> type, DataGroup filter) {
 		List<DataGroup> list = new ArrayList<>();
 		list.add(read(type, "oneLinkTopLevel"));
 		list.add(read(type, "oneLinkOneLevelDown"));
@@ -127,15 +127,15 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
 			String id) {
-		this.type = type;
+		this.type = types;
 		this.id = id;
 		return recordIdExistsForRecordType;
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
+	public long getTotalNumberOfRecordsForType(List<String> type, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

@@ -60,8 +60,9 @@ public class RecordHandler {
 		checkRecordTypeAndRecordIdExistsInStorage(toRecordId, toRecordType);
 	}
 
-	private void checkRecordTypeAndRecordIdExistsInStorage(String recordId, String recordType) {
-		if (!recordStorage.recordExistsForAbstractOrImplementingRecordTypeAndRecordId(recordType,
+	private void checkRecordTypeAndRecordIdExistsInStorage(String recordId,
+			List<String> recordType) {
+		if (!recordStorage.recordExistsForListOfImplementingRecordTypesAndRecordId(recordType,
 				recordId)) {
 			throw new DataException(
 					"Data is not valid: linkedRecord does not exists in storage for recordType: "

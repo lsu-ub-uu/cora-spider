@@ -86,7 +86,7 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(String type, DataGroup filter) {
+	public StorageReadResult readList(List<String> type, DataGroup filter) {
 		MCR.addCall("type", type, "filter", filter);
 		StorageReadResult result = new StorageReadResult();
 		result.listOfDataGroups = dataGroupsForReadList;
@@ -117,13 +117,13 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
 			String id) {
-		return (boolean) MCR.addCallAndReturnFromMRV("type", type, "id", id);
+		return (boolean) MCR.addCallAndReturnFromMRV("type", types, "id", id);
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
+	public long getTotalNumberOfRecordsForType(List<String> type, DataGroup filter) {
 		MCR.addCall("type", type, "filter", filter);
 		MCR.addReturned(totalNumberOfRecords);
 		return totalNumberOfRecords;

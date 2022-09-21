@@ -447,7 +447,7 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(String type, DataGroup filter) {
+	public StorageReadResult readList(List<String> type, DataGroup filter) {
 		readListWasCalled = true;
 		readLists.add(type);
 		filters.add(filter);
@@ -611,7 +611,7 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
 			String id) {
 		return false;
 	}
@@ -647,7 +647,7 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
+	public long getTotalNumberOfRecordsForType(List<String> type, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
