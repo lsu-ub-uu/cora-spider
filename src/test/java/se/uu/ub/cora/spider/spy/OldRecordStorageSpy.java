@@ -37,7 +37,7 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 
-	public Collection<String> readLists = new ArrayList<>();
+	public Collection<List<String>> readLists = new ArrayList<>();
 	public boolean readWasCalled = false;
 	public boolean deleteWasCalled = false;
 	public boolean createWasCalled = false;
@@ -447,11 +447,11 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(List<String> type, DataGroup filter) {
+	public StorageReadResult readList(List<String> types, DataGroup filter) {
 		readListWasCalled = true;
-		readLists.add(type);
+		readLists.add(types);
 		filters.add(filter);
-		if ("recordType".equals(type)) {
+		if ("recordType".equals(types)) {
 			ArrayList<DataGroup> recordTypes = new ArrayList<>();
 			recordTypes.add(read("recordType", "abstract"));
 			recordTypes.add(read("recordType", "child1"));
@@ -464,8 +464,8 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 			spiderReadResult.listOfDataGroups = recordTypes;
 			return spiderReadResult;
 		}
-		if ("child1_2".equals(type)) {
-			throw new RecordNotFoundException("No records exists with recordType: " + type);
+		if ("child1_2".equals(types)) {
+			throw new RecordNotFoundException("No records exists with recordType: " + types);
 		}
 		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.listOfDataGroups = new ArrayList<>();
@@ -473,68 +473,68 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 		return spiderReadResult;
 	}
 
-	@Override
-	public StorageReadResult readAbstractList(String type, DataGroup filter) {
-		this.filter = filter;
-		StorageReadResult spiderReadResult = new StorageReadResult();
-		spiderReadResult.totalNumberOfMatches = 199;
-		spiderReadResult.listOfDataGroups = new ArrayList<>();
-		readLists.add(type);
-		if ("abstract".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-			records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
-
-			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		if ("abstract2".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-
-			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		if ("user".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-
-			DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
-			records.add(inactiveUser);
-
-			DataGroup user = createActiveUserWithIdAndAddDefaultRoles("someUserId");
-			records.add(user);
-
-			DataGroup userWithPermissionTerm = createUserWithOneRoleWithOnePermission();
-			records.add(userWithPermissionTerm);
-
-			DataGroup userWithTwoRolesAndTwoPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
-					"userWithTwoRolesPermissionTerm");
-			addRoleToUser("admin", userWithTwoRolesAndTwoPermissionTerm);
-
-			List<DataGroup> userRoles = userWithTwoRolesAndTwoPermissionTerm
-					.getAllGroupsWithNameInData("userRole");
-
-			DataGroup permissionTerm = createPermissionTermWithIdAndValues(
-					"organisationPermissionTerm", "system.*");
-			DataGroup userRole = userRoles.get(0);
-			userRole.addChild(permissionTerm);
-
-			DataGroup permissionTerm2 = createPermissionTermWithIdAndValues("journalPermissionTerm",
-					"system.abc", "system.def");
-			DataGroup userRole2 = userRoles.get(1);
-			userRole2.addChild(permissionTerm2);
-
-			DataGroup permissionTerm2_role2 = createPermissionTermWithIdAndValues(
-					"organisationPermissionTerm", "system.*");
-			userRole2.addChild(permissionTerm2_role2);
-
-			records.add(userWithTwoRolesAndTwoPermissionTerm);
-
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		return spiderReadResult;
-	}
+	// @Override
+	// public StorageReadResult readAbstractList(String type, DataGroup filter) {
+	// this.filter = filter;
+	// StorageReadResult spiderReadResult = new StorageReadResult();
+	// spiderReadResult.totalNumberOfMatches = 199;
+	// spiderReadResult.listOfDataGroups = new ArrayList<>();
+	// readLists.add(type);
+	// if ("abstract".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	// records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
+	//
+	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// if ("abstract2".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	//
+	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// if ("user".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	//
+	// DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
+	// records.add(inactiveUser);
+	//
+	// DataGroup user = createActiveUserWithIdAndAddDefaultRoles("someUserId");
+	// records.add(user);
+	//
+	// DataGroup userWithPermissionTerm = createUserWithOneRoleWithOnePermission();
+	// records.add(userWithPermissionTerm);
+	//
+	// DataGroup userWithTwoRolesAndTwoPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
+	// "userWithTwoRolesPermissionTerm");
+	// addRoleToUser("admin", userWithTwoRolesAndTwoPermissionTerm);
+	//
+	// List<DataGroup> userRoles = userWithTwoRolesAndTwoPermissionTerm
+	// .getAllGroupsWithNameInData("userRole");
+	//
+	// DataGroup permissionTerm = createPermissionTermWithIdAndValues(
+	// "organisationPermissionTerm", "system.*");
+	// DataGroup userRole = userRoles.get(0);
+	// userRole.addChild(permissionTerm);
+	//
+	// DataGroup permissionTerm2 = createPermissionTermWithIdAndValues("journalPermissionTerm",
+	// "system.abc", "system.def");
+	// DataGroup userRole2 = userRoles.get(1);
+	// userRole2.addChild(permissionTerm2);
+	//
+	// DataGroup permissionTerm2_role2 = createPermissionTermWithIdAndValues(
+	// "organisationPermissionTerm", "system.*");
+	// userRole2.addChild(permissionTerm2_role2);
+	//
+	// records.add(userWithTwoRolesAndTwoPermissionTerm);
+	//
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// return spiderReadResult;
+	// }
 
 	private DataGroup createUserWithOneRoleWithOnePermission() {
 		DataGroup userWithPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
@@ -648,13 +648,6 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 
 	@Override
 	public long getTotalNumberOfRecordsForType(List<String> type, DataGroup filter) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
-			List<String> implementingTypes, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

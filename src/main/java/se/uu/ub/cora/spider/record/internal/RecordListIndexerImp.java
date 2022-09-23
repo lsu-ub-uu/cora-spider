@@ -140,18 +140,8 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 	private long getTotalNumberOfMatchesFromStorageUsingFilter(DataGroup filter) {
 		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		if (recordTypeHandler.isAbstract()) {
-			return getTotalNumberOfRecordsForAbstractType(filter, recordStorage);
-		}
-		return recordStorage.getTotalNumberOfRecordsForType(recordType, filter);
-	}
-
-	private long getTotalNumberOfRecordsForAbstractType(DataGroup filter,
-			RecordStorage recordStorage) {
-		List<String> implementingRecordTypeIds = recordTypeHandler
-				.getListOfImplementingRecordTypeIds();
-		return recordStorage.getTotalNumberOfRecordsForAbstractType(recordType,
-				implementingRecordTypeIds, filter);
+		List<String> listOfTypes = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
+		return recordStorage.getTotalNumberOfRecordsForType(listOfTypes, filter);
 	}
 
 	private IndexBatchJob createIndexBatchJobFromTotalNumAndFilter(DataGroup filter,

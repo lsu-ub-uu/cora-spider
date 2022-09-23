@@ -1,21 +1,5 @@
-/*
- * Copyright 2015, 2019 Uppsala University Library
- *
- * This file is part of Cora.
- *
- *     Cora is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     Cora is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
- */
+/**Copyright 2015,2019 Uppsala University Library**This file is part of Cora.**Cora is free software:you can redistribute it and/or modify*it under the terms of the GNU General Public License as published by*the Free Software Foundation,either version 3 of the License,or*(at your option)any later version.**Cora is distributed in the hope that it will be useful,*but WITHOUT ANY WARRANTY;without even the implied warranty of*MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the*GNU General Public License for more details.**You should have received a copy of the GNU General Public License*along with Cora.If not,see<http://www.gnu.org/licenses/>.
+*/
 
 package se.uu.ub.cora.spider.record;
 
@@ -187,17 +171,7 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(List<String> type, DataGroup filter) {
-		List<DataGroup> list = new ArrayList<>();
-		list.add(read(type, "oneLinkTopLevel"));
-		list.add(read(type, "oneLinkOneLevelDown"));
-		StorageReadResult spiderReadResult = new StorageReadResult();
-		spiderReadResult.listOfDataGroups = list;
-		return spiderReadResult;
-	}
-
-	@Override
-	public StorageReadResult readAbstractList(String type, DataGroup filter) {
+	public StorageReadResult readList(List<String> types, DataGroup filter) {
 		return null;
 	}
 
@@ -215,13 +189,6 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 
 	@Override
 	public long getTotalNumberOfRecordsForType(List<String> type, DataGroup filter) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
-			List<String> implementingTypes, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

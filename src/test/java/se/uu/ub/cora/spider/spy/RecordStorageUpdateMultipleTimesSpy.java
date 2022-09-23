@@ -37,7 +37,7 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 
-	public Collection<String> readLists = new ArrayList<>();
+	public Collection<List<String>> readLists = new ArrayList<>();
 	public boolean readWasCalled = false;
 	public boolean deleteWasCalled = false;
 	public boolean createWasCalled = false;
@@ -145,48 +145,48 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 		return spiderReadResult;
 	}
 
-	@Override
-	public StorageReadResult readAbstractList(String type, DataGroup filter) {
-		StorageReadResult spiderReadResult = new StorageReadResult();
-		spiderReadResult.listOfDataGroups = new ArrayList<>();
-		readLists.add(type);
-		if ("abstract".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-			records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
-
-			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		if ("abstract2".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-
-			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		if ("user".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-
-			DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
-			records.add(inactiveUser);
-
-			// DataGroup user = new DataGroupSpy("user");
-			// DataGroup recordInfo2 = new DataGroupSpy("recordInfo");
-			// recordInfo2.addChild(new DataAtomicSpy("id",
-			// "someUserId"));
-			// user.addChild(recordInfo2);
-			// user.addChild(new DataAtomicSpy("activeStatus",
-			// "active"));
-			DataGroup user = createUserWithIdAndActiveStatus("someUserId", "active");
-
-			addRolesToUser(user);
-			records.add(user);
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		return spiderReadResult;
-	}
+	// @Override
+	// public StorageReadResult readAbstractList(String type, DataGroup filter) {
+	// StorageReadResult spiderReadResult = new StorageReadResult();
+	// spiderReadResult.listOfDataGroups = new ArrayList<>();
+	// readLists.add(type);
+	// if ("abstract".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	// records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
+	//
+	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// if ("abstract2".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	//
+	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// if ("user".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	//
+	// DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
+	// records.add(inactiveUser);
+	//
+	// // DataGroup user = new DataGroupSpy("user");
+	// // DataGroup recordInfo2 = new DataGroupSpy("recordInfo");
+	// // recordInfo2.addChild(new DataAtomicSpy("id",
+	// // "someUserId"));
+	// // user.addChild(recordInfo2);
+	// // user.addChild(new DataAtomicSpy("activeStatus",
+	// // "active"));
+	// DataGroup user = createUserWithIdAndActiveStatus("someUserId", "active");
+	//
+	// addRolesToUser(user);
+	// records.add(user);
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// return spiderReadResult;
+	// }
 
 	private void addRolesToUser(DataGroup user) {
 		DataGroup outerUserRole = new DataGroupOldSpy("userRole");
@@ -227,13 +227,6 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 
 	@Override
 	public long getTotalNumberOfRecordsForType(List<String> type, DataGroup filter) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
-			List<String> implementingTypes, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

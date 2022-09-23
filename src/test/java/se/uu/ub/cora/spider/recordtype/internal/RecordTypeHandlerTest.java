@@ -1441,7 +1441,11 @@ public class RecordTypeHandlerTest {
 
 	private void assertCallMadeToStorageForAbstractRecordType(DataGroupSpy dataGroupMCR) {
 		dataGroupMCR.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, ABSTRACT);
-		recordStorage.MCR.assertParameter("readList", 0, "type", RECORD_TYPE);
+		List<String> recordTypeList = (List<String>) recordStorage.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("readList", 0, "types");
+		assertEquals(recordTypeList.size(), 1);
+		assertEquals(recordTypeList.get(0), RECORD_TYPE);
+
 		DataGroup filter = (DataGroup) recordStorage.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("readList", 0, "filter");
 		assertEquals(filter, dataFactorySpy.MCR.getReturnValue("factorGroupUsingNameInData", 0));
@@ -1584,7 +1588,41 @@ public class RecordTypeHandlerTest {
 		assertEquals(listOfIds.get(1), "fakeRecordTypeIdFromRecordTypeHandlerSpy");
 	}
 
-	// from here
+	@Test
+	public void testGetListOfRecordTypeIdsToReadFromStorage_ImplementingType() {
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(null, recordStorage, SOME_ID);
+
+		List<String> listOfIds = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
+
+		assertEquals(listOfIds.size(), 1);
+		assertEquals(listOfIds.get(0), "someId");
+	}
+
+	@Test
+	public void testGetListOfRecordTypeIdsToReadFromStorage_AbstractTypeNoImplementing() {
+		setupForStorageAtomicValue(ABSTRACT, "true");
+		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
+				.usingRecordStorageAndRecordTypeId(null, recordStorage, SOME_ID);
+
+		List<String> listOfIds = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
+
+		assertEquals(listOfIds.size(), 0);
+	}
+
+	@Test
+	public void testGetListOfRecordTypeIdsToReadFromStorage_ImplementingTypesLowerDown() {
+		RecordTypeHandlerExtendedForTest recordTypeHandler = new RecordTypeHandlerExtendedForTest(
+				2);
+		recordTypeHandler.isAbstract = true;
+
+		List<String> listOfIds = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
+
+		assertEquals(listOfIds.size(), 2);
+		assertEquals(listOfIds.get(0), "fakeRecordTypeIdFromRecordTypeHandlerSpy");
+		assertEquals(listOfIds.get(1), "fakeRecordTypeIdFromRecordTypeHandlerSpy");
+	}
+
 	@Test
 	public void testShouldStoreInArchive() {
 		setupForStorageAtomicValue("storeInArchive", "false");
@@ -1630,6 +1668,7 @@ public class RecordTypeHandlerTest {
 }
 
 class RecordTypeHandlerExtendedForTest extends RecordTypeHandlerImp {
+	public boolean isAbstract = false;
 	List<RecordTypeHandler> implementingRecordTypesSpies = new ArrayList<>();
 
 	public RecordTypeHandlerExtendedForTest(int numberOfSpies) {
@@ -1648,4 +1687,8 @@ class RecordTypeHandlerExtendedForTest extends RecordTypeHandlerImp {
 		return implementingRecordTypesSpies;
 	}
 
+	@Override
+	public boolean isAbstract() {
+		return isAbstract;
+	}
 }

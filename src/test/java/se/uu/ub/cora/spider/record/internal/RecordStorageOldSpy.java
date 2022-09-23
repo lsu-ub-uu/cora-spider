@@ -106,8 +106,8 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(List<String> type, DataGroup filter) {
-		return (StorageReadResult) MCR.addCallAndReturnFromMRV("type", type, "filter", filter);
+	public StorageReadResult readList(List<String> types, DataGroup filter) {
+		return (StorageReadResult) MCR.addCallAndReturnFromMRV("types", types, "filter", filter);
 	}
 
 	private StorageReadResult createSpiderReadResult() {
@@ -137,13 +137,13 @@ public class RecordStorageOldSpy implements RecordStorage {
 		}
 	}
 
-	@Override
-	public StorageReadResult readAbstractList(String type, DataGroup filter) {
-		MCR.addCall("type", type, "filter", filter);
-		StorageReadResult createSpiderReadResult = createSpiderReadResult();
-		MCR.addReturned(createSpiderReadResult);
-		return createSpiderReadResult;
-	}
+	// @Override
+	// public StorageReadResult readAbstractList(String type, DataGroup filter) {
+	// MCR.addCall("type", type, "filter", filter);
+	// StorageReadResult createSpiderReadResult = createSpiderReadResult();
+	// MCR.addReturned(createSpiderReadResult);
+	// return createSpiderReadResult;
+	// }
 
 	@Override
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
@@ -163,15 +163,6 @@ public class RecordStorageOldSpy implements RecordStorage {
 	@Override
 	public long getTotalNumberOfRecordsForType(List<String> type, DataGroup filter) {
 		MCR.addCall("type", type, "filter", filter);
-		MCR.addReturned(0);
-		return 0;
-	}
-
-	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
-			List<String> implementingTypes, DataGroup filter) {
-		MCR.addCall("abstractType", abstractType, "implementingTypes", implementingTypes, "filter",
-				filter);
 		MCR.addReturned(0);
 		return 0;
 	}

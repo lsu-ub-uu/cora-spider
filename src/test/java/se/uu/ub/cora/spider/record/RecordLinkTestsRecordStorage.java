@@ -37,7 +37,7 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 
 	public boolean recordIdExistsForRecordType = true;
 	public boolean createWasRead = false;
-	public String type;
+	public List<String> types;
 	public String id;
 
 	@Override
@@ -106,18 +106,13 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(List<String> type, DataGroup filter) {
+	public StorageReadResult readList(List<String> types, DataGroup filter) {
 		List<DataGroup> list = new ArrayList<>();
-		list.add(read(type, "oneLinkTopLevel"));
-		list.add(read(type, "oneLinkOneLevelDown"));
+		list.add(read(types.get(0), "oneLinkTopLevel"));
+		list.add(read(types.get(0), "oneLinkOneLevelDown"));
 		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.listOfDataGroups = list;
 		return spiderReadResult;
-	}
-
-	@Override
-	public StorageReadResult readAbstractList(String type, DataGroup filter) {
-		return null;
 	}
 
 	@Override
@@ -129,20 +124,13 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	@Override
 	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
 			String id) {
-		this.type = types;
+		this.types = types;
 		this.id = id;
 		return recordIdExistsForRecordType;
 	}
 
 	@Override
 	public long getTotalNumberOfRecordsForType(List<String> type, DataGroup filter) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
-			List<String> implementingTypes, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

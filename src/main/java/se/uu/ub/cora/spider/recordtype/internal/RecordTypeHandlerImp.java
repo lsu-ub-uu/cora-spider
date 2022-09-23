@@ -523,7 +523,7 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	private StorageReadResult getRecordTypeListFromStorage() {
-		return recordStorage.readList(RECORD_TYPE,
+		return recordStorage.readList(List.of(RECORD_TYPE),
 				DataProvider.createGroupUsingNameInData("filter"));
 	}
 
@@ -560,8 +560,17 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
+	public List<String> getListOfRecordTypeIdsToReadFromStorage() {
+		if (isAbstract()) {
+			return getListOfImplementingRecordTypeIds();
+		}
+		return List.of(getRecordTypeId());
+	}
+
+	@Override
 	public boolean storeInArchive() {
 		String storeInArchive = recordType.getFirstAtomicValueWithNameInData("storeInArchive");
 		return "true".equals(storeInArchive);
 	}
+
 }

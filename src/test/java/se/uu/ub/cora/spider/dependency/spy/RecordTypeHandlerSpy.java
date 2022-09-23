@@ -90,6 +90,12 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MRV.setDefaultReturnValuesSupplier("getImplementingRecordTypeHandlers", ArrayList::new);
 		MRV.setDefaultReturnValuesSupplier("getCombinedIdsUsingRecordId",
 				(Supplier<List<String>>) () -> List.of("fakeCombinedIdFromRecordTypeHandlerSpy"));
+		MRV.setDefaultReturnValuesSupplier("getListOfRecordTypeIdsToReadFromStorage",
+				(Supplier<List<String>>) () -> List.of("oneImplementingTypeId"));
+		MRV.setDefaultReturnValuesSupplier("getNewMetadataId",
+				(Supplier<String>) () -> "fakeMetadataIdFromRecordTypeHandlerSpy");
+		MRV.setDefaultReturnValuesSupplier("getMetadataId",
+				(Supplier<String>) () -> "fakeMetadataIdFromRecordTypeHandlerSpy");
 	}
 
 	@Override
@@ -108,18 +114,20 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public String getNewMetadataId() {
-		MCR.addCall();
-		String returnValue = "fakeMetadataIdFromRecordTypeHandlerSpy";
-		MCR.addReturned(returnValue);
-		return returnValue;
+		// MCR.addCall();
+		// String returnValue = "fakeMetadataIdFromRecordTypeHandlerSpy";
+		// MCR.addReturned(returnValue);
+		// return returnValue;
+		return (String) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public String getMetadataId() {
-		MCR.addCall();
-		String returnValue = "fakeMetadataIdFromRecordTypeHandlerSpy";
-		MCR.addReturned(returnValue);
-		return returnValue;
+		// MCR.addCall();
+		// String returnValue = "fakeMetadataIdFromRecordTypeHandlerSpy";
+		// MCR.addReturned(returnValue);
+		// return returnValue;
+		return (String) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
@@ -283,6 +291,11 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 		MCR.addReturned(storeInArchive);
 		return storeInArchive;
+	}
+
+	@Override
+	public List<String> getListOfRecordTypeIdsToReadFromStorage() {
+		return (List<String>) MCR.addCallAndReturnFromMRV();
 	}
 
 }

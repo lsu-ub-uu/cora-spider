@@ -25,9 +25,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.Link;
@@ -57,13 +55,12 @@ public class RecordHandler {
 	private void extractToGroupAndCheckDataExistsInStorage(Link recordToRecordLink) {
 		String toRecordType = recordToRecordLink.type();
 		String toRecordId = recordToRecordLink.id();
-		checkRecordTypeAndRecordIdExistsInStorage(toRecordId, toRecordType);
+		checkRecordTypeAndRecordIdExistsInStorage(toRecordType, toRecordId);
 	}
 
-	private void checkRecordTypeAndRecordIdExistsInStorage(String recordId,
-			List<String> recordType) {
-		if (!recordStorage.recordExistsForListOfImplementingRecordTypesAndRecordId(recordType,
-				recordId)) {
+	private void checkRecordTypeAndRecordIdExistsInStorage(String recordType, String recordId) {
+		if (!recordStorage.recordExistsForListOfImplementingRecordTypesAndRecordId(
+				List.of(recordType), recordId)) {
 			throw new DataException(
 					"Data is not valid: linkedRecord does not exists in storage for recordType: "
 							+ recordType + " and recordId: " + recordId);
@@ -94,7 +91,7 @@ public class RecordHandler {
 	}
 
 	private DataGroup createUpdatedGroup() {
-		DataGroup updatedGroup = DataGroupProvider.getDataGroupUsingNameInData("updated");
+		DataGroup updatedGroup = DataProvider.createGroupUsingNameInData("updated");
 		updatedGroup.setRepeatId("0");
 		return updatedGroup;
 	}
@@ -108,7 +105,7 @@ public class RecordHandler {
 	private void addTimestampToUpdateGroup(DataGroup recordInfo, DataGroup updatedGroup) {
 		String tsCreatedUsedAsFirstTsUpdate = recordInfo
 				.getFirstAtomicValueWithNameInData(TS_CREATED);
-		updatedGroup.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("tsUpdated",
+		updatedGroup.addChild(DataProvider.createAtomicUsingNameInDataAndValue("tsUpdated",
 				tsCreatedUsedAsFirstTsUpdate));
 	}
 

@@ -112,7 +112,6 @@ public class RecordCreatorTest {
 		authenticator = new AuthenticatorSpy();
 		spiderAuthorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
-		// recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		recordStorage = new RecordStorageMCRSpy();
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
@@ -387,9 +386,13 @@ public class RecordCreatorTest {
 		String tsCreated = recordInfo.getFirstAtomicValueWithNameInData("tsCreated");
 		assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
 
-		DataGroup updated = recordInfo.getFirstGroupWithNameInData("updated");
-		String tsUpdated = updated.getFirstAtomicValueWithNameInData("tsUpdated");
-		assertTrue(tsUpdated.matches(TIMESTAMP_FORMAT));
+		DataGroupSpy updated = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupUsingNameInData", 0);
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "tsUpdated",
+				tsCreated);
+		var createdTsCreated = dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
+		updated.MCR.assertParameters("addChild", 1, createdTsCreated);
 		assertFalse(recordInfo.containsChildWithNameInData("tsUpdated"));
 
 		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
@@ -407,13 +410,16 @@ public class RecordCreatorTest {
 				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 1);
 		assertDataChildFoundInChildren(createdByLink, recordInfo.getChildren());
 
-		DataGroup updated = recordInfo.getFirstGroupWithNameInData("updated");
-		assertEquals(updated.getRepeatId(), "0");
+		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "updated");
+		DataGroupSpy updated = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupUsingNameInData", 0);
+		updated.MCR.assertParameters("setRepeatId", 0, "0");
+
 		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 2,
 				"updatedBy", "user", "12345");
 		var updatedByLink = dataFactorySpy.MCR
 				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 2);
-		assertDataChildFoundInChildren(updatedByLink, updated.getChildren());
+		updated.MCR.assertParameters("addChild", 0, updatedByLink);
 	}
 
 	@Test
@@ -586,7 +592,7 @@ public class RecordCreatorTest {
 	public void testLinkedRecordIdExists() {
 		setupLinkCollectorToReturnALinkSoThatWeCheckThatTheLinkedRecordExistsInStorage();
 		recordStorage.MRV.setDefaultReturnValuesSupplier(
-				"recordExistsForAbstractOrImplementingRecordTypeAndRecordId",
+				"recordExistsForListOfImplementingRecordTypesAndRecordId",
 				(Supplier<Boolean>) () -> true);
 		DataGroup dataGroup = RecordLinkTestsDataCreator.createDataDataGroupWithLink();
 		dataGroup.addChild(DataCreator2.createRecordInfoWithLinkedRecordId("cora"));
@@ -594,8 +600,13 @@ public class RecordCreatorTest {
 
 		recordCreator.createAndStoreRecord("someToken78678567", "dataWithLinks", dataGroup);
 
-		recordStorage.MCR.assertParameters(
-				"recordExistsForAbstractOrImplementingRecordTypeAndRecordId", 0, "toType", "toId");
+		List<String> types = (List<String>) recordStorage.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"recordExistsForListOfImplementingRecordTypesAndRecordId", 0, "types");
+		assertEquals(types.size(), 1);
+		assertEquals(types.get(0), "toType");
+		recordStorage.MCR.assertParameter("recordExistsForListOfImplementingRecordTypesAndRecordId",
+				0, "id", "toId");
 	}
 
 	@Test
