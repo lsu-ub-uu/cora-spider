@@ -141,7 +141,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	private long getTotalNumberOfMatchesFromStorageUsingFilter(DataGroup filter) {
 		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
 		List<String> listOfTypes = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
-		return recordStorage.getTotalNumberOfRecordsForType(listOfTypes, filter);
+		return recordStorage.getTotalNumberOfRecordsForTypes(listOfTypes, filter);
 	}
 
 	private IndexBatchJob createIndexBatchJobFromTotalNumAndFilter(DataGroup filter,

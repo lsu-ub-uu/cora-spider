@@ -53,7 +53,6 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private String metadataToValidate;
 	private DataGroup validationResult;
 	private RecordIdGenerator idGenerator;
-	private SpiderDependencyProvider dependencyProvider;
 
 	private RecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;

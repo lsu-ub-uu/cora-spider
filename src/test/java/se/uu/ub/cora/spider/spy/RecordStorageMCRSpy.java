@@ -117,8 +117,8 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForType(List<String> type, DataGroup filter) {
-		MCR.addCall("type", type, "filter", filter);
+	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
+		MCR.addCall("type", types, "filter", filter);
 		MCR.addReturned(totalNumberOfRecords);
 		return totalNumberOfRecords;
 	}

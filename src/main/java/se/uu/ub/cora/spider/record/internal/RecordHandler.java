@@ -29,9 +29,11 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.Link;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class RecordHandler {
@@ -39,6 +41,7 @@ public class RecordHandler {
 	protected static final String RECORD_TYPE = "recordType";
 	protected static final String RECORD_INFO = "recordInfo";
 	protected static final String TS_CREATED = "tsCreated";
+	protected SpiderDependencyProvider dependencyProvider;
 	protected RecordStorage recordStorage;
 	protected String recordType;
 	protected String recordId;
@@ -59,8 +62,10 @@ public class RecordHandler {
 	}
 
 	private void checkRecordTypeAndRecordIdExistsInStorage(String recordType, String recordId) {
-		if (!recordStorage.recordExistsForListOfImplementingRecordTypesAndRecordId(
-				List.of(recordType), recordId)) {
+		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
+		List<String> listOfTypes = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
+		if (!recordStorage.recordExistsForListOfImplementingRecordTypesAndRecordId(listOfTypes,
+				recordId)) {
 			throw new DataException(
 					"Data is not valid: linkedRecord does not exists in storage for recordType: "
 							+ recordType + " and recordId: " + recordId);

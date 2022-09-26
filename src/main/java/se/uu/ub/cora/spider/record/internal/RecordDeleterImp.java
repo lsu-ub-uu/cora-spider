@@ -43,7 +43,6 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 	private DataGroupTermCollector collectTermCollector;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private DataGroup dataGroupReadFromStorage;
-	private SpiderDependencyProvider dependencyProvider;
 
 	private RecordDeleterImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;

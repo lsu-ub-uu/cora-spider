@@ -188,7 +188,7 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForType(List<String> type, DataGroup filter) {
+	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

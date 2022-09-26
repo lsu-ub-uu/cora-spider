@@ -69,7 +69,6 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private RecordIndexer recordIndexer;
 	private DataGroup topDataGroup;
 	private RecordTypeHandler recordTypeHandler;
-	private SpiderDependencyProvider dependencyProvider;
 	private DataGroup previouslyStoredRecord;
 	private Set<String> writePermissions;
 	private RecordArchive recordArchive;

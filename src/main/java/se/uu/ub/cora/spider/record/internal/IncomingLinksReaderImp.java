@@ -41,7 +41,6 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 	private SpiderAuthorizator spiderAuthorizator;
 	private RecordTypeHandler recordTypeHandler;
 	private DataGroupTermCollector collectTermCollector;
-	private SpiderDependencyProvider dependencyProvider;
 	private String missuseErrorMessage = "Read incomming links is not allowed for abstract "
 			+ "recordType: {0} and recordId: {1}";
 

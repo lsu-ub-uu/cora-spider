@@ -604,7 +604,8 @@ public class RecordCreatorTest {
 				.getValueForMethodNameAndCallNumberAndParameterName(
 						"recordExistsForListOfImplementingRecordTypesAndRecordId", 0, "types");
 		assertEquals(types.size(), 1);
-		assertEquals(types.get(0), "toType");
+		assertEquals(types.get(0), "oneImplementingTypeId");
+
 		recordStorage.MCR.assertParameter("recordExistsForListOfImplementingRecordTypesAndRecordId",
 				0, "id", "toId");
 	}

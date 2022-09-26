@@ -64,7 +64,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataGroupTermCollector dataGroupTermCollector;
 	private RecordIndexer recordIndexer;
-	private SpiderDependencyProvider dependencyProvider;
 	private Set<String> writePermissions;
 	private CollectTerms collectedTerms;
 	private List<Link> collectedLinks;
@@ -247,8 +246,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		recordIndexer.indexData(ids, indexTerms, recordAsDataGroup);
 	}
 
-	private void createRecordInStorage(DataGroup topLevelDataGroup,
-			List<Link> collectedLinks, List<StorageTerm> storageTerms) {
+	private void createRecordInStorage(DataGroup topLevelDataGroup, List<Link> collectedLinks,
+			List<StorageTerm> storageTerms) {
 		String dataDivider = extractDataDividerFromData(recordAsDataGroup);
 		recordStorage.create(recordType, recordId, topLevelDataGroup, storageTerms, collectedLinks,
 				dataDivider);

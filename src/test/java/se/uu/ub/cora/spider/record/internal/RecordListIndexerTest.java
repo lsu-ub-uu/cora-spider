@@ -193,7 +193,7 @@ public class RecordListIndexerTest {
 				.getReturnValue("factorGroupUsingNameInData", 0);
 		var listOfTypes = dependencyProviderSpy.recordTypeHandlerSpy.MCR
 				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
-		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForType", 0, listOfTypes,
+		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForTypes", 0, listOfTypes,
 				createdFilter);
 	}
 
@@ -210,7 +210,7 @@ public class RecordListIndexerTest {
 
 		var listOfTypes = dependencyProviderSpy.recordTypeHandlerSpy.MCR
 				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
-		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForType", 0, listOfTypes,
+		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForTypes", 0, listOfTypes,
 				extractedFilterFromIndexSettings);
 
 	}
@@ -330,7 +330,7 @@ public class RecordListIndexerTest {
 				.getReturnValue("factorGroupUsingNameInData", 0);
 		var listOfTypes = dependencyProviderSpy.recordTypeHandlerSpy.MCR
 				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
-		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForType", 0, listOfTypes,
+		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForTypes", 0, listOfTypes,
 				createdFilter);
 
 	}

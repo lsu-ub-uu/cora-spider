@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2019, 2020 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2019, 2020, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -38,6 +38,7 @@ import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public final class RecordListReaderImp extends RecordHandler implements RecordListReader {
@@ -47,7 +48,6 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataValidator dataValidator;
 	private StorageReadResult readResult;
-	private SpiderDependencyProvider dependencyProvider;
 	private RecordTypeHandler recordTypeHandler;
 
 	private RecordListReaderImp(SpiderDependencyProvider dependencyProvider,
@@ -75,6 +75,7 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		readRecordList = DataProvider.createListWithNameOfDataType(recordType);
 		validateFilterIfNotEmpty(filter, recordType);
 		readRecordsOfType(filter);
+		throwErrorIfNoRecordsFoundInStorage();
 		setFromToInReadRecordList();
 
 		return readRecordList;
@@ -159,6 +160,12 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 			// do nothing
 		}
 
+	}
+
+	private void throwErrorIfNoRecordsFoundInStorage() {
+		if (readResult.totalNumberOfMatches < 1) {
+			throw new RecordNotFoundException("No results found");
+		}
 	}
 
 	private void setFromToInReadRecordList() {
