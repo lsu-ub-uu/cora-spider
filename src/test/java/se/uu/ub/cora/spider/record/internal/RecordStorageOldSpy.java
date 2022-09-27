@@ -58,8 +58,8 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public DataGroup read(String type, String id) {
-		MCR.addCall("type", type, "id", id);
+	public DataGroup read(List<String> types, String id) {
+		MCR.addCall("type", types, "id", id);
 		DataGroup dataGroup;
 		if (null != returnForRead) {
 			dataGroup = returnForRead;

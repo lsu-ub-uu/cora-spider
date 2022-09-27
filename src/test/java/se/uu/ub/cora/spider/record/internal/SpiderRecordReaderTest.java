@@ -161,7 +161,11 @@ public class SpiderRecordReaderTest {
 	public void testStorageIsCalledCorrectly() throws Exception {
 		recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID);
 
-		recordStorage.MCR.assertParameters("read", 0, SOME_RECORD_TYPE, SOME_RECORD_ID);
+		var types = recordTypeHandlerSpy.MCR
+				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
+
+		recordStorage.MCR.assertParameters("read", 0, types, SOME_RECORD_ID);
+
 	}
 
 	@Test

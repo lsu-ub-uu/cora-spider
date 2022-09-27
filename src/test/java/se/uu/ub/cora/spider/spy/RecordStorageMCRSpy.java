@@ -54,8 +54,8 @@ public class RecordStorageMCRSpy implements RecordStorage {
 	}
 
 	@Override
-	public DataGroup read(String type, String id) {
-		return (DataGroup) MCR.addCallAndReturnFromMRV("type", type, "id", id);
+	public DataGroup read(List<String> types, String id) {
+		return (DataGroup) MCR.addCallAndReturnFromMRV("types", types, "id", id);
 	}
 
 	@Override

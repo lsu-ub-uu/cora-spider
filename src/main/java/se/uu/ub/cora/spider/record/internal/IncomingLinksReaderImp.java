@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record.internal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
@@ -66,7 +67,7 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 
 		tryToGetActiveUser();
 		throwExceptionIfRecordIsAbstract();
-		DataGroup recordRead = recordStorage.read(recordType, recordId);
+		DataGroup recordRead = recordStorage.read(List.of(recordType), recordId);
 		checkUserIsAuthorisedToReadData(recordRead);
 
 		return collectLinksAndConvertToDataList();

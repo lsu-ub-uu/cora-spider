@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.extended.consistency;
 
+import java.util.List;
+
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
@@ -89,7 +91,7 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 		String linkedRecordId = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		DataGroup childDataGroup;
 		try {
-			childDataGroup = recordStorage.read(linkedRecordType, linkedRecordId);
+			childDataGroup = recordStorage.read(List.of(linkedRecordType), linkedRecordId);
 		} catch (RecordNotFoundException exception) {
 			throw new DataException("Data is not valid: referenced child:  does not exist",
 					exception);
@@ -111,7 +113,7 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 
 	protected DataGroup getParentChildReferences() {
 		String refParentId = extractParentId();
-		DataGroup parent = recordStorage.read("metadataGroup", refParentId);
+		DataGroup parent = recordStorage.read(List.of("metadataGroup"), refParentId);
 
 		return (DataGroup) parent.getFirstChildWithNameInData("childReferences");
 	}
@@ -152,7 +154,7 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 
 	private DataGroup extractParentItemReferences() {
 		String refParentId = extractParentId();
-		DataGroup parentCollectionVar = recordStorage.read("metadataCollectionVariable",
+		DataGroup parentCollectionVar = recordStorage.read(List.of("metadataCollectionVariable"),
 				refParentId);
 		DataGroup parentRefCollection = (DataGroup) parentCollectionVar
 				.getFirstChildWithNameInData("refCollection");
@@ -163,7 +165,8 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 	}
 
 	private DataGroup readItemCollectionAndExtractCollectionItemReferences(String refCollectionId) {
-		DataGroup refCollection = recordStorage.read("metadataItemCollection", refCollectionId);
+		DataGroup refCollection = recordStorage.read(List.of("metadataItemCollection"),
+				refCollectionId);
 		return (DataGroup) refCollection.getFirstChildWithNameInData("collectionItemReferences");
 	}
 
@@ -212,7 +215,7 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 
 	private String extractNameInDataFromReference(DataGroup reference) {
 		String itemId = extractRefItemIdFromRefItemGroup(reference);
-		DataGroup collectionItem = recordStorage.read("metadataCollectionItem", itemId);
+		DataGroup collectionItem = recordStorage.read(List.of("metadataCollectionItem"), itemId);
 		return collectionItem.getFirstAtomicValueWithNameInData("nameInData");
 	}
 

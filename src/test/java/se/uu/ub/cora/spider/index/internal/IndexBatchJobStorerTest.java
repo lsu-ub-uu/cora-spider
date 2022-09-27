@@ -87,7 +87,11 @@ public class IndexBatchJobStorerTest {
 				dataGroupHandlerForIndexBatchJobSpy);
 		storer.store(indexBatchJob);
 
-		recordStorage.MCR.assertParameter("read", 0, "type", "indexBatchJob");
+		List<?> types = (List<?>) recordStorage.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("read", 0, "type");
+		assertEquals(types.get(0), "indexBatchJob");
+		assertEquals(types.size(), 1);
+
 		recordStorage.MCR.assertParameter("read", 0, "id", "someRecordId");
 	}
 

@@ -66,7 +66,7 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 		this.recordId = recordId;
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
-		dataGroupReadFromStorage = recordStorage.read(recordType, recordId);
+		dataGroupReadFromStorage = recordStorage.read(List.of(recordType), recordId);
 
 		checkUserIsAuthorizedToDeleteStoredRecord(recordType);
 		checkNoIncomingLinksExists(recordType, recordId);
@@ -111,7 +111,8 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 
 	private boolean incomingLinksExistsForParentToRecordType(String recordTypeForThisRecord,
 			String recordId) {
-		DataGroup recordTypeDataGroup = recordStorage.read(RECORD_TYPE, recordTypeForThisRecord);
+		DataGroup recordTypeDataGroup = recordStorage.read(List.of(RECORD_TYPE),
+				recordTypeForThisRecord);
 		if (handledRecordHasParent(recordTypeDataGroup)) {
 			String parentId = extractParentId(recordTypeDataGroup);
 			return recordStorage.linksExistForRecord(parentId, recordId);

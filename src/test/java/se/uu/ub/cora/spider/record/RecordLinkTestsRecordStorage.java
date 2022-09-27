@@ -41,8 +41,8 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	public String id;
 
 	@Override
-	public DataGroup read(String type, String id) {
-		if (type.equals("recordType")) {
+	public DataGroup read(List<String> types, String id) {
+		if (types.equals("recordType")) {
 			if ("validationOrder".equals(id)) {
 				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
 						id, "false", "false", "false");
@@ -50,7 +50,7 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
 					"dataWithLinks", "false", "false", "false");
 		}
-		if (type.equals("dataWithLinks")) {
+		if (types.equals("dataWithLinks")) {
 			if (id.equals("oneLinkTopLevel")) {
 				return RecordLinkTestsDataCreator.createDataGroupWithRecordInfoAndLink();
 			}
@@ -61,7 +61,7 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 				return recordLinkGroup;
 			}
 		}
-		if (type.equals("toRecordType")) {
+		if (types.equals("toRecordType")) {
 			if (id.equals("recordLinkNotAuthorized")) {
 				return RecordLinkTestsDataCreator.createLinkChildAsDataRecordDataGroup();
 			}

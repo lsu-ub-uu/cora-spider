@@ -1,5 +1,7 @@
 package se.uu.ub.cora.spider.record.internal;
 
+import java.util.List;
+
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordLink;
@@ -24,7 +26,7 @@ public abstract class SpiderBinary {
 	}
 
 	private DataGroup getRecordTypeDefinition() {
-		return recordStorage.read("recordType", recordType);
+		return recordStorage.read(List.of("recordType"), recordType);
 	}
 
 	private boolean recordTypeIsChildOfBinary(DataGroup dataGroup) {

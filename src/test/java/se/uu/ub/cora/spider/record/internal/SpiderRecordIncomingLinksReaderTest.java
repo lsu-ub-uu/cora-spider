@@ -18,6 +18,8 @@
  */
 package se.uu.ub.cora.spider.record.internal;
 
+import static org.testng.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -208,7 +210,10 @@ public class SpiderRecordIncomingLinksReaderTest {
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 1);
 
 		var metadataIdForType = recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
-		recordStorage.MCR.assertParameters("read", 0, "search", "aSearchId");
+		List<?> types = (List<?>) recordStorage.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("read", 0, "types");
+		assertEquals(types.get(0), "search");
+		recordStorage.MCR.assertParameter("read", 0, "id", "aSearchId");
 		recordStorage.MCR.assertNumberOfCallsToMethod("read", 1);
 		var recordRead = recordStorage.MCR.getReturnValue("read", 0);
 

@@ -35,13 +35,13 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 	public List<DataGroup> returnedReadDataGroups = new ArrayList<>();
 
 	@Override
-	public DataGroup read(String type, String id) {
-		if ("permissionRole".equals(type) && "roleWithReadRecordPartPermissions".equals(id)) {
+	public DataGroup read(List<String> types, String id) {
+		if ("permissionRole".equals(types) && "roleWithReadRecordPartPermissions".equals(id)) {
 			DataGroup createRoleForGuest = createRoleWithReadPermissions();
 			returnedReadDataGroups.add(createRoleForGuest);
 			return createRoleForGuest;
 		}
-		if ("permissionRule".equals(type) && "ruleWithOneReadPermissionPart".equals(id)) {
+		if ("permissionRule".equals(types) && "ruleWithOneReadPermissionPart".equals(id)) {
 			DataGroup rule = createBasicPermissionRule();
 
 			DataGroup readPermission = new DataGroupOldSpy("readPermissions");
@@ -52,7 +52,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 			returnedReadDataGroups.add(rule);
 			return rule;
 		}
-		if ("permissionRule".equals(type) && "ruleWithTwoReadPermissionPart".equals(id)) {
+		if ("permissionRule".equals(types) && "ruleWithTwoReadPermissionPart".equals(id)) {
 			DataGroup rule = createBasicPermissionRule();
 
 			DataGroup readPermission = new DataGroupOldSpy("readPermissions");
@@ -65,12 +65,12 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 			return rule;
 		}
 
-		if ("permissionRole".equals(type) && "roleWithWriteRecordPartPermissions".equals(id)) {
+		if ("permissionRole".equals(types) && "roleWithWriteRecordPartPermissions".equals(id)) {
 			DataGroup createRoleForGuest = createRoleWithWritePermissions();
 			returnedReadDataGroups.add(createRoleForGuest);
 			return createRoleForGuest;
 		}
-		if ("permissionRule".equals(type) && "ruleWithOneWritePermissionPart".equals(id)) {
+		if ("permissionRule".equals(types) && "ruleWithOneWritePermissionPart".equals(id)) {
 			DataGroup rule = createBasicPermissionRule();
 
 			DataGroup writePermission = new DataGroupOldSpy("writePermissions");
@@ -81,7 +81,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 			returnedReadDataGroups.add(rule);
 			return rule;
 		}
-		if ("permissionRule".equals(type) && "ruleWithTwoWritePermissionPart".equals(id)) {
+		if ("permissionRule".equals(types) && "ruleWithTwoWritePermissionPart".equals(id)) {
 			DataGroup rule = createBasicPermissionRule();
 
 			DataGroup writePermission = new DataGroupOldSpy("writePermissions");
@@ -93,13 +93,13 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 			returnedReadDataGroups.add(rule);
 			return rule;
 		}
-		if ("permissionRole".equals(type)
+		if ("permissionRole".equals(types)
 				&& "roleWithReadAndWriteRecordPartPermissions".equals(id)) {
 			DataGroup createRole = createRoleWithReadAndWritePermissions();
 			returnedReadDataGroups.add(createRole);
 			return createRole;
 		}
-		if ("permissionRule".equals(type)
+		if ("permissionRule".equals(types)
 				&& "ruleWithOneReadPermissionPartTwoWritePermissionPart".equals(id)) {
 			DataGroup rule = createBasicPermissionRule();
 

@@ -50,12 +50,12 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 	public boolean readListWasCalled = false;
 	public DataGroup recordToReturnOnRead = null;
 	public boolean alreadyCalled = false;
-	public List<String> types = new ArrayList<>();
+	public Collection<List<String>> types = new ArrayList<>();
 
 	@Override
-	public DataGroup read(String type, String id) {
-		this.type = type;
-		types.add(type);
+	public DataGroup read(List<String> types, String id) {
+		// this.type = type;
+		this.types.add(types);
 		this.id = id;
 		readWasCalled = true;
 		if ("spyType".equals(id)) {
@@ -121,26 +121,30 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(List<String> type, DataGroup filter) {
+	public StorageReadResult readList(List<String> types, DataGroup filter) {
 		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.listOfDataGroups = new ArrayList<>();
 		readListWasCalled = true;
-		readLists.add(type);
+		readLists.add(types);
 		filters.add(filter);
-		if ("recordType".equals(type)) {
-			ArrayList<DataGroup> recordTypes = new ArrayList<>();
-			recordTypes.add(read("recordType", "abstract"));
-			recordTypes.add(read("recordType", "child1"));
-			recordTypes.add(read("recordType", "child2"));
-			recordTypes.add(read("recordType", "abstract2"));
-			recordTypes.add(read("recordType", "child1_2"));
-			recordTypes.add(read("recordType", "child2_2"));
-			recordTypes.add(read("recordType", "otherType"));
-			spiderReadResult.listOfDataGroups = recordTypes;
-			return spiderReadResult;
-		}
-		if ("child1_2".equals(type)) {
-			throw new RecordNotFoundException("No records exists with recordType: " + type);
+
+		for (String type : types) {
+
+			if ("recordType".equals(type)) {
+				ArrayList<DataGroup> recordTypes = new ArrayList<>();
+				recordTypes.add(read(List.of("recordType"), "abstract"));
+				recordTypes.add(read(List.of("recordType"), "child1"));
+				recordTypes.add(read(List.of("recordType"), "child2"));
+				recordTypes.add(read(List.of("recordType"), "abstract2"));
+				recordTypes.add(read(List.of("recordType"), "child1_2"));
+				recordTypes.add(read(List.of("recordType"), "child2_2"));
+				recordTypes.add(read(List.of("recordType"), "otherType"));
+				spiderReadResult.listOfDataGroups = recordTypes;
+				return spiderReadResult;
+			}
+			if ("child1_2".equals(type)) {
+				throw new RecordNotFoundException("No records exists with recordType: " + type);
+			}
 		}
 		return spiderReadResult;
 	}

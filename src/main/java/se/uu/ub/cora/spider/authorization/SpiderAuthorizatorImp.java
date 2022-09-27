@@ -35,6 +35,7 @@ import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.spider.role.RulesProvider;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -91,7 +92,9 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private DataGroup getUserAsDataGroup(User user) {
 		try {
-			return recordStorage.read("user", user.id);
+			RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler("user");
+			return recordStorage.read(recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage(),
+					user.id);
 		} catch (RecordNotFoundException e) {
 			throw new AuthorizationException(USER_STRING + user.id + " does not exist", e);
 		}
@@ -179,7 +182,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private String extractPermissionKey(String permissionTermId) {
-		DataGroup collectPermissionTerm = recordStorage.read("collectPermissionTerm",
+		DataGroup collectPermissionTerm = recordStorage.read(List.of("collectPermissionTerm"),
 				permissionTermId);
 		DataGroup extraData = collectPermissionTerm.getFirstGroupWithNameInData("extraData");
 		return extraData.getFirstAtomicValueWithNameInData("permissionKey");

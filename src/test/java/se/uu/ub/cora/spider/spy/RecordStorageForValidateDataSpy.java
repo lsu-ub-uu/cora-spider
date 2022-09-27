@@ -48,17 +48,17 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 	public boolean readListWasCalled = false;
 
 	@Override
-	public DataGroup read(String type, String id) {
-		this.type = type;
+	public DataGroup read(List<String> types, String id) {
+		this.type = types;
 		this.id = id;
 		readWasCalled = true;
-		if ("recordType".equals(type)) {
+		if ("recordType".equals(types)) {
 			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
 					"true", "false", "false");
 		}
-		if ("recordType_NOT_EXISTING".equals(type)) {
+		if ("recordType_NOT_EXISTING".equals(types)) {
 			throw new RecordNotFoundException(
-					"No records exists with recordType: " + type + " and recordId " + id);
+					"No records exists with recordType: " + types + " and recordId " + id);
 		}
 
 		DataGroup dataGroupToReturn = new DataGroupOldSpy("someNameInData");

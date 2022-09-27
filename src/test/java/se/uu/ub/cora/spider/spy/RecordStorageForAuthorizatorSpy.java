@@ -43,7 +43,7 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	public boolean updateWasCalled = false;
 	public boolean linksExist = false;
 	public DataGroup createRecord;
-	public String type;
+	public List<String> types;
 	public String id;
 	public int numOfTimesReadWasCalled = 0;
 	public List<DataGroup> filters = new ArrayList<>();
@@ -51,9 +51,9 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	public Map<String, Integer> userReadNumberOfTimesMap = new HashMap<>();
 
 	@Override
-	public DataGroup read(String type, String id) {
+	public DataGroup read(List<String> types, String id) {
 		numOfTimesReadWasCalled++;
-		this.type = type;
+		this.types = types;
 		this.id = id;
 		readWasCalled = true;
 
@@ -62,63 +62,66 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 		} else {
 			userReadNumberOfTimesMap.put(id, userReadNumberOfTimesMap.get(id) + 1);
 		}
+		for (String type : types) {
 
-		if ("collectPermissionTerm".equals(type) && "publishedStatusPermissionTerm".equals(id)) {
-			return createCollectPermissionTermWIthKey("PUBLISHED_STATUS");
-		}
-		if ("collectPermissionTerm".equals(type) && "deletedStatusPermissionTerm".equals(id)) {
-			return createCollectPermissionTermWIthKey("DELETED_STATUS");
-		}
-		if ("collectPermissionTerm".equals(type) && "organisationPermissionTerm".equals(id)) {
-			return createCollectPermissionTermWIthKey("OWNING_ORGANISATION");
-		}
-		if ("collectPermissionTerm".equals(type) && "journalPermissionTerm".equals(id)) {
-			return createCollectPermissionTermWIthKey("JOURNAL_ACCESS");
-		}
-
-		if ("user".equals(type)) {
-			if ("inactiveUserId".equals(id)) {
-				DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId",
-						"inactive");
-				return inactiveUser;
+			if ("collectPermissionTerm".equals(type)
+					&& "publishedStatusPermissionTerm".equals(id)) {
+				return createCollectPermissionTermWIthKey("PUBLISHED_STATUS");
+			}
+			if ("collectPermissionTerm".equals(type) && "deletedStatusPermissionTerm".equals(id)) {
+				return createCollectPermissionTermWIthKey("DELETED_STATUS");
+			}
+			if ("collectPermissionTerm".equals(type) && "organisationPermissionTerm".equals(id)) {
+				return createCollectPermissionTermWIthKey("OWNING_ORGANISATION");
+			}
+			if ("collectPermissionTerm".equals(type) && "journalPermissionTerm".equals(id)) {
+				return createCollectPermissionTermWIthKey("JOURNAL_ACCESS");
 			}
 
-			if ("someUserId".equals(id)) {
-				DataGroup user = createActiveUserWithIdAndAddDefaultRoles("someUserId");
-				return user;
-			}
+			if ("user".equals(type)) {
+				if ("inactiveUserId".equals(id)) {
+					DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId",
+							"inactive");
+					return inactiveUser;
+				}
 
-			if ("userWithPermissionTerm".equals(id)) {
-				DataGroup userWithPermissionTerm = createUserWithOneRoleWithOnePermission();
-				return userWithPermissionTerm;
-			}
+				if ("someUserId".equals(id)) {
+					DataGroup user = createActiveUserWithIdAndAddDefaultRoles("someUserId");
+					return user;
+				}
 
-			if ("userWithTwoRolesPermissionTerm".equals(id)) {
-				DataGroup userWithTwoRolesAndTwoPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
-						"userWithTwoRolesPermissionTerm");
-				addRoleToUser("admin", userWithTwoRolesAndTwoPermissionTerm);
+				if ("userWithPermissionTerm".equals(id)) {
+					DataGroup userWithPermissionTerm = createUserWithOneRoleWithOnePermission();
+					return userWithPermissionTerm;
+				}
 
-				List<DataGroup> userRoles = userWithTwoRolesAndTwoPermissionTerm
-						.getAllGroupsWithNameInData("userRole");
+				if ("userWithTwoRolesPermissionTerm".equals(id)) {
+					DataGroup userWithTwoRolesAndTwoPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
+							"userWithTwoRolesPermissionTerm");
+					addRoleToUser("admin", userWithTwoRolesAndTwoPermissionTerm);
 
-				DataGroup permissionTerm = createPermissionTermWithIdAndValues(
-						"organisationPermissionTerm", "system.*");
-				DataGroup userRole = userRoles.get(0);
-				userRole.addChild(permissionTerm);
+					List<DataGroup> userRoles = userWithTwoRolesAndTwoPermissionTerm
+							.getAllGroupsWithNameInData("userRole");
 
-				DataGroup permissionTerm2 = createPermissionTermWithIdAndValues(
-						"journalPermissionTerm", "system.abc", "system.def");
-				DataGroup userRole2 = userRoles.get(1);
-				userRole2.addChild(permissionTerm2);
+					DataGroup permissionTerm = createPermissionTermWithIdAndValues(
+							"organisationPermissionTerm", "system.*");
+					DataGroup userRole = userRoles.get(0);
+					userRole.addChild(permissionTerm);
 
-				DataGroup permissionTerm2_role2 = createPermissionTermWithIdAndValues(
-						"organisationPermissionTerm", "system.*");
-				userRole2.addChild(permissionTerm2_role2);
+					DataGroup permissionTerm2 = createPermissionTermWithIdAndValues(
+							"journalPermissionTerm", "system.abc", "system.def");
+					DataGroup userRole2 = userRoles.get(1);
+					userRole2.addChild(permissionTerm2);
 
-				return userWithTwoRolesAndTwoPermissionTerm;
-			}
-			if ("nonExistingUserId".equals(id)) {
-				throw new RecordNotFoundException("No record exists with recordId: " + id);
+					DataGroup permissionTerm2_role2 = createPermissionTermWithIdAndValues(
+							"organisationPermissionTerm", "system.*");
+					userRole2.addChild(permissionTerm2_role2);
+
+					return userWithTwoRolesAndTwoPermissionTerm;
+				}
+				if ("nonExistingUserId".equals(id)) {
+					throw new RecordNotFoundException("No record exists with recordId: " + id);
+				}
 			}
 		}
 

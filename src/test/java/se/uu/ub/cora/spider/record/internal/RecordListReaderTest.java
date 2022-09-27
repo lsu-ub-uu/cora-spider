@@ -51,7 +51,6 @@ import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
-import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.StorageReadResult;
 import se.uu.ub.cora.testspies.data.DataFactorySpy;
 import se.uu.ub.cora.testspies.data.DataGroupSpy;
@@ -153,14 +152,6 @@ public class RecordListReaderTest {
 			+ "Exception from SpiderAuthorizatorSpy")
 	public void testUserIsNotAuthorizedForActionOnRecordType() {
 		authorizator.authorizedForActionAndRecordType = false;
-
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
-	}
-
-	@Test(expectedExceptions = RecordNotFoundException.class, expectedExceptionsMessageRegExp = ""
-			+ "No results found")
-	public void testErrorThrownIfNoResultsFromStorage() throws Exception {
-		recordStorage.totalNumberOfMatches = 0;
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 	}

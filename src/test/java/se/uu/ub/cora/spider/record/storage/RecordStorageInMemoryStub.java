@@ -226,9 +226,13 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 	}
 
 	@Override
-	public DataGroup read(String recordType, String recordId) {
-		checkRecordExists(recordType, recordId);
-		return records.get(recordType).get(recordId);
+	public DataGroup read(List<String> recordTypes, String recordId) {
+		for (String recordType : recordTypes) {
+
+			checkRecordExists(recordType, recordId);
+			return records.get(recordType).get(recordId);
+		}
+		return null;
 	}
 
 	private void checkRecordExists(String recordType, String recordId) {

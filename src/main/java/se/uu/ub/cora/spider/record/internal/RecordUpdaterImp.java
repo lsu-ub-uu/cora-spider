@@ -149,7 +149,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
-		previouslyStoredRecord = recordStorage.read(recordType, recordId);
+		previouslyStoredRecord = recordStorage.read(List.of(recordType), recordId);
 		CollectTerms collectedTerms = dataGroupTermCollector.collectTerms(metadataId,
 				previouslyStoredRecord);
 
