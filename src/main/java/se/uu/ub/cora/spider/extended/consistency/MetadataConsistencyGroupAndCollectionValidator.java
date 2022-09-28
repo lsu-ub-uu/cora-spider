@@ -91,7 +91,8 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 		String linkedRecordId = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		DataGroup childDataGroup;
 		try {
-			childDataGroup = recordStorage.read(List.of(linkedRecordType), linkedRecordId);
+			// TODO: needs recordTypeHandler to get list of recordtypes
+			child DataGroup = recordStorage.read(List.of(linkedRecordType), linkedRecordId);
 		} catch (RecordNotFoundException exception) {
 			throw new DataException("Data is not valid: referenced child:  does not exist",
 					exception);
