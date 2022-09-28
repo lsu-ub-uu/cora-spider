@@ -36,87 +36,90 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 
 	@Override
 	public DataGroup read(List<String> types, String id) {
-		if ("permissionRole".equals(types) && "roleWithReadRecordPartPermissions".equals(id)) {
-			DataGroup createRoleForGuest = createRoleWithReadPermissions();
-			returnedReadDataGroups.add(createRoleForGuest);
-			return createRoleForGuest;
+		for (String type : types) {
+			if ("permissionRole".equals(type) && "roleWithReadRecordPartPermissions".equals(id)) {
+				DataGroup createRoleForGuest = createRoleWithReadPermissions();
+				returnedReadDataGroups.add(createRoleForGuest);
+				return createRoleForGuest;
+			}
+			if ("permissionRule".equals(type) && "ruleWithOneReadPermissionPart".equals(id)) {
+				DataGroup rule = createBasicPermissionRule();
+
+				DataGroup readPermission = new DataGroupOldSpy("readPermissions");
+				createAndAddReadPermission(readPermission, "organisation.rootOrganisation", "0");
+				rule.addChild(readPermission);
+				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+
+				returnedReadDataGroups.add(rule);
+				return rule;
+			}
+			if ("permissionRule".equals(type) && "ruleWithTwoReadPermissionPart".equals(id)) {
+				DataGroup rule = createBasicPermissionRule();
+
+				DataGroup readPermission = new DataGroupOldSpy("readPermissions");
+				createAndAddReadPermission(readPermission, "organisation.showInPortal", "0");
+				createAndAddReadPermission(readPermission, "organisation.showInDefence", "1");
+				rule.addChild(readPermission);
+				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+
+				returnedReadDataGroups.add(rule);
+				return rule;
+			}
+
+			if ("permissionRole".equals(type) && "roleWithWriteRecordPartPermissions".equals(id)) {
+				DataGroup createRoleForGuest = createRoleWithWritePermissions();
+				returnedReadDataGroups.add(createRoleForGuest);
+				return createRoleForGuest;
+			}
+			if ("permissionRule".equals(type) && "ruleWithOneWritePermissionPart".equals(id)) {
+				DataGroup rule = createBasicPermissionRule();
+
+				DataGroup writePermission = new DataGroupOldSpy("writePermissions");
+				createAndAddWritePermission(writePermission, "organisation.topOrganisation", "0");
+				rule.addChild(writePermission);
+				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+
+				returnedReadDataGroups.add(rule);
+				return rule;
+			}
+			if ("permissionRule".equals(type) && "ruleWithTwoWritePermissionPart".equals(id)) {
+				DataGroup rule = createBasicPermissionRule();
+
+				DataGroup writePermission = new DataGroupOldSpy("writePermissions");
+				createAndAddWritePermission(writePermission, "organisation.showInAdvancedSearch",
+						"0");
+				createAndAddWritePermission(writePermission, "organisation.showInBrowse", "1");
+				rule.addChild(writePermission);
+				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+
+				returnedReadDataGroups.add(rule);
+				return rule;
+			}
+			if ("permissionRole".equals(type)
+					&& "roleWithReadAndWriteRecordPartPermissions".equals(id)) {
+				DataGroup createRole = createRoleWithReadAndWritePermissions();
+				returnedReadDataGroups.add(createRole);
+				return createRole;
+			}
+			if ("permissionRule".equals(type)
+					&& "ruleWithOneReadPermissionPartTwoWritePermissionPart".equals(id)) {
+				DataGroup rule = createBasicPermissionRule();
+
+				DataGroup readPermission = new DataGroupOldSpy("readPermissions");
+				createAndAddReadPermission(readPermission, "organisation.showInPortal", "0");
+				rule.addChild(readPermission);
+
+				DataGroup writePermission = new DataGroupOldSpy("writePermissions");
+				createAndAddWritePermission(writePermission, "organisation.showInAdvancedSearch",
+						"0");
+				createAndAddWritePermission(writePermission, "organisation.showInBrowse", "1");
+				rule.addChild(writePermission);
+				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+
+				returnedReadDataGroups.add(rule);
+				return rule;
+			}
 		}
-		if ("permissionRule".equals(types) && "ruleWithOneReadPermissionPart".equals(id)) {
-			DataGroup rule = createBasicPermissionRule();
-
-			DataGroup readPermission = new DataGroupOldSpy("readPermissions");
-			createAndAddReadPermission(readPermission, "organisation.rootOrganisation", "0");
-			rule.addChild(readPermission);
-			rule.addChild(new DataAtomicSpy("activeStatus", "active"));
-
-			returnedReadDataGroups.add(rule);
-			return rule;
-		}
-		if ("permissionRule".equals(types) && "ruleWithTwoReadPermissionPart".equals(id)) {
-			DataGroup rule = createBasicPermissionRule();
-
-			DataGroup readPermission = new DataGroupOldSpy("readPermissions");
-			createAndAddReadPermission(readPermission, "organisation.showInPortal", "0");
-			createAndAddReadPermission(readPermission, "organisation.showInDefence", "1");
-			rule.addChild(readPermission);
-			rule.addChild(new DataAtomicSpy("activeStatus", "active"));
-
-			returnedReadDataGroups.add(rule);
-			return rule;
-		}
-
-		if ("permissionRole".equals(types) && "roleWithWriteRecordPartPermissions".equals(id)) {
-			DataGroup createRoleForGuest = createRoleWithWritePermissions();
-			returnedReadDataGroups.add(createRoleForGuest);
-			return createRoleForGuest;
-		}
-		if ("permissionRule".equals(types) && "ruleWithOneWritePermissionPart".equals(id)) {
-			DataGroup rule = createBasicPermissionRule();
-
-			DataGroup writePermission = new DataGroupOldSpy("writePermissions");
-			createAndAddWritePermission(writePermission, "organisation.topOrganisation", "0");
-			rule.addChild(writePermission);
-			rule.addChild(new DataAtomicSpy("activeStatus", "active"));
-
-			returnedReadDataGroups.add(rule);
-			return rule;
-		}
-		if ("permissionRule".equals(types) && "ruleWithTwoWritePermissionPart".equals(id)) {
-			DataGroup rule = createBasicPermissionRule();
-
-			DataGroup writePermission = new DataGroupOldSpy("writePermissions");
-			createAndAddWritePermission(writePermission, "organisation.showInAdvancedSearch", "0");
-			createAndAddWritePermission(writePermission, "organisation.showInBrowse", "1");
-			rule.addChild(writePermission);
-			rule.addChild(new DataAtomicSpy("activeStatus", "active"));
-
-			returnedReadDataGroups.add(rule);
-			return rule;
-		}
-		if ("permissionRole".equals(types)
-				&& "roleWithReadAndWriteRecordPartPermissions".equals(id)) {
-			DataGroup createRole = createRoleWithReadAndWritePermissions();
-			returnedReadDataGroups.add(createRole);
-			return createRole;
-		}
-		if ("permissionRule".equals(types)
-				&& "ruleWithOneReadPermissionPartTwoWritePermissionPart".equals(id)) {
-			DataGroup rule = createBasicPermissionRule();
-
-			DataGroup readPermission = new DataGroupOldSpy("readPermissions");
-			createAndAddReadPermission(readPermission, "organisation.showInPortal", "0");
-			rule.addChild(readPermission);
-
-			DataGroup writePermission = new DataGroupOldSpy("writePermissions");
-			createAndAddWritePermission(writePermission, "organisation.showInAdvancedSearch", "0");
-			createAndAddWritePermission(writePermission, "organisation.showInBrowse", "1");
-			rule.addChild(writePermission);
-			rule.addChild(new DataAtomicSpy("activeStatus", "active"));
-
-			returnedReadDataGroups.add(rule);
-			return rule;
-		}
-
 		DataGroup dataGroupToReturn = new DataGroupOldSpy("someNameInData");
 		dataGroupToReturn.addChild(new DataGroupOldSpy("recordInfo"));
 		return dataGroupToReturn;

@@ -19,7 +19,6 @@
 
 package se.uu.ub.cora.spider.record;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -107,12 +106,7 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 
 	@Override
 	public StorageReadResult readList(List<String> types, DataGroup filter) {
-		List<DataGroup> list = new ArrayList<>();
-		list.add(read(types.get(0), "oneLinkTopLevel"));
-		list.add(read(types.get(0), "oneLinkOneLevelDown"));
-		StorageReadResult spiderReadResult = new StorageReadResult();
-		spiderReadResult.listOfDataGroups = list;
-		return spiderReadResult;
+		return null;
 	}
 
 	@Override

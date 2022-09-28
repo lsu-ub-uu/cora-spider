@@ -42,7 +42,7 @@ public class RulesProviderImp implements RulesProvider {
 
 	@Override
 	public List<Rule> getActiveRules(String roleId) {
-		DataGroup readRole = recordStorage.read("permissionRole", roleId);
+		DataGroup readRole = recordStorage.read(List.of("permissionRole"), roleId);
 		if (missingOrInactiveRole(readRole)) {
 			return Collections.emptyList();
 		}
@@ -81,7 +81,7 @@ public class RulesProviderImp implements RulesProvider {
 	private DataGroup getLinkedRuleFromStorage(DataChild dataElementRule) {
 		String ruleId = ((DataGroup) dataElementRule)
 				.getFirstAtomicValueWithNameInData("linkedRecordId");
-		return recordStorage.read("permissionRule", ruleId);
+		return recordStorage.read(List.of("permissionRule"), ruleId);
 	}
 
 	private boolean ruleIsActive(DataGroup readRule) {
@@ -137,7 +137,8 @@ public class RulesProviderImp implements RulesProvider {
 	private String getPermissionKeyForRuleTermPart(DataGroup ruleTermPart) {
 		DataGroup internalRule = ruleTermPart.getFirstGroupWithNameInData("rule");
 		String permissionTermId = internalRule.getFirstAtomicValueWithNameInData("linkedRecordId");
-		DataGroup permissionTerm = recordStorage.read("collectPermissionTerm", permissionTermId);
+		DataGroup permissionTerm = recordStorage.read(List.of("collectPermissionTerm"),
+				permissionTermId);
 		DataGroup extraData = permissionTerm.getFirstGroupWithNameInData("extraData");
 		return extraData.getFirstAtomicValueWithNameInData("permissionKey");
 	}

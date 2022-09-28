@@ -197,7 +197,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void checkIfRecordExist(String recordTypeToValidate, String recordIdToUse) {
 		try {
-			recordStorage.read(recordTypeToValidate, recordIdToUse);
+			recordStorage.read(List.of(recordTypeToValidate), recordIdToUse);
 		} catch (RecordNotFoundException exception) {
 			addErrorToValidationResult(exception.getMessage());
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,6 +23,27 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
 
 public interface RecordCreator {
+	/**
+	 * createAndStoreRecord is a method intended to validate, create and store a record in storage
+	 * and possibly in archive.
+	 * 
+	 * </p>
+	 * If the type is an abstract type MUST a {@link MisuseException} be thrown, indicating that the
+	 * requested record can not be created for an abstract type.
+	 * </p>
+	 * If the type and id already is already stored MUST a {@link ConflictException} be thrown,
+	 * indicating that the requested record can not be created. The same error should be thrown if
+	 * another record exists with the same id and a common abstract parent type.
+	 * </p>
+	 * 
+	 * @param authToken
+	 *            A string with the authToken of the user who performs the action.
+	 * @param type
+	 *            A string with the record type of the record.
+	 * @param recordDataGroup
+	 *            A {@link DataGroup} that contains the data to store.
+	 * @return The {@link DataRecord} with the data that the user is allow to read from the record.
+	 */
 	DataRecord createAndStoreRecord(String authToken, String type, DataGroup record);
 
 }

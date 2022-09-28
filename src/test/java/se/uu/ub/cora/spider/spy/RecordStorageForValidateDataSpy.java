@@ -42,23 +42,26 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 	public boolean updateWasCalled = false;
 	public boolean linksExist = false;
 	public DataGroup createRecord;
-	public String type;
+	public List<String> typesList;
 	public String id;
 	public List<DataGroup> filters = new ArrayList<>();
 	public boolean readListWasCalled = false;
 
 	@Override
 	public DataGroup read(List<String> types, String id) {
-		this.type = types;
+		this.typesList = types;
 		this.id = id;
 		readWasCalled = true;
-		if ("recordType".equals(types)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
-					"true", "false", "false");
-		}
-		if ("recordType_NOT_EXISTING".equals(types)) {
-			throw new RecordNotFoundException(
-					"No records exists with recordType: " + types + " and recordId " + id);
+		for (String type : types) {
+
+			if ("recordType".equals(type)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+						id, "true", "false", "false");
+			}
+			if ("recordType_NOT_EXISTING".equals(type)) {
+				throw new RecordNotFoundException(
+						"No records exists with recordType: " + type + " and recordId " + id);
+			}
 		}
 
 		DataGroup dataGroupToReturn = new DataGroupOldSpy("someNameInData");
@@ -105,13 +108,13 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 		filters.add(filter);
 		if ("recordType".equals(type)) {
 			ArrayList<DataGroup> recordTypes = new ArrayList<>();
-			recordTypes.add(read("recordType", "abstract"));
-			recordTypes.add(read("recordType", "child1"));
-			recordTypes.add(read("recordType", "child2"));
-			recordTypes.add(read("recordType", "abstract2"));
-			recordTypes.add(read("recordType", "child1_2"));
-			recordTypes.add(read("recordType", "child2_2"));
-			recordTypes.add(read("recordType", "otherType"));
+			recordTypes.add(read(List.of("recordType"), "abstract"));
+			recordTypes.add(read(List.of("recordType"), "child1"));
+			recordTypes.add(read(List.of("recordType"), "child2"));
+			recordTypes.add(read(List.of("recordType"), "abstract2"));
+			recordTypes.add(read(List.of("recordType"), "child1_2"));
+			recordTypes.add(read(List.of("recordType"), "child2_2"));
+			recordTypes.add(read(List.of("recordType"), "otherType"));
 			StorageReadResult spiderReadResult = new StorageReadResult();
 			spiderReadResult.listOfDataGroups = recordTypes;
 			return spiderReadResult;
