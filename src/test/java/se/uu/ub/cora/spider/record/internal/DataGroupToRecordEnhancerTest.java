@@ -24,7 +24,6 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
-import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertRecordStorageWasCalledOnlyOnceForReadKey;
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertRecordStorageWasNOTCalledForReadKey;
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevelTwoLinksContainReadActionOnly;
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevelTwoLinksDoesNotContainReadAction;
@@ -1263,7 +1262,7 @@ public class DataGroupToRecordEnhancerTest {
 			RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData, DataRecord record) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
-		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "someId");
 		dependencyProvider.MCR.assertReturn("getRecordTypeHandler", 1,
 				recordTypeHandlerForRecordTypeInData);
@@ -1274,9 +1273,17 @@ public class DataGroupToRecordEnhancerTest {
 
 		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
 				.getRecordStorage();
-		List<?> types = (List<?>) recordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("read", 0, "type");
-		assertEquals(types.get(0), SEARCH);
+		RecordTypeHandlerSpy recordTypeHandlerX = (RecordTypeHandlerSpy) dependencyProvider.MCR
+				.getReturnValue("getRecordTypeHandler", 2);
+		var types = recordTypeHandlerX.MCR.getReturnValue("getListOfRecordTypeIdsToReadFromStorage",
+				0);
+		// List<?> types = (List<?>) recordStorage.MCR
+		// .getValueForMethodNameAndCallNumberAndParameterName("read", 0, "type");
+
+		// assertEquals(types.get(0), SEARCH);
+
+		recordStorage.MCR.assertParameters("read", 0, types, returnedSearchId);
+
 		recordStorage.MCR.assertParameter("read", 0, "id", returnedSearchId);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user, SEARCH,
 				"linkedSearchId1");
@@ -1320,7 +1327,7 @@ public class DataGroupToRecordEnhancerTest {
 			RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData, DataRecord record) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
-		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "someId");
 		dependencyProvider.MCR.assertReturn("getRecordTypeHandler", 1,
 				recordTypeHandlerForRecordTypeInData);
@@ -1330,9 +1337,14 @@ public class DataGroupToRecordEnhancerTest {
 				.getReturnValue("getSearchId", 0);
 		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
 				.getRecordStorage();
-		List<?> types = (List<?>) recordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("read", 0, "type");
-		assertEquals(types.get(0), SEARCH);
+
+		RecordTypeHandlerSpy recordTypeHandlerX = (RecordTypeHandlerSpy) dependencyProvider.MCR
+				.getReturnValue("getRecordTypeHandler", 2);
+		var types = recordTypeHandlerX.MCR.getReturnValue("getListOfRecordTypeIdsToReadFromStorage",
+				0);
+
+		recordStorage.MCR.assertParameters("read", 0, types, returnedSearchId);
+
 		recordStorage.MCR.assertParameter("read", 0, "id", returnedSearchId);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user, SEARCH,
 				"linkedSearchId1");
@@ -1816,12 +1828,33 @@ public class DataGroupToRecordEnhancerTest {
 
 		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, someDataGroup, dataRedactor);
 
+		assertTopLevelTwoLinksContainReadActionOnly(record);
 		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
 	}
 
 	private void assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(DataRecord record) {
-		assertTopLevelTwoLinksContainReadActionOnly(record);
-		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "toRecordType:toRecordId");
+
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 4);
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "dataWithLinks");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "recordType");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "system");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 3, "toRecordType");
+
+		RecordTypeHandlerSpy recordTypeHandlerX = (RecordTypeHandlerSpy) dependencyProvider.MCR
+				.getReturnValue("getRecordTypeHandler", 3);
+
+		recordTypeHandlerX.MCR
+				.assertNumberOfCallsToMethod("getListOfRecordTypeIdsToReadFromStorage", 3);
+
+		var types = recordTypeHandlerX.MCR.getReturnValue("getListOfRecordTypeIdsToReadFromStorage",
+				2);
+
+		recordStorage.MCR.assertNumberOfCallsToMethod("read", 4);
+		recordStorage.MCR.assertParameter("read", 0, "id", "twoLinksTopLevel");
+		recordStorage.MCR.assertParameter("read", 1, "id", "dataWithLinks");
+		recordStorage.MCR.assertParameter("read", 2, "id", "cora");
+		recordStorage.MCR.assertParameter("read", 3, "id", "toRecordId");
+		recordStorage.MCR.assertParameters("read", 3, types, "toRecordId");
 
 		String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
 
@@ -1852,7 +1885,7 @@ public class DataGroupToRecordEnhancerTest {
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, someDataGroup,
 				dataRedactor);
-
+		assertTopLevelTwoLinksContainReadActionOnly(record);
 		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
 	}
 
@@ -1866,34 +1899,9 @@ public class DataGroupToRecordEnhancerTest {
 
 		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, dataGroup, dataRedactor);
 
-		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecordNotAuthorized(record);
-	}
-
-	private void assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecordNotAuthorized(
-			DataRecord record) {
 		assertTopLevelTwoLinksDoesNotContainReadAction(record);
-		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "toRecordType:toRecordId");
+		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
 
-		String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
-
-		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
-		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId", metadataId);
-		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
-		termCollector.MCR.assertParameter("collectTerms", 3, "metadataId", metadataId);
-		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 4);
-
-		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
-		authorizator.MCR.assertParameters(methodName, 0, user, READ, DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName, 1, user, UPDATE, DATA_WITH_LINKS);
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName, 2);
-
-		String methodName2 = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
-		authorizator.MCR.assertParameters(methodName2, 0, user, "index", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 1, user, "delete", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "recordType");
-		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "system");
-		authorizator.MCR.assertParameters(methodName2, 4, user, READ, "toRecordType");
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 5);
 	}
 
 	@Test
@@ -1908,27 +1916,6 @@ public class DataGroupToRecordEnhancerTest {
 				dataRedactor);
 
 		assertTopLevelTwoLinksDoesNotContainReadAction(record);
-		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "toRecordType:toRecordId");
-
-		String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
-
-		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
-		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId", metadataId);
-		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
-		termCollector.MCR.assertParameter("collectTerms", 3, "metadataId", metadataId);
-		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 4);
-
-		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
-		authorizator.MCR.assertParameters(methodName, 0, user, READ, DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName, 1, user, UPDATE, DATA_WITH_LINKS);
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName, 2);
-
-		String methodName2 = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
-		authorizator.MCR.assertParameters(methodName2, 0, user, "index", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 1, user, "delete", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "recordType");
-		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "system");
-		authorizator.MCR.assertParameters(methodName2, 4, user, READ, "toRecordType");
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 5);
+		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
 	}
 }

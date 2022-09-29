@@ -66,6 +66,7 @@ import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
+import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
@@ -295,6 +296,30 @@ public class RecordUpdaterTest {
 
 		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, authenticator.returnedUser,
 				"spyType", dataGroup, dataRedactor);
+	}
+
+	@Test(expectedExceptions = MisuseException.class, expectedExceptionsMessageRegExp = ""
+			+ "Update on abstract recordType: abstract is not allowed")
+	public void testUpdateRecordAbstractRecordType() {
+		setUpDependencyProvider();
+		DataGroup record = new DataGroupOldSpy("abstract");
+		recordTypeHandlerSpy.shouldAutoGenerateId = true;
+		recordTypeHandlerSpy.isAbstract = true;
+
+		recordUpdater.updateRecord("someToken78678567", "abstract", "spyId", record);
+	}
+
+	@Test
+	public void testUpdateRecordAbstractRecordTypeBeforeReadRecord() {
+		setUpDependencyProvider();
+		DataGroup record = new DataGroupOldSpy("abstract");
+		recordTypeHandlerSpy.shouldAutoGenerateId = true;
+		recordTypeHandlerSpy.isAbstract = true;
+		try {
+			recordUpdater.updateRecord("someToken78678567", "abstract", "spyId", record);
+		} catch (Exception e) {
+			recordStorage.MCR.assertNumberOfCallsToMethod("read", 0);
+		}
 	}
 
 	@Test

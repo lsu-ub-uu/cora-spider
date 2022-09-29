@@ -48,6 +48,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
+import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.archive.RecordArchive;
@@ -107,6 +108,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		metadataId = recordTypeHandler.getMetadataId();
 
+		checkNoUpdateForAbstractRecordType();
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, topDataGroup);
 
@@ -154,6 +156,13 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 				previouslyStoredRecord);
 
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
+	}
+
+	private void checkNoUpdateForAbstractRecordType() {
+		if (recordTypeHandler.isAbstract()) {
+			throw new MisuseException(
+					"Update on abstract recordType: " + recordType + " is not allowed");
+		}
 	}
 
 	private void checkUserIsAuthorisedToUpdateGivenCollectedData(CollectTerms collectedTerms) {

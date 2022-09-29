@@ -138,7 +138,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private void checkNoCreateForAbstractRecordType() {
 		if (recordTypeHandler.isAbstract()) {
 			throw new MisuseException(
-					"Data creation on abstract recordType:" + recordType + " is not allowed");
+					"Data creation on abstract recordType: " + recordType + " is not allowed");
 		}
 	}
 

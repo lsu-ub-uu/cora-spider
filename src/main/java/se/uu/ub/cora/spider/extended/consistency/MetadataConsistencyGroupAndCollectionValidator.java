@@ -21,12 +21,13 @@ package se.uu.ub.cora.spider.extended.consistency;
 
 import java.util.List;
 
-import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -36,10 +37,12 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 	private RecordStorage recordStorage;
 	private String recordType;
 	private DataGroup recordAsDataGroup;
+	private SpiderDependencyProvider dependencyProvider;
 
-	public MetadataConsistencyGroupAndCollectionValidator(RecordStorage recordStorage,
-			String recordType) {
-		this.recordStorage = recordStorage;
+	public MetadataConsistencyGroupAndCollectionValidator(
+			SpiderDependencyProvider dependencyProvider, String recordType) {
+		this.dependencyProvider = dependencyProvider;
+		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.recordType = recordType;
 	}
 
@@ -91,15 +94,15 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 		String linkedRecordId = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		DataGroup childDataGroup;
 		try {
-			// TODO: needs recordTypeHandler to get list of recordtypes
-			child DataGroup = recordStorage.read(List.of(linkedRecordType), linkedRecordId);
+			RecordTypeHandler recordTypeHandler = dependencyProvider
+					.getRecordTypeHandler(linkedRecordType);
+			List<String> types = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
+			childDataGroup = recordStorage.read(types, linkedRecordId);
 		} catch (RecordNotFoundException exception) {
 			throw new DataException("Data is not valid: referenced child:  does not exist",
 					exception);
 		}
-		DataAtomic nameInData = (DataAtomic) childDataGroup
-				.getFirstChildWithNameInData("nameInData");
-		return nameInData.getValue();
+		return childDataGroup.getFirstAtomicValueWithNameInData("nameInData");
 	}
 
 	protected boolean ensureChildExistInParent(String childNameInData) {
@@ -216,7 +219,12 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 
 	private String extractNameInDataFromReference(DataGroup reference) {
 		String itemId = extractRefItemIdFromRefItemGroup(reference);
-		DataGroup collectionItem = recordStorage.read(List.of("metadataCollectionItem"), itemId);
+
+		RecordTypeHandler recordTypeHandler = dependencyProvider
+				.getRecordTypeHandler("metadataCollectionItem");
+		List<String> types = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
+		DataGroup collectionItem = recordStorage.read(types, itemId);
+
 		return collectionItem.getFirstAtomicValueWithNameInData("nameInData");
 	}
 
@@ -226,6 +234,10 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 
 	public RecordStorage getRecordStorage() {
 		return recordStorage;
+	}
+
+	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {
+		return dependencyProvider;
 	}
 
 }

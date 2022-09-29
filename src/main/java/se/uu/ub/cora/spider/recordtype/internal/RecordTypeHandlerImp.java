@@ -356,7 +356,16 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 		Set<String> possibleValues = new LinkedHashSet<>();
 		for (DataGroup itemRef : allItemRefs) {
 			String itemId = itemRef.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-			DataGroup itemGroup = recordStorage.read(List.of("metadataCollectionItem"), itemId);
+			
+			// TODO: changeTo not abstract metadataCollectionItem
+			
+//			RecordTypeHandler recordTypeHandler = dependencyProvider
+//					.getRecordTypeHandler("metadataCollectionItem");
+//			List<String> types = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
+//			DataGroup collectionItem = recordStorage.read(types, itemId);
+			
+			
+			DataGroup itemGroup = recordStorage.read(List.of("metadataCollectionItem") ← change_it, itemId);
 			String itemValue = itemGroup.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
 			possibleValues.add(itemValue);
 		}

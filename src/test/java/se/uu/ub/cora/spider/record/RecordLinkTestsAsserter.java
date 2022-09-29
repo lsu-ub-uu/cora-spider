@@ -37,7 +37,6 @@ import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 public class RecordLinkTestsAsserter {
 	public static void assertTopLevelLinkContainsReadActionOnly(DataRecord record) {
 		DataRecordLinkSpy link = getLinkFromRecord(record);
-		// assertTrue(link.hasReadAction());
 		link.MCR.assertParameters("addAction", 0, Action.READ);
 	}
 
@@ -55,7 +54,6 @@ public class RecordLinkTestsAsserter {
 	public static void assertTopLevelTwoLinksContainReadActionOnly(DataRecord record) {
 		List<DataRecordLinkSpy> links = getLinksFromRecord(record);
 		for (DataRecordLinkSpy link : links) {
-			// assertTrue(link.hasReadAction());
 			link.MCR.assertParameters("addAction", 0, Action.READ);
 		}
 		assertEquals(links.size(), 2);
@@ -64,7 +62,6 @@ public class RecordLinkTestsAsserter {
 	public static void assertTopLevelTwoLinksDoesNotContainReadAction(DataRecord record) {
 		List<DataRecordLinkSpy> links = getLinksFromRecord(record);
 		for (DataRecordLinkSpy link : links) {
-			// assertFalse(link.hasReadAction());
 			link.MCR.assertMethodNotCalled("addAction");
 		}
 		assertEquals(links.size(), 2);
@@ -86,7 +83,6 @@ public class RecordLinkTestsAsserter {
 				.getFirstChildWithNameInData("oneLevelDown");
 		DataRecordLinkSpy link = (DataRecordLinkSpy) dataGroupOneLevelDown
 				.getFirstChildWithNameInData("link");
-		// assertTrue(link.hasReadAction());
 		link.MCR.assertParameters("addAction", 0, Action.READ);
 	}
 
@@ -120,10 +116,4 @@ public class RecordLinkTestsAsserter {
 		assertFalse(readNumberMap.containsKey(readKey));
 	}
 
-	public static void assertRecordStorageWasCalledOnlyOnceForReadKey(
-			RecordEnhancerTestsRecordStorage recordStorage, String readKey) {
-		Map<String, Integer> readNumberMap = recordStorage.readNumberMap;
-		Integer actual = readNumberMap.get(readKey);
-		assertEquals(actual.intValue(), 1);
-	}
 }

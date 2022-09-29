@@ -200,7 +200,8 @@ public class RecordCreatorTest {
 				user, "create", recordType);
 	}
 
-	@Test(expectedExceptions = MisuseException.class)
+	@Test(expectedExceptions = MisuseException.class, expectedExceptionsMessageRegExp = ""
+			+ "Data creation on abstract recordType: abstract is not allowed")
 	public void testCreateRecordAbstractRecordType() {
 		setUpDependencyProvider();
 		DataGroup record = new DataGroupOldSpy("abstract");

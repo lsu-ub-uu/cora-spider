@@ -85,7 +85,7 @@ public class MetadataValidatorExtendedFunctionalityFactoryTest {
 		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) functionalities
 				.get(0);
 		assertEquals(functionality.getRecordType(), "metadataGroup");
-		assertSame(functionality.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
+		assertSame(functionality.onlyForTestGetDependencyProvider(), dependencyProviderSpy);
 	}
 
 	@Test
@@ -106,7 +106,7 @@ public class MetadataValidatorExtendedFunctionalityFactoryTest {
 		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) functionalities
 				.get(0);
 		assertEquals(functionality.getRecordType(), "metadataGroup");
-		assertSame(functionality.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
+		assertSame(functionality.onlyForTestGetDependencyProvider(), dependencyProviderSpy);
 	}
 
 	@Test
@@ -117,6 +117,6 @@ public class MetadataValidatorExtendedFunctionalityFactoryTest {
 		MetadataConsistencyGroupAndCollectionValidator functionality = (MetadataConsistencyGroupAndCollectionValidator) functionalities
 				.get(0);
 		assertEquals(functionality.getRecordType(), "metadataCollectionVariable");
-		assertSame(functionality.getRecordStorage(), dependencyProviderSpy.getRecordStorage());
+		assertSame(functionality.onlyForTestGetDependencyProvider(), dependencyProviderSpy);
 	}
 }

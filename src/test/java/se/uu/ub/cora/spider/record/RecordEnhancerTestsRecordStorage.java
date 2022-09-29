@@ -38,7 +38,7 @@ import se.uu.ub.cora.storage.StorageReadResult;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class RecordEnhancerTestsRecordStorage implements RecordStorage {
-	MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public boolean recordIdExistsForRecordType = true;
 	public boolean createWasRead = false;
