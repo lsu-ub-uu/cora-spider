@@ -28,6 +28,7 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordStorage;
 
 /**
@@ -62,7 +63,9 @@ public final class UserUpdaterForAppToken implements ExtendedFunctionality {
 	}
 
 	private DataGroup readUserFromStorage(String userId) {
-		return recordStorage.read("user", userId);
+		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler("user");
+		return recordStorage.read(recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage(),
+				userId);
 	}
 
 	private DataGroup createUserAppTokenGroup(DataGroup appTokenDataGroup) {

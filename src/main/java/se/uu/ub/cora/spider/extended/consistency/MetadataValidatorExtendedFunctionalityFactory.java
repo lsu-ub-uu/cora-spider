@@ -61,8 +61,7 @@ public class MetadataValidatorExtendedFunctionalityFactory implements ExtendedFu
 
 	private MetadataConsistencyGroupAndCollectionValidator createValidatorUsingRecordType(
 			String recordType) {
-		return new MetadataConsistencyGroupAndCollectionValidator(
-				dependencyProvider.getRecordStorage(), recordType);
+		return new MetadataConsistencyGroupAndCollectionValidator(dependencyProvider, recordType);
 	}
 
 	@Override

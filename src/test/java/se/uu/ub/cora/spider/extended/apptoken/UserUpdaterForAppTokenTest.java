@@ -31,9 +31,12 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.testspies.data.DataAtomicSpy;
 import se.uu.ub.cora.testspies.data.DataFactorySpy;
 import se.uu.ub.cora.testspies.data.DataGroupSpy;
@@ -52,17 +55,32 @@ public class UserUpdaterForAppTokenTest {
 
 	private DataGroupSpy userGroupFromStorage;
 
+	private RecordTypeHandlerSpy recordTypeHandler;
+
 	@BeforeMethod
 	public void setUp() {
 		dataFactory = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactory);
 		dependencyProvider = new SpiderDependencyProviderSpy();
+
+		setUpRecordTypeHandler();
+
 		spiderInstanceFactory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
 		userGroupFromStorage = setupReturnUserFromStorage();
 
 		extendedFunctionality = UserUpdaterForAppToken
 				.usingSpiderDependencyProvider(dependencyProvider);
+	}
+
+	private void setUpRecordTypeHandler() {
+		recordTypeHandler = new RecordTypeHandlerSpy();
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier(
+				"getListOfRecordTypeIdsToReadFromStorage",
+				(Supplier<List<String>>) () -> List.of("user"));
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
+				(Supplier<RecordTypeHandler>) () -> recordTypeHandler);
+
 	}
 
 	@Test
@@ -158,7 +176,11 @@ public class UserUpdaterForAppTokenTest {
 
 		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProvider.MCR
 				.getReturnValue("getRecordStorage", 0);
-		recordStorage.MCR.assertParameters("read", 0, "user", "someUserId");
+
+		var types = recordTypeHandler.MCR.getReturnValue("getListOfRecordTypeIdsToReadFromStorage",
+				0);
+		recordStorage.MCR.assertParameters("read", 0, types, "someUserId");
+
 		DataGroupSpy userFromStorage = (DataGroupSpy) recordStorage.MCR.getReturnValue("read", 0);
 		userFromStorage.MCR.assertParameters("addChild", 0, userAppTokenGroup);
 
@@ -190,9 +212,10 @@ public class UserUpdaterForAppTokenTest {
 		typeLink.MRV.setReturnValues("getLinkedRecordId", List.of("someType"));
 
 		RecordStorageSpy recordStorage = new RecordStorageSpy();
-		dependencyProvider.MRV.setReturnValues("getRecordStorage", List.of(recordStorage));
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
+				(Supplier<RecordStorage>) () -> recordStorage);
 
-		recordStorage.MRV.setReturnValues("read", List.of(user), "user", "someUserId");
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", (Supplier<DataGroup>) () -> user);
 		return user;
 	}
 

@@ -139,10 +139,8 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 	private StorageReadResult readList() {
 		DataGroup filter = indexBatchJob.filter;
-		if (recordTypeHandler.isAbstract()) {
-			return recordStorage.readAbstractList(indexBatchJob.recordTypeToIndex, filter);
-		}
-		return recordStorage.readList(indexBatchJob.recordTypeToIndex, filter);
+		List<String> types = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
+		return recordStorage.readList(types, filter);
 	}
 
 	private void indexRecord(String metadataId, DataGroup dataGroup) {

@@ -25,15 +25,15 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.Link;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
+import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class RecordHandler {
@@ -41,6 +41,7 @@ public class RecordHandler {
 	protected static final String RECORD_TYPE = "recordType";
 	protected static final String RECORD_INFO = "recordInfo";
 	protected static final String TS_CREATED = "tsCreated";
+	protected SpiderDependencyProvider dependencyProvider;
 	protected RecordStorage recordStorage;
 	protected String recordType;
 	protected String recordId;
@@ -57,11 +58,13 @@ public class RecordHandler {
 	private void extractToGroupAndCheckDataExistsInStorage(Link recordToRecordLink) {
 		String toRecordType = recordToRecordLink.type();
 		String toRecordId = recordToRecordLink.id();
-		checkRecordTypeAndRecordIdExistsInStorage(toRecordId, toRecordType);
+		checkRecordTypeAndRecordIdExistsInStorage(toRecordType, toRecordId);
 	}
 
-	private void checkRecordTypeAndRecordIdExistsInStorage(String recordId, String recordType) {
-		if (!recordStorage.recordExistsForAbstractOrImplementingRecordTypeAndRecordId(recordType,
+	private void checkRecordTypeAndRecordIdExistsInStorage(String recordType, String recordId) {
+		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
+		List<String> listOfTypes = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
+		if (!recordStorage.recordExistsForListOfImplementingRecordTypesAndRecordId(listOfTypes,
 				recordId)) {
 			throw new DataException(
 					"Data is not valid: linkedRecord does not exists in storage for recordType: "
@@ -93,7 +96,7 @@ public class RecordHandler {
 	}
 
 	private DataGroup createUpdatedGroup() {
-		DataGroup updatedGroup = DataGroupProvider.getDataGroupUsingNameInData("updated");
+		DataGroup updatedGroup = DataProvider.createGroupUsingNameInData("updated");
 		updatedGroup.setRepeatId("0");
 		return updatedGroup;
 	}
@@ -107,7 +110,7 @@ public class RecordHandler {
 	private void addTimestampToUpdateGroup(DataGroup recordInfo, DataGroup updatedGroup) {
 		String tsCreatedUsedAsFirstTsUpdate = recordInfo
 				.getFirstAtomicValueWithNameInData(TS_CREATED);
-		updatedGroup.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("tsUpdated",
+		updatedGroup.addChild(DataProvider.createAtomicUsingNameInDataAndValue("tsUpdated",
 				tsCreatedUsedAsFirstTsUpdate));
 	}
 

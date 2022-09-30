@@ -35,30 +35,33 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageForValidateDataSpy implements RecordStorage {
 
-	public Collection<String> readLists = new ArrayList<>();
+	public Collection<List<String>> readLists = new ArrayList<>();
 	public boolean readWasCalled = false;
 	public boolean deleteWasCalled = false;
 	public boolean createWasCalled = false;
 	public boolean updateWasCalled = false;
 	public boolean linksExist = false;
 	public DataGroup createRecord;
-	public String type;
+	public List<String> typesList;
 	public String id;
 	public List<DataGroup> filters = new ArrayList<>();
 	public boolean readListWasCalled = false;
 
 	@Override
-	public DataGroup read(String type, String id) {
-		this.type = type;
+	public DataGroup read(List<String> types, String id) {
+		this.typesList = types;
 		this.id = id;
 		readWasCalled = true;
-		if ("recordType".equals(type)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
-					"true", "false", "false");
-		}
-		if ("recordType_NOT_EXISTING".equals(type)) {
-			throw new RecordNotFoundException(
-					"No records exists with recordType: " + type + " and recordId " + id);
+		for (String type : types) {
+
+			if ("recordType".equals(type)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+						id, "true", "false", "false");
+			}
+			if ("recordType_NOT_EXISTING".equals(type)) {
+				throw new RecordNotFoundException(
+						"No records exists with recordType: " + type + " and recordId " + id);
+			}
 		}
 
 		DataGroup dataGroupToReturn = new DataGroupOldSpy("someNameInData");
@@ -99,19 +102,19 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(String type, DataGroup filter) {
+	public StorageReadResult readList(List<String> type, DataGroup filter) {
 		readListWasCalled = true;
 		readLists.add(type);
 		filters.add(filter);
 		if ("recordType".equals(type)) {
 			ArrayList<DataGroup> recordTypes = new ArrayList<>();
-			recordTypes.add(read("recordType", "abstract"));
-			recordTypes.add(read("recordType", "child1"));
-			recordTypes.add(read("recordType", "child2"));
-			recordTypes.add(read("recordType", "abstract2"));
-			recordTypes.add(read("recordType", "child1_2"));
-			recordTypes.add(read("recordType", "child2_2"));
-			recordTypes.add(read("recordType", "otherType"));
+			recordTypes.add(read(List.of("recordType"), "abstract"));
+			recordTypes.add(read(List.of("recordType"), "child1"));
+			recordTypes.add(read(List.of("recordType"), "child2"));
+			recordTypes.add(read(List.of("recordType"), "abstract2"));
+			recordTypes.add(read(List.of("recordType"), "child1_2"));
+			recordTypes.add(read(List.of("recordType"), "child2_2"));
+			recordTypes.add(read(List.of("recordType"), "otherType"));
 			StorageReadResult spiderReadResult = new StorageReadResult();
 			spiderReadResult.listOfDataGroups = recordTypes;
 			return spiderReadResult;
@@ -125,67 +128,67 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 		return spiderReadResult;
 	}
 
-	@Override
-	public StorageReadResult readAbstractList(String type, DataGroup filter) {
-		StorageReadResult spiderReadResult = new StorageReadResult();
-		spiderReadResult.totalNumberOfMatches = 199;
-		spiderReadResult.listOfDataGroups = new ArrayList<>();
-		readLists.add(type);
-		if ("abstract".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-			records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
-
-			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		if ("abstract2".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-
-			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		if ("user".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-
-			DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
-			records.add(inactiveUser);
-
-			DataGroup user = createActiveUserWithIdAndAddDefaultRoles("someUserId");
-			records.add(user);
-
-			DataGroup userWithPermissionTerm = createUserWithOneRoleWithOnePermission();
-			records.add(userWithPermissionTerm);
-
-			DataGroup userWithTwoRolesAndTwoPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
-					"userWithTwoRolesPermissionTerm");
-			addRoleToUser("admin", userWithTwoRolesAndTwoPermissionTerm);
-
-			List<DataGroup> userRoles = userWithTwoRolesAndTwoPermissionTerm
-					.getAllGroupsWithNameInData("userRole");
-
-			DataGroup permissionTerm = createPermissionTermWithIdAndValues(
-					"organisationPermissionTerm", "system.*");
-			DataGroup userRole = userRoles.get(0);
-			userRole.addChild(permissionTerm);
-
-			DataGroup permissionTerm2 = createPermissionTermWithIdAndValues("journalPermissionTerm",
-					"system.abc", "system.def");
-			DataGroup userRole2 = userRoles.get(1);
-			userRole2.addChild(permissionTerm2);
-
-			DataGroup permissionTerm2_role2 = createPermissionTermWithIdAndValues(
-					"organisationPermissionTerm", "system.*");
-			userRole2.addChild(permissionTerm2_role2);
-
-			records.add(userWithTwoRolesAndTwoPermissionTerm);
-
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		return spiderReadResult;
-	}
+	// @Override
+	// public StorageReadResult readAbstractList(String type, DataGroup filter) {
+	// StorageReadResult spiderReadResult = new StorageReadResult();
+	// spiderReadResult.totalNumberOfMatches = 199;
+	// spiderReadResult.listOfDataGroups = new ArrayList<>();
+	// readLists.add(type);
+	// if ("abstract".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	// records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
+	//
+	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// if ("abstract2".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	//
+	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// if ("user".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	//
+	// DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
+	// records.add(inactiveUser);
+	//
+	// DataGroup user = createActiveUserWithIdAndAddDefaultRoles("someUserId");
+	// records.add(user);
+	//
+	// DataGroup userWithPermissionTerm = createUserWithOneRoleWithOnePermission();
+	// records.add(userWithPermissionTerm);
+	//
+	// DataGroup userWithTwoRolesAndTwoPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
+	// "userWithTwoRolesPermissionTerm");
+	// addRoleToUser("admin", userWithTwoRolesAndTwoPermissionTerm);
+	//
+	// List<DataGroup> userRoles = userWithTwoRolesAndTwoPermissionTerm
+	// .getAllGroupsWithNameInData("userRole");
+	//
+	// DataGroup permissionTerm = createPermissionTermWithIdAndValues(
+	// "organisationPermissionTerm", "system.*");
+	// DataGroup userRole = userRoles.get(0);
+	// userRole.addChild(permissionTerm);
+	//
+	// DataGroup permissionTerm2 = createPermissionTermWithIdAndValues("journalPermissionTerm",
+	// "system.abc", "system.def");
+	// DataGroup userRole2 = userRoles.get(1);
+	// userRole2.addChild(permissionTerm2);
+	//
+	// DataGroup permissionTerm2_role2 = createPermissionTermWithIdAndValues(
+	// "organisationPermissionTerm", "system.*");
+	// userRole2.addChild(permissionTerm2_role2);
+	//
+	// records.add(userWithTwoRolesAndTwoPermissionTerm);
+	//
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// return spiderReadResult;
+	// }
 
 	private DataGroup createUserWithOneRoleWithOnePermission() {
 		DataGroup userWithPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
@@ -262,20 +265,13 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
 			String id) {
 		return false;
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
-			List<String> implementingTypes, DataGroup filter) {
+	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

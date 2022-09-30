@@ -28,6 +28,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
@@ -45,6 +46,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	public SpiderDependencyProviderSpy() {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("getRecordStorage", RecordStorageSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler", RecordTypeHandlerSpy::new);
 		// MRV.setDefaultReturnValuesSupplier("hasReadAction", (Supplier<Boolean>) () -> false);
 		// MRV.setDefaultReturnValuesSupplier("getRepeatId", String::new);
 		// MRV.setDefaultReturnValuesSupplier("getNameInData", String::new);
@@ -140,8 +142,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 
 	@Override
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
-		// TODO Auto-generated method stub
-		return null;
+		return (RecordTypeHandler) MCR.addCallAndReturnFromMRV("recordTypeId", recordTypeId);
 	}
 
 	@Override

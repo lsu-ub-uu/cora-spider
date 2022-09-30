@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2019, 2020 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2019, 2020, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -24,43 +24,37 @@ import static org.testng.Assert.assertSame;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.Data;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupFactory;
-import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataList;
-import se.uu.ub.cora.data.DataListFactory;
-import se.uu.ub.cora.data.DataListProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.data.copier.DataCopierFactory;
-import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
-import se.uu.ub.cora.spider.record.DataListFactorySpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.storage.StorageReadResult;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
+import se.uu.ub.cora.testspies.data.DataGroupSpy;
+import se.uu.ub.cora.testspies.data.DataListSpy;
 
 public class RecordListReaderTest {
 
@@ -77,13 +71,11 @@ public class RecordListReaderTest {
 	private DataGroup emptyFilter;
 	private DataGroup nonEmptyFilter;
 	private LoggerFactorySpy loggerFactorySpy;
+	private DataFactorySpy dataFactorySpy;
 
-	private DataGroupFactory dataGroupFactory;
-	private DataAtomicFactorySpy dataAtomicFactory;
-	private DataListFactory dataListFactory;
-	private DataCopierFactory dataCopierFactory;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
+	private DataListSpy dataList;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -98,6 +90,16 @@ public class RecordListReaderTest {
 		dataRedactor = new DataRedactorSpy();
 		recordEnhancer = new DataGroupToRecordEnhancerSpy();
 		setUpDependencyProvider();
+
+		dataList = new DataListSpy();
+		dataList.MRV.setDefaultReturnValuesSupplier("getTotalNumberOfTypeInStorage",
+				(Supplier<String>) () -> "2");
+
+		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorListUsingNameOfDataType",
+				(Supplier<DataList>) () -> dataList);
+
+		recordStorage.totalNumberOfMatches = 2;
+
 	}
 
 	private DataGroup createNonEmptyFilter() {
@@ -110,14 +112,8 @@ public class RecordListReaderTest {
 	private void setUpFactoriesAndProviders() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-		dataGroupFactory = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
-		dataAtomicFactory = new DataAtomicFactorySpy();
-		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
-		dataListFactory = new DataListFactorySpy();
-		DataListProvider.setDataListFactory(dataListFactory);
-		dataCopierFactory = new DataCopierFactorySpy();
-		DataCopierProvider.setDataCopierFactory(dataCopierFactory);
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 	}
 
 	private void setUpDependencyProvider() {
@@ -145,6 +141,7 @@ public class RecordListReaderTest {
 
 	@Test
 	public void testAuthTokenIsPassedOnToAuthenticator() throws Exception {
+
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
 		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_USER_TOKEN);
@@ -226,22 +223,14 @@ public class RecordListReaderTest {
 	public void testReadingFromStorageCalled() {
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
-		recordTypeHandlerSpy.MCR.assertMethodWasCalled("isAbstract");
-		recordStorage.MCR.assertParameters("readList", 0, SOME_RECORD_TYPE, emptyFilter);
+		var listOfTypes = recordTypeHandlerSpy.MCR
+				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
+		recordStorage.MCR.assertParameters("readList", 0, listOfTypes, emptyFilter);
 	}
 
 	@Test
-	public void testReadingFromStorageCalledForAbstract() {
+	public void testEnhanceIsCalledForRecordsReturnedFromStorage() {
 		recordTypeHandlerSpy.isAbstract = true;
-
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
-
-		recordTypeHandlerSpy.MCR.assertMethodWasCalled("isAbstract");
-		recordStorage.MCR.assertParameters("readAbstractList", 0, SOME_RECORD_TYPE, emptyFilter);
-	}
-
-	@Test
-	public void testEnhanceIsCalledForRecordsReturnedFromStorage() throws Exception {
 		recordStorage.numberToReturnForReadList = 2;
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
@@ -250,26 +239,6 @@ public class RecordListReaderTest {
 
 		StorageReadResult storageReadResult = (StorageReadResult) recordStorage.MCR
 				.getReturnValue("readList", 0);
-		List<DataGroup> listOfReturnedDataGroupsFromStorage = storageReadResult.listOfDataGroups;
-		User returnedUser = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
-
-		recordEnhancer.MCR.assertParameters("enhance", 0, returnedUser, SOME_RECORD_TYPE,
-				listOfReturnedDataGroupsFromStorage.get(0));
-		recordEnhancer.MCR.assertParameters("enhance", 1, returnedUser, SOME_RECORD_TYPE,
-				listOfReturnedDataGroupsFromStorage.get(1));
-	}
-
-	@Test
-	public void testEnhanceIsCalledForRecordsReturnedFromStorageForAbstract() {
-		recordTypeHandlerSpy.isAbstract = true;
-		recordStorage.numberToReturnForReadList = 2;
-
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
-
-		recordEnhancer.MCR.assertNumberOfCallsToMethod("enhance", 2);
-
-		StorageReadResult storageReadResult = (StorageReadResult) recordStorage.MCR
-				.getReturnValue("readAbstractList", 0);
 		User returnedUser = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 		List<DataGroup> listOfReturnedDataGroupsFromStorage = storageReadResult.listOfDataGroups;
 		DataGroup returnedDataGroup1 = listOfReturnedDataGroupsFromStorage.get(0);
@@ -298,34 +267,14 @@ public class RecordListReaderTest {
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				emptyFilter);
 
-		List<Data> dataList = readRecordList.getDataList();
-
+		DataListSpy dataListSpy = (DataListSpy) dataFactorySpy.MCR
+				.getReturnValue("factorListUsingNameOfDataType", 0);
+		assertSame(dataListSpy, readRecordList);
 		DataRecord returnValue0 = (DataRecord) recordEnhancer.MCR.getReturnValue("enhance", 0);
-		DataRecord dataRecord0 = (DataRecord) dataList.get(0);
-		assertSame(dataRecord0, returnValue0);
+		dataListSpy.MCR.assertParameters("addData", 0, returnValue0);
 
 		DataRecord returnValue1 = (DataRecord) recordEnhancer.MCR.getReturnValue("enhance", 1);
-		DataRecord dataRecord1 = (DataRecord) dataList.get(1);
-		assertSame(dataRecord1, returnValue1);
-	}
-
-	@Test
-	public void testEnhancedDataIsReturnedInDataListForAbstract() throws Exception {
-		recordStorage.numberToReturnForReadList = 2;
-		recordTypeHandlerSpy.isAbstract = true;
-
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				emptyFilter);
-
-		List<Data> dataList = readRecordList.getDataList();
-
-		DataRecord returnValue0 = (DataRecord) recordEnhancer.MCR.getReturnValue("enhance", 0);
-		DataRecord dataRecord0 = (DataRecord) dataList.get(0);
-		assertSame(dataRecord0, returnValue0);
-
-		DataRecord returnValue1 = (DataRecord) recordEnhancer.MCR.getReturnValue("enhance", 1);
-		DataRecord dataRecord1 = (DataRecord) dataList.get(1);
-		assertSame(dataRecord1, returnValue1);
+		dataListSpy.MCR.assertParameters("addData", 1, returnValue1);
 	}
 
 	@Test
@@ -349,8 +298,13 @@ public class RecordListReaderTest {
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				emptyFilter);
 
-		List<Data> dataList = readRecordList.getDataList();
-		assertEquals(dataList.size(), 1);
+		DataListSpy dataListSpy = (DataListSpy) dataFactorySpy.MCR
+				.getReturnValue("factorListUsingNameOfDataType", 0);
+		assertSame(dataListSpy, readRecordList);
+		DataRecord returnValue0 = (DataRecord) recordEnhancer.MCR.getReturnValue("enhance", 0);
+		dataListSpy.MCR.assertParameters("addData", 0, returnValue0);
+
+		dataListSpy.MCR.assertNumberOfCallsToMethod("addData", 1);
 	}
 
 	@Test
@@ -362,12 +316,17 @@ public class RecordListReaderTest {
 		recordStorage.numberToReturnForReadList = 7;
 		recordStorage.start = 4;
 
+		dataList.MRV.setDefaultReturnValuesSupplier("getDataList",
+				(Supplier<List<DataGroup>>) () -> List.of(new DataGroupSpy(), new DataGroupSpy(),
+						new DataGroupSpy()));
+
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				emptyFilter);
 
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "25");
-		assertEquals(readRecordList.getFromNo(), "4");
-		assertEquals(readRecordList.getToNo(), "7");
+		assertSame(dataList, readRecordList);
+		dataList.MCR.assertParameters("setTotalNo", 0, "25");
+		dataList.MCR.assertParameters("setFromNo", 0, "4");
+		dataList.MCR.assertParameters("setToNo", 0, "7");
 	}
 
 	@Test(expectedExceptions = RuntimeException.class)
@@ -387,12 +346,19 @@ public class RecordListReaderTest {
 		recordStorage.numberToReturnForReadList = 10;
 		recordStorage.start = 1;
 
+		dataList.MRV.setDefaultReturnValuesSupplier("getDataList",
+				(Supplier<List<DataGroup>>) () -> List.of(new DataGroupSpy(), new DataGroupSpy(),
+						new DataGroupSpy(), new DataGroupSpy(), new DataGroupSpy(),
+						new DataGroupSpy(), new DataGroupSpy(), new DataGroupSpy(),
+						new DataGroupSpy()));
+
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				emptyFilter);
 
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "20");
-		assertEquals(readRecordList.getFromNo(), "1");
-		assertEquals(readRecordList.getToNo(), "10");
+		assertSame(dataList, readRecordList);
+		dataList.MCR.assertParameters("setTotalNo", 0, "20");
+		dataList.MCR.assertParameters("setFromNo", 0, "1");
+		dataList.MCR.assertParameters("setToNo", 0, "10");
 	}
 
 	@Test
@@ -405,9 +371,11 @@ public class RecordListReaderTest {
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				emptyFilter);
 
-		assertEquals(readRecordList.getTotalNumberOfTypeInStorage(), "20");
-		assertEquals(readRecordList.getFromNo(), "0");
-		assertEquals(readRecordList.getToNo(), "0");
+		assertSame(dataList, readRecordList);
+		dataList.MCR.assertParameters("setTotalNo", 0, "20");
+		dataList.MCR.assertParameters("setFromNo", 0, "0");
+		dataList.MCR.assertParameters("setToNo", 0, "0");
+
 	}
 
 }

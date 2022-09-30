@@ -331,7 +331,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private DataGroup readRecordFromStorageByTypeAndId(String linkedRecordType,
 			String linkedRecordId) {
-		return recordStorage.read(linkedRecordType, linkedRecordId);
+		RecordTypeHandler rth = getRecordTypeHandlerForRecordType(linkedRecordType);
+		return recordStorage.read(rth.getListOfRecordTypeIdsToReadFromStorage(), linkedRecordId);
 	}
 
 	private void addRecordPartPermissions(DataRecord dataRecord) {

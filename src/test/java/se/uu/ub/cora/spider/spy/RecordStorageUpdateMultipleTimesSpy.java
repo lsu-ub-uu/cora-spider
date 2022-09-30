@@ -37,7 +37,7 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 
-	public Collection<String> readLists = new ArrayList<>();
+	public Collection<List<String>> readLists = new ArrayList<>();
 	public boolean readWasCalled = false;
 	public boolean deleteWasCalled = false;
 	public boolean createWasCalled = false;
@@ -50,12 +50,12 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 	public boolean readListWasCalled = false;
 	public DataGroup recordToReturnOnRead = null;
 	public boolean alreadyCalled = false;
-	public List<String> types = new ArrayList<>();
+	public Collection<List<String>> types = new ArrayList<>();
 
 	@Override
-	public DataGroup read(String type, String id) {
-		this.type = type;
-		types.add(type);
+	public DataGroup read(List<String> types, String id) {
+		// this.type = type;
+		this.types.add(types);
 		this.id = id;
 		readWasCalled = true;
 		if ("spyType".equals(id)) {
@@ -121,72 +121,76 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(String type, DataGroup filter) {
+	public StorageReadResult readList(List<String> types, DataGroup filter) {
 		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.listOfDataGroups = new ArrayList<>();
 		readListWasCalled = true;
-		readLists.add(type);
+		readLists.add(types);
 		filters.add(filter);
-		if ("recordType".equals(type)) {
-			ArrayList<DataGroup> recordTypes = new ArrayList<>();
-			recordTypes.add(read("recordType", "abstract"));
-			recordTypes.add(read("recordType", "child1"));
-			recordTypes.add(read("recordType", "child2"));
-			recordTypes.add(read("recordType", "abstract2"));
-			recordTypes.add(read("recordType", "child1_2"));
-			recordTypes.add(read("recordType", "child2_2"));
-			recordTypes.add(read("recordType", "otherType"));
-			spiderReadResult.listOfDataGroups = recordTypes;
-			return spiderReadResult;
-		}
-		if ("child1_2".equals(type)) {
-			throw new RecordNotFoundException("No records exists with recordType: " + type);
-		}
-		return spiderReadResult;
-	}
 
-	@Override
-	public StorageReadResult readAbstractList(String type, DataGroup filter) {
-		StorageReadResult spiderReadResult = new StorageReadResult();
-		spiderReadResult.listOfDataGroups = new ArrayList<>();
-		readLists.add(type);
-		if ("abstract".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-			records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
+		for (String type : types) {
 
-			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		if ("abstract2".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-
-			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		if ("user".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-
-			DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
-			records.add(inactiveUser);
-
-			// DataGroup user = new DataGroupSpy("user");
-			// DataGroup recordInfo2 = new DataGroupSpy("recordInfo");
-			// recordInfo2.addChild(new DataAtomicSpy("id",
-			// "someUserId"));
-			// user.addChild(recordInfo2);
-			// user.addChild(new DataAtomicSpy("activeStatus",
-			// "active"));
-			DataGroup user = createUserWithIdAndActiveStatus("someUserId", "active");
-
-			addRolesToUser(user);
-			records.add(user);
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
+			if ("recordType".equals(type)) {
+				ArrayList<DataGroup> recordTypes = new ArrayList<>();
+				recordTypes.add(read(List.of("recordType"), "abstract"));
+				recordTypes.add(read(List.of("recordType"), "child1"));
+				recordTypes.add(read(List.of("recordType"), "child2"));
+				recordTypes.add(read(List.of("recordType"), "abstract2"));
+				recordTypes.add(read(List.of("recordType"), "child1_2"));
+				recordTypes.add(read(List.of("recordType"), "child2_2"));
+				recordTypes.add(read(List.of("recordType"), "otherType"));
+				spiderReadResult.listOfDataGroups = recordTypes;
+				return spiderReadResult;
+			}
+			if ("child1_2".equals(type)) {
+				throw new RecordNotFoundException("No records exists with recordType: " + type);
+			}
 		}
 		return spiderReadResult;
 	}
+
+	// @Override
+	// public StorageReadResult readAbstractList(String type, DataGroup filter) {
+	// StorageReadResult spiderReadResult = new StorageReadResult();
+	// spiderReadResult.listOfDataGroups = new ArrayList<>();
+	// readLists.add(type);
+	// if ("abstract".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	// records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
+	//
+	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// if ("abstract2".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	//
+	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// if ("user".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	//
+	// DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
+	// records.add(inactiveUser);
+	//
+	// // DataGroup user = new DataGroupSpy("user");
+	// // DataGroup recordInfo2 = new DataGroupSpy("recordInfo");
+	// // recordInfo2.addChild(new DataAtomicSpy("id",
+	// // "someUserId"));
+	// // user.addChild(recordInfo2);
+	// // user.addChild(new DataAtomicSpy("activeStatus",
+	// // "active"));
+	// DataGroup user = createUserWithIdAndActiveStatus("someUserId", "active");
+	//
+	// addRolesToUser(user);
+	// records.add(user);
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// return spiderReadResult;
+	// }
 
 	private void addRolesToUser(DataGroup user) {
 		DataGroup outerUserRole = new DataGroupOldSpy("userRole");
@@ -220,20 +224,13 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
 			String id) {
 		return false;
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
-			List<String> implementingTypes, DataGroup filter) {
+	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

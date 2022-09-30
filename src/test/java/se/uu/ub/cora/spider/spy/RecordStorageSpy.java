@@ -48,8 +48,8 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public DataGroup read(String type, String id) {
-		return (DataGroup) MCR.addCallAndReturnFromMRV("type", type, "id", id);
+	public DataGroup read(List<String> types, String id) {
+		return (DataGroup) MCR.addCallAndReturnFromMRV("type", types, "id", id);
 	}
 
 	@Override
@@ -79,13 +79,7 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(String type, DataGroup filter) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public StorageReadResult readAbstractList(String type, DataGroup filter) {
+	public StorageReadResult readList(List<String> type, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -97,21 +91,14 @@ public class RecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
 			String id) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
-			List<String> implementingTypes, DataGroup filter) {
+	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

@@ -58,8 +58,8 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public DataGroup read(String type, String id) {
-		MCR.addCall("type", type, "id", id);
+	public DataGroup read(List<String> types, String id) {
+		MCR.addCall("type", types, "id", id);
 		DataGroup dataGroup;
 		if (null != returnForRead) {
 			dataGroup = returnForRead;
@@ -106,8 +106,8 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(String type, DataGroup filter) {
-		return (StorageReadResult) MCR.addCallAndReturnFromMRV("type", type, "filter", filter);
+	public StorageReadResult readList(List<String> types, DataGroup filter) {
+		return (StorageReadResult) MCR.addCallAndReturnFromMRV("types", types, "filter", filter);
 	}
 
 	private StorageReadResult createSpiderReadResult() {
@@ -137,13 +137,13 @@ public class RecordStorageOldSpy implements RecordStorage {
 		}
 	}
 
-	@Override
-	public StorageReadResult readAbstractList(String type, DataGroup filter) {
-		MCR.addCall("type", type, "filter", filter);
-		StorageReadResult createSpiderReadResult = createSpiderReadResult();
-		MCR.addReturned(createSpiderReadResult);
-		return createSpiderReadResult;
-	}
+	// @Override
+	// public StorageReadResult readAbstractList(String type, DataGroup filter) {
+	// MCR.addCall("type", type, "filter", filter);
+	// StorageReadResult createSpiderReadResult = createSpiderReadResult();
+	// MCR.addReturned(createSpiderReadResult);
+	// return createSpiderReadResult;
+	// }
 
 	@Override
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
@@ -153,25 +153,16 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
 			String id) {
-		MCR.addCall("type", type, "id", id);
+		MCR.addCall("type", types, "id", id);
 		MCR.addReturned(false);
 		return false;
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
-		MCR.addCall("type", type, "filter", filter);
-		MCR.addReturned(0);
-		return 0;
-	}
-
-	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
-			List<String> implementingTypes, DataGroup filter) {
-		MCR.addCall("abstractType", abstractType, "implementingTypes", implementingTypes, "filter",
-				filter);
+	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
+		MCR.addCall("type", types, "filter", filter);
 		MCR.addReturned(0);
 		return 0;
 	}

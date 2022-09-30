@@ -40,7 +40,6 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 
@@ -56,6 +55,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private RecordIdGenerator idGenerator;
 
 	private RecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
+		this.dependencyProvider = dependencyProvider;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.dataValidator = dependencyProvider.getDataValidator();
@@ -90,10 +90,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private String getMetadataIdForWorkOrder(String recordType) {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorage, recordType);
-		// RecordTypeHandler recordTypeHandler =
-		// dependencyProvider.getRecordTypeHandler(recordType);
+		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		return recordTypeHandler.getNewMetadataId();
 	}
 
@@ -172,10 +169,8 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private String getMetadataId(String recordTypeToValidate) {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorage, recordTypeToValidate);
-		// RecordTypeHandler recordTypeHandler =
-		// dependencyProvider.getRecordTypeHandler(recordTypeToValidate);
+		RecordTypeHandler recordTypeHandler = dependencyProvider
+				.getRecordTypeHandler(recordTypeToValidate);
 		return validateNew() ? recordTypeHandler.getNewMetadataId()
 				: recordTypeHandler.getMetadataId();
 	}
@@ -202,7 +197,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void checkIfRecordExist(String recordTypeToValidate, String recordIdToUse) {
 		try {
-			recordStorage.read(recordTypeToValidate, recordIdToUse);
+			recordStorage.read(List.of(recordTypeToValidate), recordIdToUse);
 		} catch (RecordNotFoundException exception) {
 			addErrorToValidationResult(exception.getMessage());
 		}

@@ -56,6 +56,7 @@ import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -77,6 +78,7 @@ import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.testspies.data.DataFactorySpy;
+import se.uu.ub.cora.testspies.data.DataGroupSpy;
 
 public class SpiderRecordValidatorTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
@@ -165,7 +167,8 @@ public class SpiderRecordValidatorTest {
 
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 		dataValidator.MCR.assertMethodWasCalled("validateData");
-		linkCollector.MCR.assertParameters("collectLinks", 0, "textNew", recordToValidate);
+		linkCollector.MCR.assertParameters("collectLinks", 0,
+				"fakeMetadataIdFromRecordTypeHandlerSpy", recordToValidate);
 	}
 
 	private DataGroup createValidationOrderWithMetadataToValidateAndValidateLinks(
@@ -199,7 +202,8 @@ public class SpiderRecordValidatorTest {
 
 		dataValidator.MCR.assertMethodWasCalled("validateData");
 
-		linkCollector.MCR.assertParameters("collectLinks", 0, "text", dataGroup);
+		linkCollector.MCR.assertParameters("collectLinks", 0,
+				"fakeMetadataIdFromRecordTypeHandlerSpy", dataGroup);
 	}
 
 	@Test
@@ -232,7 +236,8 @@ public class SpiderRecordValidatorTest {
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "true");
 
-		dataValidator.MCR.assertParameter("validateData", 0, "metadataGroupId", "textNew");
+		dataValidator.MCR.assertParameter("validateData", 0, "metadataGroupId",
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
 	}
 
 	private DataGroup createDataGroupPlace() {
@@ -263,8 +268,10 @@ public class SpiderRecordValidatorTest {
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "true");
 
 		String methodName = "validateData";
-		dataValidator.MCR.assertParameter(methodName, 0, "metadataGroupId", "validationOrderNew");
-		dataValidator.MCR.assertParameter(methodName, 1, "metadataGroupId", "text");
+		dataValidator.MCR.assertParameter(methodName, 0, "metadataGroupId",
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
+		dataValidator.MCR.assertParameter(methodName, 1, "metadataGroupId",
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
 		dataValidator.MCR.assertNumberOfCallsToMethod(methodName, 2);
 	}
 
@@ -306,11 +313,15 @@ public class SpiderRecordValidatorTest {
 				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 1);
 		assertDataChildFoundInChildren(createdByLink, recordInfo.getChildren());
 
-		DataGroup updated = recordInfo.getFirstGroupWithNameInData("updated");
-		String tsUpdated = updated.getFirstAtomicValueWithNameInData("tsUpdated");
-		assertTrue(tsUpdated.matches(TIMESTAMP_FORMAT));
+		DataGroupSpy updated = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupUsingNameInData", 0);
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "tsUpdated",
+				tsCreated);
+		var createdTsCreated = dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
+		updated.MCR.assertParameters("addChild", 1, createdTsCreated);
 		assertFalse(recordInfo.containsChildWithNameInData("tsUpdated"));
-		assertEquals(updated.getRepeatId(), "0");
+
 	}
 
 	private void assertDataChildFoundInChildren(Object createdByLink, List<DataChild> children) {
@@ -325,15 +336,25 @@ public class SpiderRecordValidatorTest {
 
 	@Test
 	public void testValidateRecordInvalidData() {
-		recordStorage = new RecordStorageForValidateDataSpy();
 		dataValidator.setNotValidForMetadataGroupId("text");
-		setUpDependencyProvider();
+		RecordTypeHandlerSpy placeTypeHandler = new RecordTypeHandlerSpy();
+		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getNewMetadataId",
+				(Supplier<String>) () -> "text");
+		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getMetadataId",
+				(Supplier<String>) () -> "text");
+		dependencyProvider.mapOfRecordTypeHandlerSpies.put("text", placeTypeHandler);
 
 		DataGroup dataGroup = createDataGroupPlace();
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
+
 		DataRecord validationResultRecord = recordValidator.validateRecord("someToken78678567",
 				"validationOrder", validationOrder, dataGroup);
+
+		dataValidator.MCR.assertParameters("validateData", 0,
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
+		dataValidator.MCR.assertParameters("validateData", 1, "text");
+
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "false");
 
@@ -366,6 +387,14 @@ public class SpiderRecordValidatorTest {
 		recordStorage = new RecordLinkTestsRecordStorage();
 		dataValidator.setNotValidForMetadataGroupId("dataWithLinksNew");
 		setUpDependencyProvider();
+
+		RecordTypeHandlerSpy placeTypeHandler = new RecordTypeHandlerSpy();
+		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getNewMetadataId",
+				(Supplier<String>) () -> "dataWithLinksNew");
+		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getMetadataId",
+				(Supplier<String>) () -> "dataWithLinksNew");
+		dependencyProvider.mapOfRecordTypeHandlerSpies.put("text", placeTypeHandler);
+
 		((RecordLinkTestsRecordStorage) recordStorage).recordIdExistsForRecordType = false;
 
 		fillCollectLinksReturnValue();
@@ -442,9 +471,10 @@ public class SpiderRecordValidatorTest {
 	}
 
 	@Test
+
 	public void testInvalidDataForCreateOnValidationOrderShouldThrowException() {
 		recordStorage = new RecordStorageForValidateDataSpy();
-		dataValidator.setNotValidForMetadataGroupId("validationOrderNew");
+		dataValidator.setNotValidForMetadataGroupId("fakeMetadataIdFromRecordTypeHandlerSpy");
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = createDataGroupPlace();
@@ -457,7 +487,7 @@ public class SpiderRecordValidatorTest {
 		} catch (Exception e) {
 			assertEquals(e.getClass(), DataException.class);
 			assertEquals(e.getMessage(),
-					"Data is not valid: [Data invalid for metadataId validationOrderNew]");
+					"Data is not valid: [Data invalid for metadataId fakeMetadataIdFromRecordTypeHandlerSpy]");
 			exceptionWasCaught = true;
 		}
 		assertTrue(exceptionWasCaught);

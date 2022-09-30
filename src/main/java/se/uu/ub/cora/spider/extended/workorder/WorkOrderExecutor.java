@@ -130,7 +130,7 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 	}
 
 	private DataGroup readRecordToIndexFromStorage() {
-		return recordStorage.read(recordTypeToIndex, recordIdToIndex);
+		return recordStorage.read(List.of(recordTypeToIndex), recordIdToIndex);
 	}
 
 	private CollectTerms getCollectedTerms(DataGroup dataToIndex) {
@@ -139,7 +139,7 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 	}
 
 	private String getMetadataIdFromRecordType(String recordType) {
-		DataGroup readRecordType = recordStorage.read("recordType", recordType);
+		DataGroup readRecordType = recordStorage.read(List.of("recordType"), recordType);
 		DataRecordLink metadataId = (DataRecordLink) readRecordType
 				.getFirstChildWithNameInData("metadataId");
 		return metadataId.getLinkedRecordId();

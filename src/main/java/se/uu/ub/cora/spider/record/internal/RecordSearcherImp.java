@@ -106,7 +106,7 @@ public final class RecordSearcherImp implements RecordSearcher {
 	}
 
 	private DataGroup readSearchFromStorageUsingId(String searchId) {
-		return recordStorage.read(SEARCH, searchId);
+		return recordStorage.read(List.of(SEARCH), searchId);
 	}
 
 	private List<DataGroup> getRecordTypesToSearchInFromSearchGroup() {

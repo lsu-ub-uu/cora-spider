@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.extended.password;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.List;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataChild;
@@ -183,7 +184,7 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
 	private void replacePasswordInSystemSecret(String systemSecretId, String hashedPassword) {
 		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		DataGroup systemSecretG = recordStorage.read(SYSTEM_SECRET_TYPE, systemSecretId);
+		DataGroup systemSecretG = recordStorage.read(List.of(SYSTEM_SECRET_TYPE), systemSecretId);
 		systemSecretG.removeAllChildrenWithNameInData(SECRET);
 
 		addHashedPasswordToGroup(hashedPassword, systemSecretG);

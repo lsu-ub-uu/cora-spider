@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import java.io.InputStream;
+import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
@@ -70,7 +71,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 
 		checkRecordTypeIsChildOfBinary();
 
-		recordRead = recordStorage.read(type, id);
+		recordRead = recordStorage.read(List.of(type), id);
 		checkUserIsAuthorisedToUploadData(recordRead);
 		checkStreamIsPresent(stream);
 		checkFileNameIsPresent(fileName);

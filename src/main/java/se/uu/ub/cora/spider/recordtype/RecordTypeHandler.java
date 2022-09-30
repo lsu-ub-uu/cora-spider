@@ -256,6 +256,25 @@ public interface RecordTypeHandler {
 	List<String> getListOfImplementingRecordTypeIds();
 
 	/**
+	 * getListOfRecordTypeIdsToReadFromStorage should return a List of Strings, with recordTypeIds,
+	 * to use when reading from storage.
+	 * <p>
+	 * If this recordType is an implementing type or a type without a parent should a list with only
+	 * this recordTypes id be returned.
+	 * </p>
+	 * If this recordType is abstract but no implementing recordTypes exist should an empty list be
+	 * returned.
+	 * </p>
+	 * If this recordType is abstract and implementing recordTypes exists, should a list of the
+	 * recordTypeIds for the implementing recordTypes be returned. Implementing types might exist
+	 * several levels down.
+	 * 
+	 * @return a list with recordTypeIds to use when reading information from storage for the
+	 *         current recordType
+	 */
+	List<String> getListOfRecordTypeIdsToReadFromStorage();
+
+	/**
 	 * getRecordTypeId returns the id of the recordType handled by the RecordTypeHandler
 	 * 
 	 * @return recordTypeId as a String

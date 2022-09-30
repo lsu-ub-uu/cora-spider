@@ -37,7 +37,7 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 
-	public Collection<String> readLists = new ArrayList<>();
+	public Collection<List<String>> readLists = new ArrayList<>();
 	public boolean readWasCalled = false;
 	public boolean deleteWasCalled = false;
 	public boolean createWasCalled = false;
@@ -61,281 +61,285 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 	public DataGroup dataGroupToReturn;
 
 	@Override
-	public DataGroup read(String type, String id) {
+	public DataGroup read(List<String> types, String id) {
 		numOfTimesReadWasCalled++;
-		this.type = type;
-		types.add(type);
+		// this.type = types;
+		// this.types.add(type);
 		this.id = id;
 		ids.add(id);
 
 		readWasCalled = true;
+		for (String type : types) {
 
-		if ("spyType".equals(type) && "spyId".equals(id)) {
-			readDataGroup = aRecord;
-			addCreatedInfoToRecordInfo(readDataGroup);
-			return aRecord;
-		}
+			if ("spyType".equals(type) && "spyId".equals(id)) {
+				readDataGroup = aRecord;
+				addCreatedInfoToRecordInfo(readDataGroup);
+				return aRecord;
+			}
 
-		if ("abstract".equals(id)) {
-			readDataGroup = DataCreator
-					.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id, "false",
-							"true", "false");
-			return readDataGroup;
-		}
-		if ("abstract2".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
-					"false", "true", "false");
-		}
-		if ("child1".equals(type) && "place:0002".equals(id)) {
-			child1Place0002 = DataCreator.createDataGroupWithNameInDataTypeAndId("unknown", type,
-					id);
-			readDataGroup = child1Place0002;
-			return child1Place0002;
-		}
-		if ("child1".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
-					"true", "false", "false");
-		}
-		if ("child2".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
-					"abstract");
-		}
-		if ("child1_2".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
-					"abstract2");
-		}
-		if ("child2_2".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
-					"abstract2");
-		}
-		if ("otherType".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
-					"NOT_ABSTRACT");
-		}
-		if ("spyType".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
-					"false", "false", "false");
-		}
-		if ("spyType2".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
-					"true", "false", "false");
-		}
-		if ("recordType".equals(type) && "publicReadType".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
-					"true", "false", "true");
-		}
-		if ("publicReadType".equals(type)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedId("publicReadType", "true");
+			if ("abstract".equals(id)) {
+				readDataGroup = DataCreator
+						.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+								"false", "true", "false");
+				return readDataGroup;
+			}
+			if ("abstract2".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+						id, "false", "true", "false");
+			}
+			if ("child1".equals(type) && "place:0002".equals(id)) {
+				child1Place0002 = DataCreator.createDataGroupWithNameInDataTypeAndId("unknown",
+						type, id);
+				readDataGroup = child1Place0002;
+				return child1Place0002;
+			}
+			if ("child1".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+						id, "true", "false", "false");
+			}
+			if ("child2".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
+						"abstract");
+			}
+			if ("child1_2".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
+						"abstract2");
+			}
+			if ("child2_2".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
+						"abstract2");
+			}
+			if ("otherType".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
+						"NOT_ABSTRACT");
+			}
+			if ("spyType".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+						id, "false", "false", "false");
+			}
+			if ("spyType2".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+						id, "true", "false", "false");
+			}
+			if ("recordType".equals(type) && "publicReadType".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+						id, "true", "false", "true");
+			}
+			if ("publicReadType".equals(type)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedId("publicReadType",
+						"true");
 
-		}
-		if ("public".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
-					"false", "true", "true");
-		}
-		if ("notPublic".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
-					"false", "true", "false");
-		}
-		if ("publicMissing".equals(id)) {
-			DataGroup publicValueIsMissing = DataCreator
-					.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id, "false",
-							"true", "false");
-			publicValueIsMissing.removeFirstChildWithNameInData("public");
-			return publicValueIsMissing;
-		}
-		if ("recordType".equals(type) && "image".equals(id)) {
-			return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image", "true",
-					"binary");
+			}
+			if ("public".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+						id, "false", "true", "true");
+			}
+			if ("notPublic".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+						id, "false", "true", "false");
+			}
+			if ("publicMissing".equals(id)) {
+				DataGroup publicValueIsMissing = DataCreator
+						.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
+								"false", "true", "false");
+				publicValueIsMissing.removeFirstChildWithNameInData("public");
+				return publicValueIsMissing;
+			}
+			if ("recordType".equals(type) && "image".equals(id)) {
+				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image",
+						"true", "binary");
 
+			}
+			if (type.equals("recordType") && ("place".equals(id))) {
+				DataGroup dataGroup = DataCreator
+						.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
+								"authority");
+				DataGroup filter = new DataGroupOldSpy("filter");
+				filter.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
+				filter.addChild(new DataAtomicSpy("linkedRecordId", "placeFilterGroup"));
+				dataGroup.addChild(filter);
+				return dataGroup;
+			}
+
+			if ("image".equals(type) && "image:123456789".equals(id)) {
+				return DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("image",
+						"image:123456789", "image", "cora");
+			}
+			if ("recordType".equals(type) && "book".equals(id)) {
+				DataGroup book = new DataGroupOldSpy("recordType");
+				book.addChild(DataCreator.createLinkWithLinkedId("metadataId", "metadataGroup",
+						"bookGroup"));
+				return book;
+			}
+			if ("recordType".equals(type) && "abstractAuthority".equals(id)) {
+				DataGroup authority = DataCreator
+						.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
+								"abstractAuthority", "false", "true", "false");
+				return authority;
+			}
+
+			if ("book".equals(type) && "book1".equals(id)) {
+				DataGroup book = new DataGroupOldSpy("book");
+				DataGroup recordInfo = DataCreator2.createRecordInfoWithIdAndTypeAndLinkedRecordId(
+						"book1", "book", "testSystem");
+				book.addChild(recordInfo);
+				return book;
+
+			}
+			if ("permissionRole".equals(type) && "guest".equals(id)) {
+				return createRoleForGuest();
+			}
+			if ("permissionRole".equals(type) && "guestWithPermissionTerm".equals(id)) {
+				return createRoleForGuest();
+			}
+
+			if ("permissionRole".equals(type) && "guestWithPermissionTerms".equals(id)) {
+				DataGroup roleForGuest = createRoleForGuest();
+				DataGroup permissionRuleLink = createPermissionRuleLink("ruleWithPermissionPart");
+				roleForGuest.addChild(permissionRuleLink);
+				return roleForGuest;
+			}
+			if ("permissionRole".equals(type) && "guestWithMultiplePermissionTerms".equals(id)) {
+				DataGroup roleForGuest = createRoleForGuest();
+				DataGroup permissionRuleLink = createPermissionRuleLink("ruleWithPermissionPart");
+				roleForGuest.addChild(permissionRuleLink);
+
+				DataGroup permissionRuleLink2 = createPermissionRuleLink(
+						"ruleWithMultiplePermissionPart");
+
+				roleForGuest.addChild(permissionRuleLink2);
+				return roleForGuest;
+			}
+
+			if ("permissionRole".equals(type) && "inactive".equals(id)) {
+				DataGroup permissionRole = new DataGroupOldSpy("permissionRole");
+				DataGroup permissionRuleLink = createPermissionRuleLink("authorityReader");
+				permissionRole.addChild(permissionRuleLink);
+				permissionRole.addChild(new DataAtomicSpy("activeStatus", "inactive"));
+				return permissionRole;
+			}
+			if ("permissionRule".equals(type) && "ruleWithPermissionPart".equals(id)) {
+				DataGroup rule = new DataGroupOldSpy("permissionRule");
+
+				DataGroup permissionRulePart = createPermissionRulePart("action", "system.create",
+						"system.read");
+				rule.addChild(permissionRulePart);
+
+				DataGroup permissionTermRulePart = createPermissionTermRulePart(
+						"publishedStatusPermissionTerm", "system.published");
+				rule.addChild(permissionTermRulePart);
+
+				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+				return rule;
+			}
+			if ("permissionRule".equals(type) && "ruleWithMultiplePermissionPart".equals(id)) {
+				DataGroup rule = new DataGroupOldSpy("permissionRule");
+
+				DataGroup permissionRulePart = createPermissionRulePart("action", "system.create",
+						"system.read");
+				rule.addChild(permissionRulePart);
+
+				DataGroup permissionTermRulePart = createPermissionTermRulePart(
+						"publishedStatusPermissionTerm", "system.published", "system.notPublished");
+				rule.addChild(permissionTermRulePart);
+
+				DataGroup permissionTermRulePart2 = createPermissionTermRulePart(
+						"deletedStatusPermissionTerm", "system.deleted", "system.notDeleted");
+				rule.addChild(permissionTermRulePart2);
+
+				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+				return rule;
+			}
+
+			if ("permissionRule".equals(type) && "authorityReader".equals(id)) {
+				DataGroup rule = new DataGroupOldSpy("permissionRule");
+
+				DataGroup permissionRulePart = createPermissionRulePart("action", "system.create",
+						"system.read");
+				rule.addChild(permissionRulePart);
+
+				DataGroup permissionRulePart2 = createPermissionRulePart("recordType",
+						"system.person", "system.place");
+				rule.addChild(permissionRulePart2);
+
+				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+				return rule;
+			}
+			if ("permissionRule".equals(type) && "metadataReader".equals(id)) {
+				DataGroup rule = new DataGroupOldSpy("permissionRule");
+
+				DataGroup permissionRulePart = createPermissionRulePart("action", "system.create",
+						"system.read");
+				rule.addChild(permissionRulePart);
+
+				DataGroup permissionRulePart2 = createPermissionRulePart("recordType",
+						"system.person", "system.place");
+				rule.addChild(permissionRulePart2);
+
+				rule.addChild(new DataAtomicSpy("activeStatus", "inactive"));
+				return rule;
+			}
+			if ("permissionRule".equals(type) && "inactive".equals(id)) {
+				DataGroup rule = new DataGroupOldSpy("permissionRule");
+
+				DataGroup permissionRulePart = createPermissionRulePart("action", "system.create",
+						"system.read");
+				rule.addChild(permissionRulePart);
+
+				rule.addChild(new DataAtomicSpy("activeStatus", "inactive"));
+				return rule;
+			}
+			if ("permissionRole".equals(type) && "roleNotFoundInStorage".equals(id)) {
+				return null;
+			}
+
+			if ("collectPermissionTerm".equals(type)
+					&& "publishedStatusPermissionTerm".equals(id)) {
+				return createCollectPermissionTermWIthKey("PUBLISHED_STATUS");
+			}
+			if ("collectPermissionTerm".equals(type) && "deletedStatusPermissionTerm".equals(id)) {
+				return createCollectPermissionTermWIthKey("DELETED_STATUS");
+			}
+			if ("collectPermissionTerm".equals(type) && "organisationPermissionTerm".equals(id)) {
+				return createCollectPermissionTermWIthKey("OWNING_ORGANISATION");
+			}
+			if ("collectPermissionTerm".equals(type) && "journalPermissionTerm".equals(id)) {
+				return createCollectPermissionTermWIthKey("JOURNAL_ACCESS");
+			}
+
+			if ("inactiveUserId".equals(id)) {
+				DataGroup user = new DataGroupOldSpy("user");
+				user.addChild(new DataAtomicSpy("activeStatus", "inactive"));
+				return user;
+			}
+			if ("someUserId".equals(id)) {
+				DataGroup user = new DataGroupOldSpy("user");
+				user.addChild(new DataAtomicSpy("activeStatus", "active"));
+				addRoleToUser("guest", user);
+
+				return user;
+			}
+
+			if ("user".equals(type) && "dummy1".equals(id)) {
+				DataGroup dataGroup = DataCreator2
+						.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("user", "dummy1",
+								"systemOneUser", "cora");
+				return dataGroup;
+			}
+
+			if ("abstractAuthority".equals(type)) {
+				return authorityPlace0001;
+
+			}
+			if ("place".equals(type)) {
+				return authorityPlace0001;
+			}
+			if ("metadataGroup".equals(type) && "bookGroup".contentEquals(id)) {
+				readDataGroup = new DataGroupOldSpy("bookGroup");
+				readDataGroup.addChild(new DataAtomicSpy("nameInData", "book"));
+				return readDataGroup;
+			}
 		}
-		if (type.equals("recordType") && ("place".equals(id))) {
-			DataGroup dataGroup = DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id,
-					"true", "authority");
-			DataGroup filter = new DataGroupOldSpy("filter");
-			filter.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
-			filter.addChild(new DataAtomicSpy("linkedRecordId", "placeFilterGroup"));
-			dataGroup.addChild(filter);
-			return dataGroup;
-		}
-
-		if ("image".equals(type) && "image:123456789".equals(id)) {
-			return DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("image",
-					"image:123456789", "image", "cora");
-		}
-		if ("recordType".equals(type) && "book".equals(id)) {
-			DataGroup book = new DataGroupOldSpy("recordType");
-			book.addChild(
-					DataCreator.createLinkWithLinkedId("metadataId", "metadataGroup", "bookGroup"));
-			return book;
-		}
-		if ("recordType".equals(type) && "abstractAuthority".equals(id)) {
-			DataGroup authority = DataCreator
-					.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(
-							"abstractAuthority", "false", "true", "false");
-			return authority;
-		}
-
-		if ("book".equals(type) && "book1".equals(id)) {
-			DataGroup book = new DataGroupOldSpy("book");
-			DataGroup recordInfo = DataCreator2
-					.createRecordInfoWithIdAndTypeAndLinkedRecordId("book1", "book", "testSystem");
-			book.addChild(recordInfo);
-			return book;
-
-		}
-		if ("permissionRole".equals(type) && "guest".equals(id)) {
-			return createRoleForGuest();
-		}
-		if ("permissionRole".equals(type) && "guestWithPermissionTerm".equals(id)) {
-			return createRoleForGuest();
-		}
-
-		if ("permissionRole".equals(type) && "guestWithPermissionTerms".equals(id)) {
-			DataGroup roleForGuest = createRoleForGuest();
-			DataGroup permissionRuleLink = createPermissionRuleLink("ruleWithPermissionPart");
-			roleForGuest.addChild(permissionRuleLink);
-			return roleForGuest;
-		}
-		if ("permissionRole".equals(type) && "guestWithMultiplePermissionTerms".equals(id)) {
-			DataGroup roleForGuest = createRoleForGuest();
-			DataGroup permissionRuleLink = createPermissionRuleLink("ruleWithPermissionPart");
-			roleForGuest.addChild(permissionRuleLink);
-
-			DataGroup permissionRuleLink2 = createPermissionRuleLink(
-					"ruleWithMultiplePermissionPart");
-
-			roleForGuest.addChild(permissionRuleLink2);
-			return roleForGuest;
-		}
-
-		if ("permissionRole".equals(type) && "inactive".equals(id)) {
-			DataGroup permissionRole = new DataGroupOldSpy("permissionRole");
-			DataGroup permissionRuleLink = createPermissionRuleLink("authorityReader");
-			permissionRole.addChild(permissionRuleLink);
-			permissionRole.addChild(new DataAtomicSpy("activeStatus", "inactive"));
-			return permissionRole;
-		}
-		if ("permissionRule".equals(type) && "ruleWithPermissionPart".equals(id)) {
-			DataGroup rule = new DataGroupOldSpy("permissionRule");
-
-			DataGroup permissionRulePart = createPermissionRulePart("action", "system.create",
-					"system.read");
-			rule.addChild(permissionRulePart);
-
-			DataGroup permissionTermRulePart = createPermissionTermRulePart(
-					"publishedStatusPermissionTerm", "system.published");
-			rule.addChild(permissionTermRulePart);
-
-			rule.addChild(new DataAtomicSpy("activeStatus", "active"));
-			return rule;
-		}
-		if ("permissionRule".equals(type) && "ruleWithMultiplePermissionPart".equals(id)) {
-			DataGroup rule = new DataGroupOldSpy("permissionRule");
-
-			DataGroup permissionRulePart = createPermissionRulePart("action", "system.create",
-					"system.read");
-			rule.addChild(permissionRulePart);
-
-			DataGroup permissionTermRulePart = createPermissionTermRulePart(
-					"publishedStatusPermissionTerm", "system.published", "system.notPublished");
-			rule.addChild(permissionTermRulePart);
-
-			DataGroup permissionTermRulePart2 = createPermissionTermRulePart(
-					"deletedStatusPermissionTerm", "system.deleted", "system.notDeleted");
-			rule.addChild(permissionTermRulePart2);
-
-			rule.addChild(new DataAtomicSpy("activeStatus", "active"));
-			return rule;
-		}
-
-		if ("permissionRule".equals(type) && "authorityReader".equals(id)) {
-			DataGroup rule = new DataGroupOldSpy("permissionRule");
-
-			DataGroup permissionRulePart = createPermissionRulePart("action", "system.create",
-					"system.read");
-			rule.addChild(permissionRulePart);
-
-			DataGroup permissionRulePart2 = createPermissionRulePart("recordType", "system.person",
-					"system.place");
-			rule.addChild(permissionRulePart2);
-
-			rule.addChild(new DataAtomicSpy("activeStatus", "active"));
-			return rule;
-		}
-		if ("permissionRule".equals(type) && "metadataReader".equals(id)) {
-			DataGroup rule = new DataGroupOldSpy("permissionRule");
-
-			DataGroup permissionRulePart = createPermissionRulePart("action", "system.create",
-					"system.read");
-			rule.addChild(permissionRulePart);
-
-			DataGroup permissionRulePart2 = createPermissionRulePart("recordType", "system.person",
-					"system.place");
-			rule.addChild(permissionRulePart2);
-
-			rule.addChild(new DataAtomicSpy("activeStatus", "inactive"));
-			return rule;
-		}
-		if ("permissionRule".equals(type) && "inactive".equals(id)) {
-			DataGroup rule = new DataGroupOldSpy("permissionRule");
-
-			DataGroup permissionRulePart = createPermissionRulePart("action", "system.create",
-					"system.read");
-			rule.addChild(permissionRulePart);
-
-			rule.addChild(new DataAtomicSpy("activeStatus", "inactive"));
-			return rule;
-		}
-		if ("permissionRole".equals(type) && "roleNotFoundInStorage".equals(id)) {
-			return null;
-		}
-
-		if ("collectPermissionTerm".equals(type) && "publishedStatusPermissionTerm".equals(id)) {
-			return createCollectPermissionTermWIthKey("PUBLISHED_STATUS");
-		}
-		if ("collectPermissionTerm".equals(type) && "deletedStatusPermissionTerm".equals(id)) {
-			return createCollectPermissionTermWIthKey("DELETED_STATUS");
-		}
-		if ("collectPermissionTerm".equals(type) && "organisationPermissionTerm".equals(id)) {
-			return createCollectPermissionTermWIthKey("OWNING_ORGANISATION");
-		}
-		if ("collectPermissionTerm".equals(type) && "journalPermissionTerm".equals(id)) {
-			return createCollectPermissionTermWIthKey("JOURNAL_ACCESS");
-		}
-
-		if ("inactiveUserId".equals(id)) {
-			DataGroup user = new DataGroupOldSpy("user");
-			user.addChild(new DataAtomicSpy("activeStatus", "inactive"));
-			return user;
-		}
-		if ("someUserId".equals(id)) {
-			DataGroup user = new DataGroupOldSpy("user");
-			user.addChild(new DataAtomicSpy("activeStatus", "active"));
-			addRoleToUser("guest", user);
-
-			return user;
-		}
-
-		if ("user".equals(type) && "dummy1".equals(id)) {
-			DataGroup dataGroup = DataCreator2
-					.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("user", "dummy1",
-							"systemOneUser", "cora");
-			return dataGroup;
-		}
-
-		if ("abstractAuthority".equals(type)) {
-			return authorityPlace0001;
-
-		}
-		if ("place".equals(type)) {
-			return authorityPlace0001;
-		}
-		if ("metadataGroup".equals(type) && "bookGroup".contentEquals(id)) {
-			readDataGroup = new DataGroupOldSpy("bookGroup");
-			readDataGroup.addChild(new DataAtomicSpy("nameInData", "book"));
-			return readDataGroup;
-		}
-
 		dataGroupToReturn = new DataGroupOldSpy("someNameInData");
 		dataGroupToReturn.addChild(new DataGroupOldSpy("recordInfo"));
 		return dataGroupToReturn;
@@ -447,25 +451,25 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(String type, DataGroup filter) {
+	public StorageReadResult readList(List<String> types, DataGroup filter) {
 		readListWasCalled = true;
-		readLists.add(type);
+		readLists.add(types);
 		filters.add(filter);
-		if ("recordType".equals(type)) {
+		if ("recordType".equals(types)) {
 			ArrayList<DataGroup> recordTypes = new ArrayList<>();
-			recordTypes.add(read("recordType", "abstract"));
-			recordTypes.add(read("recordType", "child1"));
-			recordTypes.add(read("recordType", "child2"));
-			recordTypes.add(read("recordType", "abstract2"));
-			recordTypes.add(read("recordType", "child1_2"));
-			recordTypes.add(read("recordType", "child2_2"));
-			recordTypes.add(read("recordType", "otherType"));
+			recordTypes.add(read(List.of("recordType"), "abstract"));
+			recordTypes.add(read(List.of("recordType"), "child1"));
+			recordTypes.add(read(List.of("recordType"), "child2"));
+			recordTypes.add(read(List.of("recordType"), "abstract2"));
+			recordTypes.add(read(List.of("recordType"), "child1_2"));
+			recordTypes.add(read(List.of("recordType"), "child2_2"));
+			recordTypes.add(read(List.of("recordType"), "otherType"));
 			StorageReadResult spiderReadResult = new StorageReadResult();
 			spiderReadResult.listOfDataGroups = recordTypes;
 			return spiderReadResult;
 		}
-		if ("child1_2".equals(type)) {
-			throw new RecordNotFoundException("No records exists with recordType: " + type);
+		if ("child1_2".equals(types)) {
+			throw new RecordNotFoundException("No records exists with recordType: " + types);
 		}
 		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.listOfDataGroups = new ArrayList<>();
@@ -473,68 +477,68 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 		return spiderReadResult;
 	}
 
-	@Override
-	public StorageReadResult readAbstractList(String type, DataGroup filter) {
-		this.filter = filter;
-		StorageReadResult spiderReadResult = new StorageReadResult();
-		spiderReadResult.totalNumberOfMatches = 199;
-		spiderReadResult.listOfDataGroups = new ArrayList<>();
-		readLists.add(type);
-		if ("abstract".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-			records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
-
-			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		if ("abstract2".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-
-			records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		if ("user".equals(type)) {
-			ArrayList<DataGroup> records = new ArrayList<>();
-
-			DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
-			records.add(inactiveUser);
-
-			DataGroup user = createActiveUserWithIdAndAddDefaultRoles("someUserId");
-			records.add(user);
-
-			DataGroup userWithPermissionTerm = createUserWithOneRoleWithOnePermission();
-			records.add(userWithPermissionTerm);
-
-			DataGroup userWithTwoRolesAndTwoPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
-					"userWithTwoRolesPermissionTerm");
-			addRoleToUser("admin", userWithTwoRolesAndTwoPermissionTerm);
-
-			List<DataGroup> userRoles = userWithTwoRolesAndTwoPermissionTerm
-					.getAllGroupsWithNameInData("userRole");
-
-			DataGroup permissionTerm = createPermissionTermWithIdAndValues(
-					"organisationPermissionTerm", "system.*");
-			DataGroup userRole = userRoles.get(0);
-			userRole.addChild(permissionTerm);
-
-			DataGroup permissionTerm2 = createPermissionTermWithIdAndValues("journalPermissionTerm",
-					"system.abc", "system.def");
-			DataGroup userRole2 = userRoles.get(1);
-			userRole2.addChild(permissionTerm2);
-
-			DataGroup permissionTerm2_role2 = createPermissionTermWithIdAndValues(
-					"organisationPermissionTerm", "system.*");
-			userRole2.addChild(permissionTerm2_role2);
-
-			records.add(userWithTwoRolesAndTwoPermissionTerm);
-
-			spiderReadResult.listOfDataGroups = records;
-			return spiderReadResult;
-		}
-		return spiderReadResult;
-	}
+	// @Override
+	// public StorageReadResult readAbstractList(String type, DataGroup filter) {
+	// this.filter = filter;
+	// StorageReadResult spiderReadResult = new StorageReadResult();
+	// spiderReadResult.totalNumberOfMatches = 199;
+	// spiderReadResult.listOfDataGroups = new ArrayList<>();
+	// readLists.add(type);
+	// if ("abstract".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	// records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
+	//
+	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// if ("abstract2".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	//
+	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// if ("user".equals(type)) {
+	// ArrayList<DataGroup> records = new ArrayList<>();
+	//
+	// DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
+	// records.add(inactiveUser);
+	//
+	// DataGroup user = createActiveUserWithIdAndAddDefaultRoles("someUserId");
+	// records.add(user);
+	//
+	// DataGroup userWithPermissionTerm = createUserWithOneRoleWithOnePermission();
+	// records.add(userWithPermissionTerm);
+	//
+	// DataGroup userWithTwoRolesAndTwoPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
+	// "userWithTwoRolesPermissionTerm");
+	// addRoleToUser("admin", userWithTwoRolesAndTwoPermissionTerm);
+	//
+	// List<DataGroup> userRoles = userWithTwoRolesAndTwoPermissionTerm
+	// .getAllGroupsWithNameInData("userRole");
+	//
+	// DataGroup permissionTerm = createPermissionTermWithIdAndValues(
+	// "organisationPermissionTerm", "system.*");
+	// DataGroup userRole = userRoles.get(0);
+	// userRole.addChild(permissionTerm);
+	//
+	// DataGroup permissionTerm2 = createPermissionTermWithIdAndValues("journalPermissionTerm",
+	// "system.abc", "system.def");
+	// DataGroup userRole2 = userRoles.get(1);
+	// userRole2.addChild(permissionTerm2);
+	//
+	// DataGroup permissionTerm2_role2 = createPermissionTermWithIdAndValues(
+	// "organisationPermissionTerm", "system.*");
+	// userRole2.addChild(permissionTerm2_role2);
+	//
+	// records.add(userWithTwoRolesAndTwoPermissionTerm);
+	//
+	// spiderReadResult.listOfDataGroups = records;
+	// return spiderReadResult;
+	// }
+	// return spiderReadResult;
+	// }
 
 	private DataGroup createUserWithOneRoleWithOnePermission() {
 		DataGroup userWithPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
@@ -611,7 +615,7 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
 			String id) {
 		return false;
 	}
@@ -647,14 +651,7 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
-			List<String> implementingTypes, DataGroup filter) {
+	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

@@ -21,6 +21,7 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import java.io.InputStream;
+import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -64,7 +65,7 @@ public final class DownloaderImp extends SpiderBinary implements Downloader {
 
 		checkRecordTypeIsChildOfBinary();
 
-		recordRead = recordStorage.read(type, id);
+		recordRead = recordStorage.read(List.of(type), id);
 
 		String streamId = tryToExtractStreamIdFromResource(resourceName);
 

@@ -69,7 +69,7 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 	}
 
 	private DataGroup completeStoredDataGroup(IndexBatchJob indexBatchJob) {
-		DataGroup dataGroup = recordStorage.read(INDEX_BATCH_JOB, indexBatchJob.recordId);
+		DataGroup dataGroup = recordStorage.read(List.of(INDEX_BATCH_JOB), indexBatchJob.recordId);
 		dataGroupHandlerForIndexBatchJob.updateDataGroup(indexBatchJob, dataGroup);
 		return dataGroup;
 	}

@@ -24,7 +24,6 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
-import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertRecordStorageWasCalledOnlyOnceForReadKey;
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertRecordStorageWasNOTCalledForReadKey;
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevelTwoLinksContainReadActionOnly;
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevelTwoLinksDoesNotContainReadAction;
@@ -74,6 +73,7 @@ public class DataGroupToRecordEnhancerTest {
 	private static final String UPDATE = "update";
 	private static final String LIST = "list";
 	private static final String DATA_WITH_LINKS = "dataWithLinks";
+	private static final List<String> LIST_DATA_WITH_LINKS = List.of(DATA_WITH_LINKS);
 	private static final String CREATE = "create";
 	private static final String SEARCH = "search";
 	private static final String READ = "read";
@@ -1262,7 +1262,7 @@ public class DataGroupToRecordEnhancerTest {
 			RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData, DataRecord record) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
-		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "someId");
 		dependencyProvider.MCR.assertReturn("getRecordTypeHandler", 1,
 				recordTypeHandlerForRecordTypeInData);
@@ -1273,7 +1273,18 @@ public class DataGroupToRecordEnhancerTest {
 
 		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
 				.getRecordStorage();
-		recordStorage.MCR.assertParameters("read", 0, SEARCH, returnedSearchId);
+		RecordTypeHandlerSpy recordTypeHandlerX = (RecordTypeHandlerSpy) dependencyProvider.MCR
+				.getReturnValue("getRecordTypeHandler", 2);
+		var types = recordTypeHandlerX.MCR.getReturnValue("getListOfRecordTypeIdsToReadFromStorage",
+				0);
+		// List<?> types = (List<?>) recordStorage.MCR
+		// .getValueForMethodNameAndCallNumberAndParameterName("read", 0, "type");
+
+		// assertEquals(types.get(0), SEARCH);
+
+		recordStorage.MCR.assertParameters("read", 0, types, returnedSearchId);
+
+		recordStorage.MCR.assertParameter("read", 0, "id", returnedSearchId);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user, SEARCH,
 				"linkedSearchId1");
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 4, user, SEARCH,
@@ -1316,7 +1327,7 @@ public class DataGroupToRecordEnhancerTest {
 			RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData, DataRecord record) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
-		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "someId");
 		dependencyProvider.MCR.assertReturn("getRecordTypeHandler", 1,
 				recordTypeHandlerForRecordTypeInData);
@@ -1326,7 +1337,15 @@ public class DataGroupToRecordEnhancerTest {
 				.getReturnValue("getSearchId", 0);
 		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
 				.getRecordStorage();
-		recordStorage.MCR.assertParameters("read", 0, SEARCH, returnedSearchId);
+
+		RecordTypeHandlerSpy recordTypeHandlerX = (RecordTypeHandlerSpy) dependencyProvider.MCR
+				.getReturnValue("getRecordTypeHandler", 2);
+		var types = recordTypeHandlerX.MCR.getReturnValue("getListOfRecordTypeIdsToReadFromStorage",
+				0);
+
+		recordStorage.MCR.assertParameters("read", 0, types, returnedSearchId);
+
+		recordStorage.MCR.assertParameter("read", 0, "id", returnedSearchId);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user, SEARCH,
 				"linkedSearchId1");
 		authorizator.MCR.assertNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType", 5);
@@ -1566,7 +1585,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private DataGroup setupReturnedDataGroupOnDataRedactorSpy() {
-		DataGroup dataGroup = recordStorage.read(DATA_WITH_LINKS, "oneLinkTopLevel");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "oneLinkTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 		return dataGroup;
 	}
@@ -1602,7 +1621,8 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testReadRecordWithDataRecordLinkHasNOReadAction() {
-		DataGroup dataGroup = recordStorage.read(DATA_WITH_LINKS, "oneLinkTopLevelNotAuthorized");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
+				"oneLinkTopLevelNotAuthorized");
 		dataRedactor.returnDataGroup = dataGroup;
 		authorizator.setNotAutorizedForActionOnRecordType(CREATE, "toRecordType");
 		authorizator.setNotAutorizedForActionOnRecordType(LIST, "toRecordType");
@@ -1615,35 +1635,33 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testIRAReadRecordWithDataRecordLinkHasNOReadAction() {
-		String recordType = DATA_WITH_LINKS;
-		DataGroup dataGroup = recordStorage.read(recordType, "oneLinkTopLevelNotAuthorized");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
+				"oneLinkTopLevelNotAuthorized");
 		dataRedactor.returnDataGroup = dataGroup;
 		authorizator.setNotAutorizedForActionOnRecordType(CREATE, "toRecordType");
 		authorizator.setNotAutorizedForActionOnRecordType(LIST, "toRecordType");
 		authorizator.setNotAutorizedForActionOnRecordType(SEARCH, "toRecordType");
 		authorizator.setNotAutorizedForActionOnRecordType(READ, "toRecordType");
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup,
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, dataGroup,
 				dataRedactor);
 		RecordLinkTestsAsserter.assertTopLevelLinkDoesNotContainReadAction(record);
 	}
 
 	@Test
 	public void testReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
-		String recordType = DATA_WITH_LINKS;
-		DataGroup dataGroup = recordStorage.read(recordType, "oneLinkOneLevelDown");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "oneLinkOneLevelDown");
 		dataRedactor.returnDataGroup = dataGroup;
-		DataRecord record = enhancer.enhance(user, recordType, dataGroup, dataRedactor);
+		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, dataGroup, dataRedactor);
 
 		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
 	}
 
 	@Test
 	public void testIRAReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
-		String recordType = DATA_WITH_LINKS;
-		DataGroup dataGroup = recordStorage.read(recordType, "oneLinkOneLevelDown");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "oneLinkOneLevelDown");
 		dataRedactor.returnDataGroup = dataGroup;
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup,
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, dataGroup,
 				dataRedactor);
 
 		RecordLinkTestsAsserter.assertOneLevelDownLinkContainsReadActionOnly(record);
@@ -1652,7 +1670,7 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testReadRecordWithDataResourceLinkHasReadActionTopLevel() {
 		String recordType = "dataWithResourceLinks";
-		DataGroup dataGroup = recordStorage.read(recordType, "oneResourceLinkTopLevel");
+		DataGroup dataGroup = recordStorage.read(List.of(recordType), "oneResourceLinkTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 		DataRecord record = enhancer.enhance(user, recordType, dataGroup, dataRedactor);
 
@@ -1662,7 +1680,7 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testIRAReadRecordWithDataResourceLinkHasReadActionTopLevel() {
 		String recordType = "dataWithResourceLinks";
-		DataGroup dataGroup = recordStorage.read(recordType, "oneResourceLinkTopLevel");
+		DataGroup dataGroup = recordStorage.read(List.of(recordType), "oneResourceLinkTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup,
 				dataRedactor);
@@ -1673,7 +1691,8 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testReadRecordWithDataResourceLinkHasReadActionOneLevelDown() {
 		String recordType = "dataWithResourceLinks";
-		DataGroup dataGroup = recordStorage.read(recordType, "oneResourceLinkOneLevelDown");
+		DataGroup dataGroup = recordStorage.read(List.of(recordType),
+				"oneResourceLinkOneLevelDown");
 		dataRedactor.returnDataGroup = dataGroup;
 
 		DataRecord record = enhancer.enhance(user, recordType, dataGroup, dataRedactor);
@@ -1684,7 +1703,8 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testIRAReadRecordWithDataResourceLinkHasReadActionOneLevelDown() {
 		String recordType = "dataWithResourceLinks";
-		DataGroup dataGroup = recordStorage.read(recordType, "oneResourceLinkOneLevelDown");
+		DataGroup dataGroup = recordStorage.read(List.of(recordType),
+				"oneResourceLinkOneLevelDown");
 		dataRedactor.returnDataGroup = dataGroup;
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup,
@@ -1695,12 +1715,11 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testReadRecordWithDataRecordLinkTargetDoesNotExist() {
-		String recordType = DATA_WITH_LINKS;
-		DataGroup dataGroup = recordStorage.read(recordType,
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
 				"oneLinkOneLevelDownTargetDoesNotExist");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhance(user, recordType, someDataGroup, dataRedactor);
+		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, someDataGroup, dataRedactor);
 
 		assertReadRecordWithDataRecordLinkTargetDoesNotExist(record);
 	}
@@ -1715,12 +1734,11 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testIRAReadRecordWithDataRecordLinkTargetDoesNotExist() {
-		String recordType = DATA_WITH_LINKS;
-		DataGroup dataGroup = recordStorage.read(recordType,
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
 				"oneLinkOneLevelDownTargetDoesNotExist");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, someDataGroup,
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, someDataGroup,
 				dataRedactor);
 
 		assertReadRecordWithDataRecordLinkTargetDoesNotExist(record);
@@ -1729,12 +1747,12 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testLinkIsNotReadWhenRecordTypeIsPublic() {
 		recordTypeHandlerSpy.isPublicForRead = true;
-		String recordType = DATA_WITH_LINKS;
-		DataGroup dataGroup = recordStorage.read(recordType, "oneLinkTopLevelNotAuthorized");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
+				"oneLinkTopLevelNotAuthorized");
 		dataRedactor.returnDataGroup = dataGroup;
 		recordStorage.publicReadForToRecordType = "true";
 
-		DataRecord record = enhancer.enhance(user, recordType, someDataGroup, dataRedactor);
+		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, someDataGroup, dataRedactor);
 
 		assertLinkIsNotReadWhenRecordTypeIsPublic(record);
 	}
@@ -1754,12 +1772,12 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testIRALinkIsNotReadWhenRecordTypeIsPublic() {
 		recordTypeHandlerSpy.isPublicForRead = true;
-		String recordType = DATA_WITH_LINKS;
-		DataGroup dataGroup = recordStorage.read(recordType, "oneLinkTopLevelNotAuthorized");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
+				"oneLinkTopLevelNotAuthorized");
 		dataRedactor.returnDataGroup = dataGroup;
 		recordStorage.publicReadForToRecordType = "true";
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, someDataGroup,
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, someDataGroup,
 				dataRedactor);
 
 		assertLinkIsNotReadWhenRecordTypeIsPublic(record);
@@ -1769,11 +1787,10 @@ public class DataGroupToRecordEnhancerTest {
 	public void testRecordTypeForLinkIsOnlyReadOnce() {
 		recordTypeHandlerSpy.isPublicForRead = true;
 		recordStorage.publicReadForToRecordType = "true";
-		String recordType = DATA_WITH_LINKS;
-		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "twoLinksTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhance(user, recordType, someDataGroup, dataRedactor);
+		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, someDataGroup, dataRedactor);
 
 		assertRecordTypeForLinkIsOnlyReadOnce(record);
 	}
@@ -1795,11 +1812,10 @@ public class DataGroupToRecordEnhancerTest {
 	public void testIRARecordTypeForLinkIsOnlyReadOnce() {
 		recordTypeHandlerSpy.isPublicForRead = true;
 		recordStorage.publicReadForToRecordType = "true";
-		String recordType = DATA_WITH_LINKS;
-		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "twoLinksTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, someDataGroup,
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, someDataGroup,
 				dataRedactor);
 
 		assertRecordTypeForLinkIsOnlyReadOnce(record);
@@ -1807,18 +1823,38 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord() {
-		String recordType = DATA_WITH_LINKS;
-		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "twoLinksTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhance(user, recordType, someDataGroup, dataRedactor);
+		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, someDataGroup, dataRedactor);
 
+		assertTopLevelTwoLinksContainReadActionOnly(record);
 		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
 	}
 
 	private void assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(DataRecord record) {
-		assertTopLevelTwoLinksContainReadActionOnly(record);
-		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "toRecordType:toRecordId");
+
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 4);
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "dataWithLinks");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "recordType");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "system");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 3, "toRecordType");
+
+		RecordTypeHandlerSpy recordTypeHandlerX = (RecordTypeHandlerSpy) dependencyProvider.MCR
+				.getReturnValue("getRecordTypeHandler", 3);
+
+		recordTypeHandlerX.MCR
+				.assertNumberOfCallsToMethod("getListOfRecordTypeIdsToReadFromStorage", 3);
+
+		var types = recordTypeHandlerX.MCR.getReturnValue("getListOfRecordTypeIdsToReadFromStorage",
+				2);
+
+		recordStorage.MCR.assertNumberOfCallsToMethod("read", 4);
+		recordStorage.MCR.assertParameter("read", 0, "id", "twoLinksTopLevel");
+		recordStorage.MCR.assertParameter("read", 1, "id", "dataWithLinks");
+		recordStorage.MCR.assertParameter("read", 2, "id", "cora");
+		recordStorage.MCR.assertParameter("read", 3, "id", "toRecordId");
+		recordStorage.MCR.assertParameters("read", 3, types, "toRecordId");
 
 		String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
 
@@ -1844,91 +1880,42 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testIRALinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord() {
-		String recordType = DATA_WITH_LINKS;
-		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "twoLinksTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, someDataGroup,
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, someDataGroup,
 				dataRedactor);
-
+		assertTopLevelTwoLinksContainReadActionOnly(record);
 		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
 	}
 
 	@Test
 	public void testLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecordNotAuthorized() {
-		String recordType = DATA_WITH_LINKS;
-		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "twoLinksTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 
 		authorizator.setNotAutorizedForActionOnRecordType(READ, "system");
 		authorizator.setNotAutorizedForActionOnRecordType(READ, "toRecordType");
 
-		DataRecord record = enhancer.enhance(user, recordType, dataGroup, dataRedactor);
+		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, dataGroup, dataRedactor);
 
-		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecordNotAuthorized(record);
-	}
-
-	private void assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecordNotAuthorized(
-			DataRecord record) {
 		assertTopLevelTwoLinksDoesNotContainReadAction(record);
-		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "toRecordType:toRecordId");
+		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
 
-		String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
-
-		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
-		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId", metadataId);
-		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
-		termCollector.MCR.assertParameter("collectTerms", 3, "metadataId", metadataId);
-		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 4);
-
-		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
-		authorizator.MCR.assertParameters(methodName, 0, user, READ, DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName, 1, user, UPDATE, DATA_WITH_LINKS);
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName, 2);
-
-		String methodName2 = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
-		authorizator.MCR.assertParameters(methodName2, 0, user, "index", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 1, user, "delete", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "recordType");
-		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "system");
-		authorizator.MCR.assertParameters(methodName2, 4, user, READ, "toRecordType");
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 5);
 	}
 
 	@Test
 	public void testIRALinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecordNotAuthorized() {
-		String recordType = DATA_WITH_LINKS;
-		DataGroup dataGroup = recordStorage.read(recordType, "twoLinksTopLevel");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "twoLinksTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 
 		authorizator.setNotAutorizedForActionOnRecordType(READ, "system");
 		authorizator.setNotAutorizedForActionOnRecordType(READ, "toRecordType");
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, recordType, dataGroup,
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, dataGroup,
 				dataRedactor);
 
 		assertTopLevelTwoLinksDoesNotContainReadAction(record);
-		assertRecordStorageWasCalledOnlyOnceForReadKey(recordStorage, "toRecordType:toRecordId");
-
-		String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
-
-		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
-		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId", metadataId);
-		termCollector.MCR.assertParameter("collectTerms", 2, "metadataId", metadataId);
-		termCollector.MCR.assertParameter("collectTerms", 3, "metadataId", metadataId);
-		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 4);
-
-		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
-		authorizator.MCR.assertParameters(methodName, 0, user, READ, DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName, 1, user, UPDATE, DATA_WITH_LINKS);
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName, 2);
-
-		String methodName2 = "userIsAuthorizedForActionOnRecordTypeAndCollectedData";
-		authorizator.MCR.assertParameters(methodName2, 0, user, "index", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 1, user, "delete", DATA_WITH_LINKS);
-		authorizator.MCR.assertParameters(methodName2, 2, user, READ, "recordType");
-		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "system");
-		authorizator.MCR.assertParameters(methodName2, 4, user, READ, "toRecordType");
-		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 5);
+		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
 	}
 }

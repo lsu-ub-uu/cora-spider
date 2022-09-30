@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -85,7 +86,6 @@ public class SpiderAuthorizatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		rulesProvider = new RulesProviderSpy();
 		setUpDependencyProvider();
-		// permissionTerms = new DataGroupOldSpy("collectedData");
 		permissionTerms = new ArrayList<PermissionTerm>();
 	}
 
@@ -96,6 +96,11 @@ public class SpiderAuthorizatorTest {
 
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+
+		dependencyProvider.recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier(
+				"getListOfRecordTypeIdsToReadFromStorage",
+				(Supplier<List<String>>) () -> List.of("user"));
+
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.ruleCalculator = ruleCalculator;

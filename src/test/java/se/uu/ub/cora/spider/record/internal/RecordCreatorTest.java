@@ -26,6 +26,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -58,6 +59,7 @@ import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
+import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
@@ -112,7 +114,6 @@ public class RecordCreatorTest {
 		authenticator = new AuthenticatorSpy();
 		spiderAuthorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
-		// recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		recordStorage = new RecordStorageMCRSpy();
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
@@ -199,7 +200,8 @@ public class RecordCreatorTest {
 				user, "create", recordType);
 	}
 
-	@Test(expectedExceptions = MisuseException.class)
+	@Test(expectedExceptions = MisuseException.class, expectedExceptionsMessageRegExp = ""
+			+ "Data creation on abstract recordType: abstract is not allowed")
 	public void testCreateRecordAbstractRecordType() {
 		setUpDependencyProvider();
 		DataGroup record = new DataGroupOldSpy("abstract");
@@ -207,6 +209,71 @@ public class RecordCreatorTest {
 		recordTypeHandlerSpy.isAbstract = true;
 
 		recordCreator.createAndStoreRecord("someToken78678567", "abstract", record);
+	}
+
+	// @Test(expectedExceptions = ConflictException.class, expectedExceptionsMessageRegExp = "Record
+	// "
+	// + "with type: spyType and id: 1 already exists in storage")
+	@Test
+	public void testNotPossibleToCreateRecordWithTypeAndIdWhichAlreadyExists() throws Exception {
+		DataGroup dataGroup = setupForAutoGenerateId();
+		String authToken = "dummyAuthenticatedToken";
+
+		recordStorage.MRV.setSpecificReturnValuesSupplier(
+				"recordExistsForListOfImplementingRecordTypesAndRecordId",
+				(Supplier<Boolean>) () -> true, List.of("spyType"), "1");
+		try {
+			recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
+			assertTrue(false);
+		} catch (Exception e) {
+			assertTrue(e instanceof ConflictException);
+			assertEquals(e.getMessage(),
+					"Record " + "with type: spyType and id: 1 already exists in storage");
+
+			recordTypeHandlerSpy.MCR.assertMethodNotCalled("getParentId");
+
+			Map<String, Object> parameters = recordStorage.MCR.getParametersForMethodAndCallNumber(
+					"recordExistsForListOfImplementingRecordTypesAndRecordId", 0);
+			List<?> types = (List<?>) parameters.get("types");
+			assertEquals(types.get(0), "spyType");
+			assertEquals(parameters.get("id"), "1");
+		}
+	}
+
+	@Test
+	public void testNotPossibleToCreateRecordWithTypeAndIdWhichAlreadyExistsForImplementingType() {
+		DataGroup dataGroup = setupForAutoGenerateId();
+		String authToken = "dummyAuthenticatedToken";
+
+		recordTypeHandlerSpy.hasParent = true;
+
+		recordStorage.MRV.setSpecificReturnValuesSupplier(
+				"recordExistsForListOfImplementingRecordTypesAndRecordId",
+				(Supplier<Boolean>) () -> true, List.of("oneImplementingTypeId"), "1");
+
+		try {
+			recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
+			assertTrue(false);
+		} catch (Exception e) {
+			assertTrue(e instanceof ConflictException);
+			assertEquals(e.getMessage(),
+					"Record " + "with type: spyType and id: 1 already exists in storage");
+
+			recordTypeHandlerSpy.MCR.assertMethodWasCalled("getParentId");
+
+			var parentId = recordTypeHandlerSpy.MCR.getReturnValue("getParentId", 0);
+
+			dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, parentId);
+			RecordTypeHandlerSpy parentRecordTypeHandler = (RecordTypeHandlerSpy) dependencyProvider.MCR
+					.getReturnValue("getRecordTypeHandler", 1);
+			parentRecordTypeHandler.MCR.assertParameters("getListOfRecordTypeIdsToReadFromStorage",
+					0);
+			var types = parentRecordTypeHandler.MCR
+					.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
+
+			recordStorage.MCR.assertParameters(
+					"recordExistsForListOfImplementingRecordTypesAndRecordId", 0, types, "1");
+		}
 	}
 
 	@Test
@@ -387,9 +454,13 @@ public class RecordCreatorTest {
 		String tsCreated = recordInfo.getFirstAtomicValueWithNameInData("tsCreated");
 		assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
 
-		DataGroup updated = recordInfo.getFirstGroupWithNameInData("updated");
-		String tsUpdated = updated.getFirstAtomicValueWithNameInData("tsUpdated");
-		assertTrue(tsUpdated.matches(TIMESTAMP_FORMAT));
+		DataGroupSpy updated = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupUsingNameInData", 0);
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "tsUpdated",
+				tsCreated);
+		var createdTsCreated = dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
+		updated.MCR.assertParameters("addChild", 1, createdTsCreated);
 		assertFalse(recordInfo.containsChildWithNameInData("tsUpdated"));
 
 		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
@@ -407,13 +478,16 @@ public class RecordCreatorTest {
 				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 1);
 		assertDataChildFoundInChildren(createdByLink, recordInfo.getChildren());
 
-		DataGroup updated = recordInfo.getFirstGroupWithNameInData("updated");
-		assertEquals(updated.getRepeatId(), "0");
+		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "updated");
+		DataGroupSpy updated = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupUsingNameInData", 0);
+		updated.MCR.assertParameters("setRepeatId", 0, "0");
+
 		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 2,
 				"updatedBy", "user", "12345");
 		var updatedByLink = dataFactorySpy.MCR
 				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 2);
-		assertDataChildFoundInChildren(updatedByLink, updated.getChildren());
+		updated.MCR.assertParameters("addChild", 0, updatedByLink);
 	}
 
 	@Test
@@ -585,17 +659,23 @@ public class RecordCreatorTest {
 	@Test
 	public void testLinkedRecordIdExists() {
 		setupLinkCollectorToReturnALinkSoThatWeCheckThatTheLinkedRecordExistsInStorage();
-		recordStorage.MRV.setDefaultReturnValuesSupplier(
-				"recordExistsForAbstractOrImplementingRecordTypeAndRecordId",
-				(Supplier<Boolean>) () -> true);
+		recordStorage.MRV.setSpecificReturnValuesSupplier(
+				"recordExistsForListOfImplementingRecordTypesAndRecordId",
+				(Supplier<Boolean>) () -> true, List.of("oneImplementingTypeId"), "toId");
 		DataGroup dataGroup = RecordLinkTestsDataCreator.createDataDataGroupWithLink();
 		dataGroup.addChild(DataCreator2.createRecordInfoWithLinkedRecordId("cora"));
 		recordTypeHandlerSpy.shouldAutoGenerateId = true;
 
 		recordCreator.createAndStoreRecord("someToken78678567", "dataWithLinks", dataGroup);
 
-		recordStorage.MCR.assertParameters(
-				"recordExistsForAbstractOrImplementingRecordTypeAndRecordId", 0, "toType", "toId");
+		List<?> types = (List<?>) recordStorage.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"recordExistsForListOfImplementingRecordTypesAndRecordId", 0, "types");
+		assertEquals(types.size(), 1);
+		assertEquals(types.get(0), "oneImplementingTypeId");
+		recordStorage.MCR.assertParameter("recordExistsForListOfImplementingRecordTypesAndRecordId",
+				0, "id", "toId");
+
 	}
 
 	@Test

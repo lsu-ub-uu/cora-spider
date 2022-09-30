@@ -19,54 +19,67 @@
 
 package se.uu.ub.cora.spider.extended.consistency;
 
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
+
+import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupFactory;
-import se.uu.ub.cora.data.DataGroupProvider;
-import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
+import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class MetadataConsistencyGroupAndCollectionValidatorTest {
-	private RecordStorage recordStorage;
+	private RecordStorageCreateUpdateSpy recordStorage;
 	private ExtendedFunctionality validator;
 	private String recordType;
 	private DataGroup recordAsDataGroup;
-	private DataGroupFactory dataGroupFactory;
-	private DataAtomicFactorySpy dataAtomicFactory;
 	private String authToken = "someAuthToken";
+	private SpiderDependencyProviderSpy dependencyProvider;
+	private DataFactorySpy dataFactorySpy;
 
 	@BeforeMethod
 	public void setUpDefaults() {
-		dataGroupFactory = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
-		dataAtomicFactory = new DataAtomicFactorySpy();
-		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
+
 		recordStorage = new RecordStorageCreateUpdateSpy();
 		recordType = "metadataGroup";
 		recordAsDataGroup = new DataGroupOldSpy("nameInData");
+		dependencyProvider = new SpiderDependencyProviderSpy();
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
+				(Supplier<RecordStorage>) () -> recordStorage);
+
 	}
 
 	private void setUpDependencies() {
-		validator = new MetadataConsistencyGroupAndCollectionValidator(recordStorage, recordType);
+		validator = new MetadataConsistencyGroupAndCollectionValidator(dependencyProvider,
+				recordType);
 	}
 
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: childItem: childTwo does not exist in parent")
+	@Test
+	public void testOnlyForTest() throws Exception {
+		setUpDependencies();
+		assertSame(dependencyProvider, ((MetadataConsistencyGroupAndCollectionValidator) validator)
+				.onlyForTestGetDependencyProvider());
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "Data is not valid: childItem: childTwo does not exist in parent")
 	public void testMetadataGroupChildDoesNotExistInParent() {
-		recordStorage = new RecordStorageCreateUpdateSpy();
 		recordAsDataGroup = DataCreator2.createMetadataGroupWithTwoChildren();
 		DataGroup refParentId = new DataGroupOldSpy("refParentId");
 		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
@@ -74,6 +87,52 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		recordAsDataGroup.addChild(refParentId);
 		setUpDependencies();
 		callValidatorUseExtendedFunctionality();
+	}
+
+	@Test
+	public void testMetadataGroupChildDoesNotExistInParentCatch() {
+
+		recordAsDataGroup = DataCreator2.createMetadataGroupWithTwoChildren();
+		DataGroup refParentId = new DataGroupOldSpy("refParentId");
+		refParentId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
+		refParentId.addChild(new DataAtomicSpy("linkedRecordId", "testGroup"));
+		recordAsDataGroup.addChild(refParentId);
+		setUpDependencies();
+		try {
+			callValidatorUseExtendedFunctionality();
+			assertTrue(false);
+		} catch (Exception e) {
+			assertTrue(e instanceof DataException);
+
+			recordStorage.MCR.assertNumberOfCallsToMethod("read", 6);
+			// metadataGroup X
+			recordStorage.MCR.assertParameter("read", 0, "id", "childOne");
+			// metadataGroup
+			recordStorage.MCR.assertParameter("read", 1, "id", "testGroup");
+			// metadataGroup X
+			recordStorage.MCR.assertParameter("read", 2, "id", "childOne");
+			// metadataGroup X
+			recordStorage.MCR.assertParameter("read", 3, "id", "childTwo");
+			// metadataGroup
+			recordStorage.MCR.assertParameter("read", 4, "id", "testGroup");
+			// metadataGroup X
+			recordStorage.MCR.assertParameter("read", 5, "id", "childOne");
+
+			dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 4);
+			dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "metadataGroup");
+			dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "metadataGroup");
+			dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "metadataGroup");
+			dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 3, "metadataGroup");
+
+			RecordTypeHandlerSpy recordTypeHandler = (RecordTypeHandlerSpy) dependencyProvider.MCR
+					.getReturnValue("getRecordTypeHandler", 0);
+
+			var types = recordTypeHandler.MCR
+					.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
+
+			recordStorage.MCR.assertParameters("read", 0, types, "childOne");
+
+		}
 	}
 
 	private void callValidatorUseExtendedFunctionality() {
@@ -175,13 +234,34 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	}
 
 	@Test
-	public void testCollectionVariableFinalValueExistInCollection() {
+	public void testCollectionVariableFinalValueExistInCollection() throws Exception {
 		recordType = "metadataCollectionVariable";
 		recordAsDataGroup = DataCreator2.createMetadataGroupWithCollectionVariableAsChild();
 
 		recordAsDataGroup.addChild(new DataAtomicSpy("finalValue", "that"));
 		setUpDependencies();
-		exceptNoException();
+
+		callValidatorUseExtendedFunctionality();
+
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0,
+				"metadataCollectionItem");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1,
+				"metadataCollectionItem");
+
+		recordStorage.MCR.assertNumberOfCallsToMethod("read", 3);
+
+		RecordTypeHandlerSpy recordTypeHandler = (RecordTypeHandlerSpy) dependencyProvider.MCR
+				.getReturnValue("getRecordTypeHandler", 0);
+		var types1 = recordTypeHandler.MCR.getReturnValue("getListOfRecordTypeIdsToReadFromStorage",
+				0);
+		recordStorage.MCR.assertParameters("read", 1, types1, "thisItem");
+
+		RecordTypeHandlerSpy recordTypeHandler2 = (RecordTypeHandlerSpy) dependencyProvider.MCR
+				.getReturnValue("getRecordTypeHandler", 1);
+		var types2 = recordTypeHandler2.MCR
+				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
+		recordStorage.MCR.assertParameters("read", 2, types2, "thatItem");
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "Data is not valid: final value does not exist in collection")

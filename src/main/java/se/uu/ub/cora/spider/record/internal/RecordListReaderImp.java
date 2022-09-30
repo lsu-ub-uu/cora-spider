@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2019, 2020 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2019, 2020, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import java.util.Collection;
+import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
@@ -27,7 +28,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
-import se.uu.ub.cora.data.DataListProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
@@ -46,7 +47,6 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataValidator dataValidator;
 	private StorageReadResult readResult;
-	private SpiderDependencyProvider dependencyProvider;
 	private RecordTypeHandler recordTypeHandler;
 
 	private RecordListReaderImp(SpiderDependencyProvider dependencyProvider,
@@ -71,9 +71,9 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		ensureActiveUserHasListPermissionUsingAuthToken(authToken);
 
-		readRecordList = DataListProvider.getDataListWithNameOfDataType(recordType);
+		readRecordList = DataProvider.createListWithNameOfDataType(recordType);
 		validateFilterIfNotEmpty(filter, recordType);
-		readRecordsOfType(recordType, filter);
+		readRecordsOfType(filter);
 		setFromToInReadRecordList();
 
 		return readRecordList;
@@ -125,19 +125,14 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		}
 	}
 
-	private void readRecordsOfType(String recordType, DataGroup filter) {
+	private void readRecordsOfType(DataGroup filter) {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		if (recordTypeHandler.isAbstract()) {
-			addChildrenOfAbstractTypeToReadRecordList(recordType, filter, dataRedactor);
-		} else {
-			readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(recordType, filter,
-					dataRedactor);
-		}
+		readAndAddToReadRecordList(filter, dataRedactor);
 	}
 
-	private void addChildrenOfAbstractTypeToReadRecordList(String abstractRecordType,
-			DataGroup filter, DataRedactor dataRedactor) {
-		readResult = recordStorage.readAbstractList(abstractRecordType, filter);
+	private void readAndAddToReadRecordList(DataGroup filter, DataRedactor dataRedactor) {
+		List<String> listOfTypes = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
+		readResult = recordStorage.readList(listOfTypes, filter);
 		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
 		for (DataGroup dataGroup : dataGroupList) {
 			String type = extractRecordTypeFromDataGroup(dataGroup);
@@ -163,16 +158,6 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 			// do nothing
 		}
 
-	}
-
-	private void readRecordsOfSpecifiedRecordTypeAndAddToReadRecordList(String type,
-			DataGroup filter, DataRedactor dataRedactor) {
-		readResult = recordStorage.readList(type, filter);
-		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
-		this.recordType = type;
-		for (DataGroup dataGroup : dataGroupList) {
-			enhanceDataGroupAndPossiblyAddToRecordList(dataGroup, type, dataRedactor);
-		}
 	}
 
 	private void setFromToInReadRecordList() {

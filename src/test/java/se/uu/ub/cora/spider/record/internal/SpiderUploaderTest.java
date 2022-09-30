@@ -228,7 +228,7 @@ public class SpiderUploaderTest {
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "image");
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
-				recordStorage.read("image", "image:123456789"));
+				recordStorage.read(List.of("image"), "image:123456789"));
 
 		String methodName2 = "checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		CollectTerms collectedTerms = (CollectTerms) termCollector.MCR

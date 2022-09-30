@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
 
@@ -42,6 +43,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.MisuseException;
@@ -64,7 +66,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataGroupTermCollector dataGroupTermCollector;
 	private RecordIndexer recordIndexer;
-	private SpiderDependencyProvider dependencyProvider;
 	private Set<String> writePermissions;
 	private CollectTerms collectedTerms;
 	private List<Link> collectedLinks;
@@ -111,6 +112,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		validateRecord();
 		useExtendedFunctionalityAfterMetadataValidation(recordType, recordAsDataGroup);
 		completeRecordAndCollectInformationSpecifiedInMetadata();
+		ensureNoDuplicateForTypeFamilyAndId();
 		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms.storageTerms);
 		if (recordTypeHandler.storeInArchive()) {
 			recordArchive.create(recordType, recordId, recordAsDataGroup);
@@ -136,7 +138,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private void checkNoCreateForAbstractRecordType() {
 		if (recordTypeHandler.isAbstract()) {
 			throw new MisuseException(
-					"Data creation on abstract recordType:" + recordType + " is not allowed");
+					"Data creation on abstract recordType: " + recordType + " is not allowed");
 		}
 	}
 
@@ -247,8 +249,38 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		recordIndexer.indexData(ids, indexTerms, recordAsDataGroup);
 	}
 
-	private void createRecordInStorage(DataGroup topLevelDataGroup,
-			List<Link> collectedLinks, List<StorageTerm> storageTerms) {
+	private void ensureNoDuplicateForTypeFamilyAndId() {
+		if (isItADuplicateInStorage()) {
+			String duplicateMessage = "Record with type: {0} and id: {1} already exists in storage";
+			String message = MessageFormat.format(duplicateMessage, recordType, recordId);
+			throw ConflictException.withMessage(message);
+		}
+	}
+
+	private boolean isItADuplicateInStorage() {
+		if (recordTypeHandler.hasParent()) {
+			return duplicateExistsForAnyImplementingType();
+		}
+		return duplicateExistsForThisType();
+	}
+
+	private boolean duplicateExistsForAnyImplementingType() {
+		String parentId = recordTypeHandler.getParentId();
+		RecordTypeHandler parentRecordTypeHandler = dependencyProvider
+				.getRecordTypeHandler(parentId);
+		List<String> types = parentRecordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
+		return recordStorage.recordExistsForListOfImplementingRecordTypesAndRecordId(types,
+				recordId);
+	}
+
+	private boolean duplicateExistsForThisType() {
+		List<String> types = List.of(recordType);
+		return recordStorage.recordExistsForListOfImplementingRecordTypesAndRecordId(types,
+				recordId);
+	}
+
+	private void createRecordInStorage(DataGroup topLevelDataGroup, List<Link> collectedLinks,
+			List<StorageTerm> storageTerms) {
 		String dataDivider = extractDataDividerFromData(recordAsDataGroup);
 		recordStorage.create(recordType, recordId, topLevelDataGroup, storageTerms, collectedLinks,
 				dataDivider);

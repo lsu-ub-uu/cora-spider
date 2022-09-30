@@ -32,14 +32,12 @@ import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.data.copier.DataCopier;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
-import se.uu.ub.cora.storage.MetadataStorage;
-import se.uu.ub.cora.storage.MetadataTypes;
 import se.uu.ub.cora.storage.RecordConflictException;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
-public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage {
+public class RecordStorageInMemoryStub implements RecordStorage {
 	private DataGroup emptyFilter = new DataGroupOldSpy("filter");
 	protected Map<String, Map<String, DataGroup>> records = new HashMap<>();
 	protected Map<String, Map<String, List<Link>>> linkLists = new HashMap<>();
@@ -201,7 +199,7 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 	}
 
 	@Override
-	public StorageReadResult readList(String type, DataGroup filter) {
+	public StorageReadResult readList(List<String> type, DataGroup filter) {
 		Map<String, DataGroup> typeRecords = records.get(type);
 		if (null == typeRecords) {
 			throw new RecordNotFoundException("No records exists with recordType: " + type);
@@ -213,24 +211,28 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 		return spiderReadResult;
 	}
 
-	@Override
-	public StorageReadResult readAbstractList(String type, DataGroup filter) {
-		StorageReadResult spiderReadResult = new StorageReadResult();
-		spiderReadResult.start = 1;
-		// spiderReadResult.listOfDataGroups = new ArrayList<>(typeRecords.values());
-		return spiderReadResult;
-	}
+	// @Override
+	// public StorageReadResult readAbstractList(String type, DataGroup filter) {
+	// StorageReadResult spiderReadResult = new StorageReadResult();
+	// spiderReadResult.start = 1;
+	// // spiderReadResult.listOfDataGroups = new ArrayList<>(typeRecords.values());
+	// return spiderReadResult;
+	// }
 
 	@Override
-	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
+	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
 			String id) {
 		return false;
 	}
 
 	@Override
-	public DataGroup read(String recordType, String recordId) {
-		checkRecordExists(recordType, recordId);
-		return records.get(recordType).get(recordId);
+	public DataGroup read(List<String> recordTypes, String recordId) {
+		for (String recordType : recordTypes) {
+
+			checkRecordExists(recordType, recordId);
+			return records.get(recordType).get(recordId);
+		}
+		return null;
 	}
 
 	private void checkRecordExists(String recordType, String recordId) {
@@ -348,82 +350,14 @@ public class RecordStorageInMemoryStub implements RecordStorage, MetadataStorage
 		}
 	}
 
-	private boolean incomingLinksContainsToType(DataGroup to) {
-		String toType = extractLinkedRecordTypeValue(to);
-		return incomingLinks.containsKey(toType);
-	}
-
 	private Map<String, Map<String, List<Link>>> extractToPartOfIncomingLinks(Link linkElement) {
 		// String toType = extractLinkedRecordTypeValue(linkElement);
 		// String toId = extractLinkedRecordIdValue(linkElement);
 		return incomingLinks.get(linkElement.type()).get(linkElement.id());
 	}
 
-	private void removeLinkAndFromHolderFromIncomingLinks(String recordType, String recordId,
-			Map<String, Map<String, List<DataGroup>>> linksForToPart) {
-		// DataGroup from = link.getFirstGroupWithNameInData("from");
-		// String fromType = extractLinkedRecordTypeValue(from);
-		// String fromId = extractLinkedRecordIdValue(from);
-		String fromType = recordType;
-		String fromId = recordId;
-
-		linksForToPart.get(fromType).remove(fromId);
-
-		if (linksForToPart.get(fromType).isEmpty()) {
-			linksForToPart.remove(fromType);
-		}
-	}
-
-	private void removeToHolderFromIncomingLinks(DataGroup to,
-			Map<String, Map<String, List<DataGroup>>> toPartOfIncomingLinks) {
-		String toType = extractLinkedRecordTypeValue(to);
-		String toId = extractLinkedRecordIdValue(to);
-		if (toPartOfIncomingLinks.isEmpty()) {
-			incomingLinks.get(toType).remove(toId);
-		}
-		if (incomingLinks.get(toType).isEmpty()) {
-			incomingLinks.remove(toType);
-		}
-	}
-
 	@Override
-	public Collection<DataGroup> getMetadataElements() {
-		Collection<DataGroup> readDataGroups = new ArrayList<>();
-		for (MetadataTypes metadataType : MetadataTypes.values()) {
-			readDataGroups.addAll(readList(metadataType.type, emptyFilter).listOfDataGroups);
-		}
-		return readDataGroups;
-	}
-
-	@Override
-	public Collection<DataGroup> getPresentationElements() {
-		return readList("presentation", emptyFilter).listOfDataGroups;
-	}
-
-	@Override
-	public Collection<DataGroup> getTexts() {
-		return readList("text", emptyFilter).listOfDataGroups;
-	}
-
-	@Override
-	public Collection<DataGroup> getRecordTypes() {
-		return readList("recordType", emptyFilter).listOfDataGroups;
-	}
-
-	@Override
-	public Collection<DataGroup> getCollectTerms() {
-		return null;
-	}
-
-	@Override
-	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
-			List<String> implementingTypes, DataGroup filter) {
+	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

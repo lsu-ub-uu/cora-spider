@@ -249,13 +249,6 @@ public class PasswordExtendedFunctionalityTest {
 		return (String) recordIdGeneratorSpy.MCR.getReturnValue("getIdForType", 0);
 	}
 
-	private DataGroupSpy assertAndReturnCollectedDataLinks(int factorGroupCallNumber) {
-		dataFactory.MCR.assertParameters("factorGroupUsingNameInData", factorGroupCallNumber,
-				"collectedDataLinks");
-		return (DataGroupSpy) dataFactory.MCR.getReturnValue("factorGroupUsingNameInData",
-				factorGroupCallNumber);
-	}
-
 	private void assertLinkToSystemSecret(String systemSecretId, int factorRecordLinkCallNumber) {
 		dataFactory.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId",
 				factorRecordLinkCallNumber, PASSWORD_NAME_IN_DATA, SYSTEM_SECRET_TYPE,
@@ -338,7 +331,11 @@ public class PasswordExtendedFunctionalityTest {
 		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProvider.MCR
 				.getReturnValue("getRecordStorage", 0);
 
-		recordStorage.MCR.assertParameters("read", 0, SYSTEM_SECRET_TYPE, systemSecretId);
+		List<?> types = (List<?>) recordStorage.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("read", 0, "types");
+		assertEquals(types.get(0), "systemSecret");
+		assertEquals(types.size(), 1);
+		recordStorage.MCR.assertParameter("read", 0, "id", systemSecretId);
 
 		DataGroupSpy secretFromStorage = (DataGroupSpy) recordStorage.MCR.getReturnValue("read", 0);
 

@@ -71,7 +71,9 @@ public final class RecordReaderImp implements RecordReader {
 	private DataRecord tryToReadRecord(String recordId) {
 		tryToGetUserWithActiveToken();
 		checkUserIsAuthorizedForActionOnRecordType();
-		DataGroup recordRead = recordStorage.read(recordType, recordId);
+
+		DataGroup recordRead = recordStorage
+				.read(recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage(), recordId);
 		return tryToReadAndEnhanceRecord(recordRead);
 	}
 
