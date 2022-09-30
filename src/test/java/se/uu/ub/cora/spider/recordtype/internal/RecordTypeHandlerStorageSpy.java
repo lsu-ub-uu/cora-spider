@@ -266,16 +266,18 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 				MCR.addReturned(collection);
 				return collection;
 			}
-			if ("metadataCollectionItem".equals(type) && "choosableCollectionItem1".equals(id)) {
-				DataGroupSpy collectionItem = createCollectionItemWithValue("choosableItemValue1");
-				MCR.addReturned(collectionItem);
-				return collectionItem;
-			}
-			if ("metadataCollectionItem".equals(type) && "choosableCollectionItem2".equals(id)) {
-				DataGroupSpy collectionItem = createCollectionItemWithValue("choosableItemValue2");
-				MCR.addReturned(collectionItem);
-				return collectionItem;
-			}
+		}
+		// if ("metadataCollectionItem".equals(type) && "choosableCollectionItem1".equals(id)) {
+		if ("choosableCollectionItem1".equals(id)) {
+			DataGroupSpy collectionItem = createCollectionItemWithValue("choosableItemValue1");
+			MCR.addReturned(collectionItem);
+			return collectionItem;
+		}
+		// if ("metadataCollectionItem".equals(type) && "choosableCollectionItem2".equals(id)) {
+		if ("choosableCollectionItem2".equals(id)) {
+			DataGroupSpy collectionItem = createCollectionItemWithValue("choosableItemValue2");
+			MCR.addReturned(collectionItem);
+			return collectionItem;
 		}
 		DataGroupOldSpy returnedValue = new DataGroupOldSpy(id);
 		MCR.addReturned(returnedValue);

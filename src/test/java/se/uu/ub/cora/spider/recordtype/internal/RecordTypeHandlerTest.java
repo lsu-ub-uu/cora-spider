@@ -495,7 +495,7 @@ public class RecordTypeHandlerTest {
 				.getReturnValue("factorUsingDataGroup", 0);
 		parentRecordTypeHandler.MCR.assertParameters("getCombinedIdsUsingRecordId", 0,
 				"someRecordId");
-		List<String> parentCombinedIds = (List<String>) parentRecordTypeHandler.MCR
+		List<?> parentCombinedIds = (List<?>) parentRecordTypeHandler.MCR
 				.getReturnValue("getCombinedIdsUsingRecordId", 0);
 		assertEquals(parentCombinedIds.get(0), ids.get(1));
 	}
@@ -536,17 +536,11 @@ public class RecordTypeHandlerTest {
 				.getRecordPartReadConstraints();
 
 		storageSpy.MCR.assertNumberOfCallsToMethod("read", 3);
-		List<?> types = (List<?>) storageSpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("read", 0, "types");
-		assertEquals(types.get(0), "recordType");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 0, RECORD_TYPE);
 		storageSpy.MCR.assertParameter("read", 0, "id", "organisation");
-		types = (List<?>) storageSpy.MCR.getValueForMethodNameAndCallNumberAndParameterName("read",
-				1, "types");
-		assertEquals(types.get(0), "metadataGroup");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 1, "metadataGroup");
 		storageSpy.MCR.assertParameter("read", 1, "id", "organisation");
-		types = (List<?>) storageSpy.MCR.getValueForMethodNameAndCallNumberAndParameterName("read",
-				2, "types");
-		assertEquals(types.get(0), "metadataGroup");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 2, "metadataGroup");
 		storageSpy.MCR.assertParameter("read", 2, "id", "divaOrganisationNameGroup");
 
 		assertTrue(recordPartReadConstraints.isEmpty());
@@ -561,8 +555,8 @@ public class RecordTypeHandlerTest {
 
 	private RecordTypeHandlerStorageSpy setUpHandlerWithStorageSpyUsingTypeId(String recordTypeId) {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
-		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(null, storageSpy,
-				recordTypeId);
+		recordTypeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(
+				recordTypeHandlerFactory, storageSpy, recordTypeId);
 		return storageSpy;
 	}
 
@@ -667,9 +661,8 @@ public class RecordTypeHandlerTest {
 			String metadataIdForAttribute, int attributeReadNumber,
 			String possibleValuesForAttribute, int attributeNumberInConstraint) {
 
-		List<?> types = (List<?>) storageSpy.MCR.getValueForMethodNameAndCallNumberAndParameterName(
-				"read", attributeReadNumber, "types");
-		assertEquals(types.get(0), "metadataCollectionVariable");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", attributeReadNumber,
+				"metadataCollectionVariable");
 		storageSpy.MCR.assertParameter("read", attributeReadNumber, "id", metadataIdForAttribute);
 
 		DataGroupOldSpy secondAttributecollectionVarSpy = (DataGroupOldSpy) storageSpy.MCR
@@ -681,7 +674,7 @@ public class RecordTypeHandlerTest {
 
 		DataChildFilterSpy childFilter = (DataChildFilterSpy) dataFactorySpy.MCR
 				.getReturnValue("factorDataChildFilterUsingNameInData", constraintNumber);
-		Set<String> possibleValuesSecondAttrib = (Set<String>) childFilter.MCR
+		Set<?> possibleValuesSecondAttrib = (Set<?>) childFilter.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName(
 						"addAttributeUsingNameInDataAndPossibleValues", attributeNumberInConstraint,
 						"possibleValues");
@@ -697,7 +690,40 @@ public class RecordTypeHandlerTest {
 
 		Set<Constraint> constraints = recordTypeHandler.getRecordPartReadConstraints();
 
+		storageSpy.MCR.assertNumberOfCallsToMethod("read", 10);
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 0, RECORD_TYPE);
+		storageSpy.MCR.assertParameter("read", 0, "id", "organisationChildWithAttribute");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 1, "metadataGroup");
+		storageSpy.MCR.assertParameter("read", 1, "id", "organisationChildWithAttribute");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 2, "metadataGroup");
+		storageSpy.MCR.assertParameter("read", 2, "id", "divaOrganisationNameGroup");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 3, "metadataTextVariable");
+		storageSpy.MCR.assertParameter("read", 3, "id", "divaOrganisationRoot");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 4, "metadataGroup");
+		storageSpy.MCR.assertParameter("read", 4, "id", "organisationAlternativeNameGroup");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 5,
+				"metadataCollectionVariable");
+		storageSpy.MCR.assertParameter("read", 5, "id", "choosableAttributeCollectionVar");
+
 		String collectionId = assertChossableAttributeCollectionVar();
+
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 6, "metadataItemCollection");
+		storageSpy.MCR.assertParameter("read", 6, "id", "choosableCollection");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 7, RECORD_TYPE);
+		storageSpy.MCR.assertParameter("read", 7, "id", "metadataCollectionItem");
+
+		var metadataCollectionItemDataGroup = storageSpy.MCR.getReturnValue("read", 7);
+		recordTypeHandlerFactory.MCR.assertParameters("factorUsingDataGroup", 0,
+				metadataCollectionItemDataGroup);
+		RecordTypeHandlerSpy metadataCollectionItemRecordTypeHandler = (RecordTypeHandlerSpy) recordTypeHandlerFactory.MCR
+				.getReturnValue("factorUsingDataGroup", 0);
+		List<?> metadataCollectionItemTypes = (List<?>) metadataCollectionItemRecordTypeHandler.MCR
+				.getReturnValue("getListOfImplementingRecordTypeIds", 0);
+
+		storageSpy.MCR.assertParameters("read", 8, metadataCollectionItemTypes,
+				"choosableCollectionItem1");
+		storageSpy.MCR.assertParameters("read", 9, metadataCollectionItemTypes,
+				"choosableCollectionItem2");
 
 		List<DataGroupSpy> allItemRefs = assertCollectionItemReferences(collectionId);
 
@@ -705,7 +731,7 @@ public class RecordTypeHandlerTest {
 
 		DataChildFilterSpy childFilter = (DataChildFilterSpy) dataFactorySpy.MCR
 				.getReturnValue("factorDataChildFilterUsingNameInData", 1);
-		Set<String> possibleValuesSentToChildFilter = (Set<String>) childFilter.MCR
+		Set<?> possibleValuesSentToChildFilter = (Set<?>) childFilter.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName(
 						"addAttributeUsingNameInDataAndPossibleValues", 0, "possibleValues");
 		assertEquals(possibleValuesSentToChildFilter.size(), 2);
@@ -717,10 +743,6 @@ public class RecordTypeHandlerTest {
 	}
 
 	private List<DataGroupSpy> assertCollectionItemReferences(String collectionId) {
-		List<?> types = (List<?>) storageSpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("read", 6, "types");
-		assertEquals(types.get(0), "metadataItemCollection");
-		storageSpy.MCR.assertParameter("read", 6, "id", collectionId);
 
 		DataGroupSpy possibleAttributesCollection = (DataGroupSpy) storageSpy.MCR
 				.getReturnValue("read", 6);
@@ -729,17 +751,12 @@ public class RecordTypeHandlerTest {
 		DataGroupSpy collectionItemReferences = (DataGroupSpy) possibleAttributesCollection.MCR
 				.getReturnValue("getFirstGroupWithNameInData", 0);
 		collectionItemReferences.MCR.assertParameters("getAllGroupsWithNameInData", 0, "ref");
-		List<DataGroupSpy> allItemRefs = (List<DataGroupSpy>) collectionItemReferences.MCR
-				.getReturnValue("getAllGroupsWithNameInData", 0);
-		return allItemRefs;
+		var allItemRefs = collectionItemReferences.MCR.getReturnValue("getAllGroupsWithNameInData",
+				0);
+		return (List<DataGroupSpy>) allItemRefs;
 	}
 
 	private String assertChossableAttributeCollectionVar() {
-
-		List<?> type = (List<?>) storageSpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("read", 5, "types");
-		assertEquals(type.get(0), "metadataCollectionVariable");
-		storageSpy.MCR.assertParameter("read", 5, "id", "choosableAttributeCollectionVar");
 
 		DataGroupSpy collectionVar = (DataGroupSpy) storageSpy.MCR.getReturnValue("read", 5);
 		collectionVar.MCR.assertParameters("containsChildWithNameInData", 0, "finalValue");
@@ -761,7 +778,7 @@ public class RecordTypeHandlerTest {
 
 	private Collection<String> assertItemValues(List<DataGroupSpy> allItemRefs) {
 		Collection<String> possibleValues = new ArrayList<>();
-		int nextReadCallNumber = 7;
+		int nextReadCallNumber = 8;
 		for (DataGroupSpy itemRef : allItemRefs) {
 			assertItemValue(possibleValues, nextReadCallNumber, itemRef);
 			nextReadCallNumber++;
@@ -770,13 +787,10 @@ public class RecordTypeHandlerTest {
 	}
 
 	private void assertItemValue(Collection<String> possibleValues, int nextReadCallNumber,
-
 			DataGroupSpy itemRef) {
 		itemRef.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, LINKED_RECORD_ID);
 		String itemId = (String) itemRef.MCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
-		List<?> types = (List<?>) storageSpy.MCR.getValueForMethodNameAndCallNumberAndParameterName(
-				"read", nextReadCallNumber, "types");
-		assertEquals(types.get(0), "metadataCollectionItem");
+
 		storageSpy.MCR.assertParameter("read", nextReadCallNumber, "id", itemId);
 
 		DataGroupSpy itemGroup = (DataGroupSpy) storageSpy.MCR.getReturnValue("read",
@@ -785,6 +799,19 @@ public class RecordTypeHandlerTest {
 		String itemValue = (String) itemGroup.MCR
 				.getReturnValue("getFirstAtomicValueWithNameInData", 0);
 		possibleValues.add(itemValue);
+	}
+
+	// HERE
+	@Test
+	public void testGetRecordPartReadConstraintsWithAttributesListOfMetadataCollectionItemOnlyBuiltOnce() {
+		storageSpy = setUpHandlerWithStorageSpyUsingTypeId("organisationChildWithAttribute");
+		storageSpy.numberOfChildrenWithReadWriteConstraint = 2;
+		storageSpy.attributesIdsToAddToConstraint.add("choosableAttributeCollectionVar");
+		storageSpy.attributesIdsToAddToConstraint.add("choosableAttributeCollectionVar");
+
+		recordTypeHandler.getRecordPartReadConstraints();
+
+		storageSpy.MCR.assertNumberOfCallsToMethod("read", 15);
 	}
 
 	@Test
@@ -797,29 +824,13 @@ public class RecordTypeHandlerTest {
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getRecordPartReadConstraints();
 
-		// assertCorrectReadConstraintsWithOneAttributeForOneChild(recordPartReadConstraints);
 		assertCorrectConstraintsWithOneAttributeForOneChild(recordPartReadConstraints);
 		assertCorrectWriteConstraintsWithOneAttributeForOneChild();
 		assertCorrectCreateWriteConstraintsWithOneAttributeForOneChild();
 
-		// dataFactorySpy.MCR.assertParameters("factorAttributeUsingNameInDataAndValue", 0, "type",
-		// "default");
-
 		dataFactorySpy.MCR.assertMethodNotCalled("factorAttributeUsingNameInDataAndValue");
-		DataChildFilterSpy filterSpy = (DataChildFilterSpy) dataFactorySpy.MCR
-				.getReturnValue("factorDataChildFilterUsingNameInData", 0);
-		// dataFactorySpy.MCR.assertParameters("factorDataChildFilterUsingNameInData", 1, "");
+		dataFactorySpy.MCR.assertMethodWasCalled("factorDataChildFilterUsingNameInData");
 		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorDataChildFilterUsingNameInData", 4);
-		// filterSpy.MCR.assertParameters("addAttributeUsingNameInDataAndPossibleValues", 0,
-		// "type");
-	}
-
-	private void assertCorrectReadConstraintsWithOneAttributeForOneChild(
-			Set<Constraint> recordPartReadConstraints) {
-		// Set<Constraint> recordPartReadConstraints = recordTypeHandler
-		// .getRecordPartReadConstraints();
-		assertCorrectConstraintsWithOneAttributeForOneChild(recordPartReadConstraints);
-		// assertCorrectConstraintsWithOneAttributeForOneChild(recordPartReadConstraints);
 	}
 
 	private void assertCorrectConstraintsWithOneAttributeForOneChild(
@@ -1059,16 +1070,20 @@ public class RecordTypeHandlerTest {
 		recordTypeHandler.getRecordPartWriteConstraints();
 		recordTypeHandler.getRecordPartWriteConstraints();
 
-		storageSpy.MCR.assertNumberOfCallsToMethod("read", 4);
-		assertParementerFirstOnList(storageSpy, "read", 0, RECORD_TYPE);
-		storageSpy.MCR.assertParameter("read", 0, "id", "organisation");
-		assertParementerFirstOnList(storageSpy, "read", 1, "metadataGroup");
-		storageSpy.MCR.assertParameter("read", 1, "id", "organisation");
-		assertParementerFirstOnList(storageSpy, "read", 2, "metadataGroup");
-		storageSpy.MCR.assertParameter("read", 2, "id", "divaOrganisationNameGroup");
-		assertParementerFirstOnList(storageSpy, "read", 3, "metadataTextVariable");
-		storageSpy.MCR.assertParameter("read", 3, "id", "divaOrganisationRoot");
+		assertReadStorageOnlyOnce(storageSpy);
 
+	}
+
+	private void assertReadStorageOnlyOnce(RecordTypeHandlerStorageSpy storageSpy) {
+		storageSpy.MCR.assertNumberOfCallsToMethod("read", 4);
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 0, RECORD_TYPE);
+		storageSpy.MCR.assertParameter("read", 0, "id", "organisation");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 1, "metadataGroup");
+		storageSpy.MCR.assertParameter("read", 1, "id", "organisation");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 2, "metadataGroup");
+		storageSpy.MCR.assertParameter("read", 2, "id", "divaOrganisationNameGroup");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 3, "metadataTextVariable");
+		storageSpy.MCR.assertParameter("read", 3, "id", "divaOrganisationRoot");
 	}
 
 	@Test
@@ -1080,15 +1095,7 @@ public class RecordTypeHandlerTest {
 		recordTypeHandler.getRecordPartWriteConstraints();
 		recordTypeHandler.getRecordPartWriteConstraints();
 
-		storageSpy.MCR.assertNumberOfCallsToMethod("read", 4);
-		assertParementerFirstOnList(storageSpy, "read", 0, RECORD_TYPE);
-		storageSpy.MCR.assertParameter("read", 0, "id", "organisation");
-		assertParementerFirstOnList(storageSpy, "read", 1, "metadataGroup");
-		storageSpy.MCR.assertParameter("read", 1, "id", "organisation");
-		assertParementerFirstOnList(storageSpy, "read", 2, "metadataGroup");
-		storageSpy.MCR.assertParameter("read", 2, "id", "divaOrganisationNameGroup");
-		assertParementerFirstOnList(storageSpy, "read", 3, "metadataTextVariable");
-		storageSpy.MCR.assertParameter("read", 3, "id", "divaOrganisationRoot");
+		assertReadStorageOnlyOnce(storageSpy);
 
 	}
 
@@ -1098,19 +1105,20 @@ public class RecordTypeHandlerTest {
 				"organisation");
 		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
 
-		recordTypeHandler.getRecordPartCreateWriteConstraints();
-		recordTypeHandler.getRecordPartCreateWriteConstraints();
+		var constraints1 = recordTypeHandler.getRecordPartCreateWriteConstraints();
+		var constraints2 = recordTypeHandler.getRecordPartCreateWriteConstraints();
+
+		assertSame(constraints1, constraints2);
 
 		storageSpy.MCR.assertNumberOfCallsToMethod("read", 4);
-		assertParementerFirstOnList(storageSpy, "read", 0, RECORD_TYPE);
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 0, RECORD_TYPE);
 		storageSpy.MCR.assertParameter("read", 0, "id", "organisation");
-		assertParementerFirstOnList(storageSpy, "read", 1, "metadataGroup");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 1, "metadataGroup");
 		storageSpy.MCR.assertParameter("read", 1, "id", "organisationNew");
-		assertParementerFirstOnList(storageSpy, "read", 2, "metadataGroup");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 2, "metadataGroup");
 		storageSpy.MCR.assertParameter("read", 2, "id", "divaOrganisationNameGroup");
-		assertParementerFirstOnList(storageSpy, "read", 3, "metadataTextVariable");
+		assertParementerFirstOnParameterTypesList(storageSpy, "read", 3, "metadataTextVariable");
 		storageSpy.MCR.assertParameter("read", 3, "id", "divaOrganisationRoot2");
-
 	}
 
 	@Test
@@ -1216,7 +1224,8 @@ public class RecordTypeHandlerTest {
 		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
 		storageSpy.numberOfChildrenWithWriteConstraint = 0;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, storageSpy, "organisation");
+				.usingRecordStorageAndRecordTypeId(recordTypeHandlerFactory, storageSpy,
+						"organisation");
 		assertTrue(recordTypeHandler.hasRecordPartWriteConstraint());
 	}
 
@@ -1226,7 +1235,8 @@ public class RecordTypeHandlerTest {
 		storageSpy.numberOfChildrenWithReadWriteConstraint = 0;
 		storageSpy.numberOfChildrenWithWriteConstraint = 1;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, storageSpy, "organisation");
+				.usingRecordStorageAndRecordTypeId(recordTypeHandlerFactory, storageSpy,
+						"organisation");
 		assertTrue(recordTypeHandler.hasRecordPartWriteConstraint());
 	}
 
@@ -1234,7 +1244,8 @@ public class RecordTypeHandlerTest {
 	public void testHasRecordPartCreateConstraintsNoConstraints() {
 		RecordTypeHandlerStorageSpy storageSpy = new RecordTypeHandlerStorageSpy();
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, storageSpy, "organisation");
+				.usingRecordStorageAndRecordTypeId(recordTypeHandlerFactory, storageSpy,
+						"organisation");
 		assertFalse(recordTypeHandler.hasRecordPartCreateConstraint());
 	}
 
@@ -1244,7 +1255,8 @@ public class RecordTypeHandlerTest {
 		storageSpy.numberOfChildrenWithReadWriteConstraint = 1;
 		storageSpy.numberOfChildrenWithWriteConstraint = 0;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, storageSpy, "organisation");
+				.usingRecordStorageAndRecordTypeId(recordTypeHandlerFactory, storageSpy,
+						"organisation");
 		assertTrue(recordTypeHandler.hasRecordPartCreateConstraint());
 	}
 
@@ -1254,7 +1266,8 @@ public class RecordTypeHandlerTest {
 		storageSpy.numberOfChildrenWithReadWriteConstraint = 0;
 		storageSpy.numberOfChildrenWithWriteConstraint = 1;
 		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, storageSpy, "organisation");
+				.usingRecordStorageAndRecordTypeId(recordTypeHandlerFactory, storageSpy,
+						"organisation");
 		assertTrue(recordTypeHandler.hasRecordPartCreateConstraint());
 	}
 
@@ -1507,16 +1520,16 @@ public class RecordTypeHandlerTest {
 
 	private void assertParementerFirstOnList(RecordStorageMCRSpy storage, String methodName,
 			int callNumber, String recordType) {
-		List<String> recordTypeList = (List<String>) storage.MCR
+		List<?> recordTypeList = (List<?>) storage.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName(methodName, callNumber,
 						"types");
 		assertEquals(recordTypeList.size(), 1);
 		assertEquals(recordTypeList.get(0), recordType);
 	}
 
-	private void assertParementerFirstOnList(RecordTypeHandlerStorageSpy storage, String methodName,
-			int callNumber, String recordType) {
-		List<String> recordTypeList = (List<String>) storage.MCR
+	private void assertParementerFirstOnParameterTypesList(RecordTypeHandlerStorageSpy storage,
+			String methodName, int callNumber, String recordType) {
+		List<?> recordTypeList = (List<?>) storage.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName(methodName, callNumber,
 						"types");
 		assertEquals(recordTypeList.size(), 1);

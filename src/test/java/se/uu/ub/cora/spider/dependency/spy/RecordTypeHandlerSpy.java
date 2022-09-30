@@ -60,7 +60,6 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	 * {@link #hasRecordPartWriteConstraint()}
 	 */
 	public String recordPartConstraint = "";
-	// public boolean hasRecordPartReadContraintHasBeenCalled = false;
 	public Set<Constraint> writeStringConstraints = new HashSet<Constraint>();
 	public Set<Constraint> writeConstraints = new HashSet<Constraint>();
 
@@ -86,7 +85,6 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	public RecordTypeHandlerSpy() {
 		MCR.useMRV(MRV);
-		writeStringConstraints.add(new Constraint("someKey"));
 		MRV.setDefaultReturnValuesSupplier("getImplementingRecordTypeHandlers", ArrayList::new);
 		MRV.setDefaultReturnValuesSupplier("getCombinedIdsUsingRecordId",
 				(Supplier<List<String>>) () -> List.of("fakeCombinedIdFromRecordTypeHandlerSpy"));

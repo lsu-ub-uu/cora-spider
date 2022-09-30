@@ -57,6 +57,7 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	private boolean constraintsForCreateLoaded = false;
 	private RecordTypeHandlerFactory recordTypeHandlerFactory;
 	private Set<String> readChildren = new HashSet<>();
+	private List<String> metadataCollectionItemTypes;
 
 	RecordTypeHandlerImp() {
 		// only for test
@@ -354,22 +355,25 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 		List<DataGroup> allItemRefs = collectionItemReferences.getAllGroupsWithNameInData("ref");
 
 		Set<String> possibleValues = new LinkedHashSet<>();
+		loadTypesForMetadataCollectionItemGroup();
 		for (DataGroup itemRef : allItemRefs) {
 			String itemId = itemRef.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
-			
-			// TODO: changeTo not abstract metadataCollectionItem
-			
-//			RecordTypeHandler recordTypeHandler = dependencyProvider
-//					.getRecordTypeHandler("metadataCollectionItem");
-//			List<String> types = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
-//			DataGroup collectionItem = recordStorage.read(types, itemId);
-			
-			
-			DataGroup itemGroup = recordStorage.read(List.of("metadataCollectionItem") ← change_it, itemId);
+			DataGroup itemGroup = recordStorage.read(metadataCollectionItemTypes, itemId);
 			String itemValue = itemGroup.getFirstAtomicValueWithNameInData(NAME_IN_DATA);
 			possibleValues.add(itemValue);
 		}
 		return possibleValues;
+	}
+
+	private void loadTypesForMetadataCollectionItemGroup() {
+		if (metadataCollectionItemTypes == null) {
+			DataGroup metadataCollectionItemGroup = recordStorage.read(List.of(RECORD_TYPE),
+					"metadataCollectionItem");
+			RecordTypeHandler recordTypeHandlerMetadataCollectionItem = recordTypeHandlerFactory
+					.factorUsingDataGroup(metadataCollectionItemGroup);
+			metadataCollectionItemTypes = recordTypeHandlerMetadataCollectionItem
+					.getListOfImplementingRecordTypeIds();
+		}
 	}
 
 	private void possiblyAddReadWriteConstraint(Constraint constraint) {
@@ -574,7 +578,7 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 		if (isAbstract()) {
 			return getListOfImplementingRecordTypeIds();
 		}
-		return List.of(getRecordTypeId());
+		return List.of(recordTypeId);
 	}
 
 	@Override
