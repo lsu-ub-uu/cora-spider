@@ -48,9 +48,6 @@ import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
-import se.uu.ub.cora.testspies.data.DataGroupSpy;
-import se.uu.ub.cora.testspies.data.DataRecordSpy;
 
 public class RecordListIndexerTest {
 

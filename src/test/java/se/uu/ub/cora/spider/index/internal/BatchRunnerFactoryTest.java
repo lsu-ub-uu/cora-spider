@@ -31,7 +31,6 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.index.BatchRunnerFactory;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class BatchRunnerFactoryTest {
 	private DataFactorySpy dataFactorySpy;

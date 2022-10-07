@@ -32,7 +32,6 @@ import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class RecordLinkTestsAsserter {
 	public static void assertTopLevelLinkContainsReadActionOnly(DataRecord record) {

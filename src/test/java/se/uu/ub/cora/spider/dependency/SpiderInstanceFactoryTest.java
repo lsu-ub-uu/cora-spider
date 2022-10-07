@@ -52,7 +52,6 @@ import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordListIndexerImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class SpiderInstanceFactoryTest {
 	private SpiderInstanceFactory factory;

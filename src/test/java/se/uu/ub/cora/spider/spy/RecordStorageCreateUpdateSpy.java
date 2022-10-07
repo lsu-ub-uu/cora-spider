@@ -34,7 +34,6 @@ import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
-import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class RecordStorageCreateUpdateSpy implements RecordStorage {

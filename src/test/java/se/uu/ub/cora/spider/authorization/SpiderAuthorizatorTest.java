@@ -51,7 +51,6 @@ import se.uu.ub.cora.spider.spy.RecordStorageForAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class SpiderAuthorizatorTest {
 

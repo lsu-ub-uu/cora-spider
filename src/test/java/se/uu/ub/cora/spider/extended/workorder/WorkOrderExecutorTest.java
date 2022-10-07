@@ -41,7 +41,6 @@ import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class WorkOrderExecutorTest {
 

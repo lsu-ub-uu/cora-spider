@@ -64,7 +64,6 @@ import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class SpiderRecordSearcherTest {
 	private static final String A_SEARCH_ID = "aSearchId";

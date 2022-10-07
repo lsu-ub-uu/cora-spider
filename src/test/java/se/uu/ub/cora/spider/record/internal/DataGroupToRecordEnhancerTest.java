@@ -66,8 +66,6 @@ import se.uu.ub.cora.spider.record.RecordLinkTestsAsserter;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
-import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class DataGroupToRecordEnhancerTest {
 	private static final String UPDATE = "update";

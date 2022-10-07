@@ -25,7 +25,6 @@ import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testspies.DataResourceLinkSpy;
-import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class RecordLinkTestsDataCreator {
 

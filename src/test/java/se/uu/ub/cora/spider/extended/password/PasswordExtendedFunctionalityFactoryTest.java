@@ -35,7 +35,6 @@ import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class PasswordExtendedFunctionalityFactoryTest {
 	PasswordExtendedFunctionalityFactory factory;

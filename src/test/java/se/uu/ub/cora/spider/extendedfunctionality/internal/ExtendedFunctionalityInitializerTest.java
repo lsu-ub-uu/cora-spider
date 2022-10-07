@@ -34,7 +34,6 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class ExtendedFunctionalityInitializerTest {
 	private DataFactorySpy dataFactorySpy;

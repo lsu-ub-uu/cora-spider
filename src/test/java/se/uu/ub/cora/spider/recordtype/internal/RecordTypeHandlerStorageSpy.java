@@ -14,7 +14,6 @@ import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
-import se.uu.ub.cora.testspies.data.DataGroupSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class RecordTypeHandlerStorageSpy implements RecordStorage {

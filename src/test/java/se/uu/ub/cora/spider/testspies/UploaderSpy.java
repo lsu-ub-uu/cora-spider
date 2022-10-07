@@ -22,7 +22,6 @@ import java.io.InputStream;
 
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.record.Uploader;
-import se.uu.ub.cora.testspies.data.DataRecordSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 

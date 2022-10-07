@@ -42,7 +42,6 @@ import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class SpiderRecordReaderTest {
 	private static final String SOME_RECORD_ID = "place:0001";

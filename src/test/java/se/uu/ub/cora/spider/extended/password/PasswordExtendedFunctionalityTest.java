@@ -43,10 +43,6 @@ import se.uu.ub.cora.spider.testspies.RecordCreatorSpy;
 import se.uu.ub.cora.spider.testspies.RecordReaderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
-import se.uu.ub.cora.testspies.data.DataGroupSpy;
-import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
-import se.uu.ub.cora.testspies.data.DataRecordSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 

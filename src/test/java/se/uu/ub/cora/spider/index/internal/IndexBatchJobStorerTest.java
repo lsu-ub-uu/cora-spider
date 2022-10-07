@@ -38,7 +38,6 @@ import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.record.internal.RecordStorageOldSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class IndexBatchJobStorerTest {
 	private SpiderDependencyProviderOldSpy dependencyProvider;

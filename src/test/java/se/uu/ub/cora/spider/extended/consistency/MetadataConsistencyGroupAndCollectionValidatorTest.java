@@ -40,7 +40,6 @@ import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	private RecordStorageCreateUpdateSpy recordStorage;

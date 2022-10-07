@@ -48,10 +48,6 @@ import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
-import se.uu.ub.cora.testspies.data.DataGroupSpy;
-import se.uu.ub.cora.testspies.data.DataListSpy;
-import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class SpiderRecordIncomingLinksReaderTest {
 	private LoggerFactorySpy loggerFactorySpy;

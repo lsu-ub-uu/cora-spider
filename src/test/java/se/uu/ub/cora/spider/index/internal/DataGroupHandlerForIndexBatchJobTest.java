@@ -31,9 +31,6 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
-import se.uu.ub.cora.testspies.data.DataAtomicSpy;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
-import se.uu.ub.cora.testspies.data.DataGroupSpy;
 
 public class DataGroupHandlerForIndexBatchJobTest {
 
