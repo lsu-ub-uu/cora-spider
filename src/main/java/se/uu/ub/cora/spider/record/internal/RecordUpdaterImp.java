@@ -58,7 +58,6 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private static final String TS_UPDATED = "tsUpdated";
 	private static final String UPDATED_BY = "updatedBy";
 	private static final String UPDATE = "update";
-	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;

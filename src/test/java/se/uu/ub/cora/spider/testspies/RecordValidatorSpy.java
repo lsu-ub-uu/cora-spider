@@ -20,8 +20,8 @@ package se.uu.ub.cora.spider.testspies;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.spies.DataRecordSpy;
 import se.uu.ub.cora.spider.record.RecordValidator;
-import se.uu.ub.cora.testspies.data.DataRecordSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 

@@ -53,7 +53,6 @@ import se.uu.ub.cora.spider.dependency.spy.MetadataStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.MetadataStorageSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordArchiveProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorProviderSpy;
-import se.uu.ub.cora.spider.dependency.spy.RecordStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.StreamStorageProviderSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderImp;
@@ -68,7 +67,9 @@ import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.storage.MetadataStorageProvider;
 import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.StreamStorageProvider;
+import se.uu.ub.cora.storage.spies.RecordStorageInstanceProviderSpy;
 
 public class DependencyProviderAbstractTest {
 
@@ -76,7 +77,7 @@ public class DependencyProviderAbstractTest {
 	private SpiderDependencyProviderTestHelper dependencyProvider;
 	private LoggerFactorySpy loggerFactorySpy;
 	private String testedClassName = "DependencyProviderAbstract";
-	private RecordStorageProviderSpy recordStorageProvider;
+	private RecordStorageInstanceProviderSpy recordStorageInstanceProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -90,8 +91,9 @@ public class DependencyProviderAbstractTest {
 	}
 
 	private void setPluggedInStorageNormallySetByTheRestModuleStarterImp() {
-		recordStorageProvider = new RecordStorageProviderSpy();
-		dependencyProvider.setRecordStorageProvider(recordStorageProvider);
+		recordStorageInstanceProvider = new RecordStorageInstanceProviderSpy();
+		RecordStorageProvider
+				.onlyForTestSetRecordStorageInstanceProvider(recordStorageInstanceProvider);
 		StreamStorageProvider streamStorageProvider = new StreamStorageProviderSpy();
 		dependencyProvider.setStreamStorageProvider(streamStorageProvider);
 		RecordIdGeneratorProvider recordIdGeneratorProvider = new RecordIdGeneratorProviderSpy();
@@ -168,11 +170,9 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testSetGetRecordStorage() {
-		RecordStorageProviderSpy recordStorageProvider = new RecordStorageProviderSpy();
-		dependencyProvider.setRecordStorageProvider(recordStorageProvider);
-		assertEquals(dependencyProvider.getRecordStorage(),
-				recordStorageProvider.getRecordStorage());
+	public void testGetRecordStorage() {
+		recordStorageInstanceProvider.MCR.assertReturn("getRecordStorage", 0,
+				dependencyProvider.getRecordStorage());
 	}
 
 	@Test
@@ -257,7 +257,8 @@ public class DependencyProviderAbstractTest {
 		assertTrue(spiderAuthorizator.getAuthorizator() instanceof AuthorizatorImp);
 		RulesProviderImp rulesProvider = (RulesProviderImp) spiderAuthorizator.getRulesProvider();
 		assertTrue(rulesProvider instanceof RulesProviderImp);
-		assertSame(rulesProvider.getRecordStorage(), dependencyProvider.getRecordStorage());
+		recordStorageInstanceProvider.MCR.assertReturn("getRecordStorage", 0,
+				rulesProvider.getRecordStorage());
 	}
 
 	@Test
@@ -332,7 +333,8 @@ public class DependencyProviderAbstractTest {
 		assertTrue(recordTypeHandler instanceof RecordTypeHandler);
 		assertEquals(recordTypeHandler.getRecordTypeId(), recordTypeId);
 		assertTrue(recordTypeHandler.getRecordStorage() instanceof RecordStorage);
-		assertSame(recordStorageProvider.getRecordStorage(), recordTypeHandler.getRecordStorage());
+		recordStorageInstanceProvider.MCR.assertReturn("getRecordStorage", 0,
+				recordTypeHandler.getRecordStorage());
 		RecordTypeHandlerFactoryImp recordTypeHandlerFactory = (RecordTypeHandlerFactoryImp) recordTypeHandler
 				.getRecordTypeHandlerFactory();
 		assertTrue(recordTypeHandlerFactory instanceof RecordTypeHandlerFactory);
