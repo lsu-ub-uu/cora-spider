@@ -65,6 +65,7 @@ import se.uu.ub.cora.storage.MetadataStorageProvider;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.RecordStorageInstanceProvider;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.StreamStorageProvider;
@@ -73,7 +74,7 @@ import se.uu.ub.cora.storage.archive.RecordArchiveProvider;
 
 public abstract class DependencyProviderAbstract implements SpiderDependencyProvider {
 	protected Map<String, String> initInfo;
-	protected RecordStorageProvider recordStorageProvider;
+	protected RecordStorageInstanceProvider recordStorageProvider;
 	protected RecordArchiveProvider recordArchiveProvider;
 	protected StreamStorageProvider streamStorageProvider;
 	protected RecordIdGeneratorProvider recordIdGeneratorProvider;
@@ -112,13 +113,13 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 		return this.getClass().getSimpleName();
 	}
 
+	/**
+	 * @deprecated Use RecordStorageProvider.getRecordStorage directly
+	 */
 	@Override
+	@Deprecated(forRemoval = true)
 	public final RecordStorage getRecordStorage() {
-		return recordStorageProvider.getRecordStorage();
-	}
-
-	public final void setRecordStorageProvider(RecordStorageProvider recordStorageProvider) {
-		this.recordStorageProvider = recordStorageProvider;
+		return RecordStorageProvider.getRecordStorage();
 	}
 
 	@Override

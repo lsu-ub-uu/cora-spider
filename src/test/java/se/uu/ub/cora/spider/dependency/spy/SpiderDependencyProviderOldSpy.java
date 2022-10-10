@@ -66,14 +66,14 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public RecordStorage recordStorage = new RecordStorageMCRSpy();
-	private RecordStorageProviderSpy recordStorageProvider;
+	// private RecordStorageProviderSpy recordStorageProvider;
 	public RecordIdGenerator recordIdGenerator;
 	public RecordArchive recordArchive;
 
 	// TODO: remove?
 	public SpiderDependencyProviderOldSpy(Map<String, String> initInfo) {
 		// super(initInfo);
-		recordStorageProvider = new RecordStorageProviderSpy();
+		// recordStorageProvider = new RecordStorageProviderSpy();
 	}
 
 	@Override

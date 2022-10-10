@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.testspies;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
+import se.uu.ub.cora.data.spies.DataListSpy;
 import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;

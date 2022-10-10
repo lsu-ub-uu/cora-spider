@@ -37,6 +37,8 @@
 		<coradata.version>7.2-SNAPSHOT</coradata.version>
 		<json.version>3.3.0</json.version>
 		<storage.version>7.0-SNAPSHOT</storage.version>
+		<storagespies.version>1.0-SNAPSHOT</storagespies.version>
+		<initialize.version>1.0-SNAPSHOT</initialize.version>
 		<search.version>5.0-SNAPSHOT</search.version>
 		<bookkeeper.version>8.0-SNAPSHOT</bookkeeper.version>
 		<beefeater.version>3.7.0</beefeater.version>
@@ -76,6 +78,18 @@
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>storage</artifactId>
 			<version>${storage.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>storage-spies</artifactId>
+			<version>${storagespies.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>initialize</artifactId>
+			<version>${initialize.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

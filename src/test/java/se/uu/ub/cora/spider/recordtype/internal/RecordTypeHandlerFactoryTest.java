@@ -22,6 +22,7 @@ import static org.testng.Assert.assertSame;
 
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageMCRSpy;
 import se.uu.ub.cora.storage.RecordStorage;
 

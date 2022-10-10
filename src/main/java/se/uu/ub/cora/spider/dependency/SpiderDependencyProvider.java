@@ -36,7 +36,11 @@ import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public interface SpiderDependencyProvider {
-
+	/**
+	 * 
+	 * @deprecated Use RecordStorageProvider.getRecordStorage directly
+	 */
+	@Deprecated(forRemoval = true)
 	RecordStorage getRecordStorage();
 
 	RecordArchive getRecordArchive();

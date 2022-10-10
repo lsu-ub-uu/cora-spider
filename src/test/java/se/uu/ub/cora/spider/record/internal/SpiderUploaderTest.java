@@ -41,6 +41,9 @@ import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
+import se.uu.ub.cora.data.spies.DataFactorySpy;
+import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataResourceLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
@@ -144,7 +147,7 @@ public class SpiderUploaderTest {
 	@Test
 	public void testExternalDependenciesAreCalled() {
 		dataFactorySpy.MRV.setReturnValues("factorGroupUsingNameInData",
-				List.of(new se.uu.ub.cora.testspies.data.DataGroupSpy()), "resourceInfo");
+				List.of(new DataGroupSpy()), "resourceInfo");
 		spiderInstanceFactory = new SpiderInstanceFactorySpy2();
 		setUpDependencyProvider();
 		recordStorage = new OldRecordStorageSpy();
@@ -210,7 +213,7 @@ public class SpiderUploaderTest {
 	@Test
 	public void testUploadStream() {
 		dataFactorySpy.MRV.setReturnValues("factorGroupUsingNameInData",
-				List.of(new se.uu.ub.cora.testspies.data.DataGroupSpy()), "resourceInfo");
+				List.of(new DataGroupSpy()), "resourceInfo");
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 		DataRecord recordUpdated = uploader.upload("someToken78678567", "image", "image:123456789",
 				stream, "someFileName");
@@ -250,7 +253,7 @@ public class SpiderUploaderTest {
 		DataGroup groupUpdated = recordUpdated.getDataGroup();
 		// DataGroup resourceInfo = groupUpdated.getFirstGroupWithNameInData("resourceInfo");
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "resourceInfo");
-		se.uu.ub.cora.testspies.data.DataGroupSpy resourceInfo = (se.uu.ub.cora.testspies.data.DataGroupSpy) dataFactorySpy.MCR
+		DataGroupSpy resourceInfo = (DataGroupSpy) dataFactorySpy.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
 
 		dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInData", 0, "master");
