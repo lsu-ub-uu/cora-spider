@@ -35,7 +35,7 @@ public class RecordTypeHandlerFactoryImp implements RecordTypeHandlerFactory {
 		return RecordTypeHandlerImp.usingRecordStorageAndDataGroup(this, recordStorage, dataGroup);
 	}
 
-	public RecordStorage getStorage() {
+	public RecordStorage onlyForTestGetRecordStorage() {
 		return recordStorage;
 	}
 

@@ -338,7 +338,7 @@ public class DependencyProviderAbstractTest {
 		RecordTypeHandlerFactoryImp recordTypeHandlerFactory = (RecordTypeHandlerFactoryImp) recordTypeHandler
 				.getRecordTypeHandlerFactory();
 		assertTrue(recordTypeHandlerFactory instanceof RecordTypeHandlerFactory);
-		assertSame(recordTypeHandlerFactory.getStorage(), recordTypeHandler.getRecordStorage());
+		assertSame(recordTypeHandlerFactory.onlyForTestGetRecordStorage(), recordTypeHandler.getRecordStorage());
 	}
 
 	@Test

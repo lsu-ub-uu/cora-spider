@@ -32,7 +32,7 @@ public class RecordTypeHandlerFactoryTest {
 	public void testInit() {
 		RecordStorage recordStorage = new RecordStorageMCRSpy();
 		RecordTypeHandlerFactoryImp factory = new RecordTypeHandlerFactoryImp(recordStorage);
-		assertSame(factory.getStorage(), recordStorage);
+		assertSame(factory.onlyForTestGetRecordStorage(), recordStorage);
 	}
 
 	@Test
