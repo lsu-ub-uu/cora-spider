@@ -60,12 +60,9 @@ import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactory;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactoryImp;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
-import se.uu.ub.cora.storage.MetadataStorage;
-import se.uu.ub.cora.storage.MetadataStorageProvider;
 import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.RecordStorageInstanceProvider;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.StreamStorageProvider;
@@ -74,11 +71,9 @@ import se.uu.ub.cora.storage.archive.RecordArchiveProvider;
 
 public abstract class DependencyProviderAbstract implements SpiderDependencyProvider {
 	protected Map<String, String> initInfo;
-	protected RecordStorageInstanceProvider recordStorageProvider;
 	protected RecordArchiveProvider recordArchiveProvider;
 	protected StreamStorageProvider streamStorageProvider;
 	protected RecordIdGeneratorProvider recordIdGeneratorProvider;
-	protected MetadataStorageProvider metadataStorageProvider;
 	private Logger log = LoggerProvider.getLoggerForClass(DependencyProviderAbstract.class);
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 
@@ -113,11 +108,7 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 		return this.getClass().getSimpleName();
 	}
 
-	/**
-	 * @deprecated Use RecordStorageProvider.getRecordStorage directly
-	 */
 	@Override
-	@Deprecated(forRemoval = true)
 	public final RecordStorage getRecordStorage() {
 		return RecordStorageProvider.getRecordStorage();
 	}
@@ -148,10 +139,6 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	@Override
 	public final RecordIdGenerator getRecordIdGenerator() {
 		return recordIdGeneratorProvider.getRecordIdGenerator();
-	}
-
-	public void setMetadataStorageProvider(MetadataStorageProvider metadataStorageProvider) {
-		this.metadataStorageProvider = metadataStorageProvider;
 	}
 
 	@Override
