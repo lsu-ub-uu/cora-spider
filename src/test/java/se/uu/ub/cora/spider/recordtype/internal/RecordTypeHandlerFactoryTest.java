@@ -22,9 +22,9 @@ import static org.testng.Assert.assertSame;
 
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageMCRSpy;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.testspies.data.DataGroupSpy;
 
 public class RecordTypeHandlerFactoryTest {
 
@@ -32,7 +32,7 @@ public class RecordTypeHandlerFactoryTest {
 	public void testInit() {
 		RecordStorage recordStorage = new RecordStorageMCRSpy();
 		RecordTypeHandlerFactoryImp factory = new RecordTypeHandlerFactoryImp(recordStorage);
-		assertSame(factory.getStorage(), recordStorage);
+		assertSame(factory.onlyForTestGetRecordStorage(), recordStorage);
 	}
 
 	@Test

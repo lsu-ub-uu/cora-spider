@@ -32,6 +32,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
@@ -52,7 +53,6 @@ import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordListIndexerImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class SpiderInstanceFactoryTest {
 	private SpiderInstanceFactory factory;

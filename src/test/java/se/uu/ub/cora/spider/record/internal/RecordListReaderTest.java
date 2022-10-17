@@ -35,6 +35,9 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.spies.DataFactorySpy;
+import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataListSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
@@ -52,9 +55,6 @@ import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.storage.StorageReadResult;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
-import se.uu.ub.cora.testspies.data.DataGroupSpy;
-import se.uu.ub.cora.testspies.data.DataListSpy;
 
 public class RecordListReaderTest {
 

@@ -39,6 +39,7 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
+import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
@@ -64,7 +65,6 @@ import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
 
 public class SpiderRecordSearcherTest {
 	private static final String A_SEARCH_ID = "aSearchId";

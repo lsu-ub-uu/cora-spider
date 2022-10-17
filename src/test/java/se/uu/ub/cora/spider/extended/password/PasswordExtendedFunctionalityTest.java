@@ -32,6 +32,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.spies.DataFactorySpy;
+import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
+import se.uu.ub.cora.data.spies.DataRecordSpy;
 import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
@@ -43,10 +47,6 @@ import se.uu.ub.cora.spider.testspies.RecordCreatorSpy;
 import se.uu.ub.cora.spider.testspies.RecordReaderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
-import se.uu.ub.cora.testspies.data.DataGroupSpy;
-import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
-import se.uu.ub.cora.testspies.data.DataRecordSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 

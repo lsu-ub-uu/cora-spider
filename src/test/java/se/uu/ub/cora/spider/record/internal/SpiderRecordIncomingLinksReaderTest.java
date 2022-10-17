@@ -34,6 +34,10 @@ import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.spies.DataFactorySpy;
+import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataListSpy;
+import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
@@ -48,10 +52,6 @@ import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
-import se.uu.ub.cora.testspies.data.DataFactorySpy;
-import se.uu.ub.cora.testspies.data.DataGroupSpy;
-import se.uu.ub.cora.testspies.data.DataListSpy;
-import se.uu.ub.cora.testspies.data.DataRecordLinkSpy;
 
 public class SpiderRecordIncomingLinksReaderTest {
 	private LoggerFactorySpy loggerFactorySpy;
