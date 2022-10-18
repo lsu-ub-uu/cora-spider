@@ -21,11 +21,11 @@ package se.uu.ub.cora.spider.dependency.spy;
 import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
+import se.uu.ub.cora.bookkeeper.storage.MetadataStorageView;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
-import se.uu.ub.cora.storage.MetadataStorage;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataValidatorFactoySpy implements DataValidatorFactory {
@@ -33,7 +33,7 @@ public class DataValidatorFactoySpy implements DataValidatorFactory {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
-	public DataValidator factor(MetadataStorage metadataStorage,
+	public DataValidator factor(MetadataStorageView metadataStorage,
 			Map<String, DataGroup> recordTypeHolder, MetadataHolder metadataHolder) {
 		MCR.addCall("metadataStorage", metadataStorage, "recordTypeHolder", recordTypeHolder,
 				"metadataHolder", metadataHolder);

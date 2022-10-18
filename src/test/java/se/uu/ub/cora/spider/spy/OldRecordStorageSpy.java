@@ -30,12 +30,11 @@ import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
-import se.uu.ub.cora.storage.MetadataStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
-public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
+public class OldRecordStorageSpy implements RecordStorage {
 
 	public Collection<List<String>> readLists = new ArrayList<>();
 	public boolean readWasCalled = false;
@@ -477,107 +476,6 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 		return spiderReadResult;
 	}
 
-	// @Override
-	// public StorageReadResult readAbstractList(String type, DataGroup filter) {
-	// this.filter = filter;
-	// StorageReadResult spiderReadResult = new StorageReadResult();
-	// spiderReadResult.totalNumberOfMatches = 199;
-	// spiderReadResult.listOfDataGroups = new ArrayList<>();
-	// readLists.add(type);
-	// if ("abstract".equals(type)) {
-	// ArrayList<DataGroup> records = new ArrayList<>();
-	// records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
-	//
-	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-	// spiderReadResult.listOfDataGroups = records;
-	// return spiderReadResult;
-	// }
-	// if ("abstract2".equals(type)) {
-	// ArrayList<DataGroup> records = new ArrayList<>();
-	//
-	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-	// spiderReadResult.listOfDataGroups = records;
-	// return spiderReadResult;
-	// }
-	// if ("user".equals(type)) {
-	// ArrayList<DataGroup> records = new ArrayList<>();
-	//
-	// DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
-	// records.add(inactiveUser);
-	//
-	// DataGroup user = createActiveUserWithIdAndAddDefaultRoles("someUserId");
-	// records.add(user);
-	//
-	// DataGroup userWithPermissionTerm = createUserWithOneRoleWithOnePermission();
-	// records.add(userWithPermissionTerm);
-	//
-	// DataGroup userWithTwoRolesAndTwoPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
-	// "userWithTwoRolesPermissionTerm");
-	// addRoleToUser("admin", userWithTwoRolesAndTwoPermissionTerm);
-	//
-	// List<DataGroup> userRoles = userWithTwoRolesAndTwoPermissionTerm
-	// .getAllGroupsWithNameInData("userRole");
-	//
-	// DataGroup permissionTerm = createPermissionTermWithIdAndValues(
-	// "organisationPermissionTerm", "system.*");
-	// DataGroup userRole = userRoles.get(0);
-	// userRole.addChild(permissionTerm);
-	//
-	// DataGroup permissionTerm2 = createPermissionTermWithIdAndValues("journalPermissionTerm",
-	// "system.abc", "system.def");
-	// DataGroup userRole2 = userRoles.get(1);
-	// userRole2.addChild(permissionTerm2);
-	//
-	// DataGroup permissionTerm2_role2 = createPermissionTermWithIdAndValues(
-	// "organisationPermissionTerm", "system.*");
-	// userRole2.addChild(permissionTerm2_role2);
-	//
-	// records.add(userWithTwoRolesAndTwoPermissionTerm);
-	//
-	// spiderReadResult.listOfDataGroups = records;
-	// return spiderReadResult;
-	// }
-	// return spiderReadResult;
-	// }
-
-	private DataGroup createUserWithOneRoleWithOnePermission() {
-		DataGroup userWithPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
-				"userWithPermissionTerm");
-		DataGroup permissionTerm = createPermissionTermWithIdAndValues("organisationPermissionTerm",
-				"system.*");
-
-		DataGroup userRole = userWithPermissionTerm.getFirstGroupWithNameInData("userRole");
-		userRole.addChild(permissionTerm);
-		return userWithPermissionTerm;
-	}
-
-	private DataGroup createActiveUserWithIdAndAddDefaultRoles(String userId) {
-		DataGroup userWithPermissionTerm = createUserWithIdAndActiveStatus(userId, "active");
-		addRoleToUser("guest", userWithPermissionTerm);
-		return userWithPermissionTerm;
-	}
-
-	private DataGroup createPermissionTermWithIdAndValues(String permissionTermId,
-			String... value) {
-		DataGroup permissionTerm = new DataGroupOldSpy("permissionTermRulePart");
-		DataGroup rule = createLinkWithNameInDataRecordtypeAndRecordId("rule",
-				"collectPermissionTerm", permissionTermId);
-		permissionTerm.addChild(rule);
-
-		for (int i = 0; i < value.length; i++) {
-			permissionTerm.addChild(new DataAtomicSpy("value", value[i], String.valueOf(i)));
-		}
-		return permissionTerm;
-	}
-
-	private DataGroup createLinkWithNameInDataRecordtypeAndRecordId(String nameInData,
-			String linkedRecordType, String linkedRecordId) {
-		DataGroup link = new DataGroupOldSpy(nameInData);
-		link.addChild(new DataAtomicSpy("linkedRecordType", linkedRecordType));
-		link.addChild(new DataAtomicSpy("linkedRecordId", linkedRecordId));
-		return link;
-	}
-
 	private void addRoleToUser(String roleId, DataGroup user) {
 		DataGroup outerUserRole = createUserRoleWithId(roleId);
 		user.addChild(outerUserRole);
@@ -592,22 +490,6 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 		return outerUserRole;
 	}
 
-	private DataGroup createUserWithIdAndActiveStatus(String userId, String activeStatus) {
-		DataGroup inactiveUser = new DataGroupOldSpy("user");
-		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
-		recordInfo.addChild(new DataAtomicSpy("id", userId));
-		inactiveUser.addChild(recordInfo);
-		inactiveUser.addChild(new DataAtomicSpy("activeStatus", activeStatus));
-		return inactiveUser;
-	}
-
-	private DataGroup createChildWithRecordTypeAndRecordId(String recordType, String recordId) {
-		DataGroup child1 = new DataGroupOldSpy(recordId);
-		child1.addChild(
-				DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
-		return child1;
-	}
-
 	@Override
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
 		// TODO Auto-generated method stub
@@ -618,36 +500,6 @@ public class OldRecordStorageSpy implements RecordStorage, MetadataStorage {
 	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
 			String id) {
 		return false;
-	}
-
-	@Override
-	public Collection<DataGroup> getMetadataElements() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Collection<DataGroup> getPresentationElements() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Collection<DataGroup> getTexts() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Collection<DataGroup> getRecordTypes() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Collection<DataGroup> getCollectTerms() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override

@@ -103,6 +103,9 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 				} else if (id.equals("oneLinkTopLevelNotAuthorized")) {
 					datagroup = RecordLinkTestsDataCreator
 							.createDataGroupWithRecordInfoAndLinkNotAuthorized();
+				} else if (id.equals("oneLinkTopLevelMissingLink")) {
+					datagroup = RecordLinkTestsDataCreator
+							.createDataGroupWithRecordInfoAndMissingLink();
 				} else if (id.equals("oneLinkOneLevelDown")) {
 					datagroup = RecordLinkTestsDataCreator
 							.createDataDataGroupWithRecordInfoAndLinkOneLevelDown();
@@ -118,6 +121,9 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 					datagroup = RecordLinkTestsDataCreator
 							.createDataDataGroupWithRecordInfoAndResourceLinkOneLevelDown();
 				}
+			} else if ("missingLink".equals(id)) {
+				throw new RecordNotFoundException("no record with id " + id + " exists");
+
 			} else if (type.equals("toRecordType")) {
 				if (id.equals("recordLinkNotAuthorized")) {
 					datagroup = RecordLinkTestsDataCreator.createLinkChildAsDataRecordDataGroup();

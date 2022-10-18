@@ -22,12 +22,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import se.uu.ub.cora.bookkeeper.storage.MetadataStorageView;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
-import se.uu.ub.cora.storage.MetadataStorage;
 
-public class MetadataStorageSpy implements MetadataStorage {
+public class MetadataStorageViewSpy implements MetadataStorageView {
 
 	public List<DataGroup> recordTypes = new ArrayList<>();
 	public List<DataGroup> metadataElements = new ArrayList<>();

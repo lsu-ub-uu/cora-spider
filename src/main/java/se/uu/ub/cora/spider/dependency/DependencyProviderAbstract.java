@@ -37,6 +37,8 @@ import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactory;
 import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactoryImp;
+import se.uu.ub.cora.bookkeeper.storage.MetadataStorageProvider;
+import se.uu.ub.cora.bookkeeper.storage.MetadataStorageView;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
@@ -149,7 +151,8 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	@Override
 	public DataValidator getDataValidator() {
-		MetadataStorage metadataStorage = metadataStorageProvider.getMetadataStorage();
+		MetadataStorageView metadataStorage = MetadataStorageProvider.getStorageView();
+
 		Map<String, DataGroup> recordTypeHolder = createRecordTypeHolder(
 				metadataStorage.getRecordTypes());
 		MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
@@ -177,19 +180,19 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 		recordTypeHolder.put(recordId, dataGroup);
 	}
 
-	private MetadataHolder createMetadataHolder(MetadataStorage metadataStorage) {
+	private MetadataHolder createMetadataHolder(MetadataStorageView metadataStorage) {
 		return new MetadataHolderFromStoragePopulator()
 				.createAndPopulateMetadataHolderFromMetadataStorage(metadataStorage);
 	}
 
 	@Override
 	public DataRecordLinkCollector getDataRecordLinkCollector() {
-		return new DataRecordLinkCollectorImp(metadataStorageProvider.getMetadataStorage());
+		return new DataRecordLinkCollectorImp(MetadataStorageProvider.getStorageView());
 	}
 
 	@Override
 	public DataGroupTermCollector getDataGroupTermCollector() {
-		return new DataGroupTermCollectorImp(metadataStorageProvider.getMetadataStorage());
+		return new DataGroupTermCollectorImp(MetadataStorageProvider.getStorageView());
 	}
 
 	@Override
@@ -216,7 +219,7 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	@Override
 	public DataRedactor getDataRedactor() {
-		MetadataStorage metadataStorage = metadataStorageProvider.getMetadataStorage();
+		MetadataStorageView metadataStorage = MetadataStorageProvider.getStorageView();
 		MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
 		DataGroupRedactor dataGroupRedactor = new DataGroupRedactorImp();
 		DataGroupWrapperFactory wrapperFactory = new DataGroupWrapperFactoryImp();

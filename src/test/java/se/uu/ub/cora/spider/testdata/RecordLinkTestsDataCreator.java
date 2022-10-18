@@ -103,6 +103,13 @@ public class RecordLinkTestsDataCreator {
 		return dataGroup;
 	}
 
+	public static DataGroup createDataGroupWithRecordInfoAndMissingLink() {
+		DataGroup dataGroup = createDataDataGroupWithLinkNotAuthorized();
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"missingLink", "oneLinkTopLevelMissingLink", "cora"));
+		return dataGroup;
+	}
+
 	public static DataGroup createDataDataGroupWithRecordInfoAndLinkOneLevelDown() {
 		DataGroup dataGroup = createDataDataGroupWithLinkOneLevelDown();
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(

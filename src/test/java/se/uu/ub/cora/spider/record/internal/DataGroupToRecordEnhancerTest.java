@@ -1634,6 +1634,20 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
+	public void testReadRecordWithDataRecordLinkIsMissing() {
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
+				"oneLinkTopLevelMissingLink");
+		dataRedactor.returnDataGroup = dataGroup;
+		authorizator.setNotAutorizedForActionOnRecordType(CREATE, "toRecordType");
+		authorizator.setNotAutorizedForActionOnRecordType(LIST, "toRecordType");
+		authorizator.setNotAutorizedForActionOnRecordType(SEARCH, "toRecordType");
+		authorizator.setNotAutorizedForActionOnRecordType(READ, "toRecordType");
+
+		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, dataGroup, dataRedactor);
+		RecordLinkTestsAsserter.assertTopLevelLinkDoesNotContainReadAction(record);
+	}
+
+	@Test
 	public void testIRAReadRecordWithDataRecordLinkHasNOReadAction() {
 		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
 				"oneLinkTopLevelNotAuthorized");

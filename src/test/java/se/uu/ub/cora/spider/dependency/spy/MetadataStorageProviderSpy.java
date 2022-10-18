@@ -18,13 +18,21 @@
  */
 package se.uu.ub.cora.spider.dependency.spy;
 
-import java.util.Map;
+import se.uu.ub.cora.bookkeeper.storage.MetadataStorageView;
+import se.uu.ub.cora.bookkeeper.storage.MetadataStorageViewInstanceProvider;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-import se.uu.ub.cora.storage.MetadataStorage;
-import se.uu.ub.cora.storage.MetadataStorageProvider;
+public class MetadataStorageProviderSpy implements MetadataStorageViewInstanceProvider {
+	// public MetadataStorageView metadataStorage = new MetadataStorageViewSpy();
 
-public class MetadataStorageProviderSpy implements MetadataStorageProvider {
-	public MetadataStorage metadataStorage = new MetadataStorageSpy();
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public MetadataStorageProviderSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("getStorageView", MetadataStorageViewSpy::new);
+	}
 
 	@Override
 	public int getOrderToSelectImplementionsBy() {
@@ -33,14 +41,8 @@ public class MetadataStorageProviderSpy implements MetadataStorageProvider {
 	}
 
 	@Override
-	public void startUsingInitInfo(Map<String, String> initInfo) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public MetadataStorage getMetadataStorage() {
-		return metadataStorage;
+	public MetadataStorageView getStorageView() {
+		return (MetadataStorageView) MCR.addCallAndReturnFromMRV();
 	}
 
 }
