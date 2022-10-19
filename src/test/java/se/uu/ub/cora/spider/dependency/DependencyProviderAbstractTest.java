@@ -38,6 +38,7 @@ import se.uu.ub.cora.bookkeeper.recordpart.DataGroupRedactorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.DataGroupWrapperFactoryImp;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactoryImp;
+import se.uu.ub.cora.bookkeeper.storage.MetadataStorageProvider;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
@@ -50,7 +51,7 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
 import se.uu.ub.cora.spider.dependency.spy.DataValidatorFactoySpy;
 import se.uu.ub.cora.spider.dependency.spy.MetadataStorageProviderSpy;
-import se.uu.ub.cora.spider.dependency.spy.MetadataStorageSpy;
+import se.uu.ub.cora.spider.dependency.spy.MetadataStorageViewSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordArchiveProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.StreamStorageProviderSpy;
@@ -64,7 +65,6 @@ import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactory;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactoryImp;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
-import se.uu.ub.cora.storage.MetadataStorageProvider;
 import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.RecordStorageProvider;
@@ -78,6 +78,7 @@ public class DependencyProviderAbstractTest {
 	private LoggerFactorySpy loggerFactorySpy;
 	private String testedClassName = "DependencyProviderAbstract";
 	private RecordStorageInstanceProviderSpy recordStorageInstanceProvider;
+	private MetadataStorageProviderSpy metadataStorageProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -98,8 +99,9 @@ public class DependencyProviderAbstractTest {
 		dependencyProvider.setStreamStorageProvider(streamStorageProvider);
 		RecordIdGeneratorProvider recordIdGeneratorProvider = new RecordIdGeneratorProviderSpy();
 		dependencyProvider.setRecordIdGeneratorProvider(recordIdGeneratorProvider);
-		MetadataStorageProvider metadataStorageProvider = new MetadataStorageProviderSpy();
-		dependencyProvider.setMetadataStorageProvider(metadataStorageProvider);
+		metadataStorageProvider = new MetadataStorageProviderSpy();
+		MetadataStorageProvider
+				.onlyForTestSetMetadataStorageViewInstanceProvider(metadataStorageProvider);
 	}
 
 	@Test
@@ -209,14 +211,6 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testSetMetadataStorage() {
-		MetadataStorageProviderSpy metadataStorageProvider = new MetadataStorageProviderSpy();
-		dependencyProvider.setMetadataStorageProvider(metadataStorageProvider);
-		assertEquals(dependencyProvider.getMetadataStorage(),
-				metadataStorageProvider.getMetadataStorage());
-	}
-
-	@Test
 	public void testEnsureKeyExistsInInitInfoDoesNotLogInfoForFoundKey() {
 		String key = "foundKey";
 		dependencyProvider.ensureKeyExistsInInitInfo(key);
@@ -263,19 +257,19 @@ public class DependencyProviderAbstractTest {
 
 	@Test
 	public void testDataValidatorHasCorrectDependecies() {
-		MetadataStorageSpy metadataStorageOriginal = (MetadataStorageSpy) dependencyProvider
-				.getMetadataStorage();
-
 		DataValidator dataValidator = dependencyProvider.getDataValidator();
+
+		MetadataStorageViewSpy metadataStorageView = (MetadataStorageViewSpy) metadataStorageProvider.MCR
+				.getReturnValue("getStorageView", 0);
+
 		DataValidatorFactoySpy dataValidatorFactorySpy = dependencyProvider.dataValidatorFactory;
-		dataValidatorFactorySpy.MCR.assertParameters("factor", 0,
-				dependencyProvider.getMetadataStorage());
+		dataValidatorFactorySpy.MCR.assertParameters("factor", 0, metadataStorageView);
 		dataValidatorFactorySpy.MCR.assertReturn("factor", 0, dataValidator);
 
 		Map<String, DataGroup> recordTypeHolder = (Map<String, DataGroup>) dataValidatorFactorySpy.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("factor", 0,
 						"recordTypeHolder");
-		assertCorrectRecordTypeHolder(recordTypeHolder, metadataStorageOriginal);
+		assertCorrectRecordTypeHolder(recordTypeHolder, metadataStorageView);
 
 		MetadataHolder metadataHolder = (MetadataHolder) dataValidatorFactorySpy.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("factor", 0, "metadataHolder");
@@ -288,7 +282,7 @@ public class DependencyProviderAbstractTest {
 	}
 
 	private void assertCorrectRecordTypeHolder(Map<String, DataGroup> recordTypeHolder,
-			MetadataStorageSpy metadataStorage) {
+			MetadataStorageViewSpy metadataStorage) {
 		assertEquals(recordTypeHolder.get("someId1"), metadataStorage.recordTypes.get(0));
 		assertEquals(recordTypeHolder.get("someId2"), metadataStorage.recordTypes.get(1));
 	}
@@ -304,18 +298,18 @@ public class DependencyProviderAbstractTest {
 	public void testGetDataRecordLinkCollector() {
 		DataRecordLinkCollectorImp dataRecordLinkCollector = (DataRecordLinkCollectorImp) dependencyProvider
 				.getDataRecordLinkCollector();
-		assertTrue(dataRecordLinkCollector instanceof DataRecordLinkCollectorImp);
-		assertSame(dataRecordLinkCollector.getMetadataStorage(),
-				dependencyProvider.getMetadataStorage());
+
+		metadataStorageProvider.MCR.assertReturn("getStorageView", 0,
+				dataRecordLinkCollector.getMetadataStorage());
 	}
 
 	@Test
 	public void testGetDataGroupTermCollector() {
 		DataGroupTermCollectorImp dataGroupTermCollector = (DataGroupTermCollectorImp) dependencyProvider
 				.getDataGroupTermCollector();
-		assertTrue(dataGroupTermCollector instanceof DataGroupTermCollectorImp);
-		assertSame(dataGroupTermCollector.onlyForTestGetMetadataStorage(),
-				dependencyProvider.getMetadataStorage());
+
+		metadataStorageProvider.MCR.assertReturn("getStorageView", 0,
+				dataGroupTermCollector.onlyForTestGetMetadataStorage());
 	}
 
 	@Test
@@ -338,14 +332,15 @@ public class DependencyProviderAbstractTest {
 		RecordTypeHandlerFactoryImp recordTypeHandlerFactory = (RecordTypeHandlerFactoryImp) recordTypeHandler
 				.getRecordTypeHandlerFactory();
 		assertTrue(recordTypeHandlerFactory instanceof RecordTypeHandlerFactory);
-		assertSame(recordTypeHandlerFactory.onlyForTestGetRecordStorage(), recordTypeHandler.getRecordStorage());
+		assertSame(recordTypeHandlerFactory.onlyForTestGetRecordStorage(),
+				recordTypeHandler.getRecordStorage());
 	}
 
 	@Test
 	public void testGetDataRedactor() {
 		DataRedactorImp dataRedactor = (DataRedactorImp) dependencyProvider.getDataRedactor();
-		MetadataHolder metadataHolder = dataRedactor.getMetadataHolder();
 
+		MetadataHolder metadataHolder = dataRedactor.getMetadataHolder();
 		MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
 		assertEquals(metadataElement.getId(), "someMetadata1");
 		assertTrue(dataRedactor.getDataGroupRedactor() instanceof DataGroupRedactorImp);

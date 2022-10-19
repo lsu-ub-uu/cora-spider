@@ -25,7 +25,8 @@ module se.uu.ub.cora.spider {
 	exports se.uu.ub.cora.spider.extendedfunctionality;
 	exports se.uu.ub.cora.spider.record;
 	exports se.uu.ub.cora.spider.recordtype;
-	exports se.uu.ub.cora.spider.recordtype.internal to se.uu.ub.cora.userstorage;
+	exports se.uu.ub.cora.spider.recordtype.internal
+			to se.uu.ub.cora.userstorage, se.uu.ub.cora.metadatastorage;
 
 	provides ExtendedFunctionalityFactory with WorkOrderExtendedFunctionalityFactory,
 			ApptokenExtendedFunctionalityFactory, MetadataValidatorExtendedFunctionalityFactory;

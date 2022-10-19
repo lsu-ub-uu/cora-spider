@@ -34,7 +34,6 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.spy.DataValidatorFactoySpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.Uploader;
-import se.uu.ub.cora.storage.MetadataStorage;
 
 public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstract {
 
@@ -91,10 +90,6 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 
 	public String getInitInfoFromParent(String key) {
 		return initInfo.get(key);
-	}
-
-	public MetadataStorage getMetadataStorage() {
-		return metadataStorageProvider.getMetadataStorage();
 	}
 
 	@Override

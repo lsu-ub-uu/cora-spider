@@ -429,13 +429,14 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean readRecordLinkAuthorization(String linkedRecordType, String linkedRecordId) {
-		DataGroup linkedRecord = null;
 		try {
-			linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType, linkedRecordId);
+			DataGroup linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType,
+					linkedRecordId);
+			return userIsAuthorizedForActionOnRecordLinkAndData("read", linkedRecordType,
+					linkedRecord);
 		} catch (RecordNotFoundException exception) {
 			return false;
 		}
-		return userIsAuthorizedForActionOnRecordLinkAndData("read", linkedRecordType, linkedRecord);
 	}
 
 	private boolean userIsAuthorizedForActionOnRecordLinkAndData(String action, String recordType,
