@@ -81,7 +81,7 @@ import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.RecordConflictException;
-import se.uu.ub.cora.storage.RecordIdGenerator;
+import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 public class RecordCreatorTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";

@@ -18,7 +18,7 @@
  */
 package se.uu.ub.cora.spider.dependency.spy;
 
-import se.uu.ub.cora.storage.RecordIdGenerator;
+import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 

@@ -20,8 +20,8 @@ package se.uu.ub.cora.spider.dependency.spy;
 
 import java.util.Map;
 
-import se.uu.ub.cora.storage.RecordIdGenerator;
-import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
+import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
+import se.uu.ub.cora.storage.idgenerator.RecordIdGeneratorProvider;
 
 public class RecordIdGeneratorProviderSpy implements RecordIdGeneratorProvider {
 	public RecordIdGenerator recordIdGenerator = new RecordIdGeneratorSpy();

@@ -40,8 +40,8 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordNotFoundException;
+import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 public final class RecordValidatorImp extends RecordHandler implements RecordValidator {
 	private static final String ERROR_MESSAGES = "errorMessages";

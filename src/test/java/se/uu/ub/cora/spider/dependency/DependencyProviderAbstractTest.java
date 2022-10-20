@@ -65,10 +65,10 @@ import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactory;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactoryImp;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
-import se.uu.ub.cora.storage.RecordIdGeneratorProvider;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.StreamStorageProvider;
+import se.uu.ub.cora.storage.idgenerator.RecordIdGeneratorProvider;
 import se.uu.ub.cora.storage.spies.RecordStorageInstanceProviderSpy;
 
 public class DependencyProviderAbstractTest {

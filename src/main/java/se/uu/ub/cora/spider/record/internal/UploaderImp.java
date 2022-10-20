@@ -36,8 +36,8 @@ import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
-import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.StreamStorage;
+import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 public final class UploaderImp extends SpiderBinary implements Uploader {
 	private static final String RESOURCE_INFO = "resourceInfo";

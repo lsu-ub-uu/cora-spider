@@ -32,8 +32,8 @@ import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 /**
  * PasswordExtendedFunctionality encrypts and stores a users password as a systemSecret, if it is

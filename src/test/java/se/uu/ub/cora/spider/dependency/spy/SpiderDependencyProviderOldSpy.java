@@ -38,10 +38,10 @@ import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.spider.spy.RecordStorageMCRSpy;
-import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
+import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider {

@@ -49,8 +49,8 @@ import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.storage.RecordIdGenerator;
 import se.uu.ub.cora.storage.archive.RecordArchive;
+import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 public final class RecordCreatorImp extends RecordHandler implements RecordCreator {
 	private static final String TS_CREATED = "tsCreated";
