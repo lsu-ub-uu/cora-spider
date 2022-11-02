@@ -494,13 +494,13 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
+	public Collection<Link> getLinksToRecord(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
+	public boolean recordExists(List<String> types,
 			String id) {
 		// TODO Auto-generated method stub
 		return false;
@@ -511,5 +511,4 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 		// TODO Auto-generated method stub
 		return 0;
 	}
-
 }

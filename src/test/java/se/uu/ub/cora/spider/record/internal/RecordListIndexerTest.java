@@ -48,9 +48,9 @@ import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobSpy;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
+import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class RecordListIndexerTest {
 
@@ -184,7 +184,7 @@ public class RecordListIndexerTest {
 
 	@Test
 	public void testGetTotalNumberOfMatchesFromStorageWithoutFilter() throws Exception {
-		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProviderSpy.recordStorage;
+		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProviderSpy.recordStorage;
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
@@ -199,7 +199,7 @@ public class RecordListIndexerTest {
 
 	@Test
 	public void testGetTotalNumberOfMatchesFromStorageWithFilter() throws Exception {
-		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProviderSpy.recordStorage;
+		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProviderSpy.recordStorage;
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithFilter);
@@ -217,8 +217,9 @@ public class RecordListIndexerTest {
 
 	@Test
 	public void testIndexBatchJobIsCreatedWithoutFilter() throws Exception {
-		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProviderSpy.recordStorage;
-		recordStorage.totalNumberOfRecords = 45;
+		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProviderSpy.recordStorage;
+		recordStorage.MRV.setDefaultReturnValuesSupplier("getTotalNumberOfRecordsForTypes",
+				(Supplier<Long>) () -> 45L);
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
@@ -325,7 +326,7 @@ public class RecordListIndexerTest {
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
 
-		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProviderSpy.recordStorage;
+		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProviderSpy.recordStorage;
 		DataGroup createdFilter = (DataGroup) dataFactory.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
 		var listOfTypes = dependencyProviderSpy.recordTypeHandlerSpy.MCR

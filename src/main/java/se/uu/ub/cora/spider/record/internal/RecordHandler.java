@@ -64,7 +64,7 @@ public class RecordHandler {
 	private void checkRecordTypeAndRecordIdExistsInStorage(String recordType, String recordId) {
 		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		List<String> listOfTypes = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
-		if (!recordStorage.recordExistsForListOfImplementingRecordTypesAndRecordId(listOfTypes,
+		if (!recordStorage.recordExists(listOfTypes,
 				recordId)) {
 			throw new DataException(
 					"Data is not valid: linkedRecord does not exists in storage for recordType: "

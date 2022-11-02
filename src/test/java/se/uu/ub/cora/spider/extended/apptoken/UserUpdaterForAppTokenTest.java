@@ -38,11 +38,11 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.spider.spy.RecordStorageSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class UserUpdaterForAppTokenTest {
 
