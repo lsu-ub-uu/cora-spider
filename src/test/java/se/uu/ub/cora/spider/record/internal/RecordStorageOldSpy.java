@@ -137,23 +137,15 @@ public class RecordStorageOldSpy implements RecordStorage {
 		}
 	}
 
-	// @Override
-	// public StorageReadResult readAbstractList(String type, DataGroup filter) {
-	// MCR.addCall("type", type, "filter", filter);
-	// StorageReadResult createSpiderReadResult = createSpiderReadResult();
-	// MCR.addReturned(createSpiderReadResult);
-	// return createSpiderReadResult;
-	// }
-
 	@Override
-	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
+	public Collection<Link> getLinksToRecord(String type, String id) {
 		MCR.addCall("type", type, "id", id);
 		MCR.addReturned(null);
 		return null;
 	}
 
 	@Override
-	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
+	public boolean recordExists(List<String> types,
 			String id) {
 		MCR.addCall("type", types, "id", id);
 		MCR.addReturned(false);
@@ -166,5 +158,4 @@ public class RecordStorageOldSpy implements RecordStorage {
 		MCR.addReturned(0);
 		return 0;
 	}
-
 }

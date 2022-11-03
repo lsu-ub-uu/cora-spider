@@ -269,13 +269,13 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		RecordTypeHandler parentRecordTypeHandler = dependencyProvider
 				.getRecordTypeHandler(parentId);
 		List<String> types = parentRecordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
-		return recordStorage.recordExistsForListOfImplementingRecordTypesAndRecordId(types,
+		return recordStorage.recordExists(types,
 				recordId);
 	}
 
 	private boolean duplicateExistsForThisType() {
 		List<String> types = List.of(recordType);
-		return recordStorage.recordExistsForListOfImplementingRecordTypesAndRecordId(types,
+		return recordStorage.recordExists(types,
 				recordId);
 	}
 

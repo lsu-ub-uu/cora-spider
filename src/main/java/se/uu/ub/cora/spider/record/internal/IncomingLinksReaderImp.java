@@ -29,6 +29,7 @@ import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -96,33 +97,33 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 	}
 
 	private DataList collectLinksAndConvertToDataList() {
-		Collection<DataGroup> links = new ArrayList<>();
+		Collection<Link> links = new ArrayList<>();
 		addLinksPointingToRecord(recordType, links);
 		possiblyAddLinksPointingToRecordByParentRecordType(links);
 
 		return convertLinksPointingToRecordToDataList(links);
 	}
 
-	private void addLinksPointingToRecord(String recordType2, Collection<DataGroup> links) {
-		Collection<DataGroup> linksPointingToRecord = recordStorage
-				.generateLinkCollectionPointingToRecord(recordType2, recordId);
+	private void addLinksPointingToRecord(String recordType2, Collection<Link> links) {
+		Collection<Link> linksPointingToRecord = recordStorage.getLinksToRecord(recordType2,
+				recordId);
 		links.addAll(linksPointingToRecord);
 	}
 
-	private void possiblyAddLinksPointingToRecordByParentRecordType(Collection<DataGroup> links) {
+	private void possiblyAddLinksPointingToRecordByParentRecordType(Collection<Link> links) {
 		if (recordTypeHandler.hasParent()) {
 			String parentId = recordTypeHandler.getParentId();
 			addLinksPointingToRecord(parentId, links);
 		}
 	}
 
-	private DataList convertLinksPointingToRecordToDataList(Collection<DataGroup> dataGroupLinks) {
-		DataList recordToRecordLinkList = createDataListForRecordToRecordLinks(dataGroupLinks);
-		convertAndAddLinksToLinkList(dataGroupLinks, recordToRecordLinkList);
+	private DataList convertLinksPointingToRecordToDataList(Collection<Link> links) {
+		DataList recordToRecordLinkList = createDataListForRecordToRecordLinks(links);
+		convertAndAddLinksToLinkList(links, recordToRecordLinkList);
 		return recordToRecordLinkList;
 	}
 
-	private DataList createDataListForRecordToRecordLinks(Collection<DataGroup> links) {
+	private DataList createDataListForRecordToRecordLinks(Collection<Link> links) {
 		DataList recordToRecordList = DataProvider
 				.createListWithNameOfDataType("recordToRecordLink");
 
@@ -132,17 +133,25 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 		return recordToRecordList;
 	}
 
-	private void convertAndAddLinksToLinkList(Collection<DataGroup> links,
-			DataList recordToRecordList) {
-		for (DataGroup dataGroup : links) {
-			addReadActionToIncomingLinks(dataGroup);
-			recordToRecordList.addData(dataGroup);
+	private void convertAndAddLinksToLinkList(Collection<Link> links, DataList recordToRecordList) {
+		for (Link link : links) {
+			DataGroup recordToRecordLink = convertLinkToDataGroup(link);
+			recordToRecordList.addData(recordToRecordLink);
 		}
 	}
 
-	private void addReadActionToIncomingLinks(DataGroup dataGroup) {
-		DataRecordLink recordLink = (DataRecordLink) dataGroup.getFirstChildWithNameInData("from");
-		recordLink.addAction(se.uu.ub.cora.data.Action.READ);
+	private DataGroup convertLinkToDataGroup(Link link) {
+		DataGroup recordToRecordLink = DataProvider
+				.createGroupUsingNameInData("recordToRecordLink");
+		DataRecordLink from = DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("from",
+				link.type(), link.id());
+		recordToRecordLink.addChild(from);
+		from.addAction(se.uu.ub.cora.data.Action.READ);
+
+		DataRecordLink to = DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("to",
+				recordType, recordId);
+		recordToRecordLink.addChild(to);
+		return recordToRecordLink;
 	}
 
 }

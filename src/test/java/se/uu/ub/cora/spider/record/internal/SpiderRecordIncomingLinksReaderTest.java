@@ -20,7 +20,6 @@ package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertEquals;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Supplier;
@@ -28,12 +27,10 @@ import java.util.function.Supplier;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.Action;
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
-import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataListSpy;
@@ -49,9 +46,9 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class SpiderRecordIncomingLinksReaderTest {
 	private LoggerFactorySpy loggerFactorySpy;
@@ -59,7 +56,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 	private IncomingLinksReader incomingLinksReader;
 
-	private RecordStorageMCRSpy recordStorage;
+	private RecordStorageSpy recordStorage;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
@@ -73,7 +70,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 		setUpFactoriesAndProviders();
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
-		recordStorage = new RecordStorageMCRSpy();
+		recordStorage = new RecordStorageSpy();
 		keyCalculator = new RuleCalculatorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		setUpDependencyProvider();
@@ -110,94 +107,76 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 	@Test
 	public void testStorageIsCalledToGetLinksToReturn() throws Exception {
-		List<DataGroup> linksAsDataGroupFromStorage = new ArrayList<>();
-		DataGroupSpy dataGroupSpy1 = new DataGroupSpy();
-		DataRecordLinkSpy dataRecordLinkSpy1 = new DataRecordLinkSpy();
-		dataGroupSpy1.MRV.setSpecificReturnValuesSupplier("getFirstChildWithNameInData",
-				(Supplier<DataRecordLink>) () -> dataRecordLinkSpy1, "from");
-		linksAsDataGroupFromStorage.add(dataGroupSpy1);
-
-		DataGroupSpy dataGroupSpy2 = new DataGroupSpy();
-		DataRecordLinkSpy dataRecordLinkSpy2 = new DataRecordLinkSpy();
-		dataGroupSpy2.MRV.setSpecificReturnValuesSupplier("getFirstChildWithNameInData",
-				(Supplier<DataRecordLink>) () -> dataRecordLinkSpy2, "from");
-		linksAsDataGroupFromStorage.add(dataGroupSpy2);
-
-		recordStorage.MRV.setDefaultReturnValuesSupplier("generateLinkCollectionPointingToRecord",
-				(Supplier<List<DataGroup>>) () -> linksAsDataGroupFromStorage);
+		Link link0 = new Link("type0", "id0");
+		Link link1 = new Link("type1", "id1");
+		recordStorage.MRV.setDefaultReturnValuesSupplier("getLinksToRecord",
+				() -> List.of(link0, link1));
 
 		DataListSpy linksPointingToRecord = (DataListSpy) incomingLinksReader
 				.readIncomingLinks("someToken78678567", "aType", "anId");
 
 		recordTypeHandlerSpy.MCR.assertMethodNotCalled("getParentId");
-		recordStorage.MCR.assertParameters("generateLinkCollectionPointingToRecord", 0, "aType",
-				"anId");
+		recordStorage.MCR.assertParameters("getLinksToRecord", 0, "aType", "anId");
 		linksPointingToRecord.MCR.assertParameters("setTotalNo", 0, "2");
 		linksPointingToRecord.MCR.assertParameters("setToNo", 0, "2");
 		linksPointingToRecord.MCR.assertParameters("setFromNo", 0, "1");
 
-		linksPointingToRecord.MCR.assertParameters("addData", 0, dataGroupSpy1);
-		dataRecordLinkSpy1.MCR.assertParameters("addAction", 0, Action.READ);
+		extracted(linksPointingToRecord, 0);
+		extracted(linksPointingToRecord, 1);
+	}
 
-		linksPointingToRecord.MCR.assertParameters("addData", 1, dataGroupSpy2);
-		dataRecordLinkSpy2.MCR.assertParameters("addAction", 0, Action.READ);
+	private void extracted(DataListSpy linksPointingToRecord, int linkNo) {
+		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", linkNo,
+				"recordToRecordLink");
+		DataGroupSpy rTRLink0 = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupUsingNameInData", linkNo);
+		linksPointingToRecord.MCR.assertParameters("addData", linkNo, rTRLink0);
 
+		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId",
+				linkNo * 2, "from", "type" + linkNo, "id" + linkNo);
+		DataRecordLinkSpy fFrom = (DataRecordLinkSpy) dataFactorySpy.MCR
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", linkNo * 2);
+		rTRLink0.MCR.assertParameters("addChild", 0, fFrom);
+		fFrom.MCR.assertParameters("addAction", 0, se.uu.ub.cora.data.Action.READ);
+
+		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId",
+				linkNo * 2 + 1, "to", "aType", "anId");
+		DataRecordLinkSpy fTo = (DataRecordLinkSpy) dataFactorySpy.MCR
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", linkNo * 2 + 1);
+		rTRLink0.MCR.assertParameters("addChild", 1, fTo);
 	}
 
 	@Test
 	public void testStorageIsCalledToGetLinksToReturnForParentTypeIfAbstract() throws Exception {
-		// recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("hasParent",
-		// (Supplier<Boolean>) () -> true);
 		recordTypeHandlerSpy.hasParent = true;
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getParentId",
 				(Supplier<String>) () -> "someParentId");
 
-		DataGroupSpy dataGroupSpy0 = new DataGroupSpy();
-		DataRecordLinkSpy dataRecordLinkSpy0 = new DataRecordLinkSpy();
-		dataGroupSpy0.MRV.setSpecificReturnValuesSupplier("getFirstChildWithNameInData",
-				(Supplier<DataRecordLink>) () -> dataRecordLinkSpy0, "from");
-
-		List<DataGroup> linksAsDataGroupFromStorage = new ArrayList<>();
-		DataGroupSpy dataGroupSpy1 = new DataGroupSpy();
-		DataRecordLinkSpy dataRecordLinkSpy1 = new DataRecordLinkSpy();
-		dataGroupSpy1.MRV.setSpecificReturnValuesSupplier("getFirstChildWithNameInData",
-				(Supplier<DataRecordLink>) () -> dataRecordLinkSpy1, "from");
-		linksAsDataGroupFromStorage.add(dataGroupSpy1);
-
-		DataGroupSpy dataGroupSpy2 = new DataGroupSpy();
-		DataRecordLinkSpy dataRecordLinkSpy2 = new DataRecordLinkSpy();
-		dataGroupSpy2.MRV.setSpecificReturnValuesSupplier("getFirstChildWithNameInData",
-				(Supplier<DataRecordLink>) () -> dataRecordLinkSpy2, "from");
-		linksAsDataGroupFromStorage.add(dataGroupSpy2);
-
-		recordStorage.MRV.setSpecificReturnValuesSupplier("generateLinkCollectionPointingToRecord",
-				(Supplier<List<DataGroup>>) () -> linksAsDataGroupFromStorage, "someParentId",
-				"anId");
-
-		recordStorage.MRV.setSpecificReturnValuesSupplier("generateLinkCollectionPointingToRecord",
-				(Supplier<List<DataGroup>>) () -> List.of(dataGroupSpy0), "aType", "anId");
+		Link link0 = new Link("type0", "id0");
+		Link link1 = new Link("type1", "id1");
+		Link link2 = new Link("type2", "id2");
+		recordStorage.MRV.setSpecificReturnValuesSupplier("getLinksToRecord", () -> List.of(link0),
+				"aType", "anId");
+		recordStorage.MRV.setSpecificReturnValuesSupplier("getLinksToRecord",
+				() -> List.of(link1, link2), "someParentId", "anId");
 
 		DataListSpy linksPointingToRecord = (DataListSpy) incomingLinksReader
 				.readIncomingLinks("someToken78678567", "aType", "anId");
 
-		recordStorage.MCR.assertParameters("generateLinkCollectionPointingToRecord", 0, "aType",
-				"anId");
+		recordStorage.MCR.assertParameters("getLinksToRecord", 0, "aType", "anId");
 
 		recordTypeHandlerSpy.MCR.assertMethodWasCalled("hasParent");
 
 		var parentId = recordTypeHandlerSpy.MCR.getReturnValue("getParentId", 0);
-		recordStorage.MCR.assertParameters("generateLinkCollectionPointingToRecord", 1, parentId,
-				"anId");
+		recordStorage.MCR.assertParameters("getLinksToRecord", 1, parentId, "anId");
 
 		linksPointingToRecord.MCR.assertParameters("setToNo", 0, "3");
 		linksPointingToRecord.MCR.assertParameters("setFromNo", 0, "1");
 		linksPointingToRecord.MCR.assertParameters("setTotalNo", 0, "3");
 
-		linksPointingToRecord.MCR.assertParameters("addData", 1, dataGroupSpy1);
-		dataRecordLinkSpy1.MCR.assertParameters("addAction", 0, Action.READ);
-
-		linksPointingToRecord.MCR.assertParameters("addData", 2, dataGroupSpy2);
-		dataRecordLinkSpy2.MCR.assertParameters("addAction", 0, Action.READ);
+		extracted(linksPointingToRecord, 0);
+		extracted(linksPointingToRecord, 1);
+		extracted(linksPointingToRecord, 2);
 
 	}
 
@@ -230,7 +209,6 @@ public class SpiderRecordIncomingLinksReaderTest {
 		dataFactorySpy.MCR.assertParameters("factorListUsingNameOfDataType", 0,
 				"recordToRecordLink");
 		dataFactorySpy.MCR.assertReturn("factorListUsingNameOfDataType", 0, linksPointingToRecord);
-
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)

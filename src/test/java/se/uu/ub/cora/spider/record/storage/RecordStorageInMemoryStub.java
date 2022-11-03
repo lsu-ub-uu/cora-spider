@@ -29,16 +29,12 @@ import java.util.Map;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
-import se.uu.ub.cora.data.copier.DataCopier;
-import se.uu.ub.cora.data.copier.DataCopierProvider;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.storage.RecordConflictException;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageInMemoryStub implements RecordStorage {
-	private DataGroup emptyFilter = new DataGroupOldSpy("filter");
 	protected Map<String, Map<String, DataGroup>> records = new HashMap<>();
 	protected Map<String, Map<String, List<Link>>> linkLists = new HashMap<>();
 	protected Map<String, Map<String, Map<String, Map<String, List<Link>>>>> incomingLinks = new HashMap<>();
@@ -97,12 +93,6 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 		return records.get(recordType).containsKey(recordId);
 	}
 
-	private DataGroup createIndependentCopy(DataGroup record) {
-		DataCopier dataGroupCopier = DataCopierProvider.getDataCopierUsingDataElement(record);
-		return (DataGroup) dataGroupCopier.copy();
-
-	}
-
 	protected DataGroup storeRecordByRecordTypeAndRecordId(String recordType, String recordId,
 			DataGroup recordIndependentOfEnteredRecord) {
 		return records.get(recordType).put(recordId, recordIndependentOfEnteredRecord);
@@ -134,23 +124,12 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 	}
 
 	private Map<String, Map<String, List<Link>>> getIncomingLinkStorageForLink(Link link) {
-		// DataGroup to = link.getFirstGroupWithNameInData("to");
-		// String toType = extractLinkedRecordTypeValue(to);
-		// String toId = extractLinkedRecordIdValue(to);
 		String toType = link.type();
 		String toId = link.id();
 
 		ensureInIncomingLinksHolderForRecordTypeAndRecordId(toType, toId);
 
 		return incomingLinks.get(toType).get(toId);
-	}
-
-	private String extractLinkedRecordIdValue(DataGroup to) {
-		return to.getFirstAtomicValueWithNameInData("linkedRecordId");
-	}
-
-	private String extractLinkedRecordTypeValue(DataGroup dataGroup) {
-		return dataGroup.getFirstAtomicValueWithNameInData("linkedRecordType");
 	}
 
 	private void ensureInIncomingLinksHolderForRecordTypeAndRecordId(String toType, String toId) {
@@ -172,9 +151,6 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 
 	private void storeLinkInIncomingLinks(String recordType, String recordId, Link link,
 			Map<String, Map<String, List<Link>>> toPartOfIncomingLinks) {
-		// DataGroup from = link.getFirstGroupWithNameInData("from");
-		// String fromType = extractLinkedRecordTypeValue(from);
-		// String fromId = extractLinkedRecordIdValue(from);
 		String fromType = recordType;
 		String fromId = recordId;
 
@@ -211,17 +187,8 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 		return spiderReadResult;
 	}
 
-	// @Override
-	// public StorageReadResult readAbstractList(String type, DataGroup filter) {
-	// StorageReadResult spiderReadResult = new StorageReadResult();
-	// spiderReadResult.start = 1;
-	// // spiderReadResult.listOfDataGroups = new ArrayList<>(typeRecords.values());
-	// return spiderReadResult;
-	// }
-
 	@Override
-	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
-			String id) {
+	public boolean recordExists(List<String> types, String id) {
 		return false;
 	}
 
@@ -267,18 +234,8 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 	}
 
 	@Override
-	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
-		if (linksExistForRecord(type, id)) {
-			return generateLinkCollectionFromStoredLinks(type, id);
-		}
-		return Collections.emptyList();
-	}
-
-	private Collection<DataGroup> generateLinkCollectionFromStoredLinks(String type, String id) {
-		List<DataGroup> generatedLinkList = new ArrayList<>();
-		Map<String, Map<String, List<Link>>> linkStorageForRecord = incomingLinks.get(type).get(id);
-		addLinksForRecordFromAllRecordTypes(generatedLinkList, linkStorageForRecord);
-		return generatedLinkList;
+	public Collection<Link> getLinksToRecord(String type, String id) {
+		return null;
 	}
 
 	private void addLinksForRecordFromAllRecordTypes(List<DataGroup> generatedLinkList,
@@ -351,14 +308,11 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 	}
 
 	private Map<String, Map<String, List<Link>>> extractToPartOfIncomingLinks(Link linkElement) {
-		// String toType = extractLinkedRecordTypeValue(linkElement);
-		// String toId = extractLinkedRecordIdValue(linkElement);
 		return incomingLinks.get(linkElement.type()).get(linkElement.id());
 	}
 
 	@Override
 	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 

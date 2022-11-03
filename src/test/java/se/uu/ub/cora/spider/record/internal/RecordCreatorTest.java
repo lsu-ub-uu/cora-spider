@@ -75,17 +75,17 @@ import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
 import se.uu.ub.cora.spider.spy.RecordArchiveSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.RecordConflictException;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
+import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class RecordCreatorTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
-	private RecordStorageMCRSpy recordStorage;
+	private RecordStorageSpy recordStorage;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
@@ -114,7 +114,7 @@ public class RecordCreatorTest {
 		authenticator = new AuthenticatorSpy();
 		spiderAuthorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
-		recordStorage = new RecordStorageMCRSpy();
+		recordStorage = new RecordStorageSpy();
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
@@ -219,8 +219,7 @@ public class RecordCreatorTest {
 		DataGroup dataGroup = setupForAutoGenerateId();
 		String authToken = "dummyAuthenticatedToken";
 
-		recordStorage.MRV.setSpecificReturnValuesSupplier(
-				"recordExistsForListOfImplementingRecordTypesAndRecordId",
+		recordStorage.MRV.setSpecificReturnValuesSupplier("recordExists",
 				(Supplier<Boolean>) () -> true, List.of("spyType"), "1");
 		try {
 			recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
@@ -232,8 +231,8 @@ public class RecordCreatorTest {
 
 			recordTypeHandlerSpy.MCR.assertMethodNotCalled("getParentId");
 
-			Map<String, Object> parameters = recordStorage.MCR.getParametersForMethodAndCallNumber(
-					"recordExistsForListOfImplementingRecordTypesAndRecordId", 0);
+			Map<String, Object> parameters = recordStorage.MCR
+					.getParametersForMethodAndCallNumber("recordExists", 0);
 			List<?> types = (List<?>) parameters.get("types");
 			assertEquals(types.get(0), "spyType");
 			assertEquals(parameters.get("id"), "1");
@@ -247,8 +246,7 @@ public class RecordCreatorTest {
 
 		recordTypeHandlerSpy.hasParent = true;
 
-		recordStorage.MRV.setSpecificReturnValuesSupplier(
-				"recordExistsForListOfImplementingRecordTypesAndRecordId",
+		recordStorage.MRV.setSpecificReturnValuesSupplier("recordExists",
 				(Supplier<Boolean>) () -> true, List.of("oneImplementingTypeId"), "1");
 
 		try {
@@ -271,8 +269,7 @@ public class RecordCreatorTest {
 			var types = parentRecordTypeHandler.MCR
 					.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
 
-			recordStorage.MCR.assertParameters(
-					"recordExistsForListOfImplementingRecordTypesAndRecordId", 0, types, "1");
+			recordStorage.MCR.assertParameters("recordExists", 0, types, "1");
 		}
 	}
 
@@ -335,7 +332,7 @@ public class RecordCreatorTest {
 		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
 
 		var dataRecord = recordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("create", 0, "record");
+				.getValueForMethodNameAndCallNumberAndParameterName("create", 0, "dataRecord");
 
 		List<?> ids = (List<?>) recordTypeHandlerSpy.MCR
 				.getReturnValue("getCombinedIdsUsingRecordId", 0);
@@ -383,7 +380,7 @@ public class RecordCreatorTest {
 		assertDataChildFoundInChildren(typeLink, recordInfo.getChildren());
 
 		DataGroup groupCreated = (DataGroup) recordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("create", 0, "record");
+				.getValueForMethodNameAndCallNumberAndParameterName("create", 0, "dataRecord");
 		assertEquals(groupOut.getNameInData(), groupCreated.getNameInData(),
 				"Returned and read record should have the same nameInData");
 	}
@@ -517,7 +514,7 @@ public class RecordCreatorTest {
 		assertDataChildFoundInChildren(typeLink, recordInfo.getChildren());
 
 		DataGroup groupCreated = (DataGroup) recordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("create", 0, "record");
+				.getValueForMethodNameAndCallNumberAndParameterName("create", 0, "dataRecord");
 
 		assertEquals(groupOut.getNameInData(), groupCreated.getNameInData(),
 				"Returned and read record should have the same nameInData");
@@ -659,8 +656,7 @@ public class RecordCreatorTest {
 	@Test
 	public void testLinkedRecordIdExists() {
 		setupLinkCollectorToReturnALinkSoThatWeCheckThatTheLinkedRecordExistsInStorage();
-		recordStorage.MRV.setSpecificReturnValuesSupplier(
-				"recordExistsForListOfImplementingRecordTypesAndRecordId",
+		recordStorage.MRV.setSpecificReturnValuesSupplier("recordExists",
 				(Supplier<Boolean>) () -> true, List.of("oneImplementingTypeId"), "toId");
 		DataGroup dataGroup = RecordLinkTestsDataCreator.createDataDataGroupWithLink();
 		dataGroup.addChild(DataCreator2.createRecordInfoWithLinkedRecordId("cora"));
@@ -669,12 +665,10 @@ public class RecordCreatorTest {
 		recordCreator.createAndStoreRecord("someToken78678567", "dataWithLinks", dataGroup);
 
 		List<?> types = (List<?>) recordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(
-						"recordExistsForListOfImplementingRecordTypesAndRecordId", 0, "types");
+				.getValueForMethodNameAndCallNumberAndParameterName("recordExists", 0, "types");
 		assertEquals(types.size(), 1);
 		assertEquals(types.get(0), "oneImplementingTypeId");
-		recordStorage.MCR.assertParameter("recordExistsForListOfImplementingRecordTypesAndRecordId",
-				0, "id", "toId");
+		recordStorage.MCR.assertParameter("recordExists", 0, "id", "toId");
 
 	}
 

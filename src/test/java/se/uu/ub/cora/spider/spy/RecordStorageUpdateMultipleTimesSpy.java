@@ -149,82 +149,14 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 		return spiderReadResult;
 	}
 
-	// @Override
-	// public StorageReadResult readAbstractList(String type, DataGroup filter) {
-	// StorageReadResult spiderReadResult = new StorageReadResult();
-	// spiderReadResult.listOfDataGroups = new ArrayList<>();
-	// readLists.add(type);
-	// if ("abstract".equals(type)) {
-	// ArrayList<DataGroup> records = new ArrayList<>();
-	// records.add(createChildWithRecordTypeAndRecordId("implementing1", "child1_2"));
-	//
-	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-	// spiderReadResult.listOfDataGroups = records;
-	// return spiderReadResult;
-	// }
-	// if ("abstract2".equals(type)) {
-	// ArrayList<DataGroup> records = new ArrayList<>();
-	//
-	// records.add(createChildWithRecordTypeAndRecordId("implementing2", "child2_2"));
-	// spiderReadResult.listOfDataGroups = records;
-	// return spiderReadResult;
-	// }
-	// if ("user".equals(type)) {
-	// ArrayList<DataGroup> records = new ArrayList<>();
-	//
-	// DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
-	// records.add(inactiveUser);
-	//
-	// // DataGroup user = new DataGroupSpy("user");
-	// // DataGroup recordInfo2 = new DataGroupSpy("recordInfo");
-	// // recordInfo2.addChild(new DataAtomicSpy("id",
-	// // "someUserId"));
-	// // user.addChild(recordInfo2);
-	// // user.addChild(new DataAtomicSpy("activeStatus",
-	// // "active"));
-	// DataGroup user = createUserWithIdAndActiveStatus("someUserId", "active");
-	//
-	// addRolesToUser(user);
-	// records.add(user);
-	// spiderReadResult.listOfDataGroups = records;
-	// return spiderReadResult;
-	// }
-	// return spiderReadResult;
-	// }
-
-	private void addRolesToUser(DataGroup user) {
-		DataGroup outerUserRole = new DataGroupOldSpy("userRole");
-		DataGroup innerUserRole = new DataGroupOldSpy("userRole");
-		innerUserRole.addChild(new DataAtomicSpy("linkedRecordType", "permissionRole"));
-		innerUserRole.addChild(new DataAtomicSpy("linkedRecordId", "guest"));
-		outerUserRole.addChild(innerUserRole);
-		user.addChild(outerUserRole);
-	}
-
-	private DataGroup createUserWithIdAndActiveStatus(String userId, String activeStatus) {
-		DataGroup inactiveUser = new DataGroupOldSpy("user");
-		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
-		recordInfo.addChild(new DataAtomicSpy("id", userId));
-		inactiveUser.addChild(recordInfo);
-		inactiveUser.addChild(new DataAtomicSpy("activeStatus", activeStatus));
-		return inactiveUser;
-	}
-
-	private DataGroup createChildWithRecordTypeAndRecordId(String recordType, String recordId) {
-		DataGroup child1 = new DataGroupOldSpy(recordId);
-		child1.addChild(
-				DataCreator.createRecordInfoWithRecordTypeAndRecordId(recordType, recordId));
-		return child1;
-	}
-
 	@Override
-	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
+	public Collection<Link> getLinksToRecord(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public boolean recordExistsForListOfImplementingRecordTypesAndRecordId(List<String> types,
+	public boolean recordExists(List<String> types,
 			String id) {
 		return false;
 	}
@@ -234,5 +166,4 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 		// TODO Auto-generated method stub
 		return 0;
 	}
-
 }

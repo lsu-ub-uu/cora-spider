@@ -42,11 +42,11 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.spy.RecordStorageMCRSpy;
 import se.uu.ub.cora.spider.testspies.RecordCreatorSpy;
 import se.uu.ub.cora.spider.testspies.RecordReaderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
+import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -84,7 +84,7 @@ public class PasswordExtendedFunctionalityTest {
 		spiderInstanceFactory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
 
-		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProvider.recordStorage;
+		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProvider.recordStorage;
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataGroupSpy::new);
 
 		recordIdGeneratorSpy = new RecordIdGeneratorSpy();
@@ -232,7 +232,7 @@ public class PasswordExtendedFunctionalityTest {
 		DataGroupSpy secret = (DataGroupSpy) dataFactory.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
 
-		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProvider.MCR
+		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProvider.MCR
 				.getReturnValue("getRecordStorage", 0);
 
 		String systemSecretId = assertAndReturnSystemSecretId();
@@ -328,7 +328,7 @@ public class PasswordExtendedFunctionalityTest {
 				.getReturnValue("getFirstChildWithNameInData", 0);
 		String systemSecretId = passwordLink.getLinkedRecordId();
 
-		RecordStorageMCRSpy recordStorage = (RecordStorageMCRSpy) dependencyProvider.MCR
+		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProvider.MCR
 				.getReturnValue("getRecordStorage", 0);
 
 		List<?> types = (List<?>) recordStorage.MCR
