@@ -188,8 +188,7 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExists(List<String> types,
-			String id) {
+	public boolean recordExists(List<String> types, String id) {
 		return false;
 	}
 
@@ -234,23 +233,9 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 		}
 	}
 
-	// @Override
-	// public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
-	// if (linksExistForRecord(type, id)) {
-	// return generateLinkCollectionFromStoredLinks(type, id);
-	// }
-	// return Collections.emptyList();
-	// }
 	@Override
 	public Collection<Link> getLinksToRecord(String type, String id) {
 		return null;
-	}
-
-	private Collection<DataGroup> generateLinkCollectionFromStoredLinks(String type, String id) {
-		List<DataGroup> generatedLinkList = new ArrayList<>();
-		Map<String, Map<String, List<Link>>> linkStorageForRecord = incomingLinks.get(type).get(id);
-		addLinksForRecordFromAllRecordTypes(generatedLinkList, linkStorageForRecord);
-		return generatedLinkList;
 	}
 
 	private void addLinksForRecordFromAllRecordTypes(List<DataGroup> generatedLinkList,
