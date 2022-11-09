@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019, 2020 Uppsala University Library
+ y * Copyright 2015, 2016, 2019, 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -53,6 +53,8 @@ import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
+import se.uu.ub.cora.spider.data.DataGroupToFilter;
+import se.uu.ub.cora.spider.data.internal.DataGroupToFilterImp;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityInitializer;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
@@ -257,6 +259,11 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	@Override
 	public DataGroupToRecordEnhancer getDataGroupToRecordEnhancer() {
 		return new DataGroupToRecordEnhancerImp(this);
+	}
+
+	@Override
+	public DataGroupToFilter getDataGroupToFilterConverter() {
+		return new DataGroupToFilterImp();
 	}
 
 }

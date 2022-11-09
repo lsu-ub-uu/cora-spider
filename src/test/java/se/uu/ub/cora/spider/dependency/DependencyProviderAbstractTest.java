@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.dependency;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
@@ -49,6 +50,8 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizatorImp;
+import se.uu.ub.cora.spider.data.DataGroupToFilter;
+import se.uu.ub.cora.spider.data.internal.DataGroupToFilterImp;
 import se.uu.ub.cora.spider.dependency.spy.DataValidatorFactoySpy;
 import se.uu.ub.cora.spider.dependency.spy.MetadataStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.MetadataStorageViewSpy;
@@ -370,6 +373,17 @@ public class DependencyProviderAbstractTest {
 		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) dependencyProvider
 				.getDataGroupToRecordEnhancer();
 		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
+	}
+
+	@Test
+	public void testDataGroupToFilterConverter() throws Exception {
+		DataGroupToFilter converter1 = dependencyProvider.getDataGroupToFilterConverter();
+		DataGroupToFilter converter2 = dependencyProvider.getDataGroupToFilterConverter();
+		assertNotNull(converter1);
+		assertNotNull(converter2);
+		assertTrue(converter1 instanceof DataGroupToFilterImp);
+		assertTrue(converter2 instanceof DataGroupToFilterImp);
+		assertNotSame(converter1, converter2);
 	}
 
 }

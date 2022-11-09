@@ -159,8 +159,8 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 	}
 
 	private void possiblyAddFilter(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		if (indexBatchJob.filter.hasChildren()) {
-			dataGroup.addChild(indexBatchJob.filter);
+		if (indexBatchJob.filterAsData.hasChildren()) {
+			dataGroup.addChild(indexBatchJob.filterAsData);
 		}
 	}
 }

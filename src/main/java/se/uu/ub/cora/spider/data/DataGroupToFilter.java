@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,30 +16,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.index.internal;
-
-import java.util.ArrayList;
-import java.util.List;
+package se.uu.ub.cora.spider.data;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.storage.Filter;
 
-public class IndexBatchJob {
+/**
+ * DataGroupToFilter is intended to be used to convert a filter as a {@link DataGroup} to a
+ * {@link Filter}
+ * </p>
+ * Implementations are not expected to be threadsafe, but must be able to handle multiple sequential
+ * calls to {@link #convert(DataGroup)}.
+ */
+public interface DataGroupToFilter {
+	/**
+	 * convert method converts a DataGroup to a Filter. The dataGroup must have the correct filter
+	 * structure.
+	 * 
+	 * @param dataGroup
+	 *            a filter as DataGroup.
+	 * @return the representation of the sent filter as a Filter.
+	 */
+	Filter convert(DataGroup dataGroup);
 
-	public String recordId;
-	public String recordTypeToIndex;
-	public long totalNumberToIndex = 0;
-	public long numberOfProcessedRecords = 0;
-	public String status = "started";
-	public List<IndexError> errors = new ArrayList<>();
-	public Filter filter;
-	public DataGroup filterAsData;
-
-	public IndexBatchJob(String recordTypeToIndex, long totalNumberToIndex, DataGroup filterAsData,
-			Filter filter) {
-		this.recordTypeToIndex = recordTypeToIndex;
-		this.totalNumberToIndex = totalNumberToIndex;
-		this.filterAsData = filterAsData;
-		this.filter = filter;
-	}
 }

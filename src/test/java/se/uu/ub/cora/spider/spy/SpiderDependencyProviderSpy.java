@@ -27,6 +27,7 @@ import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
@@ -48,14 +49,6 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("getRecordStorage", RecordStorageSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler", RecordTypeHandlerSpy::new);
-		// MRV.setDefaultReturnValuesSupplier("hasReadAction", (Supplier<Boolean>) () -> false);
-		// MRV.setDefaultReturnValuesSupplier("getRepeatId", String::new);
-		// MRV.setDefaultReturnValuesSupplier("getNameInData", String::new);
-		// MRV.setDefaultReturnValuesSupplier("hasAttributes", (Supplier<Boolean>) () -> false);
-		// MRV.setDefaultReturnValuesSupplier("getAttribute", DataAttributeSpy::new);
-		// MRV.setDefaultReturnValuesSupplier("getAttributes", ArrayList<DataAttribute>::new);
-		// MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", String::new);
-		// MRV.setDefaultReturnValuesSupplier("getLinkedRecordType", String::new);
 	}
 
 	@Override
@@ -154,6 +147,12 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 
 	@Override
 	public String getInitInfoValueUsingKey(String key) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataGroupToFilter getDataGroupToFilterConverter() {
 		// TODO Auto-generated method stub
 		return null;
 	}

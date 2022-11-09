@@ -29,6 +29,7 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
@@ -37,6 +38,7 @@ import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordStorage;
 
 /**
@@ -118,9 +120,11 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	}
 
 	private IndexBatchJob collectInformationForIndexBatchJob(DataGroup indexSettings) {
-		DataGroup filter = extractFilterFromIndexSettingsOrCreateANewOne(indexSettings);
+		DataGroup filterAsData = extractFilterFromIndexSettingsOrCreateANewOne(indexSettings);
+		DataGroupToFilter converterToFilter = dependencyProvider.getDataGroupToFilterConverter();
+		Filter filter = converterToFilter.convert(filterAsData);
 		long totalNumberOfMatches = getTotalNumberOfMatchesFromStorageUsingFilter(filter);
-		return createIndexBatchJobFromTotalNumAndFilter(filter, totalNumberOfMatches);
+		return createIndexBatchJobFromTotalNumAndFilter(filter, filterAsData, totalNumberOfMatches);
 	}
 
 	private DataGroup extractFilterFromIndexSettingsOrCreateANewOne(DataGroup indexSettings) {
@@ -138,15 +142,15 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		return DataProvider.createGroupUsingNameInData(FILTER);
 	}
 
-	private long getTotalNumberOfMatchesFromStorageUsingFilter(DataGroup filter) {
+	private long getTotalNumberOfMatchesFromStorageUsingFilter(Filter filter) {
 		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
 		List<String> listOfTypes = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
 		return recordStorage.getTotalNumberOfRecordsForTypes(listOfTypes, filter);
 	}
 
-	private IndexBatchJob createIndexBatchJobFromTotalNumAndFilter(DataGroup filter,
-			long totalNumberOfMatches) {
-		return new IndexBatchJob(recordType, totalNumberOfMatches, filter);
+	private IndexBatchJob createIndexBatchJobFromTotalNumAndFilter(Filter filter,
+			DataGroup filterAsData, long totalNumberOfMatches) {
+		return new IndexBatchJob(recordType, totalNumberOfMatches, filterAsData, filter);
 	}
 
 	private DataRecord storeIndexBatchJobInStorage(String authToken, IndexBatchJob indexBatchJob) {

@@ -33,12 +33,14 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
+import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.record.internal.RecordStorageOldSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
+import se.uu.ub.cora.storage.Filter;
 
 public class IndexBatchJobStorerTest {
 	private SpiderDependencyProviderOldSpy dependencyProvider;
@@ -163,7 +165,7 @@ public class IndexBatchJobStorerTest {
 	}
 
 	private void createDefaultBatchJob() {
-		indexBatchJob = new IndexBatchJob("someRecordType", 45, new DataGroupOldSpy("filter"));
+		indexBatchJob = new IndexBatchJob("someRecordType", 45, new DataGroupSpy(), new Filter());
 		indexBatchJob.numberOfProcessedRecords = 80;
 		indexBatchJob.recordId = "someRecordId";
 		createAndAddErrors();

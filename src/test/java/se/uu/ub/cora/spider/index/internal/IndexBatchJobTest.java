@@ -22,8 +22,8 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.storage.Filter;
 
 public class IndexBatchJobTest {
 
@@ -31,14 +31,16 @@ public class IndexBatchJobTest {
 	public void testInit() {
 		String recordType = "someRecordType";
 		long totalNumberToIndex = 53;
-		DataGroup dataGroupFilter = new DataGroupOldSpy("filter");
+		Filter filter = new Filter();
+		DataGroupSpy filterAsData = new DataGroupSpy();
 
 		IndexBatchJob indexBatchJob = new IndexBatchJob(recordType, totalNumberToIndex,
-				dataGroupFilter);
+				filterAsData, filter);
 
 		assertEquals(indexBatchJob.recordTypeToIndex, recordType);
 		assertEquals(indexBatchJob.totalNumberToIndex, totalNumberToIndex);
-		assertEquals(indexBatchJob.filter, dataGroupFilter);
+		assertEquals(indexBatchJob.filterAsData, filterAsData);
+		assertEquals(indexBatchJob.filter, filter);
 		assertEquals(indexBatchJob.numberOfProcessedRecords, 0);
 		assertEquals(indexBatchJob.status, "started");
 

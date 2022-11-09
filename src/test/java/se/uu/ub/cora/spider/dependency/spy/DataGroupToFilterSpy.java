@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,30 +16,24 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.index.internal;
-
-import java.util.ArrayList;
-import java.util.List;
+package se.uu.ub.cora.spider.dependency.spy;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.storage.Filter;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
-public class IndexBatchJob {
+public class DataGroupToFilterSpy implements DataGroupToFilter {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
-	public String recordId;
-	public String recordTypeToIndex;
-	public long totalNumberToIndex = 0;
-	public long numberOfProcessedRecords = 0;
-	public String status = "started";
-	public List<IndexError> errors = new ArrayList<>();
-	public Filter filter;
-	public DataGroup filterAsData;
+	@Override
+	public Filter convert(DataGroup dataGroup) {
+		MCR.addCall("dataGroup", dataGroup);
 
-	public IndexBatchJob(String recordTypeToIndex, long totalNumberToIndex, DataGroup filterAsData,
-			Filter filter) {
-		this.recordTypeToIndex = recordTypeToIndex;
-		this.totalNumberToIndex = totalNumberToIndex;
-		this.filterAsData = filterAsData;
-		this.filter = filter;
+		Filter filter = new Filter();
+
+		MCR.addReturned(filter);
+		return filter;
 	}
+
 }
