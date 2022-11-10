@@ -231,16 +231,17 @@ public class RecordListIndexerTest {
 
 		batchJobConverterSpy.MCR.assertMethodWasCalled("createDataGroup");
 
-		DataGroup createdFilter = (DataGroup) dataFactory.MCR
+		DataGroup filterAsDataGroup = (DataGroup) dataFactory.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
-		var filter = getFilter(createdFilter);
+		Filter filter = getFilter(filterAsDataGroup);
 
 		IndexBatchJob indexBatchJob = getParameterIndexBatchJobFromConverterSpy();
+		batchJobConverterSpy.MCR.assertParameters("createDataGroup", 0, indexBatchJob,
+				filterAsDataGroup);
 
 		assertEquals(indexBatchJob.recordTypeToIndex, SOME_RECORD_TYPE);
 		assertEquals(indexBatchJob.totalNumberToIndex, 45);
 		assertSame(indexBatchJob.filter, filter);
-		assertSame(indexBatchJob.filterAsData, createdFilter);
 
 	}
 
@@ -253,21 +254,22 @@ public class RecordListIndexerTest {
 		DataGroup extractedFilterFromIndexSettings = (DataGroup) indexSettingsWithFilter.MCR
 				.getReturnValue("getFirstGroupWithNameInData", 0);
 
-		var filter = getFilter(extractedFilterFromIndexSettings);
+		Filter filter = getFilter(extractedFilterFromIndexSettings);
 
 		IndexBatchJob indexBatchJob = getParameterIndexBatchJobFromConverterSpy();
 
+		batchJobConverterSpy.MCR.assertParameters("createDataGroup", 0, indexBatchJob,
+				extractedFilterFromIndexSettings);
+
 		assertEquals(indexBatchJob.recordTypeToIndex, SOME_RECORD_TYPE);
 		assertEquals(indexBatchJob.totalNumberToIndex, 0);
-
 		assertSame(indexBatchJob.filter, filter);
-		assertSame(indexBatchJob.filterAsData, extractedFilterFromIndexSettings);
 	}
 
-	private Filter getFilter(DataGroup extractedFilterFromIndexSettings) {
+	private Filter getFilter(DataGroup filterAsDataGroup) {
 		DataGroupToFilterSpy converterToFilter = (DataGroupToFilterSpy) dependencyProviderSpy.MCR
 				.getReturnValue("getDataGroupToFilterConverter", 0);
-		converterToFilter.MCR.assertParameters("convert", 0, extractedFilterFromIndexSettings);
+		converterToFilter.MCR.assertParameters("convert", 0, filterAsDataGroup);
 		return (Filter) converterToFilter.MCR.getReturnValue("convert", 0);
 	}
 

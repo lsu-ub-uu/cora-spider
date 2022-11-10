@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.index.internal;
 import java.util.ArrayList;
 import java.util.List;
 
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.storage.Filter;
 
 public class IndexBatchJob {
@@ -33,13 +32,10 @@ public class IndexBatchJob {
 	public String status = "started";
 	public List<IndexError> errors = new ArrayList<>();
 	public Filter filter;
-	public DataGroup filterAsData;
 
-	public IndexBatchJob(String recordTypeToIndex, long totalNumberToIndex, DataGroup filterAsData,
-			Filter filter) {
+	public IndexBatchJob(String recordTypeToIndex, long totalNumberToIndex, Filter filter) {
 		this.recordTypeToIndex = recordTypeToIndex;
 		this.totalNumberToIndex = totalNumberToIndex;
-		this.filterAsData = filterAsData;
 		this.filter = filter;
 	}
 }

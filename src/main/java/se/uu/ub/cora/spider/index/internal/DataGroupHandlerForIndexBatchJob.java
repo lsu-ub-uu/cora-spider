@@ -46,7 +46,9 @@ public interface DataGroupHandlerForIndexBatchJob {
 	 * @param indexBatchJob
 	 *            An IndexBatchJob containing information about what to index, including RecordType,
 	 *            the number of records to index, and Filter
+	 * @param filterAsDataGroup
+	 *            A DataGroup, filter, as set by the user
 	 */
-	DataGroup createDataGroup(IndexBatchJob indexBatchJob);
+	DataGroup createDataGroup(IndexBatchJob indexBatchJob, DataGroup filterAsDataGroup);
 
 }

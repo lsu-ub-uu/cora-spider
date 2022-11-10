@@ -81,8 +81,11 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	private DataRecord storeAndRunBatchJob() {
 		checkUserIsAuthenticatedAndAuthorized();
 		validateIndexSettingAccordingToMetadataIfNotEmpty();
-		IndexBatchJob indexBatchJob = collectInformationForIndexBatchJob(indexSettings);
-		DataRecord createdRecord = storeIndexBatchJobInStorage(authToken, indexBatchJob);
+		DataGroup filterAsData = extractFilterFromIndexSettingsOrCreateANewOne(indexSettings);
+		IndexBatchJob indexBatchJob = collectInformationForIndexBatchJob(indexSettings,
+				filterAsData);
+		DataRecord createdRecord = storeIndexBatchJobInStorage(authToken, indexBatchJob,
+				filterAsData);
 
 		setRecordIdInIndexBatchJobFromCreatedRecord(indexBatchJob, createdRecord);
 
@@ -119,12 +122,13 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		}
 	}
 
-	private IndexBatchJob collectInformationForIndexBatchJob(DataGroup indexSettings) {
-		DataGroup filterAsData = extractFilterFromIndexSettingsOrCreateANewOne(indexSettings);
+	private IndexBatchJob collectInformationForIndexBatchJob(DataGroup indexSettings,
+			DataGroup filterAsData) {
+
 		DataGroupToFilter converterToFilter = dependencyProvider.getDataGroupToFilterConverter();
 		Filter filter = converterToFilter.convert(filterAsData);
 		long totalNumberOfMatches = getTotalNumberOfMatchesFromStorageUsingFilter(filter);
-		return createIndexBatchJobFromTotalNumAndFilter(filter, filterAsData, totalNumberOfMatches);
+		return createIndexBatchJobFromTotalNumAndFilter(filter, totalNumberOfMatches);
 	}
 
 	private DataGroup extractFilterFromIndexSettingsOrCreateANewOne(DataGroup indexSettings) {
@@ -149,12 +153,13 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	}
 
 	private IndexBatchJob createIndexBatchJobFromTotalNumAndFilter(Filter filter,
-			DataGroup filterAsData, long totalNumberOfMatches) {
-		return new IndexBatchJob(recordType, totalNumberOfMatches, filterAsData, filter);
+			long totalNumberOfMatches) {
+		return new IndexBatchJob(recordType, totalNumberOfMatches, filter);
 	}
 
-	private DataRecord storeIndexBatchJobInStorage(String authToken, IndexBatchJob indexBatchJob) {
-		DataGroup createDataGroup = batchJobConverter.createDataGroup(indexBatchJob);
+	private DataRecord storeIndexBatchJobInStorage(String authToken, IndexBatchJob indexBatchJob,
+			DataGroup filterAsData) {
+		DataGroup createDataGroup = batchJobConverter.createDataGroup(indexBatchJob, filterAsData);
 		RecordCreator recordCreator = SpiderInstanceProvider.getRecordCreator();
 		return recordCreator.createAndStoreRecord(authToken, "indexBatchJob", createDataGroup);
 	}

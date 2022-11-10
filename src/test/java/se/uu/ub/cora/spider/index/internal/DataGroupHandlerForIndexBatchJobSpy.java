@@ -38,8 +38,8 @@ public class DataGroupHandlerForIndexBatchJobSpy implements DataGroupHandlerForI
 	}
 
 	@Override
-	public DataGroup createDataGroup(IndexBatchJob indexBatchJob) {
-		MCR.addCall("indexBatchJob", indexBatchJob);
+	public DataGroup createDataGroup(IndexBatchJob indexBatchJob, DataGroup filterAsDataGroup) {
+		MCR.addCall("indexBatchJob", indexBatchJob, "filterAsDataGroup", filterAsDataGroup);
 
 		DataGroupOldSpy dataGroupSpy = new DataGroupOldSpy("someDataGroup");
 		MCR.addReturned(dataGroupSpy);
