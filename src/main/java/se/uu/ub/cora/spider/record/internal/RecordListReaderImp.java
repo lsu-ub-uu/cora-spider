@@ -33,11 +33,13 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public final class RecordListReaderImp extends RecordHandler implements RecordListReader {
@@ -73,6 +75,7 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 
 		readRecordList = DataProvider.createListWithNameOfDataType(recordType);
 		validateFilterIfNotEmpty(filter, recordType);
+
 		readRecordsOfType(filter);
 		setFromToInReadRecordList();
 
@@ -105,9 +108,7 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 	}
 
 	private boolean filterIsNotEmpty(DataGroup filter) {
-		return filter.containsChildWithNameInData("part")
-				|| filter.containsChildWithNameInData("start")
-				|| filter.containsChildWithNameInData("rows");
+		return filter.hasChildren();
 	}
 
 	private void validateFilterUsingDataValidator(String recordType, DataGroup filter) {
@@ -125,13 +126,16 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		}
 	}
 
-	private void readRecordsOfType(DataGroup filter) {
+	private void readRecordsOfType(DataGroup dataFilter) {
+		DataGroupToFilter converter = dependencyProvider.getDataGroupToFilterConverter();
+		Filter filter = converter.convert(dataFilter);
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		readAndAddToReadRecordList(filter, dataRedactor);
 	}
 
-	private void readAndAddToReadRecordList(DataGroup filter, DataRedactor dataRedactor) {
+	private void readAndAddToReadRecordList(Filter filter, DataRedactor dataRedactor) {
 		List<String> listOfTypes = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
+
 		readResult = recordStorage.readList(listOfTypes, filter);
 		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
 		for (DataGroup dataGroup : dataGroupList) {

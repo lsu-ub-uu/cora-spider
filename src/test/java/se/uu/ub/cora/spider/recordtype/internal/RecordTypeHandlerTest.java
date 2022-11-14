@@ -45,6 +45,7 @@ import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.StorageReadResult;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
@@ -1523,9 +1524,9 @@ public class RecordTypeHandlerTest {
 
 		assertParementerFirstOnList(recordStorage, "readList", 0, RECORD_TYPE);
 
-		DataGroup filter = (DataGroup) recordStorage.MCR
+		Filter filter = (Filter) recordStorage.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("readList", 0, "filter");
-		assertEquals(filter, dataFactorySpy.MCR.getReturnValue("factorGroupUsingNameInData", 0));
+		assertFalse(filter.filtersResults());
 	}
 
 	private void assertParementerFirstOnList(RecordStorageSpy storage, String methodName,

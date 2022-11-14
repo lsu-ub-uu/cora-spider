@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,34 +16,24 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.index.internal;
+package se.uu.ub.cora.spider.dependency.spy;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.spider.data.DataGroupToFilter;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
-public class DataGroupHandlerForIndexBatchJobSpy implements DataGroupHandlerForIndexBatchJob {
-
-	public IndexBatchJob indexBatchJob;
-	public DataGroup dataGroup;
-
+public class DataGroupToFilterSpy implements DataGroupToFilter {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
-	public void updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		MCR.addCall("indexBatchJob", indexBatchJob, "dataGroup", dataGroup);
+	public Filter convert(DataGroup dataGroup) {
+		MCR.addCall("dataGroup", dataGroup);
 
-		this.indexBatchJob = indexBatchJob;
-		this.dataGroup = dataGroup;
-	}
+		Filter filter = new Filter();
 
-	@Override
-	public DataGroup createDataGroup(IndexBatchJob indexBatchJob, DataGroup filterAsDataGroup) {
-		MCR.addCall("indexBatchJob", indexBatchJob, "filterAsDataGroup", filterAsDataGroup);
-
-		DataGroupOldSpy dataGroupSpy = new DataGroupOldSpy("someDataGroup");
-		MCR.addReturned(dataGroupSpy);
-		return dataGroupSpy;
+		MCR.addReturned(filter);
+		return filter;
 	}
 
 }

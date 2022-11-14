@@ -43,7 +43,7 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -68,20 +68,21 @@ public class RecordListReaderTest {
 	private RecordListReader recordListReader;
 	private DataGroupToRecordEnhancerSpy recordEnhancer;
 	private DataValidatorSpy dataValidator;
-	private DataGroup emptyFilter;
-	private DataGroup nonEmptyFilter;
+	private DataGroupSpy emptyFilter;
+	private DataGroupSpy nonEmptyFilter;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
 
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
 	private DataListSpy dataList;
+	private SpiderDependencyProviderOldSpy dependencyProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
-		emptyFilter = new DataGroupOldSpy("filter");
-		nonEmptyFilter = createNonEmptyFilter();
+		emptyFilter = createEmptyFilter();
+		nonEmptyFilter = new DataGroupSpy();
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageOldSpy();
@@ -102,10 +103,9 @@ public class RecordListReaderTest {
 
 	}
 
-	private DataGroup createNonEmptyFilter() {
-		DataGroup filter = new DataGroupOldSpy("filter");
-		DataGroup part = new DataGroupOldSpy("part");
-		filter.addChild(part);
+	private DataGroupSpy createEmptyFilter() {
+		DataGroupSpy filter = new DataGroupSpy();
+		filter.MRV.setDefaultReturnValuesSupplier("hasChildren", () -> false);
 		return filter;
 	}
 
@@ -117,8 +117,7 @@ public class RecordListReaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		SpiderDependencyProviderOldSpy dependencyProvider = new SpiderDependencyProviderOldSpy(
-				new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
@@ -176,6 +175,8 @@ public class RecordListReaderTest {
 	@Test
 	public void testEmptyFilter() throws Exception {
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+
+		emptyFilter.MCR.assertMethodWasCalled("hasChildren");
 		dataValidator.MCR.assertMethodNotCalled("validateListFilter");
 	}
 
@@ -189,18 +190,10 @@ public class RecordListReaderTest {
 
 	@Test
 	public void testNonEmptyFilterContainsStartGroupValidateListFilterIsCalled() {
-		emptyFilter.addChild(new DataGroupOldSpy("start"));
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
 
-		dataValidator.MCR.assertParameters("validateListFilter", 0, SOME_RECORD_TYPE, emptyFilter);
-	}
-
-	@Test
-	public void testNonEmptyFilterContainsRowsGroupValidateListFilterIsCalled() {
-		emptyFilter.addChild(new DataGroupOldSpy("rows"));
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
-
-		dataValidator.MCR.assertParameters("validateListFilter", 0, SOME_RECORD_TYPE, emptyFilter);
+		dataValidator.MCR.assertParameters("validateListFilter", 0, SOME_RECORD_TYPE,
+				nonEmptyFilter);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
@@ -223,9 +216,14 @@ public class RecordListReaderTest {
 	public void testReadingFromStorageCalled() {
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
+		DataGroupToFilterSpy converterToFilter = (DataGroupToFilterSpy) dependencyProvider.MCR
+				.getReturnValue("getDataGroupToFilterConverter", 0);
+
+		converterToFilter.MCR.assertParameters("convert", 0, emptyFilter);
+		var filter = converterToFilter.MCR.getReturnValue("convert", 0);
 		var listOfTypes = recordTypeHandlerSpy.MCR
 				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
-		recordStorage.MCR.assertParameters("readList", 0, listOfTypes, emptyFilter);
+		recordStorage.MCR.assertParameters("readList", 0, listOfTypes, filter);
 	}
 
 	@Test

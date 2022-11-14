@@ -13,6 +13,7 @@ import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
@@ -488,7 +489,7 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(List<String> type, DataGroup filter) {
+	public StorageReadResult readList(List<String> type, Filter filter) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -507,7 +508,7 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
+	public long getTotalNumberOfRecordsForTypes(List<String> types, Filter filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

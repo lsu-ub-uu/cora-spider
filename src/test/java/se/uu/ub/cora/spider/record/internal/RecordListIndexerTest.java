@@ -42,6 +42,7 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordCreatorSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobSpy;
@@ -50,6 +51,7 @@ import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class RecordListIndexerTest {
@@ -191,10 +193,12 @@ public class RecordListIndexerTest {
 
 		DataGroup createdFilter = (DataGroup) dataFactory.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
+
+		var filter = getFilter(createdFilter);
 		var listOfTypes = dependencyProviderSpy.recordTypeHandlerSpy.MCR
 				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
 		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForTypes", 0, listOfTypes,
-				createdFilter);
+				filter);
 	}
 
 	@Test
@@ -208,10 +212,11 @@ public class RecordListIndexerTest {
 		DataGroup extractedFilterFromIndexSettings = (DataGroup) indexSettingsWithFilter.MCR
 				.getReturnValue("getFirstGroupWithNameInData", 0);
 
+		var filter = getFilter(extractedFilterFromIndexSettings);
 		var listOfTypes = dependencyProviderSpy.recordTypeHandlerSpy.MCR
 				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
 		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForTypes", 0, listOfTypes,
-				extractedFilterFromIndexSettings);
+				filter);
 
 	}
 
@@ -226,14 +231,17 @@ public class RecordListIndexerTest {
 
 		batchJobConverterSpy.MCR.assertMethodWasCalled("createDataGroup");
 
-		DataGroup createdFilter = (DataGroup) dataFactory.MCR
+		DataGroup filterAsDataGroup = (DataGroup) dataFactory.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
+		Filter filter = getFilter(filterAsDataGroup);
 
 		IndexBatchJob indexBatchJob = getParameterIndexBatchJobFromConverterSpy();
+		batchJobConverterSpy.MCR.assertParameters("createDataGroup", 0, indexBatchJob,
+				filterAsDataGroup);
 
 		assertEquals(indexBatchJob.recordTypeToIndex, SOME_RECORD_TYPE);
 		assertEquals(indexBatchJob.totalNumberToIndex, 45);
-		assertSame(indexBatchJob.filter, createdFilter);
+		assertSame(indexBatchJob.filter, filter);
 
 	}
 
@@ -246,12 +254,23 @@ public class RecordListIndexerTest {
 		DataGroup extractedFilterFromIndexSettings = (DataGroup) indexSettingsWithFilter.MCR
 				.getReturnValue("getFirstGroupWithNameInData", 0);
 
+		Filter filter = getFilter(extractedFilterFromIndexSettings);
+
 		IndexBatchJob indexBatchJob = getParameterIndexBatchJobFromConverterSpy();
+
+		batchJobConverterSpy.MCR.assertParameters("createDataGroup", 0, indexBatchJob,
+				extractedFilterFromIndexSettings);
 
 		assertEquals(indexBatchJob.recordTypeToIndex, SOME_RECORD_TYPE);
 		assertEquals(indexBatchJob.totalNumberToIndex, 0);
+		assertSame(indexBatchJob.filter, filter);
+	}
 
-		assertSame(indexBatchJob.filter, extractedFilterFromIndexSettings);
+	private Filter getFilter(DataGroup filterAsDataGroup) {
+		DataGroupToFilterSpy converterToFilter = (DataGroupToFilterSpy) dependencyProviderSpy.MCR
+				.getReturnValue("getDataGroupToFilterConverter", 0);
+		converterToFilter.MCR.assertParameters("convert", 0, filterAsDataGroup);
+		return (Filter) converterToFilter.MCR.getReturnValue("convert", 0);
 	}
 
 	@Test
@@ -329,10 +348,12 @@ public class RecordListIndexerTest {
 		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProviderSpy.recordStorage;
 		DataGroup createdFilter = (DataGroup) dataFactory.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
+		var filter = getFilter(createdFilter);
+
 		var listOfTypes = dependencyProviderSpy.recordTypeHandlerSpy.MCR
 				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
 		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForTypes", 0, listOfTypes,
-				createdFilter);
+				filter);
 
 	}
 

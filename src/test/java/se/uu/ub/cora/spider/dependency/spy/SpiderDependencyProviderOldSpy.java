@@ -31,6 +31,7 @@ import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
@@ -194,6 +195,14 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	@Override
 	public RecordArchive getRecordArchive() {
 		return recordArchive;
+	}
+
+	@Override
+	public DataGroupToFilter getDataGroupToFilterConverter() {
+		MCR.addCall();
+		DataGroupToFilter dataGroupToFilter = new DataGroupToFilterSpy();
+		MCR.addReturned(dataGroupToFilter);
+		return dataGroupToFilter;
 	}
 
 }

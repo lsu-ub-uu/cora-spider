@@ -26,9 +26,9 @@ import java.util.concurrent.TimeUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
+import se.uu.ub.cora.storage.Filter;
 
 public class IndexBatchHandlerTest {
 
@@ -43,8 +43,7 @@ public class IndexBatchHandlerTest {
 
 	@Test
 	public void testInit() throws InterruptedException {
-		DataGroupOldSpy filter = new DataGroupOldSpy("batchIndexJob");
-		IndexBatchJob batchJob = new IndexBatchJob("someRecordType", 45, filter);
+		IndexBatchJob batchJob = new IndexBatchJob("someRecordType", 45, new Filter());
 
 		batchHandler.runIndexBatchJob(batchJob);
 

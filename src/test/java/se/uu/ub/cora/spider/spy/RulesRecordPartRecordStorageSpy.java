@@ -27,6 +27,7 @@ import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
@@ -218,7 +219,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(List<String> type, DataGroup filter) {
+	public StorageReadResult readList(List<String> type, Filter filter) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -237,7 +238,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
+	public long getTotalNumberOfRecordsForTypes(List<String> types, Filter filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

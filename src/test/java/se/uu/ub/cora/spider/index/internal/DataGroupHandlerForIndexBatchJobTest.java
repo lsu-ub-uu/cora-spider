@@ -34,6 +34,7 @@ import se.uu.ub.cora.data.spies.DataAtomicSpy;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.storage.Filter;
 
 public class DataGroupHandlerForIndexBatchJobTest {
 
@@ -202,9 +203,8 @@ public class DataGroupHandlerForIndexBatchJobTest {
 	}
 
 	private IndexBatchJob createIndexBatchJob() {
-		DataGroupOldSpy filter = new DataGroupOldSpy("filter");
-		DataGroupOldSpy include = new DataGroupOldSpy("include");
-		filter.addChild(include);
+		Filter filter = new Filter();
+
 		IndexBatchJob indexBatchJob = new IndexBatchJob(SOME_RECORD_TYPE, 10, filter);
 		createAndAddErrors(indexBatchJob);
 		return indexBatchJob;
@@ -219,7 +219,9 @@ public class DataGroupHandlerForIndexBatchJobTest {
 
 	@Test
 	public void testConvertIndexBatchJobToDataGroupForCreate() {
-		DataGroupSpy createdGroup = (DataGroupSpy) dataGroupHandler.createDataGroup(indexBatchJob);
+		DataGroupSpy filterAsDataGroup = new DataGroupSpy();
+		DataGroupSpy createdGroup = (DataGroupSpy) dataGroupHandler.createDataGroup(indexBatchJob,
+				filterAsDataGroup);
 
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", nfg, "indexBatchJob");
 		dataFactorySpy.MCR.assertReturn("factorGroupUsingNameInData", nfg, createdGroup);
@@ -241,7 +243,7 @@ public class DataGroupHandlerForIndexBatchJobTest {
 				callsToAddChildForCheckingIndexBatchJob);
 		callsToAddChildForCheckingIndexBatchJob++;
 		createdGroup.MCR.assertParameters("addChild", callsToAddChildForCheckingIndexBatchJob,
-				indexBatchJob.filter);
+				filterAsDataGroup);
 		callsToAddChildForCheckingIndexBatchJob++;
 
 		assertErrorsFromBatchJobAddedToGroupAndFirstRepeatId(createdGroup, 1);
@@ -310,17 +312,18 @@ public class DataGroupHandlerForIndexBatchJobTest {
 
 	@Test
 	public void testCreateDataGroupFromIndexBatchJobNoFilterIfFilterIsEmpty() throws Exception {
-		DataGroupOldSpy emptyFilter = new DataGroupOldSpy("filter");
-		indexBatchJob.filter = emptyFilter;
+		DataGroupOldSpy filterAsData = new DataGroupOldSpy("filter");
 
-		DataGroupSpy createdGroup = (DataGroupSpy) dataGroupHandler.createDataGroup(indexBatchJob);
+		DataGroupSpy createdGroup = (DataGroupSpy) dataGroupHandler.createDataGroup(indexBatchJob,
+				filterAsData);
 		createdGroup.MCR.assertNumberOfCallsToMethod("addChild", 7);
 	}
 
 	@Test
 	public void testCreateDataGroupFromIndexBatchJobEmptyErrors() {
-		DataGroupSpy createdGroup = (DataGroupSpy) dataGroupHandler
-				.createDataGroup(new IndexBatchJob("place", 10, new DataGroupOldSpy("filter")));
+		IndexBatchJob indexBatchJob = new IndexBatchJob("place", 10, new Filter());
+		DataGroupSpy createdGroup = (DataGroupSpy) dataGroupHandler.createDataGroup(indexBatchJob,
+				new DataGroupOldSpy("filter"));
 
 		createdGroup.MCR.assertNumberOfCallsToMethod("addChild", 5);
 

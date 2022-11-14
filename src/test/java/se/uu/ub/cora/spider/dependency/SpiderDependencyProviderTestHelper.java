@@ -96,7 +96,7 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 	public void ensureKeyExistsInInitInfo(String key) {
 		super.ensureKeyExistsInInitInfo(key);
 	}
-
+	
 	@Override
 	DataValidatorFactory getDataValidatorFactory() {
 		if (standardDataValidatorFactory) {
@@ -104,5 +104,4 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 		}
 		return dataValidatorFactory;
 	}
-
 }

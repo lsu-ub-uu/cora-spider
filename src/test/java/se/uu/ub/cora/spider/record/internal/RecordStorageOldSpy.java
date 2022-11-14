@@ -33,6 +33,7 @@ import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
@@ -50,6 +51,9 @@ public class RecordStorageOldSpy implements RecordStorage {
 	public DataGroup returnForRead = null;
 	public int numberToReturnForReadList = 0;
 	public List<List<DataGroup>> listOfListOfDataGroups = new ArrayList<>();
+
+	public List<Long> readListFromNos = new ArrayList<>();
+	public List<Long> readListToNos = new ArrayList<>();
 
 	public RecordStorageOldSpy() {
 		MCR.useMRV(MRV);
@@ -106,7 +110,9 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(List<String> types, DataGroup filter) {
+	public StorageReadResult readList(List<String> types, Filter filter) {
+		readListFromNos.add(filter.fromNo);
+		readListToNos.add(filter.toNo);
 		return (StorageReadResult) MCR.addCallAndReturnFromMRV("types", types, "filter", filter);
 	}
 
@@ -145,15 +151,14 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExists(List<String> types,
-			String id) {
+	public boolean recordExists(List<String> types, String id) {
 		MCR.addCall("type", types, "id", id);
 		MCR.addReturned(false);
 		return false;
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
+	public long getTotalNumberOfRecordsForTypes(List<String> types, Filter filter) {
 		MCR.addCall("type", types, "filter", filter);
 		MCR.addReturned(0);
 		return 0;

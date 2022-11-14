@@ -118,14 +118,14 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 	}
 
 	@Override
-	public DataGroup createDataGroup(IndexBatchJob indexBatchJob) {
+	public DataGroup createDataGroup(IndexBatchJob indexBatchJob, DataGroup filterAsDataGroup) {
 		DataGroup dataGroup = DataProvider.createGroupUsingNameInData("indexBatchJob");
 		addRecordInfo(dataGroup);
 		addRecordTypeToIndex(indexBatchJob, dataGroup);
 		addRecordStatus(indexBatchJob, dataGroup);
 		addNumberOfProcessedRecords(indexBatchJob, dataGroup);
 		addTotalNumberToIndex(indexBatchJob, dataGroup);
-		possiblyAddFilter(indexBatchJob, dataGroup);
+		possiblyAddFilter(dataGroup, filterAsDataGroup);
 		addIndexErrorsToDataGroup(indexBatchJob, dataGroup);
 		return dataGroup;
 	}
@@ -158,9 +158,9 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 				dataGroup);
 	}
 
-	private void possiblyAddFilter(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		if (indexBatchJob.filter.hasChildren()) {
-			dataGroup.addChild(indexBatchJob.filter);
+	private void possiblyAddFilter(DataGroup dataGroup, DataGroup filterAsDataGroup) {
+		if (filterAsDataGroup.hasChildren()) {
+			dataGroup.addChild(filterAsDataGroup);
 		}
 	}
 }

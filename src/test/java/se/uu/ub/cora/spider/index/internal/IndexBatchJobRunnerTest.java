@@ -32,7 +32,6 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
-import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
@@ -40,6 +39,7 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.internal.RecordStorageOldSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public class IndexBatchJobRunnerTest {
@@ -48,7 +48,7 @@ public class IndexBatchJobRunnerTest {
 	private static final String STARTED = "started";
 	private static final int INDEX_BATCH_SIZE = 1000;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
-	private DataGroupSpy indexBatchJobFilter;
+	private Filter indexBatchJobFilter;
 	private RecordStorageOldSpy recordStorage;
 	private IndexBatchJob indexBatchJob;
 	private IndexBatchJobRunner batchRunner;
@@ -79,7 +79,7 @@ public class IndexBatchJobRunnerTest {
 	}
 
 	private void createDefaultParameters() {
-		indexBatchJobFilter = new DataGroupSpy();
+		indexBatchJobFilter = new Filter();
 		indexBatchJob = new IndexBatchJob("someRecordType", 45, indexBatchJobFilter);
 		indexBatchJob.totalNumberToIndex = 11700;
 	}
@@ -120,46 +120,22 @@ public class IndexBatchJobRunnerTest {
 	}
 
 	private void assertAllFiltersAreSentCorrectlyToReadList(String methodName) {
-		int from = 1;
-		String toNo;
+		long from = 1;
+		long toNo;
 		for (int batchLoopNumber = 0; batchLoopNumber < 12; batchLoopNumber++) {
-			toNo = String.valueOf(from + INDEX_BATCH_SIZE - 1);
+			toNo = from + INDEX_BATCH_SIZE - 1;
 			if (batchLoopNumber == lastLoopBeforeEnd) {
-				toNo = Long.valueOf(indexBatchJob.totalNumberToIndex).toString();
+				toNo = indexBatchJob.totalNumberToIndex;
 			}
-			assertCorrectFilterForOneLoopInBatch(String.valueOf(from), toNo, batchLoopNumber,
-					methodName);
+			assertCorrectFilterForOneLoopInBatch(from, toNo, batchLoopNumber, methodName);
 			from = from + INDEX_BATCH_SIZE;
 		}
 	}
 
-	private void assertCorrectFilterForOneLoopInBatch(String from, String to, int batchLoopNumber,
+	private void assertCorrectFilterForOneLoopInBatch(long from, long to, int batchLoopNumber,
 			String methodName) {
-		DataGroupSpy filterSentToReadList = getFilterFromRecordStorageUsingBatchLoopNumberAndMethodName(
-				batchLoopNumber, methodName);
-		int callNoForLoop1 = batchLoopNumber * 2;
-		int callNoForLoop2 = callNoForLoop1 + 1;
-
-		assertAtomicValueUpdatedInFilter(filterSentToReadList, "fromNo", from, callNoForLoop1);
-		assertAtomicValueUpdatedInFilter(filterSentToReadList, "toNo", to, callNoForLoop2);
-	}
-
-	private void assertAtomicValueUpdatedInFilter(DataGroupSpy filterSentToReadList, String name,
-			String value, int callNoForLoop) {
-		indexBatchJobFilter.MCR.assertParameters("removeFirstChildWithNameInData", callNoForLoop,
-				name);
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", callNoForLoop,
-				name, value);
-		filterSentToReadList.MCR.assertParameters("addChild", callNoForLoop, dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", callNoForLoop));
-	}
-
-	private DataGroupSpy getFilterFromRecordStorageUsingBatchLoopNumberAndMethodName(
-			int batchLoopNumber, String methodName) {
-		DataGroupSpy filterSentToReadList = (DataGroupSpy) recordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(methodName, batchLoopNumber,
-						"filter");
-		return filterSentToReadList;
+		assertEquals(recordStorage.readListFromNos.get(batchLoopNumber), from);
+		assertEquals(recordStorage.readListToNos.get(batchLoopNumber), to);
 	}
 
 	@Test
@@ -313,13 +289,8 @@ public class IndexBatchJobRunnerTest {
 
 		Map<String, Object> parameters = recordStorage.MCR
 				.getParametersForMethodAndCallNumber("readList", 0);
-		DataGroupSpy filter = (DataGroupSpy) parameters.get("filter");
-
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "toNo", "4");
-		var toNo = dataFactorySpy.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
-
-		filter.MCR.assertParameter("addChild", 1, "dataChild", toNo);
-
+		Filter filter = (Filter) parameters.get("filter");
+		assertEquals(filter.toNo, 4);
 	}
 
 }

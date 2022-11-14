@@ -26,12 +26,11 @@ import java.util.HashMap;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.index.BatchRunnerFactory;
+import se.uu.ub.cora.storage.Filter;
 
 public class BatchRunnerFactoryTest {
 	private DataFactorySpy dataFactorySpy;
@@ -43,8 +42,7 @@ public class BatchRunnerFactoryTest {
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
 		BatchRunnerFactory factory = new BatchRunnerFactoryImp(dependencyProvider);
-		DataGroup dataGroupFilter = new DataGroupOldSpy("indexBatchJob");
-		IndexBatchJob indexBatchJob = new IndexBatchJob("someRecordType", 10, dataGroupFilter);
+		IndexBatchJob indexBatchJob = new IndexBatchJob("someRecordType", 10, new Filter());
 
 		IndexBatchJobRunner runner = (IndexBatchJobRunner) factory.factor(indexBatchJob);
 

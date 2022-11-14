@@ -32,6 +32,7 @@ import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
@@ -197,7 +198,7 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(List<String> types, DataGroup filter) {
+	public StorageReadResult readList(List<String> types, Filter filter) {
 		return null;
 	}
 
@@ -214,7 +215,7 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
+	public long getTotalNumberOfRecordsForTypes(List<String> types, Filter filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

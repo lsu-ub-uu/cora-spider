@@ -27,6 +27,7 @@ import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
@@ -70,5 +71,13 @@ public interface SpiderDependencyProvider {
 	DataGroupToRecordEnhancer getDataGroupToRecordEnhancer();
 
 	String getInitInfoValueUsingKey(String key);
+
+	/**
+	 * getDataGroupToFilterConverter creates a new {@link DataGroupToFilter} converter for each call
+	 * to this method.
+	 * 
+	 * @return A new {@link DataGroupToFilter} converter
+	 */
+	DataGroupToFilter getDataGroupToFilterConverter();
 
 }

@@ -29,6 +29,7 @@ import java.util.Map;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordConflictException;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -175,7 +176,7 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(List<String> type, DataGroup filter) {
+	public StorageReadResult readList(List<String> type, Filter filter) {
 		Map<String, DataGroup> typeRecords = records.get(type);
 		if (null == typeRecords) {
 			throw new RecordNotFoundException("No records exists with recordType: " + type);
@@ -312,7 +313,7 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
+	public long getTotalNumberOfRecordsForTypes(List<String> types, Filter filter) {
 		return 0;
 	}
 

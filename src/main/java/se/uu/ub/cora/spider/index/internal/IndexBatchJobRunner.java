@@ -23,19 +23,21 @@ import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.index.BatchRunner;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
-	private static final int FROM_NUMBER = 1;
-	private static final int TO_NUMBER = 1000;
+	private static final long FROM_NUMBER = 1;
+	private static final long TO_NUMBER = 1000;
+	private long from = FROM_NUMBER;
+	private long to = TO_NUMBER;
 	private SpiderDependencyProvider dependencyProvider;
 	private IndexBatchJob indexBatchJob;
 	private RecordStorage recordStorage;
@@ -44,9 +46,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	private RecordIndexer recordIndexer;
 	private BatchJobStorer storer;
 	private List<IndexError> errors = new ArrayList<>();
-	private int numberRequestedFromListing = 0;
-	private int from = FROM_NUMBER;
-	private int to = TO_NUMBER;
+	private long numberRequestedFromListing = 0;
 
 	public IndexBatchJobRunner(SpiderDependencyProvider dependencyProvider, BatchJobStorer storer,
 			IndexBatchJob indexBatchJob) {
@@ -93,7 +93,10 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		possiblySetToNumToTotalNumberToIndex();
 		setFromAndToInFilter(from, to);
 		readListAndIndexData(metadataId);
+		prepareNextIteration();
+	}
 
+	private void prepareNextIteration() {
 		numberRequestedFromListing = to;
 		from = to + FROM_NUMBER;
 		to = to + TO_NUMBER;
@@ -102,26 +105,14 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 	private void possiblySetToNumToTotalNumberToIndex() {
 		if (indexBatchJob.totalNumberToIndex < to) {
-			to = (int) indexBatchJob.totalNumberToIndex;
+			to = indexBatchJob.totalNumberToIndex;
 		}
 	}
 
-	private void setFromAndToInFilter(int from, int to) {
-		DataGroup filter = indexBatchJob.filter;
-		removePreviousFromAndTo(filter);
-		addFromAndTo(from, to, filter);
-	}
-
-	private void removePreviousFromAndTo(DataGroup filter) {
-		filter.removeFirstChildWithNameInData("fromNo");
-		filter.removeFirstChildWithNameInData("toNo");
-	}
-
-	private void addFromAndTo(int from, int to, DataGroup filter) {
-		filter.addChild(
-				DataProvider.createAtomicUsingNameInDataAndValue("fromNo", String.valueOf(from)));
-		filter.addChild(
-				DataProvider.createAtomicUsingNameInDataAndValue("toNo", String.valueOf(to)));
+	private void setFromAndToInFilter(long from, long to) {
+		Filter filter = indexBatchJob.filter;
+		filter.fromNo = from;
+		filter.toNo = to;
 	}
 
 	private void readListAndIndexData(String metadataId) {
@@ -138,7 +129,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	}
 
 	private StorageReadResult readList() {
-		DataGroup filter = indexBatchJob.filter;
+		Filter filter = indexBatchJob.filter;
 		List<String> types = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
 		return recordStorage.readList(types, filter);
 	}
@@ -185,9 +176,9 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		errors.clear();
 	}
 
-	private int possiblySetToNoToTotalNumberOfRecords(int to) {
+	private long possiblySetToNoToTotalNumberOfRecords(long to) {
 		if (to > indexBatchJob.totalNumberToIndex) {
-			to = (int) indexBatchJob.totalNumberToIndex;
+			to = indexBatchJob.totalNumberToIndex;
 		}
 		return to;
 	}

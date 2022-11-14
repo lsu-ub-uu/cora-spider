@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2017, 2019 Uppsala University Library
+ * Copyright 2015, 2017, 2019, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -30,6 +30,7 @@ import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
@@ -46,7 +47,7 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	public List<String> types;
 	public String id;
 	public int numOfTimesReadWasCalled = 0;
-	public List<DataGroup> filters = new ArrayList<>();
+	public List<Filter> filters = new ArrayList<>();
 	public boolean readListWasCalled = false;
 	public Map<String, Integer> userReadNumberOfTimesMap = new HashMap<>();
 
@@ -172,7 +173,7 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	}
 
 	@Override
-	public StorageReadResult readList(List<String> type, DataGroup filter) {
+	public StorageReadResult readList(List<String> type, Filter filter) {
 		readListWasCalled = true;
 		readLists.add(type);
 		filters.add(filter);
@@ -297,13 +298,12 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	}
 
 	@Override
-	public boolean recordExists(List<String> types,
-			String id) {
+	public boolean recordExists(List<String> types, String id) {
 		return false;
 	}
 
 	@Override
-	public long getTotalNumberOfRecordsForTypes(List<String> types, DataGroup filter) {
+	public long getTotalNumberOfRecordsForTypes(List<String> types, Filter filter) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

@@ -29,10 +29,10 @@ import java.util.Set;
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.metadata.ConstraintType;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
@@ -537,8 +537,7 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	private StorageReadResult getRecordTypeListFromStorage() {
-		return recordStorage.readList(List.of(RECORD_TYPE),
-				DataProvider.createGroupUsingNameInData("filter"));
+		return recordStorage.readList(List.of(RECORD_TYPE), new Filter());
 	}
 
 	private void addIfChildToCurrent(List<RecordTypeHandler> list, DataGroup dataGroup) {
