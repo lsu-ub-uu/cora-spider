@@ -20,9 +20,11 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
@@ -30,6 +32,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -39,7 +42,9 @@ import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.sqlstorage.DatabaseStorageInstanceProvider;
 import se.uu.ub.cora.storage.Filter;
+import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public final class RecordListReaderImp extends RecordHandler implements RecordListReader {
@@ -138,9 +143,13 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 
 		readResult = recordStorage.readList(listOfTypes, filter);
 		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
+
+		DatabaseStorageInstanceProvider ip = new DatabaseStorageInstanceProvider();
+		RecordStorage db = ip.getRecordStorage();
 		for (DataGroup dataGroup : dataGroupList) {
 			String type = extractRecordTypeFromDataGroup(dataGroup);
-			this.recordType = type;
+			recordType = type;
+			hack(db, type, dataGroup);
 			enhanceDataGroupAndPossiblyAddToRecordList(dataGroup, type, dataRedactor);
 		}
 	}
@@ -150,6 +159,46 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
 
 		return typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
+	}
+
+	private void hack(RecordStorage db, String type, DataGroup dataGroup) {
+		String id = extractRecordIdFromDataGroup(dataGroup);
+		String dataDivider = extractRecordDataDividerFromDataGroup(dataGroup);
+
+		String metadataId = recordTypeHandler.getMetadataId();
+
+		DataGroupTermCollector dataGroupTermCollector = dependencyProvider
+				.getDataGroupTermCollector();
+		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(metadataId, dataGroup);
+
+		// TODO: links can be identical... will not work
+		// DataRecordLinkCollector dataRecordLinkCollector = dependencyProvider
+		// .getDataRecordLinkCollector();
+		// List<Link> collectedLinks = dataRecordLinkCollector.collectLinks(metadataId, dataGroup);
+
+		try {
+			// db.create(type, id, dataGroup, collectTerms.storageTerms, collectedLinks,
+			// dataDivider);
+			db.create(type, id, dataGroup, collectTerms.storageTerms, Collections.emptyList(),
+					dataDivider);
+		} catch (Exception e) {
+			// DO nothing for now :)
+			String x = "";
+			x += "Y";
+		}
+
+	}
+
+	private String extractRecordIdFromDataGroup(DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		return recordInfo.getFirstAtomicValueWithNameInData("id");
+	}
+
+	private String extractRecordDataDividerFromDataGroup(DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		DataGroup dividerGroup = recordInfo.getFirstGroupWithNameInData("dataDivider");
+
+		return dividerGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	private void enhanceDataGroupAndPossiblyAddToRecordList(DataGroup dataGroup,
