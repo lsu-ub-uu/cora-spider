@@ -20,9 +20,10 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
+import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
@@ -33,6 +34,7 @@ import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -171,15 +173,14 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(metadataId, dataGroup);
 
 		// TODO: links can be identical... will not work
-		// DataRecordLinkCollector dataRecordLinkCollector = dependencyProvider
-		// .getDataRecordLinkCollector();
-		// List<Link> collectedLinks = dataRecordLinkCollector.collectLinks(metadataId, dataGroup);
+		DataRecordLinkCollector dataRecordLinkCollector = dependencyProvider
+				.getDataRecordLinkCollector();
+		Set<Link> collectedLinks = dataRecordLinkCollector.collectLinks(metadataId, dataGroup);
 
 		try {
-			// db.create(type, id, dataGroup, collectTerms.storageTerms, collectedLinks,
+			db.create(type, id, dataGroup, collectTerms.storageTerms, collectedLinks, dataDivider);
+			// db.create(type, id, dataGroup, collectTerms.storageTerms, Collections.emptySet(),
 			// dataDivider);
-			db.create(type, id, dataGroup, collectTerms.storageTerms, Collections.emptySet(),
-					dataDivider);
 		} catch (Exception e) {
 			// DO nothing for now :)
 			String x = "";
