@@ -20,7 +20,7 @@
 package se.uu.ub.cora.spider.testdata;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
@@ -34,7 +34,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 public class TestDataRecordInMemoryStorage {
 
 	private static String dataDivider = "cora";
-	private static List<Link> emptyLinkList = Collections.emptyList();
+	private static Set<Link> emptyLinkList = Collections.emptySet();
 
 	public static RecordStorageInMemoryStub createRecordStorageInMemoryWithTestData() {
 		RecordStorageInMemoryStub recordsInMemory = new RecordStorageInMemoryStub();
@@ -64,21 +64,21 @@ public class TestDataRecordInMemoryStorage {
 
 		DataGroup dummy = new DataGroupOldSpy("dummy");
 		recordsInMemory.create("metadataCollectionVariable", "dummy1", dummy, null,
-				Collections.emptyList(), dataDivider);
+				Collections.emptySet(), dataDivider);
 		recordsInMemory.create("metadataCollectionVariableChild", "dummy1", dummy, null,
-				Collections.emptyList(), dataDivider);
+				Collections.emptySet(), dataDivider);
 		recordsInMemory.create("metadataItemCollection", "dummy1", dummy, null,
-				Collections.emptyList(), dataDivider);
+				Collections.emptySet(), dataDivider);
 		recordsInMemory.create("metadataCollectionItem", "dummy1", dummy, null,
-				Collections.emptyList(), dataDivider);
+				Collections.emptySet(), dataDivider);
 		recordsInMemory.create("metadataTextVariable", "dummy1", dummy, null,
-				Collections.emptyList(), dataDivider);
-		recordsInMemory.create("metadataRecordLink", "dummy1", dummy, null, Collections.emptyList(),
+				Collections.emptySet(), dataDivider);
+		recordsInMemory.create("metadataRecordLink", "dummy1", dummy, null, Collections.emptySet(),
 				dataDivider);
 		recordsInMemory.create("metadataRecordRelation", "dummyRecordRelation", dummy, null,
-				Collections.emptyList(), dataDivider);
+				Collections.emptySet(), dataDivider);
 		recordsInMemory.create("permissionRole", "dummyPermissionRole", dummy, null,
-				Collections.emptyList(), dataDivider);
+				Collections.emptySet(), dataDivider);
 		return recordsInMemory;
 	}
 
@@ -99,7 +99,7 @@ public class TestDataRecordInMemoryStorage {
 		addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0001", dataRecordLink);
 		Link link = new Link("place", "place:0001");
 
-		recordsInMemory.create("place", "place:0002", dataGroup, null, List.of(link), "cora");
+		recordsInMemory.create("place", "place:0002", dataGroup, null, Set.of(link), "cora");
 	}
 
 	private static void addThirdPlace(RecordStorage recordsInMemory) {
@@ -132,7 +132,7 @@ public class TestDataRecordInMemoryStorage {
 
 		Link link = new Link("authority", "place:0003");
 
-		recordsInMemory.create("place", "place:0004", dataGroup, null, List.of(link), "cora");
+		recordsInMemory.create("place", "place:0004", dataGroup, null, Set.of(link), "cora");
 	}
 
 	private static void addLinkedRecordTypeAndLinkedRecordIdToRecordLink(
@@ -142,24 +142,6 @@ public class TestDataRecordInMemoryStorage {
 
 		DataAtomic linkedRecordId = new DataAtomicSpy("linkedRecordId", linkedRecordIdString);
 		dataRecordLink.addChild(linkedRecordId);
-	}
-
-	private static List<Link> createLinkList() {
-		// DataGroup collectedLinksList = emptyLinkList;
-		// DataGroup recordToRecordLink = new DataGroupOldSpy("recordToRecordLink");
-		//
-		// DataRecordLinkSpy from = new DataRecordLinkSpy("from");
-		// recordToRecordLink.addChild(from);
-		// addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0002", from);
-		// DataRecordLinkSpy to = new DataRecordLinkSpy("to");
-		// recordToRecordLink.addChild(to);
-		// addLinkedRecordTypeAndLinkedRecordIdToRecordLink("place", "place:0001", to);
-		//
-		// collectedLinksList.addChild(recordToRecordLink);
-
-		Link link = new Link("place", "place:0001");
-
-		return List.of(link);
 	}
 
 	private static void addMetadata(RecordStorageInMemoryStub recordsInMemory) {

@@ -757,8 +757,7 @@ public class RecordUpdaterTest {
 	@Test(expectedExceptions = DataException.class)
 	public void testLinkedRecordIdDoesNotExist() {
 		Link links = new Link("toType", "toId");
-		linkCollector.MRV.setDefaultReturnValuesSupplier("collectLinks",
-				(Supplier<List<Link>>) () -> List.of(links));
+		linkCollector.MRV.setDefaultReturnValuesSupplier("collectLinks", () -> Set.of(links));
 
 		DataGroup dataGroup = RecordLinkTestsDataCreator
 				.createDataDataGroupWithRecordInfoAndLinkOneLevelDown();

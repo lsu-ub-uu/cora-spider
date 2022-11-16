@@ -19,9 +19,10 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
@@ -97,20 +98,19 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 	}
 
 	private DataList collectLinksAndConvertToDataList() {
-		Collection<Link> links = new ArrayList<>();
+		Set<Link> links = new LinkedHashSet<>();
 		addLinksPointingToRecord(recordType, links);
 		possiblyAddLinksPointingToRecordByParentRecordType(links);
 
 		return convertLinksPointingToRecordToDataList(links);
 	}
 
-	private void addLinksPointingToRecord(String recordType2, Collection<Link> links) {
-		Collection<Link> linksPointingToRecord = recordStorage.getLinksToRecord(recordType2,
-				recordId);
+	private void addLinksPointingToRecord(String recordType2, Set<Link> links) {
+		Set<Link> linksPointingToRecord = recordStorage.getLinksToRecord(recordType2, recordId);
 		links.addAll(linksPointingToRecord);
 	}
 
-	private void possiblyAddLinksPointingToRecordByParentRecordType(Collection<Link> links) {
+	private void possiblyAddLinksPointingToRecordByParentRecordType(Set<Link> links) {
 		if (recordTypeHandler.hasParent()) {
 			String parentId = recordTypeHandler.getParentId();
 			addLinksPointingToRecord(parentId, links);

@@ -21,7 +21,9 @@ package se.uu.ub.cora.spider.record.internal;
 import static org.testng.Assert.assertEquals;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
@@ -107,10 +109,10 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 	@Test
 	public void testStorageIsCalledToGetLinksToReturn() throws Exception {
-		Link link0 = new Link("type0", "id0");
-		Link link1 = new Link("type1", "id1");
-		recordStorage.MRV.setDefaultReturnValuesSupplier("getLinksToRecord",
-				() -> List.of(link0, link1));
+		Set<Link> links = new LinkedHashSet<>();
+		links.add(new Link("type0", "id0"));
+		links.add(new Link("type1", "id1"));
+		recordStorage.MRV.setDefaultReturnValuesSupplier("getLinksToRecord", () -> links);
 
 		DataListSpy linksPointingToRecord = (DataListSpy) incomingLinksReader
 				.readIncomingLinks("someToken78678567", "aType", "anId");
@@ -155,10 +157,13 @@ public class SpiderRecordIncomingLinksReaderTest {
 		Link link0 = new Link("type0", "id0");
 		Link link1 = new Link("type1", "id1");
 		Link link2 = new Link("type2", "id2");
-		recordStorage.MRV.setSpecificReturnValuesSupplier("getLinksToRecord", () -> List.of(link0),
+		recordStorage.MRV.setSpecificReturnValuesSupplier("getLinksToRecord", () -> Set.of(link0),
 				"aType", "anId");
-		recordStorage.MRV.setSpecificReturnValuesSupplier("getLinksToRecord",
-				() -> List.of(link1, link2), "someParentId", "anId");
+		Set<Link> links = new LinkedHashSet<>();
+		links.add(link1);
+		links.add(link2);
+		recordStorage.MRV.setSpecificReturnValuesSupplier("getLinksToRecord", () -> links,
+				"someParentId", "anId");
 
 		DataListSpy linksPointingToRecord = (DataListSpy) incomingLinksReader
 				.readIncomingLinks("someToken78678567", "aType", "anId");

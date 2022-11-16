@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
@@ -49,7 +50,7 @@ public class RecordHandler {
 	protected String authToken;
 	protected User user;
 
-	protected void checkToPartOfLinkedDataExistsInStorage(List<Link> collectedLinks) {
+	protected void checkToPartOfLinkedDataExistsInStorage(Set<Link> collectedLinks) {
 		for (Link recordToRecordLink : collectedLinks) {
 			extractToGroupAndCheckDataExistsInStorage(recordToRecordLink);
 		}
@@ -64,8 +65,7 @@ public class RecordHandler {
 	private void checkRecordTypeAndRecordIdExistsInStorage(String recordType, String recordId) {
 		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		List<String> listOfTypes = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
-		if (!recordStorage.recordExists(listOfTypes,
-				recordId)) {
+		if (!recordStorage.recordExists(listOfTypes, recordId)) {
 			throw new DataException(
 					"Data is not valid: linkedRecord does not exists in storage for recordType: "
 							+ recordType + " and recordId: " + recordId);

@@ -42,7 +42,6 @@ import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.sqlstorage.DatabaseStorageInstanceProvider;
 import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
@@ -144,12 +143,12 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		readResult = recordStorage.readList(listOfTypes, filter);
 		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
 
-		DatabaseStorageInstanceProvider ip = new DatabaseStorageInstanceProvider();
-		RecordStorage db = ip.getRecordStorage();
+		// DatabaseStorageInstanceProvider ip = new DatabaseStorageInstanceProvider();
+		// RecordStorage db = ip.getRecordStorage();
 		for (DataGroup dataGroup : dataGroupList) {
 			String type = extractRecordTypeFromDataGroup(dataGroup);
 			recordType = type;
-			hack(db, type, dataGroup);
+			// hack(db, type, dataGroup);
 			enhanceDataGroupAndPossiblyAddToRecordList(dataGroup, type, dataRedactor);
 		}
 	}
@@ -179,7 +178,7 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		try {
 			// db.create(type, id, dataGroup, collectTerms.storageTerms, collectedLinks,
 			// dataDivider);
-			db.create(type, id, dataGroup, collectTerms.storageTerms, Collections.emptyList(),
+			db.create(type, id, dataGroup, collectTerms.storageTerms, Collections.emptySet(),
 					dataDivider);
 		} catch (Exception e) {
 			// DO nothing for now :)

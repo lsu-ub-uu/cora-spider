@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.collected.Link;
@@ -141,8 +142,8 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
-			List<Link> links, String dataDivider) {
+	public void create(String type, String id, DataGroup record, Set<StorageTerm> storageTerms,
+			Set<Link> links, String dataDivider) {
 		createWasCalled = true;
 		createRecord = record;
 	}
@@ -167,8 +168,8 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, List<StorageTerm> collectedTerms,
-			List<Link> links, String dataDivider) {
+	public void update(String type, String id, DataGroup record, Set<StorageTerm> collectedTerms,
+			Set<Link> links, String dataDivider) {
 		updateWasCalled = true;
 	}
 
@@ -182,53 +183,6 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 		spiderReadResult.totalNumberOfMatches = 199;
 		return spiderReadResult;
 	}
-
-	// @Override
-	// public StorageReadResult readAbstractList(String type, DataGroup filter) {
-	// StorageReadResult spiderReadResult = new StorageReadResult();
-	// spiderReadResult.totalNumberOfMatches = 199;
-	// spiderReadResult.listOfDataGroups = new ArrayList<>();
-	// readLists.add(type);
-	// if ("user".equals(type)) {
-	// ArrayList<DataGroup> records = new ArrayList<>();
-	//
-	// DataGroup inactiveUser = createUserWithIdAndActiveStatus("inactiveUserId", "inactive");
-	// records.add(inactiveUser);
-	//
-	// DataGroup user = createActiveUserWithIdAndAddDefaultRoles("someUserId");
-	// records.add(user);
-	//
-	// DataGroup userWithPermissionTerm = createUserWithOneRoleWithOnePermission();
-	// records.add(userWithPermissionTerm);
-	//
-	// DataGroup userWithTwoRolesAndTwoPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
-	// "userWithTwoRolesPermissionTerm");
-	// addRoleToUser("admin", userWithTwoRolesAndTwoPermissionTerm);
-	//
-	// List<DataGroup> userRoles = userWithTwoRolesAndTwoPermissionTerm
-	// .getAllGroupsWithNameInData("userRole");
-	//
-	// DataGroup permissionTerm = createPermissionTermWithIdAndValues(
-	// "organisationPermissionTerm", "system.*");
-	// DataGroup userRole = userRoles.get(0);
-	// userRole.addChild(permissionTerm);
-	//
-	// DataGroup permissionTerm2 = createPermissionTermWithIdAndValues("journalPermissionTerm",
-	// "system.abc", "system.def");
-	// DataGroup userRole2 = userRoles.get(1);
-	// userRole2.addChild(permissionTerm2);
-	//
-	// DataGroup permissionTerm2_role2 = createPermissionTermWithIdAndValues(
-	// "organisationPermissionTerm", "system.*");
-	// userRole2.addChild(permissionTerm2_role2);
-	//
-	// records.add(userWithTwoRolesAndTwoPermissionTerm);
-	//
-	// spiderReadResult.listOfDataGroups = records;
-	// return spiderReadResult;
-	// }
-	// return spiderReadResult;
-	// }
 
 	private DataGroup createUserWithOneRoleWithOnePermission() {
 		DataGroup userWithPermissionTerm = createActiveUserWithIdAndAddDefaultRoles(
@@ -292,7 +246,7 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	}
 
 	@Override
-	public Collection<Link> getLinksToRecord(String type, String id) {
+	public Set<Link> getLinksToRecord(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
 	}
