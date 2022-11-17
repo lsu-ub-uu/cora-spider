@@ -164,29 +164,31 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 
 	private void hack(RecordStorage db, String type, DataGroup dataGroup) {
 		String id = extractRecordIdFromDataGroup(dataGroup);
-		String dataDivider = extractRecordDataDividerFromDataGroup(dataGroup);
+		if (!db.recordExists(List.of(type), id)) {
+			String dataDivider = extractRecordDataDividerFromDataGroup(dataGroup);
 
-		String metadataId = recordTypeHandler.getMetadataId();
+			String metadataId = recordTypeHandler.getMetadataId();
 
-		DataGroupTermCollector dataGroupTermCollector = dependencyProvider
-				.getDataGroupTermCollector();
-		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(metadataId, dataGroup);
+			DataGroupTermCollector dataGroupTermCollector = dependencyProvider
+					.getDataGroupTermCollector();
+			CollectTerms collectTerms = dataGroupTermCollector.collectTerms(metadataId, dataGroup);
 
-		// TODO: links can be identical... will not work
-		DataRecordLinkCollector dataRecordLinkCollector = dependencyProvider
-				.getDataRecordLinkCollector();
-		Set<Link> collectedLinks = dataRecordLinkCollector.collectLinks(metadataId, dataGroup);
+			// TODO: links can be identical... will not work
+			DataRecordLinkCollector dataRecordLinkCollector = dependencyProvider
+					.getDataRecordLinkCollector();
+			Set<Link> collectedLinks = dataRecordLinkCollector.collectLinks(metadataId, dataGroup);
 
-		try {
-			db.create(type, id, dataGroup, collectTerms.storageTerms, collectedLinks, dataDivider);
-			// db.create(type, id, dataGroup, collectTerms.storageTerms, Collections.emptySet(),
-			// dataDivider);
-		} catch (Exception e) {
-			// DO nothing for now :)
-			String x = "";
-			x += "Y";
+			try {
+				db.create(type, id, dataGroup, collectTerms.storageTerms, collectedLinks,
+						dataDivider);
+				// db.create(type, id, dataGroup, collectTerms.storageTerms, Collections.emptySet(),
+				// dataDivider);
+			} catch (Exception e) {
+				// DO nothing for now :)
+				String x = "";
+				x += "Y";
+			}
 		}
-
 	}
 
 	private String extractRecordIdFromDataGroup(DataGroup dataGroup) {
