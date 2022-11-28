@@ -93,10 +93,23 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 		}
 	}
 
-	// Only for test
 	public void initializeExtendedFunctionality() {
 		ExtendedFunctionalityInitializer initializer = new ExtendedFunctionalityInitializer(this);
 		extendedFunctionalityProvider = initializer.getExtendedFunctionalityProvider();
+		System.out.println(
+				"SPIKE SPIKE SPIKE SPIKE SPIKE SPIKE SPIKE SPIKE SPIKE SPIKE SPIKE SPIKE SPIKE SPIKE SPIKE SPIKE SPIKE ");
+		spike();
+	}
+
+	private MetadataHolder metadataHolder;
+	private Map<String, DataGroup> recordTypeHolder;
+
+	private void spike() {
+		metadataHolder = new MetadataHolderFromStoragePopulator()
+				.createAndPopulateMetadataHolderFromMetadataStorage(
+						MetadataStorageProvider.getStorageView());
+		recordTypeHolder = createRecordTypeHolder(
+				MetadataStorageProvider.getStorageView().getRecordTypes());
 	}
 
 	private String createInvocationErrorExceptionMessage(InvocationTargetException e) {
@@ -151,13 +164,26 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 				this, new AuthorizatorImp(), new RulesProviderImp(getRecordStorage()));
 	}
 
+	// @Override
+	// public DataValidator getDataValidator() {
+	// // MetadataStorageView metadataStorage = MetadataStorageProvider.getStorageView();
+	// //
+	// // Map<String, DataGroup> recordTypeHolder = createRecordTypeHolder(
+	// // metadataStorage.getRecordTypes());
+	// // MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
+	// //
+	// // DataValidatorFactory dataValidatorFactory = getDataValidatorFactory();
+	// // return dataValidatorFactory.factor(metadataStorage, recordTypeHolder, metadataHolder);
+	// return null;
+	// }
 	@Override
 	public DataValidator getDataValidator() {
+		// return dependencyProvider.getDataValidator();
 		MetadataStorageView metadataStorage = MetadataStorageProvider.getStorageView();
 
-		Map<String, DataGroup> recordTypeHolder = createRecordTypeHolder(
-				metadataStorage.getRecordTypes());
-		MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
+		// Map<String, DataGroup> recordTypeHolder = createRecordTypeHolder(
+		// metadataStorage.getRecordTypes());
+		// MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
 
 		DataValidatorFactory dataValidatorFactory = getDataValidatorFactory();
 		return dataValidatorFactory.factor(metadataStorage, recordTypeHolder, metadataHolder);
@@ -182,19 +208,42 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 		recordTypeHolder.put(recordId, dataGroup);
 	}
 
+	// private MetadataHolder createMetadataHolder(MetadataStorageView metadataStorage) {
+	// return new MetadataHolderFromStoragePopulator()
+	// .createAndPopulateMetadataHolderFromMetadataStorage(metadataStorage);
+	// }
 	private MetadataHolder createMetadataHolder(MetadataStorageView metadataStorage) {
-		return new MetadataHolderFromStoragePopulator()
-				.createAndPopulateMetadataHolderFromMetadataStorage(metadataStorage);
+		return metadataHolder;
 	}
 
+	// @Override
+	// public DataRecordLinkCollector getDataRecordLinkCollector() {
+	// // return new DataRecordLinkCollectorImp(MetadataStorageProvider.getStorageView());
+	// // MetadataHolder metadataHolder = new MetadataHolderFromStoragePopulator()
+	// // .createAndPopulateMetadataHolderFromMetadataStorage(
+	// // MetadataStorageProvider.getStorageView());
+	// // return new DataRecordLinkCollectorImp(metadataHolder);
+	// return null;
+	// }
 	@Override
 	public DataRecordLinkCollector getDataRecordLinkCollector() {
-		return new DataRecordLinkCollectorImp(MetadataStorageProvider.getStorageView());
+		return new DataRecordLinkCollectorImp(metadataHolder);
 	}
 
+	// @Override
+	// public DataGroupTermCollector getDataGroupTermCollector() {
+	// // return new DataGroupTermCollectorImp(MetadataStorageProvider.getStorageView());
+	// // MetadataHolder metadataHolder = new MetadataHolderFromStoragePopulator()
+	// // .createAndPopulateMetadataHolderFromMetadataStorage(
+	// // MetadataStorageProvider.getStorageView());
+	// // return new DataGroupTermCollectorImp(MetadataStorageProvider.getStorageView(),
+	// // metadataHolder);
+	// return null;
+	// }
 	@Override
 	public DataGroupTermCollector getDataGroupTermCollector() {
-		return new DataGroupTermCollectorImp(MetadataStorageProvider.getStorageView());
+		return new DataGroupTermCollectorImp(MetadataStorageProvider.getStorageView(),
+				metadataHolder);
 	}
 
 	@Override
@@ -221,8 +270,8 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	@Override
 	public DataRedactor getDataRedactor() {
-		MetadataStorageView metadataStorage = MetadataStorageProvider.getStorageView();
-		MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
+		// MetadataStorageView metadataStorage = MetadataStorageProvider.getStorageView();
+		// MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
 		DataGroupRedactor dataGroupRedactor = new DataGroupRedactorImp();
 		DataGroupWrapperFactory wrapperFactory = new DataGroupWrapperFactoryImp();
 		MetadataMatchData metadataMatchData = MetadataMatchDataImp
@@ -241,13 +290,28 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 		return extendedFunctionalityProvider;
 	}
 
+	// @Override
+	// public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
+	// RecordStorage recordStorage = getRecordStorage();
+	// RecordTypeHandlerFactory recordTypeHandlerFactory = new RecordTypeHandlerFactoryImp(
+	// recordStorage);
+	// return RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordTypeHandlerFactory,
+	// recordStorage, recordTypeId);
+	// }
+	Map<String, RecordTypeHandler> typeHandlers = new HashMap<>();
+
 	@Override
-	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
+	public synchronized RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
+		if (typeHandlers.containsKey(recordTypeId)) {
+			return typeHandlers.get(recordTypeId);
+		}
 		RecordStorage recordStorage = getRecordStorage();
 		RecordTypeHandlerFactory recordTypeHandlerFactory = new RecordTypeHandlerFactoryImp(
 				recordStorage);
-		return RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordTypeHandlerFactory,
-				recordStorage, recordTypeId);
+		RecordTypeHandler typeHandler = RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(
+				recordTypeHandlerFactory, recordStorage, recordTypeId);
+		typeHandlers.put(recordTypeId, typeHandler);
+		return typeHandler;
 	}
 
 	@Override

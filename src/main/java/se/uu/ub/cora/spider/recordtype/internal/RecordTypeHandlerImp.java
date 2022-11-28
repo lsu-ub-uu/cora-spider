@@ -527,7 +527,12 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 		return Collections.emptyList();
 	}
 
-	private List<RecordTypeHandler> createListOfImplementingRecordTypeHandlers() {
+	List<RecordTypeHandler> implementingList;
+
+	private synchronized List<RecordTypeHandler> createListOfImplementingRecordTypeHandlers() {
+		if (null != implementingList) {
+			return implementingList;
+		}
 		List<RecordTypeHandler> list = new ArrayList<>();
 		StorageReadResult recordTypeList = getRecordTypeListFromStorage();
 		for (DataGroup dataGroup : recordTypeList.listOfDataGroups) {
@@ -537,7 +542,13 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	private StorageReadResult getRecordTypeListFromStorage() {
-		return recordStorage.readList(List.of(RECORD_TYPE), new Filter());
+		long t1 = System.currentTimeMillis();
+
+		StorageReadResult readList = recordStorage.readList(List.of(RECORD_TYPE), new Filter());
+		long t2 = System.currentTimeMillis();
+		System.out.println("RecordTypeHandlerImp read:(" + (t2 - t1) + ") " + recordTypeId);
+
+		return readList;
 	}
 
 	private void addIfChildToCurrent(List<RecordTypeHandler> list, DataGroup dataGroup) {
