@@ -20,11 +20,11 @@
 package se.uu.ub.cora.spider.record.storage;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.collected.Link;
@@ -58,7 +58,7 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 
 	@Override
 	public void create(String recordType, String recordId, DataGroup record,
-			List<StorageTerm> storageTerms, List<Link> links, String dataDivider) {
+			Set<StorageTerm> storageTerms, Set<Link> links, String dataDivider) {
 		ensureStorageExistsForRecordType(recordType);
 		checkNoConflictOnRecordId(recordType, recordId);
 		// storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);
@@ -235,31 +235,8 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 	}
 
 	@Override
-	public Collection<Link> getLinksToRecord(String type, String id) {
+	public Set<Link> getLinksToRecord(String type, String id) {
 		return null;
-	}
-
-	private void addLinksForRecordFromAllRecordTypes(List<DataGroup> generatedLinkList,
-			Map<String, Map<String, List<Link>>> linkStorageForRecord) {
-		for (Map<String, List<Link>> mapOfId : linkStorageForRecord.values()) {
-			addLinksForRecordForThisRecordType(generatedLinkList, mapOfId);
-		}
-	}
-
-	private void addLinksForRecordForThisRecordType(List<DataGroup> generatedLinkList,
-			Map<String, List<Link>> mapOfId) {
-		for (List<Link> recordToRecordLinkList : mapOfId.values()) {
-			addLinksFromRecordToRecordLinkList(generatedLinkList, recordToRecordLinkList);
-		}
-	}
-
-	private void addLinksFromRecordToRecordLinkList(List<DataGroup> generatedLinkList,
-			List<Link> recordToRecordLinkList) {
-		// for (DataGroup recordToRecordLink : recordToRecordLinkList) {
-		for (Link recordToRecordLink : recordToRecordLinkList) {
-			// TODO: must do stuff.. :) like create a new dataGroup...
-			// generatedLinkList.add(recordToRecordLink);
-		}
 	}
 
 	@Override
@@ -278,7 +255,7 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 
 	@Override
 	public void update(String recordType, String recordId, DataGroup record,
-			List<StorageTerm> collectedTerms, List<Link> links, String dataDivider) {
+			Set<StorageTerm> collectedTerms, Set<Link> links, String dataDivider) {
 		checkRecordExists(recordType, recordId);
 		removeIncomingLinks(recordType, recordId);
 		// storeIndependentRecordByRecordTypeAndRecordId(recordType, recordId, record);

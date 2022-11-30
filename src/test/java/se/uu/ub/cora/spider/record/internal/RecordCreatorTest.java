@@ -649,8 +649,7 @@ public class RecordCreatorTest {
 
 	private void setupLinkCollectorToReturnALinkSoThatWeCheckThatTheLinkedRecordExistsInStorage() {
 		Link link = new Link("toType", "toId");
-		linkCollector.MRV.setDefaultReturnValuesSupplier("collectLinks",
-				(Supplier<List<Link>>) () -> List.of(link));
+		linkCollector.MRV.setDefaultReturnValuesSupplier("collectLinks", () -> Set.of(link));
 	}
 
 	@Test

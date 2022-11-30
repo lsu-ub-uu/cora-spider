@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.index.internal;
 
 import java.util.List;
+import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
@@ -55,7 +56,7 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 	private void storeUpdatedDataGroup(DataGroup completedDataGroup) {
 		String metadataId = getMetadataIdFromRecordTypeHandler();
 		CollectTerms collectedTerms = collectTerms(completedDataGroup, metadataId);
-		List<Link> collectedLinks = collectLinks(metadataId, completedDataGroup);
+		Set<Link> collectedLinks = collectLinks(metadataId, completedDataGroup);
 		String dataDivider = extractDataDivider(completedDataGroup);
 
 		recordStorage.update(INDEX_BATCH_JOB, indexBatchJob.recordId, completedDataGroup,
@@ -80,7 +81,7 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 		return dataGroupTermCollector.collectTerms(metadataId, completedDataGroup);
 	}
 
-	private List<Link> collectLinks(String metadataId, DataGroup completedDataGroup) {
+	private Set<Link> collectLinks(String metadataId, DataGroup completedDataGroup) {
 		DataRecordLinkCollector linkCollector = dependencyProvider.getDataRecordLinkCollector();
 		return linkCollector.collectLinks(metadataId, completedDataGroup);
 	}

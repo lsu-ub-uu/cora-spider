@@ -121,7 +121,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(metadataId, topDataGroup);
 		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectTerms);
 
-		List<Link> collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup);
+		Set<Link> collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		useExtendedFunctionalityBeforeStore(recordType, topDataGroup);
@@ -327,7 +327,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		return type.getLinkedRecordId();
 	}
 
-	private void updateRecordInStorage(CollectTerms collectTerms, List<Link> collectedLinks) {
+	private void updateRecordInStorage(CollectTerms collectTerms, Set<Link> collectedLinks) {
 
 		String dataDivider = extractDataDividerFromData(topDataGroup);
 

@@ -239,7 +239,7 @@ public class PasswordExtendedFunctionalityTest {
 		String dataDividerValue = (String) dataDivider.MCR.getReturnValue("getLinkedRecordId", 0);
 
 		recordStorage.MCR.assertParameters("create", 0, SYSTEM_SECRET_TYPE, systemSecretId, secret,
-				Collections.emptySet(), Collections.emptySet(), dataDividerValue);
+				Collections.emptyList(), Collections.emptyList(), dataDividerValue);
 
 		assertLinkToSystemSecret(systemSecretId, 1);
 	}
@@ -345,7 +345,7 @@ public class PasswordExtendedFunctionalityTest {
 		var dataDividerValue = dataDivider.MCR.getReturnValue("getLinkedRecordId", 0);
 
 		recordStorage.MCR.assertParameters("update", 0, SYSTEM_SECRET_TYPE, systemSecretId,
-				secretFromStorage, Collections.emptySet(), Collections.emptySet(),
+				secretFromStorage, Collections.emptyList(), Collections.emptyList(),
 				dataDividerValue);
 
 		rGroupMCR.assertParameters("removeAllChildrenWithNameInData", 1, "tsPasswordUpdated");

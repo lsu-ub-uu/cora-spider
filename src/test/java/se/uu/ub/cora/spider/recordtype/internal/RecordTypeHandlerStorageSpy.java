@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
@@ -463,8 +464,8 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
-			List<Link> links, String dataDivider) {
+	public void create(String type, String id, DataGroup record, Set<StorageTerm> storageTerms,
+			Set<Link> links, String dataDivider) {
 		// TODO Auto-generated method stub
 
 	}
@@ -482,8 +483,8 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, List<StorageTerm> collectedTerms,
-			List<Link> links, String dataDivider) {
+	public void update(String type, String id, DataGroup record, Set<StorageTerm> collectedTerms,
+			Set<Link> links, String dataDivider) {
 		// TODO Auto-generated method stub
 
 	}
@@ -495,14 +496,13 @@ public class RecordTypeHandlerStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public Collection<Link> getLinksToRecord(String type, String id) {
+	public Set<Link> getLinksToRecord(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public boolean recordExists(List<String> types,
-			String id) {
+	public boolean recordExists(List<String> types, String id) {
 		// TODO Auto-generated method stub
 		return false;
 	}

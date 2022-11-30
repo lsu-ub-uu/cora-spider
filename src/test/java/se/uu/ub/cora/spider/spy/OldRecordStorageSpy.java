@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.spy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.collected.Link;
@@ -419,8 +420,8 @@ public class OldRecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
-			List<Link> links, String dataDivider) {
+	public void create(String type, String id, DataGroup record, Set<StorageTerm> storageTerms,
+			Set<Link> links, String dataDivider) {
 		createWasCalled = true;
 		createRecord = record;
 	}
@@ -445,8 +446,8 @@ public class OldRecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, List<StorageTerm> storageTerm,
-			List<Link> links, String dataDivider) {
+	public void update(String type, String id, DataGroup record, Set<StorageTerm> storageTerm,
+			Set<Link> links, String dataDivider) {
 		updateWasCalled = true;
 	}
 
@@ -492,7 +493,7 @@ public class OldRecordStorageSpy implements RecordStorage {
 	}
 
 	@Override
-	public Collection<Link> getLinksToRecord(String type, String id) {
+	public Set<Link> getLinksToRecord(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
 	}

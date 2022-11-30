@@ -20,8 +20,8 @@
 package se.uu.ub.cora.spider.spy;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
@@ -49,7 +49,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	public DataGroup group;
 	public String type;
 	public String id;
-	public List<StorageTerm> storageTerms;
+	public Set<StorageTerm> storageTerms;
 
 	@Override
 	public DataGroup read(List<String> types, String id) {
@@ -396,8 +396,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
-			List<Link> links, String dataDivider) {
+	public void create(String type, String id, DataGroup record, Set<StorageTerm> storageTerms,
+			Set<Link> links, String dataDivider) {
 		this.type = type;
 		this.id = id;
 		createRecord = record;
@@ -418,8 +418,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
-			List<Link> links, String dataDivider) {
+	public void update(String type, String id, DataGroup record, Set<StorageTerm> storageTerms,
+			Set<Link> links, String dataDivider) {
 		updateRecord = record;
 		this.storageTerms = storageTerms;
 		this.dataDivider = dataDivider;
@@ -485,7 +485,7 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	}
 
 	@Override
-	public Collection<Link> getLinksToRecord(String type, String id) {
+	public Set<Link> getLinksToRecord(String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
 	}

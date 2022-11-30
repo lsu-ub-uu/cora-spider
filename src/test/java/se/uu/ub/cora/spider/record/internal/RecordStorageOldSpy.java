@@ -20,7 +20,6 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -80,8 +79,8 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public void create(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
-			List<Link> links, String dataDivider) {
+	public void create(String type, String id, DataGroup record, Set<StorageTerm> storageTerms,
+			Set<Link> links, String dataDivider) {
 		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", storageTerms,
 				"linkList", links, "dataDivider", dataDivider);
 	}
@@ -103,8 +102,8 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup record, List<StorageTerm> storageTerms,
-			List<Link> links, String dataDivider) {
+	public void update(String type, String id, DataGroup record, Set<StorageTerm> storageTerms,
+			Set<Link> links, String dataDivider) {
 		MCR.addCall("type", type, "id", id, "record", record, "storageTerms", storageTerms,
 				"linkList", links, "dataDivider", dataDivider);
 	}
@@ -144,7 +143,7 @@ public class RecordStorageOldSpy implements RecordStorage {
 	}
 
 	@Override
-	public Collection<Link> getLinksToRecord(String type, String id) {
+	public Set<Link> getLinksToRecord(String type, String id) {
 		MCR.addCall("type", type, "id", id);
 		MCR.addReturned(null);
 		return null;

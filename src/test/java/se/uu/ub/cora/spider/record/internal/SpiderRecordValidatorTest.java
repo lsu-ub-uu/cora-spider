@@ -25,6 +25,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
@@ -439,8 +440,7 @@ public class SpiderRecordValidatorTest {
 
 	private void fillCollectLinksReturnValue() {
 		Link link = new Link("toRecordType", "toRecordId");
-		linkCollector.MRV.setDefaultReturnValuesSupplier("collectLinks",
-				(Supplier<List<Link>>) () -> List.of(link));
+		linkCollector.MRV.setDefaultReturnValuesSupplier("collectLinks", () -> Set.of(link));
 	}
 
 	@Test

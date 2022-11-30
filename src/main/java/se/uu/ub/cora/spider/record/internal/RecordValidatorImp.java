@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import java.util.List;
+import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
@@ -244,11 +245,11 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void ensureLinksExist(String recordTypeToValidate, String recordIdToUse,
 			String metadataId) {
-		List<Link> collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup);
+		Set<Link> collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup);
 		checkIfLinksExist(collectedLinks);
 	}
 
-	private void checkIfLinksExist(List<Link> collectedLinks) {
+	private void checkIfLinksExist(Set<Link> collectedLinks) {
 		try {
 			checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 		} catch (DataException exception) {

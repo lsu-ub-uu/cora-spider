@@ -68,7 +68,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private RecordIndexer recordIndexer;
 	private Set<String> writePermissions;
 	private CollectTerms collectedTerms;
-	private List<Link> collectedLinks;
+	private Set<Link> collectedLinks;
 	private RecordArchive recordArchive;
 
 	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
@@ -269,20 +269,18 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		RecordTypeHandler parentRecordTypeHandler = dependencyProvider
 				.getRecordTypeHandler(parentId);
 		List<String> types = parentRecordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
-		return recordStorage.recordExists(types,
-				recordId);
+		return recordStorage.recordExists(types, recordId);
 	}
 
 	private boolean duplicateExistsForThisType() {
 		List<String> types = List.of(recordType);
-		return recordStorage.recordExists(types,
-				recordId);
+		return recordStorage.recordExists(types, recordId);
 	}
 
-	private void createRecordInStorage(DataGroup topLevelDataGroup, List<Link> collectedLinks,
-			List<StorageTerm> storageTerms) {
+	private void createRecordInStorage(DataGroup topLevelDataGroup, Set<Link> collectedLinks2,
+			Set<StorageTerm> storageTerms) {
 		String dataDivider = extractDataDividerFromData(recordAsDataGroup);
-		recordStorage.create(recordType, recordId, topLevelDataGroup, storageTerms, collectedLinks,
+		recordStorage.create(recordType, recordId, topLevelDataGroup, storageTerms, collectedLinks2,
 				dataDivider);
 	}
 

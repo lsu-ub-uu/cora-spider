@@ -19,9 +19,8 @@
 
 package se.uu.ub.cora.spider.spy;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
+import java.util.Collections;
+import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.data.DataGroup;
@@ -35,13 +34,12 @@ public class DataRecordLinkCollectorSpy implements DataRecordLinkCollector {
 
 	public DataRecordLinkCollectorSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("collectLinks",
-				(Supplier<List<Link>>) () -> new ArrayList<>());
+		MRV.setDefaultReturnValuesSupplier("collectLinks", () -> Collections.emptySet());
 	}
 
 	@Override
-	public List<Link> collectLinks(String metadataId, DataGroup dataGroup) {
-		return (List<Link>) MCR.addCallAndReturnFromMRV("metadataId", metadataId, "dataGroup",
+	public Set<Link> collectLinks(String metadataId, DataGroup dataGroup) {
+		return (Set<Link>) MCR.addCallAndReturnFromMRV("metadataId", metadataId, "dataGroup",
 				dataGroup);
 	}
 

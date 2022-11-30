@@ -122,7 +122,7 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		String dataDivider = readDataDividerFromUserGroup();
 
 		recordStorage.create(SYSTEM_SECRET_TYPE, systemSecretId, systemSecret,
-				Collections.emptyList(), Collections.emptyList(), dataDivider);
+				Collections.emptySet(), Collections.emptySet(), dataDivider);
 		return systemSecretId;
 	}
 
@@ -191,7 +191,7 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		String dataDivider = readDataDividerFromUserGroup();
 
 		recordStorage.update(SYSTEM_SECRET_TYPE, systemSecretId, systemSecretG,
-				Collections.emptyList(), Collections.emptyList(), dataDivider);
+				Collections.emptySet(), Collections.emptySet(), dataDivider);
 	}
 
 	private DataAtomic updateTsPasswordUpdatedUsingTsUppdate() {
