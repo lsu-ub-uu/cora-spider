@@ -49,13 +49,13 @@ public interface ExtendedFunctionalityFactory {
 	List<ExtendedFunctionalityContext> getExtendedFunctionalityContexts();
 
 	/**
-	 * Factor is used by spider to get an instans of ExtendedFunctionality to use in predetermined
-	 * places in Spider. Factor should be implemented so that it creates a list of
+	 * The method factor is used by spider to get an instans of ExtendedFunctionality to use in
+	 * predetermined places in Spider. Factor should be implemented so that it creates a list of
 	 * {@link ExtendedFunctionality} for the specified position and recordType.<br>
 	 * <br>
 	 * Factories implementing this interface will only be called for the positions and recordTypes,
-	 * specified by the
-	 * {@link ExtendedFunctionalityFactory#factor(ExtendedFunctionalityPosition, String)}method.
+	 * returned by the {@link ExtendedFunctionalityFactory#getExtendedFunctionalityContexts()}
+	 * method implemented in the same class.
 	 * <p>
 	 * <b>Note! Implementations of the factor method MUST be threadsafe.</b>
 	 * 
