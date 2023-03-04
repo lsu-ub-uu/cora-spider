@@ -172,7 +172,7 @@ public class SpiderInstanceFactoryTest {
 	public void testCreatorImplementation() {
 		RecordCreatorImp spiderRecordCreator = (RecordCreatorImp) factory.factorRecordCreator();
 		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) spiderRecordCreator
-				.getDataGroupToRecordEnhancer();
+				.onlyForTestGetDataGroupToRecordEnhancer();
 
 		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
 	}

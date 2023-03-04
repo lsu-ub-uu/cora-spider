@@ -28,7 +28,6 @@ import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
@@ -217,7 +216,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void generateAndAddIdToRecordInfo(String recordType, DataGroup recordInfo) {
-		recordInfo.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("id",
+		recordInfo.addChild(DataProvider.createAtomicUsingNameInDataAndValue("id",
 				idGenerator.getIdForType(recordType)));
 	}
 
@@ -232,8 +231,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 				userId);
 		recordInfo.addChild(createdByLink);
 		String currentTimestamp = getCurrentTimestampAsString();
-		recordInfo.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_CREATED,
-				currentTimestamp));
+		recordInfo.addChild(
+				DataProvider.createAtomicUsingNameInDataAndValue(TS_CREATED, currentTimestamp));
 	}
 
 	private void completeRecordAndCollectInformationSpecifiedInMetadata() {
@@ -302,8 +301,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 				recordAsDataGroup, dataRedactor);
 	}
 
-	public DataGroupToRecordEnhancer getDataGroupToRecordEnhancer() {
-		// needed for test
+	public DataGroupToRecordEnhancer onlyForTestGetDataGroupToRecordEnhancer() {
 		return dataGroupToRecordEnhancer;
 	}
 }
