@@ -27,14 +27,8 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataAtomicFactory;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupFactory;
-import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataList;
-import se.uu.ub.cora.data.DataListFactory;
-import se.uu.ub.cora.data.DataListProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
@@ -46,16 +40,14 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
-import se.uu.ub.cora.spider.record.DataListFactorySpy;
+import se.uu.ub.cora.spider.record.DataListSpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
@@ -84,9 +76,6 @@ public class SpiderRecordSearcherTest {
 	private RecordSearch recordSearch;
 	private DataGroupTermCollectorSpy termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
-	private DataGroupFactory dataGroupFactorySpy;
-	private DataAtomicFactory dataAtomicFactorySpy;
-	private DataListFactory dataListFactory;
 	private DataCopierFactory dataCopierFactorySpy;
 	private DataRedactorSpy dataRedactor;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
@@ -111,12 +100,6 @@ public class SpiderRecordSearcherTest {
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		dataFactorySpy = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
-		dataGroupFactorySpy = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactorySpy);
-		dataAtomicFactorySpy = new DataAtomicFactorySpy();
-		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactorySpy);
-		dataListFactory = new DataListFactorySpy();
-		DataListProvider.setDataListFactory(dataListFactory);
 		dataCopierFactorySpy = new DataCopierFactorySpy();
 		DataCopierProvider.setDataCopierFactory(dataCopierFactorySpy);
 	}
@@ -134,6 +117,9 @@ public class SpiderRecordSearcherTest {
 		dependencyProvider.dataRedactor = dataRedactor;
 		recordSearcher = RecordSearcherImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
+		DataListSpy dataListSpy = new DataListSpy("mix");
+		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorListUsingNameOfDataType",
+				() -> dataListSpy);
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class)

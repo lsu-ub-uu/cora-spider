@@ -19,8 +19,6 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.time.Instant;
@@ -29,16 +27,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.data.DataAtomicFactory;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupFactory;
-import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
@@ -47,6 +43,7 @@ import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
+import se.uu.ub.cora.data.spies.DataAtomicSpy;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
@@ -55,9 +52,6 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
@@ -104,8 +98,6 @@ public class RecordUpdaterTest {
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
 
-	private DataGroupFactory dataGroupFactorySpy;
-	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataCopierFactory dataCopierFactory;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
@@ -133,10 +125,6 @@ public class RecordUpdaterTest {
 		dataFactorySpy = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 
-		dataGroupFactorySpy = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactorySpy);
-		dataAtomicFactorySpy = new DataAtomicFactorySpy();
-		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactorySpy);
 		dataCopierFactory = new DataCopierFactorySpy();
 		DataCopierProvider.setDataCopierFactory(dataCopierFactory);
 	}
@@ -162,6 +150,15 @@ public class RecordUpdaterTest {
 		dependencyProvider.dataRedactor = dataRedactor;
 		recordUpdater = RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
+		setUpToReturnFakeDataForUpdatedTS();
+	}
+
+	private void setUpToReturnFakeDataForUpdatedTS() {
+		DataAtomicSpy atomicTS = new DataAtomicSpy();
+		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorAtomicUsingNameInDataAndValue",
+				() -> atomicTS);
+		atomicTS.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "tsUpdated");
+		atomicTS.MRV.setDefaultReturnValuesSupplier("getValue", () -> "fakeTimestampForTsUpdated");
 	}
 
 	@Test
@@ -326,6 +323,7 @@ public class RecordUpdaterTest {
 	public void testCorrectRecordInfoInUpdatedRecord() {
 		OldRecordStorageSpy oldRecordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider(oldRecordStorage);
+		setUpToReturnFakeDataGroupWhenCreatingUpdatedGroup();
 		DataGroup dataGroup = new DataGroupOldSpy("someRecordDataGroup");
 		addRecordInfoWithCreatedInfo(dataGroup);
 
@@ -336,13 +334,20 @@ public class RecordUpdaterTest {
 		assertCorrectUserInfo(updatedOnce);
 	}
 
+	private void setUpToReturnFakeDataGroupWhenCreatingUpdatedGroup() {
+		DataGroup dataGroup = new DataGroupOldSpy("updated");
+		dataFactorySpy.MRV.setSpecificReturnValuesSupplier("factorGroupUsingNameInData",
+				() -> dataGroup, "updated");
+	}
+
 	private void addRecordInfoWithCreatedInfo(DataGroup topDataGroup) {
 		DataGroup recordInfo = DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 				"spyType", "spyId", "cora");
-		DataGroup createdBy = createLinkWithNameInDataRecordTypeAndRecordId("createdBy", "user",
+		DataLink createdBy = createLinkWithNameInDataRecordTypeAndRecordId("createdBy", "user",
 				"6789");
 		recordInfo.addChild(createdBy);
-		recordInfo.addChild(new DataAtomicSpy("tsCreated", "2016-10-01T00:00:00.000000Z"));
+		recordInfo.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("tsCreated",
+				"2016-10-01T00:00:00.000000Z"));
 		topDataGroup.addChild(recordInfo);
 	}
 
@@ -352,12 +357,12 @@ public class RecordUpdaterTest {
 		DataGroup updatedRecordInfo = updatedDataGroup.getFirstGroupWithNameInData("recordInfo");
 
 		List<DataGroup> updatedGroups = updatedRecordInfo.getAllGroupsWithNameInData("updated");
-		assertEquals(updatedGroups.size(), expectedRepeatIds.length);
+		AssertJUnit.assertEquals(updatedGroups.size(), expectedRepeatIds.length);
 
 		for (int i = 0; i < expectedRepeatIds.length; i++) {
 			DataGroup updatedGroup = updatedGroups.get(i);
 			String repeatId = updatedGroup.getRepeatId();
-			assertEquals(repeatId, expectedRepeatIds[i]);
+			AssertJUnit.assertEquals(repeatId, expectedRepeatIds[i]);
 		}
 	}
 
@@ -369,7 +374,7 @@ public class RecordUpdaterTest {
 				"4422");
 
 		String tsCreated = updatedOnceRecordInfo.getFirstAtomicValueWithNameInData("tsCreated");
-		assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
+		AssertJUnit.assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
 
 		DataGroup updated = updatedOnceRecordInfo.getFirstGroupWithNameInData("updated");
 		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
@@ -378,9 +383,16 @@ public class RecordUpdaterTest {
 				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
 		assertDataChildFoundInChildren(updatedByLink, updated.getChildren());
 
-		String tsUpdated = updated.getFirstAtomicValueWithNameInData("tsUpdated");
+		DataAtomicSpy tsUpdatedSpy = (DataAtomicSpy) updated
+				.getFirstChildWithNameInData("tsUpdated");
+		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorAtomicUsingNameInDataAndValue", 1);
+		dataFactorySpy.MCR.assertReturn("factorAtomicUsingNameInDataAndValue", 0, tsUpdatedSpy);
+		dataFactorySpy.MCR.assertParameter("factorAtomicUsingNameInDataAndValue", 0, "nameInData",
+				"tsUpdated");
+		String tsUpdated = (String) dataFactorySpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"factorAtomicUsingNameInDataAndValue", 0, "value");
 		assertTrue(tsUpdated.matches(TIMESTAMP_FORMAT));
-		assertFalse(tsUpdated.equals(tsCreated));
 	}
 
 	private void assertDataChildFoundInChildren(Object createdByLink, List<DataChild> children) {
@@ -390,7 +402,7 @@ public class RecordUpdaterTest {
 				createdByAdded = true;
 			}
 		}
-		assertTrue(createdByAdded);
+		AssertJUnit.assertTrue(createdByAdded);
 	}
 
 	@Test
@@ -400,30 +412,35 @@ public class RecordUpdaterTest {
 		Instant minusNanos = now.minusNanos(nano);
 		RecordUpdaterImp recordUpdater2 = (RecordUpdaterImp) recordUpdater;
 		String formattedTS = recordUpdater2.formatInstantKeepingTrailingZeros(minusNanos);
-		assertEquals(formattedTS.substring(20), "000000Z");
+		AssertJUnit.assertEquals(formattedTS.substring(20), "000000Z");
 
 	}
 
 	private void assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(DataGroup updatedRecordInfo,
 			String groupNameInData, String linkedRecordId) {
 		DataGroup createdByGroup = updatedRecordInfo.getFirstGroupWithNameInData(groupNameInData);
-		assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordType"), "user");
-		assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordId"),
+		AssertJUnit.assertEquals(
+				createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordType"), "user");
+		AssertJUnit.assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordId"),
 				linkedRecordId);
 	}
 
-	private DataGroup createLinkWithNameInDataRecordTypeAndRecordId(String nameInData,
+	private DataLink createLinkWithNameInDataRecordTypeAndRecordId(String nameInData,
 			String linkedRecordType, String linkedRecordId) {
-		DataGroup recordLink = new DataGroupOldSpy(nameInData);
-		recordLink.addChild(new DataAtomicSpy("linkedRecordType", linkedRecordType));
-		recordLink.addChild(new DataAtomicSpy("linkedRecordId", linkedRecordId));
-		return recordLink;
+		DataRecordLinkSpy dataRecordLinkSpy = new DataRecordLinkSpy();
+		dataRecordLinkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> nameInData);
+		dataRecordLinkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+				() -> linkedRecordId);
+		dataRecordLinkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
+				() -> linkedRecordType);
+		return dataRecordLinkSpy;
 	}
 
 	@Test
 	public void testCorrectUpdateInfoWhenRecordHasAlreadyBeenUpdated() {
 		RecordStorageUpdateMultipleTimesSpy recordStorage = new RecordStorageUpdateMultipleTimesSpy();
 		setUpDependencyProvider(recordStorage);
+		setUpToReturnFakeDataGroupWhenCreatingUpdatedGroup();
 
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		addRecordInfoWithCreatedInfo(dataGroup);
@@ -431,7 +448,7 @@ public class RecordUpdaterTest {
 		updateStorageToReturnDataGroupIncludingUpdateInfo(recordStorage);
 		DataRecord updatedOnce = recordUpdater.updateRecord("someToken78678567", "spyType", "spyId",
 				dataGroup);
-		assertEquals(recordStorage.types.size(), 1);
+		AssertJUnit.assertEquals(recordStorage.types.size(), 1);
 		assertUpdatedRepeatIdsInGroupAsListed(updatedOnce, "0", "1");
 
 	}
@@ -445,6 +462,7 @@ public class RecordUpdaterTest {
 	public void testNewUpdatedInRecordInfoHasRepeatIdPlusOne() {
 		RecordStorageUpdateMultipleTimesSpy recordStorage = new RecordStorageUpdateMultipleTimesSpy();
 		setUpDependencyProvider(recordStorage);
+		setUpToReturnFakeDataGroupWhenCreatingUpdatedGroup();
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		addRecordInfoWithCreatedInfo(dataGroup);
 
@@ -475,13 +493,14 @@ public class RecordUpdaterTest {
 		String firstTsUpdated = firstUpdated.getFirstAtomicValueWithNameInData("tsUpdated");
 		String correctTsUpdated = "2014-12-18 20:20:38.346";
 
-		assertEquals(firstTsUpdated, correctTsUpdated);
+		AssertJUnit.assertEquals(firstTsUpdated, correctTsUpdated);
 
 		DataGroup updatedDataGroup = updatedRecord.getDataGroup();
 		DataGroup recordInfo = updatedDataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup createdBy = recordInfo.getFirstGroupWithNameInData("createdBy");
-		assertEquals(createdBy.getFirstAtomicValueWithNameInData("linkedRecordId"), "4422");
-		assertEquals(recordInfo.getFirstAtomicValueWithNameInData("tsCreated"),
+		AssertJUnit.assertEquals(createdBy.getFirstAtomicValueWithNameInData("linkedRecordId"),
+				"4422");
+		AssertJUnit.assertEquals(recordInfo.getFirstAtomicValueWithNameInData("tsCreated"),
 				"2014-08-01T00:00:00.000000Z");
 	}
 
@@ -491,7 +510,8 @@ public class RecordUpdaterTest {
 		updated.setRepeatId("0");
 		DataRecordLinkSpy updatedBy = new DataRecordLinkSpy();
 		updated.addChild(updatedBy);
-		updated.addChild(new DataAtomicSpy("tsUpdated", "2010-12-13 20:20:38.346"));
+		updated.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("tsUpdated",
+				"2010-12-13 20:20:38.346"));
 		recordInfo.addChild(updated);
 	}
 
@@ -505,7 +525,7 @@ public class RecordUpdaterTest {
 	@Test
 	public void testUserIsAuthorizedForPreviousVersionOfData() {
 		DataGroup dataGroup = getDataGroupToUpdate();
-		dataGroup.addChild(new DataAtomicSpy("notStoredValue", "hej"));
+		dataGroup.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("notStoredValue", "hej"));
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
 				dataGroup);
@@ -547,11 +567,11 @@ public class RecordUpdaterTest {
 		try {
 			recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 		} catch (Exception e) {
-			assertEquals(e.getClass(), AuthorizationException.class);
+			AssertJUnit.assertEquals(e.getClass(), AuthorizationException.class);
 			exceptionWasCaught = true;
 		}
 
-		assertTrue(exceptionWasCaught);
+		AssertJUnit.assertTrue(exceptionWasCaught);
 		recordStorage.MCR.assertMethodNotCalled("read");
 		recordStorage.MCR.assertMethodNotCalled("update");
 		recordStorage.MCR.assertMethodNotCalled("delete");
@@ -624,7 +644,7 @@ public class RecordUpdaterTest {
 				.createRecordInfoWithIdAndLinkedRecordId("someImage", "cora");
 		createRecordInfo.addChild(createLinkWithLinkedId("type", "linkedRecordType", "image"));
 		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
+		dataGroup.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("atomicId", "atomicValue"));
 		return dataGroup;
 	}
 
@@ -646,7 +666,7 @@ public class RecordUpdaterTest {
 				createLinkWithLinkedId("type", "linkedRecordType", "typeWithAutoGeneratedId"));
 
 		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
+		dataGroup.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("atomicId", "atomicValue"));
 		return dataGroup;
 	}
 
@@ -705,11 +725,12 @@ public class RecordUpdaterTest {
 
 		DataGroup dataGroup = new DataGroupOldSpy("typeWithUserGeneratedId");
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
-		createRecordInfo.addChild(new DataAtomicSpy("id", "place"));
-		createRecordInfo.addChild(new DataAtomicSpy("type", "recordType"));
+		createRecordInfo.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("id", "place"));
+		createRecordInfo
+				.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("type", "recordType"));
 
 		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
+		dataGroup.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("atomicId", "atomicValue"));
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "place",
 				dataGroup);
@@ -719,10 +740,11 @@ public class RecordUpdaterTest {
 	public void testUpdateRecordIncomingNameInDatasDoNotMatch() {
 		DataGroup dataGroup = new DataGroupOldSpy("typeWithUserGeneratedId");
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
-		createRecordInfo.addChild(new DataAtomicSpy("id", "place"));
-		createRecordInfo.addChild(new DataAtomicSpy("type", "recordType"));
+		createRecordInfo.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("id", "place"));
+		createRecordInfo
+				.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("type", "recordType"));
 		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
+		dataGroup.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("atomicId", "atomicValue"));
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId",
 				"place_NOT_THE_SAME", dataGroup);
@@ -732,11 +754,11 @@ public class RecordUpdaterTest {
 	public void testUpdateRecordIncomingDataTypesDoNotMatch() {
 		DataGroup dataGroup = new DataGroupOldSpy("typeWithUserGeneratedId_NOT_THE_SAME");
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
-		createRecordInfo.addChild(new DataAtomicSpy("id", "place"));
+		createRecordInfo.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("id", "place"));
 		createRecordInfo.addChild(createLinkWithLinkedId("type", "linkedRecordType", "recordType"));
 
 		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
+		dataGroup.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("atomicId", "atomicValue"));
 
 		recordUpdater.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "place",
 				dataGroup);
@@ -746,10 +768,11 @@ public class RecordUpdaterTest {
 	public void testUpdateRecordIncomingDataIdDoNotMatch() {
 		DataGroup dataGroup = new DataGroupOldSpy("typeWithUserGeneratedId_NOT_THE_SAME");
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
-		createRecordInfo.addChild(new DataAtomicSpy("id", "place"));
-		createRecordInfo.addChild(new DataAtomicSpy("type", "recordType"));
+		createRecordInfo.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("id", "place"));
+		createRecordInfo
+				.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("type", "recordType"));
 		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(new DataAtomicSpy("atomicId", "atomicValue"));
+		dataGroup.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("atomicId", "atomicValue"));
 
 		recordUpdater.updateRecord("someToken78678567", "recordType", "placeNOT", dataGroup);
 	}

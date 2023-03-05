@@ -28,7 +28,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
-import se.uu.ub.cora.data.DataListProvider;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.search.RecordSearch;
@@ -156,7 +156,7 @@ public final class RecordSearcherImp implements RecordSearcher {
 	}
 
 	private DataList filterAndEnhanceSearchResult(SearchResult spiderSearchResult) {
-		dataList = DataListProvider.getDataListWithNameOfDataType("mix");
+		dataList = DataProvider.createListWithNameOfDataType("mix");
 		enhanceDataGroupsAndAddToList(spiderSearchResult);
 
 		dataList.setFromNo(String.valueOf(startRow));

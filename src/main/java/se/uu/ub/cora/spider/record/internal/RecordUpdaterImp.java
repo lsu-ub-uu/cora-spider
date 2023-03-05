@@ -31,9 +31,7 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
@@ -228,7 +226,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private DataGroup createUpdateInfoForThisUpdate(DataGroup recordInfo) {
-		DataGroup updated = DataGroupProvider.getDataGroupUsingNameInData(UPDATED_STRING);
+		DataGroup updated = DataProvider.createGroupUsingNameInData(UPDATED_STRING);
 		String repeatId = getRepeatId(recordInfo);
 		updated.setRepeatId(repeatId);
 
@@ -267,8 +265,8 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private void setTsUpdated(DataGroup updated) {
 		String currentLocalDateTime = getCurrentTimestampAsString();
-		updated.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_UPDATED,
-				currentLocalDateTime));
+		updated.addChild(
+				DataProvider.createAtomicUsingNameInDataAndValue(TS_UPDATED, currentLocalDateTime));
 	}
 
 	private void possiblyReplaceRecordPartsUserIsNotAllowedToChange() {
