@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageView;
+import se.uu.ub.cora.bookkeeper.validator.ValidationType;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
@@ -94,6 +95,12 @@ public class MetadataStorageViewSpy implements MetadataStorageView {
 
 	@Override
 	public Collection<DataGroup> getCollectTerms() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Collection<ValidationType> getValidationTypes() {
 		// TODO Auto-generated method stub
 		return null;
 	}

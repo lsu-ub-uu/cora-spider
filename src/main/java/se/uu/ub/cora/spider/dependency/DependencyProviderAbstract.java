@@ -151,18 +151,21 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 				this, new AuthorizatorImp(), new RulesProviderImp(getRecordStorage()));
 	}
 
+	// TODO WTF
 	@Override
 	public DataValidator getDataValidator() {
 		MetadataStorageView metadataStorage = MetadataStorageProvider.getStorageView();
 
 		Map<String, DataGroup> recordTypeHolder = createRecordTypeHolder(
 				metadataStorage.getRecordTypes());
-		MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
 
+		MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
+		// TODO WTF
 		DataValidatorFactory dataValidatorFactory = getDataValidatorFactory();
-		return dataValidatorFactory.factor(metadataStorage, recordTypeHolder, metadataHolder);
+		return dataValidatorFactory.factor(recordTypeHolder, metadataHolder);
 	}
 
+	// TODO WTF!? Kanske den borde skapas i nån BookeeperProvider...
 	DataValidatorFactory getDataValidatorFactory() {
 		return new DataValidatorFactoryImp();
 	}

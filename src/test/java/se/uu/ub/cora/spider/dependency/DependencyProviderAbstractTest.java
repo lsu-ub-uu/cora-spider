@@ -266,10 +266,7 @@ public class DependencyProviderAbstractTest {
 				.getReturnValue("getStorageView", 0);
 
 		DataValidatorFactoySpy dataValidatorFactorySpy = dependencyProvider.dataValidatorFactory;
-		dataValidatorFactorySpy.MCR.assertParameters("factor", 0, metadataStorageView);
-		dataValidatorFactorySpy.MCR.assertReturn("factor", 0, dataValidator);
-
-		Map<String, DataGroup> recordTypeHolder = (Map<String, DataGroup>) dataValidatorFactorySpy.MCR
+		var recordTypeHolder = dataValidatorFactorySpy.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("factor", 0,
 						"recordTypeHolder");
 		assertCorrectRecordTypeHolder(recordTypeHolder, metadataStorageView);
@@ -277,6 +274,9 @@ public class DependencyProviderAbstractTest {
 		MetadataHolder metadataHolder = (MetadataHolder) dataValidatorFactorySpy.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("factor", 0, "metadataHolder");
 		assertCorrectMetadataHolder(metadataHolder);
+
+		dataValidatorFactorySpy.MCR.assertParameters("factor", 0, recordTypeHolder, metadataHolder);
+		dataValidatorFactorySpy.MCR.assertReturn("factor", 0, dataValidator);
 	}
 
 	private void assertCorrectMetadataHolder(MetadataHolder metadataHolder) {
@@ -284,10 +284,12 @@ public class DependencyProviderAbstractTest {
 		assertEquals(metadataElement.getId(), "someMetadata1");
 	}
 
-	private void assertCorrectRecordTypeHolder(Map<String, DataGroup> recordTypeHolder,
+	private void assertCorrectRecordTypeHolder(Object recordTypeHolder,
 			MetadataStorageViewSpy metadataStorage) {
-		assertEquals(recordTypeHolder.get("someId1"), metadataStorage.recordTypes.get(0));
-		assertEquals(recordTypeHolder.get("someId2"), metadataStorage.recordTypes.get(1));
+
+		Map<String, DataGroup> map = (Map<String, DataGroup>) recordTypeHolder;
+		assertEquals(map.get("someId1"), metadataStorage.recordTypes.get(0));
+		assertEquals(map.get("someId2"), metadataStorage.recordTypes.get(1));
 	}
 
 	@Test
