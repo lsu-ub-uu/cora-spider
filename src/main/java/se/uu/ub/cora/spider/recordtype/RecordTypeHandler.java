@@ -191,39 +191,39 @@ public interface RecordTypeHandler {
 	 *         for children to the top level dataGroup that has read constraints. If there are no
 	 *         read constraints an empty set SHOULD be returned.
 	 */
-	Set<Constraint> getRecordPartReadConstraints();
+	Set<Constraint> getReadRecordPartConstraints();
 
 	/**
-	 * getRecordPartWriteConstraints returns a Set with all the write constraints that are specified
-	 * in the dataGroup specified by metadataId in the recordType. Write constraints have the value
-	 * "write", or "readWrite" as a read constraint also implies a write constraint. The constraints
-	 * are identified by nameInData, where nameInData is the name in data for the child in the top
-	 * level dataGroup that is limited by the constraint.
-	 * <p>
-	 * This method is similar to {@link #getRecordPartCreateWriteConstraints()}, but this one
-	 * returnes constraints active when updating data.
-	 * 
-	 * @return A Set filled with write constraints, more precisly nameInData and possibly attributes
-	 *         for children to the top level dataGroup that has write constraints. If there are no
-	 *         write constraints an empty set SHOULD be returned.
-	 */
-	Set<Constraint> getRecordPartWriteConstraints();
-
-	/**
-	 * getRecordPartCreateWriteConstraints returns a Set with all the write constraints that are
+	 * getCreateWriteRecordPartConstraints returns a Set with all the write constraints that are
 	 * specified in the dataGroup specified by newMetadataId in the recordType. Write constraints
 	 * have the value "write", or "readWrite" as a read constraint also implies a write constraint.
 	 * The constraints are identified by nameInData, where nameInData is the name in data for the
 	 * child in the top level dataGroup that is limited by the constraint.
 	 * <p>
-	 * This method is similar to {@link #getRecordPartCreateWriteConstraints()}, but this one
+	 * This method is similar to {@link #getUpdateWriteRecordPartConstraints()}, but this one
 	 * returnes constraints active when creating data.
 	 * 
 	 * @return A Set filled with write constraints, more precisly nameInData and possibly attributes
 	 *         for children to the top level dataGroup that has write constraints. If there are no
 	 *         write constraints an empty set SHOULD be returned.
 	 */
-	Set<Constraint> getRecordPartCreateWriteConstraints();
+	Set<Constraint> getCreateWriteRecordPartConstraints();
+
+	/**
+	 * getUpdateWriteRecordPartConstraints returns a Set with all the write constraints that are
+	 * specified in the dataGroup specified by metadataId in the recordType. Write constraints have
+	 * the value "write", or "readWrite" as a read constraint also implies a write constraint. The
+	 * constraints are identified by nameInData, where nameInData is the name in data for the child
+	 * in the top level dataGroup that is limited by the constraint.
+	 * <p>
+	 * This method is similar to {@link #getCreateWriteRecordPartConstraints()}, but this one
+	 * returnes constraints active when updating data.
+	 * 
+	 * @return A Set filled with write constraints, more precisly nameInData and possibly attributes
+	 *         for children to the top level dataGroup that has write constraints. If there are no
+	 *         write constraints an empty set SHOULD be returned.
+	 */
+	Set<Constraint> getUpdateWriteRecordPartConstraints();
 
 	/**
 	 * getImplementingRecordTypeHandlers should return a List of {@link RecordTypeHandler} for all

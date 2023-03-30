@@ -20,15 +20,13 @@
 package se.uu.ub.cora.spider.dependency;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
-import se.uu.ub.cora.bookkeeper.metadata.MetadataHolderFromStoragePopulator;
+import se.uu.ub.cora.bookkeeper.metadata.MetadataHolderPopulatorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.DataGroupRedactor;
 import se.uu.ub.cora.bookkeeper.recordpart.DataGroupRedactorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.DataGroupWrapperFactory;
@@ -38,7 +36,6 @@ import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactory;
 import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactoryImp;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageProvider;
-import se.uu.ub.cora.bookkeeper.storage.MetadataStorageView;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
@@ -46,7 +43,6 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
 import se.uu.ub.cora.bookkeeper.validator.MetadataMatchData;
 import se.uu.ub.cora.bookkeeper.validator.MetadataMatchDataImp;
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
@@ -151,43 +147,14 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 				this, new AuthorizatorImp(), new RulesProviderImp(getRecordStorage()));
 	}
 
-	// TODO WTF
 	@Override
 	public DataValidator getDataValidator() {
-		MetadataStorageView metadataStorage = MetadataStorageProvider.getStorageView();
-
-		Map<String, DataGroup> recordTypeHolder = createRecordTypeHolder(
-				metadataStorage.getRecordTypes());
-
-		MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
-		// TODO WTF
 		DataValidatorFactory dataValidatorFactory = getDataValidatorFactory();
-		return dataValidatorFactory.factor(recordTypeHolder, metadataHolder);
+		return dataValidatorFactory.factor();
 	}
 
-	// TODO WTF!? Kanske den borde skapas i nån BookeeperProvider...
 	DataValidatorFactory getDataValidatorFactory() {
 		return new DataValidatorFactoryImp();
-	}
-
-	private Map<String, DataGroup> createRecordTypeHolder(Collection<DataGroup> recordTypes) {
-		Map<String, DataGroup> recordTypeHolder = new HashMap<>();
-		for (DataGroup dataGroup : recordTypes) {
-			addInfoForRecordTypeToHolder(recordTypeHolder, dataGroup);
-		}
-		return recordTypeHolder;
-	}
-
-	private void addInfoForRecordTypeToHolder(Map<String, DataGroup> recordTypeHolder,
-			DataGroup dataGroup) {
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
-		recordTypeHolder.put(recordId, dataGroup);
-	}
-
-	private MetadataHolder createMetadataHolder(MetadataStorageView metadataStorage) {
-		return new MetadataHolderFromStoragePopulator()
-				.createAndPopulateMetadataHolderFromMetadataStorage(metadataStorage);
 	}
 
 	@Override
@@ -224,8 +191,7 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	@Override
 	public DataRedactor getDataRedactor() {
-		MetadataStorageView metadataStorage = MetadataStorageProvider.getStorageView();
-		MetadataHolder metadataHolder = createMetadataHolder(metadataStorage);
+		MetadataHolder metadataHolder = createMetadataHolder();
 		DataGroupRedactor dataGroupRedactor = new DataGroupRedactorImp();
 		DataGroupWrapperFactory wrapperFactory = new DataGroupWrapperFactoryImp();
 		MetadataMatchData metadataMatchData = MetadataMatchDataImp
@@ -233,6 +199,11 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 		MatcherFactory matcherFactory = new MatcherFactoryImp(metadataMatchData);
 		return new DataRedactorImp(metadataHolder, dataGroupRedactor, wrapperFactory,
 				matcherFactory);
+	}
+
+	private MetadataHolder createMetadataHolder() {
+		return new MetadataHolderPopulatorImp()
+				.createAndPopulateMetadataHolderFromMetadataStorage();
 	}
 
 	protected abstract void tryToInitialize() throws Exception;

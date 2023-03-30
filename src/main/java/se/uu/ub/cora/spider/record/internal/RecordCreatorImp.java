@@ -175,7 +175,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private void removeRecordPartsUserIsNotAllowedToChange() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		recordAsDataGroup = dataRedactor.removeChildrenForConstraintsWithoutPermissions(metadataId,
-				recordAsDataGroup, recordTypeHandler.getRecordPartCreateWriteConstraints(),
+				recordAsDataGroup, recordTypeHandler.getCreateWriteRecordPartConstraints(),
 				writePermissions);
 	}
 

@@ -742,7 +742,7 @@ public class RecordCreatorTest {
 	private void assertDataRedactorRemoveChildrenForConstraintsWithoutPermissions(
 			DataGroup dataGroup) {
 		Set<?> recordPartWriteConstraints = (Set<?>) recordTypeHandlerSpy.MCR
-				.getReturnValue("getRecordPartCreateWriteConstraints", 0);
+				.getReturnValue("getCreateWriteRecordPartConstraints", 0);
 		Set<?> writePermissions = (Set<?>) spiderAuthorizator.MCR.getReturnValue(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);

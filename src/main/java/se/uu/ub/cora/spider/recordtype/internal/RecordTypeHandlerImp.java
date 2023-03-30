@@ -166,7 +166,7 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<Constraint> getRecordPartReadConstraints() {
+	public Set<Constraint> getReadRecordPartConstraints() {
 		if (constraintsForUpdateNotLoaded()) {
 			collectAllConstraintsForUpdate();
 		}
@@ -392,16 +392,16 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	@Override
 	public boolean hasRecordPartReadConstraint() {
-		return !getRecordPartReadConstraints().isEmpty();
+		return !getReadRecordPartConstraints().isEmpty();
 	}
 
 	@Override
 	public boolean hasRecordPartWriteConstraint() {
-		return hasRecordPartReadConstraint() || !getRecordPartWriteConstraints().isEmpty();
+		return hasRecordPartReadConstraint() || !getUpdateWriteRecordPartConstraints().isEmpty();
 	}
 
 	@Override
-	public Set<Constraint> getRecordPartWriteConstraints() {
+	public Set<Constraint> getUpdateWriteRecordPartConstraints() {
 		if (constraintsForUpdateNotLoaded()) {
 			collectAllConstraintsForUpdate();
 		}
@@ -483,7 +483,7 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<Constraint> getRecordPartCreateWriteConstraints() {
+	public Set<Constraint> getCreateWriteRecordPartConstraints() {
 		if (constraintsForCreateNotLoaded()) {
 			collectAllConstraintsForCreate();
 		}
@@ -516,7 +516,7 @@ public class RecordTypeHandlerImp implements RecordTypeHandler {
 
 	@Override
 	public boolean hasRecordPartCreateConstraint() {
-		return !getRecordPartCreateWriteConstraints().isEmpty();
+		return !getCreateWriteRecordPartConstraints().isEmpty();
 	}
 
 	@Override

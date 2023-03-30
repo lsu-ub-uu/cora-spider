@@ -279,7 +279,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		topDataGroup = dataRedactor.replaceChildrenForConstraintsWithoutPermissions(metadataId,
 				previouslyStoredRecord, topDataGroup,
-				recordTypeHandler.getRecordPartWriteConstraints(), writePermissions);
+				recordTypeHandler.getUpdateWriteRecordPartConstraints(), writePermissions);
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata() {

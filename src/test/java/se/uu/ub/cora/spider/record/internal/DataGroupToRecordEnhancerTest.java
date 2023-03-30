@@ -1534,7 +1534,7 @@ public class DataGroupToRecordEnhancerTest {
 				0);
 
 		Set<?> recordPartConstraints = (Set<?>) recordTypeHandlerSpy.MCR
-				.getReturnValue("getRecordPartReadConstraints", 0);
+				.getReturnValue("getReadRecordPartConstraints", 0);
 
 		dataRedactor.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
 				recordTypeHandlerSpy.getMetadataId(), someDataGroup, recordPartConstraints,
@@ -1567,7 +1567,7 @@ public class DataGroupToRecordEnhancerTest {
 				someDataGroup, dataRedactor);
 
 		Set<?> recordPartConstraints = (Set<?>) recordTypeHandlerSpy.MCR
-				.getReturnValue("getRecordPartReadConstraints", 0);
+				.getReturnValue("getReadRecordPartConstraints", 0);
 
 		dataRedactor.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
 				recordTypeHandlerSpy.getMetadataId(), someDataGroup, recordPartConstraints,

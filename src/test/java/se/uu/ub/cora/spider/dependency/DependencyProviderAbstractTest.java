@@ -45,7 +45,6 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
 import se.uu.ub.cora.bookkeeper.validator.MetadataMatchDataImp;
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -54,7 +53,6 @@ import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.data.internal.DataGroupToFilterImp;
 import se.uu.ub.cora.spider.dependency.spy.DataValidatorFactoySpy;
 import se.uu.ub.cora.spider.dependency.spy.MetadataStorageProviderSpy;
-import se.uu.ub.cora.spider.dependency.spy.MetadataStorageViewSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordArchiveProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.StreamStorageProviderSpy;
@@ -262,35 +260,38 @@ public class DependencyProviderAbstractTest {
 	public void testDataValidatorHasCorrectDependecies() {
 		DataValidator dataValidator = dependencyProvider.getDataValidator();
 
-		MetadataStorageViewSpy metadataStorageView = (MetadataStorageViewSpy) metadataStorageProvider.MCR
-				.getReturnValue("getStorageView", 0);
-
+		// MetadataStorageViewSpy metadataStorageView = (MetadataStorageViewSpy)
+		// metadataStorageProvider.MCR
+		// .getReturnValue("getStorageView", 0);
+		//
 		DataValidatorFactoySpy dataValidatorFactorySpy = dependencyProvider.dataValidatorFactory;
-		var recordTypeHolder = dataValidatorFactorySpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("factor", 0,
-						"recordTypeHolder");
-		assertCorrectRecordTypeHolder(recordTypeHolder, metadataStorageView);
+		// var recordTypeHolder = dataValidatorFactorySpy.MCR
+		// .getValueForMethodNameAndCallNumberAndParameterName("factor", 0,
+		// "recordTypeHolder");
+		// assertCorrectRecordTypeHolder(recordTypeHolder, metadataStorageView);
+		//
+		// MetadataHolder metadataHolder = (MetadataHolder) dataValidatorFactorySpy.MCR
+		// .getValueForMethodNameAndCallNumberAndParameterName("factor", 0, "metadataHolder");
+		// assertCorrectMetadataHolder(metadataHolder);
 
-		MetadataHolder metadataHolder = (MetadataHolder) dataValidatorFactorySpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("factor", 0, "metadataHolder");
-		assertCorrectMetadataHolder(metadataHolder);
-
-		dataValidatorFactorySpy.MCR.assertParameters("factor", 0, recordTypeHolder, metadataHolder);
+		// dataValidatorFactorySpy.MCR.assertParameters("factor", 0, recordTypeHolder,
+		// metadataHolder);
+		dataValidatorFactorySpy.MCR.assertParameters("factor", 0);
 		dataValidatorFactorySpy.MCR.assertReturn("factor", 0, dataValidator);
 	}
 
-	private void assertCorrectMetadataHolder(MetadataHolder metadataHolder) {
-		MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
-		assertEquals(metadataElement.getId(), "someMetadata1");
-	}
-
-	private void assertCorrectRecordTypeHolder(Object recordTypeHolder,
-			MetadataStorageViewSpy metadataStorage) {
-
-		Map<String, DataGroup> map = (Map<String, DataGroup>) recordTypeHolder;
-		assertEquals(map.get("someId1"), metadataStorage.recordTypes.get(0));
-		assertEquals(map.get("someId2"), metadataStorage.recordTypes.get(1));
-	}
+	// private void assertCorrectMetadataHolder(MetadataHolder metadataHolder) {
+	// MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
+	// assertEquals(metadataElement.getId(), "someMetadata1");
+	// }
+	//
+	// private void assertCorrectRecordTypeHolder(Object recordTypeHolder,
+	// MetadataStorageViewSpy metadataStorage) {
+	//
+	// Map<String, DataGroup> map = (Map<String, DataGroup>) recordTypeHolder;
+	// assertEquals(map.get("someId1"), metadataStorage.recordTypes.get(0));
+	// assertEquals(map.get("someId2"), metadataStorage.recordTypes.get(1));
+	// }
 
 	@Test
 	public void testGetDataValidatorFactory() throws Exception {

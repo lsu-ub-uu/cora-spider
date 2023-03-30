@@ -24,7 +24,6 @@ import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class MetadataStorageProviderSpy implements MetadataStorageViewInstanceProvider {
-	// public MetadataStorageView metadataStorage = new MetadataStorageViewSpy();
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
