@@ -25,24 +25,15 @@ import java.util.Map;
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
-import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
-import se.uu.ub.cora.bookkeeper.metadata.MetadataHolderPopulatorImp;
-import se.uu.ub.cora.bookkeeper.recordpart.DataGroupRedactor;
-import se.uu.ub.cora.bookkeeper.recordpart.DataGroupRedactorImp;
-import se.uu.ub.cora.bookkeeper.recordpart.DataGroupWrapperFactory;
-import se.uu.ub.cora.bookkeeper.recordpart.DataGroupWrapperFactoryImp;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
-import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorImp;
-import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactory;
-import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactoryImp;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactory;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactoryImp;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageProvider;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
-import se.uu.ub.cora.bookkeeper.validator.MetadataMatchData;
-import se.uu.ub.cora.bookkeeper.validator.MetadataMatchDataImp;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
@@ -191,19 +182,19 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	@Override
 	public DataRedactor getDataRedactor() {
-		MetadataHolder metadataHolder = createMetadataHolder();
-		DataGroupRedactor dataGroupRedactor = new DataGroupRedactorImp();
-		DataGroupWrapperFactory wrapperFactory = new DataGroupWrapperFactoryImp();
-		MetadataMatchData metadataMatchData = MetadataMatchDataImp
-				.withMetadataHolder(metadataHolder);
-		MatcherFactory matcherFactory = new MatcherFactoryImp(metadataMatchData);
-		return new DataRedactorImp(metadataHolder, dataGroupRedactor, wrapperFactory,
-				matcherFactory);
+		// MetadataHolder metadataHolder = createMetadataHolder();
+		// DataGroupRedactor dataGroupRedactor = new DataGroupRedactorImp();
+		// DataGroupWrapperFactory wrapperFactory = new DataGroupWrapperFactoryImp();
+		// MetadataMatchData metadataMatchData = MetadataMatchDataImp
+		// .withMetadataHolder(metadataHolder);
+		// MatcherFactory matcherFactory = new MatcherFactoryImp(metadataMatchData);
+		// return new DataRedactorImp(metadataHolder, dataGroupRedactor, wrapperFactory,
+		// matcherFactory);
+		return createDataRedactorFactory().factor();
 	}
 
-	private MetadataHolder createMetadataHolder() {
-		return new MetadataHolderPopulatorImp()
-				.createAndPopulateMetadataHolderFromMetadataStorage();
+	DataRedactorFactory createDataRedactorFactory() {
+		return new DataRedactorFactoryImp();
 	}
 
 	protected abstract void tryToInitialize() throws Exception;

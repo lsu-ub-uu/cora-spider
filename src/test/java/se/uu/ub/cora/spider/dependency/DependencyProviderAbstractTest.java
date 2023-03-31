@@ -33,18 +33,13 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
-import se.uu.ub.cora.bookkeeper.metadata.MetadataElement;
-import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
-import se.uu.ub.cora.bookkeeper.recordpart.DataGroupRedactorImp;
-import se.uu.ub.cora.bookkeeper.recordpart.DataGroupWrapperFactoryImp;
-import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorImp;
-import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactoryImp;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactoryImp;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageProvider;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
-import se.uu.ub.cora.bookkeeper.validator.MetadataMatchDataImp;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -343,19 +338,16 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
+	public void testGetDefaultDataRedactor() throws Exception {
+		assertTrue(dependencyProvider
+				.useOriginalGetDataRedactorFactory() instanceof DataRedactorFactoryImp);
+	}
+
+	@Test
 	public void testGetDataRedactor() {
-		DataRedactorImp dataRedactor = (DataRedactorImp) dependencyProvider.getDataRedactor();
+		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 
-		MetadataHolder metadataHolder = dataRedactor.getMetadataHolder();
-		MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
-		assertEquals(metadataElement.getId(), "someMetadata1");
-		assertTrue(dataRedactor.getDataGroupRedactor() instanceof DataGroupRedactorImp);
-		assertTrue(dataRedactor.getDataGroupWrapperFactory() instanceof DataGroupWrapperFactoryImp);
-
-		MatcherFactoryImp matcherFactory = (MatcherFactoryImp) dataRedactor.getMatcherFactory();
-		MetadataMatchDataImp metadataMatchData = (MetadataMatchDataImp) matcherFactory
-				.getMetadataMatchData();
-		assertSame(metadataMatchData.getMetadataHolder(), metadataHolder);
+		dependencyProvider.dataRedactorFactorySpy.MCR.assertReturn("factor", 0, dataRedactor);
 	}
 
 	@Test
