@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
@@ -38,7 +39,6 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordListReader;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.StorageReadResult;
 

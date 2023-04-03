@@ -24,6 +24,7 @@ import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactory;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactory;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
@@ -36,6 +37,7 @@ import se.uu.ub.cora.spider.dependency.spy.DataRedactorFactorySpy;
 import se.uu.ub.cora.spider.dependency.spy.DataValidatorFactoySpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.Uploader;
+import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactorySpy;
 
 public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstract {
 
@@ -54,6 +56,7 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 	public DataRedactorFactorySpy dataRedactorFactorySpy = new DataRedactorFactorySpy();
 	DataValidatorFactoySpy dataValidatorFactory = new DataValidatorFactoySpy();
 	boolean standardDataValidatorFactory = false;
+	public RecordTypeHandlerFactory recordTypeHandlerFactory = new RecordTypeHandlerFactorySpy();
 
 	public SpiderDependencyProviderTestHelper(Map<String, String> initInfo) {
 		super(initInfo);
@@ -115,5 +118,14 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 	@Override
 	DataRedactorFactory createDataRedactorFactory() {
 		return dataRedactorFactorySpy;
+	}
+
+	public RecordTypeHandlerFactory useOriginalGetRecordTypeHandlerFactory() {
+		return super.createRecordTypeHandlerFactory();
+	}
+
+	@Override
+	RecordTypeHandlerFactory createRecordTypeHandlerFactory() {
+		return recordTypeHandlerFactory;
 	}
 }

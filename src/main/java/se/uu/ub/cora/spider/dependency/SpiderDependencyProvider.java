@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.search.RecordIndexer;
@@ -30,7 +31,6 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;

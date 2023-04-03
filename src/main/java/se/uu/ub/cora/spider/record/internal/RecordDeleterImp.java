@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record.internal;
 
 import java.util.List;
 
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordLink;
@@ -33,7 +34,6 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordDeleter;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 
 public final class RecordDeleterImp extends RecordHandler implements RecordDeleter {
 	private static final String DELETE = "delete";

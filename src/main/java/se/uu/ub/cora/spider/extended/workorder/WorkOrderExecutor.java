@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.extended.workorder;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordLink;
@@ -32,7 +33,6 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class WorkOrderExecutor implements ExtendedFunctionality {

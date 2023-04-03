@@ -22,12 +22,12 @@ import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class IndexBatchJobStorer implements BatchJobStorer {

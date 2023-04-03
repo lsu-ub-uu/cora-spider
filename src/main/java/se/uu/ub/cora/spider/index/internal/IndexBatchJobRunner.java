@@ -21,13 +21,13 @@ package se.uu.ub.cora.spider.index.internal;
 import java.util.ArrayList;
 import java.util.List;
 
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.index.BatchRunner;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;

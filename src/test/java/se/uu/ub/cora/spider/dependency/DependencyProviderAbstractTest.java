@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, 2019, 2020 Uppsala University Library
+ * Copyright 2018, 2019, 2020, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -35,6 +35,9 @@ import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactoryImp;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactory;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactoryImp;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageProvider;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
@@ -56,12 +59,8 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.extendedfunctionality.internal.FactorySorterImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactory;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactoryImp;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
+import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactorySpy;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
-import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.StreamStorageProvider;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGeneratorProvider;
@@ -300,8 +299,7 @@ public class DependencyProviderAbstractTest {
 		DataRecordLinkCollectorImp dataRecordLinkCollector = (DataRecordLinkCollectorImp) dependencyProvider
 				.getDataRecordLinkCollector();
 
-		metadataStorageProvider.MCR.assertReturn("getStorageView", 0,
-				dataRecordLinkCollector.getMetadataStorage());
+		assertTrue(dataRecordLinkCollector instanceof DataRecordLinkCollectorImp);
 	}
 
 	@Test
@@ -309,8 +307,7 @@ public class DependencyProviderAbstractTest {
 		DataGroupTermCollectorImp dataGroupTermCollector = (DataGroupTermCollectorImp) dependencyProvider
 				.getDataGroupTermCollector();
 
-		metadataStorageProvider.MCR.assertReturn("getStorageView", 0,
-				dataGroupTermCollector.onlyForTestGetMetadataStorage());
+		assertTrue(dataGroupTermCollector instanceof DataGroupTermCollectorImp);
 	}
 
 	@Test
@@ -321,20 +318,24 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
+	public void testDefaultRecordTypeHandlerFactoryIsImplFromBookkeeper() throws Exception {
+		RecordTypeHandlerFactory factory = dependencyProvider
+				.useOriginalGetRecordTypeHandlerFactory();
+
+		assertTrue(factory instanceof RecordTypeHandlerFactoryImp);
+	}
+
+	@Test
 	public void testGetRecordTypeHandler() throws Exception {
 		String recordTypeId = "someRecordType";
-		RecordTypeHandlerImp recordTypeHandler = (RecordTypeHandlerImp) ((SpiderDependencyProvider) dependencyProvider)
+
+		RecordTypeHandler recordTypeHandler = ((SpiderDependencyProvider) dependencyProvider)
 				.getRecordTypeHandler(recordTypeId);
-		assertTrue(recordTypeHandler instanceof RecordTypeHandler);
-		assertEquals(recordTypeHandler.getRecordTypeId(), recordTypeId);
-		assertTrue(recordTypeHandler.getRecordStorage() instanceof RecordStorage);
-		recordStorageInstanceProvider.MCR.assertReturn("getRecordStorage", 0,
-				recordTypeHandler.getRecordStorage());
-		RecordTypeHandlerFactoryImp recordTypeHandlerFactory = (RecordTypeHandlerFactoryImp) recordTypeHandler
-				.getRecordTypeHandlerFactory();
-		assertTrue(recordTypeHandlerFactory instanceof RecordTypeHandlerFactory);
-		assertSame(recordTypeHandlerFactory.onlyForTestGetRecordStorage(),
-				recordTypeHandler.getRecordStorage());
+
+		RecordTypeHandlerFactorySpy typeHandlerFactorySpy = (RecordTypeHandlerFactorySpy) dependencyProvider.recordTypeHandlerFactory;
+
+		typeHandlerFactorySpy.MCR.assertParameters("factorUsingRecordTypeId", 0, recordTypeId);
+		typeHandlerFactorySpy.MCR.assertReturn("factorUsingRecordTypeId", 0, recordTypeHandler);
 	}
 
 	@Test

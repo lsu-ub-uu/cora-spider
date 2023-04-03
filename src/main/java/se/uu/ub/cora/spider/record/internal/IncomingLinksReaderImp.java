@@ -24,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
@@ -36,7 +37,6 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.MisuseException;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 
 public class IncomingLinksReaderImp extends RecordHandler implements IncomingLinksReader {
 	private static final String READ = "read";

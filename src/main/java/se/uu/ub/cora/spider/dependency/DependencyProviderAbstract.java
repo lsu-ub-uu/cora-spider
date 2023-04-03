@@ -1,5 +1,5 @@
 /*
- y * Copyright 2015, 2016, 2019, 2020 Uppsala University Library
+ y * Copyright 2015, 2016, 2019, 2020, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -28,7 +28,9 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactory;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactoryImp;
-import se.uu.ub.cora.bookkeeper.storage.MetadataStorageProvider;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactory;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactoryImp;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
@@ -46,10 +48,6 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityInitializer;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactory;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactoryImp;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.RecordStorageProvider;
@@ -150,12 +148,12 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	@Override
 	public DataRecordLinkCollector getDataRecordLinkCollector() {
-		return new DataRecordLinkCollectorImp(MetadataStorageProvider.getStorageView());
+		return new DataRecordLinkCollectorImp();
 	}
 
 	@Override
 	public DataGroupTermCollector getDataGroupTermCollector() {
-		return new DataGroupTermCollectorImp(MetadataStorageProvider.getStorageView());
+		return new DataGroupTermCollectorImp();
 	}
 
 	@Override
@@ -182,14 +180,6 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	@Override
 	public DataRedactor getDataRedactor() {
-		// MetadataHolder metadataHolder = createMetadataHolder();
-		// DataGroupRedactor dataGroupRedactor = new DataGroupRedactorImp();
-		// DataGroupWrapperFactory wrapperFactory = new DataGroupWrapperFactoryImp();
-		// MetadataMatchData metadataMatchData = MetadataMatchDataImp
-		// .withMetadataHolder(metadataHolder);
-		// MatcherFactory matcherFactory = new MatcherFactoryImp(metadataMatchData);
-		// return new DataRedactorImp(metadataHolder, dataGroupRedactor, wrapperFactory,
-		// matcherFactory);
 		return createDataRedactorFactory().factor();
 	}
 
@@ -208,11 +198,12 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	@Override
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
-		RecordStorage recordStorage = getRecordStorage();
-		RecordTypeHandlerFactory recordTypeHandlerFactory = new RecordTypeHandlerFactoryImp(
-				recordStorage);
-		return RecordTypeHandlerImp.usingRecordStorageAndRecordTypeId(recordTypeHandlerFactory,
-				recordStorage, recordTypeId);
+		RecordTypeHandlerFactory recordTypeHandlerFactory = createRecordTypeHandlerFactory();
+		return recordTypeHandlerFactory.factorUsingRecordTypeId(recordTypeId);
+	}
+
+	RecordTypeHandlerFactory createRecordTypeHandlerFactory() {
+		return new RecordTypeHandlerFactoryImp();
 	}
 
 	@Override

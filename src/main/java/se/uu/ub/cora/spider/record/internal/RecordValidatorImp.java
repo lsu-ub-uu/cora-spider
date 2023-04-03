@@ -24,6 +24,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataAtomic;
@@ -40,7 +41,6 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.RecordValidator;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 

@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.record.internal;
 import java.io.InputStream;
 import java.util.List;
 
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
@@ -34,8 +35,6 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.Uploader;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
@@ -47,8 +46,10 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 	private String streamId;
 	private DataGroupTermCollector termCollector;
 	private DataGroup recordRead;
+	private SpiderDependencyProvider dependencyProvider;
 
 	private UploaderImp(SpiderDependencyProvider dependencyProvider) {
+		this.dependencyProvider = dependencyProvider;
 		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
@@ -102,8 +103,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 	}
 
 	private String getMetadataIdFromRecordType(String recordType) {
-		RecordTypeHandler recordTypeHandler = RecordTypeHandlerImp
-				.usingRecordStorageAndRecordTypeId(null, recordStorage, recordType);
+		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		return recordTypeHandler.getMetadataId();
 	}
 

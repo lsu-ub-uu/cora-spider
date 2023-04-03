@@ -25,10 +25,10 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
