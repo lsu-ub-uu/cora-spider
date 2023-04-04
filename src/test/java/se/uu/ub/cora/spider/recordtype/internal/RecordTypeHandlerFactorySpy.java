@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.recordtype.internal;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactory;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
@@ -34,6 +35,7 @@ public class RecordTypeHandlerFactorySpy implements RecordTypeHandlerFactory {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("factorUsingDataGroup", RecordTypeHandlerSpy::new);
 		MRV.setDefaultReturnValuesSupplier("factorUsingRecordTypeId", RecordTypeHandlerSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factorUsingDataRecordGroup", RecordTypeHandlerSpy::new);
 	}
 
 	@Override
@@ -44,6 +46,11 @@ public class RecordTypeHandlerFactorySpy implements RecordTypeHandlerFactory {
 	@Override
 	public RecordTypeHandler factorUsingRecordTypeId(String recordTypeId) {
 		return (RecordTypeHandler) MCR.addCallAndReturnFromMRV("recordTypeId", recordTypeId);
+	}
+
+	@Override
+	public RecordTypeHandler factorUsingDataRecordGroup(DataRecordGroup dataRecordGroup) {
+		return (RecordTypeHandler) MCR.addCallAndReturnFromMRV("dataRecordGroup", dataRecordGroup);
 	}
 
 }

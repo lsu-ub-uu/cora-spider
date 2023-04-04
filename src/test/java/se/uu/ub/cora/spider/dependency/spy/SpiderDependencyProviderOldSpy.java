@@ -27,6 +27,7 @@ import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -203,6 +204,13 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 		DataGroupToFilter dataGroupToFilter = new DataGroupToFilterSpy();
 		MCR.addReturned(dataGroupToFilter);
 		return dataGroupToFilter;
+	}
+
+	@Override
+	public RecordTypeHandler getRecordTypeHandlerUsingDataRecordGroup(
+			DataRecordGroup dataRecordGroup) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

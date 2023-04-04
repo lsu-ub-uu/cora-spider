@@ -34,7 +34,7 @@
 
 	<properties>
 		<logger.version>2.8.0</logger.version>
-		<coradata.version>7.6.0</coradata.version>
+		<coradata.version>7.7-SNAPSHOT</coradata.version>
 		<json.version>3.7.0</json.version>
 		<storage.version>8.0.0</storage.version>
 		<storagespies.version>1.4.0</storagespies.version>
@@ -44,7 +44,7 @@
 		<beefeater.version>3.11.0</beefeater.version>
 		<password.version>1.5.0</password.version>
 		<testutils.version>1.9.0</testutils.version>
-		<coradata-spies.version>1.4.0</coradata-spies.version>
+		<coradata-spies.version>1.5-SNAPSHOT</coradata-spies.version>
 	</properties>
 
 

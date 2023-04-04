@@ -128,4 +128,5 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 	RecordTypeHandlerFactory createRecordTypeHandlerFactory() {
 		return recordTypeHandlerFactory;
 	}
+
 }

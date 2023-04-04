@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.data;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAttribute;
@@ -84,6 +85,12 @@ public class DataAtomicSpy implements DataAtomic {
 	public Collection<DataAttribute> getAttributes() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public Optional<String> getAttributeValue(String nameInData) {
+		// TODO Auto-generated method stub
+		return Optional.empty();
 	}
 
 }

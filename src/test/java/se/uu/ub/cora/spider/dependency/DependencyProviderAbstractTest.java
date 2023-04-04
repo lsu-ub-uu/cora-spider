@@ -43,6 +43,8 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
+import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -336,6 +338,20 @@ public class DependencyProviderAbstractTest {
 
 		typeHandlerFactorySpy.MCR.assertParameters("factorUsingRecordTypeId", 0, recordTypeId);
 		typeHandlerFactorySpy.MCR.assertReturn("factorUsingRecordTypeId", 0, recordTypeHandler);
+	}
+
+	@Test
+	public void testGetRecordTypeHandlerUsingDataRecordGroup() throws Exception {
+		DataRecordGroup dataRecordGroup = new DataRecordGroupSpy();
+
+		RecordTypeHandler recordTypeHandler = ((SpiderDependencyProvider) dependencyProvider)
+				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
+
+		RecordTypeHandlerFactorySpy typeHandlerFactorySpy = (RecordTypeHandlerFactorySpy) dependencyProvider.recordTypeHandlerFactory;
+
+		typeHandlerFactorySpy.MCR.assertParameters("factorUsingDataRecordGroup", 0,
+				dataRecordGroup);
+		typeHandlerFactorySpy.MCR.assertReturn("factorUsingDataRecordGroup", 0, recordTypeHandler);
 	}
 
 	@Test

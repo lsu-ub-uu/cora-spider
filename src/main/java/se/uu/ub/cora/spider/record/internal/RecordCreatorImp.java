@@ -99,6 +99,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		this.recordType = recordTypeToCreate;
 		this.recordAsDataGroup = dataGroup;
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
+		//
 		metadataId = recordTypeHandler.getNewMetadataId();
 
 		return validateCreateAndStoreRecord();

@@ -23,6 +23,7 @@ import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -79,5 +80,7 @@ public interface SpiderDependencyProvider {
 	 * @return A new {@link DataGroupToFilter} converter
 	 */
 	DataGroupToFilter getDataGroupToFilterConverter();
+
+	RecordTypeHandler getRecordTypeHandlerUsingDataRecordGroup(DataRecordGroup dataRecordGroup);
 
 }
