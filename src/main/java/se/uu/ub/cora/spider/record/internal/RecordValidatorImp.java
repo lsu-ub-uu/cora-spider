@@ -92,7 +92,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private String getMetadataIdForWorkOrder(String recordType) {
 		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		return recordTypeHandler.getNewMetadataId();
+		return recordTypeHandler.getCreateDefinitionId();
 	}
 
 	private void checkUserIsAuthorizedForCreateOnRecordType() {
@@ -172,8 +172,8 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private String getMetadataId(String recordTypeToValidate) {
 		RecordTypeHandler recordTypeHandler = dependencyProvider
 				.getRecordTypeHandler(recordTypeToValidate);
-		return validateNew() ? recordTypeHandler.getNewMetadataId()
-				: recordTypeHandler.getMetadataId();
+		return validateNew() ? recordTypeHandler.getCreateDefinitionId()
+				: recordTypeHandler.getDefinitionId();
 	}
 
 	private boolean validateNew() {

@@ -58,7 +58,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	@Override
 	public void run() {
 		setNeededDependenciesInClass();
-		String metadataId = recordTypeHandler.getMetadataId();
+		String metadataId = recordTypeHandler.getDefinitionId();
 		ensureNumberOfIndexedIsZero();
 		readListAndIndexDataInBatches(metadataId);
 		updateIndexBatchJobAsFinished();

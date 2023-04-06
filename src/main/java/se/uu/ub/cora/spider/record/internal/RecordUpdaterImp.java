@@ -103,7 +103,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		checkUserIsAuthorizedForActionOnRecordType();
 
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		metadataId = recordTypeHandler.getMetadataId();
+		metadataId = recordTypeHandler.getDefinitionId();
 
 		checkNoUpdateForAbstractRecordType();
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();

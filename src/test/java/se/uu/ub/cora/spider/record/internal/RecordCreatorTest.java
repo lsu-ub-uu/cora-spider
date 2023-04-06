@@ -747,7 +747,7 @@ public class RecordCreatorTest {
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
 		dataRedactor.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
-				recordTypeHandlerSpy.getMetadataId(), dataGroup, recordPartWriteConstraints,
+				recordTypeHandlerSpy.getDefinitionId(), dataGroup, recordPartWriteConstraints,
 				writePermissions);
 	}
 

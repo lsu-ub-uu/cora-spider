@@ -111,7 +111,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public String getNewMetadataId() {
+	public String getCreateDefinitionId() {
 		// MCR.addCall();
 		// String returnValue = "fakeMetadataIdFromRecordTypeHandlerSpy";
 		// MCR.addReturned(returnValue);
@@ -120,7 +120,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public String getMetadataId() {
+	public String getDefinitionId() {
 		// MCR.addCall();
 		// String returnValue = "fakeMetadataIdFromRecordTypeHandlerSpy";
 		// MCR.addReturned(returnValue);

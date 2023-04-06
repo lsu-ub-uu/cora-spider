@@ -93,7 +93,7 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 	}
 
 	private CollectTerms getCollectedTermsForRecord(DataGroup recordRead) {
-		String metadataId = recordTypeHandler.getMetadataId();
+		String metadataId = recordTypeHandler.getDefinitionId();
 		return collectTermCollector.collectTerms(metadataId, recordRead);
 	}
 

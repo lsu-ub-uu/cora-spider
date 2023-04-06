@@ -112,7 +112,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private String getMetadataIdFromRecordType() {
-		return recordTypeHandler.getMetadataId();
+		return recordTypeHandler.getDefinitionId();
 	}
 
 	private String getRecordIdFromDataRecord(DataGroup dataGroup) {
@@ -347,7 +347,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getReadRecordPartConstraints();
 		return dataRedactor.removeChildrenForConstraintsWithoutPermissions(
-				recordTypeHandler.getMetadataId(), dataGroup, recordPartReadConstraints,
+				recordTypeHandler.getDefinitionId(), dataGroup, recordPartReadConstraints,
 				readRecordPartPermissions);
 	}
 

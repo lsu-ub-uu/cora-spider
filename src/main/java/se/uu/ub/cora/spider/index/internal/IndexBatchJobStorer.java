@@ -66,7 +66,7 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 	private String getMetadataIdFromRecordTypeHandler() {
 		RecordTypeHandler recordTypeHandler = dependencyProvider
 				.getRecordTypeHandler(INDEX_BATCH_JOB);
-		return recordTypeHandler.getMetadataId();
+		return recordTypeHandler.getDefinitionId();
 	}
 
 	private DataGroup completeStoredDataGroup(IndexBatchJob indexBatchJob) {

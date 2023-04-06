@@ -98,7 +98,7 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 
 	private String getMetadataIdFromRecordType(String recordType) {
 		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		return recordTypeHandler.getMetadataId();
+		return recordTypeHandler.getDefinitionId();
 	}
 
 	private void checkNoIncomingLinksExists(String recordType, String recordId) {

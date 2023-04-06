@@ -104,7 +104,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 
 	private String getMetadataIdFromRecordType(String recordType) {
 		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		return recordTypeHandler.getMetadataId();
+		return recordTypeHandler.getDefinitionId();
 	}
 
 	private void checkStreamIsPresent(InputStream inputStream) {

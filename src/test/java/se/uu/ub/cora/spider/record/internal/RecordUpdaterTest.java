@@ -267,7 +267,7 @@ public class RecordUpdaterTest {
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
 		dataRedactor.MCR.assertParameters("replaceChildrenForConstraintsWithoutPermissions", 0,
-				recordTypeHandlerSpy.getMetadataId(), recordStorage.MCR.getReturnValue("read", 0),
+				recordTypeHandlerSpy.getDefinitionId(), recordStorage.MCR.getReturnValue("read", 0),
 				dataGroup, recordTypeHandlerSpy.writeConstraints, expectedPermissions);
 
 		DataGroup returnedRedactedDataGroup = (DataGroup) dataRedactor.MCR
