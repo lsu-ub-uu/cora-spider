@@ -340,7 +340,8 @@ public class RecordListIndexerTest {
 
 	@Test
 	public void testRecordTypeIsAbstract() throws Exception {
-		dependencyProviderSpy.recordTypeHandlerSpy.isAbstract = true;
+		dependencyProviderSpy.recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract",
+				() -> true);
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);

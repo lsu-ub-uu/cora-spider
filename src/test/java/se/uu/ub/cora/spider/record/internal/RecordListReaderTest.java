@@ -228,7 +228,7 @@ public class RecordListReaderTest {
 
 	@Test
 	public void testEnhanceIsCalledForRecordsReturnedFromStorage() {
-		recordTypeHandlerSpy.isAbstract = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
 		recordStorage.numberToReturnForReadList = 2;
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);

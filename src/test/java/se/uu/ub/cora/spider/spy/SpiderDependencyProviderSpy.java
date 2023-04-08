@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Olov McKie
+ * Copyright 2022, 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -27,13 +27,20 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
+import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
+import se.uu.ub.cora.spider.record.DataRedactorSpy;
+import se.uu.ub.cora.spider.record.StreamStorageSpy;
+import se.uu.ub.cora.spider.record.internal.RecordSearchSpy;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
@@ -49,7 +56,30 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	public SpiderDependencyProviderSpy() {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("getRecordStorage", RecordStorageSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordArchive", RecordArchiveSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getStreamStorage", StreamStorageSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordIdGenerator", IdGeneratorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator", SpiderAuthorizatorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getDataValidator", DataValidatorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getDataRecordLinkCollector",
+				DataRecordLinkCollectorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
+				DataGroupTermCollectorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getPermissionRuleCalculator", RuleCalculatorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getDataRedactor", DataRedactorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
+				ExtendedFunctionalityProviderSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getAuthenticator", AuthenticatorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordSearch", RecordSearchSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordIndexer", RecordIndexerSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler", RecordTypeHandlerSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandlerUsingDataRecordGroup",
+				RecordTypeHandlerSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getDataGroupToRecordEnhancer",
+				DataGroupToRecordEnhancerSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getInitInfoValueUsingKey", String::new);
+		MRV.setDefaultReturnValuesSupplier("getDataGroupToFilterConverter",
+				DataGroupToFilterSpy::new);
 	}
 
 	@Override
@@ -59,110 +89,94 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 
 	@Override
 	public RecordArchive getRecordArchive() {
-		// TODO Auto-generated method stub
-		return null;
+		return (RecordArchive) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public StreamStorage getStreamStorage() {
-		// TODO Auto-generated method stub
-		return null;
+		return (StreamStorage) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public RecordIdGenerator getRecordIdGenerator() {
-		// TODO Auto-generated method stub
-		return null;
+		return (RecordIdGenerator) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public SpiderAuthorizator getSpiderAuthorizator() {
-		// TODO Auto-generated method stub
-		return null;
+		return (SpiderAuthorizator) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public DataValidator getDataValidator() {
-		// TODO Auto-generated method stub
-		return null;
+		return (DataValidator) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public DataRecordLinkCollector getDataRecordLinkCollector() {
-		// TODO Auto-generated method stub
-		return null;
+		return (DataRecordLinkCollector) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public DataGroupTermCollector getDataGroupTermCollector() {
-		// TODO Auto-generated method stub
-		return null;
+		return (DataGroupTermCollector) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public PermissionRuleCalculator getPermissionRuleCalculator() {
-		// TODO Auto-generated method stub
-		return null;
+		return (PermissionRuleCalculator) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public DataRedactor getDataRedactor() {
-		// TODO Auto-generated method stub
-		return null;
+		return (DataRedactor) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public ExtendedFunctionalityProvider getExtendedFunctionalityProvider() {
-		// TODO Auto-generated method stub
-		return null;
+		return (ExtendedFunctionalityProvider) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public Authenticator getAuthenticator() {
-		// TODO Auto-generated method stub
-		return null;
+		return (Authenticator) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public RecordSearch getRecordSearch() {
-		// TODO Auto-generated method stub
-		return null;
+		return (RecordSearch) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public RecordIndexer getRecordIndexer() {
-		// TODO Auto-generated method stub
-		return null;
+		return (RecordIndexer) MCR.addCallAndReturnFromMRV();
 	}
 
+	@Deprecated
 	@Override
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
 		return (RecordTypeHandler) MCR.addCallAndReturnFromMRV("recordTypeId", recordTypeId);
 	}
 
 	@Override
+	public RecordTypeHandler getRecordTypeHandlerUsingDataRecordGroup(
+			DataRecordGroup dataRecordGroup) {
+		return (RecordTypeHandler) MCR.addCallAndReturnFromMRV("dataRecordGroup", dataRecordGroup);
+	}
+
+	@Override
 	public DataGroupToRecordEnhancer getDataGroupToRecordEnhancer() {
-		// TODO Auto-generated method stub
-		return null;
+		return (DataGroupToRecordEnhancer) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public String getInitInfoValueUsingKey(String key) {
-		// TODO Auto-generated method stub
-		return null;
+		return (String) MCR.addCallAndReturnFromMRV("key", key);
 	}
 
 	@Override
 	public DataGroupToFilter getDataGroupToFilterConverter() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public RecordTypeHandler getRecordTypeHandlerUsingDataRecordGroup(
-			DataRecordGroup dataRecordGroup) {
-		// TODO Auto-generated method stub
-		return null;
+		return (DataGroupToFilter) MCR.addCallAndReturnFromMRV();
 	}
 
 }

@@ -180,7 +180,7 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testEnhancerCalledCorrectlyWhenAbstractRecordType() throws Exception {
-		recordTypeHandlerSpy.isAbstract = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
 
 		DataGroup dataGroup = new DataGroupOldSpy("someNameInData");
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");

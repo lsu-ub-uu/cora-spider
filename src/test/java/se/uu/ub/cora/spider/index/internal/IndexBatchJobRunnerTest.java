@@ -152,8 +152,10 @@ public class IndexBatchJobRunnerTest {
 
 		RecordTypeHandlerSpy recordTypeHandler = dependencyProvider.recordTypeHandlerSpy;
 
+		// termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
+		// recordTypeHandler.MCR.getReturnValue("getMetadataId", 0));
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
-				recordTypeHandler.MCR.getReturnValue("getMetadataId", 0));
+				recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0));
 
 		StorageReadResult srr1 = (StorageReadResult) recordStorage.MCR.getReturnValue("readList",
 				0);
@@ -161,8 +163,10 @@ public class IndexBatchJobRunnerTest {
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
 				srr1.listOfDataGroups.get(0));
 
+		// termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
+		// recordTypeHandler.MCR.getReturnValue("getMetadataId", 0));
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
-				recordTypeHandler.MCR.getReturnValue("getMetadataId", 0));
+				recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0));
 
 		termCollector.MCR.assertParameter("collectTerms", 1, "dataGroup",
 				srr1.listOfDataGroups.get(1));

@@ -300,8 +300,8 @@ public class RecordUpdaterTest {
 	public void testUpdateRecordAbstractRecordType() {
 		setUpDependencyProvider();
 		DataGroup record = new DataGroupOldSpy("abstract");
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
-		recordTypeHandlerSpy.isAbstract = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
 
 		recordUpdater.updateRecord("someToken78678567", "abstract", "spyId", record);
 	}
@@ -310,8 +310,8 @@ public class RecordUpdaterTest {
 	public void testUpdateRecordAbstractRecordTypeBeforeReadRecord() {
 		setUpDependencyProvider();
 		DataGroup record = new DataGroupOldSpy("abstract");
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
-		recordTypeHandlerSpy.isAbstract = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
 		try {
 			recordUpdater.updateRecord("someToken78678567", "abstract", "spyId", record);
 		} catch (Exception e) {
@@ -791,8 +791,7 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testStoreInArchiveTrue() throws Exception {
-
-		recordTypeHandlerSpy.storeInArchive = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
 		DataGroupSpy recordSpy = createDataGroupForUpdate();
 
 		recordUpdater.updateRecord("someToken", "spyType", "someRecordId", recordSpy);
@@ -823,7 +822,6 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testStoreInArchiveFalse() throws Exception {
-		recordTypeHandlerSpy.storeInArchive = false;
 		DataGroupSpy recordSpy = createDataGroupForUpdate();
 
 		recordUpdater.updateRecord("someToken", "spyType", "someRecordId", recordSpy);

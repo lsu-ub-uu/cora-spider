@@ -339,9 +339,15 @@ public class SpiderRecordValidatorTest {
 	public void testValidateRecordInvalidData() {
 		dataValidator.setNotValidForMetadataGroupId("text");
 		RecordTypeHandlerSpy placeTypeHandler = new RecordTypeHandlerSpy();
-		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getNewMetadataId",
+		// placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getNewMetadataId",
+		// (Supplier<String>) () -> "text");
+		// placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getMetadataId",
+		// (Supplier<String>) () -> "text");
+		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getCreateDefinitonId",
 				(Supplier<String>) () -> "text");
-		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getMetadataId",
+		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
+				(Supplier<String>) () -> "text");
+		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
 				(Supplier<String>) () -> "text");
 		dependencyProvider.mapOfRecordTypeHandlerSpies.put("text", placeTypeHandler);
 
@@ -390,9 +396,15 @@ public class SpiderRecordValidatorTest {
 		setUpDependencyProvider();
 
 		RecordTypeHandlerSpy placeTypeHandler = new RecordTypeHandlerSpy();
-		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getNewMetadataId",
+		// placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getNewMetadataId",
+		// (Supplier<String>) () -> "dataWithLinksNew");
+		// placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getMetadataId",
+		// (Supplier<String>) () -> "dataWithLinksNew");
+		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getCreateDefinitionId",
 				(Supplier<String>) () -> "dataWithLinksNew");
-		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getMetadataId",
+		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
+				(Supplier<String>) () -> "dataWithLinksNew");
+		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
 				(Supplier<String>) () -> "dataWithLinksNew");
 		dependencyProvider.mapOfRecordTypeHandlerSpies.put("text", placeTypeHandler);
 

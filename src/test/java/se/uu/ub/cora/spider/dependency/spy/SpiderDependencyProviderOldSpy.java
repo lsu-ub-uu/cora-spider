@@ -140,6 +140,7 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 		return recordIndexer;
 	}
 
+	@Deprecated
 	@Override
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
 		MCR.addCall("recordTypeId", recordTypeId);
@@ -149,6 +150,13 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 		}
 		MCR.addReturned(recordTypeHandlerSpyToReturn);
 		return recordTypeHandlerSpyToReturn;
+	}
+
+	@Override
+	public RecordTypeHandler getRecordTypeHandlerUsingDataRecordGroup(
+			DataRecordGroup dataRecordGroup) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -204,13 +212,6 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 		DataGroupToFilter dataGroupToFilter = new DataGroupToFilterSpy();
 		MCR.addReturned(dataGroupToFilter);
 		return dataGroupToFilter;
-	}
-
-	@Override
-	public RecordTypeHandler getRecordTypeHandlerUsingDataRecordGroup(
-			DataRecordGroup dataRecordGroup) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

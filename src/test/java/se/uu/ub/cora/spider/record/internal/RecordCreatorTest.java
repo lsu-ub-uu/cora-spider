@@ -72,6 +72,7 @@ import se.uu.ub.cora.spider.spy.RecordArchiveSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.RecordConflictException;
@@ -100,10 +101,15 @@ public class RecordCreatorTest {
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
 	private RecordArchiveSpy recordArchive;
+	private SpiderDependencyProviderSpy dependencyProviderSpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
+
+		setUpToReturn1ForCreatedAtomicIds();
+		setUpToReturnFakeDataForCreatedTS();
+
 		authenticator = new AuthenticatorSpy();
 		spiderAuthorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
@@ -115,6 +121,7 @@ public class RecordCreatorTest {
 		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
 		recordArchive = new RecordArchiveSpy();
+		dataRedactor = new DataRedactorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -125,10 +132,6 @@ public class RecordCreatorTest {
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		dataCopierFactory = new DataCopierFactorySpy();
 		DataCopierProvider.setDataCopierFactory(dataCopierFactory);
-		dataRedactor = new DataRedactorSpy();
-
-		setUpToReturn1ForCreatedAtomicIds();
-		setUpToReturnFakeDataForCreatedTS();
 	}
 
 	private void setUpToReturn1ForCreatedAtomicIds() {
@@ -160,33 +163,41 @@ public class RecordCreatorTest {
 		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.recordIndexer = recordIndexer;
 		dependencyProvider.recordArchive = recordArchive;
-		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
 		dependencyProvider.dataRedactor = dataRedactor;
+
+		dependencyProviderSpy = new SpiderDependencyProviderSpy();
+
+		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
+		// recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+		// dependencyProviderSpy, dataGroupToRecordEnhancer);
 	}
 
 	@Test
 	public void testRecordTypeHandlerFetchedFromDependencyProvider() {
-		DataGroup dataGroup = setupForAutoGenerateId();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		// dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
+		// () -> recordTypeHandlerSpy);
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "spyType");
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 1);
+		// dependencyProviderSpy.MCR.assertParameters("getRecordTypeHandler", 0, "spyType");
+		// dependencyProviderSpy.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 1);
 	}
 
-	private DataGroup setupRecordStorageAndDataGroup() {
-		setUpDependencyProvider();
-		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("nameInData",
-				"cora");
-		return dataGroup;
+	private DataGroup createRecordWithNameInDataNameInDataAndDataDividerCora() {
+		return DataCreator2.createRecordWithNameInDataAndLinkedDataDividerId("nameInData", "cora");
 	}
 
 	@Test
 	public void testAuthenticatorIsCalled() throws Exception {
-		DataGroup dataGroup = setupForAutoGenerateId();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 
 		String authToken = "dummyAuthenticatedToken";
 		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
@@ -196,7 +207,8 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testAuthorizatorIsCalled() throws Exception {
-		DataGroup dataGroup = setupForAutoGenerateId();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 		String recordType = "spyType";
 
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", recordType, dataGroup);
@@ -211,15 +223,16 @@ public class RecordCreatorTest {
 	public void testCreateRecordAbstractRecordType() {
 		setUpDependencyProvider();
 		DataGroup record = new DataGroupOldSpy("abstract");
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
-		recordTypeHandlerSpy.isAbstract = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
 
 		recordCreator.createAndStoreRecord("someToken78678567", "abstract", record);
 	}
 
 	@Test
 	public void testNotPossibleToCreateRecordWithTypeAndIdWhichAlreadyExists() throws Exception {
-		DataGroup dataGroup = setupForAutoGenerateId();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 		String authToken = "dummyAuthenticatedToken";
 
 		recordStorage.MRV.setSpecificReturnValuesSupplier("recordExists",
@@ -244,11 +257,11 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testNotPossibleToCreateRecordWithTypeAndIdWhichAlreadyExistsForImplementingType() {
-		DataGroup dataGroup = setupForAutoGenerateId();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 		String authToken = "dummyAuthenticatedToken";
 
-		recordTypeHandlerSpy.hasParent = true;
-
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("hasParent", () -> true);
 		recordStorage.MRV.setSpecificReturnValuesSupplier("recordExists",
 				(Supplier<Boolean>) () -> true, List.of("oneImplementingTypeId"), "1");
 
@@ -280,8 +293,8 @@ public class RecordCreatorTest {
 	public void testExtendedFunctionalityIsCalled() {
 		String recordType = "spyType";
 		String authToken = "someToken78678567";
-		DataGroup dataGroup = setupRecordStorageAndDataGroup();
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 
 		recordCreator.createAndStoreRecord(authToken, recordType, dataGroup);
 
@@ -304,7 +317,8 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testRecordEnhancerCalled() {
-		DataGroup dataGroup = setupForAutoGenerateId();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 
@@ -321,7 +335,7 @@ public class RecordCreatorTest {
 	public void testGetActiveUserFails() {
 		authenticator.throwAuthenticationException = true;
 
-		DataGroup dataGroup = setupRecordStorageAndDataGroup();
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 
 		recordCreator.createAndStoreRecord("dummyNonAuthenticatedToken", "spyType", dataGroup);
 	}
@@ -329,8 +343,8 @@ public class RecordCreatorTest {
 	@Test
 	public void testIndexerIsCalled() {
 		String authToken = "someToken78678567";
-		DataGroup dataGroup = setupRecordStorageAndDataGroup();
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 
 		recordCreator.createAndStoreRecord(authToken, "spyType", dataGroup);
 
@@ -357,10 +371,10 @@ public class RecordCreatorTest {
 	@Test
 	public void testCreateRecordAutogeneratedId() {
 		setUpDependencyProvider();
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 
-		DataGroup record = DataCreator2
-				.createRecordWithNameInDataAndLinkedRecordId("typeWithAutoGeneratedId", "cora");
+		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedDataDividerId(
+				"typeWithAutoGeneratedId", "cora");
 
 		DataRecord recordOut = recordCreator.createAndStoreRecord("someToken78678567",
 				"typeWithAutoGeneratedId", record);
@@ -391,10 +405,10 @@ public class RecordCreatorTest {
 	@Test
 	public void testAutogeneratedIdSentToStorageUsingGeneratedId() {
 		setUpDependencyProvider();
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 
-		DataGroup record = DataCreator2
-				.createRecordWithNameInDataAndLinkedRecordId("typeWithAutoGeneratedId", "cora");
+		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedDataDividerId(
+				"typeWithAutoGeneratedId", "cora");
 
 		DataRecord recordOut = recordCreator.createAndStoreRecord("someToken78678567",
 				"typeWithAutoGeneratedId", record);
@@ -412,8 +426,8 @@ public class RecordCreatorTest {
 	@Test
 	public void testCreateRecordAutogeneratedIdSentInIdIsIgnored() {
 		setUpDependencyProvider();
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
-		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedRecordId(
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedDataDividerId(
 				"typeWithAutoGeneratedIdWrongRecordInfo", "cora");
 
 		DataGroupOldSpy createdRecordInfo = (DataGroupOldSpy) record
@@ -560,8 +574,7 @@ public class RecordCreatorTest {
 	@Test
 	public void testCreateRecordCollectedTermsSentAlong() {
 		setUpDependencyProvider();
-
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 
 		DataGroup record = DataCreator2.createRecordWithNameInDataAndIdAndLinkedRecordId(
 				"typeWithUserGeneratedId", "somePlace", "cora");
@@ -580,8 +593,8 @@ public class RecordCreatorTest {
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testCreateRecordUnauthorizedForActionCreate() {
 		spiderAuthorizator.authorizedForActionAndRecordType = false;
-		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("authority",
-				"cora");
+		DataGroup record = DataCreator2
+				.createRecordWithNameInDataAndLinkedDataDividerId("authority", "cora");
 
 		recordCreator.createAndStoreRecord("someToken78678567", "place", record);
 	}
@@ -591,7 +604,7 @@ public class RecordCreatorTest {
 		spiderAuthorizator.authorizedForActionAndRecordType = false;
 		setUpDependencyProvider();
 
-		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("spyType",
+		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedDataDividerId("spyType",
 				"cora");
 		boolean exceptionWasCaught = false;
 		try {
@@ -615,9 +628,9 @@ public class RecordCreatorTest {
 			+ "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData from Spy")
 	public void testCreateRecordUnauthorizedForDataInRecord() {
 		spiderAuthorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 
-		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedRecordId("place",
+		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedDataDividerId("place",
 				"cora");
 		recordCreator.createAndStoreRecord("someToken78678567", "place", record);
 	}
@@ -656,8 +669,8 @@ public class RecordCreatorTest {
 		setupLinkCollectorToReturnALinkSoThatWeCheckThatTheLinkedRecordExistsInStorage();
 
 		DataGroup dataGroup = RecordLinkTestsDataCreator.createDataDataGroupWithLink();
-		dataGroup.addChild(DataCreator2.createRecordInfoWithLinkedRecordId("cora"));
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
+		dataGroup.addChild(DataCreator2.createRecordInfoWithLinkedDataDividerId("cora"));
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 
 		recordCreator.createAndStoreRecord("someToken78678567", "dataWithLinks", dataGroup);
 	}
@@ -673,8 +686,8 @@ public class RecordCreatorTest {
 		recordStorage.MRV.setSpecificReturnValuesSupplier("recordExists",
 				(Supplier<Boolean>) () -> true, List.of("oneImplementingTypeId"), "toId");
 		DataGroup dataGroup = RecordLinkTestsDataCreator.createDataDataGroupWithLink();
-		dataGroup.addChild(DataCreator2.createRecordInfoWithLinkedRecordId("cora"));
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
+		dataGroup.addChild(DataCreator2.createRecordInfoWithLinkedDataDividerId("cora"));
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 
 		recordCreator.createAndStoreRecord("someToken78678567", "dataWithLinks", dataGroup);
 
@@ -688,7 +701,8 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testReturnRecordWithoutReadActionIfUserHasCreateButNotReadAccess() {
-		DataGroup dataGroup = setupForAutoGenerateId();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 		dataGroupToRecordEnhancer.addReadAction = false;
 
 		DataRecord createdRecord = recordCreator.createAndStoreRecord("dummyAuthenticatedToken",
@@ -708,7 +722,8 @@ public class RecordCreatorTest {
 	}
 
 	private DataGroup setupForNoRecordPartConstraints() {
-		DataGroup dataGroup = setupForAutoGenerateId();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 		recordTypeHandlerSpy.recordPartConstraint = "";
 		return dataGroup;
 	}
@@ -725,17 +740,12 @@ public class RecordCreatorTest {
 	}
 
 	private DataGroup setupForRecordPartConstraints() {
-		DataGroup dataGroup = setupForAutoGenerateId();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 		DataGroup dataGroupReturnedFromRedactor = DataCreator2
-				.createRecordWithNameInDataAndLinkedRecordId("nameInData", "cora");
+				.createRecordWithNameInDataAndLinkedDataDividerId("nameInData", "cora");
 		dataRedactor.returnDataGroup = dataGroupReturnedFromRedactor;
 		recordTypeHandlerSpy.recordPartConstraint = "write";
-		return dataGroup;
-	}
-
-	private DataGroup setupForAutoGenerateId() {
-		DataGroup dataGroup = setupRecordStorageAndDataGroup();
-		recordTypeHandlerSpy.shouldAutoGenerateId = true;
 		return dataGroup;
 	}
 
@@ -758,8 +768,8 @@ public class RecordCreatorTest {
 
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 
-		String newMetadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getNewMetadataId",
-				0);
+		String newMetadataId = (String) recordTypeHandlerSpy.MCR
+				.getReturnValue("getCreateDefinitionId", 0);
 
 		dataValidator.MCR.assertParameters("validateData", 0, newMetadataId, dataGroup);
 	}
@@ -774,15 +784,15 @@ public class RecordCreatorTest {
 		DataGroup redactedDataGroup = (DataGroup) dataRedactor.MCR
 				.getReturnValue("removeChildrenForConstraintsWithoutPermissions", 0);
 
-		String newMetadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getNewMetadataId",
-				0);
+		String newMetadataId = (String) recordTypeHandlerSpy.MCR
+				.getReturnValue("getCreateDefinitionId", 0);
 
 		dataValidator.MCR.assertParameters("validateData", 0, newMetadataId, redactedDataGroup);
 	}
 
 	@Test
 	public void testStoreInArchiveTrue() throws Exception {
-		recordTypeHandlerSpy.storeInArchive = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
 		DataGroupSpy recordSpy = createDataGroupForCreate();
 
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", recordSpy);
@@ -807,7 +817,6 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testStoreInArchiveFalse() throws Exception {
-		recordTypeHandlerSpy.storeInArchive = false;
 		DataGroupSpy recordSpy = createDataGroupForCreate();
 
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", recordSpy);

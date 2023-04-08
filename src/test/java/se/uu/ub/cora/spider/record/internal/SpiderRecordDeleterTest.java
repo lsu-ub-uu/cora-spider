@@ -156,8 +156,10 @@ public class SpiderRecordDeleterTest {
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "delete",
 				"child1", collectTerms.permissionTerms);
 
+		// termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
+		// dependencyProvider.recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0));
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
-				dependencyProvider.recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0));
+				dependencyProvider.recordTypeHandlerSpy.MCR.getReturnValue("getDefinitionId", 0));
 
 		OldRecordStorageSpy recordStorageSpy = (OldRecordStorageSpy) recordStorage;
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",

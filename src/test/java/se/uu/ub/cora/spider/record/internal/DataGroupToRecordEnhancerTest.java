@@ -189,9 +189,12 @@ public class DataGroupToRecordEnhancerTest {
 		RecordTypeHandlerSpy recordTypeHandler = (RecordTypeHandlerSpy) dependencyProvider.MCR
 				.getReturnValue("getRecordTypeHandler", 0);
 
-		recordTypeHandler.MCR.assertMethodWasCalled("getMetadataId");
+		// recordTypeHandler.MCR.assertMethodWasCalled("getMetadataId");
+		// String metadataIdFromRecordTypeHandler = (String) recordTypeHandler.MCR
+		// .getReturnValue("getMetadataId", 0);
+		recordTypeHandler.MCR.assertMethodWasCalled("getDefinitionId");
 		String metadataIdFromRecordTypeHandler = (String) recordTypeHandler.MCR
-				.getReturnValue("getMetadataId", 0);
+				.getReturnValue("getDefinitionId", 0);
 
 		dependencyProvider.MCR.assertParameters("getDataGroupTermCollector", 0);
 		DataGroupTermCollectorSpy termCollectorSpy = (DataGroupTermCollectorSpy) dependencyProvider.MCR
@@ -603,7 +606,7 @@ public class DataGroupToRecordEnhancerTest {
 
 	private void setupForDeleteButIncomingLinksExistsForParentRecordType() {
 		createRecordStorageSpy();
-		recordTypeHandlerSpy.hasParent = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("hasParent", () -> true);
 		RecordStorageOldSpy recordStorageSpy = (RecordStorageOldSpy) dependencyProvider
 				.getRecordStorage();
 		recordStorageSpy.incomingLinksExistsForType.add("someParentId");
@@ -998,7 +1001,8 @@ public class DataGroupToRecordEnhancerTest {
 
 	private void setupForCreateActionAndAbstract() {
 		setupForListAction();
-		recordTypeHandlerSpy.isAbstract = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
+
 	}
 
 	private void assertCreateActionForRecordTypeRecordTypeIsAbstract(DataRecord record) {
@@ -1870,7 +1874,8 @@ public class DataGroupToRecordEnhancerTest {
 		recordStorage.MCR.assertParameter("read", 3, "id", "toRecordId");
 		recordStorage.MCR.assertParameters("read", 3, types, "toRecordId");
 
-		String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
+		// String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
+		String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getDefinitionId", 0);
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId", metadataId);
