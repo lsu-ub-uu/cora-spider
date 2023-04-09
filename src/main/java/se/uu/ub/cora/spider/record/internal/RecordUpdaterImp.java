@@ -35,6 +35,7 @@ import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
@@ -102,7 +103,10 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
-		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
+		DataRecordGroup dataGroupAsRecordGroup = DataProvider
+				.createRecordGroupFromDataGroup(topDataGroup);
+		recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
 		metadataId = recordTypeHandler.getDefinitionId();
 
 		checkNoUpdateForAbstractRecordType();

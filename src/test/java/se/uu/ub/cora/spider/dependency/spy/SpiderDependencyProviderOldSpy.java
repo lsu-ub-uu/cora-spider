@@ -155,8 +155,14 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	@Override
 	public RecordTypeHandler getRecordTypeHandlerUsingDataRecordGroup(
 			DataRecordGroup dataRecordGroup) {
-		// TODO Auto-generated method stub
-		return null;
+		// MCR.addCall("recordTypeId", recordTypeId);
+		MCR.addCall("dataRecordGroup", dataRecordGroup);
+		RecordTypeHandler recordTypeHandlerSpyToReturn = recordTypeHandlerSpy;
+		// if (mapOfRecordTypeHandlerSpies.containsKey(recordTypeId)) {
+		// recordTypeHandlerSpyToReturn = mapOfRecordTypeHandlerSpies.get(recordTypeId);
+		// }
+		MCR.addReturned(recordTypeHandlerSpyToReturn);
+		return recordTypeHandlerSpyToReturn;
 	}
 
 	@Override

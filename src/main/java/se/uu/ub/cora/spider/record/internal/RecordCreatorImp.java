@@ -32,6 +32,7 @@ import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.IndexTerm;
@@ -96,12 +97,13 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	public DataRecord createAndStoreRecord(String authToken, String recordTypeToCreate,
 			DataGroup dataGroup) {
 		this.authToken = authToken;
-		this.recordType = recordTypeToCreate;
-		this.recordAsDataGroup = dataGroup;
-		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		// recordTypeHandler = dependencyProvider
-		// .getRecordTypeHandlerUsingDataRecordGroup(recordAsDataRecordGroup);
-		//
+		recordType = recordTypeToCreate;
+		recordAsDataGroup = dataGroup;
+		DataRecordGroup dataGroupAsRecordGroup = DataProvider
+				.createRecordGroupFromDataGroup(dataGroup);
+		recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
+
 		metadataId = recordTypeHandler.getCreateDefinitionId();
 
 		return validateCreateAndStoreRecord();
@@ -197,6 +199,14 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		useExtendedFunctionality(dataGroup, functionalityForCreateAfterMetadataValidation);
 	}
 
+	private void completeRecordAndCollectInformationSpecifiedInMetadata() {
+		ensureCompleteRecordInfo(user.id, recordType);
+		recordId = extractIdFromData();
+		collectedTerms = dataGroupTermCollector.collectTerms(metadataId, recordAsDataGroup);
+		collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup);
+		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+	}
+
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
 		DataGroup recordInfo = recordAsDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
 		ensureIdExists(recordType, recordInfo);
@@ -236,14 +246,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		String currentTimestamp = getCurrentTimestampAsString();
 		recordInfo.addChild(
 				DataProvider.createAtomicUsingNameInDataAndValue(TS_CREATED, currentTimestamp));
-	}
-
-	private void completeRecordAndCollectInformationSpecifiedInMetadata() {
-		ensureCompleteRecordInfo(user.id, recordType);
-		recordId = extractIdFromData();
-		collectedTerms = dataGroupTermCollector.collectTerms(metadataId, recordAsDataGroup);
-		collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup);
-		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 	}
 
 	private void indexRecord(List<IndexTerm> indexTerms) {
