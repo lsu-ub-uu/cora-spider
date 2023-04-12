@@ -104,9 +104,24 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
 
+		// TODO: reactivate after abstract types are removed
+		// validateRecordTypeInDataIsSameAsSpecified(recordTypeToCreate);
+
 		metadataId = recordTypeHandler.getCreateDefinitionId();
 
 		return validateCreateAndStoreRecord();
+	}
+
+	private void validateRecordTypeInDataIsSameAsSpecified(String recordTypeToCreate) {
+		if (recordTypeDoesNotMatchRecordTypeFromValidationType(recordTypeToCreate)) {
+			throw new DataException("The record "
+					+ "cannot be created because the record type provided does not match the record type "
+					+ "that the validation type is set to validate.");
+		}
+	}
+
+	private boolean recordTypeDoesNotMatchRecordTypeFromValidationType(String recordTypeToCreate) {
+		return !recordTypeHandler.getRecordTypeId().equals(recordTypeToCreate);
 	}
 
 	private DataRecord validateCreateAndStoreRecord() {

@@ -87,6 +87,9 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 				() -> "fakeMetadataIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("hasParent", () -> false);
 		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
+
+		MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
+				() -> "fakeRecordTypeIdFromRecordTypeHandlerSpy");
 	}
 
 	@Override
@@ -253,10 +256,11 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public String getRecordTypeId() {
-		MCR.addCall();
-		String returnValue = "fakeRecordTypeIdFromRecordTypeHandlerSpy";
-		MCR.addReturned(returnValue);
-		return returnValue;
+		// MCR.addCall();
+		// String returnValue = "fakeRecordTypeIdFromRecordTypeHandlerSpy";
+		// MCR.addReturned(returnValue);
+		// return returnValue;
+		return (String) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override

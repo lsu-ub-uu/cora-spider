@@ -107,6 +107,9 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 				.createRecordGroupFromDataGroup(topDataGroup);
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
+		// TODO: reactivate after abstract types are removed
+		// validateRecordTypeInDataIsSameAsSpecified(recordType);
+
 		metadataId = recordTypeHandler.getDefinitionId();
 
 		checkNoUpdateForAbstractRecordType();
@@ -135,6 +138,18 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		useExtendedFunctionalityAfterStore(recordType, topDataGroup);
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup, dataRedactor);
+	}
+
+	private void validateRecordTypeInDataIsSameAsSpecified(String recordTypeToUpdate) {
+		if (recordTypeDoesNotMatchRecordTypeFromValidationType(recordTypeToUpdate)) {
+			throw new DataException("The record "
+					+ "cannot be updated because the record type provided does not match the record type "
+					+ "that the validation type is set to validate.");
+		}
+	}
+
+	private boolean recordTypeDoesNotMatchRecordTypeFromValidationType(String recordTypeToUpdate) {
+		return !recordTypeHandler.getRecordTypeId().equals(recordTypeToUpdate);
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(String recordType,
