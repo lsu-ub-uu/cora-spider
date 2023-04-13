@@ -22,7 +22,6 @@ package se.uu.ub.cora.spider.record.internal;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -117,7 +116,7 @@ public class RecordListReaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;

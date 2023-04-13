@@ -20,8 +20,6 @@ package se.uu.ub.cora.spider.extended.workorder;
 
 import static org.testng.Assert.assertEquals;
 
-import java.util.HashMap;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -58,7 +56,7 @@ public class WorkOrderExecutorTest {
 	public void setUp() {
 		setUpFactoriesAndProviders();
 
-		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
 		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.recordStorage = new OldRecordStorageSpy();

@@ -20,7 +20,6 @@ package se.uu.ub.cora.spider.extended.workorder;
 
 import static org.testng.Assert.assertEquals;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -56,7 +55,7 @@ public class WorkOrderDeleterTest {
 	public void setUp() {
 		setUpFactoriesAndProviders();
 
-		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
 		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.authenticator = new AuthenticatorSpy();

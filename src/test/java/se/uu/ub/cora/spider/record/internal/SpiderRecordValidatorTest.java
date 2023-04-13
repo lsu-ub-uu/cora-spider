@@ -23,7 +23,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -116,7 +115,9 @@ public class SpiderRecordValidatorTest {
 		recordIndexer = new RecordIndexerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		idGenerator = new IdGeneratorSpy();
+		index = -1;
 		setUpDependencyProvider();
+
 	}
 
 	private void setUpFactoriesAndProviders() {
@@ -136,7 +137,7 @@ public class SpiderRecordValidatorTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.dataValidator = dataValidator;
@@ -339,10 +340,6 @@ public class SpiderRecordValidatorTest {
 	public void testValidateRecordInvalidData() {
 		dataValidator.setNotValidForMetadataGroupId("text");
 		RecordTypeHandlerSpy placeTypeHandler = new RecordTypeHandlerSpy();
-		// placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getNewMetadataId",
-		// (Supplier<String>) () -> "text");
-		// placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getMetadataId",
-		// (Supplier<String>) () -> "text");
 		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getCreateDefinitonId",
 				(Supplier<String>) () -> "text");
 		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
@@ -350,6 +347,8 @@ public class SpiderRecordValidatorTest {
 		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
 				(Supplier<String>) () -> "text");
 		dependencyProvider.mapOfRecordTypeHandlerSpies.put("text", placeTypeHandler);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> placeTypeHandler);
 
 		DataGroup dataGroup = createDataGroupPlace();
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
@@ -395,18 +394,9 @@ public class SpiderRecordValidatorTest {
 		dataValidator.setNotValidForMetadataGroupId("dataWithLinksNew");
 		setUpDependencyProvider();
 
-		RecordTypeHandlerSpy placeTypeHandler = new RecordTypeHandlerSpy();
-		// placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getNewMetadataId",
-		// (Supplier<String>) () -> "dataWithLinksNew");
-		// placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getMetadataId",
-		// (Supplier<String>) () -> "dataWithLinksNew");
-		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getCreateDefinitionId",
-				(Supplier<String>) () -> "dataWithLinksNew");
-		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
-				(Supplier<String>) () -> "dataWithLinksNew");
-		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
-				(Supplier<String>) () -> "dataWithLinksNew");
-		dependencyProvider.mapOfRecordTypeHandlerSpies.put("text", placeTypeHandler);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup",
+				() -> createDifferentRecordTypeHandlers());
 
 		((RecordLinkTestsRecordStorage) recordStorage).recordIdExistsForRecordType = false;
 
@@ -433,6 +423,22 @@ public class SpiderRecordValidatorTest {
 		DataAtomic error2 = (DataAtomic) errorMessages.getChildren().get(1);
 		assertEquals(error2.getValue(), "Data invalid for metadataId dataWithLinksNew");
 		assertEquals(error2.getRepeatId(), "1");
+	}
+
+	int index = -1;
+
+	private RecordTypeHandlerSpy createDifferentRecordTypeHandlers() {
+		RecordTypeHandlerSpy validationOrderTypeHandler = new RecordTypeHandlerSpy();
+		RecordTypeHandlerSpy placeTypeHandler = new RecordTypeHandlerSpy();
+		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getCreateDefinitionId",
+				(Supplier<String>) () -> "dataWithLinksNew");
+		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
+				(Supplier<String>) () -> "dataWithLinksNew");
+		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
+				(Supplier<String>) () -> "dataWithLinksNew");
+		List<RecordTypeHandlerSpy> handlers = List.of(validationOrderTypeHandler, placeTypeHandler);
+		index++;
+		return handlers.get(index);
 	}
 
 	@Test

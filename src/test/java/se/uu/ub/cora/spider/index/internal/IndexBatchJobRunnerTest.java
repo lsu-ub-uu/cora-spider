@@ -86,7 +86,7 @@ public class IndexBatchJobRunnerTest {
 
 	private void setUpSpies() {
 		Map<String, String> initInfo = new HashMap<>();
-		dependencyProvider = new SpiderDependencyProviderOldSpy(initInfo);
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		recordStorage = new RecordStorageOldSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.recordStorage = recordStorage;

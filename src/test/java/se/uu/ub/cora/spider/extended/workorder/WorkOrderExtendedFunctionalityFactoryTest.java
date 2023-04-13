@@ -22,7 +22,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
@@ -49,7 +48,7 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 		LoggerFactory loggerFactory = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactory);
 		factory = new WorkOrderExtendedFunctionalityFactory();
-		dependencyProviderSpy = new SpiderDependencyProviderOldSpy(Collections.emptyMap());
+		dependencyProviderSpy = new SpiderDependencyProviderOldSpy();
 		factory.initializeUsingDependencyProvider(dependencyProviderSpy);
 	}
 

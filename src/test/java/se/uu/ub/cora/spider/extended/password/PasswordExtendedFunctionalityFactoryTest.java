@@ -48,7 +48,7 @@ public class PasswordExtendedFunctionalityFactoryTest {
 		dataFactorySpy = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		factory = new PasswordExtendedFunctionalityFactory();
-		dependencyProvider = new SpiderDependencyProviderOldSpy(null);
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
 		dependencyProvider.mapOfRecordTypeHandlerSpies.put("user", recordTypeHandlerSpy);
 		recordTypeHandlerSpy.listOfimplementingTypesIds.add("coraUser");

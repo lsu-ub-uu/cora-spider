@@ -22,7 +22,6 @@ package se.uu.ub.cora.spider.record.internal;
 import static org.testng.Assert.assertTrue;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -138,7 +137,7 @@ public class RecordUpdaterTest {
 	}
 
 	private void setUpDependencyProvider(RecordStorage recordStorage) {
-		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.dataValidator = dataValidator;

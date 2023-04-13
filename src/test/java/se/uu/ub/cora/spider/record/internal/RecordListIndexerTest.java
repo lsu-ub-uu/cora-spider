@@ -23,7 +23,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -94,7 +93,7 @@ public class RecordListIndexerTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProviderSpy = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProviderSpy = new SpiderDependencyProviderOldSpy();
 		authenticatorSpy = new AuthenticatorSpy();
 		authorizatorSpy = new SpiderAuthorizatorSpy();
 		dataValidatorSpy = new DataValidatorSpy();

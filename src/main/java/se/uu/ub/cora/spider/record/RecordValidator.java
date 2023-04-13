@@ -23,7 +23,7 @@ import se.uu.ub.cora.data.DataRecord;
 
 public interface RecordValidator {
 
-	DataRecord validateRecord(String authToken, String recordType, DataGroup validationRecord,
+	DataRecord validateRecord(String authToken, String recordType, DataGroup validationOrder,
 			DataGroup recordToValidate);
 
 }

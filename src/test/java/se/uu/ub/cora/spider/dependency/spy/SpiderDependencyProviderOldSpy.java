@@ -45,8 +45,11 @@ import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
 	public SpiderAuthorizator spiderAuthorizator;
 	public PermissionRuleCalculator ruleCalculator;
@@ -66,15 +69,14 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	public RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
 	public Map<String, RecordTypeHandlerSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
 
-	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public RecordStorage recordStorage = new RecordStorageSpy();
 	public RecordIdGenerator recordIdGenerator;
 	public RecordArchive recordArchive;
 
-	// TODO: remove?
-	public SpiderDependencyProviderOldSpy(Map<String, String> initInfo) {
-		// super(initInfo);
-		// recordStorageProvider = new RecordStorageProviderSpy();
+	public SpiderDependencyProviderOldSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandlerUsingDataRecordGroup",
+				() -> recordTypeHandlerSpy);
 	}
 
 	@Override
@@ -155,14 +157,15 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	@Override
 	public RecordTypeHandler getRecordTypeHandlerUsingDataRecordGroup(
 			DataRecordGroup dataRecordGroup) {
-		// MCR.addCall("recordTypeId", recordTypeId);
-		MCR.addCall("dataRecordGroup", dataRecordGroup);
-		RecordTypeHandler recordTypeHandlerSpyToReturn = recordTypeHandlerSpy;
-		// if (mapOfRecordTypeHandlerSpies.containsKey(recordTypeId)) {
-		// recordTypeHandlerSpyToReturn = mapOfRecordTypeHandlerSpies.get(recordTypeId);
-		// }
-		MCR.addReturned(recordTypeHandlerSpyToReturn);
-		return recordTypeHandlerSpyToReturn;
+		// // MCR.addCall("recordTypeId", recordTypeId);
+		// MCR.addCall("dataRecordGroup", dataRecordGroup);
+		// RecordTypeHandler recordTypeHandlerSpyToReturn = recordTypeHandlerSpy;
+		// // if (mapOfRecordTypeHandlerSpies.containsKey(recordTypeId)) {
+		// // recordTypeHandlerSpyToReturn = mapOfRecordTypeHandlerSpies.get(recordTypeId);
+		// // }
+		// MCR.addReturned(recordTypeHandlerSpyToReturn);
+		// return recordTypeHandlerSpyToReturn;
+		return (RecordTypeHandler) MCR.addCallAndReturnFromMRV("dataRecordGroup", dataRecordGroup);
 	}
 
 	@Override

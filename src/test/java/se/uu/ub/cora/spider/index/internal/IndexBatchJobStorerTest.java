@@ -59,7 +59,7 @@ public class IndexBatchJobStorerTest {
 		recordStorage = new RecordStorageOldSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
-		dependencyProvider = new SpiderDependencyProviderOldSpy(initInfo);
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.linkCollector = linkCollector;

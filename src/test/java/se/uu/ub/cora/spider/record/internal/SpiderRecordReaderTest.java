@@ -21,8 +21,6 @@ package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertNotNull;
 
-import java.util.HashMap;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -77,7 +75,7 @@ public class SpiderRecordReaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 

@@ -33,6 +33,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.data.collected.Link;
@@ -71,57 +72,60 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	@Override
-	public DataRecord validateRecord(String authToken, String recordType,
-			DataGroup validationRecord, DataGroup recordToValidate) {
+	public DataRecord validateRecord(String authToken, String recordType, DataGroup validationOrder,
+			DataGroup recordToValidate) {
 		this.authToken = authToken;
 		this.recordAsDataGroup = recordToValidate;
 		this.recordType = recordType;
 		user = tryToGetActiveUser();
-		checkValidationRecordIsOkBeforeValidation(validationRecord);
-		return validateRecord(validationRecord);
+		checkValidationRecordIsOkBeforeValidation(validationOrder);
+		return validateRecord(validationOrder);
 	}
 
 	private User tryToGetActiveUser() {
 		return authenticator.getUserForToken(authToken);
 	}
 
-	private void checkValidationRecordIsOkBeforeValidation(DataGroup validationRecord) {
+	private void checkValidationRecordIsOkBeforeValidation(DataGroup validationOrder) {
 		checkUserIsAuthorizedForCreateOnRecordType();
-		validateWorkOrderAsSpecifiedInMetadata(validationRecord);
-	}
-
-	private String getMetadataIdForWorkOrder(String recordType) {
-		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		return recordTypeHandler.getCreateDefinitionId();
+		validateWorkOrderAsSpecifiedInMetadata(validationOrder);
 	}
 
 	private void checkUserIsAuthorizedForCreateOnRecordType() {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "create", recordType);
 	}
 
-	private void validateWorkOrderAsSpecifiedInMetadata(DataGroup dataGroup) {
-		String metadataIdForWorkOrder = getMetadataIdForWorkOrder(recordType);
+	private void validateWorkOrderAsSpecifiedInMetadata(DataGroup validationOrder) {
+		String metadataIdForWorkOrder = getMetadataIdForWorkOrder(validationOrder);
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataIdForWorkOrder,
-				dataGroup);
+				validationOrder);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
 	}
 
-	private DataRecord validateRecord(DataGroup validationRecord) {
-		String recordTypeToValidate = getRecordTypeToValidate(validationRecord);
+	private String getMetadataIdForWorkOrder(DataGroup validationOrder) {
+		DataRecordGroup validationOrderAsDataRecordGroup = DataProvider
+				.createRecordGroupFromDataGroup(validationOrder);
+		RecordTypeHandler recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(validationOrderAsDataRecordGroup);
+		return recordTypeHandler.getCreateDefinitionId();
+	}
+
+	private DataRecord validateRecord(DataGroup validationOrder) {
+		String recordTypeToValidate = getRecordTypeToValidate(validationOrder);
 
 		checkUserIsAuthorizedForValidateOnRecordType(recordTypeToValidate);
 
 		createValidationResultDataGroup();
-		validateRecordUsingValidationRecord(validationRecord, recordTypeToValidate);
+		validateRecordUsingValidationRecord(validationOrder, recordTypeToValidate);
 		DataRecord dataRecord = DataRecordProvider.getDataRecordWithDataGroup(validationResult);
 		addReadActionToComplyWithRecordStructure(dataRecord);
 		return dataRecord;
 	}
 
-	private String getRecordTypeToValidate(DataGroup validationRecord) {
-		DataGroup recordTypeGroup = validationRecord.getFirstGroupWithNameInData("recordType");
+	private String getRecordTypeToValidate(DataGroup validationOrder) {
+		DataGroup recordTypeGroup = validationOrder.getFirstGroupWithNameInData("recordType");
 		return recordTypeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
@@ -154,24 +158,25 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 				currentLocalDateTime));
 	}
 
-	private void validateRecordUsingValidationRecord(DataGroup validationRecord,
+	private void validateRecordUsingValidationRecord(DataGroup validationOrder,
 			String recordTypeToValidate) {
-		metadataToValidate = validationRecord
+		metadataToValidate = validationOrder
 				.getFirstAtomicValueWithNameInData("metadataToValidate");
 
 		String recordIdOrNullIfCreate = extractRecordIdIfUpdate();
 		ensureRecordExistWhenActionToPerformIsUpdate(recordTypeToValidate, recordIdOrNullIfCreate);
 
-		String metadataId = getMetadataId(recordTypeToValidate);
-		possiblyEnsureLinksExist(validationRecord, recordTypeToValidate, recordIdOrNullIfCreate,
-				metadataId);
+		String metadataId = getMetadataId();
+		possiblyEnsureLinksExist(validationOrder, metadataId);
 
 		validateIncomingDataAsSpecifiedInMetadata(metadataId);
 	}
 
-	private String getMetadataId(String recordTypeToValidate) {
+	private String getMetadataId() {
+		DataRecordGroup validationOrderAsDataRecordGroup = DataProvider
+				.createRecordGroupFromDataGroup(recordAsDataGroup);
 		RecordTypeHandler recordTypeHandler = dependencyProvider
-				.getRecordTypeHandler(recordTypeToValidate);
+				.getRecordTypeHandlerUsingDataRecordGroup(validationOrderAsDataRecordGroup);
 		return validateNew() ? recordTypeHandler.getCreateDefinitionId()
 				: recordTypeHandler.getDefinitionId();
 	}
@@ -235,16 +240,14 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		return error;
 	}
 
-	private void possiblyEnsureLinksExist(DataGroup validationRecord, String recordTypeToValidate,
-			String recordIdOrNullIfCreate, String metadataId) {
-		String validateLinks = validationRecord.getFirstAtomicValueWithNameInData("validateLinks");
+	private void possiblyEnsureLinksExist(DataGroup validationOrder, String metadataId) {
+		String validateLinks = validationOrder.getFirstAtomicValueWithNameInData("validateLinks");
 		if ("true".equals(validateLinks)) {
-			ensureLinksExist(recordTypeToValidate, recordIdOrNullIfCreate, metadataId);
+			ensureLinksExist(metadataId);
 		}
 	}
 
-	private void ensureLinksExist(String recordTypeToValidate, String recordIdToUse,
-			String metadataId) {
+	private void ensureLinksExist(String metadataId) {
 		Set<Link> collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup);
 		checkIfLinksExist(collectedLinks);
 	}
