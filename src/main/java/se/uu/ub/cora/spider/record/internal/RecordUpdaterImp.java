@@ -27,6 +27,7 @@ import java.util.Set;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
@@ -34,6 +35,7 @@ import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
@@ -48,7 +50,6 @@ import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordUpdater;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordUpdaterImp extends RecordHandler implements RecordUpdater {
@@ -102,8 +103,14 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
-		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		metadataId = recordTypeHandler.getMetadataId();
+		DataRecordGroup dataGroupAsRecordGroup = DataProvider
+				.createRecordGroupFromDataGroup(topDataGroup);
+		recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
+		// TODO: reactivate after abstract types are removed
+		// validateRecordTypeInDataIsSameAsSpecified(recordType);
+
+		metadataId = recordTypeHandler.getDefinitionId();
 
 		checkNoUpdateForAbstractRecordType();
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
@@ -131,6 +138,18 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		useExtendedFunctionalityAfterStore(recordType, topDataGroup);
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup, dataRedactor);
+	}
+
+	private void validateRecordTypeInDataIsSameAsSpecified(String recordTypeToUpdate) {
+		if (recordTypeDoesNotMatchRecordTypeFromValidationType(recordTypeToUpdate)) {
+			throw new DataException("The record "
+					+ "cannot be updated because the record type provided does not match the record type "
+					+ "that the validation type is set to validate.");
+		}
+	}
+
+	private boolean recordTypeDoesNotMatchRecordTypeFromValidationType(String recordTypeToUpdate) {
+		return !recordTypeHandler.getRecordTypeId().equals(recordTypeToUpdate);
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(String recordType,
@@ -279,7 +298,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		topDataGroup = dataRedactor.replaceChildrenForConstraintsWithoutPermissions(metadataId,
 				previouslyStoredRecord, topDataGroup,
-				recordTypeHandler.getRecordPartWriteConstraints(), writePermissions);
+				recordTypeHandler.getUpdateWriteRecordPartConstraints(), writePermissions);
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata() {

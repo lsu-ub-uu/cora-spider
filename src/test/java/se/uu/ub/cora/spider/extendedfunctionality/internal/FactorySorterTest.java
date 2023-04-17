@@ -59,7 +59,7 @@ public class FactorySorterTest {
 		dataFactorySpy = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		fakeImplementations = new ArrayList<>();
-		dependencyProvider = new SpiderDependencyProviderOldSpy(Collections.emptyMap());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);
 	}
 

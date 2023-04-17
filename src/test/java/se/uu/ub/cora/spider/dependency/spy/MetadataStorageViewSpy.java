@@ -21,8 +21,10 @@ package se.uu.ub.cora.spider.dependency.spy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageView;
+import se.uu.ub.cora.bookkeeper.validator.ValidationType;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
@@ -96,6 +98,18 @@ public class MetadataStorageViewSpy implements MetadataStorageView {
 	public Collection<DataGroup> getCollectTerms() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public Collection<ValidationType> getValidationTypes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Optional<ValidationType> getValidationType(String validationId) {
+		// TODO Auto-generated method stub
+		return Optional.empty();
 	}
 
 }

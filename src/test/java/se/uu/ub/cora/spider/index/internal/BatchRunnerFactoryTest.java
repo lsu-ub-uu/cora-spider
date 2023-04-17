@@ -22,8 +22,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
-import java.util.HashMap;
-
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataProvider;
@@ -40,7 +38,7 @@ public class BatchRunnerFactoryTest {
 	public void testFactor() {
 		dataFactorySpy = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
-		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		BatchRunnerFactory factory = new BatchRunnerFactoryImp(dependencyProvider);
 		IndexBatchJob indexBatchJob = new IndexBatchJob("someRecordType", 10, new Filter());
 

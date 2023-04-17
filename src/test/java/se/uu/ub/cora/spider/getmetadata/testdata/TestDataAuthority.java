@@ -22,12 +22,13 @@ package se.uu.ub.cora.spider.getmetadata.testdata;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataChildReference;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataGroup;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
+import se.uu.ub.cora.bookkeeper.metadata.MetadataHolderImp;
 import se.uu.ub.cora.bookkeeper.metadata.TextVariable;
 
 public class TestDataAuthority {
 	public static MetadataHolder createTestAuthorityMetadataHolder() {
 
-		MetadataHolder metadataHolder = new MetadataHolder();
+		MetadataHolder metadataHolder = new MetadataHolderImp();
 
 		// otherVariable
 		String regularExpression = "((^(([0-1][0-9])|([2][0-3])):[0-5][0-9]$|^$){1}";

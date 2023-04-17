@@ -59,7 +59,7 @@ public class IndexBatchJobStorerTest {
 		recordStorage = new RecordStorageOldSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
-		dependencyProvider = new SpiderDependencyProviderOldSpy(initInfo);
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.linkCollector = linkCollector;
@@ -103,8 +103,10 @@ public class IndexBatchJobStorerTest {
 		storer.store(indexBatchJob);
 		Map<String, Object> parameters = termCollector.MCR
 				.getParametersForMethodAndCallNumber("collectTerms", 0);
+		// String metadataIdFromTypeHandler = (String) dependencyProvider.recordTypeHandlerSpy.MCR
+		// .getReturnValue("getMetadataId", 0);
 		String metadataIdFromTypeHandler = (String) dependencyProvider.recordTypeHandlerSpy.MCR
-				.getReturnValue("getMetadataId", 0);
+				.getReturnValue("getDefinitionId", 0);
 		assertEquals(parameters.get("metadataId"), metadataIdFromTypeHandler);
 		assertSame(parameters.get("dataGroup"), recordStorage.MCR.getReturnValue("read", 0));
 
@@ -117,8 +119,10 @@ public class IndexBatchJobStorerTest {
 
 		storer.store(indexBatchJob);
 
+		// String metadataIdFromTypeHandler = (String) dependencyProvider.recordTypeHandlerSpy.MCR
+		// .getReturnValue("getMetadataId", 0);
 		String metadataIdFromTypeHandler = (String) dependencyProvider.recordTypeHandlerSpy.MCR
-				.getReturnValue("getMetadataId", 0);
+				.getReturnValue("getDefinitionId", 0);
 		var dataGroup = recordStorage.MCR.getReturnValue("read", 0);
 		linkCollector.MCR.assertParameters("collectLinks", 0, metadataIdFromTypeHandler, dataGroup);
 	}

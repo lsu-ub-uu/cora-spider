@@ -28,6 +28,7 @@ import java.util.Set;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataChild;
@@ -41,7 +42,6 @@ import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -112,7 +112,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private String getMetadataIdFromRecordType() {
-		return recordTypeHandler.getMetadataId();
+		return recordTypeHandler.getDefinitionId();
 	}
 
 	private String getRecordIdFromDataRecord(DataGroup dataGroup) {
@@ -345,9 +345,9 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private DataGroup redact(DataGroup dataGroup, DataRedactor dataRedactor) {
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
-				.getRecordPartReadConstraints();
+				.getReadRecordPartConstraints();
 		return dataRedactor.removeChildrenForConstraintsWithoutPermissions(
-				recordTypeHandler.getMetadataId(), dataGroup, recordPartReadConstraints,
+				recordTypeHandler.getDefinitionId(), dataGroup, recordPartReadConstraints,
 				readRecordPartPermissions);
 	}
 

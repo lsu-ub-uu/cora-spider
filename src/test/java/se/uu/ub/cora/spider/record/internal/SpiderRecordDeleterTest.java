@@ -22,8 +22,6 @@ package se.uu.ub.cora.spider.record.internal;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import java.util.HashMap;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -110,7 +108,7 @@ public class SpiderRecordDeleterTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
@@ -156,8 +154,10 @@ public class SpiderRecordDeleterTest {
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "delete",
 				"child1", collectTerms.permissionTerms);
 
+		// termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
+		// dependencyProvider.recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0));
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
-				dependencyProvider.recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0));
+				dependencyProvider.recordTypeHandlerSpy.MCR.getReturnValue("getDefinitionId", 0));
 
 		OldRecordStorageSpy recordStorageSpy = (OldRecordStorageSpy) recordStorage;
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",

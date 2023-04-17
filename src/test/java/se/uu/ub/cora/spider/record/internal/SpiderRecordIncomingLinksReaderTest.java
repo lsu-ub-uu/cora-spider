@@ -20,7 +20,6 @@ package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertEquals;
 
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -86,7 +85,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
@@ -150,7 +149,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 	@Test
 	public void testStorageIsCalledToGetLinksToReturnForParentTypeIfAbstract() throws Exception {
-		recordTypeHandlerSpy.hasParent = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("hasParent", () -> true);
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getParentId",
 				(Supplier<String>) () -> "someParentId");
 
@@ -193,7 +192,8 @@ public class SpiderRecordIncomingLinksReaderTest {
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "search");
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 1);
 
-		var metadataIdForType = recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
+		// var metadataIdForType = recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
+		var metadataIdForType = recordTypeHandlerSpy.MCR.getReturnValue("getDefinitionId", 0);
 		List<?> types = (List<?>) recordStorage.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("read", 0, "types");
 		assertEquals(types.get(0), "search");
@@ -234,7 +234,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 			+ "Read incomming links is not allowed for abstract "
 			+ "recordType: kalleAnka and recordId: place:0001")
 	public void testReadIncomingLinksAbstractType() {
-		recordTypeHandlerSpy.isAbstract = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
 
 		incomingLinksReader.readIncomingLinks("someToken78678567", "kalleAnka", "place:0001");
 	}

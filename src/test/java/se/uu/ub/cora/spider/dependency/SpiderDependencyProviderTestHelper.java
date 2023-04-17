@@ -23,6 +23,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactory;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactory;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
@@ -31,9 +33,11 @@ import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.dependency.spy.DataRedactorFactorySpy;
 import se.uu.ub.cora.spider.dependency.spy.DataValidatorFactoySpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.Uploader;
+import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactorySpy;
 
 public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstract {
 
@@ -49,8 +53,10 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 	public RecordIndexer recordIndexer;
 	public boolean readInitInfoWasCalled;
 	public boolean tryToInitializeWasCalled;
+	public DataRedactorFactorySpy dataRedactorFactorySpy = new DataRedactorFactorySpy();
 	DataValidatorFactoySpy dataValidatorFactory = new DataValidatorFactoySpy();
 	boolean standardDataValidatorFactory = false;
+	public RecordTypeHandlerFactory recordTypeHandlerFactory = new RecordTypeHandlerFactorySpy();
 
 	public SpiderDependencyProviderTestHelper(Map<String, String> initInfo) {
 		super(initInfo);
@@ -96,7 +102,7 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 	public void ensureKeyExistsInInitInfo(String key) {
 		super.ensureKeyExistsInInitInfo(key);
 	}
-	
+
 	@Override
 	DataValidatorFactory getDataValidatorFactory() {
 		if (standardDataValidatorFactory) {
@@ -104,4 +110,23 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 		}
 		return dataValidatorFactory;
 	}
+
+	public DataRedactorFactory useOriginalGetDataRedactorFactory() {
+		return super.createDataRedactorFactory();
+	}
+
+	@Override
+	DataRedactorFactory createDataRedactorFactory() {
+		return dataRedactorFactorySpy;
+	}
+
+	public RecordTypeHandlerFactory useOriginalGetRecordTypeHandlerFactory() {
+		return super.createRecordTypeHandlerFactory();
+	}
+
+	@Override
+	RecordTypeHandlerFactory createRecordTypeHandlerFactory() {
+		return recordTypeHandlerFactory;
+	}
+
 }

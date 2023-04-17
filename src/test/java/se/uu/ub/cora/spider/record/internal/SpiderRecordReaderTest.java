@@ -21,8 +21,6 @@ package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertNotNull;
 
-import java.util.HashMap;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -77,7 +75,7 @@ public class SpiderRecordReaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 
@@ -180,7 +178,7 @@ public class SpiderRecordReaderTest {
 
 	@Test
 	public void testEnhancerCalledCorrectlyWhenAbstractRecordType() throws Exception {
-		recordTypeHandlerSpy.isAbstract = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
 
 		DataGroup dataGroup = new DataGroupOldSpy("someNameInData");
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");

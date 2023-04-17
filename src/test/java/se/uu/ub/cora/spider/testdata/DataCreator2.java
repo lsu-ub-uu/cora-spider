@@ -69,20 +69,21 @@ public final class DataCreator2 {
 	public static DataGroup createRecordWithNameInDataAndIdAndLinkedRecordId(String nameInData,
 			String id, String linkedRecordId) {
 		DataGroup record = new DataGroupOldSpy(nameInData);
-		DataGroup createRecordInfo = createRecordInfoWithIdAndLinkedRecordId(id, linkedRecordId);
+		DataGroup createRecordInfo = createRecordInfoWithIdAndLinkedRecordId(id,
+				linkedRecordId);
 		record.addChild(createRecordInfo);
 		return record;
 	}
 
-	public static DataGroup createRecordWithNameInDataAndLinkedRecordId(String nameInData,
+	public static DataGroup createRecordWithNameInDataAndLinkedDataDividerId(String nameInData,
 			String linkedRecordId) {
 		DataGroup record = new DataGroupOldSpy(nameInData);
-		DataGroup createRecordInfo = createRecordInfoWithLinkedRecordId(linkedRecordId);
+		DataGroup createRecordInfo = createRecordInfoWithLinkedDataDividerId(linkedRecordId);
 		record.addChild(createRecordInfo);
 		return record;
 	}
 
-	public static DataGroup createRecordInfoWithLinkedRecordId(String linkedRecordId) {
+	public static DataGroup createRecordInfoWithLinkedDataDividerId(String linkedRecordId) {
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
 		DataRecordLink dataDivider = createDataDividerWithLinkedRecordId(linkedRecordId);
 		createRecordInfo.addChild(dataDivider);
@@ -91,12 +92,9 @@ public final class DataCreator2 {
 
 	public static DataRecordLink createDataDividerWithLinkedRecordId(String linkedRecordId) {
 		DataRecordLinkSpy linkSpy = new DataRecordLinkSpy();
-		linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData",
-				(Supplier<String>) () -> "dataDivider");
-		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
-				(Supplier<String>) () -> "system");
-		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
-				(Supplier<String>) () -> linkedRecordId);
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "dataDivider");
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType", () -> "system");
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> linkedRecordId);
 		return linkSpy;
 	}
 

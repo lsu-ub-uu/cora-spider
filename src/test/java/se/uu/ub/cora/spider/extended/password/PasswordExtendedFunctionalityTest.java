@@ -74,7 +74,7 @@ public class PasswordExtendedFunctionalityTest {
 		dataFactory = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactory);
 
-		dependencyProvider = new SpiderDependencyProviderOldSpy(null);
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		textHasher = new TextHasherSpy();
 		extended = PasswordExtendedFunctionality
 				.usingDependencyProviderAndTextHasher(dependencyProvider, textHasher);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, 2019, 2020 Uppsala University Library
+ * Copyright 2018, 2019, 2020, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -33,19 +33,18 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
-import se.uu.ub.cora.bookkeeper.metadata.MetadataElement;
-import se.uu.ub.cora.bookkeeper.metadata.MetadataHolder;
-import se.uu.ub.cora.bookkeeper.recordpart.DataGroupRedactorImp;
-import se.uu.ub.cora.bookkeeper.recordpart.DataGroupWrapperFactoryImp;
-import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorImp;
-import se.uu.ub.cora.bookkeeper.recordpart.MatcherFactoryImp;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactoryImp;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactory;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactoryImp;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageProvider;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
-import se.uu.ub.cora.bookkeeper.validator.MetadataMatchDataImp;
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -54,7 +53,6 @@ import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.data.internal.DataGroupToFilterImp;
 import se.uu.ub.cora.spider.dependency.spy.DataValidatorFactoySpy;
 import se.uu.ub.cora.spider.dependency.spy.MetadataStorageProviderSpy;
-import se.uu.ub.cora.spider.dependency.spy.MetadataStorageViewSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordArchiveProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.StreamStorageProviderSpy;
@@ -63,12 +61,8 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.extendedfunctionality.internal.FactorySorterImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactory;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactoryImp;
-import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerImp;
+import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactorySpy;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
-import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.StreamStorageProvider;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGeneratorProvider;
@@ -262,33 +256,38 @@ public class DependencyProviderAbstractTest {
 	public void testDataValidatorHasCorrectDependecies() {
 		DataValidator dataValidator = dependencyProvider.getDataValidator();
 
-		MetadataStorageViewSpy metadataStorageView = (MetadataStorageViewSpy) metadataStorageProvider.MCR
-				.getReturnValue("getStorageView", 0);
-
+		// MetadataStorageViewSpy metadataStorageView = (MetadataStorageViewSpy)
+		// metadataStorageProvider.MCR
+		// .getReturnValue("getStorageView", 0);
+		//
 		DataValidatorFactoySpy dataValidatorFactorySpy = dependencyProvider.dataValidatorFactory;
-		dataValidatorFactorySpy.MCR.assertParameters("factor", 0, metadataStorageView);
+		// var recordTypeHolder = dataValidatorFactorySpy.MCR
+		// .getValueForMethodNameAndCallNumberAndParameterName("factor", 0,
+		// "recordTypeHolder");
+		// assertCorrectRecordTypeHolder(recordTypeHolder, metadataStorageView);
+		//
+		// MetadataHolder metadataHolder = (MetadataHolder) dataValidatorFactorySpy.MCR
+		// .getValueForMethodNameAndCallNumberAndParameterName("factor", 0, "metadataHolder");
+		// assertCorrectMetadataHolder(metadataHolder);
+
+		// dataValidatorFactorySpy.MCR.assertParameters("factor", 0, recordTypeHolder,
+		// metadataHolder);
+		dataValidatorFactorySpy.MCR.assertParameters("factor", 0);
 		dataValidatorFactorySpy.MCR.assertReturn("factor", 0, dataValidator);
-
-		Map<String, DataGroup> recordTypeHolder = (Map<String, DataGroup>) dataValidatorFactorySpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("factor", 0,
-						"recordTypeHolder");
-		assertCorrectRecordTypeHolder(recordTypeHolder, metadataStorageView);
-
-		MetadataHolder metadataHolder = (MetadataHolder) dataValidatorFactorySpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("factor", 0, "metadataHolder");
-		assertCorrectMetadataHolder(metadataHolder);
 	}
 
-	private void assertCorrectMetadataHolder(MetadataHolder metadataHolder) {
-		MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
-		assertEquals(metadataElement.getId(), "someMetadata1");
-	}
-
-	private void assertCorrectRecordTypeHolder(Map<String, DataGroup> recordTypeHolder,
-			MetadataStorageViewSpy metadataStorage) {
-		assertEquals(recordTypeHolder.get("someId1"), metadataStorage.recordTypes.get(0));
-		assertEquals(recordTypeHolder.get("someId2"), metadataStorage.recordTypes.get(1));
-	}
+	// private void assertCorrectMetadataHolder(MetadataHolder metadataHolder) {
+	// MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
+	// assertEquals(metadataElement.getId(), "someMetadata1");
+	// }
+	//
+	// private void assertCorrectRecordTypeHolder(Object recordTypeHolder,
+	// MetadataStorageViewSpy metadataStorage) {
+	//
+	// Map<String, DataGroup> map = (Map<String, DataGroup>) recordTypeHolder;
+	// assertEquals(map.get("someId1"), metadataStorage.recordTypes.get(0));
+	// assertEquals(map.get("someId2"), metadataStorage.recordTypes.get(1));
+	// }
 
 	@Test
 	public void testGetDataValidatorFactory() throws Exception {
@@ -302,8 +301,7 @@ public class DependencyProviderAbstractTest {
 		DataRecordLinkCollectorImp dataRecordLinkCollector = (DataRecordLinkCollectorImp) dependencyProvider
 				.getDataRecordLinkCollector();
 
-		metadataStorageProvider.MCR.assertReturn("getStorageView", 0,
-				dataRecordLinkCollector.getMetadataStorage());
+		assertTrue(dataRecordLinkCollector instanceof DataRecordLinkCollectorImp);
 	}
 
 	@Test
@@ -311,8 +309,7 @@ public class DependencyProviderAbstractTest {
 		DataGroupTermCollectorImp dataGroupTermCollector = (DataGroupTermCollectorImp) dependencyProvider
 				.getDataGroupTermCollector();
 
-		metadataStorageProvider.MCR.assertReturn("getStorageView", 0,
-				dataGroupTermCollector.onlyForTestGetMetadataStorage());
+		assertTrue(dataGroupTermCollector instanceof DataGroupTermCollectorImp);
 	}
 
 	@Test
@@ -323,36 +320,51 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
+	public void testDefaultRecordTypeHandlerFactoryIsImplFromBookkeeper() throws Exception {
+		RecordTypeHandlerFactory factory = dependencyProvider
+				.useOriginalGetRecordTypeHandlerFactory();
+
+		assertTrue(factory instanceof RecordTypeHandlerFactoryImp);
+	}
+
+	@Test
 	public void testGetRecordTypeHandler() throws Exception {
 		String recordTypeId = "someRecordType";
-		RecordTypeHandlerImp recordTypeHandler = (RecordTypeHandlerImp) ((SpiderDependencyProvider) dependencyProvider)
+
+		RecordTypeHandler recordTypeHandler = ((SpiderDependencyProvider) dependencyProvider)
 				.getRecordTypeHandler(recordTypeId);
-		assertTrue(recordTypeHandler instanceof RecordTypeHandler);
-		assertEquals(recordTypeHandler.getRecordTypeId(), recordTypeId);
-		assertTrue(recordTypeHandler.getRecordStorage() instanceof RecordStorage);
-		recordStorageInstanceProvider.MCR.assertReturn("getRecordStorage", 0,
-				recordTypeHandler.getRecordStorage());
-		RecordTypeHandlerFactoryImp recordTypeHandlerFactory = (RecordTypeHandlerFactoryImp) recordTypeHandler
-				.getRecordTypeHandlerFactory();
-		assertTrue(recordTypeHandlerFactory instanceof RecordTypeHandlerFactory);
-		assertSame(recordTypeHandlerFactory.onlyForTestGetRecordStorage(),
-				recordTypeHandler.getRecordStorage());
+
+		RecordTypeHandlerFactorySpy typeHandlerFactorySpy = (RecordTypeHandlerFactorySpy) dependencyProvider.recordTypeHandlerFactory;
+
+		typeHandlerFactorySpy.MCR.assertParameters("factorUsingRecordTypeId", 0, recordTypeId);
+		typeHandlerFactorySpy.MCR.assertReturn("factorUsingRecordTypeId", 0, recordTypeHandler);
+	}
+
+	@Test
+	public void testGetRecordTypeHandlerUsingDataRecordGroup() throws Exception {
+		DataRecordGroup dataRecordGroup = new DataRecordGroupSpy();
+
+		RecordTypeHandler recordTypeHandler = ((SpiderDependencyProvider) dependencyProvider)
+				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
+
+		RecordTypeHandlerFactorySpy typeHandlerFactorySpy = (RecordTypeHandlerFactorySpy) dependencyProvider.recordTypeHandlerFactory;
+
+		typeHandlerFactorySpy.MCR.assertParameters("factorUsingDataRecordGroup", 0,
+				dataRecordGroup);
+		typeHandlerFactorySpy.MCR.assertReturn("factorUsingDataRecordGroup", 0, recordTypeHandler);
+	}
+
+	@Test
+	public void testGetDefaultDataRedactor() throws Exception {
+		assertTrue(dependencyProvider
+				.useOriginalGetDataRedactorFactory() instanceof DataRedactorFactoryImp);
 	}
 
 	@Test
 	public void testGetDataRedactor() {
-		DataRedactorImp dataRedactor = (DataRedactorImp) dependencyProvider.getDataRedactor();
+		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 
-		MetadataHolder metadataHolder = dataRedactor.getMetadataHolder();
-		MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
-		assertEquals(metadataElement.getId(), "someMetadata1");
-		assertTrue(dataRedactor.getDataGroupRedactor() instanceof DataGroupRedactorImp);
-		assertTrue(dataRedactor.getDataGroupWrapperFactory() instanceof DataGroupWrapperFactoryImp);
-
-		MatcherFactoryImp matcherFactory = (MatcherFactoryImp) dataRedactor.getMatcherFactory();
-		MetadataMatchDataImp metadataMatchData = (MetadataMatchDataImp) matcherFactory
-				.getMetadataMatchData();
-		assertSame(metadataMatchData.getMetadataHolder(), metadataHolder);
+		dependencyProvider.dataRedactorFactorySpy.MCR.assertReturn("factor", 0, dataRedactor);
 	}
 
 	@Test

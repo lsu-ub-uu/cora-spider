@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Uppsala University Library
+ * Copyright 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,30 +18,24 @@
  */
 package se.uu.ub.cora.spider.dependency.spy;
 
-import se.uu.ub.cora.bookkeeper.storage.MetadataStorageView;
-import se.uu.ub.cora.bookkeeper.storage.MetadataStorageViewInstanceProvider;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
+import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactory;
+import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class MetadataStorageProviderSpy implements MetadataStorageViewInstanceProvider {
-
+public class DataRedactorFactorySpy implements DataRedactorFactory {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public MetadataStorageProviderSpy() {
+	public DataRedactorFactorySpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("getStorageView", MetadataStorageViewSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factor", DataRedactorSpy::new);
 	}
 
 	@Override
-	public int getOrderToSelectImplementionsBy() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public MetadataStorageView getStorageView() {
-		return (MetadataStorageView) MCR.addCallAndReturnFromMRV();
+	public DataRedactor factor() {
+		return (DataRedactor) MCR.addCallAndReturnFromMRV();
 	}
 
 }

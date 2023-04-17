@@ -29,7 +29,6 @@ import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevel
 import static se.uu.ub.cora.spider.record.RecordLinkTestsAsserter.assertTopLevelTwoLinksDoesNotContainReadAction;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -119,7 +118,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.recordStorage = recordStorage;
@@ -189,9 +188,12 @@ public class DataGroupToRecordEnhancerTest {
 		RecordTypeHandlerSpy recordTypeHandler = (RecordTypeHandlerSpy) dependencyProvider.MCR
 				.getReturnValue("getRecordTypeHandler", 0);
 
-		recordTypeHandler.MCR.assertMethodWasCalled("getMetadataId");
+		// recordTypeHandler.MCR.assertMethodWasCalled("getMetadataId");
+		// String metadataIdFromRecordTypeHandler = (String) recordTypeHandler.MCR
+		// .getReturnValue("getMetadataId", 0);
+		recordTypeHandler.MCR.assertMethodWasCalled("getDefinitionId");
 		String metadataIdFromRecordTypeHandler = (String) recordTypeHandler.MCR
-				.getReturnValue("getMetadataId", 0);
+				.getReturnValue("getDefinitionId", 0);
 
 		dependencyProvider.MCR.assertParameters("getDataGroupTermCollector", 0);
 		DataGroupTermCollectorSpy termCollectorSpy = (DataGroupTermCollectorSpy) dependencyProvider.MCR
@@ -603,7 +605,7 @@ public class DataGroupToRecordEnhancerTest {
 
 	private void setupForDeleteButIncomingLinksExistsForParentRecordType() {
 		createRecordStorageSpy();
-		recordTypeHandlerSpy.hasParent = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("hasParent", () -> true);
 		RecordStorageOldSpy recordStorageSpy = (RecordStorageOldSpy) dependencyProvider
 				.getRecordStorage();
 		recordStorageSpy.incomingLinksExistsForType.add("someParentId");
@@ -998,7 +1000,8 @@ public class DataGroupToRecordEnhancerTest {
 
 	private void setupForCreateActionAndAbstract() {
 		setupForListAction();
-		recordTypeHandlerSpy.isAbstract = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
+
 	}
 
 	private void assertCreateActionForRecordTypeRecordTypeIsAbstract(DataRecord record) {
@@ -1534,10 +1537,10 @@ public class DataGroupToRecordEnhancerTest {
 				0);
 
 		Set<?> recordPartConstraints = (Set<?>) recordTypeHandlerSpy.MCR
-				.getReturnValue("getRecordPartReadConstraints", 0);
+				.getReturnValue("getReadRecordPartConstraints", 0);
 
 		dataRedactor.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
-				recordTypeHandlerSpy.getMetadataId(), someDataGroup, recordPartConstraints,
+				recordTypeHandlerSpy.getDefinitionId(), someDataGroup, recordPartConstraints,
 				usersReadRecordPartPermissions);
 	}
 
@@ -1567,10 +1570,10 @@ public class DataGroupToRecordEnhancerTest {
 				someDataGroup, dataRedactor);
 
 		Set<?> recordPartConstraints = (Set<?>) recordTypeHandlerSpy.MCR
-				.getReturnValue("getRecordPartReadConstraints", 0);
+				.getReturnValue("getReadRecordPartConstraints", 0);
 
 		dataRedactor.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
-				recordTypeHandlerSpy.getMetadataId(), someDataGroup, recordPartConstraints,
+				recordTypeHandlerSpy.getDefinitionId(), someDataGroup, recordPartConstraints,
 				Collections.emptySet());
 		assertAswerFromRedactorIsReturned(record);
 	}
@@ -1870,7 +1873,8 @@ public class DataGroupToRecordEnhancerTest {
 		recordStorage.MCR.assertParameter("read", 3, "id", "toRecordId");
 		recordStorage.MCR.assertParameters("read", 3, types, "toRecordId");
 
-		String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
+		// String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
+		String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getDefinitionId", 0);
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId", metadataId);

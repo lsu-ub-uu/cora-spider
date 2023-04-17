@@ -22,13 +22,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
-import se.uu.ub.cora.spider.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -37,22 +36,11 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public boolean storeInArchive = false;
-
 	/**
 	 * isPublicForRead is default false, if set to true, the recordType is considered totaly public
 	 * and no security checks are supposed to be done for reading
 	 */
 	public boolean isPublicForRead = false;
-	/**
-	 * isAbstract is default false, if set to true, the recordType is considered abstract
-	 */
-	public boolean isAbstract = false;
-	/**
-	 * recordTypeHasReadPartConstraints is default false, if set to true, the recordType has read
-	 * record parts constraints.
-	 */
-	// public boolean recordTypeHasReadPartConstraints = false;
 
 	/**
 	 * recordPartConstraints is default empty, can be set to "readWrite" or "write" to change
@@ -63,7 +51,6 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public Set<Constraint> writeStringConstraints = new HashSet<Constraint>();
 	public Set<Constraint> writeConstraints = new HashSet<Constraint>();
 
-	public boolean hasParent = false;
 	public String id = "id";
 	public String parentId = "someParentId";
 
@@ -75,56 +62,58 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	public String returnedSearchId = "someSearchId";
 
-	/**
-	 * shouldAutoGenerateId is default false, if set to true will method shouldAutoGenerateId()
-	 * return true instead of false.
-	 */
-	public boolean shouldAutoGenerateId = false;
+	// /**
+	// * shouldAutoGenerateId is default false, if set to true will method shouldAutoGenerateId()
+	// * return true instead of false.
+	// */
+	// public boolean shouldAutoGenerateId = false;
 
 	public List<String> listOfimplementingTypesIds = new ArrayList<>();
 
 	public RecordTypeHandlerSpy() {
 		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("isAbstract", () -> false);
+		MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> false);
 		MRV.setDefaultReturnValuesSupplier("getImplementingRecordTypeHandlers", ArrayList::new);
 		MRV.setDefaultReturnValuesSupplier("getCombinedIdsUsingRecordId",
-				(Supplier<List<String>>) () -> List.of("fakeCombinedIdFromRecordTypeHandlerSpy"));
+				() -> List.of("fakeCombinedIdFromRecordTypeHandlerSpy"));
 		MRV.setDefaultReturnValuesSupplier("getListOfRecordTypeIdsToReadFromStorage",
-				(Supplier<List<String>>) () -> List.of("oneImplementingTypeId"));
-		MRV.setDefaultReturnValuesSupplier("getNewMetadataId",
-				(Supplier<String>) () -> "fakeMetadataIdFromRecordTypeHandlerSpy");
-		MRV.setDefaultReturnValuesSupplier("getMetadataId",
-				(Supplier<String>) () -> "fakeMetadataIdFromRecordTypeHandlerSpy");
+				() -> List.of("oneImplementingTypeId"));
+		MRV.setDefaultReturnValuesSupplier("getCreateDefinitionId",
+				() -> "fakeMetadataIdFromRecordTypeHandlerSpy");
+		MRV.setDefaultReturnValuesSupplier("getDefinitionId",
+				() -> "fakeMetadataIdFromRecordTypeHandlerSpy");
+		MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
+				() -> "fakeMetadataIdFromRecordTypeHandlerSpy");
+		MRV.setDefaultReturnValuesSupplier("hasParent", () -> false);
+		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
+
+		MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
+				() -> "fakeRecordTypeIdFromRecordTypeHandlerSpy");
 	}
 
 	@Override
 	public boolean isAbstract() {
-		MCR.addCall();
-		MCR.addReturned(isAbstract);
-		return isAbstract;
+		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
 	public boolean shouldAutoGenerateId() {
-		MCR.addCall();
-		MCR.addReturned(shouldAutoGenerateId);
-		return shouldAutoGenerateId;
+		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
-	public String getNewMetadataId() {
-		// MCR.addCall();
-		// String returnValue = "fakeMetadataIdFromRecordTypeHandlerSpy";
-		// MCR.addReturned(returnValue);
-		// return returnValue;
+	public String getCreateDefinitionId() {
 		return (String) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
-	public String getMetadataId() {
-		// MCR.addCall();
-		// String returnValue = "fakeMetadataIdFromRecordTypeHandlerSpy";
-		// MCR.addReturned(returnValue);
-		// return returnValue;
+	public String getUpdateDefinitionId() {
+		return (String) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public String getDefinitionId() {
 		return (String) MCR.addCallAndReturnFromMRV();
 	}
 
@@ -165,7 +154,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<Constraint> getRecordPartReadConstraints() {
+	public Set<Constraint> getReadRecordPartConstraints() {
 		MCR.addCall();
 		Set<Constraint> constraints = new HashSet<Constraint>();
 		constraints.add(new Constraint("someKey"));
@@ -187,7 +176,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<Constraint> getRecordPartWriteConstraints() {
+	public Set<Constraint> getUpdateWriteRecordPartConstraints() {
 		MCR.addCall();
 		MCR.addReturned(writeConstraints);
 		return writeConstraints;
@@ -195,9 +184,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean hasParent() {
-		MCR.addCall();
-		MCR.addReturned(hasParent);
-		return hasParent;
+		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
@@ -256,7 +243,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public Set<Constraint> getRecordPartCreateWriteConstraints() {
+	public Set<Constraint> getCreateWriteRecordPartConstraints() {
 		MCR.addCall();
 		MCR.addReturned(writeStringConstraints);
 		return writeStringConstraints;
@@ -269,10 +256,11 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public String getRecordTypeId() {
-		MCR.addCall();
-		String returnValue = "fakeRecordTypeIdFromRecordTypeHandlerSpy";
-		MCR.addReturned(returnValue);
-		return returnValue;
+		// MCR.addCall();
+		// String returnValue = "fakeRecordTypeIdFromRecordTypeHandlerSpy";
+		// MCR.addReturned(returnValue);
+		// return returnValue;
+		return (String) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
@@ -285,10 +273,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean storeInArchive() {
-		MCR.addCall();
-
-		MCR.addReturned(storeInArchive);
-		return storeInArchive;
+		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override

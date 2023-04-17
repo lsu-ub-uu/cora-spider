@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.extended.consistency;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
@@ -52,7 +51,7 @@ public class MetadataValidatorExtendedFunctionalityFactoryTest {
 		dataFactorySpy = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		factory = new MetadataValidatorExtendedFunctionalityFactory();
-		dependencyProviderSpy = new SpiderDependencyProviderOldSpy(Collections.emptyMap());
+		dependencyProviderSpy = new SpiderDependencyProviderOldSpy();
 		factory.initializeUsingDependencyProvider(dependencyProviderSpy);
 	}
 

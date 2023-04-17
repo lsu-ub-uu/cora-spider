@@ -26,8 +26,6 @@ import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
-import java.util.HashMap;
-
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -67,7 +65,7 @@ public class SpiderInstanceFactoryTest {
 
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		factory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
 	}
 

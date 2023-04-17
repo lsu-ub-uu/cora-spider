@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.extendedfunctionality.internal;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
-import java.util.Collections;
 import java.util.ServiceLoader;
 
 import org.testng.annotations.BeforeMethod;
@@ -47,7 +46,7 @@ public class ExtendedFunctionalityInitializerTest {
 		LoggerProvider.setLoggerFactory(loggerFactory);
 		dataFactorySpy = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
-		dependencyProvider = new SpiderDependencyProviderOldSpy(Collections.emptyMap());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		initializer = new ExtendedFunctionalityInitializer(dependencyProvider);
 	}
 

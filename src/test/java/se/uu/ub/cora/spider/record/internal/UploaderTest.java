@@ -26,7 +26,6 @@ import static org.testng.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
@@ -76,7 +75,7 @@ import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
-public class SpiderUploaderTest {
+public class UploaderTest {
 	private RecordStorage recordStorage;
 	private AuthenticatorSpy authenticator;
 	private StreamStorageSpy streamStorage;
@@ -126,7 +125,7 @@ public class SpiderUploaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderOldSpy(new HashMap<>());
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
 		dependencyProvider.dataValidator = dataValidator;
@@ -227,7 +226,8 @@ public class SpiderUploaderTest {
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "upload",
 				"image");
 
-		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "image");
+		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
+				"fakeMetadataIdFromRecordTypeHandlerSpy");
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
 				recordStorage.read(List.of("image"), "image:123456789"));
 
@@ -251,7 +251,6 @@ public class SpiderUploaderTest {
 
 	private void assertResourceInfoIsCorrect(DataRecord recordUpdated) {
 		DataGroup groupUpdated = recordUpdated.getDataGroup();
-		// DataGroup resourceInfo = groupUpdated.getFirstGroupWithNameInData("resourceInfo");
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "resourceInfo");
 		DataGroupSpy resourceInfo = (DataGroupSpy) dataFactorySpy.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
