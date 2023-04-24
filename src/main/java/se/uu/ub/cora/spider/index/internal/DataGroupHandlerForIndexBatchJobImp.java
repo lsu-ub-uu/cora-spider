@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2021, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -132,10 +132,15 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 
 	private void addRecordInfo(DataGroup dataGroup) {
 		DataGroup recordInfo = DataProvider.createGroupUsingNameInData("recordInfo");
+		dataGroup.addChild(recordInfo);
+
 		DataRecordLink dataDivider = DataProvider
 				.createRecordLinkUsingNameInDataAndTypeAndId("dataDivider", "system", "cora");
 		recordInfo.addChild(dataDivider);
-		dataGroup.addChild(recordInfo);
+
+		DataRecordLink validationType = DataProvider.createRecordLinkUsingNameInDataAndTypeAndId(
+				"validationType", "validationType", "indexBatchJob");
+		recordInfo.addChild(validationType);
 	}
 
 	private void addRecordTypeToIndex(IndexBatchJob indexBatchJob, DataGroup dataGroup) {

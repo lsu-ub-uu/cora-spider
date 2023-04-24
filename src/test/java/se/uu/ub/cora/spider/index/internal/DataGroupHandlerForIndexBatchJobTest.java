@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2021, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -262,8 +262,15 @@ public class DataGroupHandlerForIndexBatchJobTest {
 		var dataDivider = dataFactorySpy.MCR
 				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", nfrl);
 		nfrl++;
-
 		recordInfo.MCR.assertParameters("addChild", 0, dataDivider);
+
+		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", nfrl,
+				"validationType", "validationType", "indexBatchJob");
+		var validationType = dataFactorySpy.MCR
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", nfrl);
+		nfrl++;
+		recordInfo.MCR.assertParameters("addChild", 1, validationType);
+
 		createdDataGroup.MCR.assertParameters("addChild", callsToAddChildForCheckingIndexBatchJob,
 				recordInfo);
 		callsToAddChildForCheckingIndexBatchJob++;
