@@ -111,6 +111,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		// validateRecordTypeInDataIsSameAsSpecified(recordType);
 
 		metadataId = recordTypeHandler.getDefinitionId();
+		// recordTypeHandler.getUpdateDefinitionId();
 
 		checkNoUpdateForAbstractRecordType();
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();

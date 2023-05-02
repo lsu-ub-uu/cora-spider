@@ -66,17 +66,16 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 		}
 		for (String type : types) {
 
-			if ("collectPermissionTerm".equals(type)
-					&& "publishedStatusPermissionTerm".equals(id)) {
+			if ("collectTerm".equals(type) && "publishedStatusPermissionTerm".equals(id)) {
 				return createCollectPermissionTermWIthKey("PUBLISHED_STATUS");
 			}
-			if ("collectPermissionTerm".equals(type) && "deletedStatusPermissionTerm".equals(id)) {
+			if ("collectTerm".equals(type) && "deletedStatusPermissionTerm".equals(id)) {
 				return createCollectPermissionTermWIthKey("DELETED_STATUS");
 			}
-			if ("collectPermissionTerm".equals(type) && "organisationPermissionTerm".equals(id)) {
+			if ("collectTerm".equals(type) && "organisationPermissionTerm".equals(id)) {
 				return createCollectPermissionTermWIthKey("OWNING_ORGANISATION");
 			}
-			if ("collectPermissionTerm".equals(type) && "journalPermissionTerm".equals(id)) {
+			if ("collectTerm".equals(type) && "journalPermissionTerm".equals(id)) {
 				return createCollectPermissionTermWIthKey("JOURNAL_ACCESS");
 			}
 
@@ -204,8 +203,8 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	private DataGroup createPermissionTermWithIdAndValues(String permissionTermId,
 			String... value) {
 		DataGroup permissionTerm = new DataGroupOldSpy("permissionTermRulePart");
-		DataGroup rule = createLinkWithNameInDataRecordtypeAndRecordId("rule",
-				"collectPermissionTerm", permissionTermId);
+		DataGroup rule = createLinkWithNameInDataRecordtypeAndRecordId("rule", "collectTerm",
+				permissionTermId);
 		permissionTerm.addChild(rule);
 
 		for (int i = 0; i < value.length; i++) {

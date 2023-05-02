@@ -212,8 +212,8 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 	private DataGroup createPermissionTermWithIdAndValues(String permissionTermId,
 			String... value) {
 		DataGroup permissionTerm = new DataGroupOldSpy("permissionTermRulePart");
-		DataGroup rule = createLinkWithNameInDataRecordtypeAndRecordId("rule",
-				"collectPermissionTerm", permissionTermId);
+		DataGroup rule = createLinkWithNameInDataRecordtypeAndRecordId("rule", "collectTerm",
+				permissionTermId);
 		permissionTerm.addChild(rule);
 
 		for (int i = 0; i < value.length; i++) {

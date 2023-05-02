@@ -294,17 +294,16 @@ public class OldRecordStorageSpy implements RecordStorage {
 				return null;
 			}
 
-			if ("collectPermissionTerm".equals(type)
-					&& "publishedStatusPermissionTerm".equals(id)) {
+			if ("collectTerm".equals(type) && "publishedStatusPermissionTerm".equals(id)) {
 				return createCollectPermissionTermWIthKey("PUBLISHED_STATUS");
 			}
-			if ("collectPermissionTerm".equals(type) && "deletedStatusPermissionTerm".equals(id)) {
+			if ("collectTerm".equals(type) && "deletedStatusPermissionTerm".equals(id)) {
 				return createCollectPermissionTermWIthKey("DELETED_STATUS");
 			}
-			if ("collectPermissionTerm".equals(type) && "organisationPermissionTerm".equals(id)) {
+			if ("collectTerm".equals(type) && "organisationPermissionTerm".equals(id)) {
 				return createCollectPermissionTermWIthKey("OWNING_ORGANISATION");
 			}
-			if ("collectPermissionTerm".equals(type) && "journalPermissionTerm".equals(id)) {
+			if ("collectTerm".equals(type) && "journalPermissionTerm".equals(id)) {
 				return createCollectPermissionTermWIthKey("JOURNAL_ACCESS");
 			}
 
@@ -370,7 +369,7 @@ public class OldRecordStorageSpy implements RecordStorage {
 		DataGroup internalRule = new DataGroupOldSpy("rule");
 		permissionTermRulePart.addChild(internalRule);
 		permissionTermRulePart.setRepeatId("12");
-		internalRule.addChild(new DataAtomicSpy("linkedRecordType", "collectPermissionTerm"));
+		internalRule.addChild(new DataAtomicSpy("linkedRecordType", "collectTerm"));
 		internalRule.addChild(new DataAtomicSpy("linkedRecordId", permissionTermId));
 		for (int idx = 0; idx < value.length; idx++) {
 			permissionTermRulePart

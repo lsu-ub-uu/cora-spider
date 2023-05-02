@@ -185,7 +185,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	private String extractPermissionKey(String permissionTermId) {
-		DataGroup collectPermissionTerm = recordStorage.read(List.of("collectPermissionTerm"),
+		DataGroup collectPermissionTerm = recordStorage.read(List.of("collectTerm"),
 				permissionTermId);
 		DataGroup extraData = collectPermissionTerm.getFirstGroupWithNameInData("extraData");
 		return extraData.getFirstAtomicValueWithNameInData("permissionKey");
