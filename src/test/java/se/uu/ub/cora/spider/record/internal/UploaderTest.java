@@ -227,7 +227,7 @@ public class UploaderTest {
 				"image");
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
-				"fakeMetadataIdFromRecordTypeHandlerSpy");
+				"fakeDefMetadataIdFromRecordTypeHandlerSpy");
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
 				recordStorage.read(List.of("image"), "image:123456789"));
 

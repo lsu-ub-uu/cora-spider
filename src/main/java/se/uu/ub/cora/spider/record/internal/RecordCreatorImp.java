@@ -60,7 +60,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private RecordIdGenerator idGenerator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
-	private String metadataId;
+	private String definitionId;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private RecordTypeHandler recordTypeHandler;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
@@ -70,6 +70,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private CollectTerms collectedTerms;
 	private Set<Link> collectedLinks;
 	private RecordArchive recordArchive;
+	private String createDefinitionId;
 
 	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -98,16 +99,17 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 			DataGroup dataGroup) {
 		this.authToken = authToken;
 		recordType = recordTypeToCreate;
-		recordAsDataGroup = dataGroup;
+		recordToValidate = dataGroup;
 		DataRecordGroup dataGroupAsRecordGroup = DataProvider
 				.createRecordGroupFromDataGroup(dataGroup);
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
 
 		// TODO: reactivate after abstract types are removed
-		// validateRecordTypeInDataIsSameAsSpecified(recordTypeToCreate);
+		validateRecordTypeInDataIsSameAsSpecified(recordTypeToCreate);
 
-		metadataId = recordTypeHandler.getCreateDefinitionId();
+		createDefinitionId = recordTypeHandler.getCreateDefinitionId();
+		definitionId = recordTypeHandler.getDefinitionId();
 
 		return validateCreateAndStoreRecord();
 	}
@@ -127,17 +129,17 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private DataRecord validateCreateAndStoreRecord() {
 		checkActionAuthorizationForUser();
 		checkNoCreateForAbstractRecordType();
-		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordAsDataGroup);
+		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordToValidate);
 		validateRecord();
-		useExtendedFunctionalityAfterMetadataValidation(recordType, recordAsDataGroup);
+		useExtendedFunctionalityAfterMetadataValidation(recordType, recordToValidate);
 		completeRecordAndCollectInformationSpecifiedInMetadata();
 		ensureNoDuplicateForTypeFamilyAndId();
-		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms.storageTerms);
+		createRecordInStorage(recordToValidate, collectedLinks, collectedTerms.storageTerms);
 		if (recordTypeHandler.storeInArchive()) {
-			recordArchive.create(recordType, recordId, recordAsDataGroup);
+			recordArchive.create(recordType, recordId, recordToValidate);
 		}
 		indexRecord(collectedTerms.indexTerms);
-		useExtendedFunctionalityBeforeReturn(recordType, recordAsDataGroup);
+		useExtendedFunctionalityBeforeReturn(recordType, recordToValidate);
 		return enhanceDataGroupToRecord();
 	}
 
@@ -179,8 +181,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType) {
-		CollectTerms uncheckedCollectedTerms = dataGroupTermCollector.collectTerms(metadataId,
-				recordAsDataGroup);
+		CollectTerms uncheckedCollectedTerms = dataGroupTermCollector.collectTerms(definitionId,
+				recordToValidate);
 		writePermissions = spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
 						user, CREATE, recordType, uncheckedCollectedTerms.permissionTerms, true);
@@ -194,14 +196,14 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void removeRecordPartsUserIsNotAllowedToChange() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		recordAsDataGroup = dataRedactor.removeChildrenForConstraintsWithoutPermissions(metadataId,
-				recordAsDataGroup, recordTypeHandler.getCreateWriteRecordPartConstraints(),
-				writePermissions);
+		recordToValidate = dataRedactor.removeChildrenForConstraintsWithoutPermissions(
+				definitionId, recordToValidate,
+				recordTypeHandler.getCreateWriteRecordPartConstraints(), writePermissions);
 	}
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {
-		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId,
-				recordAsDataGroup);
+		ValidationAnswer validationAnswer = dataValidator.validateData(createDefinitionId,
+				recordToValidate);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
@@ -217,13 +219,13 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private void completeRecordAndCollectInformationSpecifiedInMetadata() {
 		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = extractIdFromData();
-		collectedTerms = dataGroupTermCollector.collectTerms(metadataId, recordAsDataGroup);
-		collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup);
+		collectedTerms = dataGroupTermCollector.collectTerms(definitionId, recordToValidate);
+		collectedLinks = linkCollector.collectLinks(definitionId, recordToValidate);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
-		DataGroup recordInfo = recordAsDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
+		DataGroup recordInfo = recordToValidate.getFirstGroupWithNameInData(RECORD_INFO);
 		ensureIdExists(recordType, recordInfo);
 		addTypeToRecordInfo(recordType, recordInfo);
 		addCreatedInfoToRecordInfoUsingUserId(recordInfo, userId);
@@ -265,7 +267,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void indexRecord(List<IndexTerm> indexTerms) {
 		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
-		recordIndexer.indexData(ids, indexTerms, recordAsDataGroup);
+		recordIndexer.indexData(ids, indexTerms, recordToValidate);
 	}
 
 	private void ensureNoDuplicateForTypeFamilyAndId() {
@@ -298,13 +300,13 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void createRecordInStorage(DataGroup topLevelDataGroup, Set<Link> collectedLinks2,
 			Set<StorageTerm> storageTerms) {
-		String dataDivider = extractDataDividerFromData(recordAsDataGroup);
+		String dataDivider = extractDataDividerFromData(recordToValidate);
 		recordStorage.create(recordType, recordId, topLevelDataGroup, storageTerms, collectedLinks2,
 				dataDivider);
 	}
 
 	private String extractIdFromData() {
-		return recordAsDataGroup.getFirstGroupWithNameInData("recordInfo")
+		return recordToValidate.getFirstGroupWithNameInData("recordInfo")
 				.getFirstAtomicValueWithNameInData("id");
 	}
 
@@ -318,7 +320,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private DataRecord enhanceDataGroupToRecord() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		return dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user, recordType,
-				recordAsDataGroup, dataRedactor);
+				recordToValidate, dataRedactor);
 	}
 
 	public DataGroupToRecordEnhancer onlyForTestGetDataGroupToRecordEnhancer() {

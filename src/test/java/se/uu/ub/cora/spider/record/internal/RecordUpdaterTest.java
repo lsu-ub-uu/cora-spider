@@ -179,9 +179,11 @@ public class RecordUpdaterTest {
 
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 		dataValidator.MCR.assertMethodWasCalled("validateData");
+		dataValidator.MCR.assertParameters("validateData", 0,
+				"fakeUpdateMetadataIdFromRecordTypeHandlerSpy", dataGroup);
 
 		linkCollector.MCR.assertParameters("collectLinks", 0,
-				"fakeMetadataIdFromRecordTypeHandlerSpy", dataGroup);
+				"fakeDefMetadataIdFromRecordTypeHandlerSpy", dataGroup);
 
 		CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
 				.getReturnValue("collectTerms", 1);
@@ -197,7 +199,7 @@ public class RecordUpdaterTest {
 	private void assertCorrectSearchTermCollectorAndIndexer() {
 
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
-				"fakeMetadataIdFromRecordTypeHandlerSpy");
+				"fakeDefMetadataIdFromRecordTypeHandlerSpy");
 
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				1);
@@ -205,8 +207,7 @@ public class RecordUpdaterTest {
 
 	}
 
-	// TODO: reactivate after abstract types are removed
-	@Test(enabled = false, expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "The record "
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "The record "
 			+ "cannot be updated because the record type provided does not match the record type "
 			+ "that the validation type is set to validate.")
 	public void testRecordTypePassedNOTEqualsTheLinkedInValidationType() throws Exception {
@@ -300,8 +301,9 @@ public class RecordUpdaterTest {
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
 		dataRedactor.MCR.assertParameters("replaceChildrenForConstraintsWithoutPermissions", 0,
-				recordTypeHandlerSpy.getDefinitionId(), recordStorage.MCR.getReturnValue("read", 0),
-				dataGroup, recordTypeHandlerSpy.writeConstraints, expectedPermissions);
+				"fakeDefMetadataIdFromRecordTypeHandlerSpy",
+				recordStorage.MCR.getReturnValue("read", 0), dataGroup,
+				recordTypeHandlerSpy.writeConstraints, expectedPermissions);
 
 		DataGroup returnedRedactedDataGroup = (DataGroup) dataRedactor.MCR
 				.getReturnValue("replaceChildrenForConstraintsWithoutPermissions", 0);
@@ -733,7 +735,7 @@ public class RecordUpdaterTest {
 				dataGroup);
 
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
-				"fakeMetadataIdFromRecordTypeHandlerSpy");
+				"fakeDefMetadataIdFromRecordTypeHandlerSpy");
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				1);
 		recordStorage.MCR.assertParameter("update", 0, "storageTerms", collectTerms.storageTerms);

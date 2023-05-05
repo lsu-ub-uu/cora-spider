@@ -198,8 +198,7 @@ public class RecordCreatorTest {
 		return DataCreator2.createRecordWithNameInDataAndLinkedDataDividerId("nameInData", "cora");
 	}
 
-	// TODO: reactivate after abstract types are removed
-	@Test(enabled = false, expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "The record "
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "The record "
 			+ "cannot be created because the record type provided does not match the record type "
 			+ "that the validation type is set to validate.")
 	public void testRecordTypePassedNOTEqualsTheLinkedInValidationType() throws Exception {
@@ -625,7 +624,7 @@ public class RecordCreatorTest {
 		recordStorage.MCR.assertParameter("create", 0, "dataDivider", "cora");
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
-				"fakeMetadataIdFromRecordTypeHandlerSpy");
+				"fakeDefMetadataIdFromRecordTypeHandlerSpy");
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				1);
 		recordStorage.MCR.assertParameter("create", 0, "storageTerms", collectTerms.storageTerms);

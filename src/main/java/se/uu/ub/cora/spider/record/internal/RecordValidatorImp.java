@@ -55,6 +55,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private String metadataToValidate;
 	private DataGroup validationResult;
 	private RecordIdGenerator idGenerator;
+	private RecordTypeHandler recordTypeHandler;
 
 	private RecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -75,11 +76,22 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	public DataRecord validateRecord(String authToken, String recordType, DataGroup validationOrder,
 			DataGroup recordToValidate) {
 		this.authToken = authToken;
-		this.recordAsDataGroup = recordToValidate;
+		this.recordToValidate = recordToValidate;
 		this.recordType = recordType;
+
 		user = tryToGetActiveUser();
 		checkValidationRecordIsOkBeforeValidation(validationOrder);
+
+		createRecordTypeHandlerForRecordToValidate(recordToValidate);
+
 		return validateRecord(validationOrder);
+	}
+
+	private void createRecordTypeHandlerForRecordToValidate(DataGroup recordToValidate) {
+		DataRecordGroup validationOrderAsDataRecordGroup = DataProvider
+				.createRecordGroupFromDataGroup(recordToValidate);
+		recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(validationOrderAsDataRecordGroup);
 	}
 
 	private User tryToGetActiveUser() {
@@ -107,9 +119,9 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private String getMetadataIdForWorkOrder(DataGroup validationOrder) {
 		DataRecordGroup validationOrderAsDataRecordGroup = DataProvider
 				.createRecordGroupFromDataGroup(validationOrder);
-		RecordTypeHandler recordTypeHandler = dependencyProvider
+		RecordTypeHandler validationOrderRecordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(validationOrderAsDataRecordGroup);
-		return recordTypeHandler.getCreateDefinitionId();
+		return validationOrderRecordTypeHandler.getCreateDefinitionId();
 	}
 
 	private DataRecord validateRecord(DataGroup validationOrder) {
@@ -167,18 +179,14 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		ensureRecordExistWhenActionToPerformIsUpdate(recordTypeToValidate, recordIdOrNullIfCreate);
 
 		String metadataId = getMetadataId();
-		possiblyEnsureLinksExist(validationOrder, metadataId);
+		possiblyEnsureLinksExist(validationOrder);
 
 		validateIncomingDataAsSpecifiedInMetadata(metadataId);
 	}
 
 	private String getMetadataId() {
-		DataRecordGroup validationOrderAsDataRecordGroup = DataProvider
-				.createRecordGroupFromDataGroup(recordAsDataGroup);
-		RecordTypeHandler recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(validationOrderAsDataRecordGroup);
 		return validateNew() ? recordTypeHandler.getCreateDefinitionId()
-				: recordTypeHandler.getDefinitionId();
+				: recordTypeHandler.getUpdateDefinitionId();
 	}
 
 	private boolean validateNew() {
@@ -190,7 +198,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private String extractIdFromData() {
-		return recordAsDataGroup.getFirstGroupWithNameInData("recordInfo")
+		return recordToValidate.getFirstGroupWithNameInData("recordInfo")
 				.getFirstAtomicValueWithNameInData("id");
 	}
 
@@ -240,15 +248,16 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		return error;
 	}
 
-	private void possiblyEnsureLinksExist(DataGroup validationOrder, String metadataId) {
+	private void possiblyEnsureLinksExist(DataGroup validationOrder) {
 		String validateLinks = validationOrder.getFirstAtomicValueWithNameInData("validateLinks");
 		if ("true".equals(validateLinks)) {
-			ensureLinksExist(metadataId);
+			ensureLinksExist();
 		}
 	}
 
-	private void ensureLinksExist(String metadataId) {
-		Set<Link> collectedLinks = linkCollector.collectLinks(metadataId, recordAsDataGroup);
+	private void ensureLinksExist() {
+		String definitionId = recordTypeHandler.getDefinitionId();
+		Set<Link> collectedLinks = linkCollector.collectLinks(definitionId, recordToValidate);
 		checkIfLinksExist(collectedLinks);
 	}
 
@@ -262,7 +271,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void validateIncomingDataAsSpecifiedInMetadata(String metadataId) {
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId,
-				recordAsDataGroup);
+				recordToValidate);
 		possiblyAddErrorMessages(validationAnswer);
 		if (validationResult.containsChildWithNameInData(ERROR_MESSAGES)) {
 			validationResult.addChild(

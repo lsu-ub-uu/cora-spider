@@ -80,11 +80,11 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MRV.setDefaultReturnValuesSupplier("getListOfRecordTypeIdsToReadFromStorage",
 				() -> List.of("oneImplementingTypeId"));
 		MRV.setDefaultReturnValuesSupplier("getCreateDefinitionId",
-				() -> "fakeMetadataIdFromRecordTypeHandlerSpy");
+				() -> "fakeCreateMetadataIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("getDefinitionId",
-				() -> "fakeMetadataIdFromRecordTypeHandlerSpy");
+				() -> "fakeDefMetadataIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
-				() -> "fakeMetadataIdFromRecordTypeHandlerSpy");
+				() -> "fakeUpdateMetadataIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("hasParent", () -> false);
 		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
 
