@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Uppsala University Library
+ * Copyright 2020, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -57,14 +57,12 @@ public class MetadataValidatorExtendedFunctionalityFactoryTest {
 
 	@Test
 	public void testGetExtendedFunctionalityContexts() {
-		assertEquals(factory.getExtendedFunctionalityContexts().size(), 4);
-		assertCorrectContextUsingIndexNumberAndPosition(0, 0, "metadataGroup",
+		assertEquals(factory.getExtendedFunctionalityContexts().size(), 2);
+
+		assertCorrectContextUsingIndexNumberAndPosition(0, 0, "metadata",
 				ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION);
-		assertCorrectContextUsingIndexNumberAndPosition(1, 0, "metadataCollectionVariable",
-				ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION);
-		assertCorrectContextUsingIndexNumberAndPosition(2, 0, "metadataGroup",
-				ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION);
-		assertCorrectContextUsingIndexNumberAndPosition(3, 0, "metadataCollectionVariable",
+
+		assertCorrectContextUsingIndexNumberAndPosition(1, 0, "metadata",
 				ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION);
 	}
 

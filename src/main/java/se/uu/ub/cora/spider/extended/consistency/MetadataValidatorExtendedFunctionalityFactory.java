@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Uppsala University Library
+ * Copyright 2020, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -43,10 +43,8 @@ public class MetadataValidatorExtendedFunctionalityFactory implements ExtendedFu
 	}
 
 	private void createListOfContexts() {
-		createContext(CREATE_AFTER_METADATA_VALIDATION, "metadataGroup");
-		createContext(CREATE_AFTER_METADATA_VALIDATION, "metadataCollectionVariable");
-		createContext(UPDATE_AFTER_METADATA_VALIDATION, "metadataGroup");
-		createContext(UPDATE_AFTER_METADATA_VALIDATION, "metadataCollectionVariable");
+		createContext(CREATE_AFTER_METADATA_VALIDATION, "metadata");
+		createContext(UPDATE_AFTER_METADATA_VALIDATION, "metadata");
 	}
 
 	private void createContext(ExtendedFunctionalityPosition position, String recordType) {

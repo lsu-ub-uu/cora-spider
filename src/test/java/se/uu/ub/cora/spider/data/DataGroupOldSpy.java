@@ -31,6 +31,7 @@ import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataChildFilter;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class DataGroupOldSpy implements DataGroup {
 
@@ -43,8 +44,10 @@ public class DataGroupOldSpy implements DataGroup {
 	public List<String> requestedDataGroups = new ArrayList<>();
 	public List<DataChild> addedChildren = new ArrayList<>();
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
 	public DataGroupOldSpy(String nameInData) {
+		MCR.useMRV(MRV);
 		this.nameInData = nameInData;
 	}
 
@@ -125,7 +128,7 @@ public class DataGroupOldSpy implements DataGroup {
 	@Override
 	public void addAttributeByIdWithValue(String id, String value) {
 		attributes.add(new DataAttributeSpy(id, value));
-
+		MRV.setSpecificReturnValuesSupplier("getAttributeValue", () -> Optional.of(value), id);
 	}
 
 	@Override
@@ -294,7 +297,11 @@ public class DataGroupOldSpy implements DataGroup {
 
 	@Override
 	public <T extends DataChild> T getFirstChildOfTypeAndName(Class<T> type, String name) {
-		// TODO Auto-generated method stub
+		for (DataChild dataElement : children) {
+			if (name.equals(dataElement.getNameInData())) {
+				return (T) dataElement;
+			}
+		}
 		return null;
 	}
 
@@ -319,8 +326,7 @@ public class DataGroupOldSpy implements DataGroup {
 
 	@Override
 	public Optional<String> getAttributeValue(String nameInData) {
-		// TODO Auto-generated method stub
-		return Optional.empty();
+		return (Optional<String>) MCR.addCallAndReturnFromMRV("nameInData", nameInData);
 	}
 
 }
