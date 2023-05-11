@@ -33,7 +33,6 @@ public final class DataCreator2 {
 	public static DataGroup createRecordInfoWithRecordType(String recordType) {
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(createLinkWithLinkedId("type", "recordType", recordType));
-
 		return recordInfo;
 	}
 
@@ -69,8 +68,7 @@ public final class DataCreator2 {
 	public static DataGroup createRecordWithNameInDataAndIdAndLinkedRecordId(String nameInData,
 			String id, String linkedRecordId) {
 		DataGroup record = new DataGroupOldSpy(nameInData);
-		DataGroup createRecordInfo = createRecordInfoWithIdAndLinkedRecordId(id,
-				linkedRecordId);
+		DataGroup createRecordInfo = createRecordInfoWithIdAndLinkedRecordId(id, linkedRecordId);
 		record.addChild(createRecordInfo);
 		return record;
 	}
@@ -174,45 +172,29 @@ public final class DataCreator2 {
 
 	public static DataGroup createMetadataGroupWithTwoChildren() {
 		DataGroup dataGroup = new DataGroupOldSpy("metadata");
+		dataGroup.addAttributeByIdWithValue("type", "group");
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", "testNewGroup"));
-		recordInfo.addChild(new DataAtomicSpy("type", "metadataGroup"));
 		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));
-
 		dataGroup.addChild(recordInfo);
-
 		dataGroup.addChild(createChildReferences());
-
 		return dataGroup;
 	}
 
 	private static DataGroup createChildReferences() {
 		DataGroup childReferences = new DataGroupOldSpy("childReferences");
-
 		childReferences.addChild(createChildReference("childOne", "1", "1"));
 		childReferences.addChild(createChildReference("childTwo", "0", "2"));
-
 		return childReferences;
 	}
 
 	private static DataGroup createChildReference(String ref, String repeatMin, String repeatMax) {
 		DataGroup childReference = new DataGroupOldSpy("childReference");
-
-		DataGroup refGroup = new DataGroupOldSpy("ref");
-		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", "metadataGroup");
-		refGroup.addChild(linkedRecordType);
-		DataAtomic linkedRecordId = new DataAtomicSpy("linkedRecordId", ref);
-		refGroup.addChild(linkedRecordId);
-
-		refGroup.addAttributeByIdWithValue("type", "group");
-		childReference.addChild(refGroup);
-
+		childReference.addChild(createLinkWithLinkedId("ref", "metadata", ref));
 		DataAtomic repeatMinAtomic = new DataAtomicSpy("repeatMin", repeatMin);
 		childReference.addChild(repeatMinAtomic);
-
 		DataAtomic repeatMaxAtomic = new DataAtomicSpy("repeatMax", repeatMax);
 		childReference.addChild(repeatMaxAtomic);
-
 		return childReference;
 	}
 
@@ -220,59 +202,46 @@ public final class DataCreator2 {
 		DataGroup dataGroup = createMetadataGroupWithTwoChildren();
 		DataGroup childReferences = dataGroup.getFirstGroupWithNameInData("childReferences");
 		childReferences.addChild(createChildReference("childThree", "1", "1"));
-
 		return dataGroup;
 	}
 
-	public static DataGroup createMetadataGroupWithCollectionVariableAsChild() {
+	public static DataGroup createDataGroupDescribingACollectionVariable() {
 		DataGroup dataGroup = new DataGroupOldSpy("metadata");
+		dataGroup.addAttributeByIdWithValue("type", "collectionVariable");
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", "testCollectionVar"));
-		recordInfo.addChild(new DataAtomicSpy("type", "collectionVariable"));
 		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));
 		dataGroup.addChild(recordInfo);
-		dataGroup.addChild(createRefCollectionIdWithLinkedRecordid("testItemCollection"));
-
+		dataGroup.addChild(
+				createLinkWithLinkedId("refCollection", "metadata", "testItemCollection"));
 		return dataGroup;
-	}
-
-	public static DataGroup createRefCollectionIdWithLinkedRecordid(String linkedRecordId) {
-		DataGroup refCollection = new DataGroupOldSpy("refCollection");
-		refCollection.addChild(new DataAtomicSpy("linkedRecordType", "metadataItemCollection"));
-		refCollection.addChild(new DataAtomicSpy("linkedRecordId", linkedRecordId));
-		return refCollection;
 	}
 
 	public static DataGroup createMetadataGroupWithOneChild() {
 		DataGroup dataGroup = new DataGroupOldSpy("metadata");
+		dataGroup.addAttributeByIdWithValue("type", "group");
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", "testNewGroup"));
-		recordInfo.addChild(new DataAtomicSpy("type", "metadataGroup"));
 		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));
-
 		dataGroup.addChild(recordInfo);
-
 		dataGroup.addChild(createChildReference());
-
 		return dataGroup;
 	}
 
 	private static DataGroup createChildReference() {
 		DataGroup childReferences = new DataGroupOldSpy("childReferences");
-
 		childReferences.addChild(createChildReference("childOne", "1", "1"));
-
 		return childReferences;
 	}
 
 	public static DataGroup createMetadataGroupWithRecordLinkAsChild() {
 		DataGroup dataGroup = new DataGroupOldSpy("metadata");
+		dataGroup.addAttributeByIdWithValue("type", "recordLink");
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(new DataAtomicSpy("id", "testRecordLink"));
 		recordInfo.addChild(new DataAtomicSpy("type", "recordLink"));
 		recordInfo.addChild(createDataDividerWithLinkedRecordId("test"));
 		dataGroup.addChild(recordInfo);
-
 		return dataGroup;
 	}
 }

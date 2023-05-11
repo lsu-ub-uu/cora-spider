@@ -20,10 +20,11 @@
 package se.uu.ub.cora.spider.extended.consistency;
 
 import java.util.List;
+import java.util.Optional;
 
-import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -32,7 +33,7 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedFunctionality {
-	private static final String LINKED_RECORD_ID = "linkedRecordId";
+	private static final String METADATA = "metadata";
 	private static final String REF_PARENT_ID = "refParentId";
 	private RecordStorage recordStorage;
 	private String recordType;
@@ -52,21 +53,22 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 		if (dataGroupHasParent()) {
 			validateInheritanceRules();
 		}
-		if (recordTypeIsMetadataCollectionVariable()) {
+		if (dataToHandleIsOfTypeMetadataCollectionVariable()) {
 			possiblyValidateFinalValue();
 		}
 	}
 
 	private void validateInheritanceRules() {
-		if (recordTypeIsMetadataGroup()) {
+		if (dataToHandleIsOfTypeMetadataGroup()) {
 			ensureAllChildrenExistsInParent();
-		} else if (recordTypeIsMetadataCollectionVariable()) {
+		} else if (dataToHandleIsOfTypeMetadataCollectionVariable()) {
 			ensureAllCollectionItemsExistInParent();
 		}
 	}
 
-	private boolean recordTypeIsMetadataGroup() {
-		return "metadataGroup".equals(recordType);
+	private boolean dataToHandleIsOfTypeMetadataGroup() {
+		Optional<String> type = recordAsDataGroup.getAttributeValue("type");
+		return type.isPresent() && "group".equals(type.get());
 	}
 
 	private boolean dataGroupHasParent() {
@@ -89,15 +91,12 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 	protected String getNameInDataFromChildReference(DataChild childReference) {
 		DataGroup childReferenceGroup = (DataGroup) childReference;
 
-		DataGroup ref = childReferenceGroup.getFirstGroupWithNameInData("ref");
-		String linkedRecordType = ref.getFirstAtomicValueWithNameInData("linkedRecordType");
-		String linkedRecordId = ref.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataRecordLink ref = childReferenceGroup.getFirstChildOfTypeAndName(DataRecordLink.class,
+				"ref");
+		String linkedRecordId = ref.getLinkedRecordId();
 		DataGroup childDataGroup;
 		try {
-			RecordTypeHandler recordTypeHandler = dependencyProvider
-					.getRecordTypeHandler(linkedRecordType);
-			List<String> types = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
-			childDataGroup = recordStorage.read(types, linkedRecordId);
+			childDataGroup = recordStorage.read(List.of(METADATA), linkedRecordId);
 		} catch (RecordNotFoundException exception) {
 			throw new DataException("Data is not valid: referenced child:  does not exist",
 					exception);
@@ -117,14 +116,14 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 
 	protected DataGroup getParentChildReferences() {
 		String refParentId = extractParentId();
-		DataGroup parent = recordStorage.read(List.of("metadataGroup"), refParentId);
-
+		DataGroup parent = recordStorage.read(List.of(METADATA), refParentId);
 		return (DataGroup) parent.getFirstChildWithNameInData("childReferences");
 	}
 
 	private String extractParentId() {
-		DataGroup refParentGroup = recordAsDataGroup.getFirstGroupWithNameInData(REF_PARENT_ID);
-		return refParentGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataRecordLink ref = recordAsDataGroup.getFirstChildOfTypeAndName(DataRecordLink.class,
+				REF_PARENT_ID);
+		return ref.getLinkedRecordId();
 	}
 
 	protected boolean isSameNameInData(String childNameInData, DataChild parentChildReference) {
@@ -132,16 +131,17 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 		return childNameInData.equals(parentChildNameInData);
 	}
 
-	private boolean recordTypeIsMetadataCollectionVariable() {
-		return "metadataCollectionVariable".equals(recordType);
+	private boolean dataToHandleIsOfTypeMetadataCollectionVariable() {
+		Optional<String> type = recordAsDataGroup.getAttributeValue("type");
+		return type.isPresent() && "collectionVariable".equals(type.get());
 	}
 
 	private void ensureAllCollectionItemsExistInParent() {
-		DataGroup references = getItemReferences();
+		DataGroup references = getItemReferencesFromLinkedItemCollection();
 		DataGroup parentReferences = extractParentItemReferences();
 
 		for (DataChild itemReference : references.getChildren()) {
-			String childItemId = extractRefItemIdFromRefItemGroup((DataGroup) itemReference);
+			String childItemId = ((DataRecordLink) itemReference).getLinkedRecordId();
 			if (!ensureChildItemExistsInParent(childItemId, parentReferences)) {
 				throw new DataException("Data is not valid: childItem: " + childItemId
 						+ " does not exist in parent");
@@ -149,38 +149,31 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 		}
 	}
 
-	private DataGroup getItemReferences() {
-		DataGroup refCollection = (DataGroup) recordAsDataGroup
-				.getFirstChildWithNameInData("refCollection");
-		String refCollectionId = refCollection.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	private DataGroup getItemReferencesFromLinkedItemCollection() {
+		DataRecordLink refCollection = recordAsDataGroup
+				.getFirstChildOfTypeAndName(DataRecordLink.class, "refCollection");
+		String refCollectionId = refCollection.getLinkedRecordId();
 		return readItemCollectionAndExtractCollectionItemReferences(refCollectionId);
 	}
 
 	private DataGroup extractParentItemReferences() {
 		String refParentId = extractParentId();
-		DataGroup parentCollectionVar = recordStorage.read(List.of("metadataCollectionVariable"),
-				refParentId);
-		DataGroup parentRefCollection = (DataGroup) parentCollectionVar
-				.getFirstChildWithNameInData("refCollection");
-		String parentRefCollectionId = parentRefCollection
-				.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataGroup parentCollectionVar = recordStorage.read(List.of(METADATA), refParentId);
+		DataRecordLink parentRefCollection = parentCollectionVar
+				.getFirstChildOfTypeAndName(DataRecordLink.class, "refCollection");
+		String parentRefCollectionId = parentRefCollection.getLinkedRecordId();
 
 		return readItemCollectionAndExtractCollectionItemReferences(parentRefCollectionId);
 	}
 
 	private DataGroup readItemCollectionAndExtractCollectionItemReferences(String refCollectionId) {
-		DataGroup refCollection = recordStorage.read(List.of("metadataItemCollection"),
-				refCollectionId);
+		DataGroup refCollection = recordStorage.read(List.of(METADATA), refCollectionId);
 		return (DataGroup) refCollection.getFirstChildWithNameInData("collectionItemReferences");
-	}
-
-	private String extractRefItemIdFromRefItemGroup(DataGroup childItem) {
-		return childItem.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
 	private boolean ensureChildItemExistsInParent(String childItemId, DataGroup parentReferences) {
 		for (DataChild itemReference : parentReferences.getChildren()) {
-			String parentItemId = extractRefItemIdFromRefItemGroup((DataGroup) itemReference);
+			String parentItemId = ((DataRecordLink) itemReference).getLinkedRecordId();
 			if (isParentItemSameAsChildItem(childItemId, parentItemId)) {
 				return true;
 			}
@@ -207,9 +200,9 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 	}
 
 	private boolean validateFinalValue(String finalValue) {
-		DataGroup references = getItemReferences();
+		DataGroup references = getItemReferencesFromLinkedItemCollection();
 		for (DataChild reference : references.getChildren()) {
-			String itemNameInData = extractNameInDataFromReference((DataGroup) reference);
+			String itemNameInData = extractNameInDataFromReference((DataRecordLink) reference);
 			if (finalValue.equals(itemNameInData)) {
 				return true;
 			}
@@ -217,13 +210,9 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 		return false;
 	}
 
-	private String extractNameInDataFromReference(DataGroup reference) {
-		String itemId = extractRefItemIdFromRefItemGroup(reference);
-
-		RecordTypeHandler recordTypeHandler = dependencyProvider
-				.getRecordTypeHandler("metadataCollectionItem");
-		List<String> types = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
-		DataGroup collectionItem = recordStorage.read(types, itemId);
+	private String extractNameInDataFromReference(DataRecordLink reference) {
+		String itemId = reference.getLinkedRecordId();
+		DataGroup collectionItem = recordStorage.read(List.of(METADATA), itemId);
 
 		return collectionItem.getFirstAtomicValueWithNameInData("nameInData");
 	}

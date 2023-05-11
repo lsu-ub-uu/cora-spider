@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2020, 2021, 2022 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -29,6 +29,7 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataAtomic;
@@ -61,7 +62,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
-	private String metadataId;
+	private String definitionId;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataGroupTermCollector dataGroupTermCollector;
@@ -71,6 +72,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private DataGroup previouslyStoredRecord;
 	private Set<String> writePermissions;
 	private RecordArchive recordArchive;
+	private String updateDefinitionId;
 
 	private RecordUpdaterImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -103,14 +105,22 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
+		try {
+			return tryToUpdateAndStoreRecord();
+		} catch (DataValidationException dve) {
+			throw new DataException("Data is not valid: " + dve.getMessage());
+		}
+	}
+
+	private DataRecord tryToUpdateAndStoreRecord() {
 		DataRecordGroup dataGroupAsRecordGroup = DataProvider
 				.createRecordGroupFromDataGroup(topDataGroup);
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
-		// TODO: reactivate after abstract types are removed
-		// validateRecordTypeInDataIsSameAsSpecified(recordType);
+		validateRecordTypeInDataIsSameAsSpecified(recordType);
 
-		metadataId = recordTypeHandler.getDefinitionId();
+		definitionId = recordTypeHandler.getDefinitionId();
+		updateDefinitionId = recordTypeHandler.getUpdateDefinitionId();
 
 		checkNoUpdateForAbstractRecordType();
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
@@ -123,10 +133,10 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		useExtendedFunctionalityAfterMetadataValidation(recordType, topDataGroup);
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
-		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(metadataId, topDataGroup);
+		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(definitionId, topDataGroup);
 		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectTerms);
 
-		Set<Link> collectedLinks = linkCollector.collectLinks(metadataId, topDataGroup);
+		Set<Link> collectedLinks = linkCollector.collectLinks(definitionId, topDataGroup);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		useExtendedFunctionalityBeforeStore(recordType, topDataGroup);
@@ -168,7 +178,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
 		previouslyStoredRecord = recordStorage.read(List.of(recordType), recordId);
-		CollectTerms collectedTerms = dataGroupTermCollector.collectTerms(metadataId,
+		CollectTerms collectedTerms = dataGroupTermCollector.collectTerms(definitionId,
 				previouslyStoredRecord);
 
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
@@ -296,13 +306,14 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private void replaceRecordPartsUserIsNotAllowedToChange() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		topDataGroup = dataRedactor.replaceChildrenForConstraintsWithoutPermissions(metadataId,
+		topDataGroup = dataRedactor.replaceChildrenForConstraintsWithoutPermissions(definitionId,
 				previouslyStoredRecord, topDataGroup,
 				recordTypeHandler.getUpdateWriteRecordPartConstraints(), writePermissions);
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata() {
-		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId, topDataGroup);
+		ValidationAnswer validationAnswer = dataValidator.validateData(updateDefinitionId,
+				topDataGroup);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}

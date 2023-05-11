@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2016, 2017, 2019 Uppsala University Library
+ * Copyright 2016, 2017, 2019, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -32,9 +32,6 @@ import java.nio.charset.StandardCharsets;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataAtomicProvider;
-import se.uu.ub.cora.data.DataGroupFactory;
-import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
@@ -42,8 +39,6 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
-import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
@@ -63,6 +58,7 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class SpiderDownloaderTest {
+	private static final String BINARY = "binary";
 	private RecordStorage recordStorage;
 	private AuthenticatorSpy authenticator;
 	private StreamStorageSpy streamStorage;
@@ -71,8 +67,6 @@ public class SpiderDownloaderTest {
 	private Downloader downloader;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private LoggerFactorySpy loggerFactorySpy;
-	private DataGroupFactory dataGroupFactory;
-	private DataAtomicFactorySpy dataAtomicFactory;
 	private DataCopierFactorySpy dataCopierFactory;
 
 	private DataFactorySpy dataFactory;
@@ -96,10 +90,6 @@ public class SpiderDownloaderTest {
 		dataFactory = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactory);
 
-		dataGroupFactory = new DataGroupFactorySpy();
-		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
-		dataAtomicFactory = new DataAtomicFactorySpy();
-		DataAtomicProvider.setDataAtomicFactory(dataAtomicFactory);
 		dataCopierFactory = new DataCopierFactorySpy();
 		DataCopierProvider.setDataCopierFactory(dataCopierFactory);
 	}
@@ -130,7 +120,7 @@ public class SpiderDownloaderTest {
 
 		boolean exceptionWasCaught = false;
 		try {
-			downloader.download("someToken78678567", "image", "image:123456789", "master");
+			downloader.download("someToken78678567", BINARY, "image:123456789", "master");
 		} catch (Exception e) {
 			assertEquals(e.getClass(), AuthorizationException.class);
 			exceptionWasCaught = true;
@@ -147,7 +137,7 @@ public class SpiderDownloaderTest {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 		streamStorage.stream = stream;
 
-		downloader.download("someToken78678567", "image", "image:123456789", "master");
+		downloader.download("someToken78678567", BINARY, "image:123456789", "master");
 
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 	}
@@ -157,7 +147,7 @@ public class SpiderDownloaderTest {
 		authenticator.throwAuthenticationException = true;
 		recordStorage = new OldRecordStorageSpy();
 		setUpDependencyProvider();
-		downloader.download("dummyNonAuthenticatedToken", "image", "image:123456789", "master");
+		downloader.download("dummyNonAuthenticatedToken", BINARY, "image:123456789", "master");
 	}
 
 	@Test
@@ -165,7 +155,7 @@ public class SpiderDownloaderTest {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 		streamStorage.stream = stream;
 
-		SpiderInputStream spiderStream = downloader.download("someToken78678567", "image",
+		SpiderInputStream spiderStream = downloader.download("someToken78678567", BINARY,
 				"image:123456789", "master");
 
 		assertEquals(spiderStream.stream, stream);
@@ -179,7 +169,7 @@ public class SpiderDownloaderTest {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 		streamStorage.stream = stream;
 
-		downloader.download("someToken78678567", "image", "image:123456789", "master");
+		downloader.download("someToken78678567", BINARY, "image:123456789", "master");
 
 		assertEquals(streamStorage.streamId, "678912345");
 		assertEquals(streamStorage.dataDivider, "cora");
@@ -198,29 +188,29 @@ public class SpiderDownloaderTest {
 
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testDownloadNotFound() {
-		downloader.download("someToken78678567", "image", "NOT_FOUND", "master");
+		downloader.download("someToken78678567", BINARY, "NOT_FOUND", "master");
 	}
 
 	@Test(expectedExceptions = DataMissingException.class)
 	public void testDownloadResourceIsMissing() {
-		downloader.download("someToken78678567", "image", "image:123456789", null);
+		downloader.download("someToken78678567", BINARY, "image:123456789", null);
 
 	}
 
 	@Test(expectedExceptions = DataMissingException.class)
 	public void testDownloadResourceIsEmpty() {
-		downloader.download("someToken78678567", "image", "image:123456789", "");
+		downloader.download("someToken78678567", BINARY, "image:123456789", "");
 	}
 
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testDownloadResourceDoesNotExistInRecord() {
-		downloader.download("someToken78678567", "image", "image:123456789", "NonExistingResource");
+		downloader.download("someToken78678567", BINARY, "image:123456789", "NonExistingResource");
 	}
 
 	@Test
 	public void testDownloadResourceDoesNotExistInRecordExceptionInitialIsSentAlong() {
 		try {
-			downloader.download("someToken78678567", "image", "image:123456789",
+			downloader.download("someToken78678567", BINARY, "image:123456789",
 					"NonExistingResource");
 		} catch (Exception e) {
 			assertTrue(e.getCause() instanceof DataMissingException);

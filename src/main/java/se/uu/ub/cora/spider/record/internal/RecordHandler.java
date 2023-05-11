@@ -46,7 +46,7 @@ public class RecordHandler {
 	protected RecordStorage recordStorage;
 	protected String recordType;
 	protected String recordId;
-	protected DataGroup recordAsDataGroup;
+	protected DataGroup recordToValidate;
 	protected String authToken;
 	protected User user;
 

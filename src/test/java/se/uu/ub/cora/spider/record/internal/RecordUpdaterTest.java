@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2020, 2021, 2022 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -31,6 +31,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataLink;
@@ -179,9 +180,11 @@ public class RecordUpdaterTest {
 
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 		dataValidator.MCR.assertMethodWasCalled("validateData");
+		dataValidator.MCR.assertParameters("validateData", 0,
+				"fakeUpdateMetadataIdFromRecordTypeHandlerSpy", dataGroup);
 
 		linkCollector.MCR.assertParameters("collectLinks", 0,
-				"fakeMetadataIdFromRecordTypeHandlerSpy", dataGroup);
+				"fakeDefMetadataIdFromRecordTypeHandlerSpy", dataGroup);
 
 		CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
 				.getReturnValue("collectTerms", 1);
@@ -197,7 +200,7 @@ public class RecordUpdaterTest {
 	private void assertCorrectSearchTermCollectorAndIndexer() {
 
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
-				"fakeMetadataIdFromRecordTypeHandlerSpy");
+				"fakeDefMetadataIdFromRecordTypeHandlerSpy");
 
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				1);
@@ -205,8 +208,7 @@ public class RecordUpdaterTest {
 
 	}
 
-	// TODO: reactivate after abstract types are removed
-	@Test(enabled = false, expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "The record "
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "The record "
 			+ "cannot be updated because the record type provided does not match the record type "
 			+ "that the validation type is set to validate.")
 	public void testRecordTypePassedNOTEqualsTheLinkedInValidationType() throws Exception {
@@ -219,10 +221,6 @@ public class RecordUpdaterTest {
 		DataGroupSpy dataGroupSpy = new DataGroupSpy();
 
 		recordUpdaterOld.updateRecord("someToken78678567", "spyType", "spyId", dataGroupSpy);
-
-		// recordUpdater.updateRecord("dummyAuthenticatedToken", "recordTypeInput",
-		// dataGroupSpy);
-
 	}
 
 	@Test
@@ -241,6 +239,21 @@ public class RecordUpdaterTest {
 				.getReturnValue("factorRecordGroupFromDataGroup", 0);
 		dependencyProviderSpy.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
 				dataGroupAsRecordGroup);
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "Data is not valid: some message")
+	public void testValidationTypeDoesNotExist() throws Exception {
+		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getUpdateDefinitionId",
+				DataValidationException.withMessage("some message"));
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
+		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
+
+		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 	}
 
 	@Test
@@ -300,8 +313,9 @@ public class RecordUpdaterTest {
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
 		dataRedactor.MCR.assertParameters("replaceChildrenForConstraintsWithoutPermissions", 0,
-				recordTypeHandlerSpy.getDefinitionId(), recordStorage.MCR.getReturnValue("read", 0),
-				dataGroup, recordTypeHandlerSpy.writeConstraints, expectedPermissions);
+				"fakeDefMetadataIdFromRecordTypeHandlerSpy",
+				recordStorage.MCR.getReturnValue("read", 0), dataGroup,
+				recordTypeHandlerSpy.writeConstraints, expectedPermissions);
 
 		DataGroup returnedRedactedDataGroup = (DataGroup) dataRedactor.MCR
 				.getReturnValue("replaceChildrenForConstraintsWithoutPermissions", 0);
@@ -733,7 +747,7 @@ public class RecordUpdaterTest {
 				dataGroup);
 
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
-				"fakeMetadataIdFromRecordTypeHandlerSpy");
+				"fakeDefMetadataIdFromRecordTypeHandlerSpy");
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				1);
 		recordStorage.MCR.assertParameter("update", 0, "storageTerms", collectTerms.storageTerms);

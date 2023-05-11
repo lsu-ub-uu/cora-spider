@@ -149,7 +149,11 @@ public class OldRecordStorageSpy implements RecordStorage {
 			if ("recordType".equals(type) && "image".equals(id)) {
 				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image",
 						"true", "binary");
-
+			}
+			if ("recordType".equals(type) && "binary".equals(id)) {
+				DataGroup recordTypeGroup = DataCreator
+						.createRecordTypeWithIdAndUserSuppliedId("binary", "false");
+				return recordTypeGroup;
 			}
 			if (type.equals("recordType") && ("place".equals(id))) {
 				DataGroup dataGroup = DataCreator
@@ -162,9 +166,9 @@ public class OldRecordStorageSpy implements RecordStorage {
 				return dataGroup;
 			}
 
-			if ("image".equals(type) && "image:123456789".equals(id)) {
-				return DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("image",
-						"image:123456789", "image", "cora");
+			if ("binary".equals(type) && "image:123456789".equals(id)) {
+				return DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+						"binary", "image:123456789", "binary", "cora");
 			}
 			if ("recordType".equals(type) && "book".equals(id)) {
 				DataGroup book = new DataGroupOldSpy("recordType");
@@ -294,17 +298,16 @@ public class OldRecordStorageSpy implements RecordStorage {
 				return null;
 			}
 
-			if ("collectPermissionTerm".equals(type)
-					&& "publishedStatusPermissionTerm".equals(id)) {
+			if ("collectTerm".equals(type) && "publishedStatusPermissionTerm".equals(id)) {
 				return createCollectPermissionTermWIthKey("PUBLISHED_STATUS");
 			}
-			if ("collectPermissionTerm".equals(type) && "deletedStatusPermissionTerm".equals(id)) {
+			if ("collectTerm".equals(type) && "deletedStatusPermissionTerm".equals(id)) {
 				return createCollectPermissionTermWIthKey("DELETED_STATUS");
 			}
-			if ("collectPermissionTerm".equals(type) && "organisationPermissionTerm".equals(id)) {
+			if ("collectTerm".equals(type) && "organisationPermissionTerm".equals(id)) {
 				return createCollectPermissionTermWIthKey("OWNING_ORGANISATION");
 			}
-			if ("collectPermissionTerm".equals(type) && "journalPermissionTerm".equals(id)) {
+			if ("collectTerm".equals(type) && "journalPermissionTerm".equals(id)) {
 				return createCollectPermissionTermWIthKey("JOURNAL_ACCESS");
 			}
 
@@ -370,7 +373,7 @@ public class OldRecordStorageSpy implements RecordStorage {
 		DataGroup internalRule = new DataGroupOldSpy("rule");
 		permissionTermRulePart.addChild(internalRule);
 		permissionTermRulePart.setRepeatId("12");
-		internalRule.addChild(new DataAtomicSpy("linkedRecordType", "collectPermissionTerm"));
+		internalRule.addChild(new DataAtomicSpy("linkedRecordType", "collectTerm"));
 		internalRule.addChild(new DataAtomicSpy("linkedRecordId", permissionTermId));
 		for (int idx = 0; idx < value.length; idx++) {
 			permissionTermRulePart

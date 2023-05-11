@@ -243,7 +243,7 @@ public class TestDataRecordInMemoryStorage {
 
 	private static void addImageOne(RecordStorageInMemoryStub recordsInMemory) {
 		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
-				"image", "image:123456789", "image", "cora");
+				"binary", "image:123456789", "binary", "cora");
 		DataGroup resourceInfo = new DataGroupOldSpy("resourceInfo");
 		dataGroup.addChild(resourceInfo);
 		DataGroup master = new DataGroupOldSpy("master");
@@ -256,7 +256,7 @@ public class TestDataRecordInMemoryStorage {
 		master.addChild(size);
 		DataAtomic mimeType = new DataAtomicSpy("mimeType", "application/octet-stream");
 		master.addChild(mimeType);
-		recordsInMemory.create("image", "image:123456789", dataGroup, null, emptyLinkList,
+		recordsInMemory.create("binary", "image:123456789", dataGroup, null, emptyLinkList,
 				dataDivider);
 	}
 

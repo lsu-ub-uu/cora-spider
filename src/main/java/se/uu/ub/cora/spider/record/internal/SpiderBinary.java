@@ -1,3 +1,21 @@
+/*
+ * Copyright 2018, 2023 Uppsala University Library
+ *
+ * This file is part of Cora.
+ *
+ *     Cora is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     Cora is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package se.uu.ub.cora.spider.record.internal;
 
 import java.util.List;
@@ -20,8 +38,7 @@ public abstract class SpiderBinary {
 	public void checkRecordTypeIsChildOfBinary() {
 		DataGroup recordTypeDefinition = getRecordTypeDefinition();
 		if (!recordTypeIsChildOfBinary(recordTypeDefinition)) {
-			throw new MisuseException(
-					"It is only possible to upload files to recordTypes that are children of binary");
+			throw new MisuseException("It is only possible to upload files to recordType binary");
 		}
 	}
 
@@ -30,14 +47,9 @@ public abstract class SpiderBinary {
 	}
 
 	private boolean recordTypeIsChildOfBinary(DataGroup dataGroup) {
-		return dataGroup.containsChildWithNameInData("parentId")
-				&& "binary".equals(getParentId(dataGroup));
-	}
-
-	private String getParentId(DataGroup recordTypeDefinition) {
-		DataRecordLink parentIdGroup = (DataRecordLink) recordTypeDefinition
-				.getFirstChildWithNameInData("parentId");
-		return parentIdGroup.getLinkedRecordId();
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		String id = recordInfo.getFirstAtomicValueWithNameInData("id");
+		return "binary".equals(id);
 	}
 
 	protected String extractDataDividerFromData(DataGroup dataGroup) {
