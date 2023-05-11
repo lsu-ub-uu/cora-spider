@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017, 2022 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2022, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -27,6 +27,7 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
@@ -100,15 +101,22 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		this.authToken = authToken;
 		recordType = recordTypeToCreate;
 		recordToValidate = dataGroup;
+
+		try {
+			return tryToCreateAndStoreRecord();
+		} catch (DataValidationException dve) {
+			throw new DataException("Data is not valid: " + dve.getMessage());
+		}
+	}
+
+	private DataRecord tryToCreateAndStoreRecord() {
 		DataRecordGroup dataGroupAsRecordGroup = DataProvider
-				.createRecordGroupFromDataGroup(dataGroup);
+				.createRecordGroupFromDataGroup(recordToValidate);
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
 
-		// TODO: reactivate after abstract types are removed
-		validateRecordTypeInDataIsSameAsSpecified(recordTypeToCreate);
+		validateRecordTypeInDataIsSameAsSpecified(recordType);
 
-		createDefinitionId = recordTypeHandler.getCreateDefinitionId();
 		definitionId = recordTypeHandler.getDefinitionId();
 
 		return validateCreateAndStoreRecord();
@@ -196,12 +204,14 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void removeRecordPartsUserIsNotAllowedToChange() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		recordToValidate = dataRedactor.removeChildrenForConstraintsWithoutPermissions(
-				definitionId, recordToValidate,
-				recordTypeHandler.getCreateWriteRecordPartConstraints(), writePermissions);
+		recordToValidate = dataRedactor.removeChildrenForConstraintsWithoutPermissions(definitionId,
+				recordToValidate, recordTypeHandler.getCreateWriteRecordPartConstraints(),
+				writePermissions);
 	}
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {
+		createDefinitionId = recordTypeHandler.getCreateDefinitionId();
+
 		ValidationAnswer validationAnswer = dataValidator.validateData(createDefinitionId,
 				recordToValidate);
 		if (validationAnswer.dataIsInvalid()) {

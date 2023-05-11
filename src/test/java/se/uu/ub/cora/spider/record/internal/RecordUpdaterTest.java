@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2020, 2021, 2022 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -31,6 +31,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataLink;
@@ -220,10 +221,6 @@ public class RecordUpdaterTest {
 		DataGroupSpy dataGroupSpy = new DataGroupSpy();
 
 		recordUpdaterOld.updateRecord("someToken78678567", "spyType", "spyId", dataGroupSpy);
-
-		// recordUpdater.updateRecord("dummyAuthenticatedToken", "recordTypeInput",
-		// dataGroupSpy);
-
 	}
 
 	@Test
@@ -242,6 +239,21 @@ public class RecordUpdaterTest {
 				.getReturnValue("factorRecordGroupFromDataGroup", 0);
 		dependencyProviderSpy.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
 				dataGroupAsRecordGroup);
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "Data is not valid: some message")
+	public void testValidationTypeDoesNotExist() throws Exception {
+		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getUpdateDefinitionId",
+				DataValidationException.withMessage("some message"));
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
+		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				"spyType", "spyId", "cora"));
+
+		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 	}
 
 	@Test

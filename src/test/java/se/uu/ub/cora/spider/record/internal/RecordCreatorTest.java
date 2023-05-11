@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -33,6 +33,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
@@ -213,6 +214,22 @@ public class RecordCreatorTest {
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "recordTypeInput",
 				dataGroupSpy);
 
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "Data is not valid: some message")
+	public void testValidationTypeDoesNotExist() throws Exception {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
+		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getCreateDefinitionId",
+				DataValidationException.withMessage("some message"));
+
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
+
+		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
 	}
 
 	@Test

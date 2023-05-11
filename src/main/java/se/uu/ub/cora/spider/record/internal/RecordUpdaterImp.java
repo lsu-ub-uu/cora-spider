@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2020, 2021, 2022 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -29,6 +29,7 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataAtomic;
@@ -104,6 +105,14 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
+		try {
+			return tryToUpdateAndStoreRecord();
+		} catch (DataValidationException dve) {
+			throw new DataException("Data is not valid: " + dve.getMessage());
+		}
+	}
+
+	private DataRecord tryToUpdateAndStoreRecord() {
 		DataRecordGroup dataGroupAsRecordGroup = DataProvider
 				.createRecordGroupFromDataGroup(topDataGroup);
 		recordTypeHandler = dependencyProvider
