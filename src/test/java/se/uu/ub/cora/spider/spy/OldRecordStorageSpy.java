@@ -149,7 +149,11 @@ public class OldRecordStorageSpy implements RecordStorage {
 			if ("recordType".equals(type) && "image".equals(id)) {
 				return DataCreator.createRecordTypeWithIdAndUserSuppliedIdAndParentId("image",
 						"true", "binary");
-
+			}
+			if ("recordType".equals(type) && "binary".equals(id)) {
+				DataGroup recordTypeGroup = DataCreator
+						.createRecordTypeWithIdAndUserSuppliedId("binary", "false");
+				return recordTypeGroup;
 			}
 			if (type.equals("recordType") && ("place".equals(id))) {
 				DataGroup dataGroup = DataCreator
@@ -162,9 +166,9 @@ public class OldRecordStorageSpy implements RecordStorage {
 				return dataGroup;
 			}
 
-			if ("image".equals(type) && "image:123456789".equals(id)) {
-				return DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId("image",
-						"image:123456789", "image", "cora");
+			if ("binary".equals(type) && "image:123456789".equals(id)) {
+				return DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
+						"binary", "image:123456789", "binary", "cora");
 			}
 			if ("recordType".equals(type) && "book".equals(id)) {
 				DataGroup book = new DataGroupOldSpy("recordType");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019 Uppsala University Library
+ * Copyright 2015, 2016, 2019, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -76,6 +76,7 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class UploaderTest {
+	private static final String BINARY = "binary";
 	private RecordStorage recordStorage;
 	private AuthenticatorSpy authenticator;
 	private StreamStorageSpy streamStorage;
@@ -158,7 +159,7 @@ public class UploaderTest {
 				"spyType", "spyId", "cora"));
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 
-		DataRecord recordUpdated = uploader.upload("someToken78678567", "image", "image:123456789",
+		DataRecord recordUpdated = uploader.upload("someToken78678567", BINARY, "image:123456789",
 				stream, "someFileName");
 		assertResourceInfoIsCorrect(recordUpdated);
 
@@ -187,8 +188,7 @@ public class UploaderTest {
 			InputStream stream = new ByteArrayInputStream(
 					"a string".getBytes(StandardCharsets.UTF_8));
 
-			uploader.upload("someToken78678567", "image", "image:123456789", stream,
-					"someFileName");
+			uploader.upload("someToken78678567", BINARY, "image:123456789", stream, "someFileName");
 		} catch (Exception e) {
 			assertEquals(e.getClass(), AuthorizationException.class);
 			exceptionWasCaught = true;
@@ -206,7 +206,7 @@ public class UploaderTest {
 
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 
-		uploader.upload("someToken78678567", "image", "image:123456789", stream, "someFileName");
+		uploader.upload("someToken78678567", BINARY, "image:123456789", stream, "someFileName");
 	}
 
 	@Test
@@ -214,7 +214,7 @@ public class UploaderTest {
 		dataFactorySpy.MRV.setReturnValues("factorGroupUsingNameInData",
 				List.of(new DataGroupSpy()), "resourceInfo");
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-		DataRecord recordUpdated = uploader.upload("someToken78678567", "image", "image:123456789",
+		DataRecord recordUpdated = uploader.upload("someToken78678567", BINARY, "image:123456789",
 				stream, "someFileName");
 
 		assertEquals(streamStorage.stream, stream);
@@ -224,18 +224,18 @@ public class UploaderTest {
 
 		String methodName = "checkUserIsAuthorizedForActionOnRecordType";
 		authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "upload",
-				"image");
+				BINARY);
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
 				"fakeDefMetadataIdFromRecordTypeHandlerSpy");
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
-				recordStorage.read(List.of("image"), "image:123456789"));
+				recordStorage.read(List.of(BINARY), "image:123456789"));
 
 		String methodName2 = "checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
 				.getReturnValue("collectTerms", 0);
 		authorizator.MCR.assertParameters(methodName2, 0, authenticator.returnedUser, "upload",
-				"image", collectedTerms.permissionTerms);
+				BINARY, collectedTerms.permissionTerms);
 	}
 
 	private void assertStreamStorageCalledCorrectly(DataRecord recordUpdated) {
@@ -250,7 +250,6 @@ public class UploaderTest {
 	}
 
 	private void assertResourceInfoIsCorrect(DataRecord recordUpdated) {
-		DataGroup groupUpdated = recordUpdated.getDataGroup();
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "resourceInfo");
 		DataGroupSpy resourceInfo = (DataGroupSpy) dataFactorySpy.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
@@ -267,7 +266,8 @@ public class UploaderTest {
 		masterLink.MCR.assertParameters("setMimeType", 0, "application/octet-stream");
 	}
 
-	@Test(expectedExceptions = MisuseException.class)
+	@Test(expectedExceptions = MisuseException.class, expectedExceptionsMessageRegExp = ""
+			+ "It is only possible to upload files to recordType binary")
 	public void testUploadStreamNotChildOfBinary() {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 
@@ -285,7 +285,7 @@ public class UploaderTest {
 	@Test(expectedExceptions = RecordNotFoundException.class)
 	public void testUploadNotFound() {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-		uploader.upload("someToken78678567", "image", "NOT_FOUND", stream, "someFileName");
+		uploader.upload("someToken78678567", BINARY, "NOT_FOUND", stream, "someFileName");
 	}
 
 	@Test(expectedExceptions = DataMissingException.class)
@@ -293,7 +293,7 @@ public class UploaderTest {
 		RecordStorageCreateUpdateSpy recordStorageSpy = new RecordStorageCreateUpdateSpy();
 		recordStorage = recordStorageSpy;
 		setUpDependencyProvider();
-		uploader.upload("someToken78678567", "image", "image:123456789", null, "someFileName");
+		uploader.upload("someToken78678567", BINARY, "image:123456789", null, "someFileName");
 
 	}
 
@@ -303,7 +303,7 @@ public class UploaderTest {
 		recordStorage = recordStorageSpy;
 		setUpDependencyProvider();
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-		uploader.upload("someToken78678567", "image", "image:123456789", stream, null);
+		uploader.upload("someToken78678567", BINARY, "image:123456789", stream, null);
 
 	}
 
@@ -313,7 +313,7 @@ public class UploaderTest {
 		recordStorage = recordStorageSpy;
 		setUpDependencyProvider();
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-		uploader.upload("someToken78678567", "image", "image:123456789", stream, "");
+		uploader.upload("someToken78678567", BINARY, "image:123456789", stream, "");
 
 	}
 
@@ -329,7 +329,7 @@ public class UploaderTest {
 
 		Uploader uploader = setupWithUserNotAuthorized();
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-		uploader.upload("someToken78678567", "image", "image:123456789", stream, "someFileName");
+		uploader.upload("someToken78678567", BINARY, "image:123456789", stream, "someFileName");
 	}
 
 	private Uploader setupWithUserNotAuthorized() {
