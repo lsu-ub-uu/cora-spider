@@ -63,7 +63,7 @@ public final class DownloaderImp extends SpiderBinary implements Downloader {
 		checkUserIsAuthorizedForActionOnRecordTypeAndResourceName();
 		checkResourceIsPresent();
 
-		checkRecordTypeIsChildOfBinary();
+		checkRecordTypeIsBinary();
 
 		recordRead = recordStorage.read(List.of(type), id);
 

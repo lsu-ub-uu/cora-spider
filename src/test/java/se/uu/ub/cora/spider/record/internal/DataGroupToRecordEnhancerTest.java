@@ -77,6 +77,7 @@ public class DataGroupToRecordEnhancerTest {
 	private static final String SEARCH = "search";
 	private static final String READ = "read";
 	private static final String SOME_RECORD_TYPE = "someRecordType";
+	private static final String BINARY_RECORD_TYPE = "binary";
 	private RecordEnhancerTestsRecordStorage recordStorage;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
@@ -188,9 +189,6 @@ public class DataGroupToRecordEnhancerTest {
 		RecordTypeHandlerSpy recordTypeHandler = (RecordTypeHandlerSpy) dependencyProvider.MCR
 				.getReturnValue("getRecordTypeHandler", 0);
 
-		// recordTypeHandler.MCR.assertMethodWasCalled("getMetadataId");
-		// String metadataIdFromRecordTypeHandler = (String) recordTypeHandler.MCR
-		// .getReturnValue("getMetadataId", 0);
 		recordTypeHandler.MCR.assertMethodWasCalled("getDefinitionId");
 		String metadataIdFromRecordTypeHandler = (String) recordTypeHandler.MCR
 				.getReturnValue("getDefinitionId", 0);
@@ -690,28 +688,25 @@ public class DataGroupToRecordEnhancerTest {
 	public void testUploadActionPartOfEnhance() throws Exception {
 		setupForUploadAction();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
+		DataRecord record = enhancer.enhance(user, BINARY_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertUploadAction(record);
 	}
 
 	private void setupForUploadAction() {
 		createRecordStorageSpy();
-		recordTypeHandlerSpy.isChildOfBinary = true;
 	}
 
 	private void assertUploadAction(DataRecord record) {
-		recordTypeHandlerSpy.MCR.assertMethodWasCalled("isChildOfBinary");
-
 		assertTypeAndCollectedDataAuthorizationCalledForUploadActionPartOfEnhance();
 		assertRecordContainsUploadAction(record);
 	}
 
 	private void assertTypeAndCollectedDataAuthorizationCalledForUploadActionPartOfEnhance() {
-		var permissionTerms = getAssertedCollectedPermissionTermsForRecordType(SOME_RECORD_TYPE,
+		var permissionTerms = getAssertedCollectedPermissionTermsForRecordType(BINARY_RECORD_TYPE,
 				someDataGroup);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
-				2, user, "upload", SOME_RECORD_TYPE, permissionTerms);
+				2, user, "upload", BINARY_RECORD_TYPE, permissionTerms);
 	}
 
 	private void assertRecordContainsUploadAction(DataRecord record) {
@@ -722,7 +717,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testIRAUploadActionPartOfEnhance() throws Exception {
 		setupForUploadAction();
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, BINARY_RECORD_TYPE,
 				someDataGroup, dataRedactor);
 
 		assertUploadAction(record);
@@ -732,7 +727,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testUploadActionPartOfEnhanceNotAuthorized() throws Exception {
 		setupForNoUploadAccess();
 
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
+		DataRecord record = enhancer.enhance(user, BINARY_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertUploadActionNotAuthorized(record);
 	}
@@ -743,8 +738,6 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void assertUploadActionNotAuthorized(DataRecord record) {
-		recordTypeHandlerSpy.MCR.assertMethodWasCalled("isChildOfBinary");
-
 		assertTypeAndCollectedDataAuthorizationCalledForUploadActionPartOfEnhance();
 		assertRecordDoesNotContainUploadAction(record);
 
@@ -756,14 +749,14 @@ public class DataGroupToRecordEnhancerTest {
 	public void testIRAUploadActionPartOfEnhanceNotAuthorized() throws Exception {
 		setupForNoUploadAccess();
 
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
+		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, BINARY_RECORD_TYPE,
 				someDataGroup, dataRedactor);
 
 		assertUploadActionNotAuthorized(record);
 	}
 
 	@Test
-	public void testUploadActionPartOfEnhanceNotChildOfBinary() throws Exception {
+	public void testUploadActionPartOfEnhanceNotBinary() throws Exception {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
@@ -772,8 +765,6 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void assertUploadActionNotChildOfBinary(DataRecord record) {
-		recordTypeHandlerSpy.MCR.assertMethodWasCalled("isChildOfBinary");
-
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", 2);
 		assertRecordDoesNotContainUploadAction(record);
