@@ -1686,6 +1686,18 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
+	public void testReadRecordWithDataResourceLinkNoReadActionTopLevel() {
+		String recordType = "dataWithResourceLinks";
+		DataGroup dataGroup = recordStorage.read(List.of(recordType), "oneResourceLinkTopLevel");
+		dataRedactor.returnDataGroup = dataGroup;
+		authorizator.setNotAutorizedForActionOnRecordType(READ, "binary");
+
+		DataRecord record = enhancer.enhance(user, recordType, dataGroup, dataRedactor);
+
+		RecordLinkTestsAsserter.assertTopLevelResourceLinkDoesNotContainReadAction(record);
+	}
+
+	@Test
 	public void testIRAReadRecordWithDataResourceLinkHasReadActionTopLevel() {
 		String recordType = "dataWithResourceLinks";
 		DataGroup dataGroup = recordStorage.read(List.of(recordType), "oneResourceLinkTopLevel");

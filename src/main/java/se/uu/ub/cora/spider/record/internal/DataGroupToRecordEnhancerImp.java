@@ -453,7 +453,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean isAuthorizedToReadResourceLink() {
-		return userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read", "image");
+		return userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read", "binary");
 	}
 
 	@Override
