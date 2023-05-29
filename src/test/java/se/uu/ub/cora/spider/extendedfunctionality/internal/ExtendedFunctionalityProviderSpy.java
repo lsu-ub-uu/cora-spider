@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2022 Uppsala University Library
+ * Copyright 2022, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -30,34 +30,32 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityProvider {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
-			String recordType) {
-		MCR.addCall("recordType", recordType);
-		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
-		MCR.addReturned(out);
-		return out;
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForCreateAfterMetadataValidation(
-			String recordType) {
-		MCR.addCall("recordType", recordType);
-		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
-		MCR.addReturned(out);
-		return out;
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeReturn(String recordType) {
-		MCR.addCall("recordType", recordType);
-		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
-		MCR.addReturned(out);
-		return out;
+	public ExtendedFunctionalityProviderSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityForCreateBeforeMetadataValidation",
+				() -> createListWithTwoExtendedFunctionalitySpies());
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityForCreateAfterMetadataValidation",
+				() -> createListWithTwoExtendedFunctionalitySpies());
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityForCreateBeforeReturn",
+				() -> createListWithTwoExtendedFunctionalitySpies());
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateBeforeMetadataValidation",
+				() -> createListWithTwoExtendedFunctionalitySpies());
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateAfterMetadataValidation",
+				() -> createListWithTwoExtendedFunctionalitySpies());
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateBeforeStore",
+				() -> createListWithTwoExtendedFunctionalitySpies());
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateAfterStore",
+				() -> createListWithTwoExtendedFunctionalitySpies());
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityBeforeDelete",
+				() -> createListWithTwoExtendedFunctionalitySpies());
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityAfterDelete",
+				() -> createListWithTwoExtendedFunctionalitySpies());
 	}
 
 	private List<ExtendedFunctionality> createListWithTwoExtendedFunctionalitySpies() {
@@ -70,53 +68,52 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 	}
 
 	@Override
+	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
+			String recordType) {
+		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForCreateAfterMetadataValidation(
+			String recordType) {
+		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeReturn(String recordType) {
+		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
+	}
+
+	@Override
 	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeMetadataValidation(
 			String recordType) {
-		MCR.addCall("recordType", recordType);
-		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
-		MCR.addReturned(out);
-		return out;
+		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
 	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterMetadataValidation(
 			String recordType) {
-		MCR.addCall("recordType", recordType);
-		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
-		MCR.addReturned(out);
-		return out;
+		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
 	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeStore(String recordType) {
-		MCR.addCall("recordType", recordType);
-		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
-		MCR.addReturned(out);
-		return out;
+		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
 	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterStore(String recordType) {
-		MCR.addCall("recordType", recordType);
-		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
-		MCR.addReturned(out);
-		return out;
+		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
 	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityBeforeDelete(String recordType) {
-		MCR.addCall("recordType", recordType);
-		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
-		MCR.addReturned(out);
-		return out;
+		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
 	}
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityAfterDelete(String recordType) {
-		MCR.addCall("recordType", recordType);
-		List<ExtendedFunctionality> out = createListWithTwoExtendedFunctionalitySpies();
-		MCR.addReturned(out);
-		return out;
+		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
 	}
 
 	public void assertCallToMethodAndFunctionalityCalledWithData(String methodName,

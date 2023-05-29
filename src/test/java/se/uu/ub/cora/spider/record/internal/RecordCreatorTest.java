@@ -54,6 +54,7 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -62,7 +63,6 @@ import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
-import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
@@ -257,19 +257,6 @@ public class RecordCreatorTest {
 				user, "create", recordType);
 	}
 
-	@Test(expectedExceptions = MisuseException.class, expectedExceptionsMessageRegExp = ""
-			+ "Data creation on abstract recordType: abstract is not allowed")
-	public void testCreateRecordAbstractRecordType() {
-		setUpDependencyProvider();
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
-				() -> "abstract");
-		DataGroup record = new DataGroupOldSpy("abstract");
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
-
-		recordCreatorOld.createAndStoreRecord("someToken78678567", "abstract", record);
-	}
-
 	@Test
 	public void testNotPossibleToCreateRecordWithTypeAndIdWhichAlreadyExists() throws Exception {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
@@ -354,6 +341,37 @@ public class RecordCreatorTest {
 		expectedData.recordId = "1";
 		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
 				"getFunctionalityForCreateBeforeReturn", expectedData);
+	}
+
+	class ExtendedMock implements ExtendedFunctionality {
+		@Override
+		public void useExtendedFunctionality(ExtendedFunctionalityData data) {
+			throw new RuntimeException();
+		}
+	}
+
+	@Test
+	public void testExtendedFunctionalityBeforeMetadataCalledBeforeRecordTypeHandlerCreatedSoWeDoNotNeedToHaveARecordInfoForSomeTypes() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
+				() -> extendedFunctionalityProvider);
+
+		extendedFunctionalityProvider.MRV.setDefaultReturnValuesSupplier(
+				"getFunctionalityForCreateBeforeMetadataValidation",
+				() -> List.of(new ExtendedMock()));
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
+		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+				dependencyProviderSpy, dataGroupToRecordEnhancer);
+		try {
+			recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
+		} catch (Exception e) {
+
+		}
+
+		dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
+		dependencyProviderSpy.MCR.assertMethodNotCalled("getRecordTypeHandlerUsingDataRecordGroup");
 	}
 
 	@Test
@@ -891,4 +909,5 @@ public class RecordCreatorTest {
 
 		recordArchive.MCR.assertMethodNotCalled("create");
 	}
+
 }

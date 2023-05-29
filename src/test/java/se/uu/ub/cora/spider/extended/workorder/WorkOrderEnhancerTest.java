@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2022 Uppsala University Library
+ * Copyright 2017, 2022, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -38,7 +38,6 @@ public class WorkOrderEnhancerTest {
 
 	@BeforeMethod
 	public void setUp() {
-
 		dataFactorySpy = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 
@@ -59,11 +58,24 @@ public class WorkOrderEnhancerTest {
 				.getReturnValue("factorGroupUsingNameInData", 0);
 		workOrder.MCR.assertParameters("addChild", 0, recordInfo);
 
+		assertDataDividerAdded(recordInfo);
+		assertValidationTypeAdded(recordInfo);
+	}
+
+	private void assertDataDividerAdded(DataGroupSpy recordInfo) {
 		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
 				"dataDivider", "system", "cora");
 		var dataDivider = dataFactorySpy.MCR
 				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
 		recordInfo.MCR.assertParameters("addChild", 0, dataDivider);
+	}
+
+	private void assertValidationTypeAdded(DataGroupSpy recordInfo) {
+		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 1,
+				"validationType", "validationType", "workOrder");
+		var dataDivider = dataFactorySpy.MCR
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 1);
+		recordInfo.MCR.assertParameters("addChild", 1, dataDivider);
 	}
 
 	private void callExtendedFunctionalityWithGroup(DataGroup workOrder) {

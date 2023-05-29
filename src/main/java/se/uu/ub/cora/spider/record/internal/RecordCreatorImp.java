@@ -48,7 +48,6 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
@@ -71,7 +70,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private CollectTerms collectedTerms;
 	private Set<Link> collectedLinks;
 	private RecordArchive recordArchive;
-	private String createDefinitionId;
 
 	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -110,15 +108,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private DataRecord tryToCreateAndStoreRecord() {
-		DataRecordGroup dataGroupAsRecordGroup = DataProvider
-				.createRecordGroupFromDataGroup(recordToValidate);
-		recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
-
-		validateRecordTypeInDataIsSameAsSpecified(recordType);
-
-		definitionId = recordTypeHandler.getDefinitionId();
-
 		return validateCreateAndStoreRecord();
 	}
 
@@ -136,8 +125,10 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private DataRecord validateCreateAndStoreRecord() {
 		checkActionAuthorizationForUser();
-		checkNoCreateForAbstractRecordType();
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordToValidate);
+		createRecordTypeHandler();
+		validateRecordTypeInDataIsSameAsSpecified(recordType);
+		definitionId = recordTypeHandler.getDefinitionId();
 		validateRecord();
 		useExtendedFunctionalityAfterMetadataValidation(recordType, recordToValidate);
 		completeRecordAndCollectInformationSpecifiedInMetadata();
@@ -164,18 +155,18 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, CREATE, recordType);
 	}
 
-	private void checkNoCreateForAbstractRecordType() {
-		if (recordTypeHandler.isAbstract()) {
-			throw new MisuseException(
-					"Data creation on abstract recordType: " + recordType + " is not allowed");
-		}
-	}
-
 	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
 			DataGroup dataGroup) {
 		List<ExtendedFunctionality> functionalityForCreateBeforeMetadataValidation = extendedFunctionalityProvider
 				.getFunctionalityForCreateBeforeMetadataValidation(recordTypeToCreate);
 		useExtendedFunctionality(dataGroup, functionalityForCreateBeforeMetadataValidation);
+	}
+
+	private void createRecordTypeHandler() {
+		DataRecordGroup dataGroupAsRecordGroup = DataProvider
+				.createRecordGroupFromDataGroup(recordToValidate);
+		recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
 	}
 
 	private void validateRecord() {
@@ -210,7 +201,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {
-		createDefinitionId = recordTypeHandler.getCreateDefinitionId();
+		String createDefinitionId = recordTypeHandler.getCreateDefinitionId();
 
 		ValidationAnswer validationAnswer = dataValidator.validateData(createDefinitionId,
 				recordToValidate);
