@@ -227,7 +227,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void possiblyAddUploadAction(DataRecord dataRecord) {
-		if (recordTypeHandler.isChildOfBinary()
+		// if (recordTypeHandler.isChildOfBinary()
+		if ("binary".equals(recordType)
 				&& userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("upload", recordType)) {
 			dataRecord.addAction(Action.UPLOAD);
 		}
@@ -452,7 +453,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean isAuthorizedToReadResourceLink() {
-		return userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read", "image");
+		return userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read", "binary");
 	}
 
 	@Override

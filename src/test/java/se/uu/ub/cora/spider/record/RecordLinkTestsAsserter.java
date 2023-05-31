@@ -91,6 +91,11 @@ public class RecordLinkTestsAsserter {
 		assertTrue(link.hasReadAction());
 	}
 
+	public static void assertTopLevelResourceLinkDoesNotContainReadAction(DataRecord record) {
+		DataLink link = getResourceLinkFromRecord(record);
+		assertFalse(link.hasReadAction());
+	}
+
 	private static DataLink getResourceLinkFromRecord(DataRecord record) {
 		DataGroup dataGroup = record.getDataGroup();
 		DataLink link = (DataLink) dataGroup.getFirstChildWithNameInData("link");

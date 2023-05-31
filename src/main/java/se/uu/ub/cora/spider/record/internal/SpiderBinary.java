@@ -35,9 +35,9 @@ public abstract class SpiderBinary {
 	protected String authToken;
 	protected User user;
 
-	public void checkRecordTypeIsChildOfBinary() {
+	public void checkRecordTypeIsBinary() {
 		DataGroup recordTypeDefinition = getRecordTypeDefinition();
-		if (!recordTypeIsChildOfBinary(recordTypeDefinition)) {
+		if (!recordTypeIsBinary(recordTypeDefinition)) {
 			throw new MisuseException("It is only possible to upload files to recordType binary");
 		}
 	}
@@ -46,7 +46,7 @@ public abstract class SpiderBinary {
 		return recordStorage.read(List.of("recordType"), recordType);
 	}
 
-	private boolean recordTypeIsChildOfBinary(DataGroup dataGroup) {
+	private boolean recordTypeIsBinary(DataGroup dataGroup) {
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		String id = recordInfo.getFirstAtomicValueWithNameInData("id");
 		return "binary".equals(id);

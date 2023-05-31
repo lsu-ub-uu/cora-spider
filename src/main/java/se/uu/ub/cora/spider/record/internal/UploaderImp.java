@@ -70,7 +70,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 
-		checkRecordTypeIsChildOfBinary();
+		checkRecordTypeIsBinary();
 
 		recordRead = recordStorage.read(List.of(type), id);
 		checkUserIsAuthorisedToUploadData(recordRead);
