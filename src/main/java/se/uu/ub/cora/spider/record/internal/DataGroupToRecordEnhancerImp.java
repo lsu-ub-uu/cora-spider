@@ -288,8 +288,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void possiblyAddCreateAction(RecordTypeHandler handledRecordTypeHandler,
 			DataRecord dataRecord) {
-		if (!handledRecordTypeHandler.isAbstract()
-				&& userIsAuthorizedForActionOnRecordType("create", handledRecordId)) {
+		if (userIsAuthorizedForActionOnRecordType("create", handledRecordId)) {
 			dataRecord.addAction(Action.CREATE);
 		}
 	}
