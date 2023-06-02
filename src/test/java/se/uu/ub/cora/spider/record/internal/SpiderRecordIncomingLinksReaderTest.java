@@ -45,7 +45,6 @@ import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
-import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
@@ -230,12 +229,4 @@ public class SpiderRecordIncomingLinksReaderTest {
 		incomingLinksReader.readIncomingLinks("unauthorizedUserId", "place", "place:0001");
 	}
 
-	@Test(expectedExceptions = MisuseException.class, expectedExceptionsMessageRegExp = ""
-			+ "Read incomming links is not allowed for abstract "
-			+ "recordType: kalleAnka and recordId: place:0001")
-	public void testReadIncomingLinksAbstractType() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
-
-		incomingLinksReader.readIncomingLinks("someToken78678567", "kalleAnka", "place:0001");
-	}
 }

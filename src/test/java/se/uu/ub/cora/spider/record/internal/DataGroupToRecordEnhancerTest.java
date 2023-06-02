@@ -919,7 +919,6 @@ public class DataGroupToRecordEnhancerTest {
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "someId");
 
-		recordTypeHandlerForRecordTypeInData.MCR.assertMethodWasCalled("isAbstract");
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 0, user, CREATE,
 				"someId");
 		assertRecordContainsCreateAction(record);
@@ -959,7 +958,6 @@ public class DataGroupToRecordEnhancerTest {
 	private void assertCreateActionForRecordTypeRecordTypeNotAuthorized(DataRecord record) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
-		recordTypeHandlerSpy.MCR.assertMethodWasCalled("isAbstract");
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 0, user, CREATE,
 				"otherId");
 		assertRecordDoesNotContainCreateAction(record);
@@ -978,39 +976,6 @@ public class DataGroupToRecordEnhancerTest {
 				someDataGroup, dataRedactor);
 
 		assertCreateActionForRecordTypeRecordTypeNotAuthorized(record);
-	}
-
-	@Test
-	public void testCreateActionPartOfEnhanceForRecordTypeRecordTypeIsAbstract() throws Exception {
-		setupForCreateActionAndAbstract();
-
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
-
-		assertCreateActionForRecordTypeRecordTypeIsAbstract(record);
-	}
-
-	private void setupForCreateActionAndAbstract() {
-		setupForListAction();
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
-
-	}
-
-	private void assertCreateActionForRecordTypeRecordTypeIsAbstract(DataRecord record) {
-		recordTypeHandlerSpy.MCR
-				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
-		recordTypeHandlerSpy.MCR.assertMethodWasCalled("isAbstract");
-		assertRecordDoesNotContainCreateAction(record);
-	}
-
-	@Test
-	public void testIRACreateActionPartOfEnhanceForRecordTypeRecordTypeIsAbstract()
-			throws Exception {
-		setupForCreateActionAndAbstract();
-
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup, dataRedactor);
-
-		assertCreateActionForRecordTypeRecordTypeIsAbstract(record);
 	}
 
 	@Test

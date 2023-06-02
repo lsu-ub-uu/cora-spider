@@ -18,7 +18,6 @@
  */
 package se.uu.ub.cora.spider.record.internal;
 
-import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -36,7 +35,6 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
-import se.uu.ub.cora.spider.record.MisuseException;
 
 public class IncomingLinksReaderImp extends RecordHandler implements IncomingLinksReader {
 	private static final String READ = "read";
@@ -44,8 +42,6 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 	private SpiderAuthorizator spiderAuthorizator;
 	private RecordTypeHandler recordTypeHandler;
 	private DataGroupTermCollector collectTermCollector;
-	private String missuseErrorMessage = "Read incomming links is not allowed for abstract "
-			+ "recordType: {0} and recordId: {1}";
 
 	public IncomingLinksReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -68,7 +64,6 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 
 		tryToGetActiveUser();
-		throwExceptionIfRecordIsAbstract();
 		DataGroup recordRead = recordStorage.read(List.of(recordType), recordId);
 		checkUserIsAuthorisedToReadData(recordRead);
 
@@ -77,13 +72,6 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 
 	private void tryToGetActiveUser() {
 		user = authenticator.getUserForToken(authToken);
-	}
-
-	private void throwExceptionIfRecordIsAbstract() {
-		if (recordTypeHandler.isAbstract()) {
-			throw new MisuseException(
-					MessageFormat.format(missuseErrorMessage, recordType, recordId));
-		}
 	}
 
 	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
