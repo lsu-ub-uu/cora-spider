@@ -92,22 +92,8 @@ public final class RecordReaderImp implements RecordReader {
 	}
 
 	private DataRecord tryToReadAndEnhanceRecord(DataGroup recordRead) {
-		String implementingRecordType = ensureImplementingRecordType(recordRead);
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		return dataGroupToRecordEnhancer.enhance(user, implementingRecordType, recordRead,
-				dataRedactor);
+		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead, dataRedactor);
 	}
 
-	private String ensureImplementingRecordType(DataGroup recordRead) {
-		if (recordTypeHandler.isAbstract()) {
-			recordType = getImplementingRecordType(recordRead);
-		}
-		return recordType;
-	}
-
-	private String getImplementingRecordType(DataGroup recordRead) {
-		DataGroup recordInfo = recordRead.getFirstGroupWithNameInData("recordInfo");
-		DataGroup type = recordInfo.getFirstGroupWithNameInData("type");
-		return type.getFirstAtomicValueWithNameInData("linkedRecordId");
-	}
 }

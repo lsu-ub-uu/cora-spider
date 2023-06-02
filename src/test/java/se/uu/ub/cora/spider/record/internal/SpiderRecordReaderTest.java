@@ -32,8 +32,6 @@ import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -173,27 +171,6 @@ public class SpiderRecordReaderTest {
 		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 		DataGroup dataGroupFromStorage = (DataGroup) recordStorage.MCR.getReturnValue("read", 0);
 		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, user, SOME_RECORD_TYPE,
-				dataGroupFromStorage, dataRedactor);
-	}
-
-	@Test
-	public void testEnhancerCalledCorrectlyWhenAbstractRecordType() throws Exception {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
-
-		DataGroup dataGroup = new DataGroupOldSpy("someNameInData");
-		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
-		dataGroup.addChild(recordInfo);
-		DataGroup type = new DataGroupOldSpy("type");
-		recordInfo.addChild(type);
-		type.addChild(new DataAtomicSpy("linkedRecordId", "someNotAbstractType"));
-		recordStorage.returnForRead = dataGroup;
-
-		recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID);
-
-		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
-		recordStorage.MCR.assertMethodWasCalled("read");
-		DataGroup dataGroupFromStorage = (DataGroup) recordStorage.MCR.getReturnValue("read", 0);
-		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, user, "someNotAbstractType",
 				dataGroupFromStorage, dataRedactor);
 	}
 
