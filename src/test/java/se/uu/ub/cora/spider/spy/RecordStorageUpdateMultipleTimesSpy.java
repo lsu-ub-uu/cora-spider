@@ -145,7 +145,8 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 				return spiderReadResult;
 			}
 			if ("child1_2".equals(type)) {
-				throw new RecordNotFoundException("No records exists with recordType: " + type);
+				throw RecordNotFoundException
+						.withMessage("No records exists with recordType: " + type);
 			}
 		}
 		return spiderReadResult;

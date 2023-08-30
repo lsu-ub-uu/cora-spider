@@ -121,7 +121,8 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 					return userWithTwoRolesAndTwoPermissionTerm;
 				}
 				if ("nonExistingUserId".equals(id)) {
-					throw new RecordNotFoundException("No record exists with recordId: " + id);
+					throw RecordNotFoundException
+							.withMessage("No record exists with recordId: " + id);
 				}
 			}
 		}

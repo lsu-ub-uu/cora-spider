@@ -743,7 +743,8 @@ public class RecordUpdaterTest {
 	public void testUpdateNotFound() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "recordType");
-		recordStorage.MRV.setAlwaysThrowException("read", new RecordNotFoundException("message"));
+		recordStorage.MRV.setAlwaysThrowException("read",
+				RecordNotFoundException.withMessage("message"));
 
 		DataGroup record = new DataGroupOldSpy("authority");
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");

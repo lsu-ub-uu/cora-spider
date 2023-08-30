@@ -56,6 +56,8 @@ import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.StreamStorageProvider;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.archive.RecordArchiveProvider;
+import se.uu.ub.cora.storage.archive.ResourceArchive;
+import se.uu.ub.cora.storage.archive.ResourceArchiveProvider;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGeneratorProvider;
 
@@ -102,6 +104,11 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	public final RecordStorage getRecordStorage() {
 		return RecordStorageProvider.getRecordStorage();
 	}
+
+//	@Override
+//	public final ResourceArchive getResourceArchive() {
+//		return ResourceArchiveProvider.getResourceArchive();
+//	}
 
 	@Override
 	public RecordArchive getRecordArchive() {

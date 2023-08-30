@@ -87,4 +87,6 @@ public interface SpiderDependencyProvider {
 	 */
 	DataGroupToFilter getDataGroupToFilterConverter();
 
+	// ResourceArchive getResourceArchive();
+
 }

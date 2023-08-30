@@ -47,6 +47,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 	private DataGroupTermCollector termCollector;
 	private DataGroup recordRead;
 	private SpiderDependencyProvider dependencyProvider;
+	// private ResourceArchive resourceArchive;
 
 	private UploaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -56,6 +57,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		idGenerator = dependencyProvider.getRecordIdGenerator();
 		streamStorage = dependencyProvider.getStreamStorage();
 		termCollector = dependencyProvider.getDataGroupTermCollector();
+		// resourceArchive = dependencyProvider.getResourceArchive();
 	}
 
 	public static UploaderImp usingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
@@ -79,7 +81,10 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		streamId = idGenerator.getIdForType(type + "Binary");
 
 		String dataDivider = extractDataDividerFromData(recordRead);
+
 		long fileSize = streamStorage.store(streamId, dataDivider, stream);
+		// Rest from resourceArchive spike
+		// resourceArchive.create(type, id, stream, "image/jpeg");
 
 		addOrReplaceResourceInfoToMetdataRecord(fileName, fileSize);
 

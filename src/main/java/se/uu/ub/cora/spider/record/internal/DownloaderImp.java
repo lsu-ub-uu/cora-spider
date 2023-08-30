@@ -91,7 +91,7 @@ public final class DownloaderImp extends SpiderBinary implements Downloader {
 			DataGroup requestedResource = resourceInfo.getFirstGroupWithNameInData(resource);
 			return requestedResource.getFirstAtomicValueWithNameInData("streamId");
 		} catch (DataMissingException e) {
-			throw new RecordNotFoundException("resource not found", e);
+			throw RecordNotFoundException.withMessageAndException("resource not found", e);
 		}
 	}
 

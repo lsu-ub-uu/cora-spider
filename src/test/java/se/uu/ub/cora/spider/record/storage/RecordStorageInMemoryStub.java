@@ -179,7 +179,7 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 	public StorageReadResult readList(List<String> type, Filter filter) {
 		Map<String, DataGroup> typeRecords = records.get(type);
 		if (null == typeRecords) {
-			throw new RecordNotFoundException("No records exists with recordType: " + type);
+			throw RecordNotFoundException.withMessage("No records exists with recordType: " + type);
 		}
 		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.start = 1;
@@ -205,10 +205,12 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 
 	private void checkRecordExists(String recordType, String recordId) {
 		if (holderForRecordTypeDoesNotExistInStorage(recordType)) {
-			throw new RecordNotFoundException("No records exists with recordType: " + recordType);
+			throw RecordNotFoundException
+					.withMessage("No records exists with recordType: " + recordType);
 		}
 		if (null == records.get(recordType).get(recordId)) {
-			throw new RecordNotFoundException("No record exists with recordId: " + recordId);
+			throw RecordNotFoundException
+					.withMessage("No record exists with recordId: " + recordId);
 		}
 	}
 

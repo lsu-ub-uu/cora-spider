@@ -27,17 +27,18 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 
 public class SpiderRecordDeleterSpy implements RecordDeleter {
 
-    public List<String> deletedTypes = new ArrayList<>();
-    public List<String> deletedIds = new ArrayList<>();
+	public List<String> deletedTypes = new ArrayList<>();
+	public List<String> deletedIds = new ArrayList<>();
 
-    @Override
-    public void deleteRecord(String authToken, String type, String id) {
-        if(id.equals("someGeneratedIdDeleteNotAllowed")){
-            throw new AuthorizationException("AuthorizationException from SpiderRecordDeleterSpy");
-        } else if("nonExistingId".equals(id)){
-            throw new RecordNotFoundException("RecordnotFoundException from SpiderRecordDeleterSpy");
-        }
-        deletedTypes.add(type);
-        deletedIds.add(id);
-    }
+	@Override
+	public void deleteRecord(String authToken, String type, String id) {
+		if (id.equals("someGeneratedIdDeleteNotAllowed")) {
+			throw new AuthorizationException("AuthorizationException from SpiderRecordDeleterSpy");
+		} else if ("nonExistingId".equals(id)) {
+			throw RecordNotFoundException
+					.withMessage("RecordnotFoundException from SpiderRecordDeleterSpy");
+		}
+		deletedTypes.add(type);
+		deletedIds.add(id);
+	}
 }

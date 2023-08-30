@@ -77,6 +77,7 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandlerUsingDataRecordGroup",
 				() -> recordTypeHandlerSpy);
+//		MRV.setDefaultReturnValuesSupplier("getResourceArchive", ResourceArchiveSpy::new);
 	}
 
 	@Override
@@ -222,5 +223,10 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 		MCR.addReturned(dataGroupToFilter);
 		return dataGroupToFilter;
 	}
+
+	// @Override
+	// public ResourceArchive getResourceArchive() {
+	// return (ResourceArchive) MCR.addCallAndReturnFromMRV();
+	// }
 
 }

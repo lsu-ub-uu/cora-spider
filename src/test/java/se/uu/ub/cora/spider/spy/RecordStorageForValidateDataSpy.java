@@ -61,7 +61,7 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 						id, "true", "false", "false");
 			}
 			if ("recordType_NOT_EXISTING".equals(type)) {
-				throw new RecordNotFoundException(
+				throw RecordNotFoundException.withMessage(
 						"No records exists with recordType: " + type + " and recordId " + id);
 			}
 		}
@@ -122,7 +122,7 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 			return spiderReadResult;
 		}
 		if ("child1_2".equals(type)) {
-			throw new RecordNotFoundException("No records exists with recordType: " + type);
+			throw RecordNotFoundException.withMessage("No records exists with recordType: " + type);
 		}
 		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.listOfDataGroups = new ArrayList<>();

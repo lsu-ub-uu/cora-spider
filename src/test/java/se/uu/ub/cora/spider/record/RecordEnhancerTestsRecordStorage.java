@@ -123,13 +123,14 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 							.createDataDataGroupWithRecordInfoAndResourceLinkOneLevelDown();
 				}
 			} else if ("missingLink".equals(id)) {
-				throw new RecordNotFoundException("no record with id " + id + " exists");
+				throw RecordNotFoundException.withMessage("no record with id " + id + " exists");
 
 			} else if (type.equals("toRecordType")) {
 				if (id.equals("recordLinkNotAuthorized")) {
 					datagroup = RecordLinkTestsDataCreator.createLinkChildAsDataRecordDataGroup();
 				} else if ("nonExistingRecordId".equals(id)) {
-					throw new RecordNotFoundException("no record with id " + id + " exists");
+					throw RecordNotFoundException
+							.withMessage("no record with id " + id + " exists");
 				}
 
 			} else if (type.equals("search")) {

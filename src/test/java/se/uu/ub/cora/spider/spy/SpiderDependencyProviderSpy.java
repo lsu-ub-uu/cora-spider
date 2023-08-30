@@ -178,5 +178,4 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	public DataGroupToFilter getDataGroupToFilterConverter() {
 		return (DataGroupToFilter) MCR.addCallAndReturnFromMRV();
 	}
-
 }
