@@ -25,25 +25,25 @@ import se.uu.ub.cora.storage.archive.ResourceArchive;
 public class ResourceArchiveSpy implements ResourceArchive {
 
 	@Override
-	public void create(String type, String id, InputStream resource, String mimeType) {
+	public void create(String dataDivider, String type, String id, InputStream resource, String mimeType) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public InputStream read(String type, String id) {
+	public InputStream read(String dataDivider, String type, String id) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void update(String type, String id, InputStream resource, String mimeType) {
+	public void update(String dataDivider, String type, String id, InputStream resource, String mimeType) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void delete(String type, String id) {
+	public void delete(String dataDivider, String type, String id) {
 		// TODO Auto-generated method stub
 
 	}

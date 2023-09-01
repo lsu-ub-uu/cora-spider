@@ -27,13 +27,13 @@ public class RecordArchiveSpy implements RecordArchive {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
-	public void create(String type, String id, DataGroup dataRecord) {
+	public void create(String dataDivider, String type, String id, DataGroup dataRecord) {
 		MCR.addCall("type", type, "id", id, "dataRecord", dataRecord);
 
 	}
 
 	@Override
-	public void update(String type, String id, DataGroup dataRecord) {
+	public void update(String dataDivider, String type, String id, DataGroup dataRecord) {
 		MCR.addCall("type", type, "id", id, "dataRecord", dataRecord);
 	}
 

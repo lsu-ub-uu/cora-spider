@@ -70,6 +70,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private CollectTerms collectedTerms;
 	private Set<Link> collectedLinks;
 	private RecordArchive recordArchive;
+	private DataGroup recordGroup;
+	private String dataDivider;
 
 	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -98,7 +100,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 			DataGroup dataGroup) {
 		this.authToken = authToken;
 		recordType = recordTypeToCreate;
-		recordToValidate = dataGroup;
+		recordGroup = dataGroup;
 
 		try {
 			return tryToCreateAndStoreRecord();
@@ -125,20 +127,21 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private DataRecord validateCreateAndStoreRecord() {
 		checkActionAuthorizationForUser();
-		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordToValidate);
+		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordGroup);
 		createRecordTypeHandler();
 		validateRecordTypeInDataIsSameAsSpecified(recordType);
 		definitionId = recordTypeHandler.getDefinitionId();
 		validateRecord();
-		useExtendedFunctionalityAfterMetadataValidation(recordType, recordToValidate);
+		useExtendedFunctionalityAfterMetadataValidation(recordType, recordGroup);
 		completeRecordAndCollectInformationSpecifiedInMetadata();
 		ensureNoDuplicateForTypeFamilyAndId();
-		createRecordInStorage(recordToValidate, collectedLinks, collectedTerms.storageTerms);
+		dataDivider = extractDataDividerFromData(recordGroup);
+		createRecordInStorage(recordGroup, collectedLinks, collectedTerms.storageTerms);
 		if (recordTypeHandler.storeInArchive()) {
-			recordArchive.create(recordType, recordId, recordToValidate);
+			recordArchive.create(dataDivider, recordType, recordId, recordGroup);
 		}
 		indexRecord(collectedTerms.indexTerms);
-		useExtendedFunctionalityBeforeReturn(recordType, recordToValidate);
+		useExtendedFunctionalityBeforeReturn(recordType, recordGroup);
 		return enhanceDataGroupToRecord();
 	}
 
@@ -164,7 +167,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void createRecordTypeHandler() {
 		DataRecordGroup dataGroupAsRecordGroup = DataProvider
-				.createRecordGroupFromDataGroup(recordToValidate);
+				.createRecordGroupFromDataGroup(recordGroup);
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
 	}
@@ -181,7 +184,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType) {
 		CollectTerms uncheckedCollectedTerms = dataGroupTermCollector.collectTerms(definitionId,
-				recordToValidate);
+				recordGroup);
 		writePermissions = spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
 						user, CREATE, recordType, uncheckedCollectedTerms.permissionTerms, true);
@@ -195,8 +198,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void removeRecordPartsUserIsNotAllowedToChange() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		recordToValidate = dataRedactor.removeChildrenForConstraintsWithoutPermissions(definitionId,
-				recordToValidate, recordTypeHandler.getCreateWriteRecordPartConstraints(),
+		recordGroup = dataRedactor.removeChildrenForConstraintsWithoutPermissions(definitionId,
+				recordGroup, recordTypeHandler.getCreateWriteRecordPartConstraints(),
 				writePermissions);
 	}
 
@@ -204,7 +207,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		String createDefinitionId = recordTypeHandler.getCreateDefinitionId();
 
 		ValidationAnswer validationAnswer = dataValidator.validateData(createDefinitionId,
-				recordToValidate);
+				recordGroup);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
@@ -220,13 +223,13 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private void completeRecordAndCollectInformationSpecifiedInMetadata() {
 		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = extractIdFromData();
-		collectedTerms = dataGroupTermCollector.collectTerms(definitionId, recordToValidate);
-		collectedLinks = linkCollector.collectLinks(definitionId, recordToValidate);
+		collectedTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup);
+		collectedLinks = linkCollector.collectLinks(definitionId, recordGroup);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
-		DataGroup recordInfo = recordToValidate.getFirstGroupWithNameInData(RECORD_INFO);
+		DataGroup recordInfo = recordGroup.getFirstGroupWithNameInData(RECORD_INFO);
 		ensureIdExists(recordType, recordInfo);
 		addTypeToRecordInfo(recordType, recordInfo);
 		addCreatedInfoToRecordInfoUsingUserId(recordInfo, userId);
@@ -268,7 +271,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void indexRecord(List<IndexTerm> indexTerms) {
 		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
-		recordIndexer.indexData(ids, indexTerms, recordToValidate);
+		recordIndexer.indexData(ids, indexTerms, recordGroup);
 	}
 
 	private void ensureNoDuplicateForTypeFamilyAndId() {
@@ -301,13 +304,12 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void createRecordInStorage(DataGroup topLevelDataGroup, Set<Link> collectedLinks2,
 			Set<StorageTerm> storageTerms) {
-		String dataDivider = extractDataDividerFromData(recordToValidate);
 		recordStorage.create(recordType, recordId, topLevelDataGroup, storageTerms, collectedLinks2,
 				dataDivider);
 	}
 
 	private String extractIdFromData() {
-		return recordToValidate.getFirstGroupWithNameInData("recordInfo")
+		return recordGroup.getFirstGroupWithNameInData("recordInfo")
 				.getFirstAtomicValueWithNameInData("id");
 	}
 
@@ -320,8 +322,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private DataRecord enhanceDataGroupToRecord() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		return dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user, recordType,
-				recordToValidate, dataRedactor);
+		return dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user, recordType, recordGroup,
+				dataRedactor);
 	}
 
 	public DataGroupToRecordEnhancer onlyForTestGetDataGroupToRecordEnhancer() {
