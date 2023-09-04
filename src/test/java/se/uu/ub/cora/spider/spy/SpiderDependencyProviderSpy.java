@@ -27,13 +27,14 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.ResourceArchiveSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
@@ -44,6 +45,7 @@ import se.uu.ub.cora.spider.record.internal.RecordSearchSpy;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
+import se.uu.ub.cora.storage.archive.ResourceArchive;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
@@ -57,6 +59,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("getRecordStorage", RecordStorageSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordArchive", RecordArchiveSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getResourceArchive", ResourceArchiveSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getStreamStorage", StreamStorageSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordIdGenerator", IdGeneratorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator", SpiderAuthorizatorSpy::new);
@@ -69,7 +72,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MRV.setDefaultReturnValuesSupplier("getDataRedactor", DataRedactorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
 				ExtendedFunctionalityProviderSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getAuthenticator", AuthenticatorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getAuthenticator", OldAuthenticatorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordSearch", RecordSearchSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordIndexer", RecordIndexerSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler", RecordTypeHandlerSpy::new);
@@ -90,6 +93,11 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	@Override
 	public RecordArchive getRecordArchive() {
 		return (RecordArchive) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public ResourceArchive getResourceArchive() {
+		return (ResourceArchive) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override

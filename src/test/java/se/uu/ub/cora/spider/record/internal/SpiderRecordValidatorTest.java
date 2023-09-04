@@ -50,7 +50,7 @@ import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
@@ -105,7 +105,7 @@ public class SpiderRecordValidatorTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
-		authenticator = new AuthenticatorSpy();
+		authenticator = new OldAuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();

@@ -27,6 +27,7 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -36,10 +37,13 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.storage.StreamStorage;
+import se.uu.ub.cora.storage.archive.ResourceArchive;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
+//Kolla om vi ska behålla SpiderBinary och vad egentligen vi behöver ha i den.
 public final class UploaderImp extends SpiderBinary implements Uploader {
 	private static final String RESOURCE_INFO = "resourceInfo";
+	private static final String MIME_TYPE_JPEG = "image/jpeg";
 	private SpiderAuthorizator spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
 	private StreamStorage streamStorage;
@@ -47,17 +51,17 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 	private DataGroupTermCollector termCollector;
 	private DataGroup recordRead;
 	private SpiderDependencyProvider dependencyProvider;
-	// private ResourceArchive resourceArchive;
+	private ResourceArchive resourceArchive;
 
 	private UploaderImp(SpiderDependencyProvider dependencyProvider) {
-		this.dependencyProvider = dependencyProvider;
-		authenticator = dependencyProvider.getAuthenticator();
-		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
+		// this.dependencyProvider = dependencyProvider;
+		// authenticator = dependencyProvider.getAuthenticator();
+		// spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
-		idGenerator = dependencyProvider.getRecordIdGenerator();
-		streamStorage = dependencyProvider.getStreamStorage();
-		termCollector = dependencyProvider.getDataGroupTermCollector();
-		// resourceArchive = dependencyProvider.getResourceArchive();
+		// idGenerator = dependencyProvider.getRecordIdGenerator();
+		// streamStorage = dependencyProvider.getStreamStorage();
+		// termCollector = dependencyProvider.getDataGroupTermCollector();
+		resourceArchive = dependencyProvider.getResourceArchive();
 	}
 
 	public static UploaderImp usingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
@@ -66,30 +70,42 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 
 	@Override
 	public DataRecord upload(String authToken, String type, String id, InputStream stream,
-			String fileName) {
-		this.authToken = authToken;
-		this.recordType = type;
-		tryToGetActiveUser();
-		checkUserIsAuthorizedForActionOnRecordType();
-
-		checkRecordTypeIsBinary();
+			String resourceType) {
+		// OBS: Vi behöver inte skicka filename utanför, den får räknas ut intern.
+		// https://cora.epc.ub.uu.se/diva/rest/record/binary/binary:11750059111622259/master
+		// this.authToken = authToken;
+		// this.recordType = type;
+		// tryToGetActiveUser();
+		// checkUserIsAuthorizedForActionOnRecordType();
+		//
+		// checkRecordTypeIsBinary();
+		//
 
 		recordRead = recordStorage.read(List.of(type), id);
-		checkUserIsAuthorisedToUploadData(recordRead);
-		checkStreamIsPresent(stream);
-		checkFileNameIsPresent(fileName);
-		streamId = idGenerator.getIdForType(type + "Binary");
+		DataRecordGroup readDataRecordGroup = DataProvider
+				.createRecordGroupFromDataGroup(recordRead);
+		String dataDivider = readDataRecordGroup.getDataDivider();
 
-		String dataDivider = extractDataDividerFromData(recordRead);
+		// checkUserIsAuthorisedToUploadData(recordRead);
+		// checkStreamIsPresent(stream);
+		// checkFileNameIsPresent(fileName);
+		// streamId = idGenerator.getIdForType(type + "Binary");
+		//
+		// // Vi borde kunna läsa dataDivider from (DataRecordGroup) recordRead istället
+		// String dataDivider = extractDataDividerFromData(recordRead);
+		//
+		// long fileSize = streamStorage.store(streamId, dataDivider, stream);
 
-		long fileSize = streamStorage.store(streamId, dataDivider, stream);
-		// Rest from resourceArchive spike
-		// resourceArchive.create(type, id, stream, "image/jpeg");
-
-		addOrReplaceResourceInfoToMetdataRecord(fileName, fileSize);
-
+		// Än så länge vi resurs id kommer att ha samma id som binär posten.
+		// Mimetype är nu satt till "image/jpeg" så länge
+		resourceArchive.create(dataDivider, type, id, stream, MIME_TYPE_JPEG);
+		//
+		// // Den här steg kommer inte att behövas. Vi kommer däremot behöva en redactor steg.
+		// addOrReplaceResourceInfoToMetdataRecord(fileName, fileSize);
+		//
+		DataGroup recordRead2 = null;
 		RecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getRecordUpdater();
-		return spiderRecordUpdater.updateRecord(authToken, type, id, recordRead);
+		return spiderRecordUpdater.updateRecord(authToken, type, id, recordRead2);
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {

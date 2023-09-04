@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
@@ -47,7 +47,7 @@ public class WorkOrderDeleterTest {
 	WorkOrderDeleter extendedFunctionality;
 	DataGroupTermCollectorSpy termCollector;
 	SpiderAuthorizatorSpy authorizator;
-	AuthenticatorSpy authenticator;
+	OldAuthenticatorSpy authenticator;
 	SpiderRecordDeleterSpy recordDeleter;
 	private LoggerFactorySpy loggerFactorySpy;
 
@@ -58,7 +58,7 @@ public class WorkOrderDeleterTest {
 		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
 		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
-		dependencyProvider.authenticator = new AuthenticatorSpy();
+		dependencyProvider.authenticator = new OldAuthenticatorSpy();
 		dependencyProvider.recordStorage = new OldRecordStorageSpy();
 		dependencyProvider.spiderAuthorizator = new SpiderAuthorizatorSpy();
 		setUpDependencyProvider();
@@ -74,7 +74,7 @@ public class WorkOrderDeleterTest {
 		extendedFunctionality = WorkOrderDeleter.usingDeleter(recordDeleter);
 		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
 		authorizator = (SpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();
-		authenticator = (AuthenticatorSpy) dependencyProvider.getAuthenticator();
+		authenticator = (OldAuthenticatorSpy) dependencyProvider.getAuthenticator();
 	}
 
 	@Test

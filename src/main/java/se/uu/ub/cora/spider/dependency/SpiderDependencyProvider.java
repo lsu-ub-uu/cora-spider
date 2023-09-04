@@ -35,6 +35,7 @@ import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
+import se.uu.ub.cora.storage.archive.ResourceArchive;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 public interface SpiderDependencyProvider {
@@ -87,6 +88,6 @@ public interface SpiderDependencyProvider {
 	 */
 	DataGroupToFilter getDataGroupToFilterConverter();
 
-	// ResourceArchive getResourceArchive();
+	ResourceArchive getResourceArchive();
 
 }

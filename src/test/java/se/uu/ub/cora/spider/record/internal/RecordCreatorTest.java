@@ -48,7 +48,7 @@ import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
@@ -82,7 +82,7 @@ import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 public class RecordCreatorTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
 	private RecordStorageSpy recordStorage;
-	private AuthenticatorSpy authenticator;
+	private OldAuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
 	private PermissionRuleCalculator ruleCalculator;
@@ -111,7 +111,7 @@ public class RecordCreatorTest {
 		setUpToReturn1ForCreatedAtomicIds();
 		setUpToReturnFakeDataForCreatedTS();
 
-		authenticator = new AuthenticatorSpy();
+		authenticator = new OldAuthenticatorSpy();
 		spiderAuthorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = new RecordStorageSpy();

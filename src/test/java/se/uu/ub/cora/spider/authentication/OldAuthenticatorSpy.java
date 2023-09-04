@@ -22,7 +22,7 @@ package se.uu.ub.cora.spider.authentication;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
-public class AuthenticatorSpy implements Authenticator {
+public class OldAuthenticatorSpy implements Authenticator {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public boolean authenticationWasCalled = false;

@@ -31,7 +31,7 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -46,7 +46,7 @@ public class SpiderRecordReaderTest {
 	private static final String SOME_RECORD_TYPE = "someRecordType";
 	private DataFactorySpy dataFactorySpy;
 	private RecordStorageOldSpy recordStorage;
-	private AuthenticatorSpy authenticator;
+	private OldAuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private RecordReader recordReader;
@@ -58,7 +58,7 @@ public class SpiderRecordReaderTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
-		authenticator = new AuthenticatorSpy();
+		authenticator = new OldAuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageOldSpy();
 		dataRedactor = new DataRedactorSpy();

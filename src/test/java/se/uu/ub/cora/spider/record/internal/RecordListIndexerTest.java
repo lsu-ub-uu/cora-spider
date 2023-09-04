@@ -38,7 +38,7 @@ import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordSpy;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
@@ -61,7 +61,7 @@ public class RecordListIndexerTest {
 	private DataFactorySpy dataFactory;
 	private SpiderDependencyProviderOldSpy dependencyProviderSpy;
 	private RecordListIndexerImp recordListIndexer;
-	private AuthenticatorSpy authenticatorSpy;
+	private OldAuthenticatorSpy authenticatorSpy;
 
 	private SpiderAuthorizatorSpy authorizatorSpy;
 	private DataGroupSpy indexSettingsWithoutFilter;
@@ -94,7 +94,7 @@ public class RecordListIndexerTest {
 
 	private void setUpDependencyProvider() {
 		dependencyProviderSpy = new SpiderDependencyProviderOldSpy();
-		authenticatorSpy = new AuthenticatorSpy();
+		authenticatorSpy = new OldAuthenticatorSpy();
 		authorizatorSpy = new SpiderAuthorizatorSpy();
 		dataValidatorSpy = new DataValidatorSpy();
 

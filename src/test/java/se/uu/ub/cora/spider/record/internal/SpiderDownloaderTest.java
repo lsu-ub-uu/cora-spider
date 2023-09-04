@@ -37,7 +37,7 @@ import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.SpiderInputStream;
@@ -60,7 +60,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 public class SpiderDownloaderTest {
 	private static final String BINARY = "binary";
 	private RecordStorage recordStorage;
-	private AuthenticatorSpy authenticator;
+	private OldAuthenticatorSpy authenticator;
 	private StreamStorageSpy streamStorage;
 	private SpiderAuthorizatorSpy authorizator;
 	private RuleCalculatorSpy ruleCalculator;
@@ -75,7 +75,7 @@ public class SpiderDownloaderTest {
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 
-		authenticator = new AuthenticatorSpy();
+		authenticator = new OldAuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();

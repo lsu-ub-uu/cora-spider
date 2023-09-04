@@ -38,7 +38,7 @@ import se.uu.ub.cora.data.spies.DataListSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
@@ -57,7 +57,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 	private IncomingLinksReader incomingLinksReader;
 
 	private RecordStorageSpy recordStorage;
-	private AuthenticatorSpy authenticator;
+	private OldAuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
@@ -68,7 +68,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
-		authenticator = new AuthenticatorSpy();
+		authenticator = new OldAuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageSpy();
 		keyCalculator = new RuleCalculatorSpy();

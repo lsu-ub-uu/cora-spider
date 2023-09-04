@@ -39,7 +39,7 @@ import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataListSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
@@ -61,7 +61,7 @@ public class RecordListReaderTest {
 	private static final String SOME_RECORD_TYPE = "place";
 
 	private RecordStorageOldSpy recordStorage;
-	private AuthenticatorSpy authenticator;
+	private OldAuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private RecordListReader recordListReader;
@@ -82,7 +82,7 @@ public class RecordListReaderTest {
 		setUpFactoriesAndProviders();
 		emptyFilter = createEmptyFilter();
 		nonEmptyFilter = new DataGroupSpy();
-		authenticator = new AuthenticatorSpy();
+		authenticator = new OldAuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageOldSpy();
 		ruleCalculator = new RuleCalculatorSpy();

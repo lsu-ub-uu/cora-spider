@@ -50,7 +50,7 @@ import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -79,7 +79,7 @@ public class DataGroupToRecordEnhancerTest {
 	private static final String SOME_RECORD_TYPE = "someRecordType";
 	private static final String BINARY_RECORD_TYPE = "binary";
 	private RecordEnhancerTestsRecordStorage recordStorage;
-	private AuthenticatorSpy authenticator;
+	private OldAuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
@@ -100,7 +100,7 @@ public class DataGroupToRecordEnhancerTest {
 		someDataGroup = createDummyDataGroupForRecord("someId");
 		user = new User("987654321");
 		recordStorage = new RecordEnhancerTestsRecordStorage();
-		authenticator = new AuthenticatorSpy();
+		authenticator = new OldAuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
