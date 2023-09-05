@@ -52,7 +52,7 @@ import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.StreamStorageSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -62,7 +62,7 @@ public class SpiderDownloaderTest {
 	private RecordStorage recordStorage;
 	private OldAuthenticatorSpy authenticator;
 	private StreamStorageSpy streamStorage;
-	private SpiderAuthorizatorSpy authorizator;
+	private OldSpiderAuthorizatorSpy authorizator;
 	private RuleCalculatorSpy ruleCalculator;
 	private Downloader downloader;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
@@ -76,7 +76,7 @@ public class SpiderDownloaderTest {
 		setUpFactoriesAndProviders();
 
 		authenticator = new OldAuthenticatorSpy();
-		authorizator = new SpiderAuthorizatorSpy();
+		authorizator = new OldSpiderAuthorizatorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		streamStorage = new StreamStorageSpy();

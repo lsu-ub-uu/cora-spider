@@ -52,7 +52,7 @@ import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordListReaderTest {
@@ -62,7 +62,7 @@ public class RecordListReaderTest {
 
 	private RecordStorageOldSpy recordStorage;
 	private OldAuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy authorizator;
+	private OldSpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private RecordListReader recordListReader;
 	private DataGroupToRecordEnhancerSpy recordEnhancer;
@@ -83,7 +83,7 @@ public class RecordListReaderTest {
 		emptyFilter = createEmptyFilter();
 		nonEmptyFilter = new DataGroupSpy();
 		authenticator = new OldAuthenticatorSpy();
-		authorizator = new SpiderAuthorizatorSpy();
+		authorizator = new OldSpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageOldSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		dataValidator = new DataValidatorSpy();

@@ -47,7 +47,7 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class SpiderRecordIncomingLinksReaderTest {
@@ -58,7 +58,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 
 	private RecordStorageSpy recordStorage;
 	private OldAuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy authorizator;
+	private OldSpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private DataGroupTermCollectorSpy termCollector;
@@ -69,7 +69,7 @@ public class SpiderRecordIncomingLinksReaderTest {
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 		authenticator = new OldAuthenticatorSpy();
-		authorizator = new SpiderAuthorizatorSpy();
+		authorizator = new OldSpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageSpy();
 		keyCalculator = new RuleCalculatorSpy();
 		termCollector = new DataGroupTermCollectorSpy();

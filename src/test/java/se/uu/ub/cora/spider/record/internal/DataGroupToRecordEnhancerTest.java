@@ -66,7 +66,7 @@ import se.uu.ub.cora.spider.record.RecordEnhancerTestsRecordStorage;
 import se.uu.ub.cora.spider.record.RecordLinkTestsAsserter;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 
 public class DataGroupToRecordEnhancerTest {
 	private static final String UPDATE = "update";
@@ -80,7 +80,7 @@ public class DataGroupToRecordEnhancerTest {
 	private static final String BINARY_RECORD_TYPE = "binary";
 	private RecordEnhancerTestsRecordStorage recordStorage;
 	private OldAuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy authorizator;
+	private OldSpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private User user;
@@ -101,7 +101,7 @@ public class DataGroupToRecordEnhancerTest {
 		user = new User("987654321");
 		recordStorage = new RecordEnhancerTestsRecordStorage();
 		authenticator = new OldAuthenticatorSpy();
-		authorizator = new SpiderAuthorizatorSpy();
+		authorizator = new OldSpiderAuthorizatorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		dataRedactor = new DataRedactorSpy();

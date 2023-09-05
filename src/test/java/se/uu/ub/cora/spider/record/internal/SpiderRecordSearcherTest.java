@@ -53,7 +53,7 @@ import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -67,7 +67,7 @@ public class SpiderRecordSearcherTest {
 
 	private RecordStorage recordStorage;
 	private OldAuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy authorizator;
+	private OldSpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private RecordSearcher recordSearcher;
@@ -84,7 +84,7 @@ public class SpiderRecordSearcherTest {
 		setUpFactoriesAndProviders();
 
 		authenticator = new OldAuthenticatorSpy();
-		authorizator = new SpiderAuthorizatorSpy();
+		authorizator = new OldSpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new RuleCalculatorSpy();

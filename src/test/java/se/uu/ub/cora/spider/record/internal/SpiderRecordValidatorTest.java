@@ -74,7 +74,7 @@ import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageForValidateDataSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -84,7 +84,7 @@ public class SpiderRecordValidatorTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
 	private RecordStorage recordStorage;
 	private Authenticator authenticator;
-	private SpiderAuthorizatorSpy authorizator;
+	private OldSpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private RecordValidator recordValidator;
 	private DataValidatorSpy dataValidator;
@@ -106,7 +106,7 @@ public class SpiderRecordValidatorTest {
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 		authenticator = new OldAuthenticatorSpy();
-		authorizator = new SpiderAuthorizatorSpy();
+		authorizator = new OldSpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();
 		ruleCalculator = new RuleCalculatorSpy();
@@ -218,7 +218,7 @@ public class SpiderRecordValidatorTest {
 
 	@Test
 	public void testLinkCollectorIsNotCalledWhenValidateLinksIsFalse() {
-		authorizator = new SpiderAuthorizatorSpy();
+		authorizator = new OldSpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();

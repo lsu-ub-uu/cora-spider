@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, 2023 Olov McKie
+ * Copyright 2022, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -62,7 +62,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MRV.setDefaultReturnValuesSupplier("getResourceArchive", ResourceArchiveSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getStreamStorage", StreamStorageSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordIdGenerator", IdGeneratorSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator", SpiderAuthorizatorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator", OldSpiderAuthorizatorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataValidator", DataValidatorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataRecordLinkCollector",
 				DataRecordLinkCollectorSpy::new);

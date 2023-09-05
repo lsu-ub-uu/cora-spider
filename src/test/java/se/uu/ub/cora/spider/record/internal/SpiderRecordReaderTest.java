@@ -38,7 +38,7 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.RecordReader;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 
 public class SpiderRecordReaderTest {
 	private static final String SOME_RECORD_ID = "place:0001";
@@ -47,7 +47,7 @@ public class SpiderRecordReaderTest {
 	private DataFactorySpy dataFactorySpy;
 	private RecordStorageOldSpy recordStorage;
 	private OldAuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy authorizator;
+	private OldSpiderAuthorizatorSpy authorizator;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private RecordReader recordReader;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
@@ -59,7 +59,7 @@ public class SpiderRecordReaderTest {
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 		authenticator = new OldAuthenticatorSpy();
-		authorizator = new SpiderAuthorizatorSpy();
+		authorizator = new OldSpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageOldSpy();
 		dataRedactor = new DataRedactorSpy();
 		setUpDependencyProvider();

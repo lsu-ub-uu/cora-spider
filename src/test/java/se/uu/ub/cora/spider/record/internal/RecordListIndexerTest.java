@@ -48,7 +48,7 @@ import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobSpy;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
 import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
@@ -63,7 +63,7 @@ public class RecordListIndexerTest {
 	private RecordListIndexerImp recordListIndexer;
 	private OldAuthenticatorSpy authenticatorSpy;
 
-	private SpiderAuthorizatorSpy authorizatorSpy;
+	private OldSpiderAuthorizatorSpy authorizatorSpy;
 	private DataGroupSpy indexSettingsWithoutFilter;
 	private DataGroupSpy indexSettingsWithFilter;
 	private DataValidatorSpy dataValidatorSpy;
@@ -95,7 +95,7 @@ public class RecordListIndexerTest {
 	private void setUpDependencyProvider() {
 		dependencyProviderSpy = new SpiderDependencyProviderOldSpy();
 		authenticatorSpy = new OldAuthenticatorSpy();
-		authorizatorSpy = new SpiderAuthorizatorSpy();
+		authorizatorSpy = new OldSpiderAuthorizatorSpy();
 		dataValidatorSpy = new DataValidatorSpy();
 
 		dependencyProviderSpy.authenticator = authenticatorSpy;

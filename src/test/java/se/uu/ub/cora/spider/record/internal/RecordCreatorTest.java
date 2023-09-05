@@ -71,7 +71,7 @@ import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
 import se.uu.ub.cora.spider.spy.RecordArchiveSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
@@ -83,7 +83,7 @@ public class RecordCreatorTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
 	private RecordStorageSpy recordStorage;
 	private OldAuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy spiderAuthorizator;
+	private OldSpiderAuthorizatorSpy spiderAuthorizator;
 	private RecordIdGenerator idGenerator;
 	private PermissionRuleCalculator ruleCalculator;
 	private RecordCreator recordCreatorOld;
@@ -112,7 +112,7 @@ public class RecordCreatorTest {
 		setUpToReturnFakeDataForCreatedTS();
 
 		authenticator = new OldAuthenticatorSpy();
-		spiderAuthorizator = new SpiderAuthorizatorSpy();
+		spiderAuthorizator = new OldSpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = new RecordStorageSpy();
 		idGenerator = new IdGeneratorSpy();
