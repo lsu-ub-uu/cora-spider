@@ -25,6 +25,7 @@ import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
@@ -32,10 +33,12 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.storage.StreamStorage;
@@ -44,6 +47,9 @@ import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 //Kolla om vi ska behålla SpiderBinary och vad egentligen vi behöver ha i den.
 public final class UploaderImp extends SpiderBinary implements Uploader {
+	private static final String FAKE_HEIGHT_WIDTH = "0";
+	private static final String FAKE_CHECKSUM = "afAF09";
+	private static final String BINARY_RECORD_TYPE = "binary";
 	private static final String RESOURCE_INFO = "resourceInfo";
 	private static final String MIME_TYPE_JPEG = "image/jpeg";
 	private SpiderAuthorizator spiderAuthorizator;
@@ -56,8 +62,16 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 	private ResourceArchive resourceArchive;
 	private static final String ERR_MSG_AUTHENTICATION = "Uploading error: Not possible to upload "
 			+ "resource due the user could not be authenticated, for type {0} and id {1}.";
+	private static final String ERR_MSG_AUTHORIZATION = "Uploading error: Not possible to upload "
+			+ "resource due the user could not be authorizated, for type {0} and id {1}.";
+	private static final String ERR_MESSAGE_MISUSE = "Uploading error: Invalid record type, "
+			+ "for type {0} and {1}, must be (binary).";
+	private static final String ERR_MESAGE_MISSING_RESOURCE_STREAM = "Uploading error: Nothing to "
+			+ "upload, resource stream is missing for type {0} and id {1}.";
 	private String id;
 	private RecordTypeHandler recordTypeHandler;
+	private String resourceType;
+	private InputStream resourceStream;
 
 	private UploaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -75,45 +89,63 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 	}
 
 	@Override
-	public DataRecord upload(String authToken, String type, String id, InputStream stream,
+	public DataRecord upload(String authToken, String type, String id, InputStream resourceStream,
 			String resourceType) {
 		// OBS: Vi behöver inte skicka filename utanför, den får räknas ut intern.
 		// https://cora.epc.ub.uu.se/diva/rest/record/binary/binary:11750059111622259/master
 		this.authToken = authToken;
-		this.recordType = type;
+		this.type = type;
 		this.id = id;
+		this.resourceStream = resourceStream;
+		this.resourceType = resourceType;
+		validateInput();
+
 		tryToGetUserForToken();
-
-		// Is checkUserIsAuthorizedForActionOnRecordType unnecessary due to we already
-		// use checkUserIsAuthorisedToUploadData??
-		// checkUserIsAuthorizedForActionOnRecordType();
-
-		// checkRecordTypeIsBinary();
 
 		binaryRecord = recordStorage.read(List.of(type), id);
 		DataRecordGroup readDataRecordGroup = DataProvider
 				.createRecordGroupFromDataGroup(binaryRecord);
-		String dataDivider = readDataRecordGroup.getDataDivider();
 
-		checkUserIsAuthorisedToUploadData(readDataRecordGroup, binaryRecord);
-		// checkStreamIsPresent(stream);
-		// checkFileNameIsPresent(fileName);
+		tryToCheckUserIsAuthorisedToUploadData(readDataRecordGroup, binaryRecord);
+
 		// streamId = idGenerator.getIdForType(type + "Binary");
-		//
-		// // Vi borde kunna läsa dataDivider from (DataRecordGroup) recordRead istället
-		// String dataDivider = extractDataDividerFromData(recordRead);
-		//
 		// long fileSize = streamStorage.store(streamId, dataDivider, stream);
 
 		// Än så länge vi resurs id kommer att ha samma id som binär posten.
 		// Mimetype är nu satt till "image/jpeg" så länge
-		resourceArchive.create(dataDivider, type, id, stream, MIME_TYPE_JPEG);
+		String dataDivider = readDataRecordGroup.getDataDivider();
+		var fileSize = resourceArchive.create(dataDivider, type, id, resourceStream,
+				MIME_TYPE_JPEG);
 		//
 		// // Den här steg kommer inte att behövas. Vi kommer däremot behöva en redactor steg.
 		// addOrReplaceResourceInfoToMetdataRecord(fileName, fileSize);
 		//
-		RecordUpdater spiderRecordUpdater = SpiderInstanceProvider.getRecordUpdater();
-		return spiderRecordUpdater.updateRecord(authToken, type, id, binaryRecord);
+
+		String originalFileName = binaryRecord
+				.getFirstAtomicValueWithNameInData("originalFileName");
+		addResourceInfoToMetadataRecord(originalFileName, fileSize);
+
+		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
+		return recordUpdater.updateRecord(authToken, type, id, binaryRecord);
+	}
+
+	private void validateInput() {
+		ensureBinaryType();
+		ensureResourceTypeIsMaster();
+		ensureResourceStreamExists(resourceStream);
+	}
+
+	private void ensureResourceTypeIsMaster() {
+		if (!"master".equals(resourceType)) {
+			throw new MisuseException(
+					"Not implemented yet for resource type different than master.");
+		}
+	}
+
+	private void ensureBinaryType() {
+		if (!BINARY_RECORD_TYPE.equals(type)) {
+			throw new MisuseException(MessageFormat.format(ERR_MESSAGE_MISUSE, type, id));
+		}
 	}
 
 	protected void tryToGetUserForToken() {
@@ -121,18 +153,28 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 			user = authenticator.getUserForToken(authToken);
 		} catch (Exception e) {
 			throw new AuthenticationException(
-					MessageFormat.format(ERR_MSG_AUTHENTICATION, recordType, id), e);
+					MessageFormat.format(ERR_MSG_AUTHENTICATION, type, id), e);
 		}
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "upload", recordType);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "upload", type);
+	}
+
+	private void tryToCheckUserIsAuthorisedToUploadData(DataRecordGroup record,
+			DataGroup dataGroup) {
+		try {
+			checkUserIsAuthorisedToUploadData(record, dataGroup);
+		} catch (Exception e) {
+			throw new AuthorizationException(MessageFormat.format(ERR_MSG_AUTHORIZATION, type, id),
+					e);
+		}
 	}
 
 	private void checkUserIsAuthorisedToUploadData(DataRecordGroup record, DataGroup dataGroup) {
-		CollectTerms collectedTerms = getCollectedTermsForRecord(recordType, record, dataGroup);
+		CollectTerms collectedTerms = getCollectedTermsForRecord(type, record, dataGroup);
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				"upload", recordType, collectedTerms.permissionTerms);
+				"upload", type, collectedTerms.permissionTerms);
 	}
 
 	private CollectTerms getCollectedTermsForRecord(String recordType, DataRecordGroup record,
@@ -147,9 +189,10 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 	// return recordTypeHandler.getDefinitionId();
 	// }
 
-	private void checkStreamIsPresent(InputStream inputStream) {
+	private void ensureResourceStreamExists(InputStream inputStream) {
 		if (null == inputStream) {
-			throw new DataMissingException("No stream to store");
+			throw new DataMissingException(
+					MessageFormat.format(ERR_MESAGE_MISSING_RESOURCE_STREAM, type, id));
 		}
 	}
 
@@ -181,13 +224,35 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 
 	private void addResourceInfoToMetadataRecord(String fileName, long fileSize) {
 		DataGroup resourceInfo = DataProvider.createGroupUsingNameInData(RESOURCE_INFO);
-		binaryRecord.addChild(resourceInfo);
-		DataResourceLink master = DataProvider.createResourceLinkUsingNameInData("master");
-		resourceInfo.addChild(master);
-		master.setStreamId(streamId);
-		master.setFileName(fileName);
-		master.setFileSize(String.valueOf(fileSize));
-		master.setMimeType("application/octet-stream");
+		DataGroup masterGroup = DataProvider.createGroupUsingNameInData("master");
+
+		DataProvider.createAtomicUsingNameInDataAndValue("resourceId", id);
+		DataResourceLink resourceLink = DataProvider
+				.createResourceLinkUsingNameInData("resourceLink");
+		DataAtomic fileSizes = DataProvider.createAtomicUsingNameInDataAndValue("fileSize",
+				String.valueOf(fileSize));
+		DataAtomic mimeType = DataProvider.createAtomicUsingNameInDataAndValue("mimeType",
+				MIME_TYPE_JPEG);
+		DataAtomic height = DataProvider.createAtomicUsingNameInDataAndValue("height",
+				FAKE_HEIGHT_WIDTH);
+		DataAtomic width = DataProvider.createAtomicUsingNameInDataAndValue("width",
+				FAKE_HEIGHT_WIDTH);
+		DataAtomic resolution = DataProvider.createAtomicUsingNameInDataAndValue("resolution",
+				FAKE_HEIGHT_WIDTH);
+		DataAtomic originalFilename = DataProvider
+				.createAtomicUsingNameInDataAndValue("originalFileName", fileName);
+		DataAtomic checksum = DataProvider.createAtomicUsingNameInDataAndValue("checksum",
+				FAKE_CHECKSUM);
+		DataAtomic checksumType = DataProvider.createAtomicUsingNameInDataAndValue("checksumType",
+				"SHA512");
+
+		// binaryRecord.addChild(resourceInfo);
+		// DataResourceLink master = DataProvider.createResourceLinkUsingNameInData("master");
+		// resourceInfo.addChild(master);
+		// master.setStreamId(streamId);
+		// master.setFileName(fileName);
+		// master.setFileSize(String.valueOf(fileSize));
+		// master.setMimeType("application/octet-stream");
 	}
 
 	private void replaceResourceInfoToMetadataRecord(String fileName, long fileSize) {

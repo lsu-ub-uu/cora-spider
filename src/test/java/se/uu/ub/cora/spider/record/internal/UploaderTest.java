@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.text.MessageFormat;
 import java.util.List;
@@ -44,6 +45,7 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
+import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.InputStreamSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
@@ -51,6 +53,7 @@ import se.uu.ub.cora.spider.dependency.spy.ResourceArchiveSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
+import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
@@ -61,6 +64,9 @@ import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class UploaderTest {
+	private static final String EXPECTED_ORIGINAL_FILE_NAME = "expectedOriginalFileName";
+	private static final String FAKE_HEIGHT_WIDTH_RESOLUTION = "0";
+	private static final String FAKE_CHECKSUM = "afAF09";
 	private static final String ACTION_UPLOAD = "upload";
 	private static final String ERR_MSG_AUTHENTICATION = "Uploading error: Not possible to upload "
 			+ "resource due the user could not be authenticated, for type {0} and id {1}.";
@@ -69,9 +75,15 @@ public class UploaderTest {
 	private static final String MIME_TYPE_JPEG = "image/jpeg";
 	private static final String SOME_RECORD_ID = "someRecordId";
 	private static final String SOME_AUTH_TOKEN = "someAuthToken";
+	private static final String SOME_RECORD_TYPE = "someRecordType";
 	private static final String BINARY_RECORD_TYPE = "binary";
 	private static final String SOME_RESOURCE_TYPE = "someResourceType";
 	private static final String SOME_EXCEPTION_MESSAGE = "someExceptionMessage";
+	private static final String ERR_MESSAGE_MISUSE = "Uploading error: Invalid record type, "
+			+ "for type {0} and {1}, must be (binary).";
+	private static final String RESOURCE_TYPE_MASTER = "master";
+	private static final String ERR_MESAGE_MISSING_RESOURCE_STREAM = "Uploading error: Nothing to "
+			+ "upload, resource stream is missing for type {0} and id {1}.";
 	private InputStreamSpy someStream;
 	private RecordUpdaterSpy recordUpdater;
 	private AuthenticatorSpy authenticator;
@@ -190,7 +202,7 @@ public class UploaderTest {
 	@Test
 	public void testUploadStoreResourceIntoArchive() throws Exception {
 		DataRecord binaryRecord = uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE,
-				SOME_RECORD_ID, someStream, SOME_RESOURCE_TYPE);
+				SOME_RECORD_ID, someStream, RESOURCE_TYPE_MASTER);
 
 		DataRecordGroupSpy readDataRecordGroup = testReadRecord();
 		var dataDivider = testGetDataDivider(readDataRecordGroup);
@@ -237,7 +249,7 @@ public class UploaderTest {
 	@Test
 	public void testUploadUserAuthenticated() throws Exception {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
-				SOME_RESOURCE_TYPE);
+				RESOURCE_TYPE_MASTER);
 
 		dependencyProvider.MCR.assertParameters("getAuthenticator", 0);
 		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_AUTH_TOKEN);
@@ -249,8 +261,8 @@ public class UploaderTest {
 				new AuthenticationException(SOME_EXCEPTION_MESSAGE));
 		try {
 			uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
-					SOME_RESOURCE_TYPE);
-			assertTrue(false, "It should throw Exception");
+					RESOURCE_TYPE_MASTER);
+			fail("It should throw Exception");
 		} catch (Exception e) {
 			assertTrue(e instanceof AuthenticationException,
 					"AuthenticationException should be thrown");
@@ -263,7 +275,7 @@ public class UploaderTest {
 	@Test
 	public void testUploadUserAuthorized() throws Exception {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
-				SOME_RESOURCE_TYPE);
+				RESOURCE_TYPE_MASTER);
 		dependencyProvider.MCR.assertParameters("getDataGroupTermCollector", 0);
 		recordTypeHandler.MCR.assertParameters("getDefinitionId", 0);
 		var definitionId = recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0);
@@ -281,12 +293,13 @@ public class UploaderTest {
 
 	@Test
 	public void testUploadUserNotAuthorizated() throws Exception {
-		authorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForActionOnRecordType",
+		authorizator.MRV.setAlwaysThrowException(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData",
 				new AuthorizationException(SOME_EXCEPTION_MESSAGE));
 		try {
 			uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
-					SOME_RESOURCE_TYPE);
-			assertTrue(false, "It should throw Exception");
+					RESOURCE_TYPE_MASTER);
+			fail("It should throw Exception");
 		} catch (Exception e) {
 			assertTrue(e instanceof AuthorizationException,
 					"AuthorizationException should be thrown");
@@ -294,6 +307,114 @@ public class UploaderTest {
 					BINARY_RECORD_TYPE, SOME_RECORD_ID));
 			assertEquals(e.getCause().getMessage(), SOME_EXCEPTION_MESSAGE);
 		}
+	}
+
+	@Test
+	public void testUploadExceptionTypeDifferentThanBinary() throws Exception {
+		try {
+			uploader.upload(SOME_AUTH_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID, someStream,
+					RESOURCE_TYPE_MASTER);
+			fail("It should throw exception");
+		} catch (Exception e) {
+			assertTrue(e instanceof MisuseException);
+			assertEquals(e.getMessage(),
+					MessageFormat.format(ERR_MESSAGE_MISUSE, SOME_RECORD_TYPE, SOME_RECORD_ID));
+
+			ensureNoUploadLogicStarts();
+		}
+	}
+
+	private void ensureNoUploadLogicStarts() {
+		authenticator.MCR.assertMethodNotCalled("getUserForToken");
+		authorizator.MCR.assertMethodNotCalled(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
+		recordStorage.MCR.assertMethodNotCalled("read");
+		recordUpdater.MCR.assertMethodNotCalled("updateRecord");
+		resourceArchive.MCR.assertMethodNotCalled("create");
+	}
+
+	@Test
+	public void testUploadExceptionResourceTypeDifferentThanMaster() throws Exception {
+		try {
+			uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+					SOME_RESOURCE_TYPE);
+			fail("It should throw exception");
+		} catch (Exception e) {
+			assertTrue(e instanceof MisuseException);
+			assertEquals(e.getMessage(),
+					"Not implemented yet for resource type different than master.");
+			ensureNoUploadLogicStarts();
+		}
+	}
+
+	@Test
+	public void testUploadExceptionWhenResourceStreamIsMissing() throws Exception {
+		try {
+			uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, null,
+					RESOURCE_TYPE_MASTER);
+			fail("It should throw exception");
+		} catch (Exception e) {
+			System.out.println(e.getClass());
+			assertTrue(e instanceof DataMissingException);
+			assertEquals(e.getMessage(), MessageFormat.format(ERR_MESAGE_MISSING_RESOURCE_STREAM,
+					BINARY_RECORD_TYPE, SOME_RECORD_ID));
+			ensureNoUploadLogicStarts();
+		}
+	}
+
+	@Test
+	public void testUploadStoreResourceDataintoStorage() throws Exception {
+		DataGroupSpy readBinarySpy = new DataGroupSpy();
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> EXPECTED_ORIGINAL_FILE_NAME, "originalFileName");
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> readBinarySpy);
+
+		DataRecord updatedRecord = uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE,
+				SOME_RECORD_ID, someStream, RESOURCE_TYPE_MASTER);
+
+		assertResourceInfoIsCorrect(updatedRecord);
+	}
+
+	private void assertResourceInfoIsCorrect(DataRecord recordUpdated) {
+
+		var fileSize = resourceArchive.MCR.getReturnValue("create", 0);
+
+		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "resourceInfo");
+		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 1, "master");
+
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "resourceId",
+				SOME_RECORD_ID);
+		dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInData", 0, "resourceLink");
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "fileSize",
+				String.valueOf(fileSize));
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2, "mimeType",
+				MIME_TYPE_JPEG);
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3, "height",
+				FAKE_HEIGHT_WIDTH_RESOLUTION);
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4, "width",
+				FAKE_HEIGHT_WIDTH_RESOLUTION);
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 5, "resolution",
+				FAKE_HEIGHT_WIDTH_RESOLUTION);
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 6,
+				"originalFileName", EXPECTED_ORIGINAL_FILE_NAME);
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 7, "checksum",
+				FAKE_CHECKSUM);
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 8,
+				"checksumType", "SHA512");
+
+		// DataGroupSpy resourceInfo = (DataGroupSpy) dataFactorySpy.MCR
+		// .getReturnValue("factorGroupUsingNameInData", 0);
+		//
+		// dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInData", 0, "master");
+		// DataResourceLinkSpy masterLink = (DataResourceLinkSpy) dataFactorySpy.MCR
+		// .getReturnValue("factorResourceLinkUsingNameInData", 0);
+		// resourceInfo.MCR.assertParameters("addChild", 0, masterLink);
+		//
+		// masterLink.MCR.assertParameters("setStreamId", 0,
+		// idGenerator.MCR.getReturnValue("getIdForType", 0));
+		// masterLink.MCR.assertParameters("setFileName", 0, "someFileName");
+		// masterLink.MCR.assertParameters("setFileSize", 0, "8");
+		// masterLink.MCR.assertParameters("setMimeType", 0, "application/octet-stream");
 	}
 
 	// @Test
@@ -312,7 +433,7 @@ public class UploaderTest {
 	//
 	// DataRecord recordUpdated = uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE,
 	// SOME_RECORD_ID, someStream, SOME_RESOURCE_TYPE);
-
+	//
 	// assertResourceInfoIsCorrect(recordUpdated);
 	//
 	// assertTrue(((OldRecordStorageSpy) recordStorage).readWasCalled);
@@ -394,22 +515,7 @@ public class UploaderTest {
 	// assertEquals(dataDividerRecordId, streamStorage.dataDivider);
 	// }
 	//
-	// private void assertResourceInfoIsCorrect(DataRecord recordUpdated) {
-	// dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "resourceInfo");
-	// DataGroupSpy resourceInfo = (DataGroupSpy) dataFactorySpy.MCR
-	// .getReturnValue("factorGroupUsingNameInData", 0);
-	//
-	// dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInData", 0, "master");
-	// DataResourceLinkSpy masterLink = (DataResourceLinkSpy) dataFactorySpy.MCR
-	// .getReturnValue("factorResourceLinkUsingNameInData", 0);
-	// resourceInfo.MCR.assertParameters("addChild", 0, masterLink);
-	//
-	// masterLink.MCR.assertParameters("setStreamId", 0,
-	// idGenerator.MCR.getReturnValue("getIdForType", 0));
-	// masterLink.MCR.assertParameters("setFileName", 0, "someFileName");
-	// masterLink.MCR.assertParameters("setFileSize", 0, "8");
-	// masterLink.MCR.assertParameters("setMimeType", 0, "application/octet-stream");
-	// }
+
 	//
 	// @Test(expectedExceptions = MisuseException.class, expectedExceptionsMessageRegExp = ""
 	// + "It is only possible to upload files to recordType binary")

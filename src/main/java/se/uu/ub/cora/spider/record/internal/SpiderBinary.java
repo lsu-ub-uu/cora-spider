@@ -30,7 +30,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 public abstract class SpiderBinary {
 
 	protected RecordStorage recordStorage;
-	protected String recordType;
+	protected String type;
 	protected Authenticator authenticator;
 	protected String authToken;
 	protected User user;
@@ -43,7 +43,7 @@ public abstract class SpiderBinary {
 	}
 
 	private DataGroup getRecordTypeDefinition() {
-		return recordStorage.read(List.of("recordType"), recordType);
+		return recordStorage.read(List.of("recordType"), type);
 	}
 
 	private boolean recordTypeIsBinary(DataGroup dataGroup) {

@@ -56,7 +56,7 @@ public final class DownloaderImp extends SpiderBinary implements Downloader {
 	public SpiderInputStream download(String authToken, String type, String id,
 			String resourceName) {
 		this.authToken = authToken;
-		this.recordType = type;
+		this.type = type;
 		this.resourceName = resourceName;
 
 		tryToGetActiveUser();
@@ -82,7 +82,7 @@ public final class DownloaderImp extends SpiderBinary implements Downloader {
 
 	private void checkUserIsAuthorizedForActionOnRecordTypeAndResourceName() {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, DOWNLOAD,
-				recordType + "." + resourceName);
+				type + "." + resourceName);
 	}
 
 	private String tryToExtractStreamIdFromResource(String resource) {

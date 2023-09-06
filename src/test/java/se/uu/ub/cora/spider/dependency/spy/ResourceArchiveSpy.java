@@ -30,14 +30,15 @@ public class ResourceArchiveSpy implements ResourceArchive {
 
 	public ResourceArchiveSpy() {
 		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("create", () -> 100L);
 		MRV.setDefaultReturnValuesSupplier("read", InputStreamSpy::new);
 	}
 
 	@Override
-	public void create(String dataDivider, String type, String id, InputStream resource,
+	public long create(String dataDivider, String type, String id, InputStream resource,
 			String mimeType) {
-		MCR.addCall("dataDivider", dataDivider, "type", type, "id", id, "resource", resource,
-				"mimeType", mimeType);
+		return (long) MCR.addCallAndReturnFromMRV("dataDivider", dataDivider, "type", type, "id",
+				id, "resource", resource, "mimeType", mimeType);
 	}
 
 	@Override

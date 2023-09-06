@@ -34,8 +34,11 @@ public interface Uploader {
 	 * </p>
 	 * If the authToken does not authenticate a {@link AuthenticationException} be thrown.
 	 * </p>
-	 * If the type is different than binary record type a {@link MisuseException} be thrown,
+	 * If the type is different than binary record type a {@link MisuseException} must be thrown,
 	 * indicating that the resource can not be uploaded with that type.
+	 * </p>
+	 * If the inputStream does exits {@link DataMissingException} must be thrown, indicating no
+	 * resource can be uploaded.
 	 * </p>
 	 * If resourceType does not exists for the validationType then a {@link DataException} willbe
 	 * thrown.
