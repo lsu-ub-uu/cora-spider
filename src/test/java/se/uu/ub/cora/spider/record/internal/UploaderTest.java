@@ -36,9 +36,11 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
+import se.uu.ub.cora.data.spies.DataAtomicSpy;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
+import se.uu.ub.cora.data.spies.DataResourceLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
@@ -369,15 +371,18 @@ public class UploaderTest {
 				() -> EXPECTED_ORIGINAL_FILE_NAME, "originalFileName");
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> readBinarySpy);
 
-		DataRecord updatedRecord = uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE,
-				SOME_RECORD_ID, someStream, RESOURCE_TYPE_MASTER);
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
 
-		assertResourceInfoIsCorrect(updatedRecord);
+		DataGroupSpy binaryUpdatedGroup = (DataGroupSpy) recordUpdater.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("updateRecord", 0, "record");
+
+		assertResourceInfoIsCorrect(binaryUpdatedGroup);
 	}
 
-	private void assertResourceInfoIsCorrect(DataRecord recordUpdated) {
+	private void assertResourceInfoIsCorrect(DataGroupSpy binaryUpdatedGroup) {
 
-		var fileSize = resourceArchive.MCR.getReturnValue("create", 0);
+		var fileSizeFromArchive = resourceArchive.MCR.getReturnValue("create", 0);
 
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "resourceInfo");
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 1, "master");
@@ -386,7 +391,7 @@ public class UploaderTest {
 				SOME_RECORD_ID);
 		dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInData", 0, "resourceLink");
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "fileSize",
-				String.valueOf(fileSize));
+				String.valueOf(fileSizeFromArchive));
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2, "mimeType",
 				MIME_TYPE_JPEG);
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3, "height",
@@ -401,6 +406,39 @@ public class UploaderTest {
 				FAKE_CHECKSUM);
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 8,
 				"checksumType", "SHA512");
+
+		DataGroupSpy resourceInfo = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupUsingNameInData", 0);
+		DataGroupSpy master = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupUsingNameInData", 1);
+
+		DataAtomicSpy resourceId = (DataAtomicSpy) dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
+
+		DataResourceLinkSpy resourceLink = (DataResourceLinkSpy) dataFactorySpy.MCR
+				.getReturnValue("factorResourceLinkUsingNameInData", 0);
+
+		DataAtomicSpy fileSize = (DataAtomicSpy) dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
+		DataAtomicSpy mimeType = (DataAtomicSpy) dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 2);
+		DataAtomicSpy height = (DataAtomicSpy) dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 3);
+		DataAtomicSpy width = (DataAtomicSpy) dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 4);
+		DataAtomicSpy resolution = (DataAtomicSpy) dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 5);
+		DataAtomicSpy originalFileName = (DataAtomicSpy) dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 6);
+		DataAtomicSpy checksum = (DataAtomicSpy) dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 7);
+		DataAtomicSpy checksumType = (DataAtomicSpy) dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 8);
+
+		binaryUpdatedGroup.MCR.assertParameters("addChild", 0, resourceInfo);
+		resourceInfo.MCR.assertParameters("addChild", 0, master);
+
+		master.MCR.assertParameters("addChild", 0, resourceId);
 
 		// DataGroupSpy resourceInfo = (DataGroupSpy) dataFactorySpy.MCR
 		// .getReturnValue("factorGroupUsingNameInData", 0);

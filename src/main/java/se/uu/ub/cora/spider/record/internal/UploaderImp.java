@@ -224,7 +224,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 
 	private void addResourceInfoToMetadataRecord(String fileName, long fileSize) {
 		DataGroup resourceInfo = DataProvider.createGroupUsingNameInData(RESOURCE_INFO);
-		DataGroup masterGroup = DataProvider.createGroupUsingNameInData("master");
+		DataGroup master = DataProvider.createGroupUsingNameInData("master");
 
 		DataProvider.createAtomicUsingNameInDataAndValue("resourceId", id);
 		DataResourceLink resourceLink = DataProvider
@@ -246,7 +246,9 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		DataAtomic checksumType = DataProvider.createAtomicUsingNameInDataAndValue("checksumType",
 				"SHA512");
 
-		// binaryRecord.addChild(resourceInfo);
+		binaryRecord.addChild(resourceInfo);
+		resourceInfo.addChild(master);
+
 		// DataResourceLink master = DataProvider.createResourceLinkUsingNameInData("master");
 		// resourceInfo.addChild(master);
 		// master.setStreamId(streamId);
