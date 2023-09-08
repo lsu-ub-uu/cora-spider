@@ -394,17 +394,18 @@ public class UploaderTest {
 				FAKE_FILE_SIZE);
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2, "mimeType",
 				MIME_TYPE_JPEG);
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3, "height",
-				FAKE_HEIGHT_WIDTH_RESOLUTION);
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4, "width",
-				FAKE_HEIGHT_WIDTH_RESOLUTION);
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 5, "resolution",
-				FAKE_HEIGHT_WIDTH_RESOLUTION);
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 6,
+		// dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3, "height",
+		// FAKE_HEIGHT_WIDTH_RESOLUTION);
+		// dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4, "width",
+		// FAKE_HEIGHT_WIDTH_RESOLUTION);
+		// dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 5,
+		// "resolution",
+		// FAKE_HEIGHT_WIDTH_RESOLUTION);
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3,
 				"originalFileName", EXPECTED_ORIGINAL_FILE_NAME);
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 7, "checksum",
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4, "checksum",
 				FAKE_CHECKSUM);
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 8,
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 5,
 				"checksumType", "SHA512");
 
 		DataGroupSpy resourceInfo = (DataGroupSpy) dataFactorySpy.MCR
@@ -422,18 +423,18 @@ public class UploaderTest {
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
 		DataAtomicSpy mimeType = (DataAtomicSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 2);
-		DataAtomicSpy height = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 3);
-		DataAtomicSpy width = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 4);
-		DataAtomicSpy resolution = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 5);
+		// DataAtomicSpy height = (DataAtomicSpy) dataFactorySpy.MCR
+		// .getReturnValue("factorAtomicUsingNameInDataAndValue", 3);
+		// DataAtomicSpy width = (DataAtomicSpy) dataFactorySpy.MCR
+		// .getReturnValue("factorAtomicUsingNameInDataAndValue", 4);
+		// DataAtomicSpy resolution = (DataAtomicSpy) dataFactorySpy.MCR
+		// .getReturnValue("factorAtomicUsingNameInDataAndValue", 5);
 		DataAtomicSpy originalFileName = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 6);
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 3);
 		DataAtomicSpy checksum = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 7);
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 4);
 		DataAtomicSpy checksumType = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 8);
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 5);
 
 		binaryUpdatedGroup.MCR.assertParameters("addChild", 0, resourceInfo);
 		resourceInfo.MCR.assertParameters("addChild", 0, master);
@@ -441,9 +442,9 @@ public class UploaderTest {
 		master.MCR.assertParameters("addChild", 1, resourceLink);
 		master.MCR.assertParameters("addChild", 2, fileSize);
 		master.MCR.assertParameters("addChild", 3, mimeType);
-		master.MCR.assertParameters("addChild", 4, height);
-		master.MCR.assertParameters("addChild", 5, width);
-		master.MCR.assertParameters("addChild", 6, resolution);
+		// master.MCR.assertParameters("addChild", 4, height);
+		// master.MCR.assertParameters("addChild", 5, width);
+		// master.MCR.assertParameters("addChild", 6, resolution);
 		binaryUpdatedGroup.MCR.assertParameters("addChild", 1, originalFileName);
 		binaryUpdatedGroup.MCR.assertParameters("addChild", 2, checksum);
 		binaryUpdatedGroup.MCR.assertParameters("addChild", 3, checksumType);

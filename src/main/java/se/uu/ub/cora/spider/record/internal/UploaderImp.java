@@ -125,6 +125,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 
 		String originalFileName = binaryRecord
 				.getFirstAtomicValueWithNameInData("originalFileName");
+
 		createdResourceInfoAndMasterGroupAndAddedToBinaryRecord(originalFileName);
 		removeExpectedAtomicsFromBinaryRecord();
 
@@ -236,12 +237,12 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 				FAKE_FILE_SIZE);
 		DataAtomic mimeType = DataProvider.createAtomicUsingNameInDataAndValue("mimeType",
 				MIME_TYPE_JPEG);
-		DataAtomic height = DataProvider.createAtomicUsingNameInDataAndValue("height",
-				FAKE_HEIGHT_WIDTH);
-		DataAtomic width = DataProvider.createAtomicUsingNameInDataAndValue("width",
-				FAKE_HEIGHT_WIDTH);
-		DataAtomic resolution = DataProvider.createAtomicUsingNameInDataAndValue("resolution",
-				FAKE_HEIGHT_WIDTH);
+		// DataAtomic height = DataProvider.createAtomicUsingNameInDataAndValue("height",
+		// FAKE_HEIGHT_WIDTH);
+		// DataAtomic width = DataProvider.createAtomicUsingNameInDataAndValue("width",
+		// FAKE_HEIGHT_WIDTH);
+		// DataAtomic resolution = DataProvider.createAtomicUsingNameInDataAndValue("resolution",
+		// FAKE_HEIGHT_WIDTH);
 		DataAtomic originalFileName = DataProvider
 				.createAtomicUsingNameInDataAndValue("originalFileName", fileName);
 		DataAtomic checksum = DataProvider.createAtomicUsingNameInDataAndValue("checksum",
@@ -256,9 +257,9 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		master.addChild(resourceLink);
 		master.addChild(fileSize);
 		master.addChild(mimeType);
-		master.addChild(height);
-		master.addChild(width);
-		master.addChild(resolution);
+		// master.addChild(height);
+		// master.addChild(width);
+		// master.addChild(resolution);
 		binaryRecord.addChild(originalFileName);
 		binaryRecord.addChild(checksum);
 		binaryRecord.addChild(checksumType);
