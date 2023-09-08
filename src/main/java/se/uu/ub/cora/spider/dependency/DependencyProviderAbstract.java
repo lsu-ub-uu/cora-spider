@@ -105,10 +105,10 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 		return RecordStorageProvider.getRecordStorage();
 	}
 
-//	@Override
-//	public final ResourceArchive getResourceArchive() {
-//		return ResourceArchiveProvider.getResourceArchive();
-//	}
+	@Override
+	public final ResourceArchive getResourceArchive() {
+		return ResourceArchiveProvider.getResourceArchive();
+	}
 
 	@Override
 	public RecordArchive getRecordArchive() {

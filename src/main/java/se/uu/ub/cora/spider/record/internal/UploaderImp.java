@@ -49,6 +49,7 @@ import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 public final class UploaderImp extends SpiderBinary implements Uploader {
 	private static final String FAKE_HEIGHT_WIDTH = "0";
 	private static final String FAKE_CHECKSUM = "afAF09";
+	private static final String FAKE_FILE_SIZE = "10";
 	private static final String BINARY_RECORD_TYPE = "binary";
 	private static final String RESOURCE_INFO = "resourceInfo";
 	private static final String MIME_TYPE_JPEG = "image/jpeg";
@@ -114,16 +115,18 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		// Än så länge vi resurs id kommer att ha samma id som binär posten.
 		// Mimetype är nu satt till "image/jpeg" så länge
 		String dataDivider = readDataRecordGroup.getDataDivider();
-		var fileSize = resourceArchive.create(dataDivider, type, id, resourceStream,
-				MIME_TYPE_JPEG);
+		resourceArchive.create(dataDivider, type, id, resourceStream, MIME_TYPE_JPEG);
 		//
 		// // Den här steg kommer inte att behövas. Vi kommer däremot behöva en redactor steg.
 		// addOrReplaceResourceInfoToMetdataRecord(fileName, fileSize);
 		//
 
+		// Somwhere we must get some information from the file.
+
 		String originalFileName = binaryRecord
 				.getFirstAtomicValueWithNameInData("originalFileName");
-		addResourceInfoToMetadataRecord(originalFileName, fileSize);
+		createdResourceInfoAndMasterGroupAndAddedToBinaryRecord(originalFileName);
+		removeExpectedAtomicsFromBinaryRecord();
 
 		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
 		return recordUpdater.updateRecord(authToken, type, id, binaryRecord);
@@ -212,7 +215,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 
 	private void addOrReplaceResourceInfoToMetdataRecord(String fileName, long fileSize) {
 		if (recordHasNoResourceInfo()) {
-			addResourceInfoToMetadataRecord(fileName, fileSize);
+			createdResourceInfoAndMasterGroupAndAddedToBinaryRecord(fileName);
 		} else {
 			replaceResourceInfoToMetadataRecord(fileName, fileSize);
 		}
@@ -222,15 +225,15 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		return !binaryRecord.containsChildWithNameInData(RESOURCE_INFO);
 	}
 
-	private void addResourceInfoToMetadataRecord(String fileName, long fileSize) {
+	private void createdResourceInfoAndMasterGroupAndAddedToBinaryRecord(String fileName) {
 		DataGroup resourceInfo = DataProvider.createGroupUsingNameInData(RESOURCE_INFO);
 		DataGroup master = DataProvider.createGroupUsingNameInData("master");
 
-		DataProvider.createAtomicUsingNameInDataAndValue("resourceId", id);
+		DataAtomic resourceId = DataProvider.createAtomicUsingNameInDataAndValue("resourceId", id);
 		DataResourceLink resourceLink = DataProvider
 				.createResourceLinkUsingNameInData("resourceLink");
-		DataAtomic fileSizes = DataProvider.createAtomicUsingNameInDataAndValue("fileSize",
-				String.valueOf(fileSize));
+		DataAtomic fileSize = DataProvider.createAtomicUsingNameInDataAndValue("fileSize",
+				FAKE_FILE_SIZE);
 		DataAtomic mimeType = DataProvider.createAtomicUsingNameInDataAndValue("mimeType",
 				MIME_TYPE_JPEG);
 		DataAtomic height = DataProvider.createAtomicUsingNameInDataAndValue("height",
@@ -239,7 +242,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 				FAKE_HEIGHT_WIDTH);
 		DataAtomic resolution = DataProvider.createAtomicUsingNameInDataAndValue("resolution",
 				FAKE_HEIGHT_WIDTH);
-		DataAtomic originalFilename = DataProvider
+		DataAtomic originalFileName = DataProvider
 				.createAtomicUsingNameInDataAndValue("originalFileName", fileName);
 		DataAtomic checksum = DataProvider.createAtomicUsingNameInDataAndValue("checksum",
 				FAKE_CHECKSUM);
@@ -249,16 +252,25 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		binaryRecord.addChild(resourceInfo);
 		resourceInfo.addChild(master);
 
-		// DataResourceLink master = DataProvider.createResourceLinkUsingNameInData("master");
-		// resourceInfo.addChild(master);
-		// master.setStreamId(streamId);
-		// master.setFileName(fileName);
-		// master.setFileSize(String.valueOf(fileSize));
-		// master.setMimeType("application/octet-stream");
+		master.addChild(resourceId);
+		master.addChild(resourceLink);
+		master.addChild(fileSize);
+		master.addChild(mimeType);
+		master.addChild(height);
+		master.addChild(width);
+		master.addChild(resolution);
+		binaryRecord.addChild(originalFileName);
+		binaryRecord.addChild(checksum);
+		binaryRecord.addChild(checksumType);
+	}
+
+	private void removeExpectedAtomicsFromBinaryRecord() {
+		binaryRecord.removeFirstChildWithNameInData("expectedFileSize");
+		binaryRecord.removeFirstChildWithNameInData("expectedChecksum");
 	}
 
 	private void replaceResourceInfoToMetadataRecord(String fileName, long fileSize) {
 		binaryRecord.removeFirstChildWithNameInData(RESOURCE_INFO);
-		addResourceInfoToMetadataRecord(fileName, fileSize);
+		createdResourceInfoAndMasterGroupAndAddedToBinaryRecord(fileName);
 	}
 }

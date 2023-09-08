@@ -68,6 +68,7 @@ import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 public class UploaderTest {
 	private static final String EXPECTED_ORIGINAL_FILE_NAME = "expectedOriginalFileName";
 	private static final String FAKE_HEIGHT_WIDTH_RESOLUTION = "0";
+	private static final String FAKE_FILE_SIZE = "10";
 	private static final String FAKE_CHECKSUM = "afAF09";
 	private static final String ACTION_UPLOAD = "upload";
 	private static final String ERR_MSG_AUTHENTICATION = "Uploading error: Not possible to upload "
@@ -378,11 +379,10 @@ public class UploaderTest {
 				.getValueForMethodNameAndCallNumberAndParameterName("updateRecord", 0, "record");
 
 		assertResourceInfoIsCorrect(binaryUpdatedGroup);
+		assertRemoveExpectedFieldsFromBinaryRecord(binaryUpdatedGroup);
 	}
 
 	private void assertResourceInfoIsCorrect(DataGroupSpy binaryUpdatedGroup) {
-
-		var fileSizeFromArchive = resourceArchive.MCR.getReturnValue("create", 0);
 
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "resourceInfo");
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 1, "master");
@@ -391,7 +391,7 @@ public class UploaderTest {
 				SOME_RECORD_ID);
 		dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInData", 0, "resourceLink");
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "fileSize",
-				String.valueOf(fileSizeFromArchive));
+				FAKE_FILE_SIZE);
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2, "mimeType",
 				MIME_TYPE_JPEG);
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3, "height",
@@ -437,22 +437,24 @@ public class UploaderTest {
 
 		binaryUpdatedGroup.MCR.assertParameters("addChild", 0, resourceInfo);
 		resourceInfo.MCR.assertParameters("addChild", 0, master);
-
 		master.MCR.assertParameters("addChild", 0, resourceId);
+		master.MCR.assertParameters("addChild", 1, resourceLink);
+		master.MCR.assertParameters("addChild", 2, fileSize);
+		master.MCR.assertParameters("addChild", 3, mimeType);
+		master.MCR.assertParameters("addChild", 4, height);
+		master.MCR.assertParameters("addChild", 5, width);
+		master.MCR.assertParameters("addChild", 6, resolution);
+		binaryUpdatedGroup.MCR.assertParameters("addChild", 1, originalFileName);
+		binaryUpdatedGroup.MCR.assertParameters("addChild", 2, checksum);
+		binaryUpdatedGroup.MCR.assertParameters("addChild", 3, checksumType);
 
-		// DataGroupSpy resourceInfo = (DataGroupSpy) dataFactorySpy.MCR
-		// .getReturnValue("factorGroupUsingNameInData", 0);
-		//
-		// dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInData", 0, "master");
-		// DataResourceLinkSpy masterLink = (DataResourceLinkSpy) dataFactorySpy.MCR
-		// .getReturnValue("factorResourceLinkUsingNameInData", 0);
-		// resourceInfo.MCR.assertParameters("addChild", 0, masterLink);
-		//
-		// masterLink.MCR.assertParameters("setStreamId", 0,
-		// idGenerator.MCR.getReturnValue("getIdForType", 0));
-		// masterLink.MCR.assertParameters("setFileName", 0, "someFileName");
-		// masterLink.MCR.assertParameters("setFileSize", 0, "8");
-		// masterLink.MCR.assertParameters("setMimeType", 0, "application/octet-stream");
+	}
+
+	private void assertRemoveExpectedFieldsFromBinaryRecord(DataGroupSpy binaryUpdatedGroup) {
+		binaryUpdatedGroup.MCR.assertParameters("removeFirstChildWithNameInData", 0,
+				"expectedFileSize");
+		binaryUpdatedGroup.MCR.assertParameters("removeFirstChildWithNameInData", 1,
+				"expectedChecksum");
 	}
 
 	// @Test

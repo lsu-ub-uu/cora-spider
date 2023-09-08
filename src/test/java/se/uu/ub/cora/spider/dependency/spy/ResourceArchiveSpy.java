@@ -35,10 +35,10 @@ public class ResourceArchiveSpy implements ResourceArchive {
 	}
 
 	@Override
-	public long create(String dataDivider, String type, String id, InputStream resource,
+	public void create(String dataDivider, String type, String id, InputStream resource,
 			String mimeType) {
-		return (long) MCR.addCallAndReturnFromMRV("dataDivider", dataDivider, "type", type, "id",
-				id, "resource", resource, "mimeType", mimeType);
+		MCR.addCall("dataDivider", dataDivider, "type", type, "id", id, "resource", resource,
+				"mimeType", mimeType);
 	}
 
 	@Override
