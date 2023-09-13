@@ -54,6 +54,8 @@ import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class UploaderTest {
 	private static final String EXPECTED_ORIGINAL_FILE_NAME = "expectedOriginalFileName";
+	private static final String EXPECTED_FILE_SIZE = "expectedFileSize";
+	private static final String EXPECTED_CHECKSUM = "expectedChecksum";
 	private static final String FAKE_HEIGHT_WIDTH_RESOLUTION = "0";
 	private static final String FAKE_FILE_SIZE = "10";
 	private static final String FAKE_CHECKSUM = "afAF09";
@@ -306,10 +308,12 @@ public class UploaderTest {
 	}
 
 	@Test
-	public void testUploadStoreResourceDataintoStorage() throws Exception {
+	public void testUploadStoreResourceDataintoStorageWithoutChecksum() throws Exception {
 		DataGroupSpy readBinarySpy = new DataGroupSpy();
 		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> EXPECTED_ORIGINAL_FILE_NAME, "originalFileName");
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> EXPECTED_FILE_SIZE, "expectedFileSize");
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> readBinarySpy);
 
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
@@ -318,11 +322,35 @@ public class UploaderTest {
 		DataGroupSpy binaryUpdatedGroup = (DataGroupSpy) recordUpdater.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("updateRecord", 0, "record");
 
-		assertResourceInfoIsCorrect(binaryUpdatedGroup);
+		assertResourceInfoIsCorrect(binaryUpdatedGroup, FAKE_CHECKSUM);
 		assertRemoveExpectedFieldsFromBinaryRecord(binaryUpdatedGroup);
 	}
 
-	private void assertResourceInfoIsCorrect(DataGroupSpy binaryUpdatedGroup) {
+	@Test
+	public void testUploadStoreResourceDataintoStorage() throws Exception {
+		DataGroupSpy readBinarySpy = new DataGroupSpy();
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> EXPECTED_ORIGINAL_FILE_NAME, "originalFileName");
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> EXPECTED_FILE_SIZE, "expectedFileSize");
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				"expectedChecksum");
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> EXPECTED_CHECKSUM, "expectedChecksum");
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> readBinarySpy);
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+
+		DataGroupSpy binaryUpdatedGroup = (DataGroupSpy) recordUpdater.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("updateRecord", 0, "record");
+
+		assertResourceInfoIsCorrect(binaryUpdatedGroup, EXPECTED_CHECKSUM);
+		assertRemoveExpectedFieldsFromBinaryRecord(binaryUpdatedGroup);
+	}
+
+	private void assertResourceInfoIsCorrect(DataGroupSpy binaryUpdatedGroup,
+			String expectedChecksum) {
 
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "resourceInfo");
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 1, "master");
@@ -331,7 +359,7 @@ public class UploaderTest {
 				SOME_RECORD_ID);
 		dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInData", 0, "resourceLink");
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "fileSize",
-				FAKE_FILE_SIZE);
+				EXPECTED_FILE_SIZE);
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2, "mimeType",
 				MIME_TYPE_GENERIC);
 		// dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3, "height",
@@ -344,7 +372,7 @@ public class UploaderTest {
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3,
 				"originalFileName", EXPECTED_ORIGINAL_FILE_NAME);
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4, "checksum",
-				FAKE_CHECKSUM);
+				expectedChecksum);
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 5,
 				"checksumType", "SHA512");
 

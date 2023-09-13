@@ -47,7 +47,6 @@ import se.uu.ub.cora.storage.archive.ResourceArchive;
 public final class UploaderImp extends SpiderBinary implements Uploader {
 	// private static final String FAKE_HEIGHT_WIDTH = "0";
 	private static final String FAKE_CHECKSUM = "afAF09";
-	private static final String FAKE_FILE_SIZE = "10";
 	private static final String BINARY_RECORD_TYPE = "binary";
 	private static final String RESOURCE_INFO = "resourceInfo";
 	private static final String MIME_TYPE_GENERIC = "application/octet-stream";
@@ -119,13 +118,20 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 
 		String originalFileName = binaryRecord
 				.getFirstAtomicValueWithNameInData("originalFileName");
+		String expectedFileSize = binaryRecord
+				.getFirstAtomicValueWithNameInData("expectedFileSize");
+		String expectedChecksum = FAKE_CHECKSUM;
+		if (binaryRecord.containsChildWithNameInData("expectedChecksum")) {
+			expectedChecksum = binaryRecord.getFirstAtomicValueWithNameInData("expectedChecksum");
+		}
 
 		// IF ANY UPDATE to binary record a SuperUser should be used, not the user sent throug the
 		// upload.
 		// TODO: If the given user is not used to update the binary record, how do we log the
 		// uploading of the resource by that user?
 
-		createdResourceInfoAndMasterGroupAndAddedToBinaryRecord(originalFileName);
+		createdResourceInfoAndMasterGroupAndAddedToBinaryRecord(originalFileName, expectedFileSize,
+				expectedChecksum);
 		removeExpectedAtomicsFromBinaryRecord();
 
 		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
@@ -190,7 +196,8 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		}
 	}
 
-	private void createdResourceInfoAndMasterGroupAndAddedToBinaryRecord(String fileName) {
+	private void createdResourceInfoAndMasterGroupAndAddedToBinaryRecord(String fileName,
+			String expectedFileSize, String expectedChecksum) {
 		DataGroup resourceInfo = DataProvider.createGroupUsingNameInData(RESOURCE_INFO);
 		DataGroup master = DataProvider.createGroupUsingNameInData("master");
 
@@ -198,7 +205,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		DataResourceLink resourceLink = DataProvider
 				.createResourceLinkUsingNameInData("resourceLink");
 		DataAtomic fileSize = DataProvider.createAtomicUsingNameInDataAndValue("fileSize",
-				FAKE_FILE_SIZE);
+				expectedFileSize);
 		DataAtomic mimeType = DataProvider.createAtomicUsingNameInDataAndValue("mimeType",
 				MIME_TYPE_GENERIC);
 		// DataAtomic height = DataProvider.createAtomicUsingNameInDataAndValue("height",
@@ -210,7 +217,7 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		DataAtomic originalFileName = DataProvider
 				.createAtomicUsingNameInDataAndValue("originalFileName", fileName);
 		DataAtomic checksum = DataProvider.createAtomicUsingNameInDataAndValue("checksum",
-				FAKE_CHECKSUM);
+				expectedChecksum);
 		DataAtomic checksumType = DataProvider.createAtomicUsingNameInDataAndValue("checksumType",
 				"SHA512");
 
