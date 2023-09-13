@@ -29,37 +29,24 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
-import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.collected.CollectTerms;
-import se.uu.ub.cora.data.copier.DataCopierFactory;
-import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.data.spies.DataAtomicSpy;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataResourceLinkSpy;
-import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.InputStreamSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.ResourceArchiveSpy;
-import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
-import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
-import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
-import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
@@ -75,7 +62,8 @@ public class UploaderTest {
 			+ "resource due the user could not be authenticated, for type {0} and id {1}.";
 	private static final String ERR_MSG_AUTHORIZATION = "Uploading error: Not possible to upload "
 			+ "resource due the user could not be authorizated, for type {0} and id {1}.";
-	private static final String MIME_TYPE_JPEG = "image/jpeg";
+	private static final String MIME_TYPE_GENERIC = "application/octet-stream";
+	// private static final String MIME_TYPE_JPEG = "image/jpeg";
 	private static final String SOME_RECORD_ID = "someRecordId";
 	private static final String SOME_AUTH_TOKEN = "someAuthToken";
 	private static final String SOME_RECORD_TYPE = "someRecordType";
@@ -94,23 +82,12 @@ public class UploaderTest {
 
 	private ResourceArchiveSpy resourceArchive;
 	private RecordStorageSpy recordStorage;
-	private OldAuthenticatorSpy oldAuthenticator;
-	// private StreamStorageSpy streamStorage;
-	private OldSpiderAuthorizatorSpy oldAuthorizator;
-	private PermissionRuleCalculator keyCalculator;
 	private Uploader uploader;
-	private DataValidator dataValidator;
-	private DataRecordLinkCollector linkCollector;
 	private DataGroupTermCollectorSpy termCollector;
-	private RecordIndexer recordIndexer;
-	private IdGeneratorSpy idGenerator;
 	private SpiderDependencyProviderSpy dependencyProvider;
-	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private SpiderInstanceFactorySpy spiderInstanceFactory;
-	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
 
-	private DataCopierFactory dataCopierFactory;
 	private RecordTypeHandlerSpy recordTypeHandler;
 
 	@BeforeMethod
@@ -120,19 +97,6 @@ public class UploaderTest {
 		dataFactorySpy = new DataFactorySpy();
 
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
-		// setUpFactoriesAndProviders();
-		// oldAuthenticator = new OldAuthenticatorSpy();
-		// authorizator = new SpiderAuthorizatorSpy();
-		// dataValidator = new DataValidatorSpy();
-		// recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		// keyCalculator = new RuleCalculatorSpy();
-		// linkCollector = new DataRecordLinkCollectorSpy();
-		// idGenerator = new IdGeneratorSpy();
-		// streamStorage = new StreamStorageSpy();
-
-		// recordIndexer = new RecordIndexerSpy();
-		// extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-
 		setUpSpiderInstanceProvider();
 		setUpDependencyProvider();
 
@@ -148,16 +112,6 @@ public class UploaderTest {
 				() -> recordUpdater);
 	}
 
-	private void setUpFactoriesAndProviders() {
-		loggerFactorySpy = new LoggerFactorySpy();
-		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-		dataFactorySpy = new DataFactorySpy();
-		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
-
-		dataCopierFactory = new DataCopierFactorySpy();
-		DataCopierProvider.setDataCopierFactory(dataCopierFactory);
-	}
-
 	private void setUpDependencyProvider() {
 		authenticator = new AuthenticatorSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
@@ -170,6 +124,7 @@ public class UploaderTest {
 		recordStorage = new RecordStorageSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
+
 		resourceArchive = new ResourceArchiveSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getResourceArchive",
 				() -> resourceArchive);
@@ -183,21 +138,6 @@ public class UploaderTest {
 		termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
 				() -> termCollector);
-
-		// dependencyProvider = new SpiderDependencyProviderOldSpy();
-		// dependencyProvider.authenticator = oldAuthenticator;
-		// dependencyProvider.spiderAuthorizator = authorizator;
-		// dependencyProvider.dataValidator = dataValidator;
-		//
-		// dependencyProvider.recordStorage = recordStorage;
-		// // dependencyProvider.streamStorage = streamStorage;
-		// dependencyProvider.recordIdGenerator = idGenerator;
-		//
-		// dependencyProvider.ruleCalculator = keyCalculator;
-		// dependencyProvider.linkCollector = linkCollector;
-		// dependencyProvider.termCollector = termCollector;
-		// dependencyProvider.recordIndexer = recordIndexer;
-		// dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 
 		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
 	}
@@ -246,7 +186,7 @@ public class UploaderTest {
 		dependencyProvider.MCR.assertParameters("getResourceArchive", 0);
 		dependencyProvider.MCR.assertReturn("getResourceArchive", 0, resourceArchive);
 		resourceArchive.MCR.assertParameters("create", 0, dataDivider, BINARY_RECORD_TYPE,
-				SOME_RECORD_ID, someStream, MIME_TYPE_JPEG);
+				SOME_RECORD_ID, someStream, MIME_TYPE_GENERIC);
 	}
 
 	@Test
@@ -393,7 +333,7 @@ public class UploaderTest {
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "fileSize",
 				FAKE_FILE_SIZE);
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2, "mimeType",
-				MIME_TYPE_JPEG);
+				MIME_TYPE_GENERIC);
 		// dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3, "height",
 		// FAKE_HEIGHT_WIDTH_RESOLUTION);
 		// dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4, "width",
@@ -457,177 +397,4 @@ public class UploaderTest {
 		binaryUpdatedGroup.MCR.assertParameters("removeFirstChildWithNameInData", 1,
 				"expectedChecksum");
 	}
-
-	// @Test
-	// public void testExternalDependenciesAreCalled() {
-	// dataFactorySpy.MRV.setReturnValues("factorGroupUsingNameInData",
-	// List.of(new DataGroupSpy()), "resourceInfo");
-	// spiderInstanceFactory = new SpiderInstanceFactorySpy2();
-	// setUpDependencyProvider();
-	// recordStorage = new OldRecordStorageSpy();
-	// keyCalculator = new RuleCalculatorSpy();
-	// setUpDependencyProvider();
-	//
-	// DataGroup dataGroup = new DataGroupOldSpy("nameInData");
-	// dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-	// "spyType", "spyId", "cora"));
-	//
-	// DataRecord recordUpdated = uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE,
-	// SOME_RECORD_ID, someStream, SOME_RESOURCE_TYPE);
-	//
-	// assertResourceInfoIsCorrect(recordUpdated);
-	//
-	// assertTrue(((OldRecordStorageSpy) recordStorage).readWasCalled);
-	//
-	// authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
-	//
-	// }
-
-	//
-	// @Test
-	// public void testUnauthorizedForDownloadOnRecordTypeShouldShouldNotAccessStorage() {
-	// recordStorage = new OldRecordStorageSpy();
-	// setUpDependencyProvider();
-	// authorizator.authorizedForActionAndRecordType = false;
-	//
-	// boolean exceptionWasCaught = false;
-	// try {
-	// InputStream stream = new ByteArrayInputStream(
-	// "a string".getBytes(StandardCharsets.UTF_8));
-	//
-	// uploader.upload("someToken78678567", BINARY, "image:123456789", stream, resourceType);
-	// } catch (Exception e) {
-	// assertEquals(e.getClass(), AuthorizationException.class);
-	// exceptionWasCaught = true;
-	// }
-	// assertTrue(exceptionWasCaught);
-	// assertFalse(((OldRecordStorageSpy) recordStorage).readWasCalled);
-	// assertFalse(((OldRecordStorageSpy) recordStorage).updateWasCalled);
-	// assertFalse(((OldRecordStorageSpy) recordStorage).deleteWasCalled);
-	// assertFalse(((OldRecordStorageSpy) recordStorage).createWasCalled);
-	// }
-	//
-	// @Test(expectedExceptions = AuthorizationException.class)
-	// public void testUnauthorizedForDataInRecord() {
-	// authorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
-	//
-	// InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-	//
-	// uploader.upload("someToken78678567", BINARY, "image:123456789", stream, resourceType);
-	// }
-	//
-	// @Test
-	// public void testUploadStream() {
-	// dataFactorySpy.MRV.setReturnValues("factorGroupUsingNameInData",
-	// List.of(new DataGroupSpy()), "resourceInfo");
-	// InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-	// DataRecord recordUpdated = uploader.upload("someToken78678567", BINARY, "image:123456789",
-	// stream, resourceType);
-	//
-	// assertEquals(streamStorage.stream, stream);
-	//
-	// assertStreamStorageCalledCorrectly(recordUpdated);
-	// assertResourceInfoIsCorrect(recordUpdated);
-	//
-	// String methodName = "checkUserIsAuthorizedForActionOnRecordType";
-	// authorizator.MCR.assertParameters(methodName, 0, authenticator.returnedUser, "upload",
-	// BINARY);
-	//
-	// termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
-	// "fakeDefMetadataIdFromRecordTypeHandlerSpy");
-	// termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
-	// recordStorage.read(List.of(BINARY), "image:123456789"));
-	//
-	// String methodName2 = "checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData";
-	// CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
-	// .getReturnValue("collectTerms", 0);
-	// authorizator.MCR.assertParameters(methodName2, 0, authenticator.returnedUser, "upload",
-	// BINARY, collectedTerms.permissionTerms);
-	// }
-	//
-	// private void assertStreamStorageCalledCorrectly(DataRecord recordUpdated) {
-	// DataGroup groupUpdated = recordUpdated.getDataGroup();
-	// DataGroup recordInfo = groupUpdated.getFirstGroupWithNameInData("recordInfo");
-	// DataRecordLink dataDivider = (DataRecordLink) recordInfo
-	// .getFirstChildWithNameInData("dataDivider");
-	//
-	// String dataDividerRecordId = dataDivider.getLinkedRecordId();
-	//
-	// assertEquals(dataDividerRecordId, streamStorage.dataDivider);
-	// }
-	//
-
-	//
-	// @Test(expectedExceptions = MisuseException.class, expectedExceptionsMessageRegExp = ""
-	// + "It is only possible to upload files to recordType binary")
-	// public void testUploadStreamNotChildOfBinary() {
-	// InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-	//
-	// uploader.upload("someToken78678567", "place", "place:0002", stream, resourceType);
-	// }
-	//
-	// @Test(expectedExceptions = MisuseException.class)
-	// public void testUploadStreamNotChildOfBinary2() {
-	// InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-	//
-	// uploader.upload("someToken78678567", "recordTypeAutoGeneratedId", "someId", stream,
-	// resourceType);
-	// }
-	//
-	// @Test(expectedExceptions = RecordNotFoundException.class)
-	// public void testUploadNotFound() {
-	// InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-	// uploader.upload("someToken78678567", BINARY, "NOT_FOUND", stream, resourceType);
-	// }
-	//
-	// @Test(expectedExceptions = DataMissingException.class)
-	// public void testUploadStreamIsMissing() {
-	// RecordStorageCreateUpdateSpy recordStorageSpy = new RecordStorageCreateUpdateSpy();
-	// recordStorage = recordStorageSpy;
-	// setUpDependencyProvider();
-	// uploader.upload("someToken78678567", BINARY, "image:123456789", null, resourceType);
-	//
-	// }
-	//
-	// @Test(expectedExceptions = DataMissingException.class)
-	// public void testUploadFileNameIsMissing() {
-	// RecordStorageCreateUpdateSpy recordStorageSpy = new RecordStorageCreateUpdateSpy();
-	// recordStorage = recordStorageSpy;
-	// setUpDependencyProvider();
-	// InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-	// uploader.upload("someToken78678567", BINARY, "image:123456789", stream, resourceType);
-	//
-	// }
-	//
-	// @Test(expectedExceptions = DataMissingException.class)
-	// public void testUploadFileNameIsEmpty() {
-	// RecordStorageCreateUpdateSpy recordStorageSpy = new RecordStorageCreateUpdateSpy();
-	// recordStorage = recordStorageSpy;
-	// setUpDependencyProvider();
-	// InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-	// uploader.upload("someToken78678567", BINARY, "image:123456789", stream, resourceType);
-	//
-	// }
-	//
-	// @Test(expectedExceptions = RecordNotFoundException.class)
-	// public void testNonExistingRecordType() {
-	// InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-	// uploader.upload("someToken78678567", "recordType_NOT_EXISTING", "id", stream, resourceType);
-	// }
-	//
-	// @Test(expectedExceptions = AuthorizationException.class)
-	// public void testUpdateRecordUserNotAuthorisedToUpdateData() {
-	//
-	// Uploader uploader = setupWithUserNotAuthorized();
-	// InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-	// uploader.upload("someToken78678567", BINARY, "image:123456789", stream, resourceType);
-	// }
-	//
-	// private Uploader setupWithUserNotAuthorized() {
-	// authorizator.authorizedForActionAndRecordType = false;
-	//
-	// Uploader uploader = UploaderImp.usingDependencyProvider(dependencyProvider);
-	// return uploader;
-	// }
-
 }

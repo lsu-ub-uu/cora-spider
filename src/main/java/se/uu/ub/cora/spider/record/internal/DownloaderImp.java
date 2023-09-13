@@ -24,13 +24,16 @@ import java.io.InputStream;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
-import se.uu.ub.cora.spider.data.SpiderInputStream;
+import se.uu.ub.cora.spider.data.ResourceInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.StreamStorage;
+import se.uu.ub.cora.storage.archive.ResourceArchive;
 
 public final class DownloaderImp extends SpiderBinary implements Downloader {
 	private static final String RESOURCE_INFO = "resourceInfo";
@@ -38,13 +41,16 @@ public final class DownloaderImp extends SpiderBinary implements Downloader {
 	private String resourceName;
 	private SpiderAuthorizator spiderAuthorizator;
 	private StreamStorage streamStorage;
-	private DataGroup recordRead;
+	private DataGroup binaryDataGroup;
+	private ResourceArchive resourceArchive;
 
 	private DownloaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
+		resourceArchive = dependencyProvider.getResourceArchive();
 		streamStorage = dependencyProvider.getStreamStorage();
+
 	}
 
 	public static Downloader usingDependencyProvider(
@@ -53,30 +59,40 @@ public final class DownloaderImp extends SpiderBinary implements Downloader {
 	}
 
 	@Override
-	public SpiderInputStream download(String authToken, String type, String id,
-			String resourceName) {
-		this.authToken = authToken;
-		this.type = type;
-		this.resourceName = resourceName;
+	public ResourceInputStream download(String authToken, String type, String id,
+			String resourceType) {
+		// this.authToken = authToken;
+		// this.type = type;
+		// this.resourceName = resourceType;
+		//
+		// tryToGetActiveUser();
+		// checkUserIsAuthorizedForActionOnRecordTypeAndResourceName();
+		// checkResourceIsPresent();
+		//
+		// checkRecordTypeIsBinary();
+		//
+		binaryDataGroup = recordStorage.read(List.of(type), id);
 
-		tryToGetActiveUser();
-		checkUserIsAuthorizedForActionOnRecordTypeAndResourceName();
-		checkResourceIsPresent();
+		DataRecordGroup binaryRecordGroup = DataProvider
+				.createRecordGroupFromDataGroup(binaryDataGroup);
+		String dataDivider = binaryRecordGroup.getDataDivider();
 
-		checkRecordTypeIsBinary();
+		//
+		// String streamId = tryToExtractStreamIdFromResource(resourceType);
+		//
+		// String dataDivider = extractDataDividerFromData(recordRead);
+		//
+		// InputStream stream = streamStorage.retrieve(streamId, dataDivider);
+		//
+		InputStream stream = resourceArchive.read(dataDivider, type, id);
 
-		recordRead = recordStorage.read(List.of(type), id);
+		// String name = extractStreamNameFromData();
+		// long size = extractStreamSizeFromData();
+		// return ResourceInputStream.withNameSizeInputStream(name, size,
+		// "application/octet-stream",
+		// stream);
 
-		String streamId = tryToExtractStreamIdFromResource(resourceName);
-
-		String dataDivider = extractDataDividerFromData(recordRead);
-
-		InputStream stream = streamStorage.retrieve(streamId, dataDivider);
-
-		String name = extractStreamNameFromData();
-		long size = extractStreamSizeFromData();
-		return SpiderInputStream.withNameSizeInputStream(name, size, "application/octet-stream",
-				stream);
+		return ResourceInputStream.withNameSizeInputStream(null, 0, null, stream);
 
 	}
 
@@ -87,7 +103,7 @@ public final class DownloaderImp extends SpiderBinary implements Downloader {
 
 	private String tryToExtractStreamIdFromResource(String resource) {
 		try {
-			DataGroup resourceInfo = recordRead.getFirstGroupWithNameInData(RESOURCE_INFO);
+			DataGroup resourceInfo = binaryDataGroup.getFirstGroupWithNameInData(RESOURCE_INFO);
 			DataGroup requestedResource = resourceInfo.getFirstGroupWithNameInData(resource);
 			return requestedResource.getFirstAtomicValueWithNameInData("streamId");
 		} catch (DataMissingException e) {
@@ -110,13 +126,13 @@ public final class DownloaderImp extends SpiderBinary implements Downloader {
 	}
 
 	private String extractStreamNameFromData() {
-		DataGroup resourceInfo = recordRead.getFirstGroupWithNameInData(RESOURCE_INFO);
+		DataGroup resourceInfo = binaryDataGroup.getFirstGroupWithNameInData(RESOURCE_INFO);
 		DataGroup requestedResource = resourceInfo.getFirstGroupWithNameInData(resourceName);
 		return requestedResource.getFirstAtomicValueWithNameInData("filename");
 	}
 
 	private long extractStreamSizeFromData() {
-		DataGroup resourceInfo = recordRead.getFirstGroupWithNameInData(RESOURCE_INFO);
+		DataGroup resourceInfo = binaryDataGroup.getFirstGroupWithNameInData(RESOURCE_INFO);
 		DataGroup requestedResource = resourceInfo.getFirstGroupWithNameInData(resourceName);
 		return Long.parseLong(requestedResource.getFirstAtomicValueWithNameInData("filesize"));
 	}

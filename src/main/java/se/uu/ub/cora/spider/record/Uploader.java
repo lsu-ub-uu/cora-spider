@@ -26,10 +26,15 @@ import se.uu.ub.cora.data.DataRecord;
 public interface Uploader {
 
 	/**
-	 * upload is a method inteneded to upload resources into Cora. The method can <b>ONLY</b> be
-	 * used with type equal to <b>binary</b>. When this method is called, it should update the
-	 * metadata in under the given resourceType in binary record. It should be updated with data
-	 * related to the uploaded resource.
+	 * upload is a method inteneded to upload resources into storage. The method must <b>ONLY</b>
+	 * accept record type <b>binary</b>. At this moment the method can <b>ONLY</b> upload resources
+	 * of type master. All resources of type master must be uploaded in the archive.
+	 * 
+	 * IT MIGHT happen like be below, please modify if necessary! The method returns the binary
+	 * record, related to the uploaded resource, updated with the information of the uploaded
+	 * resource.
+	 * 
+	 * WHAT happens if no binary record is found with given Type and Id?? MisuseException??
 	 * 
 	 * </p>
 	 * If the authToken does not authenticate a {@link AuthenticationException} be thrown.
@@ -40,10 +45,8 @@ public interface Uploader {
 	 * If the inputStream does exits {@link DataMissingException} must be thrown, indicating no
 	 * resource can be uploaded.
 	 * </p>
-	 * If resourceType does not exists for the validationType then a {@link DataException} willbe
-	 * thrown.
-	 * 
-	 * AuthenticationException
+	 * At this moment if resourceType is different than master a {@link DataMissingException} will
+	 * be thrown
 	 * 
 	 * @param authToken
 	 *            A String with the authToken of the user that uploads a resource
@@ -56,7 +59,8 @@ public interface Uploader {
 	 * @param resourceType
 	 *            A String with the name of the resourceType which is intended to upload the
 	 *            resource to.
-	 * @return
+	 * @return A DataRecord with the binary record of the related uploded resource with updated data
+	 *         of that resource.
 	 */
 	DataRecord upload(String authToken, String type, String id, InputStream inputStream,
 			String resourceType);

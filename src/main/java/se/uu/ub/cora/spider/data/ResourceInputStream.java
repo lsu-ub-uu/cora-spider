@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Olov McKie
+ * Copyright 2016, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,23 +21,23 @@ package se.uu.ub.cora.spider.data;
 
 import java.io.InputStream;
 
-public final class SpiderInputStream {
+public final class ResourceInputStream {
 
 	public final String name;
 	public final long size;
 	public final InputStream stream;
 	public final String mimeType;
 
-	private SpiderInputStream(String name, long size, String mimeType, InputStream stream) {
+	private ResourceInputStream(String name, long size, String mimeType, InputStream stream) {
 		this.name = name;
 		this.size = size;
 		this.mimeType = mimeType;
 		this.stream = stream;
 	}
 
-	public static SpiderInputStream withNameSizeInputStream(String name, long size,
-			String mimeType, InputStream stream) {
-		return new SpiderInputStream(name, size, mimeType, stream);
+	public static ResourceInputStream withNameSizeInputStream(String name, long size, String mimeType,
+			InputStream stream) {
+		return new ResourceInputStream(name, size, mimeType, stream);
 	}
 
 }
