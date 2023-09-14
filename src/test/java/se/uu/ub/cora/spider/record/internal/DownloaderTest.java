@@ -76,6 +76,9 @@ public class DownloaderTest {
 	private ResourceArchiveSpy resourceArchive;
 
 	private RecordTypeHandlerSpy recordTypeHandler;
+	private DataGroupSpy masterDGS;
+	private DataGroupSpy resourceInfoDGS;
+	private DataRecordGroupSpy readBinaryDGS;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -91,18 +94,9 @@ public class DownloaderTest {
 		dependencyProvider = new SpiderDependencyProviderSpy();
 		setUpDependencyProvider();
 		downloader = DownloaderImp.usingDependencyProvider(dependencyProvider);
-	}
 
-	// private void setUpFactoriesAndProviders() {
-	// loggerFactorySpy = new LoggerFactorySpy();
-	// LoggerProvider.setLoggerFactory(loggerFactorySpy);
-	//
-	// dataFactory = new DataFactorySpy();
-	// DataProvider.onlyForTestSetDataFactory(dataFactory);
-	//
-	// dataCopierFactory = new DataCopierFactorySpy();
-	// DataCopierProvider.setDataCopierFactory(dataCopierFactory);
-	// }
+		setupBinaryRecord();
+	}
 
 	private void setUpDependencyProvider() {
 
@@ -122,14 +116,27 @@ public class DownloaderTest {
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getResourceArchive",
 				() -> resourceArchive);
 
-		// dependencyProvider = new SpiderDependencyProviderOldSpy();
-		// dependencyProvider.authenticator = authenticator;
-		// dependencyProvider.spiderAuthorizator = authorizator;
-		// dependencyProvider.recordStorage = recordStorage;
-		// dependencyProvider.streamStorage = streamStorage;
-		// SpiderInstanceFactory factory = SpiderInstanceFactoryImp
-		// .usingDependencyProvider(dependencyProvider);
-		// SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+	}
+
+	private void setupBinaryRecord() {
+		masterDGS = new DataGroupSpy();
+		masterDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> SOME_FILE_SIZE, "fileSize");
+		masterDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> SOME_MIME_TYPE, "mimeType");
+
+		resourceInfoDGS = new DataGroupSpy();
+		resourceInfoDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> masterDGS, "master");
+
+		readBinaryDGS = new DataRecordGroupSpy();
+		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> resourceInfoDGS, "resourceInfo");
+		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> ORIGINAL_FILE_NAME, "originalFileName");
+
+		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorRecordGroupFromDataGroup",
+				() -> readBinaryDGS);
 	}
 
 	@Test
@@ -268,40 +275,24 @@ public class DownloaderTest {
 
 	@Test
 	public void testReturnCorrectInfo() throws Exception {
-		DataGroupSpy master = new DataGroupSpy();
-		master.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> SOME_FILE_SIZE, "fileSize");
-		master.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> SOME_MIME_TYPE, "mimeType");
-
-		DataGroupSpy resourceInfo = new DataGroupSpy();
-		resourceInfo.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> master, "master");
-
-		DataRecordGroupSpy readBinary = new DataRecordGroupSpy();
-		readBinary.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceInfo, "resourceInfo");
-		readBinary.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> ORIGINAL_FILE_NAME, "originalFileName");
-
-		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorRecordGroupFromDataGroup",
-				() -> readBinary);
 
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, RESOURCE_TYPE_MASTER);
 
-		readBinary.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "originalFileName");
-		readBinary.MCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
-		readBinary.MCR.assertParameters("getFirstGroupWithNameInData", 0, "resourceInfo");
-		resourceInfo.MCR.assertParameters("getFirstGroupWithNameInData", 0, "master");
-		master.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "fileSize");
-		master.MCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "mimeType");
+		readBinaryDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0,
+				"originalFileName");
+		readBinaryDGS.MCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
+		readBinaryDGS.MCR.assertParameters("getFirstGroupWithNameInData", 0, "resourceInfo");
+		resourceInfoDGS.MCR.assertParameters("getFirstGroupWithNameInData", 0, "master");
+		masterDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "fileSize");
+		masterDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "mimeType");
 
 		assertEquals(resourceDownloaded.name, ORIGINAL_FILE_NAME);
 		assertEquals(String.valueOf(resourceDownloaded.size), SOME_FILE_SIZE);
 		assertEquals(resourceDownloaded.mimeType, SOME_MIME_TYPE);
 
 	}
+
 }
 
 // @Test
