@@ -1,5 +1,6 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016 Olov McKie
+ * Copyright 2016, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,6 +24,7 @@ import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.List;
 
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataAtomic;
@@ -33,6 +35,7 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
+import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataMissingException;
@@ -41,10 +44,11 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.Uploader;
+import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
 
 //Kolla om vi ska behålla SpiderBinary och vad egentligen vi behöver ha i den.
-public final class UploaderImp extends SpiderBinary implements Uploader {
+public final class UploaderImp implements Uploader {
 	// private static final String FAKE_HEIGHT_WIDTH = "0";
 	private static final String FAKE_CHECKSUM = "afAF09";
 	private static final String BINARY_RECORD_TYPE = "binary";
@@ -68,6 +72,11 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 	private RecordTypeHandler recordTypeHandler;
 	private String resourceType;
 	private InputStream resourceStream;
+	private Authenticator authenticator;
+	private RecordStorage recordStorage;
+	private String authToken;
+	private String type;
+	private User user;
 
 	private UploaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -99,7 +108,6 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		binaryRecord = recordStorage.read(List.of(type), id);
 		DataRecordGroup readDataRecordGroup = DataProvider
 				.createRecordGroupFromDataGroup(binaryRecord);
-
 		tryToCheckUserIsAuthorisedToUploadData(readDataRecordGroup, binaryRecord);
 
 		// streamId = idGenerator.getIdForType(type + "Binary");
@@ -166,25 +174,24 @@ public final class UploaderImp extends SpiderBinary implements Uploader {
 		}
 	}
 
-	private void tryToCheckUserIsAuthorisedToUploadData(DataRecordGroup record,
+	private void tryToCheckUserIsAuthorisedToUploadData(DataRecordGroup dataRecordGroup,
 			DataGroup dataGroup) {
 		try {
-			checkUserIsAuthorisedToUploadData(record, dataGroup);
+			checkUserIsAuthorisedToUploadData(dataRecordGroup, dataGroup);
 		} catch (Exception e) {
 			throw new AuthorizationException(MessageFormat.format(ERR_MSG_AUTHORIZATION, type, id),
 					e);
 		}
 	}
 
-	private void checkUserIsAuthorisedToUploadData(DataRecordGroup record, DataGroup dataGroup) {
-		CollectTerms collectedTerms = getCollectedTermsForRecord(type, record, dataGroup);
+	private void checkUserIsAuthorisedToUploadData(DataRecordGroup recordGroup, DataGroup dataGroup) {
+		CollectTerms collectedTerms = getCollectedTermsForRecord(recordGroup, dataGroup);
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
 				"upload", type, collectedTerms.permissionTerms);
 	}
 
-	private CollectTerms getCollectedTermsForRecord(String recordType, DataRecordGroup record,
-			DataGroup dataGroup) {
-		recordTypeHandler = dependencyProvider.getRecordTypeHandlerUsingDataRecordGroup(record);
+	private CollectTerms getCollectedTermsForRecord(DataRecordGroup recordGroup, DataGroup dataGroup) {
+		recordTypeHandler = dependencyProvider.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
 		String definitionId = recordTypeHandler.getDefinitionId();
 		return termCollector.collectTerms(definitionId, dataGroup);
 	}

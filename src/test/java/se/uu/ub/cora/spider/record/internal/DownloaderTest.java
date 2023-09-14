@@ -20,9 +20,12 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
+import java.text.MessageFormat;
 import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
@@ -32,26 +35,38 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
-import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.AuthenticationException;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.ResourceInputStream;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.ResourceArchiveSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.Downloader;
+import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.StreamStorageSpy;
-import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class DownloaderTest {
+	private static final String SOME_MIME_TYPE = "someMimeType";
 	private static final String RESOURCE_TYPE_MASTER = "master";
 	private static final String SOME_RECORD_ID = "someId";
 	private static final String SOME_AUTH_TOKEN = "someAuthToken";
 	private static final String BINARY_RECORD_TYPE = "binary";
+	private static final String ACTION_DOWNLOAD = "download";
+	private static final String SOME_RESOURCE_TYPE = "someOtherResourceType";
+	private static final String SOME_EXCEPTION_MESSAGE = "someExceptionMessage";
+	private static final String SOME_RECORD_TYPE = "someRecordType";
+	private static final String ERR_MESSAGE_MISUSE = "Downloading error: Invalid record type, "
+			+ "for type {0} and {1}, must be (binary).";
+	private static final String SOME_FILE_SIZE = "2123";
+	private static final String ORIGINAL_FILE_NAME = "someOriginalFilename";
+	private AuthenticatorSpy authenticator;
+	private SpiderAuthorizatorSpy authorizator;
 	private RecordStorageSpy recordStorage;
-	private OldAuthenticatorSpy authenticator;
 	private StreamStorageSpy streamStorage;
-	private OldSpiderAuthorizatorSpy authorizator;
 	private Downloader downloader;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private LoggerFactorySpy loggerFactorySpy;
@@ -59,6 +74,8 @@ public class DownloaderTest {
 
 	private DataFactorySpy dataFactorySpy;
 	private ResourceArchiveSpy resourceArchive;
+
+	private RecordTypeHandlerSpy recordTypeHandler;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -88,6 +105,14 @@ public class DownloaderTest {
 	// }
 
 	private void setUpDependencyProvider() {
+
+		authenticator = new AuthenticatorSpy();
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
+				() -> authenticator);
+
+		authorizator = new SpiderAuthorizatorSpy();
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
+				() -> authorizator);
 
 		recordStorage = new RecordStorageSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
@@ -137,6 +162,146 @@ public class DownloaderTest {
 		resourceArchive.MCR.assertReturn("read", 0, downloadResource.stream);
 	}
 
+	@Test
+	public void testReadRecordNotFound() throws Exception {
+		// TODO: We should use an exception from Spider.
+		recordStorage.MRV.setAlwaysThrowException("read",
+				RecordNotFoundException.withMessage(SOME_EXCEPTION_MESSAGE));
+		try {
+			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID,
+					RESOURCE_TYPE_MASTER);
+			fail("It should throw Exception");
+		} catch (Exception e) {
+			assertTrue(e instanceof RecordNotFoundException,
+					"AuthenticationException should be thrown");
+			assertEquals(e.getMessage(), SOME_EXCEPTION_MESSAGE);
+		}
+
+	}
+
+	@Test
+	public void testDownloadAuthenticate() throws Exception {
+		downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID,
+				RESOURCE_TYPE_MASTER);
+
+		dependencyProvider.MCR.assertParameters("getAuthenticator", 0);
+		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_AUTH_TOKEN);
+	}
+
+	@Test
+	public void testUploadUserNotAuthenticated() throws Exception {
+		authenticator.MRV.setAlwaysThrowException("getUserForToken",
+				new AuthenticationException(SOME_EXCEPTION_MESSAGE));
+		try {
+			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID,
+					RESOURCE_TYPE_MASTER);
+			fail("It should throw Exception");
+		} catch (Exception e) {
+			assertTrue(e instanceof AuthenticationException,
+					"AuthenticationException should be thrown");
+			assertEquals(e.getMessage(), SOME_EXCEPTION_MESSAGE);
+		}
+	}
+
+	@Test
+	public void testUploadUserNotAuthorizated() throws Exception {
+		authorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForActionOnRecordType",
+				new AuthorizationException(SOME_EXCEPTION_MESSAGE));
+		try {
+			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID,
+					RESOURCE_TYPE_MASTER);
+			fail("It should throw Exception");
+		} catch (Exception e) {
+			assertTrue(e instanceof AuthorizationException,
+					"AuthenticationException should be thrown");
+			assertEquals(e.getMessage(), SOME_EXCEPTION_MESSAGE);
+		}
+	}
+
+	@Test
+	public void testUploadUserAuthorized() throws Exception {
+		downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID,
+				RESOURCE_TYPE_MASTER);
+
+		var user = authenticator.MCR.getReturnValue("getUserForToken", 0);
+
+		dependencyProvider.MCR.assertParameters("getSpiderAuthorizator", 0);
+		authorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0, user,
+				ACTION_DOWNLOAD, BINARY_RECORD_TYPE + "." + RESOURCE_TYPE_MASTER);
+	}
+
+	@Test
+	public void testDownloadExceptionResourceTypeDifferentThanMaster() throws Exception {
+		try {
+			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID,
+					SOME_RESOURCE_TYPE);
+			fail("It should throw exception");
+		} catch (Exception e) {
+			assertTrue(e instanceof MisuseException);
+			assertEquals(e.getMessage(),
+					"Not implemented yet for resource type different than master.");
+			ensureNoDownloadLogicStarts();
+		}
+	}
+
+	private void ensureNoDownloadLogicStarts() {
+		authenticator.MCR.assertMethodNotCalled("getUserForToken");
+		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForActionOnRecordType");
+		recordStorage.MCR.assertMethodNotCalled("read");
+		resourceArchive.MCR.assertMethodNotCalled("create");
+	}
+
+	@Test
+	public void testUploadExceptionTypeDifferentThanBinary() throws Exception {
+		try {
+			downloader.download(SOME_AUTH_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID,
+					RESOURCE_TYPE_MASTER);
+			fail("It should throw exception");
+		} catch (Exception e) {
+			assertTrue(e instanceof MisuseException);
+			assertEquals(e.getMessage(),
+					MessageFormat.format(ERR_MESSAGE_MISUSE, SOME_RECORD_TYPE, SOME_RECORD_ID));
+
+			ensureNoDownloadLogicStarts();
+		}
+	}
+
+	@Test
+	public void testReturnCorrectInfo() throws Exception {
+		DataGroupSpy master = new DataGroupSpy();
+		master.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> SOME_FILE_SIZE, "fileSize");
+		master.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> SOME_MIME_TYPE, "mimeType");
+
+		DataGroupSpy resourceInfo = new DataGroupSpy();
+		resourceInfo.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> master, "master");
+
+		DataRecordGroupSpy readBinary = new DataRecordGroupSpy();
+		readBinary.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> resourceInfo, "resourceInfo");
+		readBinary.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> ORIGINAL_FILE_NAME, "originalFileName");
+
+		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorRecordGroupFromDataGroup",
+				() -> readBinary);
+
+		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
+				BINARY_RECORD_TYPE, SOME_RECORD_ID, RESOURCE_TYPE_MASTER);
+
+		readBinary.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "originalFileName");
+		readBinary.MCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
+		readBinary.MCR.assertParameters("getFirstGroupWithNameInData", 0, "resourceInfo");
+		resourceInfo.MCR.assertParameters("getFirstGroupWithNameInData", 0, "master");
+		master.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "fileSize");
+		master.MCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "mimeType");
+
+		assertEquals(resourceDownloaded.name, ORIGINAL_FILE_NAME);
+		assertEquals(String.valueOf(resourceDownloaded.size), SOME_FILE_SIZE);
+		assertEquals(resourceDownloaded.mimeType, SOME_MIME_TYPE);
+
+	}
 }
 
 // @Test

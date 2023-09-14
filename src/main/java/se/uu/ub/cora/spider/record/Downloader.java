@@ -42,8 +42,8 @@ public interface Downloader {
 	 * If the binary record related to the requested resource does not exist at NotFound must be
 	 * thrown.
 	 * 
-	 * At this moment if resourceType is different than master a {@link DataMissingException} will
-	 * be thrown
+	 * At this moment if resourceType is different than master a {@link MisuseException} will be
+	 * thrown
 	 * 
 	 * @param authToken
 	 *            A String with the authToken of the user that uploads a resource

@@ -274,8 +274,8 @@ public class UploaderTest {
 		authorizator.MCR.assertMethodNotCalled(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
 		recordStorage.MCR.assertMethodNotCalled("read");
-		recordUpdater.MCR.assertMethodNotCalled("updateRecord");
 		resourceArchive.MCR.assertMethodNotCalled("create");
+		recordUpdater.MCR.assertMethodNotCalled("updateRecord");
 	}
 
 	@Test
@@ -299,7 +299,6 @@ public class UploaderTest {
 					RESOURCE_TYPE_MASTER);
 			fail("It should throw exception");
 		} catch (Exception e) {
-			System.out.println(e.getClass());
 			assertTrue(e instanceof DataMissingException);
 			assertEquals(e.getMessage(), MessageFormat.format(ERR_MESAGE_MISSING_RESOURCE_STREAM,
 					BINARY_RECORD_TYPE, SOME_RECORD_ID));
