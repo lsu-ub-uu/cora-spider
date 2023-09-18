@@ -1,21 +1,5 @@
-/*
- * Copyright 2015, 2016, 2019, 2023 Uppsala University Library
- *
- * This file is part of Cora.
- *
- *     Cora is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     Cora is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
- */
+/**Copyright 2015,2016,2019,2023 Uppsala University Library**This file is part of Cora.**Cora is free software:you can redistribute it and/or modify*it under the terms of the GNU General Public License as published by*the Free Software Foundation,either version 3 of the License,or*(at your option)any later version.**Cora is distributed in the hope that it will be useful,*but WITHOUT ANY WARRANTY;without even the implied warranty of*MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the*GNU General Public License for more details.**You should have received a copy of the GNU General Public License*along with Cora.If not,see<http://www.gnu.org/licenses/>.
+*/
 
 package se.uu.ub.cora.spider.record.internal;
 
@@ -368,11 +352,9 @@ public class UploaderTest {
 		// dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 5,
 		// "resolution",
 		// FAKE_HEIGHT_WIDTH_RESOLUTION);
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3,
-				"originalFileName", EXPECTED_ORIGINAL_FILE_NAME);
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4, "checksum",
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3, "checksum",
 				expectedChecksum);
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 5,
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4,
 				"checksumType", "SHA512");
 
 		DataGroupSpy resourceInfo = (DataGroupSpy) dataFactorySpy.MCR
@@ -396,12 +378,10 @@ public class UploaderTest {
 		// .getReturnValue("factorAtomicUsingNameInDataAndValue", 4);
 		// DataAtomicSpy resolution = (DataAtomicSpy) dataFactorySpy.MCR
 		// .getReturnValue("factorAtomicUsingNameInDataAndValue", 5);
-		DataAtomicSpy originalFileName = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 3);
 		DataAtomicSpy checksum = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 4);
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 3);
 		DataAtomicSpy checksumType = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 5);
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 4);
 
 		binaryUpdatedGroup.MCR.assertParameters("addChild", 0, resourceInfo);
 		resourceInfo.MCR.assertParameters("addChild", 0, master);
@@ -412,9 +392,8 @@ public class UploaderTest {
 		// master.MCR.assertParameters("addChild", 4, height);
 		// master.MCR.assertParameters("addChild", 5, width);
 		// master.MCR.assertParameters("addChild", 6, resolution);
-		binaryUpdatedGroup.MCR.assertParameters("addChild", 1, originalFileName);
-		binaryUpdatedGroup.MCR.assertParameters("addChild", 2, checksum);
-		binaryUpdatedGroup.MCR.assertParameters("addChild", 3, checksumType);
+		binaryUpdatedGroup.MCR.assertParameters("addChild", 1, checksum);
+		binaryUpdatedGroup.MCR.assertParameters("addChild", 2, checksumType);
 
 	}
 

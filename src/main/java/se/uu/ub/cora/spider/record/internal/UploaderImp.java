@@ -138,9 +138,25 @@ public final class UploaderImp implements Uploader {
 		// TODO: If the given user is not used to update the binary record, how do we log the
 		// uploading of the resource by that user?
 
-		createdResourceInfoAndMasterGroupAndAddedToBinaryRecord(originalFileName, expectedFileSize,
+		createResourceInfoAndMasterGroupAndAddedToBinaryRecord(originalFileName, expectedFileSize,
 				expectedChecksum);
 		removeExpectedAtomicsFromBinaryRecord();
+
+		// DataToJsonConverterFactory converterFactory = DataToJsonConverterProvider
+		// .createImplementingFactory();
+		// System.out.println("BEFORE ADD");
+		// System.out.println(converterFactory.factorUsingConvertible(binaryRecord).toJson());
+		// System.out.println();
+		// createResourceInfoAndMasterGroupAndAddedToBinaryRecord(originalFileName,
+		// expectedFileSize,
+		// expectedChecksum);
+		// System.out.println("BEFORE REMOVE");
+		// System.out.println(converterFactory.factorUsingConvertible(binaryRecord).toJson());
+		// System.out.println();
+		// removeExpectedAtomicsFromBinaryRecord();
+		// System.out.println("BEFORE RETURN");
+		// System.out.println(converterFactory.factorUsingConvertible(binaryRecord).toJson());
+		// System.out.println();
 
 		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
 		return recordUpdater.updateRecord(authToken, type, id, binaryRecord);
@@ -184,14 +200,17 @@ public final class UploaderImp implements Uploader {
 		}
 	}
 
-	private void checkUserIsAuthorisedToUploadData(DataRecordGroup recordGroup, DataGroup dataGroup) {
+	private void checkUserIsAuthorisedToUploadData(DataRecordGroup recordGroup,
+			DataGroup dataGroup) {
 		CollectTerms collectedTerms = getCollectedTermsForRecord(recordGroup, dataGroup);
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
 				"upload", type, collectedTerms.permissionTerms);
 	}
 
-	private CollectTerms getCollectedTermsForRecord(DataRecordGroup recordGroup, DataGroup dataGroup) {
-		recordTypeHandler = dependencyProvider.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
+	private CollectTerms getCollectedTermsForRecord(DataRecordGroup recordGroup,
+			DataGroup dataGroup) {
+		recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
 		String definitionId = recordTypeHandler.getDefinitionId();
 		return termCollector.collectTerms(definitionId, dataGroup);
 	}
@@ -203,7 +222,7 @@ public final class UploaderImp implements Uploader {
 		}
 	}
 
-	private void createdResourceInfoAndMasterGroupAndAddedToBinaryRecord(String fileName,
+	private void createResourceInfoAndMasterGroupAndAddedToBinaryRecord(String fileName,
 			String expectedFileSize, String expectedChecksum) {
 		DataGroup resourceInfo = DataProvider.createGroupUsingNameInData(RESOURCE_INFO);
 		DataGroup master = DataProvider.createGroupUsingNameInData("master");
@@ -221,8 +240,6 @@ public final class UploaderImp implements Uploader {
 		// FAKE_HEIGHT_WIDTH);
 		// DataAtomic resolution = DataProvider.createAtomicUsingNameInDataAndValue("resolution",
 		// FAKE_HEIGHT_WIDTH);
-		DataAtomic originalFileName = DataProvider
-				.createAtomicUsingNameInDataAndValue("originalFileName", fileName);
 		DataAtomic checksum = DataProvider.createAtomicUsingNameInDataAndValue("checksum",
 				expectedChecksum);
 		DataAtomic checksumType = DataProvider.createAtomicUsingNameInDataAndValue("checksumType",
@@ -238,7 +255,6 @@ public final class UploaderImp implements Uploader {
 		// master.addChild(height);
 		// master.addChild(width);
 		// master.addChild(resolution);
-		binaryRecord.addChild(originalFileName);
 		binaryRecord.addChild(checksum);
 		binaryRecord.addChild(checksumType);
 	}
