@@ -44,7 +44,7 @@
 		<beefeater.version>3.12.0</beefeater.version>
 		<password.version>1.6.0</password.version>
 		<testutils.version>1.10.0</testutils.version>
-		<coradata-spies.version>1.5.0</coradata-spies.version>
+		<coradata-spies.version>1.6-SNAPSHOT</coradata-spies.version>
 	</properties>
 
 

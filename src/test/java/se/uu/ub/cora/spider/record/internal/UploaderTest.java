@@ -305,7 +305,7 @@ public class UploaderTest {
 		DataGroupSpy binaryUpdatedGroup = (DataGroupSpy) recordUpdater.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("updateRecord", 0, "record");
 
-		assertResourceInfoIsCorrect(binaryUpdatedGroup, FAKE_CHECKSUM);
+		assertResourceInfoIsCorrect(binaryUpdatedGroup, FAKE_CHECKSUM, RESOURCE_TYPE_MASTER);
 		assertRemoveExpectedFieldsFromBinaryRecord(binaryUpdatedGroup);
 	}
 
@@ -328,19 +328,19 @@ public class UploaderTest {
 		DataGroupSpy binaryUpdatedGroup = (DataGroupSpy) recordUpdater.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("updateRecord", 0, "record");
 
-		assertResourceInfoIsCorrect(binaryUpdatedGroup, EXPECTED_CHECKSUM);
+		assertResourceInfoIsCorrect(binaryUpdatedGroup, EXPECTED_CHECKSUM, RESOURCE_TYPE_MASTER);
 		assertRemoveExpectedFieldsFromBinaryRecord(binaryUpdatedGroup);
 	}
 
 	private void assertResourceInfoIsCorrect(DataGroupSpy binaryUpdatedGroup,
-			String expectedChecksum) {
+			String expectedChecksum, String resourceTypeMaster) {
 
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "resourceInfo");
-		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 1, "master");
+		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 1, resourceTypeMaster);
 
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "resourceId",
 				SOME_RECORD_ID);
-		dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInData", 0, "resourceLink");
+		dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInData", 0, "master");
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "fileSize",
 				EXPECTED_FILE_SIZE);
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2, "mimeType",

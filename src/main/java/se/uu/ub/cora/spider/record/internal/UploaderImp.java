@@ -138,25 +138,8 @@ public final class UploaderImp implements Uploader {
 		// TODO: If the given user is not used to update the binary record, how do we log the
 		// uploading of the resource by that user?
 
-		createResourceInfoAndMasterGroupAndAddedToBinaryRecord(originalFileName, expectedFileSize,
-				expectedChecksum);
+		createResourceInfoAndMasterGroupAndAddedToBinaryRecord(expectedFileSize, expectedChecksum);
 		removeExpectedAtomicsFromBinaryRecord();
-
-		// DataToJsonConverterFactory converterFactory = DataToJsonConverterProvider
-		// .createImplementingFactory();
-		// System.out.println("BEFORE ADD");
-		// System.out.println(converterFactory.factorUsingConvertible(binaryRecord).toJson());
-		// System.out.println();
-		// createResourceInfoAndMasterGroupAndAddedToBinaryRecord(originalFileName,
-		// expectedFileSize,
-		// expectedChecksum);
-		// System.out.println("BEFORE REMOVE");
-		// System.out.println(converterFactory.factorUsingConvertible(binaryRecord).toJson());
-		// System.out.println();
-		// removeExpectedAtomicsFromBinaryRecord();
-		// System.out.println("BEFORE RETURN");
-		// System.out.println(converterFactory.factorUsingConvertible(binaryRecord).toJson());
-		// System.out.println();
 
 		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
 		return recordUpdater.updateRecord(authToken, type, id, binaryRecord);
@@ -222,14 +205,13 @@ public final class UploaderImp implements Uploader {
 		}
 	}
 
-	private void createResourceInfoAndMasterGroupAndAddedToBinaryRecord(String fileName,
-			String expectedFileSize, String expectedChecksum) {
+	private void createResourceInfoAndMasterGroupAndAddedToBinaryRecord(String expectedFileSize,
+			String expectedChecksum) {
 		DataGroup resourceInfo = DataProvider.createGroupUsingNameInData(RESOURCE_INFO);
-		DataGroup master = DataProvider.createGroupUsingNameInData("master");
+		DataGroup master = DataProvider.createGroupUsingNameInData(resourceType);
 
 		DataAtomic resourceId = DataProvider.createAtomicUsingNameInDataAndValue("resourceId", id);
-		DataResourceLink resourceLink = DataProvider
-				.createResourceLinkUsingNameInData("resourceLink");
+		DataResourceLink resourceLink = DataProvider.createResourceLinkUsingNameInData("master");
 		DataAtomic fileSize = DataProvider.createAtomicUsingNameInDataAndValue("fileSize",
 				expectedFileSize);
 		DataAtomic mimeType = DataProvider.createAtomicUsingNameInDataAndValue("mimeType",
