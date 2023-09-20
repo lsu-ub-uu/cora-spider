@@ -30,31 +30,25 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.data.ResourceInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.MisuseException;
-import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
 
 public final class DownloaderImp implements Downloader {
-	private static final String RESOURCE_INFO = "resourceInfo";
 	private static final String ACTION_DOWNLOAD = "download";
 	private static final String ERR_MESSAGE_MISUSE = "Downloading error: Invalid record type, "
 			+ "for type {0} and {1}, must be (binary).";
 	private String resourceType;
 	private SpiderAuthorizator spiderAuthorizator;
-	private StreamStorage streamStorage;
+	// private StreamStorage streamStorage;
 	private DataGroup binaryDataGroup;
 	private ResourceArchive resourceArchive;
 	private Authenticator authenticator;
 	private RecordStorage recordStorage;
-	private String authToken;
 	private String type;
-	private User user;
 	private String id;
 
 	private DownloaderImp(SpiderDependencyProvider dependencyProvider) {
@@ -62,7 +56,7 @@ public final class DownloaderImp implements Downloader {
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
 		resourceArchive = dependencyProvider.getResourceArchive();
-		streamStorage = dependencyProvider.getStreamStorage();
+		// streamStorage = dependencyProvider.getStreamStorage();
 
 	}
 
@@ -74,11 +68,10 @@ public final class DownloaderImp implements Downloader {
 	@Override
 	public ResourceInputStream download(String authToken, String type, String id,
 			String resourceType) {
-		this.authToken = authToken;
 		this.type = type;
 		this.id = id;
 		this.resourceType = resourceType;
-		//
+
 		validateInput();
 
 		authenticateAndAuthorizeUser(authToken, type, resourceType);
@@ -93,7 +86,7 @@ public final class DownloaderImp implements Downloader {
 		InputStream stream = resourceArchive.read(dataDivider, type, id);
 
 		// InputStream stream = streamStorage.retrieve(streamId, dataDivider);
-		//
+
 		return prepareResponseForResourceInputStream(binaryRecordGroup, stream);
 
 	}
@@ -130,48 +123,8 @@ public final class DownloaderImp implements Downloader {
 	}
 
 	private void authenticateAndAuthorizeUser(String authToken, String type, String resourceType) {
-		user = authenticator.getUserForToken(authToken);
+		User user = authenticator.getUserForToken(authToken);
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, ACTION_DOWNLOAD,
 				type + "." + resourceType);
-	}
-
-	// protected void tryToGetActiveUser() {
-	// user = authenticator.getUserForToken(authToken);
-	// }
-
-	private String tryToExtractStreamIdFromResource(String resource) {
-		try {
-			DataGroup resourceInfo = binaryDataGroup.getFirstGroupWithNameInData(RESOURCE_INFO);
-			DataGroup requestedResource = resourceInfo.getFirstGroupWithNameInData(resource);
-			return requestedResource.getFirstAtomicValueWithNameInData("streamId");
-		} catch (DataMissingException e) {
-			throw RecordNotFoundException.withMessageAndException("resource not found", e);
-		}
-	}
-
-	// private void checkResourceIsPresent() {
-	// if (resourceIsNull(resourceName) || resourceHasNoLength(resourceName)) {
-	// throw new DataMissingException("No resource to download");
-	// }
-	// }
-
-	private boolean resourceIsNull(String fileName) {
-		return null == fileName;
-	}
-
-	private boolean resourceHasNoLength(String fileName) {
-		return fileName.length() == 0;
-	}
-
-	private String extractStreamNameFromData() {
-		DataGroup resourceInfo = binaryDataGroup.getFirstGroupWithNameInData(RESOURCE_INFO);
-		DataGroup requestedResource = resourceInfo.getFirstGroupWithNameInData(resourceType);
-		return requestedResource.getFirstAtomicValueWithNameInData("filename");
-	}
-
-	private long extractStreamSizeFromData() {
-		DataGroup resourceInfo = binaryDataGroup.getFirstGroupWithNameInData(RESOURCE_INFO);
-		DataGroup requestedResource = resourceInfo.getFirstGroupWithNameInData(resourceType);
-		return Long.parseLong(requestedResource.getFirstAtomicValueWithNameInData("filesize"));
 	}
 }
