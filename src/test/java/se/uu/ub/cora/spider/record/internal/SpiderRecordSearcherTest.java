@@ -36,7 +36,7 @@ import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -53,7 +53,7 @@ import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -66,8 +66,8 @@ public class SpiderRecordSearcherTest {
 	private final DataGroup someSearchData = new DataGroupOldSpy("search");
 
 	private RecordStorage recordStorage;
-	private AuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy authorizator;
+	private OldAuthenticatorSpy authenticator;
+	private OldSpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private RecordSearcher recordSearcher;
@@ -83,8 +83,8 @@ public class SpiderRecordSearcherTest {
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 
-		authenticator = new AuthenticatorSpy();
-		authorizator = new SpiderAuthorizatorSpy();
+		authenticator = new OldAuthenticatorSpy();
+		authorizator = new OldSpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new RuleCalculatorSpy();

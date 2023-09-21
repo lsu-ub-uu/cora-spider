@@ -31,7 +31,7 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
-public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
+public class OldSpiderAuthorizatorSpy implements SpiderAuthorizator {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	/**

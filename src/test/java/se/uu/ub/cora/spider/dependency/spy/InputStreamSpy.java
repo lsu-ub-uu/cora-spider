@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Olov McKie
+ * Copyright 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,28 +16,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.dependency.spy;
 
-package se.uu.ub.cora.spider.data;
-
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Supplier;
 
-public final class SpiderInputStream {
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-	public final String name;
-	public final long size;
-	public final InputStream stream;
-	public final String mimeType;
+public class InputStreamSpy extends InputStream {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
-	private SpiderInputStream(String name, long size, String mimeType, InputStream stream) {
-		this.name = name;
-		this.size = size;
-		this.mimeType = mimeType;
-		this.stream = stream;
+	public InputStreamSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("read", (Supplier<Integer>) () -> 0);
 	}
 
-	public static SpiderInputStream withNameSizeInputStream(String name, long size,
-			String mimeType, InputStream stream) {
-		return new SpiderInputStream(name, size, mimeType, stream);
+	@Override
+	public int read() throws IOException {
+		return (int) MCR.addCallAndReturnFromMRV();
 	}
-
 }

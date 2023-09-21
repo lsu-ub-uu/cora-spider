@@ -250,7 +250,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 				return group;
 			}
 			if (id.equals("childThree")) {
-				throw new RecordNotFoundException("No record exists with recordId: childThree");
+				throw RecordNotFoundException
+						.withMessage("No record exists with recordId: childThree");
 			}
 
 			if (id.equals("testItemCollection")) {

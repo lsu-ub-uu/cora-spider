@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2020 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,27 +16,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.spy;
+package se.uu.ub.cora.spider.record.internal;
 
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
+public class AuthenticatorSpy implements Authenticator {
+
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
+	private User userSpy = new User("userSpy");
 
-	public DataGroupTermCollectorSpy() {
+	public AuthenticatorSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("collectTerms", CollectTerms::new);
+		MRV.setDefaultReturnValuesSupplier("getUserForToken", () -> userSpy);
 	}
 
 	@Override
-	public CollectTerms collectTerms(String metadataId, DataGroup dataGroup) {
-		return (CollectTerms) MCR.addCallAndReturnFromMRV("metadataId", metadataId, "dataGroup",
-				dataGroup);
+	public User getUserForToken(String authToken) {
+		return (User) MCR.addCallAndReturnFromMRV("authToken", authToken);
 	}
 
 }

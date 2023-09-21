@@ -49,7 +49,7 @@ import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
@@ -72,7 +72,7 @@ import se.uu.ub.cora.spider.spy.RecordArchiveSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageUpdateMultipleTimesSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
@@ -84,8 +84,8 @@ public class RecordUpdaterTest {
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
 	private RecordStorageSpy recordStorage;
 	private RecordArchiveSpy recordArchive;
-	private AuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy authorizator;
+	private OldAuthenticatorSpy authenticator;
+	private OldSpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private RecordUpdater recordUpdaterOld;
 	private RecordUpdater recordUpdater;
@@ -107,8 +107,8 @@ public class RecordUpdaterTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
-		authenticator = new AuthenticatorSpy();
-		authorizator = new SpiderAuthorizatorSpy();
+		authenticator = new OldAuthenticatorSpy();
+		authorizator = new OldSpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = new RecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
@@ -743,7 +743,8 @@ public class RecordUpdaterTest {
 	public void testUpdateNotFound() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "recordType");
-		recordStorage.MRV.setAlwaysThrowException("read", new RecordNotFoundException("message"));
+		recordStorage.MRV.setAlwaysThrowException("read",
+				RecordNotFoundException.withMessage("message"));
 
 		DataGroup record = new DataGroupOldSpy("authority");
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");

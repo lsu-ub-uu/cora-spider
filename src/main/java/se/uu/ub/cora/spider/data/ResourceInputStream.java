@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2023 Uppsala University Library
+ * Copyright 2016, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,17 +17,27 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.authentication;
+package se.uu.ub.cora.spider.data;
 
-public class AuthenticationException extends RuntimeException {
+import java.io.InputStream;
 
-	private static final long serialVersionUID = -7209118389492113349L;
+public final class ResourceInputStream {
 
-	public AuthenticationException(String message) {
-		super(message);
+	public final String name;
+	public final long size;
+	public final InputStream stream;
+	public final String mimeType;
+
+	private ResourceInputStream(String name, long size, String mimeType, InputStream stream) {
+		this.name = name;
+		this.size = size;
+		this.mimeType = mimeType;
+		this.stream = stream;
 	}
 
-	public AuthenticationException(String message, Throwable cause) {
-		super(message, cause);
+	public static ResourceInputStream withNameSizeInputStream(String name, long size, String mimeType,
+			InputStream stream) {
+		return new ResourceInputStream(name, size, mimeType, stream);
 	}
+
 }

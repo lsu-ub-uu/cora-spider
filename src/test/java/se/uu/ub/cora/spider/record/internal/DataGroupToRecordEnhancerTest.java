@@ -50,7 +50,7 @@ import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -66,7 +66,7 @@ import se.uu.ub.cora.spider.record.RecordEnhancerTestsRecordStorage;
 import se.uu.ub.cora.spider.record.RecordLinkTestsAsserter;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 
 public class DataGroupToRecordEnhancerTest {
 	private static final String UPDATE = "update";
@@ -79,8 +79,8 @@ public class DataGroupToRecordEnhancerTest {
 	private static final String SOME_RECORD_TYPE = "someRecordType";
 	private static final String BINARY_RECORD_TYPE = "binary";
 	private RecordEnhancerTestsRecordStorage recordStorage;
-	private AuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy authorizator;
+	private OldAuthenticatorSpy authenticator;
+	private OldSpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private User user;
@@ -100,8 +100,8 @@ public class DataGroupToRecordEnhancerTest {
 		someDataGroup = createDummyDataGroupForRecord("someId");
 		user = new User("987654321");
 		recordStorage = new RecordEnhancerTestsRecordStorage();
-		authenticator = new AuthenticatorSpy();
-		authorizator = new SpiderAuthorizatorSpy();
+		authenticator = new OldAuthenticatorSpy();
+		authorizator = new OldSpiderAuthorizatorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		dataRedactor = new DataRedactorSpy();

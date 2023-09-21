@@ -38,7 +38,7 @@ import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
@@ -58,7 +58,7 @@ import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.TestDataRecordInMemoryStorage;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -68,8 +68,8 @@ public class SpiderRecordDeleterTest {
 	private DataFactorySpy dataFactorySpy;
 
 	private RecordStorage recordStorage;
-	private AuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy authorizator;
+	private OldAuthenticatorSpy authenticator;
+	private OldSpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator keyCalculator;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private RecordDeleter recordDeleter;
@@ -84,8 +84,8 @@ public class SpiderRecordDeleterTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
-		authenticator = new AuthenticatorSpy();
-		authorizator = new SpiderAuthorizatorSpy();
+		authenticator = new OldAuthenticatorSpy();
+		authorizator = new OldSpiderAuthorizatorSpy();
 		recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
 		keyCalculator = new RuleCalculatorSpy();
 		recordIndexer = new RecordIndexerSpy();

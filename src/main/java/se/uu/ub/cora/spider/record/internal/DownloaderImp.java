@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,30 +21,43 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import java.io.InputStream;
+import java.text.MessageFormat;
 import java.util.List;
 
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
-import se.uu.ub.cora.spider.data.DataMissingException;
-import se.uu.ub.cora.spider.data.SpiderInputStream;
+import se.uu.ub.cora.spider.data.ResourceInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.Downloader;
-import se.uu.ub.cora.storage.RecordNotFoundException;
-import se.uu.ub.cora.storage.StreamStorage;
+import se.uu.ub.cora.spider.record.MisuseException;
+import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.archive.ResourceArchive;
 
-public final class DownloaderImp extends SpiderBinary implements Downloader {
-	private static final String RESOURCE_INFO = "resourceInfo";
-	private static final String DOWNLOAD = "download";
-	private String resourceName;
+public final class DownloaderImp implements Downloader {
+	private static final String ACTION_DOWNLOAD = "download";
+	private static final String ERR_MESSAGE_MISUSE = "Downloading error: Invalid record type, "
+			+ "for type {0} and {1}, must be (binary).";
+	private String resourceType;
 	private SpiderAuthorizator spiderAuthorizator;
-	private StreamStorage streamStorage;
-	private DataGroup recordRead;
+	// private StreamStorage streamStorage;
+	private DataGroup binaryDataGroup;
+	private ResourceArchive resourceArchive;
+	private Authenticator authenticator;
+	private RecordStorage recordStorage;
+	private String type;
+	private String id;
 
 	private DownloaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
-		streamStorage = dependencyProvider.getStreamStorage();
+		resourceArchive = dependencyProvider.getResourceArchive();
+		// streamStorage = dependencyProvider.getStreamStorage();
+
 	}
 
 	public static Downloader usingDependencyProvider(
@@ -53,71 +66,65 @@ public final class DownloaderImp extends SpiderBinary implements Downloader {
 	}
 
 	@Override
-	public SpiderInputStream download(String authToken, String type, String id,
-			String resourceName) {
-		this.authToken = authToken;
-		this.recordType = type;
-		this.resourceName = resourceName;
+	public ResourceInputStream download(String authToken, String type, String id,
+			String resourceType) {
+		this.type = type;
+		this.id = id;
+		this.resourceType = resourceType;
 
-		tryToGetActiveUser();
-		checkUserIsAuthorizedForActionOnRecordTypeAndResourceName();
-		checkResourceIsPresent();
+		validateInput();
 
-		checkRecordTypeIsBinary();
+		authenticateAndAuthorizeUser(authToken, type, resourceType);
 
-		recordRead = recordStorage.read(List.of(type), id);
+		binaryDataGroup = recordStorage.read(List.of(type), id);
 
-		String streamId = tryToExtractStreamIdFromResource(resourceName);
+		DataRecordGroup binaryRecordGroup = DataProvider
+				.createRecordGroupFromDataGroup(binaryDataGroup);
 
-		String dataDivider = extractDataDividerFromData(recordRead);
+		String dataDivider = binaryRecordGroup.getDataDivider();
 
-		InputStream stream = streamStorage.retrieve(streamId, dataDivider);
+		InputStream stream = resourceArchive.read(dataDivider, type, id);
 
-		String name = extractStreamNameFromData();
-		long size = extractStreamSizeFromData();
-		return SpiderInputStream.withNameSizeInputStream(name, size, "application/octet-stream",
-				stream);
+		// InputStream stream = streamStorage.retrieve(streamId, dataDivider);
+
+		return prepareResponseForResourceInputStream(binaryRecordGroup, stream);
 
 	}
 
-	private void checkUserIsAuthorizedForActionOnRecordTypeAndResourceName() {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, DOWNLOAD,
-				recordType + "." + resourceName);
+	private ResourceInputStream prepareResponseForResourceInputStream(
+			DataRecordGroup binaryRecordGroup, InputStream stream) {
+		String originalFileName = binaryRecordGroup
+				.getFirstAtomicValueWithNameInData("originalFileName");
+		DataGroup resourceInfo = binaryRecordGroup.getFirstGroupWithNameInData("resourceInfo");
+		DataGroup masterGroup = resourceInfo.getFirstGroupWithNameInData("master");
+		String fileSize = masterGroup.getFirstAtomicValueWithNameInData("fileSize");
+		String mimeType = masterGroup.getFirstAtomicValueWithNameInData("mimeType");
+
+		return ResourceInputStream.withNameSizeInputStream(originalFileName, Long.valueOf(fileSize),
+				mimeType, stream);
 	}
 
-	private String tryToExtractStreamIdFromResource(String resource) {
-		try {
-			DataGroup resourceInfo = recordRead.getFirstGroupWithNameInData(RESOURCE_INFO);
-			DataGroup requestedResource = resourceInfo.getFirstGroupWithNameInData(resource);
-			return requestedResource.getFirstAtomicValueWithNameInData("streamId");
-		} catch (DataMissingException e) {
-			throw new RecordNotFoundException("resource not found", e);
+	private void validateInput() {
+		if (typeNotBinary(type)) {
+			throw new MisuseException(MessageFormat.format(ERR_MESSAGE_MISUSE, type, id));
+		}
+		if (resourceTypeNotMaster(resourceType)) {
+			throw new MisuseException(
+					"Not implemented yet for resource type different than master.");
 		}
 	}
 
-	private void checkResourceIsPresent() {
-		if (resourceIsNull(resourceName) || resourceHasNoLength(resourceName)) {
-			throw new DataMissingException("No resource to download");
-		}
+	private boolean resourceTypeNotMaster(String resourceType) {
+		return !"master".equals(resourceType);
 	}
 
-	private boolean resourceIsNull(String fileName) {
-		return null == fileName;
+	private boolean typeNotBinary(String type) {
+		return !"binary".equals(type);
 	}
 
-	private boolean resourceHasNoLength(String fileName) {
-		return fileName.length() == 0;
-	}
-
-	private String extractStreamNameFromData() {
-		DataGroup resourceInfo = recordRead.getFirstGroupWithNameInData(RESOURCE_INFO);
-		DataGroup requestedResource = resourceInfo.getFirstGroupWithNameInData(resourceName);
-		return requestedResource.getFirstAtomicValueWithNameInData("filename");
-	}
-
-	private long extractStreamSizeFromData() {
-		DataGroup resourceInfo = recordRead.getFirstGroupWithNameInData(RESOURCE_INFO);
-		DataGroup requestedResource = resourceInfo.getFirstGroupWithNameInData(resourceName);
-		return Long.parseLong(requestedResource.getFirstAtomicValueWithNameInData("filesize"));
+	private void authenticateAndAuthorizeUser(String authToken, String type, String resourceType) {
+		User user = authenticator.getUserForToken(authToken);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, ACTION_DOWNLOAD,
+				type + "." + resourceType);
 	}
 }

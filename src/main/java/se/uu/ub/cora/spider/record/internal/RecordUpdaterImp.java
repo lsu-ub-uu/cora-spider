@@ -72,6 +72,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private Set<String> writePermissions;
 	private RecordArchive recordArchive;
 	private String updateDefinitionId;
+	private String dataDivider;
 
 	private RecordUpdaterImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -138,9 +139,10 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		useExtendedFunctionalityBeforeStore(recordType, topDataGroup);
+		dataDivider = extractDataDividerFromData(topDataGroup);
 		updateRecordInStorage(collectTerms, collectedLinks);
 		if (recordTypeHandler.storeInArchive()) {
-			recordArchive.update(recordType, recordId, topDataGroup);
+			recordArchive.update(dataDivider, recordType, recordId, topDataGroup);
 		}
 		indexData(collectTerms);
 		useExtendedFunctionalityAfterStore(recordType, topDataGroup);
@@ -347,9 +349,6 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private void updateRecordInStorage(CollectTerms collectTerms, Set<Link> collectedLinks) {
-
-		String dataDivider = extractDataDividerFromData(topDataGroup);
-
 		recordStorage.update(recordType, recordId, topDataGroup, collectTerms.storageTerms,
 				collectedLinks, dataDivider);
 	}

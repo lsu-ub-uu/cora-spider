@@ -38,7 +38,7 @@ import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordSpy;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
@@ -48,7 +48,7 @@ import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobSpy;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
 import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
@@ -61,9 +61,9 @@ public class RecordListIndexerTest {
 	private DataFactorySpy dataFactory;
 	private SpiderDependencyProviderOldSpy dependencyProviderSpy;
 	private RecordListIndexerImp recordListIndexer;
-	private AuthenticatorSpy authenticatorSpy;
+	private OldAuthenticatorSpy authenticatorSpy;
 
-	private SpiderAuthorizatorSpy authorizatorSpy;
+	private OldSpiderAuthorizatorSpy authorizatorSpy;
 	private DataGroupSpy indexSettingsWithoutFilter;
 	private DataGroupSpy indexSettingsWithFilter;
 	private DataValidatorSpy dataValidatorSpy;
@@ -94,8 +94,8 @@ public class RecordListIndexerTest {
 
 	private void setUpDependencyProvider() {
 		dependencyProviderSpy = new SpiderDependencyProviderOldSpy();
-		authenticatorSpy = new AuthenticatorSpy();
-		authorizatorSpy = new SpiderAuthorizatorSpy();
+		authenticatorSpy = new OldAuthenticatorSpy();
+		authorizatorSpy = new OldSpiderAuthorizatorSpy();
 		dataValidatorSpy = new DataValidatorSpy();
 
 		dependencyProviderSpy.authenticator = authenticatorSpy;

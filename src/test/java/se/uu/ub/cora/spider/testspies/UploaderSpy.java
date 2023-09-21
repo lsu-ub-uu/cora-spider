@@ -37,8 +37,8 @@ public class UploaderSpy implements Uploader {
 
 	@Override
 	public DataRecord upload(String authToken, String type, String id, InputStream inputStream,
-			String fileName) {
+			String resourceType) {
 		return (DataRecord) MCR.addCallAndReturnFromMRV("authToken", authToken, "type", type, "id",
-				id, "inputStream", inputStream, "fileName", fileName);
+				id, "inputStream", inputStream, "resourceType", resourceType);
 	}
 }

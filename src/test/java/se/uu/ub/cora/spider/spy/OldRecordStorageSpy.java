@@ -473,7 +473,8 @@ public class OldRecordStorageSpy implements RecordStorage {
 			return spiderReadResult;
 		}
 		if ("child1_2".equals(types)) {
-			throw new RecordNotFoundException("No records exists with recordType: " + types);
+			throw RecordNotFoundException
+					.withMessage("No records exists with recordType: " + types);
 		}
 		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.listOfDataGroups = new ArrayList<>();

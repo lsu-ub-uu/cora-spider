@@ -42,6 +42,7 @@ import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
+import se.uu.ub.cora.storage.archive.ResourceArchive;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
@@ -77,6 +78,7 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandlerUsingDataRecordGroup",
 				() -> recordTypeHandlerSpy);
+		// MRV.setDefaultReturnValuesSupplier("getResourceArchive", ResourceArchiveSpy::new);
 	}
 
 	@Override
@@ -223,4 +225,9 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 		return dataGroupToFilter;
 	}
 
+	@Override
+	public ResourceArchive getResourceArchive() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

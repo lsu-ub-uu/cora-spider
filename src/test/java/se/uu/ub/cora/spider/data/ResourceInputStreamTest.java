@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Olov McKie
+ * Copyright 2016, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -27,12 +27,12 @@ import java.nio.charset.StandardCharsets;
 
 import org.testng.annotations.Test;
 
-public class SpiderInputStreamTest {
+public class ResourceInputStreamTest {
 	@Test
 	public void testContent() {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-		SpiderInputStream spiderBinaryStream = SpiderInputStream.withNameSizeInputStream("testName",
-				1234567890, "application/octet-stream", stream);
+		ResourceInputStream spiderBinaryStream = ResourceInputStream.withNameSizeInputStream(
+				"testName", 1234567890, "application/octet-stream", stream);
 
 		assertEquals(spiderBinaryStream.name, "testName");
 		assertEquals(spiderBinaryStream.size, 1234567890);

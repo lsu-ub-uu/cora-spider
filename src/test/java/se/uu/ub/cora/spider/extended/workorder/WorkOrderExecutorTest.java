@@ -28,7 +28,7 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
@@ -38,7 +38,7 @@ import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 
 public class WorkOrderExecutorTest {
@@ -47,8 +47,8 @@ public class WorkOrderExecutorTest {
 	WorkOrderExecutor extendedFunctionality;
 	DataGroupTermCollectorSpy termCollector;
 	RecordIndexerSpy recordIndexer;
-	SpiderAuthorizatorSpy authorizator;
-	AuthenticatorSpy authenticator;
+	OldSpiderAuthorizatorSpy authorizator;
+	OldAuthenticatorSpy authenticator;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
 
@@ -60,8 +60,8 @@ public class WorkOrderExecutorTest {
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
 		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.recordStorage = new OldRecordStorageSpy();
-		dependencyProvider.authenticator = new AuthenticatorSpy();
-		dependencyProvider.spiderAuthorizator = new SpiderAuthorizatorSpy();
+		dependencyProvider.authenticator = new OldAuthenticatorSpy();
+		dependencyProvider.spiderAuthorizator = new OldSpiderAuthorizatorSpy();
 
 		setUpDependencyProvider();
 
@@ -79,8 +79,8 @@ public class WorkOrderExecutorTest {
 		extendedFunctionality = WorkOrderExecutor.usingDependencyProvider(dependencyProvider);
 		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
 		recordIndexer = (RecordIndexerSpy) dependencyProvider.getRecordIndexer();
-		authorizator = (SpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();
-		authenticator = (AuthenticatorSpy) dependencyProvider.getAuthenticator();
+		authorizator = (OldSpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();
+		authenticator = (OldAuthenticatorSpy) dependencyProvider.getAuthenticator();
 	}
 
 	@Test

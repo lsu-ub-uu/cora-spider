@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.authentication.AuthenticatorSpy;
+import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
@@ -37,7 +37,7 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
-import se.uu.ub.cora.spider.spy.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderRecordDeleterSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 
@@ -46,8 +46,8 @@ public class WorkOrderDeleterTest {
 	SpiderDependencyProviderOldSpy dependencyProvider;
 	WorkOrderDeleter extendedFunctionality;
 	DataGroupTermCollectorSpy termCollector;
-	SpiderAuthorizatorSpy authorizator;
-	AuthenticatorSpy authenticator;
+	OldSpiderAuthorizatorSpy authorizator;
+	OldAuthenticatorSpy authenticator;
 	SpiderRecordDeleterSpy recordDeleter;
 	private LoggerFactorySpy loggerFactorySpy;
 
@@ -58,9 +58,9 @@ public class WorkOrderDeleterTest {
 		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.recordIndexer = new RecordIndexerSpy();
 		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
-		dependencyProvider.authenticator = new AuthenticatorSpy();
+		dependencyProvider.authenticator = new OldAuthenticatorSpy();
 		dependencyProvider.recordStorage = new OldRecordStorageSpy();
-		dependencyProvider.spiderAuthorizator = new SpiderAuthorizatorSpy();
+		dependencyProvider.spiderAuthorizator = new OldSpiderAuthorizatorSpy();
 		setUpDependencyProvider();
 	}
 
@@ -73,8 +73,8 @@ public class WorkOrderDeleterTest {
 		recordDeleter = new SpiderRecordDeleterSpy();
 		extendedFunctionality = WorkOrderDeleter.usingDeleter(recordDeleter);
 		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
-		authorizator = (SpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();
-		authenticator = (AuthenticatorSpy) dependencyProvider.getAuthenticator();
+		authorizator = (OldSpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();
+		authenticator = (OldAuthenticatorSpy) dependencyProvider.getAuthenticator();
 	}
 
 	@Test
