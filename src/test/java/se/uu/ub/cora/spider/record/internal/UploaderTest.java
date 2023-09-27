@@ -13,6 +13,7 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.contentanalyzer.ContentAnalyzerProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.collected.CollectTerms;
@@ -21,6 +22,9 @@ import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataResourceLinkSpy;
+import se.uu.ub.cora.logger.LoggerFactory;
+import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.DataMissingException;
@@ -30,6 +34,8 @@ import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.ResourceArchiveSpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.Uploader;
+import se.uu.ub.cora.spider.spy.ContentAnalyzerInstanceProviderSpy;
+import se.uu.ub.cora.spider.spy.ContentAnalyzerSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;
@@ -75,16 +81,24 @@ public class UploaderTest {
 	private DataFactorySpy dataFactorySpy;
 
 	private RecordTypeHandlerSpy recordTypeHandler;
+	private ContentAnalyzerInstanceProviderSpy contentAnalyzeInstanceProviderSpy;
+	private LoggerFactory loggerFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
-
 		dependencyProvider = new SpiderDependencyProviderSpy();
 		dataFactorySpy = new DataFactorySpy();
 
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		setUpSpiderInstanceProvider();
 		setUpDependencyProvider();
+
+		loggerFactory = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactory);
+
+		contentAnalyzeInstanceProviderSpy = new ContentAnalyzerInstanceProviderSpy();
+		ContentAnalyzerProvider
+				.onlyForTestSetContentAnalyzerInstanceProvider(contentAnalyzeInstanceProviderSpy);
 
 		someStream = new InputStreamSpy();
 
@@ -145,8 +159,7 @@ public class UploaderTest {
 
 	private Object testGetDataDivider(DataRecordGroupSpy readDataRecordGroup) {
 		readDataRecordGroup.MCR.assertParameters("getDataDivider", 0);
-		var dataDivider = readDataRecordGroup.MCR.getReturnValue("getDataDivider", 0);
-		return dataDivider;
+		return readDataRecordGroup.MCR.getReturnValue("getDataDivider", 0);
 	}
 
 	private DataRecordGroupSpy testReadRecord() {
@@ -344,14 +357,7 @@ public class UploaderTest {
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "fileSize",
 				EXPECTED_FILE_SIZE);
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2, "mimeType",
-				MIME_TYPE_GENERIC);
-		// dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3, "height",
-		// FAKE_HEIGHT_WIDTH_RESOLUTION);
-		// dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4, "width",
-		// FAKE_HEIGHT_WIDTH_RESOLUTION);
-		// dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 5,
-		// "resolution",
-		// FAKE_HEIGHT_WIDTH_RESOLUTION);
+				"someMimeType");
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3, "checksum",
 				expectedChecksum);
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4,
@@ -372,12 +378,6 @@ public class UploaderTest {
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
 		DataAtomicSpy mimeType = (DataAtomicSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 2);
-		// DataAtomicSpy height = (DataAtomicSpy) dataFactorySpy.MCR
-		// .getReturnValue("factorAtomicUsingNameInDataAndValue", 3);
-		// DataAtomicSpy width = (DataAtomicSpy) dataFactorySpy.MCR
-		// .getReturnValue("factorAtomicUsingNameInDataAndValue", 4);
-		// DataAtomicSpy resolution = (DataAtomicSpy) dataFactorySpy.MCR
-		// .getReturnValue("factorAtomicUsingNameInDataAndValue", 5);
 		DataAtomicSpy checksum = (DataAtomicSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 3);
 		DataAtomicSpy checksumType = (DataAtomicSpy) dataFactorySpy.MCR
@@ -389,9 +389,6 @@ public class UploaderTest {
 		master.MCR.assertParameters("addChild", 1, resourceLink);
 		master.MCR.assertParameters("addChild", 2, fileSize);
 		master.MCR.assertParameters("addChild", 3, mimeType);
-		// master.MCR.assertParameters("addChild", 4, height);
-		// master.MCR.assertParameters("addChild", 5, width);
-		// master.MCR.assertParameters("addChild", 6, resolution);
 		binaryUpdatedGroup.MCR.assertParameters("addChild", 1, checksum);
 		binaryUpdatedGroup.MCR.assertParameters("addChild", 2, checksumType);
 
@@ -403,4 +400,33 @@ public class UploaderTest {
 		binaryUpdatedGroup.MCR.assertParameters("removeFirstChildWithNameInData", 1,
 				"expectedChecksum");
 	}
+
+	@Test
+	public void testResourceReadFromArchive() throws Exception {
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+
+		DataRecordGroupSpy readDataRecordGroup = (DataRecordGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorRecordGroupFromDataGroup", 0);
+		var dataDivider = testGetDataDivider(readDataRecordGroup);
+
+		resourceArchive.MCR.assertParameters("read", 0, dataDivider, BINARY_RECORD_TYPE,
+				SOME_RECORD_ID);
+	}
+
+	@Test
+	public void testResourceReadFromArchiveSentToContentAnalyzer() throws Exception {
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+
+		var resourceFromArchive = resourceArchive.MCR.getReturnValue("read", 0);
+
+		contentAnalyzeInstanceProviderSpy.MCR.assertParameters("getContentAnalyzer", 0);
+		ContentAnalyzerSpy contentAnalyzer = (ContentAnalyzerSpy) contentAnalyzeInstanceProviderSpy.MCR
+				.getReturnValue("getContentAnalyzer", 0);
+
+		contentAnalyzer.MCR.assertParameters("getMimeType", 0, resourceFromArchive);
+	}
+
 }

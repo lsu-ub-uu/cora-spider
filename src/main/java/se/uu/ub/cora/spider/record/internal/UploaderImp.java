@@ -27,6 +27,8 @@ import java.util.List;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.contentanalyzer.ContentAnalyzer;
+import se.uu.ub.cora.contentanalyzer.ContentAnalyzerProvider;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
@@ -106,6 +108,7 @@ public final class UploaderImp implements Uploader {
 		tryToGetUserForToken();
 
 		binaryRecord = recordStorage.read(List.of(type), id);
+
 		DataRecordGroup readDataRecordGroup = DataProvider
 				.createRecordGroupFromDataGroup(binaryRecord);
 		tryToCheckUserIsAuthorisedToUploadData(readDataRecordGroup, binaryRecord);
@@ -114,18 +117,14 @@ public final class UploaderImp implements Uploader {
 		// long fileSize = streamStorage.store(streamId, dataDivider, stream);
 
 		// Än så länge vi resurs id kommer att ha samma id som binär posten.
-		// Mimetype är nu satt till "image/jpeg" så länge
 		String dataDivider = readDataRecordGroup.getDataDivider();
 		resourceArchive.create(dataDivider, type, id, resourceStream, MIME_TYPE_GENERIC);
-		//
-		// // Den här steg kommer inte att behövas. Vi kommer däremot behöva en redactor steg.
-		// addOrReplaceResourceInfoToMetdataRecord(fileName, fileSize);
-		//
 
-		// Somwhere we must get some information from the file.
+		InputStream resourceFromArchive = resourceArchive.read(dataDivider, type, id);
 
-		String originalFileName = binaryRecord
-				.getFirstAtomicValueWithNameInData("originalFileName");
+		ContentAnalyzer contentAnalyzer = ContentAnalyzerProvider.getContentAnalyzer();
+		String detectedMimeType = contentAnalyzer.getMimeType(resourceFromArchive);
+
 		String expectedFileSize = binaryRecord
 				.getFirstAtomicValueWithNameInData("expectedFileSize");
 		String expectedChecksum = FAKE_CHECKSUM;
@@ -138,7 +137,8 @@ public final class UploaderImp implements Uploader {
 		// TODO: If the given user is not used to update the binary record, how do we log the
 		// uploading of the resource by that user?
 
-		createResourceInfoAndMasterGroupAndAddedToBinaryRecord(expectedFileSize, expectedChecksum);
+		createResourceInfoAndMasterGroupAndAddedToBinaryRecord(expectedFileSize, expectedChecksum,
+				detectedMimeType);
 		removeExpectedAtomicsFromBinaryRecord();
 
 		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
@@ -206,7 +206,7 @@ public final class UploaderImp implements Uploader {
 	}
 
 	private void createResourceInfoAndMasterGroupAndAddedToBinaryRecord(String expectedFileSize,
-			String expectedChecksum) {
+			String expectedChecksum, String detectedMimeType) {
 		DataGroup resourceInfo = DataProvider.createGroupUsingNameInData(RESOURCE_INFO);
 		DataGroup master = DataProvider.createGroupUsingNameInData(resourceType);
 
@@ -215,13 +215,7 @@ public final class UploaderImp implements Uploader {
 		DataAtomic fileSize = DataProvider.createAtomicUsingNameInDataAndValue("fileSize",
 				expectedFileSize);
 		DataAtomic mimeType = DataProvider.createAtomicUsingNameInDataAndValue("mimeType",
-				MIME_TYPE_GENERIC);
-		// DataAtomic height = DataProvider.createAtomicUsingNameInDataAndValue("height",
-		// FAKE_HEIGHT_WIDTH);
-		// DataAtomic width = DataProvider.createAtomicUsingNameInDataAndValue("width",
-		// FAKE_HEIGHT_WIDTH);
-		// DataAtomic resolution = DataProvider.createAtomicUsingNameInDataAndValue("resolution",
-		// FAKE_HEIGHT_WIDTH);
+				detectedMimeType);
 		DataAtomic checksum = DataProvider.createAtomicUsingNameInDataAndValue("checksum",
 				expectedChecksum);
 		DataAtomic checksumType = DataProvider.createAtomicUsingNameInDataAndValue("checksumType",
@@ -234,9 +228,6 @@ public final class UploaderImp implements Uploader {
 		master.addChild(resourceLink);
 		master.addChild(fileSize);
 		master.addChild(mimeType);
-		// master.addChild(height);
-		// master.addChild(width);
-		// master.addChild(resolution);
 		binaryRecord.addChild(checksum);
 		binaryRecord.addChild(checksumType);
 	}
