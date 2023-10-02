@@ -37,7 +37,7 @@
 		<coradata.version>7.7.0</coradata.version>
 		<json.version>3.8.0</json.version>
 		<storage.version>9.0-SNAPSHOT</storage.version>
-		<storagespies.version>1.5.0</storagespies.version>
+		<storagespies.version>1.6-SNAPSHOT</storagespies.version>
 		<initialize.version>1.4.0</initialize.version>
 		<search.version>5.5.0</search.version>
 		<bookkeeper.version>9.1.0</bookkeeper.version>
@@ -47,9 +47,7 @@
 		<testutils.version>1.10.0</testutils.version>
 		<coradata-spies.version>1.6-SNAPSHOT</coradata-spies.version>
 		<logger-spies.version>1.5-SNAPSHOT</logger-spies.version>
-		
 	</properties>
-
 
 	<scm>
 		<connection>scm:git:https://github.com/lsu-ub-uu/cora-spider.git</connection>
@@ -105,12 +103,6 @@
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>bookkeeper</artifactId>
 			<version>${bookkeeper.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>se.uu.ub.cora</groupId>
-			<artifactId>beefeater</artifactId>
-			<version>${beefeater.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

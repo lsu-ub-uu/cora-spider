@@ -2,9 +2,9 @@ package se.uu.ub.cora.spider.dependency;
 
 import java.util.Map;
 
-import se.uu.ub.cora.spider.dependency.spy.ResourceArchiveSpy;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.archive.RecordArchiveProvider;
+import se.uu.ub.cora.storage.spies.archive.ResourceArchiveSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 

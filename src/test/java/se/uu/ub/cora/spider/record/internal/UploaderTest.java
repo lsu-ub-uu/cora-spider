@@ -29,9 +29,7 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.dependency.spy.InputStreamSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.dependency.spy.ResourceArchiveSpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.spy.ContentAnalyzerInstanceProviderSpy;
@@ -41,6 +39,8 @@ import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
+import se.uu.ub.cora.storage.spies.archive.InputStreamSpy;
+import se.uu.ub.cora.storage.spies.archive.ResourceArchiveSpy;
 
 public class UploaderTest {
 	private static final String EXPECTED_ORIGINAL_FILE_NAME = "expectedOriginalFileName";
@@ -55,7 +55,6 @@ public class UploaderTest {
 	private static final String ERR_MSG_AUTHORIZATION = "Uploading error: Not possible to upload "
 			+ "resource due the user could not be authorizated, for type {0} and id {1}.";
 	private static final String MIME_TYPE_GENERIC = "application/octet-stream";
-	// private static final String MIME_TYPE_JPEG = "image/jpeg";
 	private static final String SOME_RECORD_ID = "someRecordId";
 	private static final String SOME_AUTH_TOKEN = "someAuthToken";
 	private static final String SOME_RECORD_TYPE = "someRecordType";
@@ -318,7 +317,7 @@ public class UploaderTest {
 		DataGroupSpy binaryUpdatedGroup = (DataGroupSpy) recordUpdater.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("updateRecord", 0, "record");
 
-		assertResourceInfoIsCorrect(binaryUpdatedGroup, FAKE_CHECKSUM, RESOURCE_TYPE_MASTER);
+		assertResourceInfoIsCorrect(binaryUpdatedGroup, RESOURCE_TYPE_MASTER);
 		assertRemoveExpectedFieldsFromBinaryRecord(binaryUpdatedGroup);
 	}
 
@@ -341,12 +340,12 @@ public class UploaderTest {
 		DataGroupSpy binaryUpdatedGroup = (DataGroupSpy) recordUpdater.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("updateRecord", 0, "record");
 
-		assertResourceInfoIsCorrect(binaryUpdatedGroup, EXPECTED_CHECKSUM, RESOURCE_TYPE_MASTER);
+		assertResourceInfoIsCorrect(binaryUpdatedGroup, RESOURCE_TYPE_MASTER);
 		assertRemoveExpectedFieldsFromBinaryRecord(binaryUpdatedGroup);
 	}
 
 	private void assertResourceInfoIsCorrect(DataGroupSpy binaryUpdatedGroup,
-			String expectedChecksum, String resourceTypeMaster) {
+			String resourceTypeMaster) {
 
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "resourceInfo");
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 1, resourceTypeMaster);
@@ -355,11 +354,11 @@ public class UploaderTest {
 				SOME_RECORD_ID);
 		dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInData", 0, "master");
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "fileSize",
-				EXPECTED_FILE_SIZE);
+				"someFileSize");
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2, "mimeType",
 				"someMimeType");
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3, "checksum",
-				expectedChecksum);
+				"someChecksumSHA512");
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4,
 				"checksumType", "SHA512");
 
@@ -429,4 +428,17 @@ public class UploaderTest {
 		contentAnalyzer.MCR.assertParameters("getMimeType", 0, resourceFromArchive);
 	}
 
+	@Test
+	public void testReadResourceMetadataCalled() throws Exception {
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+
+		DataRecordGroupSpy readDataRecordGroup = (DataRecordGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorRecordGroupFromDataGroup", 0);
+		var dataDivider = testGetDataDivider(readDataRecordGroup);
+
+		resourceArchive.MCR.assertParameters("readMetadata", 0, dataDivider, BINARY_RECORD_TYPE,
+				SOME_RECORD_ID);
+	}
 }
