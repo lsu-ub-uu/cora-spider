@@ -8,7 +8,6 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.text.MessageFormat;
-import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -46,9 +45,6 @@ public class UploaderTest {
 	private static final String EXPECTED_ORIGINAL_FILE_NAME = "expectedOriginalFileName";
 	private static final String EXPECTED_FILE_SIZE = "expectedFileSize";
 	private static final String EXPECTED_CHECKSUM = "expectedChecksum";
-	private static final String FAKE_HEIGHT_WIDTH_RESOLUTION = "0";
-	private static final String FAKE_FILE_SIZE = "10";
-	private static final String FAKE_CHECKSUM = "afAF09";
 	private static final String ACTION_UPLOAD = "upload";
 	private static final String ERR_MSG_AUTHENTICATION = "Uploading error: Not possible to upload "
 			+ "resource due the user could not be authenticated, for type {0} and id {1}.";
@@ -123,6 +119,7 @@ public class UploaderTest {
 		recordStorage = new RecordStorageSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataRecordGroupSpy::new);
 
 		resourceArchive = new ResourceArchiveSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getResourceArchive",
@@ -153,7 +150,6 @@ public class UploaderTest {
 
 		recordUpdater.MCR.assertReturn("updateRecord", 0, binaryRecord);
 		assertTrue(binaryRecord instanceof DataRecord);
-
 	}
 
 	private Object testGetDataDivider(DataRecordGroupSpy readDataRecordGroup) {
@@ -164,13 +160,8 @@ public class UploaderTest {
 	private DataRecordGroupSpy testReadRecord() {
 		dependencyProvider.MCR.assertParameters("getRecordStorage", 0);
 		dependencyProvider.MCR.assertReturn("getRecordStorage", 0, recordStorage);
-		recordStorage.MCR.assertParameterAsEqual("read", 0, "types", List.of(BINARY_RECORD_TYPE));
-		recordStorage.MCR.assertParameter("read", 0, "id", SOME_RECORD_ID);
-		DataGroupSpy readDataGroup = (DataGroupSpy) recordStorage.MCR.getReturnValue("read", 0);
-		dataFactorySpy.MCR.assertParameters("factorRecordGroupFromDataGroup", 0, readDataGroup);
-		DataRecordGroupSpy readDataRecordGroup = (DataRecordGroupSpy) dataFactorySpy.MCR
-				.getReturnValue("factorRecordGroupFromDataGroup", 0);
-		return readDataRecordGroup;
+		recordStorage.MCR.assertParameters("read", 0, BINARY_RECORD_TYPE, SOME_RECORD_ID);
+		return (DataRecordGroupSpy) recordStorage.MCR.getReturnValue("read", 0);
 	}
 
 	private void testUpdateRecord() {
@@ -217,11 +208,17 @@ public class UploaderTest {
 	public void testUploadUserAuthorized() throws Exception {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
+
 		dependencyProvider.MCR.assertParameters("getDataGroupTermCollector", 0);
 		recordTypeHandler.MCR.assertParameters("getDefinitionId", 0);
 		var definitionId = recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0);
-		var binaryRecord = (DataGroupSpy) recordStorage.MCR.getReturnValue("read", 0);
-		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, binaryRecord);
+		var binaryRecord = (DataRecordGroupSpy) recordStorage.MCR.getReturnValue("read", 0);
+
+		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0, binaryRecord);
+		var binaryDG = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup", 0);
+		;
+
+		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, binaryDG);
 
 		var user = authenticator.MCR.getReturnValue("getUserForToken", 0);
 		CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
@@ -304,7 +301,7 @@ public class UploaderTest {
 
 	@Test
 	public void testUploadStoreResourceDataintoStorageWithoutChecksum() throws Exception {
-		DataGroupSpy readBinarySpy = new DataGroupSpy();
+		DataRecordGroupSpy readBinarySpy = new DataRecordGroupSpy();
 		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> EXPECTED_ORIGINAL_FILE_NAME, "originalFileName");
 		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
@@ -314,16 +311,18 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
-		DataGroupSpy binaryUpdatedGroup = (DataGroupSpy) recordUpdater.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("updateRecord", 0, "record");
+		var binaryDG = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupFromDataRecordGroup", 1);
 
-		assertResourceInfoIsCorrect(binaryUpdatedGroup, RESOURCE_TYPE_MASTER);
-		assertRemoveExpectedFieldsFromBinaryRecord(binaryUpdatedGroup);
+		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", binaryDG);
+
+		assertResourceInfoIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
+		assertRemoveExpectedFieldsFromBinaryRecord(readBinarySpy);
 	}
 
 	@Test
 	public void testUploadStoreResourceDataintoStorage() throws Exception {
-		DataGroupSpy readBinarySpy = new DataGroupSpy();
+		DataRecordGroupSpy readBinarySpy = new DataRecordGroupSpy();
 		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> EXPECTED_ORIGINAL_FILE_NAME, "originalFileName");
 		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
@@ -337,14 +336,16 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
-		DataGroupSpy binaryUpdatedGroup = (DataGroupSpy) recordUpdater.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("updateRecord", 0, "record");
+		var binaryDG = (DataGroupSpy) dataFactorySpy.MCR
+				.getReturnValue("factorGroupFromDataRecordGroup", 1);
 
-		assertResourceInfoIsCorrect(binaryUpdatedGroup, RESOURCE_TYPE_MASTER);
-		assertRemoveExpectedFieldsFromBinaryRecord(binaryUpdatedGroup);
+		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", binaryDG);
+
+		assertResourceInfoIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
+		assertRemoveExpectedFieldsFromBinaryRecord(readBinarySpy);
 	}
 
-	private void assertResourceInfoIsCorrect(DataGroupSpy binaryUpdatedGroup,
+	private void assertResourceInfoIsCorrect(DataRecordGroupSpy readBinarySpy,
 			String resourceTypeMaster) {
 
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "resourceInfo");
@@ -382,22 +383,20 @@ public class UploaderTest {
 		DataAtomicSpy checksumType = (DataAtomicSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 4);
 
-		binaryUpdatedGroup.MCR.assertParameters("addChild", 0, resourceInfo);
+		readBinarySpy.MCR.assertParameters("addChild", 0, resourceInfo);
 		resourceInfo.MCR.assertParameters("addChild", 0, master);
 		master.MCR.assertParameters("addChild", 0, resourceId);
 		master.MCR.assertParameters("addChild", 1, resourceLink);
 		master.MCR.assertParameters("addChild", 2, fileSize);
 		master.MCR.assertParameters("addChild", 3, mimeType);
-		binaryUpdatedGroup.MCR.assertParameters("addChild", 1, checksum);
-		binaryUpdatedGroup.MCR.assertParameters("addChild", 2, checksumType);
+		readBinarySpy.MCR.assertParameters("addChild", 1, checksum);
+		readBinarySpy.MCR.assertParameters("addChild", 2, checksumType);
 
 	}
 
-	private void assertRemoveExpectedFieldsFromBinaryRecord(DataGroupSpy binaryUpdatedGroup) {
-		binaryUpdatedGroup.MCR.assertParameters("removeFirstChildWithNameInData", 0,
-				"expectedFileSize");
-		binaryUpdatedGroup.MCR.assertParameters("removeFirstChildWithNameInData", 1,
-				"expectedChecksum");
+	private void assertRemoveExpectedFieldsFromBinaryRecord(DataRecordGroupSpy readBinarySpy) {
+		readBinarySpy.MCR.assertParameters("removeFirstChildWithNameInData", 0, "expectedFileSize");
+		readBinarySpy.MCR.assertParameters("removeFirstChildWithNameInData", 1, "expectedChecksum");
 	}
 
 	@Test
@@ -405,8 +404,8 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
-		DataRecordGroupSpy readDataRecordGroup = (DataRecordGroupSpy) dataFactorySpy.MCR
-				.getReturnValue("factorRecordGroupFromDataGroup", 0);
+		DataRecordGroupSpy readDataRecordGroup = (DataRecordGroupSpy) recordStorage.MCR
+				.getReturnValue("read", 0);
 		var dataDivider = testGetDataDivider(readDataRecordGroup);
 
 		resourceArchive.MCR.assertParameters("read", 0, dataDivider, BINARY_RECORD_TYPE,
@@ -434,8 +433,9 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
-		DataRecordGroupSpy readDataRecordGroup = (DataRecordGroupSpy) dataFactorySpy.MCR
-				.getReturnValue("factorRecordGroupFromDataGroup", 0);
+		DataRecordGroupSpy readDataRecordGroup = (DataRecordGroupSpy) recordStorage.MCR
+				.getReturnValue("read", 0);
+
 		var dataDivider = testGetDataDivider(readDataRecordGroup);
 
 		resourceArchive.MCR.assertParameters("readMetadata", 0, dataDivider, BINARY_RECORD_TYPE,

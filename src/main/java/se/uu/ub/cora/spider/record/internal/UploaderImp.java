@@ -22,7 +22,6 @@ package se.uu.ub.cora.spider.record.internal;
 
 import java.io.InputStream;
 import java.text.MessageFormat;
-import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
@@ -56,7 +55,6 @@ public final class UploaderImp implements Uploader {
 	private static final String MIME_TYPE_GENERIC = "application/octet-stream";
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataGroupTermCollector termCollector;
-	private DataGroup binaryRecord;
 	private SpiderDependencyProvider dependencyProvider;
 	private ResourceArchive resourceArchive;
 	private static final String ERR_MSG_AUTHENTICATION = "Uploading error: Not possible to upload "
@@ -75,6 +73,7 @@ public final class UploaderImp implements Uploader {
 	private String authToken;
 	private String type;
 	private User user;
+	private DataRecordGroup binaryDataRecord;
 
 	private UploaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -101,7 +100,8 @@ public final class UploaderImp implements Uploader {
 		validateInput();
 		tryToGetUserForToken();
 
-		DataRecordGroup binaryDataRecord = readRecordbinary(type, id);
+		binaryDataRecord = recordStorage.read(type, id);
+		tryToCheckUserIsAuthorisedToUploadData();
 
 		String dataDivider = binaryDataRecord.getDataDivider();
 
@@ -114,8 +114,8 @@ public final class UploaderImp implements Uploader {
 		return updateBinaryRecord(authToken, type, id);
 	}
 
-	private void setFieldVariables(String authToken, String type, String id, InputStream resourceStream,
-			String resourceType) {
+	private void setFieldVariables(String authToken, String type, String id,
+			InputStream resourceStream, String resourceType) {
 		this.authToken = authToken;
 		this.type = type;
 		this.id = id;
@@ -125,7 +125,10 @@ public final class UploaderImp implements Uploader {
 
 	private DataRecord updateBinaryRecord(String authToken, String type, String id) {
 		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
-		return recordUpdater.updateRecord(authToken, type, id, binaryRecord);
+
+		DataGroup binaryDataGroup = DataProvider.createGroupFromRecordGroup(binaryDataRecord);
+
+		return recordUpdater.updateRecord(authToken, type, id, binaryDataGroup);
 	}
 
 	private void updateBinaryRecord(String detectedMimeType, ResourceMetadata resourceMetadata) {
@@ -138,15 +141,6 @@ public final class UploaderImp implements Uploader {
 		InputStream resourceFromArchive = resourceArchive.read(dataDivider, type, id);
 		ContentAnalyzer contentAnalyzer = ContentAnalyzerProvider.getContentAnalyzer();
 		return contentAnalyzer.getMimeType(resourceFromArchive);
-	}
-
-	private DataRecordGroup readRecordbinary(String type, String id) {
-		binaryRecord = recordStorage.read(List.of(type), id);
-
-		DataRecordGroup readDataRecordGroup = DataProvider
-				.createRecordGroupFromDataGroup(binaryRecord);
-		tryToCheckUserIsAuthorisedToUploadData(readDataRecordGroup, binaryRecord);
-		return readDataRecordGroup;
 	}
 
 	private void validateInput() {
@@ -184,29 +178,27 @@ public final class UploaderImp implements Uploader {
 		}
 	}
 
-	private void tryToCheckUserIsAuthorisedToUploadData(DataRecordGroup dataRecordGroup,
-			DataGroup dataGroup) {
+	private void tryToCheckUserIsAuthorisedToUploadData() {
 		try {
-			checkUserIsAuthorisedToUploadData(dataRecordGroup, dataGroup);
+			checkUserIsAuthorisedToUploadData();
 		} catch (Exception e) {
 			throw new AuthorizationException(MessageFormat.format(ERR_MSG_AUTHORIZATION, type, id),
 					e);
 		}
 	}
 
-	private void checkUserIsAuthorisedToUploadData(DataRecordGroup recordGroup,
-			DataGroup dataGroup) {
-		CollectTerms collectedTerms = getCollectedTermsForRecord(recordGroup, dataGroup);
+	private void checkUserIsAuthorisedToUploadData() {
+		CollectTerms collectedTerms = getCollectedTermsForRecord();
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
 				"upload", type, collectedTerms.permissionTerms);
 	}
 
-	private CollectTerms getCollectedTermsForRecord(DataRecordGroup recordGroup,
-			DataGroup dataGroup) {
+	private CollectTerms getCollectedTermsForRecord() {
+		DataGroup binaryDG = DataProvider.createGroupFromRecordGroup(binaryDataRecord);
 		RecordTypeHandler recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
+				.getRecordTypeHandlerUsingDataRecordGroup(binaryDataRecord);
 		String definitionId = recordTypeHandler.getDefinitionId();
-		return termCollector.collectTerms(definitionId, dataGroup);
+		return termCollector.collectTerms(definitionId, binaryDG);
 	}
 
 	private void createResourceInfoAndMasterGroupAndAddedToBinaryRecord(String expectedFileSize,
@@ -225,20 +217,20 @@ public final class UploaderImp implements Uploader {
 		DataAtomic checksumType = DataProvider.createAtomicUsingNameInDataAndValue("checksumType",
 				"SHA512");
 
-		binaryRecord.addChild(resourceInfo);
+		binaryDataRecord.addChild(resourceInfo);
 		resourceInfo.addChild(master);
 
 		master.addChild(resourceId);
 		master.addChild(resourceLink);
 		master.addChild(fileSize);
 		master.addChild(mimeType);
-		binaryRecord.addChild(checksum);
-		binaryRecord.addChild(checksumType);
+		binaryDataRecord.addChild(checksum);
+		binaryDataRecord.addChild(checksumType);
 	}
 
 	private void removeExpectedAtomicsFromBinaryRecord() {
-		binaryRecord.removeFirstChildWithNameInData("expectedFileSize");
-		binaryRecord.removeFirstChildWithNameInData("expectedChecksum");
+		binaryDataRecord.removeFirstChildWithNameInData("expectedFileSize");
+		binaryDataRecord.removeFirstChildWithNameInData("expectedChecksum");
 	}
 
 }
