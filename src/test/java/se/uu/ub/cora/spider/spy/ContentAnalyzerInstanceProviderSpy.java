@@ -16,26 +16,36 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.dependency.spy;
+package se.uu.ub.cora.spider.spy;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.function.Supplier;
 
+import se.uu.ub.cora.contentanalyzer.ContentAnalyzer;
+import se.uu.ub.cora.contentanalyzer.ContentAnalyzerInstanceProvider;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class InputStreamSpy extends InputStream {
+public class ContentAnalyzerInstanceProviderSpy implements ContentAnalyzerInstanceProvider {
+
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public InputStreamSpy() {
+	public ContentAnalyzerInstanceProviderSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("read", (Supplier<Integer>) () -> 0);
+		MRV.setDefaultReturnValuesSupplier("getOrderToSelectImplementionsBy",
+				(Supplier<Integer>) () -> 0);
+		MRV.setDefaultReturnValuesSupplier("getContentAnalyzer", ContentAnalyzerSpy::new);
+
 	}
 
 	@Override
-	public int read() throws IOException {
+	public int getOrderToSelectImplementionsBy() {
 		return (int) MCR.addCallAndReturnFromMRV();
 	}
+
+	@Override
+	public ContentAnalyzer getContentAnalyzer() {
+		return (ContentAnalyzer) MCR.addCallAndReturnFromMRV();
+	}
+
 }

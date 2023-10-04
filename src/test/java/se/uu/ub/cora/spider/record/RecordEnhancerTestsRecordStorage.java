@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
@@ -218,5 +219,11 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 	public long getTotalNumberOfRecordsForTypes(List<String> types, Filter filter) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public DataRecordGroup read(String type, String id) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

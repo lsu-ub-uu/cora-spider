@@ -34,19 +34,20 @@
 
 	<properties>
 		<logger.version>2.9.0</logger.version>
-		<coradata.version>7.7.0</coradata.version>
+		<coradata.version>8.0-SNAPSHOT</coradata.version>
 		<json.version>3.8.0</json.version>
 		<storage.version>9.0-SNAPSHOT</storage.version>
-		<storagespies.version>1.5.0</storagespies.version>
+		<storagespies.version>1.6-SNAPSHOT</storagespies.version>
 		<initialize.version>1.4.0</initialize.version>
 		<search.version>5.5.0</search.version>
 		<bookkeeper.version>9.1.0</bookkeeper.version>
 		<beefeater.version>3.12.0</beefeater.version>
+		<contentanalyzer.version>1.0-SNAPSHOT</contentanalyzer.version>
 		<password.version>1.6.0</password.version>
 		<testutils.version>1.10.0</testutils.version>
 		<coradata-spies.version>1.6-SNAPSHOT</coradata-spies.version>
+		<logger-spies.version>1.5-SNAPSHOT</logger-spies.version>
 	</properties>
-
 
 	<scm>
 		<connection>scm:git:https://github.com/lsu-ub-uu/cora-spider.git</connection>
@@ -112,6 +113,12 @@
 		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>contentanalyzer</artifactId>
+			<version>${contentanalyzer.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>password</artifactId>
 			<version>${password.version}</version>
 		</dependency>
@@ -131,6 +138,12 @@
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>coradata-spies</artifactId>
 			<version>${coradata-spies.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>logger-spies</artifactId>
+			<version>${logger-spies.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
