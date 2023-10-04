@@ -353,7 +353,12 @@ public class UploaderTest {
 
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "resourceId",
 				SOME_RECORD_ID);
-		dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInData", 0, "master");
+		ContentAnalyzerSpy contentAnalyzer = (ContentAnalyzerSpy) contentAnalyzeInstanceProviderSpy.MCR
+				.getReturnValue("getContentAnalyzer", 0);
+		var detectedMimeType = contentAnalyzer.MCR.getReturnValue("getMimeType", 0);
+		dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInDataAndMimeType", 0,
+				"master", detectedMimeType);
+
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "fileSize",
 				"someFileSize");
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2, "mimeType",
@@ -372,7 +377,7 @@ public class UploaderTest {
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
 
 		DataResourceLinkSpy resourceLink = (DataResourceLinkSpy) dataFactorySpy.MCR
-				.getReturnValue("factorResourceLinkUsingNameInData", 0);
+				.getReturnValue("factorResourceLinkUsingNameInDataAndMimeType", 0);
 
 		DataAtomicSpy fileSize = (DataAtomicSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);

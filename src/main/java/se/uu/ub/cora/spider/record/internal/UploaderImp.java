@@ -201,19 +201,20 @@ public final class UploaderImp implements Uploader {
 		return termCollector.collectTerms(definitionId, binaryDG);
 	}
 
-	private void createResourceInfoAndMasterGroupAndAddedToBinaryRecord(String expectedFileSize,
-			String expectedChecksum, String detectedMimeType) {
+	private void createResourceInfoAndMasterGroupAndAddedToBinaryRecord(String fetchedFileSize,
+			String fetchedChecksum, String detectedMimeType) {
 		DataGroup resourceInfo = DataProvider.createGroupUsingNameInData(RESOURCE_INFO);
 		DataGroup master = DataProvider.createGroupUsingNameInData(resourceType);
 
 		DataAtomic resourceId = DataProvider.createAtomicUsingNameInDataAndValue("resourceId", id);
-		DataResourceLink resourceLink = DataProvider.createResourceLinkUsingNameInData("master");
+		DataResourceLink resourceLink = DataProvider
+				.createResourceLinkUsingNameInDataAndMimeType("master", detectedMimeType);
 		DataAtomic fileSize = DataProvider.createAtomicUsingNameInDataAndValue("fileSize",
-				expectedFileSize);
+				fetchedFileSize);
 		DataAtomic mimeType = DataProvider.createAtomicUsingNameInDataAndValue("mimeType",
 				detectedMimeType);
 		DataAtomic checksum = DataProvider.createAtomicUsingNameInDataAndValue("checksum",
-				expectedChecksum);
+				fetchedChecksum);
 		DataAtomic checksumType = DataProvider.createAtomicUsingNameInDataAndValue("checksumType",
 				"SHA512");
 

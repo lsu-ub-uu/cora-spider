@@ -93,4 +93,11 @@ public class DataAtomicSpy implements DataAtomic {
 		return Optional.empty();
 	}
 
+	@Override
+	public boolean hasRepeatId() {
+		// TODO Auto-generated method stub
+		return false;
+
+	}
+
 }

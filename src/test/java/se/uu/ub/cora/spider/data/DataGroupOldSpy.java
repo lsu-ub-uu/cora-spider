@@ -329,4 +329,10 @@ public class DataGroupOldSpy implements DataGroup {
 		return (Optional<String>) MCR.addCallAndReturnFromMRV("nameInData", nameInData);
 	}
 
+	@Override
+	public boolean hasRepeatId() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }
