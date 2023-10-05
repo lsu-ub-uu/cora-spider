@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>se.uu.ub.cora</groupId>
 		<artifactId>cora-parent</artifactId>
-		<version>2.4.0</version>
+		<version>2.5.0</version>
 	</parent>
 
 	<artifactId>spider</artifactId>
@@ -33,20 +33,20 @@
 	<name>Spider</name>
 
 	<properties>
-		<logger.version>2.9.0</logger.version>
-		<coradata.version>8.0-SNAPSHOT</coradata.version>
-		<json.version>3.8.0</json.version>
-		<storage.version>9.0-SNAPSHOT</storage.version>
-		<storagespies.version>1.6-SNAPSHOT</storagespies.version>
-		<initialize.version>1.4.0</initialize.version>
-		<search.version>5.5.0</search.version>
-		<bookkeeper.version>9.1.0</bookkeeper.version>
-		<beefeater.version>3.12.0</beefeater.version>
-		<contentanalyzer.version>1.0-SNAPSHOT</contentanalyzer.version>
-		<password.version>1.6.0</password.version>
-		<testutils.version>1.10.0</testutils.version>
-		<coradata-spies.version>1.6-SNAPSHOT</coradata-spies.version>
-		<logger-spies.version>1.5-SNAPSHOT</logger-spies.version>
+		<logger.version>2.10.0</logger.version>
+		<coradata.version>8.0.0</coradata.version>
+		<json.version>3.9.0</json.version>
+		<storage.version>9.0.0</storage.version>
+		<storagespies.version>1.6.0</storagespies.version>
+		<initialize.version>1.5.0</initialize.version>
+		<search.version>5.6.0</search.version>
+		<bookkeeper.version>9.2.0</bookkeeper.version>
+		<beefeater.version>3.13.0</beefeater.version>
+		<contentanalyzer.version>1.0.0</contentanalyzer.version>
+		<password.version>1.7.0</password.version>
+		<testutils.version>1.11.0</testutils.version>
+		<coradata-spies.version>1.6.0</coradata-spies.version>
+		<logger-spies.version>1.5.0</logger-spies.version>
 	</properties>
 
 	<scm>
