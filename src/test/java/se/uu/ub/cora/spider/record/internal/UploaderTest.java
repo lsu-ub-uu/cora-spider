@@ -37,6 +37,7 @@ import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
+import se.uu.ub.cora.storage.archive.record.ResourceMetadataToUpdate;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.storage.spies.archive.InputStreamSpy;
 import se.uu.ub.cora.storage.spies.archive.ResourceArchiveSpy;
@@ -445,5 +446,38 @@ public class UploaderTest {
 
 		resourceArchive.MCR.assertParameters("readMetadata", 0, dataDivider, BINARY_RECORD_TYPE,
 				SOME_RECORD_ID);
+	}
+
+	@Test
+	public void testCallUpdateResourceArchiveMetadata() throws Exception {
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+
+		DataRecordGroupSpy readDataRecordGroup = (DataRecordGroupSpy) recordStorage.MCR
+				.getReturnValue("read", 0);
+		var dataDivider = testGetDataDivider(readDataRecordGroup);
+		resourceArchive.MCR.assertParameters("updateMetadata", 0, dataDivider, BINARY_RECORD_TYPE,
+				SOME_RECORD_ID);
+
+		assertResourceMetadata(readDataRecordGroup);
+
+	}
+
+	private void assertResourceMetadata(DataRecordGroupSpy readDataRecordGroup) {
+		ResourceMetadataToUpdate resourceMetadata = (ResourceMetadataToUpdate) resourceArchive.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("updateMetadata", 0,
+						"resourceMetadataToUpdate");
+
+		contentAnalyzeInstanceProviderSpy.MCR.assertParameters("getContentAnalyzer", 0);
+		ContentAnalyzerSpy contentAnalyzer = (ContentAnalyzerSpy) contentAnalyzeInstanceProviderSpy.MCR
+				.getReturnValue("getContentAnalyzer", 0);
+
+		contentAnalyzer.MCR.assertReturn("getMimeType", 0, resourceMetadata.mimeType());
+
+		readDataRecordGroup.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0,
+				"originalFileName");
+		readDataRecordGroup.MCR.assertReturn("getFirstAtomicValueWithNameInData", 0,
+				resourceMetadata.originalFileName());
 	}
 }

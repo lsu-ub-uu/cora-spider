@@ -48,6 +48,7 @@ import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
 import se.uu.ub.cora.storage.archive.ResourceMetadata;
+import se.uu.ub.cora.storage.archive.record.ResourceMetadataToUpdate;
 
 public final class UploaderImp implements Uploader {
 	private static final String BINARY_RECORD_TYPE = "binary";
@@ -96,22 +97,43 @@ public final class UploaderImp implements Uploader {
 	public DataRecord upload(String authToken, String type, String id, InputStream resourceStream,
 			String resourceType) {
 		setFieldVariables(authToken, type, id, resourceStream, resourceType);
+		validateInputAndUser(type, id);
+		storeResourceStreamInArchive(type, id, resourceStream);
+		return updateMetadataInArchiveAndStorage(authToken, type, id);
+	}
 
-		validateInput();
+	private void validateInputAndUser(String type, String id) {
+		validateInputIsBinaryMasterAndHasStream();
 		tryToGetUserForToken();
-
 		binaryDataRecord = recordStorage.read(type, id);
-		tryToCheckUserIsAuthorisedToUploadData();
+		tryToCheckUserIsAuthorisedToUploadData(binaryDataRecord);
+	}
 
+	private void storeResourceStreamInArchive(String type, String id, InputStream resourceStream) {
 		String dataDivider = binaryDataRecord.getDataDivider();
-
 		resourceArchive.create(dataDivider, type, id, resourceStream, MIME_TYPE_GENERIC);
+	}
+
+	private DataRecord updateMetadataInArchiveAndStorage(String authToken, String type, String id) {
+		String dataDivider = binaryDataRecord.getDataDivider();
+		ResourceMetadata resourceMetadata = resourceArchive.readMetadata(dataDivider, type, id);
 
 		String detectedMimeType = detectMimeType(type, id, dataDivider);
-		ResourceMetadata resourceMetadata = resourceArchive.readMetadata(dataDivider, type, id);
-		updateBinaryRecord(detectedMimeType, resourceMetadata);
 
-		return updateBinaryRecord(authToken, type, id);
+		String originalFileName = binaryDataRecord
+				.getFirstAtomicValueWithNameInData("originalFileName");
+
+		updateResourceMetadata(type, id, dataDivider, detectedMimeType, originalFileName);
+
+		updateBinaryRecord(detectedMimeType, resourceMetadata);
+		return updateBinaryRecordInStorage(authToken, type, id);
+	}
+
+	private void updateResourceMetadata(String type, String id, String dataDivider,
+			String detectedMimeType, String originalFileName) {
+		ResourceMetadataToUpdate resourceMetadataToUpdate = new ResourceMetadataToUpdate(
+				originalFileName, detectedMimeType);
+		resourceArchive.updateMetadata(dataDivider, type, id, resourceMetadataToUpdate);
 	}
 
 	private void setFieldVariables(String authToken, String type, String id,
@@ -123,7 +145,13 @@ public final class UploaderImp implements Uploader {
 		this.resourceType = resourceType;
 	}
 
-	private DataRecord updateBinaryRecord(String authToken, String type, String id) {
+	private void validateInputIsBinaryMasterAndHasStream() {
+		ensureBinaryType();
+		ensureResourceTypeIsMaster();
+		ensureResourceStreamExists();
+	}
+
+	private DataRecord updateBinaryRecordInStorage(String authToken, String type, String id) {
 		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
 
 		DataGroup binaryDataGroup = DataProvider.createGroupFromRecordGroup(binaryDataRecord);
@@ -143,12 +171,6 @@ public final class UploaderImp implements Uploader {
 		return contentAnalyzer.getMimeType(resourceFromArchive);
 	}
 
-	private void validateInput() {
-		ensureBinaryType();
-		ensureResourceTypeIsMaster();
-		ensureResourceStreamExists(resourceStream);
-	}
-
 	private void ensureBinaryType() {
 		if (!BINARY_RECORD_TYPE.equals(type)) {
 			throw new MisuseException(MessageFormat.format(ERR_MESSAGE_MISUSE, type, id));
@@ -162,8 +184,8 @@ public final class UploaderImp implements Uploader {
 		}
 	}
 
-	private void ensureResourceStreamExists(InputStream inputStream) {
-		if (null == inputStream) {
+	private void ensureResourceStreamExists() {
+		if (null == resourceStream) {
 			throw new DataMissingException(
 					MessageFormat.format(ERR_MESAGE_MISSING_RESOURCE_STREAM, type, id));
 		}
@@ -178,23 +200,23 @@ public final class UploaderImp implements Uploader {
 		}
 	}
 
-	private void tryToCheckUserIsAuthorisedToUploadData() {
+	private void tryToCheckUserIsAuthorisedToUploadData(DataRecordGroup dataRecord) {
 		try {
-			checkUserIsAuthorisedToUploadData();
+			checkUserIsAuthorisedToUploadData(dataRecord);
 		} catch (Exception e) {
 			throw new AuthorizationException(MessageFormat.format(ERR_MSG_AUTHORIZATION, type, id),
 					e);
 		}
 	}
 
-	private void checkUserIsAuthorisedToUploadData() {
-		CollectTerms collectedTerms = getCollectedTermsForRecord();
+	private void checkUserIsAuthorisedToUploadData(DataRecordGroup dataRecord) {
+		CollectTerms collectedTerms = getCollectedTermsForRecord(dataRecord);
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
 				"upload", type, collectedTerms.permissionTerms);
 	}
 
-	private CollectTerms getCollectedTermsForRecord() {
-		DataGroup binaryDG = DataProvider.createGroupFromRecordGroup(binaryDataRecord);
+	private CollectTerms getCollectedTermsForRecord(DataRecordGroup dataRecord) {
+		DataGroup binaryDG = DataProvider.createGroupFromRecordGroup(dataRecord);
 		RecordTypeHandler recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(binaryDataRecord);
 		String definitionId = recordTypeHandler.getDefinitionId();
