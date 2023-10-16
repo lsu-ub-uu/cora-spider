@@ -99,6 +99,9 @@ public final class UploaderImp implements Uploader {
 		setFieldVariables(authToken, type, id, resourceStream, resourceType);
 		validateInputAndUser(type, id);
 		storeResourceStreamInArchive(type, id, resourceStream);
+		// dependencyProvider.getInitInfoValueUsingKey("imageConverterHost")
+		// dependencyProvider.getInitInfoValueUsingKey("imageConverterPort")
+
 		return updateMetadataInArchiveAndStorage(authToken, type, id);
 	}
 
