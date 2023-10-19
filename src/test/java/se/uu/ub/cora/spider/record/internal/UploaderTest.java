@@ -31,6 +31,7 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.Uploader;
+import se.uu.ub.cora.spider.resourceconvert.spy.ResourceConvertSpy;
 import se.uu.ub.cora.spider.spy.ContentAnalyzerInstanceProviderSpy;
 import se.uu.ub.cora.spider.spy.ContentAnalyzerSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
@@ -79,9 +80,11 @@ public class UploaderTest {
 	private RecordTypeHandlerSpy recordTypeHandler;
 	private ContentAnalyzerInstanceProviderSpy contentAnalyzeInstanceProviderSpy;
 	private LoggerFactory loggerFactory;
+	private ResourceConvertSpy resourceConvert;
 
 	@BeforeMethod
 	public void beforeMethod() {
+
 		dependencyProvider = new SpiderDependencyProviderSpy();
 		dataFactorySpy = new DataFactorySpy();
 
@@ -97,8 +100,10 @@ public class UploaderTest {
 				.onlyForTestSetContentAnalyzerInstanceProvider(contentAnalyzeInstanceProviderSpy);
 
 		someStream = new InputStreamSpy();
+		resourceConvert = new ResourceConvertSpy();
 
-		uploader = UploaderImp.usingDependencyProvider(dependencyProvider);
+		uploader = UploaderImp.usingDependencyProviderAndResourceConvert(dependencyProvider,
+				resourceConvert);
 	}
 
 	private void setUpSpiderInstanceProvider() {
@@ -120,7 +125,10 @@ public class UploaderTest {
 		recordStorage = new RecordStorageSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
-		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataRecordGroupSpy::new);
+		DataRecordGroupSpy dataRecordGroupSpy = new DataRecordGroupSpy();
+		dataRecordGroupSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider",
+				() -> "someDataDivider");
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> dataRecordGroupSpy);
 
 		resourceArchive = new ResourceArchiveSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getResourceArchive",
@@ -450,7 +458,6 @@ public class UploaderTest {
 
 	@Test
 	public void testCallUpdateResourceArchiveMetadata() throws Exception {
-
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
@@ -461,7 +468,6 @@ public class UploaderTest {
 				SOME_RECORD_ID);
 
 		assertResourceMetadata(readDataRecordGroup);
-
 	}
 
 	private void assertResourceMetadata(DataRecordGroupSpy readDataRecordGroup) {
@@ -479,5 +485,17 @@ public class UploaderTest {
 				"originalFileName");
 		readDataRecordGroup.MCR.assertReturn("getFirstAtomicValueWithNameInData", 0,
 				resourceMetadata.originalFileName());
+	}
+
+	@Test
+	public void testCallUpdateSendsMessageForReadMetadataAndConvertSmallFormats() throws Exception {
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+
+		DataRecordGroupSpy readDataRecordGroup = testReadRecord();
+		var dataDivider = testGetDataDivider(readDataRecordGroup);
+
+		resourceConvert.MCR.assertParameters("sendMessageForAnalyzeAndConvertToThumbnails", 0,
+				dataDivider, BINARY_RECORD_TYPE, SOME_RECORD_ID);
 	}
 }

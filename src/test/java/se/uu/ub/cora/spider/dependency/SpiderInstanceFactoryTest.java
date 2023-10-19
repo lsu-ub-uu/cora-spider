@@ -26,7 +26,7 @@ import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataProvider;
@@ -51,6 +51,8 @@ import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordListIndexerImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
+import se.uu.ub.cora.spider.record.internal.UploaderImp;
+import se.uu.ub.cora.spider.resourceconvert.ResourceConvertImp;
 
 public class SpiderInstanceFactoryTest {
 	private SpiderInstanceFactory factory;
@@ -58,7 +60,7 @@ public class SpiderInstanceFactoryTest {
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
 
-	@BeforeTest
+	@BeforeMethod
 	public void setUp() {
 		dataFactorySpy = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
@@ -66,6 +68,18 @@ public class SpiderInstanceFactoryTest {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		dependencyProvider = new SpiderDependencyProviderOldSpy();
+
+		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
+				() -> "someRabbitHostname", "rabbitMqHostname");
+		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
+				() -> "1234", "rabbitMqPort");
+		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
+				() -> "someVHost", "rabbitMqVirtualHost");
+		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
+				() -> "someExchange", "rabbitMqExchange");
+		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
+				() -> "someRoutingKey", "rabbitMqRoutingKey");
+
 		factory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
 	}
 
@@ -127,6 +141,31 @@ public class SpiderInstanceFactoryTest {
 		assertNotNull(recordDeleter);
 		assertNotNull(recordDeleter2);
 		assertNotSame(recordDeleter, recordDeleter2);
+	}
+
+	@Test
+	public void testFactorUploader() throws Exception {
+
+		UploaderImp recordUploader = (UploaderImp) factory.factorUploader();
+
+		SpiderDependencyProvider passedDependencyProvider = recordUploader
+				.onlyForTestGetDependecyProvider();
+		assertEquals(passedDependencyProvider, dependencyProvider);
+
+		ResourceConvertImp resouceConvert = (ResourceConvertImp) recordUploader
+				.onlyForTestGetResourceConvert();
+		assertTrue(resouceConvert instanceof ResourceConvertImp);
+
+		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 0,
+				resouceConvert.onlyForTestGetHostName());
+		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 1,
+				String.valueOf(resouceConvert.onlyForTestGetPort()));
+		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 2,
+				resouceConvert.onlyForTestGetVirtualHost());
+		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 3,
+				resouceConvert.onlyForTestGetExchange());
+		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 4,
+				resouceConvert.onlyForTestGetRoutingKey());
 	}
 
 	@Test
@@ -196,4 +235,5 @@ public class SpiderInstanceFactoryTest {
 
 		assertNotSame(listIndexer, listIndexer2);
 	}
+
 }

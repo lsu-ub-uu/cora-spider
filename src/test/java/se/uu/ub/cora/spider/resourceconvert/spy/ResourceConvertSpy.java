@@ -16,10 +16,24 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.resourceconvert;
+package se.uu.ub.cora.spider.resourceconvert.spy;
 
-public interface ResourceConvert {
+import se.uu.ub.cora.spider.resourceconvert.ResourceConvert;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-	void sendMessageForAnalyzeAndConvertToThumbnails(String dataDivider, String type, String id);
+public class ResourceConvertSpy implements ResourceConvert {
 
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public ResourceConvertSpy() {
+		MCR.useMRV(MRV);
+	}
+
+	@Override
+	public void sendMessageForAnalyzeAndConvertToThumbnails(String dataDivider, String type,
+			String id) {
+		MCR.addCall("dataDivider", dataDivider, "type", type, "id", id);
+	}
 }

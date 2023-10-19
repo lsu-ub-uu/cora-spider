@@ -18,32 +18,73 @@
  */
 package se.uu.ub.cora.spider.resourceconvert;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import se.uu.ub.cora.messaging.AmqpMessageSenderRoutingInfo;
 import se.uu.ub.cora.messaging.MessageRoutingInfo;
 import se.uu.ub.cora.messaging.MessageSender;
 import se.uu.ub.cora.messaging.MessagingProvider;
 
 public class ResourceConvertImp implements ResourceConvert {
 
-	private static final String ANALYZE_AND_CONVERT_TO_THUMBNAILS = "analyzeAndConvertToThumbnails";
 	private String hostname;
-	private String port;
+	private int port;
+	private String vhost;
+	private String exchange;
+	private String routingkey;
 
-	public static ResourceConvertImp usingHostnameAndPort(String hostname, String port) {
-		return new ResourceConvertImp(hostname, port);
+	public static ResourceConvertImp usingHostnamePortVHostExchangeRoutingKey(String hostname,
+			int port, String vhost, String exchage, String routingkey) {
+		return new ResourceConvertImp(hostname, port, vhost, exchage, routingkey);
 	}
 
-	private ResourceConvertImp(String hostname, String port) {
+	private ResourceConvertImp(String hostname, int port, String vhost, String exchange,
+			String routingkey) {
 		this.hostname = hostname;
 		this.port = port;
+		this.vhost = vhost;
+		this.exchange = exchange;
+		this.routingkey = routingkey;
+
 	}
 
 	@Override
-	public void analyzeAndConvertToThumbnails(String dataDivider, String type, String id) {
-		MessageRoutingInfo messageRoutingInfo = new MessageRoutingInfo(hostname, port,
-				ANALYZE_AND_CONVERT_TO_THUMBNAILS);
+	public void sendMessageForAnalyzeAndConvertToThumbnails(String dataDivider, String type,
+			String id) {
+		MessageRoutingInfo messageRoutingInfo = new AmqpMessageSenderRoutingInfo(hostname, port,
+				vhost, exchange, routingkey);
 		MessageSender sender = MessagingProvider.getTopicMessageSender(messageRoutingInfo);
-		sender.sendMessage(null, null);
 
+		Map<String, Object> headers = crateHeadersMap(dataDivider, type, id);
+		sender.sendMessage(headers, "Read metadata and convert to small formats");
 	}
 
+	private Map<String, Object> crateHeadersMap(String dataDivider, String type, String id) {
+		Map<String, Object> headers = new HashMap<>();
+		headers.put("dataDivider", dataDivider);
+		headers.put("type", type);
+		headers.put("id", id);
+		return headers;
+	}
+
+	public String onlyForTestGetHostName() {
+		return hostname;
+	}
+
+	public int onlyForTestGetPort() {
+		return port;
+	}
+
+	public String onlyForTestGetVirtualHost() {
+		return vhost;
+	}
+
+	public String onlyForTestGetExchange() {
+		return exchange;
+	}
+
+	public String onlyForTestGetRoutingKey() {
+		return routingkey;
+	}
 }
