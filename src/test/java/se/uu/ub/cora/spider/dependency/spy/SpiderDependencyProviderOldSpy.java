@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -78,7 +78,7 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandlerUsingDataRecordGroup",
 				() -> recordTypeHandlerSpy);
-		// MRV.setDefaultReturnValuesSupplier("getResourceArchive", ResourceArchiveSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getInitInfoValueUsingKey", () -> "someInitValue");
 	}
 
 	@Override
@@ -209,7 +209,7 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 
 	@Override
 	public String getInitInfoValueUsingKey(String key) {
-		return null;
+		return (String) MCR.addCallAndReturnFromMRV("key", key);
 	}
 
 	@Override

@@ -50,6 +50,8 @@ import se.uu.ub.cora.spider.record.internal.RecordSearcherImp;
 import se.uu.ub.cora.spider.record.internal.RecordUpdaterImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
 import se.uu.ub.cora.spider.record.internal.UploaderImp;
+import se.uu.ub.cora.spider.resourceconvert.ResourceConvert;
+import se.uu.ub.cora.spider.resourceconvert.ResourceConvertImp;
 
 public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
@@ -103,7 +105,18 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	@Override
 	public Uploader factorUploader() {
-		return UploaderImp.usingDependencyProvider(dependencyProvider);
+
+		String hostName = dependencyProvider.getInitInfoValueUsingKey("rabbitMqHostname");
+		int port = Integer.parseInt(dependencyProvider.getInitInfoValueUsingKey("rabbitMqPort"));
+		String vHost = dependencyProvider.getInitInfoValueUsingKey("rabbitMqVirtualHost");
+		String exchange = dependencyProvider.getInitInfoValueUsingKey("rabbitMqExchange");
+		String routingKey = dependencyProvider.getInitInfoValueUsingKey("rabbitMqRoutingKey");
+
+		ResourceConvert recsourceConvert = ResourceConvertImp
+				.usingHostnamePortVHostExchangeRoutingKey(hostName, port, vHost, exchange,
+						routingKey);
+		return UploaderImp.usingDependencyProviderAndResourceConvert(dependencyProvider,
+				recsourceConvert);
 	}
 
 	@Override

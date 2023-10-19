@@ -47,6 +47,7 @@
 		<testutils.version>1.11.0</testutils.version>
 		<coradata-spies.version>1.6.0</coradata-spies.version>
 		<logger-spies.version>1.5.0</logger-spies.version>
+		<messaging.version>3.0-SNAPSHOT</messaging.version>
 	</properties>
 
 	<scm>
@@ -145,6 +146,12 @@
 			<artifactId>logger-spies</artifactId>
 			<version>${logger-spies.version}</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>messaging</artifactId>
+			<version>${messaging.version}</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>

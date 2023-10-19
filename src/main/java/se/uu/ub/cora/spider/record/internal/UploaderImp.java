@@ -45,6 +45,7 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.Uploader;
+import se.uu.ub.cora.spider.resourceconvert.ResourceConvert;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
 import se.uu.ub.cora.storage.archive.ResourceMetadata;
@@ -74,19 +75,24 @@ public final class UploaderImp implements Uploader {
 	private String authToken;
 	private String type;
 	private User user;
-	private DataRecordGroup binaryDataRecord;
+	private DataRecordGroup binaryDataRecordGroup;
+	private ResourceConvert resourceConvert;
 
-	private UploaderImp(SpiderDependencyProvider dependencyProvider) {
+	private UploaderImp(SpiderDependencyProvider dependencyProvider,
+			ResourceConvert resourceConvert) {
 		this.dependencyProvider = dependencyProvider;
+		this.resourceConvert = resourceConvert;
 		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
 		termCollector = dependencyProvider.getDataGroupTermCollector();
 		resourceArchive = dependencyProvider.getResourceArchive();
+
 	}
 
-	public static UploaderImp usingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
-		return new UploaderImp(dependencyProvider);
+	public static UploaderImp usingDependencyProviderAndResourceConvert(
+			SpiderDependencyProvider dependencyProvider, ResourceConvert resourceConvert) {
+		return new UploaderImp(dependencyProvider, resourceConvert);
 	}
 
 	// IF ANY UPDATE to binary record a SuperUser should be used, not the user sent throug the
@@ -99,28 +105,36 @@ public final class UploaderImp implements Uploader {
 		setFieldVariables(authToken, type, id, resourceStream, resourceType);
 		validateInputAndUser(type, id);
 		storeResourceStreamInArchive(type, id, resourceStream);
-		return updateMetadataInArchiveAndStorage(authToken, type, id);
+		// dependencyProvider.getInitInfoValueUsingKey("imageConverterHost")
+		// dependencyProvider.getInitInfoValueUsingKey("imageConverterPort")
+
+		DataRecord updatedRecord = updateMetadataInArchiveAndStorage(authToken, type, id);
+
+		// send message for "Read metadata and convert to small formats"
+		String dataDivider = binaryDataRecordGroup.getDataDivider();
+		resourceConvert.sendMessageForAnalyzeAndConvertToThumbnails(dataDivider, type, id);
+		return updatedRecord;
 	}
 
 	private void validateInputAndUser(String type, String id) {
 		validateInputIsBinaryMasterAndHasStream();
 		tryToGetUserForToken();
-		binaryDataRecord = recordStorage.read(type, id);
-		tryToCheckUserIsAuthorisedToUploadData(binaryDataRecord);
+		binaryDataRecordGroup = recordStorage.read(type, id);
+		tryToCheckUserIsAuthorisedToUploadData(binaryDataRecordGroup);
 	}
 
 	private void storeResourceStreamInArchive(String type, String id, InputStream resourceStream) {
-		String dataDivider = binaryDataRecord.getDataDivider();
+		String dataDivider = binaryDataRecordGroup.getDataDivider();
 		resourceArchive.create(dataDivider, type, id, resourceStream, MIME_TYPE_GENERIC);
 	}
 
 	private DataRecord updateMetadataInArchiveAndStorage(String authToken, String type, String id) {
-		String dataDivider = binaryDataRecord.getDataDivider();
+		String dataDivider = binaryDataRecordGroup.getDataDivider();
 		ResourceMetadata resourceMetadata = resourceArchive.readMetadata(dataDivider, type, id);
 
 		String detectedMimeType = detectMimeType(type, id, dataDivider);
 
-		String originalFileName = binaryDataRecord
+		String originalFileName = binaryDataRecordGroup
 				.getFirstAtomicValueWithNameInData("originalFileName");
 
 		updateResourceMetadata(type, id, dataDivider, detectedMimeType, originalFileName);
@@ -154,7 +168,7 @@ public final class UploaderImp implements Uploader {
 	private DataRecord updateBinaryRecordInStorage(String authToken, String type, String id) {
 		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
 
-		DataGroup binaryDataGroup = DataProvider.createGroupFromRecordGroup(binaryDataRecord);
+		DataGroup binaryDataGroup = DataProvider.createGroupFromRecordGroup(binaryDataRecordGroup);
 
 		return recordUpdater.updateRecord(authToken, type, id, binaryDataGroup);
 	}
@@ -218,7 +232,7 @@ public final class UploaderImp implements Uploader {
 	private CollectTerms getCollectedTermsForRecord(DataRecordGroup dataRecord) {
 		DataGroup binaryDG = DataProvider.createGroupFromRecordGroup(dataRecord);
 		RecordTypeHandler recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(binaryDataRecord);
+				.getRecordTypeHandlerUsingDataRecordGroup(binaryDataRecordGroup);
 		String definitionId = recordTypeHandler.getDefinitionId();
 		return termCollector.collectTerms(definitionId, binaryDG);
 	}
@@ -240,20 +254,28 @@ public final class UploaderImp implements Uploader {
 		DataAtomic checksumType = DataProvider.createAtomicUsingNameInDataAndValue("checksumType",
 				"SHA512");
 
-		binaryDataRecord.addChild(resourceInfo);
+		binaryDataRecordGroup.addChild(resourceInfo);
 		resourceInfo.addChild(master);
 
 		master.addChild(resourceId);
 		master.addChild(resourceLink);
 		master.addChild(fileSize);
 		master.addChild(mimeType);
-		binaryDataRecord.addChild(checksum);
-		binaryDataRecord.addChild(checksumType);
+		binaryDataRecordGroup.addChild(checksum);
+		binaryDataRecordGroup.addChild(checksumType);
 	}
 
 	private void removeExpectedAtomicsFromBinaryRecord() {
-		binaryDataRecord.removeFirstChildWithNameInData("expectedFileSize");
-		binaryDataRecord.removeFirstChildWithNameInData("expectedChecksum");
+		binaryDataRecordGroup.removeFirstChildWithNameInData("expectedFileSize");
+		binaryDataRecordGroup.removeFirstChildWithNameInData("expectedChecksum");
+	}
+
+	public ResourceConvert onlyForTestGetResourceConvert() {
+		return resourceConvert;
+	}
+
+	public SpiderDependencyProvider onlyForTestGetDependecyProvider() {
+		return dependencyProvider;
 	}
 
 }
