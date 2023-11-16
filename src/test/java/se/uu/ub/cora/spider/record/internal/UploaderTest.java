@@ -78,8 +78,8 @@ public class UploaderTest {
 	private DataFactorySpy dataFactorySpy;
 
 	private RecordTypeHandlerSpy recordTypeHandler;
-	private ContentAnalyzerInstanceProviderSpy contentAnalyzeInstanceProviderSpy;
 	private LoggerFactory loggerFactory;
+	private ContentAnalyzerInstanceProviderSpy contentAnalyzeInstanceProviderSpy;
 	private ResourceConvertSpy resourceConvert;
 
 	@BeforeMethod
@@ -489,6 +489,12 @@ public class UploaderTest {
 
 	@Test
 	public void testCallUpdateSendsMessageForReadMetadataAndConvertSmallFormats() throws Exception {
+		ContentAnalyzerSpy contentAnalyzerSpy = new ContentAnalyzerSpy();
+		contentAnalyzerSpy.MRV.setDefaultReturnValuesSupplier("getMimeType",
+				() -> "image/whatever");
+		contentAnalyzeInstanceProviderSpy.MRV.setDefaultReturnValuesSupplier("getContentAnalyzer",
+				() -> contentAnalyzerSpy);
+
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
@@ -497,5 +503,15 @@ public class UploaderTest {
 
 		resourceConvert.MCR.assertParameters("sendMessageForAnalyzeAndConvertToThumbnails", 0,
 				dataDivider, BINARY_RECORD_TYPE, SOME_RECORD_ID);
+	}
+
+	@Test
+	public void testUploadOtherThanImageIsNotSentToAnalyzeAncConvert() throws Exception {
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+
+		resourceConvert.MCR.assertMethodNotCalled("sendMessageForAnalyzeAndConvertToThumbnails");
+
 	}
 }

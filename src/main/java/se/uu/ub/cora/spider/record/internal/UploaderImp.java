@@ -77,6 +77,7 @@ public final class UploaderImp implements Uploader {
 	private User user;
 	private DataRecordGroup binaryDataRecordGroup;
 	private ResourceConvert resourceConvert;
+	private String detectedMimeType;
 
 	private UploaderImp(SpiderDependencyProvider dependencyProvider,
 			ResourceConvert resourceConvert) {
@@ -111,9 +112,15 @@ public final class UploaderImp implements Uploader {
 		DataRecord updatedRecord = updateMetadataInArchiveAndStorage(authToken, type, id);
 
 		// send message for "Read metadata and convert to small formats"
-		String dataDivider = binaryDataRecordGroup.getDataDivider();
-		resourceConvert.sendMessageForAnalyzeAndConvertToThumbnails(dataDivider, type, id);
+		sendImageToAnalyzeAndConvert(type, id);
 		return updatedRecord;
+	}
+
+	private void sendImageToAnalyzeAndConvert(String type, String id) {
+		if (detectedMimeType.startsWith("image/")) {
+			String dataDivider = binaryDataRecordGroup.getDataDivider();
+			resourceConvert.sendMessageForAnalyzeAndConvertToThumbnails(dataDivider, type, id);
+		}
 	}
 
 	private void validateInputAndUser(String type, String id) {
@@ -132,7 +139,7 @@ public final class UploaderImp implements Uploader {
 		String dataDivider = binaryDataRecordGroup.getDataDivider();
 		ResourceMetadata resourceMetadata = resourceArchive.readMetadata(dataDivider, type, id);
 
-		String detectedMimeType = detectMimeType(type, id, dataDivider);
+		detectedMimeType = detectMimeType(type, id, dataDivider);
 
 		String originalFileName = binaryDataRecordGroup
 				.getFirstAtomicValueWithNameInData("originalFileName");
