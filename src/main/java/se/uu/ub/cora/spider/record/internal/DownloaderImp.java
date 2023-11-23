@@ -35,15 +35,17 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
 
 public final class DownloaderImp implements Downloader {
 	private static final String ACTION_DOWNLOAD = "download";
 	private static final String ERR_MESSAGE_MISUSE = "Downloading error: Invalid record type, "
 			+ "for type {0} and {1}, must be (binary).";
+	private List<String> allowedResourceTypes = List.of("master", "thumbnail", "medium", "large");
 	private String resourceType;
 	private SpiderAuthorizator spiderAuthorizator;
-	// private StreamStorage streamStorage;
+	private StreamStorage streamStorage;
 	private DataGroup binaryDataGroup;
 	private ResourceArchive resourceArchive;
 	private Authenticator authenticator;
@@ -56,7 +58,7 @@ public final class DownloaderImp implements Downloader {
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
 		resourceArchive = dependencyProvider.getResourceArchive();
-		// streamStorage = dependencyProvider.getStreamStorage();
+		streamStorage = dependencyProvider.getStreamStorage();
 
 	}
 
@@ -83,22 +85,24 @@ public final class DownloaderImp implements Downloader {
 
 		String dataDivider = binaryRecordGroup.getDataDivider();
 
-		InputStream stream = resourceArchive.read(dataDivider, type, id);
+		if ("master".equals(resourceType)) {
+			InputStream stream = resourceArchive.read(dataDivider, type, id);
+			return prepareResponseForResourceInputStream(resourceType, binaryRecordGroup, stream);
+		}
 
-		// InputStream stream = streamStorage.retrieve(streamId, dataDivider);
-
-		return prepareResponseForResourceInputStream(binaryRecordGroup, stream);
+		InputStream stream = streamStorage.retrieve(id, dataDivider);
+		return prepareResponseForResourceInputStream(resourceType, binaryRecordGroup, stream);
 
 	}
 
-	private ResourceInputStream prepareResponseForResourceInputStream(
+	private ResourceInputStream prepareResponseForResourceInputStream(String representation,
 			DataRecordGroup binaryRecordGroup, InputStream stream) {
 		String originalFileName = binaryRecordGroup
 				.getFirstAtomicValueWithNameInData("originalFileName");
 		DataGroup resourceInfo = binaryRecordGroup.getFirstGroupWithNameInData("resourceInfo");
-		DataGroup masterGroup = resourceInfo.getFirstGroupWithNameInData("master");
-		String fileSize = masterGroup.getFirstAtomicValueWithNameInData("fileSize");
-		String mimeType = masterGroup.getFirstAtomicValueWithNameInData("mimeType");
+		DataGroup resourceGroup = resourceInfo.getFirstGroupWithNameInData(representation);
+		String fileSize = resourceGroup.getFirstAtomicValueWithNameInData("fileSize");
+		String mimeType = resourceGroup.getFirstAtomicValueWithNameInData("mimeType");
 
 		return ResourceInputStream.withNameSizeInputStream(originalFileName, Long.valueOf(fileSize),
 				mimeType, stream);
@@ -108,14 +112,14 @@ public final class DownloaderImp implements Downloader {
 		if (typeNotBinary(type)) {
 			throw new MisuseException(MessageFormat.format(ERR_MESSAGE_MISUSE, type, id));
 		}
-		if (resourceTypeNotMaster(resourceType)) {
+		if (notValidResourceType(resourceType)) {
 			throw new MisuseException(
 					"Not implemented yet for resource type different than master.");
 		}
 	}
 
-	private boolean resourceTypeNotMaster(String resourceType) {
-		return !"master".equals(resourceType);
+	private boolean notValidResourceType(String resourceType) {
+		return !allowedResourceTypes.contains(resourceType);
 	}
 
 	private boolean typeNotBinary(String type) {

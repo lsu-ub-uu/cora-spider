@@ -1,6 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
- * Copyright 2016 Olov McKie
+ * Copyright 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,48 +16,35 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.spy;
 
-package se.uu.ub.cora.spider.record;
-
-import java.io.IOException;
 import java.io.InputStream;
 
 import se.uu.ub.cora.storage.StreamStorage;
+import se.uu.ub.cora.storage.spies.archive.InputStreamSpy;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class StreamStorageSpy implements StreamStorage {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public String streamId;
-	public String dataDivider;
-	public InputStream stream;
-	public long size;
+	public StreamStorageSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("store", () -> 100);
+		MRV.setDefaultReturnValuesSupplier("retrieve", InputStreamSpy::new);
+	}
 
 	@Override
 	public long store(String streamId, String dataDivider, InputStream stream) {
-		this.streamId = streamId;
-		this.dataDivider = dataDivider;
-		this.stream = stream;
-		byte[] data = new byte[1024];
-		int bytesRead;
-		size = 0;
-		try {
-			bytesRead = stream.read(data);
-			while (bytesRead != -1) {
-				size += bytesRead;
-				bytesRead = stream.read(data);
-			}
-			stream.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return size;
+		return (long) MCR.addCallAndReturnFromMRV("streamId", streamId, "dataDivider", dataDivider,
+				"stream", stream);
 	}
 
 	@Override
 	public InputStream retrieve(String streamId, String dataDivider) {
-		this.streamId = streamId;
-		this.dataDivider = dataDivider;
-		return stream;
+		return (InputStream) MCR.addCallAndReturnFromMRV("streamId", streamId, "dataDivider",
+				dataDivider);
 	}
 
 }

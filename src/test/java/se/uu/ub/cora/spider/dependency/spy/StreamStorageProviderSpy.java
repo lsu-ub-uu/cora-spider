@@ -20,12 +20,12 @@ package se.uu.ub.cora.spider.dependency.spy;
 
 import java.util.Map;
 
-import se.uu.ub.cora.spider.record.StreamStorageSpy;
+import se.uu.ub.cora.spider.record.OldStreamStorageSpy;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.StreamStorageProvider;
 
 public class StreamStorageProviderSpy implements StreamStorageProvider {
-	public StreamStorage streamStorage = new StreamStorageSpy();
+	public StreamStorage streamStorage = new OldStreamStorageSpy();
 
 	@Override
 	public int getOrderToSelectImplementionsBy() {
