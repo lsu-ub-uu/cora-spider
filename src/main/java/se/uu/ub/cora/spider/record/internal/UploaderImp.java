@@ -259,7 +259,7 @@ public final class UploaderImp implements Uploader {
 		DataAtomic checksum = DataProvider.createAtomicUsingNameInDataAndValue("checksum",
 				fetchedChecksum);
 		DataAtomic checksumType = DataProvider.createAtomicUsingNameInDataAndValue("checksumType",
-				"SHA512");
+				"SHA-512");
 
 		binaryDataRecordGroup.addChild(resourceInfo);
 		resourceInfo.addChild(master);

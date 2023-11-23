@@ -44,6 +44,7 @@ import se.uu.ub.cora.storage.spies.archive.InputStreamSpy;
 import se.uu.ub.cora.storage.spies.archive.ResourceArchiveSpy;
 
 public class UploaderTest {
+	private static final String SHA512 = "SHA-512";
 	private static final String EXPECTED_ORIGINAL_FILE_NAME = "expectedOriginalFileName";
 	private static final String EXPECTED_FILE_SIZE = "expectedFileSize";
 	private static final String EXPECTED_CHECKSUM = "expectedChecksum";
@@ -375,7 +376,7 @@ public class UploaderTest {
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3, "checksum",
 				"someChecksumSHA512");
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4,
-				"checksumType", "SHA512");
+				"checksumType", SHA512);
 
 		DataGroupSpy resourceInfo = (DataGroupSpy) dataFactorySpy.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
