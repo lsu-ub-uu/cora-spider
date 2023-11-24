@@ -26,7 +26,6 @@ import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -46,7 +45,7 @@ public final class DownloaderImp implements Downloader {
 	private String resourceType;
 	private SpiderAuthorizator spiderAuthorizator;
 	private StreamStorage streamStorage;
-	private DataGroup binaryDataGroup;
+	private DataRecordGroup binaryRecordGroup;
 	private ResourceArchive resourceArchive;
 	private Authenticator authenticator;
 	private RecordStorage recordStorage;
@@ -78,10 +77,7 @@ public final class DownloaderImp implements Downloader {
 
 		authenticateAndAuthorizeUser(authToken, type, resourceType);
 
-		binaryDataGroup = recordStorage.read(List.of(type), id);
-
-		DataRecordGroup binaryRecordGroup = DataProvider
-				.createRecordGroupFromDataGroup(binaryDataGroup);
+		binaryRecordGroup = recordStorage.read(type, id);
 
 		String dataDivider = binaryRecordGroup.getDataDivider();
 
@@ -90,7 +86,7 @@ public final class DownloaderImp implements Downloader {
 			return prepareResponseForResourceInputStream(resourceType, binaryRecordGroup, stream);
 		}
 
-		InputStream stream = streamStorage.retrieve(id, dataDivider);
+		InputStream stream = streamStorage.retrieve(id + "-" + resourceType, dataDivider);
 		return prepareResponseForResourceInputStream(resourceType, binaryRecordGroup, stream);
 
 	}

@@ -26,7 +26,6 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.text.MessageFormat;
-import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -86,15 +85,8 @@ public class DownloaderTest {
 
 	@BeforeMethod
 	public void beforeMethod() {
-
-		// setUpFactoriesAndProviders();
 		dataFactorySpy = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
-
-		// authenticator = new OldAuthenticatorSpy();
-		// authorizator = new OldSpiderAuthorizatorSpy();
-		// recordStorage = TestDataRecordInMemoryStorage.createRecordStorageInMemoryWithTestData();
-		// streamStorage = new StreamStorageSpy();
 
 		dependencyProvider = new SpiderDependencyProviderSpy();
 		setUpDependencyProvider();
@@ -151,8 +143,7 @@ public class DownloaderTest {
 				() -> ORIGINAL_FILE_NAME, "originalFileName");
 		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getDataDivider", () -> SOME_DATA_DIVIDER);
 
-		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorRecordGroupFromDataGroup",
-				() -> readBinaryDGS);
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> readBinaryDGS);
 	}
 
 	@Test
@@ -169,12 +160,10 @@ public class DownloaderTest {
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, REPRESENTATION_MASTER);
 
 		dependencyProvider.MCR.assertParameters("getRecordStorage", 0);
-		recordStorage.MCR.assertParameterAsEqual("read", 0, "types", List.of(BINARY_RECORD_TYPE));
+		recordStorage.MCR.assertParameters("read", 0, BINARY_RECORD_TYPE, SOME_RECORD_ID);
 		recordStorage.MCR.assertParameter("read", 0, "id", SOME_RECORD_ID);
-		DataGroupSpy readDataGroup = (DataGroupSpy) recordStorage.MCR.getReturnValue("read", 0);
-		dataFactorySpy.MCR.assertParameters("factorRecordGroupFromDataGroup", 0, readDataGroup);
-		DataRecordGroupSpy readDataRecordGroup = (DataRecordGroupSpy) dataFactorySpy.MCR
-				.getReturnValue("factorRecordGroupFromDataGroup", 0);
+		DataRecordGroupSpy readDataRecordGroup = (DataRecordGroupSpy) recordStorage.MCR
+				.getReturnValue("read", 0);
 
 		readDataRecordGroup.MCR.assertParameters("getDataDivider", 0);
 		var dataDivider = readDataRecordGroup.MCR.getReturnValue("getDataDivider", 0);
@@ -318,7 +307,8 @@ public class DownloaderTest {
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, REPRESENTATION_THUMBNAIL);
 
-		streamStorage.MCR.assertParameters("retrieve", 0, SOME_RECORD_ID, SOME_DATA_DIVIDER);
+		streamStorage.MCR.assertParameters("retrieve", 0, SOME_RECORD_ID + "-thumbnail",
+				SOME_DATA_DIVIDER);
 		streamStorage.MCR.assertReturn("retrieve", 0, resourceDownloaded.stream);
 
 		assertReturnedDataFromCorrectResourceType(REPRESENTATION_THUMBNAIL, resourceDownloaded);
@@ -329,7 +319,8 @@ public class DownloaderTest {
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, "medium");
 
-		streamStorage.MCR.assertParameters("retrieve", 0, SOME_RECORD_ID, SOME_DATA_DIVIDER);
+		streamStorage.MCR.assertParameters("retrieve", 0, SOME_RECORD_ID + "-medium",
+				SOME_DATA_DIVIDER);
 		streamStorage.MCR.assertReturn("retrieve", 0, resourceDownloaded.stream);
 
 		assertReturnedDataFromCorrectResourceType("medium", resourceDownloaded);
@@ -340,7 +331,8 @@ public class DownloaderTest {
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, "large");
 
-		streamStorage.MCR.assertParameters("retrieve", 0, SOME_RECORD_ID, SOME_DATA_DIVIDER);
+		streamStorage.MCR.assertParameters("retrieve", 0, SOME_RECORD_ID + "-large",
+				SOME_DATA_DIVIDER);
 		streamStorage.MCR.assertReturn("retrieve", 0, resourceDownloaded.stream);
 
 		assertReturnedDataFromCorrectResourceType("large", resourceDownloaded);
