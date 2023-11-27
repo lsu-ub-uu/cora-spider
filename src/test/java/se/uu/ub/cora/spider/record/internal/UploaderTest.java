@@ -490,11 +490,7 @@ public class UploaderTest {
 
 	@Test
 	public void testCallUpdateSendsMessageForReadMetadataAndConvertSmallFormats() throws Exception {
-		ContentAnalyzerSpy contentAnalyzerSpy = new ContentAnalyzerSpy();
-		contentAnalyzerSpy.MRV.setDefaultReturnValuesSupplier("getMimeType",
-				() -> "image/whatever");
-		contentAnalyzeInstanceProviderSpy.MRV.setDefaultReturnValuesSupplier("getContentAnalyzer",
-				() -> contentAnalyzerSpy);
+		createContentAnalyzerUsingMediaTypeToReturn("image/whatever");
 
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
@@ -506,6 +502,14 @@ public class UploaderTest {
 				dataDivider, BINARY_RECORD_TYPE, SOME_RECORD_ID);
 	}
 
+	private void createContentAnalyzerUsingMediaTypeToReturn(String mediaType) {
+		ContentAnalyzerSpy contentAnalyzerSpy = new ContentAnalyzerSpy();
+
+		contentAnalyzerSpy.MRV.setDefaultReturnValuesSupplier("getMimeType", () -> mediaType);
+		contentAnalyzeInstanceProviderSpy.MRV.setDefaultReturnValuesSupplier("getContentAnalyzer",
+				() -> contentAnalyzerSpy);
+	}
+
 	@Test
 	public void testUploadOtherThanImageIsNotSentToAnalyzeAncConvert() throws Exception {
 
@@ -513,6 +517,17 @@ public class UploaderTest {
 				RESOURCE_TYPE_MASTER);
 
 		resourceConvert.MCR.assertMethodNotCalled("sendMessageForAnalyzeAndConvertToThumbnails");
+	}
+
+	@Test
+	public void testSetBinaryTypeToCorrectTypeForImages() throws Exception {
+		createContentAnalyzerUsingMediaTypeToReturn("image/whatever");
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+		// TODO
+		fail("TODO tomorrow");
 
 	}
+
 }

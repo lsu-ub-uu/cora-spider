@@ -53,12 +53,12 @@ public interface Downloader {
 	 *            A String with the record id of the resource to upload
 	 * @param inputStream
 	 *            An InputStrema with the resource to upload
-	 * @param resourceType
-	 *            A String with the name of the resourceType which is intended to upload the
+	 * @param representation
+	 *            A String with the name of the representation which is intended to upload the
 	 *            resource to.
 	 * @return
 	 * 
 	 */
-	ResourceInputStream download(String authToken, String type, String id, String resourceType);
+	ResourceInputStream download(String authToken, String type, String id, String representation);
 
 }

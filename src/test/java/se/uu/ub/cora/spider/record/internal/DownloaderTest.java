@@ -37,9 +37,6 @@ import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.ResourceInputStream;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
@@ -57,7 +54,7 @@ public class DownloaderTest {
 	private static final String SOME_AUTH_TOKEN = "someAuthToken";
 	private static final String BINARY_RECORD_TYPE = "binary";
 	private static final String ACTION_DOWNLOAD = "download";
-	private static final String SOME_RESOURCE_TYPE = "someOtherResourceType";
+	private static final String SOME_REPRESENTATION = "someOtherResourceType";
 	private static final String SOME_EXCEPTION_MESSAGE = "someExceptionMessage";
 	private static final String SOME_RECORD_TYPE = "someRecordType";
 	private static final String ERR_MESSAGE_MISUSE = "Downloading error: Invalid record type, "
@@ -67,18 +64,13 @@ public class DownloaderTest {
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private RecordStorageSpy recordStorage;
-	// private OldStreamStorageSpy streamStorage;
 	private Downloader downloader;
 	private SpiderDependencyProviderSpy dependencyProvider;
-	private LoggerFactorySpy loggerFactorySpy;
-	private DataCopierFactorySpy dataCopierFactory;
 
 	private DataFactorySpy dataFactorySpy;
 	private ResourceArchiveSpy resourceArchive;
 
-	private RecordTypeHandlerSpy recordTypeHandler;
 	private DataGroupSpy resourceTypeDGS;
-	private DataGroupSpy thumbnailDGS;
 	private DataGroupSpy resourceInfoDGS;
 	private DataRecordGroupSpy readBinaryDGS;
 	private StreamStorageSpy streamStorage;
@@ -246,12 +238,12 @@ public class DownloaderTest {
 	public void testDownloadExceptionResourceTypeOtherThanKnow() throws Exception {
 		try {
 			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID,
-					SOME_RESOURCE_TYPE);
+					SOME_REPRESENTATION);
 			fail("It should throw exception");
 		} catch (Exception e) {
 			assertTrue(e instanceof MisuseException);
 			assertEquals(e.getMessage(),
-					"Not implemented yet for resource type different than master.");
+					"Representation " + SOME_REPRESENTATION + " does not exist.");
 			ensureNoDownloadLogicStarts();
 		}
 	}
@@ -289,15 +281,14 @@ public class DownloaderTest {
 
 	private void assertReturnedDataFromCorrectResourceType(String resourceType,
 			ResourceInputStream resourceDownloaded) {
-		readBinaryDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0,
-				"originalFileName");
-		readBinaryDGS.MCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
 		readBinaryDGS.MCR.assertParameters("getFirstGroupWithNameInData", 0, "resourceInfo");
 		resourceInfoDGS.MCR.assertParameters("getFirstGroupWithNameInData", 0, resourceType);
-		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "fileSize");
-		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "mimeType");
+		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "resourceId");
+		var fileName = resourceTypeDGS.MCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
+		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "fileSize");
+		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 2, "mimeType");
 
-		assertEquals(resourceDownloaded.name, ORIGINAL_FILE_NAME);
+		assertEquals(resourceDownloaded.name, fileName);
 		assertEquals(String.valueOf(resourceDownloaded.size), SOME_FILE_SIZE);
 		assertEquals(resourceDownloaded.mimeType, SOME_MIME_TYPE);
 	}
