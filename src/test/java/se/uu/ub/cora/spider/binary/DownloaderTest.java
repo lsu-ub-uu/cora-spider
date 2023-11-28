@@ -18,7 +18,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.binary;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -36,9 +36,12 @@ import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
+import se.uu.ub.cora.spider.binary.Downloader;
+import se.uu.ub.cora.spider.binary.internal.DownloaderImp;
 import se.uu.ub.cora.spider.data.ResourceInputStream;
-import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.MisuseException;
+import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
+import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.spy.StreamStorageSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;

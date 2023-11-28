@@ -21,8 +21,9 @@
 package se.uu.ub.cora.spider.dependency.spy;
 
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.binary.Downloader;
+import se.uu.ub.cora.spider.binary.Uploader;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
-import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -32,7 +33,6 @@ import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
-import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class SpiderInstanceFactorySpy1 implements SpiderInstanceFactory {

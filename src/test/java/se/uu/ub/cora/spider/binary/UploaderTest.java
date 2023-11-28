@@ -1,7 +1,7 @@
 /**Copyright 2015,2016,2019,2023 Uppsala University Library**This file is part of Cora.**Cora is free software:you can redistribute it and/or modify*it under the terms of the GNU General Public License as published by*the Free Software Foundation,either version 3 of the License,or*(at your option)any later version.**Cora is distributed in the hope that it will be useful,*but WITHOUT ANY WARRANTY;without even the implied warranty of*MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the*GNU General Public License for more details.**You should have received a copy of the GNU General Public License*along with Cora.If not,see<http://www.gnu.org/licenses/>.
 */
 
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.binary;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -26,15 +26,18 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
+import se.uu.ub.cora.spider.binary.internal.UploaderImp;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.MisuseException;
-import se.uu.ub.cora.spider.record.Uploader;
+import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
+import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.resourceconvert.spy.ResourceConvertSpy;
 import se.uu.ub.cora.spider.spy.ContentAnalyzerInstanceProviderSpy;
 import se.uu.ub.cora.spider.spy.ContentAnalyzerSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
+import se.uu.ub.cora.spider.spy.MimeTypeToBinaryTypeSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
@@ -82,9 +85,13 @@ public class UploaderTest {
 	private LoggerFactory loggerFactory;
 	private ContentAnalyzerInstanceProviderSpy contentAnalyzeInstanceProviderSpy;
 	private ResourceConvertSpy resourceConvert;
+	private DataRecordGroupSpy dataRecordGroupSpy;
+	private MimeTypeToBinaryTypeSpy mimeTypeToBinaryType;
 
 	@BeforeMethod
 	public void beforeMethod() {
+
+		mimeTypeToBinaryType = new MimeTypeToBinaryTypeSpy();
 
 		dependencyProvider = new SpiderDependencyProviderSpy();
 		dataFactorySpy = new DataFactorySpy();
@@ -103,8 +110,8 @@ public class UploaderTest {
 		someStream = new InputStreamSpy();
 		resourceConvert = new ResourceConvertSpy();
 
-		uploader = UploaderImp.usingDependencyProviderAndResourceConvert(dependencyProvider,
-				resourceConvert);
+		uploader = UploaderImp.usingDependencyProviderAndResourceConvertAndMimeTypeToBinaryType(dependencyProvider,
+				resourceConvert, mimeTypeToBinaryType);
 	}
 
 	private void setUpSpiderInstanceProvider() {
@@ -126,7 +133,7 @@ public class UploaderTest {
 		recordStorage = new RecordStorageSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
-		DataRecordGroupSpy dataRecordGroupSpy = new DataRecordGroupSpy();
+		dataRecordGroupSpy = new DataRecordGroupSpy();
 		dataRecordGroupSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider",
 				() -> "someDataDivider");
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> dataRecordGroupSpy);
@@ -273,7 +280,7 @@ public class UploaderTest {
 	}
 
 	private void ensureNoUploadLogicStarts() {
-		authenticator.MCR.assertMethodNotCalled("getUserForToken");
+		authenticator.MCR.assertMethodWasCalled("getUserForToken");
 		authorizator.MCR.assertMethodNotCalled(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
 		recordStorage.MCR.assertMethodNotCalled("read");
@@ -289,8 +296,7 @@ public class UploaderTest {
 			fail("It should throw exception");
 		} catch (Exception e) {
 			assertTrue(e instanceof MisuseException);
-			assertEquals(e.getMessage(),
-					"Not implemented yet for resource type different than master.");
+			assertEquals(e.getMessage(), "Only master can be uploaded.");
 			ensureNoUploadLogicStarts();
 		}
 	}
@@ -362,7 +368,7 @@ public class UploaderTest {
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 1, resourceTypeMaster);
 
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "resourceId",
-				SOME_RECORD_ID);
+				SOME_RECORD_ID + "-master");
 		ContentAnalyzerSpy contentAnalyzer = (ContentAnalyzerSpy) contentAnalyzeInstanceProviderSpy.MCR
 				.getReturnValue("getContentAnalyzer", 0);
 		var detectedMimeType = contentAnalyzer.MCR.getReturnValue("getMimeType", 0);
@@ -520,14 +526,15 @@ public class UploaderTest {
 	}
 
 	@Test
-	public void testSetBinaryTypeToCorrectTypeForImages() throws Exception {
+	public void testSetBinaryTypeToCorrectType() throws Exception {
 		createContentAnalyzerUsingMediaTypeToReturn("image/whatever");
 
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
-		// TODO
-		fail("TODO tomorrow");
 
+		mimeTypeToBinaryType.MCR.assertParameters("toBinaryType", 0, "image/whatever");
+		String binaryType = (String) mimeTypeToBinaryType.MCR.getReturnValue("toBinaryType", 0);
+		dataRecordGroupSpy.MCR.assertParameters("addAttributeByIdWithValue", 0, "type", binaryType);
 	}
 
 }

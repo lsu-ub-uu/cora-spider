@@ -33,10 +33,10 @@ import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.binary.Uploader;
 import se.uu.ub.cora.spider.dependency.spy.DataRedactorFactorySpy;
 import se.uu.ub.cora.spider.dependency.spy.DataValidatorFactoySpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
-import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactorySpy;
 
 public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstract {

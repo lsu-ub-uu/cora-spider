@@ -32,12 +32,16 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.spider.binary.Downloader;
+import se.uu.ub.cora.spider.binary.Uploader;
+import se.uu.ub.cora.spider.binary.internal.MimeTypeToBinaryType;
+import se.uu.ub.cora.spider.binary.internal.MimeTypeToBinaryTypeImp;
+import se.uu.ub.cora.spider.binary.internal.UploaderImp;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
 import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJob;
 import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -46,12 +50,10 @@ import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
-import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordListIndexerImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
-import se.uu.ub.cora.spider.record.internal.UploaderImp;
 import se.uu.ub.cora.spider.resourceconvert.ResourceConvertImp;
 
 public class SpiderInstanceFactoryTest {
@@ -155,6 +157,10 @@ public class SpiderInstanceFactoryTest {
 		ResourceConvertImp resouceConvert = (ResourceConvertImp) recordUploader
 				.onlyForTestGetResourceConvert();
 		assertTrue(resouceConvert instanceof ResourceConvertImp);
+
+		MimeTypeToBinaryType mimeTypeToBinaryType = (MimeTypeToBinaryType) recordUploader
+				.onlyForTestGetMimeTypeToBinaryTypeConvert();
+		assertTrue(mimeTypeToBinaryType instanceof MimeTypeToBinaryTypeImp);
 
 		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 0,
 				resouceConvert.onlyForTestGetHostName());

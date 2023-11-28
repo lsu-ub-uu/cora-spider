@@ -18,7 +18,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.binary.internal;
 
 import java.io.InputStream;
 import java.text.MessageFormat;
@@ -29,9 +29,9 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.data.ResourceInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;

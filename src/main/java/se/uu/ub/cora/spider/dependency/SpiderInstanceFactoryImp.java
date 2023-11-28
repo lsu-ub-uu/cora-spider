@@ -20,6 +20,12 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import se.uu.ub.cora.spider.binary.Downloader;
+import se.uu.ub.cora.spider.binary.Uploader;
+import se.uu.ub.cora.spider.binary.internal.DownloaderImp;
+import se.uu.ub.cora.spider.binary.internal.MimeTypeToBinaryType;
+import se.uu.ub.cora.spider.binary.internal.MimeTypeToBinaryTypeImp;
+import se.uu.ub.cora.spider.binary.internal.UploaderImp;
 import se.uu.ub.cora.spider.index.BatchRunnerFactory;
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
 import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
@@ -27,7 +33,6 @@ import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJob;
 import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobImp;
 import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -37,9 +42,7 @@ import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
-import se.uu.ub.cora.spider.record.Uploader;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.record.internal.DownloaderImp;
 import se.uu.ub.cora.spider.record.internal.IncomingLinksReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordDeleterImp;
@@ -49,7 +52,6 @@ import se.uu.ub.cora.spider.record.internal.RecordReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordSearcherImp;
 import se.uu.ub.cora.spider.record.internal.RecordUpdaterImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
-import se.uu.ub.cora.spider.record.internal.UploaderImp;
 import se.uu.ub.cora.spider.resourceconvert.ResourceConvert;
 import se.uu.ub.cora.spider.resourceconvert.ResourceConvertImp;
 
@@ -115,8 +117,9 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 		ResourceConvert recsourceConvert = ResourceConvertImp
 				.usingHostnamePortVHostExchangeRoutingKey(hostName, port, vHost, exchange,
 						routingKey);
-		return UploaderImp.usingDependencyProviderAndResourceConvert(dependencyProvider,
-				recsourceConvert);
+		MimeTypeToBinaryType mimeTypeToBinaryType = new MimeTypeToBinaryTypeImp();
+		return UploaderImp.usingDependencyProviderAndResourceConvertAndMimeTypeToBinaryType(
+				dependencyProvider, recsourceConvert, mimeTypeToBinaryType);
 	}
 
 	@Override

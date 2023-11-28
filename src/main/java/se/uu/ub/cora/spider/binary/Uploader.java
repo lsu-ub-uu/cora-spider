@@ -17,18 +17,25 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.binary;
 
-import se.uu.ub.cora.spider.data.ResourceInputStream;
+import java.io.InputStream;
 
-public interface Downloader {
+import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.record.MisuseException;
+
+public interface Uploader {
 
 	/**
-	 * download is a method intended to download resources from storage. The only accepted type is
-	 * <b>binary</b>. At this moment the method can <b>ONLY</b> download resources of type master.
-	 * All resources of type master must be downloaded from archive.
+	 * upload is a method inteneded to upload resources into storage. The method must <b>ONLY</b>
+	 * accept record type <b>binary</b>. At this moment the method can <b>ONLY</b> upload resources
+	 * of type master. All resources of type master must be uploaded in the archive.
 	 * 
-	 * The method will return an SpiderInputStream of the requested resource.
+	 * IT MIGHT happen like be below, please modify if necessary! The method returns the binary
+	 * record, related to the uploaded resource, updated with the information of the uploaded
+	 * resource.
+	 * 
+	 * WHAT happens if no binary record is found with given Type and Id?? MisuseException??
 	 * 
 	 * </p>
 	 * If the authToken does not authenticate a {@link AuthenticationException} be thrown.
@@ -39,11 +46,8 @@ public interface Downloader {
 	 * If the inputStream does exits {@link DataMissingException} must be thrown, indicating no
 	 * resource can be uploaded.
 	 * </p>
-	 * If the binary record related to the requested resource does not exist at NotFound must be
-	 * thrown.
-	 * 
-	 * At this moment if resourceType is different than master a {@link MisuseException} will be
-	 * thrown
+	 * At this moment if resourceType is different than master a {@link DataMissingException} will
+	 * be thrown
 	 * 
 	 * @param authToken
 	 *            A String with the authToken of the user that uploads a resource
@@ -56,9 +60,10 @@ public interface Downloader {
 	 * @param representation
 	 *            A String with the name of the representation which is intended to upload the
 	 *            resource to.
-	 * @return
-	 * 
+	 * @return A DataRecord with the binary record of the related uploded resource with updated data
+	 *         of that resource.
 	 */
-	ResourceInputStream download(String authToken, String type, String id, String representation);
+	DataRecord upload(String authToken, String type, String id, InputStream inputStream,
+			String representation);
 
 }
