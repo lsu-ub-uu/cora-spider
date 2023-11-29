@@ -22,9 +22,15 @@ package se.uu.ub.cora.spider.spy;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class RecordArchiveSpy implements RecordArchive {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public RecordArchiveSpy() {
+		MCR.useMRV(MRV);
+	}
 
 	@Override
 	public void create(String dataDivider, String type, String id, DataGroup dataRecord) {

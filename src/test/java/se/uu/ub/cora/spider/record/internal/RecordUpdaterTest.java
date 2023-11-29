@@ -853,6 +853,20 @@ public class RecordUpdaterTest {
 		recordArchive.MCR.assertParameters("update", 0, "spyType", "someRecordId", recordSpy);
 	}
 
+	@Test
+	public void testStoreInArchive_MissingInArchiveThrowsException_createInstead()
+			throws Exception {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
+		recordArchive.MRV.setAlwaysThrowException("update",
+				RecordNotFoundException.withMessage("sorry not found"));
+		DataGroupSpy recordSpy = createDataGroupForUpdate();
+
+		recordUpdaterOld.updateRecord("someToken", "spyType", "someRecordId", recordSpy);
+
+		recordArchive.MCR.assertParameters("update", 0, "spyType", "someRecordId", recordSpy);
+		recordArchive.MCR.assertParameters("create", 0, "spyType", "someRecordId", recordSpy);
+	}
+
 	private DataGroupSpy createDataGroupForUpdate() {
 		DataGroupSpy recordSpy = new DataGroupSpy();
 		DataGroupSpy recordInfoSpy = new DataGroupSpy();

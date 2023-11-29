@@ -50,6 +50,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordUpdaterImp extends RecordHandler implements RecordUpdater {
@@ -142,7 +143,11 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		dataDivider = extractDataDividerFromData(topDataGroup);
 		updateRecordInStorage(collectTerms, collectedLinks);
 		if (recordTypeHandler.storeInArchive()) {
-			recordArchive.update(dataDivider, recordType, recordId, topDataGroup);
+			try {
+				recordArchive.update(dataDivider, recordType, recordId, topDataGroup);
+			} catch (RecordNotFoundException e) {
+				recordArchive.create(dataDivider, recordType, recordId, topDataGroup);
+			}
 		}
 		indexData(collectTerms);
 		useExtendedFunctionalityAfterStore(recordType, topDataGroup);
