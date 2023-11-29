@@ -23,8 +23,9 @@ package se.uu.ub.cora.spider.dependency.spy;
 import java.util.ArrayList;
 import java.util.List;
 
+import se.uu.ub.cora.spider.binary.Downloader;
+import se.uu.ub.cora.spider.binary.Uploader;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
-import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -35,7 +36,6 @@ import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.SpiderRecordUpdaterSpy;
-import se.uu.ub.cora.spider.record.Uploader;
 
 public class SpiderInstanceFactorySpy2 implements SpiderInstanceFactory {
 	public boolean readerFactoryWasCalled = false;

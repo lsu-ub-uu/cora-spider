@@ -18,7 +18,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.binary.internal;
 
 import java.io.InputStream;
 import java.text.MessageFormat;
@@ -29,9 +29,9 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.data.ResourceInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.record.Downloader;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
@@ -41,8 +41,8 @@ public final class DownloaderImp implements Downloader {
 	private static final String ACTION_DOWNLOAD = "download";
 	private static final String ERR_MESSAGE_MISUSE = "Downloading error: Invalid record type, "
 			+ "for type {0} and {1}, must be (binary).";
-	private List<String> allowedResourceTypes = List.of("master", "thumbnail", "medium", "large");
-	private String resourceType;
+	private List<String> allowedRepresentations = List.of("master", "thumbnail", "medium", "large");
+	private String representation;
 	private SpiderAuthorizator spiderAuthorizator;
 	private StreamStorage streamStorage;
 	private DataRecordGroup binaryRecordGroup;
@@ -68,63 +68,61 @@ public final class DownloaderImp implements Downloader {
 
 	@Override
 	public ResourceInputStream download(String authToken, String type, String id,
-			String resourceType) {
+			String representation) {
 		this.type = type;
 		this.id = id;
-		this.resourceType = resourceType;
+		this.representation = representation;
 
 		validateInput();
 
-		authenticateAndAuthorizeUser(authToken, type, resourceType);
+		authenticateAndAuthorizeUser(authToken, type, representation);
 
 		binaryRecordGroup = recordStorage.read(type, id);
 
 		String dataDivider = binaryRecordGroup.getDataDivider();
 
-		if ("master".equals(resourceType)) {
+		if ("master".equals(representation)) {
 			InputStream stream = resourceArchive.read(dataDivider, type, id);
-			return prepareResponseForResourceInputStream(resourceType, binaryRecordGroup, stream);
+			return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
 		}
 
-		InputStream stream = streamStorage.retrieve(id + "-" + resourceType, dataDivider);
-		return prepareResponseForResourceInputStream(resourceType, binaryRecordGroup, stream);
+		InputStream stream = streamStorage.retrieve(id + "-" + representation, dataDivider);
+		return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
 
-	}
-
-	private ResourceInputStream prepareResponseForResourceInputStream(String representation,
-			DataRecordGroup binaryRecordGroup, InputStream stream) {
-		String originalFileName = binaryRecordGroup
-				.getFirstAtomicValueWithNameInData("originalFileName");
-		DataGroup resourceInfo = binaryRecordGroup.getFirstGroupWithNameInData("resourceInfo");
-		DataGroup resourceGroup = resourceInfo.getFirstGroupWithNameInData(representation);
-		String fileSize = resourceGroup.getFirstAtomicValueWithNameInData("fileSize");
-		String mimeType = resourceGroup.getFirstAtomicValueWithNameInData("mimeType");
-
-		return ResourceInputStream.withNameSizeInputStream(originalFileName, Long.valueOf(fileSize),
-				mimeType, stream);
 	}
 
 	private void validateInput() {
 		if (typeNotBinary(type)) {
 			throw new MisuseException(MessageFormat.format(ERR_MESSAGE_MISUSE, type, id));
 		}
-		if (notValidResourceType(resourceType)) {
-			throw new MisuseException(
-					"Not implemented yet for resource type different than master.");
+		if (notValidRepresentation(representation)) {
+			throw new MisuseException("Representation " + representation + " does not exist.");
 		}
-	}
-
-	private boolean notValidResourceType(String resourceType) {
-		return !allowedResourceTypes.contains(resourceType);
 	}
 
 	private boolean typeNotBinary(String type) {
 		return !"binary".equals(type);
 	}
 
+	private boolean notValidRepresentation(String representation) {
+		return !allowedRepresentations.contains(representation);
+	}
+
 	private void authenticateAndAuthorizeUser(String authToken, String type, String resourceType) {
 		User user = authenticator.getUserForToken(authToken);
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, ACTION_DOWNLOAD,
 				type + "." + resourceType);
+	}
+
+	private ResourceInputStream prepareResponseForResourceInputStream(String representation,
+			DataRecordGroup binaryRecordGroup, InputStream stream) {
+		DataGroup resourceInfo = binaryRecordGroup.getFirstGroupWithNameInData("resourceInfo");
+		DataGroup resourceGroup = resourceInfo.getFirstGroupWithNameInData(representation);
+		String resourceId = resourceGroup.getFirstAtomicValueWithNameInData("resourceId");
+		String fileSize = resourceGroup.getFirstAtomicValueWithNameInData("fileSize");
+		String mimeType = resourceGroup.getFirstAtomicValueWithNameInData("mimeType");
+
+		return ResourceInputStream.withNameSizeInputStream(resourceId, Long.valueOf(fileSize),
+				mimeType, stream);
 	}
 }

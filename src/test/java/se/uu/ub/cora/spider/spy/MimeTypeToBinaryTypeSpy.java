@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Olov McKie
+ * Copyright 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,30 +16,24 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.testspies;
+package se.uu.ub.cora.spider.spy;
 
-import java.util.function.Supplier;
-
-import se.uu.ub.cora.spider.binary.Downloader;
-import se.uu.ub.cora.spider.data.ResourceInputStream;
+import se.uu.ub.cora.spider.binary.internal.MimeTypeToBinaryType;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class DownloaderSpy implements Downloader {
+public class MimeTypeToBinaryTypeSpy implements MimeTypeToBinaryType {
+
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
-	private ResourceInputStream spiderInputStream = ResourceInputStream.withNameSizeInputStream(null, 0,
-			null, null);
 
-	public DownloaderSpy() {
+	public MimeTypeToBinaryTypeSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("download",
-				(Supplier<ResourceInputStream>) () -> spiderInputStream);
+		MRV.setDefaultReturnValuesSupplier("toBinaryType", () -> "someBinaryType");
 	}
 
 	@Override
-	public ResourceInputStream download(String authToken, String type, String id, String resourceType) {
-		return (ResourceInputStream) MCR.addCallAndReturnFromMRV("authToken", authToken, "type", type,
-				"id", id, "resource", resourceType);
+	public String toBinaryType(String mimeType) {
+		return (String) MCR.addCallAndReturnFromMRV(mimeType, mimeType);
 	}
 }
