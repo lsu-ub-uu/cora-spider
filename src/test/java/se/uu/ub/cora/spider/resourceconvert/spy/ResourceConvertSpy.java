@@ -36,4 +36,9 @@ public class ResourceConvertSpy implements ResourceConvert {
 			String id) {
 		MCR.addCall("dataDivider", dataDivider, "type", type, "id", id);
 	}
+
+	@Override
+	public void sendMessageToConvertPdfToThumbnails(String dataDivider, String type, String id) {
+		MCR.addCall("dataDivider", dataDivider, "type", type, "id", id);
+	}
 }

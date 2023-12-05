@@ -111,12 +111,13 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 		String hostName = dependencyProvider.getInitInfoValueUsingKey("rabbitMqHostname");
 		int port = Integer.parseInt(dependencyProvider.getInitInfoValueUsingKey("rabbitMqPort"));
 		String vHost = dependencyProvider.getInitInfoValueUsingKey("rabbitMqVirtualHost");
-		String exchange = dependencyProvider.getInitInfoValueUsingKey("rabbitMqExchange");
+		String imageExchange = dependencyProvider.getInitInfoValueUsingKey("rabbitMqImageExchange");
+		String pdfExchange = dependencyProvider.getInitInfoValueUsingKey("rabbitMqPdfExchange");
 		String routingKey = dependencyProvider.getInitInfoValueUsingKey("rabbitMqRoutingKey");
 
 		ResourceConvert recsourceConvert = ResourceConvertImp
-				.usingHostnamePortVHostExchangeRoutingKey(hostName, port, vHost, exchange,
-						routingKey);
+				.usingHostnamePortVHostExchangeRoutingKey(hostName, port, vHost, imageExchange,
+						pdfExchange, routingKey);
 		MimeTypeToBinaryType mimeTypeToBinaryType = new MimeTypeToBinaryTypeImp();
 		return UploaderImp.usingDependencyProviderAndResourceConvertAndMimeTypeToBinaryType(
 				dependencyProvider, recsourceConvert, mimeTypeToBinaryType);

@@ -130,14 +130,25 @@ public final class UploaderImp implements Uploader {
 				dataRecordGroup, detectedMimeType);
 
 		// send message for "Read metadata and convert to small formats"
-		sendImageToAnalyzeAndConvert(detectedMimeType);
+		possiblySendToConvert(detectedMimeType);
 		return updatedRecord;
 	}
 
-	private void sendImageToAnalyzeAndConvert(String detectedMimeType) {
-		if (detectedMimeType.startsWith("image/")) {
+	private void possiblySendToConvert(String detectedMimeType) {
+		if (isImage(detectedMimeType)) {
 			resourceConvert.sendMessageForAnalyzeAndConvertToThumbnails(dataDivider, type, id);
 		}
+		if (isPdf(detectedMimeType)) {
+			resourceConvert.sendMessageToConvertPdfToThumbnails(dataDivider, type, id);
+		}
+	}
+
+	private boolean isPdf(String detectedMimeType) {
+		return "application/pdf".equals(detectedMimeType);
+	}
+
+	private boolean isImage(String detectedMimeType) {
+		return detectedMimeType.startsWith("image/");
 	}
 
 	private void storeResourceStreamInArchive(InputStream resourceStream) {

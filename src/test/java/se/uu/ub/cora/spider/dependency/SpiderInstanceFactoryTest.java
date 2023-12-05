@@ -78,7 +78,9 @@ public class SpiderInstanceFactoryTest {
 		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
 				() -> "someVHost", "rabbitMqVirtualHost");
 		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
-				() -> "someExchange", "rabbitMqExchange");
+				() -> "someImageExchange", "rabbitMqImageExchange");
+		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
+				() -> "somePdfExchange", "rabbitMqPdfExchange");
 		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
 				() -> "someRoutingKey", "rabbitMqRoutingKey");
 
@@ -158,9 +160,20 @@ public class SpiderInstanceFactoryTest {
 				.onlyForTestGetResourceConvert();
 		assertTrue(resouceConvert instanceof ResourceConvertImp);
 
-		MimeTypeToBinaryType mimeTypeToBinaryType = (MimeTypeToBinaryType) recordUploader
+		MimeTypeToBinaryType mimeTypeToBinaryType = recordUploader
 				.onlyForTestGetMimeTypeToBinaryTypeConvert();
 		assertTrue(mimeTypeToBinaryType instanceof MimeTypeToBinaryTypeImp);
+
+		dependencyProvider.MCR.assertParameters("getInitInfoValueUsingKey", 0, "rabbitMqHostname");
+		dependencyProvider.MCR.assertParameters("getInitInfoValueUsingKey", 1, "rabbitMqPort");
+		dependencyProvider.MCR.assertParameters("getInitInfoValueUsingKey", 2,
+				"rabbitMqVirtualHost");
+		dependencyProvider.MCR.assertParameters("getInitInfoValueUsingKey", 3,
+				"rabbitMqImageExchange");
+		dependencyProvider.MCR.assertParameters("getInitInfoValueUsingKey", 4,
+				"rabbitMqPdfExchange");
+		dependencyProvider.MCR.assertParameters("getInitInfoValueUsingKey", 5,
+				"rabbitMqRoutingKey");
 
 		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 0,
 				resouceConvert.onlyForTestGetHostName());
@@ -169,8 +182,10 @@ public class SpiderInstanceFactoryTest {
 		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 2,
 				resouceConvert.onlyForTestGetVirtualHost());
 		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 3,
-				resouceConvert.onlyForTestGetExchange());
+				resouceConvert.onlyForTestGetImageExchange());
 		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 4,
+				resouceConvert.onlyForTestGetPdfExchange());
+		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 5,
 				resouceConvert.onlyForTestGetRoutingKey());
 	}
 

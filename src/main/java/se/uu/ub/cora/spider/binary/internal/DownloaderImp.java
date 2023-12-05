@@ -86,7 +86,8 @@ public final class DownloaderImp implements Downloader {
 			return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
 		}
 
-		InputStream stream = streamStorage.retrieve(id + "-" + representation, dataDivider);
+		InputStream stream = streamStorage.retrieve(type + ":" + id + "-" + representation,
+				dataDivider);
 		return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
 
 	}

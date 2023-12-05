@@ -36,7 +36,6 @@ import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.internal.DownloaderImp;
 import se.uu.ub.cora.spider.data.ResourceInputStream;
 import se.uu.ub.cora.spider.record.MisuseException;
@@ -301,8 +300,8 @@ public class DownloaderTest {
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, REPRESENTATION_THUMBNAIL);
 
-		streamStorage.MCR.assertParameters("retrieve", 0, SOME_RECORD_ID + "-thumbnail",
-				SOME_DATA_DIVIDER);
+		streamStorage.MCR.assertParameters("retrieve", 0,
+				BINARY_RECORD_TYPE + ":" + SOME_RECORD_ID + "-thumbnail", SOME_DATA_DIVIDER);
 		streamStorage.MCR.assertReturn("retrieve", 0, resourceDownloaded.stream);
 
 		assertReturnedDataFromCorrectResourceType(REPRESENTATION_THUMBNAIL, resourceDownloaded);
@@ -313,8 +312,8 @@ public class DownloaderTest {
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, "medium");
 
-		streamStorage.MCR.assertParameters("retrieve", 0, SOME_RECORD_ID + "-medium",
-				SOME_DATA_DIVIDER);
+		streamStorage.MCR.assertParameters("retrieve", 0,
+				BINARY_RECORD_TYPE + ":" + SOME_RECORD_ID + "-medium", SOME_DATA_DIVIDER);
 		streamStorage.MCR.assertReturn("retrieve", 0, resourceDownloaded.stream);
 
 		assertReturnedDataFromCorrectResourceType("medium", resourceDownloaded);
@@ -325,8 +324,8 @@ public class DownloaderTest {
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, "large");
 
-		streamStorage.MCR.assertParameters("retrieve", 0, SOME_RECORD_ID + "-large",
-				SOME_DATA_DIVIDER);
+		streamStorage.MCR.assertParameters("retrieve", 0,
+				BINARY_RECORD_TYPE + ":" + SOME_RECORD_ID + "-large", SOME_DATA_DIVIDER);
 		streamStorage.MCR.assertReturn("retrieve", 0, resourceDownloaded.stream);
 
 		assertReturnedDataFromCorrectResourceType("large", resourceDownloaded);

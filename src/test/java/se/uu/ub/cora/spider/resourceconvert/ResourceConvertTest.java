@@ -42,7 +42,8 @@ public class ResourceConvertTest {
 	private static final String SOME_HOST = "someHostname";
 	private static final int SOME_PORT = 8080;
 	private static final String SOME_VHOST = "someVhost";
-	private static final String SOME_EXCHANGE = "someExchange";
+	private static final String SOME_IMAGE_EXCHANGE = "someImageExchange";
+	private static final String SOME_PDF_EXCHANGE = "somePdfExchange";
 	private static final String SOME_ROUTINGKEY = "someRoutingKey";
 	private LoggerFactorySpy loggerFactorySpy = new LoggerFactorySpy();
 	private MessagingFactorySpy messagingFactory;
@@ -59,18 +60,45 @@ public class ResourceConvertTest {
 		MessagingProvider.setMessagingFactory(messagingFactory);
 
 		resourceConvert = ResourceConvertImp.usingHostnamePortVHostExchangeRoutingKey(SOME_HOST,
-				SOME_PORT, SOME_VHOST, SOME_EXCHANGE, SOME_ROUTINGKEY);
+				SOME_PORT, SOME_VHOST, SOME_IMAGE_EXCHANGE, SOME_PDF_EXCHANGE, SOME_ROUTINGKEY);
 	}
 
 	@Test
 	public void testCorrectHostPortAndRoutingKeyUsedForMessageSender() throws Exception {
-		resourceConvert.sendMessageForAnalyzeAndConvertToThumbnails(SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID);
+		resourceConvert.sendMessageForAnalyzeAndConvertToThumbnails(SOME_DATA_DIVIDER, SOME_TYPE,
+				SOME_ID);
 
+		assertMessagingProviderCalledWithCommonAndExchange(SOME_IMAGE_EXCHANGE);
+	}
+
+	@Test
+	public void testSendAnalyzeAndConvertToThumbnailsMessage() throws Exception {
+		resourceConvert.sendMessageForAnalyzeAndConvertToThumbnails(SOME_DATA_DIVIDER, SOME_TYPE,
+				SOME_ID);
+		String messageText = "Read metadata and convert to small formats";
+		assertMessageIsSentUsingMessageSenderFromProvider(messageText);
+	}
+
+	@Test
+	public void testCorrectHostPortAndRoutingKeyUsedForMessageSenderForPdf() throws Exception {
+		resourceConvert.sendMessageToConvertPdfToThumbnails(SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID);
+
+		assertMessagingProviderCalledWithCommonAndExchange(SOME_PDF_EXCHANGE);
+	}
+
+	@Test
+	public void testSendAnalyzeAndConvertToThumbnailsMessageForPdf() throws Exception {
+		resourceConvert.sendMessageToConvertPdfToThumbnails(SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID);
+		String messageText = "Convert PDF to small formats";
+		assertMessageIsSentUsingMessageSenderFromProvider(messageText);
+	}
+
+	private void assertMessagingProviderCalledWithCommonAndExchange(String someImageExchange) {
 		AmqpMessageSenderRoutingInfo messagingRoutingInfo = getMessageRoutingInfoSpyFromProvider();
 		assertEquals(messagingRoutingInfo.hostname, SOME_HOST);
 		assertEquals(messagingRoutingInfo.port, SOME_PORT);
 		assertEquals(messagingRoutingInfo.virtualHost, SOME_VHOST);
-		assertEquals(messagingRoutingInfo.exchange, SOME_EXCHANGE);
+		assertEquals(messagingRoutingInfo.exchange, someImageExchange);
 		assertEquals(messagingRoutingInfo.routingKey, SOME_ROUTINGKEY);
 	}
 
@@ -80,9 +108,7 @@ public class ResourceConvertTest {
 						"messagingRoutingInfo");
 	}
 
-	@Test
-	public void testSendAnalyzeAndConvertToThumbnailsMessage() throws Exception {
-		resourceConvert.sendMessageForAnalyzeAndConvertToThumbnails(SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID);
+	private void assertMessageIsSentUsingMessageSenderFromProvider(String messageText) {
 		MessageSenderSpy messageSender = (MessageSenderSpy) messagingFactory.MCR
 				.getReturnValue(FACTOR_METHOD_NAME, 0);
 
@@ -92,9 +118,7 @@ public class ResourceConvertTest {
 		headers.put("id", SOME_ID);
 		messageSender.MCR.assertMethodWasCalled("sendMessage");
 		messageSender.MCR.assertParameterAsEqual("sendMessage", 0, "headers", headers);
-		messageSender.MCR.assertParameterAsEqual("sendMessage", 0, "message",
-				"Read metadata and convert to small formats");
-
+		messageSender.MCR.assertParameterAsEqual("sendMessage", 0, "message", messageText);
 	}
 
 }

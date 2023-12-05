@@ -22,4 +22,6 @@ public interface ResourceConvert {
 
 	void sendMessageForAnalyzeAndConvertToThumbnails(String dataDivider, String type, String id);
 
+	void sendMessageToConvertPdfToThumbnails(String dataDivider, String type, String id);
+
 }

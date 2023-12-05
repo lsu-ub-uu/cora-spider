@@ -31,33 +31,39 @@ public class ResourceConvertImp implements ResourceConvert {
 	private String hostname;
 	private int port;
 	private String vhost;
-	private String exchange;
+	private String imageExchange;
 	private String routingkey;
+	private String pdfExchange;
 
 	public static ResourceConvertImp usingHostnamePortVHostExchangeRoutingKey(String hostname,
-			int port, String vhost, String exchage, String routingkey) {
-		return new ResourceConvertImp(hostname, port, vhost, exchage, routingkey);
+			int port, String vhost, String imageExchange, String pdfExchange, String routingkey) {
+		return new ResourceConvertImp(hostname, port, vhost, imageExchange, pdfExchange,
+				routingkey);
 	}
 
-	private ResourceConvertImp(String hostname, int port, String vhost, String exchange,
-			String routingkey) {
+	private ResourceConvertImp(String hostname, int port, String vhost, String imageExchange,
+			String pdfExchange, String routingkey) {
 		this.hostname = hostname;
 		this.port = port;
 		this.vhost = vhost;
-		this.exchange = exchange;
+		this.imageExchange = imageExchange;
+		this.pdfExchange = pdfExchange;
 		this.routingkey = routingkey;
-
 	}
 
 	@Override
 	public void sendMessageForAnalyzeAndConvertToThumbnails(String dataDivider, String type,
 			String id) {
-		MessageRoutingInfo messageRoutingInfo = new AmqpMessageSenderRoutingInfo(hostname, port,
-				vhost, exchange, routingkey);
-		MessageSender sender = MessagingProvider.getTopicMessageSender(messageRoutingInfo);
+		MessageSender sender = getMessageSenderUsingExchange(imageExchange);
 
 		Map<String, Object> headers = crateHeadersMap(dataDivider, type, id);
 		sender.sendMessage(headers, "Read metadata and convert to small formats");
+	}
+
+	private MessageSender getMessageSenderUsingExchange(String exchange) {
+		MessageRoutingInfo messageRoutingInfo = new AmqpMessageSenderRoutingInfo(hostname, port,
+				vhost, exchange, routingkey);
+		return MessagingProvider.getTopicMessageSender(messageRoutingInfo);
 	}
 
 	private Map<String, Object> crateHeadersMap(String dataDivider, String type, String id) {
@@ -66,6 +72,14 @@ public class ResourceConvertImp implements ResourceConvert {
 		headers.put("type", type);
 		headers.put("id", id);
 		return headers;
+	}
+
+	@Override
+	public void sendMessageToConvertPdfToThumbnails(String dataDivider, String type, String id) {
+		MessageSender sender = getMessageSenderUsingExchange(pdfExchange);
+
+		Map<String, Object> headers = crateHeadersMap(dataDivider, type, id);
+		sender.sendMessage(headers, "Convert PDF to small formats");
 	}
 
 	public String onlyForTestGetHostName() {
@@ -80,11 +94,16 @@ public class ResourceConvertImp implements ResourceConvert {
 		return vhost;
 	}
 
-	public String onlyForTestGetExchange() {
-		return exchange;
+	public String onlyForTestGetImageExchange() {
+		return imageExchange;
+	}
+
+	public String onlyForTestGetPdfExchange() {
+		return pdfExchange;
 	}
 
 	public String onlyForTestGetRoutingKey() {
 		return routingkey;
 	}
+
 }

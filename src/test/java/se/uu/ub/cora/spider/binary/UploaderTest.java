@@ -110,8 +110,8 @@ public class UploaderTest {
 		someStream = new InputStreamSpy();
 		resourceConvert = new ResourceConvertSpy();
 
-		uploader = UploaderImp.usingDependencyProviderAndResourceConvertAndMimeTypeToBinaryType(dependencyProvider,
-				resourceConvert, mimeTypeToBinaryType);
+		uploader = UploaderImp.usingDependencyProviderAndResourceConvertAndMimeTypeToBinaryType(
+				dependencyProvider, resourceConvert, mimeTypeToBinaryType);
 	}
 
 	private void setUpSpiderInstanceProvider() {
@@ -514,6 +514,20 @@ public class UploaderTest {
 		contentAnalyzerSpy.MRV.setDefaultReturnValuesSupplier("getMimeType", () -> mediaType);
 		contentAnalyzeInstanceProviderSpy.MRV.setDefaultReturnValuesSupplier("getContentAnalyzer",
 				() -> contentAnalyzerSpy);
+	}
+
+	@Test
+	public void testCallUpdateSendsMessageToConvertPdf() throws Exception {
+		createContentAnalyzerUsingMediaTypeToReturn("application/pdf");
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+
+		DataRecordGroupSpy readDataRecordGroup = testReadRecord();
+		var dataDivider = testGetDataDivider(readDataRecordGroup);
+
+		resourceConvert.MCR.assertParameters("sendMessageToConvertPdfToThumbnails", 0, dataDivider,
+				BINARY_RECORD_TYPE, SOME_RECORD_ID);
 	}
 
 	@Test
