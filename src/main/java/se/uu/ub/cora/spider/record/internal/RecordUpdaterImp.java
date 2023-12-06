@@ -33,6 +33,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
@@ -47,6 +48,7 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordUpdater;
@@ -124,6 +126,9 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		updateDefinitionId = recordTypeHandler.getUpdateDefinitionId();
 
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
+
+		doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection();
+
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, topDataGroup);
 
 		updateRecordInfo();
@@ -153,6 +158,61 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		useExtendedFunctionalityAfterStore(recordType, topDataGroup);
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup, dataRedactor);
+	}
+
+	private void doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection() {
+		DataGroup recordInfo = topDataGroup.getFirstGroupWithNameInData("recordInfo");
+		boolean overwriteProtection = true;
+		overwriteProtection = readIgnoreOverwriteProtectionSettingIfExists(recordInfo,
+				overwriteProtection);
+		if (overwriteProtection) {
+			ifDifferentVersionThrowConflictException();
+		}
+		recordInfo.removeFirstChildWithNameInData("ignoreOverwriteProtection");
+	}
+
+	private boolean readIgnoreOverwriteProtectionSettingIfExists(DataGroup recordInfo,
+			boolean overwriteProtection) {
+		if (recordInfo.containsChildWithNameInData("ignoreOverwriteProtection")) {
+			overwriteProtection = getOverwriteProtectionSetting(recordInfo);
+		}
+		return overwriteProtection;
+	}
+
+	private boolean getOverwriteProtectionSetting(DataGroup recordInfo) {
+		String ignoreOverwriteProtection = recordInfo
+				.getFirstAtomicValueWithNameInData("ignoreOverwriteProtection");
+		return !"true".equals(ignoreOverwriteProtection);
+	}
+
+	private void ifDifferentVersionThrowConflictException() {
+		String latestUpdatedTopDataG = getLatestDateFromARecord(topDataGroup);
+		String latestUpdatedPreviouslyStored = getLatestDateFromARecord(previouslyStoredRecord);
+
+		if (differentVersion(latestUpdatedTopDataG, latestUpdatedPreviouslyStored)) {
+			throw ConflictException
+					.withMessage("Could not update record beacuse it exist a newer version of the "
+							+ "record in the storage.");
+		}
+	}
+
+	private boolean differentVersion(String latestUpdatedTopDataG,
+			String latestUpdatedPreviouslyStored) {
+		return !latestUpdatedTopDataG.equals(latestUpdatedPreviouslyStored);
+	}
+
+	private String getLatestDateFromARecord(DataGroup dataGroup) {
+		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+		List<DataChild> updatedGsList = recordInfo.getAllChildrenWithNameInData("updated");
+		if (listHasElements(updatedGsList)) {
+			DataGroup lastUpdatedG = (DataGroup) updatedGsList.get(updatedGsList.size() - 1);
+			return lastUpdatedG.getFirstAtomicValueWithNameInData("tsUpdated");
+		}
+		return "nonExistentUpdatedDate";
+	}
+
+	private boolean listHasElements(List<DataChild> updatedGsList) {
+		return !updatedGsList.isEmpty();
 	}
 
 	private void validateRecordTypeInDataIsSameAsSpecified(String recordTypeToUpdate) {
@@ -337,7 +397,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private void checkValueIsSameAsValueInEnteredRecord(String value,
 			String extractedValueFromRecord) {
-		if (!value.equals(extractedValueFromRecord)) {
+		if (differentVersion(value, extractedValueFromRecord)) {
 			throw new DataException("Value in data(" + extractedValueFromRecord
 					+ ") does not match entered value(" + value + ")");
 		}

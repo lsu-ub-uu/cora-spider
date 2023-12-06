@@ -242,6 +242,7 @@ public class DataGroupOldSpy implements DataGroup {
 				return (DataAtomic) dataElement;
 			}
 		}
+		System.out.println("nameIndata: " + childNameInData);
 		return null;
 	}
 
