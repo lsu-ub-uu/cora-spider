@@ -206,7 +206,9 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		List<DataChild> updatedGsList = recordInfo.getAllChildrenWithNameInData("updated");
 		if (listHasElements(updatedGsList)) {
 			DataGroup lastUpdatedG = (DataGroup) updatedGsList.get(updatedGsList.size() - 1);
-			return lastUpdatedG.getFirstAtomicValueWithNameInData("tsUpdated");
+			if (lastUpdatedG.containsChildWithNameInData("tsUpdated")) {
+				return lastUpdatedG.getFirstAtomicValueWithNameInData("tsUpdated");
+			}
 		}
 		return "nonExistentUpdatedDate";
 	}

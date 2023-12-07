@@ -271,7 +271,7 @@ public class RecordUpdaterTest {
 		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
 				Optional.of(ignoreOverwriteProtectionValue), extendedFunctionalitySpy,
-				"2023-12-05T08:51:01.730741Z");
+				Optional.of("2023-12-05T08:51:01.730741Z"));
 
 		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 
@@ -287,7 +287,7 @@ public class RecordUpdaterTest {
 
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
 				Optional.of(ignoreOverwriteProtectionValue), extendedFunctionalitySpy,
-				"2023-12-05T08:51:01.730741Z");
+				Optional.of("2023-12-05T08:51:01.730741Z"));
 
 		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 
@@ -303,7 +303,7 @@ public class RecordUpdaterTest {
 		setupPreviouslyStoredRecord(sameLatestUpdatedTimestamp);
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
 				Optional.of(ignoreOverwriteProtectionValue), extendedFunctionalitySpy,
-				sameLatestUpdatedTimestamp);
+				Optional.of(sameLatestUpdatedTimestamp));
 
 		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 
@@ -318,7 +318,7 @@ public class RecordUpdaterTest {
 
 		setupPreviouslyStoredRecord(sameLatestUpdatedTimestamp);
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(Optional.empty(),
-				extendedFunctionalitySpy, sameLatestUpdatedTimestamp);
+				extendedFunctionalitySpy, Optional.of(sameLatestUpdatedTimestamp));
 
 		recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
 
@@ -332,7 +332,7 @@ public class RecordUpdaterTest {
 
 		setupPreviouslyStoredRecord("2020-01-01T00:00:00.000001Z");
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(Optional.empty(),
-				extendedFunctionalitySpy, "2023-01-01T00:00:00.000001Z");
+				extendedFunctionalitySpy, Optional.of("2023-01-01T00:00:00.000001Z"));
 
 		try {
 			recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
@@ -357,7 +357,7 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
-	public void testIgnoreOverwriteProtection_DifferntLatestUpdated_ConflictException()
+	public void testIgnoreOverwriteProtection_DiffrentLatestUpdated_ConflictException()
 			throws Exception {
 		String ignoreOverwriteProtectionValue = "false";
 		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
@@ -365,7 +365,29 @@ public class RecordUpdaterTest {
 		setupPreviouslyStoredRecord("2020-01-01T00:00:00.000001Z");
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
 				Optional.of(ignoreOverwriteProtectionValue), extendedFunctionalitySpy,
-				"2023-12-05T08:51:01.730741Z");
+				Optional.of("2023-12-05T08:51:01.730741Z"));
+
+		try {
+			recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
+			fail();
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			assertTrue(e instanceof ConflictException);
+			assertEquals(e.getMessage(),
+					"Could not update record beacuse it exist a newer version of the "
+							+ "record in the storage.");
+		}
+	}
+
+	@Test
+	public void testIgnoreOverwriteProtection_MissingTSLatestUpdated_ConflictException()
+			throws Exception {
+		// String ignoreOverwriteProtectionValue = "false";
+		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
+
+		setupPreviouslyStoredRecord("2020-01-01T00:00:00.000001Z");
+		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(Optional.empty(),
+				extendedFunctionalitySpy, Optional.empty());
 
 		try {
 			recordUpdater.updateRecord("someToken78678567", "spyType", "spyId", dataGroup);
@@ -394,6 +416,7 @@ public class RecordUpdaterTest {
 		recordInfo.addChild(tsCreated);
 		//
 		DataGroupSpy updatedG = new DataGroupSpy();
+		updatedG.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData", () -> true);
 		updatedG.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "updated");
 		updatedG.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> updatedTimestamp);
@@ -405,7 +428,7 @@ public class RecordUpdaterTest {
 
 	private DataGroup setUpRecordUpdaterWithExtFunctionallityAndValue(
 			Optional<String> ignoreOverwriteProtectionValue,
-			ExtendedFunctionalitySpy extendedFunctionalitySpy, String updatedTimestamp) {
+			ExtendedFunctionalitySpy extendedFunctionalitySpy, Optional<String> updatedTimestamp) {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
@@ -421,8 +444,14 @@ public class RecordUpdaterTest {
 
 		DataGroupSpy updatedG = new DataGroupSpy();
 		updatedG.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "updated");
-		updatedG.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> updatedTimestamp);
+		if (updatedTimestamp.isPresent()) {
+			updatedG.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData", () -> true);
+			updatedG.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+					() -> updatedTimestamp.get());
+		} else {
+			updatedG.MRV.setAlwaysThrowException("getFirstAtomicValueWithNameInData",
+					new DataMissingException("spy value not found"));
+		}
 		updatedG.MRV.setDefaultReturnValuesSupplier("getRepeatId", () -> "1");
 
 		recordInfo.addChild(updatedG);
