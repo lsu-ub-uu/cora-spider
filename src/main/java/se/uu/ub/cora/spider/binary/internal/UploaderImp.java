@@ -29,6 +29,7 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.contentanalyzer.ContentAnalyzer;
 import se.uu.ub.cora.contentanalyzer.ContentAnalyzerProvider;
 import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
@@ -54,7 +55,7 @@ import se.uu.ub.cora.storage.archive.record.ResourceMetadataToUpdate;
 public final class UploaderImp implements Uploader {
 	private static final String MASTER = "master";
 	private static final String BINARY_RECORD_TYPE = "binary";
-	private static final String RESOURCE_INFO = "resourceInfo";
+	// private static final String RESOURCE_INFO = "resourceInfo";
 	private static final String MIME_TYPE_GENERIC = "application/octet-stream";
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataGroupTermCollector termCollector;
@@ -177,7 +178,7 @@ public final class UploaderImp implements Uploader {
 			DataRecordGroup dataRecordGroup, String detectedMimeType) {
 
 		ResourceMetadata resourceMetadata = resourceArchive.readMetadata(dataDivider, type, id);
-		createResourceInfoAndMasterGroupAndAddToBinaryRecord(dataRecordGroup, resourceMetadata,
+		createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(dataRecordGroup, resourceMetadata,
 				detectedMimeType);
 
 		removeExpectedAtomicsFromBinaryRecord(dataRecordGroup);
@@ -257,27 +258,32 @@ public final class UploaderImp implements Uploader {
 		return termCollector.collectTerms(definitionId, binaryDG);
 	}
 
-	private void createResourceInfoAndMasterGroupAndAddToBinaryRecord(
+	private void createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(
 			DataRecordGroup dataRecordGroup, ResourceMetadata resourceMetadata,
 			String detectedMimeType) {
-		DataGroup resourceInfo = createResourceInfoWithMaster(resourceMetadata.fileSize(),
-				detectedMimeType);
+		DataGroup masterGroup = createMasterGroup(resourceMetadata.fileSize(), detectedMimeType);
 
-		dataRecordGroup.addChild(resourceInfo);
+		dataRecordGroup.addChild(masterGroup);
 
 		DataAtomic checksum = DataProvider.createAtomicUsingNameInDataAndValue("checksum",
 				resourceMetadata.checksumSHA512());
 		DataAtomic checksumType = DataProvider.createAtomicUsingNameInDataAndValue("checksumType",
 				"SHA-512");
-		dataRecordGroup.addChild(checksum);
-		dataRecordGroup.addChild(checksumType);
+		// dataRecordGroup.addChild(checksum);
+		// dataRecordGroup.addChild(checksumType);
+		masterGroup.addChild(checksum);
+		masterGroup.addChild(checksumType);
+
+		DataChild originalFileName = dataRecordGroup
+				.getFirstChildWithNameInData("originalFileName");
+		masterGroup.addChild(originalFileName);
+		dataRecordGroup.removeFirstChildWithNameInData("originalFileName");
+
 		dataRecordGroup.addAttributeByIdWithValue("type",
 				mimeTypeToBinaryType.toBinaryType(detectedMimeType));
 	}
 
-	private DataGroup createResourceInfoWithMaster(String fetchedFileSize,
-			String detectedMimeType) {
-		DataGroup resourceInfo = DataProvider.createGroupUsingNameInData(RESOURCE_INFO);
+	private DataGroup createMasterGroup(String fetchedFileSize, String detectedMimeType) {
 		DataGroup master = DataProvider.createGroupUsingNameInData(MASTER);
 
 		DataAtomic resourceId = DataProvider.createAtomicUsingNameInDataAndValue("resourceId",
@@ -289,13 +295,11 @@ public final class UploaderImp implements Uploader {
 		DataAtomic mimeType = DataProvider.createAtomicUsingNameInDataAndValue("mimeType",
 				detectedMimeType);
 
-		resourceInfo.addChild(master);
-
 		master.addChild(resourceId);
 		master.addChild(resourceLink);
 		master.addChild(fileSize);
 		master.addChild(mimeType);
-		return resourceInfo;
+		return master;
 	}
 
 	private void removeExpectedAtomicsFromBinaryRecord(DataRecordGroup dataRecordGroup) {

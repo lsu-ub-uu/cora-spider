@@ -332,7 +332,7 @@ public class UploaderTest {
 
 		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", binaryDG);
 
-		assertResourceInfoIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
+		assertMasterIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
 		assertRemoveExpectedFieldsFromBinaryRecord(readBinarySpy);
 	}
 
@@ -357,15 +357,14 @@ public class UploaderTest {
 
 		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", binaryDG);
 
-		assertResourceInfoIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
+		assertMasterIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
 		assertRemoveExpectedFieldsFromBinaryRecord(readBinarySpy);
 	}
 
-	private void assertResourceInfoIsCorrect(DataRecordGroupSpy readBinarySpy,
+	private void assertMasterIsCorrect(DataRecordGroupSpy readBinarySpy,
 			String resourceTypeMaster) {
 
-		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "resourceInfo");
-		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 1, resourceTypeMaster);
+		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, resourceTypeMaster);
 
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "resourceId",
 				SOME_RECORD_ID + "-master");
@@ -384,10 +383,8 @@ public class UploaderTest {
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4,
 				"checksumType", SHA512);
 
-		DataGroupSpy resourceInfo = (DataGroupSpy) dataFactorySpy.MCR
-				.getReturnValue("factorGroupUsingNameInData", 0);
 		DataGroupSpy master = (DataGroupSpy) dataFactorySpy.MCR
-				.getReturnValue("factorGroupUsingNameInData", 1);
+				.getReturnValue("factorGroupUsingNameInData", 0);
 
 		DataAtomicSpy resourceId = (DataAtomicSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
@@ -404,20 +401,20 @@ public class UploaderTest {
 		DataAtomicSpy checksumType = (DataAtomicSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 4);
 
-		readBinarySpy.MCR.assertParameters("addChild", 0, resourceInfo);
-		resourceInfo.MCR.assertParameters("addChild", 0, master);
+		readBinarySpy.MCR.assertParameters("addChild", 0, master);
 		master.MCR.assertParameters("addChild", 0, resourceId);
 		master.MCR.assertParameters("addChild", 1, resourceLink);
 		master.MCR.assertParameters("addChild", 2, fileSize);
 		master.MCR.assertParameters("addChild", 3, mimeType);
-		readBinarySpy.MCR.assertParameters("addChild", 1, checksum);
-		readBinarySpy.MCR.assertParameters("addChild", 2, checksumType);
+		master.MCR.assertParameters("addChild", 4, checksum);
+		master.MCR.assertParameters("addChild", 5, checksumType);
 
 	}
 
 	private void assertRemoveExpectedFieldsFromBinaryRecord(DataRecordGroupSpy readBinarySpy) {
-		readBinarySpy.MCR.assertParameters("removeFirstChildWithNameInData", 0, "expectedFileSize");
-		readBinarySpy.MCR.assertParameters("removeFirstChildWithNameInData", 1, "expectedChecksum");
+		readBinarySpy.MCR.assertParameters("removeFirstChildWithNameInData", 0, "originalFileName");
+		readBinarySpy.MCR.assertParameters("removeFirstChildWithNameInData", 1, "expectedFileSize");
+		readBinarySpy.MCR.assertParameters("removeFirstChildWithNameInData", 2, "expectedChecksum");
 	}
 
 	@Test

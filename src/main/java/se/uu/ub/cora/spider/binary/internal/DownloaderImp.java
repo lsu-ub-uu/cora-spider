@@ -117,8 +117,9 @@ public final class DownloaderImp implements Downloader {
 
 	private ResourceInputStream prepareResponseForResourceInputStream(String representation,
 			DataRecordGroup binaryRecordGroup, InputStream stream) {
-		DataGroup resourceInfo = binaryRecordGroup.getFirstGroupWithNameInData("resourceInfo");
-		DataGroup resourceGroup = resourceInfo.getFirstGroupWithNameInData(representation);
+		// DataGroup resourceInfo = binaryRecordGroup.getFirstGroupWithNameInData("resourceInfo");
+		// DataGroup resourceGroup = resourceInfo.getFirstGroupWithNameInData(representation);
+		DataGroup resourceGroup = binaryRecordGroup.getFirstGroupWithNameInData(representation);
 		String resourceId = resourceGroup.getFirstAtomicValueWithNameInData("resourceId");
 		String fileSize = resourceGroup.getFirstAtomicValueWithNameInData("fileSize");
 		String mimeType = resourceGroup.getFirstAtomicValueWithNameInData("mimeType");

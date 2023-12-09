@@ -73,7 +73,6 @@ public class DownloaderTest {
 	private ResourceArchiveSpy resourceArchive;
 
 	private DataGroupSpy resourceTypeDGS;
-	private DataGroupSpy resourceInfoDGS;
 	private DataRecordGroupSpy readBinaryDGS;
 	private StreamStorageSpy streamStorage;
 
@@ -120,19 +119,16 @@ public class DownloaderTest {
 		resourceTypeDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> SOME_MIME_TYPE, "mimeType");
 
-		resourceInfoDGS = new DataGroupSpy();
-		resourceInfoDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceTypeDGS, "master");
-		resourceInfoDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceTypeDGS, "thumbnail");
-		resourceInfoDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceTypeDGS, "medium");
-		resourceInfoDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceTypeDGS, "large");
-
 		readBinaryDGS = new DataRecordGroupSpy();
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceInfoDGS, "resourceInfo");
+				() -> resourceTypeDGS, "master");
+		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> resourceTypeDGS, "thumbnail");
+		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> resourceTypeDGS, "medium");
+		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> resourceTypeDGS, "large");
+
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> ORIGINAL_FILE_NAME, "originalFileName");
 		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getDataDivider", () -> SOME_DATA_DIVIDER);
@@ -283,8 +279,7 @@ public class DownloaderTest {
 
 	private void assertReturnedDataFromCorrectResourceType(String resourceType,
 			ResourceInputStream resourceDownloaded) {
-		readBinaryDGS.MCR.assertParameters("getFirstGroupWithNameInData", 0, "resourceInfo");
-		resourceInfoDGS.MCR.assertParameters("getFirstGroupWithNameInData", 0, resourceType);
+		readBinaryDGS.MCR.assertParameters("getFirstGroupWithNameInData", 0, resourceType);
 		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "resourceId");
 		var fileName = resourceTypeDGS.MCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
 		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "fileSize");
