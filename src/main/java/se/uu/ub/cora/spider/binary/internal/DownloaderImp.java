@@ -41,7 +41,8 @@ public final class DownloaderImp implements Downloader {
 	private static final String ACTION_DOWNLOAD = "download";
 	private static final String ERR_MESSAGE_MISUSE = "Downloading error: Invalid record type, "
 			+ "for type {0} and {1}, must be (binary).";
-	private List<String> allowedRepresentations = List.of("master", "thumbnail", "medium", "large");
+	private List<String> allowedRepresentations = List.of("master", "thumbnail", "medium", "large",
+			"jp2");
 	private String representation;
 	private SpiderAuthorizator spiderAuthorizator;
 	private StreamStorage streamStorage;
@@ -117,8 +118,6 @@ public final class DownloaderImp implements Downloader {
 
 	private ResourceInputStream prepareResponseForResourceInputStream(String representation,
 			DataRecordGroup binaryRecordGroup, InputStream stream) {
-		// DataGroup resourceInfo = binaryRecordGroup.getFirstGroupWithNameInData("resourceInfo");
-		// DataGroup resourceGroup = resourceInfo.getFirstGroupWithNameInData(representation);
 		DataGroup resourceGroup = binaryRecordGroup.getFirstGroupWithNameInData(representation);
 		String resourceId = resourceGroup.getFirstAtomicValueWithNameInData("resourceId");
 		String fileSize = resourceGroup.getFirstAtomicValueWithNameInData("fileSize");

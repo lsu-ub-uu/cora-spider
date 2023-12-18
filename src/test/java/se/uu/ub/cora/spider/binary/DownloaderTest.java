@@ -50,8 +50,11 @@ import se.uu.ub.cora.storage.spies.archive.ResourceArchiveSpy;
 public class DownloaderTest {
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String SOME_MIME_TYPE = "someMimeType";
-	private static final String REPRESENTATION_MASTER = "master";
-	private static final String REPRESENTATION_THUMBNAIL = "thumbnail";
+	private static final String MASTER = "master";
+	private static final String THUMBNAIL = "thumbnail";
+	private static final String MEDIUM = "medium";
+	private static final String LARGE = "large";
+	private static final String JP2 = "jp2";
 	private static final String SOME_RECORD_ID = "someId";
 	private static final String SOME_AUTH_TOKEN = "someAuthToken";
 	private static final String BINARY_RECORD_TYPE = "binary";
@@ -121,13 +124,15 @@ public class DownloaderTest {
 
 		readBinaryDGS = new DataRecordGroupSpy();
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceTypeDGS, "master");
+				() -> resourceTypeDGS, MASTER);
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceTypeDGS, "thumbnail");
+				() -> resourceTypeDGS, THUMBNAIL);
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceTypeDGS, "medium");
+				() -> resourceTypeDGS, MEDIUM);
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceTypeDGS, "large");
+				() -> resourceTypeDGS, LARGE);
+		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> resourceTypeDGS, JP2);
 
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> ORIGINAL_FILE_NAME, "originalFileName");
@@ -139,7 +144,7 @@ public class DownloaderTest {
 	@Test
 	public void testDownloadMustReturnNonEmptyInputSreamInit() {
 		var downloadedResource = downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE,
-				SOME_RECORD_ID, REPRESENTATION_MASTER);
+				SOME_RECORD_ID, MASTER);
 		assertNotNull(downloadedResource);
 		assertTrue(downloadedResource instanceof ResourceInputStream);
 	}
@@ -147,7 +152,7 @@ public class DownloaderTest {
 	@Test
 	public void testReadRelatedResourceFromArchive() throws Exception {
 		ResourceInputStream downloadResource = downloader.download(SOME_AUTH_TOKEN,
-				BINARY_RECORD_TYPE, SOME_RECORD_ID, REPRESENTATION_MASTER);
+				BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
 
 		dependencyProvider.MCR.assertParameters("getRecordStorage", 0);
 		recordStorage.MCR.assertParameters("read", 0, BINARY_RECORD_TYPE, SOME_RECORD_ID);
@@ -170,8 +175,7 @@ public class DownloaderTest {
 		recordStorage.MRV.setAlwaysThrowException("read",
 				RecordNotFoundException.withMessage(SOME_EXCEPTION_MESSAGE));
 		try {
-			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID,
-					REPRESENTATION_MASTER);
+			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
 			fail("It should throw Exception");
 		} catch (Exception e) {
 			assertTrue(e instanceof RecordNotFoundException,
@@ -183,8 +187,7 @@ public class DownloaderTest {
 
 	@Test
 	public void testDownloadAuthenticate() throws Exception {
-		downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID,
-				REPRESENTATION_MASTER);
+		downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
 
 		dependencyProvider.MCR.assertParameters("getAuthenticator", 0);
 		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_AUTH_TOKEN);
@@ -195,8 +198,7 @@ public class DownloaderTest {
 		authenticator.MRV.setAlwaysThrowException("getUserForToken",
 				new AuthenticationException(SOME_EXCEPTION_MESSAGE));
 		try {
-			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID,
-					REPRESENTATION_MASTER);
+			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
 			fail("It should throw Exception");
 		} catch (Exception e) {
 			assertTrue(e instanceof AuthenticationException,
@@ -210,8 +212,7 @@ public class DownloaderTest {
 		authorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForActionOnRecordType",
 				new AuthorizationException(SOME_EXCEPTION_MESSAGE));
 		try {
-			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID,
-					REPRESENTATION_MASTER);
+			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
 			fail("It should throw Exception");
 		} catch (Exception e) {
 			assertTrue(e instanceof AuthorizationException,
@@ -222,14 +223,13 @@ public class DownloaderTest {
 
 	@Test
 	public void testUploadUserAuthorized() throws Exception {
-		downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID,
-				REPRESENTATION_MASTER);
+		downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
 
 		var user = authenticator.MCR.getReturnValue("getUserForToken", 0);
 
 		dependencyProvider.MCR.assertParameters("getSpiderAuthorizator", 0);
 		authorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0, user,
-				ACTION_DOWNLOAD, BINARY_RECORD_TYPE + "." + REPRESENTATION_MASTER);
+				ACTION_DOWNLOAD, BINARY_RECORD_TYPE + "." + MASTER);
 	}
 
 	@Test
@@ -256,8 +256,7 @@ public class DownloaderTest {
 	@Test
 	public void testUploadExceptionTypeDifferentThanBinary() throws Exception {
 		try {
-			downloader.download(SOME_AUTH_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID,
-					REPRESENTATION_MASTER);
+			downloader.download(SOME_AUTH_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID, MASTER);
 			fail("It should throw exception");
 		} catch (Exception e) {
 			assertTrue(e instanceof MisuseException);
@@ -272,8 +271,8 @@ public class DownloaderTest {
 	public void testReturnCorrectInfoForMaster() throws Exception {
 
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
-				BINARY_RECORD_TYPE, SOME_RECORD_ID, REPRESENTATION_MASTER);
-		assertReturnedDataFromCorrectResourceType("master", resourceDownloaded);
+				BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
+		assertReturnedDataFromCorrectResourceType(MASTER, resourceDownloaded);
 
 	}
 
@@ -293,36 +292,42 @@ public class DownloaderTest {
 	@Test
 	public void testDownloadAThumbnail() throws Exception {
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
-				BINARY_RECORD_TYPE, SOME_RECORD_ID, REPRESENTATION_THUMBNAIL);
+				BINARY_RECORD_TYPE, SOME_RECORD_ID, THUMBNAIL);
 
+		assertRepresentationAllowed(resourceDownloaded, THUMBNAIL);
+	}
+
+	private void assertRepresentationAllowed(ResourceInputStream resourceDownloaded,
+			String representation) {
 		streamStorage.MCR.assertParameters("retrieve", 0,
-				BINARY_RECORD_TYPE + ":" + SOME_RECORD_ID + "-thumbnail", SOME_DATA_DIVIDER);
+				BINARY_RECORD_TYPE + ":" + SOME_RECORD_ID + "-" + representation,
+				SOME_DATA_DIVIDER);
 		streamStorage.MCR.assertReturn("retrieve", 0, resourceDownloaded.stream);
 
-		assertReturnedDataFromCorrectResourceType(REPRESENTATION_THUMBNAIL, resourceDownloaded);
+		assertReturnedDataFromCorrectResourceType(representation, resourceDownloaded);
 	}
 
 	@Test
 	public void testDownloadAMedium() throws Exception {
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
-				BINARY_RECORD_TYPE, SOME_RECORD_ID, "medium");
+				BINARY_RECORD_TYPE, SOME_RECORD_ID, MEDIUM);
 
-		streamStorage.MCR.assertParameters("retrieve", 0,
-				BINARY_RECORD_TYPE + ":" + SOME_RECORD_ID + "-medium", SOME_DATA_DIVIDER);
-		streamStorage.MCR.assertReturn("retrieve", 0, resourceDownloaded.stream);
-
-		assertReturnedDataFromCorrectResourceType("medium", resourceDownloaded);
+		assertRepresentationAllowed(resourceDownloaded, MEDIUM);
 	}
 
 	@Test
 	public void testDownloadALarge() throws Exception {
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
-				BINARY_RECORD_TYPE, SOME_RECORD_ID, "large");
+				BINARY_RECORD_TYPE, SOME_RECORD_ID, LARGE);
 
-		streamStorage.MCR.assertParameters("retrieve", 0,
-				BINARY_RECORD_TYPE + ":" + SOME_RECORD_ID + "-large", SOME_DATA_DIVIDER);
-		streamStorage.MCR.assertReturn("retrieve", 0, resourceDownloaded.stream);
+		assertRepresentationAllowed(resourceDownloaded, LARGE);
+	}
 
-		assertReturnedDataFromCorrectResourceType("large", resourceDownloaded);
+	@Test
+	public void testDownloadJp2() throws Exception {
+		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
+				BINARY_RECORD_TYPE, SOME_RECORD_ID, JP2);
+
+		assertRepresentationAllowed(resourceDownloaded, JP2);
 	}
 }
