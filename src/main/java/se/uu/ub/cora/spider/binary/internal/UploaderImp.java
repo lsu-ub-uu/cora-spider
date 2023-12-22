@@ -137,7 +137,8 @@ public final class UploaderImp implements Uploader {
 
 	private void possiblySendToConvert(String detectedMimeType) {
 		if (isImage(detectedMimeType)) {
-			resourceConvert.sendMessageForAnalyzeAndConvertToThumbnails(dataDivider, type, id);
+			resourceConvert.sendMessageForAnalyzingAndConvertingImages(dataDivider, type, id,
+					detectedMimeType);
 		}
 		if (isPdf(detectedMimeType)) {
 			resourceConvert.sendMessageToConvertPdfToThumbnails(dataDivider, type, id);
@@ -168,11 +169,6 @@ public final class UploaderImp implements Uploader {
 		ensureResourceTypeIsMaster();
 		ensureResourceStreamExists();
 	}
-	// updateRecordAfterResourceUpload
-	// updateRecordWithMimeTypeUsingDataFromArchive
-	// updateRecordUsingMimeTypeAndFilesizeAncChecksum
-	// updateRecordWithMasterRepresentation
-	// updateRecordUsingCalculatedAndInfoFromArchive
 
 	private DataRecord updateRecordInStorageUsingCalculatedAndInfoFromArchive(
 			DataRecordGroup dataRecordGroup, String detectedMimeType) {
@@ -269,8 +265,6 @@ public final class UploaderImp implements Uploader {
 				resourceMetadata.checksumSHA512());
 		DataAtomic checksumType = DataProvider.createAtomicUsingNameInDataAndValue("checksumType",
 				"SHA-512");
-		// dataRecordGroup.addChild(checksum);
-		// dataRecordGroup.addChild(checksumType);
 		masterGroup.addChild(checksum);
 		masterGroup.addChild(checksumType);
 

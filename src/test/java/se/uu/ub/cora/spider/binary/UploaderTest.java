@@ -501,8 +501,8 @@ public class UploaderTest {
 		DataRecordGroupSpy readDataRecordGroup = testReadRecord();
 		var dataDivider = testGetDataDivider(readDataRecordGroup);
 
-		resourceConvert.MCR.assertParameters("sendMessageForAnalyzeAndConvertToThumbnails", 0,
-				dataDivider, BINARY_RECORD_TYPE, SOME_RECORD_ID);
+		resourceConvert.MCR.assertParameters("sendMessageForAnalyzingAndConvertingImages", 0,
+				dataDivider, BINARY_RECORD_TYPE, SOME_RECORD_ID, "image/whatever");
 	}
 
 	private void createContentAnalyzerUsingMediaTypeToReturn(String mediaType) {
@@ -533,7 +533,7 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
-		resourceConvert.MCR.assertMethodNotCalled("sendMessageForAnalyzeAndConvertToThumbnails");
+		resourceConvert.MCR.assertMethodNotCalled("sendMessageForAnalyzingAndConvertingImages");
 	}
 
 	@Test

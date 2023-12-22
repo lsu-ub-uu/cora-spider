@@ -20,8 +20,34 @@ package se.uu.ub.cora.spider.resourceconvert;
 
 public interface ResourceConvert {
 
-	void sendMessageForAnalyzeAndConvertToThumbnails(String dataDivider, String type, String id);
+	/**
+	 * sendMessageForAnalyzingAndConvertingImages method configures a message to be sent to an
+	 * specific mq rabbit exchange to handle analyze images and convertion to thumbnails and jp2
+	 * representation.
+	 * 
+	 * @param dataDivider
+	 *            A string with the data divider of the binary to convert.
+	 * @param type
+	 *            A string with the type of the binary to convert.
+	 * @param id
+	 *            A string with the id of the binary to convert.
+	 * @param mimeType
+	 */
+	void sendMessageForAnalyzingAndConvertingImages(String dataDivider, String type, String id,
+			String mimeType);
 
+	/**
+	 * 
+	 * sendMessageForAnalyzeAndConvertToThumbnails method configures a message to be sent to an
+	 * specific mq rabbit exchange to handle converting pdf to thumbnails.
+	 * 
+	 * @param dataDivider
+	 *            A string with the data divider of the binary to convert.
+	 * @param type
+	 *            A string with the type of the binary to convert.
+	 * @param id
+	 *            A string with the id of the binary to convert.
+	 */
 	void sendMessageToConvertPdfToThumbnails(String dataDivider, String type, String id);
 
 }

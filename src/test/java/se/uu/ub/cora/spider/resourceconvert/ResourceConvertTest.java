@@ -39,6 +39,7 @@ public class ResourceConvertTest {
 	private static final String SOME_ID = "someId";
 	private static final String SOME_TYPE = "someType";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
+	private static final String SOME_MIME_TYPE = "someMimeType";
 	private static final String SOME_HOST = "someHostname";
 	private static final int SOME_PORT = 8080;
 	private static final String SOME_VHOST = "someVhost";
@@ -65,18 +66,18 @@ public class ResourceConvertTest {
 
 	@Test
 	public void testCorrectHostPortAndRoutingKeyUsedForMessageSender() throws Exception {
-		resourceConvert.sendMessageForAnalyzeAndConvertToThumbnails(SOME_DATA_DIVIDER, SOME_TYPE,
-				SOME_ID);
+		resourceConvert.sendMessageForAnalyzingAndConvertingImages(SOME_DATA_DIVIDER, SOME_TYPE,
+				SOME_ID, SOME_MIME_TYPE);
 
 		assertMessagingProviderCalledWithCommonAndExchange(SOME_IMAGE_EXCHANGE);
 	}
 
 	@Test
 	public void testSendAnalyzeAndConvertToThumbnailsMessage() throws Exception {
-		resourceConvert.sendMessageForAnalyzeAndConvertToThumbnails(SOME_DATA_DIVIDER, SOME_TYPE,
-				SOME_ID);
+		resourceConvert.sendMessageForAnalyzingAndConvertingImages(SOME_DATA_DIVIDER, SOME_TYPE,
+				SOME_ID, SOME_MIME_TYPE);
 		String messageText = "Read metadata and convert to small formats";
-		assertMessageIsSentUsingMessageSenderFromProvider(messageText);
+		assertMessageIsSentUsingMessageSenderFromProvider(messageText, true);
 	}
 
 	@Test
@@ -90,7 +91,7 @@ public class ResourceConvertTest {
 	public void testSendAnalyzeAndConvertToThumbnailsMessageForPdf() throws Exception {
 		resourceConvert.sendMessageToConvertPdfToThumbnails(SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID);
 		String messageText = "Convert PDF to small formats";
-		assertMessageIsSentUsingMessageSenderFromProvider(messageText);
+		assertMessageIsSentUsingMessageSenderFromProvider(messageText, false);
 	}
 
 	private void assertMessagingProviderCalledWithCommonAndExchange(String someImageExchange) {
@@ -108,7 +109,8 @@ public class ResourceConvertTest {
 						"messagingRoutingInfo");
 	}
 
-	private void assertMessageIsSentUsingMessageSenderFromProvider(String messageText) {
+	private void assertMessageIsSentUsingMessageSenderFromProvider(String messageText,
+			boolean mimeTypeAdded) {
 		MessageSenderSpy messageSender = (MessageSenderSpy) messagingFactory.MCR
 				.getReturnValue(FACTOR_METHOD_NAME, 0);
 
@@ -116,9 +118,16 @@ public class ResourceConvertTest {
 		headers.put("dataDivider", SOME_DATA_DIVIDER);
 		headers.put("type", SOME_TYPE);
 		headers.put("id", SOME_ID);
+		possiblyAddMimeTypeAsHeader(mimeTypeAdded, headers);
 		messageSender.MCR.assertMethodWasCalled("sendMessage");
 		messageSender.MCR.assertParameterAsEqual("sendMessage", 0, "headers", headers);
 		messageSender.MCR.assertParameterAsEqual("sendMessage", 0, "message", messageText);
+	}
+
+	private void possiblyAddMimeTypeAsHeader(boolean mimeTypeAdded, Map<String, Object> headers) {
+		if (mimeTypeAdded) {
+			headers.put("mimeType", SOME_MIME_TYPE);
+		}
 	}
 
 }

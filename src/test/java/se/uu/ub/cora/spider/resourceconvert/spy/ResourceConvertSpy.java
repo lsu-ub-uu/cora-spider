@@ -32,9 +32,9 @@ public class ResourceConvertSpy implements ResourceConvert {
 	}
 
 	@Override
-	public void sendMessageForAnalyzeAndConvertToThumbnails(String dataDivider, String type,
-			String id) {
-		MCR.addCall("dataDivider", dataDivider, "type", type, "id", id);
+	public void sendMessageForAnalyzingAndConvertingImages(String dataDivider, String type,
+			String id, String mimeType) {
+		MCR.addCall("dataDivider", dataDivider, "type", type, "id", id, "mimeType", mimeType);
 	}
 
 	@Override

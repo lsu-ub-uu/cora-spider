@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.resourceconvert;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import se.uu.ub.cora.messaging.AmqpMessageSenderRoutingInfo;
 import se.uu.ub.cora.messaging.MessageRoutingInfo;
@@ -52,11 +53,11 @@ public class ResourceConvertImp implements ResourceConvert {
 	}
 
 	@Override
-	public void sendMessageForAnalyzeAndConvertToThumbnails(String dataDivider, String type,
-			String id) {
+	public void sendMessageForAnalyzingAndConvertingImages(String dataDivider, String type,
+			String id, String mimeType) {
 		MessageSender sender = getMessageSenderUsingExchange(imageExchange);
 
-		Map<String, Object> headers = crateHeadersMap(dataDivider, type, id);
+		Map<String, Object> headers = crateHeadersMap(dataDivider, type, id, Optional.of(mimeType));
 		sender.sendMessage(headers, "Read metadata and convert to small formats");
 	}
 
@@ -66,11 +67,15 @@ public class ResourceConvertImp implements ResourceConvert {
 		return MessagingProvider.getTopicMessageSender(messageRoutingInfo);
 	}
 
-	private Map<String, Object> crateHeadersMap(String dataDivider, String type, String id) {
+	private Map<String, Object> crateHeadersMap(String dataDivider, String type, String id,
+			Optional<String> mimeType) {
 		Map<String, Object> headers = new HashMap<>();
 		headers.put("dataDivider", dataDivider);
 		headers.put("type", type);
 		headers.put("id", id);
+		if (mimeType.isPresent()) {
+			headers.put("mimeType", mimeType.get());
+		}
 		return headers;
 	}
 
@@ -78,7 +83,7 @@ public class ResourceConvertImp implements ResourceConvert {
 	public void sendMessageToConvertPdfToThumbnails(String dataDivider, String type, String id) {
 		MessageSender sender = getMessageSenderUsingExchange(pdfExchange);
 
-		Map<String, Object> headers = crateHeadersMap(dataDivider, type, id);
+		Map<String, Object> headers = crateHeadersMap(dataDivider, type, id, Optional.empty());
 		sender.sendMessage(headers, "Convert PDF to small formats");
 	}
 
