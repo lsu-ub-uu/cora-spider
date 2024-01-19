@@ -164,9 +164,9 @@ public class DownloaderTest {
 		var dataDivider = readDataRecordGroup.MCR.getReturnValue("getDataDivider", 0);
 
 		dependencyProvider.MCR.assertParameters("getResourceArchive", 0);
-		resourceArchive.MCR.assertParameters("read", 0, dataDivider, BINARY_RECORD_TYPE,
-				SOME_RECORD_ID);
-		resourceArchive.MCR.assertReturn("read", 0, downloadResource.stream);
+		resourceArchive.MCR.assertParameters("readMasterResource", 0, dataDivider,
+				BINARY_RECORD_TYPE, SOME_RECORD_ID);
+		resourceArchive.MCR.assertReturn("readMasterResource", 0, downloadResource.stream);
 	}
 
 	@Test

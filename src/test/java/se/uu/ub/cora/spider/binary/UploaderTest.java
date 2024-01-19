@@ -191,8 +191,8 @@ public class UploaderTest {
 	private void testCreateInArchive(Object dataDivider) {
 		dependencyProvider.MCR.assertParameters("getResourceArchive", 0);
 		dependencyProvider.MCR.assertReturn("getResourceArchive", 0, resourceArchive);
-		resourceArchive.MCR.assertParameters("create", 0, dataDivider, BINARY_RECORD_TYPE,
-				SOME_RECORD_ID, someStream, MIME_TYPE_GENERIC);
+		resourceArchive.MCR.assertParameters("createMasterResource", 0, dataDivider,
+				BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream, MIME_TYPE_GENERIC);
 	}
 
 	@Test
@@ -426,8 +426,8 @@ public class UploaderTest {
 				.getReturnValue("read", 0);
 		var dataDivider = testGetDataDivider(readDataRecordGroup);
 
-		resourceArchive.MCR.assertParameters("read", 0, dataDivider, BINARY_RECORD_TYPE,
-				SOME_RECORD_ID);
+		resourceArchive.MCR.assertParameters("readMasterResourceMetadata", 0, dataDivider,
+				BINARY_RECORD_TYPE, SOME_RECORD_ID);
 	}
 
 	@Test
@@ -436,7 +436,7 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
-		var resourceFromArchive = resourceArchive.MCR.getReturnValue("read", 0);
+		var resourceFromArchive = resourceArchive.MCR.getReturnValue("readMasterResource", 0);
 
 		contentAnalyzeInstanceProviderSpy.MCR.assertParameters("getContentAnalyzer", 0);
 		ContentAnalyzerSpy contentAnalyzer = (ContentAnalyzerSpy) contentAnalyzeInstanceProviderSpy.MCR
@@ -456,8 +456,8 @@ public class UploaderTest {
 
 		var dataDivider = testGetDataDivider(readDataRecordGroup);
 
-		resourceArchive.MCR.assertParameters("readMetadata", 0, dataDivider, BINARY_RECORD_TYPE,
-				SOME_RECORD_ID);
+		resourceArchive.MCR.assertParameters("readMasterResourceMetadata", 0, dataDivider,
+				BINARY_RECORD_TYPE, SOME_RECORD_ID);
 	}
 
 	@Test
@@ -468,16 +468,16 @@ public class UploaderTest {
 		DataRecordGroupSpy readDataRecordGroup = (DataRecordGroupSpy) recordStorage.MCR
 				.getReturnValue("read", 0);
 		var dataDivider = testGetDataDivider(readDataRecordGroup);
-		resourceArchive.MCR.assertParameters("updateMetadata", 0, dataDivider, BINARY_RECORD_TYPE,
-				SOME_RECORD_ID);
+		resourceArchive.MCR.assertParameters("updateMasterResourceMetadata", 0, dataDivider,
+				BINARY_RECORD_TYPE, SOME_RECORD_ID);
 
 		assertResourceMetadata(readDataRecordGroup);
 	}
 
 	private void assertResourceMetadata(DataRecordGroupSpy readDataRecordGroup) {
 		ResourceMetadataToUpdate resourceMetadata = (ResourceMetadataToUpdate) resourceArchive.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("updateMetadata", 0,
-						"resourceMetadataToUpdate");
+				.getValueForMethodNameAndCallNumberAndParameterName("updateMasterResourceMetadata",
+						0, "resourceMetadataToUpdate");
 
 		contentAnalyzeInstanceProviderSpy.MCR.assertParameters("getContentAnalyzer", 0);
 		ContentAnalyzerSpy contentAnalyzer = (ContentAnalyzerSpy) contentAnalyzeInstanceProviderSpy.MCR

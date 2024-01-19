@@ -116,6 +116,7 @@ public final class UploaderImp implements Uploader {
 
 	private DataRecord uploadAnalyzeStoreAndCallConvert(InputStream resourceStream,
 			DataRecordGroup dataRecordGroup) {
+
 		storeResourceStreamInArchive(resourceStream);
 
 		String detectedMimeType = detectMimeTypeFromResourceInArchive(dataDivider);
@@ -154,14 +155,14 @@ public final class UploaderImp implements Uploader {
 	}
 
 	private void storeResourceStreamInArchive(InputStream resourceStream) {
-		resourceArchive.create(dataDivider, type, id, resourceStream, MIME_TYPE_GENERIC);
+		resourceArchive.createMasterResource(dataDivider, type, id, resourceStream, MIME_TYPE_GENERIC);
 	}
 
 	private void updateOriginalFileNameAndMimeTypeInArchive(String originalFileName,
 			String detectedMimeType) {
 		ResourceMetadataToUpdate resourceMetadataToUpdate = new ResourceMetadataToUpdate(
 				originalFileName, detectedMimeType);
-		resourceArchive.updateMetadata(dataDivider, type, id, resourceMetadataToUpdate);
+		resourceArchive.updateMasterResourceMetadata(dataDivider, type, id, resourceMetadataToUpdate);
 	}
 
 	private void validateInputIsBinaryMasterAndHasStream() {
@@ -173,7 +174,7 @@ public final class UploaderImp implements Uploader {
 	private DataRecord updateRecordInStorageUsingCalculatedAndInfoFromArchive(
 			DataRecordGroup dataRecordGroup, String detectedMimeType) {
 
-		ResourceMetadata resourceMetadata = resourceArchive.readMetadata(dataDivider, type, id);
+		ResourceMetadata resourceMetadata = resourceArchive.readMasterResourceMetadata(dataDivider, type, id);
 		createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(dataRecordGroup, resourceMetadata,
 				detectedMimeType);
 
@@ -189,7 +190,7 @@ public final class UploaderImp implements Uploader {
 	}
 
 	private String detectMimeTypeFromResourceInArchive(String dataDivider) {
-		InputStream resourceFromArchive = resourceArchive.read(dataDivider, type, id);
+		InputStream resourceFromArchive = resourceArchive.readMasterResource(dataDivider, type, id);
 		ContentAnalyzer contentAnalyzer = ContentAnalyzerProvider.getContentAnalyzer();
 		return contentAnalyzer.getMimeType(resourceFromArchive);
 	}

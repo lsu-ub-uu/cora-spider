@@ -83,7 +83,7 @@ public final class DownloaderImp implements Downloader {
 		String dataDivider = binaryRecordGroup.getDataDivider();
 
 		if ("master".equals(representation)) {
-			InputStream stream = resourceArchive.read(dataDivider, type, id);
+			InputStream stream = resourceArchive.readMasterResource(dataDivider, type, id);
 			return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
 		}
 
