@@ -341,7 +341,7 @@ public class RecordUpdaterTest {
 			System.err.println(e.getMessage());
 			assertTrue(e instanceof ConflictException);
 			assertEquals(e.getMessage(),
-					"Could not update record beacuse it exist a newer version of the "
+					"Could not update record because it exist a newer version of the "
 							+ "record in the storage.");
 		}
 	}
@@ -374,7 +374,7 @@ public class RecordUpdaterTest {
 			System.err.println(e.getMessage());
 			assertTrue(e instanceof ConflictException);
 			assertEquals(e.getMessage(),
-					"Could not update record beacuse it exist a newer version of the "
+					"Could not update record because it exist a newer version of the "
 							+ "record in the storage.");
 		}
 	}
@@ -396,7 +396,7 @@ public class RecordUpdaterTest {
 			System.err.println(e.getMessage());
 			assertTrue(e instanceof ConflictException);
 			assertEquals(e.getMessage(),
-					"Could not update record beacuse it exist a newer version of the "
+					"Could not update record because it exist a newer version of the "
 							+ "record in the storage.");
 		}
 	}

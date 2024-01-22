@@ -191,7 +191,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 		if (differentVersion(latestUpdatedTopDataG, latestUpdatedPreviouslyStored)) {
 			throw ConflictException
-					.withMessage("Could not update record beacuse it exist a newer version of the "
+					.withMessage("Could not update record because it exist a newer version of the "
 							+ "record in the storage.");
 		}
 	}
