@@ -19,7 +19,7 @@
 package se.uu.ub.cora.spider.extended.apptoken;
 
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,7 +44,7 @@ public class ApptokenExtendedFunctionalityFactory implements ExtendedFunctionali
 
 	private void createListOfContexts() {
 		createContext(CREATE_BEFORE_METADATA_VALIDATION);
-		createContext(CREATE_BEFORE_RETURN);
+		createContext(CREATE_BEFORE_ENHANCE);
 	}
 
 	private void createContext(ExtendedFunctionalityPosition position) {

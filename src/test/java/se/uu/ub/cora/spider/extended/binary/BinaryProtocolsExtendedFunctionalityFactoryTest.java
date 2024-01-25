@@ -1,6 +1,7 @@
 package se.uu.ub.cora.spider.extended.binary;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.util.List;
 
@@ -8,6 +9,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
@@ -36,8 +38,17 @@ public class BinaryProtocolsExtendedFunctionalityFactoryTest {
 		assertEquals(extendedFunctionalityContexts.size(), 1);
 
 		ExtendedFunctionalityContext firstContext = extendedFunctionalityContexts.get(0);
-		assertEquals(firstContext.position, ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN);
+		assertEquals(firstContext.position, ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE);
 		assertEquals(firstContext.recordType, "binary");
+
+	}
+
+	@Test
+	public void testFactor() throws Exception {
+		List<ExtendedFunctionality> extendedFunctionalities = factory.factor(null, null);
+
+		assertEquals(extendedFunctionalities.size(), 1);
+		assertTrue(extendedFunctionalities.get(0) instanceof BinaryProtocolsExtendedFunctionality);
 
 	}
 }

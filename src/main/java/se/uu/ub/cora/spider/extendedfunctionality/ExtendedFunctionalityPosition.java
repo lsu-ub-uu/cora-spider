@@ -28,13 +28,17 @@ import se.uu.ub.cora.storage.RecordStorage;
  * For create are the positions ordered as follows:<br>
  * CREATE_BEFORE_METADATA_VALIDATION<br>
  * CREATE_AFTER_METADATA_VALIDATION<br>
- * CREATE_BEFORE_RETURN<br>
+ * CREATE_BEFORE_ENHANCE<br>
+ * <br>
+ * For read are the positions ordered as follows:<br>
+ * READ_BEFORE_RETURN<br>
  * <br>
  * For update are the positions ordered as follows:<br>
  * UPDATE_BEFORE_METADATA_VALIDATION<br>
  * UPDATE_AFTER_METADATA_VALIDATION<br>
  * UPDATE_BEFORE_STORE<br>
  * UPDATE_AFTER_STORE<br>
+ * UPDATE_BEFORE_RETURN<br>
  * <br>
  * For delete are the positions ordered as follows:<br>
  * DELETE_BEFORE<br>
@@ -54,10 +58,16 @@ public enum ExtendedFunctionalityPosition {
 	CREATE_AFTER_METADATA_VALIDATION,
 
 	/**
-	 * CREATE_BEFORE_RETURN, as the name suggests is the functionality plugged into a create
+	 * CREATE_BEFORE_ENHANCE, as the name suggests is the functionality plugged into a create
 	 * operation, before the method returns.
 	 */
-	CREATE_BEFORE_RETURN,
+	CREATE_BEFORE_ENHANCE,
+
+	/**
+	 * READ_BEFORE_RETURN, as the name suggests is the functionality plugged into a read operation,
+	 * before the method returns.
+	 */
+	READ_BEFORE_RETURN,
 
 	/**
 	 * UPDATE_BEFORE_METADATA_VALIDATION, as the name suggests is the functionality plugged into a
@@ -84,6 +94,12 @@ public enum ExtendedFunctionalityPosition {
 	 * {@link RecordStorage#update(String, String, DataGroup, DataGroup, DataGroup, String)} method.
 	 */
 	UPDATE_AFTER_STORE,
+
+	/**
+	 * UPDATE_BEFORE_RETURN, as the name suggests is the functionality plugged into a update
+	 * operation, before the method returns.
+	 */
+	UPDATE_BEFORE_RETURN,
 
 	/**
 	 * DELETE_BEFORE, as the name suggests is the functionality plugged into a delete operation,

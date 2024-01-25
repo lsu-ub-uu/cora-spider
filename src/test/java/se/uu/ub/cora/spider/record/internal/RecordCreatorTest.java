@@ -340,7 +340,7 @@ public class RecordCreatorTest {
 				"getFunctionalityForCreateAfterMetadataValidation", expectedData);
 		expectedData.recordId = "1";
 		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
-				"getFunctionalityForCreateBeforeReturn", expectedData);
+				"getFunctionalityForCreateBeforeEnhance", expectedData);
 	}
 
 	class ExtendedMock implements ExtendedFunctionality {

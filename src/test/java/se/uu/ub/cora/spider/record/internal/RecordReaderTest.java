@@ -21,6 +21,8 @@ package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertNotNull;
 
+import java.util.List;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -34,13 +36,16 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 
-public class SpiderRecordReaderTest {
+public class RecordReaderTest {
 	private static final String SOME_RECORD_ID = "place:0001";
 	private static final String SOME_USER_TOKEN = "someToken78678567";
 	private static final String SOME_RECORD_TYPE = "someRecordType";
@@ -54,6 +59,7 @@ public class SpiderRecordReaderTest {
 	private LoggerFactorySpy loggerFactorySpy;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
+	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -62,6 +68,8 @@ public class SpiderRecordReaderTest {
 		authorizator = new OldSpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageOldSpy();
 		dataRedactor = new DataRedactorSpy();
+		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
+
 		setUpDependencyProvider();
 	}
 
@@ -76,6 +84,7 @@ public class SpiderRecordReaderTest {
 		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		dependencyProvider.authenticator = authenticator;
 		dependencyProvider.spiderAuthorizator = authorizator;
+		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 
 		dependencyProvider.recordStorage = recordStorage;
 		dependencyProvider.dataRedactor = dataRedactor;
@@ -180,5 +189,23 @@ public class SpiderRecordReaderTest {
 				SOME_RECORD_ID);
 
 		dataGroupToRecordEnhancer.MCR.assertReturn("enhance", 0, readRecord);
+	}
+
+	@Test
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() throws Exception {
+		recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID);
+
+		extendedFunctionalityProvider.MCR.assertParameters("getFunctionalityForReadBeforeReturn", 0,
+				SOME_RECORD_TYPE);
+		List<ExtendedFunctionalitySpy> extFunctionalities = (List<ExtendedFunctionalitySpy>) extendedFunctionalityProvider.MCR
+				.getReturnValue("getFunctionalityForReadBeforeReturn", 0);
+
+		ExtendedFunctionalitySpy extendedFunctionalitySpy = extFunctionalities.get(0);
+		extendedFunctionalitySpy.MCR.assertParameters("useExtendedFunctionality", 0);
+		ExtendedFunctionalityData data = (ExtendedFunctionalityData) extendedFunctionalitySpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("useExtendedFunctionality", 0,
+						"data");
+
+		dataGroupToRecordEnhancer.MCR.assertReturn("enhance", 0, data.dataRecord);
 	}
 }

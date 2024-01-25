@@ -52,7 +52,7 @@ public class ApptokenExtendedFunctionalityFactoryTest {
 		assertCorrectContextUsingIndexNumberAndPosition(0, 0, "appToken",
 				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION);
 		assertCorrectContextUsingIndexNumberAndPosition(1, 0, "appToken",
-				ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN);
+				ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE);
 	}
 
 	private void assertCorrectContextUsingIndexNumberAndPosition(int index, int runAsNumber,
@@ -74,7 +74,7 @@ public class ApptokenExtendedFunctionalityFactoryTest {
 	@Test
 	public void testCreateBeforeReturnForApptoken() {
 		List<ExtendedFunctionality> functionalities = factory
-				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN, "appToken");
+				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE, "appToken");
 		UserUpdaterForAppToken extendedFunctionality = (UserUpdaterForAppToken) functionalities
 				.get(0);
 

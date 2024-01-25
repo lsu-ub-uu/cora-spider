@@ -1,6 +1,7 @@
 package se.uu.ub.cora.spider.extended.binary;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -16,7 +17,7 @@ public class BinaryProtocolsExtendedFunctionalityFactory implements ExtendedFunc
 	@Override
 	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
 		contexts.add(new ExtendedFunctionalityContext(
-				ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN, "binary", 0));
+				ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE, "binary", 0));
 	}
 
 	@Override
@@ -27,8 +28,7 @@ public class BinaryProtocolsExtendedFunctionalityFactory implements ExtendedFunc
 	@Override
 	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
 			String recordType) {
-		// TODO Auto-generated method stub
-		return null;
+		return Collections.singletonList(new BinaryProtocolsExtendedFunctionality());
 	}
 
 }

@@ -34,7 +34,7 @@
 
 	<properties>
 		<logger.version>2.10.0</logger.version>
-		<coradata.version>8.0.0</coradata.version>
+		<coradata.version>8.1-SNAPSHOT</coradata.version>
 		<json.version>3.9.0</json.version>
 		<storage.version>9.1-SNAPSHOT</storage.version>
 		<storagespies.version>1.7-SNAPSHOT</storagespies.version>
@@ -45,7 +45,7 @@
 		<contentanalyzer.version>1.0.0</contentanalyzer.version>
 		<password.version>1.7.0</password.version>
 		<testutils.version>1.11.0</testutils.version>
-		<coradata-spies.version>1.6.0</coradata-spies.version>
+		<coradata-spies.version>1.7-SNAPSHOT</coradata-spies.version>
 		<logger-spies.version>1.5.0</logger-spies.version>
 		<messaging.version>3.0-SNAPSHOT</messaging.version>
 	</properties>
