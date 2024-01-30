@@ -1,3 +1,21 @@
+/*
+ * Copyright 2024 Uppsala University Library
+ *
+ * This file is part of Cora.
+ *
+ *     Cora is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     Cora is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package se.uu.ub.cora.spider.extended.binary;
 
 import org.testng.annotations.BeforeMethod;
@@ -13,58 +31,36 @@ public class BinaryProtocolsExtendedFunctionalityTest {
 	private ExtendedFunctionality extFunctionality;
 	private ExtendedFunctionalityData data;
 	private DataRecordSpy dataRecordSpy;
-	private DataGroupSpy binaryPublished;
-	private DataGroupSpy adminInfoVisibilityPublished;
+	private DataGroupSpy binaryGroup;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		extFunctionality = new BinaryProtocolsExtendedFunctionality();
 		dataRecordSpy = new DataRecordSpy();
+		binaryGroup = new DataGroupSpy();
+		dataRecordSpy.MRV.setDefaultReturnValuesSupplier("getType", () -> "binary");
+		dataRecordSpy.MRV.setDefaultReturnValuesSupplier("getDataGroup", () -> binaryGroup);
 
 		data = new ExtendedFunctionalityData();
 
-		binaryPublished = getDataGroupSpyForBinaryPublished();
-
-	}
-
-	private DataGroupSpy getDataGroupSpyForBinaryPublished() {
-		adminInfoVisibilityPublished = new DataGroupSpy();
-		adminInfoVisibilityPublished.MRV.setSpecificReturnValuesSupplier(
-				"getFirstAtomicValueWithNameInData", () -> "published", "visibility");
-
-		DataGroupSpy binaryPublished = new DataGroupSpy();
-		binaryPublished.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> adminInfoVisibilityPublished, "adminInfo");
-
-		return binaryPublished;
+		data.dataRecord = dataRecordSpy;
 	}
 
 	@Test
 	public void testSetUpProtocolIfBinaryPublished() throws Exception {
-		dataRecordSpy.MRV.setDefaultReturnValuesSupplier("getType", () -> "binary");
-		dataRecordSpy.MRV.setDefaultReturnValuesSupplier("getDataGroup", () -> binaryPublished);
-		data.dataRecord = dataRecordSpy;
+		binaryGroup.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				"jp2");
 
 		extFunctionality.useExtendedFunctionality(data);
-
-		dataRecordSpy.MCR.assertParameters("getDataGroup", 0);
-
-		binaryPublished.MCR.assertParameters("getFirstGroupWithNameInData", 0, "adminInfo");
-		adminInfoVisibilityPublished.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0,
-				"visibility");
 
 		dataRecordSpy.MCR.assertParameters("addProtocol", 0, "iiif");
 	}
 
 	@Test
 	public void testSetUpProtocolIfBinaryNotPublished() throws Exception {
-		dataRecordSpy.MRV.setDefaultReturnValuesSupplier("getType", () -> "binary");
-		dataRecordSpy.MRV.setDefaultReturnValuesSupplier("getDataGroup", DataGroupSpy::new);
-		data.dataRecord = dataRecordSpy;
 
 		extFunctionality.useExtendedFunctionality(data);
 
-		dataRecordSpy.MCR.assertParameters("getDataGroup", 0);
 		dataRecordSpy.MCR.assertMethodNotCalled("addProtocol");
 	}
 
