@@ -205,7 +205,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAReadActionPartOfEnhance() throws Exception {
+	public void testEnhanceIgnoreReadAccessReadActionPartOfEnhance() throws Exception {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -248,7 +248,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAReadActionPartOfEnhanceNotAuthorized() throws Exception {
+	public void testEnhanceIgnoreReadAccessReadActionPartOfEnhanceNotAuthorized() throws Exception {
 		setupForNoReadAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -287,7 +287,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAReadActionPartOfEnhanceNotAuthorizedButPublicData() throws Exception {
+	public void testEnhanceIgnoreReadAccessReadActionPartOfEnhanceNotAuthorizedButPublicData()
+			throws Exception {
 		setupForNoReadAccessButPublicData();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -323,7 +324,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAUpdateActionPartOfEnhance() throws Exception {
+	public void testEnhanceIgnoreReadAccessUpdateActionPartOfEnhance() throws Exception {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -352,7 +353,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAUpdateActionPartOfEnhanceNotAuthorized() throws Exception {
+	public void testEnhanceIgnoreReadAccessUpdateActionPartOfEnhanceNotAuthorized()
+			throws Exception {
 		setupForNoUpdateAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -411,7 +413,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRABatchIndexActionPartOfEnhance() throws Exception {
+	public void testEnhanceIgnoreReadAccessBatchIndexActionPartOfEnhance() throws Exception {
 		createRecordStorageSpy();
 		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
 
@@ -446,7 +448,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAIndexActionPartOfEnhance() throws Exception {
+	public void testEnhanceIgnoreReadAccessIndexActionPartOfEnhance() throws Exception {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -479,7 +481,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAIndexActionPartOfEnhanceNotAuthorized() throws Exception {
+	public void testEnhanceIgnoreReadAccessIndexActionPartOfEnhanceNotAuthorized()
+			throws Exception {
 		setupForNoIndexAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -514,7 +517,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRADeleteActionPartOfEnhance() throws Exception {
+	public void testEnhanceIgnoreReadAccessDeleteActionPartOfEnhance() throws Exception {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -547,7 +550,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRADeleteActionPartOfEnhanceNotAuthorized() throws Exception {
+	public void testEnhanceIgnoreReadAccessDeleteActionPartOfEnhanceNotAuthorized()
+			throws Exception {
 		setupForNoDeleteAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -582,7 +586,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRADeleteActionPartOfEnhanceAuthorizedButHasIncomingLinks() throws Exception {
+	public void testEnhanceIgnoreReadAccessDeleteActionPartOfEnhanceAuthorizedButHasIncomingLinks()
+			throws Exception {
 		setupForDeleteButIncomingLinksExists();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -628,7 +633,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRADeleteActionPartOfEnhanceAuthorizedButHasIncomingLinksAsParentRecordType()
+	public void testEnhanceIgnoreReadAccessDeleteActionPartOfEnhanceAuthorizedButHasIncomingLinksAsParentRecordType()
 			throws Exception {
 		setupForDeleteButIncomingLinksExistsForParentRecordType();
 
@@ -652,7 +657,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAIncomingLinksActionPartOfEnhanceHasNoIncommingLinks() throws Exception {
+	public void testEnhanceIgnoreReadAccessIncomingLinksActionPartOfEnhanceHasNoIncommingLinks()
+			throws Exception {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -675,7 +681,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAIncomingLinksActionPartOfEnhanceHasIncomingLinks() throws Exception {
+	public void testEnhanceIgnoreReadAccessIncomingLinksActionPartOfEnhanceHasIncomingLinks()
+			throws Exception {
 		setupForDeleteButIncomingLinksExists();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -714,7 +721,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAUploadActionPartOfEnhance() throws Exception {
+	public void testEnhanceIgnoreReadAccessUploadActionPartOfEnhance() throws Exception {
 		setupForUploadAction();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, BINARY_RECORD_TYPE,
@@ -746,7 +753,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAUploadActionPartOfEnhanceNotAuthorized() throws Exception {
+	public void testEnhanceIgnoreReadAccessUploadActionPartOfEnhanceNotAuthorized()
+			throws Exception {
 		setupForNoUploadAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, BINARY_RECORD_TYPE,
@@ -775,7 +783,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAUploadActionPartOfEnhanceNotChildOfBinary() throws Exception {
+	public void testEnhanceIgnoreReadAccessUploadActionPartOfEnhanceNotChildOfBinary()
+			throws Exception {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -823,7 +832,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRASearchActionPartOfEnhanceForRecordTypeSearch() throws Exception {
+	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeSearch()
+			throws Exception {
 		setupForSearchAction();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -861,7 +871,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRASearchActionPartOfEnhanceForRecordTypeSearchNotAuthorized()
+	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeSearchNotAuthorized()
 			throws Exception {
 		setupForSearchActionNotAuthorized();
 
@@ -886,7 +896,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRASearchActionPartOfEnhanceForRecordTypeSearchNoSearchType() throws Exception {
+	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeSearchNoSearchType()
+			throws Exception {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -929,7 +940,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRACreateActionPartOfEnhanceForRecordTypeRecordType() throws Exception {
+	public void testEnhanceIgnoreReadAccessCreateActionPartOfEnhanceForRecordTypeRecordType()
+			throws Exception {
 		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForCreateAction();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -968,7 +980,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRACreateActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
+	public void testEnhanceIgnoreReadAccessCreateActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
 			throws Exception {
 		setupForCreateActionNotAuthorized();
 
@@ -996,7 +1008,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRACreateActionPartOfEnhanceForRecordTypeRecordTypeIsNotRecordType()
+	public void testEnhanceIgnoreReadAccessCreateActionPartOfEnhanceForRecordTypeRecordTypeIsNotRecordType()
 			throws Exception {
 		createRecordStorageSpy();
 
@@ -1033,7 +1045,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAListActionPartOfEnhanceForRecordTypeRecordType() throws Exception {
+	public void testEnhanceIgnoreReadAccessListActionPartOfEnhanceForRecordTypeRecordType()
+			throws Exception {
 		setupForListAction();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -1065,7 +1078,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAListActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
+	public void testEnhanceIgnoreReadAccessListActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
 			throws Exception {
 		setupForListActionNotAuthorized();
 
@@ -1096,7 +1109,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAListActionPartOfEnhanceForRecordTypeRecordTypeNotRecordType()
+	public void testEnhanceIgnoreReadAccessListActionPartOfEnhanceForRecordTypeRecordTypeNotRecordType()
 			throws Exception {
 		createRecordStorageSpy();
 
@@ -1124,7 +1137,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAValidateActionPartOfEnhanceForRecordTypeRecordType() throws Exception {
+	public void testEnhanceIgnoreReadAccessValidateActionPartOfEnhanceForRecordTypeRecordType()
+			throws Exception {
 		setupForListAction();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -1152,7 +1166,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAValidateActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
+	public void testEnhanceIgnoreReadAccessValidateActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
 			throws Exception {
 		setupForCreateActionNotAuthorized();
 
@@ -1183,7 +1197,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAValidateActionPartOfEnhanceForRecordTypeRecordTypeNotRecordType()
+	public void testEnhanceIgnoreReadAccessValidateActionPartOfEnhanceForRecordTypeRecordTypeNotRecordType()
 			throws Exception {
 		createRecordStorageSpy();
 
@@ -1253,7 +1267,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRASearchActionPartOfEnhanceForRecordTypeRecordType() throws Exception {
+	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeRecordType()
+			throws Exception {
 		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordType();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -1325,7 +1340,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRASearchActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
+	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
 			throws Exception {
 		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordTypeNotAuthorized();
 
@@ -1360,7 +1375,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAReadPermissionsAreAddedToRecord() throws Exception {
+	public void testEnhanceIgnoreReadAccessReadPermissionsAreAddedToRecord() throws Exception {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -1370,7 +1385,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAReadPermissionsAreAddedToRecordWhenNoReadAccess() throws Exception {
+	public void testEnhanceIgnoreReadAccessReadPermissionsAreAddedToRecordWhenNoReadAccess()
+			throws Exception {
 		setupForNoReadAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -1398,7 +1414,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAReadPermissionsAreAddedToRecordPublicData() throws Exception {
+	public void testEnhanceIgnoreReadAccessReadPermissionsAreAddedToRecordPublicData()
+			throws Exception {
 		setupForPublicRecord();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -1437,7 +1454,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAWritePermissionsAreAddedToRecord() throws Exception {
+	public void testEnhanceIgnoreReadAccessWritePermissionsAreAddedToRecord() throws Exception {
 		createRecordStorageSpy();
 
 		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
@@ -1468,7 +1485,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAWritePermissionsAreAddedToRecordNotAutorized() throws Exception {
+	public void testEnhanceIgnoreReadAccessWritePermissionsAreAddedToRecordNotAutorized()
+			throws Exception {
 		setupForNoAccessOnUpdateActionOnRecordType();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -1508,7 +1526,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRARedactData() throws Exception {
+	public void testEnhanceIgnoreReadAccessRedactData() throws Exception {
 		createRecordStorageSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -1519,7 +1537,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRARedactDataIsCalledCorrectlyWhenNoAccess() throws Exception {
+	public void testEnhanceIgnoreReadAccessRedactDataIsCalledCorrectlyWhenNoAccess()
+			throws Exception {
 		setupForNoReadAccess();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
@@ -1550,7 +1569,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRALinksAreAddedToRedactedDataGroup() throws Exception {
+	public void testEnhanceIgnoreReadAccessLinksAreAddedToRedactedDataGroup() throws Exception {
 		setupReturnedDataGroupOnDataRedactorSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, someDataGroup,
@@ -1569,7 +1588,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAReadRecordWithDataRecordLinkHasReadActionTopLevel() {
+	public void testEnhanceIgnoreReadAccessReadRecordWithDataRecordLinkHasReadActionTopLevel() {
 		DataGroup dataGroup = setupReturnedDataGroupOnDataRedactorSpy();
 
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, dataGroup,
@@ -1607,7 +1626,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAReadRecordWithDataRecordLinkHasNOReadAction() {
+	public void testEnhanceIgnoreReadAccessReadRecordWithDataRecordLinkHasNOReadAction() {
 		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
 				"oneLinkTopLevelNotAuthorized");
 		dataRedactor.returnDataGroup = dataGroup;
@@ -1631,7 +1650,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
+	public void testEnhanceIgnoreReadAccessReadRecordWithDataRecordLinkHasReadActionOneLevelDown() {
 		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "oneLinkOneLevelDown");
 		dataRedactor.returnDataGroup = dataGroup;
 		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, dataGroup,
@@ -1663,7 +1682,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAReadRecordWithDataResourceLinkHasReadActionTopLevel() {
+	public void testEnhanceIgnoreReadAccessReadRecordWithDataResourceLinkHasReadActionTopLevel() {
 		String recordType = "dataWithResourceLinks";
 		DataGroup dataGroup = recordStorage.read(List.of(recordType), "oneResourceLinkTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
@@ -1686,7 +1705,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAReadRecordWithDataResourceLinkHasReadActionOneLevelDown() {
+	public void testEnhanceIgnoreReadAccessReadRecordWithDataResourceLinkHasReadActionOneLevelDown() {
 		String recordType = "dataWithResourceLinks";
 		DataGroup dataGroup = recordStorage.read(List.of(recordType),
 				"oneResourceLinkOneLevelDown");
@@ -1718,7 +1737,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRAReadRecordWithDataRecordLinkTargetDoesNotExist() {
+	public void testEnhanceIgnoreReadAccessReadRecordWithDataRecordLinkTargetDoesNotExist() {
 		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
 				"oneLinkOneLevelDownTargetDoesNotExist");
 		dataRedactor.returnDataGroup = dataGroup;
@@ -1755,7 +1774,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRALinkIsNotReadWhenRecordTypeIsPublic() {
+	public void testEnhanceIgnoreReadAccessLinkIsNotReadWhenRecordTypeIsPublic() {
 		recordTypeHandlerSpy.isPublicForRead = true;
 		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
 				"oneLinkTopLevelNotAuthorized");
@@ -1794,7 +1813,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRARecordTypeForLinkIsOnlyReadOnce() {
+	public void testEnhanceIgnoreReadAccessRecordTypeForLinkIsOnlyReadOnce() {
 		recordTypeHandlerSpy.isPublicForRead = true;
 		recordStorage.publicReadForToRecordType = "true";
 		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "twoLinksTopLevel");
@@ -1865,7 +1884,33 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRALinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord() {
+	public void testLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord_bdabfabfbdsaf() {
+		// HERE
+		RecordTypeHandlerSpy toRecordTypeRecordTypeHandler = new RecordTypeHandlerSpy();
+		dependencyProvider.mapOfRecordTypeHandlerSpies.put("toRecordType",
+				toRecordTypeRecordTypeHandler);
+
+		// DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
+		// "twoLinksDifferentRecordTypeTopLevel");
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "twoLinksTopLevel");
+		dataRedactor.returnDataGroup = dataGroup;
+
+		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, someDataGroup, dataRedactor);
+
+		toRecordTypeRecordTypeHandler.MCR.assertParameters("isPublicForRead", 0);
+		toRecordTypeRecordTypeHandler.MCR.assertReturn("isPublicForRead", 0, false);
+
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "dataWithLinks");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "recordType");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "system");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 3, "toRecordType");
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 4, "otherToRecordType");
+
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 4);
+	}
+
+	@Test
+	public void testEnhanceIgnoreReadAccessLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord() {
 		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "twoLinksTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 
@@ -1891,7 +1936,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testIRALinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecordNotAuthorized() {
+	public void testEnhanceIgnoreReadAccessLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecordNotAuthorized() {
 		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "twoLinksTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 
