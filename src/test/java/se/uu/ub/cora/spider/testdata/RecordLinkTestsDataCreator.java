@@ -93,7 +93,25 @@ public class RecordLinkTestsDataCreator {
 		recordLink2.setRepeatId("two");
 		dataGroup.addChild(recordLink2);
 		return dataGroup;
+	}
 
+	public static DataGroup createDataGroupWithRecordInfoAndTwoLinksDifferentRecordTypeTopLevel() {
+		DataGroup dataGroup = new DataGroupOldSpy(DATA_WITH_LINKS);
+		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+				DATA_WITH_LINKS, "twoLinksDifferentRecordTypeTopLevel", "cora"));
+
+		DataRecordLinkSpy recordLink = (DataRecordLinkSpy) createDataLink();
+		recordLink.setRepeatId("one");
+		dataGroup.addChild(recordLink);
+
+		DataRecordLinkSpy recordLink2 = (DataRecordLinkSpy) createOtherRecordTypeDataLink();
+		recordLink2.setRepeatId("one");
+		dataGroup.addChild(recordLink2);
+		return dataGroup;
+	}
+
+	private static DataRecordLink createOtherRecordTypeDataLink() {
+		return DataCreator2.createLinkWithLinkedId("link", "toOtherRecordType", "toRecordId");
 	}
 
 	public static DataGroup createDataGroupWithRecordInfoAndLinkNotAuthorized() {
