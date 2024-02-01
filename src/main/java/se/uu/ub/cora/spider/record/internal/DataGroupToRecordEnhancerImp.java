@@ -108,15 +108,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private CollectTerms getCollectedTermsForRecordTypeAndRecord(String recordType,
 			DataGroup dataGroup) {
-		String definitionId = getMetadataIdFromRecordType();
-		// RecordTypeHandler recordTypeHandlerForRecordType = getRecordTypeHandlerForRecordType(
-		// recordType);
-		// String definitionId = recordTypeHandlerForRecordType.getDefinitionId();
+		RecordTypeHandler recordTypeHandlerForRecordType = getRecordTypeHandlerForRecordType(
+				recordType);
+		String definitionId = recordTypeHandlerForRecordType.getDefinitionId();
 		return termCollector.collectTerms(definitionId, dataGroup);
-	}
-
-	private String getMetadataIdFromRecordType() {
-		return recordTypeHandler.getDefinitionId();
 	}
 
 	private String getRecordIdFromDataRecord(DataGroup dataGroup) {

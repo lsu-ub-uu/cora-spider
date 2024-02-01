@@ -1884,15 +1884,21 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord_bdabfabfbdsaf() {
-		// HERE
+	public void testLinkedRecordUsesCorrectRecordTypeHandlerForReadLinkCollectTermPermission() {
 		RecordTypeHandlerSpy toRecordTypeRecordTypeHandler = new RecordTypeHandlerSpy();
 		dependencyProvider.mapOfRecordTypeHandlerSpies.put("toRecordType",
 				toRecordTypeRecordTypeHandler);
+		toRecordTypeRecordTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
+				() -> "toRecordType_DefId");
 
-		// DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
-		// "twoLinksDifferentRecordTypeTopLevel");
-		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS, "twoLinksTopLevel");
+		RecordTypeHandlerSpy toOtherRecordTypeRecordTypeHandler = new RecordTypeHandlerSpy();
+		dependencyProvider.mapOfRecordTypeHandlerSpies.put("toOtherRecordType",
+				toOtherRecordTypeRecordTypeHandler);
+		toOtherRecordTypeRecordTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
+				() -> "toOtherRecordType_DefId");
+
+		DataGroup dataGroup = recordStorage.read(LIST_DATA_WITH_LINKS,
+				"twoLinksDifferentRecordTypeTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
 
 		DataRecord record = enhancer.enhance(user, DATA_WITH_LINKS, someDataGroup, dataRedactor);
@@ -1903,10 +1909,16 @@ public class DataGroupToRecordEnhancerTest {
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "dataWithLinks");
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "recordType");
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "system");
-		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 3, "toRecordType");
-		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 4, "otherToRecordType");
 
-		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 4);
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 3, "toRecordType");
+		toRecordTypeRecordTypeHandler.MCR.assertNumberOfCallsToMethod("getDefinitionId", 1);
+		termCollector.MCR.assertParameters("collectTerms", 3, "toRecordType_DefId");
+
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 4, "toOtherRecordType");
+		toOtherRecordTypeRecordTypeHandler.MCR.assertNumberOfCallsToMethod("getDefinitionId", 1);
+		termCollector.MCR.assertParameters("collectTerms", 4, "toOtherRecordType_DefId");
+
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 5);
 	}
 
 	@Test
