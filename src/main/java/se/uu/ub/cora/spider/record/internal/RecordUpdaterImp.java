@@ -157,7 +157,10 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		indexData(collectTerms);
 		useExtendedFunctionalityAfterStore(recordType, topDataGroup);
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		return dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup, dataRedactor);
+		DataRecord dataRecord = dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup,
+				dataRedactor);
+		useExtendedFunctionalityBeforeReturn(dataRecord);
+		return dataRecord;
 	}
 
 	private void doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection() {
@@ -437,6 +440,16 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		List<ExtendedFunctionality> functionalityForUpdateAfterStore = extendedFunctionalityProvider
 				.getFunctionalityForUpdateAfterStore(recordTypeToCreate);
 		useExtendedFunctionality(dataGroup, functionalityForUpdateAfterStore);
+	}
+
+	private void useExtendedFunctionalityBeforeReturn(DataRecord dataRecord) {
+		List<ExtendedFunctionality> extendedFunctionalityList = extendedFunctionalityProvider
+				.getFunctionalityForUpdateBeforeReturn(recordType);
+		for (ExtendedFunctionality extendedFunctionality : extendedFunctionalityList) {
+			ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+			data.dataRecord = dataRecord;
+			extendedFunctionality.useExtendedFunctionality(data);
+		}
 	}
 
 }

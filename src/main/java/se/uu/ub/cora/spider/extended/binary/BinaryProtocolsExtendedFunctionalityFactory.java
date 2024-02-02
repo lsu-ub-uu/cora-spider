@@ -35,7 +35,9 @@ public class BinaryProtocolsExtendedFunctionalityFactory implements ExtendedFunc
 	@Override
 	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
 		contexts.add(new ExtendedFunctionalityContext(
-				ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE, "binary", 0));
+				ExtendedFunctionalityPosition.READ_BEFORE_RETURN, "binary", 0));
+		contexts.add(new ExtendedFunctionalityContext(
+				ExtendedFunctionalityPosition.UPDATE_BEFORE_RETURN, "binary", 0));
 	}
 
 	@Override

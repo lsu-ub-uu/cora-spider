@@ -53,11 +53,15 @@ public class BinaryProtocolsExtendedFunctionalityFactoryTest {
 		List<ExtendedFunctionalityContext> extendedFunctionalityContexts = factory
 				.getExtendedFunctionalityContexts();
 
-		assertEquals(extendedFunctionalityContexts.size(), 1);
+		assertEquals(extendedFunctionalityContexts.size(), 2);
 
 		ExtendedFunctionalityContext firstContext = extendedFunctionalityContexts.get(0);
-		assertEquals(firstContext.position, ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE);
+		assertEquals(firstContext.position, ExtendedFunctionalityPosition.READ_BEFORE_RETURN);
 		assertEquals(firstContext.recordType, "binary");
+
+		ExtendedFunctionalityContext secondContext = extendedFunctionalityContexts.get(1);
+		assertEquals(secondContext.position, ExtendedFunctionalityPosition.UPDATE_BEFORE_RETURN);
+		assertEquals(secondContext.recordType, "binary");
 
 	}
 

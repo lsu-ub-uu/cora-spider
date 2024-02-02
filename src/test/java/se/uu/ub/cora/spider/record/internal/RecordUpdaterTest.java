@@ -1147,4 +1147,24 @@ public class RecordUpdaterTest {
 
 		recordArchive.MCR.assertMethodNotCalled("update");
 	}
+
+	@Test
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() throws Exception {
+		DataGroupSpy recordSpy = createDataGroupForUpdate();
+
+		recordUpdaterOld.updateRecord("someToken", "spyType", "someRecordId", recordSpy);
+
+		extendedFunctionalityProvider.MCR.assertParameters("getFunctionalityForUpdateBeforeReturn",
+				0, "spyType");
+		List<ExtendedFunctionalitySpy> extFunctionalities = (List<ExtendedFunctionalitySpy>) extendedFunctionalityProvider.MCR
+				.getReturnValue("getFunctionalityForUpdateBeforeReturn", 0);
+
+		ExtendedFunctionalitySpy extendedFunctionalitySpy = extFunctionalities.get(0);
+		extendedFunctionalitySpy.MCR.assertParameters("useExtendedFunctionality", 0);
+		ExtendedFunctionalityData data = (ExtendedFunctionalityData) extendedFunctionalitySpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("useExtendedFunctionality", 0,
+						"data");
+
+		dataGroupToRecordEnhancer.MCR.assertReturn("enhance", 0, data.dataRecord);
+	}
 }
