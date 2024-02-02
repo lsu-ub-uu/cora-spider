@@ -102,6 +102,9 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 				} else if (id.equals("twoLinksTopLevel")) {
 					datagroup = RecordLinkTestsDataCreator
 							.createDataGroupWithRecordInfoAndTwoLinks();
+				} else if (id.equals("twoLinksDifferentRecordTypeTopLevel")) {
+					datagroup = RecordLinkTestsDataCreator
+							.createDataGroupWithRecordInfoAndTwoLinksDifferentRecordTypeTopLevel();
 				} else if (id.equals("oneLinkTopLevelNotAuthorized")) {
 					datagroup = RecordLinkTestsDataCreator
 							.createDataGroupWithRecordInfoAndLinkNotAuthorized();

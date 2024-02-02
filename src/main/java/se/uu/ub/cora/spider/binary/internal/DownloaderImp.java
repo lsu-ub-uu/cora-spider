@@ -33,6 +33,7 @@ import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.data.ResourceInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
+import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
@@ -46,7 +47,6 @@ public final class DownloaderImp implements Downloader {
 	private String representation;
 	private SpiderAuthorizator spiderAuthorizator;
 	private StreamStorage streamStorage;
-	private DataRecordGroup binaryRecordGroup;
 	private ResourceArchive resourceArchive;
 	private Authenticator authenticator;
 	private RecordStorage recordStorage;
@@ -78,7 +78,7 @@ public final class DownloaderImp implements Downloader {
 
 		authenticateAndAuthorizeUser(authToken, type, representation);
 
-		binaryRecordGroup = recordStorage.read(type, id);
+		DataRecordGroup binaryRecordGroup = recordStorage.read(type, id);
 
 		String dataDivider = binaryRecordGroup.getDataDivider();
 
@@ -86,10 +86,18 @@ public final class DownloaderImp implements Downloader {
 			InputStream stream = resourceArchive.readMasterResource(dataDivider, type, id);
 			return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
 		}
+		try {
+			InputStream stream = streamStorage.retrieve(type + ":" + id + "-" + representation,
+					dataDivider);
+			return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
+		} catch (Exception e) {
+			String errorNotFoundMessage = "Could not download the stream because it could not be "
+					+ "found in storage. Type: {0}, id: {1} and representation: {2}";
+			String errorMessage = MessageFormat.format(errorNotFoundMessage, type, id,
+					representation);
 
-		InputStream stream = streamStorage.retrieve(type + ":" + id + "-" + representation,
-				dataDivider);
-		return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
+			throw RecordNotFoundException.withMessageAndException(errorMessage, e);
+		}
 
 	}
 
