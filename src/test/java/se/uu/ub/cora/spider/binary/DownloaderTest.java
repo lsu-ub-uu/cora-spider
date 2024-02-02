@@ -330,4 +330,22 @@ public class DownloaderTest {
 
 		assertRepresentationAllowed(resourceDownloaded, JP2);
 	}
+
+	@Test
+	public void testDownloadStreamStorageHasException() throws Exception {
+		RuntimeException runtimeException = new RuntimeException();
+		streamStorage.MRV.setAlwaysThrowException("retrieve", runtimeException);
+
+		try {
+			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, JP2);
+			fail("It should throw an exception");
+		} catch (Exception e) {
+			assertTrue(e instanceof RecordNotFoundException);
+			String errorNotFoundMessage = "Could not download the stream because it could not be found in storage. Type: {0}, id: {1} and representation: {2}";
+			assertEquals(e.getMessage(), MessageFormat.format(errorNotFoundMessage,
+					BINARY_RECORD_TYPE, SOME_RECORD_ID, JP2));
+			assertEquals(e.getCause(), runtimeException);
+		}
+
+	}
 }

@@ -55,7 +55,6 @@ import se.uu.ub.cora.storage.archive.record.ResourceMetadataToUpdate;
 public final class UploaderImp implements Uploader {
 	private static final String MASTER = "master";
 	private static final String BINARY_RECORD_TYPE = "binary";
-	// private static final String RESOURCE_INFO = "resourceInfo";
 	private static final String MIME_TYPE_GENERIC = "application/octet-stream";
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataGroupTermCollector termCollector;
@@ -155,14 +154,16 @@ public final class UploaderImp implements Uploader {
 	}
 
 	private void storeResourceStreamInArchive(InputStream resourceStream) {
-		resourceArchive.createMasterResource(dataDivider, type, id, resourceStream, MIME_TYPE_GENERIC);
+		resourceArchive.createMasterResource(dataDivider, type, id, resourceStream,
+				MIME_TYPE_GENERIC);
 	}
 
 	private void updateOriginalFileNameAndMimeTypeInArchive(String originalFileName,
 			String detectedMimeType) {
 		ResourceMetadataToUpdate resourceMetadataToUpdate = new ResourceMetadataToUpdate(
 				originalFileName, detectedMimeType);
-		resourceArchive.updateMasterResourceMetadata(dataDivider, type, id, resourceMetadataToUpdate);
+		resourceArchive.updateMasterResourceMetadata(dataDivider, type, id,
+				resourceMetadataToUpdate);
 	}
 
 	private void validateInputIsBinaryMasterAndHasStream() {
@@ -174,7 +175,8 @@ public final class UploaderImp implements Uploader {
 	private DataRecord updateRecordInStorageUsingCalculatedAndInfoFromArchive(
 			DataRecordGroup dataRecordGroup, String detectedMimeType) {
 
-		ResourceMetadata resourceMetadata = resourceArchive.readMasterResourceMetadata(dataDivider, type, id);
+		ResourceMetadata resourceMetadata = resourceArchive.readMasterResourceMetadata(dataDivider,
+				type, id);
 		createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(dataRecordGroup, resourceMetadata,
 				detectedMimeType);
 
