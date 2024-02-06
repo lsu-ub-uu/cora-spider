@@ -23,7 +23,7 @@ import static org.testng.Assert.assertTrue;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataProvider;
@@ -45,7 +45,7 @@ public class VisibilityExtendedFunctionalityTest {
 	private ExtendedFunctionalityData extendedFunctionalityData;
 	private DataFactorySpy dataFactory;
 
-	@BeforeTest
+	@BeforeMethod
 	private void beforeTest() {
 		updatedDataGroup = new DataGroupSpy();
 		storedDataGroup = new DataGroupSpy();
@@ -81,7 +81,6 @@ public class VisibilityExtendedFunctionalityTest {
 
 	@Test
 	public void testVisibilityAdminInfoDoesNotExist() throws Exception {
-
 		visibilityExtFunc.useExtendedFunctionality(extendedFunctionalityData);
 
 		updatedDataGroup.MCR.assertParameters("containsChildWithNameInData", 0, "adminInfo");
