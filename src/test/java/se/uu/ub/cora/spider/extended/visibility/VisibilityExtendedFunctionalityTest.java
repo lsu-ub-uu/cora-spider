@@ -27,7 +27,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataProvider;
-import se.uu.ub.cora.data.spies.DataAtomicSpy;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -35,13 +34,12 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
 public class VisibilityExtendedFunctionalityTest {
 
+	private static final String TS_VISIBILITY = "tsVisibility";
 	private VisibilityExtendedFunctionality visibilityExtFunc;
 	private DataGroupSpy updatedDataGroup;
 	private DataGroupSpy storedDataGroup;
 	private DataGroupSpy updatedAdminInfo;
 	private DataGroupSpy storedAdminInfo;
-	private DataAtomicSpy updatedVisibility;
-	private DataAtomicSpy storedVisibility;
 	private ExtendedFunctionalityData extendedFunctionalityData;
 	private DataFactorySpy dataFactory;
 
@@ -51,8 +49,6 @@ public class VisibilityExtendedFunctionalityTest {
 		storedDataGroup = new DataGroupSpy();
 		updatedAdminInfo = new DataGroupSpy();
 		storedAdminInfo = new DataGroupSpy();
-		// updatedVisibility = new DataAtomicSpy();
-		// storedVisibility = new DataAtomicSpy();
 
 		updatedDataGroup.MRV.setDefaultReturnValuesSupplier("getFirstGroupWithNameInData",
 				() -> updatedAdminInfo);
@@ -91,6 +87,8 @@ public class VisibilityExtendedFunctionalityTest {
 	public void testVisiblityNoChanges() throws Exception {
 		updatedDataGroup.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
 				() -> true);
+		storedDataGroup.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
+				() -> true);
 
 		visibilityExtFunc.useExtendedFunctionality(extendedFunctionalityData);
 
@@ -101,11 +99,14 @@ public class VisibilityExtendedFunctionalityTest {
 		storedDataGroup.MCR.assertParameters("containsChildWithNameInData", 0, "adminInfo");
 		storedDataGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "adminInfo");
 		storedAdminInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "visibility");
+
+		dataFactory.MCR.assertMethodNotCalled("factorAtomicUsingNameInDataAndValue");
+		updatedAdminInfo.MCR.assertMethodNotCalled("removeFirstChildWithNameInData");
+		updatedAdminInfo.MCR.assertMethodNotCalled("addChild");
 	}
 
 	@Test
 	public void testVisibilityChangedTsVisibilityNotExist() throws Exception {
-
 		updatedDataGroup.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
 				() -> true);
 
@@ -114,7 +115,7 @@ public class VisibilityExtendedFunctionalityTest {
 
 		visibilityExtFunc.useExtendedFunctionality(extendedFunctionalityData);
 
-		dataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "tsVisibility");
+		dataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, TS_VISIBILITY);
 		var tsVisibilityAtomic = dataFactory.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
 
@@ -123,7 +124,6 @@ public class VisibilityExtendedFunctionalityTest {
 
 	@Test
 	public void testTsVisibilityTimeStamp() throws Exception {
-
 		updatedDataGroup.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
 				() -> true);
 		updatedAdminInfo.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
@@ -141,7 +141,42 @@ public class VisibilityExtendedFunctionalityTest {
 
 		assertTrue(tsVisibilityLocalDate.isAfter(before));
 		assertTrue(tsVisibilityLocalDate.isBefore(after));
+	}
 
+	@Test
+	public void testTsVisibilityExistAndDifferentValue() throws Exception {
+		updatedDataGroup.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
+				() -> true);
+		updatedAdminInfo.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "published");
+		updatedAdminInfo.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> true, TS_VISIBILITY);
+		storedDataGroup.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
+				() -> true);
+
+		visibilityExtFunc.useExtendedFunctionality(extendedFunctionalityData);
+		updatedAdminInfo.MCR.assertMethodWasCalled("removeFirstChildWithNameInData");
+		updatedAdminInfo.MCR.assertParameters("containsChildWithNameInData", 0, TS_VISIBILITY);
+		dataFactory.MCR.assertMethodWasCalled("factorAtomicUsingNameInDataAndValue");
+		updatedAdminInfo.MCR.assertMethodWasCalled("addChild");
+	}
+
+	@Test
+	public void testTsVisibilityDontExistAndDifferentValue() throws Exception {
+		updatedDataGroup.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
+				() -> true);
+		updatedAdminInfo.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "published");
+		updatedAdminInfo.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> false, TS_VISIBILITY);
+		storedDataGroup.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
+				() -> true);
+
+		visibilityExtFunc.useExtendedFunctionality(extendedFunctionalityData);
+		updatedAdminInfo.MCR.assertMethodNotCalled("removeFirstChildWithNameInData");
+
+		dataFactory.MCR.assertMethodWasCalled("factorAtomicUsingNameInDataAndValue");
+		updatedAdminInfo.MCR.assertMethodWasCalled("addChild");
 	}
 
 	private LocalDateTime parseToLocalDate(String toParse) {

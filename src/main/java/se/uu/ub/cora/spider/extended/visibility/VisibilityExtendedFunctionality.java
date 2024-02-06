@@ -29,30 +29,63 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
 public class VisibilityExtendedFunctionality implements ExtendedFunctionality {
 
+	private static final String ADMIN_INFO = "adminInfo";
+	private static final String VISIBILITY = "visibility";
+	private static final String TS_VISIBILITY = "tsVisibility";
+
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
 		DataGroup updatedDataGroup = data.dataGroup;
 		DataGroup storedDataGroup = data.previouslyStoredTopDataGroup;
 
 		if (hasAdminInfo(updatedDataGroup)) {
-			DataGroup updatedAdminInfo = updatedDataGroup.getFirstGroupWithNameInData("adminInfo");
-			updatedAdminInfo.getFirstAtomicValueWithNameInData("visibility");
-
-			// TODO
-			storedDataGroup.containsChildWithNameInData("adminInfo");
-			DataGroup storedAdminInfo = storedDataGroup.getFirstGroupWithNameInData("adminInfo");
-
-			storedAdminInfo.getFirstAtomicValueWithNameInData("visibility");
-
-			DataAtomic tsVisibility = DataProvider
-					.createAtomicUsingNameInDataAndValue("tsVisibility", getCurrentTimestamp());
-
-			updatedAdminInfo.addChild(tsVisibility);
+			possiblyUpdateTsVisibility(storedDataGroup, updatedDataGroup);
 		}
 	}
 
+	private void possiblyUpdateTsVisibility(DataGroup storedDataGroup, DataGroup updatedDataGroup) {
+		DataGroup updatedAdminInfo = updatedDataGroup.getFirstGroupWithNameInData(ADMIN_INFO);
+		if (hasAdminInfo(storedDataGroup)) {
+			DataGroup storedAdminInfo = storedDataGroup.getFirstGroupWithNameInData(ADMIN_INFO);
+
+			updateTsVisibilityIfVisibilityChanged(updatedAdminInfo, storedAdminInfo);
+		} else {
+			createAndAddTsVisiblity(updatedAdminInfo);
+		}
+	}
+
+	private void updateTsVisibilityIfVisibilityChanged(DataGroup updatedAdminInfo,
+			DataGroup storedAdminInfo) {
+		if (isVisibiltyChanged(updatedAdminInfo, storedAdminInfo)) {
+			updateTsVisibility(updatedAdminInfo);
+		}
+	}
+
+	private void updateTsVisibility(DataGroup updatedAdminInfo) {
+		removeOutdatedTsVisibilityIfPresent(updatedAdminInfo);
+		createAndAddTsVisiblity(updatedAdminInfo);
+	}
+
 	private boolean hasAdminInfo(DataGroup dataGroup) {
-		return dataGroup.containsChildWithNameInData("adminInfo");
+		return dataGroup.containsChildWithNameInData(ADMIN_INFO);
+	}
+
+	private boolean isVisibiltyChanged(DataGroup updatedAdminInfo, DataGroup storedAdminInfo) {
+		String updatedVisibility = updatedAdminInfo.getFirstAtomicValueWithNameInData(VISIBILITY);
+		String storedVisibility = storedAdminInfo.getFirstAtomicValueWithNameInData(VISIBILITY);
+		return !updatedVisibility.equals(storedVisibility);
+	}
+
+	private void removeOutdatedTsVisibilityIfPresent(DataGroup updatedAdminInfo) {
+		if (updatedAdminInfo.containsChildWithNameInData(TS_VISIBILITY)) {
+			updatedAdminInfo.removeFirstChildWithNameInData(TS_VISIBILITY);
+		}
+	}
+
+	private void createAndAddTsVisiblity(DataGroup updatedAdminInfo) {
+		DataAtomic tsVisibility = DataProvider.createAtomicUsingNameInDataAndValue(TS_VISIBILITY,
+				getCurrentTimestamp());
+		updatedAdminInfo.addChild(tsVisibility);
 	}
 
 	private String getCurrentTimestamp() {
@@ -61,5 +94,4 @@ public class VisibilityExtendedFunctionality implements ExtendedFunctionality {
 		LocalDateTime currentTime = LocalDateTime.now();
 		return timeFormater.format(currentTime);
 	}
-
 }
