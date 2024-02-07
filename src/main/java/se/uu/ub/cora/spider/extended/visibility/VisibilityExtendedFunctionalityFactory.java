@@ -27,7 +27,7 @@ public class VisibilityExtendedFunctionalityFactory implements ExtendedFunctiona
 	}
 
 	private void createContext(ExtendedFunctionalityPosition position) {
-		contexts.add(new ExtendedFunctionalityContext(position, "Binary", 0));
+		contexts.add(new ExtendedFunctionalityContext(position, "binary", 0));
 	}
 
 	@Override

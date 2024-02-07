@@ -41,14 +41,14 @@ public class VisibilityExtendedFunctionalityFactoryTest {
 	@Test
 	public void testFactor() throws Exception {
 		List<ExtendedFunctionality> functionalities = factory
-				.factor(ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE, "Binary");
+				.factor(ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE, "binary");
 		assertTrue(functionalities.get(0) instanceof VisibilityExtendedFunctionality);
 	}
 
 	private void assertContext() {
 		ExtendedFunctionalityContext visibilityExtFunc = factory.getExtendedFunctionalityContexts()
 				.get(0);
-		assertEquals(visibilityExtFunc.recordType, "Binary");
+		assertEquals(visibilityExtFunc.recordType, "binary");
 		assertEquals(visibilityExtFunc.position, ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE);
 		assertEquals(visibilityExtFunc.runAsNumber, 0);
 	}
