@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.extendedfunctionality;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecord;
 
 /**
  * ExtendedFunctionalityData contains data, useful when implementing an extended functionality. The
@@ -63,5 +64,10 @@ public class ExtendedFunctionalityData {
 	 * record.</b>
 	 */
 	public DataGroup previouslyStoredTopDataGroup;
+
+	/**
+	 * The representeion of the record as DataRecord
+	 */
+	public DataRecord dataRecord;
 
 }

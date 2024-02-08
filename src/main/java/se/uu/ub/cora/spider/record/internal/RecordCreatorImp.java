@@ -316,7 +316,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private void useExtendedFunctionalityBeforeReturn(String recordTypeToCreate,
 			DataGroup dataGroup) {
 		List<ExtendedFunctionality> extendedFunctionalityList = extendedFunctionalityProvider
-				.getFunctionalityForCreateBeforeReturn(recordTypeToCreate);
+				.getFunctionalityForCreateBeforeEnhance(recordTypeToCreate);
 		useExtendedFunctionality(dataGroup, extendedFunctionalityList);
 	}
 

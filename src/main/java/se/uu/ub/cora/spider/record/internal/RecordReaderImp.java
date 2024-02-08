@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019, 2020 Uppsala University Library
+ * Copyright 2015, 2016, 2019, 2020, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
+import java.util.List;
+
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
@@ -27,6 +29,9 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -42,6 +47,7 @@ public final class RecordReaderImp implements RecordReader {
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordStorage recordStorage;
 	private String recordType;
+	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 
 	private RecordReaderImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -51,6 +57,7 @@ public final class RecordReaderImp implements RecordReader {
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
+		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
 	public static RecordReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -74,7 +81,20 @@ public final class RecordReaderImp implements RecordReader {
 
 		DataGroup recordRead = recordStorage
 				.read(recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage(), recordId);
-		return tryToReadAndEnhanceRecord(recordRead);
+		DataRecord dataRecord = tryToReadAndEnhanceRecord(recordRead);
+		useExtendedFunctionalityBeforeReturn(dataRecord);
+		return dataRecord;
+
+	}
+
+	private void useExtendedFunctionalityBeforeReturn(DataRecord dataRecord) {
+		List<ExtendedFunctionality> extendedFunctionalityList = extendedFunctionalityProvider
+				.getFunctionalityForReadBeforeReturn(recordType);
+		for (ExtendedFunctionality extendedFunctionality : extendedFunctionalityList) {
+			ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+			data.dataRecord = dataRecord;
+			extendedFunctionality.useExtendedFunctionality(data);
+		}
 	}
 
 	private void tryToGetUserWithActiveToken() {

@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2022, 2023 Uppsala University Library
+ * Copyright 2022, 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -42,7 +42,11 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 				() -> createListWithTwoExtendedFunctionalitySpies());
 		MRV.setDefaultReturnValuesSupplier("getFunctionalityForCreateAfterMetadataValidation",
 				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForCreateBeforeReturn",
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityForCreateBeforeEnhance",
+				() -> createListWithTwoExtendedFunctionalitySpies());
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityForReadBeforeReturn",
+				() -> createListWithTwoExtendedFunctionalitySpies());
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateBeforeReturn",
 				() -> createListWithTwoExtendedFunctionalitySpies());
 		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateBeforeMetadataValidation",
 				() -> createListWithTwoExtendedFunctionalitySpies());
@@ -80,7 +84,17 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 	}
 
 	@Override
-	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeReturn(String recordType) {
+	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeEnhance(String recordType) {
+		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForReadBeforeReturn(String recordType) {
+		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeReturn(String recordType) {
 		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
 	}
 
@@ -141,4 +155,5 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 		assertEquals(data.previouslyStoredTopDataGroup, expectedData.previouslyStoredTopDataGroup);
 		assertEquals(data.dataGroup, expectedData.dataGroup);
 	}
+
 }

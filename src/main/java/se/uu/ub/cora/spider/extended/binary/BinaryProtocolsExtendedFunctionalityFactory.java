@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Uppsala University Library
+ * Copyright 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,10 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended.apptoken;
-
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
+package se.uu.ub.cora.spider.extended.binary;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,39 +28,27 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 
-public class ApptokenExtendedFunctionalityFactory implements ExtendedFunctionalityFactory {
+public class BinaryProtocolsExtendedFunctionalityFactory implements ExtendedFunctionalityFactory {
 
-	private List<ExtendedFunctionalityContext> contexts = new ArrayList<>();
-	private SpiderDependencyProvider dependencyProvider;
+	List<ExtendedFunctionalityContext> contexts = new ArrayList<>();
 
 	@Override
 	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
-		this.dependencyProvider = dependencyProvider;
-		createListOfContexts();
-	}
-
-	private void createListOfContexts() {
-		createContext(CREATE_BEFORE_METADATA_VALIDATION);
-		createContext(CREATE_BEFORE_ENHANCE);
-	}
-
-	private void createContext(ExtendedFunctionalityPosition position) {
-		contexts.add(new ExtendedFunctionalityContext(position, "appToken", 0));
-	}
-
-	@Override
-	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
-			String recordType) {
-		if (CREATE_BEFORE_METADATA_VALIDATION == position) {
-			return Collections.singletonList(new AppTokenEnhancer());
-		}
-		return Collections.singletonList(
-				UserUpdaterForAppToken.usingSpiderDependencyProvider(dependencyProvider));
+		contexts.add(new ExtendedFunctionalityContext(
+				ExtendedFunctionalityPosition.READ_BEFORE_RETURN, "binary", 0));
+		contexts.add(new ExtendedFunctionalityContext(
+				ExtendedFunctionalityPosition.UPDATE_BEFORE_RETURN, "binary", 0));
 	}
 
 	@Override
 	public List<ExtendedFunctionalityContext> getExtendedFunctionalityContexts() {
 		return contexts;
+	}
+
+	@Override
+	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
+			String recordType) {
+		return Collections.singletonList(new BinaryProtocolsExtendedFunctionality());
 	}
 
 }

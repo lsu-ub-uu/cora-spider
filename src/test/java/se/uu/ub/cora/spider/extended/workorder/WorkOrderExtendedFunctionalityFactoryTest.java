@@ -60,7 +60,7 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 		assertCorrectContextUsingIndexNumberAndPosition(1, 0,
 				ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION);
 		assertCorrectContextUsingIndexNumberAndPosition(2, 0,
-				ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN);
+				ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE);
 	}
 
 	private void assertCorrectContextUsingIndexNumberAndPosition(int index, int runAsNumber,
@@ -91,7 +91,7 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 	@Test
 	public void testWorkOrderCreateBeforeReturn() {
 		List<ExtendedFunctionality> functionalities = factory
-				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN, "workOrder");
+				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE, "workOrder");
 		WorkOrderDeleter functionality = (WorkOrderDeleter) functionalities.get(0);
 		RecordDeleterImp recordDeleter = (RecordDeleterImp) functionality
 				.getRecordDeleter();

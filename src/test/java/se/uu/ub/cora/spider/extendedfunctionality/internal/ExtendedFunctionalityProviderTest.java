@@ -20,9 +20,11 @@ package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
 import static org.testng.Assert.assertSame;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_RETURN;
 
 import java.util.List;
 
@@ -68,11 +70,19 @@ public class ExtendedFunctionalityProviderTest {
 	}
 
 	@Test
-	public void testGetFunctionalityForCreateBeforeReturn() throws Exception {
+	public void testGetFunctionalityForCreateBeforeEnhance() throws Exception {
 		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForCreateBeforeReturn("someRecordType");
+				.getFunctionalityForCreateBeforeEnhance("someRecordType");
 
-		assertCorrectCallAndAnswerFor(CREATE_BEFORE_RETURN, functionality, "someRecordType");
+		assertCorrectCallAndAnswerFor(CREATE_BEFORE_ENHANCE, functionality, "someRecordType");
+	}
+
+	@Test
+	public void testGetFunctionalityForReadBeforeReturn() throws Exception {
+		List<ExtendedFunctionality> functionality = provider
+				.getFunctionalityForReadBeforeReturn("someRecordType");
+
+		assertCorrectCallAndAnswerFor(READ_BEFORE_RETURN, functionality, "someRecordType");
 	}
 
 	@Test
@@ -92,6 +102,14 @@ public class ExtendedFunctionalityProviderTest {
 		assertCorrectCallAndAnswerFor(
 				ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION, functionality,
 				"someRecordType");
+	}
+
+	@Test
+	public void testGetFunctionalityForUpdateBeforeReturn() throws Exception {
+		List<ExtendedFunctionality> functionality = provider
+				.getFunctionalityForUpdateBeforeReturn("someRecordType");
+
+		assertCorrectCallAndAnswerFor(UPDATE_BEFORE_RETURN, functionality, "someRecordType");
 	}
 
 	@Test
