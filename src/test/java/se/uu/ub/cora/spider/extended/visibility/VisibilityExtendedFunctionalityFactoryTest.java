@@ -4,7 +4,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -33,23 +35,47 @@ public class VisibilityExtendedFunctionalityFactoryTest {
 	}
 
 	@Test
-	public void testGetExtendedFunctionalityContexts() {
-		assertEquals(factory.getExtendedFunctionalityContexts().size(), 1);
-		assertContext();
+	public void testGetExtendedFunctionalityContextsForUpdate() {
+		assertEquals(factory.getExtendedFunctionalityContexts().size(), 2);
+		assertContext(ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE);
 	}
 
 	@Test
-	public void testFactor() throws Exception {
+	public void testGetExtendedFunctionalityContextsForCreate() {
+		assertContext(ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION);
+	}
+
+	@Test
+	public void testFactorUpdate() throws Exception {
 		List<ExtendedFunctionality> functionalities = factory
 				.factor(ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE, "binary");
 		assertTrue(functionalities.get(0) instanceof VisibilityExtendedFunctionality);
 	}
 
-	private void assertContext() {
-		ExtendedFunctionalityContext visibilityExtFunc = factory.getExtendedFunctionalityContexts()
-				.get(0);
+	@Test
+	public void testFactorCreate() throws Exception {
+		List<ExtendedFunctionality> functionalities = factory
+				.factor(ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION, "binary");
+		assertTrue(functionalities.get(0) instanceof VisibilityExtendedFunctionality);
+	}
+
+	private void assertContext(ExtendedFunctionalityPosition position) {
+		ExtendedFunctionalityContext visibilityExtFunc = assertContextExistsAndReturnIt(position);
 		assertEquals(visibilityExtFunc.recordType, "binary");
-		assertEquals(visibilityExtFunc.position, ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE);
+		assertEquals(visibilityExtFunc.position, position);
 		assertEquals(visibilityExtFunc.runAsNumber, 0);
+	}
+
+	private ExtendedFunctionalityContext assertContextExistsAndReturnIt(
+			ExtendedFunctionalityPosition position) {
+		Optional<ExtendedFunctionalityContext> visibilityExtFuncOpt = factory
+				.getExtendedFunctionalityContexts().stream()
+				.filter(contexts -> contexts.position.equals(position)).findFirst();
+
+		if (!visibilityExtFuncOpt.isPresent()) {
+			Assert.fail("Failed find a matching context");
+		}
+
+		return visibilityExtFuncOpt.get();
 	}
 }

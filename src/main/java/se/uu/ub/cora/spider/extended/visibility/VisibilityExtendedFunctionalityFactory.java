@@ -1,5 +1,6 @@
 package se.uu.ub.cora.spider.extended.visibility;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE;
 
 import java.util.ArrayList;
@@ -19,10 +20,10 @@ public class VisibilityExtendedFunctionalityFactory implements ExtendedFunctiona
 	@Override
 	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
 		createListOfContexts();
-
 	}
 
 	private void createListOfContexts() {
+		createContext(CREATE_AFTER_METADATA_VALIDATION);
 		createContext(UPDATE_BEFORE_STORE);
 	}
 
