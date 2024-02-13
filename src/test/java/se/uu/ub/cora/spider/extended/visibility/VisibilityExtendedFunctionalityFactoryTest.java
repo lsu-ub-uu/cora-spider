@@ -68,14 +68,18 @@ public class VisibilityExtendedFunctionalityFactoryTest {
 
 	private ExtendedFunctionalityContext assertContextExistsAndReturnIt(
 			ExtendedFunctionalityPosition position) {
-		Optional<ExtendedFunctionalityContext> visibilityExtFuncOpt = factory
-				.getExtendedFunctionalityContexts().stream()
-				.filter(contexts -> contexts.position.equals(position)).findFirst();
+		var optionalExtFuncContext = tryToFindMatchingContext(position);
 
-		if (!visibilityExtFuncOpt.isPresent()) {
+		if (!optionalExtFuncContext.isPresent()) {
 			Assert.fail("Failed find a matching context");
 		}
 
-		return visibilityExtFuncOpt.get();
+		return optionalExtFuncContext.get();
+	}
+
+	private Optional<ExtendedFunctionalityContext> tryToFindMatchingContext(
+			ExtendedFunctionalityPosition position) {
+		return factory.getExtendedFunctionalityContexts().stream()
+				.filter(contexts -> contexts.position.equals(position)).findFirst();
 	}
 }
