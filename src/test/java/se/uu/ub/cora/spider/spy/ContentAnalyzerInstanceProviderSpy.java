@@ -20,8 +20,8 @@ package se.uu.ub.cora.spider.spy;
 
 import java.util.function.Supplier;
 
-import se.uu.ub.cora.contentanalyzer.ContentAnalyzer;
-import se.uu.ub.cora.contentanalyzer.ContentAnalyzerInstanceProvider;
+import se.uu.ub.cora.binary.contentanalyzer.ContentAnalyzer;
+import se.uu.ub.cora.binary.contentanalyzer.ContentAnalyzerInstanceProvider;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 

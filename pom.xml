@@ -42,7 +42,7 @@
 		<search.version>5.6.0</search.version>
 		<bookkeeper.version>9.2.0</bookkeeper.version>
 		<beefeater.version>3.13.0</beefeater.version>
-		<contentanalyzer.version>1.0.0</contentanalyzer.version>
+		<contentanalyzer.version>2.0-SNAPSHOT</contentanalyzer.version>
 		<password.version>1.7.0</password.version>
 		<testutils.version>1.11.0</testutils.version>
 		<coradata-spies.version>1.7-SNAPSHOT</coradata-spies.version>

@@ -16,25 +16,18 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.iiif.internal;
+package se.uu.ub.cora.spider.binary.iiif.internal;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import se.uu.ub.cora.spider.binary.iiif.IiifImageReader;
+import se.uu.ub.cora.spider.data.ResourceInputStream;
 
-import se.uu.ub.cora.spider.iiif.IiifImageReader;
+public class IiifImageReaderImp implements IiifImageReader {
 
-public class IiifImageReaderTest {
+	@Override
+	public ResourceInputStream readImage(String identifier, String region, String size,
+			String rotation, String quality, String format) {
 
-	IiifImageReader reader;
-
-	@BeforeMethod
-	private void beforeMethod() {
-		reader = new IiifImageReaderImp();
-	}
-
-	@Test
-	public void testReadImage() throws Exception {
-
+		return null;
 	}
 
 }

@@ -1,4 +1,4 @@
-package se.uu.ub.cora.spider.iiif;
+package se.uu.ub.cora.spider.binary.iiif;
 
 import se.uu.ub.cora.spider.data.ResourceInputStream;
 
