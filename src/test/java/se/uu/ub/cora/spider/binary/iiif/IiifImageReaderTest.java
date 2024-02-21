@@ -27,7 +27,7 @@ import se.uu.ub.cora.spider.binary.iiif.internal.IiifImageReaderImp;
 public class IiifImageReaderTest {
 	private IiifImageInstanceProviderSpy iiifImageAdapterInstanceProvider;
 
-	private IiifImageReader reader;
+	private IiifReader reader;
 
 	@BeforeMethod
 	private void beforeMethod() {

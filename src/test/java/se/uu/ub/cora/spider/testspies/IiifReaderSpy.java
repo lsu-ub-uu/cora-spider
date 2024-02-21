@@ -16,34 +16,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.testspies;
 
-package se.uu.ub.cora.spider.binary.iiif;
-
-import se.uu.ub.cora.binary.iiif.IiifImageAdapter;
-import se.uu.ub.cora.binary.iiif.IiifImageParameters;
-import se.uu.ub.cora.binary.iiif.IiifImageResponse;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
+import se.uu.ub.cora.spider.data.ResourceInputStream;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class IiifImageAdapterSpy implements IiifImageAdapter {
-
+public class IiifReaderSpy implements IiifReader {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public IiifImageAdapterSpy() {
+	public IiifReaderSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("requestImage", () -> 0);
-		MRV.setDefaultReturnValuesSupplier("getIiifImageAdapter", IiifImageAdapterSpy::new);
+		// MRV.setDefaultReturnValuesSupplier("readImage", DataRecordSpy::new);
 	}
 
 	@Override
-	public IiifImageResponse requestImage(IiifImageParameters iiifImageParameters) {
-		return (IiifImageResponse) MCR.addCallAndReturnFromMRV("iiifImageParameters",
-				iiifImageParameters);
-	}
-
-	public IiifImageResponse requestInformation(String dataDivider, String identifier) {
+	public ResourceInputStream readImage(String identifier, String region, String size,
+			String rotation, String quality, String format) {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 }

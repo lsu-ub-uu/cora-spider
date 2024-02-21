@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2018, 2019, 2021 Uppsala University Library
+ * Copyright 2015, 2018, 2019, 2021, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,6 +23,7 @@ import java.util.Map;
 
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -100,6 +101,10 @@ public final class SpiderInstanceProvider {
 
 	public static String getDependencyProviderClassName() {
 		return factory.getDependencyProviderClassName();
+	}
+
+	public static IiifReader getIiifReader() {
+		return factory.factorIiifReader();
 	}
 
 }

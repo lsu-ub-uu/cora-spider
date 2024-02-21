@@ -18,10 +18,10 @@
  */
 package se.uu.ub.cora.spider.binary.iiif.internal;
 
-import se.uu.ub.cora.spider.binary.iiif.IiifImageReader;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.data.ResourceInputStream;
 
-public class IiifImageReaderImp implements IiifImageReader {
+public class IiifImageReaderImp implements IiifReader {
 
 	@Override
 	public ResourceInputStream readImage(String identifier, String region, String size,
