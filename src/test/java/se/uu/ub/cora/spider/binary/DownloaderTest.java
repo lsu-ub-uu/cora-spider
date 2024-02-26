@@ -92,7 +92,6 @@ public class DownloaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-
 		authenticator = new AuthenticatorSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
 				() -> authenticator);
@@ -112,7 +111,6 @@ public class DownloaderTest {
 		streamStorage = new StreamStorageSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getStreamStorage",
 				() -> streamStorage);
-
 	}
 
 	private void setupBinaryRecord() {

@@ -22,8 +22,18 @@ import se.uu.ub.cora.binary.BinaryProvider;
 import se.uu.ub.cora.binary.iiif.IiifImageAdapter;
 import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.data.ResourceInputStream;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public class IiifImageReaderImp implements IiifReader {
+
+	public static IiifImageReaderImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new IiifImageReaderImp(dependencyProvider);
+	}
+
+	private IiifImageReaderImp(SpiderDependencyProvider dependencyProvider) {
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	public ResourceInputStream readImage(String identifier, String region, String size,

@@ -54,7 +54,7 @@ public final class DownloaderImp implements Downloader {
 	private String id;
 
 	private DownloaderImp(SpiderDependencyProvider dependencyProvider) {
-		this.authenticator = dependencyProvider.getAuthenticator();
+		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
 		resourceArchive = dependencyProvider.getResourceArchive();
