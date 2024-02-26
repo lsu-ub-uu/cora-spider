@@ -18,6 +18,8 @@
  */
 package se.uu.ub.cora.spider.binary.iiif.internal;
 
+import se.uu.ub.cora.binary.BinaryProvider;
+import se.uu.ub.cora.binary.iiif.IiifImageAdapter;
 import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.data.ResourceInputStream;
 
@@ -27,7 +29,9 @@ public class IiifImageReaderImp implements IiifReader {
 	public ResourceInputStream readImage(String identifier, String region, String size,
 			String rotation, String quality, String format) {
 
+		IiifImageAdapter iiifImageAdapter = BinaryProvider.getIiifImageAdapter();
 		return null;
+
 	}
 
 }

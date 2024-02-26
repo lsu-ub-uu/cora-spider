@@ -22,15 +22,21 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binary.BinaryProvider;
+import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.spider.binary.iiif.internal.IiifImageReaderImp;
 
 public class IiifImageReaderTest {
+	private LoggerFactorySpy loggerFactorySpy;
 	private IiifImageInstanceProviderSpy iiifImageAdapterInstanceProvider;
 
 	private IiifReader reader;
 
 	@BeforeMethod
 	private void beforeMethod() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+
 		reader = new IiifImageReaderImp();
 		iiifImageAdapterInstanceProvider = new IiifImageInstanceProviderSpy();
 		BinaryProvider
