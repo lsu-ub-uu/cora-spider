@@ -18,6 +18,10 @@
  */
 package se.uu.ub.cora.spider.binary.iiif;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -26,6 +30,7 @@ import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.iiif.internal.IiifImageReaderImp;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
@@ -34,6 +39,8 @@ import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class IiifImageReaderTest {
 
+	private static final String VISIBILITY = "visibility";
+	private static final String SOME_IDENTIFIER = "someIdentifier";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String SOME_MIME_TYPE = "someMimeType";
 	private static final String MASTER = "master";
@@ -54,6 +61,7 @@ public class IiifImageReaderTest {
 	private RecordStorageSpy recordStorage;
 	private DataRecordGroupSpy readBinaryDGS;
 	private DataGroupSpy resourceTypeDGS;
+	private DataGroupSpy adminInfo;
 
 	@BeforeMethod
 	private void beforeMethod() {
@@ -93,6 +101,10 @@ public class IiifImageReaderTest {
 				() -> SOME_MIME_TYPE, "mimeType");
 
 		readBinaryDGS = new DataRecordGroupSpy();
+		adminInfo = new DataGroupSpy();
+		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> adminInfo, "adminInfo");
+
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
 				() -> resourceTypeDGS, MASTER);
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
@@ -113,11 +125,52 @@ public class IiifImageReaderTest {
 
 	@Test
 	public void testReadImage() throws Exception {
+		setVisibilityInAdminInfoInBinaryRecord("published");
 
-		reader.readImage("", null, null, null, null, null);
+		reader.readImage(SOME_IDENTIFIER, null, null, null, null, null);
+
+		dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
+		recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);
 
 		iiifImageAdapterInstanceProvider.MCR.assertParameters("getIiifImageAdapter", 0);
-
 	}
+
+	private void setVisibilityInAdminInfoInBinaryRecord(String visibility) {
+		adminInfo.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> visibility, VISIBILITY);
+	}
+
+	@Test
+	public void testReadImageNotPublishedThrowAuthorizationException() throws Exception {
+		setVisibilityInAdminInfoInBinaryRecord("hidden");
+		try {
+			reader.readImage(SOME_IDENTIFIER, null, null, null, null, null);
+			fail("it should throw exception");
+		} catch (Exception e) {
+			assertTrue(e instanceof AuthorizationException);
+			assertEquals(e.getMessage(),
+					"Not authorized to read binary record with id: " + SOME_IDENTIFIER);
+		}
+	}
+
+	@Test
+	public void testReadImageNotPublished() throws Exception {
+		setVisibilityInAdminInfoInBinaryRecord("hidden");
+		try {
+			reader.readImage(SOME_IDENTIFIER, null, null, null, null, null);
+			fail("it should throw exception");
+		} catch (Exception e) {
+			dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
+			recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);
+
+			iiifImageAdapterInstanceProvider.MCR.assertMethodNotCalled("getIiifImageAdapter");
+		}
+	}
+
+	/**
+	 * TODO: add test for not found record, create new spider exception for not found record.
+	 * <p>
+	 * add test for not authorized if record is not public, throw AuthorizationException
+	 */
 
 }

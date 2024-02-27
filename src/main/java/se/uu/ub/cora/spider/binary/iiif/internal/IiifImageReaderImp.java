@@ -20,11 +20,17 @@ package se.uu.ub.cora.spider.binary.iiif.internal;
 
 import se.uu.ub.cora.binary.BinaryProvider;
 import se.uu.ub.cora.binary.iiif.IiifImageAdapter;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.data.ResourceInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public class IiifImageReaderImp implements IiifReader {
+
+	private SpiderDependencyProvider dependencyProvider;
 
 	public static IiifImageReaderImp usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
@@ -32,16 +38,37 @@ public class IiifImageReaderImp implements IiifReader {
 	}
 
 	private IiifImageReaderImp(SpiderDependencyProvider dependencyProvider) {
-		// TODO Auto-generated constructor stub
+		this.dependencyProvider = dependencyProvider;
 	}
 
 	@Override
 	public ResourceInputStream readImage(String identifier, String region, String size,
 			String rotation, String quality, String format) {
 
-		IiifImageAdapter iiifImageAdapter = BinaryProvider.getIiifImageAdapter();
-		return null;
+		DataRecordGroup binaryRecordGroup = readBinaryRecord(identifier);
 
+		if (binaryPublished(binaryRecordGroup)) {
+			IiifImageAdapter iiifImageAdapter = BinaryProvider.getIiifImageAdapter();
+			return null;
+		}
+		throw exceptionNotAuthorized(identifier);
+
+	}
+
+	private AuthorizationException exceptionNotAuthorized(String identifier) {
+		String notAuthorizedMessage = "Not authorized to read binary record with id: " + identifier;
+		return new AuthorizationException(notAuthorizedMessage);
+	}
+
+	private DataRecordGroup readBinaryRecord(String identifier) {
+		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
+		return recordStorage.read("binary", identifier);
+	}
+
+	private boolean binaryPublished(DataRecordGroup binaryRecordGroup) {
+		DataGroup adminInfo = binaryRecordGroup.getFirstGroupWithNameInData("adminInfo");
+		String visibility = adminInfo.getFirstAtomicValueWithNameInData("visibility");
+		return "published".equals(visibility);
 	}
 
 }
