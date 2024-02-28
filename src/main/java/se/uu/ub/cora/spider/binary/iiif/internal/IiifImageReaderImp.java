@@ -18,18 +18,21 @@
  */
 package se.uu.ub.cora.spider.binary.iiif.internal;
 
+import java.util.List;
+import java.util.Map;
+
 import se.uu.ub.cora.binary.BinaryProvider;
 import se.uu.ub.cora.binary.iiif.IiifImageAdapter;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.binary.iiif.IiifReader;
-import se.uu.ub.cora.spider.data.ResourceInputStream;
+import se.uu.ub.cora.spider.binary.iiif.IiifImageReader;
+import se.uu.ub.cora.spider.binary.iiif.IiifImageResponse;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
-public class IiifImageReaderImp implements IiifReader {
+public class IiifImageReaderImp implements IiifImageReader {
 
 	private SpiderDependencyProvider dependencyProvider;
 
@@ -43,8 +46,8 @@ public class IiifImageReaderImp implements IiifReader {
 	}
 
 	@Override
-	public ResourceInputStream readImage(String identifier, String region, String size,
-			String rotation, String quality, String format) {
+	public IiifImageResponse readIiif(String identifier, String requestedUri, String method,
+			Map<String, List<Object>> headers) {
 		try {
 			return tryToReadIiif(identifier);
 		} catch (se.uu.ub.cora.storage.RecordNotFoundException e) {
@@ -53,7 +56,7 @@ public class IiifImageReaderImp implements IiifReader {
 		}
 	}
 
-	private ResourceInputStream tryToReadIiif(String identifier) {
+	private IiifImageResponse tryToReadIiif(String identifier) {
 		DataRecordGroup binaryRecordGroup = readBinaryRecord(identifier);
 		throwErrorIfNotAuthorizedToCallIiifForRecord(binaryRecordGroup);
 		IiifImageAdapter iiifImageAdapter = BinaryProvider.getIiifImageAdapter();

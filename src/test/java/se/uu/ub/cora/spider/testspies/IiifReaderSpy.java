@@ -18,12 +18,15 @@
  */
 package se.uu.ub.cora.spider.testspies;
 
-import se.uu.ub.cora.spider.binary.iiif.IiifReader;
-import se.uu.ub.cora.spider.data.ResourceInputStream;
+import java.util.List;
+import java.util.Map;
+
+import se.uu.ub.cora.spider.binary.iiif.IiifImageReader;
+import se.uu.ub.cora.spider.binary.iiif.IiifImageResponse;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class IiifReaderSpy implements IiifReader {
+public class IiifReaderSpy implements IiifImageReader {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
@@ -33,8 +36,8 @@ public class IiifReaderSpy implements IiifReader {
 	}
 
 	@Override
-	public ResourceInputStream readImage(String identifier, String region, String size,
-			String rotation, String quality, String format) {
+	public IiifImageResponse readIiif(String identifier, String requestedUri, String method,
+			Map<String, List<Object>> headers) {
 		// TODO Auto-generated method stub
 		return null;
 	}

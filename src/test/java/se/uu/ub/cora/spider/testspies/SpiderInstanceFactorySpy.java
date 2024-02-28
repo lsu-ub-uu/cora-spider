@@ -20,7 +20,7 @@ package se.uu.ub.cora.spider.testspies;
 
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
-import se.uu.ub.cora.spider.binary.iiif.IiifReader;
+import se.uu.ub.cora.spider.binary.iiif.IiifImageReader;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
@@ -117,7 +117,7 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public IiifReader factorIiifReader() {
-		return (IiifReader) MCR.addCallAndReturnFromMRV();
+	public IiifImageReader factorIiifReader() {
+		return (IiifImageReader) MCR.addCallAndReturnFromMRV();
 	}
 }

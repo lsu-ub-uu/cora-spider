@@ -55,7 +55,7 @@ public class IiifImageReaderTest {
 	private LoggerFactorySpy loggerFactorySpy;
 	private IiifImageInstanceProviderSpy iiifImageAdapterInstanceProvider;
 
-	private IiifReader reader;
+	private IiifImageReader reader;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
@@ -135,7 +135,7 @@ public class IiifImageReaderTest {
 	public void testReadImageNotPublishedThrowAuthorizationException() throws Exception {
 		setVisibilityInAdminInfoInBinaryRecord("hidden");
 		try {
-			reader.readImage(SOME_IDENTIFIER, null, null, null, null, null);
+			reader.readIiif(SOME_IDENTIFIER, null, null, null);
 			fail("it should throw exception");
 		} catch (Exception error) {
 			assertAuthorizationExceptionWithCorrectMessage(error);
@@ -159,7 +159,7 @@ public class IiifImageReaderTest {
 				se.uu.ub.cora.storage.RecordNotFoundException
 						.withMessage("message from exception"));
 		try {
-			reader.readImage(SOME_IDENTIFIER, null, null, null, null, null);
+			reader.readIiif(SOME_IDENTIFIER, null, null, null);
 			fail("it should throw exception");
 		} catch (Exception error) {
 			assertTrue(error instanceof RecordNotFoundException);
@@ -177,7 +177,7 @@ public class IiifImageReaderTest {
 	public void testReadImage() throws Exception {
 		setVisibilityInAdminInfoInBinaryRecord("published");
 
-		reader.readImage(SOME_IDENTIFIER, null, null, null, null, null);
+		reader.readIiif(SOME_IDENTIFIER, null, null, null);
 
 		dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
 		recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);

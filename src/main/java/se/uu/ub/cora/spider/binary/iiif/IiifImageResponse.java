@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2023 Uppsala University Library
+ * Copyright 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,27 +17,10 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.data;
+package se.uu.ub.cora.spider.binary.iiif;
 
-import java.io.InputStream;
+import java.util.Map;
 
-public final class ResourceInputStream {
-
-	public final String name;
-	public final long size;
-	public final InputStream stream;
-	public final String mimeType;
-
-	private ResourceInputStream(String name, long size, String mimeType, InputStream stream) {
-		this.name = name;
-		this.size = size;
-		this.mimeType = mimeType;
-		this.stream = stream;
-	}
-
-	public static ResourceInputStream withNameSizeInputStream(String name, long size, String mimeType,
-			InputStream stream) {
-		return new ResourceInputStream(name, size, mimeType, stream);
-	}
+public record IiifImageResponse(int status, Map<String, Object> headers, Object body) {
 
 }

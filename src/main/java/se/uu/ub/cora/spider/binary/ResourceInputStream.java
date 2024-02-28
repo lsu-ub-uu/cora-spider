@@ -17,26 +17,27 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.data;
+package se.uu.ub.cora.spider.binary;
 
-import static org.testng.Assert.assertEquals;
-
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
-import org.testng.annotations.Test;
+public final class ResourceInputStream {
 
-public class ResourceInputStreamTest {
-	@Test
-	public void testContent() {
-		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
-		ResourceInputStream spiderBinaryStream = ResourceInputStream.withNameSizeInputStream(
-				"testName", 1234567890, "application/octet-stream", stream);
+	public final String name;
+	public final long size;
+	public final InputStream stream;
+	public final String mimeType;
 
-		assertEquals(spiderBinaryStream.name, "testName");
-		assertEquals(spiderBinaryStream.size, 1234567890);
-		assertEquals(spiderBinaryStream.stream, stream);
-		assertEquals(spiderBinaryStream.mimeType, "application/octet-stream");
+	private ResourceInputStream(String name, long size, String mimeType, InputStream stream) {
+		this.name = name;
+		this.size = size;
+		this.mimeType = mimeType;
+		this.stream = stream;
 	}
+
+	public static ResourceInputStream withNameSizeInputStream(String name, long size, String mimeType,
+			InputStream stream) {
+		return new ResourceInputStream(name, size, mimeType, stream);
+	}
+
 }
