@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,23 +16,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.spider.record;
 
-/**
- * DataException is used to indicate if the data sent to Spider does not validate against existing
- * metadata definitions, or references other data that does not exist.
- */
-public class DataException extends RuntimeException {
+public class RecordNotFoundException extends RuntimeException {
 
-	private static final long serialVersionUID = -5355036186089708149L;
+	private static final long serialVersionUID = 2241064467145940402L;
 
-	public DataException(String message) {
+	public static RecordNotFoundException withMessage(String message) {
+		return new RecordNotFoundException(message);
+	}
+
+	public static RecordNotFoundException withMessageAndException(String message,
+			Exception exception) {
+		return new RecordNotFoundException(message, exception);
+	}
+
+	private RecordNotFoundException(String message) {
 		super(message);
 	}
 
-	public DataException(String message, Exception exception) {
+	private RecordNotFoundException(String message, Exception exception) {
 		super(message, exception);
 	}
-
 }

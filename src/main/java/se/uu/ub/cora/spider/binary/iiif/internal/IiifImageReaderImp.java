@@ -26,6 +26,7 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.data.ResourceInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class IiifImageReaderImp implements IiifReader {
@@ -44,15 +45,31 @@ public class IiifImageReaderImp implements IiifReader {
 	@Override
 	public ResourceInputStream readImage(String identifier, String region, String size,
 			String rotation, String quality, String format) {
-
-		DataRecordGroup binaryRecordGroup = readBinaryRecord(identifier);
-
-		if (binaryPublished(binaryRecordGroup)) {
-			IiifImageAdapter iiifImageAdapter = BinaryProvider.getIiifImageAdapter();
-			return null;
+		try {
+			return tryToReadIiif(identifier);
+		} catch (se.uu.ub.cora.storage.RecordNotFoundException e) {
+			throw RecordNotFoundException.withMessage(
+					"Record not found for recordType: binary and recordId: " + identifier);
 		}
-		throw exceptionNotAuthorized(identifier);
+	}
 
+	private ResourceInputStream tryToReadIiif(String identifier) {
+		DataRecordGroup binaryRecordGroup = readBinaryRecord(identifier);
+		throwErrorIfNotAuthorizedToCallIiifForRecord(binaryRecordGroup);
+		IiifImageAdapter iiifImageAdapter = BinaryProvider.getIiifImageAdapter();
+		return null;
+	}
+
+	private void throwErrorIfNotAuthorizedToCallIiifForRecord(DataRecordGroup binaryRecordGroup) {
+		if (isNotPublic(binaryRecordGroup)) {
+			throw exceptionNotAuthorized(binaryRecordGroup.getId());
+		}
+	}
+
+	private boolean isNotPublic(DataRecordGroup binaryRecordGroup) {
+		DataGroup adminInfo = binaryRecordGroup.getFirstGroupWithNameInData("adminInfo");
+		String visibility = adminInfo.getFirstAtomicValueWithNameInData("visibility");
+		return !"published".equals(visibility);
 	}
 
 	private AuthorizationException exceptionNotAuthorized(String identifier) {
@@ -63,12 +80,6 @@ public class IiifImageReaderImp implements IiifReader {
 	private DataRecordGroup readBinaryRecord(String identifier) {
 		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
 		return recordStorage.read("binary", identifier);
-	}
-
-	private boolean binaryPublished(DataRecordGroup binaryRecordGroup) {
-		DataGroup adminInfo = binaryRecordGroup.getFirstGroupWithNameInData("adminInfo");
-		String visibility = adminInfo.getFirstAtomicValueWithNameInData("visibility");
-		return "published".equals(visibility);
 	}
 
 }

@@ -32,6 +32,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.iiif.internal.IiifImageReaderImp;
+import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
@@ -101,7 +102,9 @@ public class IiifImageReaderTest {
 				() -> SOME_MIME_TYPE, "mimeType");
 
 		readBinaryDGS = new DataRecordGroupSpy();
+		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getId", () -> SOME_IDENTIFIER);
 		adminInfo = new DataGroupSpy();
+
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
 				() -> adminInfo, "adminInfo");
 
@@ -123,18 +126,6 @@ public class IiifImageReaderTest {
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> readBinaryDGS);
 	}
 
-	@Test
-	public void testReadImage() throws Exception {
-		setVisibilityInAdminInfoInBinaryRecord("published");
-
-		reader.readImage(SOME_IDENTIFIER, null, null, null, null, null);
-
-		dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
-		recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);
-
-		iiifImageAdapterInstanceProvider.MCR.assertParameters("getIiifImageAdapter", 0);
-	}
-
 	private void setVisibilityInAdminInfoInBinaryRecord(String visibility) {
 		adminInfo.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> visibility, VISIBILITY);
@@ -146,20 +137,9 @@ public class IiifImageReaderTest {
 		try {
 			reader.readImage(SOME_IDENTIFIER, null, null, null, null, null);
 			fail("it should throw exception");
-		} catch (Exception e) {
-			assertTrue(e instanceof AuthorizationException);
-			assertEquals(e.getMessage(),
-					"Not authorized to read binary record with id: " + SOME_IDENTIFIER);
-		}
-	}
+		} catch (Exception error) {
+			assertAuthorizationExceptionWithCorrectMessage(error);
 
-	@Test
-	public void testReadImageNotPublished() throws Exception {
-		setVisibilityInAdminInfoInBinaryRecord("hidden");
-		try {
-			reader.readImage(SOME_IDENTIFIER, null, null, null, null, null);
-			fail("it should throw exception");
-		} catch (Exception e) {
 			dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
 			recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);
 
@@ -167,10 +147,42 @@ public class IiifImageReaderTest {
 		}
 	}
 
-	/**
-	 * TODO: add test for not found record, create new spider exception for not found record.
-	 * <p>
-	 * add test for not authorized if record is not public, throw AuthorizationException
-	 */
+	private void assertAuthorizationExceptionWithCorrectMessage(Exception error) {
+		assertTrue(error instanceof AuthorizationException);
+		assertEquals(error.getMessage(),
+				"Not authorized to read binary record with id: " + SOME_IDENTIFIER);
+	}
+
+	@Test
+	public void testReadImageNotFoundThrowRecordNotFoundException() throws Exception {
+		recordStorage.MRV.setAlwaysThrowException("read",
+				se.uu.ub.cora.storage.RecordNotFoundException
+						.withMessage("message from exception"));
+		try {
+			reader.readImage(SOME_IDENTIFIER, null, null, null, null, null);
+			fail("it should throw exception");
+		} catch (Exception error) {
+			assertTrue(error instanceof RecordNotFoundException);
+			assertEquals(error.getMessage(),
+					"Record not found for recordType: binary and recordId: " + SOME_IDENTIFIER);
+
+			dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
+			recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);
+
+			iiifImageAdapterInstanceProvider.MCR.assertMethodNotCalled("getIiifImageAdapter");
+		}
+	}
+
+	@Test
+	public void testReadImage() throws Exception {
+		setVisibilityInAdminInfoInBinaryRecord("published");
+
+		reader.readImage(SOME_IDENTIFIER, null, null, null, null, null);
+
+		dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
+		recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);
+
+		iiifImageAdapterInstanceProvider.MCR.assertParameters("getIiifImageAdapter", 0);
+	}
 
 }
