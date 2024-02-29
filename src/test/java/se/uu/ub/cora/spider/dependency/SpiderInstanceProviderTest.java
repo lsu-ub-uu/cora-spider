@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
-import se.uu.ub.cora.spider.binary.iiif.IiifImageReader;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -157,7 +157,7 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void makeSureFactoryIsCalledForIiifReader() {
-		IiifImageReader iiifReader = SpiderInstanceProvider.getIiifReader();
+		IiifReader iiifReader = SpiderInstanceProvider.getIiifReader();
 
 		factory.MCR.assertReturn("factorIiifReader", 0, iiifReader);
 	}

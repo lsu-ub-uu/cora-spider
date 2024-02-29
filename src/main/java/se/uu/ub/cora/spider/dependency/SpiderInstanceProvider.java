@@ -23,7 +23,7 @@ import java.util.Map;
 
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
-import se.uu.ub.cora.spider.binary.iiif.IiifImageReader;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -103,7 +103,7 @@ public final class SpiderInstanceProvider {
 		return factory.getDependencyProviderClassName();
 	}
 
-	public static IiifImageReader getIiifReader() {
+	public static IiifReader getIiifReader() {
 		return factory.factorIiifReader();
 	}
 

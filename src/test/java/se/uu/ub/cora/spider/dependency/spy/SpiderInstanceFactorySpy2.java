@@ -25,7 +25,7 @@ import java.util.List;
 
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
-import se.uu.ub.cora.spider.binary.iiif.IiifImageReader;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
@@ -128,7 +128,7 @@ public class SpiderInstanceFactorySpy2 implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public IiifImageReader factorIiifReader() {
+	public IiifReader factorIiifReader() {
 		// TODO Auto-generated method stub
 		return null;
 	}

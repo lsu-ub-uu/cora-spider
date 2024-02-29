@@ -22,7 +22,7 @@ package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
-import se.uu.ub.cora.spider.binary.iiif.IiifImageReader;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -60,10 +60,10 @@ public interface SpiderInstanceFactory {
 	RecordListIndexer factorRecordListIndexer();
 
 	/**
-	 * factorIiifReader should return a {@link IiifImageReader} implementation to use to access the iiif
+	 * factorIiifReader should return a {@link IiifReader} implementation to use to access the iiif
 	 * protocol
 	 * 
-	 * @return an {@link IiifImageReader}
+	 * @return an {@link IiifReader}
 	 */
-	IiifImageReader factorIiifReader();
+	IiifReader factorIiifReader();
 }

@@ -26,13 +26,13 @@ import se.uu.ub.cora.binary.iiif.IiifImageAdapter;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.binary.iiif.IiifImageReader;
-import se.uu.ub.cora.spider.binary.iiif.IiifImageResponse;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
+import se.uu.ub.cora.spider.binary.iiif.IiifResponse;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
-public class IiifImageReaderImp implements IiifImageReader {
+public class IiifImageReaderImp implements IiifReader {
 
 	private SpiderDependencyProvider dependencyProvider;
 
@@ -46,7 +46,7 @@ public class IiifImageReaderImp implements IiifImageReader {
 	}
 
 	@Override
-	public IiifImageResponse readIiif(String identifier, String requestedUri, String method,
+	public IiifResponse readIiif(String identifier, String requestedUri, String method,
 			Map<String, List<Object>> headers) {
 		try {
 			return tryToReadIiif(identifier);
@@ -56,7 +56,7 @@ public class IiifImageReaderImp implements IiifImageReader {
 		}
 	}
 
-	private IiifImageResponse tryToReadIiif(String identifier) {
+	private IiifResponse tryToReadIiif(String identifier) {
 		DataRecordGroup binaryRecordGroup = readBinaryRecord(identifier);
 		throwErrorIfNotAuthorizedToCallIiifForRecord(binaryRecordGroup);
 		IiifImageAdapter iiifImageAdapter = BinaryProvider.getIiifImageAdapter();

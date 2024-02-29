@@ -18,13 +18,12 @@
  */
 package se.uu.ub.cora.spider.binary.iiif;
 
-import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 
-public interface IiifImageReader {
+public interface IiifReader {
 
 	/**
 	 * readIiif proxies the call to an image server using IIIF protocol. All parameters are
@@ -37,9 +36,9 @@ public interface IiifImageReader {
 	 *            An uri with the requested iiif parameters
 	 * @param method
 	 *            The method requested.
-	 * @param headers
+	 * @param headersMap
 	 *            Map with all requested headers
-	 * @return An {@link IiifImageResponse} containing the response of the iiif server.
+	 * @return An {@link IiifResponse} containing the response of the iiif server.
 	 * 
 	 * @throws {@link
 	 *             RecordNotFoundException} if the record does not exists.
@@ -47,7 +46,7 @@ public interface IiifImageReader {
 	 *             AuthorizationException} if the caller is not authorized to see the contents of
 	 *             the record.
 	 */
-	IiifImageResponse readIiif(String identifier, String requestedUri, String method,
-			Map<String, List<Object>> headers);
+	IiifResponse readIiif(String identifier, String requestedUri, String method,
+			Map<String, String> headersMap);
 
 }

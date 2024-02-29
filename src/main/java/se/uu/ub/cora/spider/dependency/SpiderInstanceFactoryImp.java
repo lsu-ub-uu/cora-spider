@@ -22,7 +22,7 @@ package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
-import se.uu.ub.cora.spider.binary.iiif.IiifImageReader;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.binary.internal.DownloaderImp;
 import se.uu.ub.cora.spider.binary.internal.MimeTypeToBinaryType;
 import se.uu.ub.cora.spider.binary.internal.MimeTypeToBinaryTypeImp;
@@ -163,7 +163,7 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public IiifImageReader factorIiifReader() {
+	public IiifReader factorIiifReader() {
 		// TODO Auto-generated method stub
 		return null;
 	}

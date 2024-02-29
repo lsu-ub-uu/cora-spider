@@ -55,7 +55,7 @@ public class IiifImageReaderTest {
 	private LoggerFactorySpy loggerFactorySpy;
 	private IiifImageInstanceProviderSpy iiifImageAdapterInstanceProvider;
 
-	private IiifImageReader reader;
+	private IiifReader reader;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
