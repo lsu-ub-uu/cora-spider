@@ -21,6 +21,6 @@ package se.uu.ub.cora.spider.binary.iiif;
 
 import java.util.Map;
 
-public record IiifResponse(int status, Map<String, Object> headers, Object body) {
+public record IiifResponse(int status, Map<String, String> headers, Object body) {
 
 }

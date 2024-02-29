@@ -18,7 +18,6 @@
  */
 package se.uu.ub.cora.spider.testspies;
 
-import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.spider.binary.iiif.IiifReader;
@@ -37,7 +36,7 @@ public class IiifReaderSpy implements IiifReader {
 
 	@Override
 	public IiifResponse readIiif(String identifier, String requestedUri, String method,
-			Map<String, List<Object>> headers) {
+			Map<String, String> headersMap) {
 		// TODO Auto-generated method stub
 		return null;
 	}

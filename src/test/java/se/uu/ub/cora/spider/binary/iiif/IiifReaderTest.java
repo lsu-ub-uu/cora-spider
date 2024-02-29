@@ -19,27 +19,37 @@
 package se.uu.ub.cora.spider.binary.iiif;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binary.BinaryProvider;
+import se.uu.ub.cora.binary.iiif.IiifAdapterResponse;
+import se.uu.ub.cora.binary.iiif.IiifParameters;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.binary.iiif.internal.IiifImageReaderImp;
+import se.uu.ub.cora.spider.binary.iiif.internal.IiifReaderImp;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
-public class IiifImageReaderTest {
+public class IiifReaderTest {
 
+	private static final String SOME_METHOD = "someMethod";
+	private static final String SOME_REQUESTED_URI = "someRequestedUri";
 	private static final String VISIBILITY = "visibility";
 	private static final String SOME_IDENTIFIER = "someIdentifier";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
@@ -53,7 +63,7 @@ public class IiifImageReaderTest {
 	private static final String ORIGINAL_FILE_NAME = "someOriginalFilename";
 
 	private LoggerFactorySpy loggerFactorySpy;
-	private IiifImageInstanceProviderSpy iiifImageAdapterInstanceProvider;
+	private IiifInstanceProviderSpy iiifInstanceProvider;
 
 	private IiifReader reader;
 	private SpiderDependencyProviderSpy dependencyProvider;
@@ -63,21 +73,23 @@ public class IiifImageReaderTest {
 	private DataRecordGroupSpy readBinaryDGS;
 	private DataGroupSpy resourceTypeDGS;
 	private DataGroupSpy adminInfo;
+	private IiifAdapterSpy iiifAdapterSpy;
 
 	@BeforeMethod
 	private void beforeMethod() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 
-		iiifImageAdapterInstanceProvider = new IiifImageInstanceProviderSpy();
-		BinaryProvider
-				.onlyForTestSetIiifImageAdapterInstanceProvider(iiifImageAdapterInstanceProvider);
-
+		iiifInstanceProvider = new IiifInstanceProviderSpy();
+		BinaryProvider.onlyForTestSetIiifImageAdapterInstanceProvider(iiifInstanceProvider);
+		iiifAdapterSpy = new IiifAdapterSpy();
+		iiifInstanceProvider.MRV.setDefaultReturnValuesSupplier("getIiifAdapter",
+				() -> iiifAdapterSpy);
 		dependencyProvider = new SpiderDependencyProviderSpy();
 		setUpDependencyProvider();
 		setupBinaryRecord();
 
-		reader = IiifImageReaderImp.usingDependencyProvider(dependencyProvider);
+		reader = IiifReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	private void setUpDependencyProvider() {
@@ -143,7 +155,7 @@ public class IiifImageReaderTest {
 			dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
 			recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);
 
-			iiifImageAdapterInstanceProvider.MCR.assertMethodNotCalled("getIiifImageAdapter");
+			iiifInstanceProvider.MCR.assertMethodNotCalled("getIiifAdapter");
 		}
 	}
 
@@ -169,20 +181,47 @@ public class IiifImageReaderTest {
 			dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
 			recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);
 
-			iiifImageAdapterInstanceProvider.MCR.assertMethodNotCalled("getIiifImageAdapter");
+			iiifInstanceProvider.MCR.assertMethodNotCalled("getIiifAdapter");
 		}
 	}
 
 	@Test
-	public void testReadImage() throws Exception {
+	public void testCallIiifServer() throws Exception {
 		setVisibilityInAdminInfoInBinaryRecord("published");
 
-		reader.readIiif(SOME_IDENTIFIER, null, null, null);
+		Map<String, String> headersMap = new HashMap<>();
+		reader.readIiif(SOME_IDENTIFIER, SOME_REQUESTED_URI, SOME_METHOD, headersMap);
 
 		dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
 		recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);
 
-		iiifImageAdapterInstanceProvider.MCR.assertParameters("getIiifImageAdapter", 0);
+		iiifInstanceProvider.MCR.assertParameters("getIiifAdapter", 0);
+		iiifAdapterSpy.MCR.assertMethodWasCalled("callIiifServer");
+		IiifParameters iiifParameters = (IiifParameters) iiifAdapterSpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("callIiifServer", 0,
+						"iiifParameters");
+		assertEquals(iiifParameters.uri(),
+				SOME_IDENTIFIER + "/" + SOME_DATA_DIVIDER + "/" + SOME_REQUESTED_URI);
+		assertEquals(iiifParameters.method(), SOME_METHOD);
+		assertSame(iiifParameters.headersMap(), headersMap);
+	}
+
+	@Test
+	public void testReturnedResponseFromIiifServerCall() throws Exception {
+		setVisibilityInAdminInfoInBinaryRecord("published");
+		Map<String, String> headersMap = new HashMap<>();
+		InputStream inputStream = new ByteArrayInputStream("someInputStream".getBytes());
+		IiifAdapterResponse iiifAdapterResponse = new IiifAdapterResponse(418, headersMap,
+				inputStream);
+		iiifAdapterSpy.MRV.setDefaultReturnValuesSupplier("callIiifServer",
+				() -> iiifAdapterResponse);
+
+		IiifResponse iiifResponse = reader.readIiif(SOME_IDENTIFIER, SOME_REQUESTED_URI,
+				SOME_METHOD, headersMap);
+
+		assertEquals(iiifResponse.status(), iiifAdapterResponse.status());
+		assertEquals(iiifResponse.headers(), iiifAdapterResponse.headers());
+		assertEquals(iiifResponse.body(), iiifAdapterResponse.body());
 	}
 
 }

@@ -16,32 +16,29 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package se.uu.ub.cora.spider.binary.iiif;
 
-import se.uu.ub.cora.binary.iiif.IiifImageAdapter;
-import se.uu.ub.cora.binary.iiif.IiifImageInstanceProvider;
+import se.uu.ub.cora.binary.iiif.IiifAdapter;
+import se.uu.ub.cora.binary.iiif.IiifAdapterResponse;
+import se.uu.ub.cora.binary.iiif.IiifParameters;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class IiifImageInstanceProviderSpy implements IiifImageInstanceProvider {
+public class IiifAdapterSpy implements IiifAdapter {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public IiifImageInstanceProviderSpy() {
+	public IiifAdapterSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("getOrderToSelectImplementionsBy", () -> 0);
-		MRV.setDefaultReturnValuesSupplier("getIiifImageAdapter", IiifImageAdapterSpy::new);
+		IiifAdapterResponse iiifImageResponse = new IiifAdapterResponse(0, null, null);
+		MRV.setDefaultReturnValuesSupplier("callIiifServer", () -> iiifImageResponse);
 	}
 
 	@Override
-	public int getOrderToSelectImplementionsBy() {
-		return (int) MCR.addCallAndReturnFromMRV();
-	}
-
-	@Override
-	public IiifImageAdapter getIiifImageAdapter() {
-		return (IiifImageAdapter) MCR.addCallAndReturnFromMRV();
+	public IiifAdapterResponse callIiifServer(IiifParameters iiifParameters) {
+		return (IiifAdapterResponse) MCR.addCallAndReturnFromMRV("iiifParameters", iiifParameters);
 	}
 
 }

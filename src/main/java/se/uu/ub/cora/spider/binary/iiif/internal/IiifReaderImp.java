@@ -18,11 +18,12 @@
  */
 package se.uu.ub.cora.spider.binary.iiif.internal;
 
-import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.binary.BinaryProvider;
-import se.uu.ub.cora.binary.iiif.IiifImageAdapter;
+import se.uu.ub.cora.binary.iiif.IiifAdapter;
+import se.uu.ub.cora.binary.iiif.IiifAdapterResponse;
+import se.uu.ub.cora.binary.iiif.IiifParameters;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
@@ -32,35 +33,54 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
-public class IiifImageReaderImp implements IiifReader {
+public class IiifReaderImp implements IiifReader {
 
 	private SpiderDependencyProvider dependencyProvider;
 
-	public static IiifImageReaderImp usingDependencyProvider(
+	public static IiifReaderImp usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
-		return new IiifImageReaderImp(dependencyProvider);
+		return new IiifReaderImp(dependencyProvider);
 	}
 
-	private IiifImageReaderImp(SpiderDependencyProvider dependencyProvider) {
+	private IiifReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 	}
 
 	@Override
 	public IiifResponse readIiif(String identifier, String requestedUri, String method,
-			Map<String, List<Object>> headers) {
+			Map<String, String> headersMap) {
 		try {
-			return tryToReadIiif(identifier);
+			return tryToReadIiif(identifier, requestedUri, method, headersMap);
 		} catch (se.uu.ub.cora.storage.RecordNotFoundException e) {
 			throw RecordNotFoundException.withMessage(
 					"Record not found for recordType: binary and recordId: " + identifier);
 		}
 	}
 
-	private IiifResponse tryToReadIiif(String identifier) {
+	private IiifResponse tryToReadIiif(String identifier, String requestedUri, String method,
+			Map<String, String> headersMap) {
 		DataRecordGroup binaryRecordGroup = readBinaryRecord(identifier);
 		throwErrorIfNotAuthorizedToCallIiifForRecord(binaryRecordGroup);
-		IiifImageAdapter iiifImageAdapter = BinaryProvider.getIiifImageAdapter();
-		return null;
+
+		IiifParameters iiifParameters = createIiifParameters(identifier, requestedUri, method,
+				headersMap, binaryRecordGroup);
+
+		return callIiifServer(iiifParameters);
+	}
+
+	private IiifParameters createIiifParameters(String identifier, String requestedUri,
+			String method, Map<String, String> headersMap, DataRecordGroup binaryRecordGroup) {
+		String dataDivider = binaryRecordGroup.getDataDivider();
+		String uri = String.join("/", identifier, dataDivider, requestedUri);
+		return new IiifParameters(uri, method, headersMap);
+	}
+
+	private IiifResponse callIiifServer(IiifParameters iiifParameters) {
+		IiifAdapter iiifAdapter = BinaryProvider.getIiifAdapter();
+		IiifAdapterResponse adapterResponse = iiifAdapter.callIiifServer(iiifParameters);
+
+		return new IiifResponse(adapterResponse.status(), adapterResponse.headers(),
+				adapterResponse.body());
 	}
 
 	private void throwErrorIfNotAuthorizedToCallIiifForRecord(DataRecordGroup binaryRecordGroup) {
