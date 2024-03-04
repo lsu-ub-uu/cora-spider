@@ -26,14 +26,19 @@ import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
+import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
+import se.uu.ub.cora.spider.binary.iiif.internal.IiifReaderImp;
 import se.uu.ub.cora.spider.binary.internal.MimeTypeToBinaryType;
 import se.uu.ub.cora.spider.binary.internal.MimeTypeToBinaryTypeImp;
 import se.uu.ub.cora.spider.binary.internal.UploaderImp;
@@ -69,20 +74,17 @@ public class SpiderInstanceFactoryTest {
 
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-		dependencyProvider = new SpiderDependencyProviderOldSpy();
 
-		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
-				() -> "someRabbitHostname", "rabbitMqHostname");
-		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
-				() -> "1234", "rabbitMqPort");
-		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
-				() -> "someVHost", "rabbitMqVirtualHost");
-		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
-				() -> "someImageExchange", "rabbitMqImageExchange");
-		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
-				() -> "somePdfExchange", "rabbitMqPdfExchange");
-		dependencyProvider.MRV.setSpecificReturnValuesSupplier("getInitInfoValueUsingKey",
-				() -> "someRoutingKey", "rabbitMqRoutingKey");
+		Map<String, String> settingsMap = new HashMap<>();
+		SettingsProvider.setSettings(settingsMap);
+		settingsMap.put("rabbitMqHostname", "someRabbitHostname");
+		settingsMap.put("rabbitMqPort", "1234");
+		settingsMap.put("rabbitMqVirtualHost", "someVHost");
+		settingsMap.put("rabbitMqImageExchange", "someImageExchange");
+		settingsMap.put("rabbitMqPdfExchange", "somePdfExchange");
+		settingsMap.put("rabbitMqRoutingKey", "someRoutingKey");
+
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
 
 		factory = SpiderInstanceFactoryImp.usingDependencyProvider(dependencyProvider);
 	}
@@ -164,29 +166,12 @@ public class SpiderInstanceFactoryTest {
 				.onlyForTestGetMimeTypeToBinaryTypeConvert();
 		assertTrue(mimeTypeToBinaryType instanceof MimeTypeToBinaryTypeImp);
 
-		dependencyProvider.MCR.assertParameters("getInitInfoValueUsingKey", 0, "rabbitMqHostname");
-		dependencyProvider.MCR.assertParameters("getInitInfoValueUsingKey", 1, "rabbitMqPort");
-		dependencyProvider.MCR.assertParameters("getInitInfoValueUsingKey", 2,
-				"rabbitMqVirtualHost");
-		dependencyProvider.MCR.assertParameters("getInitInfoValueUsingKey", 3,
-				"rabbitMqImageExchange");
-		dependencyProvider.MCR.assertParameters("getInitInfoValueUsingKey", 4,
-				"rabbitMqPdfExchange");
-		dependencyProvider.MCR.assertParameters("getInitInfoValueUsingKey", 5,
-				"rabbitMqRoutingKey");
-
-		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 0,
-				resouceConvert.onlyForTestGetHostName());
-		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 1,
-				String.valueOf(resouceConvert.onlyForTestGetPort()));
-		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 2,
-				resouceConvert.onlyForTestGetVirtualHost());
-		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 3,
-				resouceConvert.onlyForTestGetImageExchange());
-		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 4,
-				resouceConvert.onlyForTestGetPdfExchange());
-		dependencyProvider.MCR.assertReturn("getInitInfoValueUsingKey", 5,
-				resouceConvert.onlyForTestGetRoutingKey());
+		assertEquals(resouceConvert.onlyForTestGetHostName(), "someRabbitHostname");
+		assertEquals(resouceConvert.onlyForTestGetPort(), 1234);
+		assertEquals(resouceConvert.onlyForTestGetVirtualHost(), "someVHost");
+		assertEquals(resouceConvert.onlyForTestGetImageExchange(), "someImageExchange");
+		assertEquals(resouceConvert.onlyForTestGetPdfExchange(), "somePdfExchange");
+		assertEquals(resouceConvert.onlyForTestGetRoutingKey(), "someRoutingKey");
 	}
 
 	@Test
@@ -255,6 +240,14 @@ public class SpiderInstanceFactoryTest {
 		assertSame(listIndexer2.getDependencyProvider(), dependencyProvider);
 
 		assertNotSame(listIndexer, listIndexer2);
+	}
+
+	@Test
+	public void testFactorIiifReader() {
+		IiifReaderImp factored = (IiifReaderImp) factory.factorIiifReader();
+
+		assertTrue(factored instanceof IiifReaderImp);
+		assertSame(factored.onlyForTestGetDependencyProvider(), dependencyProvider);
 	}
 
 }

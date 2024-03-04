@@ -19,8 +19,6 @@
 
 package se.uu.ub.cora.spider.dependency;
 
-import java.util.Map;
-
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
 import se.uu.ub.cora.spider.binary.iiif.IiifReader;
@@ -36,7 +34,6 @@ import se.uu.ub.cora.spider.record.RecordValidator;
 
 public final class SpiderInstanceProvider {
 	private static SpiderInstanceFactory factory;
-	private static Map<String, String> initInfo;
 
 	private SpiderInstanceProvider() {
 		// not called
@@ -89,14 +86,6 @@ public final class SpiderInstanceProvider {
 
 	public static RecordListIndexer getRecordListIndexer() {
 		return factory.factorRecordListIndexer();
-	}
-
-	public static void setInitInfo(Map<String, String> initInfo) {
-		SpiderInstanceProvider.initInfo = initInfo;
-	}
-
-	public static Map<String, String> getInitInfo() {
-		return initInfo;
 	}
 
 	public static String getDependencyProviderClassName() {

@@ -30,7 +30,7 @@ public interface IiifReader {
 	 * specified in the IIIF standard. @see <a href="https://iiif.io/api/image/">IIIF Image Api</a>
 	 * Further desciption of the parameters can be found in the linked webpage.
 	 * 
-	 * @param identifier
+	 * @param recordId
 	 *            The id of the record to read the image from.
 	 * @param requestedUri
 	 *            An uri with the requested iiif parameters
@@ -46,7 +46,7 @@ public interface IiifReader {
 	 *             AuthorizationException} if the caller is not authorized to see the contents of
 	 *             the record.
 	 */
-	IiifResponse readIiif(String identifier, String requestedUri, String method,
+	IiifResponse readIiif(String recordId, String requestedUri, String method,
 			Map<String, String> headersMap);
 
 }

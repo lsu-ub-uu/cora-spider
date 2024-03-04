@@ -20,6 +20,7 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
 import se.uu.ub.cora.spider.binary.iiif.IiifReader;
@@ -109,13 +110,12 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	@Override
 	public Uploader factorUploader() {
-
-		String hostName = dependencyProvider.getInitInfoValueUsingKey("rabbitMqHostname");
-		int port = Integer.parseInt(dependencyProvider.getInitInfoValueUsingKey("rabbitMqPort"));
-		String vHost = dependencyProvider.getInitInfoValueUsingKey("rabbitMqVirtualHost");
-		String imageExchange = dependencyProvider.getInitInfoValueUsingKey("rabbitMqImageExchange");
-		String pdfExchange = dependencyProvider.getInitInfoValueUsingKey("rabbitMqPdfExchange");
-		String routingKey = dependencyProvider.getInitInfoValueUsingKey("rabbitMqRoutingKey");
+		String hostName = SettingsProvider.getSetting("rabbitMqHostname");
+		int port = Integer.parseInt(SettingsProvider.getSetting("rabbitMqPort"));
+		String vHost = SettingsProvider.getSetting("rabbitMqVirtualHost");
+		String imageExchange = SettingsProvider.getSetting("rabbitMqImageExchange");
+		String pdfExchange = SettingsProvider.getSetting("rabbitMqPdfExchange");
+		String routingKey = SettingsProvider.getSetting("rabbitMqRoutingKey");
 
 		ResourceConvert recsourceConvert = ResourceConvertImp
 				.usingHostnamePortVHostExchangeRoutingKey(hostName, port, vHost, imageExchange,
@@ -165,8 +165,6 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	@Override
 	public IiifReader factorIiifReader() {
-		// TODO Auto-generated method stub
-		// SPIKE
 		return IiifReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 

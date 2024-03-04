@@ -17,6 +17,7 @@ module se.uu.ub.cora.spider {
 	requires se.uu.ub.cora.password;
 	requires se.uu.ub.cora.binary;
 	requires se.uu.ub.cora.messaging;
+	requires se.uu.ub.cora.initialize;
 
 	uses ExtendedFunctionalityFactory;
 

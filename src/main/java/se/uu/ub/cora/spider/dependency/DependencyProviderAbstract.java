@@ -19,9 +19,6 @@
 
 package se.uu.ub.cora.spider.dependency;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
@@ -37,8 +34,6 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
 import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.logger.Logger;
-import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -62,20 +57,15 @@ import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGeneratorProvider;
 
 public abstract class DependencyProviderAbstract implements SpiderDependencyProvider {
-	protected Map<String, String> initInfo;
 	protected RecordArchiveProvider recordArchiveProvider;
 	protected StreamStorageProvider streamStorageProvider;
 	protected RecordIdGeneratorProvider recordIdGeneratorProvider;
-	private Logger log = LoggerProvider.getLoggerForClass(DependencyProviderAbstract.class);
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 
-	protected DependencyProviderAbstract(Map<String, String> initInfo) {
-		this.initInfo = initInfo;
+	protected DependencyProviderAbstract() {
 		readInitInfo();
 		try {
 			tryToInitialize();
-		} catch (InvocationTargetException e) {
-			throw new RuntimeException(createInvocationErrorExceptionMessage(e), e);
 		} catch (Exception e) {
 			throw new RuntimeException(createExceptionMessage(e), e);
 		}
@@ -85,11 +75,6 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	public void initializeExtendedFunctionality() {
 		ExtendedFunctionalityInitializer initializer = new ExtendedFunctionalityInitializer(this);
 		extendedFunctionalityProvider = initializer.getExtendedFunctionalityProvider();
-	}
-
-	private String createInvocationErrorExceptionMessage(InvocationTargetException e) {
-		return "Error starting " + getImplementingClassName() + ": "
-				+ e.getTargetException().getMessage();
 	}
 
 	private String createExceptionMessage(Exception e) {
@@ -169,23 +154,6 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 		return new BasePermissionRuleCalculator();
 	}
 
-	protected void ensureKeyExistsInInitInfo(String key) {
-		if (keyNotFoundInInitInfo(key)) {
-			String message = createErrorMessage(key);
-			log.logFatalUsingMessage(message);
-			throw new SpiderInitializationException(message);
-		}
-	}
-
-	private String createErrorMessage(String key) {
-		String simpleName = this.getClass().getSimpleName();
-		return "InitInfo in " + simpleName + " must contain: " + key;
-	}
-
-	private boolean keyNotFoundInInitInfo(String key) {
-		return !initInfo.containsKey(key);
-	}
-
 	@Override
 	public DataRedactor getDataRedactor() {
 		return createDataRedactorFactory().factor();
@@ -223,12 +191,6 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 			DataRecordGroup dataRecordGroup) {
 		RecordTypeHandlerFactory recordTypeHandlerFactory = createRecordTypeHandlerFactory();
 		return recordTypeHandlerFactory.factorUsingDataRecordGroup(dataRecordGroup);
-	}
-
-	@Override
-	public String getInitInfoValueUsingKey(String key) {
-		ensureKeyExistsInInitInfo(key);
-		return initInfo.get(key);
 	}
 
 	@Override

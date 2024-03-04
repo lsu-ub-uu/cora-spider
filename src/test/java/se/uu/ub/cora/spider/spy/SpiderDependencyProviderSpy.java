@@ -80,7 +80,6 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 				RecordTypeHandlerSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataGroupToRecordEnhancer",
 				DataGroupToRecordEnhancerSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getInitInfoValueUsingKey", String::new);
 		MRV.setDefaultReturnValuesSupplier("getDataGroupToFilterConverter",
 				DataGroupToFilterSpy::new);
 	}
@@ -175,11 +174,6 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	@Override
 	public DataGroupToRecordEnhancer getDataGroupToRecordEnhancer() {
 		return (DataGroupToRecordEnhancer) MCR.addCallAndReturnFromMRV();
-	}
-
-	@Override
-	public String getInitInfoValueUsingKey(String key) {
-		return (String) MCR.addCallAndReturnFromMRV("key", key);
 	}
 
 	@Override

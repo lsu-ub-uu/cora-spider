@@ -25,8 +25,6 @@ import static org.testng.Assert.assertEquals;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -161,12 +159,4 @@ public class SpiderInstanceProviderTest {
 
 		factory.MCR.assertReturn("factorIiifReader", 0, iiifReader);
 	}
-
-	@Test
-	public void testSetInitInfo() throws Exception {
-		Map<String, String> initInfo = new HashMap<>();
-		SpiderInstanceProvider.setInitInfo(initInfo);
-		assertEquals(SpiderInstanceProvider.getInitInfo(), initInfo);
-	}
-
 }

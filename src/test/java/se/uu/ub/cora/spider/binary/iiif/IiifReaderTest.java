@@ -144,6 +144,12 @@ public class IiifReaderTest {
 	}
 
 	@Test
+	public void testOnlyForTestGetDependencyProvider() throws Exception {
+		IiifReaderImp readerImp = (IiifReaderImp) reader;
+		assertSame(readerImp.onlyForTestGetDependencyProvider(), dependencyProvider);
+	}
+
+	@Test
 	public void testReadImageNotPublishedThrowAuthorizationException() throws Exception {
 		setVisibilityInAdminInfoInBinaryRecord("hidden");
 		try {
@@ -201,7 +207,7 @@ public class IiifReaderTest {
 				.getValueForMethodNameAndCallNumberAndParameterName("callIiifServer", 0,
 						"iiifParameters");
 		assertEquals(iiifParameters.uri(),
-				SOME_IDENTIFIER + "/" + SOME_DATA_DIVIDER + "/" + SOME_REQUESTED_URI);
+				SOME_DATA_DIVIDER + "/binary:" + SOME_IDENTIFIER + "/" + SOME_REQUESTED_URI);
 		assertEquals(iiifParameters.method(), SOME_METHOD);
 		assertSame(iiifParameters.headersMap(), headersMap);
 	}

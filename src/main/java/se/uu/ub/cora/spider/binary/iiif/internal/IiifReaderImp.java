@@ -47,38 +47,36 @@ public class IiifReaderImp implements IiifReader {
 	}
 
 	@Override
-	public IiifResponse readIiif(String identifier, String requestedUri, String method,
+	public IiifResponse readIiif(String recordId, String requestedUri, String method,
 			Map<String, String> headersMap) {
 		try {
-			return tryToReadIiif(identifier, requestedUri, method, headersMap);
+			return tryToReadIiif(recordId, requestedUri, method, headersMap);
 		} catch (se.uu.ub.cora.storage.RecordNotFoundException e) {
 			throw RecordNotFoundException.withMessage(
-					"Record not found for recordType: binary and recordId: " + identifier);
+					"Record not found for recordType: binary and recordId: " + recordId);
 		}
 	}
 
-	private IiifResponse tryToReadIiif(String identifier, String requestedUri, String method,
+	private IiifResponse tryToReadIiif(String recordId, String requestedUri, String method,
 			Map<String, String> headersMap) {
-		DataRecordGroup binaryRecordGroup = readBinaryRecord(identifier);
+		DataRecordGroup binaryRecordGroup = readBinaryRecord(recordId);
 		throwErrorIfNotAuthorizedToCallIiifForRecord(binaryRecordGroup);
 
-		IiifParameters iiifParameters = createIiifParameters(identifier, requestedUri, method,
-				headersMap, binaryRecordGroup);
-
+		IiifParameters iiifParameters = createIiifParameters(recordId, requestedUri, method,
+				headersMap, binaryRecordGroup.getDataDivider());
 		return callIiifServer(iiifParameters);
 	}
 
-	private IiifParameters createIiifParameters(String identifier, String requestedUri,
-			String method, Map<String, String> headersMap, DataRecordGroup binaryRecordGroup) {
-		String dataDivider = binaryRecordGroup.getDataDivider();
-		String uri = String.join("/", identifier, dataDivider, requestedUri);
+	private IiifParameters createIiifParameters(String recordId, String requestedUri, String method,
+			Map<String, String> headersMap, String dataDivider) {
+		String identifier = "binary:" + recordId;
+		String uri = String.join("/", dataDivider, identifier, requestedUri);
 		return new IiifParameters(uri, method, headersMap);
 	}
 
 	private IiifResponse callIiifServer(IiifParameters iiifParameters) {
 		IiifAdapter iiifAdapter = BinaryProvider.getIiifAdapter();
 		IiifAdapterResponse adapterResponse = iiifAdapter.callIiifServer(iiifParameters);
-
 		return new IiifResponse(adapterResponse.status(), adapterResponse.headers(),
 				adapterResponse.body());
 	}
@@ -95,14 +93,18 @@ public class IiifReaderImp implements IiifReader {
 		return !"published".equals(visibility);
 	}
 
-	private AuthorizationException exceptionNotAuthorized(String identifier) {
-		String notAuthorizedMessage = "Not authorized to read binary record with id: " + identifier;
+	private AuthorizationException exceptionNotAuthorized(String recordId) {
+		String notAuthorizedMessage = "Not authorized to read binary record with id: " + recordId;
 		return new AuthorizationException(notAuthorizedMessage);
 	}
 
-	private DataRecordGroup readBinaryRecord(String identifier) {
+	private DataRecordGroup readBinaryRecord(String recordId) {
 		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		return recordStorage.read("binary", identifier);
+		return recordStorage.read("binary", recordId);
+	}
+
+	public Object onlyForTestGetDependencyProvider() {
+		return dependencyProvider;
 	}
 
 }

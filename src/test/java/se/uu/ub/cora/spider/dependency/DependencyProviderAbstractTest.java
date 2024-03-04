@@ -24,6 +24,7 @@ import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +46,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
+import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -67,24 +69,27 @@ import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.StreamStorageProvider;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGeneratorProvider;
 import se.uu.ub.cora.storage.spies.RecordStorageInstanceProviderSpy;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class DependencyProviderAbstractTest {
-
-	private Map<String, String> initInfo;
 	private SpiderDependencyProviderTestHelper dependencyProvider;
 	private LoggerFactorySpy loggerFactorySpy;
-	private String testedClassName = "DependencyProviderAbstract";
 	private RecordStorageInstanceProviderSpy recordStorageInstanceProvider;
 	private MetadataStorageProviderSpy metadataStorageProvider;
+	private Map<String, String> settings;
 
 	@BeforeMethod
 	public void beforeMethod() {
+		SpiderDependencyProviderTestHelper.MRV = new MethodReturnValues();
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 
-		initInfo = new HashMap<>();
-		initInfo.put("foundKey", "someValue");
-		dependencyProvider = new SpiderDependencyProviderTestHelper(initInfo);
+		settings = new HashMap<>();
+		settings.put("foundKey", "someValue");
+		SettingsProvider.setSettings(settings);
+
+		dependencyProvider = new SpiderDependencyProviderTestHelper();
+
 		setPluggedInStorageNormallySetByTheRestModuleStarterImp();
 	}
 
@@ -99,11 +104,6 @@ public class DependencyProviderAbstractTest {
 		metadataStorageProvider = new MetadataStorageProviderSpy();
 		MetadataStorageProvider
 				.onlyForTestSetMetadataStorageViewInstanceProvider(metadataStorageProvider);
-	}
-
-	@Test
-	public void testInitInfoIsSetOnStartup() {
-		assertEquals(dependencyProvider.getInitInfoFromParent("foundKey"), "someValue");
 	}
 
 	@Test
@@ -136,33 +136,19 @@ public class DependencyProviderAbstractTest {
 	@Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = ""
 			+ "Error starting SpiderDependencyProviderTestHelper: some runtime error message")
 	public void testStartupThrowsRuntimeException() throws Exception {
-		initInfo.put("runtimeException", "some runtime error message");
-		dependencyProvider = new SpiderDependencyProviderTestHelper(initInfo);
+		SpiderDependencyProviderTestHelper.MRV.setAlwaysThrowException("tryToInitialize",
+				new RuntimeException("some runtime error message"));
+
+		dependencyProvider = new SpiderDependencyProviderTestHelper();
 	}
 
 	@Test
 	public void testStartupThrowsRuntimeExceptionInitialExceptionIsSentAlong() throws Exception {
-		initInfo.put("runtimeException", "some runtime error message");
+		SpiderDependencyProviderTestHelper.MRV.setAlwaysThrowException("tryToInitialize",
+				new RuntimeException("some runtime error message"));
 		try {
-			dependencyProvider = new SpiderDependencyProviderTestHelper(initInfo);
-		} catch (Exception e) {
-			assertTrue(e.getCause() instanceof Exception);
-		}
-	}
-
-	@Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = ""
-			+ "Error starting SpiderDependencyProviderTestHelper: some invocation target error message")
-	public void testStartupThrowsInvocationTargetException() throws Exception {
-		initInfo.put("invocationTargetException", "some invocation target error message");
-		dependencyProvider = new SpiderDependencyProviderTestHelper(initInfo);
-	}
-
-	@Test
-	public void testStartupThrowsInvocationTargetExceptionInitialExceptionIsSentAlong()
-			throws Exception {
-		initInfo.put("invocationTargetException", "some invocation target error message");
-		try {
-			dependencyProvider = new SpiderDependencyProviderTestHelper(initInfo);
+			dependencyProvider = new SpiderDependencyProviderTestHelper();
+			fail("It should fail");
 		} catch (Exception e) {
 			assertTrue(e.getCause() instanceof Exception);
 		}
@@ -208,38 +194,6 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testEnsureKeyExistsInInitInfoDoesNotLogInfoForFoundKey() {
-		String key = "foundKey";
-		dependencyProvider.ensureKeyExistsInInitInfo(key);
-		assertEquals(loggerFactorySpy.getNoOfFatalLogMessagesUsingClassName(testedClassName), 0);
-	}
-
-	@Test
-	public void testEnsureKeyExistsInInitInfoLoggsError() {
-		String key = "nonExistingKey";
-		boolean exceptionCaught = false;
-		try {
-			dependencyProvider.ensureKeyExistsInInitInfo(key);
-		} catch (Exception e) {
-			exceptionCaught = true;
-		}
-		assertTrue(exceptionCaught);
-		assertEquals(loggerFactorySpy.getNoOfFatalLogMessagesUsingClassName(testedClassName), 1);
-		assertEquals(loggerFactorySpy.getFatalLogMessageUsingClassNameAndNo(testedClassName, 0),
-				"InitInfo in SpiderDependencyProviderTestHelper must contain: " + key);
-	}
-
-	@Test(expectedExceptions = SpiderInitializationException.class, expectedExceptionsMessageRegExp = ""
-			+ "InitInfo in SpiderDependencyProviderTestHelper must contain: nonExistingKey")
-	public void testEnsureKeyExistsInInitInfoThrowsError() {
-		String key = "nonExistingKey";
-		dependencyProvider.ensureKeyExistsInInitInfo(key);
-		assertEquals(loggerFactorySpy.getNoOfFatalLogMessagesUsingClassName(testedClassName), 1);
-		assertEquals(loggerFactorySpy.getFatalLogMessageUsingClassNameAndNo(testedClassName, 0),
-				"InitInfo in SpiderDependencyProviderTestHelper must contain: " + key);
-	}
-
-	@Test
 	public void testGetSpiderAuthorizator() {
 		SpiderAuthorizatorImp spiderAuthorizator = (SpiderAuthorizatorImp) dependencyProvider
 				.getSpiderAuthorizator();
@@ -256,38 +210,10 @@ public class DependencyProviderAbstractTest {
 	public void testDataValidatorHasCorrectDependecies() {
 		DataValidator dataValidator = dependencyProvider.getDataValidator();
 
-		// MetadataStorageViewSpy metadataStorageView = (MetadataStorageViewSpy)
-		// metadataStorageProvider.MCR
-		// .getReturnValue("getStorageView", 0);
-		//
 		DataValidatorFactoySpy dataValidatorFactorySpy = dependencyProvider.dataValidatorFactory;
-		// var recordTypeHolder = dataValidatorFactorySpy.MCR
-		// .getValueForMethodNameAndCallNumberAndParameterName("factor", 0,
-		// "recordTypeHolder");
-		// assertCorrectRecordTypeHolder(recordTypeHolder, metadataStorageView);
-		//
-		// MetadataHolder metadataHolder = (MetadataHolder) dataValidatorFactorySpy.MCR
-		// .getValueForMethodNameAndCallNumberAndParameterName("factor", 0, "metadataHolder");
-		// assertCorrectMetadataHolder(metadataHolder);
-
-		// dataValidatorFactorySpy.MCR.assertParameters("factor", 0, recordTypeHolder,
-		// metadataHolder);
 		dataValidatorFactorySpy.MCR.assertParameters("factor", 0);
 		dataValidatorFactorySpy.MCR.assertReturn("factor", 0, dataValidator);
 	}
-
-	// private void assertCorrectMetadataHolder(MetadataHolder metadataHolder) {
-	// MetadataElement metadataElement = metadataHolder.getMetadataElement("someMetadata1");
-	// assertEquals(metadataElement.getId(), "someMetadata1");
-	// }
-	//
-	// private void assertCorrectRecordTypeHolder(Object recordTypeHolder,
-	// MetadataStorageViewSpy metadataStorage) {
-	//
-	// Map<String, DataGroup> map = (Map<String, DataGroup>) recordTypeHolder;
-	// assertEquals(map.get("someId1"), metadataStorage.recordTypes.get(0));
-	// assertEquals(map.get("someId2"), metadataStorage.recordTypes.get(1));
-	// }
 
 	@Test
 	public void testGetDataValidatorFactory() throws Exception {
@@ -365,19 +291,6 @@ public class DependencyProviderAbstractTest {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 
 		dependencyProvider.dataRedactorFactorySpy.MCR.assertReturn("factor", 0, dataRedactor);
-	}
-
-	@Test
-	public void testGetValueFromInitInfo() {
-		String key = "foundKey";
-		String value = dependencyProvider.getInitInfoValueUsingKey(key);
-		assertEquals(value, "someValue");
-	}
-
-	@Test(expectedExceptions = SpiderInitializationException.class)
-	public void testGetValueFromInitInfoKeyDoesNotExist() {
-		String key = "NOTfoundKey";
-		dependencyProvider.getInitInfoValueUsingKey(key);
 	}
 
 	@Test
