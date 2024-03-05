@@ -123,6 +123,28 @@ public class VisibilityExtendedFunctionalityTest {
 	}
 
 	@Test
+	public void testTsVisibilityTimeStampOnCreate() throws Exception {
+		extendedFunctionalityData.previouslyStoredTopDataGroup = null;
+		updatedDataGroup.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
+				() -> true);
+		updatedAdminInfo.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "published");
+
+		LocalDateTime before = LocalDateTime.now();
+		visibilityExtFunc.useExtendedFunctionality(extendedFunctionalityData);
+		LocalDateTime after = LocalDateTime.now();
+
+		String tsVisibility = (String) dataFactory.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"factorAtomicUsingNameInDataAndValue", 0, "value");
+
+		LocalDateTime tsVisibilityLocalDate = parseToLocalDate(tsVisibility);
+
+		assertTrue(tsVisibilityLocalDate.isAfter(before));
+		assertTrue(tsVisibilityLocalDate.isBefore(after));
+	}
+
+	@Test
 	public void testTsVisibilityTimeStamp() throws Exception {
 		updatedDataGroup.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
 				() -> true);

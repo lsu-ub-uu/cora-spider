@@ -67,7 +67,7 @@ public class VisibilityExtendedFunctionality implements ExtendedFunctionality {
 	}
 
 	private boolean hasAdminInfo(DataGroup dataGroup) {
-		return dataGroup.containsChildWithNameInData(ADMIN_INFO);
+		return dataGroup != null && dataGroup.containsChildWithNameInData(ADMIN_INFO);
 	}
 
 	private boolean isVisibiltyChanged(DataGroup updatedAdminInfo, DataGroup storedAdminInfo) {
