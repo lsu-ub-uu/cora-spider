@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,26 +16,29 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.spy;
+package se.uu.ub.cora.spider.testspies;
 
-import java.io.InputStream;
+import java.util.Map;
 
-import se.uu.ub.cora.binary.contentanalyzer.ContentAnalyzer;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
+import se.uu.ub.cora.spider.binary.iiif.IiifResponse;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class ContentAnalyzerSpy implements ContentAnalyzer {
-
+public class IiifReaderSpy implements IiifReader {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public ContentAnalyzerSpy() {
+	public IiifReaderSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("getMimeType", () -> "someMimeType");
+		// MRV.setDefaultReturnValuesSupplier("readImage", DataRecordSpy::new);
 	}
 
 	@Override
-	public String getMimeType(InputStream resource) {
-		return (String) MCR.addCallAndReturnFromMRV("resource", resource);
+	public IiifResponse readIiif(String identifier, String requestedUri, String method,
+			Map<String, String> headersMap) {
+		// TODO Auto-generated method stub
+		return null;
 	}
+
 }

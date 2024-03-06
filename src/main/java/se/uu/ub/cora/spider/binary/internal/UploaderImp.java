@@ -24,10 +24,10 @@ import java.io.InputStream;
 import java.text.MessageFormat;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.binary.BinaryProvider;
+import se.uu.ub.cora.binary.contentanalyzer.ContentAnalyzer;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
-import se.uu.ub.cora.contentanalyzer.ContentAnalyzer;
-import se.uu.ub.cora.contentanalyzer.ContentAnalyzerProvider;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
@@ -193,7 +193,7 @@ public final class UploaderImp implements Uploader {
 
 	private String detectMimeTypeFromResourceInArchive(String dataDivider) {
 		InputStream resourceFromArchive = resourceArchive.readMasterResource(dataDivider, type, id);
-		ContentAnalyzer contentAnalyzer = ContentAnalyzerProvider.getContentAnalyzer();
+		ContentAnalyzer contentAnalyzer = BinaryProvider.getContentAnalyzer();
 		return contentAnalyzer.getMimeType(resourceFromArchive);
 	}
 

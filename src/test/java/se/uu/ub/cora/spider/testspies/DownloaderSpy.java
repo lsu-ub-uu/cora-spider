@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.testspies;
 import java.util.function.Supplier;
 
 import se.uu.ub.cora.spider.binary.Downloader;
-import se.uu.ub.cora.spider.data.ResourceInputStream;
+import se.uu.ub.cora.spider.binary.ResourceInputStream;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 

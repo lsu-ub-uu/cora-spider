@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2018, 2021 Uppsala University Library
+ * Copyright 2015, 2018, 2021, 2024 Uppsala University Library
  * Copyright 2017, 2019 Uppsala University Library
  *
  * This file is part of Cora.
@@ -21,22 +21,36 @@
 package se.uu.ub.cora.spider.dependency;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.spider.dependency.spy.SpiderInstanceFactorySpy1;
-import se.uu.ub.cora.spider.record.RecordListIndexer;
-import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.binary.Downloader;
+import se.uu.ub.cora.spider.binary.Uploader;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
+import se.uu.ub.cora.spider.record.IncomingLinksReader;
+import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.record.RecordDeleter;
+import se.uu.ub.cora.spider.record.RecordListReader;
+import se.uu.ub.cora.spider.record.RecordSearcher;
+import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.record.RecordValidator;
+import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
 
 public class SpiderInstanceProviderTest {
+	private SpiderInstanceFactorySpy factory;
+
+	@BeforeMethod
+	public void beforeMethod() {
+		factory = new SpiderInstanceFactorySpy();
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+	}
+
 	@Test
 	public void testPrivateConstructor() throws Exception {
 		Constructor<SpiderInstanceProvider> constructor = SpiderInstanceProvider.class
@@ -46,10 +60,11 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void testGetDependencyProviderClassName() {
-		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		assertEquals(SpiderInstanceProvider.getDependencyProviderClassName(),
-				"someDependencyProviderClassNameFromSpy");
+		String dummyClassName = "someDependencyProviderClassNameFromSpy";
+		factory.MRV.setDefaultReturnValuesSupplier("getDependencyProviderClassName",
+				() -> dummyClassName);
+
+		assertEquals(SpiderInstanceProvider.getDependencyProviderClassName(), dummyClassName);
 	}
 
 	@Test(expectedExceptions = InvocationTargetException.class)
@@ -63,103 +78,85 @@ public class SpiderInstanceProviderTest {
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordReader() {
-		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-
 		var recordReader = SpiderInstanceProvider.getRecordReader();
 
-		assertTrue(recordReader instanceof RecordReader);
-		factory.MCR.assertMethodWasCalled("factorRecordReader");
+		factory.MCR.assertReturn("factorRecordReader", 0, recordReader);
 	}
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordIncomingLinksReader() {
-		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getIncomingLinksReader();
-		assertTrue(factory.incomingLinksReaderFactoryWasCalled);
+		IncomingLinksReader incomingLinksReader = SpiderInstanceProvider.getIncomingLinksReader();
+
+		factory.MCR.assertReturn("factorIncomingLinksReader", 0, incomingLinksReader);
 	}
 
 	@Test
 	public void makeSureFactoryIsCalledForListRecordReader() {
-		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getRecordListReader();
-		assertTrue(factory.listReaderFactoryWasCalled);
+		RecordListReader recordListReader = SpiderInstanceProvider.getRecordListReader();
+
+		factory.MCR.assertReturn("factorRecordListReader", 0, recordListReader);
 	}
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordCreator() {
-		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getRecordCreator();
-		assertTrue(factory.creatorFactoryWasCalled);
+		RecordCreator recordCreator = SpiderInstanceProvider.getRecordCreator();
+
+		factory.MCR.assertReturn("factorRecordCreator", 0, recordCreator);
 	}
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordUpdater() {
-		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getRecordUpdater();
-		assertTrue(factory.updaterFactoryWasCalled);
+		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
+
+		factory.MCR.assertReturn("factorRecordUpdater", 0, recordUpdater);
 	}
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordDeleter() {
-		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getRecordDeleter();
-		assertTrue(factory.deleterFactoryWasCalled);
+		RecordDeleter recordDeleter = SpiderInstanceProvider.getRecordDeleter();
+
+		factory.MCR.assertReturn("factorRecordDeleter", 0, recordDeleter);
 	}
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordUploader() {
-		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getUploader();
-		assertTrue(factory.uploaderFactoryWasCalled);
+		Uploader uploader = SpiderInstanceProvider.getUploader();
+
+		factory.MCR.assertReturn("factorUploader", 0, uploader);
 	}
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordDownloader() {
-		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getDownloader();
-		assertTrue(factory.downloaderFactoryWasCalled);
+		Downloader downloader = SpiderInstanceProvider.getDownloader();
+
+		factory.MCR.assertReturn("factorDownloader", 0, downloader);
 	}
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordSearcher() {
-		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getRecordSearcher();
-		assertTrue(factory.searcherFactoryWasCalled);
+		RecordSearcher recordSearcher = SpiderInstanceProvider.getRecordSearcher();
+
+		factory.MCR.assertReturn("factorRecordSearcher", 0, recordSearcher);
 	}
 
 	@Test
 	public void makeSureFactoryCreateIsCalledForRecordValidator() {
-		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-		SpiderInstanceProvider.getRecordValidator();
-		assertTrue(factory.validatorFactoryWasCalled);
+		RecordValidator recordValidator = SpiderInstanceProvider.getRecordValidator();
+
+		factory.MCR.assertReturn("factorRecordValidator", 0, recordValidator);
 	}
 
 	@Test
 	public void makeSureFactoryIsCalledForRecordListIndexer() {
-		SpiderInstanceFactorySpy1 factory = new SpiderInstanceFactorySpy1();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
-
 		var recordListIndexer = SpiderInstanceProvider.getRecordListIndexer();
 
-		assertTrue(recordListIndexer instanceof RecordListIndexer);
-		factory.MCR.assertMethodWasCalled("factorRecordListIndexer");
+		factory.MCR.assertReturn("factorRecordListIndexer", 0, recordListIndexer);
 	}
 
 	@Test
-	public void testSetInitInfo() throws Exception {
-		Map<String, String> initInfo = new HashMap<>();
-		SpiderInstanceProvider.setInitInfo(initInfo);
-		assertEquals(SpiderInstanceProvider.getInitInfo(), initInfo);
-	}
+	public void makeSureFactoryIsCalledForIiifReader() {
+		IiifReader iiifReader = SpiderInstanceProvider.getIiifReader();
 
+		factory.MCR.assertReturn("factorIiifReader", 0, iiifReader);
+	}
 }

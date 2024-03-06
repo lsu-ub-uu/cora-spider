@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,26 +16,29 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.spy;
 
-import java.io.InputStream;
+package se.uu.ub.cora.spider.binary.iiif;
 
-import se.uu.ub.cora.binary.contentanalyzer.ContentAnalyzer;
+import se.uu.ub.cora.binary.iiif.IiifAdapter;
+import se.uu.ub.cora.binary.iiif.IiifAdapterResponse;
+import se.uu.ub.cora.binary.iiif.IiifParameters;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class ContentAnalyzerSpy implements ContentAnalyzer {
+public class IiifAdapterSpy implements IiifAdapter {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public ContentAnalyzerSpy() {
+	public IiifAdapterSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("getMimeType", () -> "someMimeType");
+		IiifAdapterResponse iiifImageResponse = new IiifAdapterResponse(0, null, null);
+		MRV.setDefaultReturnValuesSupplier("callIiifServer", () -> iiifImageResponse);
 	}
 
 	@Override
-	public String getMimeType(InputStream resource) {
-		return (String) MCR.addCallAndReturnFromMRV("resource", resource);
+	public IiifAdapterResponse callIiifServer(IiifParameters iiifParameters) {
+		return (IiifAdapterResponse) MCR.addCallAndReturnFromMRV("iiifParameters", iiifParameters);
 	}
+
 }

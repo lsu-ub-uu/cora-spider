@@ -208,11 +208,6 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	}
 
 	@Override
-	public String getInitInfoValueUsingKey(String key) {
-		return (String) MCR.addCallAndReturnFromMRV("key", key);
-	}
-
-	@Override
 	public RecordArchive getRecordArchive() {
 		return recordArchive;
 	}

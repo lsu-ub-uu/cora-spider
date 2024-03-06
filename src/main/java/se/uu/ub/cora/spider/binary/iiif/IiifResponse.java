@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Uppsala University Library
+ * Copyright 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,22 +17,10 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.binary.iiif;
 
-/**
- * DataException is used to indicate if the data sent to Spider does not validate against existing
- * metadata definitions, or references other data that does not exist.
- */
-public class DataException extends RuntimeException {
+import java.util.Map;
 
-	private static final long serialVersionUID = -5355036186089708149L;
-
-	public DataException(String message) {
-		super(message);
-	}
-
-	public DataException(String message, Exception exception) {
-		super(message, exception);
-	}
+public record IiifResponse(int status, Map<String, String> headers, Object body) {
 
 }

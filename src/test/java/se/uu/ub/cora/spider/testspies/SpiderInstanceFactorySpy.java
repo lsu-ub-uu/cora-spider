@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.testspies;
 
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
@@ -52,6 +53,7 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 		MRV.setDefaultReturnValuesSupplier("factorRecordSearcher", RecordSearcherSpy::new);
 		MRV.setDefaultReturnValuesSupplier("factorRecordValidator", RecordValidatorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("factorRecordListIndexer", RecordListIndexerSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factorIiifReader", IiifReaderSpy::new);
 	}
 
 	@Override
@@ -112,5 +114,10 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	@Override
 	public RecordListIndexer factorRecordListIndexer() {
 		return (RecordListIndexer) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public IiifReader factorIiifReader() {
+		return (IiifReader) MCR.addCallAndReturnFromMRV();
 	}
 }

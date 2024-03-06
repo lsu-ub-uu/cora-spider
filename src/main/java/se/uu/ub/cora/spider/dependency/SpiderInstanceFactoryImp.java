@@ -20,8 +20,11 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
+import se.uu.ub.cora.spider.binary.iiif.internal.IiifReaderImp;
 import se.uu.ub.cora.spider.binary.internal.DownloaderImp;
 import se.uu.ub.cora.spider.binary.internal.MimeTypeToBinaryType;
 import se.uu.ub.cora.spider.binary.internal.MimeTypeToBinaryTypeImp;
@@ -107,13 +110,12 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	@Override
 	public Uploader factorUploader() {
-
-		String hostName = dependencyProvider.getInitInfoValueUsingKey("rabbitMqHostname");
-		int port = Integer.parseInt(dependencyProvider.getInitInfoValueUsingKey("rabbitMqPort"));
-		String vHost = dependencyProvider.getInitInfoValueUsingKey("rabbitMqVirtualHost");
-		String imageExchange = dependencyProvider.getInitInfoValueUsingKey("rabbitMqImageExchange");
-		String pdfExchange = dependencyProvider.getInitInfoValueUsingKey("rabbitMqPdfExchange");
-		String routingKey = dependencyProvider.getInitInfoValueUsingKey("rabbitMqRoutingKey");
+		String hostName = SettingsProvider.getSetting("rabbitMqHostname");
+		int port = Integer.parseInt(SettingsProvider.getSetting("rabbitMqPort"));
+		String vHost = SettingsProvider.getSetting("rabbitMqVirtualHost");
+		String imageExchange = SettingsProvider.getSetting("rabbitMqImageExchange");
+		String pdfExchange = SettingsProvider.getSetting("rabbitMqPdfExchange");
+		String routingKey = SettingsProvider.getSetting("rabbitMqRoutingKey");
 
 		ResourceConvert recsourceConvert = ResourceConvertImp
 				.usingHostnamePortVHostExchangeRoutingKey(hostName, port, vHost, imageExchange,
@@ -159,6 +161,11 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 		DataGroupHandlerForIndexBatchJob dataGroupHandlerForIndexBatchJob = new DataGroupHandlerForIndexBatchJobImp();
 		return RecordListIndexerImp.usingDependencyProvider(dependencyProvider, indexBatchHandler,
 				dataGroupHandlerForIndexBatchJob);
+	}
+
+	@Override
+	public IiifReader factorIiifReader() {
+		return IiifReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 }

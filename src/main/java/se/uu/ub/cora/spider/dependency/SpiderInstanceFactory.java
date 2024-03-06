@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2017, 2019, 2021 Uppsala University Library
+ * Copyright 2017, 2019, 2021, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
+import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -58,4 +59,11 @@ public interface SpiderInstanceFactory {
 
 	RecordListIndexer factorRecordListIndexer();
 
+	/**
+	 * factorIiifReader should return a {@link IiifReader} implementation to use to access the iiif
+	 * protocol
+	 * 
+	 * @return an {@link IiifReader}
+	 */
+	IiifReader factorIiifReader();
 }

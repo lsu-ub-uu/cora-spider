@@ -12,7 +12,7 @@ import java.text.MessageFormat;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.contentanalyzer.ContentAnalyzerProvider;
+import se.uu.ub.cora.binary.BinaryProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.collected.CollectTerms;
@@ -104,7 +104,7 @@ public class UploaderTest {
 		LoggerProvider.setLoggerFactory(loggerFactory);
 
 		contentAnalyzeInstanceProviderSpy = new ContentAnalyzerInstanceProviderSpy();
-		ContentAnalyzerProvider
+		BinaryProvider
 				.onlyForTestSetContentAnalyzerInstanceProvider(contentAnalyzeInstanceProviderSpy);
 
 		someStream = new InputStreamSpy();

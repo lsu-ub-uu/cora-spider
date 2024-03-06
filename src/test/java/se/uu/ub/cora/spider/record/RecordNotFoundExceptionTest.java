@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2023 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,28 +16,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.record;
 
-package se.uu.ub.cora.spider.data;
+import static org.testng.Assert.assertEquals;
 
-import java.io.InputStream;
+import org.testng.annotations.Test;
 
-public final class ResourceInputStream {
+public class RecordNotFoundExceptionTest {
+	@Test
+	public void testInit() {
+		RecordNotFoundException notFound = RecordNotFoundException.withMessage("message");
 
-	public final String name;
-	public final long size;
-	public final InputStream stream;
-	public final String mimeType;
-
-	private ResourceInputStream(String name, long size, String mimeType, InputStream stream) {
-		this.name = name;
-		this.size = size;
-		this.mimeType = mimeType;
-		this.stream = stream;
+		assertEquals(notFound.getMessage(), "message");
 	}
 
-	public static ResourceInputStream withNameSizeInputStream(String name, long size, String mimeType,
-			InputStream stream) {
-		return new ResourceInputStream(name, size, mimeType, stream);
-	}
+	@Test
+	public void testInitWithException() {
+		Exception exception = new Exception();
+		RecordNotFoundException notFound = RecordNotFoundException
+				.withMessageAndException("message", exception);
 
+		assertEquals(notFound.getMessage(), "message");
+		assertEquals(notFound.getCause(), exception);
+	}
 }

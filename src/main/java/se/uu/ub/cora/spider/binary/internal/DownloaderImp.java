@@ -30,7 +30,7 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.binary.Downloader;
-import se.uu.ub.cora.spider.data.ResourceInputStream;
+import se.uu.ub.cora.spider.binary.ResourceInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -54,7 +54,7 @@ public final class DownloaderImp implements Downloader {
 	private String id;
 
 	private DownloaderImp(SpiderDependencyProvider dependencyProvider) {
-		this.authenticator = dependencyProvider.getAuthenticator();
+		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
 		resourceArchive = dependencyProvider.getResourceArchive();

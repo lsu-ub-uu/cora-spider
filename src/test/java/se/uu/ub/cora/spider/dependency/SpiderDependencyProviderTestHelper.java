@@ -19,9 +19,6 @@
 
 package se.uu.ub.cora.spider.dependency;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactory;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactory;
@@ -38,6 +35,8 @@ import se.uu.ub.cora.spider.dependency.spy.DataRedactorFactorySpy;
 import se.uu.ub.cora.spider.dependency.spy.DataValidatorFactoySpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactorySpy;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstract {
 
@@ -57,9 +56,13 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 	DataValidatorFactoySpy dataValidatorFactory = new DataValidatorFactoySpy();
 	boolean standardDataValidatorFactory = false;
 	public RecordTypeHandlerFactory recordTypeHandlerFactory = new RecordTypeHandlerFactorySpy();
+	// public static Exception exceptionToThrow;
 
-	public SpiderDependencyProviderTestHelper(Map<String, String> initInfo) {
-		super(initInfo);
+	public static MethodCallRecorder MCR = new MethodCallRecorder();
+	public static MethodReturnValues MRV = new MethodReturnValues();
+
+	public SpiderDependencyProviderTestHelper() {
+		super();
 	}
 
 	@Override
@@ -78,29 +81,27 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 	}
 
 	@Override
-	protected void tryToInitialize() throws Exception {
+	protected void tryToInitialize() {
+		MCR.useMRV(MRV);
 		tryToInitializeWasCalled = true;
-		if (initInfo.containsKey("runtimeException")) {
-			throw new RuntimeException(initInfo.get("runtimeException"));
-		}
-		if (initInfo.containsKey("invocationTargetException")) {
-			throw new InvocationTargetException(
-					new RuntimeException(initInfo.get("invocationTargetException")));
-		}
+
+		MCR.addCall();
+		// if (initInfo.containsKey("runtimeException")) {
+		// throw new RuntimeException(initInfo.get("runtimeException"));
+		// }
+		// if (initInfo.containsKey("invocationTargetException")) {
+		// throw new InvocationTargetException(
+		// new RuntimeException(initInfo.get("invocationTargetException")));
+		// }
+		// if (exceptionToThrow != null) {
+		// throw exceptionToThrow;
+		// }
 	}
 
 	@Override
 	protected void readInitInfo() {
+		// MCR.useMRV(MRV);
 		readInitInfoWasCalled = true;
-	}
-
-	public String getInitInfoFromParent(String key) {
-		return initInfo.get(key);
-	}
-
-	@Override
-	public void ensureKeyExistsInInitInfo(String key) {
-		super.ensureKeyExistsInInitInfo(key);
 	}
 
 	@Override

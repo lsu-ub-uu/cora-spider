@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2015, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,26 +16,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.spy;
+package se.uu.ub.cora.spider.record;
 
-import java.io.InputStream;
+public class RecordNotFoundException extends RuntimeException {
 
-import se.uu.ub.cora.binary.contentanalyzer.ContentAnalyzer;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+	private static final long serialVersionUID = 2241064467145940402L;
 
-public class ContentAnalyzerSpy implements ContentAnalyzer {
-
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
-
-	public ContentAnalyzerSpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("getMimeType", () -> "someMimeType");
+	public static RecordNotFoundException withMessage(String message) {
+		return new RecordNotFoundException(message);
 	}
 
-	@Override
-	public String getMimeType(InputStream resource) {
-		return (String) MCR.addCallAndReturnFromMRV("resource", resource);
+	public static RecordNotFoundException withMessageAndException(String message,
+			Exception exception) {
+		return new RecordNotFoundException(message, exception);
+	}
+
+	private RecordNotFoundException(String message) {
+		super(message);
+	}
+
+	private RecordNotFoundException(String message, Exception exception) {
+		super(message, exception);
 	}
 }

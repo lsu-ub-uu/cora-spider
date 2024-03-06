@@ -19,7 +19,6 @@
 
 package se.uu.ub.cora.spider.binary;
 
-import se.uu.ub.cora.spider.data.ResourceInputStream;
 import se.uu.ub.cora.spider.record.MisuseException;
 
 public interface Downloader {

@@ -78,8 +78,6 @@ public interface SpiderDependencyProvider {
 
 	DataGroupToRecordEnhancer getDataGroupToRecordEnhancer();
 
-	String getInitInfoValueUsingKey(String key);
-
 	/**
 	 * getDataGroupToFilterConverter creates a new {@link DataGroupToFilter} converter for each call
 	 * to this method.
