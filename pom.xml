@@ -34,20 +34,20 @@
 
 	<properties>
 		<logger.version>2.10.0</logger.version>
-		<coradata.version>9.0-SNAPSHOT</coradata.version>
-		<json.version>3.9.0</json.version>
-		<storage.version>9.1-SNAPSHOT</storage.version>
-		<storagespies.version>1.7-SNAPSHOT</storagespies.version>
-		<initialize.version>1.6-SNAPSHOT</initialize.version>
-		<search.version>5.6.0</search.version>
-		<bookkeeper.version>9.2.0</bookkeeper.version>
+		<coradata.version>9.0.0</coradata.version>
+		<json.version>3.10.0</json.version>
+		<storage.version>9.1.0</storage.version>
+		<storagespies.version>1.7.0</storagespies.version>
+		<initialize.version>1.6.0</initialize.version>
+		<search.version>5.7.0</search.version>
+		<bookkeeper.version>9.3.0</bookkeeper.version>
 		<beefeater.version>3.13.0</beefeater.version>
-		<contentanalyzer.version>2.0-SNAPSHOT</contentanalyzer.version>
-		<password.version>1.7.0</password.version>
+		<contentanalyzer.version>2.0.0</contentanalyzer.version>
+		<password.version>1.8.0</password.version>
 		<testutils.version>1.11.0</testutils.version>
-		<coradata-spies.version>1.7-SNAPSHOT</coradata-spies.version>
+		<coradata-spies.version>1.7.0</coradata-spies.version>
 		<logger-spies.version>1.5.0</logger-spies.version>
-		<messaging.version>3.0-SNAPSHOT</messaging.version>
+		<messaging.version>3.0.0</messaging.version>
 	</properties>
 
 	<scm>
