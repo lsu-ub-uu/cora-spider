@@ -62,6 +62,8 @@ public class IiifReaderImp implements IiifReader {
 		DataRecordGroup binaryRecordGroup = readBinaryRecord(recordId);
 		throwErrorIfNotAuthorizedToCallIiifForRecord(binaryRecordGroup);
 
+		throwNotFoundExceptionIfJP2DoesNotExist(binaryRecordGroup);
+
 		IiifParameters iiifParameters = createIiifParameters(recordId, requestedUri, method,
 				headersMap, binaryRecordGroup.getDataDivider());
 		return callIiifServer(iiifParameters);
@@ -72,6 +74,14 @@ public class IiifReaderImp implements IiifReader {
 		String identifier = "binary:" + recordId;
 		String uri = String.join("/", dataDivider, identifier, requestedUri);
 		return new IiifParameters(uri, method, headersMap);
+	}
+
+	private void throwNotFoundExceptionIfJP2DoesNotExist(DataRecordGroup binaryRecordGroup) {
+		if (!binaryRecordGroup.containsChildWithNameInData("jp2")) {
+			throw RecordNotFoundException
+					.withMessage("Could not find a JP2 representation for binary and recordId: "
+							+ binaryRecordGroup.getId());
+		}
 	}
 
 	private IiifResponse callIiifServer(IiifParameters iiifParameters) {

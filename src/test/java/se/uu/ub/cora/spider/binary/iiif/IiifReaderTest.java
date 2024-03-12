@@ -130,6 +130,8 @@ public class IiifReaderTest {
 				() -> resourceTypeDGS, LARGE);
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
 				() -> resourceTypeDGS, JP2);
+		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				JP2);
 
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> ORIGINAL_FILE_NAME, "originalFileName");
@@ -230,4 +232,21 @@ public class IiifReaderTest {
 		assertEquals(iiifResponse.body(), iiifAdapterResponse.body());
 	}
 
+	@Test
+	public void testJP2NotFound() throws Exception {
+		setVisibilityInAdminInfoInBinaryRecord("published");
+		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> false, JP2);
+		Map<String, String> headersMap = new HashMap<>();
+		try {
+			reader.readIiif(SOME_IDENTIFIER, SOME_REQUESTED_URI, SOME_METHOD, headersMap);
+			fail("Exception should have been thrown due to JP2 not existing");
+		} catch (Exception error) {
+			assertTrue(error instanceof RecordNotFoundException);
+			assertEquals(error.getMessage(),
+					"Could not find a JP2 representation for binary and recordId: "
+							+ SOME_IDENTIFIER);
+			dependencyProvider.MCR.assertMethodNotCalled("callIiifServer");
+		}
+	}
 }
