@@ -136,6 +136,7 @@ public class UploaderTest {
 		dataRecordGroupSpy = new DataRecordGroupSpy();
 		dataRecordGroupSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider",
 				() -> "someDataDivider");
+
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> dataRecordGroupSpy);
 
 		resourceArchive = new ResourceArchiveSpy();
@@ -343,8 +344,8 @@ public class UploaderTest {
 				() -> EXPECTED_ORIGINAL_FILE_NAME, "originalFileName");
 		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> EXPECTED_FILE_SIZE, "expectedFileSize");
-		readBinarySpy.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
-				"expectedChecksum");
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> false, "expectedChecksum");
 		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> EXPECTED_CHECKSUM, "expectedChecksum");
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> readBinarySpy);
@@ -548,4 +549,71 @@ public class UploaderTest {
 		dataRecordGroupSpy.MCR.assertParameters("addAttributeByIdWithValue", 0, "type", binaryType);
 	}
 
+	@Test(expectedExceptions = ArchiveDataIntergrityException.class, expectedExceptionsMessageRegExp = "The file size "
+			+ "verification of uploaded data failed: the actual value was: someFileSize but the expected value was: expectedFileSize")
+	public void testFileSizeMismatch() throws Exception {
+		DataRecordGroupSpy readBinarySpy = setupReadSpyForIntegrityCheck();
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				"expectedFileSize");
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> EXPECTED_FILE_SIZE, "expectedFileSize");
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+		resourceArchive.MCR.assertMethodWasCalled("delete");
+		resourceArchive.MCR.assertMethodNotCalled("readMasterResource");
+	}
+
+	private DataRecordGroupSpy setupReadSpyForIntegrityCheck() {
+		DataRecordGroupSpy readBinarySpy = new DataRecordGroupSpy();
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> EXPECTED_ORIGINAL_FILE_NAME, "originalFileName");
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> EXPECTED_CHECKSUM, "expectedChecksum");
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> readBinarySpy);
+		return readBinarySpy;
+	}
+
+	@Test
+	public void testExpectedFileSizeMatch() throws Exception {
+		DataRecordGroupSpy readBinarySpy = setupReadSpyForIntegrityCheck();
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				"expectedFileSize");
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "someFileSize", "expectedFileSize");
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+		resourceArchive.MCR.assertMethodNotCalled("delete");
+		resourceArchive.MCR.assertMethodWasCalled("readMasterResource");
+	}
+
+	@Test(expectedExceptions = ArchiveDataIntergrityException.class, expectedExceptionsMessageRegExp = "The checksum "
+			+ "verification of uploaded data failed: the actual value was: someChecksumSHA512 but the expected value was: expectedChecksum")
+	public void testChecksumMismatch() throws Exception {
+		DataRecordGroupSpy readBinarySpy = setupReadSpyForIntegrityCheck();
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				"expectedChecksum");
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> EXPECTED_FILE_SIZE, "expectedFileSize");
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+		resourceArchive.MCR.assertMethodWasCalled("delete");
+		resourceArchive.MCR.assertMethodNotCalled("readMasterResource");
+	}
+
+	@Test
+	public void testExpectedChecksumMatch() throws Exception {
+		DataRecordGroupSpy readBinarySpy = setupReadSpyForIntegrityCheck();
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				"expectedChecksum");
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "someChecksumSHA512", "expectedChecksum");
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+		resourceArchive.MCR.assertMethodNotCalled("delete");
+		resourceArchive.MCR.assertMethodWasCalled("readMasterResource");
+	}
 }
