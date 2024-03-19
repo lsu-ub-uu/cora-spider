@@ -121,10 +121,7 @@ public final class UploaderImp implements Uploader {
 
 		storeResourceStreamInArchive(resourceStream);
 
-		ResourceMetadata resourceMetadata = resourceArchive.readMasterResourceMetadata(dataDivider,
-				type, id);
-
-		verifyArchiveDataIntegrity(dataRecordGroup, resourceMetadata);
+		verifyArchiveDataIntegrity(dataRecordGroup);
 
 		String detectedMimeType = detectMimeTypeFromResourceInArchive(dataDivider);
 
@@ -143,8 +140,9 @@ public final class UploaderImp implements Uploader {
 		return updatedRecord;
 	}
 
-	private void verifyArchiveDataIntegrity(DataRecordGroup dataRecordGroup,
-			ResourceMetadata resourceMetadata) {
+	private void verifyArchiveDataIntegrity(DataRecordGroup dataRecordGroup) {
+		ResourceMetadata resourceMetadata = resourceArchive.readMasterResourceMetadata(dataDivider,
+				type, id);
 		possiblyVerifyExpectedFileSize(dataRecordGroup, resourceMetadata);
 		possiblyVerifyExpectedChecksum(dataRecordGroup, resourceMetadata);
 	}
