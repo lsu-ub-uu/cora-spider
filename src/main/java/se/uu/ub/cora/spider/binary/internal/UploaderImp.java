@@ -54,6 +54,7 @@ import se.uu.ub.cora.storage.archive.ResourceMetadata;
 import se.uu.ub.cora.storage.archive.record.ResourceMetadataToUpdate;
 
 public final class UploaderImp implements Uploader {
+	private static final String ORIGINAL_FILE_NAME = "originalFileName";
 	private static final String EXPECTED_CHECKSUM = "expectedChecksum";
 	private static final String EXPECTED_FILE_SIZE = "expectedFileSize";
 	private static final String MASTER = "master";
@@ -126,7 +127,7 @@ public final class UploaderImp implements Uploader {
 		String detectedMimeType = detectMimeTypeFromResourceInArchive(dataDivider);
 
 		String originalFileName = dataRecordGroup
-				.getFirstAtomicValueWithNameInData("originalFileName");
+				.getFirstAtomicValueWithNameInData(ORIGINAL_FILE_NAME);
 		updateOriginalFileNameAndMimeTypeInArchive(originalFileName, detectedMimeType);
 
 		// uppdatera posten i storage
@@ -324,9 +325,9 @@ public final class UploaderImp implements Uploader {
 		masterGroup.addChild(checksumType);
 
 		DataChild originalFileName = dataRecordGroup
-				.getFirstChildWithNameInData("originalFileName");
+				.getFirstChildWithNameInData(ORIGINAL_FILE_NAME);
 		masterGroup.addChild(originalFileName);
-		dataRecordGroup.removeFirstChildWithNameInData("originalFileName");
+		dataRecordGroup.removeFirstChildWithNameInData(ORIGINAL_FILE_NAME);
 
 		dataRecordGroup.addAttributeByIdWithValue("type",
 				mimeTypeToBinaryType.toBinaryType(detectedMimeType));
