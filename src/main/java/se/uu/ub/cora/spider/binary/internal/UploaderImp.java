@@ -161,14 +161,15 @@ public final class UploaderImp implements Uploader {
 				.getFirstAtomicValueWithNameInData(EXPECTED_FILE_SIZE);
 		String archiveFileSize = resourceMetadata.fileSize();
 		if (!expectedFileSize.equals(archiveFileSize)) {
-			deleteArchiveDataAndThrowException("file size", expectedFileSize, archiveFileSize);
+			throw deleteArchiveDataAndThrowException("file size", expectedFileSize,
+					archiveFileSize);
 		}
 	}
 
-	private void deleteArchiveDataAndThrowException(String expectType, String expectedData,
-			String archiveData) {
+	private ArchiveDataIntergrityException deleteArchiveDataAndThrowException(String expectType,
+			String expectedData, String archiveData) {
 		resourceArchive.delete(dataDivider, type, id);
-		throw new ArchiveDataIntergrityException(MessageFormat.format(
+		return ArchiveDataIntergrityException.withMessage(MessageFormat.format(
 				"The {0} verification of uploaded data failed: the actual value was: {1} but the expected value was: {2}",
 				expectType, archiveData, expectedData));
 
@@ -187,7 +188,7 @@ public final class UploaderImp implements Uploader {
 				.getFirstAtomicValueWithNameInData(EXPECTED_CHECKSUM);
 		String archiveChecksum = resourceMetadata.checksumSHA512();
 		if (!expectedChecksum.equals(archiveChecksum)) {
-			deleteArchiveDataAndThrowException("checksum", expectedChecksum, archiveChecksum);
+			throw deleteArchiveDataAndThrowException("checksum", expectedChecksum, archiveChecksum);
 		}
 	}
 

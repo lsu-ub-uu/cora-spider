@@ -30,4 +30,13 @@ public class ArchiveDataIntergrityException extends RuntimeException {
 	public ArchiveDataIntergrityException(String message, Exception exception) {
 		super(message, exception);
 	}
+
+	public static ArchiveDataIntergrityException withMessage(String message) {
+		return new ArchiveDataIntergrityException(message);
+	}
+
+	public static ArchiveDataIntergrityException withMessageAndException(String message,
+			Exception e) {
+		return new ArchiveDataIntergrityException(message, e);
+	}
 }
