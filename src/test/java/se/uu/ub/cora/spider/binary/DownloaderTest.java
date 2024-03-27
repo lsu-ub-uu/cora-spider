@@ -38,11 +38,12 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.internal.DownloaderImp;
 import se.uu.ub.cora.spider.record.MisuseException;
+import se.uu.ub.cora.spider.record.RecordNotFoundException;
+import se.uu.ub.cora.spider.record.ResourceNotFoundException;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.spy.StreamStorageSpy;
-import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.storage.spies.archive.ResourceArchiveSpy;
 
@@ -167,19 +168,38 @@ public class DownloaderTest {
 	}
 
 	@Test
+	public void testMasterResourceNotFound() throws Exception {
+		var resourceNotFoundException = se.uu.ub.cora.storage.ResourceNotFoundException
+				.withMessage(ERR_MESSAGE_MISUSE);
+		resourceArchive.MRV.setAlwaysThrowException("readMasterResource",
+				resourceNotFoundException);
+
+		try {
+			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
+			fail("It should throw a resourceNotFoundException");
+		} catch (Exception e) {
+			assertTrue(e instanceof ResourceNotFoundException);
+			String errorNotFoundMessage = "Could not download the stream because it could not be"
+					+ " found in storage. Type: {0}, id: {1} and representation: {2}";
+			assertEquals(e.getMessage(), MessageFormat.format(errorNotFoundMessage,
+					BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER));
+			assertEquals(e.getCause(), resourceNotFoundException);
+		}
+	}
+
+	@Test
 	public void testReadRecordNotFound() throws Exception {
-		// TODO: We should use an exception from Spider.
 		recordStorage.MRV.setAlwaysThrowException("read",
-				RecordNotFoundException.withMessage(SOME_EXCEPTION_MESSAGE));
+				se.uu.ub.cora.storage.RecordNotFoundException.withMessage(SOME_EXCEPTION_MESSAGE));
 		try {
 			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
 			fail("It should throw Exception");
 		} catch (Exception e) {
-			assertTrue(e instanceof RecordNotFoundException,
-					"AuthenticationException should be thrown");
-			assertEquals(e.getMessage(), SOME_EXCEPTION_MESSAGE);
+			assertTrue(e instanceof RecordNotFoundException);
+			assertEquals(e.getMessage(), "Could not find record with type: " + BINARY_RECORD_TYPE
+					+ " and id: " + SOME_RECORD_ID);
+			assertEquals(e.getCause().getMessage(), SOME_EXCEPTION_MESSAGE);
 		}
-
 	}
 
 	@Test
@@ -330,18 +350,19 @@ public class DownloaderTest {
 
 	@Test
 	public void testDownloadStreamStorageHasException() throws Exception {
-		RuntimeException runtimeException = new RuntimeException();
-		streamStorage.MRV.setAlwaysThrowException("retrieve", runtimeException);
+		var resourceNotFoundException = se.uu.ub.cora.storage.ResourceNotFoundException
+				.withMessage(ERR_MESSAGE_MISUSE);
+		streamStorage.MRV.setAlwaysThrowException("retrieve", resourceNotFoundException);
 
 		try {
 			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, JP2);
 			fail("It should throw an exception");
 		} catch (Exception e) {
-			assertTrue(e instanceof RecordNotFoundException);
+			assertTrue(e instanceof ResourceNotFoundException);
 			String errorNotFoundMessage = "Could not download the stream because it could not be found in storage. Type: {0}, id: {1} and representation: {2}";
 			assertEquals(e.getMessage(), MessageFormat.format(errorNotFoundMessage,
 					BINARY_RECORD_TYPE, SOME_RECORD_ID, JP2));
-			assertEquals(e.getCause(), runtimeException);
+			assertEquals(e.getCause(), resourceNotFoundException);
 		}
 
 	}
