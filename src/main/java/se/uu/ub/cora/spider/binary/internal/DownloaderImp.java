@@ -109,6 +109,7 @@ public final class DownloaderImp implements Downloader {
 		try {
 			DataRecordGroup binaryRecordGroup = recordStorage.read(type, id);
 			return readRepresentation(type, id, representation, binaryRecordGroup);
+
 		} catch (se.uu.ub.cora.storage.RecordNotFoundException e) {
 			throw throwRecordNotFoundException(type, id, e);
 		} catch (se.uu.ub.cora.storage.ResourceNotFoundException e) {

@@ -349,7 +349,7 @@ public class DownloaderTest {
 	}
 
 	@Test
-	public void testDownloadStreamStorageHasException() throws Exception {
+	public void testDownloadStreamOnFedoraStorageHasException() throws Exception {
 		var resourceNotFoundException = se.uu.ub.cora.storage.ResourceNotFoundException
 				.withMessage(ERR_MESSAGE_MISUSE);
 		streamStorage.MRV.setAlwaysThrowException("retrieve", resourceNotFoundException);
@@ -364,6 +364,23 @@ public class DownloaderTest {
 					BINARY_RECORD_TYPE, SOME_RECORD_ID, JP2));
 			assertEquals(e.getCause(), resourceNotFoundException);
 		}
+	}
 
+	@Test
+	public void testDownloadStreamStorageOnDiskHasException() throws Exception {
+		var storageException = se.uu.ub.cora.storage.StorageException
+				.withMessage(ERR_MESSAGE_MISUSE);
+		streamStorage.MRV.setAlwaysThrowException("retrieve", storageException);
+
+		try {
+			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, JP2);
+			fail("It should throw an exception");
+		} catch (Exception e) {
+			assertTrue(e instanceof ResourceNotFoundException);
+			String errorNotFoundMessage = "Could not download the stream because it could not be found in storage. Type: {0}, id: {1} and representation: {2}";
+			assertEquals(e.getMessage(), MessageFormat.format(errorNotFoundMessage,
+					BINARY_RECORD_TYPE, SOME_RECORD_ID, JP2));
+			assertEquals(e.getCause(), storageException);
+		}
 	}
 }
