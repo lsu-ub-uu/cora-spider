@@ -226,7 +226,6 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void possiblyAddUploadAction(DataRecord dataRecord) {
-		// if (recordTypeHandler.isChildOfBinary()
 		if ("binary".equals(recordType)
 				&& userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("upload", recordType)) {
 			dataRecord.addAction(Action.UPLOAD);
@@ -267,7 +266,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		if (theDataBeeingTurnedIntoARecordIsARecordType()) {
 			RecordTypeHandler handledRecordTypeHandler = getRecordTypeHandlerForRecordType(
 					handledRecordId);
-			possiblyAddCreateAction(handledRecordTypeHandler, dataRecord);
+			possiblyAddCreateAction(dataRecord);
 			possiblyAddListAction(dataRecord);
 			possiblyAddValidateAction(dataRecord);
 			possiblyAddSearchAction(handledRecordTypeHandler, dataRecord);
@@ -285,8 +284,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return recordTypeHandler.representsTheRecordTypeDefiningRecordTypes();
 	}
 
-	private void possiblyAddCreateAction(RecordTypeHandler handledRecordTypeHandler,
-			DataRecord dataRecord) {
+	private void possiblyAddCreateAction(DataRecord dataRecord) {
 		if (userIsAuthorizedForActionOnRecordType("create", handledRecordId)) {
 			dataRecord.addAction(Action.CREATE);
 		}
@@ -366,7 +364,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void possiblyAddReadActionIfLink(DataChild dataChild) {
 		if (isLink(dataChild)) {
-			possiblyAddReadAction(dataChild);
+			possiblyAddReadActionToLink(dataChild);
 		}
 	}
 
@@ -382,7 +380,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return dataChild instanceof DataResourceLink;
 	}
 
-	private void possiblyAddReadAction(DataChild dataChild) {
+	private void possiblyAddReadActionToLink(DataChild dataChild) {
 		if (isAuthorizedToReadLink(dataChild)) {
 			((DataLink) dataChild).addAction(Action.READ);
 		}
@@ -392,7 +390,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		if (isRecordLink(dataChild)) {
 			return isAuthorizedToReadRecordLink((DataRecordLink) dataChild);
 		}
-		return isAuthorizedToReadResourceLink();
+		return isAuthorizedToReadResourceLink((DataResourceLink) dataChild);
 	}
 
 	private boolean isAuthorizedToReadRecordLink(DataRecordLink dataChild) {
@@ -451,8 +449,11 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return dataChild instanceof DataGroup;
 	}
 
-	private boolean isAuthorizedToReadResourceLink() {
-		return userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read", "binary");
+	private boolean isAuthorizedToReadResourceLink(DataResourceLink dataResourceLink) {
+		String resourceLinkNameInData = dataResourceLink.getNameInData();
+		String actionForResourceLink = "binary." + resourceLinkNameInData;
+		return userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read",
+				actionForResourceLink);
 	}
 
 	@Override
