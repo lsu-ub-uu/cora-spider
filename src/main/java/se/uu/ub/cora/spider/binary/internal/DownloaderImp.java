@@ -25,7 +25,10 @@ import java.text.MessageFormat;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -40,7 +43,7 @@ import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
 
 public final class DownloaderImp implements Downloader {
-	private static final String ACTION_DOWNLOAD = "download";
+	private static final String ACTION_READ = "read";
 	private static final String ERR_MESSAGE_MISUSE = "Downloading error: Invalid record type, "
 			+ "for type {0} and {1}, must be (binary).";
 	private List<String> allowedRepresentations = List.of("master", "thumbnail", "medium", "large",
@@ -53,14 +56,17 @@ public final class DownloaderImp implements Downloader {
 	private RecordStorage recordStorage;
 	private String type;
 	private String id;
+	private DataGroupTermCollector termCollector;
+	private SpiderDependencyProvider dependencyProvider;
 
 	private DownloaderImp(SpiderDependencyProvider dependencyProvider) {
+		this.dependencyProvider = dependencyProvider;
 		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
 		resourceArchive = dependencyProvider.getResourceArchive();
 		streamStorage = dependencyProvider.getStreamStorage();
-
+		termCollector = dependencyProvider.getDataGroupTermCollector();
 	}
 
 	public static Downloader usingDependencyProvider(
@@ -78,7 +84,6 @@ public final class DownloaderImp implements Downloader {
 		validateInput();
 		authenticateAndAuthorizeUser(authToken, type, representation);
 		return tryToReadRecordAndDownloadRepresentation(type, id, representation);
-
 	}
 
 	private void validateInput() {
@@ -100,14 +105,28 @@ public final class DownloaderImp implements Downloader {
 
 	private void authenticateAndAuthorizeUser(String authToken, String type, String resourceType) {
 		User user = authenticator.getUserForToken(authToken);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, ACTION_DOWNLOAD,
-				type + "." + resourceType);
+		// spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, ACTION_READ,
+		// type + "." + resourceType);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
+				ACTION_READ, type + "." + resourceType, null);
 	}
+	// private CollectTerms getCollectedTermsForRecordTypeAndRecord(String recordType,
+	// DataGroup dataGroup) {
+	// RecordTypeHandler recordTypeHandlerForRecordType = getRecordTypeHandlerForRecordType(
+	// recordType);
+	// String definitionId = recordTypeHandlerForRecordType.getDefinitionId();
+	// return termCollector.collectTerms(definitionId, dataGroup);
+	// }
 
 	private ResourceInputStream tryToReadRecordAndDownloadRepresentation(String type, String id,
 			String representation) {
 		try {
 			DataRecordGroup binaryRecordGroup = recordStorage.read(type, id);
+			DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(binaryRecordGroup);
+			RecordTypeHandler recordTypeHandler = dependencyProvider
+					.getRecordTypeHandlerUsingDataRecordGroup(binaryRecordGroup);
+			String definitionId = recordTypeHandler.getDefinitionId();
+			termCollector.collectTerms(definitionId, dataGroup);
 			return readRepresentation(type, id, representation, binaryRecordGroup);
 		} catch (se.uu.ub.cora.storage.RecordNotFoundException e) {
 			throw throwRecordNotFoundException(type, id, e);
