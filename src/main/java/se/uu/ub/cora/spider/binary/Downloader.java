@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.binary;
 
 import se.uu.ub.cora.spider.record.MisuseException;
+import se.uu.ub.cora.spider.record.RecordNotFoundException;
 
 public interface Downloader {
 
@@ -34,16 +35,15 @@ public interface Downloader {
 	 * If the authToken does not authenticate a {@link AuthenticationException} be thrown.
 	 * </p>
 	 * If the type is different than binary record type a {@link MisuseException} must be thrown,
-	 * indicating that the resource can not be uploaded with that type.
+	 * indicating that the resource can not be downloaded with that type.
 	 * </p>
-	 * If the inputStream does exits {@link DataMissingException} must be thrown, indicating no
-	 * resource can be uploaded.
+	 * If the representation requested is not valid a {@link MisuseException} must be thrown.
 	 * </p>
-	 * If the binary record related to the requested resource does not exist at NotFound must be
+	 * If the binary record related to the requested resource does not exist at link
+	 * {@link RecordNotFoundException} must be thrown.
+	 * </p>
+	 * If the resource cannot be found in storage a {@link ResourceNotFoundException} must be
 	 * thrown.
-	 * 
-	 * At this moment if resourceType is different than master a {@link MisuseException} will be
-	 * thrown
 	 * 
 	 * @param authToken
 	 *            A String with the authToken of the user that uploads a resource

@@ -33,7 +33,8 @@ import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.ResourceInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
-import se.uu.ub.cora.storage.RecordNotFoundException;
+import se.uu.ub.cora.spider.record.RecordNotFoundException;
+import se.uu.ub.cora.spider.record.ResourceNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
@@ -75,29 +76,8 @@ public final class DownloaderImp implements Downloader {
 		this.representation = representation;
 
 		validateInput();
-
 		authenticateAndAuthorizeUser(authToken, type, representation);
-
-		DataRecordGroup binaryRecordGroup = recordStorage.read(type, id);
-
-		String dataDivider = binaryRecordGroup.getDataDivider();
-
-		if ("master".equals(representation)) {
-			InputStream stream = resourceArchive.readMasterResource(dataDivider, type, id);
-			return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
-		}
-		try {
-			InputStream stream = streamStorage.retrieve(type + ":" + id + "-" + representation,
-					dataDivider);
-			return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
-		} catch (Exception e) {
-			String errorNotFoundMessage = "Could not download the stream because it could not be "
-					+ "found in storage. Type: {0}, id: {1} and representation: {2}";
-			String errorMessage = MessageFormat.format(errorNotFoundMessage, type, id,
-					representation);
-
-			throw RecordNotFoundException.withMessageAndException(errorMessage, e);
-		}
+		return tryToReadRecordAndDownloadRepresentation(type, id, representation);
 
 	}
 
@@ -122,6 +102,62 @@ public final class DownloaderImp implements Downloader {
 		User user = authenticator.getUserForToken(authToken);
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, ACTION_DOWNLOAD,
 				type + "." + resourceType);
+	}
+
+	private ResourceInputStream tryToReadRecordAndDownloadRepresentation(String type, String id,
+			String representation) {
+		try {
+			DataRecordGroup binaryRecordGroup = recordStorage.read(type, id);
+			return readRepresentation(type, id, representation, binaryRecordGroup);
+		} catch (se.uu.ub.cora.storage.RecordNotFoundException e) {
+			throw throwRecordNotFoundException(type, id, e);
+		} catch (se.uu.ub.cora.storage.ResourceNotFoundException e) {
+			throw throwResourceNotFoundException(type, id, representation, e);
+		}
+	}
+
+	private RecordNotFoundException throwRecordNotFoundException(String type, String id,
+			se.uu.ub.cora.storage.RecordNotFoundException e) {
+		String errorMessage = MessageFormat
+				.format("Could not find record with type: {0} and id:" + " {1}", type, id);
+		return RecordNotFoundException.withMessageAndException(errorMessage, e);
+	}
+
+	private ResourceNotFoundException throwResourceNotFoundException(String type, String id,
+			String representation, se.uu.ub.cora.storage.ResourceNotFoundException e) {
+		String errorMessage = MessageFormat.format(
+				"Could not download the stream because it could not be "
+						+ "found in storage. Type: {0}, id: {1} and representation: {2}",
+				type, id, representation);
+		return ResourceNotFoundException.withMessageAndException(errorMessage, e);
+	}
+
+	private ResourceInputStream readRepresentation(String type, String id, String representation,
+			DataRecordGroup binaryRecordGroup) {
+		String dataDivider = binaryRecordGroup.getDataDivider();
+		if (isMasterRepresentation(representation)) {
+			return readMasterRepresentation(type, id, representation, binaryRecordGroup,
+					dataDivider);
+		}
+		return readConvertedRepresentation(type, id, representation, binaryRecordGroup,
+				dataDivider);
+	}
+
+	private boolean isMasterRepresentation(String representation) {
+		return "master".equals(representation);
+	}
+
+	private ResourceInputStream readConvertedRepresentation(String type, String id,
+			String representation, DataRecordGroup binaryRecordGroup, String dataDivider) {
+		InputStream stream = streamStorage.retrieve(type + ":" + id + "-" + representation,
+				dataDivider);
+		return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
+	}
+
+	private ResourceInputStream readMasterRepresentation(String type, String id,
+			String representation, DataRecordGroup binaryRecordGroup, String dataDivider) {
+		InputStream stream = resourceArchive.readMasterResource(dataDivider, type, id);
+		return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
 	}
 
 	private ResourceInputStream prepareResponseForResourceInputStream(String representation,
