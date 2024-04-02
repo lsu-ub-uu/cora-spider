@@ -13,6 +13,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binary.BinaryProvider;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.collected.CollectTerms;
@@ -72,15 +73,13 @@ public class UploaderTest {
 	private RecordUpdaterSpy recordUpdater;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
-
 	private ResourceArchiveSpy resourceArchive;
 	private RecordStorageSpy recordStorage;
-	private Uploader uploader;
+	private UploaderImp uploader;
 	private DataGroupTermCollectorSpy termCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private SpiderInstanceFactorySpy spiderInstanceFactory;
 	private DataFactorySpy dataFactorySpy;
-
 	private RecordTypeHandlerSpy recordTypeHandler;
 	private LoggerFactory loggerFactory;
 	private ContentAnalyzerInstanceProviderSpy contentAnalyzeInstanceProviderSpy;
@@ -90,7 +89,6 @@ public class UploaderTest {
 
 	@BeforeMethod
 	public void beforeMethod() {
-
 		mimeTypeToBinaryType = new MimeTypeToBinaryTypeSpy();
 
 		dependencyProvider = new SpiderDependencyProviderSpy();
@@ -364,7 +362,6 @@ public class UploaderTest {
 
 	private void assertMasterIsCorrect(DataRecordGroupSpy readBinarySpy,
 			String resourceTypeMaster) {
-
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, resourceTypeMaster);
 
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "resourceId",
@@ -401,6 +398,8 @@ public class UploaderTest {
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 3);
 		DataAtomicSpy checksumType = (DataAtomicSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 4);
+		DataChild originalFileName = (DataChild) readBinarySpy.MCR
+				.getReturnValue("getFirstChildWithNameInData", 0);
 
 		readBinarySpy.MCR.assertParameters("addChild", 0, master);
 		master.MCR.assertParameters("addChild", 0, resourceId);
@@ -409,7 +408,7 @@ public class UploaderTest {
 		master.MCR.assertParameters("addChild", 3, mimeType);
 		master.MCR.assertParameters("addChild", 4, checksum);
 		master.MCR.assertParameters("addChild", 5, checksumType);
-
+		master.MCR.assertParameters("addChild", 6, originalFileName);
 	}
 
 	private void assertRemoveExpectedFieldsFromBinaryRecord(DataRecordGroupSpy readBinarySpy) {
@@ -433,7 +432,6 @@ public class UploaderTest {
 
 	@Test
 	public void testResourceReadFromArchiveSentToContentAnalyzer() throws Exception {
-
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
@@ -448,7 +446,6 @@ public class UploaderTest {
 
 	@Test
 	public void testReadResourceMetadataCalled() throws Exception {
-
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
@@ -504,6 +501,7 @@ public class UploaderTest {
 
 		resourceConvert.MCR.assertParameters("sendMessageForAnalyzingAndConvertingImages", 0,
 				dataDivider, BINARY_RECORD_TYPE, SOME_RECORD_ID, "image/whatever");
+		resourceConvert.MCR.assertMethodNotCalled("sendMessageToConvertPdfToThumbnails");
 	}
 
 	private void createContentAnalyzerUsingMediaTypeToReturn(String mediaType) {
@@ -526,15 +524,16 @@ public class UploaderTest {
 
 		resourceConvert.MCR.assertParameters("sendMessageToConvertPdfToThumbnails", 0, dataDivider,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID);
+		resourceConvert.MCR.assertMethodNotCalled("sendMessageForAnalyzingAndConvertingImages");
 	}
 
 	@Test
-	public void testUploadOtherThanImageIsNotSentToAnalyzeAncConvert() throws Exception {
-
+	public void testUploadOtherThanImageIsNotSentToAnalyzeAndConvert() throws Exception {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
 		resourceConvert.MCR.assertMethodNotCalled("sendMessageForAnalyzingAndConvertingImages");
+		resourceConvert.MCR.assertMethodNotCalled("sendMessageToConvertPdfToThumbnails");
 	}
 
 	@Test
@@ -626,5 +625,20 @@ public class UploaderTest {
 				RESOURCE_TYPE_MASTER);
 		resourceArchive.MCR.assertMethodNotCalled("delete");
 		resourceArchive.MCR.assertMethodWasCalled("readMasterResource");
+	}
+
+	@Test
+	public void testOnlyForTestGetResourceConvert() throws Exception {
+		assertEquals(uploader.onlyForTestGetResourceConvert(), resourceConvert);
+	}
+
+	@Test
+	public void testOnlyForTestGetDependencyConverter() throws Exception {
+		assertEquals(uploader.onlyForTestGetDependecyProvider(), dependencyProvider);
+	}
+
+	@Test
+	public void testOnlyForTestGetMimeTypeToBinaryConvert() throws Exception {
+		assertEquals(uploader.onlyForTestGetMimeTypeToBinaryTypeConvert(), mimeTypeToBinaryType);
 	}
 }
