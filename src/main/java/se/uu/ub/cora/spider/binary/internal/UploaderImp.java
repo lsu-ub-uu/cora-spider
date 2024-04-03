@@ -170,7 +170,7 @@ public final class UploaderImp implements Uploader {
 			String expectedData, String archiveData) {
 		resourceArchive.delete(dataDivider, type, id);
 		return ArchiveDataIntergrityException.withMessage(MessageFormat.format(
-				"The {0} verification of uploaded data failed: the actual value was: {1} but the expected value was: {2}",
+				"The {0} verification of uploaded data failed: the actual value was: {1} but the expected value was: {2}.",
 				expectType, archiveData, expectedData));
 
 	}

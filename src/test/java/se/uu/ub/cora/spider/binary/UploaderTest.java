@@ -562,7 +562,7 @@ public class UploaderTest {
 		} catch (Exception e) {
 			assertTrue(e instanceof ArchiveDataIntergrityException);
 			assertEquals(e.getMessage(), "The file size verification of uploaded data failed: the "
-					+ "actual value was: someFileSize but the expected value was: expectedFileSize");
+					+ "actual value was: someFileSize but the expected value was: expectedFileSize.");
 			resourceArchive.MCR.assertMethodWasCalled("delete");
 			resourceArchive.MCR.assertMethodNotCalled("readMasterResource");
 		}
@@ -607,7 +607,7 @@ public class UploaderTest {
 		} catch (Exception e) {
 			assertTrue(e instanceof ArchiveDataIntergrityException);
 			assertEquals(e.getMessage(), "The checksum verification of uploaded data failed: the "
-					+ "actual value was: someChecksumSHA512 but the expected value was: expectedChecksum");
+					+ "actual value was: someChecksumSHA512 but the expected value was: expectedChecksum.");
 			resourceArchive.MCR.assertMethodWasCalled("delete");
 			resourceArchive.MCR.assertMethodNotCalled("readMasterResource");
 		}
