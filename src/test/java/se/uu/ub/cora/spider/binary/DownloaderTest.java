@@ -373,7 +373,7 @@ public class DownloaderTest {
 	}
 
 	@Test
-	public void testDownloadStreamStorageHasException() throws Exception {
+	public void testDownloadStreamOnFedoraStorageHasException() throws Exception {
 		var resourceNotFoundException = se.uu.ub.cora.storage.ResourceNotFoundException
 				.withMessage(ERR_MESSAGE_MISUSE);
 		streamStorage.MRV.setAlwaysThrowException("retrieve", resourceNotFoundException);

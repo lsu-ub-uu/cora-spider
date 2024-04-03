@@ -128,6 +128,7 @@ public final class DownloaderImp implements Downloader {
 			String definitionId = recordTypeHandler.getDefinitionId();
 			termCollector.collectTerms(definitionId, dataGroup);
 			return readRepresentation(type, id, representation, binaryRecordGroup);
+
 		} catch (se.uu.ub.cora.storage.RecordNotFoundException e) {
 			throw throwRecordNotFoundException(type, id, e);
 		} catch (se.uu.ub.cora.storage.ResourceNotFoundException e) {
