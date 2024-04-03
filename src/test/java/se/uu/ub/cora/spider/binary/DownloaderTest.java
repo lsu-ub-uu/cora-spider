@@ -1,6 +1,6 @@
 /*
+ * Copyright 2016, 2017, 2019, 2023, 2024 Uppsala University Library
  * Copyright 2016 Olov McKie
- * Copyright 2016, 2017, 2019, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -271,7 +271,7 @@ public class DownloaderTest {
 
 		authorizator.MCR.assertParameters(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, user, ACTION_READ,
-				BINARY_RECORD_TYPE + "." + MASTER);
+				BINARY_RECORD_TYPE + "." + MASTER, collectedTerms.permissionTerms);
 	}
 
 	@Test
