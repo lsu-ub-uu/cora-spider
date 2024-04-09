@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.spider.binary.iiif.internal;
 
+import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.beefeater.authentication.User;
@@ -30,8 +31,9 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.binary.iiif.IiifResponse;
@@ -40,6 +42,9 @@ import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class IiifReaderImp implements IiifReader {
+
+	private static final String ACTION_READ = "read";
+	private static final String JP2_REPRESENTATION = "binary.jp2";
 
 	private SpiderDependencyProvider dependencyProvider;
 	private Authenticator authenticator;
@@ -71,20 +76,9 @@ public class IiifReaderImp implements IiifReader {
 
 	private IiifResponse tryToReadIiif(String recordId, String requestedUri, String method,
 			Map<String, String> headersMap) {
-		User userForToken = authenticator.getUserForToken(headersMap.get("authToken"));
 		DataRecordGroup binaryRecordGroup = readBinaryRecord(recordId);
-		String definitionId = getDefinitionId(binaryRecordGroup);
 
-		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(binaryRecordGroup);
-
-		termCollector.collectTerms(definitionId, dataGroup);
-
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(userForToken,
-				null, null, null);
-		// spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-		// ACTION_READ, type + "." + representation, permissionTerms);
-
-		throwErrorIfNotAuthorizedToCallIiifForRecord(binaryRecordGroup);
+		authenticateAndAuthorizeUser(headersMap, binaryRecordGroup);
 
 		throwNotFoundExceptionIfJP2DoesNotExist(binaryRecordGroup);
 
@@ -92,13 +86,30 @@ public class IiifReaderImp implements IiifReader {
 				headersMap, binaryRecordGroup.getDataDivider());
 		return callIiifServer(iiifParameters);
 	}
-	// private List<PermissionTerm> getPermissionTerms(DataRecordGroup binaryRecordGroup) {
-	// DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(binaryRecordGroup);
-	// String definitionId = getDefinitionId(binaryRecordGroup);
-	//
-	// CollectTerms collectTerms = termCollector.collectTerms(definitionId, dataGroup);
-	// return collectTerms.permissionTerms;
-	// }
+
+	private DataRecordGroup readBinaryRecord(String recordId) {
+		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
+		return recordStorage.read("binary", recordId);
+	}
+
+	private void authenticateAndAuthorizeUser(Map<String, String> headersMap,
+			DataRecordGroup binaryRecordGroup) {
+		User user = getUserFromToken(headersMap);
+		List<PermissionTerm> permissionTerms = getPermissionTerms(binaryRecordGroup);
+
+		checkIfUserIsAuthorized(user, permissionTerms);
+	}
+
+	private User getUserFromToken(Map<String, String> headersMap) {
+		return authenticator.getUserForToken(headersMap.get("authToken"));
+	}
+
+	private List<PermissionTerm> getPermissionTerms(DataRecordGroup binaryRecordGroup) {
+		String definitionId = getDefinitionId(binaryRecordGroup);
+		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(binaryRecordGroup);
+		CollectTerms collectTerms = termCollector.collectTerms(definitionId, dataGroup);
+		return collectTerms.permissionTerms;
+	}
 
 	private String getDefinitionId(DataRecordGroup binaryRecordGroup) {
 		RecordTypeHandler recordTypeHandler = dependencyProvider
@@ -106,11 +117,9 @@ public class IiifReaderImp implements IiifReader {
 		return recordTypeHandler.getDefinitionId();
 	}
 
-	private IiifParameters createIiifParameters(String recordId, String requestedUri, String method,
-			Map<String, String> headersMap, String dataDivider) {
-		String identifier = "binary:" + recordId;
-		String uri = String.join("/", dataDivider, identifier, requestedUri);
-		return new IiifParameters(uri, method, headersMap);
+	private void checkIfUserIsAuthorized(User user, List<PermissionTerm> permissionTerms) {
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
+				ACTION_READ, JP2_REPRESENTATION, permissionTerms);
 	}
 
 	private void throwNotFoundExceptionIfJP2DoesNotExist(DataRecordGroup binaryRecordGroup) {
@@ -121,33 +130,18 @@ public class IiifReaderImp implements IiifReader {
 		}
 	}
 
+	private IiifParameters createIiifParameters(String recordId, String requestedUri, String method,
+			Map<String, String> headersMap, String dataDivider) {
+		String identifier = "binary:" + recordId;
+		String uri = String.join("/", dataDivider, identifier, requestedUri);
+		return new IiifParameters(uri, method, headersMap);
+	}
+
 	private IiifResponse callIiifServer(IiifParameters iiifParameters) {
 		IiifAdapter iiifAdapter = BinaryProvider.getIiifAdapter();
 		IiifAdapterResponse adapterResponse = iiifAdapter.callIiifServer(iiifParameters);
 		return new IiifResponse(adapterResponse.status(), adapterResponse.headers(),
 				adapterResponse.body());
-	}
-
-	private void throwErrorIfNotAuthorizedToCallIiifForRecord(DataRecordGroup binaryRecordGroup) {
-		if (isNotPublic(binaryRecordGroup)) {
-			throw exceptionNotAuthorized(binaryRecordGroup.getId());
-		}
-	}
-
-	private boolean isNotPublic(DataRecordGroup binaryRecordGroup) {
-		DataGroup adminInfo = binaryRecordGroup.getFirstGroupWithNameInData("adminInfo");
-		String visibility = adminInfo.getFirstAtomicValueWithNameInData("visibility");
-		return !"published".equals(visibility);
-	}
-
-	private AuthorizationException exceptionNotAuthorized(String recordId) {
-		String notAuthorizedMessage = "Not authorized to read binary record with id: " + recordId;
-		return new AuthorizationException(notAuthorizedMessage);
-	}
-
-	private DataRecordGroup readBinaryRecord(String recordId) {
-		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		return recordStorage.read("binary", recordId);
 	}
 
 	public Object onlyForTestGetDependencyProvider() {

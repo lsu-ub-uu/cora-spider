@@ -36,6 +36,7 @@ import se.uu.ub.cora.binary.BinaryProvider;
 import se.uu.ub.cora.binary.iiif.IiifAdapterResponse;
 import se.uu.ub.cora.binary.iiif.IiifParameters;
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
@@ -53,6 +54,8 @@ import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class IiifReaderTest {
 
+	private static final String ACTION_READ = "read";
+	private static final String JP2_REPRESENTATION = "binary.jp2";
 	private static final String SOME_METHOD = "someMethod";
 	private static final String SOME_REQUESTED_URI = "someRequestedUri";
 	private static final String VISIBILITY = "visibility";
@@ -163,27 +166,27 @@ public class IiifReaderTest {
 		assertSame(readerImp.onlyForTestGetDependencyProvider(), dependencyProvider);
 	}
 
-	@Test
-	public void testReadImageNotPublishedThrowAuthorizationException() throws Exception {
-		setVisibilityInAdminInfoInBinaryRecord("hidden");
-		try {
-			reader.readIiif(SOME_IDENTIFIER, null, null, headersMap);
-			fail("it should throw exception");
-		} catch (Exception error) {
-			assertAuthorizationExceptionWithCorrectMessage(error);
+	// @Test
+	// public void testReadImageNotPublishedThrowAuthorizationException() throws Exception {
+	// setVisibilityInAdminInfoInBinaryRecord("hidden");
+	// try {
+	// reader.readIiif(SOME_IDENTIFIER, null, null, headersMap);
+	// fail("it should throw exception");
+	// } catch (Exception error) {
+	// assertAuthorizationExceptionWithCorrectMessage(error);
+	//
+	// dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
+	// recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);
+	//
+	// iiifInstanceProvider.MCR.assertMethodNotCalled("getIiifAdapter");
+	// }
+	// }
 
-			dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
-			recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);
-
-			iiifInstanceProvider.MCR.assertMethodNotCalled("getIiifAdapter");
-		}
-	}
-
-	private void assertAuthorizationExceptionWithCorrectMessage(Exception error) {
-		assertTrue(error instanceof AuthorizationException);
-		assertEquals(error.getMessage(),
-				"Not authorized to read binary record with id: " + SOME_IDENTIFIER);
-	}
+	// private void assertAuthorizationExceptionWithCorrectMessage(Exception error) {
+	// assertTrue(error instanceof AuthorizationException);
+	// assertEquals(error.getMessage(),
+	// "Not authorized to read binary record with id: " + SOME_IDENTIFIER);
+	// }
 
 	@Test
 	public void testReadImageNotFoundThrowRecordNotFoundException() throws Exception {
@@ -269,7 +272,7 @@ public class IiifReaderTest {
 	}
 
 	@Test
-	public void testName() throws Exception {
+	public void testReadIiifAsAuthorizedUser() throws Exception {
 		setVisibilityInAdminInfoInBinaryRecord("published");
 		reader.readIiif(SOME_IDENTIFIER, SOME_REQUESTED_URI, SOME_METHOD, headersMap);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
@@ -286,9 +289,28 @@ public class IiifReaderTest {
 		var binaryGroup = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup", 0);
 
 		termCollectorSpy.MCR.assertParameters("collectTerms", 0, definitionId, binaryGroup);
+
+		CollectTerms terms = (CollectTerms) termCollectorSpy.MCR.getReturnValue("collectTerms", 0);
+
 		var user = authenticator.MCR.getReturnValue("getUserForToken", 0);
 		authorizator.MCR.assertParameters(
-				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, user);
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, user, ACTION_READ,
+				JP2_REPRESENTATION, terms.permissionTerms);
+	}
+
+	@Test
+	public void testThrowAuthorizationExceptionThrownIfUnAuthorized() throws Exception {
+		String errorMessage = "someExceptionMessage";
+		authorizator.MRV.setAlwaysThrowException(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData",
+				new AuthorizationException(errorMessage));
+		try {
+			reader.readIiif(SOME_IDENTIFIER, SOME_REQUESTED_URI, SOME_METHOD, headersMap);
+			fail();
+		} catch (Exception error) {
+			assertTrue(error instanceof AuthorizationException);
+			assertEquals(error.getMessage(), errorMessage);
+		}
 	}
 
 	@Test
