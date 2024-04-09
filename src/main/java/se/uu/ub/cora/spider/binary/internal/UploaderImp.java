@@ -40,6 +40,7 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.binary.ArchiveDataIntergrityException;
 import se.uu.ub.cora.spider.binary.Uploader;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -53,6 +54,9 @@ import se.uu.ub.cora.storage.archive.ResourceMetadata;
 import se.uu.ub.cora.storage.archive.record.ResourceMetadataToUpdate;
 
 public final class UploaderImp implements Uploader {
+	private static final String ORIGINAL_FILE_NAME = "originalFileName";
+	private static final String EXPECTED_CHECKSUM = "expectedChecksum";
+	private static final String EXPECTED_FILE_SIZE = "expectedFileSize";
 	private static final String MASTER = "master";
 	private static final String BINARY_RECORD_TYPE = "binary";
 	private static final String MIME_TYPE_GENERIC = "application/octet-stream";
@@ -118,10 +122,12 @@ public final class UploaderImp implements Uploader {
 
 		storeResourceStreamInArchive(resourceStream);
 
+		verifyArchiveDataIntegrity(dataRecordGroup);
+
 		String detectedMimeType = detectMimeTypeFromResourceInArchive(dataDivider);
 
 		String originalFileName = dataRecordGroup
-				.getFirstAtomicValueWithNameInData("originalFileName");
+				.getFirstAtomicValueWithNameInData(ORIGINAL_FILE_NAME);
 		updateOriginalFileNameAndMimeTypeInArchive(originalFileName, detectedMimeType);
 
 		// uppdatera posten i storage
@@ -133,6 +139,57 @@ public final class UploaderImp implements Uploader {
 		// send message for "Read metadata and convert to small formats"
 		possiblySendToConvert(detectedMimeType);
 		return updatedRecord;
+	}
+
+	private void verifyArchiveDataIntegrity(DataRecordGroup dataRecordGroup) {
+		ResourceMetadata resourceMetadata = resourceArchive.readMasterResourceMetadata(dataDivider,
+				type, id);
+		possiblyVerifyExpectedFileSize(dataRecordGroup, resourceMetadata);
+		possiblyVerifyExpectedChecksum(dataRecordGroup, resourceMetadata);
+	}
+
+	private void possiblyVerifyExpectedFileSize(DataRecordGroup dataRecordGroup,
+			ResourceMetadata resourceMetadata) {
+		if (dataRecordGroup.containsChildWithNameInData(EXPECTED_FILE_SIZE)) {
+			verifyExpectedFileSize(dataRecordGroup, resourceMetadata);
+		}
+	}
+
+	private void verifyExpectedFileSize(DataRecordGroup dataRecordGroup,
+			ResourceMetadata resourceMetadata) {
+		String expectedFileSize = dataRecordGroup
+				.getFirstAtomicValueWithNameInData(EXPECTED_FILE_SIZE);
+		String archiveFileSize = resourceMetadata.fileSize();
+		if (!expectedFileSize.equals(archiveFileSize)) {
+			throw deleteArchiveDataAndThrowException("file size", expectedFileSize,
+					archiveFileSize);
+		}
+	}
+
+	private ArchiveDataIntergrityException deleteArchiveDataAndThrowException(String expectType,
+			String expectedData, String archiveData) {
+		resourceArchive.delete(dataDivider, type, id);
+		return ArchiveDataIntergrityException.withMessage(MessageFormat.format(
+				"The {0} verification of uploaded data failed: the actual value was: {1} but the expected value was: {2}.",
+				expectType, archiveData, expectedData));
+
+	}
+
+	private void possiblyVerifyExpectedChecksum(DataRecordGroup dataRecordGroup,
+			ResourceMetadata resourceMetadata) {
+		if (dataRecordGroup.containsChildWithNameInData(EXPECTED_CHECKSUM)) {
+			verifyExpectedChecksum(dataRecordGroup, resourceMetadata);
+		}
+	}
+
+	private void verifyExpectedChecksum(DataRecordGroup dataRecordGroup,
+			ResourceMetadata resourceMetadata) {
+		String expectedChecksum = dataRecordGroup
+				.getFirstAtomicValueWithNameInData(EXPECTED_CHECKSUM);
+		String archiveChecksum = resourceMetadata.checksumSHA512();
+		if (!expectedChecksum.equals(archiveChecksum)) {
+			throw deleteArchiveDataAndThrowException("checksum", expectedChecksum, archiveChecksum);
+		}
 	}
 
 	private void possiblySendToConvert(String detectedMimeType) {
@@ -212,12 +269,9 @@ public final class UploaderImp implements Uploader {
 
 	private void ensureResourceStreamExists() {
 		if (null == resourceStream) {
-			throw new DataMissingException(
-
-					MessageFormat.format(
-							"Uploading error: Nothing to "
-									+ "upload, resource stream is missing for type {0} and id {1}.",
-							type, id));
+			throw new DataMissingException(MessageFormat.format(
+					"Uploading error: Nothing to upload, resource stream is missing for type {0} and id {1}.",
+					type, id));
 		}
 	}
 
@@ -272,9 +326,9 @@ public final class UploaderImp implements Uploader {
 		masterGroup.addChild(checksumType);
 
 		DataChild originalFileName = dataRecordGroup
-				.getFirstChildWithNameInData("originalFileName");
+				.getFirstChildWithNameInData(ORIGINAL_FILE_NAME);
 		masterGroup.addChild(originalFileName);
-		dataRecordGroup.removeFirstChildWithNameInData("originalFileName");
+		dataRecordGroup.removeFirstChildWithNameInData(ORIGINAL_FILE_NAME);
 
 		dataRecordGroup.addAttributeByIdWithValue("type",
 				mimeTypeToBinaryType.toBinaryType(detectedMimeType));
@@ -300,8 +354,8 @@ public final class UploaderImp implements Uploader {
 	}
 
 	private void removeExpectedAtomicsFromBinaryRecord(DataRecordGroup dataRecordGroup) {
-		dataRecordGroup.removeFirstChildWithNameInData("expectedFileSize");
-		dataRecordGroup.removeFirstChildWithNameInData("expectedChecksum");
+		dataRecordGroup.removeFirstChildWithNameInData(EXPECTED_FILE_SIZE);
+		dataRecordGroup.removeFirstChildWithNameInData(EXPECTED_CHECKSUM);
 	}
 
 	public ResourceConvert onlyForTestGetResourceConvert() {

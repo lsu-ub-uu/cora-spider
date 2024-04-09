@@ -201,7 +201,6 @@ public class DataGroupToRecordEnhancerTest {
 				dataGroup);
 		return ((CollectTerms) termCollectorSpy.MCR.getReturnValue("collectTerms",
 				0)).permissionTerms;
-
 	}
 
 	@Test
@@ -1450,7 +1449,6 @@ public class DataGroupToRecordEnhancerTest {
 
 		assertTrue(call1.contains("someRecordType.someReadMetadataId"));
 		assertTrue(call2.contains("someRecordType.someWriteMetadataId"));
-
 	}
 
 	@Test
@@ -1674,10 +1672,14 @@ public class DataGroupToRecordEnhancerTest {
 		String recordType = "dataWithResourceLinks";
 		DataGroup dataGroup = recordStorage.read(List.of(recordType), "oneResourceLinkTopLevel");
 		dataRedactor.returnDataGroup = dataGroup;
-		authorizator.setNotAutorizedForActionOnRecordType(READ, "binary");
+		String resourceLinkNameInData = "link";
+		String actionForResourceLink = "binary." + resourceLinkNameInData;
+		authorizator.setNotAutorizedForActionOnRecordType(READ, actionForResourceLink);
 
 		DataRecord record = enhancer.enhance(user, recordType, dataGroup, dataRedactor);
 
+		authorizator.MCR.assertParameter("userIsAuthorizedForActionOnRecordTypeAndCollectedData", 2,
+				"recordType", actionForResourceLink);
 		RecordLinkTestsAsserter.assertTopLevelResourceLinkDoesNotContainReadAction(record);
 	}
 
@@ -1837,7 +1839,6 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(DataRecord record) {
-
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 4);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "dataWithLinks");
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "recordType");
@@ -1944,7 +1945,6 @@ public class DataGroupToRecordEnhancerTest {
 
 		assertTopLevelTwoLinksDoesNotContainReadAction(record);
 		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
-
 	}
 
 	@Test

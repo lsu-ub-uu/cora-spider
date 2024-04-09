@@ -1,6 +1,6 @@
 /*
+ * Copyright 2016, 2017, 2019, 2023, 2024 Uppsala University Library
  * Copyright 2016 Olov McKie
- * Copyright 2016, 2017, 2019, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -31,18 +31,22 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.internal.DownloaderImp;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.MisuseException;
+import se.uu.ub.cora.spider.record.RecordNotFoundException;
+import se.uu.ub.cora.spider.record.ResourceNotFoundException;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.spy.StreamStorageSpy;
-import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.storage.spies.archive.ResourceArchiveSpy;
 
@@ -57,7 +61,7 @@ public class DownloaderTest {
 	private static final String SOME_RECORD_ID = "someId";
 	private static final String SOME_AUTH_TOKEN = "someAuthToken";
 	private static final String BINARY_RECORD_TYPE = "binary";
-	private static final String ACTION_DOWNLOAD = "download";
+	private static final String ACTION_READ = "read";
 	private static final String SOME_REPRESENTATION = "someOtherResourceType";
 	private static final String SOME_EXCEPTION_MESSAGE = "someExceptionMessage";
 	private static final String SOME_RECORD_TYPE = "someRecordType";
@@ -139,7 +143,7 @@ public class DownloaderTest {
 	}
 
 	@Test
-	public void testDownloadMustReturnNonEmptyInputSreamInit() {
+	public void testDownloadMustReturnNonEmptyInputStreamInit() {
 		var downloadedResource = downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE,
 				SOME_RECORD_ID, MASTER);
 		assertNotNull(downloadedResource);
@@ -167,19 +171,38 @@ public class DownloaderTest {
 	}
 
 	@Test
+	public void testMasterResourceNotFound() throws Exception {
+		var resourceNotFoundException = se.uu.ub.cora.storage.ResourceNotFoundException
+				.withMessage(ERR_MESSAGE_MISUSE);
+		resourceArchive.MRV.setAlwaysThrowException("readMasterResource",
+				resourceNotFoundException);
+
+		try {
+			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
+			fail("It should throw a resourceNotFoundException");
+		} catch (Exception e) {
+			assertTrue(e instanceof ResourceNotFoundException);
+			String errorNotFoundMessage = "Could not download the stream because it could not be"
+					+ " found in storage. Type: {0}, id: {1} and representation: {2}";
+			assertEquals(e.getMessage(), MessageFormat.format(errorNotFoundMessage,
+					BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER));
+			assertEquals(e.getCause(), resourceNotFoundException);
+		}
+	}
+
+	@Test
 	public void testReadRecordNotFound() throws Exception {
-		// TODO: We should use an exception from Spider.
 		recordStorage.MRV.setAlwaysThrowException("read",
-				RecordNotFoundException.withMessage(SOME_EXCEPTION_MESSAGE));
+				se.uu.ub.cora.storage.RecordNotFoundException.withMessage(SOME_EXCEPTION_MESSAGE));
 		try {
 			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
 			fail("It should throw Exception");
 		} catch (Exception e) {
-			assertTrue(e instanceof RecordNotFoundException,
-					"AuthenticationException should be thrown");
-			assertEquals(e.getMessage(), SOME_EXCEPTION_MESSAGE);
+			assertTrue(e instanceof RecordNotFoundException);
+			assertEquals(e.getMessage(), "Could not find record with type: " + BINARY_RECORD_TYPE
+					+ " and id: " + SOME_RECORD_ID);
+			assertEquals(e.getCause().getMessage(), SOME_EXCEPTION_MESSAGE);
 		}
-
 	}
 
 	@Test
@@ -206,7 +229,8 @@ public class DownloaderTest {
 
 	@Test
 	public void testUploadUserNotAuthorizated() throws Exception {
-		authorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForActionOnRecordType",
+		authorizator.MRV.setAlwaysThrowException(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData",
 				new AuthorizationException(SOME_EXCEPTION_MESSAGE));
 		try {
 			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
@@ -225,8 +249,29 @@ public class DownloaderTest {
 		var user = authenticator.MCR.getReturnValue("getUserForToken", 0);
 
 		dependencyProvider.MCR.assertParameters("getSpiderAuthorizator", 0);
-		authorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0, user,
-				ACTION_DOWNLOAD, BINARY_RECORD_TYPE + "." + MASTER);
+		dependencyProvider.MCR.assertMethodWasCalled("getDataGroupTermCollector");
+
+		DataRecordGroupSpy binaryRecordGroup = (DataRecordGroupSpy) recordStorage.MCR
+				.getReturnValue("read", 0);
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
+				binaryRecordGroup);
+		RecordTypeHandlerSpy recordTypeHandlerSpy = (RecordTypeHandlerSpy) dependencyProvider.MCR
+				.getReturnValue("getRecordTypeHandlerUsingDataRecordGroup", 0);
+		var definitionId = recordTypeHandlerSpy.MCR.getReturnValue("getDefinitionId", 0);
+
+		DataGroupTermCollectorSpy termCollector = (DataGroupTermCollectorSpy) dependencyProvider.MCR
+				.getReturnValue("getDataGroupTermCollector", 0);
+
+		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0, binaryRecordGroup);
+		var dataGroup = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup", 0);
+
+		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, dataGroup);
+		CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
+				.getReturnValue("collectTerms", 0);
+
+		authorizator.MCR.assertParameters(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, user, ACTION_READ,
+				BINARY_RECORD_TYPE + "." + MASTER, collectedTerms.permissionTerms);
 	}
 
 	@Test
@@ -245,7 +290,8 @@ public class DownloaderTest {
 
 	private void ensureNoDownloadLogicStarts() {
 		authenticator.MCR.assertMethodNotCalled("getUserForToken");
-		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForActionOnRecordType");
+		authorizator.MCR.assertMethodNotCalled(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
 		recordStorage.MCR.assertMethodNotCalled("read");
 		resourceArchive.MCR.assertMethodNotCalled("create");
 	}
@@ -266,11 +312,9 @@ public class DownloaderTest {
 
 	@Test
 	public void testReturnCorrectInfoForMaster() throws Exception {
-
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
 		assertReturnedDataFromCorrectResourceType(MASTER, resourceDownloaded);
-
 	}
 
 	private void assertReturnedDataFromCorrectResourceType(String resourceType,
@@ -329,20 +373,20 @@ public class DownloaderTest {
 	}
 
 	@Test
-	public void testDownloadStreamStorageHasException() throws Exception {
-		RuntimeException runtimeException = new RuntimeException();
-		streamStorage.MRV.setAlwaysThrowException("retrieve", runtimeException);
+	public void testDownloadStreamOnFedoraStorageHasException() throws Exception {
+		var resourceNotFoundException = se.uu.ub.cora.storage.ResourceNotFoundException
+				.withMessage(ERR_MESSAGE_MISUSE);
+		streamStorage.MRV.setAlwaysThrowException("retrieve", resourceNotFoundException);
 
 		try {
 			downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, JP2);
 			fail("It should throw an exception");
 		} catch (Exception e) {
-			assertTrue(e instanceof RecordNotFoundException);
+			assertTrue(e instanceof ResourceNotFoundException);
 			String errorNotFoundMessage = "Could not download the stream because it could not be found in storage. Type: {0}, id: {1} and representation: {2}";
 			assertEquals(e.getMessage(), MessageFormat.format(errorNotFoundMessage,
 					BINARY_RECORD_TYPE, SOME_RECORD_ID, JP2));
-			assertEquals(e.getCause(), runtimeException);
+			assertEquals(e.getCause(), resourceNotFoundException);
 		}
-
 	}
 }
