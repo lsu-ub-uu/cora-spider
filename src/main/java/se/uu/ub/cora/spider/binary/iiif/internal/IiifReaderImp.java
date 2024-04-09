@@ -20,13 +20,19 @@ package se.uu.ub.cora.spider.binary.iiif.internal;
 
 import java.util.Map;
 
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.binary.BinaryProvider;
 import se.uu.ub.cora.binary.iiif.IiifAdapter;
 import se.uu.ub.cora.binary.iiif.IiifAdapterResponse;
 import se.uu.ub.cora.binary.iiif.IiifParameters;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
+import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.binary.iiif.IiifResponse;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -36,6 +42,9 @@ import se.uu.ub.cora.storage.RecordStorage;
 public class IiifReaderImp implements IiifReader {
 
 	private SpiderDependencyProvider dependencyProvider;
+	private Authenticator authenticator;
+	private DataGroupTermCollector termCollector;
+	private SpiderAuthorizator spiderAuthorizator;
 
 	public static IiifReaderImp usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
@@ -44,6 +53,9 @@ public class IiifReaderImp implements IiifReader {
 
 	private IiifReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
+		authenticator = dependencyProvider.getAuthenticator();
+		termCollector = dependencyProvider.getDataGroupTermCollector();
+		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 	}
 
 	@Override
@@ -59,7 +71,19 @@ public class IiifReaderImp implements IiifReader {
 
 	private IiifResponse tryToReadIiif(String recordId, String requestedUri, String method,
 			Map<String, String> headersMap) {
+		User userForToken = authenticator.getUserForToken(headersMap.get("authToken"));
 		DataRecordGroup binaryRecordGroup = readBinaryRecord(recordId);
+		String definitionId = getDefinitionId(binaryRecordGroup);
+
+		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(binaryRecordGroup);
+
+		termCollector.collectTerms(definitionId, dataGroup);
+
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(userForToken,
+				null, null, null);
+		// spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
+		// ACTION_READ, type + "." + representation, permissionTerms);
+
 		throwErrorIfNotAuthorizedToCallIiifForRecord(binaryRecordGroup);
 
 		throwNotFoundExceptionIfJP2DoesNotExist(binaryRecordGroup);
@@ -67,6 +91,19 @@ public class IiifReaderImp implements IiifReader {
 		IiifParameters iiifParameters = createIiifParameters(recordId, requestedUri, method,
 				headersMap, binaryRecordGroup.getDataDivider());
 		return callIiifServer(iiifParameters);
+	}
+	// private List<PermissionTerm> getPermissionTerms(DataRecordGroup binaryRecordGroup) {
+	// DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(binaryRecordGroup);
+	// String definitionId = getDefinitionId(binaryRecordGroup);
+	//
+	// CollectTerms collectTerms = termCollector.collectTerms(definitionId, dataGroup);
+	// return collectTerms.permissionTerms;
+	// }
+
+	private String getDefinitionId(DataRecordGroup binaryRecordGroup) {
+		RecordTypeHandler recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(binaryRecordGroup);
+		return recordTypeHandler.getDefinitionId();
 	}
 
 	private IiifParameters createIiifParameters(String recordId, String requestedUri, String method,
