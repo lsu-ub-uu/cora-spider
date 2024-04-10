@@ -54,6 +54,7 @@ import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class IiifReaderTest {
 
+	private static final String AUTH_TOKEN = "authtoken";
 	private static final String ACTION_READ = "read";
 	private static final String JP2_REPRESENTATION = "binary.jp2";
 	private static final String SOME_METHOD = "someMethod";
@@ -264,7 +265,7 @@ public class IiifReaderTest {
 	@Test
 	public void testUserIsFetchedFromMapUsingToken() throws Exception {
 		setVisibilityInAdminInfoInBinaryRecord("published");
-		headersMap.put("authToken", "someToken");
+		headersMap.put(AUTH_TOKEN, "someToken");
 
 		reader.readIiif(SOME_IDENTIFIER, SOME_REQUESTED_URI, SOME_METHOD, headersMap);
 

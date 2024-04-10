@@ -43,6 +43,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 
 public class IiifReaderImp implements IiifReader {
 
+	private static final String AUTH_TOKEN = "authtoken";
 	private static final String ACTION_READ = "read";
 	private static final String JP2_REPRESENTATION = "binary.jp2";
 
@@ -101,7 +102,7 @@ public class IiifReaderImp implements IiifReader {
 	}
 
 	private User getUserFromToken(Map<String, String> headersMap) {
-		return authenticator.getUserForToken(headersMap.get("authToken"));
+		return authenticator.getUserForToken(headersMap.get(AUTH_TOKEN));
 	}
 
 	private List<PermissionTerm> getPermissionTerms(DataRecordGroup binaryRecordGroup) {
