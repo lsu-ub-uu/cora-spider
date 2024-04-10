@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.binary.iiif;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -34,20 +35,28 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.binary.BinaryProvider;
 import se.uu.ub.cora.binary.iiif.IiifAdapterResponse;
 import se.uu.ub.cora.binary.iiif.IiifParameters;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.iiif.internal.IiifReaderImp;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class IiifReaderTest {
 
+	private static final String AUTH_TOKEN = "authtoken";
+	private static final String ACTION_READ = "read";
+	private static final String JP2_REPRESENTATION = "binary.jp2";
 	private static final String SOME_METHOD = "someMethod";
 	private static final String SOME_REQUESTED_URI = "someRequestedUri";
 	private static final String VISIBILITY = "visibility";
@@ -74,11 +83,18 @@ public class IiifReaderTest {
 	private DataGroupSpy resourceTypeDGS;
 	private DataGroupSpy adminInfo;
 	private IiifAdapterSpy iiifAdapterSpy;
+	Map<String, String> headersMap;
+	private DataFactorySpy dataFactorySpy;
 
 	@BeforeMethod
 	private void beforeMethod() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
+
+		headersMap = new HashMap<>();
 
 		iiifInstanceProvider = new IiifInstanceProviderSpy();
 		BinaryProvider.onlyForTestSetIiifImageAdapterInstanceProvider(iiifInstanceProvider);
@@ -130,6 +146,8 @@ public class IiifReaderTest {
 				() -> resourceTypeDGS, LARGE);
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
 				() -> resourceTypeDGS, JP2);
+		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				JP2);
 
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> ORIGINAL_FILE_NAME, "originalFileName");
@@ -149,27 +167,27 @@ public class IiifReaderTest {
 		assertSame(readerImp.onlyForTestGetDependencyProvider(), dependencyProvider);
 	}
 
-	@Test
-	public void testReadImageNotPublishedThrowAuthorizationException() throws Exception {
-		setVisibilityInAdminInfoInBinaryRecord("hidden");
-		try {
-			reader.readIiif(SOME_IDENTIFIER, null, null, null);
-			fail("it should throw exception");
-		} catch (Exception error) {
-			assertAuthorizationExceptionWithCorrectMessage(error);
+	// @Test
+	// public void testReadImageNotPublishedThrowAuthorizationException() throws Exception {
+	// setVisibilityInAdminInfoInBinaryRecord("hidden");
+	// try {
+	// reader.readIiif(SOME_IDENTIFIER, null, null, headersMap);
+	// fail("it should throw exception");
+	// } catch (Exception error) {
+	// assertAuthorizationExceptionWithCorrectMessage(error);
+	//
+	// dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
+	// recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);
+	//
+	// iiifInstanceProvider.MCR.assertMethodNotCalled("getIiifAdapter");
+	// }
+	// }
 
-			dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
-			recordStorage.MCR.assertParameters("read", 0, "binary", SOME_IDENTIFIER);
-
-			iiifInstanceProvider.MCR.assertMethodNotCalled("getIiifAdapter");
-		}
-	}
-
-	private void assertAuthorizationExceptionWithCorrectMessage(Exception error) {
-		assertTrue(error instanceof AuthorizationException);
-		assertEquals(error.getMessage(),
-				"Not authorized to read binary record with id: " + SOME_IDENTIFIER);
-	}
+	// private void assertAuthorizationExceptionWithCorrectMessage(Exception error) {
+	// assertTrue(error instanceof AuthorizationException);
+	// assertEquals(error.getMessage(),
+	// "Not authorized to read binary record with id: " + SOME_IDENTIFIER);
+	// }
 
 	@Test
 	public void testReadImageNotFoundThrowRecordNotFoundException() throws Exception {
@@ -177,7 +195,7 @@ public class IiifReaderTest {
 				se.uu.ub.cora.storage.RecordNotFoundException
 						.withMessage("message from exception"));
 		try {
-			reader.readIiif(SOME_IDENTIFIER, null, null, null);
+			reader.readIiif(SOME_IDENTIFIER, null, null, headersMap);
 			fail("it should throw exception");
 		} catch (Exception error) {
 			assertTrue(error instanceof RecordNotFoundException);
@@ -195,7 +213,6 @@ public class IiifReaderTest {
 	public void testCallIiifServer() throws Exception {
 		setVisibilityInAdminInfoInBinaryRecord("published");
 
-		Map<String, String> headersMap = new HashMap<>();
 		reader.readIiif(SOME_IDENTIFIER, SOME_REQUESTED_URI, SOME_METHOD, headersMap);
 
 		dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
@@ -215,12 +232,7 @@ public class IiifReaderTest {
 	@Test
 	public void testReturnedResponseFromIiifServerCall() throws Exception {
 		setVisibilityInAdminInfoInBinaryRecord("published");
-		Map<String, String> headersMap = new HashMap<>();
-		InputStream inputStream = new ByteArrayInputStream("someInputStream".getBytes());
-		IiifAdapterResponse iiifAdapterResponse = new IiifAdapterResponse(418, headersMap,
-				inputStream);
-		iiifAdapterSpy.MRV.setDefaultReturnValuesSupplier("callIiifServer",
-				() -> iiifAdapterResponse);
+		IiifAdapterResponse iiifAdapterResponse = createResponseAndSetItToBeReturnedFromAdapter();
 
 		IiifResponse iiifResponse = reader.readIiif(SOME_IDENTIFIER, SOME_REQUESTED_URI,
 				SOME_METHOD, headersMap);
@@ -230,4 +242,92 @@ public class IiifReaderTest {
 		assertEquals(iiifResponse.body(), iiifAdapterResponse.body());
 	}
 
+	private IiifAdapterResponse createResponseAndSetItToBeReturnedFromAdapter() {
+		InputStream inputStream = new ByteArrayInputStream("someInputStream".getBytes());
+		IiifAdapterResponse iiifAdapterResponse = new IiifAdapterResponse(418, headersMap,
+				inputStream);
+		iiifAdapterSpy.MRV.setDefaultReturnValuesSupplier("callIiifServer",
+				() -> iiifAdapterResponse);
+		return iiifAdapterResponse;
+	}
+
+	@Test
+	public void testUserIsFetchedFromMapUsingNoToken() throws Exception {
+		setVisibilityInAdminInfoInBinaryRecord("published");
+
+		reader.readIiif(SOME_IDENTIFIER, SOME_REQUESTED_URI, SOME_METHOD, headersMap);
+
+		Object authToken = authenticator.MCR.getValueForMethodNameAndCallNumberAndParameterName(
+				"getUserForToken", 0, "authToken");
+		assertNull(authToken);
+	}
+
+	@Test
+	public void testUserIsFetchedFromMapUsingToken() throws Exception {
+		setVisibilityInAdminInfoInBinaryRecord("published");
+		headersMap.put(AUTH_TOKEN, "someToken");
+
+		reader.readIiif(SOME_IDENTIFIER, SOME_REQUESTED_URI, SOME_METHOD, headersMap);
+
+		authenticator.MCR.assertParameters("getUserForToken", 0, "someToken");
+	}
+
+	@Test
+	public void testReadIiifAsAuthorizedUser() throws Exception {
+		setVisibilityInAdminInfoInBinaryRecord("published");
+		reader.readIiif(SOME_IDENTIFIER, SOME_REQUESTED_URI, SOME_METHOD, headersMap);
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
+				readBinaryDGS);
+
+		RecordTypeHandlerSpy recordTypeHandlerSpy = (RecordTypeHandlerSpy) dependencyProvider.MCR
+				.getReturnValue("getRecordTypeHandlerUsingDataRecordGroup", 0);
+		DataGroupTermCollectorSpy termCollectorSpy = (DataGroupTermCollectorSpy) dependencyProvider.MCR
+				.getReturnValue("getDataGroupTermCollector", 0);
+
+		var definitionId = recordTypeHandlerSpy.MCR.getReturnValue("getDefinitionId", 0);
+
+		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0, readBinaryDGS);
+		var binaryGroup = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup", 0);
+
+		termCollectorSpy.MCR.assertParameters("collectTerms", 0, definitionId, binaryGroup);
+
+		CollectTerms terms = (CollectTerms) termCollectorSpy.MCR.getReturnValue("collectTerms", 0);
+
+		var user = authenticator.MCR.getReturnValue("getUserForToken", 0);
+		authorizator.MCR.assertParameters(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, user, ACTION_READ,
+				JP2_REPRESENTATION, terms.permissionTerms);
+	}
+
+	@Test
+	public void testThrowAuthorizationExceptionThrownIfUnAuthorized() throws Exception {
+		String errorMessage = "someExceptionMessage";
+		authorizator.MRV.setAlwaysThrowException(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData",
+				new AuthorizationException(errorMessage));
+		try {
+			reader.readIiif(SOME_IDENTIFIER, SOME_REQUESTED_URI, SOME_METHOD, headersMap);
+			fail();
+		} catch (Exception error) {
+			assertTrue(error instanceof AuthorizationException);
+			assertEquals(error.getMessage(), errorMessage);
+		}
+	}
+
+	@Test
+	public void testJP2NotFound() throws Exception {
+		setVisibilityInAdminInfoInBinaryRecord("published");
+		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> false, JP2);
+		try {
+			reader.readIiif(SOME_IDENTIFIER, SOME_REQUESTED_URI, SOME_METHOD, headersMap);
+			fail("Exception should have been thrown due to JP2 not existing");
+		} catch (Exception error) {
+			assertTrue(error instanceof RecordNotFoundException);
+			assertEquals(error.getMessage(),
+					"Could not find a JP2 representation for binary and recordId: "
+							+ SOME_IDENTIFIER);
+			dependencyProvider.MCR.assertMethodNotCalled("callIiifServer");
+		}
+	}
 }
