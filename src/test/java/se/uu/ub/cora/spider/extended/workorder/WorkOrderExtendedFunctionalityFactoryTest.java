@@ -21,6 +21,9 @@ package se.uu.ub.cora.spider.extended.workorder;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 
 import java.util.List;
 
@@ -55,12 +58,9 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 	@Test
 	public void testGetExtendedFunctionalityContexts() {
 		assertEquals(factory.getExtendedFunctionalityContexts().size(), 3);
-		assertCorrectContextUsingIndexNumberAndPosition(0, 0,
-				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION);
-		assertCorrectContextUsingIndexNumberAndPosition(1, 0,
-				ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION);
-		assertCorrectContextUsingIndexNumberAndPosition(2, 0,
-				ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE);
+		assertCorrectContextUsingIndexNumberAndPosition(0, 0, CREATE_AFTER_AUTHORIZATION);
+		assertCorrectContextUsingIndexNumberAndPosition(1, 0, CREATE_AFTER_METADATA_VALIDATION);
+		assertCorrectContextUsingIndexNumberAndPosition(2, 0, CREATE_BEFORE_ENHANCE);
 	}
 
 	private void assertCorrectContextUsingIndexNumberAndPosition(int index, int runAsNumber,
@@ -74,15 +74,15 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 
 	@Test
 	public void testWorkOrderCreateBeforeValidation() {
-		List<ExtendedFunctionality> functionalities = factory.factor(
-				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "workOrder");
+		List<ExtendedFunctionality> functionalities = factory.factor(CREATE_AFTER_AUTHORIZATION,
+				"workOrder");
 		assertTrue(functionalities.get(0) instanceof WorkOrderEnhancer);
 	}
 
 	@Test
 	public void testWorkOrderCreateAfterValidation() {
-		List<ExtendedFunctionality> functionalities = factory.factor(
-				ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION, "workOrder");
+		List<ExtendedFunctionality> functionalities = factory
+				.factor(CREATE_AFTER_METADATA_VALIDATION, "workOrder");
 
 		WorkOrderExecutor functionality = (WorkOrderExecutor) functionalities.get(0);
 		assertSame(functionality.getDependencyProvider(), dependencyProviderSpy);
@@ -90,11 +90,10 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 
 	@Test
 	public void testWorkOrderCreateBeforeReturn() {
-		List<ExtendedFunctionality> functionalities = factory
-				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE, "workOrder");
+		List<ExtendedFunctionality> functionalities = factory.factor(CREATE_BEFORE_ENHANCE,
+				"workOrder");
 		WorkOrderDeleter functionality = (WorkOrderDeleter) functionalities.get(0);
-		RecordDeleterImp recordDeleter = (RecordDeleterImp) functionality
-				.getRecordDeleter();
+		RecordDeleterImp recordDeleter = (RecordDeleterImp) functionality.getRecordDeleter();
 		assertSame(recordDeleter.getDependencyProvider(), dependencyProviderSpy);
 	}
 }

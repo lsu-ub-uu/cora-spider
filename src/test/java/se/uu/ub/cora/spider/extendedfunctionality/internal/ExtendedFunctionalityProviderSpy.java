@@ -27,8 +27,9 @@ import java.util.List;
 
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityOldSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -60,32 +61,17 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 				() -> createListWithTwoExtendedFunctionalitySpies());
 		MRV.setDefaultReturnValuesSupplier("getFunctionalityAfterDelete",
 				() -> createListWithTwoExtendedFunctionalitySpies());
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityForPositionAndRecordType",
+				() -> createListWithTwoExtendedFunctionalitySpies());
 	}
 
 	private List<ExtendedFunctionality> createListWithTwoExtendedFunctionalitySpies() {
 		ArrayList<ExtendedFunctionality> listOfExtendedFunctionality = new ArrayList<>();
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
+		ExtendedFunctionalityOldSpy extendedFunctionalitySpy = new ExtendedFunctionalityOldSpy();
 		listOfExtendedFunctionality.add(extendedFunctionalitySpy);
-		ExtendedFunctionalitySpy extendedFunctionalitySpy2 = new ExtendedFunctionalitySpy();
+		ExtendedFunctionalityOldSpy extendedFunctionalitySpy2 = new ExtendedFunctionalityOldSpy();
 		listOfExtendedFunctionality.add(extendedFunctionalitySpy2);
 		return listOfExtendedFunctionality;
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
-			String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForCreateAfterMetadataValidation(
-			String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeEnhance(String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
 	}
 
 	@Override
@@ -130,19 +116,42 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
 	}
 
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForPositionAndRecordType(
+			ExtendedFunctionalityPosition position, String recordType) {
+		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("position", position,
+				"recordType", recordType);
+	}
+
+	public void assertCallToPositionAndFunctionalityCalledWithData(
+			ExtendedFunctionalityPosition position, ExtendedFunctionalityData expectedData,
+			int callNumber) {
+		MCR.assertParameter("getFunctionalityForPositionAndRecordType", callNumber, "position",
+				position);
+		MCR.assertParameter("getFunctionalityForPositionAndRecordType", callNumber, "recordType",
+				expectedData.recordType);
+		// MCR.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 1 +
+		// callNumber);
+		List<ExtendedFunctionalityOldSpy> exSpyList = (List<ExtendedFunctionalityOldSpy>) MCR
+				.getReturnValue("getFunctionalityForPositionAndRecordType", callNumber);
+
+		assertExtendedFunctionalityIsCalledWithExpectedData(exSpyList.get(0), expectedData);
+		assertExtendedFunctionalityIsCalledWithExpectedData(exSpyList.get(1), expectedData);
+	}
+
 	public void assertCallToMethodAndFunctionalityCalledWithData(String methodName,
 			ExtendedFunctionalityData expectedData) {
 		MCR.assertParameter(methodName, 0, "recordType", expectedData.recordType);
 		MCR.assertNumberOfCallsToMethod(methodName, 1);
-		List<ExtendedFunctionalitySpy> exSpyList = (List<ExtendedFunctionalitySpy>) MCR
+		List<ExtendedFunctionalityOldSpy> exSpyList = (List<ExtendedFunctionalityOldSpy>) MCR
 				.getReturnValue(methodName, 0);
 
 		assertExtendedFunctionalityIsCalledWithExpectedData(exSpyList.get(0), expectedData);
 		assertExtendedFunctionalityIsCalledWithExpectedData(exSpyList.get(1), expectedData);
 	}
 
-	private void assertExtendedFunctionalityIsCalledWithExpectedData(ExtendedFunctionalitySpy exSpy,
-			ExtendedFunctionalityData expectedData) {
+	private void assertExtendedFunctionalityIsCalledWithExpectedData(
+			ExtendedFunctionalityOldSpy exSpy, ExtendedFunctionalityData expectedData) {
 		String methodName2 = "useExtendedFunctionality";
 		exSpy.MCR.assertMethodWasCalled(methodName2);
 		exSpy.MCR.assertNumberOfCallsToMethod(methodName2, 1);

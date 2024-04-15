@@ -61,7 +61,7 @@ import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.ConflictException;
@@ -268,7 +268,7 @@ public class RecordUpdaterTest {
 	@Test
 	public void testIgnoreOverwriteProtection_removedFromRecordInfo() throws Exception {
 		String ignoreOverwriteProtectionValue = "true";
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
+		ExtendedFunctionalityOldSpy extendedFunctionalitySpy = new ExtendedFunctionalityOldSpy();
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
 				Optional.of(ignoreOverwriteProtectionValue), extendedFunctionalitySpy,
 				Optional.of("2023-12-05T08:51:01.730741Z"));
@@ -281,7 +281,7 @@ public class RecordUpdaterTest {
 	@Test
 	public void testIgnoreOverwriteProtection_DifferntLatestUpdated_update() throws Exception {
 		String ignoreOverwriteProtectionValue = "true";
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
+		ExtendedFunctionalityOldSpy extendedFunctionalitySpy = new ExtendedFunctionalityOldSpy();
 
 		setupPreviouslyStoredRecord("2020-01-01T00:00:00.000001Z");
 
@@ -298,7 +298,7 @@ public class RecordUpdaterTest {
 	public void testIgnoreOverwriteProtection_SameLatestUpdated_update() throws Exception {
 		String ignoreOverwriteProtectionValue = "false";
 		String sameLatestUpdatedTimestamp = "2020-01-01T00:00:00.000001Z";
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
+		ExtendedFunctionalityOldSpy extendedFunctionalitySpy = new ExtendedFunctionalityOldSpy();
 
 		setupPreviouslyStoredRecord(sameLatestUpdatedTimestamp);
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
@@ -314,7 +314,7 @@ public class RecordUpdaterTest {
 	public void testIgnoreOverwriteProtection_SameLatestUpdated_noIgnoreFlag_update()
 			throws Exception {
 		String sameLatestUpdatedTimestamp = "2020-01-01T00:00:00.000001Z";
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
+		ExtendedFunctionalityOldSpy extendedFunctionalitySpy = new ExtendedFunctionalityOldSpy();
 
 		setupPreviouslyStoredRecord(sameLatestUpdatedTimestamp);
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(Optional.empty(),
@@ -328,7 +328,7 @@ public class RecordUpdaterTest {
 	@Test
 	public void testIgnoreOverwriteProtection_DifferntLatestUpdated_noIgnoreFlag_ConflictException()
 			throws Exception {
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
+		ExtendedFunctionalityOldSpy extendedFunctionalitySpy = new ExtendedFunctionalityOldSpy();
 
 		setupPreviouslyStoredRecord("2020-01-01T00:00:00.000001Z");
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(Optional.empty(),
@@ -347,7 +347,7 @@ public class RecordUpdaterTest {
 	}
 
 	private void assertIgnoreOverwriteProtectionDeletedFromTopDataGroup(
-			ExtendedFunctionalitySpy extendedFunctionalitySpy) {
+			ExtendedFunctionalityOldSpy extendedFunctionalitySpy) {
 		ExtendedFunctionalityData extData = (ExtendedFunctionalityData) extendedFunctionalitySpy.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("useExtendedFunctionality", 0,
 						"data");
@@ -360,7 +360,7 @@ public class RecordUpdaterTest {
 	public void testIgnoreOverwriteProtection_DiffrentLatestUpdated_ConflictException()
 			throws Exception {
 		String ignoreOverwriteProtectionValue = "false";
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
+		ExtendedFunctionalityOldSpy extendedFunctionalitySpy = new ExtendedFunctionalityOldSpy();
 
 		setupPreviouslyStoredRecord("2020-01-01T00:00:00.000001Z");
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
@@ -383,7 +383,7 @@ public class RecordUpdaterTest {
 	public void testIgnoreOverwriteProtection_MissingTSLatestUpdated_ConflictException()
 			throws Exception {
 		// String ignoreOverwriteProtectionValue = "false";
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
+		ExtendedFunctionalityOldSpy extendedFunctionalitySpy = new ExtendedFunctionalityOldSpy();
 
 		setupPreviouslyStoredRecord("2020-01-01T00:00:00.000001Z");
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(Optional.empty(),
@@ -428,7 +428,7 @@ public class RecordUpdaterTest {
 
 	private DataGroup setUpRecordUpdaterWithExtFunctionallityAndValue(
 			Optional<String> ignoreOverwriteProtectionValue,
-			ExtendedFunctionalitySpy extendedFunctionalitySpy, Optional<String> updatedTimestamp) {
+			ExtendedFunctionalityOldSpy extendedFunctionalitySpy, Optional<String> updatedTimestamp) {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
@@ -1156,10 +1156,10 @@ public class RecordUpdaterTest {
 
 		extendedFunctionalityProvider.MCR.assertParameters("getFunctionalityForUpdateBeforeReturn",
 				0, "spyType");
-		List<ExtendedFunctionalitySpy> extFunctionalities = (List<ExtendedFunctionalitySpy>) extendedFunctionalityProvider.MCR
+		List<ExtendedFunctionalityOldSpy> extFunctionalities = (List<ExtendedFunctionalityOldSpy>) extendedFunctionalityProvider.MCR
 				.getReturnValue("getFunctionalityForUpdateBeforeReturn", 0);
 
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = extFunctionalities.get(0);
+		ExtendedFunctionalityOldSpy extendedFunctionalitySpy = extFunctionalities.get(0);
 		extendedFunctionalitySpy.MCR.assertParameters("useExtendedFunctionality", 0);
 		ExtendedFunctionalityData data = (ExtendedFunctionalityData) extendedFunctionalitySpy.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("useExtendedFunctionality", 0,

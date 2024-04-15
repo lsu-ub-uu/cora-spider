@@ -23,6 +23,11 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
 
 import java.util.List;
 import java.util.Map;
@@ -54,8 +59,8 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.ConflictException;
@@ -126,7 +131,6 @@ public class RecordCreatorTest {
 		setUpDependencyProvider();
 
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId", () -> "spyType");
-
 	}
 
 	private void setUpFactoriesAndProviders() {
@@ -181,9 +185,7 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testRecordTypeHandlerFetchedFromDependencyProvider() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
-				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
+		setUpRecordTypeHandlerToAutoGenerateId();
 		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
@@ -219,9 +221,7 @@ public class RecordCreatorTest {
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
 			+ "Data is not valid: some message")
 	public void testValidationTypeDoesNotExist() throws Exception {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
-				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
+		setUpRecordTypeHandlerToAutoGenerateId();
 		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getCreateDefinitionId",
 				DataValidationException.withMessage("some message"));
@@ -334,44 +334,88 @@ public class RecordCreatorTest {
 		expectedData.previouslyStoredTopDataGroup = null;
 		expectedData.dataGroup = dataGroup;
 
-		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
-				"getFunctionalityForCreateBeforeMetadataValidation", expectedData);
-		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
-				"getFunctionalityForCreateAfterMetadataValidation", expectedData);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				CREATE_AFTER_AUTHORIZATION, expectedData, 0);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				CREATE_BEFORE_METADATA_VALIDATION, expectedData, 1);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				CREATE_AFTER_METADATA_VALIDATION, expectedData, 2);
 		expectedData.recordId = "1";
-		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
-				"getFunctionalityForCreateBeforeEnhance", expectedData);
-	}
-
-	class ExtendedMock implements ExtendedFunctionality {
-		@Override
-		public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-			throw new RuntimeException();
-		}
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				CREATE_BEFORE_ENHANCE, expectedData, 3);
+		extendedFunctionalityProvider.MCR
+				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 4);
 	}
 
 	@Test
-	public void testExtendedFunctionalityBeforeMetadataCalledBeforeRecordTypeHandlerCreatedSoWeDoNotNeedToHaveARecordInfoForSomeTypes() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
-				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
-				() -> extendedFunctionalityProvider);
-
-		extendedFunctionalityProvider.MRV.setDefaultReturnValuesSupplier(
-				"getFunctionalityForCreateBeforeMetadataValidation",
-				() -> List.of(new ExtendedMock()));
+	public void testExtendedFunctionalityAfterAuthorizationCalledBeforeRecordTypeHandlerCreatedSoWeDoNotNeedToHaveARecordInfoForSomeTypes() {
+		setUpRecordTypeHandlerToAutoGenerateId();
+		setUpExtendedFunctionalityToThrowExceptionWhenCreateAfterAuthorizationIsCalled();
 		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProviderSpy, dataGroupToRecordEnhancer);
 		try {
 			recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
+
+			fail("Should fail as we want to stop execution when the extended functionality is used,"
+					+ " to determin that the extended functionality is called in the correct place"
+					+ " in the code");
 		} catch (Exception e) {
 
 		}
 
 		dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
 		dependencyProviderSpy.MCR.assertMethodNotCalled("getRecordTypeHandlerUsingDataRecordGroup");
+	}
+
+	private void setUpRecordTypeHandlerToAutoGenerateId() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
+	}
+
+	private void setUpExtendedFunctionalityToThrowExceptionWhenCreateAfterAuthorizationIsCalled() {
+		ExtendedFunctionalitySpy exSpy = new ExtendedFunctionalitySpy();
+		exSpy.MRV.setAlwaysThrowException("useExtendedFunctionality", new RuntimeException());
+		extendedFunctionalityProvider.MRV.setSpecificReturnValuesSupplier(
+				"getFunctionalityForPositionAndRecordType", () -> List.of(exSpy),
+				CREATE_AFTER_AUTHORIZATION, "spyType");
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
+				() -> extendedFunctionalityProvider);
+	}
+
+	@Test
+	public void testExtendedFunctionalityBeforeMetadataCalledInCorrectPlace() {
+		setUpRecordTypeHandlerToAutoGenerateId();
+		setUpExtendedFunctionalityToThrowExceptionWhenCreateBeforeMetadataValidationIsCalled();
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
+		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+				dependencyProviderSpy, dataGroupToRecordEnhancer);
+		try {
+			recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
+
+			fail("Should fail as we want to stop execution when the extended functionality is used,"
+					+ " to determin that the extended functionality is called in the correct place"
+					+ " in the code");
+		} catch (Exception e) {
+
+		}
+
+		recordTypeHandlerSpy.MCR.assertMethodWasCalled("getDefinitionId");
+		DataGroupTermCollectorSpy termCollectorSpy = (DataGroupTermCollectorSpy) dependencyProviderSpy.MCR
+				.getReturnValue("getDataGroupTermCollector", 1);
+		dependencyProviderSpy.MCR.assertNumberOfCallsToMethod("getDataGroupTermCollector", 2);
+		termCollectorSpy.MCR.assertMethodNotCalled("collectTerms");
+	}
+
+	private void setUpExtendedFunctionalityToThrowExceptionWhenCreateBeforeMetadataValidationIsCalled() {
+		ExtendedFunctionalitySpy exSpy = new ExtendedFunctionalitySpy();
+		exSpy.MRV.setAlwaysThrowException("useExtendedFunctionality", new RuntimeException());
+		extendedFunctionalityProvider.MRV.setSpecificReturnValuesSupplier(
+				"getFunctionalityForPositionAndRecordType", () -> List.of(exSpy),
+				CREATE_BEFORE_METADATA_VALIDATION, "spyType");
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
+				() -> extendedFunctionalityProvider);
 	}
 
 	@Test

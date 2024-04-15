@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, 2021 Uppsala University Library
+ * Copyright 2020, 2021, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -24,8 +24,11 @@ import se.uu.ub.cora.storage.RecordStorage;
 /**
  * ExtendedFunctionalityPosition is an Enum with the positions from where Spider calls
  * extendedFunctionality.<br>
+ * The position is the combination of action and position within spiders execution of this action,
+ * the reason they are connected as one is that not all actions have all internal positions. <br>
  * <br>
  * For create are the positions ordered as follows:<br>
+ * CREATE_AFTER_AUTHORIZATION<br>
  * CREATE_BEFORE_METADATA_VALIDATION<br>
  * CREATE_AFTER_METADATA_VALIDATION<br>
  * CREATE_BEFORE_ENHANCE<br>
@@ -45,6 +48,11 @@ import se.uu.ub.cora.storage.RecordStorage;
  * DELETE_AFTER<br>
  */
 public enum ExtendedFunctionalityPosition {
+	/**
+	 * CREATE_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a create
+	 * operation, right after the user is authorized for the create action on the recordType.
+	 */
+	CREATE_AFTER_AUTHORIZATION,
 	/**
 	 * CREATE_BEFORE_METADATA_VALIDATION, as the name suggests is the functionality plugged into a
 	 * create operation, before metadataValidation is done.

@@ -19,6 +19,10 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
+
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +48,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
@@ -127,6 +132,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private DataRecord validateCreateAndStoreRecord() {
 		checkActionAuthorizationForUser();
+		useExtendedFunctionalityCreateAfterAuthorization(recordType, recordGroup);
 		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordGroup);
 		createRecordTypeHandler();
 		validateRecordTypeInDataIsSameAsSpecified(recordType);
@@ -141,7 +147,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 			recordArchive.create(dataDivider, recordType, recordId, recordGroup);
 		}
 		indexRecord(collectedTerms.indexTerms);
-		useExtendedFunctionalityBeforeReturn(recordType, recordGroup);
+		useExtendedFunctionalityBeforeEnhance(recordType, recordGroup);
 		return enhanceDataGroupToRecord();
 	}
 
@@ -158,10 +164,19 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, CREATE, recordType);
 	}
 
+	private void useExtendedFunctionalityCreateAfterAuthorization(String recordTypeToCreate,
+			DataGroup dataGroup) {
+		List<ExtendedFunctionality> functionalityForCreateBeforeMetadataValidation = extendedFunctionalityProvider
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
+						recordTypeToCreate);
+		useExtendedFunctionality(dataGroup, functionalityForCreateBeforeMetadataValidation);
+	}
+
 	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
 			DataGroup dataGroup) {
 		List<ExtendedFunctionality> functionalityForCreateBeforeMetadataValidation = extendedFunctionalityProvider
-				.getFunctionalityForCreateBeforeMetadataValidation(recordTypeToCreate);
+				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
+						recordTypeToCreate);
 		useExtendedFunctionality(dataGroup, functionalityForCreateBeforeMetadataValidation);
 	}
 
@@ -216,7 +231,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
 			DataGroup dataGroup) {
 		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = extendedFunctionalityProvider
-				.getFunctionalityForCreateAfterMetadataValidation(recordTypeToCreate);
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_METADATA_VALIDATION,
+						recordTypeToCreate);
 		useExtendedFunctionality(dataGroup, functionalityForCreateAfterMetadataValidation);
 	}
 
@@ -313,10 +329,11 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 				.getFirstAtomicValueWithNameInData("id");
 	}
 
-	private void useExtendedFunctionalityBeforeReturn(String recordTypeToCreate,
+	private void useExtendedFunctionalityBeforeEnhance(String recordTypeToCreate,
 			DataGroup dataGroup) {
 		List<ExtendedFunctionality> extendedFunctionalityList = extendedFunctionalityProvider
-				.getFunctionalityForCreateBeforeEnhance(recordTypeToCreate);
+				.getFunctionalityForPositionAndRecordType(
+						ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE, recordTypeToCreate);
 		useExtendedFunctionality(dataGroup, extendedFunctionalityList);
 	}
 

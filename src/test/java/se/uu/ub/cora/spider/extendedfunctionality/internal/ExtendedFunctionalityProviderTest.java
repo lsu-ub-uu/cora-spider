@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, 2021 Uppsala University Library
+ * Copyright 2020, 2021, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,8 +19,6 @@
 package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
 import static org.testng.Assert.assertSame;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION;
@@ -33,6 +31,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 
 public class ExtendedFunctionalityProviderTest {
 
@@ -43,7 +42,6 @@ public class ExtendedFunctionalityProviderTest {
 	public void setUp() {
 		factorySorterSpy = new FactorySorterSpy();
 		provider = new ExtendedFunctionalityProviderImp(factorySorterSpy);
-
 	}
 
 	@Test
@@ -52,29 +50,25 @@ public class ExtendedFunctionalityProviderTest {
 	}
 
 	@Test
-	public void testGetFunctionalityForCreateBeforeMeatadataValidation() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
+	public void testGetExtendedFunctionalityForPositionAndRecordType2() throws Exception {
+		List<ExtendedFunctionality> functionality = ((ExtendedFunctionalityProvider) provider)
+				.getFunctionalityForPositionAndRecordType(
+						ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION,
+						"someRecordType");
 
 		assertCorrectCallAndAnswerFor(CREATE_BEFORE_METADATA_VALIDATION, functionality,
 				"someRecordType");
 	}
 
 	@Test
-	public void testGetFunctionalityForCreateAfterMetadataValidation() throws Exception {
+	public void testGetExtendedFunctionalityForPositionAndRecordType() throws Exception {
 		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForCreateAfterMetadataValidation("someRecordType");
+				.getFunctionalityForPositionAndRecordType(
+						ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION,
+						"someRecordType");
 
-		assertCorrectCallAndAnswerFor(CREATE_AFTER_METADATA_VALIDATION, functionality,
+		assertCorrectCallAndAnswerFor(CREATE_BEFORE_METADATA_VALIDATION, functionality,
 				"someRecordType");
-	}
-
-	@Test
-	public void testGetFunctionalityForCreateBeforeEnhance() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForCreateBeforeEnhance("someRecordType");
-
-		assertCorrectCallAndAnswerFor(CREATE_BEFORE_ENHANCE, functionality, "someRecordType");
 	}
 
 	@Test

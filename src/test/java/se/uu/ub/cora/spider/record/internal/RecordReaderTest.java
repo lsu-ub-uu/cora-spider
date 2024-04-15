@@ -37,7 +37,7 @@ import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
@@ -197,10 +197,10 @@ public class RecordReaderTest {
 
 		extendedFunctionalityProvider.MCR.assertParameters("getFunctionalityForReadBeforeReturn", 0,
 				SOME_RECORD_TYPE);
-		List<ExtendedFunctionalitySpy> extFunctionalities = (List<ExtendedFunctionalitySpy>) extendedFunctionalityProvider.MCR
+		List<ExtendedFunctionalityOldSpy> extFunctionalities = (List<ExtendedFunctionalityOldSpy>) extendedFunctionalityProvider.MCR
 				.getReturnValue("getFunctionalityForReadBeforeReturn", 0);
 
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = extFunctionalities.get(0);
+		ExtendedFunctionalityOldSpy extendedFunctionalitySpy = extFunctionalities.get(0);
 		extendedFunctionalitySpy.MCR.assertParameters("useExtendedFunctionality", 0);
 		ExtendedFunctionalityData data = (ExtendedFunctionalityData) extendedFunctionalitySpy.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("useExtendedFunctionality", 0,

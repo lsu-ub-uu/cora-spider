@@ -46,7 +46,7 @@ public class ExtendedFunctionalityFactorySpy implements ExtendedFunctionalityFac
 				recordType);
 		List<ExtendedFunctionality> returnedFunctionalities = new ArrayList<>();
 		for (int i = 0; i < numberOfReturnedFunctionalities; i++) {
-			ExtendedFunctionality returnedFunctionality = new ExtendedFunctionalitySpy();
+			ExtendedFunctionality returnedFunctionality = new ExtendedFunctionalityOldSpy();
 			returnedFunctionalities.add(returnedFunctionality);
 		}
 		MCR.addReturned(returnedFunctionalities);
