@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, 2024 Uppsala University Library
+ * Copyright 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,29 +19,35 @@
 package se.uu.ub.cora.spider.extended.password;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import se.uu.ub.cora.password.texthasher.TextHasherFactory;
-import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 
-public class PasswordExtendedFunctionalityFactory implements ExtendedFunctionalityFactory {
+public class SystemSecretSecurityExtendedFunctionalityFactory
+		implements ExtendedFunctionalityFactory {
 
-	private static final String USER_RECORD_TYPE = "user";
-	List<ExtendedFunctionalityContext> contexts = new ArrayList<>();
-	private SpiderDependencyProvider dependencyProvider;
-	TextHasherFactory textHasherFactory = new TextHasherFactoryImp();
+	private List<ExtendedFunctionalityContext> contexts = new ArrayList<>();
 
 	@Override
 	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
-		this.dependencyProvider = dependencyProvider;
-		contexts.add(new ExtendedFunctionalityContext(
-				ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE, USER_RECORD_TYPE, 0));
+		createListOfContexts();
+
+	}
+
+	private void createListOfContexts() {
+		for (ExtendedFunctionalityPosition hook : ExtendedFunctionalityPosition.values()) {
+			if (hook.toString().endsWith("_AFTER_AUTHORIZATION")) {
+				createContext(hook);
+			}
+		}
+	}
+
+	private void createContext(ExtendedFunctionalityPosition position) {
+		contexts.add(new ExtendedFunctionalityContext(position, "systemSecret", 0));
 	}
 
 	@Override
@@ -52,8 +58,7 @@ public class PasswordExtendedFunctionalityFactory implements ExtendedFunctionali
 	@Override
 	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
 			String recordType) {
-		return Collections
-				.singletonList(PasswordExtendedFunctionality.usingDependencyProviderAndTextHasher(
-						dependencyProvider, textHasherFactory.factor()));
+		return null;
 	}
+
 }

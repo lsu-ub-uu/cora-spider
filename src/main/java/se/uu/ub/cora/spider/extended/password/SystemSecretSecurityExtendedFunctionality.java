@@ -1,7 +1,6 @@
 /*
- * Copyright 2016 Olov McKie
- * Copyright 2022 Uppsala University Library
- * 
+ * Copyright 2024 Uppsala University Library
+ *
  * This file is part of Cora.
  *
  *     Cora is free software: you can redistribute it and/or modify
@@ -17,25 +16,16 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.extended.password;
 
-package se.uu.ub.cora.spider.extendedfunctionality;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-
-public class ExtendedFunctionalityOldSpy implements ExtendedFunctionality {
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-
-	public boolean extendedFunctionalityHasBeenCalled = false;
-	public String token;
-	public DataGroup dataGroupSentToExtendedFunctionality;
+public class SystemSecretSecurityExtendedFunctionality implements ExtendedFunctionality {
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		MCR.addCall("data", data);
-		token = data.authToken;
-		dataGroupSentToExtendedFunctionality = data.dataGroup;
-		extendedFunctionalityHasBeenCalled = true;
+		throw new AuthorizationException("Access denied");
 	}
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Uppsala University Library
+ * Copyright 2020, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -46,7 +46,7 @@ public class ExtendedFunctionalityFactorySpy implements ExtendedFunctionalityFac
 				recordType);
 		List<ExtendedFunctionality> returnedFunctionalities = new ArrayList<>();
 		for (int i = 0; i < numberOfReturnedFunctionalities; i++) {
-			ExtendedFunctionality returnedFunctionality = new ExtendedFunctionalityOldSpy();
+			ExtendedFunctionality returnedFunctionality = new ExtendedFunctionalitySpy();
 			returnedFunctionalities.add(returnedFunctionality);
 		}
 		MCR.addReturned(returnedFunctionalities);

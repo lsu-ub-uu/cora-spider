@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Uppsala University Library
+ * Copyright 2022, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -26,73 +26,41 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataProvider;
-import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.password.texthasher.TextHasherFactory;
 import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 
 public class PasswordExtendedFunctionalityFactoryTest {
-	PasswordExtendedFunctionalityFactory factory;
-	SpiderDependencyProviderOldSpy dependencyProvider;
+	private PasswordExtendedFunctionalityFactory factory;
+	private SpiderDependencyProviderSpy dependencyProvider;
 	private TextHasherFactorySpy textHasherFactorySpy;
-	private DataFactorySpy dataFactorySpy;
+	private PasswordExtendedFunctionalityFactoryOnlyForTest onlyForTestFactory;
+
+	private static final String USER_RECORD_TYPE = "user";
 
 	@BeforeMethod
 	public void beforeMethod() {
-		dataFactorySpy = new DataFactorySpy();
-		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		factory = new PasswordExtendedFunctionalityFactory();
-		dependencyProvider = new SpiderDependencyProviderOldSpy();
-		RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
-		dependencyProvider.mapOfRecordTypeHandlerSpies.put("user", recordTypeHandlerSpy);
-		recordTypeHandlerSpy.listOfimplementingTypesIds.add("coraUser");
-		recordTypeHandlerSpy.listOfimplementingTypesIds.add("otherUser");
-		factory.initializeUsingDependencyProvider(dependencyProvider);
+		onlyForTestFactory = new PasswordExtendedFunctionalityFactoryOnlyForTest();
+
+		dependencyProvider = new SpiderDependencyProviderSpy();
 		textHasherFactorySpy = new TextHasherFactorySpy();
 	}
 
 	@Test
-	public void testInitCreatesContextsForAllKnownImplementationsOfUser() throws Exception {
-		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "user");
-
+	public void testInitCreatesContextsForUserRecordType() throws Exception {
+		factory.initializeUsingDependencyProvider(dependencyProvider);
 		List<ExtendedFunctionalityContext> extendedFunctionalityContexts = factory
 				.getExtendedFunctionalityContexts();
 
+		assertEquals(extendedFunctionalityContexts.size(), 1);
 		ExtendedFunctionalityContext firstContext = extendedFunctionalityContexts.get(0);
 		assertEquals(firstContext.position, ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE);
-		assertEquals(firstContext.recordType, "coraUser");
-
-		ExtendedFunctionalityContext secondContext = extendedFunctionalityContexts.get(1);
-		assertEquals(secondContext.position, ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE);
-		assertEquals(secondContext.recordType, "otherUser");
-	}
-
-	@Test
-	public void testFactoryHasADefaultTextHasherFactory() throws Exception {
-		PasswordExtendedFunctionalityFactoryOnlyForTest testFactor = new PasswordExtendedFunctionalityFactoryOnlyForTest();
-		assertTrue(testFactor.onlyForTestGetTextHasherFactory() instanceof TextHasherFactoryImp);
-	}
-
-	@Test
-	public void testFactorSetDependencyProviderAndCreatedTextHasher() throws Exception {
-		PasswordExtendedFunctionalityFactoryOnlyForTest factory = new PasswordExtendedFunctionalityFactoryOnlyForTest();
-		factory.initializeUsingDependencyProvider(dependencyProvider);
-		factory.onlyForTestSetTextHasherFactory(textHasherFactorySpy);
-
-		List<ExtendedFunctionality> extendedFunctionalities = factory.factor(null, null);
-
-		assertEquals(extendedFunctionalities.size(), 1);
-		PasswordExtendedFunctionality extendedFunctionality = (PasswordExtendedFunctionality) extendedFunctionalities
-				.get(0);
-		assertEquals(extendedFunctionality.onlyForTestGetDependencyProvider(), dependencyProvider);
-		TextHasher hasherSpy1 = extendedFunctionality.onlyForTestGetTextHasher();
-		textHasherFactorySpy.MCR.assertReturn("factor", 0, hasherSpy1);
+		assertEquals(firstContext.recordType, USER_RECORD_TYPE);
 	}
 
 	class PasswordExtendedFunctionalityFactoryOnlyForTest
@@ -107,4 +75,29 @@ public class PasswordExtendedFunctionalityFactoryTest {
 		}
 	}
 
+	@Test
+	public void testFactoryHasADefaultTextHasherFactory() throws Exception {
+		assertTrue(onlyForTestFactory
+				.onlyForTestGetTextHasherFactory() instanceof TextHasherFactoryImp);
+	}
+
+	@Test
+	public void testFactorSetDependencyProviderAndCreatedTextHasher() throws Exception {
+		onlyForTestFactory.initializeUsingDependencyProvider(dependencyProvider);
+		onlyForTestFactory.onlyForTestSetTextHasherFactory(textHasherFactorySpy);
+
+		List<ExtendedFunctionality> extendedFunctionalities = onlyForTestFactory.factor(null, null);
+
+		assertEquals(extendedFunctionalities.size(), 1);
+		var extendedFunctionality = (PasswordExtendedFunctionality) extendedFunctionalities.get(0);
+
+		assertEquals(extendedFunctionality.onlyForTestGetDependencyProvider(), dependencyProvider);
+		assertTextHasherInstancePassedToExtendedFunctionality(extendedFunctionality);
+	}
+
+	private void assertTextHasherInstancePassedToExtendedFunctionality(
+			PasswordExtendedFunctionality extendedFunctionality) {
+		TextHasher textHasher = extendedFunctionality.onlyForTestGetTextHasher();
+		textHasherFactorySpy.MCR.assertReturn("factor", 0, textHasher);
+	}
 }

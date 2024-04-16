@@ -1,6 +1,6 @@
 /*
- * Copyright 2016 Olov McKie
  * Copyright 2022, 2023, 2024 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -27,9 +27,9 @@ import java.util.List;
 
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -67,12 +67,20 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 
 	private List<ExtendedFunctionality> createListWithTwoExtendedFunctionalitySpies() {
 		ArrayList<ExtendedFunctionality> listOfExtendedFunctionality = new ArrayList<>();
-		ExtendedFunctionalityOldSpy extendedFunctionalitySpy = new ExtendedFunctionalityOldSpy();
+		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
 		listOfExtendedFunctionality.add(extendedFunctionalitySpy);
-		ExtendedFunctionalityOldSpy extendedFunctionalitySpy2 = new ExtendedFunctionalityOldSpy();
+		ExtendedFunctionalitySpy extendedFunctionalitySpy2 = new ExtendedFunctionalitySpy();
 		listOfExtendedFunctionality.add(extendedFunctionalitySpy2);
 		return listOfExtendedFunctionality;
 	}
+	// private List<ExtendedFunctionality> createListWithTwoExtendedFunctionalitySpies() {
+	// ArrayList<ExtendedFunctionality> listOfExtendedFunctionality = new ArrayList<>();
+	// ExtendedFunctionalityOldSpy extendedFunctionalitySpy = new ExtendedFunctionalityOldSpy();
+	// listOfExtendedFunctionality.add(extendedFunctionalitySpy);
+	// ExtendedFunctionalityOldSpy extendedFunctionalitySpy2 = new ExtendedFunctionalityOldSpy();
+	// listOfExtendedFunctionality.add(extendedFunctionalitySpy2);
+	// return listOfExtendedFunctionality;
+	// }
 
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityForReadBeforeReturn(String recordType) {
@@ -130,9 +138,7 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 				position);
 		MCR.assertParameter("getFunctionalityForPositionAndRecordType", callNumber, "recordType",
 				expectedData.recordType);
-		// MCR.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 1 +
-		// callNumber);
-		List<ExtendedFunctionalityOldSpy> exSpyList = (List<ExtendedFunctionalityOldSpy>) MCR
+		List<ExtendedFunctionalitySpy> exSpyList = (List<ExtendedFunctionalitySpy>) MCR
 				.getReturnValue("getFunctionalityForPositionAndRecordType", callNumber);
 
 		assertExtendedFunctionalityIsCalledWithExpectedData(exSpyList.get(0), expectedData);
@@ -143,7 +149,7 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 			ExtendedFunctionalityData expectedData) {
 		MCR.assertParameter(methodName, 0, "recordType", expectedData.recordType);
 		MCR.assertNumberOfCallsToMethod(methodName, 1);
-		List<ExtendedFunctionalityOldSpy> exSpyList = (List<ExtendedFunctionalityOldSpy>) MCR
+		List<ExtendedFunctionalitySpy> exSpyList = (List<ExtendedFunctionalitySpy>) MCR
 				.getReturnValue(methodName, 0);
 
 		assertExtendedFunctionalityIsCalledWithExpectedData(exSpyList.get(0), expectedData);
@@ -151,11 +157,12 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 	}
 
 	private void assertExtendedFunctionalityIsCalledWithExpectedData(
-			ExtendedFunctionalityOldSpy exSpy, ExtendedFunctionalityData expectedData) {
+			ExtendedFunctionalitySpy extendedFunctionality,
+			ExtendedFunctionalityData expectedData) {
 		String methodName2 = "useExtendedFunctionality";
-		exSpy.MCR.assertMethodWasCalled(methodName2);
-		exSpy.MCR.assertNumberOfCallsToMethod(methodName2, 1);
-		ExtendedFunctionalityData data = (ExtendedFunctionalityData) exSpy.MCR
+		extendedFunctionality.MCR.assertMethodWasCalled(methodName2);
+		extendedFunctionality.MCR.assertNumberOfCallsToMethod(methodName2, 1);
+		ExtendedFunctionalityData data = (ExtendedFunctionalityData) extendedFunctionality.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName(methodName2, 0, "data");
 		assertEquals(data.recordType, expectedData.recordType);
 		assertEquals(data.recordId, expectedData.recordId);

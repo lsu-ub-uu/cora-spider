@@ -47,6 +47,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
@@ -263,8 +264,13 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
 			DataGroup dataGroup) {
+		// List<ExtendedFunctionality> functionalityForUpdateBeforeMetadataValidation =
+		// extendedFunctionalityProvider
+		// .getFunctionalityForUpdateBeforeMetadataValidation(recordTypeToCreate);
 		List<ExtendedFunctionality> functionalityForUpdateBeforeMetadataValidation = extendedFunctionalityProvider
-				.getFunctionalityForUpdateBeforeMetadataValidation(recordTypeToCreate);
+				.getFunctionalityForPositionAndRecordType(
+						ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION,
+						recordTypeToCreate);
 		useExtendedFunctionality(dataGroup, functionalityForUpdateBeforeMetadataValidation);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Uppsala University Library
+ * Copyright 2020, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,7 +23,7 @@ import java.util.List;
 
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityOldSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class FactorySorterSpy implements FactorySorter {
@@ -34,7 +34,7 @@ public class FactorySorterSpy implements FactorySorter {
 			ExtendedFunctionalityPosition position, String recordType) {
 		MCR.addCall("position", position, "recordType", recordType);
 		List<ExtendedFunctionality> fakeFunctionalities = new ArrayList<>();
-		fakeFunctionalities.add(new ExtendedFunctionalityOldSpy());
+		fakeFunctionalities.add(new ExtendedFunctionalitySpy());
 		MCR.addReturned(fakeFunctionalities);
 		return fakeFunctionalities;
 	}
