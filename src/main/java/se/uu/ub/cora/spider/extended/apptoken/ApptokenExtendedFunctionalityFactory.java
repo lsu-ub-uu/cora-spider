@@ -18,7 +18,7 @@
  */
 package se.uu.ub.cora.spider.extended.apptoken;
 
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class ApptokenExtendedFunctionalityFactory implements ExtendedFunctionali
 	}
 
 	private void createListOfContexts() {
-		createContext(CREATE_BEFORE_METADATA_VALIDATION);
+		createContext(CREATE_AFTER_AUTHORIZATION);
 		createContext(CREATE_BEFORE_ENHANCE);
 	}
 
@@ -54,7 +54,7 @@ public class ApptokenExtendedFunctionalityFactory implements ExtendedFunctionali
 	@Override
 	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
 			String recordType) {
-		if (CREATE_BEFORE_METADATA_VALIDATION == position) {
+		if (CREATE_AFTER_AUTHORIZATION == position) {
 			return Collections.singletonList(new AppTokenEnhancer());
 		}
 		return Collections.singletonList(

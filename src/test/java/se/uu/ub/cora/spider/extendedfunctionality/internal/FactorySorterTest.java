@@ -21,8 +21,8 @@ package se.uu.ub.cora.spider.extendedfunctionality.internal;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,7 +70,7 @@ public class FactorySorterTest {
 
 	@Test
 	public void testGetExtendedFunctionalityFactoriesNeededForTest() {
-		createFactorySpyInList(CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 0);
+		createFactorySpyInList(CREATE_AFTER_AUTHORIZATION, "someRecordType", 0);
 		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);
 
 		assertSame(factorySorter.getExtendedFunctionalityFactoriesNeededForTest(),
@@ -82,10 +82,9 @@ public class FactorySorterTest {
 		FactorySorterImp factorySorterNoFactories = new FactorySorterImp(dependencyProvider,
 				Collections.emptyList());
 		List<ExtendedFunctionality> functionality = factorySorterNoFactories
-				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
 						"someRecordType");
 		assertTrue(functionality.isEmpty());
-
 	}
 
 	private ExtendedFunctionalityFactorySpy createFactorySpyInList(
@@ -111,11 +110,11 @@ public class FactorySorterTest {
 	@Test
 	public void testCreateBeforeMetadataValidationWithOneFunctionalityWrongPositionAndEmptyType() {
 		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
-				CREATE_BEFORE_METADATA_VALIDATION, "", 0);
+				CREATE_AFTER_AUTHORIZATION, "", 0);
 		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);
 
 		List<ExtendedFunctionality> functionality = factorySorter
-				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
 						"someRecordType");
 
 		assertNoFunctionalityWasReturned(factorySpy, functionality);
@@ -126,7 +125,7 @@ public class FactorySorterTest {
 		setupTestForLogging();
 
 		expectedInfoLog(0, "Extended functionality found and sorted as follows:");
-		expectedInfoLog(1, " position: CREATE_BEFORE_METADATA_VALIDATION");
+		expectedInfoLog(1, " position: CREATE_AFTER_AUTHORIZATION");
 		expectedInfoLog(2, "  recordType: someRecordType");
 		expectedInfoLog(3,
 				"   class: se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactorySpy");
@@ -152,16 +151,16 @@ public class FactorySorterTest {
 	}
 
 	private void setupTestForLogging() {
-		createFactorySpyInList(CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 1);
-		createFactorySpyInList(CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 0);
-		createFactorySpyInList(CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 500);
-		createFactorySpyInList(CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", -30);
+		createFactorySpyInList(CREATE_AFTER_AUTHORIZATION, "someRecordType", 1);
+		createFactorySpyInList(CREATE_AFTER_AUTHORIZATION, "someRecordType", 0);
+		createFactorySpyInList(CREATE_AFTER_AUTHORIZATION, "someRecordType", 500);
+		createFactorySpyInList(CREATE_AFTER_AUTHORIZATION, "someRecordType", -30);
 		createFactoryWithMoreEFFsInSpyInList(
 				ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION, "otherRecordType",
 				5);
 		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);
 
-		factorySorter.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
+		factorySorter.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
 				"someRecordType");
 	}
 
@@ -195,11 +194,11 @@ public class FactorySorterTest {
 	@Test
 	public void testCreateBeforeMetadataValidationWithOneFunctionalityEmptyPositionWrongType() {
 		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
-				CREATE_BEFORE_METADATA_VALIDATION, "notTheRecordTypeWeAreLookingFor", 0);
+				CREATE_AFTER_AUTHORIZATION, "notTheRecordTypeWeAreLookingFor", 0);
 		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);
 
 		List<ExtendedFunctionality> functionality = factorySorter
-				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
 						"someRecordType");
 
 		assertNoFunctionalityWasReturned(factorySpy, functionality);
@@ -207,7 +206,7 @@ public class FactorySorterTest {
 
 	@Test
 	public void testCreateBeforeMetadataValidationWithOneFunctionalityWrongPositionAndWrongType() {
-		ExtendedFunctionalityPosition extendedFunctionalityPosition = CREATE_AFTER_METADATA_VALIDATION;
+		ExtendedFunctionalityPosition extendedFunctionalityPosition = CREATE_AFTER_AUTHORIZATION;
 		String recordType = "notTheRecordTypeWeAreLookingFor";
 		int runAsNumber = 0;
 		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
@@ -215,7 +214,7 @@ public class FactorySorterTest {
 		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);
 
 		List<ExtendedFunctionality> functionality = factorySorter
-				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
 						"someRecordType");
 
 		assertNoFunctionalityWasReturned(factorySpy, functionality);
@@ -224,18 +223,17 @@ public class FactorySorterTest {
 	@Test
 	public void testCreateBeforeMetadataValidationWithOneFunctionalityRightPositionAndRightType() {
 		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
-				CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 0);
+				CREATE_AFTER_AUTHORIZATION, "someRecordType", 0);
 		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);
 
 		List<ExtendedFunctionality> functionality = factorySorter
-				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
 						"someRecordType");
 
 		factorySpy.MCR.assertParameter("initializeUsingDependencyProvider", 0, "dependencyProvider",
 				dependencyProvider);
 		assertSame(functionality.get(0), getFirstReturnedExtendedFunctionality(factorySpy));
-		factorySpy.MCR.assertParameters("factor", 0, CREATE_BEFORE_METADATA_VALIDATION,
-				"someRecordType");
+		factorySpy.MCR.assertParameters("factor", 0, CREATE_AFTER_AUTHORIZATION, "someRecordType");
 	}
 
 	private ExtendedFunctionality getFirstReturnedExtendedFunctionality(
@@ -248,19 +246,18 @@ public class FactorySorterTest {
 	@Test
 	public void testCreateBeforeMetadataValidationWithTwoInOneFactory() {
 		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
-				CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 0);
+				CREATE_AFTER_AUTHORIZATION, "someRecordType", 0);
 		factorySpy.numberOfReturnedFunctionalities = 2;
 		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);
 
 		List<ExtendedFunctionality> functionality = factorySorter
-				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
 						"someRecordType");
 
 		factorySpy.MCR.assertParameter("initializeUsingDependencyProvider", 0, "dependencyProvider",
 				dependencyProvider);
 		assertSame(functionality.get(0), getFirstReturnedExtendedFunctionality(factorySpy));
-		factorySpy.MCR.assertParameters("factor", 0, CREATE_BEFORE_METADATA_VALIDATION,
-				"someRecordType");
+		factorySpy.MCR.assertParameters("factor", 0, CREATE_AFTER_AUTHORIZATION, "someRecordType");
 
 		List<?> returnValue = (List<?>) factorySpy.MCR.getReturnValue("factor", 0);
 		ExtendedFunctionality secondFunctionality = (ExtendedFunctionality) returnValue.get(1);
@@ -270,17 +267,17 @@ public class FactorySorterTest {
 	@Test
 	public void testTwoFunctionalityFactoriesForSameTypeAndRecordTypeListInRightOrder() {
 		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
-				CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 1);
+				CREATE_AFTER_AUTHORIZATION, "someRecordType", 1);
 		ExtendedFunctionalityFactorySpy factorySpy2 = createFactorySpyInList(
-				CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 0);
+				CREATE_AFTER_AUTHORIZATION, "someRecordType", 0);
 		ExtendedFunctionalityFactorySpy factorySpy3 = createFactorySpyInList(
-				CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 500);
+				CREATE_AFTER_AUTHORIZATION, "someRecordType", 500);
 		ExtendedFunctionalityFactorySpy factorySpy4 = createFactorySpyInList(
-				CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", -30);
+				CREATE_AFTER_AUTHORIZATION, "someRecordType", -30);
 		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);
 
 		List<ExtendedFunctionality> functionality = factorySorter
-				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
 						"someRecordType");
 
 		assertSame(functionality.get(0), getFirstReturnedExtendedFunctionality(factorySpy4));
@@ -292,39 +289,37 @@ public class FactorySorterTest {
 	@Test
 	public void testTwoFunctionalityFactoriesForDifferentTypeAndSameRecordTypeListInRightOrder() {
 		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
-				CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 1);
+				CREATE_AFTER_AUTHORIZATION, "someRecordType", 1);
 		ExtendedFunctionalityFactorySpy factorySpy2 = createFactorySpyInList(
 				CREATE_AFTER_METADATA_VALIDATION, "someRecordType", 0);
 		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);
 
 		List<ExtendedFunctionality> functionality = factorySorter
-				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
 						"someRecordType");
 
 		assertSame(functionality.get(0), getFirstReturnedExtendedFunctionality(factorySpy));
 
 		factorySpy2.MCR.assertMethodNotCalled("factor");
-		factorySpy.MCR.assertParameters("factor", 0, CREATE_BEFORE_METADATA_VALIDATION,
-				"someRecordType");
+		factorySpy.MCR.assertParameters("factor", 0, CREATE_AFTER_AUTHORIZATION, "someRecordType");
 	}
 
 	@Test
 	public void testTwoFunctionalityFactoriesForSameTypeAndDifferentRecordTypeListInRightOrder() {
 		ExtendedFunctionalityFactorySpy factorySpy = createFactorySpyInList(
-				CREATE_BEFORE_METADATA_VALIDATION, "someRecordType", 1);
+				CREATE_AFTER_AUTHORIZATION, "someRecordType", 1);
 		ExtendedFunctionalityFactorySpy factorySpy2 = createFactorySpyInList(
-				CREATE_BEFORE_METADATA_VALIDATION, "otherRecordType", 0);
+				CREATE_AFTER_AUTHORIZATION, "otherRecordType", 0);
 		factorySorter = new FactorySorterImp(dependencyProvider, fakeImplementations);
 
 		List<ExtendedFunctionality> functionality = factorySorter
-				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
 						"someRecordType");
 
 		assertSame(functionality.get(0), getFirstReturnedExtendedFunctionality(factorySpy));
 
 		factorySpy2.MCR.assertMethodNotCalled("factor");
-		factorySpy.MCR.assertParameters("factor", 0, CREATE_BEFORE_METADATA_VALIDATION,
-				"someRecordType");
+		factorySpy.MCR.assertParameters("factor", 0, CREATE_AFTER_AUTHORIZATION, "someRecordType");
 	}
 
 }

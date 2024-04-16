@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.extended.apptoken;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class ApptokenExtendedFunctionalityFactoryTest {
 	public void testGetExtendedFunctionalityContexts() {
 		assertEquals(factory.getExtendedFunctionalityContexts().size(), 2);
 		assertCorrectContextUsingIndexNumberAndPosition(0, 0, "appToken",
-				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION);
+				CREATE_AFTER_AUTHORIZATION);
 		assertCorrectContextUsingIndexNumberAndPosition(1, 0, "appToken",
 				ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE);
 	}
@@ -66,8 +67,8 @@ public class ApptokenExtendedFunctionalityFactoryTest {
 
 	@Test
 	public void testCreateBeforeValidationForApptoken() {
-		List<ExtendedFunctionality> functionalities = factory.factor(
-				ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION, "appToken");
+		List<ExtendedFunctionality> functionalities = factory.factor(CREATE_AFTER_AUTHORIZATION,
+				"appToken");
 		assertTrue(functionalities.get(0) instanceof AppTokenEnhancer);
 	}
 

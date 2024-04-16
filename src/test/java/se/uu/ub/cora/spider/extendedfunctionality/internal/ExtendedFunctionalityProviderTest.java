@@ -19,7 +19,7 @@
 package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
 import static org.testng.Assert.assertSame;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_RETURN;
@@ -52,23 +52,19 @@ public class ExtendedFunctionalityProviderTest {
 	@Test
 	public void testGetExtendedFunctionalityForPositionAndRecordType2() throws Exception {
 		List<ExtendedFunctionality> functionality = ((ExtendedFunctionalityProvider) provider)
-				.getFunctionalityForPositionAndRecordType(
-						ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION,
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
 						"someRecordType");
 
-		assertCorrectCallAndAnswerFor(CREATE_BEFORE_METADATA_VALIDATION, functionality,
-				"someRecordType");
+		assertCorrectCallAndAnswerFor(CREATE_AFTER_AUTHORIZATION, functionality, "someRecordType");
 	}
 
 	@Test
 	public void testGetExtendedFunctionalityForPositionAndRecordType() throws Exception {
 		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForPositionAndRecordType(
-						ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION,
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
 						"someRecordType");
 
-		assertCorrectCallAndAnswerFor(CREATE_BEFORE_METADATA_VALIDATION, functionality,
-				"someRecordType");
+		assertCorrectCallAndAnswerFor(CREATE_AFTER_AUTHORIZATION, functionality, "someRecordType");
 	}
 
 	@Test
@@ -158,7 +154,6 @@ public class ExtendedFunctionalityProviderTest {
 				.getFunctionalityForUpdateAfterStore(recordType);
 		assertCorrectCallAndAnswerFor(ExtendedFunctionalityPosition.UPDATE_AFTER_STORE,
 				functionality, recordType);
-
 	}
 
 }

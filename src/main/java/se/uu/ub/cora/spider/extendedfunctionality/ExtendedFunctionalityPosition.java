@@ -29,7 +29,6 @@ import se.uu.ub.cora.storage.RecordStorage;
  * <br>
  * For create are the positions ordered as follows:<br>
  * CREATE_AFTER_AUTHORIZATION<br>
- * CREATE_BEFORE_METADATA_VALIDATION<br>
  * CREATE_AFTER_METADATA_VALIDATION<br>
  * CREATE_BEFORE_ENHANCE<br>
  * <br>
@@ -53,11 +52,6 @@ public enum ExtendedFunctionalityPosition {
 	 * operation, right after the user is authorized for the create action on the recordType.
 	 */
 	CREATE_AFTER_AUTHORIZATION,
-	/**
-	 * CREATE_BEFORE_METADATA_VALIDATION, as the name suggests is the functionality plugged into a
-	 * create operation, before metadataValidation is done.
-	 */
-	CREATE_BEFORE_METADATA_VALIDATION,
 
 	/**
 	 * CREATE_AFTER_METADATA_VALIDATION, as the name suggests is the functionality plugged into a

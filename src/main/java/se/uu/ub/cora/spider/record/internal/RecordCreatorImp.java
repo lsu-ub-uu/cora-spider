@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.record.internal;
 
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
 
 import java.text.MessageFormat;
 import java.util.List;
@@ -133,7 +132,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private DataRecord validateCreateAndStoreRecord() {
 		checkActionAuthorizationForUser();
 		useExtendedFunctionalityCreateAfterAuthorization(recordType, recordGroup);
-		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordGroup);
 		createRecordTypeHandler();
 		validateRecordTypeInDataIsSameAsSpecified(recordType);
 		definitionId = recordTypeHandler.getDefinitionId();
@@ -168,14 +166,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 			DataGroup dataGroup) {
 		List<ExtendedFunctionality> functionalityForCreateBeforeMetadataValidation = extendedFunctionalityProvider
 				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
-						recordTypeToCreate);
-		useExtendedFunctionality(dataGroup, functionalityForCreateBeforeMetadataValidation);
-	}
-
-	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
-			DataGroup dataGroup) {
-		List<ExtendedFunctionality> functionalityForCreateBeforeMetadataValidation = extendedFunctionalityProvider
-				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
 						recordTypeToCreate);
 		useExtendedFunctionality(dataGroup, functionalityForCreateBeforeMetadataValidation);
 	}
