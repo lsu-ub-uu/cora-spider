@@ -39,24 +39,6 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 
 	public ExtendedFunctionalityProviderSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForCreateBeforeMetadataValidation",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForCreateAfterMetadataValidation",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForCreateBeforeEnhance",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForReadBeforeReturn",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateBeforeReturn",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateBeforeMetadataValidation",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateAfterMetadataValidation",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateBeforeStore",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateAfterStore",
-				() -> createListWithTwoExtendedFunctionalitySpies());
 		MRV.setDefaultReturnValuesSupplier("getFunctionalityBeforeDelete",
 				() -> createListWithTwoExtendedFunctionalitySpies());
 		MRV.setDefaultReturnValuesSupplier("getFunctionalityAfterDelete",
@@ -72,46 +54,6 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 		ExtendedFunctionalitySpy extendedFunctionalitySpy2 = new ExtendedFunctionalitySpy();
 		listOfExtendedFunctionality.add(extendedFunctionalitySpy2);
 		return listOfExtendedFunctionality;
-	}
-	// private List<ExtendedFunctionality> createListWithTwoExtendedFunctionalitySpies() {
-	// ArrayList<ExtendedFunctionality> listOfExtendedFunctionality = new ArrayList<>();
-	// ExtendedFunctionalityOldSpy extendedFunctionalitySpy = new ExtendedFunctionalityOldSpy();
-	// listOfExtendedFunctionality.add(extendedFunctionalitySpy);
-	// ExtendedFunctionalityOldSpy extendedFunctionalitySpy2 = new ExtendedFunctionalityOldSpy();
-	// listOfExtendedFunctionality.add(extendedFunctionalitySpy2);
-	// return listOfExtendedFunctionality;
-	// }
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForReadBeforeReturn(String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeReturn(String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeMetadataValidation(
-			String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterMetadataValidation(
-			String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeStore(String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterStore(String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
 	}
 
 	@Override

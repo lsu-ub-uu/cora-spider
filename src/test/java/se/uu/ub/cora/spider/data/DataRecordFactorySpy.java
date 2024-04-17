@@ -24,11 +24,11 @@ import se.uu.ub.cora.data.DataRecordFactory;
 
 public class DataRecordFactorySpy implements DataRecordFactory {
 
-	public DataRecordSpy factoredDataRecord;
+	public DataRecordOldSpy factoredDataRecord;
 
 	@Override
 	public DataRecord factorUsingDataGroup(DataGroup dataGroup) {
-		factoredDataRecord = new DataRecordSpy(dataGroup);
+		factoredDataRecord = new DataRecordOldSpy(dataGroup);
 		return factoredDataRecord;
 	}
 

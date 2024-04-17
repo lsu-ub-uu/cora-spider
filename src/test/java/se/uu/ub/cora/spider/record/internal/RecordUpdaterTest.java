@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,7 +23,12 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_STORE;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_RETURN;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE;
 
 import java.time.Instant;
 import java.util.List;
@@ -59,6 +64,7 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataMissingException;
+import se.uu.ub.cora.spider.data.DataRecordOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -174,8 +180,6 @@ public class RecordUpdaterTest {
 		atomicTS.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "tsUpdated");
 		atomicTS.MRV.setDefaultReturnValuesSupplier("getValue",
 				() -> "2018-10-01T00:00:00.000000Z");
-		// atomicTS.MRV.setDefaultReturnValuesSupplier("getValue", () ->
-		// "fakeTimestampForTsUpdated");
 	}
 
 	@Test
@@ -505,7 +509,12 @@ public class RecordUpdaterTest {
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
 
 		dataRedactor.MCR.assertMethodNotCalled("replaceChildrenForConstraintsWithoutPermissions");
-		dataRedactor.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
+		dataRedactor.MCR.assertMethodNotCalled(
+				"removeChildrenForConstra	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,\n"
+						+ "			DataGroup dataGroup) {\n"
+						+ "		List<ExtendedFunctionality> functionalityForUpdateAfterMetadataValidation = extendedFunctionalityProvider\n"
+						+ "				.getFunctionalityForUpdateAfterMetadataValidation(recordTypeToCreate);\n"
+						+ "		useExtendedFunctionality(dataGroup, functionalityForUpdateAfterMetadataValidation);intsWithoutPermissions");
 
 		dataValidator.MCR.assertParameter("validateData", 0, "dataGroup", dataGroup);
 	}
@@ -875,20 +884,21 @@ public class RecordUpdaterTest {
 		expectedData.recordId = recordId;
 		expectedData.authToken = authToken;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
-		expectedData.previouslyStoredTopDataGroup = (DataGroup) recordStorage.MCR
-				.getReturnValue("read", 0);
 		expectedData.dataGroup = dataGroup;
 
-		// extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
-		// "getFunctionalityForUpdateBeforeMetadataValidation", expectedData);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-				UPDATE_BEFORE_METADATA_VALIDATION, expectedData, 0);
-		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
-				"getFunctionalityForUpdateAfterMetadataValidation", expectedData);
-		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
-				"getFunctionalityForUpdateBeforeStore", expectedData);
-		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
-				"getFunctionalityForUpdateAfterStore", expectedData);
+				UPDATE_AFTER_AUTHORIZATION, expectedData, 0);
+
+		expectedData.previouslyStoredTopDataGroup = (DataGroup) recordStorage.MCR
+				.getReturnValue("read", 0);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				UPDATE_BEFORE_METADATA_VALIDATION, expectedData, 1);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				UPDATE_AFTER_METADATA_VALIDATION, expectedData, 2);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				UPDATE_BEFORE_STORE, expectedData, 3);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				UPDATE_AFTER_STORE, expectedData, 4);
 	}
 
 	@Test
@@ -902,37 +912,11 @@ public class RecordUpdaterTest {
 
 		var recordToSentToStorage = (DataGroup) recordStorage.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("update", 0, "dataRecord");
-		var ids = recordTypeHandlerSpy.MCR.getReturnValue("getCombinedIdsUsingRecordId", 0);
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				1);
-		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectTerms.indexTerms,
-				recordToSentToStorage);
-	}
-
-	@Test
-	public void testIndexerIsCalledForChildOfAbstract() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId", () -> "image");
-		DataGroup dataGroup = getDataGroupForImageToUpdate();
-
-		recordUpdaterOld.updateRecord("someToken78678567", "image", "someImage", dataGroup);
-
-		var recordToSentToStorage = (DataGroup) recordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("update", 0, "dataRecord");
-		var ids = recordTypeHandlerSpy.MCR.getReturnValue("getCombinedIdsUsingRecordId", 0);
-		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
-				1);
-		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectTerms.indexTerms,
-				recordToSentToStorage);
-	}
-
-	private DataGroup getDataGroupForImageToUpdate() {
-		DataGroup dataGroup = new DataGroupOldSpy("binary");
-		DataGroup createRecordInfo = DataCreator2
-				.createRecordInfoWithIdAndLinkedRecordId("someImage", "cora");
-		createRecordInfo.addChild(createLinkWithLinkedId("type", "linkedRecordType", "image"));
-		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("atomicId", "atomicValue"));
-		return dataGroup;
+		recordIndexer.MCR.assertParameterAsEqual("indexData", 0, "ids", List.of("somePlace"));
+		recordIndexer.MCR.assertParameter("indexData", 0, "indexTerms", collectTerms.indexTerms);
+		recordIndexer.MCR.assertParameter("indexData", 0, "record", recordToSentToStorage);
 	}
 
 	private DataRecordLink createLinkWithLinkedId(String nameInData, String linkedRecordType,
@@ -1149,17 +1133,19 @@ public class RecordUpdaterTest {
 
 		recordUpdaterOld.updateRecord("someToken", "spyType", "someRecordId", recordSpy);
 
-		extendedFunctionalityProvider.MCR.assertParameters("getFunctionalityForUpdateBeforeReturn",
-				0, "spyType");
-		List<ExtendedFunctionalitySpy> extFunctionalities = (List<ExtendedFunctionalitySpy>) extendedFunctionalityProvider.MCR
-				.getReturnValue("getFunctionalityForUpdateBeforeReturn", 0);
-
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = extFunctionalities.get(0);
-		extendedFunctionalitySpy.MCR.assertParameters("useExtendedFunctionality", 0);
-		ExtendedFunctionalityData data = (ExtendedFunctionalityData) extendedFunctionalitySpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("useExtendedFunctionality", 0,
-						"data");
-
-		dataGroupToRecordEnhancer.MCR.assertReturn("enhance", 0, data.dataRecord);
+		DataRecordOldSpy enhancedRecord = (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR
+				.getReturnValue("enhance", 0);
+		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
+		expectedData.recordType = "spyType";
+		expectedData.recordId = "someRecordId";
+		expectedData.authToken = "someToken";
+		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.previouslyStoredTopDataGroup = (DataGroup) recordStorage.MCR
+				.getReturnValue("read", 0);
+		expectedData.dataGroup = enhancedRecord.getDataGroup();
+		expectedData.dataRecord = enhancedRecord;
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				UPDATE_BEFORE_RETURN, expectedData, 5);
 	}
+
 }

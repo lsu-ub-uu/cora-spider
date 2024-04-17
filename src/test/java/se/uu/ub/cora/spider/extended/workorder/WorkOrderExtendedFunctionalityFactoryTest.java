@@ -94,6 +94,6 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 				"workOrder");
 		WorkOrderDeleter functionality = (WorkOrderDeleter) functionalities.get(0);
 		RecordDeleterImp recordDeleter = (RecordDeleterImp) functionality.getRecordDeleter();
-		assertSame(recordDeleter.getDependencyProvider(), dependencyProviderSpy);
+		assertSame(recordDeleter.onlyForTestGetDependencyProvider(), dependencyProviderSpy);
 	}
 }

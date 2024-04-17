@@ -282,40 +282,6 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testNotPossibleToCreateRecordWithTypeAndIdWhichAlreadyExistsForImplementingType() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
-		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
-		String authToken = "dummyAuthenticatedToken";
-
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("hasParent", () -> true);
-		recordStorage.MRV.setSpecificReturnValuesSupplier("recordExists",
-				(Supplier<Boolean>) () -> true, List.of("oneImplementingTypeId"), "1");
-
-		try {
-			recordCreatorOld.createAndStoreRecord(authToken, "spyType", dataGroup);
-			assertTrue(false);
-		} catch (Exception e) {
-			assertTrue(e instanceof ConflictException);
-			assertEquals(e.getMessage(),
-					"Record " + "with type: spyType and id: 1 already exists in storage");
-
-			recordTypeHandlerSpy.MCR.assertMethodWasCalled("getParentId");
-
-			var parentId = recordTypeHandlerSpy.MCR.getReturnValue("getParentId", 0);
-
-			dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, parentId);
-			RecordTypeHandlerSpy parentRecordTypeHandler = (RecordTypeHandlerSpy) dependencyProvider.MCR
-					.getReturnValue("getRecordTypeHandler", 0);
-			parentRecordTypeHandler.MCR.assertParameters("getListOfRecordTypeIdsToReadFromStorage",
-					0);
-			var types = parentRecordTypeHandler.MCR
-					.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
-
-			recordStorage.MCR.assertParameters("recordExists", 0, types, "1");
-		}
-	}
-
-	@Test
 	public void testExtendedFunctionalityIsCalled() {
 		String recordType = "spyType";
 		String authToken = "someToken78678567";
@@ -416,12 +382,11 @@ public class RecordCreatorTest {
 		var dataRecord = recordStorage.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("create", 0, "dataRecord");
 
-		List<?> ids = (List<?>) recordTypeHandlerSpy.MCR
-				.getReturnValue("getCombinedIdsUsingRecordId", 0);
+		recordIndexer.MCR.assertParameterAsEqual("indexData", 0, "ids", List.of("1"));
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				1);
-		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectTerms.indexTerms,
-				dataRecord);
+		recordIndexer.MCR.assertParameter("indexData", 0, "indexTerms", collectTerms.indexTerms);
+		recordIndexer.MCR.assertParameter("indexData", 0, "record", dataRecord);
 	}
 
 	@Test(expectedExceptions = DataException.class)

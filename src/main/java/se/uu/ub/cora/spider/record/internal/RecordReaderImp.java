@@ -19,6 +19,9 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
+
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
@@ -31,6 +34,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordReader;
@@ -48,10 +52,10 @@ public final class RecordReaderImp implements RecordReader {
 	private RecordStorage recordStorage;
 	private String recordType;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
+	private String recordId;
 
 	private RecordReaderImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
@@ -70,31 +74,21 @@ public final class RecordReaderImp implements RecordReader {
 	public DataRecord readRecord(String authToken, String recordType, String recordId) {
 		this.authToken = authToken;
 		this.recordType = recordType;
+		this.recordId = recordId;
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-
-		return tryToReadRecord(recordId);
+		return tryToReadRecord();
 	}
 
-	private DataRecord tryToReadRecord(String recordId) {
+	private DataRecord tryToReadRecord() {
 		tryToGetUserWithActiveToken();
 		checkUserIsAuthorizedForActionOnRecordType();
+		useExtendedFunctionalityForPosition(READ_AFTER_AUTHORIZATION);
 
-		DataGroup recordRead = recordStorage
-				.read(recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage(), recordId);
+		DataGroup recordRead = recordStorage.read(List.of(recordType), recordId);
+
 		DataRecord dataRecord = tryToReadAndEnhanceRecord(recordRead);
-		useExtendedFunctionalityBeforeReturn(dataRecord);
+		useExtendedFunctionalityBeforeReturn(READ_BEFORE_RETURN, dataRecord);
 		return dataRecord;
-
-	}
-
-	private void useExtendedFunctionalityBeforeReturn(DataRecord dataRecord) {
-		List<ExtendedFunctionality> extendedFunctionalityList = extendedFunctionalityProvider
-				.getFunctionalityForReadBeforeReturn(recordType);
-		for (ExtendedFunctionality extendedFunctionality : extendedFunctionalityList) {
-			ExtendedFunctionalityData data = new ExtendedFunctionalityData();
-			data.dataRecord = dataRecord;
-			extendedFunctionality.useExtendedFunctionality(data);
-		}
 	}
 
 	private void tryToGetUserWithActiveToken() {
@@ -111,9 +105,45 @@ public final class RecordReaderImp implements RecordReader {
 		return !recordTypeHandler.isPublicForRead();
 	}
 
+	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityData();
+		useExtendedFunctionality(position, data);
+	}
+
+	protected void useExtendedFunctionality(ExtendedFunctionalityPosition position,
+			ExtendedFunctionalityData data) {
+		List<ExtendedFunctionality> functionalityList = extendedFunctionalityProvider
+				.getFunctionalityForPositionAndRecordType(position, recordType);
+		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
+			extendedFunctionality.useExtendedFunctionality(data);
+		}
+	}
+
 	private DataRecord tryToReadAndEnhanceRecord(DataGroup recordRead) {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead, dataRedactor);
 	}
 
+	private void useExtendedFunctionalityBeforeReturn(ExtendedFunctionalityPosition position,
+			DataRecord dataRecord) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityDataUsingDataRecord(dataRecord);
+		useExtendedFunctionality(position, data);
+	}
+
+	private ExtendedFunctionalityData createExtendedFunctionalityDataUsingDataRecord(
+			DataRecord dataRecord) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityData();
+		data.dataRecord = dataRecord;
+		data.dataGroup = dataRecord.getDataGroup();
+		return data;
+	}
+
+	protected ExtendedFunctionalityData createExtendedFunctionalityData() {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.recordType = recordType;
+		data.recordId = recordId;
+		data.authToken = authToken;
+		data.user = user;
+		return data;
+	}
 }

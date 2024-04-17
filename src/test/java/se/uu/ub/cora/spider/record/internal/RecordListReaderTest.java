@@ -45,6 +45,9 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
@@ -76,6 +79,7 @@ public class RecordListReaderTest {
 	private DataRedactorSpy dataRedactor;
 	private DataListSpy dataList;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
+	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -89,6 +93,7 @@ public class RecordListReaderTest {
 		dataValidator = new DataValidatorSpy();
 		dataRedactor = new DataRedactorSpy();
 		recordEnhancer = new DataGroupToRecordEnhancerSpy();
+		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		setUpDependencyProvider();
 
 		dataList = new DataListSpy();
@@ -123,6 +128,7 @@ public class RecordListReaderTest {
 		dependencyProvider.ruleCalculator = ruleCalculator;
 		dependencyProvider.dataValidator = dataValidator;
 		dependencyProvider.dataRedactor = dataRedactor;
+		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
 		recordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordListReader = RecordListReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, recordEnhancer);
@@ -373,6 +379,27 @@ public class RecordListReaderTest {
 		dataList.MCR.assertParameters("setFromNo", 0, "0");
 		dataList.MCR.assertParameters("setToNo", 0, "0");
 
+	}
+
+	@Test
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() throws Exception {
+		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+
+		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
+		expectedData.recordType = SOME_RECORD_TYPE;
+		// expectedData.recordId = SOME_RECORD_ID;
+		expectedData.authToken = SOME_USER_TOKEN;
+		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.previouslyStoredTopDataGroup = null;
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				ExtendedFunctionalityPosition.READ_AFTER_AUTHORIZATION, expectedData, 0);
+		//
+		// DataRecordOldSpy enhancedRecord = (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR
+		// .getReturnValue("enhance", 0);
+		// expectedData.dataGroup = enhancedRecord.getDataGroup();
+		// expectedData.dataRecord = enhancedRecord;
+		// extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+		// READ_BEFORE_RETURN, expectedData, 1);
 	}
 
 }

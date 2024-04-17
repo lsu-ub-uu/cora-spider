@@ -66,7 +66,7 @@ public class ExtendedFunctionalityData {
 	public DataGroup previouslyStoredTopDataGroup;
 
 	/**
-	 * The representeion of the record as DataRecord
+	 * The representation of the record as DataRecord
 	 */
 	public DataRecord dataRecord;
 

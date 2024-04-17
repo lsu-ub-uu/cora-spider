@@ -28,8 +28,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
-public class DataRecordSpy implements DataRecord {
-
+public class DataRecordOldSpy implements DataRecord {
 	private DataGroup dataGroup;
 	private List<Action> actions = new ArrayList<>();
 	private Collection<String> readPermissions;
@@ -38,7 +37,7 @@ public class DataRecordSpy implements DataRecord {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
-	public DataRecordSpy(DataGroup dataGroup) {
+	public DataRecordOldSpy(DataGroup dataGroup) {
 		MCR.addCall("dataGroup", dataGroup);
 		this.dataGroup = dataGroup;
 		MCR.addReturned(dataGroup);
@@ -80,7 +79,6 @@ public class DataRecordSpy implements DataRecord {
 	@Override
 	public void addWritePermission(String writePermission) {
 		MCR.addCall("writePermission", writePermission);
-
 	}
 
 	@Override
@@ -148,7 +146,6 @@ public class DataRecordSpy implements DataRecord {
 	@Override
 	public void addProtocol(String protocol) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override

@@ -89,7 +89,6 @@ public class RecordListIndexerTest {
 		setUpRecordCreatorToReturnRecordWithId("someRecordId");
 		recordListIndexer = RecordListIndexerImp.usingDependencyProvider(dependencyProviderSpy,
 				indexBatchHandler, batchJobConverterSpy);
-
 	}
 
 	private void setUpDependencyProvider() {
@@ -216,7 +215,6 @@ public class RecordListIndexerTest {
 				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
 		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForTypes", 0, listOfTypes,
 				filter);
-
 	}
 
 	@Test
@@ -241,12 +239,10 @@ public class RecordListIndexerTest {
 		assertEquals(indexBatchJob.recordTypeToIndex, SOME_RECORD_TYPE);
 		assertEquals(indexBatchJob.totalNumberToIndex, 45);
 		assertSame(indexBatchJob.filter, filter);
-
 	}
 
 	@Test
 	public void testIndexBatchJobIsCreatedWithFilter() throws Exception {
-
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithFilter);
 
@@ -274,7 +270,6 @@ public class RecordListIndexerTest {
 
 	@Test
 	public void testConvertAndStoreIndexBatchJobRecord() throws Exception {
-
 		DataRecord finalRecord = recordListIndexer.indexRecordList(SOME_USER_TOKEN,
 				SOME_RECORD_TYPE, indexSettingsWithoutFilter);
 
@@ -322,7 +317,6 @@ public class RecordListIndexerTest {
 
 	@Test
 	public void testIndexBatchJobIsStarted() throws Exception {
-
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
 
@@ -354,7 +348,6 @@ public class RecordListIndexerTest {
 				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
 		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForTypes", 0, listOfTypes,
 				filter);
-
 	}
 
 	private void setUpRecordCreatorToReturnRecordWithId(String recordId) {

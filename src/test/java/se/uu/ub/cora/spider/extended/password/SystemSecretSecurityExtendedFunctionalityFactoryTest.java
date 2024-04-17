@@ -26,6 +26,7 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
@@ -50,39 +51,53 @@ public class SystemSecretSecurityExtendedFunctionalityFactoryTest {
 		List<ExtendedFunctionalityContext> extendedFunctionalityContexts = factory
 				.getExtendedFunctionalityContexts();
 
-		assertEqualNumberOfContextsThanHooksThatEndsWithAfterAuthorization(
+		assertEqualNumberOfContextsThanPositionsEndingWithAfterAuthorization(
 				extendedFunctionalityContexts);
-
-		ExtendedFunctionalityContext firstContext = extendedFunctionalityContexts.get(0);
-		assertFirstHook(firstContext);
+		assertContextUsingConextListAndListIndex(extendedFunctionalityContexts, 0);
 	}
 
-	private void assertFirstHook(ExtendedFunctionalityContext firstContext) {
+	private void assertContextUsingConextListAndListIndex(
+			List<ExtendedFunctionalityContext> extendedFunctionalityContexts, int listIndex) {
+		ExtendedFunctionalityContext firstContext = extendedFunctionalityContexts.get(listIndex);
 		assertEquals(firstContext.position,
 				ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION);
 		assertEquals(firstContext.recordType, "systemSecret");
 	}
 
-	private void assertEqualNumberOfContextsThanHooksThatEndsWithAfterAuthorization(
+	private void assertEqualNumberOfContextsThanPositionsEndingWithAfterAuthorization(
 			List<ExtendedFunctionalityContext> extendedFunctionalityContexts) {
 
+		int numberOfPositionsEndingWithAfterAuthorization = getNumberOfPositionsEndingWithAfterAuthorization();
 		assertEquals(extendedFunctionalityContexts.size(),
-				getNumberOfHooksEndingWith(
-						"_AFTER_AUTHORIZATION"));
+				numberOfPositionsEndingWithAfterAuthorization);
 	}
 
-	private int getNumberOfHooksEndingWith(String string) {
-		int number = 0;
-		for (ExtendedFunctionalityPosition hook : ExtendedFunctionalityPosition.values()) {
-			if (endsWithAfterAuthorization(hook)) {
-				number++;
-			}
+	private int getNumberOfPositionsEndingWithAfterAuthorization() {
+		int counter = 0;
+		for (ExtendedFunctionalityPosition position : ExtendedFunctionalityPosition.values()) {
+			counter = incrementCounterIfPositionEndsWithAfterAuthorization(counter, position);
 		}
-		return number;
+		return counter;
 	}
 
-	private boolean endsWithAfterAuthorization(ExtendedFunctionalityPosition hook) {
-		return hook.toString().endsWith("_AFTER_AUTHORIZATION");
+	private int incrementCounterIfPositionEndsWithAfterAuthorization(int counter,
+			ExtendedFunctionalityPosition position) {
+		if (endsWithAfterAuthorization(position)) {
+			counter++;
+		}
+		return counter;
 	}
 
+	private boolean endsWithAfterAuthorization(ExtendedFunctionalityPosition position) {
+		return position.toString().endsWith("_AFTER_AUTHORIZATION");
+	}
+
+	@Test
+	public void testFactor() throws Exception {
+		List<ExtendedFunctionality> extendedFunctionalityList = factory.factor(null, null);
+
+		assertEquals(extendedFunctionalityList.size(), 1);
+		assertTrue(extendedFunctionalityList
+				.get(0) instanceof SystemSecretSecurityExtendedFunctionality);
+	}
 }

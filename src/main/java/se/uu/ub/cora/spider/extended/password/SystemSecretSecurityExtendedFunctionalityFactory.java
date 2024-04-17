@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.extended.password;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -34,20 +35,25 @@ public class SystemSecretSecurityExtendedFunctionalityFactory
 
 	@Override
 	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
-		createListOfContexts();
-
-	}
-
-	private void createListOfContexts() {
-		for (ExtendedFunctionalityPosition hook : ExtendedFunctionalityPosition.values()) {
-			if (hook.toString().endsWith("_AFTER_AUTHORIZATION")) {
-				createContext(hook);
-			}
+		for (ExtendedFunctionalityPosition position : ExtendedFunctionalityPosition.values()) {
+			possibliAddContextWhenPositionEndsWithAfterAuthorization(position);
 		}
 	}
 
-	private void createContext(ExtendedFunctionalityPosition position) {
-		contexts.add(new ExtendedFunctionalityContext(position, "systemSecret", 0));
+	private void possibliAddContextWhenPositionEndsWithAfterAuthorization(
+			ExtendedFunctionalityPosition position) {
+		if (endsWithAfterAuthorization(position)) {
+			createAndAddContextUsingPosition(position);
+		}
+	}
+
+	private boolean endsWithAfterAuthorization(ExtendedFunctionalityPosition position) {
+		return position.toString().endsWith("_AFTER_AUTHORIZATION");
+	}
+
+	private void createAndAddContextUsingPosition(ExtendedFunctionalityPosition position) {
+		var systemSecretContext = new ExtendedFunctionalityContext(position, "systemSecret", 0);
+		contexts.add(systemSecretContext);
 	}
 
 	@Override
@@ -58,7 +64,6 @@ public class SystemSecretSecurityExtendedFunctionalityFactory
 	@Override
 	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
 			String recordType) {
-		return null;
+		return Collections.singletonList(new SystemSecretSecurityExtendedFunctionality());
 	}
-
 }

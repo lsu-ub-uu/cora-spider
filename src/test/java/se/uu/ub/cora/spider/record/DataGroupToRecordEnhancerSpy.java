@@ -28,7 +28,7 @@ import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.data.DataRecordSpy;
+import se.uu.ub.cora.spider.data.DataRecordOldSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
@@ -85,7 +85,7 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 		this.recordType = recordType;
 		this.dataGroup = dataGroup;
 
-		DataRecord dataGroupSpy = new DataRecordSpy(dataGroup);
+		DataRecord dataGroupSpy = new DataRecordOldSpy(dataGroup);
 		if (addReadAction) {
 			dataGroupSpy.addAction(Action.READ);
 			if (addReadActionOnlyFirst) {

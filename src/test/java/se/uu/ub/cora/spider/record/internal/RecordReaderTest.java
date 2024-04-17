@@ -20,6 +20,8 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertNotNull;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
 
 import java.util.List;
 
@@ -34,10 +36,10 @@ import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
+import se.uu.ub.cora.spider.data.DataRecordOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
@@ -166,11 +168,8 @@ public class RecordReaderTest {
 	public void testStorageIsCalledCorrectly() throws Exception {
 		recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID);
 
-		var types = recordTypeHandlerSpy.MCR
-				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
-
-		recordStorage.MCR.assertParameters("read", 0, types, SOME_RECORD_ID);
-
+		recordStorage.MCR.assertParameterAsEqual("read", 0, "types", List.of(SOME_RECORD_TYPE));
+		recordStorage.MCR.assertParameter("read", 0, "id", SOME_RECORD_ID);
 	}
 
 	@Test
@@ -195,17 +194,21 @@ public class RecordReaderTest {
 	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() throws Exception {
 		recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID);
 
-		extendedFunctionalityProvider.MCR.assertParameters("getFunctionalityForReadBeforeReturn", 0,
-				SOME_RECORD_TYPE);
-		List<ExtendedFunctionalitySpy> extFunctionalities = (List<ExtendedFunctionalitySpy>) extendedFunctionalityProvider.MCR
-				.getReturnValue("getFunctionalityForReadBeforeReturn", 0);
+		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
+		expectedData.recordType = SOME_RECORD_TYPE;
+		expectedData.recordId = SOME_RECORD_ID;
+		expectedData.authToken = SOME_USER_TOKEN;
+		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.previouslyStoredTopDataGroup = null;
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				READ_AFTER_AUTHORIZATION, expectedData, 0);
 
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = extFunctionalities.get(0);
-		extendedFunctionalitySpy.MCR.assertParameters("useExtendedFunctionality", 0);
-		ExtendedFunctionalityData data = (ExtendedFunctionalityData) extendedFunctionalitySpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("useExtendedFunctionality", 0,
-						"data");
-
-		dataGroupToRecordEnhancer.MCR.assertReturn("enhance", 0, data.dataRecord);
+		DataRecordOldSpy enhancedRecord = (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR
+				.getReturnValue("enhance", 0);
+		expectedData.dataGroup = enhancedRecord.getDataGroup();
+		expectedData.dataRecord = enhancedRecord;
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				READ_BEFORE_RETURN, expectedData, 1);
 	}
+
 }

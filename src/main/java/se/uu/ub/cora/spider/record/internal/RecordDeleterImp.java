@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2022 Uppsala University Library
+ * Copyright 2015, 2022, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,21 +19,28 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_AFTER;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_BEFORE;
+
 import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordDeleter;
+import se.uu.ub.cora.spider.record.RecordNotFoundException;
 
 public final class RecordDeleterImp extends RecordHandler implements RecordDeleter {
 	private static final String DELETE = "delete";
@@ -42,7 +49,7 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 	private RecordIndexer recordIndexer;
 	private DataGroupTermCollector collectTermCollector;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
-	private DataGroup dataGroupReadFromStorage;
+	private DataGroup dataGroup;
 
 	private RecordDeleterImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -64,17 +71,32 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 		this.authToken = authToken;
 		this.recordType = recordType;
 		this.recordId = recordId;
+		try {
+			tryToDelete();
+		} catch (se.uu.ub.cora.storage.RecordNotFoundException e) {
+			String errorMessageNotFound = "Record with type: " + recordType + " and id: " + recordId
+					+ " could not be deleted.";
+			throw RecordNotFoundException.withMessageAndException(errorMessageNotFound, e);
+		}
+	}
+
+	private void tryToDelete() {
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
-		dataGroupReadFromStorage = recordStorage.read(List.of(recordType), recordId);
+		useExtendedFunctionalityAfterAuthorization();
+		DataRecordGroup dataRecordGroup = recordStorage.read(recordType, recordId);
 
-		checkUserIsAuthorizedToDeleteStoredRecord(recordType);
+		checkUserIsAuthorizedToDeleteStoredRecord(dataRecordGroup);
 		checkNoIncomingLinksExists(recordType, recordId);
 
 		useExtendedFunctionalityBeforeDelete();
 		recordStorage.deleteByTypeAndId(recordType, recordId);
 		recordIndexer.deleteFromIndex(recordType, recordId);
 		useExtendedFunctionalityAfterDelete();
+	}
+
+	private void useExtendedFunctionalityAfterAuthorization() {
+		useExtendedFunctionalityUsingPosition(DELETE_AFTER_AUTHORIZATION);
 	}
 
 	private void tryToGetActiveUser() {
@@ -85,64 +107,46 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, DELETE, recordType);
 	}
 
-	private void checkUserIsAuthorizedToDeleteStoredRecord(String recordType) {
-		CollectTerms collectTerms = getCollectedTermsForPreviouslyReadRecord(recordType);
+	private void checkUserIsAuthorizedToDeleteStoredRecord(DataRecordGroup dataRecordGroup) {
+		CollectTerms collectTerms = getCollectedTermsForPreviouslyReadRecord(dataRecordGroup);
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, DELETE,
 				recordType, collectTerms.permissionTerms);
 	}
 
-	private CollectTerms getCollectedTermsForPreviouslyReadRecord(String recordType) {
-		String metadataId = getMetadataIdFromRecordType(recordType);
-		return collectTermCollector.collectTerms(metadataId, dataGroupReadFromStorage);
+	private CollectTerms getCollectedTermsForPreviouslyReadRecord(DataRecordGroup dataRecordGroup) {
+		String definitionId = getDefinitionIdUsingDataRecord(dataRecordGroup);
+		dataGroup = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
+		return collectTermCollector.collectTerms(definitionId, dataGroup);
 	}
 
-	private String getMetadataIdFromRecordType(String recordType) {
-		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
+	private String getDefinitionIdUsingDataRecord(DataRecordGroup dataRecordGroup) {
+		RecordTypeHandler recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
 		return recordTypeHandler.getDefinitionId();
 	}
 
 	private void checkNoIncomingLinksExists(String recordType, String recordId) {
-		if (recordStorage.linksExistForRecord(recordType, recordId)
-				|| incomingLinksExistsForParentToRecordType(recordType, recordId)) {
-			throw new MisuseException("Deleting record: " + recordId
-					+ " is not allowed since other records are linking to it");
+		if (recordStorage.linksExistForRecord(recordType, recordId)) {
+			throw new MisuseException("Record with type: " + recordType + " and id: " + recordId
+					+ " could not be deleted since " + "other records are linking to it");
 		}
-	}
-
-	private boolean incomingLinksExistsForParentToRecordType(String recordTypeForThisRecord,
-			String recordId) {
-		DataGroup recordTypeDataGroup = recordStorage.read(List.of(RECORD_TYPE),
-				recordTypeForThisRecord);
-		if (handledRecordHasParent(recordTypeDataGroup)) {
-			String parentId = extractParentId(recordTypeDataGroup);
-			return recordStorage.linksExistForRecord(parentId, recordId);
-		}
-		return false;
-	}
-
-	private boolean handledRecordHasParent(DataGroup handledRecordTypeDataGroup) {
-		return handledRecordTypeDataGroup.containsChildWithNameInData("parentId");
-	}
-
-	private String extractParentId(DataGroup handledRecordTypeDataGroup) {
-		DataRecordLink parentGroup = (DataRecordLink) handledRecordTypeDataGroup
-				.getFirstChildWithNameInData("parentId");
-		return parentGroup.getLinkedRecordId();
 	}
 
 	private void useExtendedFunctionalityBeforeDelete() {
-		List<ExtendedFunctionality> functionalityBeforeDelete = extendedFunctionalityProvider
-				.getFunctionalityBeforeDelete(recordType);
-		useExtendedFunctionality(dataGroupReadFromStorage, functionalityBeforeDelete);
+		useExtendedFunctionalityUsingPosition(DELETE_BEFORE);
+	}
+
+	private void useExtendedFunctionalityUsingPosition(ExtendedFunctionalityPosition position) {
+		List<ExtendedFunctionality> extendedFunctionality = extendedFunctionalityProvider
+				.getFunctionalityForPositionAndRecordType(position, recordType);
+		useExtendedFunctionality(dataGroup, extendedFunctionality);
 	}
 
 	private void useExtendedFunctionalityAfterDelete() {
-		List<ExtendedFunctionality> functionalityAfterDelete = extendedFunctionalityProvider
-				.getFunctionalityAfterDelete(recordType);
-		useExtendedFunctionality(dataGroupReadFromStorage, functionalityAfterDelete);
+		useExtendedFunctionalityUsingPosition(DELETE_AFTER);
 	}
 
-	public SpiderDependencyProvider getDependencyProvider() {
+	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {
 		return dependencyProvider;
 	}
 

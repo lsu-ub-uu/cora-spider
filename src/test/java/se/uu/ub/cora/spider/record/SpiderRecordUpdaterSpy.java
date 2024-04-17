@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.spider.data.DataRecordSpy;
+import se.uu.ub.cora.spider.data.DataRecordOldSpy;
 
 public class SpiderRecordUpdaterSpy implements RecordUpdater {
 
@@ -37,7 +37,7 @@ public class SpiderRecordUpdaterSpy implements RecordUpdater {
 		this.id = id;
 		this.record = record;
 		// TODO Auto-generated method stub
-		return new DataRecordSpy(record);
+		return new DataRecordOldSpy(record);
 	}
 
 }

@@ -20,9 +20,6 @@ package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
 import static org.testng.Assert.assertSame;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_RETURN;
 
 import java.util.List;
 
@@ -68,41 +65,6 @@ public class ExtendedFunctionalityProviderTest {
 	}
 
 	@Test
-	public void testGetFunctionalityForReadBeforeReturn() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForReadBeforeReturn("someRecordType");
-
-		assertCorrectCallAndAnswerFor(READ_BEFORE_RETURN, functionality, "someRecordType");
-	}
-
-	@Test
-	public void testGetFunctionalityForUpdateBeforeMetadataValidation() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForUpdateBeforeMetadataValidation("someRecordType");
-
-		assertCorrectCallAndAnswerFor(UPDATE_BEFORE_METADATA_VALIDATION, functionality,
-				"someRecordType");
-	}
-
-	@Test
-	public void testGetFunctionalityForUpdateAfterMetadataValidation() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForUpdateAfterMetadataValidation("someRecordType");
-
-		assertCorrectCallAndAnswerFor(
-				ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION, functionality,
-				"someRecordType");
-	}
-
-	@Test
-	public void testGetFunctionalityForUpdateBeforeReturn() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForUpdateBeforeReturn("someRecordType");
-
-		assertCorrectCallAndAnswerFor(UPDATE_BEFORE_RETURN, functionality, "someRecordType");
-	}
-
-	@Test
 	public void testGetFunctionalityForDeleteBefore() throws Exception {
 		List<ExtendedFunctionality> functionality = provider
 				.getFunctionalityBeforeDelete("someRecordType");
@@ -118,15 +80,6 @@ public class ExtendedFunctionalityProviderTest {
 
 		assertCorrectCallAndAnswerFor(ExtendedFunctionalityPosition.DELETE_AFTER, functionality,
 				"someRecordType");
-	}
-
-	@Test
-	public void testGetFunctionalityForUpdateBeforeStore() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForUpdateBeforeStore("someRecordType");
-
-		assertCorrectCallAndAnswerFor(ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE,
-				functionality, "someRecordType");
 	}
 
 	private void assertCorrectCallAndAnswerFor(ExtendedFunctionalityPosition position,
@@ -146,14 +99,4 @@ public class ExtendedFunctionalityProviderTest {
 		factorySorterSpy.MCR.assertReturn("getFunctionalityForPositionAndRecordType", 0,
 				functionality);
 	}
-
-	@Test
-	public void testGetFunctionalityForUpdateAfterStore() {
-		String recordType = "someOtherRecordType";
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForUpdateAfterStore(recordType);
-		assertCorrectCallAndAnswerFor(ExtendedFunctionalityPosition.UPDATE_AFTER_STORE,
-				functionality, recordType);
-	}
-
 }

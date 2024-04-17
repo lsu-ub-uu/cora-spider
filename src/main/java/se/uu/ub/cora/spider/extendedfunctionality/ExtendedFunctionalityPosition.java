@@ -36,6 +36,7 @@ import se.uu.ub.cora.storage.RecordStorage;
  * READ_BEFORE_RETURN<br>
  * <br>
  * For update are the positions ordered as follows:<br>
+ * UPDATE_AFTER_AUTHORIZATION<br>
  * UPDATE_BEFORE_METADATA_VALIDATION<br>
  * UPDATE_AFTER_METADATA_VALIDATION<br>
  * UPDATE_BEFORE_STORE<br>
@@ -66,10 +67,22 @@ public enum ExtendedFunctionalityPosition {
 	CREATE_BEFORE_ENHANCE,
 
 	/**
+	 * READ_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a update
+	 * operation, before metadataValidation is done.
+	 */
+	READ_AFTER_AUTHORIZATION,
+
+	/**
 	 * READ_BEFORE_RETURN, as the name suggests is the functionality plugged into a read operation,
 	 * before the method returns.
 	 */
 	READ_BEFORE_RETURN,
+
+	/**
+	 * UPDATE_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a update
+	 * operation, before metadataValidation is done.
+	 */
+	UPDATE_AFTER_AUTHORIZATION,
 
 	/**
 	 * UPDATE_BEFORE_METADATA_VALIDATION, as the name suggests is the functionality plugged into a
@@ -102,6 +115,12 @@ public enum ExtendedFunctionalityPosition {
 	 * operation, before the method returns.
 	 */
 	UPDATE_BEFORE_RETURN,
+
+	/**
+	 * DELETE_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a delete
+	 * operation, right after the user is authorized for the create action on the recordType.
+	 */
+	DELETE_AFTER_AUTHORIZATION,
 
 	/**
 	 * DELETE_BEFORE, as the name suggests is the functionality plugged into a delete operation,
