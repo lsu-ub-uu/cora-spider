@@ -39,6 +39,9 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 				() -> true);
 		MRV.setDefaultReturnValuesSupplier("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
 				() -> Collections.emptySet());
+		MRV.setDefaultReturnValuesSupplier(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
+				() -> Collections.emptySet());
 	}
 
 	@Override

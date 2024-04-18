@@ -21,6 +21,8 @@ package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.fail;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READLIST_AFTER_AUTHORIZATION;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -29,6 +31,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
+import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.Data;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
@@ -44,9 +48,7 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
@@ -56,6 +58,7 @@ import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
+import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordListReaderTest {
@@ -78,7 +81,7 @@ public class RecordListReaderTest {
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
 	private DataListSpy dataList;
-	private SpiderDependencyProviderOldSpy dependencyProvider;
+	private SpiderDependencyProviderSpy dependencyProviderSpy;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 
 	@BeforeMethod
@@ -94,6 +97,7 @@ public class RecordListReaderTest {
 		dataRedactor = new DataRedactorSpy();
 		recordEnhancer = new DataGroupToRecordEnhancerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
+		recordTypeHandlerSpy = new RecordTypeHandlerSpy();
 		setUpDependencyProvider();
 
 		dataList = new DataListSpy();
@@ -104,7 +108,6 @@ public class RecordListReaderTest {
 				(Supplier<DataList>) () -> dataList);
 
 		recordStorage.totalNumberOfMatches = 2;
-
 	}
 
 	private DataGroupSpy createEmptyFilter() {
@@ -121,18 +124,27 @@ public class RecordListReaderTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderOldSpy();
-		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.spiderAuthorizator = authorizator;
-		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.ruleCalculator = ruleCalculator;
-		dependencyProvider.dataValidator = dataValidator;
-		dependencyProvider.dataRedactor = dataRedactor;
-		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
+		dependencyProviderSpy = new SpiderDependencyProviderSpy();
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
+				() -> authenticator);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
+				() -> authorizator);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
+				() -> recordStorage);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRuleCalculator",
+				() -> ruleCalculator);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataValidator",
+				() -> dataValidator);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
+				() -> extendedFunctionalityProvider);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataRedactor",
+				() -> dataRedactor);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
+				() -> recordTypeHandlerSpy);
+
 		recordEnhancer = new DataGroupToRecordEnhancerSpy();
 		recordListReader = RecordListReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProvider, recordEnhancer);
-		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
+				dependencyProviderSpy, recordEnhancer);
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class, expectedExceptionsMessageRegExp = ""
@@ -145,7 +157,6 @@ public class RecordListReaderTest {
 
 	@Test
 	public void testAuthTokenIsPassedOnToAuthenticator() throws Exception {
-
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
 		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_USER_TOKEN);
@@ -202,26 +213,39 @@ public class RecordListReaderTest {
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
-			+ "Data is not valid: \\[Data for list filter not vaild, DataValidatorSpy\\]")
+			+ "Data is not valid: \\[Data for list filter not valid, DataValidatorSpy\\]")
 	public void testFilterNotValid() throws Exception {
-		dataValidator.validListFilterValidation = false;
+		setUpDataValidatorToReturnValidationAnswerWithErrorForValidateListFilter();
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+	}
+
+	private void setUpDataValidatorToReturnValidationAnswerWithErrorForValidateListFilter() {
+		ValidationAnswer validationAnswer = new ValidationAnswer();
+		validationAnswer.addErrorMessage("Data for list filter not valid, DataValidatorSpy");
+		dataValidator.MRV.setDefaultReturnValuesSupplier("validateListFilter",
+				() -> validationAnswer);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
 			+ "No filter exists for recordType: " + SOME_RECORD_TYPE)
 	public void testFilterNotPresentInRecordType() throws Exception {
-		dataValidator.throwFilterNotFoundException = true;
+		setUpDataValidatorToThrowErrorForValidateListFilter();
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+	}
+
+	private void setUpDataValidatorToThrowErrorForValidateListFilter() {
+		DataValidationException e = DataValidationException
+				.withMessage("No filter exists for recordType, " + SOME_RECORD_TYPE);
+		dataValidator.MRV.setAlwaysThrowException("validateListFilter", e);
 	}
 
 	@Test
 	public void testReadingFromStorageCalled() {
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
-		DataGroupToFilterSpy converterToFilter = (DataGroupToFilterSpy) dependencyProvider.MCR
+		DataGroupToFilterSpy converterToFilter = (DataGroupToFilterSpy) dependencyProviderSpy.MCR
 				.getReturnValue("getDataGroupToFilterConverter", 0);
 
 		converterToFilter.MCR.assertParameters("convert", 0, emptyFilter);
@@ -378,7 +402,6 @@ public class RecordListReaderTest {
 		dataList.MCR.assertParameters("setTotalNo", 0, "20");
 		dataList.MCR.assertParameters("setFromNo", 0, "0");
 		dataList.MCR.assertParameters("setToNo", 0, "0");
-
 	}
 
 	@Test
@@ -387,19 +410,27 @@ public class RecordListReaderTest {
 
 		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
 		expectedData.recordType = SOME_RECORD_TYPE;
-		// expectedData.recordId = SOME_RECORD_ID;
 		expectedData.authToken = SOME_USER_TOKEN;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 		expectedData.previouslyStoredTopDataGroup = null;
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-				ExtendedFunctionalityPosition.READ_AFTER_AUTHORIZATION, expectedData, 0);
-		//
-		// DataRecordOldSpy enhancedRecord = (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR
-		// .getReturnValue("enhance", 0);
-		// expectedData.dataGroup = enhancedRecord.getDataGroup();
-		// expectedData.dataRecord = enhancedRecord;
-		// extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-		// READ_BEFORE_RETURN, expectedData, 1);
+				READLIST_AFTER_AUTHORIZATION, expectedData, 0);
 	}
 
+	@Test
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists2() throws Exception {
+		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
+				dependencyProviderSpy, READLIST_AFTER_AUTHORIZATION, SOME_RECORD_TYPE);
+		try {
+			recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+			fail("Should fail as we want to stop execution when the extended functionality is used,"
+					+ " to determin that the extended functionality is called in the correct place"
+					+ " in the code");
+		} catch (Exception e) {
+
+		}
+
+		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+		dataFactorySpy.MCR.assertMethodNotCalled("factorListUsingNameOfDataType");
+	}
 }

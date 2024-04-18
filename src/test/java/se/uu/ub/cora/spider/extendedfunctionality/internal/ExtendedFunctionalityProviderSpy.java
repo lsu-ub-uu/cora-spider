@@ -30,6 +30,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
+import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -112,6 +113,17 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 		assertEquals(data.user, expectedData.user);
 		assertEquals(data.previouslyStoredTopDataGroup, expectedData.previouslyStoredTopDataGroup);
 		assertEquals(data.dataGroup, expectedData.dataGroup);
+	}
+
+	public void setUpExtendedFunctionalityToThrowExceptionOnPosition(
+			SpiderDependencyProviderSpy dependencyProviderSpy,
+			ExtendedFunctionalityPosition extendedFunctionalityPosition, String recordType) {
+		ExtendedFunctionalitySpy extFunctionality = new ExtendedFunctionalitySpy();
+		extFunctionality.MRV.setAlwaysThrowException("useExtendedFunctionality", new RuntimeException());
+		MRV.setSpecificReturnValuesSupplier("getFunctionalityForPositionAndRecordType",
+				() -> List.of(extFunctionality), extendedFunctionalityPosition, recordType);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
+				() -> this);
 	}
 
 }

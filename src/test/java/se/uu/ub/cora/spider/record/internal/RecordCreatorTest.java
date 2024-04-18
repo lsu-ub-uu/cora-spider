@@ -59,7 +59,6 @@ import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.ConflictException;
@@ -70,7 +69,7 @@ import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorOldSpy;
 import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
 import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.RecordArchiveSpy;
@@ -92,7 +91,7 @@ public class RecordCreatorTest {
 	private PermissionRuleCalculator ruleCalculator;
 	private RecordCreator recordCreatorOld;
 	private RecordCreator recordCreator;
-	private DataValidatorSpy dataValidator;
+	private DataValidatorOldSpy dataValidator;
 	private DataRecordLinkCollectorSpy linkCollector;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private SpiderDependencyProviderSpy dependencyProviderSpy;
@@ -117,7 +116,7 @@ public class RecordCreatorTest {
 
 		authenticator = new OldAuthenticatorSpy();
 		spiderAuthorizator = new OldSpiderAuthorizatorSpy();
-		dataValidator = new DataValidatorSpy();
+		dataValidator = new DataValidatorOldSpy();
 		recordStorage = new RecordStorageSpy();
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
@@ -312,7 +311,8 @@ public class RecordCreatorTest {
 	@Test
 	public void testExtendedFunctionalityAfterAuthorizationCalledBeforeRecordTypeHandlerCreatedSoWeDoNotNeedToHaveARecordInfoForSomeTypes() {
 		setUpRecordTypeHandlerToAutoGenerateId();
-		setUpExtendedFunctionalityToThrowExceptionWhenCreateAfterAuthorizationIsCalled();
+		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
+				dependencyProviderSpy, CREATE_AFTER_AUTHORIZATION, "spyType");
 		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProviderSpy, dataGroupToRecordEnhancer);
@@ -325,25 +325,24 @@ public class RecordCreatorTest {
 		} catch (Exception e) {
 
 		}
-
+		SpiderAuthorizatorSpy authorizator = getCorrectAuthorizator();
+		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 		dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
 		dependencyProviderSpy.MCR.assertMethodNotCalled("getRecordTypeHandlerUsingDataRecordGroup");
+	}
+
+	private SpiderAuthorizatorSpy getCorrectAuthorizator() {
+		int callNumberIsOneAs_recordCreatorIsCreatedTwiceOneInSetUpAndOneHereWithNewDependencies = 1;
+		SpiderAuthorizatorSpy authorizator = (SpiderAuthorizatorSpy) dependencyProviderSpy.MCR
+				.getReturnValue("getSpiderAuthorizator",
+						callNumberIsOneAs_recordCreatorIsCreatedTwiceOneInSetUpAndOneHereWithNewDependencies);
+		return authorizator;
 	}
 
 	private void setUpRecordTypeHandlerToAutoGenerateId() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
-	}
-
-	private void setUpExtendedFunctionalityToThrowExceptionWhenCreateAfterAuthorizationIsCalled() {
-		ExtendedFunctionalitySpy exSpy = new ExtendedFunctionalitySpy();
-		exSpy.MRV.setAlwaysThrowException("useExtendedFunctionality", new RuntimeException());
-		extendedFunctionalityProvider.MRV.setSpecificReturnValuesSupplier(
-				"getFunctionalityForPositionAndRecordType", () -> List.of(exSpy),
-				CREATE_AFTER_AUTHORIZATION, "spyType");
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
-				() -> extendedFunctionalityProvider);
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2020 Uppsala University Library
+ * Copyright 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,77 +19,39 @@
 
 package se.uu.ub.cora.spider.spy;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class DataValidatorSpy implements DataValidator {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public boolean validValidation = true;
-	private Set<String> notValidForMetadataGroupId = new HashSet<>();
-	public boolean throwFilterNotFoundException = false;
-	public boolean throwExcpetionIndexSettingsNotFound = false;
-	public boolean validListFilterValidation = true;
-	public boolean invalidIndexSettingsValidation = false;
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public DataValidatorSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("validateData", ValidationAnswer::new);
+		MRV.setDefaultReturnValuesSupplier("validateListFilter", ValidationAnswer::new);
+		MRV.setDefaultReturnValuesSupplier("validateIndexSettings", ValidationAnswer::new);
+	}
 
 	@Override
 	public ValidationAnswer validateData(String metadataGroupId, DataGroup dataGroup) {
-		MCR.addCall("metadataGroupId", metadataGroupId, "dataGroup", dataGroup);
-
-		ValidationAnswer validationAnswer = new ValidationAnswer();
-		if (!validValidation) {
-			validationAnswer.addErrorMessage("Data always invalid");
-		}
-		if (notValidForMetadataGroupId.contains(metadataGroupId)) {
-			validationAnswer.addErrorMessage("Data invalid for metadataId " + metadataGroupId);
-		}
-		return validationAnswer;
-	}
-
-	public void setNotValidForMetadataGroupId(String metadataGroupId) {
-		notValidForMetadataGroupId.add(metadataGroupId);
+		return (ValidationAnswer) MCR.addCallAndReturnFromMRV("metadataGroupId", metadataGroupId,
+				"dataGroup", dataGroup);
 	}
 
 	@Override
 	public ValidationAnswer validateListFilter(String recordType, DataGroup filterDataGroup) {
-		MCR.addCall("recordType", recordType, "filterDataGroup", filterDataGroup);
-		if (throwFilterNotFoundException) {
-			throw DataValidationException.withMessage(
-					"DataValidatorSpy, No filter exists for recordType, " + recordType);
-		}
-		ValidationAnswer validationAnswer = new ValidationAnswer();
-		if (!validListFilterValidation) {
-			validationAnswer.addErrorMessage("Data for list filter not vaild, DataValidatorSpy");
-		}
-		return validationAnswer;
+		return (ValidationAnswer) MCR.addCallAndReturnFromMRV("recordType", recordType,
+				"filterDataGroup", filterDataGroup);
 	}
 
 	@Override
 	public ValidationAnswer validateIndexSettings(String recordType, DataGroup indexSettings) {
-		MCR.addCall("recordType", recordType, "indexSettings", indexSettings);
-
-		if (throwExcpetionIndexSettingsNotFound) {
-			throw DataValidationException.withMessage(
-					"DataValidatorSpy, No indexSettings exists for recordType, " + recordType);
-		}
-
-		ValidationAnswer validationAnswer = new ValidationAnswer();
-		if (invalidIndexSettingsValidation) {
-			addErrorMessage(validationAnswer, 1);
-			addErrorMessage(validationAnswer, 2);
-		}
-
-		MCR.addReturned(validationAnswer);
-		return validationAnswer;
-	}
-
-	private void addErrorMessage(ValidationAnswer validationAnswer, int value) {
-		validationAnswer.addErrorMessage("DataValidatorSpy not valid " + value);
+		return (ValidationAnswer) MCR.addCallAndReturnFromMRV("recordType", recordType,
+				"indexSettings", indexSettings);
 	}
 
 }

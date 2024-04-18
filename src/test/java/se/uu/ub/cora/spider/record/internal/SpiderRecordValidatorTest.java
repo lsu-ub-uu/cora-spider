@@ -68,7 +68,7 @@ import se.uu.ub.cora.spider.record.RecordLinkTestsRecordStorage;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorOldSpy;
 import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
@@ -87,7 +87,7 @@ public class SpiderRecordValidatorTest {
 	private OldSpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private RecordValidator recordValidator;
-	private DataValidatorSpy dataValidator;
+	private DataValidatorOldSpy dataValidator;
 	private DataRecordLinkCollectorSpy linkCollector;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
@@ -107,7 +107,7 @@ public class SpiderRecordValidatorTest {
 		setUpFactoriesAndProviders();
 		authenticator = new OldAuthenticatorSpy();
 		authorizator = new OldSpiderAuthorizatorSpy();
-		dataValidator = new DataValidatorSpy();
+		dataValidator = new DataValidatorOldSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();

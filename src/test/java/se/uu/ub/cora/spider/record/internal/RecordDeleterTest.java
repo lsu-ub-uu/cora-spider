@@ -154,7 +154,7 @@ public class RecordDeleterTest {
 		String definitionId = (String) recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0);
 		DataRecordGroup dataRecordGroup = getReadDataRecordGroup();
 		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0, dataRecordGroup);
-		DataGroup readDataGroup = getDataGroupCreatedFromDataProvider();
+		DataGroup readDataGroup = getDataGroupCreatedFromDataProvider(0);
 
 		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, readDataGroup);
 	}
@@ -163,8 +163,9 @@ public class RecordDeleterTest {
 		return (DataRecordGroup) recordStorage.MCR.getReturnValue("read", 0);
 	}
 
-	private DataGroup getDataGroupCreatedFromDataProvider() {
-		return (DataGroup) dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup", 0);
+	private DataGroup getDataGroupCreatedFromDataProvider(int callNumber) {
+		return (DataGroup) dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup",
+				callNumber);
 	}
 
 	@Test
@@ -182,46 +183,84 @@ public class RecordDeleterTest {
 	}
 
 	@Test
-	public void testEnsureExtendedFunctionalityPositionFor_AfterAuthorization() throws Exception {
-		stopExecutionOnReadOnStorage();
-
-		try {
-			recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
-		} catch (Exception e) {
-			extendedFunctionalityProvider.MCR
-					.assertMethodWasCalled("getFunctionalityForPositionAndRecordType");
-
-			ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
-			expectedData.recordType = SOME_TYPE;
-			expectedData.recordId = SOME_ID;
-			expectedData.authToken = SOME_AUTH_TOKEN;
-			expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
-
-			extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-					DELETE_AFTER_AUTHORIZATION, expectedData, 0);
-		}
-	}
-
-	private void stopExecutionOnReadOnStorage() {
-		recordStorage.MRV.setAlwaysThrowException("read", new RuntimeException());
-	}
-
-	@Test
 	public void testExtendedFunctionalityIsCalled() {
 		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
 
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				DELETE_AFTER_AUTHORIZATION, getExpectedDataForDeleteAfterAuthorization(), 0);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				DELETE_BEFORE, getExpectedDataUsingDataProviderCallNumber(1), 1);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				DELETE_AFTER, getExpectedDataUsingDataProviderCallNumber(2), 2);
+	}
+
+	private ExtendedFunctionalityData getExpectedDataForDeleteAfterAuthorization() {
+		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
+		expectedData.recordType = SOME_TYPE;
+		expectedData.recordId = SOME_ID;
+		expectedData.authToken = SOME_AUTH_TOKEN;
+		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		return expectedData;
+	}
+
+	private ExtendedFunctionalityData getExpectedDataUsingDataProviderCallNumber(
+			int dataProviderCallNumber) {
 		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
 		expectedData.recordType = SOME_TYPE;
 		expectedData.recordId = SOME_ID;
 		expectedData.authToken = SOME_AUTH_TOKEN;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 		expectedData.previouslyStoredTopDataGroup = null;
-		expectedData.dataGroup = getDataGroupCreatedFromDataProvider();
+		expectedData.dataGroup = getDataGroupCreatedFromDataProvider(dataProviderCallNumber);
+		return expectedData;
+	}
 
-		extendedFunctionalityProvider
-				.assertCallToPositionAndFunctionalityCalledWithData(DELETE_BEFORE, expectedData, 1);
-		extendedFunctionalityProvider
-				.assertCallToPositionAndFunctionalityCalledWithData(DELETE_AFTER, expectedData, 2);
+	@Test
+	public void testEnsureExtendedFunctionalityPositionFor_AfterAuthorization() throws Exception {
+		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
+				dependencyProvider, DELETE_AFTER_AUTHORIZATION, SOME_TYPE);
+
+		callDeleteRecordAndCatchStopExecution();
+
+		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+		extendedFunctionalityProvider.MCR
+				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 1);
+		recordStorage.MCR.assertMethodNotCalled("read");
+	}
+
+	private void callDeleteRecordAndCatchStopExecution() {
+		try {
+			recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+			fail("Should fail as we want to stop execution when the extended functionality is used,"
+					+ " to determin that the extended functionality is called in the correct place"
+					+ " in the code");
+		} catch (Exception e) {
+		}
+	}
+
+	@Test
+	public void testEnsureExtendedFunctionalityPositionFor_DeleteBefore() throws Exception {
+		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
+				dependencyProvider, DELETE_BEFORE, SOME_TYPE);
+
+		callDeleteRecordAndCatchStopExecution();
+
+		recordStorage.MCR.assertMethodWasCalled("linksExistForRecord");
+		extendedFunctionalityProvider.MCR
+				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 2);
+		recordStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
+	}
+
+	@Test
+	public void testEnsureExtendedFunctionalityPositionFor_DeleteAfter() throws Exception {
+		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
+				dependencyProvider, DELETE_AFTER, SOME_TYPE);
+
+		callDeleteRecordAndCatchStopExecution();
+
+		recordIndexer.MCR.assertMethodWasCalled("deleteFromIndex");
+		extendedFunctionalityProvider.MCR
+				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 3);
 	}
 
 	@Test(expectedExceptions = MisuseException.class, expectedExceptionsMessageRegExp = "Record "

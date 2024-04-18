@@ -28,7 +28,9 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -47,7 +49,7 @@ public final class RecordReaderImp implements RecordReader {
 	private SpiderAuthorizator spiderAuthorizator;
 	private User user;
 	private String authToken;
-	private RecordTypeHandler recordTypeHandler;
+	// private RecordTypeHandler recordTypeHandler;
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordStorage recordStorage;
 	private String recordType;
@@ -75,20 +77,20 @@ public final class RecordReaderImp implements RecordReader {
 		this.authToken = authToken;
 		this.recordType = recordType;
 		this.recordId = recordId;
-		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		return tryToReadRecord();
 	}
 
 	private DataRecord tryToReadRecord() {
 		tryToGetUserWithActiveToken();
+
 		checkUserIsAuthorizedForActionOnRecordType();
+		// checkUserIsAuthorizedForActionOnRecordType(readRecord);
 		useExtendedFunctionalityForPosition(READ_AFTER_AUTHORIZATION);
 
-		DataGroup recordRead = recordStorage.read(List.of(recordType), recordId);
-
-		DataRecord dataRecord = tryToReadAndEnhanceRecord(recordRead);
-		useExtendedFunctionalityBeforeReturn(READ_BEFORE_RETURN, dataRecord);
-		return dataRecord;
+		DataRecordGroup readRecord = recordStorage.read(recordType, recordId);
+		DataRecord enhancedRecord = tryToReadAndEnhanceRecord(readRecord);
+		useExtendedFunctionalityBeforeReturn(READ_BEFORE_RETURN, enhancedRecord);
+		return enhancedRecord;
 	}
 
 	private void tryToGetUserWithActiveToken() {
@@ -102,6 +104,10 @@ public final class RecordReaderImp implements RecordReader {
 	}
 
 	private boolean isNotPublicForRead() {
+		// TODO: Use new recordTypeHandler method
+		// RecordTypeHandler recordTypeHandler = dependencyProvider
+		// .getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
+		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		return !recordTypeHandler.isPublicForRead();
 	}
 
@@ -119,8 +125,10 @@ public final class RecordReaderImp implements RecordReader {
 		}
 	}
 
-	private DataRecord tryToReadAndEnhanceRecord(DataGroup recordRead) {
+	private DataRecord tryToReadAndEnhanceRecord(DataRecordGroup dataRecordGroup) {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
+		DataGroup recordRead = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
+
 		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead, dataRedactor);
 	}
 

@@ -36,11 +36,11 @@ public class SystemSecretSecurityExtendedFunctionalityFactory
 	@Override
 	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
 		for (ExtendedFunctionalityPosition position : ExtendedFunctionalityPosition.values()) {
-			possibliAddContextWhenPositionEndsWithAfterAuthorization(position);
+			possiblyAddContextWhenPositionEndsWithAfterAuthorization(position);
 		}
 	}
 
-	private void possibliAddContextWhenPositionEndsWithAfterAuthorization(
+	private void possiblyAddContextWhenPositionEndsWithAfterAuthorization(
 			ExtendedFunctionalityPosition position) {
 		if (endsWithAfterAuthorization(position)) {
 			createAndAddContextUsingPosition(position);

@@ -22,6 +22,8 @@ package se.uu.ub.cora.spider.record.internal;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.INDEX_BATCH_JOB_AFTER_AUTHORIZATION;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -36,19 +38,19 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordSpy;
-import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
-import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordCreatorSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobSpy;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
-import se.uu.ub.cora.spider.spy.DataValidatorSpy;
-import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorOldSpy;
+import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
 import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
@@ -59,22 +61,33 @@ public class RecordListIndexerTest {
 	private static final String SOME_RECORD_TYPE = "someRecordType";
 
 	private DataFactorySpy dataFactory;
-	private SpiderDependencyProviderOldSpy dependencyProviderSpy;
+	private SpiderDependencyProviderSpy dependencyProvider;
 	private RecordListIndexerImp recordListIndexer;
-	private OldAuthenticatorSpy authenticatorSpy;
+	private AuthenticatorSpy authenticatorSpy;
 
-	private OldSpiderAuthorizatorSpy authorizatorSpy;
+	private SpiderAuthorizatorSpy authorizatorSpy;
 	private DataGroupSpy indexSettingsWithoutFilter;
 	private DataGroupSpy indexSettingsWithFilter;
-	private DataValidatorSpy dataValidatorSpy;
+	private DataValidatorOldSpy dataValidatorSpy;
 	private IndexBatchHandlerSpy indexBatchHandler;
 	private DataGroupHandlerForIndexBatchJobSpy batchJobConverterSpy;
 	private SpiderInstanceFactorySpy spiderInstanceFactory;
+	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
+	private RecordTypeHandlerSpy recordTypeHandler;
+	private RecordStorageSpy recordStorage;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		dataFactory = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactory);
+
+		authenticatorSpy = new AuthenticatorSpy();
+		authorizatorSpy = new SpiderAuthorizatorSpy();
+		dataValidatorSpy = new DataValidatorOldSpy();
+		recordStorage = new RecordStorageSpy();
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataRecordGroupSpy::new);
+		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
+		recordTypeHandler = new RecordTypeHandlerSpy();
 
 		setUpDependencyProvider();
 		setUpDataProviders();
@@ -87,19 +100,27 @@ public class RecordListIndexerTest {
 		indexBatchHandler = new IndexBatchHandlerSpy();
 		batchJobConverterSpy = new DataGroupHandlerForIndexBatchJobSpy();
 		setUpRecordCreatorToReturnRecordWithId("someRecordId");
-		recordListIndexer = RecordListIndexerImp.usingDependencyProvider(dependencyProviderSpy,
+		recordListIndexer = RecordListIndexerImp.usingDependencyProvider(dependencyProvider,
 				indexBatchHandler, batchJobConverterSpy);
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProviderSpy = new SpiderDependencyProviderOldSpy();
-		authenticatorSpy = new OldAuthenticatorSpy();
-		authorizatorSpy = new OldSpiderAuthorizatorSpy();
-		dataValidatorSpy = new DataValidatorSpy();
+		dependencyProvider = new SpiderDependencyProviderSpy();
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
+				() -> authenticatorSpy);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
+				() -> authorizatorSpy);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataValidator",
+				() -> dataValidatorSpy);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
+				() -> extendedFunctionalityProvider);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandler);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
+				() -> recordTypeHandler);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
+				() -> recordStorage);
 
-		dependencyProviderSpy.authenticator = authenticatorSpy;
-		dependencyProviderSpy.spiderAuthorizator = authorizatorSpy;
-		dependencyProviderSpy.dataValidator = dataValidatorSpy;
 	}
 
 	private void setUpDataProviders() {
@@ -112,28 +133,12 @@ public class RecordListIndexerTest {
 		assertTrue(recordListIndexer instanceof RecordListIndexer);
 	}
 
-	@Test(expectedExceptions = AuthenticationException.class, expectedExceptionsMessageRegExp = ""
-			+ "Error from AuthenticatorSpy")
-	public void testUserNotAuthenticated() {
-		authenticatorSpy.throwAuthenticationException = true;
-
-		recordListIndexer.indexRecordList(SOME_USER_TOKEN, null, indexSettingsWithoutFilter);
-	}
-
 	@Test
 	public void testAuthTokenIsPassedOnToAuthenticator() throws Exception {
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, null, indexSettingsWithoutFilter);
 
 		authenticatorSpy.MCR.assertParameters("getUserForToken", 0, SOME_USER_TOKEN);
 		authenticatorSpy.MCR.assertNumberOfCallsToMethod("getUserForToken", 1);
-	}
-
-	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
-			+ "Exception from SpiderAuthorizatorSpy")
-	public void testUserIsNotAuthorizedForActionOnRecordType() {
-		authorizatorSpy.authorizedForActionAndRecordType = false;
-
-		recordListIndexer.indexRecordList(SOME_USER_TOKEN, null, indexSettingsWithoutFilter);
 	}
 
 	@Test
@@ -163,6 +168,7 @@ public class RecordListIndexerTest {
 		dataValidatorSpy.MCR.assertMethodNotCalled("validateIndexSettings");
 	}
 
+	// TODO: rewrite to a Spider exception
 	@Test(expectedExceptions = DataValidationException.class, expectedExceptionsMessageRegExp = ""
 			+ "DataValidatorSpy, No indexSettings exists for recordType, " + SOME_RECORD_TYPE)
 	public void testErrorInIndexSettingOnValidation() throws Exception {
@@ -184,8 +190,6 @@ public class RecordListIndexerTest {
 
 	@Test
 	public void testGetTotalNumberOfMatchesFromStorageWithoutFilter() throws Exception {
-		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProviderSpy.recordStorage;
-
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
 
@@ -193,7 +197,7 @@ public class RecordListIndexerTest {
 				.getReturnValue("factorGroupUsingNameInData", 0);
 
 		var filter = getFilter(createdFilter);
-		var listOfTypes = dependencyProviderSpy.recordTypeHandlerSpy.MCR
+		var listOfTypes = recordTypeHandler.MCR
 				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
 		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForTypes", 0, listOfTypes,
 				filter);
@@ -201,7 +205,6 @@ public class RecordListIndexerTest {
 
 	@Test
 	public void testGetTotalNumberOfMatchesFromStorageWithFilter() throws Exception {
-		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProviderSpy.recordStorage;
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithFilter);
@@ -211,7 +214,7 @@ public class RecordListIndexerTest {
 				.getReturnValue("getFirstGroupWithNameInData", 0);
 
 		var filter = getFilter(extractedFilterFromIndexSettings);
-		var listOfTypes = dependencyProviderSpy.recordTypeHandlerSpy.MCR
+		var listOfTypes = recordTypeHandler.MCR
 				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
 		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForTypes", 0, listOfTypes,
 				filter);
@@ -219,7 +222,6 @@ public class RecordListIndexerTest {
 
 	@Test
 	public void testIndexBatchJobIsCreatedWithoutFilter() throws Exception {
-		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProviderSpy.recordStorage;
 		recordStorage.MRV.setDefaultReturnValuesSupplier("getTotalNumberOfRecordsForTypes",
 				(Supplier<Long>) () -> 45L);
 
@@ -262,7 +264,7 @@ public class RecordListIndexerTest {
 	}
 
 	private Filter getFilter(DataGroup filterAsDataGroup) {
-		DataGroupToFilterSpy converterToFilter = (DataGroupToFilterSpy) dependencyProviderSpy.MCR
+		DataGroupToFilterSpy converterToFilter = (DataGroupToFilterSpy) dependencyProvider.MCR
 				.getReturnValue("getDataGroupToFilterConverter", 0);
 		converterToFilter.MCR.assertParameters("convert", 0, filterAsDataGroup);
 		return (Filter) converterToFilter.MCR.getReturnValue("convert", 0);
@@ -331,25 +333,6 @@ public class RecordListIndexerTest {
 						"indexBatchJob");
 	}
 
-	@Test
-	public void testRecordTypeIsAbstract() throws Exception {
-		dependencyProviderSpy.recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract",
-				() -> true);
-
-		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				indexSettingsWithoutFilter);
-
-		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProviderSpy.recordStorage;
-		DataGroup createdFilter = (DataGroup) dataFactory.MCR
-				.getReturnValue("factorGroupUsingNameInData", 0);
-		var filter = getFilter(createdFilter);
-
-		var listOfTypes = dependencyProviderSpy.recordTypeHandlerSpy.MCR
-				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
-		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForTypes", 0, listOfTypes,
-				filter);
-	}
-
 	private void setUpRecordCreatorToReturnRecordWithId(String recordId) {
 		RecordCreatorSpy recordCreatorSpy = new RecordCreatorSpy();
 		spiderInstanceFactory.MRV.setReturnValues("factorRecordCreator", List.of(recordCreatorSpy));
@@ -357,5 +340,65 @@ public class RecordListIndexerTest {
 		recordCreatorSpy.MRV.setDefaultReturnValuesSupplier("createAndStoreRecord",
 				(Supplier<DataRecordSpy>) () -> dataRecord);
 		dataRecord.MRV.setReturnValues("getId", List.of("someRecordId"));
+	}
+
+	@Test
+	public void testExtendedFunctionalitySetUp() {
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				indexSettingsWithoutFilter);
+
+		dependencyProvider.MCR.assertParameters("getExtendedFunctionalityProvider", 0);
+		extendedFunctionalityProvider.MCR.assertParameters(
+				"getFunctionalityForPositionAndRecordType", 0, INDEX_BATCH_JOB_AFTER_AUTHORIZATION,
+				SOME_RECORD_TYPE);
+	}
+
+	@Test
+	public void testExtendedFunctionalityIsCalled() {
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				indexSettingsWithoutFilter);
+
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				INDEX_BATCH_JOB_AFTER_AUTHORIZATION, getExpectedDataForAfterAuthorization(), 0);
+	}
+
+	private ExtendedFunctionalityData getExpectedDataForAfterAuthorization() {
+		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
+		expectedData.recordType = SOME_RECORD_TYPE;
+		expectedData.authToken = SOME_USER_TOKEN;
+		expectedData.user = (User) authenticatorSpy.MCR.getReturnValue("getUserForToken", 0);
+		return expectedData;
+	}
+
+	@Test
+	public void testEnsureExtendedFunctionalityPositionFor_AfterAuthorization() throws Exception {
+		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
+				dependencyProvider, INDEX_BATCH_JOB_AFTER_AUTHORIZATION, SOME_RECORD_TYPE);
+
+		callReadIncomingLinksAndCatchStopExecution();
+
+		authorizatorSpy.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+		extendedFunctionalityProvider.MCR
+				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 1);
+		dependencyProvider.MCR.assertMethodNotCalled("getDataValidator");
+	}
+
+	private void callReadIncomingLinksAndCatchStopExecution() {
+		try {
+			recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+					indexSettingsWithoutFilter);
+			fail("Should fail as we want to stop execution when the extended functionality is used,"
+					+ " to determin that the extended functionality is called in the correct place"
+					+ " in the code");
+		} catch (Exception e) {
+		}
+	}
+
+	@Test
+	public void testOnlyForTestMethods() throws Exception {
+		assertEquals(recordListIndexer.onlyForTestGetDependencyProvider(), dependencyProvider);
+		assertEquals(recordListIndexer.onlyForTestGetIndexBatchHandler(), indexBatchHandler);
+		assertEquals(recordListIndexer.onlyForTestGetBatchJobConverter(), batchJobConverterSpy);
+
 	}
 }

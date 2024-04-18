@@ -20,7 +20,7 @@ package se.uu.ub.cora.spider.dependency.spy;
 
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
-import se.uu.ub.cora.spider.spy.DataValidatorSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorOldSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -31,7 +31,7 @@ public class DataValidatorFactoySpy implements DataValidatorFactory {
 
 	public DataValidatorFactoySpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", DataValidatorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factor", DataValidatorOldSpy::new);
 	}
 
 	@Override

@@ -86,6 +86,7 @@ public class SystemSecretSecurityExtendedFunctionalityFactoryTest {
 			counter++;
 		}
 		return counter;
+
 	}
 
 	private boolean endsWithAfterAuthorization(ExtendedFunctionalityPosition position) {

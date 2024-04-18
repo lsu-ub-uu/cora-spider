@@ -19,7 +19,7 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READLIST_AFTER_AUTHORIZATION;
 
 import java.util.Collection;
 import java.util.List;
@@ -81,7 +81,7 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		this.authToken = authToken;
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		ensureActiveUserHasListPermissionUsingAuthToken();
-		useExtendedFunctionalityForPosition(READ_AFTER_AUTHORIZATION);
+		useExtendedFunctionalityForPosition(READLIST_AFTER_AUTHORIZATION);
 
 		readRecordList = DataProvider.createListWithNameOfDataType(recordType);
 		validateFilterIfNotEmpty(filter, recordType);
@@ -115,7 +115,6 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 	private ExtendedFunctionalityData createExtendedFunctionalityData() {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
 		data.recordType = recordType;
-		data.recordId = recordId;
 		data.authToken = authToken;
 		data.user = user;
 		return data;
@@ -195,7 +194,6 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		} catch (AuthorizationException noReadAuthorization) {
 			// do nothing
 		}
-
 	}
 
 	private void setFromToInReadRecordList() {

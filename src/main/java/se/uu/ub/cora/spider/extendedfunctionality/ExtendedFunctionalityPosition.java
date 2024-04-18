@@ -67,8 +67,8 @@ public enum ExtendedFunctionalityPosition {
 	CREATE_BEFORE_ENHANCE,
 
 	/**
-	 * READ_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a update
-	 * operation, before metadataValidation is done.
+	 * READ_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a read
+	 * operation, right after the user is authorized for the read action on the recordType.
 	 */
 	READ_AFTER_AUTHORIZATION,
 
@@ -77,6 +77,13 @@ public enum ExtendedFunctionalityPosition {
 	 * before the method returns.
 	 */
 	READ_BEFORE_RETURN,
+
+	/**
+	 * READLIST_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a
+	 * readList operation, right after the user is authorized for the readList action on the
+	 * recordType.
+	 */
+	READLIST_AFTER_AUTHORIZATION,
 
 	/**
 	 * UPDATE_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a update
@@ -132,5 +139,19 @@ public enum ExtendedFunctionalityPosition {
 	 * DELETE_AFTER, as the name suggests is the functionality plugged into a delete operation,
 	 * after it is done.
 	 */
-	DELETE_AFTER
+	DELETE_AFTER,
+
+	/**
+	 * INCOMING_LINKS_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a
+	 * incoming links operation, right after the user is authorized for the create action on the
+	 * recordType.
+	 */
+	INCOMING_LINKS_AFTER_AUTHORIZATION,
+
+	/**
+	 * INDEX_BATCH_JOB_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a
+	 * index batch job links operation, right after the user is authorized for the create action on
+	 * the recordType.
+	 */
+	INDEX_BATCH_JOB_AFTER_AUTHORIZATION
 }
