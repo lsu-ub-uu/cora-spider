@@ -381,9 +381,13 @@ public class RecordCreatorTest {
 		var dataRecord = recordStorage.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("create", 0, "dataRecord");
 
-		recordIndexer.MCR.assertParameterAsEqual("indexData", 0, "ids", List.of("1"));
+		List<?> ids = (List<?>) recordTypeHandlerSpy.MCR
+				.getReturnValue("getCombinedIdsUsingRecordId", 0);
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				1);
+		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectTerms.indexTerms,
+				dataRecord);
+
 		recordIndexer.MCR.assertParameter("indexData", 0, "indexTerms", collectTerms.indexTerms);
 		recordIndexer.MCR.assertParameter("indexData", 0, "record", dataRecord);
 	}

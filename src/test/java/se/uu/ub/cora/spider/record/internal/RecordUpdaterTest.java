@@ -58,7 +58,6 @@ import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
@@ -914,9 +913,11 @@ public class RecordUpdaterTest {
 				.getValueForMethodNameAndCallNumberAndParameterName("update", 0, "dataRecord");
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				1);
-		recordIndexer.MCR.assertParameterAsEqual("indexData", 0, "ids", List.of("somePlace"));
-		recordIndexer.MCR.assertParameter("indexData", 0, "indexTerms", collectTerms.indexTerms);
-		recordIndexer.MCR.assertParameter("indexData", 0, "record", recordToSentToStorage);
+
+		var ids = recordTypeHandlerSpy.MCR.getReturnValue("getCombinedIdsUsingRecordId", 0);
+
+		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectTerms.indexTerms,
+				recordToSentToStorage);
 	}
 
 	private DataRecordLink createLinkWithLinkedId(String nameInData, String linkedRecordType,

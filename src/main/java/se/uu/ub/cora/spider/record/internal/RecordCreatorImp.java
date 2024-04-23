@@ -261,7 +261,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void indexRecord(List<IndexTerm> indexTerms) {
-		recordIndexer.indexData(List.of(recordId), indexTerms, recordGroup);
+		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
+		recordIndexer.indexData(ids, indexTerms, recordGroup);
 	}
 
 	private void ensureNoDuplicateForTypeFamilyAndId() {
