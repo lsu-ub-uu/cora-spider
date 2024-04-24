@@ -40,7 +40,7 @@ import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.OldStreamStorageSpy;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
-import se.uu.ub.cora.spider.record.internal.RecordSearchSpy;
+import se.uu.ub.cora.spider.record.internal.OldRecordSearchSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
@@ -74,7 +74,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
 				ExtendedFunctionalityProviderSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getAuthenticator", AuthenticatorSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getRecordSearch", RecordSearchSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordSearch", OldRecordSearchSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordIndexer", RecordIndexerSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler", RecordTypeHandlerSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandlerUsingDataRecordGroup",

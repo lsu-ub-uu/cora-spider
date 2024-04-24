@@ -153,5 +153,11 @@ public enum ExtendedFunctionalityPosition {
 	 * index batch job links operation, right after the user is authorized for the create action on
 	 * the recordType.
 	 */
-	INDEX_BATCH_JOB_AFTER_AUTHORIZATION
+	INDEX_BATCH_JOB_AFTER_AUTHORIZATION,
+
+	/**
+	 * SEARCH_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into search
+	 * operation, right after the user is authorized for the create action on the recordType.
+	 */
+	SEARCH_AFTER_AUTHORIZATION
 }
