@@ -18,6 +18,8 @@
  */
 package se.uu.ub.cora.spider.record.internal;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.INCOMING_LINKS_AFTER_AUTHORIZATION;
+
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -28,27 +30,33 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 
 public class IncomingLinksReaderImp extends RecordHandler implements IncomingLinksReader {
 	private static final String READ = "read";
 	private Authenticator authenticator;
-	private SpiderAuthorizator spiderAuthorizator;
-	private RecordTypeHandler recordTypeHandler;
-	private DataGroupTermCollector collectTermCollector;
+	private SpiderAuthorizator authorizator;
+	private DataGroupTermCollector termCollector;
+	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 
 	public IncomingLinksReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
-		this.authenticator = dependencyProvider.getAuthenticator();
-		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
-		this.recordStorage = dependencyProvider.getRecordStorage();
-		this.collectTermCollector = dependencyProvider.getDataGroupTermCollector();
+		authenticator = dependencyProvider.getAuthenticator();
+		authorizator = dependencyProvider.getSpiderAuthorizator();
+		recordStorage = dependencyProvider.getRecordStorage();
+		termCollector = dependencyProvider.getDataGroupTermCollector();
+		extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
 	public static IncomingLinksReader usingDependencyProvider(
@@ -61,34 +69,64 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 		this.authToken = authToken;
 		this.recordType = recordType;
 		this.recordId = recordId;
-		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 
-		tryToGetActiveUser();
-		DataGroup recordRead = recordStorage.read(List.of(recordType), recordId);
-		checkUserIsAuthorisedToReadData(recordRead);
+		getActiveUserOrGuest();
+		checkUserIsAuthorizedForActionOnRecordType(recordType);
+		useExtendedFunctionalityUsingPosition(INCOMING_LINKS_AFTER_AUTHORIZATION);
+
+		DataRecordGroup dataRecordGroup = recordStorage.read(recordType, recordId);
+		checkUserIsAuthorisedToReadData(dataRecordGroup);
 
 		return collectLinksAndConvertToDataList();
 	}
 
-	private void tryToGetActiveUser() {
+	private void checkUserIsAuthorizedForActionOnRecordType(String recordType) {
+		authorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
+	}
+
+	private void getActiveUserOrGuest() {
 		user = authenticator.getUserForToken(authToken);
 	}
 
-	private void checkUserIsAuthorisedToReadData(DataGroup recordRead) {
-		CollectTerms collectTerms = getCollectedTermsForRecord(recordRead);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
+	private void useExtendedFunctionalityUsingPosition(ExtendedFunctionalityPosition position) {
+		List<ExtendedFunctionality> extendedFunctionality = extendedFunctionalityProvider
+				.getFunctionalityForPositionAndRecordType(position, recordType);
+		useExtendedFunctionality(extendedFunctionality);
+	}
+
+	protected void useExtendedFunctionality(List<ExtendedFunctionality> functionalityList) {
+		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
+			ExtendedFunctionalityData data = createExtendedFunctionalityData();
+			extendedFunctionality.useExtendedFunctionality(data);
+		}
+	}
+
+	protected ExtendedFunctionalityData createExtendedFunctionalityData() {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.recordType = recordType;
+		data.recordId = recordId;
+		data.authToken = authToken;
+		data.user = user;
+		return data;
+	}
+
+	private void checkUserIsAuthorisedToReadData(DataRecordGroup dataRecordGroup) {
+		CollectTerms collectTerms = getCollectedTermsForRecord(dataRecordGroup);
+		authorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, READ,
 				recordType, collectTerms.permissionTerms);
 	}
 
-	private CollectTerms getCollectedTermsForRecord(DataGroup recordRead) {
+	private CollectTerms getCollectedTermsForRecord(DataRecordGroup dataRecordGroup) {
+		RecordTypeHandler recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
 		String metadataId = recordTypeHandler.getDefinitionId();
-		return collectTermCollector.collectTerms(metadataId, recordRead);
+		return termCollector.collectTerms(metadataId,
+				DataProvider.createGroupFromRecordGroup(dataRecordGroup));
 	}
 
 	private DataList collectLinksAndConvertToDataList() {
 		Set<Link> links = new LinkedHashSet<>();
 		addLinksPointingToRecord(recordType, links);
-		possiblyAddLinksPointingToRecordByParentRecordType(links);
 
 		return convertLinksPointingToRecordToDataList(links);
 	}
@@ -96,13 +134,6 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 	private void addLinksPointingToRecord(String recordType2, Set<Link> links) {
 		Set<Link> linksPointingToRecord = recordStorage.getLinksToRecord(recordType2, recordId);
 		links.addAll(linksPointingToRecord);
-	}
-
-	private void possiblyAddLinksPointingToRecordByParentRecordType(Set<Link> links) {
-		if (recordTypeHandler.hasParent()) {
-			String parentId = recordTypeHandler.getParentId();
-			addLinksPointingToRecord(parentId, links);
-		}
 	}
 
 	private DataList convertLinksPointingToRecordToDataList(Collection<Link> links) {

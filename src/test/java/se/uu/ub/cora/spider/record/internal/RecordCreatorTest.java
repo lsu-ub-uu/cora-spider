@@ -23,6 +23,10 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 
 import java.util.List;
 import java.util.Map;
@@ -54,7 +58,6 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -66,7 +69,7 @@ import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
-import se.uu.ub.cora.spider.spy.DataValidatorSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorOldSpy;
 import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
 import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.RecordArchiveSpy;
@@ -88,7 +91,7 @@ public class RecordCreatorTest {
 	private PermissionRuleCalculator ruleCalculator;
 	private RecordCreator recordCreatorOld;
 	private RecordCreator recordCreator;
-	private DataValidatorSpy dataValidator;
+	private DataValidatorOldSpy dataValidator;
 	private DataRecordLinkCollectorSpy linkCollector;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private SpiderDependencyProviderSpy dependencyProviderSpy;
@@ -113,7 +116,7 @@ public class RecordCreatorTest {
 
 		authenticator = new OldAuthenticatorSpy();
 		spiderAuthorizator = new OldSpiderAuthorizatorSpy();
-		dataValidator = new DataValidatorSpy();
+		dataValidator = new DataValidatorOldSpy();
 		recordStorage = new RecordStorageSpy();
 		idGenerator = new IdGeneratorSpy();
 		ruleCalculator = new RuleCalculatorSpy();
@@ -126,7 +129,6 @@ public class RecordCreatorTest {
 		setUpDependencyProvider();
 
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId", () -> "spyType");
-
 	}
 
 	private void setUpFactoriesAndProviders() {
@@ -181,9 +183,7 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testRecordTypeHandlerFetchedFromDependencyProvider() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
-				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
+		setUpRecordTypeHandlerToAutoGenerateId();
 		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
@@ -213,15 +213,12 @@ public class RecordCreatorTest {
 
 		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "recordTypeInput",
 				dataGroupSpy);
-
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
 			+ "Data is not valid: some message")
 	public void testValidationTypeDoesNotExist() throws Exception {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
-				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
+		setUpRecordTypeHandlerToAutoGenerateId();
 		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getCreateDefinitionId",
 				DataValidationException.withMessage("some message"));
@@ -284,40 +281,6 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testNotPossibleToCreateRecordWithTypeAndIdWhichAlreadyExistsForImplementingType() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
-		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
-		String authToken = "dummyAuthenticatedToken";
-
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("hasParent", () -> true);
-		recordStorage.MRV.setSpecificReturnValuesSupplier("recordExists",
-				(Supplier<Boolean>) () -> true, List.of("oneImplementingTypeId"), "1");
-
-		try {
-			recordCreatorOld.createAndStoreRecord(authToken, "spyType", dataGroup);
-			assertTrue(false);
-		} catch (Exception e) {
-			assertTrue(e instanceof ConflictException);
-			assertEquals(e.getMessage(),
-					"Record " + "with type: spyType and id: 1 already exists in storage");
-
-			recordTypeHandlerSpy.MCR.assertMethodWasCalled("getParentId");
-
-			var parentId = recordTypeHandlerSpy.MCR.getReturnValue("getParentId", 0);
-
-			dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, parentId);
-			RecordTypeHandlerSpy parentRecordTypeHandler = (RecordTypeHandlerSpy) dependencyProvider.MCR
-					.getReturnValue("getRecordTypeHandler", 0);
-			parentRecordTypeHandler.MCR.assertParameters("getListOfRecordTypeIdsToReadFromStorage",
-					0);
-			var types = parentRecordTypeHandler.MCR
-					.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
-
-			recordStorage.MCR.assertParameters("recordExists", 0, types, "1");
-		}
-	}
-
-	@Test
 	public void testExtendedFunctionalityIsCalled() {
 		String recordType = "spyType";
 		String authToken = "someToken78678567";
@@ -334,44 +297,52 @@ public class RecordCreatorTest {
 		expectedData.previouslyStoredTopDataGroup = null;
 		expectedData.dataGroup = dataGroup;
 
-		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
-				"getFunctionalityForCreateBeforeMetadataValidation", expectedData);
-		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
-				"getFunctionalityForCreateAfterMetadataValidation", expectedData);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				CREATE_AFTER_AUTHORIZATION, expectedData, 0);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				CREATE_AFTER_METADATA_VALIDATION, expectedData, 1);
 		expectedData.recordId = "1";
-		extendedFunctionalityProvider.assertCallToMethodAndFunctionalityCalledWithData(
-				"getFunctionalityForCreateBeforeEnhance", expectedData);
-	}
-
-	class ExtendedMock implements ExtendedFunctionality {
-		@Override
-		public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-			throw new RuntimeException();
-		}
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				CREATE_BEFORE_ENHANCE, expectedData, 2);
+		extendedFunctionalityProvider.MCR
+				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 3);
 	}
 
 	@Test
-	public void testExtendedFunctionalityBeforeMetadataCalledBeforeRecordTypeHandlerCreatedSoWeDoNotNeedToHaveARecordInfoForSomeTypes() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
-				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
-				() -> extendedFunctionalityProvider);
-
-		extendedFunctionalityProvider.MRV.setDefaultReturnValuesSupplier(
-				"getFunctionalityForCreateBeforeMetadataValidation",
-				() -> List.of(new ExtendedMock()));
+	public void testExtendedFunctionalityAfterAuthorizationCalledBeforeRecordTypeHandlerCreatedSoWeDoNotNeedToHaveARecordInfoForSomeTypes() {
+		setUpRecordTypeHandlerToAutoGenerateId();
+		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
+				dependencyProviderSpy, CREATE_AFTER_AUTHORIZATION, "spyType");
 		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
 		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProviderSpy, dataGroupToRecordEnhancer);
 		try {
 			recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
+
+			fail("Should fail as we want to stop execution when the extended functionality is used,"
+					+ " to determin that the extended functionality is called in the correct place"
+					+ " in the code");
 		} catch (Exception e) {
 
 		}
-
+		SpiderAuthorizatorSpy authorizator = getCorrectAuthorizator();
+		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 		dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
 		dependencyProviderSpy.MCR.assertMethodNotCalled("getRecordTypeHandlerUsingDataRecordGroup");
+	}
+
+	private SpiderAuthorizatorSpy getCorrectAuthorizator() {
+		int callNumberIsOneAs_recordCreatorIsCreatedTwiceOneInSetUpAndOneHereWithNewDependencies = 1;
+		SpiderAuthorizatorSpy authorizator = (SpiderAuthorizatorSpy) dependencyProviderSpy.MCR
+				.getReturnValue("getSpiderAuthorizator",
+						callNumberIsOneAs_recordCreatorIsCreatedTwiceOneInSetUpAndOneHereWithNewDependencies);
+		return authorizator;
+	}
+
+	private void setUpRecordTypeHandlerToAutoGenerateId() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
 	}
 
 	@Test
@@ -416,6 +387,9 @@ public class RecordCreatorTest {
 				1);
 		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectTerms.indexTerms,
 				dataRecord);
+
+		recordIndexer.MCR.assertParameter("indexData", 0, "indexTerms", collectTerms.indexTerms);
+		recordIndexer.MCR.assertParameter("indexData", 0, "record", dataRecord);
 	}
 
 	@Test(expectedExceptions = DataException.class)
@@ -483,7 +457,6 @@ public class RecordCreatorTest {
 
 		recordStorage.MCR.assertParameter("create", 0, "type", "typeWithAutoGeneratedId");
 		recordStorage.MCR.assertParameter("create", 0, "id", "1");
-
 	}
 
 	@Test
@@ -561,7 +534,6 @@ public class RecordCreatorTest {
 		var typeLink = dataFactorySpy.MCR
 				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
 		assertDataChildFoundInChildren(typeLink, recordInfo.getChildren());
-
 	}
 
 	private void assertCorrectUserInfoInRecordInfo(DataGroup recordInfo) {
@@ -782,7 +754,6 @@ public class RecordCreatorTest {
 		assertEquals(types.size(), 1);
 		assertEquals(types.get(0), "oneImplementingTypeId");
 		recordStorage.MCR.assertParameter("recordExists", 0, "id", "toId");
-
 	}
 
 	@Test

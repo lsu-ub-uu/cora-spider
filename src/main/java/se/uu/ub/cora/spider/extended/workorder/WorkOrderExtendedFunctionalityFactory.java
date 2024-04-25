@@ -18,8 +18,8 @@
  */
 package se.uu.ub.cora.spider.extended.workorder;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ public class WorkOrderExtendedFunctionalityFactory implements ExtendedFunctional
 	}
 
 	private void createListOfContexts() {
-		createContext(CREATE_BEFORE_METADATA_VALIDATION);
+		createContext(CREATE_AFTER_AUTHORIZATION);
 		createContext(CREATE_AFTER_METADATA_VALIDATION);
 		createContext(CREATE_BEFORE_ENHANCE);
 	}
@@ -77,8 +77,7 @@ public class WorkOrderExtendedFunctionalityFactory implements ExtendedFunctional
 	}
 
 	private ExtendedFunctionality factorDeleter() {
-		RecordDeleter recordDeleter = RecordDeleterImp
-				.usingDependencyProvider(dependencyProvider);
+		RecordDeleter recordDeleter = RecordDeleterImp.usingDependencyProvider(dependencyProvider);
 		return WorkOrderDeleter.usingDeleter(recordDeleter);
 	}
 

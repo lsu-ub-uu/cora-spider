@@ -1,6 +1,6 @@
 /*
- * Copyright 2016 Olov McKie
  * Copyright 2022, 2023, 2024 Uppsala University Library
+ * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -27,8 +27,10 @@ import java.util.List;
 
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalitySpy;
+import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -38,27 +40,11 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 
 	public ExtendedFunctionalityProviderSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForCreateBeforeMetadataValidation",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForCreateAfterMetadataValidation",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForCreateBeforeEnhance",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForReadBeforeReturn",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateBeforeReturn",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateBeforeMetadataValidation",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateAfterMetadataValidation",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateBeforeStore",
-				() -> createListWithTwoExtendedFunctionalitySpies());
-		MRV.setDefaultReturnValuesSupplier("getFunctionalityForUpdateAfterStore",
-				() -> createListWithTwoExtendedFunctionalitySpies());
 		MRV.setDefaultReturnValuesSupplier("getFunctionalityBeforeDelete",
 				() -> createListWithTwoExtendedFunctionalitySpies());
 		MRV.setDefaultReturnValuesSupplier("getFunctionalityAfterDelete",
+				() -> createListWithTwoExtendedFunctionalitySpies());
+		MRV.setDefaultReturnValuesSupplier("getFunctionalityForPositionAndRecordType",
 				() -> createListWithTwoExtendedFunctionalitySpies());
 	}
 
@@ -72,55 +58,6 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 	}
 
 	@Override
-	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
-			String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForCreateAfterMetadataValidation(
-			String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeEnhance(String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForReadBeforeReturn(String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeReturn(String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeMetadataValidation(
-			String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterMetadataValidation(
-			String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeStore(String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterStore(String recordType) {
-		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
-	}
-
-	@Override
 	public List<ExtendedFunctionality> getFunctionalityBeforeDelete(String recordType) {
 		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
 	}
@@ -128,6 +65,27 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 	@Override
 	public List<ExtendedFunctionality> getFunctionalityAfterDelete(String recordType) {
 		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("recordType", recordType);
+	}
+
+	@Override
+	public List<ExtendedFunctionality> getFunctionalityForPositionAndRecordType(
+			ExtendedFunctionalityPosition position, String recordType) {
+		return (List<ExtendedFunctionality>) MCR.addCallAndReturnFromMRV("position", position,
+				"recordType", recordType);
+	}
+
+	public void assertCallToPositionAndFunctionalityCalledWithData(
+			ExtendedFunctionalityPosition position, ExtendedFunctionalityData expectedData,
+			int callNumber) {
+		MCR.assertParameter("getFunctionalityForPositionAndRecordType", callNumber, "position",
+				position);
+		MCR.assertParameter("getFunctionalityForPositionAndRecordType", callNumber, "recordType",
+				expectedData.recordType);
+		List<ExtendedFunctionalitySpy> exSpyList = (List<ExtendedFunctionalitySpy>) MCR
+				.getReturnValue("getFunctionalityForPositionAndRecordType", callNumber);
+
+		assertExtendedFunctionalityIsCalledWithExpectedData(exSpyList.get(0), expectedData);
+		assertExtendedFunctionalityIsCalledWithExpectedData(exSpyList.get(1), expectedData);
 	}
 
 	public void assertCallToMethodAndFunctionalityCalledWithData(String methodName,
@@ -141,12 +99,13 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 		assertExtendedFunctionalityIsCalledWithExpectedData(exSpyList.get(1), expectedData);
 	}
 
-	private void assertExtendedFunctionalityIsCalledWithExpectedData(ExtendedFunctionalitySpy exSpy,
+	private void assertExtendedFunctionalityIsCalledWithExpectedData(
+			ExtendedFunctionalitySpy extendedFunctionality,
 			ExtendedFunctionalityData expectedData) {
 		String methodName2 = "useExtendedFunctionality";
-		exSpy.MCR.assertMethodWasCalled(methodName2);
-		exSpy.MCR.assertNumberOfCallsToMethod(methodName2, 1);
-		ExtendedFunctionalityData data = (ExtendedFunctionalityData) exSpy.MCR
+		extendedFunctionality.MCR.assertMethodWasCalled(methodName2);
+		extendedFunctionality.MCR.assertNumberOfCallsToMethod(methodName2, 1);
+		ExtendedFunctionalityData data = (ExtendedFunctionalityData) extendedFunctionality.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName(methodName2, 0, "data");
 		assertEquals(data.recordType, expectedData.recordType);
 		assertEquals(data.recordId, expectedData.recordId);
@@ -154,6 +113,21 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 		assertEquals(data.user, expectedData.user);
 		assertEquals(data.previouslyStoredTopDataGroup, expectedData.previouslyStoredTopDataGroup);
 		assertEquals(data.dataGroup, expectedData.dataGroup);
+		assertEquals(data.previouslyStoredDataRecordGroup,
+				expectedData.previouslyStoredDataRecordGroup);
+		assertEquals(data.dataRecordGroup, expectedData.dataRecordGroup);
+	}
+
+	public void setUpExtendedFunctionalityToThrowExceptionOnPosition(
+			SpiderDependencyProviderSpy dependencyProviderSpy,
+			ExtendedFunctionalityPosition extendedFunctionalityPosition, String recordType) {
+		ExtendedFunctionalitySpy extFunctionality = new ExtendedFunctionalitySpy();
+		extFunctionality.MRV.setAlwaysThrowException("useExtendedFunctionality",
+				new RuntimeException());
+		MRV.setSpecificReturnValuesSupplier("getFunctionalityForPositionAndRecordType",
+				() -> List.of(extFunctionality), extendedFunctionalityPosition, recordType);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
+				() -> this);
 	}
 
 }

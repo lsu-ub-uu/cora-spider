@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READLIST_AFTER_AUTHORIZATION;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -36,6 +38,10 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordListReader;
@@ -50,11 +56,13 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 	private DataValidator dataValidator;
 	private StorageReadResult readResult;
 	private RecordTypeHandler recordTypeHandler;
+	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 
 	private RecordListReaderImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
+		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
@@ -70,8 +78,10 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 	@Override
 	public DataList readRecordList(String authToken, String recordType, DataGroup filter) {
 		this.recordType = recordType;
+		this.authToken = authToken;
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		ensureActiveUserHasListPermissionUsingAuthToken(authToken);
+		ensureActiveUserHasListPermissionUsingAuthToken();
+		useExtendedFunctionalityForPosition(READLIST_AFTER_AUTHORIZATION);
 
 		readRecordList = DataProvider.createListWithNameOfDataType(recordType);
 		validateFilterIfNotEmpty(filter, recordType);
@@ -82,18 +92,40 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		return readRecordList;
 	}
 
-	private void ensureActiveUserHasListPermissionUsingAuthToken(String authToken) {
-		tryToGetActiveUser(authToken);
+	private void ensureActiveUserHasListPermissionUsingAuthToken() {
+		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 	}
 
-	private void tryToGetActiveUser(String authToken) {
+	private void tryToGetActiveUser() {
 		user = authenticator.getUserForToken(authToken);
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordType() {
 		if (listedRecordTypeIsNotPublicRead()) {
 			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "list", recordType);
+		}
+	}
+
+	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityData();
+		useExtendedFunctionality(position, data);
+	}
+
+	private ExtendedFunctionalityData createExtendedFunctionalityData() {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.recordType = recordType;
+		data.authToken = authToken;
+		data.user = user;
+		return data;
+	}
+
+	private void useExtendedFunctionality(ExtendedFunctionalityPosition position,
+			ExtendedFunctionalityData data) {
+		List<ExtendedFunctionality> functionalityList = extendedFunctionalityProvider
+				.getFunctionalityForPositionAndRecordType(position, recordType);
+		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
+			extendedFunctionality.useExtendedFunctionality(data);
 		}
 	}
 
@@ -162,7 +194,6 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		} catch (AuthorizationException noReadAuthorization) {
 			// do nothing
 		}
-
 	}
 
 	private void setFromToInReadRecordList() {

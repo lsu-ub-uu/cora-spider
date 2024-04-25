@@ -81,7 +81,6 @@ public class BinaryProtocolsExtendedFunctionalityTest {
 
 	@Test
 	public void testDoNotSetUpProtocolIfNoJp2GroupExists() throws Exception {
-
 		extFunctionality.useExtendedFunctionality(data);
 
 		dataRecordSpy.MCR.assertMethodNotCalled("addProtocol");

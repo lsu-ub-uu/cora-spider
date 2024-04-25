@@ -18,6 +18,8 @@
  */
 package se.uu.ub.cora.spider.record.internal;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.INDEX_BATCH_JOB_AFTER_AUTHORIZATION;
+
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
@@ -33,6 +35,10 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
 import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJob;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
@@ -53,6 +59,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	private String recordType;
 	private DataGroup indexSettings;
 	private RecordTypeHandler recordTypeHandler;
+	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 
 	private RecordListIndexerImp(SpiderDependencyProvider dependencyProvider,
 			IndexBatchHandler indexBatchHandler,
@@ -73,13 +80,17 @@ public class RecordListIndexerImp implements RecordListIndexer {
 			DataGroup indexSettings) {
 		this.authToken = authToken;
 		this.recordType = recordType;
+		extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		this.indexSettings = indexSettings;
 		return storeAndRunBatchJob();
 	}
 
 	private DataRecord storeAndRunBatchJob() {
-		checkUserIsAuthenticatedAndAuthorized();
+		User user = checkUserIsAuthenticatedAndAuthorized();
+
+		useExtendedFunctionalityUsingPosition(INDEX_BATCH_JOB_AFTER_AUTHORIZATION, user);
+
 		validateIndexSettingAccordingToMetadataIfNotEmpty();
 		DataGroup filterAsData = extractFilterFromIndexSettingsOrCreateANewOne(indexSettings);
 		IndexBatchJob indexBatchJob = collectInformationForIndexBatchJob(indexSettings,
@@ -93,11 +104,35 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		return createdRecord;
 	}
 
-	private void checkUserIsAuthenticatedAndAuthorized() {
+	private User checkUserIsAuthenticatedAndAuthorized() {
 		Authenticator authenticator = dependencyProvider.getAuthenticator();
 		User user = authenticator.getUserForToken(authToken);
 		SpiderAuthorizator spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "index", recordType);
+		return user;
+	}
+
+	private void useExtendedFunctionalityUsingPosition(ExtendedFunctionalityPosition position,
+			User user) {
+		List<ExtendedFunctionality> extendedFunctionality = extendedFunctionalityProvider
+				.getFunctionalityForPositionAndRecordType(position, recordType);
+		useExtendedFunctionality(extendedFunctionality, user);
+	}
+
+	protected void useExtendedFunctionality(List<ExtendedFunctionality> functionalityList,
+			User user) {
+		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
+			ExtendedFunctionalityData data = createExtendedFunctionalityData(user);
+			extendedFunctionality.useExtendedFunctionality(data);
+		}
+	}
+
+	protected ExtendedFunctionalityData createExtendedFunctionalityData(User user) {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.recordType = recordType;
+		data.authToken = authToken;
+		data.user = user;
+		return data;
 	}
 
 	private void validateIndexSettingAccordingToMetadataIfNotEmpty() {
@@ -169,18 +204,15 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		indexBatchJob.recordId = createdRecord.getId();
 	}
 
-	// needed for test
-	public SpiderDependencyProvider getDependencyProvider() {
+	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {
 		return dependencyProvider;
 	}
 
-	// needed for test
-	public IndexBatchHandler getIndexBatchHandler() {
+	public IndexBatchHandler onlyForTestGetIndexBatchHandler() {
 		return indexBatchHandler;
 	}
 
-	// needed for test
-	public DataGroupHandlerForIndexBatchJob getBatchJobConverter() {
+	public DataGroupHandlerForIndexBatchJob onlyForTestGetBatchJobConverter() {
 		return batchJobConverter;
 	}
 }

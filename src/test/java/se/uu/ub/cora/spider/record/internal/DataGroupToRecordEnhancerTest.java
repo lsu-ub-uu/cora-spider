@@ -56,7 +56,7 @@ import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
-import se.uu.ub.cora.spider.data.DataRecordSpy;
+import se.uu.ub.cora.spider.data.DataRecordOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -1427,13 +1427,13 @@ public class DataGroupToRecordEnhancerTest {
 	public void testWritePermissionsAreAddedToRecord() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordOldSpy record = (DataRecordOldSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataGroup, dataRedactor);
 
 		assertWritePermissionsAreAddedToRecord(record);
 	}
 
-	private void assertWritePermissionsAreAddedToRecord(DataRecordSpy record) {
+	private void assertWritePermissionsAreAddedToRecord(DataRecordOldSpy record) {
 		authorizator.MCR.assertParameter(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
 				"action", UPDATE);
@@ -1455,7 +1455,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testEnhanceIgnoreReadAccessWritePermissionsAreAddedToRecord() throws Exception {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordOldSpy record = (DataRecordOldSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataGroup, dataRedactor);
 
 		assertWritePermissionsAreAddedToRecord(record);

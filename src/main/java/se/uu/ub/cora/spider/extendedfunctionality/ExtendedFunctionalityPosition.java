@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, 2021 Uppsala University Library
+ * Copyright 2020, 2021, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -24,9 +24,11 @@ import se.uu.ub.cora.storage.RecordStorage;
 /**
  * ExtendedFunctionalityPosition is an Enum with the positions from where Spider calls
  * extendedFunctionality.<br>
+ * The position is the combination of action and position within spiders execution of this action,
+ * the reason they are connected as one is that not all actions have all internal positions. <br>
  * <br>
  * For create are the positions ordered as follows:<br>
- * CREATE_BEFORE_METADATA_VALIDATION<br>
+ * CREATE_AFTER_AUTHORIZATION<br>
  * CREATE_AFTER_METADATA_VALIDATION<br>
  * CREATE_BEFORE_ENHANCE<br>
  * <br>
@@ -34,6 +36,7 @@ import se.uu.ub.cora.storage.RecordStorage;
  * READ_BEFORE_RETURN<br>
  * <br>
  * For update are the positions ordered as follows:<br>
+ * UPDATE_AFTER_AUTHORIZATION<br>
  * UPDATE_BEFORE_METADATA_VALIDATION<br>
  * UPDATE_AFTER_METADATA_VALIDATION<br>
  * UPDATE_BEFORE_STORE<br>
@@ -46,10 +49,10 @@ import se.uu.ub.cora.storage.RecordStorage;
  */
 public enum ExtendedFunctionalityPosition {
 	/**
-	 * CREATE_BEFORE_METADATA_VALIDATION, as the name suggests is the functionality plugged into a
-	 * create operation, before metadataValidation is done.
+	 * CREATE_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a create
+	 * operation, right after the user is authorized for the create action on the recordType.
 	 */
-	CREATE_BEFORE_METADATA_VALIDATION,
+	CREATE_AFTER_AUTHORIZATION,
 
 	/**
 	 * CREATE_AFTER_METADATA_VALIDATION, as the name suggests is the functionality plugged into a
@@ -64,10 +67,29 @@ public enum ExtendedFunctionalityPosition {
 	CREATE_BEFORE_ENHANCE,
 
 	/**
+	 * READ_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a read
+	 * operation, right after the user is authorized for the read action on the recordType.
+	 */
+	READ_AFTER_AUTHORIZATION,
+
+	/**
 	 * READ_BEFORE_RETURN, as the name suggests is the functionality plugged into a read operation,
 	 * before the method returns.
 	 */
 	READ_BEFORE_RETURN,
+
+	/**
+	 * READLIST_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a
+	 * readList operation, right after the user is authorized for the readList action on the
+	 * recordType.
+	 */
+	READLIST_AFTER_AUTHORIZATION,
+
+	/**
+	 * UPDATE_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a update
+	 * operation, before metadataValidation is done.
+	 */
+	UPDATE_AFTER_AUTHORIZATION,
 
 	/**
 	 * UPDATE_BEFORE_METADATA_VALIDATION, as the name suggests is the functionality plugged into a
@@ -102,6 +124,12 @@ public enum ExtendedFunctionalityPosition {
 	UPDATE_BEFORE_RETURN,
 
 	/**
+	 * DELETE_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a delete
+	 * operation, right after the user is authorized for the create action on the recordType.
+	 */
+	DELETE_AFTER_AUTHORIZATION,
+
+	/**
 	 * DELETE_BEFORE, as the name suggests is the functionality plugged into a delete operation,
 	 * before it is done.
 	 */
@@ -111,5 +139,25 @@ public enum ExtendedFunctionalityPosition {
 	 * DELETE_AFTER, as the name suggests is the functionality plugged into a delete operation,
 	 * after it is done.
 	 */
-	DELETE_AFTER
+	DELETE_AFTER,
+
+	/**
+	 * INCOMING_LINKS_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a
+	 * incoming links operation, right after the user is authorized for the create action on the
+	 * recordType.
+	 */
+	INCOMING_LINKS_AFTER_AUTHORIZATION,
+
+	/**
+	 * INDEX_BATCH_JOB_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a
+	 * index batch job links operation, right after the user is authorized for the create action on
+	 * the recordType.
+	 */
+	INDEX_BATCH_JOB_AFTER_AUTHORIZATION,
+
+	/**
+	 * SEARCH_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into search
+	 * operation, right after the user is authorized for the create action on the recordType.
+	 */
+	SEARCH_AFTER_AUTHORIZATION
 }

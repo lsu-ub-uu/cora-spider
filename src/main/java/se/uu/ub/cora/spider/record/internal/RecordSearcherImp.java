@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Uppsala University Library
+ * Copyright 2017, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,9 +18,10 @@
  */
 package se.uu.ub.cora.spider.record.internal;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.SEARCH_AFTER_AUTHORIZATION;
+
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
@@ -30,6 +31,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.search.SearchResult;
@@ -37,6 +39,10 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordSearcher;
@@ -54,10 +60,11 @@ public final class RecordSearcherImp implements RecordSearcher {
 	private DataGroup searchData;
 	private RecordSearch recordSearch;
 	private DataList dataList;
-	private DataGroup searchMetadata;
+	private DataRecordGroup searchMetadataAsRecord;
 	private List<DataGroup> recordTypeToSearchInGroups;
-	private int startRow = 1;
 	private SpiderDependencyProvider dependencyProvider;
+	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
+	private String authToken;
 
 	private RecordSearcherImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -68,7 +75,7 @@ public final class RecordSearcherImp implements RecordSearcher {
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.recordSearch = dependencyProvider.getRecordSearch();
-
+		extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
 	public static RecordSearcher usingDependencyProviderAndDataGroupToRecordEnhancer(
@@ -78,44 +85,27 @@ public final class RecordSearcherImp implements RecordSearcher {
 	}
 
 	@Override
-	public DataList search(String authToken, String searchId, DataGroup spiderSearchData) {
-		this.searchData = spiderSearchData;
-		tryToGetActiveUser(authToken);
-		readSearchDataFromStorage(searchId);
+	public DataList search(String authToken, String searchId, DataGroup searchData) {
+		this.authToken = authToken;
+		this.searchData = searchData;
+		tryToGetActiveUser();
+		readSearchRecordFromStorageUsingSearchId(searchId);
+		checkUserHasSearchAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups);
+		useExtendedFunctionalityUsingPosition(SEARCH_AFTER_AUTHORIZATION);
 		validateSearchInputForUser();
-		storeStartRowValueOrSetDefault();
-		SearchResult searchResult = searchUsingValidatedInput();
+
+		SearchResult searchResult = callSearch();
+
 		return filterAndEnhanceSearchResult(searchResult);
 	}
 
-	private void storeStartRowValueOrSetDefault() {
-		String start = "1";
-		if (searchData.containsChildWithNameInData("start")) {
-			start = searchData.getFirstAtomicValueWithNameInData("start");
-		}
-		startRow = Integer.parseInt(start);
-	}
-
-	private void tryToGetActiveUser(String authToken) {
+	private void tryToGetActiveUser() {
 		user = authenticator.getUserForToken(authToken);
 	}
 
-	private void readSearchDataFromStorage(String searchId) {
-		searchMetadata = readSearchFromStorageUsingId(searchId);
+	private void readSearchRecordFromStorageUsingSearchId(String searchId) {
+		searchMetadataAsRecord = recordStorage.read(SEARCH, searchId);
 		recordTypeToSearchInGroups = getRecordTypesToSearchInFromSearchGroup();
-	}
-
-	private DataGroup readSearchFromStorageUsingId(String searchId) {
-		return recordStorage.read(List.of(SEARCH), searchId);
-	}
-
-	private List<DataGroup> getRecordTypesToSearchInFromSearchGroup() {
-		return searchMetadata.getAllGroupsWithNameInData("recordTypeToSearchIn");
-	}
-
-	private void validateSearchInputForUser() {
-		checkUserHasSearchAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups);
-		validateIncomingSearchDataAsSpecifiedInSearchGroup();
 	}
 
 	private void checkUserHasSearchAccessOnAllRecordTypesToSearchIn(
@@ -124,13 +114,40 @@ public final class RecordSearcherImp implements RecordSearcher {
 	}
 
 	private void isAuthorized(DataGroup group) {
-		String linkedRecordTypeId = group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		String linkedRecordTypeId = getLinkedRecordId(group);
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, SEARCH,
 				linkedRecordTypeId);
 	}
 
-	private void validateIncomingSearchDataAsSpecifiedInSearchGroup() {
-		DataGroup metadataGroup = searchMetadata.getFirstGroupWithNameInData("metadataId");
+	private String getLinkedRecordId(DataGroup group) {
+		return group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	}
+
+	private void useExtendedFunctionalityUsingPosition(ExtendedFunctionalityPosition position) {
+		List<ExtendedFunctionality> extendedFunctionality = extendedFunctionalityProvider
+				.getFunctionalityForPositionAndRecordType(position, SEARCH);
+		useExtendedFunctionality(extendedFunctionality);
+
+	}
+
+	protected void useExtendedFunctionality(List<ExtendedFunctionality> functionalityList) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityData();
+		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
+			extendedFunctionality.useExtendedFunctionality(data);
+		}
+	}
+
+	protected ExtendedFunctionalityData createExtendedFunctionalityData() {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.recordType = SEARCH;
+		data.authToken = authToken;
+		data.user = user;
+		data.dataRecordGroup = searchMetadataAsRecord;
+		return data;
+	}
+
+	private void validateSearchInputForUser() {
+		DataGroup metadataGroup = searchMetadataAsRecord.getFirstGroupWithNameInData("metadataId");
 		String metadataGroupIdToValidateAgainst = metadataGroup
 				.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		validateIncomingDataAsSpecifiedInMetadata(metadataGroupIdToValidateAgainst);
@@ -145,20 +162,25 @@ public final class RecordSearcherImp implements RecordSearcher {
 		}
 	}
 
-	private SearchResult searchUsingValidatedInput() {
-		List<String> list = recordTypeToSearchInGroups.stream().map(this::getLinkedRecordId)
-				.collect(Collectors.toList());
-		return recordSearch.searchUsingListOfRecordTypesToSearchInAndSearchData(list, searchData);
+	private List<DataGroup> getRecordTypesToSearchInFromSearchGroup() {
+		return searchMetadataAsRecord.getAllGroupsWithNameInData("recordTypeToSearchIn");
 	}
 
-	private String getLinkedRecordId(DataGroup group) {
-		return group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	private SearchResult callSearch() {
+		List<String> list = recordTypeToSearchInGroups.stream().map(this::getLinkedRecordId)
+				.toList();
+		return recordSearch.searchUsingListOfRecordTypesToSearchInAndSearchData(list, searchData);
 	}
 
 	private DataList filterAndEnhanceSearchResult(SearchResult spiderSearchResult) {
 		dataList = DataProvider.createListWithNameOfDataType("mix");
 		enhanceDataGroupsAndAddToList(spiderSearchResult);
 
+		return fillDataList(spiderSearchResult);
+	}
+
+	private DataList fillDataList(SearchResult spiderSearchResult) {
+		int startRow = getStartRow();
 		dataList.setFromNo(String.valueOf(startRow));
 		dataList.setToNo(String.valueOf(startRow - 1 + dataList.getDataList().size()));
 		dataList.setTotalNo(String.valueOf(spiderSearchResult.totalNumberOfMatches));
@@ -174,9 +196,9 @@ public final class RecordSearcherImp implements RecordSearcher {
 	private void filterEnhanceAndAddToList(DataGroup dataGroup, DataRedactor dataRedactor) {
 		String recordType = extractRecordTypeFromRecordInfo(dataGroup);
 		try {
-			DataRecord record = dataGroupToRecordEnhancer.enhance(user, recordType, dataGroup,
-					dataRedactor);
-			dataList.addData(record);
+			DataRecord enhancedRecord = dataGroupToRecordEnhancer.enhance(user, recordType,
+					dataGroup, dataRedactor);
+			dataList.addData(enhancedRecord);
 		} catch (AuthorizationException noReadAuthorization) {
 			// do nothing
 		}
@@ -186,6 +208,13 @@ public final class RecordSearcherImp implements RecordSearcher {
 		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataRecordLink typeGroup = (DataRecordLink) recordInfo.getFirstChildWithNameInData("type");
 		return typeGroup.getLinkedRecordId();
+	}
 
+	private int getStartRow() {
+		if (searchData.containsChildWithNameInData("start")) {
+			String start = searchData.getFirstAtomicValueWithNameInData("start");
+			return Integer.parseInt(start);
+		}
+		return 1;
 	}
 }

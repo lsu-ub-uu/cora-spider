@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Uppsala University Library
+ * Copyright 2022, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.password.texthasher.TextHasherFactory;
 import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -33,6 +32,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 
 public class PasswordExtendedFunctionalityFactory implements ExtendedFunctionalityFactory {
 
+	private static final String USER_RECORD_TYPE = "user";
 	List<ExtendedFunctionalityContext> contexts = new ArrayList<>();
 	private SpiderDependencyProvider dependencyProvider;
 	TextHasherFactory textHasherFactory = new TextHasherFactoryImp();
@@ -40,21 +40,8 @@ public class PasswordExtendedFunctionalityFactory implements ExtendedFunctionali
 	@Override
 	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
-		List<String> knownUserTypes = findImplementingUserTypes();
-
-		createContextForEachUserType(knownUserTypes);
-	}
-
-	private List<String> findImplementingUserTypes() {
-		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler("user");
-		return recordTypeHandler.getListOfImplementingRecordTypeIds();
-	}
-
-	private void createContextForEachUserType(List<String> knownUserTypes) {
-		for (String userType : knownUserTypes) {
-			contexts.add(new ExtendedFunctionalityContext(
-					ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE, userType, 0));
-		}
+		contexts.add(new ExtendedFunctionalityContext(
+				ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE, USER_RECORD_TYPE, 0));
 	}
 
 	@Override
@@ -65,10 +52,8 @@ public class PasswordExtendedFunctionalityFactory implements ExtendedFunctionali
 	@Override
 	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
 			String recordType) {
-
 		return Collections
 				.singletonList(PasswordExtendedFunctionality.usingDependencyProviderAndTextHasher(
 						dependencyProvider, textHasherFactory.factor()));
 	}
-
 }

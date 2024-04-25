@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, 2021 Uppsala University Library
+ * Copyright 2020, 2021, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,17 +18,8 @@
  */
 package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_AFTER;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_BEFORE;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_STORE;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_RETURN;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE;
 
 import java.util.List;
 
@@ -44,54 +35,9 @@ public class ExtendedFunctionalityProviderImp implements ExtendedFunctionalityPr
 	}
 
 	@Override
-	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
-			String recordType) {
-		return getFunctionalityForPositionAndRecordType(CREATE_BEFORE_METADATA_VALIDATION,
-				recordType);
-	}
-
-	private List<ExtendedFunctionality> getFunctionalityForPositionAndRecordType(
+	public List<ExtendedFunctionality> getFunctionalityForPositionAndRecordType(
 			ExtendedFunctionalityPosition position, String recordType) {
 		return factorySorter.getFunctionalityForPositionAndRecordType(position, recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForCreateAfterMetadataValidation(
-			String recordType) {
-		return factorySorter.getFunctionalityForPositionAndRecordType(
-				CREATE_AFTER_METADATA_VALIDATION, recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForCreateBeforeEnhance(String recordType) {
-		return factorySorter.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_ENHANCE,
-				recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForReadBeforeReturn(String recordType) {
-		return factorySorter.getFunctionalityForPositionAndRecordType(READ_BEFORE_RETURN,
-				recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeMetadataValidation(
-			String recordType) {
-		return factorySorter.getFunctionalityForPositionAndRecordType(
-				UPDATE_BEFORE_METADATA_VALIDATION, recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterMetadataValidation(
-			String recordType) {
-		return factorySorter.getFunctionalityForPositionAndRecordType(
-				UPDATE_AFTER_METADATA_VALIDATION, recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeReturn(String recordType) {
-		return factorySorter.getFunctionalityForPositionAndRecordType(UPDATE_BEFORE_RETURN,
-				recordType);
 	}
 
 	@Override
@@ -106,18 +52,6 @@ public class ExtendedFunctionalityProviderImp implements ExtendedFunctionalityPr
 
 	public FactorySorter getFactorySorterNeededForTest() {
 		return factorySorter;
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateBeforeStore(String recordType) {
-		return factorySorter.getFunctionalityForPositionAndRecordType(UPDATE_BEFORE_STORE,
-				recordType);
-	}
-
-	@Override
-	public List<ExtendedFunctionality> getFunctionalityForUpdateAfterStore(String recordType) {
-		return factorySorter.getFunctionalityForPositionAndRecordType(UPDATE_AFTER_STORE,
-				recordType);
 	}
 
 }

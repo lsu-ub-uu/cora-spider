@@ -27,7 +27,6 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
@@ -40,7 +39,9 @@ import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.OldStreamStorageSpy;
-import se.uu.ub.cora.spider.record.internal.RecordSearchSpy;
+import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
+import se.uu.ub.cora.spider.record.internal.OldRecordSearchSpy;
+import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
@@ -62,8 +63,8 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MRV.setDefaultReturnValuesSupplier("getResourceArchive", ResourceArchiveSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getStreamStorage", OldStreamStorageSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordIdGenerator", IdGeneratorSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator", OldSpiderAuthorizatorSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getDataValidator", DataValidatorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator", SpiderAuthorizatorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getDataValidator", DataValidatorOldSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataRecordLinkCollector",
 				DataRecordLinkCollectorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
@@ -72,8 +73,8 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MRV.setDefaultReturnValuesSupplier("getDataRedactor", DataRedactorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
 				ExtendedFunctionalityProviderSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getAuthenticator", OldAuthenticatorSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getRecordSearch", RecordSearchSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getAuthenticator", AuthenticatorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordSearch", OldRecordSearchSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordIndexer", RecordIndexerSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler", RecordTypeHandlerSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandlerUsingDataRecordGroup",

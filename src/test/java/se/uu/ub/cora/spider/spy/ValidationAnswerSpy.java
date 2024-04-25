@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2017, 2018, 2019, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,27 +16,34 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.dependency.spy;
 
-import se.uu.ub.cora.bookkeeper.validator.DataValidator;
-import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
-import se.uu.ub.cora.spider.spy.DataValidatorOldSpy;
+package se.uu.ub.cora.spider.spy;
+
+import java.util.Collection;
+import java.util.Collections;
+
+import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class DataValidatorFactoySpy implements DataValidatorFactory {
+public class ValidationAnswerSpy extends ValidationAnswer {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public DataValidatorFactoySpy() {
+	public ValidationAnswerSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", DataValidatorOldSpy::new);
+		MRV.setDefaultReturnValuesSupplier("dataIsInvalid", () -> false);
+		MRV.setDefaultReturnValuesSupplier("getErrorMessages", () -> Collections.emptyList());
 	}
 
 	@Override
-	public DataValidator factor() {
-		return (DataValidator) MCR.addCallAndReturnFromMRV();
+	public boolean dataIsInvalid() {
+		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
 
+	@Override
+	public Collection<String> getErrorMessages() {
+		return (Collection<String>) MCR.addCallAndReturnFromMRV();
+	}
 }

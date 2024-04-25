@@ -19,6 +19,10 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
+
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +48,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
@@ -103,14 +108,28 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		recordGroup = dataGroup;
 
 		try {
-			return tryToCreateAndStoreRecord();
+			return tryToValidateAndStoreRecord();
 		} catch (DataValidationException dve) {
 			throw new DataException("Data is not valid: " + dve.getMessage());
 		}
 	}
 
-	private DataRecord tryToCreateAndStoreRecord() {
-		return validateCreateAndStoreRecord();
+	private DataRecord tryToValidateAndStoreRecord() {
+		checkActionAuthorizationForUser();
+		useExtendedFunctionalityForPosition(CREATE_AFTER_AUTHORIZATION);
+		createRecordTypeHandler();
+		validateRecordTypeInDataIsSameAsSpecified(recordType);
+		definitionId = recordTypeHandler.getDefinitionId();
+		validateRecord();
+		useExtendedFunctionalityForPosition(CREATE_AFTER_METADATA_VALIDATION);
+		completeRecordAndCollectInformationSpecifiedInMetadata();
+		ensureNoDuplicateForTypeFamilyAndId();
+		dataDivider = extractDataDividerFromData(recordGroup);
+		createRecordInStorage(recordGroup, collectedLinks, collectedTerms.storageTerms);
+		possiblyStoreInArchive();
+		indexRecord(collectedTerms.indexTerms);
+		useExtendedFunctionalityForPosition(CREATE_BEFORE_ENHANCE);
+		return enhanceDataGroupToRecord();
 	}
 
 	private void validateRecordTypeInDataIsSameAsSpecified(String recordTypeToCreate) {
@@ -123,26 +142,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private boolean recordTypeDoesNotMatchRecordTypeFromValidationType(String recordTypeToCreate) {
 		return !recordTypeHandler.getRecordTypeId().equals(recordTypeToCreate);
-	}
-
-	private DataRecord validateCreateAndStoreRecord() {
-		checkActionAuthorizationForUser();
-		useExtendedFunctionalityBeforeMetadataValidation(recordType, recordGroup);
-		createRecordTypeHandler();
-		validateRecordTypeInDataIsSameAsSpecified(recordType);
-		definitionId = recordTypeHandler.getDefinitionId();
-		validateRecord();
-		useExtendedFunctionalityAfterMetadataValidation(recordType, recordGroup);
-		completeRecordAndCollectInformationSpecifiedInMetadata();
-		ensureNoDuplicateForTypeFamilyAndId();
-		dataDivider = extractDataDividerFromData(recordGroup);
-		createRecordInStorage(recordGroup, collectedLinks, collectedTerms.storageTerms);
-		if (recordTypeHandler.storeInArchive()) {
-			recordArchive.create(dataDivider, recordType, recordId, recordGroup);
-		}
-		indexRecord(collectedTerms.indexTerms);
-		useExtendedFunctionalityBeforeReturn(recordType, recordGroup);
-		return enhanceDataGroupToRecord();
 	}
 
 	private void checkActionAuthorizationForUser() {
@@ -158,11 +157,10 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, CREATE, recordType);
 	}
 
-	private void useExtendedFunctionalityBeforeMetadataValidation(String recordTypeToCreate,
-			DataGroup dataGroup) {
-		List<ExtendedFunctionality> functionalityForCreateBeforeMetadataValidation = extendedFunctionalityProvider
-				.getFunctionalityForCreateBeforeMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(dataGroup, functionalityForCreateBeforeMetadataValidation);
+	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
+		List<ExtendedFunctionality> exFunctionality = extendedFunctionalityProvider
+				.getFunctionalityForPositionAndRecordType(position, recordType);
+		useExtendedFunctionality(recordGroup, exFunctionality);
 	}
 
 	private void createRecordTypeHandler() {
@@ -211,13 +209,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
-	}
-
-	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,
-			DataGroup dataGroup) {
-		List<ExtendedFunctionality> functionalityForCreateAfterMetadataValidation = extendedFunctionalityProvider
-				.getFunctionalityForCreateAfterMetadataValidation(recordTypeToCreate);
-		useExtendedFunctionality(dataGroup, functionalityForCreateAfterMetadataValidation);
 	}
 
 	private void completeRecordAndCollectInformationSpecifiedInMetadata() {
@@ -283,21 +274,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private boolean isItADuplicateInStorage() {
-		if (recordTypeHandler.hasParent()) {
-			return duplicateExistsForAnyImplementingType();
-		}
-		return duplicateExistsForThisType();
-	}
-
-	private boolean duplicateExistsForAnyImplementingType() {
-		String parentId = recordTypeHandler.getParentId();
-		RecordTypeHandler parentRecordTypeHandler = dependencyProvider
-				.getRecordTypeHandler(parentId);
-		List<String> types = parentRecordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
-		return recordStorage.recordExists(types, recordId);
-	}
-
-	private boolean duplicateExistsForThisType() {
 		List<String> types = List.of(recordType);
 		return recordStorage.recordExists(types, recordId);
 	}
@@ -308,16 +284,15 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 				dataDivider);
 	}
 
+	private void possiblyStoreInArchive() {
+		if (recordTypeHandler.storeInArchive()) {
+			recordArchive.create(dataDivider, recordType, recordId, recordGroup);
+		}
+	}
+
 	private String extractIdFromData() {
 		return recordGroup.getFirstGroupWithNameInData("recordInfo")
 				.getFirstAtomicValueWithNameInData("id");
-	}
-
-	private void useExtendedFunctionalityBeforeReturn(String recordTypeToCreate,
-			DataGroup dataGroup) {
-		List<ExtendedFunctionality> extendedFunctionalityList = extendedFunctionalityProvider
-				.getFunctionalityForCreateBeforeEnhance(recordTypeToCreate);
-		useExtendedFunctionality(dataGroup, extendedFunctionalityList);
 	}
 
 	private DataRecord enhanceDataGroupToRecord() {

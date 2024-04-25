@@ -38,7 +38,7 @@ import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
-import se.uu.ub.cora.spider.spy.SpiderRecordDeleterSpy;
+import se.uu.ub.cora.spider.spy.RecordDeleterSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 
 public class WorkOrderDeleterTest {
@@ -48,7 +48,7 @@ public class WorkOrderDeleterTest {
 	DataGroupTermCollectorSpy termCollector;
 	OldSpiderAuthorizatorSpy authorizator;
 	OldAuthenticatorSpy authenticator;
-	SpiderRecordDeleterSpy recordDeleter;
+	RecordDeleterSpy recordDeleter;
 	private LoggerFactorySpy loggerFactorySpy;
 
 	@BeforeMethod
@@ -70,7 +70,7 @@ public class WorkOrderDeleterTest {
 	}
 
 	private void setUpDependencyProvider() {
-		recordDeleter = new SpiderRecordDeleterSpy();
+		recordDeleter = new RecordDeleterSpy();
 		extendedFunctionality = WorkOrderDeleter.usingDeleter(recordDeleter);
 		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
 		authorizator = (OldSpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();

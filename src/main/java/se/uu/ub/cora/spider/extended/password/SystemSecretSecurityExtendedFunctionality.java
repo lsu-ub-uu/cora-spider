@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Uppsala University Library
+ * Copyright 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,20 +16,16 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.data;
+package se.uu.ub.cora.spider.extended.password;
 
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.data.DataRecordFactory;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
-public class DataRecordFactorySpy implements DataRecordFactory {
-
-	public DataRecordOldSpy factoredDataRecord;
+public class SystemSecretSecurityExtendedFunctionality implements ExtendedFunctionality {
 
 	@Override
-	public DataRecord factorUsingDataGroup(DataGroup dataGroup) {
-		factoredDataRecord = new DataRecordOldSpy(dataGroup);
-		return factoredDataRecord;
+	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
+		throw new AuthorizationException("Access denied");
 	}
-
 }

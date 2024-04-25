@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, 2021 Uppsala University Library
+ * Copyright 2020, 2021, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,12 +19,7 @@
 package se.uu.ub.cora.spider.extendedfunctionality.internal;
 
 import static org.testng.Assert.assertSame;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_RETURN;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 
 import java.util.List;
 
@@ -33,6 +28,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 
 public class ExtendedFunctionalityProviderTest {
 
@@ -43,7 +39,6 @@ public class ExtendedFunctionalityProviderTest {
 	public void setUp() {
 		factorySorterSpy = new FactorySorterSpy();
 		provider = new ExtendedFunctionalityProviderImp(factorySorterSpy);
-
 	}
 
 	@Test
@@ -52,64 +47,21 @@ public class ExtendedFunctionalityProviderTest {
 	}
 
 	@Test
-	public void testGetFunctionalityForCreateBeforeMeatadataValidation() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForCreateBeforeMetadataValidation("someRecordType");
+	public void testGetExtendedFunctionalityForPositionAndRecordType2() throws Exception {
+		List<ExtendedFunctionality> functionality = ((ExtendedFunctionalityProvider) provider)
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
+						"someRecordType");
 
-		assertCorrectCallAndAnswerFor(CREATE_BEFORE_METADATA_VALIDATION, functionality,
-				"someRecordType");
+		assertCorrectCallAndAnswerFor(CREATE_AFTER_AUTHORIZATION, functionality, "someRecordType");
 	}
 
 	@Test
-	public void testGetFunctionalityForCreateAfterMetadataValidation() throws Exception {
+	public void testGetExtendedFunctionalityForPositionAndRecordType() throws Exception {
 		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForCreateAfterMetadataValidation("someRecordType");
+				.getFunctionalityForPositionAndRecordType(CREATE_AFTER_AUTHORIZATION,
+						"someRecordType");
 
-		assertCorrectCallAndAnswerFor(CREATE_AFTER_METADATA_VALIDATION, functionality,
-				"someRecordType");
-	}
-
-	@Test
-	public void testGetFunctionalityForCreateBeforeEnhance() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForCreateBeforeEnhance("someRecordType");
-
-		assertCorrectCallAndAnswerFor(CREATE_BEFORE_ENHANCE, functionality, "someRecordType");
-	}
-
-	@Test
-	public void testGetFunctionalityForReadBeforeReturn() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForReadBeforeReturn("someRecordType");
-
-		assertCorrectCallAndAnswerFor(READ_BEFORE_RETURN, functionality, "someRecordType");
-	}
-
-	@Test
-	public void testGetFunctionalityForUpdateBeforeMetadataValidation() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForUpdateBeforeMetadataValidation("someRecordType");
-
-		assertCorrectCallAndAnswerFor(UPDATE_BEFORE_METADATA_VALIDATION, functionality,
-				"someRecordType");
-	}
-
-	@Test
-	public void testGetFunctionalityForUpdateAfterMetadataValidation() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForUpdateAfterMetadataValidation("someRecordType");
-
-		assertCorrectCallAndAnswerFor(
-				ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION, functionality,
-				"someRecordType");
-	}
-
-	@Test
-	public void testGetFunctionalityForUpdateBeforeReturn() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForUpdateBeforeReturn("someRecordType");
-
-		assertCorrectCallAndAnswerFor(UPDATE_BEFORE_RETURN, functionality, "someRecordType");
+		assertCorrectCallAndAnswerFor(CREATE_AFTER_AUTHORIZATION, functionality, "someRecordType");
 	}
 
 	@Test
@@ -130,15 +82,6 @@ public class ExtendedFunctionalityProviderTest {
 				"someRecordType");
 	}
 
-	@Test
-	public void testGetFunctionalityForUpdateBeforeStore() throws Exception {
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForUpdateBeforeStore("someRecordType");
-
-		assertCorrectCallAndAnswerFor(ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE,
-				functionality, "someRecordType");
-	}
-
 	private void assertCorrectCallAndAnswerFor(ExtendedFunctionalityPosition position,
 			List<ExtendedFunctionality> functionality, String recordType) {
 		assertSpyCalledWithCorrectPosition(position, recordType);
@@ -156,15 +99,4 @@ public class ExtendedFunctionalityProviderTest {
 		factorySorterSpy.MCR.assertReturn("getFunctionalityForPositionAndRecordType", 0,
 				functionality);
 	}
-
-	@Test
-	public void testGetFunctionalityForUpdateAfterStore() {
-		String recordType = "someOtherRecordType";
-		List<ExtendedFunctionality> functionality = provider
-				.getFunctionalityForUpdateAfterStore(recordType);
-		assertCorrectCallAndAnswerFor(ExtendedFunctionalityPosition.UPDATE_AFTER_STORE,
-				functionality, recordType);
-
-	}
-
 }

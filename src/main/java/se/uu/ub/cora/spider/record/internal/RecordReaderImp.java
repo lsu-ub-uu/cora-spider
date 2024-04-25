@@ -19,18 +19,24 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
+
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordReader;
@@ -43,15 +49,15 @@ public final class RecordReaderImp implements RecordReader {
 	private SpiderAuthorizator spiderAuthorizator;
 	private User user;
 	private String authToken;
-	private RecordTypeHandler recordTypeHandler;
+	// private RecordTypeHandler recordTypeHandler;
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordStorage recordStorage;
 	private String recordType;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
+	private String recordId;
 
 	private RecordReaderImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
@@ -70,31 +76,21 @@ public final class RecordReaderImp implements RecordReader {
 	public DataRecord readRecord(String authToken, String recordType, String recordId) {
 		this.authToken = authToken;
 		this.recordType = recordType;
-		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-
-		return tryToReadRecord(recordId);
+		this.recordId = recordId;
+		return tryToReadRecord();
 	}
 
-	private DataRecord tryToReadRecord(String recordId) {
+	private DataRecord tryToReadRecord() {
 		tryToGetUserWithActiveToken();
+
 		checkUserIsAuthorizedForActionOnRecordType();
+		// checkUserIsAuthorizedForActionOnRecordType(readRecord);
+		useExtendedFunctionalityForPosition(READ_AFTER_AUTHORIZATION);
 
-		DataGroup recordRead = recordStorage
-				.read(recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage(), recordId);
-		DataRecord dataRecord = tryToReadAndEnhanceRecord(recordRead);
-		useExtendedFunctionalityBeforeReturn(dataRecord);
-		return dataRecord;
-
-	}
-
-	private void useExtendedFunctionalityBeforeReturn(DataRecord dataRecord) {
-		List<ExtendedFunctionality> extendedFunctionalityList = extendedFunctionalityProvider
-				.getFunctionalityForReadBeforeReturn(recordType);
-		for (ExtendedFunctionality extendedFunctionality : extendedFunctionalityList) {
-			ExtendedFunctionalityData data = new ExtendedFunctionalityData();
-			data.dataRecord = dataRecord;
-			extendedFunctionality.useExtendedFunctionality(data);
-		}
+		DataRecordGroup readRecord = recordStorage.read(recordType, recordId);
+		DataRecord enhancedRecord = tryToReadAndEnhanceRecord(readRecord);
+		useExtendedFunctionalityBeforeReturn(READ_BEFORE_RETURN, enhancedRecord);
+		return enhancedRecord;
 	}
 
 	private void tryToGetUserWithActiveToken() {
@@ -108,12 +104,54 @@ public final class RecordReaderImp implements RecordReader {
 	}
 
 	private boolean isNotPublicForRead() {
+		// TODO: Use new recordTypeHandler method
+		// RecordTypeHandler recordTypeHandler = dependencyProvider
+		// .getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
+		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		return !recordTypeHandler.isPublicForRead();
 	}
 
-	private DataRecord tryToReadAndEnhanceRecord(DataGroup recordRead) {
+	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityData();
+		useExtendedFunctionality(position, data);
+	}
+
+	protected void useExtendedFunctionality(ExtendedFunctionalityPosition position,
+			ExtendedFunctionalityData data) {
+		List<ExtendedFunctionality> functionalityList = extendedFunctionalityProvider
+				.getFunctionalityForPositionAndRecordType(position, recordType);
+		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
+			extendedFunctionality.useExtendedFunctionality(data);
+		}
+	}
+
+	private DataRecord tryToReadAndEnhanceRecord(DataRecordGroup dataRecordGroup) {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
+		DataGroup recordRead = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
+
 		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead, dataRedactor);
 	}
 
+	private void useExtendedFunctionalityBeforeReturn(ExtendedFunctionalityPosition position,
+			DataRecord dataRecord) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityDataUsingDataRecord(dataRecord);
+		useExtendedFunctionality(position, data);
+	}
+
+	private ExtendedFunctionalityData createExtendedFunctionalityDataUsingDataRecord(
+			DataRecord dataRecord) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityData();
+		data.dataRecord = dataRecord;
+		data.dataGroup = dataRecord.getDataGroup();
+		return data;
+	}
+
+	protected ExtendedFunctionalityData createExtendedFunctionalityData() {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.recordType = recordType;
+		data.recordId = recordId;
+		data.authToken = authToken;
+		data.user = user;
+		return data;
+	}
 }

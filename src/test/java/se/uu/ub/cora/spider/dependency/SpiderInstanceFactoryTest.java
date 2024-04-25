@@ -223,21 +223,21 @@ public class SpiderInstanceFactoryTest {
 	@Test
 	public void makeSureWeGetCorrectAndMultipleInstancesOfRecordListIndexer() {
 		RecordListIndexerImp listIndexer = (RecordListIndexerImp) factory.factorRecordListIndexer();
-		assertSame(listIndexer.getDependencyProvider(), dependencyProvider);
+		assertSame(listIndexer.onlyForTestGetDependencyProvider(), dependencyProvider);
 
 		IndexBatchHandlerImp indexBatchHandler = (IndexBatchHandlerImp) listIndexer
-				.getIndexBatchHandler();
+				.onlyForTestGetIndexBatchHandler();
 		assertTrue(indexBatchHandler instanceof IndexBatchHandlerImp);
 		BatchRunnerFactoryImp batchRunnerFactory = (BatchRunnerFactoryImp) indexBatchHandler
 				.getBatchRunnerFactory();
 		assertTrue(batchRunnerFactory instanceof BatchRunnerFactoryImp);
 		assertSame(batchRunnerFactory.getDependencyProvider(), dependencyProvider);
 
-		assertTrue(listIndexer.getBatchJobConverter() instanceof DataGroupHandlerForIndexBatchJob);
+		assertTrue(listIndexer.onlyForTestGetBatchJobConverter() instanceof DataGroupHandlerForIndexBatchJob);
 
 		RecordListIndexerImp listIndexer2 = (RecordListIndexerImp) factory
 				.factorRecordListIndexer();
-		assertSame(listIndexer2.getDependencyProvider(), dependencyProvider);
+		assertSame(listIndexer2.onlyForTestGetDependencyProvider(), dependencyProvider);
 
 		assertNotSame(listIndexer, listIndexer2);
 	}

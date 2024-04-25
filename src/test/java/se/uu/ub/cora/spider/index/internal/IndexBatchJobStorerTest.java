@@ -89,7 +89,7 @@ public class IndexBatchJobStorerTest {
 		storer.store(indexBatchJob);
 
 		List<?> types = (List<?>) recordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("read", 0, "type");
+				.getValueForMethodNameAndCallNumberAndParameterName("read", 0, "types");
 		assertEquals(types.get(0), "indexBatchJob");
 		assertEquals(types.size(), 1);
 
@@ -109,7 +109,6 @@ public class IndexBatchJobStorerTest {
 				.getReturnValue("getDefinitionId", 0);
 		assertEquals(parameters.get("metadataId"), metadataIdFromTypeHandler);
 		assertSame(parameters.get("dataGroup"), recordStorage.MCR.getReturnValue("read", 0));
-
 	}
 
 	@Test
@@ -135,7 +134,6 @@ public class IndexBatchJobStorerTest {
 		assertSame(dataGroupHandlerForIndexBatchJobSpy.indexBatchJob, indexBatchJob);
 		assertSame(dataGroupHandlerForIndexBatchJobSpy.dataGroup,
 				recordStorage.MCR.getReturnValue("read", 0));
-
 	}
 
 	@Test

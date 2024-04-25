@@ -23,95 +23,6 @@ package se.uu.ub.cora.spider.extendedfunctionality;
 import java.util.List;
 
 public interface ExtendedFunctionalityProvider {
-	/**
-	 * Returns a list with all ExtendedFunctionalities hooked on CreateBeforeMetadataValidation (see
-	 * {@link ExtendedFunctionalityPosition})and a recordType.
-	 * 
-	 * @param recordType
-	 *            A string with the recordType name. Only the ExtendedFunctionality related to the
-	 *            recordType should be returned.
-	 * @return
-	 */
-	List<ExtendedFunctionality> getFunctionalityForCreateBeforeMetadataValidation(
-			String recordType);
-
-	/**
-	 * Returns a list with all ExtendedFunctionalities hooked on CreateAfterMetadataValidation (see
-	 * {@link ExtendedFunctionalityPosition})and a recordType.
-	 * 
-	 * @param recordType
-	 *            A string with the recordType name. Only the ExtendedFunctionality related to the
-	 *            recordType should be returned.
-	 * @return
-	 */
-	List<ExtendedFunctionality> getFunctionalityForCreateAfterMetadataValidation(String recordType);
-
-	/**
-	 * Returns a list with all ExtendedFunctionalities hooked on CreateBeforeEnhance (see
-	 * {@link ExtendedFunctionalityPosition})and a recordType.
-	 * 
-	 * @param recordType
-	 *            A string with the recordType name. Only the ExtendedFunctionality related to the
-	 *            recordType should be returned.
-	 * @return
-	 */
-	List<ExtendedFunctionality> getFunctionalityForCreateBeforeEnhance(String recordType);
-
-	/**
-	 * Returns a list with all ExtendedFunctionalities hooked on ReadBeforeReturn (see
-	 * {@link ExtendedFunctionalityPosition})and a recordType.
-	 * 
-	 * @param recordType
-	 *            A string with the recordType name. Only the ExtendedFunctionality related to the
-	 *            recordType should be returned.
-	 * @return
-	 */
-	List<ExtendedFunctionality> getFunctionalityForReadBeforeReturn(String recordType);
-
-	/**
-	 * Returns a list with all ExtendedFunctionalities hooked on UpdateBeforeMetadataValidation (see
-	 * {@link ExtendedFunctionalityPosition})and a recordType.
-	 * 
-	 * @param recordType
-	 *            A string with the recordType name. Only the ExtendedFunctionality related to the
-	 *            recordType should be returned.
-	 * @return
-	 */
-	List<ExtendedFunctionality> getFunctionalityForUpdateBeforeMetadataValidation(
-			String recordType);
-
-	/**
-	 * Returns a list with all ExtendedFunctionalities hooked on UpdateAfterMetadataValidation (see
-	 * {@link ExtendedFunctionalityPosition})and a recordType.
-	 * 
-	 * @param recordType
-	 *            A string with the recordType name. Only the ExtendedFunctionality related to the
-	 *            recordType should be returned.
-	 * @return
-	 */
-	List<ExtendedFunctionality> getFunctionalityForUpdateAfterMetadataValidation(String recordType);
-
-	/**
-	 * Returns a list with all ExtendedFunctionalities hooked on UpdateBeforeStore (see
-	 * {@link ExtendedFunctionalityPosition})and a recordType.
-	 * 
-	 * @param recordType
-	 *            A string with the recordType name. Only the ExtendedFunctionality related to the
-	 *            recordType should be returned.
-	 * @return
-	 */
-	List<ExtendedFunctionality> getFunctionalityForUpdateBeforeStore(String recordType);
-
-	/**
-	 * Returns a list with all ExtendedFunctionalities hooked on UpdateBeforeReturn (see
-	 * {@link ExtendedFunctionalityPosition})and a recordType.
-	 * 
-	 * @param recordType
-	 *            A string with the recordType name. Only the ExtendedFunctionality related to the
-	 *            recordType should be returned.
-	 * @return
-	 */
-	List<ExtendedFunctionality> getFunctionalityForUpdateBeforeReturn(String recordType);
 
 	/**
 	 * Returns a list with all ExtendedFunctionalities hooked on BeforeDelete (see
@@ -120,8 +31,12 @@ public interface ExtendedFunctionalityProvider {
 	 * @param recordType
 	 *            A string with the recordType name. Only the ExtendedFunctionality related to the
 	 *            recordType should be returned.
-	 * @return
+	 * @return A list of {@link ExtendedFunctionality} extendedFunctionalities
+	 * @deprecated use
+	 *             {@link #getFunctionalityForPositionAndRecordType(ExtendedFunctionalityPosition, String)}
+	 *             instead
 	 */
+	@Deprecated
 	List<ExtendedFunctionality> getFunctionalityBeforeDelete(String recordType);
 
 	/**
@@ -131,19 +46,26 @@ public interface ExtendedFunctionalityProvider {
 	 * @param recordType
 	 *            A string with the recordType name. Only the ExtendedFunctionality related to the
 	 *            recordType should be returned.
-	 * @return
+	 * @return A list of {@link ExtendedFunctionality} extendedFunctionalities
+	 * @deprecated use
+	 *             {@link #getFunctionalityForPositionAndRecordType(ExtendedFunctionalityPosition, String)}
+	 *             instead
 	 */
+	@Deprecated
 	List<ExtendedFunctionality> getFunctionalityAfterDelete(String recordType);
 
 	/**
-	 * Returns a list with all ExtendedFunctionalities hooked on UpdateAfterStore (see
-	 * {@link ExtendedFunctionalityPosition})and a recordType.
+	 * Returns a list with all ExtendedFunctionalities plugged in for the specified position and
+	 * recordType. Only the ExtendedFunctionality related to the position and recordType will be
+	 * returned.
 	 * 
+	 * @param position
+	 *            An {@link ExtendedFunctionalityPosition}.
 	 * @param recordType
-	 *            A string with the recordType name. Only the ExtendedFunctionality related to the
-	 *            recordType should be returned.
-	 * @return
+	 *            A string with the recordType name.
+	 * @return A list of {@link ExtendedFunctionality} extendedFunctionalities
 	 */
-	List<ExtendedFunctionality> getFunctionalityForUpdateAfterStore(String recordType);
+	List<ExtendedFunctionality> getFunctionalityForPositionAndRecordType(
+			ExtendedFunctionalityPosition position, String recordType);
 
 }
