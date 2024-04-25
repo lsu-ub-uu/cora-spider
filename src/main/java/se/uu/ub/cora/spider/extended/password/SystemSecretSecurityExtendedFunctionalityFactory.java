@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.spider.extended.password;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.SEARCH_AFTER_AUTHORIZATION;
 
 import java.util.ArrayList;
@@ -32,6 +33,9 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 public class SystemSecretSecurityExtendedFunctionalityFactory
 		implements ExtendedFunctionalityFactory {
 
+	private static final String SEARCH = "search";
+	private static final String WORK_ORDER = "workOrder";
+	private static final String SYSTEM_SECRET = "systemSecret";
 	private List<ExtendedFunctionalityContext> contexts = new ArrayList<>();
 
 	@Override
@@ -53,19 +57,14 @@ public class SystemSecretSecurityExtendedFunctionalityFactory
 	}
 
 	private void createContextForRecordType(ExtendedFunctionalityPosition position) {
-		if (isRecordSearchAfterAuthorizationPosition(position)) {
-			contexts.add(new ExtendedFunctionalityContext(position, "search", 0));
-		} else if (position.equals(ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION)) {
-			contexts.add(new ExtendedFunctionalityContext(position, "workOrder", 0));
-			contexts.add(new ExtendedFunctionalityContext(position, "systemSecret", 0));
+		if (position.equals(SEARCH_AFTER_AUTHORIZATION)) {
+			contexts.add(new ExtendedFunctionalityContext(position, SEARCH, 0));
+		} else if (position.equals(CREATE_AFTER_AUTHORIZATION)) {
+			contexts.add(new ExtendedFunctionalityContext(position, WORK_ORDER, 0));
+			contexts.add(new ExtendedFunctionalityContext(position, SYSTEM_SECRET, 0));
 		} else {
-			contexts.add(new ExtendedFunctionalityContext(position, "systemSecret", 0));
+			contexts.add(new ExtendedFunctionalityContext(position, SYSTEM_SECRET, 0));
 		}
-	}
-
-	private boolean isRecordSearchAfterAuthorizationPosition(
-			ExtendedFunctionalityPosition position) {
-		return position.equals(SEARCH_AFTER_AUTHORIZATION);
 	}
 
 	@Override
@@ -76,10 +75,18 @@ public class SystemSecretSecurityExtendedFunctionalityFactory
 	@Override
 	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
 			String recordType) {
-		if (isRecordSearchAfterAuthorizationPosition(position)) {
+		if (position.equals(SEARCH_AFTER_AUTHORIZATION)) {
 			return List.of(new SystemSecretSecurityForSearchExtendedFunctionality());
 		}
+		if (isWorkOrderAfterAuthorizationPosition(position, recordType)) {
+			return List.of(new SystemSecretSecurityForWorkOrderExtendedFunctionality());
+		}
 		return List.of(new SystemSecretSecurityExtendedFunctionality());
+	}
+
+	private boolean isWorkOrderAfterAuthorizationPosition(ExtendedFunctionalityPosition position,
+			String recordType) {
+		return CREATE_AFTER_AUTHORIZATION.equals(position) && WORK_ORDER.equals(recordType);
 	}
 
 }

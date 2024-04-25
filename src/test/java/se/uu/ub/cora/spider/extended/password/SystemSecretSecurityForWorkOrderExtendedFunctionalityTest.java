@@ -33,14 +33,14 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
-public class SystemSecretSecurityForIndexExtendedFunctionalityTest {
+public class SystemSecretSecurityForWorkOrderExtendedFunctionalityTest {
 
 	private ExtendedFunctionalityData extData;
 	private ExtendedFunctionality extFunc;
 
 	@BeforeMethod
 	private void beforeMethod() {
-		extFunc = new SystemSecretSecurityForIndexExtendedFunctionality();
+		extFunc = new SystemSecretSecurityForWorkOrderExtendedFunctionality();
 		extData = new ExtendedFunctionalityData();
 
 	}

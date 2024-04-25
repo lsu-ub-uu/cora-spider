@@ -26,17 +26,17 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
-public class SystemSecretSecurityForIndexExtendedFunctionality implements ExtendedFunctionality {
+public class SystemSecretSecurityForWorkOrderExtendedFunctionality implements ExtendedFunctionality {
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		List<DataRecordLink> recordTypeToSearchInList = getListOfRecordTypesToSearchIn(data);
+		List<DataRecordLink> recordTypeToSearchInList = getListOfLinkedRecordTypes(data);
 		for (DataRecordLink dataRecordLink : recordTypeToSearchInList) {
 			throwExceptionIfSearchIsForSystemSecret(dataRecordLink);
 		}
 	}
 
-	private List<DataRecordLink> getListOfRecordTypesToSearchIn(ExtendedFunctionalityData data) {
+	private List<DataRecordLink> getListOfLinkedRecordTypes(ExtendedFunctionalityData data) {
 		DataGroup workOrder = data.dataGroup;
 		return workOrder.getChildrenOfTypeAndName(DataRecordLink.class, "recordType");
 	}

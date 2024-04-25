@@ -22,6 +22,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.SEARCH_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_AUTHORIZATION;
 
 import java.util.List;
 
@@ -88,20 +89,17 @@ public class SystemSecretSecurityExtendedFunctionalityFactoryTest {
 			List<ExtendedFunctionalityContext> extFuncContexts,
 			ExtendedFunctionalityPosition position, String recordType) {
 		for (ExtendedFunctionalityContext extFuncContext : extFuncContexts) {
-			if (extFuncContext.position.equals(position)
-					&& extFuncContext.recordType.equals(recordType)) {
+			if (existsInContext(extFuncContext, position, recordType)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private boolean isSearchAfterAuthorization(ExtendedFunctionalityContext extFuncContext) {
-		return extFuncContext.position.equals(SEARCH_AFTER_AUTHORIZATION);
-	}
-
-	private boolean isCreateAfterAuthorization(ExtendedFunctionalityContext extFuncContext) {
-		return extFuncContext.position.equals(CREATE_AFTER_AUTHORIZATION);
+	private boolean existsInContext(ExtendedFunctionalityContext extFuncContext,
+			ExtendedFunctionalityPosition position, String recordType) {
+		return extFuncContext.position.equals(position)
+				&& extFuncContext.recordType.equals(recordType);
 	}
 
 	private boolean endsWithAfterAuthorization(ExtendedFunctionalityPosition position) {
@@ -127,13 +125,23 @@ public class SystemSecretSecurityExtendedFunctionalityFactoryTest {
 	}
 
 	@Test
-	public void testFactorSystemSecretSecurity() throws Exception {
+	public void testFactorSystemSecretSecurityForCreateOnSystemSecret() throws Exception {
 		List<ExtendedFunctionality> extendedFunctionalityList = factory
-				.factor(CREATE_AFTER_AUTHORIZATION, null);
+				.factor(CREATE_AFTER_AUTHORIZATION, "systemSecret");
 
 		assertEquals(extendedFunctionalityList.size(), 1);
 		assertTrue(extendedFunctionalityList
 				.get(0) instanceof SystemSecretSecurityExtendedFunctionality);
+	}
+
+	@Test
+	public void testFactorSystemSecretSecurityForCreateOnWorkOrder() throws Exception {
+		List<ExtendedFunctionality> extendedFunctionalityList = factory
+				.factor(CREATE_AFTER_AUTHORIZATION, "workOrder");
+
+		assertEquals(extendedFunctionalityList.size(), 1);
+		assertTrue(extendedFunctionalityList
+				.get(0) instanceof SystemSecretSecurityForWorkOrderExtendedFunctionality);
 	}
 
 	@Test
@@ -144,6 +152,16 @@ public class SystemSecretSecurityExtendedFunctionalityFactoryTest {
 		assertEquals(extendedFunctionalityList.size(), 1);
 		assertTrue(extendedFunctionalityList
 				.get(0) instanceof SystemSecretSecurityForSearchExtendedFunctionality);
+	}
+
+	@Test
+	public void testFactorAnyOtherSystemSecretSecurity() throws Exception {
+		List<ExtendedFunctionality> extendedFunctionalityList = factory
+				.factor(UPDATE_AFTER_AUTHORIZATION, null);
+
+		assertEquals(extendedFunctionalityList.size(), 1);
+		assertTrue(extendedFunctionalityList
+				.get(0) instanceof SystemSecretSecurityExtendedFunctionality);
 	}
 
 }
