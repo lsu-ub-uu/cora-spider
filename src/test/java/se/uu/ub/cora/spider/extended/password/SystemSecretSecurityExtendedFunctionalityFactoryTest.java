@@ -70,18 +70,38 @@ public class SystemSecretSecurityExtendedFunctionalityFactoryTest {
 	private void assertContextUsingContextListAndListIndex(
 			List<ExtendedFunctionalityContext> extFuncContexts, int listIndex) {
 
+		assertTrue(findContextUsingPositionAndType(extFuncContexts, SEARCH_AFTER_AUTHORIZATION,
+				"search"));
+		assertTrue(findContextUsingPositionAndType(extFuncContexts, CREATE_AFTER_AUTHORIZATION,
+				"workOrder"));
+		assertTrue(findContextUsingPositionAndType(extFuncContexts, CREATE_AFTER_AUTHORIZATION,
+				"systemSecret"));
+
 		for (ExtendedFunctionalityContext extFuncContext : extFuncContexts) {
-			if (isSearchAfterAuthorization(extFuncContext)) {
-				assertEquals(extFuncContext.recordType, "search");
-			} else {
+			if (extFuncContext.recordType.equals("systemSecret")) {
 				assertTrue(endsWithAfterAuthorization(extFuncContext.position));
-				assertEquals(extFuncContext.recordType, "systemSecret");
 			}
 		}
 	}
 
+	private boolean findContextUsingPositionAndType(
+			List<ExtendedFunctionalityContext> extFuncContexts,
+			ExtendedFunctionalityPosition position, String recordType) {
+		for (ExtendedFunctionalityContext extFuncContext : extFuncContexts) {
+			if (extFuncContext.position.equals(position)
+					&& extFuncContext.recordType.equals(recordType)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private boolean isSearchAfterAuthorization(ExtendedFunctionalityContext extFuncContext) {
 		return extFuncContext.position.equals(SEARCH_AFTER_AUTHORIZATION);
+	}
+
+	private boolean isCreateAfterAuthorization(ExtendedFunctionalityContext extFuncContext) {
+		return extFuncContext.position.equals(CREATE_AFTER_AUTHORIZATION);
 	}
 
 	private boolean endsWithAfterAuthorization(ExtendedFunctionalityPosition position) {
@@ -93,7 +113,8 @@ public class SystemSecretSecurityExtendedFunctionalityFactoryTest {
 		for (ExtendedFunctionalityPosition position : ExtendedFunctionalityPosition.values()) {
 			counter = incrementCounterIfPositionEndsWithAfterAuthorization(counter, position);
 		}
-		return counter;
+		int extraContextForCreateAfterAuthorization = 1;
+		return counter + extraContextForCreateAfterAuthorization;
 	}
 
 	private int incrementCounterIfPositionEndsWithAfterAuthorization(int counter,

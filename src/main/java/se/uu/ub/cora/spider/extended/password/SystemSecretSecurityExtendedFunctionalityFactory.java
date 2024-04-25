@@ -44,8 +44,7 @@ public class SystemSecretSecurityExtendedFunctionalityFactory
 	private void possiblyAddContextWhenPositionEndsWithAfterAuthorization(
 			ExtendedFunctionalityPosition position) {
 		if (endsWithAfterAuthorization(position)) {
-			ExtendedFunctionalityContext systemSecretContext = createContextForRecordType(position);
-			contexts.add(systemSecretContext);
+			createContextForRecordType(position);
 		}
 	}
 
@@ -53,12 +52,15 @@ public class SystemSecretSecurityExtendedFunctionalityFactory
 		return position.toString().endsWith("_AFTER_AUTHORIZATION");
 	}
 
-	private ExtendedFunctionalityContext createContextForRecordType(
-			ExtendedFunctionalityPosition position) {
+	private void createContextForRecordType(ExtendedFunctionalityPosition position) {
 		if (isRecordSearchAfterAuthorizationPosition(position)) {
-			return new ExtendedFunctionalityContext(position, "search", 0);
+			contexts.add(new ExtendedFunctionalityContext(position, "search", 0));
+		} else if (position.equals(ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION)) {
+			contexts.add(new ExtendedFunctionalityContext(position, "workOrder", 0));
+			contexts.add(new ExtendedFunctionalityContext(position, "systemSecret", 0));
+		} else {
+			contexts.add(new ExtendedFunctionalityContext(position, "systemSecret", 0));
 		}
-		return new ExtendedFunctionalityContext(position, "systemSecret", 0);
 	}
 
 	private boolean isRecordSearchAfterAuthorizationPosition(
