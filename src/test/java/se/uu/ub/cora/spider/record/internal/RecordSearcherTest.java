@@ -174,7 +174,7 @@ public class RecordSearcherTest {
 	}
 
 	@Test
-	public void testName() throws Exception {
+	public void testRecordSearchReturnValue() throws Exception {
 		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, SOME_SEARCH_ID,
 				someSearchData);
 
@@ -284,7 +284,6 @@ public class RecordSearcherTest {
 
 	@Test
 	public void testSearchResultIsEnhancedForEachResult() {
-
 		DataList searchList = recordSearcher.search(SOME_AUTH_TOKEN, SOME_SEARCH_ID,
 				someSearchData);
 
@@ -386,6 +385,7 @@ public class RecordSearcherTest {
 		expectedData.recordType = "search";
 		expectedData.authToken = SOME_AUTH_TOKEN;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.dataRecordGroup = dataRecordGroupSpy;
 		return expectedData;
 	}
 

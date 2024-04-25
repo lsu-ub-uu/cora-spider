@@ -20,6 +20,8 @@ package se.uu.ub.cora.spider.extended.password;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.SEARCH_AFTER_AUTHORIZATION;
 
 import java.util.List;
 
@@ -48,20 +50,13 @@ public class SystemSecretSecurityExtendedFunctionalityFactoryTest {
 	@Test
 	public void testInitCreatesContextsForUserRecordType() throws Exception {
 		factory.initializeUsingDependencyProvider(null);
+
 		List<ExtendedFunctionalityContext> extendedFunctionalityContexts = factory
 				.getExtendedFunctionalityContexts();
 
 		assertEqualNumberOfContextsThanPositionsEndingWithAfterAuthorization(
 				extendedFunctionalityContexts);
-		assertContextUsingConextListAndListIndex(extendedFunctionalityContexts, 0);
-	}
-
-	private void assertContextUsingConextListAndListIndex(
-			List<ExtendedFunctionalityContext> extendedFunctionalityContexts, int listIndex) {
-		ExtendedFunctionalityContext firstContext = extendedFunctionalityContexts.get(listIndex);
-		assertEquals(firstContext.position,
-				ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION);
-		assertEquals(firstContext.recordType, "systemSecret");
+		assertContextUsingContextListAndListIndex(extendedFunctionalityContexts, 0);
 	}
 
 	private void assertEqualNumberOfContextsThanPositionsEndingWithAfterAuthorization(
@@ -70,6 +65,27 @@ public class SystemSecretSecurityExtendedFunctionalityFactoryTest {
 		int numberOfPositionsEndingWithAfterAuthorization = getNumberOfPositionsEndingWithAfterAuthorization();
 		assertEquals(extendedFunctionalityContexts.size(),
 				numberOfPositionsEndingWithAfterAuthorization);
+	}
+
+	private void assertContextUsingContextListAndListIndex(
+			List<ExtendedFunctionalityContext> extFuncContexts, int listIndex) {
+
+		for (ExtendedFunctionalityContext extFuncContext : extFuncContexts) {
+			if (isSearchAfterAuthorization(extFuncContext)) {
+				assertEquals(extFuncContext.recordType, "search");
+			} else {
+				assertTrue(endsWithAfterAuthorization(extFuncContext.position));
+				assertEquals(extFuncContext.recordType, "systemSecret");
+			}
+		}
+	}
+
+	private boolean isSearchAfterAuthorization(ExtendedFunctionalityContext extFuncContext) {
+		return extFuncContext.position.equals(SEARCH_AFTER_AUTHORIZATION);
+	}
+
+	private boolean endsWithAfterAuthorization(ExtendedFunctionalityPosition position) {
+		return position.toString().endsWith("_AFTER_AUTHORIZATION");
 	}
 
 	private int getNumberOfPositionsEndingWithAfterAuthorization() {
@@ -89,16 +105,24 @@ public class SystemSecretSecurityExtendedFunctionalityFactoryTest {
 
 	}
 
-	private boolean endsWithAfterAuthorization(ExtendedFunctionalityPosition position) {
-		return position.toString().endsWith("_AFTER_AUTHORIZATION");
-	}
-
 	@Test
-	public void testFactor() throws Exception {
-		List<ExtendedFunctionality> extendedFunctionalityList = factory.factor(null, null);
+	public void testFactorSystemSecretSecurity() throws Exception {
+		List<ExtendedFunctionality> extendedFunctionalityList = factory
+				.factor(CREATE_AFTER_AUTHORIZATION, null);
 
 		assertEquals(extendedFunctionalityList.size(), 1);
 		assertTrue(extendedFunctionalityList
 				.get(0) instanceof SystemSecretSecurityExtendedFunctionality);
 	}
+
+	@Test
+	public void testFactorSystemSecretSecurityForSearch() throws Exception {
+		List<ExtendedFunctionality> extendedFunctionalityList = factory
+				.factor(SEARCH_AFTER_AUTHORIZATION, null);
+
+		assertEquals(extendedFunctionalityList.size(), 1);
+		assertTrue(extendedFunctionalityList
+				.get(0) instanceof SystemSecretSecurityForSearchExtendedFunctionality);
+	}
+
 }

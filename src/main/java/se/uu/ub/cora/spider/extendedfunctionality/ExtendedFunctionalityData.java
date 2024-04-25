@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.extendedfunctionality;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 
 /**
  * ExtendedFunctionalityData contains data, useful when implementing an extended functionality. The
@@ -34,8 +35,17 @@ public class ExtendedFunctionalityData {
 
 	/**
 	 * A DataGroup containing all data for the record currently being handled
+	 * 
+	 * @deprecated Use dataRecordGroup instead.
 	 */
+	@Deprecated
 	public DataGroup dataGroup;
+
+	/**
+	 * A DataRecordGroup containing all data for the record currently being handled
+	 */
+	public DataRecordGroup dataRecordGroup;
+
 	/**
 	 * A String with the recordType of the record currently being handled
 	 */
@@ -62,8 +72,20 @@ public class ExtendedFunctionalityData {
 	 * <p>
 	 * <b>Note! this dataGroup is only set for calls made to extended functionality when updating a
 	 * record.</b>
+	 * 
+	 * @deprecated Use previouslyStoredDataRecordGroup instead.
 	 */
+	@Deprecated
 	public DataGroup previouslyStoredTopDataGroup;
+
+	/**
+	 * The DataRecordGroup for the record currently being handled as it was read from storage at the
+	 * begining of the current operation.
+	 * <p>
+	 * <b>Note! this dataRecordGroup is only set for calls made to extended functionality when
+	 * updating a record.</b>
+	 */
+	public DataRecordGroup previouslyStoredDataRecordGroup;
 
 	/**
 	 * The representation of the record as DataRecord

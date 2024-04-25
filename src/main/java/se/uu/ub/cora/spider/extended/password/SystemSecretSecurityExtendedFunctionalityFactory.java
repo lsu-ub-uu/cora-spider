@@ -18,8 +18,9 @@
  */
 package se.uu.ub.cora.spider.extended.password;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.SEARCH_AFTER_AUTHORIZATION;
+
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -43,7 +44,8 @@ public class SystemSecretSecurityExtendedFunctionalityFactory
 	private void possiblyAddContextWhenPositionEndsWithAfterAuthorization(
 			ExtendedFunctionalityPosition position) {
 		if (endsWithAfterAuthorization(position)) {
-			createAndAddContextUsingPosition(position);
+			ExtendedFunctionalityContext systemSecretContext = createContextForRecordType(position);
+			contexts.add(systemSecretContext);
 		}
 	}
 
@@ -51,9 +53,17 @@ public class SystemSecretSecurityExtendedFunctionalityFactory
 		return position.toString().endsWith("_AFTER_AUTHORIZATION");
 	}
 
-	private void createAndAddContextUsingPosition(ExtendedFunctionalityPosition position) {
-		var systemSecretContext = new ExtendedFunctionalityContext(position, "systemSecret", 0);
-		contexts.add(systemSecretContext);
+	private ExtendedFunctionalityContext createContextForRecordType(
+			ExtendedFunctionalityPosition position) {
+		if (isRecordSearchAfterAuthorizationPosition(position)) {
+			return new ExtendedFunctionalityContext(position, "search", 0);
+		}
+		return new ExtendedFunctionalityContext(position, "systemSecret", 0);
+	}
+
+	private boolean isRecordSearchAfterAuthorizationPosition(
+			ExtendedFunctionalityPosition position) {
+		return position.equals(SEARCH_AFTER_AUTHORIZATION);
 	}
 
 	@Override
@@ -64,6 +74,10 @@ public class SystemSecretSecurityExtendedFunctionalityFactory
 	@Override
 	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
 			String recordType) {
-		return Collections.singletonList(new SystemSecretSecurityExtendedFunctionality());
+		if (isRecordSearchAfterAuthorizationPosition(position)) {
+			return List.of(new SystemSecretSecurityForSearchExtendedFunctionality());
+		}
+		return List.of(new SystemSecretSecurityExtendedFunctionality());
 	}
+
 }

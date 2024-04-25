@@ -113,13 +113,17 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 		assertEquals(data.user, expectedData.user);
 		assertEquals(data.previouslyStoredTopDataGroup, expectedData.previouslyStoredTopDataGroup);
 		assertEquals(data.dataGroup, expectedData.dataGroup);
+		assertEquals(data.previouslyStoredDataRecordGroup,
+				expectedData.previouslyStoredDataRecordGroup);
+		assertEquals(data.dataRecordGroup, expectedData.dataRecordGroup);
 	}
 
 	public void setUpExtendedFunctionalityToThrowExceptionOnPosition(
 			SpiderDependencyProviderSpy dependencyProviderSpy,
 			ExtendedFunctionalityPosition extendedFunctionalityPosition, String recordType) {
 		ExtendedFunctionalitySpy extFunctionality = new ExtendedFunctionalitySpy();
-		extFunctionality.MRV.setAlwaysThrowException("useExtendedFunctionality", new RuntimeException());
+		extFunctionality.MRV.setAlwaysThrowException("useExtendedFunctionality",
+				new RuntimeException());
 		MRV.setSpecificReturnValuesSupplier("getFunctionalityForPositionAndRecordType",
 				() -> List.of(extFunctionality), extendedFunctionalityPosition, recordType);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",

@@ -125,23 +125,24 @@ public final class RecordSearcherImp implements RecordSearcher {
 
 	private void useExtendedFunctionalityUsingPosition(ExtendedFunctionalityPosition position) {
 		List<ExtendedFunctionality> extendedFunctionality = extendedFunctionalityProvider
-				.getFunctionalityForPositionAndRecordType(position, "search");
+				.getFunctionalityForPositionAndRecordType(position, SEARCH);
 		useExtendedFunctionality(extendedFunctionality);
 
 	}
 
 	protected void useExtendedFunctionality(List<ExtendedFunctionality> functionalityList) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityData();
 		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
-			ExtendedFunctionalityData data = createExtendedFunctionalityData(user);
 			extendedFunctionality.useExtendedFunctionality(data);
 		}
 	}
 
-	protected ExtendedFunctionalityData createExtendedFunctionalityData(User user) {
+	protected ExtendedFunctionalityData createExtendedFunctionalityData() {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
-		data.recordType = "search";
+		data.recordType = SEARCH;
 		data.authToken = authToken;
 		data.user = user;
+		data.dataRecordGroup = searchMetadataAsRecord;
 		return data;
 	}
 
