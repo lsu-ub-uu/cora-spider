@@ -40,7 +40,7 @@
 		<storagespies.version>1.7.0</storagespies.version>
 		<initialize.version>1.6.0</initialize.version>
 		<search.version>5.7.0</search.version>
-		<bookkeeper.version>9.4-SNAPSHOT</bookkeeper.version>
+		<bookkeeper.version>9.4.0</bookkeeper.version>
 		<beefeater.version>3.13.0</beefeater.version>
 		<contentanalyzer.version>2.0.0</contentanalyzer.version>
 		<password.version>1.8.0</password.version>
