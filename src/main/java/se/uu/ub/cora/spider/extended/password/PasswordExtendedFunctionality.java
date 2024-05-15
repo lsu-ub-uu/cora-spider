@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Uppsala University Library
+ * Copyright 2022, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -43,21 +43,23 @@ import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
  */
 public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
+	private static final String PASSWORD_GROUP_NAME_IN_DATA = "password";
 	private static final String SECRET = "secret";
 	private static final String TYPE = "type";
-	private static final String PASSWORD_NAME_IN_DATA = "passwordLink";
+	private static final String PASSWORD_LINK_NAME_IN_DATA = "passwordLink";
 	private static final String DATA_DIVIDER = "dataDivider";
 	private static final String RECORD_INFO = "recordInfo";
 	private static final String PLAIN_TEXT_PASSWORD = "plainTextPassword";
 	private static final String SYSTEM_SECRET_TYPE = "systemSecret";
-
 	private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+
 	private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter
 			.ofPattern(DATE_TIME_PATTERN);
 
 	private SpiderDependencyProvider dependencyProvider;
 	private TextHasher textHasher;
 	private DataGroup userGroup;
+	private DataGroup passwordGroup;
 
 	public static PasswordExtendedFunctionality usingDependencyProviderAndTextHasher(
 			SpiderDependencyProvider dependencyProvider, TextHasher textHasher) {
@@ -103,11 +105,15 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	}
 
 	private boolean newPasswordNeedsToBeCreated() {
-		return !userGroup.containsChildWithNameInData(PASSWORD_NAME_IN_DATA);
+		return !userGroup.containsChildWithNameInData(PASSWORD_GROUP_NAME_IN_DATA);
 	}
 
 	private void createSystemSecretAndUpdateUser(String hashedPassword) {
 		String systemSecretId = createAndStoreSystemSecretRecord(hashedPassword);
+
+		passwordGroup = DataProvider.createGroupUsingNameInData(PASSWORD_GROUP_NAME_IN_DATA);
+		userGroup.addChild(passwordGroup);
+
 		addLinkToSystemSecret(systemSecretId);
 		setTimestampWhenPasswordHasBeenStored();
 	}
@@ -156,29 +162,29 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
 	private void addLinkToSystemSecret(String systemSecretRecordId) {
 		var secretLink = createLinkPointingToSecretRecord(systemSecretRecordId);
-		userGroup.addChild(secretLink);
+		passwordGroup.addChild(secretLink);
 	}
 
 	private DataRecordLink createLinkPointingToSecretRecord(String systemSecretRecordId) {
-		return DataProvider.createRecordLinkUsingNameInDataAndTypeAndId(PASSWORD_NAME_IN_DATA,
+		return DataProvider.createRecordLinkUsingNameInDataAndTypeAndId(PASSWORD_LINK_NAME_IN_DATA,
 				SYSTEM_SECRET_TYPE, systemSecretRecordId);
 	}
 
 	private void setTimestampWhenPasswordHasBeenStored() {
 		DataAtomic tsPasswordUpdated = createAtomicLatestTsUpdatedFromRecord();
-		userGroup.addChild(tsPasswordUpdated);
+		passwordGroup.addChild(tsPasswordUpdated);
 	}
 
 	private void updateSystemSecretAndUpdateUser(String hashedPassword) {
+		passwordGroup = userGroup.getFirstGroupWithNameInData(PASSWORD_GROUP_NAME_IN_DATA);
 		String systemSecretId = readSystemSecretIdFromLinkInUser();
 		replacePasswordInSystemSecret(systemSecretId, hashedPassword);
-		DataAtomic tsPasswordUpdated = updateTsPasswordUpdatedUsingTsUppdate();
-		userGroup.addChild(tsPasswordUpdated);
+		updateTsPasswordUpdatedUsingTsUpdate();
 	}
 
 	private String readSystemSecretIdFromLinkInUser() {
-		DataRecordLink passwordLink = (DataRecordLink) userGroup
-				.getFirstChildWithNameInData(PASSWORD_NAME_IN_DATA);
+		DataRecordLink passwordLink = (DataRecordLink) passwordGroup
+				.getFirstChildWithNameInData(PASSWORD_LINK_NAME_IN_DATA);
 		return passwordLink.getLinkedRecordId();
 	}
 
@@ -194,9 +200,10 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 				Collections.emptySet(), Collections.emptySet(), dataDivider);
 	}
 
-	private DataAtomic updateTsPasswordUpdatedUsingTsUppdate() {
-		userGroup.removeAllChildrenWithNameInData("tsPasswordUpdated");
-		return createAtomicLatestTsUpdatedFromRecord();
+	private void updateTsPasswordUpdatedUsingTsUpdate() {
+		passwordGroup.removeAllChildrenWithNameInData("tsPasswordUpdated");
+		DataAtomic tsPasswordUpdated = createAtomicLatestTsUpdatedFromRecord();
+		passwordGroup.addChild(tsPasswordUpdated);
 	}
 
 	private DataAtomic createAtomicLatestTsUpdatedFromRecord() {
