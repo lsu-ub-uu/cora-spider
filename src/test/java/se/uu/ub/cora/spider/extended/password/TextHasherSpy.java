@@ -31,8 +31,8 @@ public class TextHasherSpy implements TextHasher {
 
 	public TextHasherSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("hashText", String::new);
-		MRV.setDefaultReturnValuesSupplier("matches", (Supplier<Boolean>) () -> false);
+		MRV.setDefaultReturnValuesSupplier("hashText", ()->"someHashedText");
+		MRV.setDefaultReturnValuesSupplier("matches", () -> false);
 	}
 
 	@Override
