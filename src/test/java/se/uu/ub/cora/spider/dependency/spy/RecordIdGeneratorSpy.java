@@ -31,7 +31,7 @@ public class RecordIdGeneratorSpy implements RecordIdGenerator {
 
 	public RecordIdGeneratorSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("getIdForType", String::new);
+		MRV.setDefaultReturnValuesSupplier("getIdForType", ()-> "someGeneratedRecordId");
 	}
 
 	@Override
