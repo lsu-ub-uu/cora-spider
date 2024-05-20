@@ -81,6 +81,7 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	}
 
 	private boolean plainTextPasswordHasValueInUserGroup() {
+		userGroup.getFirstAtomicValueWithNameInData("usePassword");
 		return userGroup.containsChildWithNameInData(PLAIN_TEXT_PASSWORD);
 	}
 

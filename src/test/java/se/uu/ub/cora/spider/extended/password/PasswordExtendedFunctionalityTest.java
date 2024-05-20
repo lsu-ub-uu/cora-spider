@@ -131,13 +131,15 @@ public class PasswordExtendedFunctionalityTest {
 
 	@Test
 	public void testIfPlainTextPasswordIsNotPresentNoGetOrRemove() throws Exception {
+		rGroupMRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "false", "usePassword");
 		rGroupMRV.setReturnValues("containsChildWithNameInData", List.of(false),
 				"plainTextPassword");
 
 		extended.useExtendedFunctionality(efData);
 
+		rGroupMCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "usePassword");
 		rGroupMCR.assertParameters("containsChildWithNameInData", 0, "plainTextPassword");
-		rGroupMCR.assertMethodNotCalled("getFirstAtomicValueWithNameInData");
 		rGroupMCR.assertMethodNotCalled("removeAllChildrenWithNameInData");
 		dataFactory.MCR.assertMethodNotCalled("factorGroupUsingNameInData");
 	}
@@ -149,7 +151,7 @@ public class PasswordExtendedFunctionalityTest {
 		extended.useExtendedFunctionality(efData);
 
 		rGroupMCR.assertParameters("containsChildWithNameInData", 0, "plainTextPassword");
-		rGroupMCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "plainTextPassword");
+		rGroupMCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "plainTextPassword");
 		rGroupMCR.assertParameters("removeAllChildrenWithNameInData", 0, "plainTextPassword");
 	}
 
@@ -160,7 +162,7 @@ public class PasswordExtendedFunctionalityTest {
 		extended.useExtendedFunctionality(efData);
 
 		rGroupMCR.assertParameters("containsChildWithNameInData", 0, "plainTextPassword");
-		rGroupMCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "plainTextPassword");
+		rGroupMCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "plainTextPassword");
 		rGroupMCR.assertParameters("removeAllChildrenWithNameInData", 0, "plainTextPassword");
 	}
 
