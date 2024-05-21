@@ -135,6 +135,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		definitionId = recordTypeHandler.getDefinitionId();
 		updateDefinitionId = recordTypeHandler.getUpdateDefinitionId();
 
+		previouslyStoredRecord = recordStorage.read(List.of(recordType), recordId);
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 
 		doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection();
@@ -263,7 +264,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
-		previouslyStoredRecord = recordStorage.read(List.of(recordType), recordId);
+
 		CollectTerms collectedTerms = dataGroupTermCollector.collectTerms(definitionId,
 				previouslyStoredRecord);
 
