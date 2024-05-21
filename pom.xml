@@ -44,7 +44,7 @@
 		<beefeater.version>3.13.0</beefeater.version>
 		<contentanalyzer.version>2.0.0</contentanalyzer.version>
 		<password.version>1.8.0</password.version>
-		<testutils.version>1.11.0</testutils.version>
+		<testutils.version>1.13.0</testutils.version>
 		<coradata-spies.version>1.7.0</coradata-spies.version>
 		<logger-spies.version>1.5.0</logger-spies.version>
 		<messaging.version>3.0.0</messaging.version>
