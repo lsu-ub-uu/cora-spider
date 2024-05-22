@@ -32,6 +32,7 @@ import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
@@ -58,7 +59,8 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
 	private SpiderDependencyProvider dependencyProvider;
 	private TextHasher textHasher;
-	private DataGroup userGroup;
+	private DataGroup currentUserGroup;
+	private DataGroup previousUserGroup;
 
 	public static PasswordExtendedFunctionality usingDependencyProviderAndTextHasher(
 			SpiderDependencyProvider dependencyProvider, TextHasher textHasher) {
@@ -73,28 +75,47 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		userGroup = data.dataGroup;
+		currentUserGroup = data.dataGroup;
+		previousUserGroup = data.previouslyStoredTopDataGroup;
+		validateData();
 		possiblyCreateNewPassword();
 		possiblyRemovePassword();
 		ensurePlainTextPasswordIsRemoved();
 	}
 
-	private void possiblyCreateNewPassword() {
-		if (plainTextPasswordHasValueInUserGroup()) {
-			handleNewOrUpdatedPassword();
+	private void validateData() {
+		if (dataForPasswordIsNotValid()) {
+			throw new DataException(
+					"UsePassword set to true but no old password or new password exists.");
 		}
 	}
 
+	private boolean dataForPasswordIsNotValid() {
+		return currentUsePassword() && previousDoNotUsePassword() && !newPasswordSet();
+	}
+
+	private boolean previousDoNotUsePassword() {
+		return "false".equals(previousUserGroup.getFirstAtomicValueWithNameInData("usePassword"));
+	}
+
+	private void possiblyCreateNewPassword() {
+
+		if (plainTextPasswordHasValueInUserGroup()) {
+			handleNewOrUpdatedPassword();
+		}
+
+	}
+
 	private boolean plainTextPasswordHasValueInUserGroup() {
-		return userUsesPasswordLogin() && newPasswordSet();
+		return currentUsePassword() && newPasswordSet();
 	}
 
 	private boolean newPasswordSet() {
-		return userGroup.containsChildWithNameInData(PLAIN_TEXT_PASSWORD_NAME_IN_DATA);
+		return currentUserGroup.containsChildWithNameInData(PLAIN_TEXT_PASSWORD_NAME_IN_DATA);
 	}
 
-	private boolean userUsesPasswordLogin() {
-		return userGroup.getFirstAtomicValueWithNameInData("usePassword").equals("true");
+	private boolean currentUsePassword() {
+		return currentUserGroup.getFirstAtomicValueWithNameInData("usePassword").equals("true");
 	}
 
 	private void handleNewOrUpdatedPassword() {
@@ -108,14 +129,14 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	}
 
 	private String getNewPasswordAndRemoveItFromUserGroup() {
-		String plainTextPassword = userGroup
+		String plainTextPassword = currentUserGroup
 				.getFirstAtomicValueWithNameInData(PLAIN_TEXT_PASSWORD_NAME_IN_DATA);
 		ensurePlainTextPasswordIsRemoved();
 		return plainTextPassword;
 	}
 
 	private boolean newPasswordNeedsToBeCreated() {
-		return !userGroup.containsChildWithNameInData(PASSWORD_LINK_NAME_IN_DATA);
+		return !currentUserGroup.containsChildWithNameInData(PASSWORD_LINK_NAME_IN_DATA);
 	}
 
 	private void createSystemSecretAndUpdateUser(String hashedPassword) {
@@ -168,7 +189,7 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
 	private void addLinkToSystemSecret(String systemSecretRecordId) {
 		var secretLink = createLinkPointingToSecretRecord(systemSecretRecordId);
-		userGroup.addChild(secretLink);
+		currentUserGroup.addChild(secretLink);
 	}
 
 	private DataRecordLink createLinkPointingToSecretRecord(String systemSecretRecordId) {
@@ -178,7 +199,7 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
 	private void setTimestampWhenPasswordHasBeenStored() {
 		DataAtomic tsPasswordUpdated = createAtomicLatestTsUpdatedFromRecord();
-		userGroup.addChild(tsPasswordUpdated);
+		currentUserGroup.addChild(tsPasswordUpdated);
 	}
 
 	private void updateSystemSecretAndUpdateUser(String hashedPassword) {
@@ -188,8 +209,8 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	}
 
 	private String readSystemSecretIdFromLinkInUser() {
-		DataRecordLink passwordLink = userGroup.getFirstChildOfTypeAndName(DataRecordLink.class,
-				PASSWORD_LINK_NAME_IN_DATA);
+		DataRecordLink passwordLink = currentUserGroup
+				.getFirstChildOfTypeAndName(DataRecordLink.class, PASSWORD_LINK_NAME_IN_DATA);
 		return passwordLink.getLinkedRecordId();
 	}
 
@@ -206,9 +227,9 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	}
 
 	private void updateTsPasswordUpdatedUsingTsUpdate() {
-		userGroup.removeAllChildrenWithNameInData(TS_PASSWORD_UPDATED_NAME_IN_DATA);
+		currentUserGroup.removeAllChildrenWithNameInData(TS_PASSWORD_UPDATED_NAME_IN_DATA);
 		DataAtomic tsPasswordUpdated = createAtomicLatestTsUpdatedFromRecord();
-		userGroup.addChild(tsPasswordUpdated);
+		currentUserGroup.addChild(tsPasswordUpdated);
 	}
 
 	private DataAtomic createAtomicLatestTsUpdatedFromRecord() {
@@ -223,22 +244,22 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	}
 
 	private String readDataDividerFromUserGroup() {
-		DataGroup usersRecordInfo = userGroup.getFirstGroupWithNameInData(RECORD_INFO);
+		DataGroup usersRecordInfo = currentUserGroup.getFirstGroupWithNameInData(RECORD_INFO);
 		DataRecordLink userDataDivider = (DataRecordLink) usersRecordInfo
 				.getFirstChildWithNameInData(DATA_DIVIDER);
 		return userDataDivider.getLinkedRecordId();
 	}
 
 	private void possiblyRemovePassword() {
-		if (!userUsesPasswordLogin()
-				&& userGroup.containsChildWithNameInData(PASSWORD_LINK_NAME_IN_DATA)) {
-			userGroup.removeAllChildrenWithNameInData(PASSWORD_LINK_NAME_IN_DATA);
-			userGroup.removeAllChildrenWithNameInData(TS_PASSWORD_UPDATED_NAME_IN_DATA);
+		if (!currentUsePassword()
+				&& currentUserGroup.containsChildWithNameInData(PASSWORD_LINK_NAME_IN_DATA)) {
+			currentUserGroup.removeAllChildrenWithNameInData(PASSWORD_LINK_NAME_IN_DATA);
+			currentUserGroup.removeAllChildrenWithNameInData(TS_PASSWORD_UPDATED_NAME_IN_DATA);
 		}
 	}
 
 	private void ensurePlainTextPasswordIsRemoved() {
-		userGroup.removeAllChildrenWithNameInData(PLAIN_TEXT_PASSWORD_NAME_IN_DATA);
+		currentUserGroup.removeAllChildrenWithNameInData(PLAIN_TEXT_PASSWORD_NAME_IN_DATA);
 	}
 
 	SpiderDependencyProvider onlyForTestGetDependencyProvider() {

@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.extended.password;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -44,6 +45,7 @@ import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.testspies.RecordCreatorSpy;
 import se.uu.ub.cora.spider.testspies.RecordReaderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;
@@ -69,7 +71,8 @@ public class PasswordExtendedFunctionalityTest {
 	private DataRecordLinkSpy dataDivider;
 	private SpiderInstanceFactorySpy spiderInstanceFactory;
 	private DateTimeFormatter dateTimePattern = DateTimeFormatter.ofPattern(DATE_PATTERN);
-	private RecordIdGeneratorSpy recordIdGeneratorSpy;;
+	private RecordIdGeneratorSpy recordIdGeneratorSpy;
+	private DataGroupSpy previousGroup;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -80,6 +83,7 @@ public class PasswordExtendedFunctionalityTest {
 		textHasher = new TextHasherSpy();
 		extended = PasswordExtendedFunctionality
 				.usingDependencyProviderAndTextHasher(dependencyProvider, textHasher);
+		previousGroup = new DataGroupSpy();
 		setupSpyForDataRecordGroup();
 		createExtendedFunctionalityData();
 
@@ -98,12 +102,26 @@ public class PasswordExtendedFunctionalityTest {
 		dataRecordGroup = new DataGroupSpy();
 		rGroupMCR = dataRecordGroup.MCR;
 		rGroupMRV = dataRecordGroup.MRV;
-		rGroupMRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
-				((Supplier<Boolean>) () -> true), "plainTextPassword");
-		rGroupMRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData", () -> "true",
-				"usePassword");
+		setUpCurrentContainsPlainTextPasswordWithValue(true);
+		setUpCurrentPasswordWithValue("true");
 
 		setupDataDividerForDataRecordGroup();
+	}
+
+	private void setUpCurrentContainsPlainTextPasswordWithValue(
+			boolean containsPlainTextPasswordValue) {
+		rGroupMRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> containsPlainTextPasswordValue, "plainTextPassword");
+	}
+
+	private void setUpPreviousUsePasswordWithValue(String usePassword) {
+		previousGroup.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> usePassword, "usePassword");
+	}
+
+	private void setUpCurrentPasswordWithValue(String usePasswordValue) {
+		rGroupMRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> usePasswordValue, "usePassword");
 	}
 
 	private void setupDataDividerForDataRecordGroup() {
@@ -118,6 +136,7 @@ public class PasswordExtendedFunctionalityTest {
 	private void createExtendedFunctionalityData() {
 		efData = new ExtendedFunctionalityData();
 		efData.dataGroup = dataRecordGroup;
+		efData.previouslyStoredTopDataGroup = previousGroup;
 		efData.authToken = "fakeToken";
 		efData.recordType = "fakeType";
 		efData.recordId = "fakeId";
@@ -132,17 +151,34 @@ public class PasswordExtendedFunctionalityTest {
 	}
 
 	@Test
-	public void testUsePasswordSetToTrueButNoPlainTextPasswordSet() throws Exception {
-		rGroupMRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData", () -> "true",
-				"usePassword");
-		rGroupMRV.setReturnValues("containsChildWithNameInData", List.of(false),
-				"plainTextPassword");
+	public void testThrowDataExceptionIfUsePasswordTrueButNoPasswordSet() throws Exception {
+		setUpPreviousUsePasswordWithValue("false");
+		setUpCurrentPasswordWithValue("true");
+		setUpCurrentContainsPlainTextPasswordWithValue(false);
+
+		try {
+			extended.useExtendedFunctionality(efData);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof DataException);
+			assertEquals(e.getMessage(),
+					"UsePassword set to true but no old password or new password exists.");
+		}
+	}
+
+	@Test
+	public void testUsePasswordTrueAndPreviousPasswordExistsDoNothing() throws Exception {
+		setUpPreviousUsePasswordWithValue("true");
+		setUpCurrentPasswordWithValue("true");
+		setUpCurrentContainsPlainTextPasswordWithValue(false);
 
 		extended.useExtendedFunctionality(efData);
 
-		rGroupMCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "usePassword");
-		rGroupMCR.assertParameters("containsChildWithNameInData", 0, "plainTextPassword");
-		dataFactory.MCR.assertMethodNotCalled("factorGroupUsingNameInData");
+		assertMinimalDataChange();
+	}
+
+	private void assertMinimalDataChange() {
+		rGroupMCR.assertNumberOfCallsToMethod("addChild", 0);
 		rGroupMCR.assertNumberOfCallsToMethod("removeAllChildrenWithNameInData", 1);
 		rGroupMCR.assertCalledParameters("removeAllChildrenWithNameInData", "plainTextPassword");
 	}
@@ -153,9 +189,9 @@ public class PasswordExtendedFunctionalityTest {
 
 		extended.useExtendedFunctionality(efData);
 
-		rGroupMCR.assertParameters("containsChildWithNameInData", 0, "plainTextPassword");
-		rGroupMCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "plainTextPassword");
-		rGroupMCR.assertParameters("removeAllChildrenWithNameInData", 0, "plainTextPassword");
+		rGroupMCR.assertCalledParameters("containsChildWithNameInData", "plainTextPassword");
+		rGroupMCR.assertCalledParameters("getFirstAtomicValueWithNameInData", "plainTextPassword");
+		rGroupMCR.assertCalledParameters("removeAllChildrenWithNameInData", "plainTextPassword");
 	}
 
 	@Test
@@ -164,9 +200,9 @@ public class PasswordExtendedFunctionalityTest {
 
 		extended.useExtendedFunctionality(efData);
 
-		rGroupMCR.assertParameters("containsChildWithNameInData", 0, "plainTextPassword");
-		rGroupMCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "plainTextPassword");
-		rGroupMCR.assertParameters("removeAllChildrenWithNameInData", 0, "plainTextPassword");
+		rGroupMCR.assertCalledParameters("containsChildWithNameInData", "plainTextPassword");
+		rGroupMCR.assertCalledParameters("getFirstAtomicValueWithNameInData", "plainTextPassword");
+		rGroupMCR.assertCalledParameters("removeAllChildrenWithNameInData", "plainTextPassword");
 	}
 
 	@Test
@@ -428,8 +464,7 @@ public class PasswordExtendedFunctionalityTest {
 
 	@Test
 	public void testRemovePassword_NoPasswordLinkFound() throws Exception {
-		rGroupMRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> "false", "usePassword");
+		setUpCurrentPasswordWithValue("false");
 
 		extended.useExtendedFunctionality(efData);
 
@@ -441,8 +476,7 @@ public class PasswordExtendedFunctionalityTest {
 
 	@Test
 	public void testRemovePassword_PasswordLinkFound() throws Exception {
-		rGroupMRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> "false", "usePassword");
+		setUpCurrentPasswordWithValue("false");
 		rGroupMRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
 				"passwordLink");
 
