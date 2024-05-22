@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.extended.password;
+package se.uu.ub.cora.spider.extended.systemsecret;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -29,6 +29,10 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretSecurityExtendedFunctionality;
+import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretSecurityExtendedFunctionalityFactory;
+import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretSecurityForSearchExtendedFunctionality;
+import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretSecurityForWorkOrderExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
