@@ -1,4 +1,5 @@
 /*
+
  * Copyright 2022, 2024 Uppsala University Library
  *
  * This file is part of Cora.
@@ -112,6 +113,8 @@ public class PasswordExtendedFunctionalityTest {
 			boolean containsPlainTextPasswordValue) {
 		rGroupMRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
 				() -> containsPlainTextPasswordValue, "plainTextPassword");
+		rGroupMRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "somePlainTextPassword", "plainTextPassword");
 	}
 
 	private void setUpPreviousUsePasswordWithValue(String usePassword) {
@@ -286,6 +289,7 @@ public class PasswordExtendedFunctionalityTest {
 				Collections.emptySet(), Collections.emptySet(), dataDividerValue);
 
 		assertLinkToSystemSecret(systemSecretId, 2, 1);
+		rGroupMCR.assertCalledParameters("removeAllChildrenWithNameInData", "plainTextPassword");
 	}
 
 	private void assertLinkToSystemSecret(String systemSecretId, int factoredGroupCallNumber,

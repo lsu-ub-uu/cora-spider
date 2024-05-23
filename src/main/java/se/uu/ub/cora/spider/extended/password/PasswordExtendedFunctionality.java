@@ -131,7 +131,6 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	private String getNewPasswordAndRemoveItFromUserGroup() {
 		String plainTextPassword = currentUserGroup
 				.getFirstAtomicValueWithNameInData(PLAIN_TEXT_PASSWORD_NAME_IN_DATA);
-		ensurePlainTextPasswordIsRemoved();
 		return plainTextPassword;
 	}
 
