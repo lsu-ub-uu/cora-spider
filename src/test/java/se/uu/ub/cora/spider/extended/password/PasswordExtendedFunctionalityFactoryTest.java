@@ -20,6 +20,8 @@ package se.uu.ub.cora.spider.extended.password;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_STORE;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE;
 
 import java.util.List;
 
@@ -31,7 +33,6 @@ import se.uu.ub.cora.password.texthasher.TextHasherFactory;
 import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 
 public class PasswordExtendedFunctionalityFactoryTest {
@@ -51,21 +52,8 @@ public class PasswordExtendedFunctionalityFactoryTest {
 		textHasherFactorySpy = new TextHasherFactorySpy();
 	}
 
-	@Test
-	public void testInitCreatesContextsForUserRecordType() throws Exception {
-		factory.initializeUsingDependencyProvider(dependencyProvider);
-		List<ExtendedFunctionalityContext> extendedFunctionalityContexts = factory
-				.getExtendedFunctionalityContexts();
-
-		assertEquals(extendedFunctionalityContexts.size(), 1);
-		ExtendedFunctionalityContext firstContext = extendedFunctionalityContexts.get(0);
-		assertEquals(firstContext.position, ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE);
-		assertEquals(firstContext.recordType, USER_RECORD_TYPE);
-	}
-
 	class PasswordExtendedFunctionalityFactoryOnlyForTest
 			extends PasswordExtendedFunctionalityFactory {
-
 		TextHasherFactory onlyForTestGetTextHasherFactory() {
 			return textHasherFactory;
 		}
@@ -73,6 +61,21 @@ public class PasswordExtendedFunctionalityFactoryTest {
 		void onlyForTestSetTextHasherFactory(TextHasherFactory textHasherFactory) {
 			this.textHasherFactory = textHasherFactory;
 		}
+	}
+
+	@Test
+	public void testInitCreatesContextsForUserRecordType() throws Exception {
+		factory.initializeUsingDependencyProvider(dependencyProvider);
+		List<ExtendedFunctionalityContext> extendedFunctionalityContexts = factory
+				.getExtendedFunctionalityContexts();
+
+		assertEquals(extendedFunctionalityContexts.size(), 2);
+		ExtendedFunctionalityContext firstContext = extendedFunctionalityContexts.get(0);
+		assertEquals(firstContext.position, UPDATE_BEFORE_STORE);
+		assertEquals(firstContext.recordType, USER_RECORD_TYPE);
+		ExtendedFunctionalityContext secondContext = extendedFunctionalityContexts.get(1);
+		assertEquals(secondContext.position, UPDATE_AFTER_STORE);
+		assertEquals(secondContext.recordType, USER_RECORD_TYPE);
 	}
 
 	@Test
@@ -86,7 +89,8 @@ public class PasswordExtendedFunctionalityFactoryTest {
 		onlyForTestFactory.initializeUsingDependencyProvider(dependencyProvider);
 		onlyForTestFactory.onlyForTestSetTextHasherFactory(textHasherFactorySpy);
 
-		List<ExtendedFunctionality> extendedFunctionalities = onlyForTestFactory.factor(null, null);
+		List<ExtendedFunctionality> extendedFunctionalities = onlyForTestFactory
+				.factor(UPDATE_BEFORE_STORE, USER_RECORD_TYPE);
 
 		assertEquals(extendedFunctionalities.size(), 1);
 		var extendedFunctionality = (PasswordExtendedFunctionality) extendedFunctionalities.get(0);
@@ -99,5 +103,18 @@ public class PasswordExtendedFunctionalityFactoryTest {
 			PasswordExtendedFunctionality extendedFunctionality) {
 		TextHasher textHasher = extendedFunctionality.onlyForTestGetTextHasher();
 		textHasherFactorySpy.MCR.assertReturn("factor", 0, textHasher);
+	}
+
+	@Test
+	public void testFactorForUpdateAfterStore() throws Exception {
+		factory.initializeUsingDependencyProvider(dependencyProvider);
+		List<ExtendedFunctionality> extendedFunctionalities = factory.factor(UPDATE_AFTER_STORE,
+				USER_RECORD_TYPE);
+
+		assertEquals(extendedFunctionalities.size(), 1);
+		var extendedFunctionality = (PasswordSystemSecretRemoverExtendedFunctionality) extendedFunctionalities
+				.get(0);
+
+		assertEquals(extendedFunctionality.onlyForTestGetDependencyProvider(), dependencyProvider);
 	}
 }
