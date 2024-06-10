@@ -40,6 +40,10 @@ import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -56,6 +60,8 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private DataGroup validationResult;
 	private RecordIdGenerator idGenerator;
 	private RecordTypeHandler recordTypeHandler;
+	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
+	private String recordTypeToValidate;
 
 	private RecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -65,6 +71,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
 		this.idGenerator = dependencyProvider.getRecordIdGenerator();
+		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
 	public static RecordValidator usingDependencyProvider(
@@ -73,41 +80,33 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	@Override
-	public DataRecord validateRecord(String authToken, String recordType, DataGroup validationOrder,
-			DataGroup recordToValidate) {
+	public DataRecord validateRecord(String authToken, String validationOrderType,
+			DataGroup validationOrder, DataGroup recordToValidate) {
 		this.authToken = authToken;
 		this.recordToValidate = recordToValidate;
-		this.recordType = recordType;
+		this.recordType = validationOrderType;
 
 		user = tryToGetActiveUser();
-		checkValidationRecordIsOkBeforeValidation(validationOrder);
+		checkUserIsAuthorizedForCreateOnValidationOrder();
+		validateValidationOrder(validationOrder);
+		recordTypeToValidate = getRecordTypeToValidate(validationOrder);
+		useExtendedFunctionalityForPosition(
+				ExtendedFunctionalityPosition.VALIDATE_AFTER_AUTHORIZATION);
 
 		createRecordTypeHandlerForRecordToValidate(recordToValidate);
 
-		return validateRecord(validationOrder);
-	}
-
-	private void createRecordTypeHandlerForRecordToValidate(DataGroup recordToValidate) {
-		DataRecordGroup validationOrderAsDataRecordGroup = DataProvider
-				.createRecordGroupFromDataGroup(recordToValidate);
-		recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(validationOrderAsDataRecordGroup);
+		return validateRecordAndCreateValidationResult(validationOrder);
 	}
 
 	private User tryToGetActiveUser() {
 		return authenticator.getUserForToken(authToken);
 	}
 
-	private void checkValidationRecordIsOkBeforeValidation(DataGroup validationOrder) {
-		checkUserIsAuthorizedForCreateOnRecordType();
-		validateWorkOrderAsSpecifiedInMetadata(validationOrder);
-	}
-
-	private void checkUserIsAuthorizedForCreateOnRecordType() {
+	private void checkUserIsAuthorizedForCreateOnValidationOrder() {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "create", recordType);
 	}
 
-	private void validateWorkOrderAsSpecifiedInMetadata(DataGroup validationOrder) {
+	private void validateValidationOrder(DataGroup validationOrder) {
 		String metadataIdForWorkOrder = getMetadataIdForWorkOrder(validationOrder);
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataIdForWorkOrder,
 				validationOrder);
@@ -124,8 +123,37 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		return validationOrderRecordTypeHandler.getCreateDefinitionId();
 	}
 
-	private DataRecord validateRecord(DataGroup validationOrder) {
-		String recordTypeToValidate = getRecordTypeToValidate(validationOrder);
+	private String getRecordTypeToValidate(DataGroup validationOrder) {
+		DataGroup recordTypeGroup = validationOrder.getFirstGroupWithNameInData("recordType");
+		return recordTypeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	}
+
+	private void createRecordTypeHandlerForRecordToValidate(DataGroup recordToValidate) {
+		DataRecordGroup validationOrderAsDataRecordGroup = DataProvider
+				.createRecordGroupFromDataGroup(recordToValidate);
+		recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(validationOrderAsDataRecordGroup);
+	}
+
+	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
+		// read from validationorder
+		List<ExtendedFunctionality> exFunctionality = extendedFunctionalityProvider
+				.getFunctionalityForPositionAndRecordType(position, recordTypeToValidate);
+		useExtendedFunctionality(recordToValidate, exFunctionality);
+	}
+
+	@Override
+	protected ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.recordType = recordTypeToValidate;
+		data.recordId = recordId;
+		data.authToken = authToken;
+		data.user = user;
+		data.dataGroup = dataGroup;
+		return data;
+	}
+
+	private DataRecord validateRecordAndCreateValidationResult(DataGroup validationOrder) {
 
 		checkUserIsAuthorizedForValidateOnRecordType(recordTypeToValidate);
 
@@ -134,11 +162,6 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		DataRecord dataRecord = DataRecordProvider.getDataRecordWithDataGroup(validationResult);
 		addReadActionToComplyWithRecordStructure(dataRecord);
 		return dataRecord;
-	}
-
-	private String getRecordTypeToValidate(DataGroup validationOrder) {
-		DataGroup recordTypeGroup = validationOrder.getFirstGroupWithNameInData("recordType");
-		return recordTypeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
 	private void checkUserIsAuthorizedForValidateOnRecordType(String recordTypeToValidate) {

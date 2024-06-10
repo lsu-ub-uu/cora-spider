@@ -22,6 +22,8 @@ package se.uu.ub.cora.spider.record.internal;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.VALIDATE_AFTER_AUTHORIZATION;
 
 import java.util.List;
 import java.util.Set;
@@ -30,7 +32,7 @@ import java.util.function.Supplier;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAtomicFactory;
 import se.uu.ub.cora.data.DataAtomicProvider;
@@ -48,51 +50,48 @@ import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.search.RecordIndexer;
-import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.data.DataAtomicFactorySpy;
 import se.uu.ub.cora.spider.data.DataAtomicSpy;
 import se.uu.ub.cora.spider.data.DataGroupFactorySpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataRecordLinkFactorySpy;
 import se.uu.ub.cora.spider.record.RecordLinkTestsRecordStorage;
 import se.uu.ub.cora.spider.record.RecordValidator;
-import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorOldSpy;
 import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
-import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageForValidateDataSpy;
-import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
+import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
-public class SpiderRecordValidatorTest {
+public class RecordValidatorTest {
+	private static final String RECORD_TYPE_TO_VALIDATE_AGAINST = "text";
+	private static final String VALIDATION_ORDER_TYPE = "validationOrder";
+	private static final String SOME_AUTH_TOKEN = "someToken78678567";
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
-	private RecordStorage recordStorage;
-	private Authenticator authenticator;
-	private OldSpiderAuthorizatorSpy authorizator;
-	private PermissionRuleCalculator ruleCalculator;
 	private RecordValidator recordValidator;
+	private RecordStorage recordStorage;
+	private AuthenticatorSpy authenticator;
+	private OldSpiderAuthorizatorSpy authorizator;
 	private DataValidatorOldSpy dataValidator;
 	private DataRecordLinkCollectorSpy linkCollector;
-	private SpiderDependencyProviderOldSpy dependencyProvider;
+	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
-	private DataGroupTermCollector termCollector;
-	private RecordIndexer recordIndexer;
 	private RecordIdGenerator idGenerator;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
@@ -101,23 +100,22 @@ public class SpiderRecordValidatorTest {
 	private DataAtomicFactory dataAtomicFactorySpy;
 	private DataRecordFactory dataRecordFactorySpy;
 	private DataRecordLinkFactory dataRecordLinkFactory;
+	private RecordTypeHandlerSpy recordTypeHandler;
+	private int index;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
-		authenticator = new OldAuthenticatorSpy();
+		authenticator = new AuthenticatorSpy();
 		authorizator = new OldSpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorOldSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();
-		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
-		termCollector = new DataGroupTermCollectorSpy();
-		recordIndexer = new RecordIndexerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
+		recordTypeHandler = new RecordTypeHandlerSpy();
 		idGenerator = new IdGeneratorSpy();
 		index = -1;
 		setUpDependencyProvider();
-
 	}
 
 	private void setUpFactoriesAndProviders() {
@@ -137,34 +135,42 @@ public class SpiderRecordValidatorTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderOldSpy();
-		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.spiderAuthorizator = authorizator;
-		dependencyProvider.dataValidator = dataValidator;
-		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.recordIdGenerator = idGenerator;
-		dependencyProvider.ruleCalculator = ruleCalculator;
-		dependencyProvider.linkCollector = linkCollector;
-		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
-		dependencyProvider.termCollector = termCollector;
-		dependencyProvider.recordIndexer = recordIndexer;
+		dependencyProvider = new SpiderDependencyProviderSpy();
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
+				() -> authenticator);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
+				() -> authorizator);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
+				() -> extendedFunctionalityProvider);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
+				() -> recordStorage);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandler);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
+				() -> recordTypeHandler);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataValidator",
+				() -> dataValidator);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataRecordLinkCollector",
+				() -> linkCollector);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordIdGenerator",
+				() -> idGenerator);
+
+		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
+				.usingDependencyProvider(dependencyProvider);
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+
 		recordValidator = RecordValidatorImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Test
 	public void testExternalDependenciesAreCalledForValidateNew() {
 		recordStorage = new RecordStorageForValidateDataSpy();
-		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
-
-		DataGroup recordToValidate = new DataGroupOldSpy("nameInData");
-		recordToValidate.addChild(
-				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
-						"spyId", "cora"));
-
+		DataGroup recordToValidate = createRecordToValidate();
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"new", "true");
-		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
+
+		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
 				recordToValidate);
 
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
@@ -178,31 +184,38 @@ public class SpiderRecordValidatorTest {
 				"fakeDefMetadataIdFromRecordTypeHandlerSpy", recordToValidate);
 	}
 
+	private DataGroup createRecordToValidate() {
+		DataGroup recordToValidate = new DataGroupOldSpy("nameInData");
+		recordToValidate.addChild(
+				DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType",
+						"spyId", "cora"));
+		return recordToValidate;
+	}
+
 	private DataGroup createValidationOrderWithMetadataToValidateAndValidateLinks(
 			String metadataToValidate, String validateLinks) {
-		DataGroup validationOrder = new DataGroupOldSpy("validationOrder");
+		DataGroup validationOrder = new DataGroupOldSpy(VALIDATION_ORDER_TYPE);
 		validationOrder.addChild(new DataAtomicSpy("metadataToValidate", metadataToValidate));
 		validationOrder.addChild(new DataAtomicSpy("validateLinks", validateLinks));
 
-		DataGroup recordTypeGroup = new DataGroupOldSpy("recordType");
-		recordTypeGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-		recordTypeGroup.addChild(new DataAtomicSpy("linkedRecordId", "text"));
-		validationOrder.addChild(recordTypeGroup);
+		DataGroup recordTypeToValidateAgainstGroup = new DataGroupOldSpy("recordType");
+		recordTypeToValidateAgainstGroup
+				.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
+		recordTypeToValidateAgainstGroup
+				.addChild(new DataAtomicSpy("linkedRecordId", RECORD_TYPE_TO_VALIDATE_AGAINST));
+		validationOrder.addChild(recordTypeToValidateAgainstGroup);
 		return validationOrder;
 	}
 
 	@Test
 	public void testExternalDependenciesAreCalledForValidateExisting() {
 		recordStorage = new RecordStorageForValidateDataSpy();
-		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
-		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
-		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				"spyType", "spyId", "cora"));
+		DataGroup dataGroup = createRecordToValidate();
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
-		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
+		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
 				dataGroup);
 
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
@@ -220,7 +233,6 @@ public class SpiderRecordValidatorTest {
 	public void testLinkCollectorIsNotCalledWhenValidateLinksIsFalse() {
 		authorizator = new OldSpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageForValidateDataSpy();
-		ruleCalculator = new RuleCalculatorSpy();
 		setUpDependencyProvider();
 
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
@@ -228,7 +240,7 @@ public class SpiderRecordValidatorTest {
 				"spyType", "spyId", "cora"));
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "false");
-		recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
+		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
 				dataGroup);
 		linkCollector.MCR.methodWasCalled("collectLinks");
 	}
@@ -241,8 +253,8 @@ public class SpiderRecordValidatorTest {
 		DataGroup dataGroup = createDataGroupPlace();
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"new", "true");
-		DataRecord validationResultRecord = recordValidator.validateRecord("someToken78678567",
-				"text", validationOrder, dataGroup);
+		DataRecord validationResultRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				RECORD_TYPE_TO_VALIDATE_AGAINST, validationOrder, dataGroup);
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "true");
 
@@ -274,8 +286,8 @@ public class SpiderRecordValidatorTest {
 		DataGroup dataGroup = createDataGroupPlace();
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
-		DataRecord validationResultRecord = recordValidator.validateRecord("someToken78678567",
-				"validationOrder", validationOrder, dataGroup);
+		DataRecord validationResultRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				VALIDATION_ORDER_TYPE, validationOrder, dataGroup);
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "true");
 
@@ -295,8 +307,8 @@ public class SpiderRecordValidatorTest {
 		DataGroup dataGroup = createDataGroupPlace();
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
-		DataRecord validationResultRecord = recordValidator.validateRecord("someToken78678567",
-				"validationOrder", validationOrder, dataGroup);
+		DataRecord validationResultRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				VALIDATION_ORDER_TYPE, validationOrder, dataGroup);
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "true");
 
@@ -311,7 +323,7 @@ public class SpiderRecordValidatorTest {
 		assertEquals(recordInfo.getFirstAtomicValueWithNameInData("id"), generatorSpy.generatedId);
 
 		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
-				"type", "recordType", "validationOrder");
+				"type", "recordType", VALIDATION_ORDER_TYPE);
 		var typeLink = dataFactorySpy.MCR
 				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
 		assertDataChildFoundInChildren(typeLink, recordInfo.getChildren());
@@ -320,7 +332,7 @@ public class SpiderRecordValidatorTest {
 		assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
 
 		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 1,
-				"createdBy", "user", "12345");
+				"createdBy", "user", "userSpy");
 		var createdByLink = dataFactorySpy.MCR
 				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 1);
 		assertDataChildFoundInChildren(createdByLink, recordInfo.getChildren());
@@ -348,15 +360,14 @@ public class SpiderRecordValidatorTest {
 
 	@Test
 	public void testValidateRecordInvalidData() {
-		dataValidator.setNotValidForMetadataGroupId("text");
+		dataValidator.setNotValidForMetadataGroupId(RECORD_TYPE_TO_VALIDATE_AGAINST);
 		RecordTypeHandlerSpy placeTypeHandler = new RecordTypeHandlerSpy();
 		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getCreateDefinitonId",
-				(Supplier<String>) () -> "text");
+				(Supplier<String>) () -> RECORD_TYPE_TO_VALIDATE_AGAINST);
 		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
-				(Supplier<String>) () -> "text");
+				(Supplier<String>) () -> RECORD_TYPE_TO_VALIDATE_AGAINST);
 		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
-				(Supplier<String>) () -> "text");
-		dependencyProvider.mapOfRecordTypeHandlerSpies.put("text", placeTypeHandler);
+				(Supplier<String>) () -> RECORD_TYPE_TO_VALIDATE_AGAINST);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier(
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> placeTypeHandler);
 
@@ -364,12 +375,12 @@ public class SpiderRecordValidatorTest {
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
 
-		DataRecord validationResultRecord = recordValidator.validateRecord("someToken78678567",
-				"validationOrder", validationOrder, dataGroup);
+		DataRecord validationResultRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				VALIDATION_ORDER_TYPE, validationOrder, dataGroup);
 
 		dataValidator.MCR.assertParameters("validateData", 0,
 				"fakeCreateMetadataIdFromRecordTypeHandlerSpy");
-		dataValidator.MCR.assertParameters("validateData", 1, "text");
+		dataValidator.MCR.assertParameters("validateData", 1, RECORD_TYPE_TO_VALIDATE_AGAINST);
 
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "false");
@@ -385,8 +396,8 @@ public class SpiderRecordValidatorTest {
 				.createDataDataGroupWithRecordInfoAndLinkOneLevelDown();
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"new", "true");
-		DataRecord validationResultRecord = recordValidator.validateRecord("someToken78678567",
-				"text", validationOrder, dataGroup);
+		DataRecord validationResultRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				RECORD_TYPE_TO_VALIDATE_AGAINST, validationOrder, dataGroup);
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "false");
 
@@ -417,8 +428,8 @@ public class SpiderRecordValidatorTest {
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"new", "true");
 
-		DataRecord validationResultRecord = recordValidator.validateRecord("someToken78678567",
-				"validationOrder", validationOrder, dataGroup);
+		DataRecord validationResultRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				VALIDATION_ORDER_TYPE, validationOrder, dataGroup);
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "false");
 
@@ -434,8 +445,6 @@ public class SpiderRecordValidatorTest {
 		assertEquals(error2.getValue(), "Data invalid for metadataId dataWithLinksNew");
 		assertEquals(error2.getRepeatId(), "1");
 	}
-
-	int index = -1;
 
 	private RecordTypeHandlerSpy createDifferentRecordTypeHandlers() {
 		RecordTypeHandlerSpy validationOrderTypeHandler = new RecordTypeHandlerSpy();
@@ -459,8 +468,8 @@ public class SpiderRecordValidatorTest {
 				.createDataDataGroupWithRecordInfoAndLinkOneLevelDown();
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"new", "false");
-		DataRecord validationResultRecord = recordValidator.validateRecord("someToken78678567",
-				"text", validationOrder, dataGroup);
+		DataRecord validationResultRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				RECORD_TYPE_TO_VALIDATE_AGAINST, validationOrder, dataGroup);
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "true");
 
@@ -483,7 +492,7 @@ public class SpiderRecordValidatorTest {
 		changeRecordTypeTo(validationOrder, "spyType");
 		boolean exceptionWasCaught = false;
 		try {
-			recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
+			recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
 					dataGroup);
 		} catch (Exception e) {
 			assertEquals(e.getClass(), AuthorizationException.class);
@@ -510,7 +519,7 @@ public class SpiderRecordValidatorTest {
 				"existing", "true");
 		boolean exceptionWasCaught = false;
 		try {
-			recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
+			recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
 					dataGroup);
 		} catch (Exception e) {
 			assertEquals(e.getClass(), DataException.class);
@@ -528,9 +537,7 @@ public class SpiderRecordValidatorTest {
 
 		setUpDependencyProvider();
 
-		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
-		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				"spyType", "spyId", "cora"));
+		DataGroup dataGroup = createRecordToValidate();
 
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
@@ -538,7 +545,7 @@ public class SpiderRecordValidatorTest {
 		changeRecordTypeTo(validationOrder, "spyType");
 		boolean exceptionWasCaught = false;
 		try {
-			recordValidator.validateRecord("someToken78678567", "validationOrder", validationOrder,
+			recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
 					dataGroup);
 		} catch (Exception e) {
 			assertEquals(e.getClass(), AuthorizationException.class);
@@ -561,8 +568,8 @@ public class SpiderRecordValidatorTest {
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
 		changeRecordTypeTo(validationOrder, "recordType_NOT_EXISTING");
-		DataRecord validationResultRecord = recordValidator.validateRecord("someToken78678567",
-				"validationOrder", validationOrder, dataGroup);
+		DataRecord validationResultRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				VALIDATION_ORDER_TYPE, validationOrder, dataGroup);
 		DataGroup validationResult = validationResultRecord.getDataGroup();
 		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "false");
 
@@ -572,4 +579,51 @@ public class SpiderRecordValidatorTest {
 				"No records exists with recordType: recordType_NOT_EXISTING and recordId place");
 
 	}
+
+	@Test
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() throws Exception {
+
+		DataGroup recordToValidate = createRecordToValidate();
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+
+		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+				recordToValidate);
+
+		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
+		expectedData.authToken = SOME_AUTH_TOKEN;
+		expectedData.recordType = RECORD_TYPE_TO_VALIDATE_AGAINST;
+		expectedData.recordId = null;
+		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.previouslyStoredTopDataGroup = null;
+		expectedData.dataGroup = recordToValidate;
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				VALIDATE_AFTER_AUTHORIZATION, expectedData, 0);
+	}
+
+	@Test
+	public void testEnsureExtendedFunctionalityPosition_AfterAuthorizathion() throws Exception {
+		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
+				dependencyProvider, VALIDATE_AFTER_AUTHORIZATION, RECORD_TYPE_TO_VALIDATE_AGAINST);
+
+		callReadRecordAndCatchStopExecution();
+
+		dataValidator.MCR.assertNumberOfCallsToMethod("validateData", 1);
+		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorRecordGroupFromDataGroup", 1);
+	}
+
+	private void callReadRecordAndCatchStopExecution() {
+		DataGroup recordToValidate = createRecordToValidate();
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+		try {
+			recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+					recordToValidate);
+			fail("Should fail as we want to stop execution when the extended functionality is used,"
+					+ " to determin that the extended functionality is called in the correct place"
+					+ " in the code");
+		} catch (Exception e) {
+		}
+	}
+
 }

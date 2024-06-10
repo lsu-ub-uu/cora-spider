@@ -124,6 +124,13 @@ public enum ExtendedFunctionalityPosition {
 	UPDATE_BEFORE_RETURN,
 
 	/**
+	 * VALIDATE_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a
+	 * validate operation, right after the user is authorized for the validate action on the
+	 * recordType.
+	 */
+	VALIDATE_AFTER_AUTHORIZATION,
+
+	/**
 	 * DELETE_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a delete
 	 * operation, right after the user is authorized for the create action on the recordType.
 	 */

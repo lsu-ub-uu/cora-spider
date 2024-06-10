@@ -84,7 +84,6 @@ public final class RecordReaderImp implements RecordReader {
 		tryToGetUserWithActiveToken();
 
 		checkUserIsAuthorizedForActionOnRecordType();
-		// checkUserIsAuthorizedForActionOnRecordType(readRecord);
 		useExtendedFunctionalityForPosition(READ_AFTER_AUTHORIZATION);
 
 		DataRecordGroup readRecord = recordStorage.read(recordType, recordId);
@@ -104,9 +103,6 @@ public final class RecordReaderImp implements RecordReader {
 	}
 
 	private boolean isNotPublicForRead() {
-		// TODO: Use new recordTypeHandler method
-		// RecordTypeHandler recordTypeHandler = dependencyProvider
-		// .getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
 		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		return !recordTypeHandler.isPublicForRead();
 	}
