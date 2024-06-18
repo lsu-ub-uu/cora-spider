@@ -18,7 +18,11 @@
  */
 package se.uu.ub.cora.spider.extended.apptoken;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
@@ -31,8 +35,20 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 
 		previousDataGroup.containsChildOfTypeAndName(DataGroup.class, "appToken");
 		// previousDataGroup.getFirstGroupWithNameInData("appToken");
+		List<String> allPreviousAppTokenLinksId = new ArrayList<String>();
+
 		currentDataGroup.containsChildOfTypeAndName(DataGroup.class, "appToken");
-		currentDataGroup.getAllGroupsWithNameInData("appToken");
+		List<DataGroup> allCurrentAppTokens = currentDataGroup
+				.getAllGroupsWithNameInData("appToken");
+
+		for (DataGroup aCurrentAppToken : allCurrentAppTokens) {
+			DataRecordLink anAppTokenLink = aCurrentAppToken
+					.getFirstChildOfTypeAndName(DataRecordLink.class, "appTokenLink");
+			anAppTokenLink.getLinkedRecordId();
+			// if (!allPreviousAppTokenLinksId.contains(anAppTokenLink.getLinkedRecordId())){;
+			// createSystemSecret
+			// }
+		}
 	}
 
 }

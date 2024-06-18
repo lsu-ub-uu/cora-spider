@@ -24,17 +24,16 @@ import java.util.Collections;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretCreator;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.storage.RecordStorage;
-import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 /**
  * PasswordExtendedFunctionality encrypts and stores a users password as a systemSecret, if it is
@@ -61,16 +60,20 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	private TextHasher textHasher;
 	private DataGroup currentUserGroup;
 	private DataGroup previousUserGroup;
+	private SystemSecretCreator systemSecretCreator;
 
-	public static PasswordExtendedFunctionality usingDependencyProviderAndTextHasher(
-			SpiderDependencyProvider dependencyProvider, TextHasher textHasher) {
-		return new PasswordExtendedFunctionality(dependencyProvider, textHasher);
+	public static PasswordExtendedFunctionality usingDependencyProviderAndTextHasherAndSystemSecretCreator(
+			SpiderDependencyProvider dependencyProvider, TextHasher textHasher,
+			SystemSecretCreator systemSecretCreator) {
+		return new PasswordExtendedFunctionality(dependencyProvider, textHasher,
+				systemSecretCreator);
 	}
 
 	private PasswordExtendedFunctionality(SpiderDependencyProvider dependencyProvider,
-			TextHasher textHasher) {
+			TextHasher textHasher, SystemSecretCreator systemSecretCreator) {
 		this.dependencyProvider = dependencyProvider;
 		this.textHasher = textHasher;
+		this.systemSecretCreator = systemSecretCreator;
 	}
 
 	@Override
@@ -122,62 +125,26 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		String newPassword = getNewPasswordAndRemoveItFromUserGroup();
 		String hashedPassword = textHasher.hashText(newPassword);
 		if (newPasswordNeedsToBeCreated()) {
-			createSystemSecretAndUpdateUser(hashedPassword);
+			createSystemSecretAndUpdateUser(newPassword);
 		} else {
 			updateSystemSecretAndUpdateUser(hashedPassword);
 		}
 	}
 
 	private String getNewPasswordAndRemoveItFromUserGroup() {
-		String plainTextPassword = currentUserGroup
-				.getFirstAtomicValueWithNameInData(PLAIN_TEXT_PASSWORD_NAME_IN_DATA);
-		return plainTextPassword;
+		return currentUserGroup.getFirstAtomicValueWithNameInData(PLAIN_TEXT_PASSWORD_NAME_IN_DATA);
 	}
 
 	private boolean newPasswordNeedsToBeCreated() {
 		return !currentUserGroup.containsChildWithNameInData(PASSWORD_LINK_NAME_IN_DATA);
 	}
 
-	private void createSystemSecretAndUpdateUser(String hashedPassword) {
-		String systemSecretId = createAndStoreSystemSecretRecord(hashedPassword);
+	private void createSystemSecretAndUpdateUser(String plainTextPassword) {
+		String dataDivider = readDataDividerFromUserGroup();
+		String systemSecretId = systemSecretCreator
+				.createAndStoreSystemSecretRecord(plainTextPassword, dataDivider);
 		addLinkToSystemSecret(systemSecretId);
 		setTimestampWhenPasswordHasBeenStored();
-	}
-
-	private String createAndStoreSystemSecretRecord(String hashedPassword) {
-		RecordIdGenerator recordIdGenerator = dependencyProvider.getRecordIdGenerator();
-		String systemSecretId = recordIdGenerator.getIdForType(SYSTEM_SECRET_TYPE);
-
-		DataGroup systemSecret = createSystemSecretGroupWithRecordInfoAndHashedPassword(
-				hashedPassword, systemSecretId);
-		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		String dataDivider = readDataDividerFromUserGroup();
-
-		recordStorage.create(SYSTEM_SECRET_TYPE, systemSecretId, systemSecret,
-				Collections.emptySet(), Collections.emptySet(), dataDivider);
-		return systemSecretId;
-	}
-
-	private DataGroup createSystemSecretGroupWithRecordInfoAndHashedPassword(String hashedPassword,
-			String systemSecretId) {
-		DataGroup systemSecret = DataProvider.createGroupUsingNameInData(SYSTEM_SECRET_TYPE);
-
-		createAndAddRecordInfoForSystemSecret(systemSecret, systemSecretId);
-		addHashedPasswordToGroup(hashedPassword, systemSecret);
-		return systemSecret;
-	}
-
-	private void createAndAddRecordInfoForSystemSecret(DataGroup systemSecret,
-			String systemSecretId) {
-		DataGroup recordInfo = DataProvider.createGroupUsingNameInData(RECORD_INFO);
-		systemSecret.addChild(recordInfo);
-
-		DataRecordLink typeLink = DataProvider.createRecordLinkUsingNameInDataAndTypeAndId(TYPE,
-				"recordType", SYSTEM_SECRET_TYPE);
-		recordInfo.addChild(typeLink);
-
-		DataChild atomicId = DataProvider.createAtomicUsingNameInDataAndValue("id", systemSecretId);
-		recordInfo.addChild(atomicId);
 	}
 
 	private void addHashedPasswordToGroup(String hashedPassword, DataGroup systemSecret) {

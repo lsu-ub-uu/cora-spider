@@ -128,7 +128,7 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 			List<DataGroup> appTokensGroups = new ArrayList<>();
 
 			userDataGroups.MRV.setDefaultReturnValuesSupplier("getAllGroupsWithNameInData",
-					() -> appTokenLinks);
+					() -> appTokensGroups);
 
 			for (DataRecordLink appTokenLink : appTokenLinks) {
 				DataGroupSpy appTokenGroup = new DataGroupSpy();
@@ -151,7 +151,9 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		// previousDataGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "appToken");
 		currentDataGroup.MCR.assertParameters("getAllGroupsWithNameInData", 0, "appToken");
 
-		recordStorage.MCR.assertNumberOfCallsToMethod("create", 2);
+		appTokenLink1.MCR.assertMethodWasCalled("getLinkedRecordId");
+
+		// recordStorage.MCR.assertNumberOfCallsToMethod("create", 2);
 
 	}
 

@@ -19,10 +19,6 @@
  */
 package se.uu.ub.cora.spider.extended.password;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -30,6 +26,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.testng.Assert;
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -47,6 +45,7 @@ import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
+import se.uu.ub.cora.spider.spy.SystemSecretCreatorSpy;
 import se.uu.ub.cora.spider.testspies.RecordCreatorSpy;
 import se.uu.ub.cora.spider.testspies.RecordReaderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;
@@ -56,6 +55,7 @@ import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class PasswordExtendedFunctionalityTest {
+	private static final String SOME_PLAIN_TEXT_PASSWORD = "somePlainTextPassword";
 	private static final String SECRET = "secret";
 	private static final String PASSWORD_LINK_NAME_IN_DATA = "passwordLink";
 	private static final String SYSTEM_SECRET_TYPE = "systemSecret";
@@ -74,6 +74,7 @@ public class PasswordExtendedFunctionalityTest {
 	private DateTimeFormatter dateTimePattern = DateTimeFormatter.ofPattern(DATE_PATTERN);
 	private RecordIdGeneratorSpy recordIdGeneratorSpy;
 	private DataGroupSpy previousGroup;
+	private SystemSecretCreatorSpy systemSecretCreator;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -82,8 +83,11 @@ public class PasswordExtendedFunctionalityTest {
 
 		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		textHasher = new TextHasherSpy();
+		systemSecretCreator = new SystemSecretCreatorSpy();
+
 		extended = PasswordExtendedFunctionality
-				.usingDependencyProviderAndTextHasher(dependencyProvider, textHasher);
+				.usingDependencyProviderAndTextHasherAndSystemSecretCreator(dependencyProvider,
+						textHasher, systemSecretCreator);
 		previousGroup = new DataGroupSpy();
 		setupSpyForDataRecordGroup();
 		createExtendedFunctionalityData();
@@ -114,7 +118,7 @@ public class PasswordExtendedFunctionalityTest {
 		rGroupMRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
 				() -> containsPlainTextPasswordValue, "plainTextPassword");
 		rGroupMRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> "somePlainTextPassword", "plainTextPassword");
+				() -> SOME_PLAIN_TEXT_PASSWORD, "plainTextPassword");
 	}
 
 	private void setUpPreviousUsePasswordWithValue(String usePassword) {
@@ -148,9 +152,9 @@ public class PasswordExtendedFunctionalityTest {
 	@Test
 	public void testOnlyForTest() throws Exception {
 		SpiderDependencyProvider returnedProvider = extended.onlyForTestGetDependencyProvider();
-		assertEquals(returnedProvider, dependencyProvider);
+		AssertJUnit.assertEquals(returnedProvider, dependencyProvider);
 		TextHasher returnedHasher = extended.onlyForTestGetTextHasher();
-		assertEquals(returnedHasher, textHasher);
+		AssertJUnit.assertEquals(returnedHasher, textHasher);
 	}
 
 	@Test
@@ -161,10 +165,10 @@ public class PasswordExtendedFunctionalityTest {
 
 		try {
 			extended.useExtendedFunctionality(efData);
-			fail();
+			Assert.fail();
 		} catch (Exception e) {
-			assertTrue(e instanceof DataException);
-			assertEquals(e.getMessage(),
+			AssertJUnit.assertTrue(e instanceof DataException);
+			AssertJUnit.assertEquals(e.getMessage(),
 					"UsePassword set to true but no old password or new password exists.");
 		}
 	}
@@ -223,42 +227,6 @@ public class PasswordExtendedFunctionalityTest {
 		textHasher.MCR.assertParameters("hashText", 0, plainTextPassword);
 	}
 
-	@Test
-	public void testCreateNewSystemSecretRecord() throws Exception {
-		setUpSpiesForCreateReturningDataRecordWithTsUpdated();
-
-		extended.useExtendedFunctionality(efData);
-
-		dataFactory.MCR.assertParameters("factorGroupUsingNameInData", 0, SYSTEM_SECRET_TYPE);
-		DataGroupSpy systemSecret = (DataGroupSpy) dataFactory.MCR
-				.getReturnValue("factorGroupUsingNameInData", 0);
-
-		String systemSecretId = (String) recordIdGeneratorSpy.MCR
-				.assertCalledParametersReturn("getIdForType", SYSTEM_SECRET_TYPE);
-		assertRecordInfoWithDataDividerAddedTo(systemSecret, systemSecretId);
-		assertHashedPasswordIsAddedToGroupAsNumber(systemSecret, 1, 1);
-
-	}
-
-	private void assertRecordInfoWithDataDividerAddedTo(DataGroupSpy systemSecret,
-			String systemSecretId) {
-		dataFactory.MCR.assertParameters("factorGroupUsingNameInData", 1, "recordInfo");
-		DataGroupSpy recordInfo = (DataGroupSpy) dataFactory.MCR
-				.getReturnValue("factorGroupUsingNameInData", 1);
-		systemSecret.MCR.assertParameters("addChild", 0, recordInfo);
-
-		dataFactory.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0, "type",
-				"recordType", SYSTEM_SECRET_TYPE);
-		var typeLink = dataFactory.MCR.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId",
-				0);
-		recordInfo.MCR.assertParameters("addChild", 0, typeLink);
-
-		dataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "id",
-				systemSecretId);
-		var id = dataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
-		recordInfo.MCR.assertParameters("addChild", 1, id);
-	}
-
 	private void assertHashedPasswordIsAddedToGroupAsNumber(DataGroupSpy secret,
 			int factorAtomicCallNumber, int addedAsNo) {
 		var hashedPassword = textHasher.MCR.getReturnValue("hashText", 0);
@@ -275,28 +243,18 @@ public class PasswordExtendedFunctionalityTest {
 
 		extended.useExtendedFunctionality(efData);
 
-		DataGroupSpy secret = (DataGroupSpy) dataFactory.MCR
-				.getReturnValue("factorGroupUsingNameInData", 0);
+		systemSecretCreator.MCR.assertParameters("createAndStoreSystemSecretRecord", 0,
+				SOME_PLAIN_TEXT_PASSWORD, "someDataDivider");
+		String systemSecretId = (String) systemSecretCreator.MCR
+				.getReturnValue("createAndStoreSystemSecretRecord", 0);
 
-		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProvider.MCR
-				.getReturnValue("getRecordStorage", 0);
-
-		String systemSecretId = (String) recordIdGeneratorSpy.MCR
-				.assertCalledParametersReturn("getIdForType", SYSTEM_SECRET_TYPE);
-		String dataDividerValue = (String) dataDivider.MCR.getReturnValue("getLinkedRecordId", 0);
-
-		recordStorage.MCR.assertParameters("create", 0, SYSTEM_SECRET_TYPE, systemSecretId, secret,
-				Collections.emptySet(), Collections.emptySet(), dataDividerValue);
-
-		assertLinkToSystemSecret(systemSecretId, 2, 1);
+		assertLinkToSystemSecret(systemSecretId, 0);
 		rGroupMCR.assertCalledParameters("removeAllChildrenWithNameInData", "plainTextPassword");
 	}
 
-	private void assertLinkToSystemSecret(String systemSecretId, int factoredGroupCallNumber,
-			int factorRecordLinkCallNumber) {
-		dataFactory.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId",
-				factorRecordLinkCallNumber, PASSWORD_LINK_NAME_IN_DATA, SYSTEM_SECRET_TYPE,
-				systemSecretId);
+	private void assertLinkToSystemSecret(String systemSecretId, int factorRecordLinkCallNumber) {
+		dataFactory.MCR.assertCalledParameters("factorRecordLinkUsingNameInDataAndTypeAndId",
+				PASSWORD_LINK_NAME_IN_DATA, SYSTEM_SECRET_TYPE, systemSecretId);
 
 		var passwordLink = dataFactory.MCR.getReturnValue(
 				"factorRecordLinkUsingNameInDataAndTypeAndId", factorRecordLinkCallNumber);
@@ -312,7 +270,7 @@ public class PasswordExtendedFunctionalityTest {
 
 		LocalDateTime dateTimeAfter = whatTimeIsIt().plus(2, ChronoUnit.SECONDS);
 
-		assertTsUpdatedCreatedNowAndAddedToUserGroup(2, dateTimeBefore, dateTimeAfter);
+		assertTsUpdatedCreatedNowAndAddedToUserGroup(0, dateTimeBefore, dateTimeAfter);
 		rGroupMCR.assertNumberOfCallsToMethod("addChild", 2);
 	}
 
@@ -332,8 +290,8 @@ public class PasswordExtendedFunctionalityTest {
 						"factorAtomicUsingNameInDataAndValue", factoredAtomicCallNumber, "value");
 
 		LocalDateTime updatedDateTime = LocalDateTime.parse(tsUpdatedValue, dateTimePattern);
-		assertTrue(dateTimeBefore.isBefore(updatedDateTime));
-		assertTrue(dateTimeAfter.isAfter(updatedDateTime));
+		AssertJUnit.assertTrue(dateTimeBefore.isBefore(updatedDateTime));
+		AssertJUnit.assertTrue(dateTimeAfter.isAfter(updatedDateTime));
 	}
 
 	private LocalDateTime whatTimeIsIt() {
@@ -417,8 +375,8 @@ public class PasswordExtendedFunctionalityTest {
 	private void assertTypesFromRecordRead(RecordStorageSpy recordStorage) {
 		List<?> types = (List<?>) recordStorage.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("read", 0, "types");
-		assertEquals(types.get(0), "systemSecret");
-		assertEquals(types.size(), 1);
+		AssertJUnit.assertEquals(types.get(0), "systemSecret");
+		AssertJUnit.assertEquals(types.size(), 1);
 	}
 
 	private String setUpSpiesForUpdateReturningDataRecordWithTsUpdated() {
