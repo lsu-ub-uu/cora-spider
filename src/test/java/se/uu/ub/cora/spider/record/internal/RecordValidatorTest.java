@@ -626,4 +626,37 @@ public class RecordValidatorTest {
 		}
 	}
 
+	@Test
+	public void testValidateRecordTypesOfRecordAndValidationOrderMatches() throws Exception {
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+		DataGroup recordToValidate = createRecordToValidate();
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getRecordTypeId", () -> "text");
+
+		DataRecord validationResultRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				VALIDATION_ORDER_TYPE, validationOrder, recordToValidate);
+
+		DataGroup validationResult = validationResultRecord.getDataGroup();
+		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "true");
+		assertFalse(validationResult.containsChildWithNameInData("errorMessages"));
+	}
+
+	@Test
+	public void testValidateRecordTypesOfRecordAndValidationOrderDoesNotMatch() throws Exception {
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+		DataGroup recordToValidate = createRecordToValidate();
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getRecordTypeId", () -> "notText");
+
+		DataRecord validationResultRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				VALIDATION_ORDER_TYPE, validationOrder, recordToValidate);
+
+		DataGroup validationResult = validationResultRecord.getDataGroup();
+		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "false");
+
+		DataGroup errorMessages = validationResult.getFirstGroupWithNameInData("errorMessages");
+		DataAtomic error = (DataAtomic) errorMessages.getChildren().get(0);
+		assertEquals(error.getValue(),
+				"RecordType from record (notText) does not match recordType from validationOrder (text)");
+	}
 }
