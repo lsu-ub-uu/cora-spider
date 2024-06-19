@@ -202,13 +202,13 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		metadataToValidate = validationOrder
 				.getFirstAtomicValueWithNameInData("metadataToValidate");
 
-		ensureRecordTypesMatch();
-
 		String recordIdOrNullIfCreate = extractRecordIdIfUpdate();
 		ensureRecordExistWhenActionToPerformIsUpdate(recordTypeToValidate, recordIdOrNullIfCreate);
 
 		String metadataId = getMetadataId();
 		possiblyEnsureLinksExist(validationOrder);
+
+		ensureRecordTypesMatch();
 
 		validateIncomingDataAsSpecifiedInMetadata(metadataId);
 	}
