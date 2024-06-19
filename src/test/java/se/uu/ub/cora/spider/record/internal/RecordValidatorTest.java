@@ -80,7 +80,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 public class RecordValidatorTest {
-	private static final String RECORD_TYPE_TO_VALIDATE_AGAINST = "text";
+	private static final String RECORD_TYPE_TO_VALIDATE_AGAINST = "fakeRecordTypeIdFromRecordTypeHandlerSpy";
 	private static final String VALIDATION_ORDER_TYPE = "validationOrder";
 	private static final String SOME_AUTH_TOKEN = "someToken78678567";
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
@@ -626,4 +626,24 @@ public class RecordValidatorTest {
 		}
 	}
 
+	@Test
+	public void testValidateRecordTypesOfRecordAndValidationOrderDoesNotMatch() throws Exception {
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+		DataGroup recordToValidate = createRecordToValidate();
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
+				() -> "someOtherRecordType");
+
+		DataRecord validationResultRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				VALIDATION_ORDER_TYPE, validationOrder, recordToValidate);
+
+		DataGroup validationResult = validationResultRecord.getDataGroup();
+		assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "false");
+
+		DataGroup errorMessages = validationResult.getFirstGroupWithNameInData("errorMessages");
+		DataAtomic error = (DataAtomic) errorMessages.getChildren().get(0);
+		assertEquals(error.getValue(),
+				"RecordType from record (someOtherRecordType) does not match recordType from validationOrder ("
+						+ RECORD_TYPE_TO_VALIDATE_AGAINST + ")");
+	}
 }
