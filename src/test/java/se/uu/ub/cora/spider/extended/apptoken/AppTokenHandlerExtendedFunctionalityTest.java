@@ -33,11 +33,13 @@ import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.storage.spies.RecordStorageSpy;
+import se.uu.ub.cora.spider.spy.AppTokenGeneratorSpy;
+import se.uu.ub.cora.spider.spy.SystemSecretOperationsSpy;
 
 public class AppTokenHandlerExtendedFunctionalityTest {
 
+	private static final String SOME_SECRET = "someSecret";
+	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private DataGroupSpy previousDataGroup;
 	private DataGroupSpy currentDataGroup;
 	private ExtendedFunctionalityData efData;
@@ -45,19 +47,22 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 	private DataRecordLinkSpy appTokenLink1;
 	private DataRecordLinkSpy appTokenLink2;
 	private DataRecordLinkSpy appTokenLink3;
-	private SpiderDependencyProviderSpy dependencyProvider;
-	private RecordStorageSpy recordStorage;
+	private DataRecordLinkSpy dataDivider;
+	// private SpiderDependencyProviderSpy dependencyProvider;
+	// private RecordStorageSpy recordStorage;
+	private SystemSecretOperationsSpy systemSecretOperations;
+	private AppTokenGeneratorSpy appTokenGenerator;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		// dataFactory = new DataFactorySpy();
 		// DataProvider.onlyForTestSetDataFactory(dataFactory);
 
-		recordStorage = new RecordStorageSpy();
-
-		dependencyProvider = new SpiderDependencyProviderSpy();
-		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
-				() -> recordStorage);
+		// recordStorage = new RecordStorageSpy();
+		//
+		// dependencyProvider = new SpiderDependencyProviderSpy();
+		// dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
+		// () -> recordStorage);
 
 		// textHasher = new TextHasherSpy();
 		// extended = PasswordExtendedFunctionality
@@ -88,7 +93,13 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		appTokenLink3.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
 				() -> "appTokenLink3");
 
-		appTokenHandler = new AppTokenHandlerExtendedFunctionality();
+		systemSecretOperations = new SystemSecretOperationsSpy();
+		appTokenGenerator = new AppTokenGeneratorSpy();
+
+		setupDataDividerForDataRecordGroup();
+
+		appTokenHandler = new AppTokenHandlerExtendedFunctionality(appTokenGenerator,
+				systemSecretOperations);
 
 	}
 
@@ -99,6 +110,17 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		efData.authToken = "fakeToken";
 		efData.recordType = "fakeType";
 		efData.recordId = "fakeId";
+	}
+
+	private void setupDataDividerForDataRecordGroup() {
+		DataGroupSpy recordInfo = new DataGroupSpy();
+		currentDataGroup.MRV.setReturnValues("getFirstGroupWithNameInData", List.of(recordInfo),
+				"recordInfo");
+		dataDivider = new DataRecordLinkSpy();
+		recordInfo.MRV.setSpecificReturnValuesSupplier("getFirstChildWithNameInData",
+				() -> dataDivider, "dataDivider");
+		dataDivider.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+				() -> SOME_DATA_DIVIDER);
 	}
 
 	@Test
@@ -153,8 +175,17 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 
 		appTokenLink1.MCR.assertMethodWasCalled("getLinkedRecordId");
 
-		// recordStorage.MCR.assertNumberOfCallsToMethod("create", 2);
+		appTokenGenerator.MCR.assertNumberOfCallsToMethod("generateAppToken", 2);
+
+		assertCreateNewAppTokenByPosition(0);
+		assertCreateNewAppTokenByPosition(1);
 
 	}
 
+	private void assertCreateNewAppTokenByPosition(int newAppTokenId) {
+		String generatedAppToken = (String) appTokenGenerator.MCR.getReturnValue("generateAppToken",
+				newAppTokenId);
+		systemSecretOperations.MCR.assertParameters("createAndStoreSystemSecretRecord",
+				newAppTokenId, generatedAppToken, SOME_DATA_DIVIDER);
+	}
 }

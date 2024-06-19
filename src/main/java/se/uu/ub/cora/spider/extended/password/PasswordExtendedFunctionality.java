@@ -20,20 +20,16 @@ package se.uu.ub.cora.spider.extended.password;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.List;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretCreator;
+import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperations;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
-import se.uu.ub.cora.storage.RecordStorage;
 
 /**
  * PasswordExtendedFunctionality encrypts and stores a users password as a systemSecret, if it is
@@ -46,8 +42,6 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	private static final String TS_PASSWORD_UPDATED_NAME_IN_DATA = "tsPasswordUpdated";
 	private static final String PASSWORD_LINK_NAME_IN_DATA = "passwordLink";
 	private static final String PLAIN_TEXT_PASSWORD_NAME_IN_DATA = "plainTextPassword";
-	private static final String SECRET = "secret";
-	private static final String TYPE = "type";
 	private static final String DATA_DIVIDER = "dataDivider";
 	private static final String RECORD_INFO = "recordInfo";
 	private static final String SYSTEM_SECRET_TYPE = "systemSecret";
@@ -57,23 +51,20 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 			.ofPattern(DATE_TIME_PATTERN);
 
 	private SpiderDependencyProvider dependencyProvider;
-	private TextHasher textHasher;
 	private DataGroup currentUserGroup;
 	private DataGroup previousUserGroup;
-	private SystemSecretCreator systemSecretCreator;
+	private SystemSecretOperations systemSecretOperations;
 
-	public static PasswordExtendedFunctionality usingDependencyProviderAndTextHasherAndSystemSecretCreator(
-			SpiderDependencyProvider dependencyProvider, TextHasher textHasher,
-			SystemSecretCreator systemSecretCreator) {
-		return new PasswordExtendedFunctionality(dependencyProvider, textHasher,
-				systemSecretCreator);
+	public static PasswordExtendedFunctionality usingDependencyProviderAndSystemSecretCreator(
+			SpiderDependencyProvider dependencyProvider,
+			SystemSecretOperations systemSecretOperations) {
+		return new PasswordExtendedFunctionality(dependencyProvider, systemSecretOperations);
 	}
 
 	private PasswordExtendedFunctionality(SpiderDependencyProvider dependencyProvider,
-			TextHasher textHasher, SystemSecretCreator systemSecretCreator) {
+			SystemSecretOperations systemSecretCreator) {
 		this.dependencyProvider = dependencyProvider;
-		this.textHasher = textHasher;
-		this.systemSecretCreator = systemSecretCreator;
+		this.systemSecretOperations = systemSecretCreator;
 	}
 
 	@Override
@@ -102,11 +93,9 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	}
 
 	private void possiblyCreateNewPassword() {
-
 		if (plainTextPasswordHasValueInUserGroup()) {
 			handleNewOrUpdatedPassword();
 		}
-
 	}
 
 	private boolean plainTextPasswordHasValueInUserGroup() {
@@ -123,11 +112,10 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
 	private void handleNewOrUpdatedPassword() {
 		String newPassword = getNewPasswordAndRemoveItFromUserGroup();
-		String hashedPassword = textHasher.hashText(newPassword);
 		if (newPasswordNeedsToBeCreated()) {
 			createSystemSecretAndUpdateUser(newPassword);
 		} else {
-			updateSystemSecretAndUpdateUser(hashedPassword);
+			updateSystemSecretAndUpdateUser(newPassword);
 		}
 	}
 
@@ -141,16 +129,10 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
 	private void createSystemSecretAndUpdateUser(String plainTextPassword) {
 		String dataDivider = readDataDividerFromUserGroup();
-		String systemSecretId = systemSecretCreator
+		String systemSecretId = systemSecretOperations
 				.createAndStoreSystemSecretRecord(plainTextPassword, dataDivider);
 		addLinkToSystemSecret(systemSecretId);
 		setTimestampWhenPasswordHasBeenStored();
-	}
-
-	private void addHashedPasswordToGroup(String hashedPassword, DataGroup systemSecret) {
-		DataAtomic hashedPasswordAtomic = DataProvider.createAtomicUsingNameInDataAndValue(SECRET,
-				hashedPassword);
-		systemSecret.addChild(hashedPasswordAtomic);
 	}
 
 	private void addLinkToSystemSecret(String systemSecretRecordId) {
@@ -168,9 +150,11 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		currentUserGroup.addChild(tsPasswordUpdated);
 	}
 
-	private void updateSystemSecretAndUpdateUser(String hashedPassword) {
+	private void updateSystemSecretAndUpdateUser(String passwordPlainText) {
 		String systemSecretId = readSystemSecretIdFromLinkInUser();
-		replacePasswordInSystemSecret(systemSecretId, hashedPassword);
+		String dataDivider = readDataDividerFromUserGroup();
+		systemSecretOperations.updateSecretForASystemSecret(systemSecretId, dataDivider,
+				passwordPlainText);
 		updateTsPasswordUpdatedUsingTsUpdate();
 	}
 
@@ -178,18 +162,6 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		DataRecordLink passwordLink = currentUserGroup
 				.getFirstChildOfTypeAndName(DataRecordLink.class, PASSWORD_LINK_NAME_IN_DATA);
 		return passwordLink.getLinkedRecordId();
-	}
-
-	private void replacePasswordInSystemSecret(String systemSecretId, String hashedPassword) {
-		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		DataGroup systemSecretG = recordStorage.read(List.of(SYSTEM_SECRET_TYPE), systemSecretId);
-		systemSecretG.removeAllChildrenWithNameInData(SECRET);
-
-		addHashedPasswordToGroup(hashedPassword, systemSecretG);
-		String dataDivider = readDataDividerFromUserGroup();
-
-		recordStorage.update(SYSTEM_SECRET_TYPE, systemSecretId, systemSecretG,
-				Collections.emptySet(), Collections.emptySet(), dataDivider);
 	}
 
 	private void updateTsPasswordUpdatedUsingTsUpdate() {
@@ -232,7 +204,7 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		return dependencyProvider;
 	}
 
-	TextHasher onlyForTestGetTextHasher() {
-		return textHasher;
+	public SystemSecretOperations onlyForTestGetSystemSecretOperations() {
+		return systemSecretOperations;
 	}
 }

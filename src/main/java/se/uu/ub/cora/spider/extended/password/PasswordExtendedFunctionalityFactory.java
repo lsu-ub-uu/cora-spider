@@ -56,8 +56,10 @@ public class PasswordExtendedFunctionalityFactory implements ExtendedFunctionali
 			String recordType) {
 		if (position == UPDATE_BEFORE_STORE) {
 			return Collections.singletonList(
-					PasswordExtendedFunctionality.usingDependencyProviderAndTextHasher(
-							dependencyProvider, textHasherFactory.factor()));
+					// PasswordExtendedFunctionality.usingDependencyProviderAndTextHasher(
+					// dependencyProvider, textHasherFactory.factor()));
+					PasswordExtendedFunctionality
+							.usingDependencyProviderAndTextHasher(dependencyProvider, null));
 		}
 		return Collections.singletonList(PasswordSystemSecretRemoverExtendedFunctionality
 				.usingDependencyProvider(dependencyProvider));

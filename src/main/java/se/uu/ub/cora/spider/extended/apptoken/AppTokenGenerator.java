@@ -16,24 +16,18 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.spider.extended.apptoken;
 
-package se.uu.ub.cora.spider.extended.systemsecret;
+import java.util.UUID;
 
-import se.uu.ub.cora.password.texthasher.TextHasher;
-
-public interface SystemSecretCreator {
+public interface AppTokenGenerator {
 
 	/**
-	 * createAndStoreSystemSecretRecord creates a systemSecret data group and stores it into
-	 * storage. The data group contains a secret that is obtain from hashing the String secret using
-	 * {@link TextHasher} and using tha dataDivider sent to the method.
+	 * generateAppToken method generates an unique token. {@link UUID} must be used to implement the
+	 * method.
 	 * 
-	 * @param secret
-	 *            String to be hashed and stored into the systemSecret
-	 * @param dataDivider
-	 *            A String defining the dataDivider that the systemSecret belong
-	 * @return A String with the record id of the newly created systemSecret.
+	 * @return A String with an unique token
 	 */
-	String createAndStoreSystemSecretRecord(String secret, String dataDivider);
+	String generateAppToken();
 
 }

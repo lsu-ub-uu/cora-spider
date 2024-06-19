@@ -24,14 +24,16 @@ import java.util.Collections;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataParent;
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
-public class SystemSecretCreatorImp implements SystemSecretCreator {
+public class SystemSecretOperationsImp implements SystemSecretOperations {
 
 	private static final String SYSTEM_SECRET_TYPE = "systemSecret";
 	private static final String RECORD_INFO = "recordInfo";
@@ -39,7 +41,7 @@ public class SystemSecretCreatorImp implements SystemSecretCreator {
 	private SpiderDependencyProvider dependencyProvider;
 	private TextHasher textHasher;
 
-	public SystemSecretCreatorImp(SpiderDependencyProvider dependencyProvider,
+	public SystemSecretOperationsImp(SpiderDependencyProvider dependencyProvider,
 			TextHasher textHasher) {
 		this.dependencyProvider = dependencyProvider;
 		this.textHasher = textHasher;
@@ -47,11 +49,9 @@ public class SystemSecretCreatorImp implements SystemSecretCreator {
 
 	@Override
 	public String createAndStoreSystemSecretRecord(String secret, String dataDivider) {
-		String hashedSecret = textHasher.hashText(secret);
 		String systemSecretId = generateSystemSecretRecordId();
-		DataGroup systemSecret = createSystemSecretGroupWithRecordInfoAndHashedSecret(hashedSecret,
+		DataGroup systemSecret = createSystemSecretGroupWithRecordInfoAndHashedSecret(secret,
 				systemSecretId);
-
 		storeSystemSecretIntoStorage(dataDivider, systemSecretId, systemSecret);
 		return systemSecretId;
 	}
@@ -74,16 +74,17 @@ public class SystemSecretCreatorImp implements SystemSecretCreator {
 		recordInfo.addChild(atomicId);
 	}
 
-	private DataGroup createSystemSecretGroupWithRecordInfoAndHashedSecret(String hashedSecret,
+	private DataGroup createSystemSecretGroupWithRecordInfoAndHashedSecret(String secret,
 			String systemSecretId) {
 		DataGroup systemSecret = DataProvider.createGroupUsingNameInData(SYSTEM_SECRET_TYPE);
 
 		createAndAddRecordInfoForSystemSecret(systemSecret, systemSecretId);
-		addHashedSecretToGroup(hashedSecret, systemSecret);
+		hashSecretAndAddToGroup(secret, systemSecret);
 		return systemSecret;
 	}
 
-	private void addHashedSecretToGroup(String hashedSecret, DataGroup systemSecret) {
+	private void hashSecretAndAddToGroup(String secret, DataParent systemSecret) {
+		String hashedSecret = textHasher.hashText(secret);
 		DataAtomic hashedSecretAtomic = DataProvider.createAtomicUsingNameInDataAndValue(SECRET,
 				hashedSecret);
 		systemSecret.addChild(hashedSecretAtomic);
@@ -96,4 +97,20 @@ public class SystemSecretCreatorImp implements SystemSecretCreator {
 				Collections.emptySet(), Collections.emptySet(), dataDivider);
 	}
 
+	@Override
+	public void updateSecretForASystemSecret(String systemSecretId, String dataDivider,
+			String secret) {
+		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
+		DataRecordGroup existingSystemSecret = recordStorage.read(SYSTEM_SECRET_TYPE,
+				systemSecretId);
+		existingSystemSecret.removeAllChildrenWithNameInData(SECRET);
+
+		hashSecretAndAddToGroup(secret, existingSystemSecret);
+
+		DataGroup existingSystemSecretTogGroup = DataProvider
+				.createGroupFromRecordGroup(existingSystemSecret);
+
+		recordStorage.update(SYSTEM_SECRET_TYPE, systemSecretId, existingSystemSecretTogGroup,
+				Collections.emptySet(), Collections.emptySet(), dataDivider);
+	}
 }

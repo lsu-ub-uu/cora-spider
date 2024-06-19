@@ -19,16 +19,16 @@
 
 package se.uu.ub.cora.spider.spy;
 
-import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretCreator;
+import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperations;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class SystemSecretCreatorSpy implements SystemSecretCreator {
+public class SystemSecretOperationsSpy implements SystemSecretOperations {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public SystemSecretCreatorSpy() {
+	public SystemSecretOperationsSpy() {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("createAndStoreSystemSecretRecord",
 				() -> "someSystemSecretRecordId");
@@ -37,5 +37,11 @@ public class SystemSecretCreatorSpy implements SystemSecretCreator {
 	@Override
 	public String createAndStoreSystemSecretRecord(String secret, String dataDivider) {
 		return (String) MCR.addCallAndReturnFromMRV("secret", secret, "dataDivider", dataDivider);
+	}
+
+	@Override
+	public void updateSecretForASystemSecret(String systemSecretId, String dataDivider,
+			String secret) {
+		MCR.addCall("systemSecretId", systemSecretId, "dataDivider", dataDivider, "secret", secret);
 	}
 }

@@ -28,9 +28,9 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.password.texthasher.TextHasherFactory;
 import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
+import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperations;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
@@ -96,13 +96,15 @@ public class PasswordExtendedFunctionalityFactoryTest {
 		var extendedFunctionality = (PasswordExtendedFunctionality) extendedFunctionalities.get(0);
 
 		assertEquals(extendedFunctionality.onlyForTestGetDependencyProvider(), dependencyProvider);
-		assertTextHasherInstancePassedToExtendedFunctionality(extendedFunctionality);
+		assertSystemSecretOperationsInstancePassedToExtendedFunctionality(extendedFunctionality);
+
 	}
 
-	private void assertTextHasherInstancePassedToExtendedFunctionality(
+	private void assertSystemSecretOperationsInstancePassedToExtendedFunctionality(
 			PasswordExtendedFunctionality extendedFunctionality) {
-		TextHasher textHasher = extendedFunctionality.onlyForTestGetTextHasher();
-		textHasherFactorySpy.MCR.assertReturn("factor", 0, textHasher);
+		SystemSecretOperations systemSecretOperations = extendedFunctionality
+				.onlyForTestGetSystemSecretOperations();
+		textHasherFactorySpy.MCR.assertReturn("factor", 0, systemSecretOperations);
 	}
 
 	@Test
