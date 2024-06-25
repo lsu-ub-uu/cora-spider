@@ -23,7 +23,6 @@ import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.storage.RecordStorage;
 
 public class PasswordSystemSecretRemoverExtendedFunctionality implements ExtendedFunctionality {
 
@@ -60,9 +59,9 @@ public class PasswordSystemSecretRemoverExtendedFunctionality implements Extende
 	}
 
 	private void removeSystemSecretUsingLink(DataRecordLink passwordLink) {
-		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		recordStorage.deleteByTypeAndId(passwordLink.getLinkedRecordType(),
-				passwordLink.getLinkedRecordId());
+		// RecordStorage recordStorage = dependencyProvider.getRecordStorage();
+		// recordStorage.deleteByTypeAndId(passwordLink.getLinkedRecordType(),
+		// passwordLink.getLinkedRecordId());
 	}
 
 	private boolean systemSecretShouldBeRemoved() {

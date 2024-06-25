@@ -81,7 +81,7 @@ public class PasswordExtendedFunctionalityTest {
 		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		systemSecretOperations = new SystemSecretOperationsSpy();
 
-		extended = PasswordExtendedFunctionality.usingDependencyProviderAndSystemSecretCreator(
+		extended = PasswordExtendedFunctionality.usingDependencyProviderAndSystemSecretOperations(
 				dependencyProvider, systemSecretOperations);
 		previousGroup = new DataGroupSpy();
 		setupSpyForDataRecordGroup();

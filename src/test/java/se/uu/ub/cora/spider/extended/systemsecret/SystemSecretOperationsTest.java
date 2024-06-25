@@ -30,7 +30,6 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
-import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
 import se.uu.ub.cora.spider.extended.password.TextHasherSpy;
@@ -45,6 +44,10 @@ public class SystemSecretOperationsTest {
 	private SpiderDependencyProviderSpy dependencyProvider;
 
 	private static final String SYSTEM_SECRET_TYPE = "systemSecret";
+	private static final String SOME_SYSTEM_SECRET_ID = "someSystemSecretId";
+	private static final String SYSTEM_SECRET_VALIDATION_TYPE = "systemSecret";
+	private static final String SYSTEM_SECRET_NAME_IN_DATA = "systemSecret";
+	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String RECORD_INFO = "recordInfo";
 	private static final String SECRET = "secret";
 	private TextHasherSpy textHasher;
@@ -60,8 +63,8 @@ public class SystemSecretOperationsTest {
 		recordIdGenerator = new RecordIdGeneratorSpy();
 		createAndSetupDependencyProvider();
 
-		systemSecretOperations = new SystemSecretOperationsImp(dependencyProvider, textHasher);
-
+		systemSecretOperations = SystemSecretOperationsImp
+				.usingDependencyProviderAndTextHasher(dependencyProvider, textHasher);
 	}
 
 	private void createAndSetupDependencyProvider() {
@@ -81,7 +84,7 @@ public class SystemSecretOperationsTest {
 	public void testCreateNewSystemSecretRecord() throws Exception {
 
 		String createdSystemSecretId = systemSecretOperations
-				.createAndStoreSystemSecretRecord("someSystemSecretValue", "someDataDivider");
+				.createAndStoreSystemSecretRecord("someSystemSecretValue", SOME_DATA_DIVIDER);
 
 		textHasher.MCR.assertParameters("hashText", 0, "someSystemSecretValue");
 
@@ -89,45 +92,35 @@ public class SystemSecretOperationsTest {
 		String systemSecretId = (String) recordIdGenerator.MCR
 				.assertCalledParametersReturn("getIdForType", SYSTEM_SECRET_TYPE);
 
-		DataGroupSpy systemSecretDataGroup = assertAndReturnSystemSecretDataGroup(systemSecretId);
+		DataRecordGroupSpy systemSecretRecordGroup = assertAndReturnSystemSecretDataGroup(
+				systemSecretId);
+
+		var systemSecretGroup = dataFactory.MCR.assertCalledParametersReturn(
+				"factorGroupFromDataRecordGroup", systemSecretRecordGroup);
 
 		recordStorage.MCR.assertParameters("create", 0, SYSTEM_SECRET_TYPE, systemSecretId,
-				systemSecretDataGroup, Collections.emptySet(), Collections.emptySet(),
-				"someDataDivider");
+				systemSecretGroup, Collections.emptySet(), Collections.emptySet(),
+				SOME_DATA_DIVIDER);
 		assertEquals(createdSystemSecretId, systemSecretId);
 
 	}
 
-	private DataGroupSpy assertAndReturnSystemSecretDataGroup(String systemSecretId) {
-		dataFactory.MCR.assertParameters("factorGroupUsingNameInData", 0, SYSTEM_SECRET_TYPE);
-		DataGroupSpy systemSecretDataGroup = (DataGroupSpy) dataFactory.MCR
-				.getReturnValue("factorGroupUsingNameInData", 0);
-		//
-		assertRecordInfoWithDataDividerAddedTo(systemSecretDataGroup, systemSecretId);
-		assertHashedSecretIsAddedToGroupAsNumber(systemSecretDataGroup);
-		return systemSecretDataGroup;
+	private DataRecordGroupSpy assertAndReturnSystemSecretDataGroup(String systemSecretId) {
+		DataRecordGroupSpy systemSecretRecordGroup = (DataRecordGroupSpy) dataFactory.MCR
+				.assertCalledParametersReturn("factorRecordGroupUsingNameInData",
+						SYSTEM_SECRET_NAME_IN_DATA);
+
+		systemSecretRecordGroup.MCR.assertParameters("setType", 0, SYSTEM_SECRET_TYPE);
+		systemSecretRecordGroup.MCR.assertParameters("setId", 0, systemSecretId);
+		systemSecretRecordGroup.MCR.assertParameters("setDataDivider", 0, SOME_DATA_DIVIDER);
+		systemSecretRecordGroup.MCR.assertParameters("setValidationType", 0,
+				SYSTEM_SECRET_VALIDATION_TYPE);
+
+		assertHashedSecretIsAddedToGroupAsNumber(systemSecretRecordGroup);
+		return systemSecretRecordGroup;
 	}
 
-	private void assertRecordInfoWithDataDividerAddedTo(DataGroupSpy systemSecret,
-			String systemSecretId) {
-		dataFactory.MCR.assertParameters("factorGroupUsingNameInData", 1, RECORD_INFO);
-		DataGroupSpy recordInfo = (DataGroupSpy) dataFactory.MCR
-				.getReturnValue("factorGroupUsingNameInData", 1);
-		systemSecret.MCR.assertParameters("addChild", 0, recordInfo);
-
-		dataFactory.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0, "type",
-				"recordType", SYSTEM_SECRET_TYPE);
-		var typeLink = dataFactory.MCR.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId",
-				0);
-		recordInfo.MCR.assertParameters("addChild", 0, typeLink);
-
-		dataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "id",
-				systemSecretId);
-		var id = dataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
-		recordInfo.MCR.assertParameters("addChild", 1, id);
-	}
-
-	private void assertHashedSecretIsAddedToGroupAsNumber(DataGroupSpy systemSecretGroup) {
+	private void assertHashedSecretIsAddedToGroupAsNumber(DataRecordGroupSpy systemSecretGroup) {
 		var hashedPassword = textHasher.MCR.getReturnValue("hashText", 0);
 		var hashedPasswordAtomic = dataFactory.MCR.assertCalledParametersReturn(
 				"factorAtomicUsingNameInDataAndValue", SECRET, hashedPassword);
@@ -139,10 +132,10 @@ public class SystemSecretOperationsTest {
 		DataRecordGroupSpy existingSystemSecret = new DataRecordGroupSpy();
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> existingSystemSecret);
 
-		systemSecretOperations.updateSecretForASystemSecret("someSystemSecretId", "someDataDivider",
-				"someSecret");
+		systemSecretOperations.updateSecretForASystemSecret(SOME_SYSTEM_SECRET_ID,
+				SOME_DATA_DIVIDER, "someSecret");
 
-		recordStorage.MCR.assertParameters("read", 0, SYSTEM_SECRET_TYPE, "someSystemSecretId");
+		recordStorage.MCR.assertParameters("read", 0, SYSTEM_SECRET_TYPE, SOME_SYSTEM_SECRET_ID);
 		existingSystemSecret.MCR.assertParameters("removeAllChildrenWithNameInData", 0, SECRET);
 
 		assertHashedSecretIsAddedToGroupAsNumber(existingSystemSecret);
@@ -151,16 +144,22 @@ public class SystemSecretOperationsTest {
 				.assertCalledParametersReturn("factorGroupFromDataRecordGroup",
 						existingSystemSecret);
 
-		recordStorage.MCR.assertParameters("update", 0, SYSTEM_SECRET_TYPE, "someSystemSecretId",
+		recordStorage.MCR.assertParameters("update", 0, SYSTEM_SECRET_TYPE, SOME_SYSTEM_SECRET_ID,
 				existingSystemSecretTopDataGroup, Collections.emptySet(), Collections.emptySet(),
-				"someDataDivider");
-
+				SOME_DATA_DIVIDER);
 	}
 
-	private void assertHashedSecretIsAddedToGroupAsNumber(DataRecordGroupSpy systemSecretGroup) {
-		var hashedPassword = textHasher.MCR.getReturnValue("hashText", 0);
-		var hashedPasswordAtomic = dataFactory.MCR.assertCalledParametersReturn(
-				"factorAtomicUsingNameInDataAndValue", SECRET, hashedPassword);
-		systemSecretGroup.MCR.assertCalledParameters("addChild", hashedPasswordAtomic);
+	@Test
+	public void testOnlyForTest() throws Exception {
+		assertEquals(systemSecretOperations.onlyForTestGetDependencyProvider(), dependencyProvider);
+		assertEquals(systemSecretOperations.onlyForTestGetTextHasher(), textHasher);
+	}
+
+	@Test
+	public void testRemoveSystemSecretFromStorage() throws Exception {
+		systemSecretOperations.deleteSystemSecretFromStorage(SOME_SYSTEM_SECRET_ID);
+
+		recordStorage.MCR.assertCalledParameters("deleteByTypeAndId", SYSTEM_SECRET_TYPE,
+				SOME_SYSTEM_SECRET_ID);
 	}
 }

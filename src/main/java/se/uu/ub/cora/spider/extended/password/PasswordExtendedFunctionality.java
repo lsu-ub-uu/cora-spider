@@ -55,7 +55,7 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 	private DataGroup previousUserGroup;
 	private SystemSecretOperations systemSecretOperations;
 
-	public static PasswordExtendedFunctionality usingDependencyProviderAndSystemSecretCreator(
+	public static PasswordExtendedFunctionality usingDependencyProviderAndSystemSecretOperations(
 			SpiderDependencyProvider dependencyProvider,
 			SystemSecretOperations systemSecretOperations) {
 		return new PasswordExtendedFunctionality(dependencyProvider, systemSecretOperations);

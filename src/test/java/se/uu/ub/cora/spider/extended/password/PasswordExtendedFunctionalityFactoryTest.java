@@ -28,9 +28,11 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.password.texthasher.TextHasherFactory;
 import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
 import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperations;
+import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperationsImp;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
@@ -85,7 +87,7 @@ public class PasswordExtendedFunctionalityFactoryTest {
 	}
 
 	@Test
-	public void testFactorSetDependencyProviderAndCreatedTextHasher() throws Exception {
+	public void testFactorSetDependencyProviderAndSystemSecreatOperations() throws Exception {
 		onlyForTestFactory.initializeUsingDependencyProvider(dependencyProvider);
 		onlyForTestFactory.onlyForTestSetTextHasherFactory(textHasherFactorySpy);
 
@@ -96,15 +98,17 @@ public class PasswordExtendedFunctionalityFactoryTest {
 		var extendedFunctionality = (PasswordExtendedFunctionality) extendedFunctionalities.get(0);
 
 		assertEquals(extendedFunctionality.onlyForTestGetDependencyProvider(), dependencyProvider);
-		assertSystemSecretOperationsInstancePassedToExtendedFunctionality(extendedFunctionality);
-
+		assertSystemSecretOperations(extendedFunctionality);
 	}
 
-	private void assertSystemSecretOperationsInstancePassedToExtendedFunctionality(
+	private void assertSystemSecretOperations(
 			PasswordExtendedFunctionality extendedFunctionality) {
-		SystemSecretOperations systemSecretOperations = extendedFunctionality
+		SystemSecretOperationsImp systemSecretOperations = (SystemSecretOperationsImp) extendedFunctionality
 				.onlyForTestGetSystemSecretOperations();
-		textHasherFactorySpy.MCR.assertReturn("factor", 0, systemSecretOperations);
+		assertTrue(systemSecretOperations instanceof SystemSecretOperations);
+		assertEquals(systemSecretOperations.onlyForTestGetDependencyProvider(), dependencyProvider);
+		TextHasher factoredTextHasher = systemSecretOperations.onlyForTestGetTextHasher();
+		textHasherFactorySpy.MCR.assertReturn("factor", 0, factoredTextHasher);
 	}
 
 	@Test

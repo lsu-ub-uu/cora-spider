@@ -40,10 +40,22 @@ public interface SystemSecretOperations {
 	 * updateSecretForASystemSecret updates an existing systemSecret with a new secret. The secret
 	 * is a plain text String which will be hashed using {@link TextHasher} before being stored in
 	 * the systemSecret.
+	 * 
+	 * @param systemSecretId
+	 *            String with the systemSecretId to be updated
+	 * @param dataDivider
+	 *            A String defining the dataDivider that the systemSecret belong
 	 * @param secret
 	 *            String to be hashed and stored into the systemSecret
-	 * 
-	 * @return A String with the record id of the newly created systemSecret.
 	 */
 	void updateSecretForASystemSecret(String systemSecretId, String dataDivider, String secret);
+
+	/**
+	 * deleteSystemSecretFromStorage deletes an existing systemSecret with the given systemSecretId
+	 * from storage.
+	 * 
+	 * @param systemSecretId
+	 *            String with the systemSecretId to be deleted
+	 */
+	void deleteSystemSecretFromStorage(String systemSecretId);
 }
