@@ -28,7 +28,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -52,11 +54,14 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 	// private RecordStorageSpy recordStorage;
 	private SystemSecretOperationsSpy systemSecretOperations;
 	private AppTokenGeneratorSpy appTokenGenerator;
+	private DataGroupSpy previousAppTokensGroup;
+	private DataGroupSpy currentAppTokensGroup;
+	private DataFactorySpy dataFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		// dataFactory = new DataFactorySpy();
-		// DataProvider.onlyForTestSetDataFactory(dataFactory);
+		dataFactory = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactory);
 
 		// recordStorage = new RecordStorageSpy();
 		//
@@ -83,15 +88,12 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		// recordIdGeneratorSpy = new RecordIdGeneratorSpy();
 		// dependencyProvider.recordIdGenerator = recordIdGeneratorSpy;
 
-		appTokenLink1 = new DataRecordLinkSpy();
-		appTokenLink1.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
-				() -> "appTokenLink1");
-		appTokenLink2 = new DataRecordLinkSpy();
-		appTokenLink2.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
-				() -> "appTokenLink2");
-		appTokenLink3 = new DataRecordLinkSpy();
-		appTokenLink3.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
-				() -> "appTokenLink3");
+		previousAppTokensGroup = new DataGroupSpy();
+		currentAppTokensGroup = new DataGroupSpy();
+
+		// DataGroupSpy appTokenGroup1 = new DataGroupSpy();
+		// DataGroupSpy appTokenGroup2 = new DataGroupSpy();
+		// DataGroupSpy appTokenGroup3 = new DataGroupSpy();
 
 		systemSecretOperations = new SystemSecretOperationsSpy();
 		appTokenGenerator = new AppTokenGeneratorSpy();
@@ -107,9 +109,9 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		efData = new ExtendedFunctionalityData();
 		efData.dataGroup = currentDataGroup;
 		efData.previouslyStoredTopDataGroup = previousDataGroup;
-		efData.authToken = "fakeToken";
-		efData.recordType = "fakeType";
-		efData.recordId = "fakeId";
+		// efData.authToken = "fakeToken";
+		// efData.recordType = "fakeType";
+		// efData.recordId = "fakeId";
 	}
 
 	private void setupDataDividerForDataRecordGroup() {
@@ -129,63 +131,166 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 	}
 
 	@Test
-	public void testAnyStoreAppTokensAnyNewAppTokens() throws Exception {
+	public void testReadIncomingAppTokens_IncommingAppTokensGroupDoNotExists() throws Exception {
+		setupAppTokensGroupsUsingAppTokenGroups(currentDataGroup, currentAppTokensGroup);
+
 		appTokenHandler.useExtendedFunctionality(efData);
 
-		previousDataGroup.MCR.assertParameters("containsChildOfTypeAndName", 0, DataGroup.class,
-				"appToken");
 		currentDataGroup.MCR.assertParameters("containsChildOfTypeAndName", 0, DataGroup.class,
-				"appToken");
-		previousDataGroup.MCR.assertMethodNotCalled("getFirstAtomicValueWithNameInData");
-		currentDataGroup.MCR.assertMethodNotCalled("getFirstAtomicValueWithNameInData");
+				"appTokens");
+		assertNoApptokenCreated();
 	}
 
-	private DataGroup createDataGroupWithAppTokens(DataGroupSpy userDataGroups,
-			DataRecordLink... appTokenLinks) {
-
-		if (appTokenLinks.length > 0) {
-			userDataGroups.MRV.setSpecificReturnValuesSupplier("containsChildOfTypeAndName",
-					() -> true, DataGroup.class, "appToken");
-
-			List<DataGroup> appTokensGroups = new ArrayList<>();
-
-			userDataGroups.MRV.setDefaultReturnValuesSupplier("getAllGroupsWithNameInData",
-					() -> appTokensGroups);
-
-			for (DataRecordLink appTokenLink : appTokenLinks) {
-				DataGroupSpy appTokenGroup = new DataGroupSpy();
-				appTokenGroup.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
-						() -> appTokenLink, DataRecordLink.class, "appTokenLink");
-
-				appTokensGroups.add(appTokenGroup);
-			}
-		}
-		return userDataGroups;
+	private void assertNoApptokenCreated() {
+		appTokenGenerator.MCR.assertMethodNotCalled("generateAppToken");
+		systemSecretOperations.MCR.assertMethodNotCalled("createAndStoreSystemSecretRecord");
 	}
 
 	@Test
-	public void testTwoNewAppToken() throws Exception {
-		createDataGroupWithAppTokens(previousDataGroup);
-		createDataGroupWithAppTokens(currentDataGroup, appTokenLink1, appTokenLink2);
+	public void testIncommingAppTokensGroupExists() throws Exception {
+		DataGroupSpy appTokenGroup1 = createAppTokenGroupWithNewAppToken("someNewNoteAppToken1");
+		setupAppTokensGroupsUsingAppTokenGroups(currentDataGroup, currentAppTokensGroup,
+				appTokenGroup1);
 
 		appTokenHandler.useExtendedFunctionality(efData);
 
-		// previousDataGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "appToken");
-		currentDataGroup.MCR.assertParameters("getAllGroupsWithNameInData", 0, "appToken");
-
-		appTokenLink1.MCR.assertMethodWasCalled("getLinkedRecordId");
-
-		appTokenGenerator.MCR.assertNumberOfCallsToMethod("generateAppToken", 2);
-
-		assertCreateNewAppTokenByPosition(0);
-		assertCreateNewAppTokenByPosition(1);
-
+		assertAppTokenGroups();
+		currentAppTokensGroup.MCR.assertParameters("removeAllChildrenWithNameInData", 0,
+				"appToken");
 	}
 
-	private void assertCreateNewAppTokenByPosition(int newAppTokenId) {
-		String generatedAppToken = (String) appTokenGenerator.MCR.getReturnValue("generateAppToken",
-				newAppTokenId);
-		systemSecretOperations.MCR.assertParameters("createAndStoreSystemSecretRecord",
-				newAppTokenId, generatedAppToken, SOME_DATA_DIVIDER);
+	private void assertAppTokenGroups() {
+		currentDataGroup.MCR.assertParameters("containsChildOfTypeAndName", 0, DataGroup.class,
+				"appTokens");
+		DataGroupSpy appTokensGroup = (DataGroupSpy) currentDataGroup.MCR
+				.assertCalledParametersReturn("getFirstGroupWithNameInData", "appTokens");
+		appTokensGroup.MCR.assertParameters("getChildrenOfTypeAndName", 0, DataGroup.class,
+				"appToken");
 	}
+
+	@Test
+	public void testIncommingTwoNewAppTokens() throws Exception {
+		DataGroupSpy appTokenGroup1 = createAppTokenGroupWithNewAppToken("AppToken1");
+		DataGroupSpy appTokenGroup2 = createAppTokenGroupWithNewAppToken("AppToken2");
+		setupAppTokensGroupsUsingAppTokenGroups(currentDataGroup, currentAppTokensGroup,
+				appTokenGroup1, appTokenGroup2);
+
+		appTokenHandler.useExtendedFunctionality(efData);
+
+		assertNewAppToken(appTokenGroup1, 0);
+		assertNewAppToken(appTokenGroup2, 1);
+		currentAppTokensGroup.MCR.assertNumberOfCallsToMethod("addChild", 2);
+	}
+
+	private DataGroupSpy createAppTokenGroupWithNewAppToken(String postfix) {
+		DataGroupSpy appTokenGroup = new DataGroupSpy();
+		appTokenGroup.MRV.setDefaultReturnValuesSupplier("note", () -> "someNote" + postfix);
+		return appTokenGroup;
+	}
+
+	private void setupAppTokensGroupsUsingAppTokenGroups(DataGroupSpy userDataGroup,
+			DataGroupSpy appTokensGroup, DataGroupSpy... appTokenGroups) {
+
+		if (appTokenGroups.length > 0) {
+			userDataGroup.MRV.setSpecificReturnValuesSupplier("containsChildOfTypeAndName",
+					() -> true, DataGroup.class, "appTokens");
+			userDataGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+					() -> appTokensGroup, "appTokens");
+
+			List<DataGroup> appTokensGroups = new ArrayList<>();
+			for (DataGroupSpy appTokenGroup : appTokenGroups) {
+				appTokensGroups.add(appTokenGroup);
+			}
+			appTokensGroup.MRV.setDefaultReturnValuesSupplier("getChildrenOfTypeAndName",
+					() -> appTokensGroups);
+		}
+	}
+
+	private void assertNewAppToken(DataGroupSpy appTokenGroup, int callNr) {
+		var genreatedAppToken = appTokenGenerator.MCR.getReturnValue("generateAppToken", callNr);
+		var systemSecretId = systemSecretOperations.MCR.assertCalledParametersReturn(
+				"createAndStoreSystemSecretRecord", genreatedAppToken, SOME_DATA_DIVIDER);
+		var appTokenLink = assertRecordLinkCreationAndReturn(callNr, systemSecretId);
+		appTokenGroup.MCR.assertParameters("addChild", 0, appTokenLink);
+	}
+
+	private Object assertRecordLinkCreationAndReturn(int callNr, Object systemSecretId) {
+		dataFactory.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", callNr,
+				"appTokenLink", "systemSecret", systemSecretId);
+		var appTokenLink = dataFactory.MCR
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", callNr);
+		return appTokenLink;
+	}
+
+	@Test
+	public void testIncomingAppTokensWithAppTokenLinksDoNotExistPreviously() throws Exception {
+		DataGroupSpy appTokenGroup1 = createAppTokenGroupWithNoteAndAppTokenLink("AppToken1");
+		DataGroupSpy appTokenGroup2 = createAppTokenGroupWithNoteAndAppTokenLink("AppToken2");
+		setupAppTokensGroupsUsingAppTokenGroups(currentDataGroup, currentAppTokensGroup,
+				appTokenGroup1, appTokenGroup2);
+
+		appTokenHandler.useExtendedFunctionality(efData);
+
+		currentAppTokensGroup.MCR.assertNumberOfCallsToMethod("addChild", 0);
+		currentDataGroup.MCR.assertParameters("removeFirstChildWithNameInData", 0, "appTokens");
+		currentDataGroup.MCR.assertNumberOfCallsToMethod("removeFirstChildWithNameInData", 1);
+	}
+
+	private DataGroupSpy createAppTokenGroupWithNoteAndAppTokenLink(String postfix) {
+		DataGroupSpy appTokenGroup = new DataGroupSpy();
+		appTokenGroup.MRV.setDefaultReturnValuesSupplier("note", () -> "someNote" + postfix);
+		appTokenGroup.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				"appTokenLink");
+		DataRecordLinkSpy appTokenLink = new DataRecordLinkSpy();
+		appTokenLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+				() -> "someSystemSecret" + postfix);
+		appTokenGroup.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
+				() -> appTokenLink, DataRecordLink.class, "appTokenLink");
+		return appTokenGroup;
+	}
+
+	@Test
+	public void testIncomingAppTokensWithAppTokenLinksDoExistPreviously() throws Exception {
+		DataGroupSpy appTokenGroup1 = createAppTokenGroupWithNoteAndAppTokenLink("AppToken1");
+		DataGroupSpy appTokenGroup2 = createAppTokenGroupWithNoteAndAppTokenLink("AppToken2");
+		setupAppTokensGroupsUsingAppTokenGroups(previousDataGroup, previousAppTokensGroup,
+				appTokenGroup1, appTokenGroup2);
+		setupAppTokensGroupsUsingAppTokenGroups(currentDataGroup, currentAppTokensGroup,
+				appTokenGroup1, appTokenGroup2);
+
+		appTokenHandler.useExtendedFunctionality(efData);
+
+		appTokenGroup1.MCR.assertParameters("getFirstChildOfTypeAndName", 0, DataRecordLink.class,
+				"appTokenLink");
+
+		currentAppTokensGroup.MCR.assertNumberOfCallsToMethod("addChild", 2);
+		currentDataGroup.MCR.assertMethodNotCalled("removeFirstChildWithNameInData");
+
+	}
+	//
+	// @Test
+	// public void testTwoNewAppToken() throws Exception {
+	// createDataGroupWithAppTokens(previousDataGroup);
+	// createDataGroupWithAppTokens(currentDataGroup, appTokenLink1, appTokenLink2);
+	//
+	// appTokenHandler.useExtendedFunctionality(efData);
+	//
+	// // previousDataGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "appToken");
+	// currentDataGroup.MCR.assertParameters("getAllGroupsWithNameInData", 0, "appToken");
+	//
+	// appTokenLink1.MCR.assertMethodWasCalled("getLinkedRecordId");
+	//
+	// appTokenGenerator.MCR.assertNumberOfCallsToMethod("generateAppToken", 2);
+	//
+	// assertCreateNewAppTokenByPosition(0);
+	// assertCreateNewAppTokenByPosition(1);
+	//
+	// }
+	//
+	// private void assertCreateNewAppTokenByPosition(int newAppTokenId) {
+	// String generatedAppToken = (String) appTokenGenerator.MCR.getReturnValue("generateAppToken",
+	// newAppTokenId);
+	// systemSecretOperations.MCR.assertParameters("createAndStoreSystemSecretRecord",
+	// newAppTokenId, generatedAppToken, SOME_DATA_DIVIDER);
+	// }
 }

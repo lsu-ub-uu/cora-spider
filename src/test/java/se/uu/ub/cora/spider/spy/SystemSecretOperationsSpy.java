@@ -16,7 +16,6 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.spider.spy;
 
 import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperations;
@@ -43,5 +42,10 @@ public class SystemSecretOperationsSpy implements SystemSecretOperations {
 	public void updateSecretForASystemSecret(String systemSecretId, String dataDivider,
 			String secret) {
 		MCR.addCall("systemSecretId", systemSecretId, "dataDivider", dataDivider, "secret", secret);
+	}
+
+	@Override
+	public void deleteSystemSecretFromStorage(String systemSecretId) {
+		MCR.addCall("systemSecretId", systemSecretId);
 	}
 }
