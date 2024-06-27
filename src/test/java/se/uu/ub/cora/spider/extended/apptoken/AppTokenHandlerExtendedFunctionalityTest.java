@@ -32,6 +32,7 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -42,8 +43,8 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 
 	private static final String SOME_SECRET = "someSecret";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
-	private DataGroupSpy previousDataGroup;
-	private DataGroupSpy currentDataGroup;
+	private DataRecordGroupSpy previousDataGroup;
+	private DataRecordGroupSpy currentDataGroup;
 	private ExtendedFunctionalityData efData;
 	private AppTokenHandlerExtendedFunctionality appTokenHandler;
 	private DataRecordLinkSpy appTokenLink1;
@@ -72,8 +73,8 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		// textHasher = new TextHasherSpy();
 		// extended = PasswordExtendedFunctionality
 		// .usingDependencyProviderAndTextHasher(dependencyProvider, textHasher);
-		previousDataGroup = new DataGroupSpy();
-		currentDataGroup = new DataGroupSpy();
+		previousDataGroup = new DataRecordGroupSpy();
+		currentDataGroup = new DataRecordGroupSpy();
 
 		// setupSpyForDataRecordGroup();
 		createExtendedFunctionalityData();
@@ -107,11 +108,9 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 
 	private void createExtendedFunctionalityData() {
 		efData = new ExtendedFunctionalityData();
-		efData.dataGroup = currentDataGroup;
-		efData.previouslyStoredTopDataGroup = previousDataGroup;
-		// efData.authToken = "fakeToken";
-		// efData.recordType = "fakeType";
-		// efData.recordId = "fakeId";
+		efData.dataRecordGroup = currentDataGroup;
+		efData.previouslyStoredDataRecordGroup = previousDataGroup;
+
 	}
 
 	private void setupDataDividerForDataRecordGroup() {
@@ -131,7 +130,7 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 	}
 
 	@Test
-	public void testReadIncomingAppTokens_IncommingAppTokensGroupDoNotExists() throws Exception {
+	public void testIncommingAppTokensGroupDoNotExists() throws Exception {
 		setupAppTokensGroupsUsingAppTokenGroups(currentDataGroup, currentAppTokensGroup);
 
 		appTokenHandler.useExtendedFunctionality(efData);
@@ -139,11 +138,16 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		currentDataGroup.MCR.assertParameters("containsChildOfTypeAndName", 0, DataGroup.class,
 				"appTokens");
 		assertNoApptokenCreated();
+		assertNotCalledRemoveAppTokensGroup();
 	}
 
 	private void assertNoApptokenCreated() {
 		appTokenGenerator.MCR.assertMethodNotCalled("generateAppToken");
 		systemSecretOperations.MCR.assertMethodNotCalled("createAndStoreSystemSecretRecord");
+	}
+
+	private void assertNotCalledRemoveAppTokensGroup() {
+		currentDataGroup.MCR.assertMethodNotCalled("removeFirstChildWithNameInData");
 	}
 
 	@Test
@@ -157,6 +161,7 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		assertAppTokenGroups();
 		currentAppTokensGroup.MCR.assertParameters("removeAllChildrenWithNameInData", 0,
 				"appToken");
+		assertNotCalledRemoveAppTokensGroup();
 	}
 
 	private void assertAppTokenGroups() {
@@ -166,6 +171,11 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 				.assertCalledParametersReturn("getFirstGroupWithNameInData", "appTokens");
 		appTokensGroup.MCR.assertParameters("getChildrenOfTypeAndName", 0, DataGroup.class,
 				"appToken");
+	}
+
+	private void assertRemoveAppTokensGroupWhenNoAppTokenExists() {
+		currentDataGroup.MCR.assertParameters("removeFirstChildWithNameInData", 0, "appTokens");
+		currentDataGroup.MCR.assertNumberOfCallsToMethod("removeFirstChildWithNameInData", 1);
 	}
 
 	@Test
@@ -180,6 +190,7 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		assertNewAppToken(appTokenGroup1, 0);
 		assertNewAppToken(appTokenGroup2, 1);
 		currentAppTokensGroup.MCR.assertNumberOfCallsToMethod("addChild", 2);
+		assertNotCalledRemoveAppTokensGroup();
 	}
 
 	private DataGroupSpy createAppTokenGroupWithNewAppToken(String postfix) {
@@ -188,7 +199,7 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		return appTokenGroup;
 	}
 
-	private void setupAppTokensGroupsUsingAppTokenGroups(DataGroupSpy userDataGroup,
+	private void setupAppTokensGroupsUsingAppTokenGroups(DataRecordGroupSpy userDataGroup,
 			DataGroupSpy appTokensGroup, DataGroupSpy... appTokenGroups) {
 
 		if (appTokenGroups.length > 0) {
@@ -232,8 +243,7 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		appTokenHandler.useExtendedFunctionality(efData);
 
 		currentAppTokensGroup.MCR.assertNumberOfCallsToMethod("addChild", 0);
-		currentDataGroup.MCR.assertParameters("removeFirstChildWithNameInData", 0, "appTokens");
-		currentDataGroup.MCR.assertNumberOfCallsToMethod("removeFirstChildWithNameInData", 1);
+		assertRemoveAppTokensGroupWhenNoAppTokenExists();
 	}
 
 	private DataGroupSpy createAppTokenGroupWithNoteAndAppTokenLink(String postfix) {
@@ -264,33 +274,7 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 				"appTokenLink");
 
 		currentAppTokensGroup.MCR.assertNumberOfCallsToMethod("addChild", 2);
-		currentDataGroup.MCR.assertMethodNotCalled("removeFirstChildWithNameInData");
+		assertNotCalledRemoveAppTokensGroup();
 
 	}
-	//
-	// @Test
-	// public void testTwoNewAppToken() throws Exception {
-	// createDataGroupWithAppTokens(previousDataGroup);
-	// createDataGroupWithAppTokens(currentDataGroup, appTokenLink1, appTokenLink2);
-	//
-	// appTokenHandler.useExtendedFunctionality(efData);
-	//
-	// // previousDataGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "appToken");
-	// currentDataGroup.MCR.assertParameters("getAllGroupsWithNameInData", 0, "appToken");
-	//
-	// appTokenLink1.MCR.assertMethodWasCalled("getLinkedRecordId");
-	//
-	// appTokenGenerator.MCR.assertNumberOfCallsToMethod("generateAppToken", 2);
-	//
-	// assertCreateNewAppTokenByPosition(0);
-	// assertCreateNewAppTokenByPosition(1);
-	//
-	// }
-	//
-	// private void assertCreateNewAppTokenByPosition(int newAppTokenId) {
-	// String generatedAppToken = (String) appTokenGenerator.MCR.getReturnValue("generateAppToken",
-	// newAppTokenId);
-	// systemSecretOperations.MCR.assertParameters("createAndStoreSystemSecretRecord",
-	// newAppTokenId, generatedAppToken, SOME_DATA_DIVIDER);
-	// }
 }

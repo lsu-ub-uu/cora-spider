@@ -77,7 +77,10 @@ public class PasswordExtendedFunctionalityFactory implements ExtendedFunctionali
 	}
 
 	private PasswordSystemSecretRemoverExtendedFunctionality createPasswordSystemSecretRemover() {
+		TextHasher textHasher = textHasherFactory.factor();
+		SystemSecretOperations sso = SystemSecretOperationsImp
+				.usingDependencyProviderAndTextHasher(dependencyProvider, textHasher);
 		return PasswordSystemSecretRemoverExtendedFunctionality
-				.usingDependencyProvider(dependencyProvider);
+				.usingDependencyProviderAndSystemSecretOperations(dependencyProvider, sso);
 	}
 }

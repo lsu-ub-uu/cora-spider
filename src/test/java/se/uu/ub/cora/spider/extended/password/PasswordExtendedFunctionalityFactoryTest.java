@@ -101,8 +101,7 @@ public class PasswordExtendedFunctionalityFactoryTest {
 		assertSystemSecretOperations(extendedFunctionality);
 	}
 
-	private void assertSystemSecretOperations(
-			PasswordExtendedFunctionality extendedFunctionality) {
+	private void assertSystemSecretOperations(PasswordExtendedFunctionality extendedFunctionality) {
 		SystemSecretOperationsImp systemSecretOperations = (SystemSecretOperationsImp) extendedFunctionality
 				.onlyForTestGetSystemSecretOperations();
 		assertTrue(systemSecretOperations instanceof SystemSecretOperations);
@@ -113,14 +112,26 @@ public class PasswordExtendedFunctionalityFactoryTest {
 
 	@Test
 	public void testFactorForUpdateAfterStore() throws Exception {
-		factory.initializeUsingDependencyProvider(dependencyProvider);
-		List<ExtendedFunctionality> extendedFunctionalities = factory.factor(UPDATE_AFTER_STORE,
-				USER_RECORD_TYPE);
+		onlyForTestFactory.initializeUsingDependencyProvider(dependencyProvider);
+		onlyForTestFactory.onlyForTestSetTextHasherFactory(textHasherFactorySpy);
+		List<ExtendedFunctionality> extendedFunctionalities = onlyForTestFactory
+				.factor(UPDATE_AFTER_STORE, USER_RECORD_TYPE);
 
 		assertEquals(extendedFunctionalities.size(), 1);
 		var extendedFunctionality = (PasswordSystemSecretRemoverExtendedFunctionality) extendedFunctionalities
 				.get(0);
 
 		assertEquals(extendedFunctionality.onlyForTestGetDependencyProvider(), dependencyProvider);
+		assertSystemSecretOperations(extendedFunctionality);
+	}
+
+	private void assertSystemSecretOperations(
+			PasswordSystemSecretRemoverExtendedFunctionality extendedFunctionality) {
+		SystemSecretOperationsImp systemSecretOperations = (SystemSecretOperationsImp) extendedFunctionality
+				.onlyForTestGetSystemSecretOperations();
+		assertTrue(systemSecretOperations instanceof SystemSecretOperations);
+		assertEquals(systemSecretOperations.onlyForTestGetDependencyProvider(), dependencyProvider);
+		TextHasher factoredTextHasher = systemSecretOperations.onlyForTestGetTextHasher();
+		textHasherFactorySpy.MCR.assertReturn("factor", 0, factoredTextHasher);
 	}
 }
