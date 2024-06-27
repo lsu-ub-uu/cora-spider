@@ -23,7 +23,6 @@ import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
-import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperations;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -47,24 +46,38 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		DataRecordGroup previousDataGroup = data.previouslyStoredDataRecordGroup;
-		DataRecordGroup currentDataGroup = data.dataRecordGroup;
+		DataGroup previousDataGroup = data.previouslyStoredTopDataGroup;
+		DataGroup currentDataGroup = data.dataGroup;
 
 		String currentDataDivider = readDataDividerFromUserGroup(currentDataGroup);
 
+		previousAppTokenLinkIds = getPreviousAppTokenLinkIds(previousDataGroup);
 		if (hasAppTokens(currentDataGroup)) {
-			handleApptokens(previousDataGroup, currentDataGroup, currentDataDivider);
+			handleApptokens(currentDataGroup, currentDataDivider);
+		}
+		removePreviousAppTokensNotInCurrent();
+	}
+
+	private void removePreviousAppTokensNotInCurrent() {
+		for (String id : previousAppTokenLinkIds) {
+			systemSecretOperations.deleteSystemSecretFromStorage(id);
 		}
 	}
 
-	private void handleApptokens(DataRecordGroup previousDataGroup,
-			DataRecordGroup currentDataGroup, String currentDataDivider) {
-		previousAppTokenLinkIds = getPreviousAppTokenLinkIds(previousDataGroup);
+	private boolean hasAppTokens(DataGroup currentDataGroup) {
+		return currentDataGroup.containsChildOfTypeAndName(DataGroup.class,
+				APP_TOKENS_GROUP_NAME_IN_DATA);
+	}
+
+	private void handleApptokens(DataGroup currentDataGroup, String currentDataDivider) {
 		currentAppTokensGroup = getApptokensGroup(currentDataGroup);
 		List<DataGroup> currentAppTokenGroups = getListOfApptokenGroups(currentAppTokensGroup);
+
 		removeAllAppTokensFromAppTokensGroupToKeepOriginalReferenceInParent(currentAppTokensGroup);
+
 		boolean hasAppTokens = createUpdateOrRemoveAppTokens(currentDataDivider,
 				currentAppTokenGroups);
+
 		removeAppTokensGroupIfNoAppTokensExists(currentDataGroup, hasAppTokens);
 	}
 
@@ -72,20 +85,35 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 			List<DataGroup> currentAppTokenGroups) {
 		boolean hasAppTokens = false;
 		for (DataGroup appTokenGroup : currentAppTokenGroups) {
-			if (!appTokenGroup.containsChildWithNameInData(APP_TOKEN_LINK_NAME_IN_DATA)) {
-				addNewAppToken(currentDataDivider, appTokenGroup);
-				currentAppTokensGroup.addChild(appTokenGroup);
+			if (appTokenIsNew(appTokenGroup)) {
+				addNewAppTokenToAppTokensGroup(currentDataDivider, appTokenGroup);
 				hasAppTokens = true;
 			} else {
 				DataRecordLink dataRecordLink = appTokenGroup.getFirstChildOfTypeAndName(
 						DataRecordLink.class, APP_TOKEN_LINK_NAME_IN_DATA);
-				if (previousAppTokenLinkIds.contains(dataRecordLink.getLinkedRecordId())) {
+				if (appTokenExistsAndCanBeUpdated(dataRecordLink)) {
 					currentAppTokensGroup.addChild(appTokenGroup);
 					hasAppTokens = true;
+					previousAppTokenLinkIds.remove(dataRecordLink.getLinkedRecordId());
 				}
 			}
 		}
+		// currentAppTokensGroup.containsChildWithNameInData("appToken");
 		return hasAppTokens;
+	}
+
+	private boolean appTokenExistsAndCanBeUpdated(DataRecordLink dataRecordLink) {
+		return previousAppTokenLinkIds.contains(dataRecordLink.getLinkedRecordId());
+	}
+
+	private void addNewAppTokenToAppTokensGroup(String currentDataDivider,
+			DataGroup appTokenGroup) {
+		addNewAppToken(currentDataDivider, appTokenGroup);
+		currentAppTokensGroup.addChild(appTokenGroup);
+	}
+
+	private boolean appTokenIsNew(DataGroup appTokenGroup) {
+		return !appTokenGroup.containsChildWithNameInData(APP_TOKEN_LINK_NAME_IN_DATA);
 	}
 
 	private void removeAllAppTokensFromAppTokensGroupToKeepOriginalReferenceInParent(
@@ -98,18 +126,18 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 				APP_TOKEN_GROUP_NAME_IN_DATA);
 	}
 
-	private DataGroup getApptokensGroup(DataRecordGroup currentDataGroup) {
-		return currentDataGroup.getFirstGroupWithNameInData(APP_TOKENS_GROUP_NAME_IN_DATA);
+	private DataGroup getApptokensGroup(DataGroup previousDataGroup) {
+		return previousDataGroup.getFirstGroupWithNameInData(APP_TOKENS_GROUP_NAME_IN_DATA);
 	}
 
-	private void removeAppTokensGroupIfNoAppTokensExists(DataRecordGroup currentDataGroup,
+	private void removeAppTokensGroupIfNoAppTokensExists(DataGroup currentDataGroup,
 			boolean hasAppTokens) {
 		if (!hasAppTokens) {
 			currentDataGroup.removeFirstChildWithNameInData(APP_TOKENS_GROUP_NAME_IN_DATA);
 		}
 	}
 
-	private List<String> getPreviousAppTokenLinkIds(DataRecordGroup previousDataGroup) {
+	private List<String> getPreviousAppTokenLinkIds(DataGroup previousDataGroup) {
 		if (previousDataGroup.containsChildOfTypeAndName(DataGroup.class,
 				APP_TOKENS_GROUP_NAME_IN_DATA)) {
 			List<DataGroup> previousAppTokenGroups = getPreviousAppTokensList(previousDataGroup);
@@ -133,7 +161,7 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 		systemSecretIds.add(appTokenLink.getLinkedRecordId());
 	}
 
-	private List<DataGroup> getPreviousAppTokensList(DataRecordGroup previousDataGroup) {
+	private List<DataGroup> getPreviousAppTokensList(DataGroup previousDataGroup) {
 		DataGroup previousAppTokensGroup = getApptokensGroup(previousDataGroup);
 		return getListOfApptokenGroups(previousAppTokensGroup);
 	}
@@ -146,36 +174,16 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 		appTokenGroup.addChild(appTokenLink);
 	}
 
-	private boolean hasAppTokens(DataRecordGroup currentDataGroup) {
-		return currentDataGroup.containsChildOfTypeAndName(DataGroup.class,
-				APP_TOKENS_GROUP_NAME_IN_DATA);
-	}
-
 	private String generateNewAppTokenAndCreateSystemSecretInStorage(String currentDataDivider) {
 		String generatedAppToken = appTokenGenerator.generateAppToken();
 		return systemSecretOperations.createAndStoreSystemSecretRecord(generatedAppToken,
 				currentDataDivider);
 	}
 
-	private String readDataDividerFromUserGroup(DataRecordGroup currentDataGroup) {
+	private String readDataDividerFromUserGroup(DataGroup currentDataGroup) {
 		DataGroup usersRecordInfo = currentDataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataRecordLink userDataDivider = (DataRecordLink) usersRecordInfo
 				.getFirstChildWithNameInData("dataDivider");
 		return userDataDivider.getLinkedRecordId();
 	}
-
-	// private void addLinkToSystemSecret(String systemSecretRecordId) {
-	// var secretLink = createLinkPointingToSecretRecord(systemSecretRecordId);
-	// currentUserGroup.addChild(secretLink);
-	// }
-	//
-	// private DataRecordLink createLinkPointingToSecretRecord(String systemSecretRecordId) {
-	// return DataProvider.createRecordLinkUsingNameInDataAndTypeAndId(PASSWORD_LINK_NAME_IN_DATA,
-	// SYSTEM_SECRET_TYPE, systemSecretRecordId);
-	// }
-	//
-	// private void setTimestampWhenPasswordHasBeenStored() {
-	// DataAtomic tsPasswordUpdated = createAtomicLatestTsUpdatedFromRecord();
-	// currentUserGroup.addChild(tsPasswordUpdated);
-	// }
 }
