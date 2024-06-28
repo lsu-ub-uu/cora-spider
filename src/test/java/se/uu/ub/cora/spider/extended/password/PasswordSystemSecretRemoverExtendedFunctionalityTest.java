@@ -27,11 +27,11 @@ import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperations;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.spy.SystemSecretOperationsSpy;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class PasswordSystemSecretRemoverExtendedFunctionalityTest {

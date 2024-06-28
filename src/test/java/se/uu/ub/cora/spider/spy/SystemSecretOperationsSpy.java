@@ -18,7 +18,7 @@
  */
 package se.uu.ub.cora.spider.spy;
 
-import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperations;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 

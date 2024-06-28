@@ -26,10 +26,10 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperations;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
 
 /**
  * PasswordExtendedFunctionality encrypts and stores a users password as a systemSecret, if it is

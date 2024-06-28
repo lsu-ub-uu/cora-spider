@@ -31,11 +31,11 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.password.texthasher.TextHasherFactory;
 import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
-import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperations;
-import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperationsImp;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperationsImp;
 
 public class PasswordExtendedFunctionalityFactoryTest {
 	private PasswordExtendedFunctionalityFactory factory;

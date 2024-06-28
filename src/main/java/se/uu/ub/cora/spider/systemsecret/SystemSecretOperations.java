@@ -17,7 +17,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.extended.systemsecret;
+package se.uu.ub.cora.spider.systemsecret;
 
 import se.uu.ub.cora.password.texthasher.TextHasher;
 

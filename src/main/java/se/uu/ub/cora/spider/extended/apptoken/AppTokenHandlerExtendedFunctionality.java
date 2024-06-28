@@ -26,9 +26,9 @@ import java.util.List;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperations;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
 
 public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionality {
 

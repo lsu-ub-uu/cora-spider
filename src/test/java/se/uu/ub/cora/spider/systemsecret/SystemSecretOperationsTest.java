@@ -17,7 +17,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.extended.systemsecret;
+package se.uu.ub.cora.spider.systemsecret;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -34,6 +34,8 @@ import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
 import se.uu.ub.cora.spider.extended.password.TextHasherSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperationsImp;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class SystemSecretOperationsTest {

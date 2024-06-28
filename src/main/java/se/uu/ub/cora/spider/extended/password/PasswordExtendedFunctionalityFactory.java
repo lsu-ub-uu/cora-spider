@@ -29,12 +29,12 @@ import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.password.texthasher.TextHasherFactory;
 import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperations;
-import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretOperationsImp;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperationsImp;
 
 public class PasswordExtendedFunctionalityFactory implements ExtendedFunctionalityFactory {
 	private static final String USER_RECORD_TYPE = "user";
