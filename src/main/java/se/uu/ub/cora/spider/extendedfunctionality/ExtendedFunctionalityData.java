@@ -18,6 +18,9 @@
  */
 package se.uu.ub.cora.spider.extendedfunctionality;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
@@ -91,5 +94,15 @@ public class ExtendedFunctionalityData {
 	 * The representation of the record as DataRecord
 	 */
 	public DataRecord dataRecord;
+
+	/**
+	 * dataSharer is a Map intended to share data between different extendedFunctionalites, that is
+	 * not represented in the other fields in this class.
+	 * <p>
+	 * To avoid conflicting keys between different extendedFunctionallites are the
+	 * extendedFunctionality that sets a value in this map expected to use a prefix for the key with
+	 * the className of the extendedFunctionality.
+	 */
+	public final Map<String, Object> dataSharer = new HashMap<>();
 
 }

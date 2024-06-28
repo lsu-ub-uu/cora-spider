@@ -26,11 +26,17 @@ public class SystemSecretOperationsSpy implements SystemSecretOperations {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
+	private int systemSecretNo = 0;
 
 	public SystemSecretOperationsSpy() {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("createAndStoreSystemSecretRecord",
-				() -> "someSystemSecretRecordId");
+				() -> generateSystemSecretId());
+	}
+
+	private String generateSystemSecretId() {
+		systemSecretNo++;
+		return "someSystemSecretRecordId" + systemSecretNo;
 	}
 
 	@Override

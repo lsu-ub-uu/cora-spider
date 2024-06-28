@@ -18,10 +18,13 @@
  */
 package se.uu.ub.cora.spider.extended.apptoken;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -64,18 +67,11 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		dataFactory = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactory);
 
-		previousDataGroup = new DataGroupSpy();
-		currentDataGroup = new DataGroupSpy();
-
-		createExtendedFunctionalityData();
-
-		previousAppTokensGroup = new DataGroupSpy();
-		currentAppTokensGroup = new DataGroupSpy();
+		createPreviousData();
+		createCurrentExtendedFunctionalityData();
 
 		systemSecretOperations = new SystemSecretOperationsSpy();
 		appTokenGenerator = new AppTokenGeneratorSpy();
-
-		setupDataDividerForDataRecordGroup();
 
 		appTokenHandler = new AppTokenHandlerExtendedFunctionality(appTokenGenerator,
 				systemSecretOperations);
@@ -89,20 +85,28 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		linkAppTokenGroup4 = createAppTokenGroupWithNoteAndAppTokenLink("AppToken4");
 		linkAppTokenGroup5 = createAppTokenGroupWithNoteAndAppTokenLink("AppToken5");
 		linkAppTokenGroup6 = createAppTokenGroupWithNoteAndAppTokenLink("AppToken6");
-
 	}
 
-	private void createExtendedFunctionalityData() {
+	private void createPreviousData() {
+		previousAppTokensGroup = new DataGroupSpy();
+		previousDataGroup = new DataGroupSpy();
+	}
+
+	private void createCurrentExtendedFunctionalityData() {
+		currentAppTokensGroup = new DataGroupSpy();
+		setupCurrentDataRecordGroupWithDataDivider();
 		efData = new ExtendedFunctionalityData();
 		efData.dataGroup = currentDataGroup;
 		efData.previouslyStoredTopDataGroup = previousDataGroup;
-
 	}
 
-	private void setupDataDividerForDataRecordGroup() {
+	private void setupCurrentDataRecordGroupWithDataDivider() {
+		currentDataGroup = new DataGroupSpy();
+
 		DataGroupSpy recordInfo = new DataGroupSpy();
 		currentDataGroup.MRV.setReturnValues("getFirstGroupWithNameInData", List.of(recordInfo),
 				"recordInfo");
+
 		dataDivider = new DataRecordLinkSpy();
 		recordInfo.MRV.setSpecificReturnValuesSupplier("getFirstChildWithNameInData",
 				() -> dataDivider, "dataDivider");
@@ -124,15 +128,140 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 
 		currentDataGroup.MCR.assertParameters("containsChildOfTypeAndName", 0, DataGroup.class,
 				"appTokens");
-		assertNoApptokenCreated();
+
+		assertNewAppTokensCreated();
 		assertAppTokensInReturnedData();
-		assertAppTokensRemovedFromPreviousGroup();
+		assertAppTokensRemovedFromStorage();
 		assertNotCalledRemoveAppTokensGroup();
 	}
 
-	private void assertNoApptokenCreated() {
-		appTokenGenerator.MCR.assertMethodNotCalled("generateAppToken");
-		systemSecretOperations.MCR.assertMethodNotCalled("createAndStoreSystemSecretRecord");
+	@Test
+	public void test_1currentOnlyNote_0currentLink_0previousMatch_0previousNotMatch()
+			throws Exception {
+		setUpCurrentWithAppTokens(onlyNoteAppTokenGroup2);
+		setUpAppTokenRemainsInCurrentGroup();
+
+		appTokenHandler.useExtendedFunctionality(efData);
+
+		assertAllCurrentAppTokenGroupsAreRead();
+		assertRemoveAllAppTokensFromAppTokensCurrentGroupBeforeHandling();
+
+		assertNewAppTokensCreated(onlyNoteAppTokenGroup2);
+		assertAppTokensInReturnedData(onlyNoteAppTokenGroup2);
+		assertAppTokensRemovedFromStorage();
+		assertNotCalledRemoveAppTokensGroup();
+	}
+
+	@Test
+	public void test_2currentOnlyNote_0currentLink_0previousMatch_0previousNotMatch()
+			throws Exception {
+		setUpCurrentWithAppTokens(onlyNoteAppTokenGroup1, onlyNoteAppTokenGroup2);
+		setUpAppTokenRemainsInCurrentGroup();
+
+		appTokenHandler.useExtendedFunctionality(efData);
+
+		assertNewAppTokensCreated(onlyNoteAppTokenGroup1, onlyNoteAppTokenGroup2);
+		assertAppTokensInReturnedData(onlyNoteAppTokenGroup2, onlyNoteAppTokenGroup2);
+		assertAppTokensRemovedFromStorage();
+		assertNotCalledRemoveAppTokensGroup();
+	}
+
+	@Test
+	public void test_0currentOnlyNote_2currentLink_0previousMatch_0previousNotMatch()
+			throws Exception {
+		setUpCurrentWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2);
+
+		appTokenHandler.useExtendedFunctionality(efData);
+
+		assertNewAppTokensCreated();
+		assertAppTokensInReturnedData();
+		assertAppTokensRemovedFromStorage();
+		assertRemoveAppTokensGroupWhenNoAppTokenExists();
+	}
+
+	@Test
+	public void test_0currentOnlyNote_2currentLink_2previousMatch_0previousNotMatch()
+			throws Exception {
+		setUpPreviousWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2);
+		setUpCurrentWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2);
+		setUpAppTokenRemainsInCurrentGroup();
+
+		appTokenHandler.useExtendedFunctionality(efData);
+
+		assertNewAppTokensCreated();
+		assertAppTokensInReturnedData(linkAppTokenGroup1, linkAppTokenGroup2);
+		assertAppTokensRemovedFromStorage();
+		assertNotCalledRemoveAppTokensGroup();
+	}
+
+	@Test
+	public void test_0currentOnlyNote_0currentLink_0previousMatch_2previousNotMatch()
+			throws Exception {
+		setUpPreviousWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2);
+
+		appTokenHandler.useExtendedFunctionality(efData);
+
+		assertNewAppTokensCreated();
+		assertAppTokensInReturnedData();
+		assertAppTokensRemovedFromStorage(linkAppTokenGroup1, linkAppTokenGroup2);
+	}
+
+	@Test
+	public void test_0currentOnlyNote_1currentLink_1previousMatch_2previousNotMatch()
+			throws Exception {
+		setUpPreviousWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2, linkAppTokenGroup3);
+		setUpCurrentWithAppTokens(linkAppTokenGroup2);
+		setUpAppTokenRemainsInCurrentGroup();
+
+		appTokenHandler.useExtendedFunctionality(efData);
+
+		assertNewAppTokensCreated();
+		assertAppTokensInReturnedData(linkAppTokenGroup2);
+		assertAppTokensRemovedFromStorage(linkAppTokenGroup1, linkAppTokenGroup3);
+		assertNotCalledRemoveAppTokensGroup();
+	}
+
+	private void setUpAppTokenRemainsInCurrentGroup() {
+		currentAppTokensGroup.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> true, "appToken");
+	}
+
+	@Test
+	public void test_2currentOnlyNote_4currentLink_2previousMatch_2previousNotMatch()
+			throws Exception {
+		setUpPreviousWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2, linkAppTokenGroup3,
+				linkAppTokenGroup4);
+		setUpCurrentWithAppTokens(linkAppTokenGroup1, onlyNoteAppTokenGroup1, linkAppTokenGroup2,
+				onlyNoteAppTokenGroup2, linkAppTokenGroup5, linkAppTokenGroup6);
+		setUpAppTokenRemainsInCurrentGroup();
+
+		appTokenHandler.useExtendedFunctionality(efData);
+
+		assertNewAppTokensCreated(onlyNoteAppTokenGroup1, onlyNoteAppTokenGroup2);
+		assertAppTokensInReturnedData(linkAppTokenGroup1, linkAppTokenGroup2,
+				onlyNoteAppTokenGroup1, onlyNoteAppTokenGroup2);
+		assertAppTokensRemovedFromStorage(linkAppTokenGroup3, linkAppTokenGroup4);
+		assertNotCalledRemoveAppTokensGroup();
+	}
+
+	@Test
+	public void testEnsureRemoveAllChildrenAfterFetchingAppTokensList() throws Exception {
+		setUpPreviousWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2);
+		setUpCurrentWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2);
+		setUpAppTokenRemainsInCurrentGroup();
+		setExceptionToStopExecutionOnRemoveAllChildren();
+
+		try {
+			appTokenHandler.useExtendedFunctionality(efData);
+			fail();
+		} catch (Exception e) {
+			currentAppTokensGroup.MCR.assertMethodWasCalled("getChildrenOfTypeAndName");
+		}
+	}
+
+	private void setExceptionToStopExecutionOnRemoveAllChildren() {
+		currentAppTokensGroup.MRV.setAlwaysThrowException("removeAllChildrenWithNameInData",
+				new RuntimeException());
 	}
 
 	private void assertAppTokensInReturnedData(DataGroup... appTokenGroups) {
@@ -146,27 +275,12 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		currentDataGroup.MCR.assertMethodNotCalled("removeFirstChildWithNameInData");
 	}
 
-	@Test
-	public void test_1currentOnlyNote_0currentLink_0previousMatch_0previousNotMatch()
-			throws Exception {
-		setUpCurrentWithAppTokens(onlyNoteAppTokenGroup2);
-
-		appTokenHandler.useExtendedFunctionality(efData);
-
-		assertAppTokenGroups();
-		removeAllAppTokensFromAppTokensCurrentGroupBeforeHandling();
-
-		assertAppTokensInReturnedData(onlyNoteAppTokenGroup2);
-		assertAppTokensRemovedFromPreviousGroup();
-		assertNotCalledRemoveAppTokensGroup();
-	}
-
-	private void removeAllAppTokensFromAppTokensCurrentGroupBeforeHandling() {
+	private void assertRemoveAllAppTokensFromAppTokensCurrentGroupBeforeHandling() {
 		currentAppTokensGroup.MCR.assertParameters("removeAllChildrenWithNameInData", 0,
 				"appToken");
 	}
 
-	private void assertAppTokenGroups() {
+	private void assertAllCurrentAppTokenGroupsAreRead() {
 		currentDataGroup.MCR.assertParameters("containsChildOfTypeAndName", 0, DataGroup.class,
 				"appTokens");
 		DataGroupSpy appTokensGroup = (DataGroupSpy) currentDataGroup.MCR
@@ -180,24 +294,26 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		currentDataGroup.MCR.assertNumberOfCallsToMethod("removeFirstChildWithNameInData", 1);
 	}
 
-	@Test
-	public void test_2currentOnlyNote_0currentLink_0previousMatch_0previousNotMatch()
-			throws Exception {
-		setUpCurrentWithAppTokens(onlyNoteAppTokenGroup1, onlyNoteAppTokenGroup2);
-
-		appTokenHandler.useExtendedFunctionality(efData);
-
-		assertNewAppToken(onlyNoteAppTokenGroup1, 0);
-		assertNewAppToken(onlyNoteAppTokenGroup2, 1);
-
-		assertAppTokensInReturnedData(onlyNoteAppTokenGroup2, onlyNoteAppTokenGroup2);
-		assertAppTokensRemovedFromPreviousGroup();
-		assertNotCalledRemoveAppTokensGroup();
-	}
-
 	private void setUpCurrentWithAppTokens(DataGroupSpy... appTokenGroup) {
 		setupAppTokensGroupsUsingAppTokenGroups(currentDataGroup, currentAppTokensGroup,
 				appTokenGroup);
+	}
+
+	private void setupAppTokensGroupsUsingAppTokenGroups(DataGroupSpy userDataGroup,
+			DataGroupSpy appTokensGroup, DataGroupSpy... appTokenGroups) {
+		if (appTokenGroups.length > 0) {
+			userDataGroup.MRV.setSpecificReturnValuesSupplier("containsChildOfTypeAndName",
+					() -> true, DataGroup.class, "appTokens");
+			userDataGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+					() -> appTokensGroup, "appTokens");
+
+			List<DataGroup> appTokenGroupList = new ArrayList<>();
+			for (DataGroupSpy appTokenGroup : appTokenGroups) {
+				appTokenGroupList.add(appTokenGroup);
+			}
+			appTokensGroup.MRV.setDefaultReturnValuesSupplier("getChildrenOfTypeAndName",
+					() -> appTokenGroupList);
+		}
 	}
 
 	private DataGroupSpy createAppTokenGroupWithOnlyNote(String postfix) {
@@ -206,50 +322,39 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		return appTokenGroup;
 	}
 
-	private void setupAppTokensGroupsUsingAppTokenGroups(DataGroupSpy userDataGroup,
-			DataGroupSpy appTokensGroup, DataGroupSpy... appTokenGroups) {
-
-		if (appTokenGroups.length > 0) {
-			userDataGroup.MRV.setSpecificReturnValuesSupplier("containsChildOfTypeAndName",
-					() -> true, DataGroup.class, "appTokens");
-			userDataGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-					() -> appTokensGroup, "appTokens");
-
-			List<DataGroup> appTokensGroups = new ArrayList<>();
-			for (DataGroupSpy appTokenGroup : appTokenGroups) {
-				appTokensGroups.add(appTokenGroup);
-			}
-			appTokensGroup.MRV.setDefaultReturnValuesSupplier("getChildrenOfTypeAndName",
-					() -> appTokensGroups);
+	private void assertNewAppTokensCreated(DataGroupSpy... appTokenGroups) {
+		int nrAssertedAppTokens = 0;
+		for (DataGroupSpy appTokenGroup : appTokenGroups) {
+			assertCreationOfAnAppToken(nrAssertedAppTokens, appTokenGroup);
+			nrAssertedAppTokens++;
+		}
+		if (nrAssertedAppTokens == 0) {
+			assertNoApptokenCreated();
 		}
 	}
 
-	private void assertNewAppToken(DataGroupSpy appTokenGroup, int callNr) {
-		var genreatedAppToken = appTokenGenerator.MCR.getReturnValue("generateAppToken", callNr);
+	private void assertCreationOfAnAppToken(int callNr, DataGroupSpy appTokenGroup) {
+		var generatedAppToken = appTokenGenerator.MCR.getReturnValue("generateAppToken", callNr);
 		var systemSecretId = systemSecretOperations.MCR.assertCalledParametersReturn(
-				"createAndStoreSystemSecretRecord", genreatedAppToken, SOME_DATA_DIVIDER);
-		var appTokenLink = assertRecordLinkCreationAndReturn(callNr, systemSecretId);
+				"createAndStoreSystemSecretRecord", generatedAppToken, SOME_DATA_DIVIDER);
+		var appTokenLink = dataFactory.MCR.assertCalledParametersReturn(
+				"factorRecordLinkUsingNameInDataAndTypeAndId", "appTokenLink", "systemSecret",
+				systemSecretId);
 		appTokenGroup.MCR.assertParameters("addChild", 0, appTokenLink);
+		assertCreatedTokensInEFSharedData(generatedAppToken, systemSecretId);
 	}
 
-	private Object assertRecordLinkCreationAndReturn(int callNr, Object systemSecretId) {
-		dataFactory.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", callNr,
-				"appTokenLink", "systemSecret", systemSecretId);
-		var appTokenLink = dataFactory.MCR
-				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", callNr);
-		return appTokenLink;
+	private void assertCreatedTokensInEFSharedData(Object generatedAppToken,
+			Object systemSecretId) {
+		String className = appTokenHandler.getClass().getSimpleName();
+		Map<String, String> storedLinkTokenMap = (Map<String, String>) efData.dataSharer
+				.get(className);
+		assertEquals(storedLinkTokenMap.get(systemSecretId), generatedAppToken);
 	}
 
-	@Test
-	public void test_0currentOnlyNote_2currentLink_0previousMatch_0previousNotMatch()
-			throws Exception {
-		setUpCurrentWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2);
-
-		appTokenHandler.useExtendedFunctionality(efData);
-
-		assertAppTokensInReturnedData();
-		assertAppTokensRemovedFromPreviousGroup();
-		assertRemoveAppTokensGroupWhenNoAppTokenExists();
+	private void assertNoApptokenCreated() {
+		appTokenGenerator.MCR.assertMethodNotCalled("generateAppToken");
+		systemSecretOperations.MCR.assertMethodNotCalled("createAndStoreSystemSecretRecord");
 	}
 
 	private DataGroupSpy createAppTokenGroupWithNoteAndAppTokenLink(String postfix) {
@@ -265,68 +370,12 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		return appTokenGroup;
 	}
 
-	@Test
-	public void test_0currentOnlyNote_2currentLink_2previousMatch_0previousNotMatch()
-			throws Exception {
-		setUpPreviousWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2);
-		setUpCurrentWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2);
-
-		appTokenHandler.useExtendedFunctionality(efData);
-
-		linkAppTokenGroup1.MCR.assertParameters("getFirstChildOfTypeAndName", 0,
-				DataRecordLink.class, "appTokenLink");
-
-		assertAppTokensInReturnedData(linkAppTokenGroup1, linkAppTokenGroup2);
-		assertAppTokensRemovedFromPreviousGroup();
-		assertNotCalledRemoveAppTokensGroup();
-	}
-
 	private void setUpPreviousWithAppTokens(DataGroupSpy... appTokenGroup) {
 		setupAppTokensGroupsUsingAppTokenGroups(previousDataGroup, previousAppTokensGroup,
 				appTokenGroup);
 	}
 
-	@Test
-	public void test_0currentOnlyNote_0currentLink_0previousMatch_2previousNotMatch()
-			throws Exception {
-		setUpPreviousWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2);
-
-		appTokenHandler.useExtendedFunctionality(efData);
-
-		assertAppTokensInReturnedData();
-		assertAppTokensRemovedFromPreviousGroup(linkAppTokenGroup1, linkAppTokenGroup2);
-	}
-
-	@Test
-	public void test_0currentOnlyNote_1currentLink_1previousMatch_2previousNotMatch()
-			throws Exception {
-		setUpPreviousWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2, linkAppTokenGroup3);
-		setUpCurrentWithAppTokens(linkAppTokenGroup2);
-
-		appTokenHandler.useExtendedFunctionality(efData);
-
-		assertAppTokensInReturnedData(linkAppTokenGroup2);
-		assertAppTokensRemovedFromPreviousGroup(linkAppTokenGroup1, linkAppTokenGroup3);
-		assertNotCalledRemoveAppTokensGroup();
-	}
-
-	@Test
-	public void test_2currentOnlyNote_4currentLink_2previousMatch_2previousNotMatch()
-			throws Exception {
-		setUpPreviousWithAppTokens(linkAppTokenGroup1, linkAppTokenGroup2, linkAppTokenGroup3,
-				linkAppTokenGroup4);
-		setUpCurrentWithAppTokens(linkAppTokenGroup1, onlyNoteAppTokenGroup1, linkAppTokenGroup2,
-				onlyNoteAppTokenGroup2, linkAppTokenGroup5, linkAppTokenGroup6);
-
-		appTokenHandler.useExtendedFunctionality(efData);
-
-		assertAppTokensInReturnedData(linkAppTokenGroup1, linkAppTokenGroup2,
-				onlyNoteAppTokenGroup1, onlyNoteAppTokenGroup2);
-		assertAppTokensRemovedFromPreviousGroup(linkAppTokenGroup3, linkAppTokenGroup4);
-		assertNotCalledRemoveAppTokensGroup();
-	}
-
-	private void assertAppTokensRemovedFromPreviousGroup(DataGroup... appTokenGroups) {
+	private void assertAppTokensRemovedFromStorage(DataGroup... appTokenGroups) {
 		for (DataGroup appToken : appTokenGroups) {
 			DataRecordLink appTokenLink = appToken.getFirstChildOfTypeAndName(DataRecordLink.class,
 					"appTokenLink");

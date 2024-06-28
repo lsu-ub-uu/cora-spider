@@ -26,10 +26,16 @@ public class AppTokenGeneratorSpy implements AppTokenGenerator {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
+	int appTokenNo = 0;
 
 	public AppTokenGeneratorSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("generateAppToken", () -> "someGeneratedAppToken");
+		MRV.setDefaultReturnValuesSupplier("generateAppToken", () -> generateAppTokenString());
+	}
+
+	private String generateAppTokenString() {
+		appTokenNo++;
+		return "someGeneratedAppToken" + appTokenNo;
 	}
 
 	@Override
