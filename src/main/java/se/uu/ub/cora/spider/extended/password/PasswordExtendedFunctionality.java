@@ -38,7 +38,6 @@ import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
  * PasswordExtendedFunctionality is NOT threadsafe.
  */
 public class PasswordExtendedFunctionality implements ExtendedFunctionality {
-
 	private static final String TS_PASSWORD_UPDATED_NAME_IN_DATA = "tsPasswordUpdated";
 	private static final String PASSWORD_LINK_NAME_IN_DATA = "passwordLink";
 	private static final String PLAIN_TEXT_PASSWORD_NAME_IN_DATA = "plainTextPassword";

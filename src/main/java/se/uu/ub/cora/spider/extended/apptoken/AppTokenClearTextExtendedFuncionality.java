@@ -28,7 +28,15 @@ import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
+/**
+ * AppTokenClearTextExtendedFuncionality set the field with nameInData "appTokenClearText", for all
+ * apptokens with this information added to the dataSharer by the
+ * {@link AppTokenHandlerExtendedFunctionality}.
+ * <p>
+ * PasswordExtendedFunctionality is NOT threadsafe.
+ */
 public class AppTokenClearTextExtendedFuncionality implements ExtendedFunctionality {
+	private static final String APP_TOKEN_CLEAR_TEXT_NAME_IN_DATA = "appTokenClearText";
 	private Map<String, String> efSystemSecretIdAndClearTextToken;
 
 	@Override
@@ -78,7 +86,7 @@ public class AppTokenClearTextExtendedFuncionality implements ExtendedFunctional
 
 	private void setClearTextInAppTokenGroup(DataGroup appTokenGroup, String clearText) {
 		DataAtomic clearTextAtomic = DataProvider
-				.createAtomicUsingNameInDataAndValue("appTokenClearText", clearText);
+				.createAtomicUsingNameInDataAndValue(APP_TOKEN_CLEAR_TEXT_NAME_IN_DATA, clearText);
 		appTokenGroup.addChild(clearTextAtomic);
 	}
 

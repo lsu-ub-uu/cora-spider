@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.extended.apptoken;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -39,6 +40,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.spy.AppTokenGeneratorSpy;
 import se.uu.ub.cora.spider.spy.SystemSecretOperationsSpy;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
 
 public class AppTokenHandlerExtendedFunctionalityTest {
 
@@ -73,8 +75,9 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		systemSecretOperations = new SystemSecretOperationsSpy();
 		appTokenGenerator = new AppTokenGeneratorSpy();
 
-		appTokenHandler = new AppTokenHandlerExtendedFunctionality(appTokenGenerator,
-				systemSecretOperations);
+		appTokenHandler = AppTokenHandlerExtendedFunctionality
+				.usingAppTokenGeneratorAndSystemSecretOperations(appTokenGenerator,
+						systemSecretOperations);
 
 		onlyNoteAppTokenGroup1 = createAppTokenGroupWithOnlyNote("AppToken1");
 		onlyNoteAppTokenGroup2 = createAppTokenGroupWithOnlyNote("AppToken2");
@@ -257,6 +260,20 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		} catch (Exception e) {
 			currentAppTokensGroup.MCR.assertMethodWasCalled("getChildrenOfTypeAndName");
 		}
+	}
+
+	@Test
+	public void testOnlyForTestGetAppTokenGenerator() throws Exception {
+		AppTokenGenerator appTokenGeneratorFromHandler = appTokenHandler
+				.onlyForTestGetAppTokenGenerator();
+		assertSame(appTokenGenerator, appTokenGeneratorFromHandler);
+	}
+
+	@Test
+	public void testOnlyForTestSystemSecretOperations() throws Exception {
+		SystemSecretOperations SystemSecretOperationsFromHandler = appTokenHandler
+				.onlyForTestGetSystemSecretOperations();
+		assertSame(systemSecretOperations, SystemSecretOperationsFromHandler);
 	}
 
 	private void setExceptionToStopExecutionOnRemoveAllChildren() {

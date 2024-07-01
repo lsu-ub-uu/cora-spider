@@ -66,6 +66,12 @@ public class PasswordExtendedFunctionalityFactoryTest {
 	}
 
 	@Test
+	public void testFactoryHasADefaultTextHasherFactory() throws Exception {
+		assertTrue(onlyForTestFactory
+				.onlyForTestGetTextHasherFactory() instanceof TextHasherFactoryImp);
+	}
+
+	@Test
 	public void testInitCreatesContextsForUserRecordType() throws Exception {
 		factory.initializeUsingDependencyProvider(dependencyProvider);
 		List<ExtendedFunctionalityContext> extendedFunctionalityContexts = factory
@@ -78,12 +84,6 @@ public class PasswordExtendedFunctionalityFactoryTest {
 		ExtendedFunctionalityContext secondContext = extendedFunctionalityContexts.get(1);
 		assertEquals(secondContext.position, UPDATE_AFTER_STORE);
 		assertEquals(secondContext.recordType, USER_RECORD_TYPE);
-	}
-
-	@Test
-	public void testFactoryHasADefaultTextHasherFactory() throws Exception {
-		assertTrue(onlyForTestFactory
-				.onlyForTestGetTextHasherFactory() instanceof TextHasherFactoryImp);
 	}
 
 	@Test

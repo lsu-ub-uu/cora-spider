@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Uppsala University Library
+ * Copyright 2020, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,23 +18,27 @@
  */
 package se.uu.ub.cora.spider.extended.apptoken;
 
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_STORE;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import se.uu.ub.cora.password.texthasher.TextHasher;
+import se.uu.ub.cora.password.texthasher.TextHasherFactory;
+import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperationsImp;
 
 public class ApptokenExtendedFunctionalityFactory implements ExtendedFunctionalityFactory {
-
 	private List<ExtendedFunctionalityContext> contexts = new ArrayList<>();
 	private SpiderDependencyProvider dependencyProvider;
+	TextHasherFactory textHasherFactory = new TextHasherFactoryImp();
 
 	@Override
 	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
@@ -43,22 +47,44 @@ public class ApptokenExtendedFunctionalityFactory implements ExtendedFunctionali
 	}
 
 	private void createListOfContexts() {
-		createContext(CREATE_AFTER_AUTHORIZATION);
-		createContext(CREATE_BEFORE_ENHANCE);
+		createContext(UPDATE_AFTER_METADATA_VALIDATION);
+		createContext(UPDATE_AFTER_STORE);
 	}
 
 	private void createContext(ExtendedFunctionalityPosition position) {
-		contexts.add(new ExtendedFunctionalityContext(position, "appToken", 0));
+		contexts.add(new ExtendedFunctionalityContext(position, "user", 0));
 	}
 
 	@Override
 	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
 			String recordType) {
-		if (CREATE_AFTER_AUTHORIZATION == position) {
-			return Collections.singletonList(new AppTokenEnhancer());
+		if (UPDATE_AFTER_METADATA_VALIDATION == position) {
+			return createExtendedFunctionalityForUpdateAfterMetadataValidation();
 		}
-		return Collections.singletonList(
-				UserUpdaterForAppToken.usingSpiderDependencyProvider(dependencyProvider));
+		return createExtendedFunctionalityForUpdateAfterStore();
+	}
+
+	private List<ExtendedFunctionality> createExtendedFunctionalityForUpdateAfterMetadataValidation() {
+		AppTokenHandlerExtendedFunctionality appTokenHandlerExFunc = createAppTokenHandler();
+		return Collections.singletonList(appTokenHandlerExFunc);
+	}
+
+	private AppTokenHandlerExtendedFunctionality createAppTokenHandler() {
+		AppTokenGeneratorImp appTokenGeneratorImp = new AppTokenGeneratorImp();
+		SystemSecretOperationsImp systemSecretOperationsImp = createSystemSecretOperations();
+		return AppTokenHandlerExtendedFunctionality.usingAppTokenGeneratorAndSystemSecretOperations(
+				appTokenGeneratorImp, systemSecretOperationsImp);
+	}
+
+	private SystemSecretOperationsImp createSystemSecretOperations() {
+		TextHasher textHasher = textHasherFactory.factor();
+		return SystemSecretOperationsImp.usingDependencyProviderAndTextHasher(dependencyProvider,
+				textHasher);
+	}
+
+	private List<ExtendedFunctionality> createExtendedFunctionalityForUpdateAfterStore() {
+		AppTokenClearTextExtendedFuncionality clearTextExFunc = new AppTokenClearTextExtendedFuncionality();
+		return Collections.singletonList(clearTextExFunc);
 	}
 
 	@Override

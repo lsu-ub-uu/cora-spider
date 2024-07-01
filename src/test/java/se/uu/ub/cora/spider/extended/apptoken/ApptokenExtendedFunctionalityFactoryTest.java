@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Uppsala University Library
+ * Copyright 2020, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,39 +21,67 @@ package se.uu.ub.cora.spider.extended.apptoken;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_STORE;
 
 import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.password.texthasher.TextHasherFactory;
+import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
+import se.uu.ub.cora.spider.extended.password.TextHasherFactorySpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperationsImp;
 
 public class ApptokenExtendedFunctionalityFactoryTest {
-
+	private static final String RECORD_TYPE_USER = "user";
 	private ExtendedFunctionalityFactory factory;
 	private SpiderDependencyProvider dependencyProviderSpy;
+	private ApptokenExtendedFunctionalityFactoryOnlyForTest onlyForTestFactory;
+	private TextHasherFactorySpy textHasherFactorySpy;
 
 	@BeforeMethod
-	public void setUp() {
+	public void beforeMethod() {
 		factory = new ApptokenExtendedFunctionalityFactory();
-		dependencyProviderSpy = new SpiderDependencyProviderOldSpy();
+		dependencyProviderSpy = new SpiderDependencyProviderSpy();
 		factory.initializeUsingDependencyProvider(dependencyProviderSpy);
+
+		onlyForTestFactory = new ApptokenExtendedFunctionalityFactoryOnlyForTest();
+		onlyForTestFactory.initializeUsingDependencyProvider(dependencyProviderSpy);
+		textHasherFactorySpy = new TextHasherFactorySpy();
+	}
+
+	class ApptokenExtendedFunctionalityFactoryOnlyForTest
+			extends ApptokenExtendedFunctionalityFactory {
+		TextHasherFactory onlyForTestGetTextHasherFactory() {
+			return textHasherFactory;
+		}
+
+		void onlyForTestSetTextHasherFactory(TextHasherFactory textHasherFactory) {
+			this.textHasherFactory = textHasherFactory;
+		}
+	}
+
+	@Test
+	public void testFactoryHasADefaultTextHasherFactory() throws Exception {
+		assertTrue(onlyForTestFactory
+				.onlyForTestGetTextHasherFactory() instanceof TextHasherFactoryImp);
 	}
 
 	@Test
 	public void testGetExtendedFunctionalityContexts() {
 		assertEquals(factory.getExtendedFunctionalityContexts().size(), 2);
-		assertCorrectContextUsingIndexNumberAndPosition(0, 0, "appToken",
-				CREATE_AFTER_AUTHORIZATION);
-		assertCorrectContextUsingIndexNumberAndPosition(1, 0, "appToken",
-				ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE);
+		assertCorrectContextUsingIndexNumberAndPosition(0, 0, RECORD_TYPE_USER,
+				UPDATE_AFTER_METADATA_VALIDATION);
+		assertCorrectContextUsingIndexNumberAndPosition(1, 0, RECORD_TYPE_USER,
+				ExtendedFunctionalityPosition.UPDATE_AFTER_STORE);
 	}
 
 	private void assertCorrectContextUsingIndexNumberAndPosition(int index, int runAsNumber,
@@ -66,21 +94,38 @@ public class ApptokenExtendedFunctionalityFactoryTest {
 	}
 
 	@Test
-	public void testCreateBeforeValidationForApptoken() {
-		List<ExtendedFunctionality> functionalities = factory.factor(CREATE_AFTER_AUTHORIZATION,
-				"appToken");
-		assertTrue(functionalities.get(0) instanceof AppTokenEnhancer);
+	public void testUpdateAfterMetadataValidationForUser() {
+		List<ExtendedFunctionality> functionalities = factory
+				.factor(UPDATE_AFTER_METADATA_VALIDATION, RECORD_TYPE_USER);
+
+		assertTrue(functionalities.get(0) instanceof AppTokenHandlerExtendedFunctionality);
 	}
 
 	@Test
-	public void testCreateBeforeReturnForApptoken() {
-		List<ExtendedFunctionality> functionalities = factory
-				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE, "appToken");
-		UserUpdaterForAppToken extendedFunctionality = (UserUpdaterForAppToken) functionalities
-				.get(0);
+	public void testDependenciesForAppTokenHandlerExtendedFunctionality() throws Exception {
+		onlyForTestFactory.onlyForTestSetTextHasherFactory(textHasherFactorySpy);
 
-		assertSame(extendedFunctionality.onlyForTestGetDependencyProvider(), dependencyProviderSpy);
-		assertTrue(extendedFunctionality instanceof UserUpdaterForAppToken);
+		List<ExtendedFunctionality> functionalities = onlyForTestFactory
+				.factor(UPDATE_AFTER_METADATA_VALIDATION, RECORD_TYPE_USER);
+		AppTokenHandlerExtendedFunctionality extendedFunctionality = (AppTokenHandlerExtendedFunctionality) functionalities
+				.get(0);
+		assertTrue(extendedFunctionality
+				.onlyForTestGetAppTokenGenerator() instanceof AppTokenGeneratorImp);
+
+		SystemSecretOperationsImp systemSecretOperationsFromHandler = (SystemSecretOperationsImp) extendedFunctionality
+				.onlyForTestGetSystemSecretOperations();
+		assertSame(systemSecretOperationsFromHandler.onlyForTestGetDependencyProvider(),
+				dependencyProviderSpy);
+		textHasherFactorySpy.MCR.assertReturn("factor", 0,
+				systemSecretOperationsFromHandler.onlyForTestGetTextHasher());
+	}
+
+	@Test
+	public void testUpdataAfterStoreForUser() {
+		List<ExtendedFunctionality> functionalities = factory.factor(UPDATE_AFTER_STORE,
+				RECORD_TYPE_USER);
+
+		assertTrue(functionalities.get(0) instanceof AppTokenClearTextExtendedFuncionality);
 	}
 
 }

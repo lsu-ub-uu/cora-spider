@@ -30,11 +30,23 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
 
+/**
+ * AppTokenHandlerExtendedFunctionality creates, updates, and removes appTokens for the user beeing
+ * updated. It also set the field with nameInData "appTokenClearText", in dataSharer for later
+ * addition by {@link AppTokenClearTextExtendedFuncionality}.
+ * <p>
+ * PasswordExtendedFunctionality is NOT threadsafe.
+ */
 public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionality {
-
 	private static final String APP_TOKENS_GROUP_NAME_IN_DATA = "appTokens";
 	private static final String APP_TOKEN_GROUP_NAME_IN_DATA = "appToken";
 	private static final String APP_TOKEN_LINK_NAME_IN_DATA = "appTokenLink";
+
+	public static AppTokenHandlerExtendedFunctionality usingAppTokenGeneratorAndSystemSecretOperations(
+			AppTokenGenerator appTokenGenerator, SystemSecretOperations systemSecretOperations) {
+		return new AppTokenHandlerExtendedFunctionality(appTokenGenerator, systemSecretOperations);
+	}
+
 	private AppTokenGenerator appTokenGenerator;
 	private SystemSecretOperations systemSecretOperations;
 	private DataGroup currentAppTokensGroup;
@@ -43,7 +55,7 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 	private String currentDataDivider;
 	private HashMap<String, String> efSystemSecretIdAndClearTextToken;
 
-	public AppTokenHandlerExtendedFunctionality(AppTokenGenerator appTokenGenerator,
+	private AppTokenHandlerExtendedFunctionality(AppTokenGenerator appTokenGenerator,
 			SystemSecretOperations systemSecretOperations) {
 		this.appTokenGenerator = appTokenGenerator;
 		this.systemSecretOperations = systemSecretOperations;
@@ -208,5 +220,13 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 		for (String id : previousAppTokenLinkIds) {
 			systemSecretOperations.deleteSystemSecretFromStorage(id);
 		}
+	}
+
+	public AppTokenGenerator onlyForTestGetAppTokenGenerator() {
+		return appTokenGenerator;
+	}
+
+	public SystemSecretOperations onlyForTestGetSystemSecretOperations() {
+		return systemSecretOperations;
 	}
 }
