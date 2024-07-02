@@ -96,6 +96,15 @@ public class AppTokenClearTextExtendedFuncionalityTest {
 	}
 
 	@Test
+	private void testInitAppTokenHandlerExtendedFunctionalityNotSetInDataSharer() {
+		efData.dataSharer.remove("AppTokenHandlerExtendedFunctionality");
+
+		exFunc.useExtendedFunctionality(efData);
+
+		dataFactory.MCR.assertMethodNotCalled("factorAtomicUsingNameInDataAndValue");
+	}
+
+	@Test
 	public void test_0clearText_0totalApptokens() throws Exception {
 		exFunc.useExtendedFunctionality(efData);
 

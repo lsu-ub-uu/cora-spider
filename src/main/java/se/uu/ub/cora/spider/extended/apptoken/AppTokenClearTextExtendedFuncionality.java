@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.spider.extended.apptoken;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +44,7 @@ public class AppTokenClearTextExtendedFuncionality implements ExtendedFunctional
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
 		Map<String, Object> dataSharer = data.dataSharer;
 		efSystemSecretIdAndClearTextToken = (Map<String, String>) dataSharer
-				.get("AppTokenHandlerExtendedFunctionality");
+				.getOrDefault("AppTokenHandlerExtendedFunctionality", Collections.emptyMap());
 
 		possiblyAddClearTextsToAppTokens(data.dataGroup);
 	}
