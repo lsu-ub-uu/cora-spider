@@ -61,7 +61,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private RecordIdGenerator idGenerator;
 	private RecordTypeHandler recordTypeHandler;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
-	private String recordTypeToValidate;
+	private String recordTypeFromValidationOrderToValidate;
 
 	private RecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -89,7 +89,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForCreateOnValidationOrder();
 		validateValidationOrder(validationOrder);
-		recordTypeToValidate = getRecordTypeToValidate(validationOrder);
+		recordTypeFromValidationOrderToValidate = getRecordTypeToValidate(validationOrder);
 		useExtendedFunctionalityForPosition(
 				ExtendedFunctionalityPosition.VALIDATE_AFTER_AUTHORIZATION);
 
@@ -120,6 +120,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 				.createRecordGroupFromDataGroup(validationOrder);
 		RecordTypeHandler validationOrderRecordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(validationOrderAsDataRecordGroup);
+
 		return validationOrderRecordTypeHandler.getCreateDefinitionId();
 	}
 
@@ -129,23 +130,25 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private void createRecordTypeHandlerForRecordToValidate(DataGroup recordToValidate) {
-		DataRecordGroup validationOrderAsDataRecordGroup = DataProvider
+		DataRecordGroup recordToValidateAsDataRecordGroup = DataProvider
 				.createRecordGroupFromDataGroup(recordToValidate);
 		recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(validationOrderAsDataRecordGroup);
+				.getRecordTypeHandlerUsingDataRecordGroup(recordToValidateAsDataRecordGroup);
+
 	}
 
 	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
 		// read from validationorder
 		List<ExtendedFunctionality> exFunctionality = extendedFunctionalityProvider
-				.getFunctionalityForPositionAndRecordType(position, recordTypeToValidate);
+				.getFunctionalityForPositionAndRecordType(position,
+						recordTypeFromValidationOrderToValidate);
 		useExtendedFunctionality(recordToValidate, exFunctionality);
 	}
 
 	@Override
 	protected ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
-		data.recordType = recordTypeToValidate;
+		data.recordType = recordTypeFromValidationOrderToValidate;
 		data.recordId = recordId;
 		data.authToken = authToken;
 		data.user = user;
@@ -155,10 +158,11 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private DataRecord validateRecordAndCreateValidationResult(DataGroup validationOrder) {
 
-		checkUserIsAuthorizedForValidateOnRecordType(recordTypeToValidate);
+		checkUserIsAuthorizedForValidateOnRecordType(recordTypeFromValidationOrderToValidate);
 
 		createValidationResultDataGroup();
-		validateRecordUsingValidationRecord(validationOrder, recordTypeToValidate);
+		validateRecordUsingValidationRecord(validationOrder,
+				recordTypeFromValidationOrderToValidate);
 		DataRecord dataRecord = DataRecordProvider.getDataRecordWithDataGroup(validationResult);
 		addReadActionToComplyWithRecordStructure(dataRecord);
 		return dataRecord;
@@ -204,7 +208,18 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		String metadataId = getMetadataId();
 		possiblyEnsureLinksExist(validationOrder);
 
+		ensureRecordTypesMatch();
+
 		validateIncomingDataAsSpecifiedInMetadata(metadataId);
+	}
+
+	private void ensureRecordTypesMatch() {
+		String recordTypeOfRecord = recordTypeHandler.getRecordTypeId();
+		if (!recordTypeOfRecord.equals(recordTypeFromValidationOrderToValidate)) {
+			addErrorToValidationResult("RecordType from record (" + recordTypeOfRecord
+					+ ") does not match recordType from validationOrder ("
+					+ recordTypeFromValidationOrderToValidate + ")");
+		}
 	}
 
 	private String getMetadataId() {
