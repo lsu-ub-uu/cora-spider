@@ -103,6 +103,6 @@ public class ExtendedFunctionalityData {
 	 * extendedFunctionality that sets a value in this map expected to use a prefix for the key with
 	 * the className of the extendedFunctionality.
 	 */
-	public final Map<String, Object> dataSharer = new HashMap<>();
+	public Map<String, Object> dataSharer = new HashMap<>();
 
 }

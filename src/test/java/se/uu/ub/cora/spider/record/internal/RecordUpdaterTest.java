@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_AUTHORIZATION;
@@ -31,6 +32,8 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -908,6 +911,29 @@ public class RecordUpdaterTest {
 				UPDATE_BEFORE_STORE, expectedData, 3);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				UPDATE_AFTER_STORE, expectedData, 4);
+
+		Collection<Object> exFunctionalities = extendedFunctionalityProvider.MCR
+				.getReturnValues("getFunctionalityForPositionAndRecordType");
+
+		assertExtendedFunctionalityCalledWithSameExDataInstanceSoThatSharedDataWorks(
+				exFunctionalities);
+	}
+
+	private void assertExtendedFunctionalityCalledWithSameExDataInstanceSoThatSharedDataWorks(
+			Collection<Object> exFunctionalities) {
+		List<ExtendedFunctionalityData> totalExDataList = new ArrayList<>();
+		for (Object exFunctionality : exFunctionalities) {
+			List<ExtendedFunctionalitySpy> exFuncList = (List<ExtendedFunctionalitySpy>) exFunctionality;
+			for (ExtendedFunctionalitySpy exSpy : exFuncList) {
+				totalExDataList.add((ExtendedFunctionalityData) exFuncList.get(0).MCR
+						.getValueForMethodNameAndCallNumberAndParameterName(
+								"useExtendedFunctionality", 0, "data"));
+			}
+		}
+		for (int i = 0; i < totalExDataList.size() - 2; i++) {
+			System.out.print(i);
+			assertSame(totalExDataList.get(i).dataSharer, totalExDataList.get(i + 1).dataSharer);
+		}
 	}
 
 	@Test
