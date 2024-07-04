@@ -22,7 +22,9 @@ package se.uu.ub.cora.spider.record.internal;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
@@ -49,6 +51,7 @@ public class RecordHandler {
 	protected DataGroup recordToValidate;
 	protected String authToken;
 	protected User user;
+	protected Map<String, Object> dataSharer = new HashMap<>();
 
 	protected void checkToPartOfLinkedDataExistsInStorage(Set<Link> collectedLinks) {
 		for (Link recordToRecordLink : collectedLinks) {
@@ -128,12 +131,13 @@ public class RecordHandler {
 	}
 
 	protected ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
-		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
-		data.recordType = recordType;
-		data.recordId = recordId;
-		data.authToken = authToken;
-		data.user = user;
-		data.dataGroup = dataGroup;
-		return data;
+		ExtendedFunctionalityData exData = new ExtendedFunctionalityData();
+		exData.recordType = recordType;
+		exData.recordId = recordId;
+		exData.authToken = authToken;
+		exData.user = user;
+		exData.dataGroup = dataGroup;
+		exData.dataSharer = dataSharer;
+		return exData;
 	}
 }

@@ -67,8 +67,10 @@ import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactorySpy;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.StreamStorageProvider;
+import se.uu.ub.cora.storage.archive.ResourceArchiveProvider;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGeneratorProvider;
 import se.uu.ub.cora.storage.spies.RecordStorageInstanceProviderSpy;
+import se.uu.ub.cora.storage.spies.archive.ResourceArchiveInstanceProviderSpy;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class DependencyProviderAbstractTest {
@@ -77,6 +79,7 @@ public class DependencyProviderAbstractTest {
 	private RecordStorageInstanceProviderSpy recordStorageInstanceProvider;
 	private MetadataStorageProviderSpy metadataStorageProvider;
 	private Map<String, String> settings;
+	private ResourceArchiveInstanceProviderSpy resourceArchiveInstanceProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -97,6 +100,10 @@ public class DependencyProviderAbstractTest {
 		recordStorageInstanceProvider = new RecordStorageInstanceProviderSpy();
 		RecordStorageProvider
 				.onlyForTestSetRecordStorageInstanceProvider(recordStorageInstanceProvider);
+
+		resourceArchiveInstanceProvider = new ResourceArchiveInstanceProviderSpy();
+		ResourceArchiveProvider.onlyForTestSetInstanceProvider(resourceArchiveInstanceProvider);
+
 		StreamStorageProvider streamStorageProvider = new StreamStorageProviderSpy();
 		dependencyProvider.setStreamStorageProvider(streamStorageProvider);
 		RecordIdGeneratorProvider recordIdGeneratorProvider = new RecordIdGeneratorProviderSpy();
@@ -158,6 +165,12 @@ public class DependencyProviderAbstractTest {
 	public void testGetRecordStorage() {
 		recordStorageInstanceProvider.MCR.assertReturn("getRecordStorage", 0,
 				dependencyProvider.getRecordStorage());
+	}
+
+	@Test
+	public void testGetResourceArchive() {
+		resourceArchiveInstanceProvider.MCR.assertReturn("getResourceArchive", 0,
+				dependencyProvider.getResourceArchive());
 	}
 
 	@Test

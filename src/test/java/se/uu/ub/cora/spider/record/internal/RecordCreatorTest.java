@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.record.internal;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
@@ -70,12 +71,14 @@ import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorOldSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
 import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.RecordArchiveSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.spy.ValidationAnswerSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.RecordConflictException;
@@ -179,6 +182,12 @@ public class RecordCreatorTest {
 				dependencyProvider, dataGroupToRecordEnhancer);
 		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProviderSpy, dataGroupToRecordEnhancer);
+	}
+
+	@Test
+	public void testOnlyForTestGetDataGroupToRecordEnhancer() throws Exception {
+		RecordCreatorImp creatorImp = (RecordCreatorImp) recordCreator;
+		assertSame(creatorImp.onlyForTestGetDataGroupToRecordEnhancer(), dataGroupToRecordEnhancer);
 	}
 
 	@Test
@@ -392,13 +401,28 @@ public class RecordCreatorTest {
 		recordIndexer.MCR.assertParameter("indexData", 0, "record", dataRecord);
 	}
 
-	@Test(expectedExceptions = DataException.class)
-	public void testCreateRecordInvalidData() {
-		dataValidator.validValidation = false;
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "Data is not valid: \\[Error1, Error2\\]")
+	public void testX() {
+		setUpRecordTypeHandlerToAutoGenerateId();
+		DataGroup dataGroup = createRecordWithNameInDataNameInDataAndDataDividerCora();
+		setUpDataValidatorToReturnInvalidWithErrors();
+		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+				dependencyProviderSpy, dataGroupToRecordEnhancer);
 
-		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
+		recordCreator.createAndStoreRecord("dummyAuthenticatedToken", "spyType", dataGroup);
+	}
 
-		recordCreatorOld.createAndStoreRecord("someToken78678567", "recordType", dataGroup);
+	private void setUpDataValidatorToReturnInvalidWithErrors() {
+		DataValidatorSpy dataValidatorSpy = new DataValidatorSpy();
+		ValidationAnswerSpy validationAnswer = new ValidationAnswerSpy();
+		validationAnswer.MRV.setDefaultReturnValuesSupplier("dataIsInvalid", () -> true);
+		validationAnswer.MRV.setDefaultReturnValuesSupplier("getErrorMessages",
+				() -> List.of("Error1", "Error2"));
+
+		dataValidatorSpy.MRV.setDefaultReturnValuesSupplier("validateData", () -> validationAnswer);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataValidator",
+				() -> dataValidatorSpy);
 	}
 
 	@Test

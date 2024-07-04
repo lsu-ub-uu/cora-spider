@@ -217,14 +217,14 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		String latestUpdatedTopDataG = getLatestDateFromARecord(topDataGroup);
 		String latestUpdatedPreviouslyStored = getLatestDateFromARecord(previouslyStoredRecord);
 
-		if (differentVersion(latestUpdatedTopDataG, latestUpdatedPreviouslyStored)) {
+		if (differentValues(latestUpdatedTopDataG, latestUpdatedPreviouslyStored)) {
 			throw ConflictException
 					.withMessage("Could not update record because it exist a newer version of the "
 							+ "record in the storage.");
 		}
 	}
 
-	private boolean differentVersion(String latestUpdatedTopDataG,
+	private boolean differentValues(String latestUpdatedTopDataG,
 			String latestUpdatedPreviouslyStored) {
 		return !latestUpdatedTopDataG.equals(latestUpdatedPreviouslyStored);
 	}
@@ -264,7 +264,6 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
-
 		CollectTerms collectedTerms = dataGroupTermCollector.collectTerms(definitionId,
 				previouslyStoredRecord);
 
@@ -387,7 +386,8 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private void validateIncomingDataAsSpecifiedInMetadata() {
 		ValidationAnswer validationAnswer = dataValidator.validateData(updateDefinitionId,
 				topDataGroup);
-		if (validationAnswer.dataIsInvalid()) {
+		boolean dataIsInvalid = validationAnswer.dataIsInvalid();
+		if (dataIsInvalid) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
 	}
@@ -400,12 +400,12 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private void checkIdIsSameAsInEnteredRecord(DataGroup recordInfo) {
 		String valueFromRecord = recordInfo.getFirstAtomicValueWithNameInData("id");
-		checkValueIsSameAsValueInEnteredRecord(recordId, valueFromRecord);
+		ensureValuesAreEqualThrowErrorIfNot(recordId, valueFromRecord);
 	}
 
-	private void checkValueIsSameAsValueInEnteredRecord(String value,
+	private void ensureValuesAreEqualThrowErrorIfNot(String value,
 			String extractedValueFromRecord) {
-		if (differentVersion(value, extractedValueFromRecord)) {
+		if (differentValues(value, extractedValueFromRecord)) {
 			throw new DataException("Value in data(" + extractedValueFromRecord
 					+ ") does not match entered value(" + value + ")");
 		}
@@ -413,7 +413,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private void checkTypeIsSameAsInEnteredRecord(DataGroup recordInfo) {
 		String type = extractTypeFromRecordInfo(recordInfo);
-		checkValueIsSameAsValueInEnteredRecord(recordType, type);
+		ensureValuesAreEqualThrowErrorIfNot(recordType, type);
 	}
 
 	private String extractTypeFromRecordInfo(DataGroup recordInfo) {

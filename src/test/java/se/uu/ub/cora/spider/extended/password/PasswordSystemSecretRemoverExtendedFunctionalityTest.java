@@ -30,6 +30,8 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.spy.SystemSecretOperationsSpy;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class PasswordSystemSecretRemoverExtendedFunctionalityTest {
@@ -41,6 +43,7 @@ public class PasswordSystemSecretRemoverExtendedFunctionalityTest {
 	private DataGroupSpy previousGroup;
 	private DataGroupSpy currentGroup;
 	private RecordStorageSpy recordStorage;
+	private SystemSecretOperationsSpy systemSecretOperations;
 
 	@BeforeMethod
 	private void beforeMethod() {
@@ -48,8 +51,11 @@ public class PasswordSystemSecretRemoverExtendedFunctionalityTest {
 		recordStorage = new RecordStorageSpy();
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
+		systemSecretOperations = new SystemSecretOperationsSpy();
+
 		exFunc = PasswordSystemSecretRemoverExtendedFunctionality
-				.usingDependencyProvider(dependencyProviderSpy);
+				.usingDependencyProviderAndSystemSecretOperations(dependencyProviderSpy,
+						systemSecretOperations);
 		exData = new ExtendedFunctionalityData();
 		previousGroup = new DataGroupSpy();
 		currentGroup = new DataGroupSpy();
@@ -95,7 +101,7 @@ public class PasswordSystemSecretRemoverExtendedFunctionalityTest {
 
 		exFunc.useExtendedFunctionality(exData);
 
-		recordStorage.MCR.assertCalledParameters("deleteByTypeAndId", "systemSecretType",
+		systemSecretOperations.MCR.assertParameters("deleteSystemSecretFromStorage", 0,
 				"systemSecretId");
 	}
 
@@ -114,6 +120,13 @@ public class PasswordSystemSecretRemoverExtendedFunctionalityTest {
 		SpiderDependencyProvider dependencyProvider = ((PasswordSystemSecretRemoverExtendedFunctionality) exFunc)
 				.onlyForTestGetDependencyProvider();
 		assertSame(dependencyProvider, dependencyProviderSpy);
+	}
+
+	@Test
+	public void testOnlyForTestGetSystemSecretOperations() throws Exception {
+		SystemSecretOperations readSystemSecretOperations = ((PasswordSystemSecretRemoverExtendedFunctionality) exFunc)
+				.onlyForTestGetSystemSecretOperations();
+		assertSame(readSystemSecretOperations, this.systemSecretOperations);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2022 Uppsala University Library
+ * Copyright 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,32 +16,15 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.spider.extended.apptoken;
 
 import java.util.UUID;
 
-import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-
-/**
- * AppTokenEnhancer generates an appToken and adds it to the appToken instance that is beeing
- * created.
- */
-public class AppTokenEnhancer implements ExtendedFunctionality {
+public class AppTokenGeneratorImp implements AppTokenGenerator {
 
 	@Override
-	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		DataGroup dataGroup = data.dataGroup;
-		DataAtomic token = DataProvider.createAtomicUsingNameInDataAndValue("token",
-				generateToken());
-		dataGroup.addChild(token);
-	}
-
-	private String generateToken() {
+	public String generateAppToken() {
 		return UUID.randomUUID().toString();
 	}
+
 }

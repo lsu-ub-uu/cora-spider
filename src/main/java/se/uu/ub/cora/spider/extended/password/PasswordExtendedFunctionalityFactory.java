@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.password.texthasher.TextHasherFactory;
 import se.uu.ub.cora.password.texthasher.TextHasherFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -32,6 +33,8 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperationsImp;
 
 public class PasswordExtendedFunctionalityFactory implements ExtendedFunctionalityFactory {
 	private static final String USER_RECORD_TYPE = "user";
@@ -55,11 +58,29 @@ public class PasswordExtendedFunctionalityFactory implements ExtendedFunctionali
 	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
 			String recordType) {
 		if (position == UPDATE_BEFORE_STORE) {
-			return Collections.singletonList(
-					PasswordExtendedFunctionality.usingDependencyProviderAndTextHasher(
-							dependencyProvider, textHasherFactory.factor()));
+			return createPasswordExtendedFunctionality();
 		}
-		return Collections.singletonList(PasswordSystemSecretRemoverExtendedFunctionality
-				.usingDependencyProvider(dependencyProvider));
+		return createPasswordSystemSecretRemoverForUpdateAfterStore();
+	}
+
+	private List<ExtendedFunctionality> createPasswordExtendedFunctionality() {
+		TextHasher textHasher = textHasherFactory.factor();
+		SystemSecretOperations systemSecretOperations = SystemSecretOperationsImp
+				.usingDependencyProviderAndTextHasher(dependencyProvider, textHasher);
+		return Collections.singletonList(
+				PasswordExtendedFunctionality.usingDependencyProviderAndSystemSecretOperations(
+						dependencyProvider, systemSecretOperations));
+	}
+
+	private List<ExtendedFunctionality> createPasswordSystemSecretRemoverForUpdateAfterStore() {
+		return Collections.singletonList(createPasswordSystemSecretRemover());
+	}
+
+	private PasswordSystemSecretRemoverExtendedFunctionality createPasswordSystemSecretRemover() {
+		TextHasher textHasher = textHasherFactory.factor();
+		SystemSecretOperations sso = SystemSecretOperationsImp
+				.usingDependencyProviderAndTextHasher(dependencyProvider, textHasher);
+		return PasswordSystemSecretRemoverExtendedFunctionality
+				.usingDependencyProviderAndSystemSecretOperations(dependencyProvider, sso);
 	}
 }

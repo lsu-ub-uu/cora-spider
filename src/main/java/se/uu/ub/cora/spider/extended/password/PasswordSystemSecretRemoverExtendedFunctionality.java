@@ -23,22 +23,27 @@ import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
-import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
 
 public class PasswordSystemSecretRemoverExtendedFunctionality implements ExtendedFunctionality {
 
-	public static PasswordSystemSecretRemoverExtendedFunctionality usingDependencyProvider(
-			SpiderDependencyProvider dependencyProvider) {
-		return new PasswordSystemSecretRemoverExtendedFunctionality(dependencyProvider);
+	public static PasswordSystemSecretRemoverExtendedFunctionality usingDependencyProviderAndSystemSecretOperations(
+			SpiderDependencyProvider dependencyProvider,
+			SystemSecretOperations systemSecretOperations) {
+		return new PasswordSystemSecretRemoverExtendedFunctionality(dependencyProvider,
+				systemSecretOperations);
 	}
 
 	private SpiderDependencyProvider dependencyProvider;
 	private DataGroup previousDataGroup;
 	private DataGroup currentDataGroup;
+	private SystemSecretOperations systemSecretOperations;
 
 	private PasswordSystemSecretRemoverExtendedFunctionality(
-			SpiderDependencyProvider dependencyProvider) {
+			SpiderDependencyProvider dependencyProvider,
+			SystemSecretOperations systemSecretOperations) {
 		this.dependencyProvider = dependencyProvider;
+		this.systemSecretOperations = systemSecretOperations;
 	}
 
 	@Override
@@ -60,9 +65,7 @@ public class PasswordSystemSecretRemoverExtendedFunctionality implements Extende
 	}
 
 	private void removeSystemSecretUsingLink(DataRecordLink passwordLink) {
-		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		recordStorage.deleteByTypeAndId(passwordLink.getLinkedRecordType(),
-				passwordLink.getLinkedRecordId());
+		systemSecretOperations.deleteSystemSecretFromStorage(passwordLink.getLinkedRecordId());
 	}
 
 	private boolean systemSecretShouldBeRemoved() {
@@ -75,5 +78,9 @@ public class PasswordSystemSecretRemoverExtendedFunctionality implements Extende
 
 	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {
 		return dependencyProvider;
+	}
+
+	public SystemSecretOperations onlyForTestGetSystemSecretOperations() {
+		return systemSecretOperations;
 	}
 }

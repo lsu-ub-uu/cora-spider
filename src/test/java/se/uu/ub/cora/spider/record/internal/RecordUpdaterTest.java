@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_AUTHORIZATION;
@@ -31,6 +32,8 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -79,6 +82,7 @@ import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorOldSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.RecordArchiveSpy;
@@ -86,6 +90,7 @@ import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageUpdateMultipleTimesSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.spy.ValidationAnswerSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -254,8 +259,7 @@ public class RecordUpdaterTest {
 				dataGroupAsRecordGroup);
 	}
 
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
-			+ "Data is not valid: some message")
+	@Test
 	public void testValidationTypeDoesNotExist() throws Exception {
 		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getUpdateDefinitionId",
 				DataValidationException.withMessage("some message"));
@@ -266,7 +270,13 @@ public class RecordUpdaterTest {
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 				SOME_RECORD_TYPE, "spyId", "cora"));
 
-		recordUpdater.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+		try {
+			recordUpdater.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+			fail("Exception should have been thrown");
+		} catch (Exception e) {
+			assertTrue(e instanceof DataException);
+			assertEquals(e.getMessage(), "Data is not valid: some message");
+		}
 	}
 
 	@Test
@@ -430,7 +440,7 @@ public class RecordUpdaterTest {
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> dataGroupStored);
 	}
 
-	private DataGroup setUpRecordUpdaterWithExtFunctionallityAndValue(
+	private DataGroupSpy setUpRecordUpdaterWithExtFunctionallityAndValue(
 			Optional<String> ignoreOverwriteProtectionValue,
 			ExtendedFunctionalitySpy extendedFunctionalitySpy, Optional<String> updatedTimestamp) {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
@@ -439,10 +449,13 @@ public class RecordUpdaterTest {
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
 
-		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		DataGroup recordInfo = DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 				SOME_RECORD_TYPE, "spyId", "cora");
-		dataGroup.addChild(recordInfo);
+
+		DataGroupSpy dataGroup = new DataGroupSpy();
+		dataGroup.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "nameInData");
+		dataGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> recordInfo, "recordInfo");
 
 		setIgnoreOverwriteProtection(ignoreOverwriteProtectionValue, recordInfo);
 
@@ -898,6 +911,29 @@ public class RecordUpdaterTest {
 				UPDATE_BEFORE_STORE, expectedData, 3);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				UPDATE_AFTER_STORE, expectedData, 4);
+
+		Collection<Object> exFunctionalities = extendedFunctionalityProvider.MCR
+				.getReturnValues("getFunctionalityForPositionAndRecordType");
+
+		assertExtendedFunctionalityCalledWithSameExDataInstanceSoThatSharedDataWorks(
+				exFunctionalities);
+	}
+
+	private void assertExtendedFunctionalityCalledWithSameExDataInstanceSoThatSharedDataWorks(
+			Collection<Object> exFunctionalities) {
+		List<ExtendedFunctionalityData> totalExDataList = new ArrayList<>();
+		for (Object exFunctionality : exFunctionalities) {
+			List<ExtendedFunctionalitySpy> exFuncList = (List<ExtendedFunctionalitySpy>) exFunctionality;
+			for (ExtendedFunctionalitySpy exSpy : exFuncList) {
+				totalExDataList.add((ExtendedFunctionalityData) exFuncList.get(0).MCR
+						.getValueForMethodNameAndCallNumberAndParameterName(
+								"useExtendedFunctionality", 0, "data"));
+			}
+		}
+		for (int i = 0; i < totalExDataList.size() - 2; i++) {
+			System.out.print(i);
+			assertSame(totalExDataList.get(i).dataSharer, totalExDataList.get(i + 1).dataSharer);
+		}
 	}
 
 	@Test
@@ -1004,21 +1040,30 @@ public class RecordUpdaterTest {
 				group);
 	}
 
-	@Test(expectedExceptions = DataException.class)
-	public void testUpdateRecordInvalidData() {
-		dataValidator.validValidation = false;
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "Data is not valid: \\[Error1, Error2\\]")
+	public void testUpdateRecordInvalidData() throws Exception {
+		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
+		setUpDataValidatorToReturnInvalidWithErrors();
 
-		DataGroup dataGroup = new DataGroupOldSpy("typeWithUserGeneratedId");
-		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
-		createRecordInfo.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("id", "place"));
-		createRecordInfo
-				.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("type", "recordType"));
+		String sameLatestUpdatedTimestamp = "2020-01-01T00:00:00.000001Z";
+		setupPreviouslyStoredRecord(sameLatestUpdatedTimestamp);
+		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(Optional.empty(),
+				extendedFunctionalitySpy, Optional.of(sameLatestUpdatedTimestamp));
 
-		dataGroup.addChild(createRecordInfo);
-		dataGroup.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("atomicId", "atomicValue"));
+		recordUpdater.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+	}
 
-		recordUpdaterOld.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "place",
-				dataGroup);
+	private void setUpDataValidatorToReturnInvalidWithErrors() {
+		DataValidatorSpy dataValidatorSpy = new DataValidatorSpy();
+		ValidationAnswerSpy validationAnswer = new ValidationAnswerSpy();
+		validationAnswer.MRV.setDefaultReturnValuesSupplier("dataIsInvalid", () -> true);
+		validationAnswer.MRV.setDefaultReturnValuesSupplier("getErrorMessages",
+				() -> List.of("Error1", "Error2"));
+
+		dataValidatorSpy.MRV.setDefaultReturnValuesSupplier("validateData", () -> validationAnswer);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataValidator",
+				() -> dataValidatorSpy);
 	}
 
 	@Test(expectedExceptions = DataException.class)
@@ -1035,7 +1080,8 @@ public class RecordUpdaterTest {
 				"place_NOT_THE_SAME", dataGroup);
 	}
 
-	@Test(expectedExceptions = DataException.class)
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "Value in data\\(recordType\\) does not match entered value\\(typeWithAutoGeneratedId\\)")
 	public void testUpdateRecordIncomingDataTypesDoNotMatch() {
 		DataGroup dataGroup = new DataGroupOldSpy("typeWithUserGeneratedId_NOT_THE_SAME");
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
@@ -1045,21 +1091,27 @@ public class RecordUpdaterTest {
 		dataGroup.addChild(createRecordInfo);
 		dataGroup.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("atomicId", "atomicValue"));
 
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
+				() -> "typeWithAutoGeneratedId");
+
 		recordUpdaterOld.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "place",
 				dataGroup);
 	}
 
-	@Test(expectedExceptions = DataException.class)
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "Value in data\\(place\\) does not match entered value\\(placeNOT\\)")
 	public void testUpdateRecordIncomingDataIdDoNotMatch() {
 		DataGroup dataGroup = new DataGroupOldSpy("typeWithUserGeneratedId_NOT_THE_SAME");
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
 		createRecordInfo.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("id", "place"));
-		createRecordInfo
-				.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("type", "recordType"));
+		createRecordInfo.addChild(createLinkWithLinkedId("type", "linkedRecordType", "recordType"));
 		dataGroup.addChild(createRecordInfo);
 		dataGroup.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("atomicId", "atomicValue"));
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
+				() -> "typeWithAutoGeneratedId");
 
-		recordUpdaterOld.updateRecord("someToken78678567", "recordType", "placeNOT", dataGroup);
+		recordUpdaterOld.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "placeNOT",
+				dataGroup);
 	}
 
 	@Test(expectedExceptions = DataException.class)
