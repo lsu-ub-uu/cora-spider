@@ -110,7 +110,7 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 			List<DataGroup> previousAppTokenGroups = getPreviousAppTokensList(previousDataGroup);
 			return getSystemSecretIdList(previousAppTokenGroups);
 		}
-		return new ArrayList<>();
+		return Collections.emptyList();
 	}
 
 	private List<DataGroup> getPreviousAppTokensList(DataGroup previousDataGroup) {

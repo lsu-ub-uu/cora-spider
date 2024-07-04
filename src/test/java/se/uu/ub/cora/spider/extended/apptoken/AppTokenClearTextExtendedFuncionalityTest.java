@@ -102,6 +102,7 @@ public class AppTokenClearTextExtendedFuncionalityTest {
 		exFunc.useExtendedFunctionality(efData);
 
 		dataFactory.MCR.assertMethodNotCalled("factorAtomicUsingNameInDataAndValue");
+		currentDataGroup.MCR.assertMethodNotCalled("getFirstGroupWithNameInData");
 	}
 
 	@Test
