@@ -210,6 +210,24 @@ public class PasswordExtendedFunctionalityTest {
 	}
 
 	@Test
+	public void testUsePasswordTrueAndPreviousPasswordExistsDoNothing2() throws Exception {
+		setUpPreviousUsePasswordWithValue("false");
+		setUpCurrentPasswordWithValue("true");
+		setUpCurrentContainsPlainTextPasswordWithValue(true);
+
+		extended.useExtendedFunctionality(efData);
+
+		systemSecretOperations.MCR.assertParameters("createAndStoreSystemSecretRecord", 0,
+				SOME_PLAIN_TEXT_PASSWORD, "someDataDivider");
+		String systemSecretId = (String) systemSecretOperations.MCR
+				.getReturnValue("createAndStoreSystemSecretRecord", 0);
+
+		assertLinkToSystemSecret(systemSecretId, 0);
+		currentGroupMCR.assertCalledParameters("removeAllChildrenWithNameInData",
+				"plainTextPassword");
+	}
+
+	@Test
 	public void testSystemSecretIsCreatedForNewPassword() throws Exception {
 		setUpSpiesForCreateReturningDataRecordWithTsUpdated();
 

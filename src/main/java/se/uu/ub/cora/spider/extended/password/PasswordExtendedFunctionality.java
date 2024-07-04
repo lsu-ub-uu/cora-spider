@@ -87,8 +87,16 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 		return currentUsePassword() && previousDoNotUsePassword() && !newPasswordSet();
 	}
 
+	private boolean currentUsePassword() {
+		return "true".equals(currentUserGroup.getFirstAtomicValueWithNameInData("usePassword"));
+	}
+
 	private boolean previousDoNotUsePassword() {
 		return "false".equals(previousUserGroup.getFirstAtomicValueWithNameInData("usePassword"));
+	}
+
+	private boolean newPasswordSet() {
+		return currentUserGroup.containsChildWithNameInData(PLAIN_TEXT_PASSWORD_NAME_IN_DATA);
 	}
 
 	private void possiblyCreateNewPassword() {
@@ -99,14 +107,6 @@ public class PasswordExtendedFunctionality implements ExtendedFunctionality {
 
 	private boolean plainTextPasswordHasValueInUserGroup() {
 		return currentUsePassword() && newPasswordSet();
-	}
-
-	private boolean newPasswordSet() {
-		return currentUserGroup.containsChildWithNameInData(PLAIN_TEXT_PASSWORD_NAME_IN_DATA);
-	}
-
-	private boolean currentUsePassword() {
-		return currentUserGroup.getFirstAtomicValueWithNameInData("usePassword").equals("true");
 	}
 
 	private void handleNewOrUpdatedPassword() {
