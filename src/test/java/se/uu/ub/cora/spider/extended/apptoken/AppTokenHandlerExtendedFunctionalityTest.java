@@ -245,6 +245,8 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 				onlyNoteAppTokenGroup1, onlyNoteAppTokenGroup2);
 		assertAppTokensRemovedFromStorage(linkAppTokenGroup3, linkAppTokenGroup4);
 		assertNotCalledRemoveAppTokensGroup();
+		assertAppTokenClearTextIsNotExpectedToBeRemoved(linkAppTokenGroup1, linkAppTokenGroup2,
+				onlyNoteAppTokenGroup1, onlyNoteAppTokenGroup2);
 	}
 
 	@Test
@@ -259,6 +261,55 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 			fail();
 		} catch (Exception e) {
 			currentAppTokensGroup.MCR.assertMethodWasCalled("getChildrenOfTypeAndName");
+		}
+	}
+
+	@Test
+	public void testRemoveAppTokenClearTextIfExist_onCreate() throws Exception {
+		setUpPreviousWithAppTokens();
+		setUpCurrentWithAppTokens(onlyNoteAppTokenGroup1);
+		setAppTokenClearTextToAppTokenGroup(onlyNoteAppTokenGroup1);
+		setUpAppTokenRemainsInCurrentGroup();
+
+		appTokenHandler.useExtendedFunctionality(efData);
+
+		assertNewAppTokensCreated(onlyNoteAppTokenGroup1);
+		assertAppTokensInReturnedData(onlyNoteAppTokenGroup1);
+		assertAppTokensRemovedFromStorage();
+		assertNotCalledRemoveAppTokensGroup();
+
+		assertAppTokenClearTextIsRemoved(onlyNoteAppTokenGroup1);
+	}
+
+	@Test
+	public void testRemoveAppTokenClearTextIfExist_onUpdate() throws Exception {
+		setUpPreviousWithAppTokens(linkAppTokenGroup1);
+		setUpCurrentWithAppTokens(linkAppTokenGroup1);
+		setAppTokenClearTextToAppTokenGroup(linkAppTokenGroup1);
+		setUpAppTokenRemainsInCurrentGroup();
+
+		appTokenHandler.useExtendedFunctionality(efData);
+
+		assertNewAppTokensCreated();
+		assertAppTokensInReturnedData(linkAppTokenGroup1);
+		assertAppTokensRemovedFromStorage();
+		assertNotCalledRemoveAppTokensGroup();
+
+		assertAppTokenClearTextIsRemoved(linkAppTokenGroup1);
+	}
+
+	private void assertAppTokenClearTextIsNotExpectedToBeRemoved(DataGroupSpy... appTokenGroups) {
+		for (DataGroupSpy appTokenGroup : appTokenGroups) {
+			appTokenGroup.MCR.assertMethodNotCalled("removeFirstChildWithNameInData");
+		}
+	}
+
+	private void assertAppTokenClearTextIsRemoved(DataGroupSpy... appTokenGroups) {
+		for (DataGroupSpy appTokenGroup : appTokenGroups) {
+			appTokenGroup.MCR.assertCalledParameters("containsChildWithNameInData",
+					"appTokenClearText");
+			appTokenGroup.MCR.assertParameters("removeFirstChildWithNameInData", 0,
+					"appTokenClearText");
 		}
 	}
 
@@ -335,7 +386,8 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 
 	private DataGroupSpy createAppTokenGroupWithOnlyNote(String postfix) {
 		DataGroupSpy appTokenGroup = new DataGroupSpy();
-		appTokenGroup.MRV.setDefaultReturnValuesSupplier("note", () -> "someNote" + postfix);
+		appTokenGroup.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "someNote" + postfix, "note");
 		return appTokenGroup;
 	}
 
@@ -376,7 +428,8 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 
 	private DataGroupSpy createAppTokenGroupWithNoteAndAppTokenLink(String postfix) {
 		DataGroupSpy appTokenGroup = new DataGroupSpy();
-		appTokenGroup.MRV.setDefaultReturnValuesSupplier("note", () -> "someNote" + postfix);
+		appTokenGroup.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "someNote" + postfix, "note");
 		appTokenGroup.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
 				"appTokenLink");
 		DataRecordLinkSpy appTokenLink = new DataRecordLinkSpy();
@@ -385,6 +438,11 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 		appTokenGroup.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
 				() -> appTokenLink, DataRecordLink.class, "appTokenLink");
 		return appTokenGroup;
+	}
+
+	private void setAppTokenClearTextToAppTokenGroup(DataGroupSpy appTokenGroup) {
+		appTokenGroup.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				"appTokenClearText");
 	}
 
 	private void setUpPreviousWithAppTokens(DataGroupSpy... appTokenGroup) {

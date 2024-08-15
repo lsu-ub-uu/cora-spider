@@ -30,9 +30,9 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
 /**
- * AppTokenClearTextExtendedFuncionality set the field with nameInData "appTokenClearText", for all
- * apptokens with this information added to the dataSharer by the
- * {@link AppTokenHandlerExtendedFunctionality}.
+ * AppTokenClearTextExtendedFuncionality set the field with nameInData "appTokenClearText", just
+ * before returning the record, for all apptokens with this information added to the dataSharer by
+ * the {@link AppTokenHandlerExtendedFunctionality}.
  * <p>
  * PasswordExtendedFunctionality is NOT threadsafe.
  */

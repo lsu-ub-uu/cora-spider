@@ -135,9 +135,20 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 
 	private void handleApptokens() {
 		for (DataGroup appTokenGroup : currentAppTokenGroups) {
+			possiblyRemoveAppTokenClearTextFromIncomingRecord(appTokenGroup);
 			possiblyCreateNewAppToken(appTokenGroup);
 			possiblyKeepExistingAppToken(appTokenGroup);
 		}
+	}
+
+	private void possiblyRemoveAppTokenClearTextFromIncomingRecord(DataGroup appTokenGroup) {
+		if (appTokenClearExistOnIncomingRecord(appTokenGroup)) {
+			appTokenGroup.removeFirstChildWithNameInData("appTokenClearText");
+		}
+	}
+
+	private boolean appTokenClearExistOnIncomingRecord(DataGroup appTokenGroup) {
+		return appTokenGroup.containsChildWithNameInData("appTokenClearText");
 	}
 
 	private void possiblyCreateNewAppToken(DataGroup appTokenGroup) {
