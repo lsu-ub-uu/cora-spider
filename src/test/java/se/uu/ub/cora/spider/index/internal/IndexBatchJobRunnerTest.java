@@ -22,7 +22,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +45,7 @@ public class IndexBatchJobRunnerTest {
 
 	private static final String FINISHED = "finished";
 	private static final String STARTED = "started";
+	private static final int TOTAL_NUMBER_TO_INDEX = 11700;
 	private static final int INDEX_BATCH_SIZE = 1000;
 	private SpiderDependencyProviderOldSpy dependencyProvider;
 	private Filter indexBatchJobFilter;
@@ -81,11 +81,10 @@ public class IndexBatchJobRunnerTest {
 	private void createDefaultParameters() {
 		indexBatchJobFilter = new Filter();
 		indexBatchJob = new IndexBatchJob("someRecordType", 45, indexBatchJobFilter);
-		indexBatchJob.totalNumberToIndex = 11700;
+		indexBatchJob.totalNumberToIndex = TOTAL_NUMBER_TO_INDEX;
 	}
 
 	private void setUpSpies() {
-		Map<String, String> initInfo = new HashMap<>();
 		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		recordStorage = new RecordStorageOldSpy();
 		termCollector = new DataGroupTermCollectorSpy();
@@ -108,15 +107,18 @@ public class IndexBatchJobRunnerTest {
 	public void testCorrectReadList() {
 		batchRunner.run();
 
-		RecordTypeHandlerSpy recordTypeHandlerSpy = (RecordTypeHandlerSpy) dependencyProvider
-				.getRecordTypeHandler("");
-		var listOfTypes = recordTypeHandlerSpy.MCR
-				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
-		recordStorage.MCR.assertParameter("readList", 0, "types", listOfTypes);
+		assertReadRecordType();
 		recordStorage.MCR.assertParameter("readList", 0, "filter", indexBatchJobFilter);
 		recordStorage.MCR.assertNumberOfCallsToMethod("readList", 12);
 
 		assertAllFiltersAreSentCorrectlyToReadList("readList");
+	}
+
+	private void assertReadRecordType() {
+		List<String> types = (List<String>) recordStorage.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("readList", 0, "types");
+		assertEquals(types.size(), 1);
+		assertEquals(types.get(0), "someRecordType");
 	}
 
 	private void assertAllFiltersAreSentCorrectlyToReadList(String methodName) {
@@ -152,8 +154,6 @@ public class IndexBatchJobRunnerTest {
 
 		RecordTypeHandlerSpy recordTypeHandler = dependencyProvider.recordTypeHandlerSpy;
 
-		// termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
-		// recordTypeHandler.MCR.getReturnValue("getMetadataId", 0));
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
 				recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0));
 
@@ -163,8 +163,6 @@ public class IndexBatchJobRunnerTest {
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
 				srr1.listOfDataGroups.get(0));
 
-		// termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
-		// recordTypeHandler.MCR.getReturnValue("getMetadataId", 0));
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
 				recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0));
 
@@ -177,19 +175,18 @@ public class IndexBatchJobRunnerTest {
 	}
 
 	@Test
-	public void testCorrectCallToIndex() {
-
+	public void testCorrectCallToIndexPerBatch() {
 		batchRunner.run();
 		RecordTypeHandlerSpy recordTypeHandler = dependencyProvider.recordTypeHandlerSpy;
 
 		int indexDataCall = 0;
 		for (int i = 0; i < 12; i++) {
+			recordIndexer.MCR.assertNumberOfCallsToMethod("indexDataWithoutExplicitCommit", 24);
 			assertCorrectParametersSentToIndex(recordTypeHandler, i, indexDataCall, 0);
 			indexDataCall++;
 			assertCorrectParametersSentToIndex(recordTypeHandler, i, indexDataCall, 1);
 			indexDataCall++;
 		}
-
 	}
 
 	private void assertCorrectParametersSentToIndex(RecordTypeHandlerSpy recordTypeHandler,
@@ -197,12 +194,8 @@ public class IndexBatchJobRunnerTest {
 		StorageReadResult storageReadResult = (StorageReadResult) recordStorage.MCR
 				.getReturnValue("readList", parameterIndex);
 
-		recordTypeHandler.MCR.assertParameter("getCombinedIdsUsingRecordId", indexDataCall,
-				"recordId", "someId" + indexInReturnedList);
+		assertIndexedIds(indexDataCall, indexInReturnedList);
 
-		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", parameterIndex, "ids",
-				recordTypeHandler.MCR.getReturnValue("getCombinedIdsUsingRecordId",
-						parameterIndex));
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				parameterIndex);
 		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", parameterIndex,
@@ -210,6 +203,15 @@ public class IndexBatchJobRunnerTest {
 
 		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", indexDataCall, "record",
 				storageReadResult.listOfDataGroups.get(indexInReturnedList));
+	}
+
+	private void assertIndexedIds(int indexDataCall, int indexInReturnedList) {
+		String combinedId = indexBatchJob.recordTypeToIndex + "_" + "someId" + indexInReturnedList;
+		List<String> ids = (List<String>) recordIndexer.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"indexDataWithoutExplicitCommit", indexDataCall, "ids");
+		assertEquals(ids.size(), 1);
+		assertEquals(ids.get(0), combinedId);
 	}
 
 	@Test

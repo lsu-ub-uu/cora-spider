@@ -36,8 +36,13 @@ import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class RecordStorageForAuthorizatorSpy implements RecordStorage {
+
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
 	public Collection<List<String>> readLists = new ArrayList<>();
 	public boolean readWasCalled = false;
@@ -52,6 +57,16 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 	public List<Filter> filters = new ArrayList<>();
 	public boolean readListWasCalled = false;
 	public Map<String, Integer> userReadNumberOfTimesMap = new HashMap<>();
+
+	public RecordStorageForAuthorizatorSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("read", () -> false);
+	}
+
+	@Override
+	public DataRecordGroup read(String type, String id) {
+		return (DataRecordGroup) MCR.addCallAndReturnFromMRV("type", type, "id", id);
+	}
 
 	@Override
 	public DataGroup read(List<String> types, String id) {
@@ -263,9 +278,4 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 		return 0;
 	}
 
-	@Override
-	public DataRecordGroup read(String type, String id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

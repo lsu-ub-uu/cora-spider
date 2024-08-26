@@ -123,7 +123,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		validateRecord();
 		useExtendedFunctionalityForPosition(CREATE_AFTER_METADATA_VALIDATION);
 		completeRecordAndCollectInformationSpecifiedInMetadata();
-		ensureNoDuplicateForTypeFamilyAndId();
+		ensureNoDuplicateForTypeAndId();
 		dataDivider = extractDataDividerFromData(recordGroup);
 		createRecordInStorage(recordGroup, collectedLinks, collectedTerms.storageTerms);
 		possiblyStoreInArchive();
@@ -265,7 +265,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		recordIndexer.indexData(ids, indexTerms, recordGroup);
 	}
 
-	private void ensureNoDuplicateForTypeFamilyAndId() {
+	private void ensureNoDuplicateForTypeAndId() {
 		if (isItADuplicateInStorage()) {
 			String duplicateMessage = "Record with type: {0} and id: {1} already exists in storage";
 			String message = MessageFormat.format(duplicateMessage, recordType, recordId);

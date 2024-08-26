@@ -21,7 +21,6 @@ package se.uu.ub.cora.spider.extended.workorder;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordLink;
@@ -104,7 +103,6 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 		DataRecordLink recordTypeLink = (DataRecordLink) workOrder
 				.getFirstChildWithNameInData("recordType");
 		return recordTypeLink.getLinkedRecordId();
-
 	}
 
 	private String getRecordIdToIndexFromWorkOrder(DataGroup workOrder) {
@@ -147,19 +145,17 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 
 	private void sendToIndex(CollectTerms collectedTerms, DataGroup dataToIndex,
 			boolean performCommit) {
-		List<String> ids = getCombinedIds();
+		List<String> id = getCombinedId();
 		List<IndexTerm> indexTerms = collectedTerms.indexTerms;
 		if (performCommit) {
-			recordIndexer.indexData(ids, indexTerms, dataToIndex);
+			recordIndexer.indexData(id, indexTerms, dataToIndex);
 		} else {
-			recordIndexer.indexDataWithoutExplicitCommit(ids, indexTerms, dataToIndex);
+			recordIndexer.indexDataWithoutExplicitCommit(id, indexTerms, dataToIndex);
 		}
 	}
 
-	private List<String> getCombinedIds() {
-		RecordTypeHandler recordTypeHandler = dependencyProvider
-				.getRecordTypeHandler(recordTypeToIndex);
-		return recordTypeHandler.getCombinedIdsUsingRecordId(recordIdToIndex);
+	private List<String> getCombinedId() {
+		return List.of(recordTypeToIndex + "_" + recordIdToIndex);
 	}
 
 	public SpiderDependencyProvider getDependencyProvider() {
