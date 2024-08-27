@@ -427,7 +427,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private void indexData(CollectTerms collectTerms) {
-		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
+		List<String> ids = recordTypeHandler.getCombinedIdForIndex(recordId);
 		recordIndexer.indexData(ids, collectTerms.indexTerms, topDataGroup);
 	}
 

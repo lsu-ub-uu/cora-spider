@@ -161,5 +161,4 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 	public SpiderDependencyProvider getDependencyProvider() {
 		return dependencyProvider;
 	}
-
 }

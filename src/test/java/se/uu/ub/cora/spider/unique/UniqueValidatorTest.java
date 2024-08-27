@@ -31,6 +31,10 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.collected.StorageTerm;
+import se.uu.ub.cora.storage.Condition;
+import se.uu.ub.cora.storage.Filter;
+import se.uu.ub.cora.storage.Part;
+import se.uu.ub.cora.storage.RelationalOperator;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class UniqueValidatorTest {
@@ -41,6 +45,8 @@ public class UniqueValidatorTest {
 	Set<Unique> uniqueDefinitions = new LinkedHashSet<>();
 	private RecordStorageSpy recordStorage;
 	private Unique uniqueWithoutCombineTerms;
+	private StorageTerm someStorageTerm = new StorageTerm("someStorageTermId",
+			"someUniqueTermStorageKey", "someTermValue");
 
 	@BeforeMethod
 	private void beforeMethod() {
@@ -55,8 +61,12 @@ public class UniqueValidatorTest {
 		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
 				Collections.emptySet(), Collections.emptySet());
 
-		assertTrue(answer.dataIsValid());
+		assertDataIsValid(answer);
 		assertReadListInStorageNotCalled();
+	}
+
+	private void assertDataIsValid(ValidationAnswer answer) {
+		assertTrue(answer.dataIsValid());
 	}
 
 	private void assertReadListInStorageNotCalled() {
@@ -68,48 +78,76 @@ public class UniqueValidatorTest {
 		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
 				Set.of(uniqueWithoutCombineTerms), Collections.emptySet());
 
-		assertTrue(answer.dataIsValid());
+		assertDataIsValid(answer);
 		assertReadListInStorageNotCalled();
 	}
 
 	@Test
 	public void testOneUniqueRuleExist_HasNoDefinitionButIncomingData_IsUnique() throws Exception {
-		StorageTerm storageTerm = new StorageTerm("someStorageTermId", "someUniqueTermStorageKey",
-				"someTermValue");
-
 		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
-				Collections.emptySet(), Set.of(storageTerm));
+				Collections.emptySet(), Set.of(someStorageTerm));
 
-		assertTrue(answer.dataIsValid());
+		assertDataIsValid(answer);
 		assertReadListInStorageNotCalled();
 	}
 
 	@Test
 	public void testOneUniqueRuleExist_HasDefinitionAndIncomingData_IsUnique() throws Exception {
-		StorageTerm storageTerm = new StorageTerm("someStorageTermId", "someUniqueTermStorageKey",
-				"someTermValue");
-
 		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
-				Set.of(uniqueWithoutCombineTerms), Set.of(storageTerm));
+				Set.of(uniqueWithoutCombineTerms), Set.of(someStorageTerm));
 
-		assertTrue(answer.dataIsValid());
+		assertDataIsValid(answer);
+		assertNumberOfCallsToReadList(1);
+		assertCallToReadListWithRecordType(SOME_RECORD_TYPE);
 
-		recordStorage.MCR.assertNumberOfCallsToMethod("readList", 1);
+		int numberOfConditions = 1;
+		// String conditionKey = "someUniqueTermStorageKey";
+		String conditionKey = uniqueWithoutCombineTerms.uniqueTermStorageKey();
+		String conditionValue = someStorageTerm.value();
+		int readListNumber = 0;
 
-		assertCallToReadListWithFilter(SOME_RECORD_TYPE);
+		// assertFilterForCall(0,{conditionKey, conditionValue}...)
+		AssertCondition assertCondition = new AssertCondition(conditionKey, conditionValue);
+
+		assertFilter(readListNumber, numberOfConditions, List.of(assertCondition));
 	}
 
-	private void assertCallToReadListWithFilter(String recordType) {
-		assertCallReadListParameterRecordType(recordType);
-		List<String> types = (List<String>) recordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("readList", 0, "types");
+	private void assertFilter(int readListNumber, int numberOfConditions,
+			List<AssertCondition> assertConditions) {
+		Filter usedFilter = (Filter) recordStorage.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("readList", readListNumber,
+						"filter");
+		assertEquals(usedFilter.include.size(), 1);
+		assertEquals(usedFilter.exclude.size(), readListNumber);
+
+		assertEquals(usedFilter.include.size(), 1);
+		Part includePart = usedFilter.include.get(0);
+		assertEquals(includePart.conditions.size(), assertConditions.size());
+
+		int conditionNumber = 0;
+		for (Condition condition : includePart.conditions) {
+			assertCondition(assertConditions.get(conditionNumber).conditionKey(),
+					assertConditions.get(conditionNumber).conditionValue(), condition,
+					conditionNumber);
+		}
 	}
 
-	private void assertCallReadListParameterRecordType(String recordType) {
-		List<String> types = (List<String>) recordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("readList", 0, "types");
-		assertEquals(types.size(), 1);
-		assertEquals(types.get(0), recordType);
+	private void assertCondition(String conditionKey, String conditionValue, Condition condition,
+			int conditionNumber) {
+		assertEquals(condition.key(), conditionKey);
+		assertEquals(condition.operator(), RelationalOperator.EQUAL_TO);
+		assertEquals(condition.value(), conditionValue);
+	}
+
+	private void assertCallToReadListWithRecordType(String recordType) {
+		recordStorage.MCR.assertParameterAsEqual("readList", 0, "types", List.of(recordType));
+	}
+
+	private void assertNumberOfCallsToReadList(int calledNumberOfTimes) {
+		recordStorage.MCR.assertNumberOfCallsToMethod("readList", calledNumberOfTimes);
+	}
+
+	record AssertCondition(String conditionKey, String conditionValue) {
 	}
 
 }

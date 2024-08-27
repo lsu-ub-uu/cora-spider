@@ -250,9 +250,8 @@ public class RecordListReaderTest {
 
 		converterToFilter.MCR.assertParameters("convert", 0, emptyFilter);
 		var filter = converterToFilter.MCR.getReturnValue("convert", 0);
-		var listOfTypes = recordTypeHandlerSpy.MCR
-				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
-		recordStorage.MCR.assertParameters("readList", 0, listOfTypes, filter);
+		recordStorage.MCR.assertParameterAsEqual("readList", 0, "types", List.of(SOME_RECORD_TYPE));
+		recordStorage.MCR.assertParameter("readList", 0, "filter", filter);
 	}
 
 	@Test

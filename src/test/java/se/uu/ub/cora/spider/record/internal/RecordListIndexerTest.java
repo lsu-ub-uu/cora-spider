@@ -135,7 +135,8 @@ public class RecordListIndexerTest {
 
 	@Test
 	public void testAuthTokenIsPassedOnToAuthenticator() throws Exception {
-		recordListIndexer.indexRecordList(SOME_USER_TOKEN, null, indexSettingsWithoutFilter);
+		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+				indexSettingsWithoutFilter);
 
 		authenticatorSpy.MCR.assertParameters("getUserForToken", 0, SOME_USER_TOKEN);
 		authenticatorSpy.MCR.assertNumberOfCallsToMethod("getUserForToken", 1);
@@ -196,11 +197,15 @@ public class RecordListIndexerTest {
 		DataGroup createdFilter = (DataGroup) dataFactory.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
 
-		var filter = getFilter(createdFilter);
-		var listOfTypes = recordTypeHandler.MCR
-				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
-		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForTypes", 0, listOfTypes,
-				filter);
+		assertGetTotalNumberOfRecords(SOME_RECORD_TYPE, createdFilter);
+
+	}
+
+	private void assertGetTotalNumberOfRecords(String recordType, DataGroup filterAsDataGroup) {
+		recordStorage.MCR.assertParameterAsEqual("getTotalNumberOfRecordsForTypes", 0, "types",
+				List.of(recordType));
+		var filter = getFilter(filterAsDataGroup);
+		recordStorage.MCR.assertParameter("getTotalNumberOfRecordsForTypes", 0, "filter", filter);
 	}
 
 	@Test
@@ -213,11 +218,7 @@ public class RecordListIndexerTest {
 		DataGroup extractedFilterFromIndexSettings = (DataGroup) indexSettingsWithFilter.MCR
 				.getReturnValue("getFirstGroupWithNameInData", 0);
 
-		var filter = getFilter(extractedFilterFromIndexSettings);
-		var listOfTypes = recordTypeHandler.MCR
-				.getReturnValue("getListOfRecordTypeIdsToReadFromStorage", 0);
-		recordStorage.MCR.assertParameters("getTotalNumberOfRecordsForTypes", 0, listOfTypes,
-				filter);
+		assertGetTotalNumberOfRecords(SOME_RECORD_TYPE, extractedFilterFromIndexSettings);
 	}
 
 	@Test

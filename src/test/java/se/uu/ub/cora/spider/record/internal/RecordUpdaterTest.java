@@ -931,7 +931,6 @@ public class RecordUpdaterTest {
 			}
 		}
 		for (int i = 0; i < totalExDataList.size() - 2; i++) {
-			System.out.print(i);
 			assertSame(totalExDataList.get(i).dataSharer, totalExDataList.get(i + 1).dataSharer);
 		}
 	}
@@ -950,7 +949,7 @@ public class RecordUpdaterTest {
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				1);
 
-		var ids = recordTypeHandlerSpy.MCR.getReturnValue("getCombinedIdsUsingRecordId", 0);
+		var ids = recordTypeHandlerSpy.MCR.getReturnValue("getCombinedIdForIndex", 0);
 
 		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectTerms.indexTerms,
 				recordToSentToStorage);

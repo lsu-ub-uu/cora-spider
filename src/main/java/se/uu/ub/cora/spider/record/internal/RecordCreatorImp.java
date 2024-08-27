@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017, 2022, 2023 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2022, 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -261,7 +261,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void indexRecord(List<IndexTerm> indexTerms) {
-		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
+		List<String> ids = recordTypeHandler.getCombinedIdForIndex(recordId);
 		recordIndexer.indexData(ids, indexTerms, recordGroup);
 	}
 

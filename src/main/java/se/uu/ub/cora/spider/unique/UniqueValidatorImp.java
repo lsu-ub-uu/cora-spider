@@ -23,11 +23,15 @@ import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.collected.StorageTerm;
+import se.uu.ub.cora.storage.Condition;
+import se.uu.ub.cora.storage.Filter;
+import se.uu.ub.cora.storage.Part;
 import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.RelationalOperator;
 
 public class UniqueValidatorImp implements UniqueValidator {
-
 	private RecordStorage recordStorage;
+	private Set<Unique> set;
 
 	public static UniqueValidatorImp usingRecordStorage(RecordStorage recordStorage) {
 		return new UniqueValidatorImp(recordStorage);
@@ -38,12 +42,21 @@ public class UniqueValidatorImp implements UniqueValidator {
 	}
 
 	@Override
-	public ValidationAnswer validateUnique(String recordType, Set<Object> uniques,
+	public ValidationAnswer validateUnique(String recordType, Set<Unique> uniques,
 			Set<StorageTerm> storageTerms) {
 		if (!uniques.isEmpty() && !storageTerms.isEmpty()) {
-			recordStorage.readList(List.of(recordType), null);
+			recordStorage.readList(List.of(recordType), createFilter(uniques, storageTerms));
 		}
 		return new ValidationAnswer();
 	}
 
+	private Filter createFilter(Set<Unique> uniques, Set<StorageTerm> storageTerms) {
+		Filter filter = new Filter();
+		Part part = new Part();
+		filter.include.add(part);
+		Condition userIdCondition = new Condition(uniques.iterator().next().uniqueTermStorageKey(),
+				RelationalOperator.EQUAL_TO, storageTerms.iterator().next().value());
+		part.conditions.add(userIdCondition);
+		return filter;
+	}
 }

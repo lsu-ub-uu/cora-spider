@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017, 2023 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -390,8 +390,7 @@ public class RecordCreatorTest {
 		var dataRecord = recordStorage.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("create", 0, "dataRecord");
 
-		List<?> ids = (List<?>) recordTypeHandlerSpy.MCR
-				.getReturnValue("getCombinedIdsUsingRecordId", 0);
+		List<?> ids = (List<?>) recordTypeHandlerSpy.MCR.getReturnValue("getCombinedIdForIndex", 0);
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				1);
 		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectTerms.indexTerms,
@@ -766,7 +765,7 @@ public class RecordCreatorTest {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "dataWithLinks");
 		recordStorage.MRV.setSpecificReturnValuesSupplier("recordExists",
-				(Supplier<Boolean>) () -> true, List.of("oneImplementingTypeId"), "toId");
+				(Supplier<Boolean>) () -> true, List.of("toType"), "toId");
 		DataGroup dataGroup = RecordLinkTestsDataCreator.createDataDataGroupWithLink();
 		dataGroup.addChild(DataCreator2.createRecordInfoWithLinkedDataDividerId("cora"));
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
@@ -776,7 +775,7 @@ public class RecordCreatorTest {
 		List<?> types = (List<?>) recordStorage.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("recordExists", 0, "types");
 		assertEquals(types.size(), 1);
-		assertEquals(types.get(0), "oneImplementingTypeId");
+		assertEquals(types.get(0), "toType");
 		recordStorage.MCR.assertParameter("recordExists", 0, "id", "toId");
 	}
 

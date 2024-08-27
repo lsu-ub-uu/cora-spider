@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2017, 2019, 2020 Uppsala University Library
+ * Copyright 2016, 2017, 2019, 2020, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -157,7 +157,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		possiblyAddReadAction(dataRecord);
 		possiblyAddUpdateAction(dataRecord);
 		possiblyAddIndexAction(dataRecord);
-		boolean hasIncommingLinks = incomingLinksExistsForRecord();
+		boolean hasIncommingLinks = linksExistForRecordTypeUsingCurrentHandledId(recordType);
 		possiblyAddDeleteAction(dataRecord, hasIncommingLinks);
 		possiblyAddIncomingLinksAction(dataRecord, hasIncommingLinks);
 		possiblyAddUploadAction(dataRecord);
@@ -195,21 +195,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 				action, recordType, collectedTerms.permissionTerms);
 	}
 
-	private boolean incomingLinksExistsForRecord() {
-		return linksExistForRecordTypeUsingCurrentHandledId(recordType)
-				|| incomingLinksExistsForParentToRecordType();
-	}
-
 	private boolean linksExistForRecordTypeUsingCurrentHandledId(String recordTypeId) {
 		return recordStorage.linksExistForRecord(recordTypeId, handledRecordId);
-	}
-
-	private boolean incomingLinksExistsForParentToRecordType() {
-		if (recordTypeHandler.hasParent()) {
-			String parentId = recordTypeHandler.getParentId();
-			return linksExistForRecordTypeUsingCurrentHandledId(parentId);
-		}
-		return false;
 	}
 
 	private void possiblyAddDeleteAction(DataRecord dataRecord, boolean hasIncommingLinks) {
@@ -328,8 +315,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private DataGroup readRecordFromStorageByTypeAndId(String linkedRecordType,
 			String linkedRecordId) {
-		RecordTypeHandler rth = getRecordTypeHandlerForRecordType(linkedRecordType);
-		return recordStorage.read(rth.getListOfRecordTypeIdsToReadFromStorage(), linkedRecordId);
+		return recordStorage.read(List.of(linkedRecordType), linkedRecordId);
 	}
 
 	private void addRecordPartPermissions(DataRecord dataRecord) {

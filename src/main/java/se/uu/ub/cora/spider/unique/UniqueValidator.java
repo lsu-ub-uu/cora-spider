@@ -40,6 +40,6 @@ public interface UniqueValidator {
 	 * 
 	 * @return A ValidationAnswer with the result of the validation.
 	 */
-	ValidationAnswer validateUnique(String recordType, Set<Object> uniques,
+	ValidationAnswer validateUnique(String recordType, Set<Unique> uniques,
 			Set<StorageTerm> storageTerms);
 }
