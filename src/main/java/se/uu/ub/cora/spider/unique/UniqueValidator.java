@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.unique;
 
 import java.util.Set;
 
+import se.uu.ub.cora.bookkeeper.recordtype.Unique;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.collected.StorageTerm;
 
