@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2021, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -25,13 +25,13 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class IndexBatchJobStorer implements BatchJobStorer {
-
 	private IndexBatchJob indexBatchJob;
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordStorage recordStorage;
@@ -53,6 +53,12 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 		storeUpdatedDataGroup(completedDataGroup);
 	}
 
+	private DataGroup completeStoredDataGroup(IndexBatchJob indexBatchJob) {
+		DataGroup dataGroup = recordStorage.read(List.of(INDEX_BATCH_JOB), indexBatchJob.recordId);
+		dataGroupHandlerForIndexBatchJob.updateDataGroup(indexBatchJob, dataGroup);
+		return dataGroup;
+	}
+
 	private void storeUpdatedDataGroup(DataGroup completedDataGroup) {
 		String metadataId = getMetadataIdFromRecordTypeHandler();
 		CollectTerms collectedTerms = collectTerms(completedDataGroup, metadataId);
@@ -69,12 +75,6 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 		return recordTypeHandler.getDefinitionId();
 	}
 
-	private DataGroup completeStoredDataGroup(IndexBatchJob indexBatchJob) {
-		DataGroup dataGroup = recordStorage.read(List.of(INDEX_BATCH_JOB), indexBatchJob.recordId);
-		dataGroupHandlerForIndexBatchJob.updateDataGroup(indexBatchJob, dataGroup);
-		return dataGroup;
-	}
-
 	private CollectTerms collectTerms(DataGroup completedDataGroup, String metadataId) {
 		DataGroupTermCollector dataGroupTermCollector = dependencyProvider
 				.getDataGroupTermCollector();
@@ -88,8 +88,9 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 
 	private String extractDataDivider(DataGroup convertedDataGroup) {
 		DataGroup recordInfo = convertedDataGroup.getFirstGroupWithNameInData("recordInfo");
-		DataGroup dataDivider = recordInfo.getFirstGroupWithNameInData("dataDivider");
-		return dataDivider.getFirstAtomicValueWithNameInData("linkedRecordId");
+		DataRecordLink dataDivider = recordInfo.getFirstChildOfTypeAndName(DataRecordLink.class,
+				"dataDivider");
+		return dataDivider.getLinkedRecordId();
 	}
 
 	SpiderDependencyProvider getDependencyProvider() {

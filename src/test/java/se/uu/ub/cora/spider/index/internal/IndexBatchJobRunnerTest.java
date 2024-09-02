@@ -22,7 +22,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +42,6 @@ import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public class IndexBatchJobRunnerTest {
-
 	private static final String FINISHED = "finished";
 	private static final String STARTED = "started";
 	private static final int INDEX_BATCH_SIZE = 1000;
@@ -85,7 +83,6 @@ public class IndexBatchJobRunnerTest {
 	}
 
 	private void setUpSpies() {
-		Map<String, String> initInfo = new HashMap<>();
 		dependencyProvider = new SpiderDependencyProviderOldSpy();
 		recordStorage = new RecordStorageOldSpy();
 		termCollector = new DataGroupTermCollectorSpy();
@@ -151,9 +148,6 @@ public class IndexBatchJobRunnerTest {
 		batchRunner.run();
 
 		RecordTypeHandlerSpy recordTypeHandler = dependencyProvider.recordTypeHandlerSpy;
-
-		// termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
-		// recordTypeHandler.MCR.getReturnValue("getMetadataId", 0));
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
 				recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0));
 
@@ -163,8 +157,6 @@ public class IndexBatchJobRunnerTest {
 		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
 				srr1.listOfDataGroups.get(0));
 
-		// termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
-		// recordTypeHandler.MCR.getReturnValue("getMetadataId", 0));
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
 				recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0));
 

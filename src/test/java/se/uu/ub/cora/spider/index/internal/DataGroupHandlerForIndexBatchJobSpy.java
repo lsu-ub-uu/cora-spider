@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2021, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,31 +19,27 @@
 package se.uu.ub.cora.spider.index.internal;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class DataGroupHandlerForIndexBatchJobSpy implements DataGroupHandlerForIndexBatchJob {
-
-	public IndexBatchJob indexBatchJob;
-	public DataGroup dataGroup;
-
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public DataGroupHandlerForIndexBatchJobSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("createDataGroup", DataGroupSpy::new);
+	}
 
 	@Override
 	public void updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
 		MCR.addCall("indexBatchJob", indexBatchJob, "dataGroup", dataGroup);
-
-		this.indexBatchJob = indexBatchJob;
-		this.dataGroup = dataGroup;
 	}
 
 	@Override
 	public DataGroup createDataGroup(IndexBatchJob indexBatchJob, DataGroup filterAsDataGroup) {
-		MCR.addCall("indexBatchJob", indexBatchJob, "filterAsDataGroup", filterAsDataGroup);
-
-		DataGroupOldSpy dataGroupSpy = new DataGroupOldSpy("someDataGroup");
-		MCR.addReturned(dataGroupSpy);
-		return dataGroupSpy;
+		return (DataGroup) MCR.addCallAndReturnFromMRV("indexBatchJob", indexBatchJob,
+				"filterAsDataGroup", filterAsDataGroup);
 	}
-
 }
