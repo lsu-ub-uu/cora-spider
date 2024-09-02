@@ -42,7 +42,6 @@ import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public class IndexBatchJobRunnerTest {
-
 	private static final String FINISHED = "finished";
 	private static final String STARTED = "started";
 	private static final int TOTAL_NUMBER_TO_INDEX = 11700;
@@ -153,7 +152,6 @@ public class IndexBatchJobRunnerTest {
 		batchRunner.run();
 
 		RecordTypeHandlerSpy recordTypeHandler = dependencyProvider.recordTypeHandlerSpy;
-
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
 				recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0));
 
