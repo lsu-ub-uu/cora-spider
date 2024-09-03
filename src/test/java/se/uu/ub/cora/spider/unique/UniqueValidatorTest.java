@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.unique;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.storage.Condition;
 import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.Part;
+import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.RelationalOperator;
 import se.uu.ub.cora.storage.StorageReadResult;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
@@ -405,8 +407,6 @@ public class UniqueValidatorTest {
 						"filter");
 		assertOnlyOneIncludePart(usedFilter);
 		assertNoExcludePart(usedFilter);
-
-		// assertFilterConditions(usedFilter, expectedConditions);
 		assertFilterConditions(usedFilter, expectedConditionsMap.get(readListNumber));
 	}
 
@@ -443,4 +443,10 @@ public class UniqueValidatorTest {
 	private record ConditionPair(String conditionKey, String conditionValue) {
 	}
 
+	@Test
+	public void testOnlyForTestGetRecordStorage() throws Exception {
+		RecordStorage onlyForTestrecordStorage = ((UniqueValidatorImp) uniqueValidator)
+				.onlyForTestGetRecordStorage();
+		assertSame(onlyForTestrecordStorage, recordStorage);
+	}
 }

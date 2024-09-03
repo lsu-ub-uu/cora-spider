@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, 2019, 2020, 2023 Uppsala University Library
+ * Copyright 2018, 2019, 2020, 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -65,11 +65,13 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactorySpy;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
+import se.uu.ub.cora.spider.unique.UniqueValidatorImp;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.StreamStorageProvider;
 import se.uu.ub.cora.storage.archive.ResourceArchiveProvider;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGeneratorProvider;
 import se.uu.ub.cora.storage.spies.RecordStorageInstanceProviderSpy;
+import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.storage.spies.archive.ResourceArchiveInstanceProviderSpy;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -322,6 +324,16 @@ public class DependencyProviderAbstractTest {
 		assertTrue(converter1 instanceof DataGroupToFilterImp);
 		assertTrue(converter2 instanceof DataGroupToFilterImp);
 		assertNotSame(converter1, converter2);
+	}
+
+	@Test
+	private void testGetUniqueValidator() throws Exception {
+		RecordStorageSpy recordStorage = new RecordStorageSpy();
+		UniqueValidatorImp uniqueValidator = (UniqueValidatorImp) dependencyProvider
+				.getUniqueValidator(recordStorage);
+
+		assertNotNull(uniqueValidator);
+		assertSame(uniqueValidator.onlyForTestGetRecordStorage(), recordStorage);
 	}
 
 }

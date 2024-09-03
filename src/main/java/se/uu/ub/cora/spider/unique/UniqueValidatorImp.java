@@ -157,4 +157,8 @@ public class UniqueValidatorImp implements UniqueValidator {
 				storageTermValue);
 		return Optional.of(condition);
 	}
+
+	public RecordStorage onlyForTestGetRecordStorage() {
+		return recordStorage;
+	}
 }

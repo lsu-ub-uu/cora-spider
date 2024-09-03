@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import se.uu.ub.cora.bookkeeper.metadata.CollectTermHolder;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageView;
 import se.uu.ub.cora.bookkeeper.validator.ValidationType;
 import se.uu.ub.cora.data.DataGroup;
@@ -95,12 +96,6 @@ public class MetadataStorageViewSpy implements MetadataStorageView {
 	}
 
 	@Override
-	public Collection<DataGroup> getCollectTerms() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public Collection<ValidationType> getValidationTypes() {
 		// TODO Auto-generated method stub
 		return null;
@@ -110,6 +105,18 @@ public class MetadataStorageViewSpy implements MetadataStorageView {
 	public Optional<ValidationType> getValidationType(String validationId) {
 		// TODO Auto-generated method stub
 		return Optional.empty();
+	}
+
+	@Override
+	public Collection<DataGroup> getCollectTermsAsDataGroup() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CollectTermHolder getCollectTermHolder() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
