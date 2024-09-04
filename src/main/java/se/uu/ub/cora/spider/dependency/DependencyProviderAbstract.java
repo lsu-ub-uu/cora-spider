@@ -175,7 +175,7 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	}
 
 	/**
-	 * @Deprecated use {@link #getRecordTypeHandlerUsingDataRecordGroup(DataRecordGroup)} instead
+	 * @deprecated use {@link #getRecordTypeHandlerUsingDataRecordGroup(DataRecordGroup)} instead
 	 */
 	@Deprecated(forRemoval = true)
 	@Override
@@ -209,5 +209,4 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	public UniqueValidator getUniqueValidator(RecordStorage recordStorage) {
 		return UniqueValidatorImp.usingRecordStorage(recordStorage);
 	}
-
 }

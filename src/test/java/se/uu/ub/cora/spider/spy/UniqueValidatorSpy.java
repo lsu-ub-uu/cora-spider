@@ -16,8 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package se.uu.ub.cora.spider.unique;
+package se.uu.ub.cora.spider.spy;
 
 import java.util.List;
 import java.util.Set;
@@ -25,22 +24,23 @@ import java.util.Set;
 import se.uu.ub.cora.bookkeeper.recordtype.Unique;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.collected.StorageTerm;
+import se.uu.ub.cora.spider.unique.UniqueValidator;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public interface UniqueValidator {
-	/**
-	 * ValidateUnique verify the unique constrains set in the recordType.
-	 * 
-	 * @param recordType
-	 *            is the recordType related to the unique definition to validate.
-	 * @param uniques
-	 *            is a List of Unique object. Each {@link Unique} object defines a unique rule for a
-	 *            record.
-	 * @param storageTerms
-	 *            Incomming data as dataGroup. The unique constraints will be match to the variables
-	 *            that matches the storageTerms.
-	 * 
-	 * @return A ValidationAnswer with the result of the validation.
-	 */
-	ValidationAnswer validateUnique(String recordType, List<Unique> uniques,
-			Set<StorageTerm> storageTerms);
+public class UniqueValidatorSpy implements UniqueValidator {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public UniqueValidatorSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("validateUnique", ValidationAnswerSpy::new);
+	}
+
+	@Override
+	public ValidationAnswer validateUnique(String recordType, List<Unique> uniques,
+			Set<StorageTerm> storageTerms) {
+		return (ValidationAnswer) MCR.addCallAndReturnFromMRV("recordType", recordType, "uniques",
+				uniques, "storageTerms", storageTerms);
+	}
 }

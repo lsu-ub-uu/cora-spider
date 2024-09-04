@@ -47,7 +47,7 @@ public class UniqueValidatorImp implements UniqueValidator {
 	}
 
 	@Override
-	public ValidationAnswer validateUnique(String recordType, Set<Unique> uniques,
+	public ValidationAnswer validateUnique(String recordType, List<Unique> uniques,
 			Set<StorageTerm> storageTerms) {
 		if (noNeedToRunValidation(uniques, storageTerms)) {
 			return new ValidationAnswer();
@@ -56,7 +56,7 @@ public class UniqueValidatorImp implements UniqueValidator {
 		// TODO:check for multiple values for a unique key answer as invalid if found.
 	}
 
-	private ValidationAnswer checkUnique(String recordType, Set<Unique> uniques,
+	private ValidationAnswer checkUnique(String recordType, List<Unique> uniques,
 			Set<StorageTerm> storageTerms) {
 
 		ValidationAnswer answer = new ValidationAnswer();
@@ -103,7 +103,7 @@ public class UniqueValidatorImp implements UniqueValidator {
 		return stringJoiner.toString();
 	}
 
-	private boolean noNeedToRunValidation(Set<Unique> uniques, Set<StorageTerm> storageTerms) {
+	private boolean noNeedToRunValidation(List<Unique> uniques, Set<StorageTerm> storageTerms) {
 		return uniques.isEmpty() || storageTerms.isEmpty();
 	}
 

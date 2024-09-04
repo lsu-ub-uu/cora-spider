@@ -24,6 +24,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -54,6 +55,7 @@ import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
@@ -109,8 +111,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 		try {
 			return tryToValidateAndStoreRecord();
-		} catch (DataValidationException dve) {
-			throw new DataException("Data is not valid: " + dve.getMessage());
+		} catch (DataValidationException exception) {
+			throw new DataException("Data is not valid: " + exception.getMessage());
 		}
 	}
 
@@ -124,6 +126,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		useExtendedFunctionalityForPosition(CREATE_AFTER_METADATA_VALIDATION);
 		completeRecordAndCollectInformationSpecifiedInMetadata();
 		ensureNoDuplicateForTypeAndId();
+		validateDataForUniqueThrowErrorIfNot();
 		dataDivider = extractDataDividerFromData(recordGroup);
 		createRecordInStorage(recordGroup, collectedLinks, collectedTerms.storageTerms);
 		possiblyStoreInArchive();
@@ -278,6 +281,24 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		return recordStorage.recordExists(types, recordId);
 	}
 
+	private void validateDataForUniqueThrowErrorIfNot() {
+		UniqueValidator uniqueValidator = dependencyProvider.getUniqueValidator(recordStorage);
+		ValidationAnswer uniqueAnswer = uniqueValidator.validateUnique(recordType,
+				recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
+		if (uniqueAnswer.dataIsInvalid()) {
+			createAndThrowConflictExceptionForUnique(uniqueAnswer);
+		}
+	}
+
+	private void createAndThrowConflictExceptionForUnique(ValidationAnswer uniqueAnswer) {
+		String errorMessageTemplate = "The record could not be created as it fails unique validation with the "
+				+ "following {0} error messages: {1}";
+		Collection<String> errorMessages = uniqueAnswer.getErrorMessages();
+		String errorMessage = MessageFormat.format(errorMessageTemplate, errorMessages.size(),
+				errorMessages);
+		throw ConflictException.withMessage(errorMessage);
+	}
+
 	private void createRecordInStorage(DataGroup topLevelDataGroup, Set<Link> collectedLinks2,
 			Set<StorageTerm> storageTerms) {
 		recordStorage.create(recordType, recordId, topLevelDataGroup, storageTerms, collectedLinks2,
@@ -291,8 +312,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private String extractIdFromData() {
-		return recordGroup.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id");
+		DataGroup recordInfo = recordGroup.getFirstGroupWithNameInData("recordInfo");
+		return recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
 	private DataRecord enhanceDataGroupToRecord() {

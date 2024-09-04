@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,7 +54,7 @@ public class UniqueValidatorTest {
 	private RecordStorageSpy recordStorage;
 	private StorageReadResult duplicateReadResult = new StorageReadResult();
 	private Set<StorageTerm> storageTerms;
-	private Set<Unique> uniqueDefinitions;
+	private List<Unique> uniqueDefinitions;
 	private Map<Integer, List<ConditionPair>> expectedConditionsMap;
 
 	@BeforeTest
@@ -65,7 +66,7 @@ public class UniqueValidatorTest {
 	private void beforeMethod() {
 		recordStorage = new RecordStorageSpy();
 		uniqueValidator = UniqueValidatorImp.usingRecordStorage(recordStorage);
-		uniqueDefinitions = new LinkedHashSet<>();
+		uniqueDefinitions = new LinkedList<>();
 		storageTerms = new LinkedHashSet<>();
 		expectedConditionsMap = new HashMap<>();
 	}

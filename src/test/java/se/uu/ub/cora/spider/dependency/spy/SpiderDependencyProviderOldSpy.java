@@ -39,6 +39,8 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.DataRedactorSpy;
+import se.uu.ub.cora.spider.spy.UniqueValidatorSpy;
+import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
@@ -79,6 +81,7 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandlerUsingDataRecordGroup",
 				() -> recordTypeHandlerSpy);
 		MRV.setDefaultReturnValuesSupplier("getInitInfoValueUsingKey", () -> "someInitValue");
+		MRV.setDefaultReturnValuesSupplier("getUniqueValidator", UniqueValidatorSpy::new);
 	}
 
 	@Override
@@ -224,5 +227,10 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	public ResourceArchive getResourceArchive() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public UniqueValidator getUniqueValidator(RecordStorage recordStorage) {
+		return (UniqueValidator) MCR.addCallAndReturnFromMRV("recordStorage", recordStorage);
 	}
 }

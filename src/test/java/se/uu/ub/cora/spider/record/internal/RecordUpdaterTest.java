@@ -39,11 +39,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.recordtype.Unique;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
@@ -54,6 +54,7 @@ import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.PermissionTerm;
+import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.data.spies.DataAtomicSpy;
@@ -90,6 +91,7 @@ import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageUpdateMultipleTimesSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.spy.UniqueValidatorSpy;
 import se.uu.ub.cora.spider.spy.ValidationAnswerSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
@@ -98,9 +100,9 @@ import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class RecordUpdaterTest {
-	private static final String SOME_TOKEN = "someToken";
-	private static final String SOME_RECORD_ID = "someRecordId";
-	private static final String SOME_RECORD_TYPE = "spyType";
+	private static final String AUTH_TOKEN = "someAuthToken";
+	private static final String RECORD_ID = "someRecordId";
+	private static final String RECORD_TYPE = "spyType";
 	private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}Z";
 	private RecordStorageSpy recordStorage;
 	private RecordArchiveSpy recordArchive;
@@ -111,7 +113,7 @@ public class RecordUpdaterTest {
 	private RecordUpdater recordUpdater;
 	private DataValidatorOldSpy dataValidator;
 	private DataRecordLinkCollectorSpy linkCollector;
-	private SpiderDependencyProviderOldSpy dependencyProvider;
+	private SpiderDependencyProviderOldSpy dependencyProviderOld;
 	private SpiderDependencyProviderSpy dependencyProviderSpy;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
@@ -123,6 +125,7 @@ public class RecordUpdaterTest {
 	private DataCopierFactory dataCopierFactory;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
+	private UniqueValidatorSpy uniqueValidator;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -138,7 +141,12 @@ public class RecordUpdaterTest {
 		dataRedactor = new DataRedactorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		recordArchive = new RecordArchiveSpy();
+		uniqueValidator = new UniqueValidatorSpy();
+
+		setUpDependencyProviderOld();
 		setUpDependencyProvider();
+
+		setUpToReturnFakeDataForUpdatedTS();
 	}
 
 	private void setUpFactoriesAndProviders() {
@@ -151,34 +159,47 @@ public class RecordUpdaterTest {
 		DataCopierProvider.setDataCopierFactory(dataCopierFactory);
 	}
 
-	private void setUpDependencyProvider() {
-		setUpDependencyProvider(recordStorage);
+	private void setUpDependencyProviderOld() {
+		setUpDependencyProviderOldWithRecordStorage(recordStorage);
 	}
 
-	private void setUpDependencyProvider(RecordStorage recordStorage) {
-		dependencyProvider = new SpiderDependencyProviderOldSpy();
-		dependencyProvider.authenticator = authenticator;
-		dependencyProvider.spiderAuthorizator = authorizator;
-		dependencyProvider.dataValidator = dataValidator;
-		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.ruleCalculator = ruleCalculator;
-		dependencyProvider.linkCollector = linkCollector;
-		dependencyProvider.extendedFunctionalityProvider = extendedFunctionalityProvider;
-		dependencyProvider.termCollector = termCollector;
-		dependencyProvider.recordIndexer = recordIndexer;
-		dependencyProvider.recordArchive = recordArchive;
+	private void setUpDependencyProviderOldWithRecordStorage(RecordStorage recordStorage) {
+		dependencyProviderOld = new SpiderDependencyProviderOldSpy();
+		dependencyProviderOld.authenticator = authenticator;
+		dependencyProviderOld.spiderAuthorizator = authorizator;
+		dependencyProviderOld.dataValidator = dataValidator;
+		dependencyProviderOld.recordStorage = recordStorage;
+		dependencyProviderOld.ruleCalculator = ruleCalculator;
+		dependencyProviderOld.linkCollector = linkCollector;
+		dependencyProviderOld.extendedFunctionalityProvider = extendedFunctionalityProvider;
+		dependencyProviderOld.termCollector = termCollector;
+		dependencyProviderOld.recordIndexer = recordIndexer;
+		dependencyProviderOld.recordArchive = recordArchive;
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
-		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
+		recordTypeHandlerSpy = dependencyProviderOld.recordTypeHandlerSpy;
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
-				() -> SOME_RECORD_TYPE);
-		dependencyProvider.dataRedactor = dataRedactor;
-		dependencyProviderSpy = new SpiderDependencyProviderSpy();
+				() -> RECORD_TYPE);
+		dependencyProviderOld.dataRedactor = dataRedactor;
 
 		recordUpdaterOld = RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProvider, dataGroupToRecordEnhancer);
+				dependencyProviderOld, dataGroupToRecordEnhancer);
+	}
+
+	private void setUpDependencyProvider() {
+		dependencyProviderSpy = new SpiderDependencyProviderSpy();
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
+				() -> recordStorage);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
+				() -> extendedFunctionalityProvider);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getUniqueValidator",
+				() -> uniqueValidator);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
+				() -> termCollector);
+
 		recordUpdater = RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProviderSpy, dataGroupToRecordEnhancer);
-		setUpToReturnFakeDataForUpdatedTS();
 	}
 
 	private void setUpToReturnFakeDataForUpdatedTS() {
@@ -195,8 +216,8 @@ public class RecordUpdaterTest {
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				SOME_RECORD_TYPE, "spyId", "cora"));
-		recordUpdaterOld.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+				RECORD_TYPE, "spyId", "cora"));
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 		dataValidator.MCR.assertMethodWasCalled("validateData");
@@ -211,7 +232,7 @@ public class RecordUpdaterTest {
 
 		var links = linkCollector.MCR.getReturnValue("collectLinks", 0);
 
-		recordStorage.MCR.assertParameters("update", 0, SOME_RECORD_TYPE, "spyId", dataGroup,
+		recordStorage.MCR.assertParameters("update", 0, RECORD_TYPE, "spyId", dataGroup,
 				collectedTerms.storageTerms, links);
 
 		assertCorrectSearchTermCollectorAndIndexer();
@@ -238,19 +259,18 @@ public class RecordUpdaterTest {
 
 		DataGroupSpy dataGroupSpy = new DataGroupSpy();
 
-		recordUpdaterOld.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroupSpy);
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroupSpy);
 	}
 
 	@Test
 	public void testRecordTypeHandlerFetchedFromDependencyProvider() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				SOME_RECORD_TYPE, "spyId", "cora"));
+				RECORD_TYPE, "spyId", "cora"));
 
-		recordUpdater.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 
 		dataFactorySpy.MCR.assertParameters("factorRecordGroupFromDataGroup", 0, dataGroup);
 		var dataGroupAsRecordGroup = dataFactorySpy.MCR
@@ -263,15 +283,14 @@ public class RecordUpdaterTest {
 	public void testValidationTypeDoesNotExist() throws Exception {
 		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getUpdateDefinitionId",
 				DataValidationException.withMessage("some message"));
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				SOME_RECORD_TYPE, "spyId", "cora"));
+				RECORD_TYPE, "spyId", "cora"));
 
 		try {
-			recordUpdater.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 			fail("Exception should have been thrown");
 		} catch (Exception e) {
 			assertTrue(e instanceof DataException);
@@ -287,7 +306,7 @@ public class RecordUpdaterTest {
 				Optional.of(ignoreOverwriteProtectionValue), extendedFunctionalitySpy,
 				Optional.of("2023-12-05T08:51:01.730741Z"));
 
-		recordUpdater.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 
 		assertIgnoreOverwriteProtectionDeletedFromTopDataGroup(extendedFunctionalitySpy);
 	}
@@ -303,7 +322,7 @@ public class RecordUpdaterTest {
 				Optional.of(ignoreOverwriteProtectionValue), extendedFunctionalitySpy,
 				Optional.of("2023-12-05T08:51:01.730741Z"));
 
-		recordUpdater.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 
 		assertIgnoreOverwriteProtectionDeletedFromTopDataGroup(extendedFunctionalitySpy);
 	}
@@ -319,7 +338,7 @@ public class RecordUpdaterTest {
 				Optional.of(ignoreOverwriteProtectionValue), extendedFunctionalitySpy,
 				Optional.of(sameLatestUpdatedTimestamp));
 
-		recordUpdater.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 
 		assertIgnoreOverwriteProtectionDeletedFromTopDataGroup(extendedFunctionalitySpy);
 	}
@@ -334,7 +353,7 @@ public class RecordUpdaterTest {
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(Optional.empty(),
 				extendedFunctionalitySpy, Optional.of(sameLatestUpdatedTimestamp));
 
-		recordUpdater.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 
 		assertIgnoreOverwriteProtectionDeletedFromTopDataGroup(extendedFunctionalitySpy);
 	}
@@ -349,7 +368,7 @@ public class RecordUpdaterTest {
 				extendedFunctionalitySpy, Optional.of("2023-01-01T00:00:00.000001Z"));
 
 		try {
-			recordUpdater.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 			fail();
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
@@ -366,8 +385,7 @@ public class RecordUpdaterTest {
 				.getValueForMethodNameAndCallNumberAndParameterName("useExtendedFunctionality", 0,
 						"data");
 		DataGroup recordInfoHandled = extData.dataGroup.getFirstGroupWithNameInData("recordInfo");
-		boolean value = recordInfoHandled.containsChildWithNameInData("ignoreOverwriteProtection");
-		assertFalse(value);
+		assertFalse(recordInfoHandled.containsChildWithNameInData("ignoreOverwriteProtection"));
 	}
 
 	@Test
@@ -382,7 +400,7 @@ public class RecordUpdaterTest {
 				Optional.of("2023-12-05T08:51:01.730741Z"));
 
 		try {
-			recordUpdater.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 			fail();
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
@@ -404,7 +422,7 @@ public class RecordUpdaterTest {
 				extendedFunctionalitySpy, Optional.empty());
 
 		try {
-			recordUpdater.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 			fail();
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
@@ -418,7 +436,7 @@ public class RecordUpdaterTest {
 	private void setupPreviouslyStoredRecord(String updatedTimestamp) {
 		DataGroup dataGroupStored = new DataGroupOldSpy("nameInData");
 		DataGroup recordInfo = DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				SOME_RECORD_TYPE, "spyId", "cora");
+				RECORD_TYPE, "spyId", "cora");
 
 		dataGroupStored.addChild(recordInfo);
 		DataGroupSpy createdG = new DataGroupSpy();
@@ -443,14 +461,22 @@ public class RecordUpdaterTest {
 	private DataGroupSpy setUpRecordUpdaterWithExtFunctionallityAndValue(
 			Optional<String> ignoreOverwriteProtectionValue,
 			ExtendedFunctionalitySpy extendedFunctionalitySpy, Optional<String> updatedTimestamp) {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
-				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
-				() -> recordStorage);
+		extendedFunctionalityProvider.MRV.setSpecificReturnValuesSupplier(
+				"getFunctionalityForPositionAndRecordType", () -> List.of(extendedFunctionalitySpy),
+				UPDATE_BEFORE_METADATA_VALIDATION, RECORD_TYPE);
 
+		recordUpdater = RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
+				dependencyProviderSpy, dataGroupToRecordEnhancer);
+
+		DataGroupSpy dataGroup = createRecordWithRecordInfo(ignoreOverwriteProtectionValue,
+				updatedTimestamp);
+		return dataGroup;
+	}
+
+	private DataGroupSpy createRecordWithRecordInfo(Optional<String> ignoreOverwriteProtectionValue,
+			Optional<String> updatedTimestamp) {
 		DataGroup recordInfo = DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				SOME_RECORD_TYPE, "spyId", "cora");
+				RECORD_TYPE, "spyId", "cora");
 
 		DataGroupSpy dataGroup = new DataGroupSpy();
 		dataGroup.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "nameInData");
@@ -462,26 +488,17 @@ public class RecordUpdaterTest {
 		DataGroupSpy updatedG = new DataGroupSpy();
 		updatedG.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "updated");
 		if (updatedTimestamp.isPresent()) {
-			updatedG.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData", () -> true);
-			updatedG.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-					() -> updatedTimestamp.get());
+			updatedG.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+					"tsUpdated");
+			updatedG.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+					() -> updatedTimestamp.get(), "tsUpdated");
 		} else {
-			updatedG.MRV.setAlwaysThrowException("getFirstAtomicValueWithNameInData",
-					new DataMissingException("spy value not found"));
+			updatedG.MRV.setThrowException("getFirstAtomicValueWithNameInData",
+					new DataMissingException("spy value not found"), "tsUpdated");
 		}
 		updatedG.MRV.setDefaultReturnValuesSupplier("getRepeatId", () -> "1");
 
 		recordInfo.addChild(updatedG);
-
-		extendedFunctionalityProvider.MRV.setSpecificReturnValuesSupplier(
-				"getFunctionalityForPositionAndRecordType", () -> List.of(extendedFunctionalitySpy),
-				UPDATE_BEFORE_METADATA_VALIDATION, SOME_RECORD_TYPE);
-
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
-				() -> extendedFunctionalityProvider);
-
-		recordUpdater = RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProviderSpy, dataGroupToRecordEnhancer);
 		return dataGroup;
 	}
 
@@ -510,28 +527,22 @@ public class RecordUpdaterTest {
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				SOME_RECORD_TYPE, "spyId", "cora"));
-		recordUpdaterOld.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+				RECORD_TYPE, "spyId", "cora"));
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 
 		authorizator.MCR.assertParameters(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
-				authenticator.returnedUser, "update", SOME_RECORD_TYPE,
-				getPermissionTermUsingCallNo(0), false);
+				authenticator.returnedUser, "update", RECORD_TYPE, getPermissionTermUsingCallNo(0),
+				false);
 
 		authorizator.MCR.assertParameters(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0,
-				authenticator.returnedUser, "update", SOME_RECORD_TYPE,
-				getPermissionTermUsingCallNo(1));
+				authenticator.returnedUser, "update", RECORD_TYPE, getPermissionTermUsingCallNo(1));
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
 
 		dataRedactor.MCR.assertMethodNotCalled("replaceChildrenForConstraintsWithoutPermissions");
-		dataRedactor.MCR.assertMethodNotCalled(
-				"removeChildrenForConstra	private void useExtendedFunctionalityAfterMetadataValidation(String recordTypeToCreate,\n"
-						+ "			DataGroup dataGroup) {\n"
-						+ "		List<ExtendedFunctionality> functionalityForUpdateAfterMetadataValidation = extendedFunctionalityProvider\n"
-						+ "				.getFunctionalityForUpdateAfterMetadataValidation(recordTypeToCreate);\n"
-						+ "		useExtendedFunctionality(dataGroup, functionalityForUpdateAfterMetadataValidation);intsWithoutPermissions");
+		dataRedactor.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
 
 		dataValidator.MCR.assertParameter("validateData", 0, "dataGroup", dataGroup);
 	}
@@ -544,20 +555,19 @@ public class RecordUpdaterTest {
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
 				"spyType777", "spyId", "cora"));
 
-		recordUpdaterOld.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 
 		authorizator.MCR.assertParameters(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
-				authenticator.returnedUser, "update", SOME_RECORD_TYPE,
-				getPermissionTermUsingCallNo(0), true);
+				authenticator.returnedUser, "update", RECORD_TYPE, getPermissionTermUsingCallNo(0),
+				true);
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				1);
 
 		authorizator.MCR.assertParameters(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0,
-				authenticator.returnedUser, "update", SOME_RECORD_TYPE,
-				getPermissionTermUsingCallNo(1));
+				authenticator.returnedUser, "update", RECORD_TYPE, getPermissionTermUsingCallNo(1));
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
 
@@ -589,38 +599,25 @@ public class RecordUpdaterTest {
 	public void testRecordEnhancerCalled() {
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				SOME_RECORD_TYPE, "spyId", "cora"));
-		recordUpdaterOld.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+				RECORD_TYPE, "spyId", "cora"));
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 
 		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, authenticator.returnedUser,
-				SOME_RECORD_TYPE, dataGroup, dataRedactor);
-	}
-
-	@Test
-	public void testUpdateRecordAbstractRecordTypeBeforeReadRecord() {
-		setUpDependencyProvider();
-		DataGroup record = new DataGroupOldSpy("abstract");
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
-		try {
-			recordUpdaterOld.updateRecord("someToken78678567", "abstract", "spyId", record);
-		} catch (Exception e) {
-			recordStorage.MCR.assertNumberOfCallsToMethod("read", 0);
-		}
+				RECORD_TYPE, dataGroup, dataRedactor);
 	}
 
 	@Test
 	public void testCorrectRecordInfoInUpdatedRecord() {
 		OldRecordStorageSpy oldRecordStorage = new OldRecordStorageSpy();
-		setUpDependencyProvider(oldRecordStorage);
+		setUpDependencyProviderOldWithRecordStorage(oldRecordStorage);
 		setUpToReturnFakeDataGroupWhenCreatingUpdatedGroup();
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
-				() -> SOME_RECORD_TYPE);
+				() -> RECORD_TYPE);
 		DataGroup dataGroup = new DataGroupOldSpy("someRecordDataGroup");
 		addRecordInfoWithCreatedInfo(dataGroup);
 
-		DataRecord updatedOnce = recordUpdaterOld.updateRecord("someToken78678567",
-				SOME_RECORD_TYPE, "spyId", dataGroup);
+		DataRecord updatedOnce = recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId",
+				dataGroup);
 
 		assertUpdatedRepeatIdsInGroupAsListed(updatedOnce, "0");
 		assertCorrectUserInfo(updatedOnce);
@@ -634,7 +631,7 @@ public class RecordUpdaterTest {
 
 	private void addRecordInfoWithCreatedInfo(DataGroup topDataGroup) {
 		DataGroup recordInfo = DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				SOME_RECORD_TYPE, "spyId", "cora");
+				RECORD_TYPE, "spyId", "cora");
 		DataLink createdBy = createLinkWithNameInDataRecordTypeAndRecordId("createdBy", "user",
 				"6789");
 		recordInfo.addChild(createdBy);
@@ -659,12 +656,12 @@ public class RecordUpdaterTest {
 		DataGroup updatedRecordInfo = updatedDataGroup.getFirstGroupWithNameInData("recordInfo");
 
 		List<DataGroup> updatedGroups = updatedRecordInfo.getAllGroupsWithNameInData("updated");
-		AssertJUnit.assertEquals(updatedGroups.size(), expectedRepeatIds.length);
+		assertEquals(updatedGroups.size(), expectedRepeatIds.length);
 
 		for (int i = 0; i < expectedRepeatIds.length; i++) {
 			DataGroup updatedGroup = updatedGroups.get(i);
 			String repeatId = updatedGroup.getRepeatId();
-			AssertJUnit.assertEquals(repeatId, expectedRepeatIds[i]);
+			assertEquals(repeatId, expectedRepeatIds[i]);
 		}
 	}
 
@@ -676,7 +673,7 @@ public class RecordUpdaterTest {
 				"4422");
 
 		String tsCreated = updatedOnceRecordInfo.getFirstAtomicValueWithNameInData("tsCreated");
-		AssertJUnit.assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
+		assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
 
 		DataGroup updated = updatedOnceRecordInfo.getFirstGroupWithNameInData("updated");
 		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
@@ -704,7 +701,7 @@ public class RecordUpdaterTest {
 				createdByAdded = true;
 			}
 		}
-		AssertJUnit.assertTrue(createdByAdded);
+		assertTrue(createdByAdded);
 	}
 
 	@Test
@@ -714,15 +711,14 @@ public class RecordUpdaterTest {
 		Instant minusNanos = now.minusNanos(nano);
 		RecordUpdaterImp recordUpdater2 = (RecordUpdaterImp) recordUpdaterOld;
 		String formattedTS = recordUpdater2.formatInstantKeepingTrailingZeros(minusNanos);
-		AssertJUnit.assertEquals(formattedTS.substring(20), "000000Z");
+		assertEquals(formattedTS.substring(20), "000000Z");
 	}
 
 	private void assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(DataGroup updatedRecordInfo,
 			String groupNameInData, String linkedRecordId) {
 		DataGroup createdByGroup = updatedRecordInfo.getFirstGroupWithNameInData(groupNameInData);
-		AssertJUnit.assertEquals(
-				createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordType"), "user");
-		AssertJUnit.assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordId"),
+		assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordType"), "user");
+		assertEquals(createdByGroup.getFirstAtomicValueWithNameInData("linkedRecordId"),
 				linkedRecordId);
 	}
 
@@ -740,16 +736,16 @@ public class RecordUpdaterTest {
 	@Test
 	public void testCorrectUpdateInfoWhenRecordHasAlreadyBeenUpdated() {
 		RecordStorageUpdateMultipleTimesSpy recordStorage = new RecordStorageUpdateMultipleTimesSpy();
-		setUpDependencyProvider(recordStorage);
+		setUpDependencyProviderOldWithRecordStorage(recordStorage);
 		setUpToReturnFakeDataGroupWhenCreatingUpdatedGroup();
 
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		addRecordInfoWithCreatedInfo(dataGroup);
 
 		updateStorageToReturnDataGroupIncludingUpdateInfo(recordStorage);
-		DataRecord updatedOnce = recordUpdaterOld.updateRecord("someToken78678567",
-				SOME_RECORD_TYPE, "spyId", dataGroup);
-		AssertJUnit.assertEquals(recordStorage.types.size(), 1);
+		DataRecord updatedOnce = recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId",
+				dataGroup);
+		assertEquals(recordStorage.types.size(), 1);
 		assertUpdatedRepeatIdsInGroupAsListed(updatedOnce, "0", "1");
 	}
 
@@ -762,19 +758,19 @@ public class RecordUpdaterTest {
 	public void testNewUpdatedInRecordInfoHasRepeatIdPlusOne() {
 		RecordStorageUpdateMultipleTimesSpy recordStorage = new RecordStorageUpdateMultipleTimesSpy();
 
-		setUpDependencyProvider(recordStorage);
+		setUpDependencyProviderOldWithRecordStorage(recordStorage);
 		setUpToReturnFakeDataGroupWhenCreatingUpdatedGroup();
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		addRecordInfoWithCreatedInfo(dataGroup);
 
-		DataRecord updatedOnceRecord = recordUpdaterOld.updateRecord("someToken78678567",
-				SOME_RECORD_TYPE, "spyId", dataGroup);
+		DataRecord updatedOnceRecord = recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE,
+				"spyId", dataGroup);
 		assertCorrectUserInfo(updatedOnceRecord);
 
 		updateStorageToReturnDataGroupIncludingUpdateInfo(recordStorage);
 		resetIgnoreOverwriteProtectionToTrueAsItWasRemovedByTheServer(dataGroup);
-		DataRecord updatedTwice = recordUpdaterOld.updateRecord("someToken78678567",
-				SOME_RECORD_TYPE, "spyId", dataGroup);
+		DataRecord updatedTwice = recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId",
+				dataGroup);
 		assertUpdatedRepeatIdsInGroupAsListed(updatedTwice, "0", "1");
 	}
 
@@ -787,28 +783,27 @@ public class RecordUpdaterTest {
 	@Test
 	public void testCreateAndUpdateInfoSetFromPreviousUpdateIsNotReplacedByAlteredData() {
 		RecordStorageUpdateMultipleTimesSpy recordStorage = new RecordStorageUpdateMultipleTimesSpy();
-		setUpDependencyProvider(recordStorage);
+		setUpDependencyProviderOldWithRecordStorage(recordStorage);
 
 		DataGroup dataGroupToUpdate = new DataGroupOldSpy("nameInData");
 		addRecordInfoWithCreatedInfo(dataGroupToUpdate);
 		addUpdatedInfoToRecordInfo(dataGroupToUpdate);
 
 		updateStorageToReturnDataGroupIncludingUpdateInfo(recordStorage);
-		DataRecord updatedRecord = recordUpdaterOld.updateRecord("someToken78678567",
-				SOME_RECORD_TYPE, "spyId", dataGroupToUpdate);
+		DataRecord updatedRecord = recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId",
+				dataGroupToUpdate);
 
 		DataGroup firstUpdated = getFirstUpdatedInfo(updatedRecord);
 		String firstTsUpdated = firstUpdated.getFirstAtomicValueWithNameInData("tsUpdated");
 		String correctTsUpdated = "2014-12-18 20:20:38.346";
 
-		AssertJUnit.assertEquals(firstTsUpdated, correctTsUpdated);
+		assertEquals(firstTsUpdated, correctTsUpdated);
 
 		DataGroup updatedDataGroup = updatedRecord.getDataGroup();
 		DataGroup recordInfo = updatedDataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup createdBy = recordInfo.getFirstGroupWithNameInData("createdBy");
-		AssertJUnit.assertEquals(createdBy.getFirstAtomicValueWithNameInData("linkedRecordId"),
-				"4422");
-		AssertJUnit.assertEquals(recordInfo.getFirstAtomicValueWithNameInData("tsCreated"),
+		assertEquals(createdBy.getFirstAtomicValueWithNameInData("linkedRecordId"), "4422");
+		assertEquals(recordInfo.getFirstAtomicValueWithNameInData("tsCreated"),
 				"2014-08-01T00:00:00.000000Z");
 	}
 
@@ -837,7 +832,7 @@ public class RecordUpdaterTest {
 		DataGroup dataGroup = getDataGroupToUpdate();
 		dataGroup.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("notStoredValue", "hej"));
 
-		recordUpdaterOld.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, "typeWithAutoGeneratedId", "somePlace",
 				dataGroup);
 
 		authorizator.MCR.assertParameters(
@@ -863,18 +858,15 @@ public class RecordUpdaterTest {
 
 		DataGroup dataGroup = new DataGroupOldSpy("nameInData");
 		dataGroup.addChild(DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				SOME_RECORD_TYPE, "spyId", "cora"));
+				RECORD_TYPE, "spyId", "cora"));
 
-		boolean exceptionWasCaught = false;
 		try {
-			recordUpdaterOld.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId",
-					dataGroup);
+			recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
+			fail("AuthorizationException should have been thrown");
 		} catch (Exception e) {
-			AssertJUnit.assertEquals(e.getClass(), AuthorizationException.class);
-			exceptionWasCaught = true;
+			assertTrue(e instanceof AuthorizationException);
 		}
 
-		AssertJUnit.assertTrue(exceptionWasCaught);
 		recordStorage.MCR.assertMethodNotCalled("read");
 		recordStorage.MCR.assertMethodNotCalled("update");
 		recordStorage.MCR.assertMethodNotCalled("delete");
@@ -883,11 +875,11 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testExtendedFunctionalityIsCalled() {
-		String recordType = SOME_RECORD_TYPE;
+		String recordType = RECORD_TYPE;
 		String recordId = "spyId";
 		DataGroup dataGroup = DataCreator2.createRecordWithNameInDataAndIdAndTypeAndLinkedRecordId(
 				"nameInData", recordId, recordType, "cora");
-		String authToken = "someToken78678567";
+		String authToken = AUTH_TOKEN;
 
 		recordUpdaterOld.updateRecord(authToken, recordType, recordId, dataGroup);
 
@@ -941,7 +933,7 @@ public class RecordUpdaterTest {
 				() -> "typeWithAutoGeneratedId");
 		DataGroup dataGroup = getDataGroupToUpdate();
 
-		recordUpdaterOld.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, "typeWithAutoGeneratedId", "somePlace",
 				dataGroup);
 
 		var recordToSentToStorage = (DataGroup) recordStorage.MCR
@@ -983,7 +975,7 @@ public class RecordUpdaterTest {
 				() -> "typeWithAutoGeneratedId");
 		DataGroup dataGroup = getDataGroupToUpdate();
 
-		recordUpdaterOld.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, "typeWithAutoGeneratedId", "somePlace",
 				dataGroup);
 
 		recordStorage.MCR.assertParameter("update", 0, "dataDivider", "cora");
@@ -995,7 +987,7 @@ public class RecordUpdaterTest {
 				() -> "typeWithAutoGeneratedId");
 		DataGroup dataGroup = getDataGroupToUpdate();
 
-		recordUpdaterOld.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "somePlace",
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, "typeWithAutoGeneratedId", "somePlace",
 				dataGroup);
 
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
@@ -1016,7 +1008,7 @@ public class RecordUpdaterTest {
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 
 		record.addChild(recordInfo);
-		recordUpdaterOld.updateRecord("someToken78678567", "recordType", "NOT_FOUND", record);
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, "recordType", "NOT_FOUND", record);
 	}
 
 	@Test(expectedExceptions = DataMissingException.class)
@@ -1024,8 +1016,7 @@ public class RecordUpdaterTest {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "typeWithAutoGeneratedId");
 		DataGroup group = new DataGroupOldSpy("authority");
-		recordUpdaterOld.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "place",
-				group);
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, "typeWithAutoGeneratedId", "place", group);
 	}
 
 	@Test(expectedExceptions = DataMissingException.class)
@@ -1035,8 +1026,7 @@ public class RecordUpdaterTest {
 		DataGroup group = new DataGroupOldSpy("authority");
 		DataGroup createRecordInfo = new DataGroupOldSpy("recordInfo");
 		group.addChild(createRecordInfo);
-		recordUpdaterOld.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "place",
-				group);
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, "typeWithAutoGeneratedId", "place", group);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
@@ -1050,7 +1040,7 @@ public class RecordUpdaterTest {
 		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(Optional.empty(),
 				extendedFunctionalitySpy, Optional.of(sameLatestUpdatedTimestamp));
 
-		recordUpdater.updateRecord("someToken78678567", SOME_RECORD_TYPE, "spyId", dataGroup);
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
 	}
 
 	private void setUpDataValidatorToReturnInvalidWithErrors() {
@@ -1075,8 +1065,8 @@ public class RecordUpdaterTest {
 		dataGroup.addChild(createRecordInfo);
 		dataGroup.addChild(new se.uu.ub.cora.spider.data.DataAtomicSpy("atomicId", "atomicValue"));
 
-		recordUpdaterOld.updateRecord("someToken78678567", "typeWithAutoGeneratedId",
-				"place_NOT_THE_SAME", dataGroup);
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, "typeWithAutoGeneratedId", "place_NOT_THE_SAME",
+				dataGroup);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
@@ -1093,8 +1083,7 @@ public class RecordUpdaterTest {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "typeWithAutoGeneratedId");
 
-		recordUpdaterOld.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "place",
-				dataGroup);
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, "typeWithAutoGeneratedId", "place", dataGroup);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
@@ -1109,8 +1098,7 @@ public class RecordUpdaterTest {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "typeWithAutoGeneratedId");
 
-		recordUpdaterOld.updateRecord("someToken78678567", "typeWithAutoGeneratedId", "placeNOT",
-				dataGroup);
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, "typeWithAutoGeneratedId", "placeNOT", dataGroup);
 	}
 
 	@Test(expectedExceptions = DataException.class)
@@ -1121,7 +1109,7 @@ public class RecordUpdaterTest {
 		DataGroup dataGroup = RecordLinkTestsDataCreator
 				.createDataDataGroupWithRecordInfoAndLinkOneLevelDown();
 
-		recordUpdaterOld.updateRecord("someToken78678567", "dataWithLinks", "oneLinkOneLevelDown",
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, "dataWithLinks", "oneLinkOneLevelDown",
 				dataGroup);
 	}
 
@@ -1130,10 +1118,9 @@ public class RecordUpdaterTest {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
 		DataGroupSpy recordSpy = createDataGroupForUpdate();
 
-		recordUpdaterOld.updateRecord(SOME_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID, recordSpy);
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordSpy);
 
-		recordArchive.MCR.assertParameters("update", 0, SOME_RECORD_TYPE, SOME_RECORD_ID,
-				recordSpy);
+		recordArchive.MCR.assertParameters("update", 0, RECORD_TYPE, RECORD_ID, recordSpy);
 	}
 
 	@Test
@@ -1144,12 +1131,10 @@ public class RecordUpdaterTest {
 				RecordNotFoundException.withMessage("sorry not found"));
 		DataGroupSpy recordSpy = createDataGroupForUpdate();
 
-		recordUpdaterOld.updateRecord(SOME_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID, recordSpy);
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordSpy);
 
-		recordArchive.MCR.assertParameters("update", 0, SOME_RECORD_TYPE, SOME_RECORD_ID,
-				recordSpy);
-		recordArchive.MCR.assertParameters("create", 0, SOME_RECORD_TYPE, SOME_RECORD_ID,
-				recordSpy);
+		recordArchive.MCR.assertParameters("update", 0, RECORD_TYPE, RECORD_ID, recordSpy);
+		recordArchive.MCR.assertParameters("create", 0, RECORD_TYPE, RECORD_ID, recordSpy);
 	}
 
 	private DataGroupSpy createDataGroupForUpdate() {
@@ -1161,12 +1146,12 @@ public class RecordUpdaterTest {
 		recordInfoSpy.MRV.setReturnValues("getFirstChildWithNameInData", List.of(dataDividerSpy),
 				"dataDivider");
 		recordInfoSpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				(Supplier<String>) () -> SOME_RECORD_ID, "id");
+				(Supplier<String>) () -> RECORD_ID, "id");
 		recordInfoSpy.MRV.setReturnValues("containsChildWithNameInData", List.of(false), "updated");
 
 		DataRecordLinkSpy typeSpy = new DataRecordLinkSpy();
 		recordInfoSpy.MRV.setReturnValues("getFirstChildWithNameInData", List.of(typeSpy), "type");
-		typeSpy.MRV.setReturnValues("getLinkedRecordId", List.of(SOME_RECORD_TYPE));
+		typeSpy.MRV.setReturnValues("getLinkedRecordId", List.of(RECORD_TYPE));
 
 		dataDividerSpy.MRV.setReturnValues("getFirstAtomicValueWithNameInData", List.of("uu"),
 				"linkedRecordId");
@@ -1177,7 +1162,7 @@ public class RecordUpdaterTest {
 	public void testStoreInArchiveFalse() throws Exception {
 		DataGroupSpy recordSpy = createDataGroupForUpdate();
 
-		recordUpdaterOld.updateRecord(SOME_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID, recordSpy);
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordSpy);
 
 		recordArchive.MCR.assertMethodNotCalled("update");
 	}
@@ -1186,14 +1171,14 @@ public class RecordUpdaterTest {
 	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() throws Exception {
 		DataGroupSpy recordSpy = createDataGroupForUpdate();
 
-		recordUpdaterOld.updateRecord(SOME_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID, recordSpy);
+		recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordSpy);
 
 		DataRecordOldSpy enhancedRecord = (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR
 				.getReturnValue("enhance", 0);
 		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
-		expectedData.recordType = SOME_RECORD_TYPE;
-		expectedData.recordId = SOME_RECORD_ID;
-		expectedData.authToken = SOME_TOKEN;
+		expectedData.recordType = RECORD_TYPE;
+		expectedData.recordId = RECORD_ID;
+		expectedData.authToken = AUTH_TOKEN;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 		expectedData.previouslyStoredTopDataGroup = (DataGroup) recordStorage.MCR
 				.getReturnValue("read", 0);
@@ -1206,10 +1191,10 @@ public class RecordUpdaterTest {
 	@Test
 	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists2() throws Exception {
 		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
-				dependencyProviderSpy, UPDATE_AFTER_AUTHORIZATION, SOME_RECORD_TYPE);
+				dependencyProviderSpy, UPDATE_AFTER_AUTHORIZATION, RECORD_TYPE);
 		DataGroupSpy recordSpy = createDataGroupForUpdate();
 		try {
-			recordUpdaterOld.updateRecord(SOME_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID, recordSpy);
+			recordUpdaterOld.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordSpy);
 			fail("Should fail as we want to stop execution when the extended functionality is used,"
 					+ " to determin that the extended functionality is called in the correct place"
 					+ " in the code");
@@ -1220,4 +1205,56 @@ public class RecordUpdaterTest {
 		dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
 	}
 
+	@Test
+	public void testRecordUpdaterGetsUniqueValiadatorFromDependencyProvider() throws Exception {
+		DataGroupSpy recordSpy = createDataGroupForUpdate();
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordSpy);
+
+		dependencyProviderSpy.MCR.assertCalledParameters("getUniqueValidator", recordStorage);
+	}
+
+	@Test
+	public void uniqueValidatorCalledWithCorrectParameters() throws Exception {
+		List<Unique> uniqueList = List.of(new Unique("", Set.of("")));
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions",
+				() -> uniqueList);
+		CollectTerms collectTerms = new CollectTerms();
+		collectTerms.storageTerms = Set.of(new StorageTerm("id", "key", "value"));
+		termCollector.MRV.setDefaultReturnValuesSupplier("collectTerms", () -> collectTerms);
+		DataGroupSpy recordSpy = createDataGroupForUpdate();
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordSpy);
+
+		uniqueValidator.MCR.assertMethodWasCalled("validateUnique");
+		uniqueValidator.MCR.assertParameters("validateUnique", 0, RECORD_TYPE, uniqueList,
+				collectTerms.storageTerms);
+	}
+
+	@Test
+	public void testUniqueValidationFails_throwsSpiderConflictException() throws Exception {
+		DataGroupSpy recordSpy = createDataGroupForUpdate();
+		setupUniqueValidatorToReturnInvalidAnswerWithThreeErrors();
+
+		try {
+			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordSpy);
+
+			fail("A ConclictException should have been thrown");
+		} catch (Exception e) {
+			assertTrue(e instanceof ConflictException);
+			assertEquals(e.getMessage(),
+					"The record could not be created as it fails unique validation with the "
+							+ "following 3 error messages: [" + "error1, error2, error3]");
+			recordStorage.MCR.assertMethodNotCalled("create");
+		}
+	}
+
+	private void setupUniqueValidatorToReturnInvalidAnswerWithThreeErrors() {
+		ValidationAnswerSpy validationAnswer = new ValidationAnswerSpy();
+		validationAnswer.MRV.setDefaultReturnValuesSupplier("dataIsInvalid", () -> true);
+		validationAnswer.MRV.setDefaultReturnValuesSupplier("getErrorMessages",
+				() -> List.of("error1", "error2", "error3"));
+		uniqueValidator.MRV.setDefaultReturnValuesSupplier("validateUnique",
+				() -> validationAnswer);
+	}
 }

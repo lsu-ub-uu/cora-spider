@@ -646,4 +646,57 @@ public class RecordValidatorTest {
 				"RecordType from record (someOtherRecordType) does not match recordType from validationOrder ("
 						+ RECORD_TYPE_TO_VALIDATE_AGAINST + ")");
 	}
+
+	// @Test
+	// public void testRecordUpdaterGetsUniqueValiadatorFromDependencyProvider() throws Exception {
+	// DataGroupSpy recordSpy = createDataGroupForUpdate();
+	//
+	// recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordSpy);
+	//
+	// dependencyProviderSpy.MCR.assertCalledParameters("getUniqueValidator", recordStorage);
+	// }
+
+	// @Test
+	// public void uniqueValidatorCalledWithCorrectParameters() throws Exception {
+	// List<Unique> uniqueList = List.of(new Unique("", Set.of("")));
+	// recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions",
+	// () -> uniqueList);
+	// CollectTerms collectTerms = new CollectTerms();
+	// collectTerms.storageTerms = Set.of(new StorageTerm("id", "key", "value"));
+	// termCollector.MRV.setDefaultReturnValuesSupplier("collectTerms", () -> collectTerms);
+	// DataGroupSpy recordSpy = createDataGroupForUpdate();
+	//
+	// recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordSpy);
+	//
+	// uniqueValidator.MCR.assertMethodWasCalled("validateUnique");
+	// uniqueValidator.MCR.assertParameters("validateUnique", 0, RECORD_TYPE, uniqueList,
+	// collectTerms.storageTerms);
+	// }
+	//
+	// @Test
+	// public void testUniqueValidationFails_throwsSpiderConflictException() throws Exception {
+	// DataGroupSpy recordSpy = createDataGroupForUpdate();
+	// setupUniqueValidatorToReturnInvalidAnswerWithThreeErrors();
+	//
+	// try {
+	// recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordSpy);
+	//
+	// fail("A ConclictException should have been thrown");
+	// } catch (Exception e) {
+	// assertTrue(e instanceof ConflictException);
+	// assertEquals(e.getMessage(),
+	// "The record could not be created as it fails unique validation with the "
+	// + "following 3 error messages: [" + "error1, error2, error3]");
+	// recordStorage.MCR.assertMethodNotCalled("create");
+	// }
+	// }
+	//
+	// private void setupUniqueValidatorToReturnInvalidAnswerWithThreeErrors() {
+	// ValidationAnswerSpy validationAnswer = new ValidationAnswerSpy();
+	// validationAnswer.MRV.setDefaultReturnValuesSupplier("dataIsInvalid", () -> true);
+	// validationAnswer.MRV.setDefaultReturnValuesSupplier("getErrorMessages",
+	// () -> List.of("error1", "error2", "error3"));
+	// uniqueValidator.MRV.setDefaultReturnValuesSupplier("validateUnique",
+	// () -> validationAnswer);
+	// }
 }
