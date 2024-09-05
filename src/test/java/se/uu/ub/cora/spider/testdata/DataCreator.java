@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 
 public final class DataCreator {
@@ -76,13 +76,13 @@ public final class DataCreator {
 				"pg" + idWithCapitalFirst + "FormNew"));
 		dataGroup.addChild(createLinkWithLinkedId(LIST_PRESENTATION_VIEW_ID, "presentationGroup",
 				"pg" + idWithCapitalFirst + "List"));
-		dataGroup.addChild(new DataAtomicSpy(SEARCH_METADATA_ID, id + "Search"));
-		dataGroup.addChild(new DataAtomicSpy(SEARCH_PRESENTATION_FORM_ID,
+		dataGroup.addChild(new DataAtomicOldSpy(SEARCH_METADATA_ID, id + "Search"));
+		dataGroup.addChild(new DataAtomicOldSpy(SEARCH_PRESENTATION_FORM_ID,
 				"pg" + idWithCapitalFirst + "SearchForm"));
 
-		dataGroup.addChild(new DataAtomicSpy(USER_SUPPLIED_ID, userSuppliedId));
+		dataGroup.addChild(new DataAtomicOldSpy(USER_SUPPLIED_ID, userSuppliedId));
 		dataGroup.addChild(
-				new DataAtomicSpy(SELF_PRESENTATION_VIEW_ID, "pg" + idWithCapitalFirst + "Self"));
+				new DataAtomicOldSpy(SELF_PRESENTATION_VIEW_ID, "pg" + idWithCapitalFirst + "Self"));
 		return dataGroup;
 	}
 
@@ -90,8 +90,8 @@ public final class DataCreator {
 			String id, String userSuppliedId, String abstractValue, String parentId,
 			String publicRead) {
 		DataGroup dataGroup = createRecordTypeWithIdAndUserSuppliedId(id, userSuppliedId);
-		dataGroup.addChild(new DataAtomicSpy("abstract", abstractValue));
-		dataGroup.addChild(new DataAtomicSpy("public", publicRead));
+		dataGroup.addChild(new DataAtomicOldSpy("abstract", abstractValue));
+		dataGroup.addChild(new DataAtomicOldSpy("public", publicRead));
 		if (null != parentId) {
 			dataGroup.addChild(createLinkWithLinkedId("parentId", "recordType", parentId));
 		}
@@ -109,7 +109,7 @@ public final class DataCreator {
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		recordInfo.addChild(createLinkWithLinkedId("parentId", "recordType", "binary"));
 		recordInfo.addChild(createLinkWithLinkedId("type", "recordType", recordType));
-		recordInfo.addChild(new DataAtomicSpy("id", recordId));
+		recordInfo.addChild(new DataAtomicOldSpy("id", recordId));
 		return recordInfo;
 	}
 

@@ -40,12 +40,13 @@ public class DataValidatorOldSpy implements DataValidator {
 	@Override
 	public ValidationAnswer validateData(String metadataGroupId, DataGroup dataGroup) {
 		MCR.addCall("metadataGroupId", metadataGroupId, "dataGroup", dataGroup);
-
+		System.err.println(metadataGroupId);
 		ValidationAnswer validationAnswer = new ValidationAnswer();
 		if (!validValidation) {
 			validationAnswer.addErrorMessage("Data always invalid");
 		}
 		if (notValidForMetadataGroupId.contains(metadataGroupId)) {
+			System.err.println(metadataGroupId);
 			validationAnswer.addErrorMessage("Data invalid for metadataId " + metadataGroupId);
 		}
 		return validationAnswer;

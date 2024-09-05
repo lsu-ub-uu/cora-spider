@@ -38,8 +38,8 @@ public class UniqueValidatorSpy implements UniqueValidator {
 	}
 
 	@Override
-	public ValidationAnswer validateUnique(String recordType, List<Unique> uniques,
-			Set<StorageTerm> storageTerms) {
+	public ValidationAnswer validateUnique(String recordType, String recordId,
+			List<Unique> uniques, Set<StorageTerm> storageTerms) {
 		return (ValidationAnswer) MCR.addCallAndReturnFromMRV("recordType", recordType, "uniques",
 				uniques, "storageTerms", storageTerms);
 	}

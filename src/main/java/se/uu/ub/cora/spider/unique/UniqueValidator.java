@@ -32,15 +32,15 @@ public interface UniqueValidator {
 	 * 
 	 * @param recordType
 	 *            is the recordType related to the unique definition to validate.
+	 * @param recordId TODO
 	 * @param uniques
 	 *            is a List of Unique object. Each {@link Unique} object defines a unique rule for a
 	 *            record.
 	 * @param storageTerms
 	 *            Incomming data as dataGroup. The unique constraints will be match to the variables
 	 *            that matches the storageTerms.
-	 * 
 	 * @return A ValidationAnswer with the result of the validation.
 	 */
-	ValidationAnswer validateUnique(String recordType, List<Unique> uniques,
-			Set<StorageTerm> storageTerms);
+	ValidationAnswer validateUnique(String recordType, String recordId,
+			List<Unique> uniques, Set<StorageTerm> storageTerms);
 }

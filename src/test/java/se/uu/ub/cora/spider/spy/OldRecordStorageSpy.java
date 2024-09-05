@@ -28,7 +28,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
@@ -161,8 +161,8 @@ public class OldRecordStorageSpy implements RecordStorage {
 						.createRecordTypeWithIdAndUserSuppliedIdAndParentId(id, "true",
 								"authority");
 				DataGroup filter = new DataGroupOldSpy("filter");
-				filter.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
-				filter.addChild(new DataAtomicSpy("linkedRecordId", "placeFilterGroup"));
+				filter.addChild(new DataAtomicOldSpy("linkedRecordType", "metadataGroup"));
+				filter.addChild(new DataAtomicOldSpy("linkedRecordId", "placeFilterGroup"));
 				dataGroup.addChild(filter);
 				return dataGroup;
 			}
@@ -221,7 +221,7 @@ public class OldRecordStorageSpy implements RecordStorage {
 				DataGroup permissionRole = new DataGroupOldSpy("permissionRole");
 				DataGroup permissionRuleLink = createPermissionRuleLink("authorityReader");
 				permissionRole.addChild(permissionRuleLink);
-				permissionRole.addChild(new DataAtomicSpy("activeStatus", "inactive"));
+				permissionRole.addChild(new DataAtomicOldSpy("activeStatus", "inactive"));
 				return permissionRole;
 			}
 			if ("permissionRule".equals(type) && "ruleWithPermissionPart".equals(id)) {
@@ -235,7 +235,7 @@ public class OldRecordStorageSpy implements RecordStorage {
 						"publishedStatusPermissionTerm", "system.published");
 				rule.addChild(permissionTermRulePart);
 
-				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+				rule.addChild(new DataAtomicOldSpy("activeStatus", "active"));
 				return rule;
 			}
 			if ("permissionRule".equals(type) && "ruleWithMultiplePermissionPart".equals(id)) {
@@ -253,7 +253,7 @@ public class OldRecordStorageSpy implements RecordStorage {
 						"deletedStatusPermissionTerm", "system.deleted", "system.notDeleted");
 				rule.addChild(permissionTermRulePart2);
 
-				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+				rule.addChild(new DataAtomicOldSpy("activeStatus", "active"));
 				return rule;
 			}
 
@@ -268,7 +268,7 @@ public class OldRecordStorageSpy implements RecordStorage {
 						"system.person", "system.place");
 				rule.addChild(permissionRulePart2);
 
-				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+				rule.addChild(new DataAtomicOldSpy("activeStatus", "active"));
 				return rule;
 			}
 			if ("permissionRule".equals(type) && "metadataReader".equals(id)) {
@@ -282,7 +282,7 @@ public class OldRecordStorageSpy implements RecordStorage {
 						"system.person", "system.place");
 				rule.addChild(permissionRulePart2);
 
-				rule.addChild(new DataAtomicSpy("activeStatus", "inactive"));
+				rule.addChild(new DataAtomicOldSpy("activeStatus", "inactive"));
 				return rule;
 			}
 			if ("permissionRule".equals(type) && "inactive".equals(id)) {
@@ -292,7 +292,7 @@ public class OldRecordStorageSpy implements RecordStorage {
 						"system.read");
 				rule.addChild(permissionRulePart);
 
-				rule.addChild(new DataAtomicSpy("activeStatus", "inactive"));
+				rule.addChild(new DataAtomicOldSpy("activeStatus", "inactive"));
 				return rule;
 			}
 			if ("permissionRole".equals(type) && "roleNotFoundInStorage".equals(id)) {
@@ -314,12 +314,12 @@ public class OldRecordStorageSpy implements RecordStorage {
 
 			if ("inactiveUserId".equals(id)) {
 				DataGroup user = new DataGroupOldSpy("user");
-				user.addChild(new DataAtomicSpy("activeStatus", "inactive"));
+				user.addChild(new DataAtomicOldSpy("activeStatus", "inactive"));
 				return user;
 			}
 			if ("someUserId".equals(id)) {
 				DataGroup user = new DataGroupOldSpy("user");
-				user.addChild(new DataAtomicSpy("activeStatus", "active"));
+				user.addChild(new DataAtomicOldSpy("activeStatus", "active"));
 				addRoleToUser("guest", user);
 
 				return user;
@@ -341,7 +341,7 @@ public class OldRecordStorageSpy implements RecordStorage {
 			}
 			if ("metadataGroup".equals(type) && "bookGroup".contentEquals(id)) {
 				readDataGroup = new DataGroupOldSpy("bookGroup");
-				readDataGroup.addChild(new DataAtomicSpy("nameInData", "book"));
+				readDataGroup.addChild(new DataAtomicOldSpy("nameInData", "book"));
 				return readDataGroup;
 			}
 		}
@@ -353,10 +353,10 @@ public class OldRecordStorageSpy implements RecordStorage {
 	private void addCreatedInfoToRecordInfo(DataGroup readDataGroup) {
 		DataGroup recordInfo = readDataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup createdBy = new DataGroupOldSpy("createdBy");
-		createdBy.addChild(new DataAtomicSpy("linkedRecordType", "user"));
-		createdBy.addChild(new DataAtomicSpy("linkedRecordId", "4422"));
+		createdBy.addChild(new DataAtomicOldSpy("linkedRecordType", "user"));
+		createdBy.addChild(new DataAtomicOldSpy("linkedRecordId", "4422"));
 		recordInfo.addChild(createdBy);
-		recordInfo.addChild(new DataAtomicSpy("tsCreated", "2014-08-01T00:00:00.000000Z"));
+		recordInfo.addChild(new DataAtomicOldSpy("tsCreated", "2014-08-01T00:00:00.000000Z"));
 		readDataGroup.addChild(recordInfo);
 	}
 
@@ -364,7 +364,7 @@ public class OldRecordStorageSpy implements RecordStorage {
 		DataGroup collectTerm = new DataGroupOldSpy("collectTerm");
 		DataGroup extraData = new DataGroupOldSpy("extraData");
 		collectTerm.addChild(extraData);
-		extraData.addChild(new DataAtomicSpy("permissionKey", key));
+		extraData.addChild(new DataAtomicOldSpy("permissionKey", key));
 
 		return collectTerm;
 	}
@@ -374,11 +374,11 @@ public class OldRecordStorageSpy implements RecordStorage {
 		DataGroup internalRule = new DataGroupOldSpy("rule");
 		permissionTermRulePart.addChild(internalRule);
 		permissionTermRulePart.setRepeatId("12");
-		internalRule.addChild(new DataAtomicSpy("linkedRecordType", "collectTerm"));
-		internalRule.addChild(new DataAtomicSpy("linkedRecordId", permissionTermId));
+		internalRule.addChild(new DataAtomicOldSpy("linkedRecordType", "collectTerm"));
+		internalRule.addChild(new DataAtomicOldSpy("linkedRecordId", permissionTermId));
 		for (int idx = 0; idx < value.length; idx++) {
 			permissionTermRulePart
-					.addChild(new DataAtomicSpy("value", value[idx], String.valueOf(idx)));
+					.addChild(new DataAtomicOldSpy("value", value[idx], String.valueOf(idx)));
 		}
 		return permissionTermRulePart;
 	}
@@ -387,7 +387,7 @@ public class OldRecordStorageSpy implements RecordStorage {
 		DataGroup permissionRulePart = new DataGroupOldSpy("permissionRulePart");
 		for (int idx = 0; idx < value.length; idx++) {
 			permissionRulePart.addChild(
-					new DataAtomicSpy("permissionRulePartValue", value[idx], String.valueOf(idx)));
+					new DataAtomicOldSpy("permissionRulePartValue", value[idx], String.valueOf(idx)));
 		}
 		permissionRulePart.addAttributeByIdWithValue("type", permissionType);
 		return permissionRulePart;
@@ -395,8 +395,8 @@ public class OldRecordStorageSpy implements RecordStorage {
 
 	private DataGroup createPermissionRuleLink(String linkedId) {
 		DataGroup permissionRuleLink = new DataGroupOldSpy("permissionRuleLink");
-		permissionRuleLink.addChild(new DataAtomicSpy("linkedRecordType", "permissionRule"));
-		permissionRuleLink.addChild(new DataAtomicSpy("linkedRecordId", linkedId));
+		permissionRuleLink.addChild(new DataAtomicOldSpy("linkedRecordType", "permissionRule"));
+		permissionRuleLink.addChild(new DataAtomicOldSpy("linkedRecordId", linkedId));
 		return permissionRuleLink;
 	}
 
@@ -404,21 +404,21 @@ public class OldRecordStorageSpy implements RecordStorage {
 		DataGroup permissionRole = new DataGroupOldSpy("permissionRole");
 
 		DataGroup permissionRuleLink = new DataGroupOldSpy("permissionRuleLink");
-		permissionRuleLink.addChild(new DataAtomicSpy("linkedRecordType", "permissionRule"));
-		permissionRuleLink.addChild(new DataAtomicSpy("linkedRecordId", "authorityReader"));
+		permissionRuleLink.addChild(new DataAtomicOldSpy("linkedRecordType", "permissionRule"));
+		permissionRuleLink.addChild(new DataAtomicOldSpy("linkedRecordId", "authorityReader"));
 		permissionRole.addChild(permissionRuleLink);
 
 		DataGroup permissionRuleLink2 = new DataGroupOldSpy("permissionRuleLink");
-		permissionRuleLink2.addChild(new DataAtomicSpy("linkedRecordType", "permissionRule"));
-		permissionRuleLink2.addChild(new DataAtomicSpy("linkedRecordId", "metadataReader"));
+		permissionRuleLink2.addChild(new DataAtomicOldSpy("linkedRecordType", "permissionRule"));
+		permissionRuleLink2.addChild(new DataAtomicOldSpy("linkedRecordId", "metadataReader"));
 		permissionRole.addChild(permissionRuleLink2);
 
 		DataGroup permissionRuleLink3 = new DataGroupOldSpy("permissionRuleLink");
-		permissionRuleLink3.addChild(new DataAtomicSpy("linkedRecordType", "permissionRule"));
-		permissionRuleLink3.addChild(new DataAtomicSpy("linkedRecordId", "inactive"));
+		permissionRuleLink3.addChild(new DataAtomicOldSpy("linkedRecordType", "permissionRule"));
+		permissionRuleLink3.addChild(new DataAtomicOldSpy("linkedRecordId", "inactive"));
 		permissionRole.addChild(permissionRuleLink3);
 
-		permissionRole.addChild(new DataAtomicSpy("activeStatus", "active"));
+		permissionRole.addChild(new DataAtomicOldSpy("activeStatus", "active"));
 
 		return permissionRole;
 	}
@@ -491,8 +491,8 @@ public class OldRecordStorageSpy implements RecordStorage {
 	private DataGroup createUserRoleWithId(String roleId) {
 		DataGroup outerUserRole = new DataGroupOldSpy("userRole");
 		DataGroup innerUserRole = new DataGroupOldSpy("userRole");
-		innerUserRole.addChild(new DataAtomicSpy("linkedRecordType", "permissionRole"));
-		innerUserRole.addChild(new DataAtomicSpy("linkedRecordId", roleId));
+		innerUserRole.addChild(new DataAtomicOldSpy("linkedRecordType", "permissionRole"));
+		innerUserRole.addChild(new DataAtomicOldSpy("linkedRecordId", roleId));
 		outerUserRole.addChild(innerUserRole);
 		return outerUserRole;
 	}
@@ -516,6 +516,12 @@ public class OldRecordStorageSpy implements RecordStorage {
 
 	@Override
 	public DataRecordGroup read(String type, String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public StorageReadResult readList(String type, Filter filter) {
 		// TODO Auto-generated method stub
 		return null;
 	}

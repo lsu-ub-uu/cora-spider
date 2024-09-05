@@ -303,4 +303,10 @@ public class RecordStorageInMemoryStub implements RecordStorage {
 		return null;
 	}
 
+	@Override
+	public StorageReadResult readList(String type, Filter filter) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

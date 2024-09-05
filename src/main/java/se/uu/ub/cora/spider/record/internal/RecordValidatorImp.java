@@ -28,14 +28,11 @@ import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataAtomicProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -157,13 +154,12 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private DataRecord validateRecordAndCreateValidationResult(DataGroup validationOrder) {
-
 		checkUserIsAuthorizedForValidateOnRecordType(recordTypeFromValidationOrderToValidate);
 
 		createValidationResultDataGroup();
 		validateRecordUsingValidationRecord(validationOrder,
 				recordTypeFromValidationOrderToValidate);
-		DataRecord dataRecord = DataRecordProvider.getDataRecordWithDataGroup(validationResult);
+		DataRecord dataRecord = DataProvider.createRecordWithDataGroup(validationResult);
 		addReadActionToComplyWithRecordStructure(dataRecord);
 		return dataRecord;
 	}
@@ -174,9 +170,9 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private void createValidationResultDataGroup() {
-		validationResult = DataGroupProvider.getDataGroupUsingNameInData("validationResult");
-		DataGroup recordInfo = DataGroupProvider.getDataGroupUsingNameInData("recordInfo");
-		recordInfo.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("id",
+		validationResult = DataProvider.createGroupUsingNameInData("validationResult");
+		DataGroup recordInfo = DataProvider.createGroupUsingNameInData("recordInfo");
+		recordInfo.addChild(DataProvider.createAtomicUsingNameInDataAndValue("id",
 				idGenerator.getIdForType(recordType)));
 
 		DataRecordLink typeLink = DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("type",
@@ -193,8 +189,8 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 				.createRecordLinkUsingNameInDataAndTypeAndId("createdBy", "user", userId);
 		recordInfo.addChild(createdByLink);
 		String currentLocalDateTime = getCurrentTimestampAsString();
-		recordInfo.addChild(DataAtomicProvider.getDataAtomicUsingNameInDataAndValue(TS_CREATED,
-				currentLocalDateTime));
+		recordInfo.addChild(
+				DataProvider.createAtomicUsingNameInDataAndValue(TS_CREATED, currentLocalDateTime));
 	}
 
 	private void validateRecordUsingValidationRecord(DataGroup validationOrder,
@@ -270,8 +266,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void ensureErrorMessagesGroupExist() {
 		if (!validationResult.containsChildWithNameInData(ERROR_MESSAGES)) {
-			validationResult
-					.addChild(DataGroupProvider.getDataGroupUsingNameInData(ERROR_MESSAGES));
+			validationResult.addChild(DataProvider.createGroupUsingNameInData(ERROR_MESSAGES));
 		}
 	}
 
@@ -280,7 +275,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private DataAtomic createErrorWithMessageAndRepeatId(String message, int repeatId) {
-		DataAtomic error = DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("errorMessage",
+		DataAtomic error = DataProvider.createAtomicUsingNameInDataAndValue("errorMessage",
 				message);
 		error.setRepeatId(String.valueOf(repeatId));
 		return error;
@@ -308,15 +303,17 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata(String metadataId) {
+		System.err.println("here" + metadataId);
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId,
 				recordToValidate);
+		System.err.println("here2" + validationAnswer);
 		possiblyAddErrorMessages(validationAnswer);
 		if (validationResult.containsChildWithNameInData(ERROR_MESSAGES)) {
-			validationResult.addChild(
-					DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("valid", "false"));
+			validationResult
+					.addChild(DataProvider.createAtomicUsingNameInDataAndValue("valid", "false"));
 		} else {
-			validationResult.addChild(
-					DataAtomicProvider.getDataAtomicUsingNameInDataAndValue("valid", "true"));
+			validationResult
+					.addChild(DataProvider.createAtomicUsingNameInDataAndValue("valid", "true"));
 		}
 	}
 
@@ -328,6 +325,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void addErrorMessages(ValidationAnswer validationAnswer) {
 		for (String errorMessage : validationAnswer.getErrorMessages()) {
+			System.err.println("here3" + errorMessage);
 			addErrorToValidationResult(errorMessage);
 		}
 	}

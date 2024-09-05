@@ -30,7 +30,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.Filter;
@@ -73,7 +73,7 @@ public class RecordStorageOldSpy implements RecordStorage {
 			DataGroup recordInfo = DataCreator
 					.createRecordInfoWithRecordTypeAndRecordId("recordType", "metadata");
 			dataGroup.addChild(recordInfo);
-			dataGroup.addChild(new DataAtomicSpy("abstract", abstractString));
+			dataGroup.addChild(new DataAtomicOldSpy("abstract", abstractString));
 		}
 		MCR.addReturned(dataGroup);
 		return dataGroup;
@@ -136,8 +136,8 @@ public class RecordStorageOldSpy implements RecordStorage {
 			topDataGroup.addChild(recordInfo);
 			DataGroup type = new DataGroupOldSpy("type");
 			recordInfo.addChild(type);
-			type.addChild(new DataAtomicSpy("linkedRecordId", "dummyRecordType"));
-			recordInfo.addChild(new DataAtomicSpy("id", "someId" + i));
+			type.addChild(new DataAtomicOldSpy("linkedRecordId", "dummyRecordType"));
+			recordInfo.addChild(new DataAtomicOldSpy("id", "someId" + i));
 			listOfDataGroups.add(topDataGroup);
 			i++;
 		}
@@ -166,6 +166,12 @@ public class RecordStorageOldSpy implements RecordStorage {
 
 	@Override
 	public DataRecordGroup read(String type, String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public StorageReadResult readList(String type, Filter filter) {
 		// TODO Auto-generated method stub
 		return null;
 	}

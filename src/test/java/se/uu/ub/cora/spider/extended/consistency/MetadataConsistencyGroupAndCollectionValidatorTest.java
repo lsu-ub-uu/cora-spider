@@ -33,7 +33,7 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -231,7 +231,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testCollectionVariableFinalValueExistInCollection() throws Exception {
 		recordAsDataGroup = DataCreator2.createDataGroupDescribingACollectionVariable();
-		recordAsDataGroup.addChild(new DataAtomicSpy("finalValue", "that"));
+		recordAsDataGroup.addChild(new DataAtomicOldSpy("finalValue", "that"));
 		setUpDependencies();
 		callValidatorUseExtendedFunctionality();
 
@@ -251,7 +251,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 			+ "Data is not valid: final value does not exist in collection")
 	public void testCollectionVariableFinalValueDoesNotExistInCollection() {
 		recordAsDataGroup = DataCreator2.createDataGroupDescribingACollectionVariable();
-		recordAsDataGroup.addChild(new DataAtomicSpy("finalValue", "doesNotExist"));
+		recordAsDataGroup.addChild(new DataAtomicOldSpy("finalValue", "doesNotExist"));
 		setUpDependencies();
 		callValidatorUseExtendedFunctionality();
 	}
@@ -259,7 +259,7 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testMetadataTypeThatHasNoInheritanceRules() {
 		recordAsDataGroup = DataCreator2.createMetadataGroupWithRecordLinkAsChild();
-		recordAsDataGroup.addChild(new DataAtomicSpy("refParentId", "testParentRecordLink"));
+		recordAsDataGroup.addChild(new DataAtomicOldSpy("refParentId", "testParentRecordLink"));
 		setUpDependencies();
 		exceptNoException();
 	}

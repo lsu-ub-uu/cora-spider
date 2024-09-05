@@ -38,7 +38,11 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.recordtype.Unique;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.collected.StorageTerm;
+import se.uu.ub.cora.data.spies.DataFactorySpy;
+import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.storage.Condition;
 import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.Part;
@@ -49,21 +53,24 @@ import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class UniqueValidatorTest {
 
-	private static final String SOME_RECORD_TYPE = "someRecordType";
+	private static final String RECORD_TYPE = "someRecordType";
+	private static final String RECORD_ID = "someRecordId";
 	private UniqueValidator uniqueValidator;
 	private RecordStorageSpy recordStorage;
-	private StorageReadResult duplicateReadResult = new StorageReadResult();
+	private StorageReadResult duplicateReadResult;
 	private Set<StorageTerm> storageTerms;
 	private List<Unique> uniqueDefinitions;
 	private Map<Integer, List<ConditionPair>> expectedConditionsMap;
+	private DataFactorySpy dataFactorySpy;
 
 	@BeforeTest
 	public void BeforeTest() {
-		duplicateReadResult.totalNumberOfMatches = 1;
 	}
 
 	@BeforeMethod
 	private void beforeMethod() {
+		setUpFactoriesAndProviders();
+		resetStorageReadResult();
 		recordStorage = new RecordStorageSpy();
 		uniqueValidator = UniqueValidatorImp.usingRecordStorage(recordStorage);
 		uniqueDefinitions = new LinkedList<>();
@@ -71,9 +78,21 @@ public class UniqueValidatorTest {
 		expectedConditionsMap = new HashMap<>();
 	}
 
+	private void setUpFactoriesAndProviders() {
+		dataFactorySpy = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
+	}
+
+	private void resetStorageReadResult() {
+		duplicateReadResult = new StorageReadResult();
+		duplicateReadResult.totalNumberOfMatches = 1;
+		DataGroupSpy record = new DataGroupSpy();
+		duplicateReadResult.listOfDataGroups = List.of(record);
+	}
+
 	@Test
 	public void testValidateUnique_whenNoUniqueIsSetInRecordType() throws Exception {
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 
 		assertDataIsValid(answer);
@@ -92,7 +111,7 @@ public class UniqueValidatorTest {
 	public void oneUniqueRule_NoCollectedData_IsValid() throws Exception {
 		addUniqueRule("keyA");
 
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 
 		assertDataIsValid(answer);
@@ -103,7 +122,7 @@ public class UniqueValidatorTest {
 	public void NoUniqueRule_HasCollectedData_IsValid() throws Exception {
 		addStorageTerm("keyA", "valueA");
 
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 
 		assertDataIsValid(answer);
@@ -115,12 +134,12 @@ public class UniqueValidatorTest {
 		addUniqueRule("keyA");
 		addStorageTerm("keyA", "valueA");
 
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 
 		assertDataIsValid(answer);
 		assertNumberOfCallsToReadList(1);
-		assertCallToReadListWithRecordType(SOME_RECORD_TYPE);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
 
 		addConditionPairForRule(0, "keyA", "valueA");
 		assertFilterForReadList(0);
@@ -132,13 +151,66 @@ public class UniqueValidatorTest {
 		addUniqueRule("keyA");
 		addStorageTerm("keyA", "valueA");
 
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 		assertDataIsInvalid(answer, List.of(
 				"A record matching the unique rule with [key: keyA, value: valueA] already exists "
 						+ "in the system"));
 		assertNumberOfCallsToReadList(1);
-		assertCallToReadListWithRecordType(SOME_RECORD_TYPE);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
+
+		addConditionPairForRule(0, "keyA", "valueA");
+		assertFilterForReadList(0);
+	}
+
+	@Test
+	public void oneUniqueRule_HasCollectedData_IsNotValid_MoreThanOnePriorWithSameValues()
+			throws Exception {
+		DataGroupSpy record = new DataGroupSpy();
+		duplicateReadResult.listOfDataGroups = List.of(record);
+		DataRecordGroupSpy recordGroup = new DataRecordGroupSpy();
+		dataFactorySpy.MRV.setSpecificReturnValuesSupplier("factorRecordGroupFromDataGroup",
+				() -> recordGroup, record);
+		recordGroup.MRV.setDefaultReturnValuesSupplier("getId", () -> RECORD_ID);
+
+		duplicateReadResult.totalNumberOfMatches = 2;
+
+		recordStorage.MRV.setDefaultReturnValuesSupplier("readList", () -> duplicateReadResult);
+		addUniqueRule("keyA");
+		addStorageTerm("keyA", "valueA");
+
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
+				uniqueDefinitions, storageTerms);
+
+		assertDataIsInvalid(answer, List.of(
+				"A record matching the unique rule with [key: keyA, value: valueA] already exists "
+						+ "in the system"));
+		assertNumberOfCallsToReadList(1);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
+
+		addConditionPairForRule(0, "keyA", "valueA");
+		assertFilterForReadList(0);
+	}
+
+	@Test
+	public void oneUniqueRule_HasCollectedData_IsNotValid_SameRecord() throws Exception {
+		DataGroupSpy record = new DataGroupSpy();
+		duplicateReadResult.listOfDataGroups = List.of(record);
+		DataRecordGroupSpy recordGroup = new DataRecordGroupSpy();
+		dataFactorySpy.MRV.setSpecificReturnValuesSupplier("factorRecordGroupFromDataGroup",
+				() -> recordGroup, record);
+		recordGroup.MRV.setDefaultReturnValuesSupplier("getId", () -> RECORD_ID);
+
+		recordStorage.MRV.setDefaultReturnValuesSupplier("readList", () -> duplicateReadResult);
+		addUniqueRule("keyA");
+		addStorageTerm("keyA", "valueA");
+
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
+				uniqueDefinitions, storageTerms);
+
+		assertDataIsValid(answer);
+		assertNumberOfCallsToReadList(1);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
 
 		addConditionPairForRule(0, "keyA", "valueA");
 		assertFilterForReadList(0);
@@ -152,14 +224,14 @@ public class UniqueValidatorTest {
 		addStorageTerm("keyB", "valueB");
 		addStorageTerm("keyC", "valueC");
 
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 		assertDataIsInvalid(answer,
 				List.of("A record matching the unique rule with [key: keyA, value: valueA], "
 						+ "[key: keyB, value: valueB], [key: keyC, value: valueC] "
 						+ "already exists in the system"));
 		assertNumberOfCallsToReadList(1);
-		assertCallToReadListWithRecordType(SOME_RECORD_TYPE);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
 
 		addConditionPairForRule(0, "keyA", "valueA");
 		addConditionPairForRule(0, "keyB", "valueB");
@@ -172,7 +244,7 @@ public class UniqueValidatorTest {
 		addUniqueRule("keyA");
 		addStorageTerm("keyB", "valueB");
 
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 
 		assertDataIsValid(answer);
@@ -186,12 +258,12 @@ public class UniqueValidatorTest {
 		addStorageTerm("keyB", "valueB");
 		addStorageTerm("keyA", "valueA");
 
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 
 		assertDataIsValid(answer);
 		assertNumberOfCallsToReadList(1);
-		assertCallToReadListWithRecordType(SOME_RECORD_TYPE);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
 
 		addConditionPairForRule(0, "keyA", "valueA");
 		assertFilterForReadList(0);
@@ -204,12 +276,12 @@ public class UniqueValidatorTest {
 		addStorageTerm("keyB", "valueB");
 		addStorageTerm("keyA", "valueA");
 
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 
 		assertDataIsValid(answer);
 		assertNumberOfCallsToReadList(1);
-		assertCallToReadListWithRecordType(SOME_RECORD_TYPE);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
 
 		addConditionPairForRule(0, "keyA", "valueA");
 		addConditionPairForRule(0, "keyB", "valueB");
@@ -224,12 +296,12 @@ public class UniqueValidatorTest {
 		addStorageTerm("keyA", "valueA");
 		addStorageTerm("keyC", "valueC");
 
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 
 		assertDataIsValid(answer);
 		assertNumberOfCallsToReadList(1);
-		assertCallToReadListWithRecordType(SOME_RECORD_TYPE);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
 
 		addConditionPairForRule(0, "keyA", "valueA");
 		assertFilterForReadList(0);
@@ -243,12 +315,12 @@ public class UniqueValidatorTest {
 		addStorageTerm("keyA", "valueA");
 		addStorageTerm("keyC", "valueC");
 
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 
 		assertDataIsValid(answer);
 		assertNumberOfCallsToReadList(1);
-		assertCallToReadListWithRecordType(SOME_RECORD_TYPE);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
 
 		addConditionPairForRule(0, "keyA", "valueA");
 		addConditionPairForRule(0, "keyC", "valueC");
@@ -264,12 +336,12 @@ public class UniqueValidatorTest {
 		addStorageTerm("keyB", "valueB");
 		addStorageTerm("keyC", "valueC");
 
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 
 		assertDataIsValid(answer);
 		assertNumberOfCallsToReadList(2);
-		assertCallToReadListWithRecordType(SOME_RECORD_TYPE);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
 
 		addConditionPairForRule(0, "keyA", "valueA");
 		addConditionPairForRule(0, "keyB", "valueB");
@@ -296,7 +368,7 @@ public class UniqueValidatorTest {
 
 		recordStorage.MRV.setDefaultReturnValuesSupplier("readList", () -> duplicateReadResult);
 
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 
 		String error1 = "A record matching the unique rule with [key: keyA, value: valueA], "
@@ -309,7 +381,7 @@ public class UniqueValidatorTest {
 				+ "[key: keyF, value: valueF], [key: keyE, value: valueE] already exists in the system";
 		assertDataIsInvalid(answer, List.of(error1, error2, error3, error4));
 		assertNumberOfCallsToReadList(4);
-		assertCallToReadListWithRecordType(SOME_RECORD_TYPE);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
 
 		addConditionPairForRule(0, "keyA", "valueA");
 		addConditionPairForRule(0, "keyB", "valueB");
@@ -346,12 +418,12 @@ public class UniqueValidatorTest {
 		addStorageTerm("keyF", "valueF");
 		addStorageTerm("keyK", "valueK");
 
-		ValidationAnswer answer = uniqueValidator.validateUnique(SOME_RECORD_TYPE,
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
 				uniqueDefinitions, storageTerms);
 
 		assertDataIsValid(answer);
 		assertNumberOfCallsToReadList(4);
-		assertCallToReadListWithRecordType(SOME_RECORD_TYPE);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
 
 		addConditionPairForRule(0, "keyA", "valueA");
 		addConditionPairForRule(0, "keyB", "valueB");
@@ -399,7 +471,7 @@ public class UniqueValidatorTest {
 	}
 
 	private void assertCallToReadListWithRecordType(String recordType) {
-		recordStorage.MCR.assertParameterAsEqual("readList", 0, "types", List.of(recordType));
+		recordStorage.MCR.assertParameterAsEqual("readList", 0, "type", recordType);
 	}
 
 	private void assertFilterForReadList(int readListNumber, ConditionPair... expectedConditions) {

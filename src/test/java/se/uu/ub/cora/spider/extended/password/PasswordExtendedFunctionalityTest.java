@@ -269,7 +269,7 @@ public class PasswordExtendedFunctionalityTest {
 			LocalDateTime dateTimeBefore, LocalDateTime dateTimeAfter) {
 		assertTimestampValue(factoredAtomicCallNumber, dateTimeBefore, dateTimeAfter);
 
-		DataAtomicSpy tsUpdated = (DataAtomicSpy) dataFactory.MCR.assertCalledParametersReturn(
+		DataAtomicOldSpy tsUpdated = (DataAtomicOldSpy) dataFactory.MCR.assertCalledParametersReturn(
 				"factorAtomicUsingNameInDataAndValue", "tsPasswordUpdated");
 		currentGroupMCR.assertCalledParameters("addChild", tsUpdated);
 	}

@@ -25,7 +25,7 @@ import java.util.Set;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.collected.Link;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.record.storage.RecordStorageInMemoryStub;
 import se.uu.ub.cora.spider.testspies.DataRecordLinkSpy;
@@ -137,10 +137,10 @@ public class TestDataRecordInMemoryStorage {
 
 	private static void addLinkedRecordTypeAndLinkedRecordIdToRecordLink(
 			String linkedRecordTypeString, String linkedRecordIdString, DataGroup dataRecordLink) {
-		DataAtomic linkedRecordType = new DataAtomicSpy("linkedRecordType", linkedRecordTypeString);
+		DataAtomic linkedRecordType = new DataAtomicOldSpy("linkedRecordType", linkedRecordTypeString);
 		dataRecordLink.addChild(linkedRecordType);
 
-		DataAtomic linkedRecordId = new DataAtomicSpy("linkedRecordId", linkedRecordIdString);
+		DataAtomic linkedRecordId = new DataAtomicOldSpy("linkedRecordId", linkedRecordIdString);
 		dataRecordLink.addChild(linkedRecordId);
 	}
 
@@ -194,7 +194,7 @@ public class TestDataRecordInMemoryStorage {
 				"metadata");
 		dataGroup.addChild(recordInfo);
 
-		dataGroup.addChild(new DataAtomicSpy("abstract", "false"));
+		dataGroup.addChild(new DataAtomicOldSpy("abstract", "false"));
 		recordsInMemory.create(recordType, "metadata", dataGroup, null, emptyLinkList, dataDivider);
 	}
 
@@ -248,13 +248,13 @@ public class TestDataRecordInMemoryStorage {
 		dataGroup.addChild(resourceInfo);
 		DataGroup master = new DataGroupOldSpy("master");
 		resourceInfo.addChild(master);
-		DataAtomic streamId = new DataAtomicSpy("streamId", "678912345");
+		DataAtomic streamId = new DataAtomicOldSpy("streamId", "678912345");
 		master.addChild(streamId);
-		DataAtomic uploadedFileName = new DataAtomicSpy("filename", "adele.png");
+		DataAtomic uploadedFileName = new DataAtomicOldSpy("filename", "adele.png");
 		master.addChild(uploadedFileName);
-		DataAtomic size = new DataAtomicSpy("filesize", "123");
+		DataAtomic size = new DataAtomicOldSpy("filesize", "123");
 		master.addChild(size);
-		DataAtomic mimeType = new DataAtomicSpy("mimeType", "application/octet-stream");
+		DataAtomic mimeType = new DataAtomicOldSpy("mimeType", "application/octet-stream");
 		master.addChild(mimeType);
 		recordsInMemory.create("binary", "image:123456789", dataGroup, null, emptyLinkList,
 				dataDivider);
@@ -266,8 +266,8 @@ public class TestDataRecordInMemoryStorage {
 				.createRecordTypeWithIdAndUserSuppliedIdAndParentId("place", "false", "authority");
 
 		DataGroup filter = new DataGroupOldSpy("filter");
-		filter.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
-		filter.addChild(new DataAtomicSpy("linkedRecordId", "placeFilterGroup"));
+		filter.addChild(new DataAtomicOldSpy("linkedRecordType", "metadataGroup"));
+		filter.addChild(new DataAtomicOldSpy("linkedRecordId", "placeFilterGroup"));
 		dataGroup.addChild(filter);
 
 		recordsInMemory.create(recordType, "place", dataGroup, null, emptyLinkList, dataDivider);
@@ -289,14 +289,14 @@ public class TestDataRecordInMemoryStorage {
 		dataGroup.addChild(recordInfo);
 
 		DataGroup metadataId = new DataGroupOldSpy("metadataId");
-		metadataId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
-		metadataId.addChild(new DataAtomicSpy("linkedRecordId", "searchResourcesGroup"));
+		metadataId.addChild(new DataAtomicOldSpy("linkedRecordType", "metadataGroup"));
+		metadataId.addChild(new DataAtomicOldSpy("linkedRecordId", "searchResourcesGroup"));
 		dataGroup.addChild(metadataId);
 
 		DataGroup recordTypeToSearchInGroup = new DataGroupOldSpy("recordTypeToSearchIn");
 		dataGroup.addChild(recordTypeToSearchInGroup);
-		recordTypeToSearchInGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-		recordTypeToSearchInGroup.addChild(new DataAtomicSpy("linkedRecordId", "place"));
+		recordTypeToSearchInGroup.addChild(new DataAtomicOldSpy("linkedRecordType", "recordType"));
+		recordTypeToSearchInGroup.addChild(new DataAtomicOldSpy("linkedRecordId", "place"));
 		recordsInMemory.create("search", "aSearchId", dataGroup, null, emptyLinkList, dataDivider);
 	}
 
@@ -308,19 +308,19 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup dataGroup = new DataGroupOldSpy("search");
 		dataGroup.addChild(recordInfo);
 		DataGroup metadataId = new DataGroupOldSpy("metadataId");
-		metadataId.addChild(new DataAtomicSpy("linkedRecordType", "metadataGroup"));
-		metadataId.addChild(new DataAtomicSpy("linkedRecordId", "searchResourcesGroup"));
+		metadataId.addChild(new DataAtomicOldSpy("linkedRecordType", "metadataGroup"));
+		metadataId.addChild(new DataAtomicOldSpy("linkedRecordId", "searchResourcesGroup"));
 		dataGroup.addChild(metadataId);
 
 		DataGroup recordTypeToSearchInGroup = new DataGroupOldSpy("recordTypeToSearchIn");
 		dataGroup.addChild(recordTypeToSearchInGroup);
-		recordTypeToSearchInGroup.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-		recordTypeToSearchInGroup.addChild(new DataAtomicSpy("linkedRecordId", "place"));
+		recordTypeToSearchInGroup.addChild(new DataAtomicOldSpy("linkedRecordType", "recordType"));
+		recordTypeToSearchInGroup.addChild(new DataAtomicOldSpy("linkedRecordId", "place"));
 
 		DataGroup recordTypeToSearchInGroup2 = new DataGroupOldSpy("recordTypeToSearchIn");
 		dataGroup.addChild(recordTypeToSearchInGroup2);
-		recordTypeToSearchInGroup2.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-		recordTypeToSearchInGroup2.addChild(new DataAtomicSpy("linkedRecordId", "image"));
+		recordTypeToSearchInGroup2.addChild(new DataAtomicOldSpy("linkedRecordType", "recordType"));
+		recordTypeToSearchInGroup2.addChild(new DataAtomicOldSpy("linkedRecordId", "image"));
 
 		recordsInMemory.create("search", "anotherSearchId", dataGroup, null, emptyLinkList,
 				dataDivider);
@@ -359,7 +359,7 @@ public class TestDataRecordInMemoryStorage {
 		DataGroup recordInfo = DataCreator.createRecordInfoWithRecordTypeAndRecordId("system",
 				"cora");
 		dataGroup.addChild(recordInfo);
-		dataGroup.addChild(new DataAtomicSpy("systemName", "cora"));
+		dataGroup.addChild(new DataAtomicOldSpy("systemName", "cora"));
 
 		recordsInMemory.create("system", "cora", dataGroup, null, emptyLinkList, dataDivider);
 	}

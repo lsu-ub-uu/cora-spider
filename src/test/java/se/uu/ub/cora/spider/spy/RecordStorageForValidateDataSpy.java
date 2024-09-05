@@ -28,7 +28,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.storage.Filter;
@@ -218,7 +218,7 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 		permissionTerm.addChild(rule);
 
 		for (int i = 0; i < value.length; i++) {
-			permissionTerm.addChild(new DataAtomicSpy("value", value[i], String.valueOf(i)));
+			permissionTerm.addChild(new DataAtomicOldSpy("value", value[i], String.valueOf(i)));
 		}
 		return permissionTerm;
 	}
@@ -226,8 +226,8 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 	private DataGroup createLinkWithNameInDataRecordtypeAndRecordId(String nameInData,
 			String linkedRecordType, String linkedRecordId) {
 		DataGroup link = new DataGroupOldSpy(nameInData);
-		link.addChild(new DataAtomicSpy("linkedRecordType", linkedRecordType));
-		link.addChild(new DataAtomicSpy("linkedRecordId", linkedRecordId));
+		link.addChild(new DataAtomicOldSpy("linkedRecordType", linkedRecordType));
+		link.addChild(new DataAtomicOldSpy("linkedRecordId", linkedRecordId));
 		return link;
 	}
 
@@ -239,8 +239,8 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 	private DataGroup createUserRoleWithId(String roleId) {
 		DataGroup outerUserRole = new DataGroupOldSpy("userRole");
 		DataGroup innerUserRole = new DataGroupOldSpy("userRole");
-		innerUserRole.addChild(new DataAtomicSpy("linkedRecordType", "permissionRole"));
-		innerUserRole.addChild(new DataAtomicSpy("linkedRecordId", roleId));
+		innerUserRole.addChild(new DataAtomicOldSpy("linkedRecordType", "permissionRole"));
+		innerUserRole.addChild(new DataAtomicOldSpy("linkedRecordId", roleId));
 		outerUserRole.addChild(innerUserRole);
 		return outerUserRole;
 	}
@@ -248,9 +248,9 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 	private DataGroup createUserWithIdAndActiveStatus(String userId, String activeStatus) {
 		DataGroup inactiveUser = new DataGroupOldSpy("user");
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
-		recordInfo.addChild(new DataAtomicSpy("id", userId));
+		recordInfo.addChild(new DataAtomicOldSpy("id", userId));
 		inactiveUser.addChild(recordInfo);
-		inactiveUser.addChild(new DataAtomicSpy("activeStatus", activeStatus));
+		inactiveUser.addChild(new DataAtomicOldSpy("activeStatus", activeStatus));
 		return inactiveUser;
 	}
 
@@ -280,6 +280,12 @@ public class RecordStorageForValidateDataSpy implements RecordStorage {
 
 	@Override
 	public DataRecordGroup read(String type, String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public StorageReadResult readList(String type, Filter filter) {
 		// TODO Auto-generated method stub
 		return null;
 	}

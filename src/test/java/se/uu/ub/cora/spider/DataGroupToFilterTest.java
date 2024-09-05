@@ -127,16 +127,16 @@ public class DataGroupToFilterTest {
 	}
 
 	private DataGroupSpy createPart(String prefix) {
-		DataAtomicSpy atomic = createAtomic(prefix + "1");
-		DataAtomicSpy atomic2 = createAtomic(prefix + "2");
+		DataAtomicOldSpy atomic = createAtomic(prefix + "1");
+		DataAtomicOldSpy atomic2 = createAtomic(prefix + "2");
 
 		DataGroupSpy part = new DataGroupSpy();
 		part.MRV.setDefaultReturnValuesSupplier("getChildren", () -> List.of(atomic, atomic2));
 		return part;
 	}
 
-	private DataAtomicSpy createAtomic(String suffix) {
-		DataAtomicSpy atomic = new DataAtomicSpy();
+	private DataAtomicOldSpy createAtomic(String suffix) {
+		DataAtomicOldSpy atomic = new DataAtomicOldSpy();
 		atomic.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "nameInData" + suffix);
 		atomic.MRV.setDefaultReturnValuesSupplier("getValue", () -> "value" + suffix);
 		return atomic;

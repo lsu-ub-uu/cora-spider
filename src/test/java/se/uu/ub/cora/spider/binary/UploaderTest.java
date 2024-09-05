@@ -384,19 +384,19 @@ public class UploaderTest {
 		DataGroupSpy master = (DataGroupSpy) dataFactorySpy.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
 
-		DataAtomicSpy resourceId = (DataAtomicSpy) dataFactorySpy.MCR
+		DataAtomicOldSpy resourceId = (DataAtomicOldSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
 
 		DataResourceLinkSpy resourceLink = (DataResourceLinkSpy) dataFactorySpy.MCR
 				.getReturnValue("factorResourceLinkUsingNameInDataAndMimeType", 0);
 
-		DataAtomicSpy fileSize = (DataAtomicSpy) dataFactorySpy.MCR
+		DataAtomicOldSpy fileSize = (DataAtomicOldSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
-		DataAtomicSpy mimeType = (DataAtomicSpy) dataFactorySpy.MCR
+		DataAtomicOldSpy mimeType = (DataAtomicOldSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 2);
-		DataAtomicSpy checksum = (DataAtomicSpy) dataFactorySpy.MCR
+		DataAtomicOldSpy checksum = (DataAtomicOldSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 3);
-		DataAtomicSpy checksumType = (DataAtomicSpy) dataFactorySpy.MCR
+		DataAtomicOldSpy checksumType = (DataAtomicOldSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 4);
 		DataChild originalFileName = (DataChild) readBinarySpy.MCR
 				.getReturnValue("getFirstChildWithNameInData", 0);

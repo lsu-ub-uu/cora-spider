@@ -31,7 +31,7 @@ import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -174,7 +174,7 @@ public class WorkOrderExecutorTest {
 	public void testIndexDataPerformCommitFalseInWorkOrder() {
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
 				"someGeneratedId", "book", "book1");
-		workOrder.addChild(new DataAtomicSpy("performCommit", "false"));
+		workOrder.addChild(new DataAtomicOldSpy("performCommit", "false"));
 		callExtendedFunctionalityWithGroup(workOrder);
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "bookGroup");
@@ -204,7 +204,7 @@ public class WorkOrderExecutorTest {
 	public void testIndexDataPerformCommitTrueInWorkOrder() {
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
 				"someGeneratedId", "book", "book1");
-		workOrder.addChild(new DataAtomicSpy("performCommit", "true"));
+		workOrder.addChild(new DataAtomicOldSpy("performCommit", "true"));
 		callExtendedFunctionalityWithGroup(workOrder);
 
 		recordIndexer.MCR.assertMethodWasCalled("indexData");

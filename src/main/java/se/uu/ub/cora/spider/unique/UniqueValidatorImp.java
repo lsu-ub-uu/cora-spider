@@ -27,6 +27,9 @@ import java.util.StringJoiner;
 
 import se.uu.ub.cora.bookkeeper.recordtype.Unique;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.storage.Condition;
 import se.uu.ub.cora.storage.Filter;
@@ -47,38 +50,57 @@ public class UniqueValidatorImp implements UniqueValidator {
 	}
 
 	@Override
-	public ValidationAnswer validateUnique(String recordType, List<Unique> uniques,
+	public ValidationAnswer validateUnique(String recordType, String recordId, List<Unique> uniques,
 			Set<StorageTerm> storageTerms) {
 		if (noNeedToRunValidation(uniques, storageTerms)) {
 			return new ValidationAnswer();
 		}
-		return checkUnique(recordType, uniques, storageTerms);
-		// TODO:check for multiple values for a unique key answer as invalid if found.
+		return checkUnique(recordType, recordId, uniques, storageTerms);
 	}
 
-	private ValidationAnswer checkUnique(String recordType, List<Unique> uniques,
+	private ValidationAnswer checkUnique(String recordType, String recordId, List<Unique> uniques,
 			Set<StorageTerm> storageTerms) {
 
 		ValidationAnswer answer = new ValidationAnswer();
 		for (Unique unique : uniques) {
 			Optional<Filter> filter = possiblyCreateFilter(unique, storageTerms);
 			if (filter.isPresent()) {
-				answer = checkUniqueInStorage(answer, recordType, filter.get());
+				answer = checkUniqueInStorage(answer, recordType, recordId, filter.get());
 			}
 		}
 		return answer;
 	}
 
 	private ValidationAnswer checkUniqueInStorage(ValidationAnswer answer, String recordType,
-			Filter filter) {
-		StorageReadResult readResult = recordStorage.readList(List.of(recordType), filter);
+			String recordId, Filter filter) {
+		StorageReadResult readResult = recordStorage.readList(recordType, filter);
 
 		if (readResult.totalNumberOfMatches == 0) {
 			return new ValidationAnswer();
 		}
-
+		if (onlyMatchForDuplicatesIsOurCurrentRecord(recordId, readResult)) {
+			return new ValidationAnswer();
+		}
 		List<Condition> conditions = getConditionsFromFilter(filter);
 		return createAndAddErrorAnswer(conditions, answer);
+	}
+
+	private boolean onlyMatchForDuplicatesIsOurCurrentRecord(String recordId,
+			StorageReadResult readResult) {
+		return readResult.totalNumberOfMatches == 1
+				&& (matchIsOurCurrentRecord(recordId, readResult));
+	}
+
+	private boolean matchIsOurCurrentRecord(String recordId, StorageReadResult readResult) {
+		String id = getFirstIdFromResult(readResult);
+		return id.equals(recordId);
+	}
+
+	private String getFirstIdFromResult(StorageReadResult readResult) {
+		DataGroup firstDataGroup = readResult.listOfDataGroups.get(0);
+		DataRecordGroup firstRecordGroup = DataProvider
+				.createRecordGroupFromDataGroup(firstDataGroup);
+		return firstRecordGroup.getId();
 	}
 
 	private List<Condition> getConditionsFromFilter(Filter filter) {
