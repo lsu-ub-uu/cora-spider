@@ -78,7 +78,6 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 	private void readListAndIndexDataInBatches(String metadataId) {
 		try {
-
 			while (numberRequestedFromListing < indexBatchJob.totalNumberToIndex) {
 				indexOneBatch(metadataId);
 			}
@@ -122,16 +121,16 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 		clearErrors();
 	}
 
+	private StorageReadResult readList() {
+		Filter filter = indexBatchJob.filter;
+		List<String> types = List.of(indexBatchJob.recordTypeToIndex);
+		return recordStorage.readList(types, filter);
+	}
+
 	private void indexData(String metadataId, StorageReadResult readResult) {
 		for (DataGroup dataGroup : readResult.listOfDataGroups) {
 			indexRecord(metadataId, dataGroup);
 		}
-	}
-
-	private StorageReadResult readList() {
-		Filter filter = indexBatchJob.filter;
-		List<String> types = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
-		return recordStorage.readList(types, filter);
 	}
 
 	private void indexRecord(String metadataId, DataGroup dataGroup) {
@@ -150,10 +149,14 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	}
 
 	private void tryToIndexData(String metadataId, String recordId, DataGroup dataGroup) {
-		List<String> combinedIds = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
+		List<String> combinedIds = getCombinedId(recordId);
 		CollectTerms collectedTerms = termCollector.collectTerms(metadataId, dataGroup);
 		recordIndexer.indexDataWithoutExplicitCommit(combinedIds, collectedTerms.indexTerms,
 				dataGroup);
+	}
+
+	private List<String> getCombinedId(String recordId) {
+		return List.of(indexBatchJob.recordTypeToIndex + "_" + recordId);
 	}
 
 	private void updateAndStoreIndexBatchJob(StorageReadResult readResult) {

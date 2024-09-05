@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019 Uppsala University Library
+ * Copyright 2015, 2016, 2019, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
@@ -66,9 +65,7 @@ public class RecordHandler {
 	}
 
 	private void checkRecordTypeAndRecordIdExistsInStorage(String recordType, String recordId) {
-		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		List<String> listOfTypes = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
-		if (!recordStorage.recordExists(listOfTypes, recordId)) {
+		if (!recordStorage.recordExists(List.of(recordType), recordId)) {
 			throw new DataException(
 					"Data is not valid: linkedRecord does not exists in storage for recordType: "
 							+ recordType + " and recordId: " + recordId);

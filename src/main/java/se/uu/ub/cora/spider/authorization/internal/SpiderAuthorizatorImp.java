@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2019 Uppsala University Library
+ * Copyright 2016, 2019, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -31,7 +31,6 @@ import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RulePartValuesImp;
-import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.collected.PermissionTerm;
@@ -95,9 +94,7 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	private DataGroup getUserAsDataGroup(User user) {
 		try {
-			RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler("user");
-			return recordStorage.read(recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage(),
-					user.id);
+			return recordStorage.read(List.of("user"), user.id);
 		} catch (RecordNotFoundException e) {
 			throw new AuthorizationException(USER_STRING + user.id + " does not exist", e);
 		}
@@ -157,7 +154,6 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		for (DataGroup permissionRulePart : permissionTermRuleParts) {
 			createRulePartUsingInfoFromRulePartInUser(rule, permissionRulePart);
 		}
-
 	}
 
 	private void createRulePartUsingInfoFromRulePartInUser(Rule rule, DataGroup rulePartInUser) {
@@ -210,7 +206,6 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 				cachedActiveUsers.add(user.id);
 			}
 		}
-
 	}
 
 	private boolean userIsInactive(DataGroup foundUser) {

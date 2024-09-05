@@ -26,7 +26,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
@@ -73,10 +73,10 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 	private void addCreatedInfoToRecordInfo(DataGroup readDataGroup) {
 		DataGroup recordInfo = readDataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup createdBy = new DataGroupOldSpy("createdBy");
-		createdBy.addChild(new DataAtomicSpy("linkedRecordType", "user"));
-		createdBy.addChild(new DataAtomicSpy("linkedRecordId", "6789"));
+		createdBy.addChild(new DataAtomicOldSpy("linkedRecordType", "user"));
+		createdBy.addChild(new DataAtomicOldSpy("linkedRecordId", "6789"));
 		recordInfo.addChild(createdBy);
-		recordInfo.addChild(new DataAtomicSpy("tsCreated", "2016-10-01T00:00:00.000000Z"));
+		recordInfo.addChild(new DataAtomicOldSpy("tsCreated", "2016-10-01T00:00:00.000000Z"));
 		readDataGroup.addChild(recordInfo);
 	}
 
@@ -132,6 +132,12 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 
 	@Override
 	public DataRecordGroup read(String type, String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public StorageReadResult readList(String type, Filter filter) {
 		// TODO Auto-generated method stub
 		return null;
 	}

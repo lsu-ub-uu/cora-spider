@@ -53,7 +53,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.data.DataRecordFactorySpy;
 import se.uu.ub.cora.spider.data.DataRecordOldSpy;
@@ -133,7 +133,7 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroup dataGroup = new DataGroupOldSpy("someNameInData");
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
 		dataGroup.addChild(recordInfo);
-		recordInfo.addChild(new DataAtomicSpy("id", id));
+		recordInfo.addChild(new DataAtomicOldSpy("id", id));
 		recordInfo
 				.addChild(createLinkWithLinkedId("type", "linkedRecordType", "someLinkedRecordId"));
 
@@ -596,53 +596,6 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testDeleteActionPartOfEnhanceAuthorizedButHasIncomingLinksAsParentRecordType()
-			throws Exception {
-		setupForDeleteButIncomingLinksExistsForParentRecordType();
-
-		DataRecord record = enhancer.enhance(user, SOME_RECORD_TYPE, someDataGroup, dataRedactor);
-
-		assertDeleteActionAuthorizedButHasIncomingLinksAsParentRecordType(record);
-	}
-
-	private void setupForDeleteButIncomingLinksExistsForParentRecordType() {
-		createRecordStorageSpy();
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("hasParent", () -> true);
-		RecordStorageOldSpy recordStorageSpy = (RecordStorageOldSpy) dependencyProvider
-				.getRecordStorage();
-		recordStorageSpy.incomingLinksExistsForType.add("someParentId");
-	}
-
-	private void assertDeleteActionAuthorizedButHasIncomingLinksAsParentRecordType(
-			DataRecord record) {
-		assertTypeAndCollectedDataAuthorizationCalledForDeleteActionPartOfEnhance();
-		RecordStorageOldSpy recordStorageSpy = (RecordStorageOldSpy) dependencyProvider
-				.getRecordStorage();
-
-		recordStorageSpy.MCR.assertParameters("linksExistForRecord", 0, SOME_RECORD_TYPE, "someId");
-
-		recordTypeHandlerSpy.MCR.assertMethodWasCalled("hasParent");
-		String parentIdFromRecordTypeHandler = (String) recordTypeHandlerSpy.MCR
-				.getReturnValue("getParentId", 0);
-		recordStorageSpy.MCR.assertParameters("linksExistForRecord", 1,
-				parentIdFromRecordTypeHandler, "someId");
-		recordStorageSpy.MCR.assertNumberOfCallsToMethod("linksExistForRecord", 2);
-
-		assertRecordDoesNotContainDeleteAction(record);
-	}
-
-	@Test
-	public void testEnhanceIgnoreReadAccessDeleteActionPartOfEnhanceAuthorizedButHasIncomingLinksAsParentRecordType()
-			throws Exception {
-		setupForDeleteButIncomingLinksExistsForParentRecordType();
-
-		DataRecord record = enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE,
-				someDataGroup, dataRedactor);
-
-		assertDeleteActionAuthorizedButHasIncomingLinksAsParentRecordType(record);
-	}
-
-	@Test
 	public void testIncomingLinksActionPartOfEnhanceHasNoIncommingLinks() throws Exception {
 		createRecordStorageSpy();
 
@@ -810,10 +763,10 @@ public class DataGroupToRecordEnhancerTest {
 	private void addSearchChildsToSomeType() {
 		DataGroup recordTypeToSearchIn1 = new DataGroupOldSpy("recordTypeToSearchIn");
 		someDataGroup.addChild(recordTypeToSearchIn1);
-		recordTypeToSearchIn1.addChild(new DataAtomicSpy("linkedRecordId", "linkedSearchId1"));
+		recordTypeToSearchIn1.addChild(new DataAtomicOldSpy("linkedRecordId", "linkedSearchId1"));
 		DataGroup recordTypeToSearchIn2 = new DataGroupOldSpy("recordTypeToSearchIn");
 		someDataGroup.addChild(recordTypeToSearchIn2);
-		recordTypeToSearchIn2.addChild(new DataAtomicSpy("linkedRecordId", "linkedSearchId2"));
+		recordTypeToSearchIn2.addChild(new DataAtomicOldSpy("linkedRecordId", "linkedSearchId2"));
 	}
 
 	private void assertSearchActionForRecordTypeSearch(DataRecord record) {
@@ -1234,7 +1187,7 @@ public class DataGroupToRecordEnhancerTest {
 			RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData, DataRecord record) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
-		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "someId");
 		dependencyProvider.MCR.assertReturn("getRecordTypeHandler", 1,
 				recordTypeHandlerForRecordTypeInData);
@@ -1245,24 +1198,27 @@ public class DataGroupToRecordEnhancerTest {
 
 		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
 				.getRecordStorage();
-		RecordTypeHandlerSpy recordTypeHandlerX = (RecordTypeHandlerSpy) dependencyProvider.MCR
-				.getReturnValue("getRecordTypeHandler", 2);
-		var types = recordTypeHandlerX.MCR.getReturnValue("getListOfRecordTypeIdsToReadFromStorage",
-				0);
-		// List<?> types = (List<?>) recordStorage.MCR
-		// .getValueForMethodNameAndCallNumberAndParameterName("read", 0, "type");
 
-		// assertEquals(types.get(0), SEARCH);
+		assertReadForSearchRecordToOldRecordStorageSpy(recordStorage);
 
-		recordStorage.MCR.assertParameters("read", 0, types, returnedSearchId);
-
-		recordStorage.MCR.assertParameter("read", 0, "id", returnedSearchId);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user, SEARCH,
 				"linkedSearchId1");
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 4, user, SEARCH,
 				"linkedSearchId2");
 		authorizator.MCR.assertNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType", 6);
 		assertRecordContainsSearchAction(record);
+	}
+
+	private void assertReadForSearchRecordToOldRecordStorageSpy(RecordStorageOldSpy recordStorage) {
+		recordStorage.MCR.assertNumberOfCallsToMethod("read", 1);
+
+//		List<String> types = (List<String>) recordStorage.MCR
+//				.getValueForMethodNameAndCallNumberAndParameterName("read", 0, "types");
+//		assertEquals(types.size(), 1);
+//		assertEquals(types.get(0), SEARCH);
+		
+		recordStorage.MCR.assertParameterAsEqual("read", 0, "types", List.of(SEARCH));
+		recordStorage.MCR.assertParameter("read", 0, "id", "someSearchId");
 	}
 
 	@Test
@@ -1300,7 +1256,7 @@ public class DataGroupToRecordEnhancerTest {
 			RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData, DataRecord record) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
-		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "someId");
 		dependencyProvider.MCR.assertReturn("getRecordTypeHandler", 1,
 				recordTypeHandlerForRecordTypeInData);
@@ -1311,12 +1267,7 @@ public class DataGroupToRecordEnhancerTest {
 		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
 				.getRecordStorage();
 
-		RecordTypeHandlerSpy recordTypeHandlerX = (RecordTypeHandlerSpy) dependencyProvider.MCR
-				.getReturnValue("getRecordTypeHandler", 2);
-		var types = recordTypeHandlerX.MCR.getReturnValue("getListOfRecordTypeIdsToReadFromStorage",
-				0);
-
-		recordStorage.MCR.assertParameters("read", 0, types, returnedSearchId);
+		assertReadForSearchRecordToOldRecordStorageSpy(recordStorage);
 
 		recordStorage.MCR.assertParameter("read", 0, "id", returnedSearchId);
 		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user, SEARCH,
@@ -1329,10 +1280,10 @@ public class DataGroupToRecordEnhancerTest {
 		DataGroupOldSpy searchGroupLinkedFromRecordType = new DataGroupOldSpy("someSearchId");
 		DataGroup recordTypeToSearchIn1 = new DataGroupOldSpy("recordTypeToSearchIn");
 		searchGroupLinkedFromRecordType.addChild(recordTypeToSearchIn1);
-		recordTypeToSearchIn1.addChild(new DataAtomicSpy("linkedRecordId", "linkedSearchId1"));
+		recordTypeToSearchIn1.addChild(new DataAtomicOldSpy("linkedRecordId", "linkedSearchId1"));
 		DataGroup recordTypeToSearchIn2 = new DataGroupOldSpy("recordTypeToSearchIn");
 		searchGroupLinkedFromRecordType.addChild(recordTypeToSearchIn2);
-		recordTypeToSearchIn2.addChild(new DataAtomicSpy("linkedRecordId", "linkedSearchId2"));
+		recordTypeToSearchIn2.addChild(new DataAtomicOldSpy("linkedRecordId", "linkedSearchId2"));
 		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
 				.getRecordStorage();
 		recordStorage.returnForRead = searchGroupLinkedFromRecordType;
@@ -1845,23 +1796,16 @@ public class DataGroupToRecordEnhancerTest {
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 2, "system");
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 3, "toRecordType");
 
-		RecordTypeHandlerSpy recordTypeHandlerX = (RecordTypeHandlerSpy) dependencyProvider.MCR
-				.getReturnValue("getRecordTypeHandler", 3);
-
-		recordTypeHandlerX.MCR
-				.assertNumberOfCallsToMethod("getListOfRecordTypeIdsToReadFromStorage", 3);
-
-		var types = recordTypeHandlerX.MCR.getReturnValue("getListOfRecordTypeIdsToReadFromStorage",
-				2);
-
 		recordStorage.MCR.assertNumberOfCallsToMethod("read", 4);
+		assertCallToReadForTypeParameter(0, "dataWithLinks");
 		recordStorage.MCR.assertParameter("read", 0, "id", "twoLinksTopLevel");
+		assertCallToReadForTypeParameter(1, "recordType");
 		recordStorage.MCR.assertParameter("read", 1, "id", "dataWithLinks");
+		assertCallToReadForTypeParameter(2, "system");
 		recordStorage.MCR.assertParameter("read", 2, "id", "cora");
+		assertCallToReadForTypeParameter(3, "toRecordType");
 		recordStorage.MCR.assertParameter("read", 3, "id", "toRecordId");
-		recordStorage.MCR.assertParameters("read", 3, types, "toRecordId");
 
-		// String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getMetadataId", 0);
 		String metadataId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getDefinitionId", 0);
 
 		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", metadataId);
@@ -1882,6 +1826,13 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator.MCR.assertParameters(methodName2, 3, user, READ, "system");
 		authorizator.MCR.assertParameters(methodName2, 4, user, READ, "toRecordType");
 		authorizator.MCR.assertNumberOfCallsToMethod(methodName2, 5);
+	}
+
+	private void assertCallToReadForTypeParameter(int callNumber, String recordType) {
+		List<String> types = (List<String>) recordStorage.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("read", callNumber, "types");
+		assertEquals(types.size(), 1);
+		assertEquals(types.get(0), recordType);
 	}
 
 	@Test

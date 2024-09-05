@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017, 2022, 2023 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2022, 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -24,6 +24,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -54,6 +55,7 @@ import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
@@ -109,8 +111,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 		try {
 			return tryToValidateAndStoreRecord();
-		} catch (DataValidationException dve) {
-			throw new DataException("Data is not valid: " + dve.getMessage());
+		} catch (DataValidationException exception) {
+			throw new DataException("Data is not valid: " + exception.getMessage());
 		}
 	}
 
@@ -123,7 +125,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		validateRecord();
 		useExtendedFunctionalityForPosition(CREATE_AFTER_METADATA_VALIDATION);
 		completeRecordAndCollectInformationSpecifiedInMetadata();
-		ensureNoDuplicateForTypeFamilyAndId();
+		ensureNoDuplicateForTypeAndId();
+		validateDataForUniqueThrowErrorIfNot();
 		dataDivider = extractDataDividerFromData(recordGroup);
 		createRecordInStorage(recordGroup, collectedLinks, collectedTerms.storageTerms);
 		possiblyStoreInArchive();
@@ -261,11 +264,11 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void indexRecord(List<IndexTerm> indexTerms) {
-		List<String> ids = recordTypeHandler.getCombinedIdsUsingRecordId(recordId);
+		List<String> ids = recordTypeHandler.getCombinedIdForIndex(recordId);
 		recordIndexer.indexData(ids, indexTerms, recordGroup);
 	}
 
-	private void ensureNoDuplicateForTypeFamilyAndId() {
+	private void ensureNoDuplicateForTypeAndId() {
 		if (isItADuplicateInStorage()) {
 			String duplicateMessage = "Record with type: {0} and id: {1} already exists in storage";
 			String message = MessageFormat.format(duplicateMessage, recordType, recordId);
@@ -276,6 +279,24 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private boolean isItADuplicateInStorage() {
 		List<String> types = List.of(recordType);
 		return recordStorage.recordExists(types, recordId);
+	}
+
+	private void validateDataForUniqueThrowErrorIfNot() {
+		UniqueValidator uniqueValidator = dependencyProvider.getUniqueValidator(recordStorage);
+		ValidationAnswer uniqueAnswer = uniqueValidator.validateUnique(recordType,
+				recordId, recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
+		if (uniqueAnswer.dataIsInvalid()) {
+			createAndThrowConflictExceptionForUnique(uniqueAnswer);
+		}
+	}
+
+	private void createAndThrowConflictExceptionForUnique(ValidationAnswer uniqueAnswer) {
+		String errorMessageTemplate = "The record could not be created as it fails unique validation with the "
+				+ "following {0} error messages: {1}";
+		Collection<String> errorMessages = uniqueAnswer.getErrorMessages();
+		String errorMessage = MessageFormat.format(errorMessageTemplate, errorMessages.size(),
+				errorMessages);
+		throw ConflictException.withMessage(errorMessage);
 	}
 
 	private void createRecordInStorage(DataGroup topLevelDataGroup, Set<Link> collectedLinks2,
@@ -291,8 +312,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private String extractIdFromData() {
-		return recordGroup.getFirstGroupWithNameInData("recordInfo")
-				.getFirstAtomicValueWithNameInData("id");
+		DataGroup recordInfo = recordGroup.getFirstGroupWithNameInData("recordInfo");
+		return recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
 	private DataRecord enhanceDataGroupToRecord() {

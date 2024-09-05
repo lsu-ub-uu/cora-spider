@@ -1,5 +1,5 @@
 /*
- y * Copyright 2015, 2016, 2019, 2020, 2023 Uppsala University Library
+ y * Copyright 2015, 2016, 2019, 2020, 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -45,6 +45,8 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
+import se.uu.ub.cora.spider.unique.UniqueValidator;
+import se.uu.ub.cora.spider.unique.UniqueValidatorImp;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.StreamStorage;
@@ -173,7 +175,7 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	}
 
 	/**
-	 * @Deprecated use {@link #getRecordTypeHandlerUsingDataRecordGroup(DataRecordGroup)} instead
+	 * @deprecated use {@link #getRecordTypeHandlerUsingDataRecordGroup(DataRecordGroup)} instead
 	 */
 	@Deprecated(forRemoval = true)
 	@Override
@@ -203,4 +205,8 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 		return new DataGroupToFilterImp();
 	}
 
+	@Override
+	public UniqueValidator getUniqueValidator(RecordStorage recordStorage) {
+		return UniqueValidatorImp.usingRecordStorage(recordStorage);
+	}
 }

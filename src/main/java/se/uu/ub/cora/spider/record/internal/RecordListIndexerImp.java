@@ -23,7 +23,6 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
@@ -58,7 +57,6 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	private String authToken;
 	private String recordType;
 	private DataGroup indexSettings;
-	private RecordTypeHandler recordTypeHandler;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 
 	private RecordListIndexerImp(SpiderDependencyProvider dependencyProvider,
@@ -81,7 +79,6 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		this.authToken = authToken;
 		this.recordType = recordType;
 		extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
-		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		this.indexSettings = indexSettings;
 		return storeAndRunBatchJob();
 	}
@@ -183,8 +180,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 	private long getTotalNumberOfMatchesFromStorageUsingFilter(Filter filter) {
 		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		List<String> listOfTypes = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
-		return recordStorage.getTotalNumberOfRecordsForTypes(listOfTypes, filter);
+		return recordStorage.getTotalNumberOfRecordsForTypes(List.of(recordType), filter);
 	}
 
 	private IndexBatchJob createIndexBatchJobFromTotalNumAndFilter(Filter filter,

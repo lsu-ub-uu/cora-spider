@@ -23,7 +23,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testspies.DataResourceLinkSpy;
 
@@ -165,10 +165,10 @@ public class RecordLinkTestsDataCreator {
 	private static DataLink createDataResourceLink() {
 		DataResourceLinkSpy resourceLink = new DataResourceLinkSpy("link");
 
-		resourceLink.addChild(new DataAtomicSpy("streamId", "someStreamId"));
-		resourceLink.addChild(new DataAtomicSpy("filename", "aFileName"));
-		resourceLink.addChild(new DataAtomicSpy("filesize", "12345"));
-		resourceLink.addChild(new DataAtomicSpy("mimeType", "application/pdf"));
+		resourceLink.addChild(new DataAtomicOldSpy("streamId", "someStreamId"));
+		resourceLink.addChild(new DataAtomicOldSpy("filename", "aFileName"));
+		resourceLink.addChild(new DataAtomicOldSpy("filesize", "12345"));
+		resourceLink.addChild(new DataAtomicOldSpy("mimeType", "application/pdf"));
 		return resourceLink;
 	}
 
@@ -185,11 +185,11 @@ public class RecordLinkTestsDataCreator {
 	public static DataGroup createLinkChildAsDataRecordDataGroup() {
 		DataGroup dataGroup = new DataGroupOldSpy("toRecordType");
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
-		recordInfo.addChild(new DataAtomicSpy("id", "recordLinkNotAuthorized"));
+		recordInfo.addChild(new DataAtomicOldSpy("id", "recordLinkNotAuthorized"));
 
 		DataGroup type = new DataGroupOldSpy("type");
-		type.addChild(new DataAtomicSpy("linkedRecordType", "recordType"));
-		type.addChild(new DataAtomicSpy("linkedRecordId", "toRecordType"));
+		type.addChild(new DataAtomicOldSpy("linkedRecordType", "recordType"));
+		type.addChild(new DataAtomicOldSpy("linkedRecordId", "toRecordType"));
 		recordInfo.addChild(type);
 
 		dataGroup.addChild(recordInfo);

@@ -32,6 +32,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
+import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
@@ -87,5 +88,16 @@ public interface SpiderDependencyProvider {
 	DataGroupToFilter getDataGroupToFilterConverter();
 
 	ResourceArchive getResourceArchive();
+
+	/**
+	 * getUniqueValidator method returns a new instance of {@link UniqueValidator}. It needs a
+	 * record storage in order to create a new instance
+	 * 
+	 * @param recordStorage
+	 *            is the {@link RecordStorage} that UniqueValidator usues to access the storage.
+	 * 
+	 * @return A new instance of {@link UniqueValidator}
+	 */
+	UniqueValidator getUniqueValidator(RecordStorage recordStorage);
 
 }

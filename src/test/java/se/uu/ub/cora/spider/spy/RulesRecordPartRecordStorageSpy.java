@@ -26,7 +26,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -50,7 +50,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 				DataGroup readPermission = new DataGroupOldSpy("readPermissions");
 				createAndAddReadPermission(readPermission, "organisation.rootOrganisation", "0");
 				rule.addChild(readPermission);
-				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+				rule.addChild(new DataAtomicOldSpy("activeStatus", "active"));
 
 				returnedReadDataGroups.add(rule);
 				return rule;
@@ -62,7 +62,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 				createAndAddReadPermission(readPermission, "organisation.showInPortal", "0");
 				createAndAddReadPermission(readPermission, "organisation.showInDefence", "1");
 				rule.addChild(readPermission);
-				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+				rule.addChild(new DataAtomicOldSpy("activeStatus", "active"));
 
 				returnedReadDataGroups.add(rule);
 				return rule;
@@ -79,7 +79,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 				DataGroup writePermission = new DataGroupOldSpy("writePermissions");
 				createAndAddWritePermission(writePermission, "organisation.topOrganisation", "0");
 				rule.addChild(writePermission);
-				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+				rule.addChild(new DataAtomicOldSpy("activeStatus", "active"));
 
 				returnedReadDataGroups.add(rule);
 				return rule;
@@ -92,7 +92,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 						"0");
 				createAndAddWritePermission(writePermission, "organisation.showInBrowse", "1");
 				rule.addChild(writePermission);
-				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+				rule.addChild(new DataAtomicOldSpy("activeStatus", "active"));
 
 				returnedReadDataGroups.add(rule);
 				return rule;
@@ -116,7 +116,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 						"0");
 				createAndAddWritePermission(writePermission, "organisation.showInBrowse", "1");
 				rule.addChild(writePermission);
-				rule.addChild(new DataAtomicSpy("activeStatus", "active"));
+				rule.addChild(new DataAtomicOldSpy("activeStatus", "active"));
 
 				returnedReadDataGroups.add(rule);
 				return rule;
@@ -138,28 +138,28 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 	private void createAndAddReadPermission(DataGroup readConstraints, String readPermissionValue,
 			String repeatId) {
 		readConstraints
-				.addChild(new DataAtomicSpy("readPermission", readPermissionValue, repeatId));
+				.addChild(new DataAtomicOldSpy("readPermission", readPermissionValue, repeatId));
 	}
 
 	private void createAndAddWritePermission(DataGroup readConstraints, String readPermissionValue,
 			String repeatId) {
 		readConstraints
-				.addChild(new DataAtomicSpy("writePermission", readPermissionValue, repeatId));
+				.addChild(new DataAtomicOldSpy("writePermission", readPermissionValue, repeatId));
 	}
 
 	private DataGroup createRoleWithReadPermissions() {
 		DataGroup permissionRole = new DataGroupOldSpy("permissionRole");
 		addPermissionRuleToRoleUsingRuleId(permissionRole, "ruleWithOneReadPermissionPart");
 		addPermissionRuleToRoleUsingRuleId(permissionRole, "ruleWithTwoReadPermissionPart");
-		permissionRole.addChild(new DataAtomicSpy("activeStatus", "active"));
+		permissionRole.addChild(new DataAtomicOldSpy("activeStatus", "active"));
 
 		return permissionRole;
 	}
 
 	private void addPermissionRuleToRoleUsingRuleId(DataGroup permissionRole, String ruleId) {
 		DataGroup permissionRuleLink = new DataGroupOldSpy("permissionRuleLink");
-		permissionRuleLink.addChild(new DataAtomicSpy("linkedRecordType", "permissionRule"));
-		permissionRuleLink.addChild(new DataAtomicSpy("linkedRecordId", ruleId));
+		permissionRuleLink.addChild(new DataAtomicOldSpy("linkedRecordType", "permissionRule"));
+		permissionRuleLink.addChild(new DataAtomicOldSpy("linkedRecordId", ruleId));
 		permissionRole.addChild(permissionRuleLink);
 	}
 
@@ -168,7 +168,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 		addPermissionRuleToRoleUsingRuleId(permissionRole, "ruleWithOneWritePermissionPart");
 		addPermissionRuleToRoleUsingRuleId(permissionRole, "ruleWithTwoWritePermissionPart");
 
-		permissionRole.addChild(new DataAtomicSpy("activeStatus", "active"));
+		permissionRole.addChild(new DataAtomicOldSpy("activeStatus", "active"));
 
 		return permissionRole;
 	}
@@ -178,7 +178,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 		addPermissionRuleToRoleUsingRuleId(permissionRole,
 				"ruleWithOneReadPermissionPartTwoWritePermissionPart");
 
-		permissionRole.addChild(new DataAtomicSpy("activeStatus", "active"));
+		permissionRole.addChild(new DataAtomicOldSpy("activeStatus", "active"));
 
 		return permissionRole;
 	}
@@ -187,7 +187,7 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 		DataGroup permissionRulePart = new DataGroupOldSpy("permissionRulePart");
 		for (int idx = 0; idx < value.length; idx++) {
 			permissionRulePart.addChild(
-					new DataAtomicSpy("permissionRulePartValue", value[idx], String.valueOf(idx)));
+					new DataAtomicOldSpy("permissionRulePartValue", value[idx], String.valueOf(idx)));
 		}
 		permissionRulePart.addAttributeByIdWithValue("type", permissionType);
 		return permissionRulePart;
@@ -245,6 +245,12 @@ public class RulesRecordPartRecordStorageSpy implements RecordStorage {
 
 	@Override
 	public DataRecordGroup read(String type, String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public StorageReadResult readList(String type, Filter filter) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -19,15 +19,14 @@
 package se.uu.ub.cora.spider.dependency.spy;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.bookkeeper.recordtype.Unique;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -72,29 +71,19 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	public RecordTypeHandlerSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("isAbstract", () -> false);
 		MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> false);
-		MRV.setDefaultReturnValuesSupplier("getImplementingRecordTypeHandlers", ArrayList::new);
-		MRV.setDefaultReturnValuesSupplier("getCombinedIdsUsingRecordId",
-				() -> List.of("fakeCombinedIdFromRecordTypeHandlerSpy"));
-		MRV.setDefaultReturnValuesSupplier("getListOfRecordTypeIdsToReadFromStorage",
-				() -> List.of("oneImplementingTypeId"));
 		MRV.setDefaultReturnValuesSupplier("getCreateDefinitionId",
 				() -> "fakeCreateMetadataIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("getDefinitionId",
 				() -> "fakeDefMetadataIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
 				() -> "fakeUpdateMetadataIdFromRecordTypeHandlerSpy");
-		MRV.setDefaultReturnValuesSupplier("hasParent", () -> false);
 		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
-
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "fakeRecordTypeIdFromRecordTypeHandlerSpy");
-	}
-
-	@Override
-	public boolean isAbstract() {
-		return (boolean) MCR.addCallAndReturnFromMRV();
+		MRV.setDefaultReturnValuesSupplier("getCombinedIdForIndex",
+				() -> List.of("someCombinedIdFromSpy"));
+		MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions", () -> Collections.emptyList());
 	}
 
 	@Override
@@ -118,11 +107,6 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public List<String> getCombinedIdsUsingRecordId(String recordId) {
-		return (List<String>) MCR.addCallAndReturnFromMRV("recordId", recordId);
-	}
-
-	@Override
 	public boolean isPublicForRead() {
 		MCR.addCall();
 		MCR.addReturned(isPublicForRead);
@@ -142,15 +126,6 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		}
 		MCR.addReturned(answer);
 		return answer;
-	}
-
-	@Override
-	public DataGroup getMetadataGroup() {
-		MCR.addCall();
-		DataGroup metadataDataGroup = new DataGroupOldSpy("organisationGroup");
-		metadataDataGroup.addChild(new DataAtomicSpy("nameInData", "organisation"));
-		MCR.addReturned(metadataDataGroup);
-		return metadataDataGroup;
 	}
 
 	@Override
@@ -180,25 +155,6 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MCR.addCall();
 		MCR.addReturned(writeConstraints);
 		return writeConstraints;
-	}
-
-	@Override
-	public boolean hasParent() {
-		return (boolean) MCR.addCallAndReturnFromMRV();
-	}
-
-	@Override
-	public String getParentId() {
-		MCR.addCall();
-		MCR.addReturned(parentId);
-		return parentId;
-	}
-
-	@Override
-	public boolean isChildOfBinary() {
-		MCR.addCall();
-		MCR.addReturned(isChildOfBinary);
-		return isChildOfBinary;
 	}
 
 	@Override
@@ -250,25 +206,8 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public List<RecordTypeHandler> getImplementingRecordTypeHandlers() {
-		return (List<RecordTypeHandler>) MCR.addCallAndReturnFromMRV();
-	}
-
-	@Override
 	public String getRecordTypeId() {
-		// MCR.addCall();
-		// String returnValue = "fakeRecordTypeIdFromRecordTypeHandlerSpy";
-		// MCR.addReturned(returnValue);
-		// return returnValue;
 		return (String) MCR.addCallAndReturnFromMRV();
-	}
-
-	@Override
-	public List<String> getListOfImplementingRecordTypeIds() {
-		MCR.addCall();
-
-		MCR.addReturned(listOfimplementingTypesIds);
-		return listOfimplementingTypesIds;
 	}
 
 	@Override
@@ -277,8 +216,12 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public List<String> getListOfRecordTypeIdsToReadFromStorage() {
-		return (List<String>) MCR.addCallAndReturnFromMRV();
+	public List<String> getCombinedIdForIndex(String recordId) {
+		return (List<String>) MCR.addCallAndReturnFromMRV("recordId", recordId);
 	}
 
+	@Override
+	public List<Unique> getUniqueDefinitions() {
+		return (List<Unique>) MCR.addCallAndReturnFromMRV();
+	}
 }

@@ -166,9 +166,7 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 	}
 
 	private void readAndAddToReadRecordList(Filter filter, DataRedactor dataRedactor) {
-		List<String> listOfTypes = recordTypeHandler.getListOfRecordTypeIdsToReadFromStorage();
-
-		readResult = recordStorage.readList(listOfTypes, filter);
+		readResult = recordStorage.readList(List.of(recordType), filter);
 		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
 
 		for (DataGroup dataGroup : dataGroupList) {

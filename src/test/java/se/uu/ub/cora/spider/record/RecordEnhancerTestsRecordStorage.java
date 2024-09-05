@@ -28,7 +28,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
@@ -78,8 +78,8 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 							.createRecordTypeWithIdAndUserSuppliedIdAndAbstractAndPublicRead(id,
 									"false", "true", "false");
 					DataGroup search = new DataGroupOldSpy("search");
-					search.addChild(new DataAtomicSpy("linkedRecordType", "search"));
-					search.addChild(new DataAtomicSpy("linkedRecordId", "someDefaultSearch"));
+					search.addChild(new DataAtomicOldSpy("linkedRecordType", "search"));
+					search.addChild(new DataAtomicOldSpy("linkedRecordId", "someDefaultSearch"));
 					// .asLinkWithNameInDataAndTypeAndId("search", "search",
 					// "someDefaultSearch");
 					dataGroup.addChild(search);
@@ -226,6 +226,12 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 
 	@Override
 	public DataRecordGroup read(String type, String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public StorageReadResult readList(String type, Filter filter) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -29,7 +29,7 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
 import se.uu.ub.cora.spider.testspies.DataRecordLinkSpy;
@@ -71,18 +71,18 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 		DataGroup dataGroupToReturn = new DataGroupOldSpy("someNameInData");
 		DataGroupOldSpy recordInfo = new DataGroupOldSpy("recordInfo");
 		DataGroup createdBy = new DataGroupOldSpy("createdBy");
-		createdBy.addChild(new DataAtomicSpy("linkedRecordType", "user"));
-		createdBy.addChild(new DataAtomicSpy("linkedRecordId", "4422"));
+		createdBy.addChild(new DataAtomicOldSpy("linkedRecordType", "user"));
+		createdBy.addChild(new DataAtomicOldSpy("linkedRecordId", "4422"));
 
 		recordInfo.addChild(createdBy);
-		recordInfo.addChild(new DataAtomicSpy("tsCreated", "2014-08-01T00:00:00.000000Z"));
+		recordInfo.addChild(new DataAtomicOldSpy("tsCreated", "2014-08-01T00:00:00.000000Z"));
 		dataGroupToReturn.addChild(recordInfo);
 		if (alreadyCalled) {
 			DataGroup updated = new DataGroupOldSpy("updated");
 			updated.setRepeatId("0");
 			DataRecordLink updatedBy = new DataRecordLinkSpy("updatedBy");
 			updated.addChild(updatedBy);
-			updated.addChild(new DataAtomicSpy("tsUpdated", "2014-12-18 20:20:38.346"));
+			updated.addChild(new DataAtomicOldSpy("tsUpdated", "2014-12-18 20:20:38.346"));
 
 			recordInfo.addChild(updated);
 
@@ -172,6 +172,12 @@ public class RecordStorageUpdateMultipleTimesSpy implements RecordStorage {
 
 	@Override
 	public DataRecordGroup read(String type, String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public StorageReadResult readList(String type, Filter filter) {
 		// TODO Auto-generated method stub
 		return null;
 	}

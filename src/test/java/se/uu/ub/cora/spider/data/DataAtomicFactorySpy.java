@@ -43,7 +43,7 @@ public class DataAtomicFactorySpy implements DataAtomicFactory {
 		values.add(value);
 
 		MCR.addCall("nameInData", nameInData, "value", value);
-		reurnedDataAtomic = new DataAtomicSpy(nameInData, value);
+		reurnedDataAtomic = new DataAtomicOldSpy(nameInData, value);
 		returnedDataAtomics.add(reurnedDataAtomic);
 		MCR.addReturned(reurnedDataAtomic);
 		return reurnedDataAtomic;

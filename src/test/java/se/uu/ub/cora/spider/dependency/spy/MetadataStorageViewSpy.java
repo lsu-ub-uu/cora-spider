@@ -23,10 +23,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import se.uu.ub.cora.bookkeeper.metadata.CollectTermHolder;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageView;
 import se.uu.ub.cora.bookkeeper.validator.ValidationType;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataAtomicSpy;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 
 public class MetadataStorageViewSpy implements MetadataStorageView {
@@ -48,19 +49,19 @@ public class MetadataStorageViewSpy implements MetadataStorageView {
 
 	private DataGroup createAndAddMetadataGroupToMetedataElementsUsingId(String id) {
 		DataGroup spyDataGroup = createRecordTypeDataGroup("metadata", id);
-		spyDataGroup.addChild(new DataAtomicSpy("nameInData", id));
+		spyDataGroup.addChild(new DataAtomicOldSpy("nameInData", id));
 		spyDataGroup.addAttributeByIdWithValue("type", "textVariable");
-		spyDataGroup.addChild(new DataAtomicSpy("regEx", "someRegexp"));
+		spyDataGroup.addChild(new DataAtomicOldSpy("regEx", "someRegexp"));
 		createAndAddTexts(id, spyDataGroup);
 		return spyDataGroup;
 	}
 
 	private void createAndAddTexts(String id, DataGroup spyDataGroup) {
 		DataGroup textId = new DataGroupOldSpy("textId");
-		textId.addChild(new DataAtomicSpy("linkedRecordId", id + "Text"));
+		textId.addChild(new DataAtomicOldSpy("linkedRecordId", id + "Text"));
 		spyDataGroup.addChild(textId);
 		DataGroup defTextId = new DataGroupOldSpy("defTextId");
-		defTextId.addChild(new DataAtomicSpy("linkedRecordId", id + "DefText"));
+		defTextId.addChild(new DataAtomicOldSpy("linkedRecordId", id + "DefText"));
 		spyDataGroup.addChild(defTextId);
 	}
 
@@ -89,15 +90,9 @@ public class MetadataStorageViewSpy implements MetadataStorageView {
 	private DataGroup createRecordTypeDataGroup(String nameInData, String id) {
 		DataGroup spyDataGroup = new DataGroupOldSpy(nameInData);
 		DataGroup recordInfo = new DataGroupOldSpy("recordInfo");
-		recordInfo.addChild(new DataAtomicSpy("id", id));
+		recordInfo.addChild(new DataAtomicOldSpy("id", id));
 		spyDataGroup.addChild(recordInfo);
 		return spyDataGroup;
-	}
-
-	@Override
-	public Collection<DataGroup> getCollectTerms() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override
@@ -110,6 +105,18 @@ public class MetadataStorageViewSpy implements MetadataStorageView {
 	public Optional<ValidationType> getValidationType(String validationId) {
 		// TODO Auto-generated method stub
 		return Optional.empty();
+	}
+
+	@Override
+	public Collection<DataGroup> getCollectTermsAsDataGroup() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CollectTermHolder getCollectTermHolder() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
