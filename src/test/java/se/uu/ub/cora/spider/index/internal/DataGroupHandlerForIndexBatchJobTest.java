@@ -161,7 +161,7 @@ public class DataGroupHandlerForIndexBatchJobTest {
 			DataGroupSpy updated) {
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", nfa,
 				"tsUpdated");
-		DataAtomicOldSpy tsUpdated = (DataAtomicOldSpy) dataFactorySpy.MCR
+		DataAtomicSpy tsUpdated = (DataAtomicSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", nfa);
 		String tsUpdatedValue = (String) dataFactorySpy.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName(
@@ -280,7 +280,7 @@ public class DataGroupHandlerForIndexBatchJobTest {
 			DataGroupSpy createdDataGroup, int addedNo) {
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", nfa, name,
 				value);
-		DataAtomicOldSpy factoredAtomic = (DataAtomicOldSpy) dataFactorySpy.MCR
+		DataAtomicSpy factoredAtomic = (DataAtomicSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", nfa);
 		createdDataGroup.MCR.assertParameters("addChild", addedNo, factoredAtomic);
 		nfa++;
