@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Uppsala University Library
+ * Copyright 2019, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -56,6 +56,7 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.RecordLinkTestsRecordStorage;
 import se.uu.ub.cora.spider.record.RecordValidator;
+import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorOldSpy;
 import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
@@ -63,6 +64,7 @@ import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.RecordStorageForValidateDataSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.spy.UniqueValidatorSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -84,6 +86,8 @@ public class RecordValidatorTest {
 	private RecordIdGenerator idGenerator;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
+	private DataGroupTermCollectorSpy termCollector;
+	private UniqueValidatorSpy uniqueValidator;
 
 	private RecordTypeHandlerSpy recordTypeHandler;
 	private int index;
@@ -99,6 +103,8 @@ public class RecordValidatorTest {
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		recordTypeHandler = new RecordTypeHandlerSpy();
 		idGenerator = new IdGeneratorSpy();
+		termCollector = new DataGroupTermCollectorSpy();
+		uniqueValidator = new UniqueValidatorSpy();
 		index = -1;
 		setUpDependencyProvider();
 	}
@@ -130,6 +136,10 @@ public class RecordValidatorTest {
 				() -> linkCollector);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordIdGenerator",
 				() -> idGenerator);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
+				() -> termCollector);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getUniqueValidator",
+				() -> uniqueValidator);
 
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
@@ -432,8 +442,6 @@ public class RecordValidatorTest {
 		recordStorage = new RecordLinkTestsRecordStorage();
 		dataValidator.setNotValidForMetadataGroupId("dataWithLinksNew");
 		setUpDependencyProvider();
-		// recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getCreateDefinitionId",
-		// () -> "dataWithLinksNew");
 
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier(
 				"getRecordTypeHandlerUsingDataRecordGroup",
@@ -455,35 +463,11 @@ public class RecordValidatorTest {
 
 		assertDataRecordCreatedWithValidationResult(validationResult, validationResultRecord);
 		assertValidSetInResultWithValue(validationResult, "false");
-		//
-
-		// DataGroupSpy validationResult = setUpValidationResultForValid();
-
-		// assertDataRecordCreatedWithValidationResult(validationResult, validationResultRecord);
-		// assertValidSetInResultWithValue(validationResult, "true");
 
 		String errorString = "Data is not valid: linkedRecord does not exists in storage for recordType: toRecordType and recordId: toRecordId";
 		String errorString2 = "Data invalid for metadataId dataWithLinksNew";
-		// String errorString = "Data is not valid: linkedRecord does not exists in storage for "
-		// + "recordType: toRecordType and recordId: toRecordId";
 
 		assertErrorMessages(validationResult, errorString, errorString2);
-		// assertErrorMessages(validationResult, errorString);
-		//
-
-		// DataGroup validationResult = validationResultRecord.getDataGroup();
-		// assertEquals(validationResult.getFirstAtomicValueWithNameInData("valid"), "false");
-
-		// DataGroup errorMessages = validationResult.getFirstGroupWithNameInData("errorMessages");
-		//
-		// assertEquals(errorMessages.getChildren().size(), 2);
-		// DataAtomic error = (DataAtomic) errorMessages.getChildren().get(0);
-		// assertEquals(error.getValue(), errorString);
-		// assertEquals(error.getRepeatId(), "0");
-		//
-		// DataAtomic error2 = (DataAtomic) errorMessages.getChildren().get(1);
-		// assertEquals(error2.getValue(), errorString2);
-		// assertEquals(error2.getRepeatId(), "1");
 	}
 
 	private RecordTypeHandlerSpy createDifferentRecordTypeHandlers() {
@@ -695,31 +679,50 @@ public class RecordValidatorTest {
 		assertValidSetInResultWithValue(validationResult, "false");
 		assertErrorMessages(validationResult, errorString);
 	}
-
+	//
 	// @Test
 	// public void testRecordUpdaterGetsUniqueValiadatorFromDependencyProvider() throws Exception {
-	// DataGroupSpy recordSpy = createDataGroupForUpdate();
+	// recordStorage = new RecordStorageForValidateDataSpy();
+	// setUpDependencyProvider();
 	//
-	// recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordSpy);
+	// DataGroup recordToValidate = createDataGroupPlace();
+	// DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+	// "new", "true");
 	//
-	// dependencyProviderSpy.MCR.assertCalledParameters("getUniqueValidator", recordStorage);
+	// DataGroupSpy validationResult = setUpValidationResultForValid();
+	//
+	// recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+	// recordToValidate);
+	//
+	// dependencyProvider.MCR.assertCalledParameters("getUniqueValidator", recordStorage);
 	// }
-
+	//
 	// @Test
 	// public void uniqueValidatorCalledWithCorrectParameters() throws Exception {
 	// List<Unique> uniqueList = List.of(new Unique("", Set.of("")));
-	// recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions",
+	// recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions",
 	// () -> uniqueList);
 	// CollectTerms collectTerms = new CollectTerms();
 	// collectTerms.storageTerms = Set.of(new StorageTerm("id", "key", "value"));
 	// termCollector.MRV.setDefaultReturnValuesSupplier("collectTerms", () -> collectTerms);
-	// DataGroupSpy recordSpy = createDataGroupForUpdate();
 	//
-	// recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordSpy);
+	// recordStorage = new RecordStorageForValidateDataSpy();
+	// setUpDependencyProvider();
+	//
+	// DataGroup recordToValidate = createDataGroupPlace();
+	// DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+	// "new", "true");
+	//
+	// DataGroupSpy validationResult = setUpValidationResultForValid();
+	//
+	// recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+	// recordToValidate);
 	//
 	// uniqueValidator.MCR.assertMethodWasCalled("validateUnique");
-	// uniqueValidator.MCR.assertParameters("validateUnique", 0, RECORD_TYPE, uniqueList,
-	// collectTerms.storageTerms);
+	// // uniqueValidator.MCR.assertParameters("validateUnique", 0, "", uniqueList,
+	// // collectTerms.storageTerms);
+	// uniqueValidator.MCR.assertParameters("validateUnique", 0,
+	// "fakeRecordTypeIdFromRecordTypeHandlerSpy", );
 	// }
 	//
 	// @Test

@@ -41,7 +41,6 @@ import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
-import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.storage.Condition;
 import se.uu.ub.cora.storage.Filter;
@@ -86,8 +85,8 @@ public class UniqueValidatorTest {
 	private void resetStorageReadResult() {
 		duplicateReadResult = new StorageReadResult();
 		duplicateReadResult.totalNumberOfMatches = 1;
-		DataGroupSpy record = new DataGroupSpy();
-		duplicateReadResult.listOfDataGroups = List.of(record);
+		DataRecordGroupSpy record = new DataRecordGroupSpy();
+		duplicateReadResult.listOfDataRecordGroups = List.of(record);
 	}
 
 	@Test
@@ -166,8 +165,8 @@ public class UniqueValidatorTest {
 	@Test
 	public void oneUniqueRule_HasCollectedData_IsNotValid_MoreThanOnePriorWithSameValues()
 			throws Exception {
-		DataGroupSpy record = new DataGroupSpy();
-		duplicateReadResult.listOfDataGroups = List.of(record);
+		DataRecordGroupSpy record = new DataRecordGroupSpy();
+		duplicateReadResult.listOfDataRecordGroups = List.of(record);
 		DataRecordGroupSpy recordGroup = new DataRecordGroupSpy();
 		dataFactorySpy.MRV.setSpecificReturnValuesSupplier("factorRecordGroupFromDataGroup",
 				() -> recordGroup, record);
@@ -194,12 +193,9 @@ public class UniqueValidatorTest {
 
 	@Test
 	public void oneUniqueRule_HasCollectedData_IsNotValid_SameRecord() throws Exception {
-		DataGroupSpy record = new DataGroupSpy();
-		duplicateReadResult.listOfDataGroups = List.of(record);
-		DataRecordGroupSpy recordGroup = new DataRecordGroupSpy();
-		dataFactorySpy.MRV.setSpecificReturnValuesSupplier("factorRecordGroupFromDataGroup",
-				() -> recordGroup, record);
-		recordGroup.MRV.setDefaultReturnValuesSupplier("getId", () -> RECORD_ID);
+		DataRecordGroupSpy record = new DataRecordGroupSpy();
+		duplicateReadResult.listOfDataRecordGroups = List.of(record);
+		record.MRV.setDefaultReturnValuesSupplier("getId", () -> RECORD_ID);
 
 		recordStorage.MRV.setDefaultReturnValuesSupplier("readList", () -> duplicateReadResult);
 		addUniqueRule("keyA");

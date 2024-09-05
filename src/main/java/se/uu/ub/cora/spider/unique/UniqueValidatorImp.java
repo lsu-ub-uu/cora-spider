@@ -27,8 +27,6 @@ import java.util.StringJoiner;
 
 import se.uu.ub.cora.bookkeeper.recordtype.Unique;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.storage.Condition;
@@ -97,9 +95,7 @@ public class UniqueValidatorImp implements UniqueValidator {
 	}
 
 	private String getFirstIdFromResult(StorageReadResult readResult) {
-		DataGroup firstDataGroup = readResult.listOfDataGroups.get(0);
-		DataRecordGroup firstRecordGroup = DataProvider
-				.createRecordGroupFromDataGroup(firstDataGroup);
+		DataRecordGroup firstRecordGroup = readResult.listOfDataRecordGroups.get(0);
 		return firstRecordGroup.getId();
 	}
 

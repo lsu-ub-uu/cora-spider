@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Uppsala University Library
+ * Copyright 2019, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -92,8 +92,33 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 		createRecordTypeHandlerForRecordToValidate(recordToValidate);
 
+		// DataGroupTermCollector termCollector = dependencyProvider.getDataGroupTermCollector();
+		// UniqueValidator validateUniques = dependencyProvider.getUniqueValidator(recordStorage);
+		// recordTYp
+		// validateUniques.validateUnique(recordTypeFromValidationOrderToValidate, null, null,
+		// null);
+
 		return validateRecordAndCreateValidationResult(validationOrder);
 	}
+
+	// private void validateDataForUniqueThrowErrorIfNot() {
+	// UniqueValidator uniqueValidator = dependencyProvider.getUniqueValidator(recordStorage);
+	// ValidationAnswer uniqueAnswer = uniqueValidator.validateUnique(recordType, recordId,
+	// recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
+	// if (uniqueAnswer.dataIsInvalid()) {
+	// createAndThrowConflictExceptionForUnique(uniqueAnswer);
+	// }
+	// }
+
+	// private void createAndThrowConflictExceptionForUnique(ValidationAnswer uniqueAnswer) {
+	// String errorMessageTemplate = "The record could not be created as it fails unique validation
+	// with the "
+	// + "following {0} error messages: {1}";
+	// Collection<String> errorMessages = uniqueAnswer.getErrorMessages();
+	// String errorMessage = MessageFormat.format(errorMessageTemplate, errorMessages.size(),
+	// errorMessages);
+	// throw ConflictException.withMessage(errorMessage);
+	// }
 
 	private User tryToGetActiveUser() {
 		return authenticator.getUserForToken(authToken);

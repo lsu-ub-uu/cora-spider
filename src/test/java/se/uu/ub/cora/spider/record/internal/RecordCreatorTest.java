@@ -107,6 +107,7 @@ public class RecordCreatorTest {
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private DataGroupTermCollectorSpy termCollector;
+	private UniqueValidatorSpy uniqueValidator;
 	private RecordIndexerSpy recordIndexer;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
@@ -115,7 +116,6 @@ public class RecordCreatorTest {
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
 	private RecordArchiveSpy recordArchive;
-	private UniqueValidatorSpy uniqueValidator;
 	private DataGroup recordWithoutIdOld;
 	private DataGroupSpy recordWithId;
 
@@ -134,13 +134,13 @@ public class RecordCreatorTest {
 		ruleCalculator = new RuleCalculatorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
 		recordArchive = new RecordArchiveSpy();
 		dataRedactor = new DataRedactorSpy();
 		recordTypeHandlerSpy = new RecordTypeHandlerSpy();
-		uniqueValidator = new UniqueValidatorSpy();
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
+		termCollector = new DataGroupTermCollectorSpy();
+		uniqueValidator = new UniqueValidatorSpy();
 
 		setUpDependencyProviderOld();
 		setUpDependencyProvider();
@@ -205,12 +205,12 @@ public class RecordCreatorTest {
 		dependencyProviderSpy = new SpiderDependencyProviderSpy();
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getUniqueValidator",
-				() -> uniqueValidator);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
 				() -> termCollector);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getUniqueValidator",
+				() -> uniqueValidator);
 
 		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProviderSpy, dataGroupToRecordEnhancer);
