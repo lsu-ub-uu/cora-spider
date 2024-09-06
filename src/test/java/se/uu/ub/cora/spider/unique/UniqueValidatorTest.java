@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
@@ -56,11 +57,12 @@ public class UniqueValidatorTest {
 	private static final String RECORD_ID = "someRecordId";
 	private UniqueValidator uniqueValidator;
 	private RecordStorageSpy recordStorage;
-	private StorageReadResult duplicateReadResult;
 	private Set<StorageTerm> storageTerms;
 	private List<Unique> uniqueDefinitions;
 	private Map<Integer, List<ConditionPair>> expectedConditionsMap;
 	private DataFactorySpy dataFactorySpy;
+	private StorageReadResult duplicateReadResult;
+	private StorageReadResult okStorageReadResult;
 
 	@BeforeTest
 	public void BeforeTest() {
@@ -69,7 +71,8 @@ public class UniqueValidatorTest {
 	@BeforeMethod
 	private void beforeMethod() {
 		setUpFactoriesAndProviders();
-		resetStorageReadResult();
+		resetStorageReadResultForDuplicate();
+		okStorageReadResult = new StorageReadResult();
 		recordStorage = new RecordStorageSpy();
 		uniqueValidator = UniqueValidatorImp.usingRecordStorage(recordStorage);
 		uniqueDefinitions = new LinkedList<>();
@@ -82,7 +85,7 @@ public class UniqueValidatorTest {
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 	}
 
-	private void resetStorageReadResult() {
+	private void resetStorageReadResultForDuplicate() {
 		duplicateReadResult = new StorageReadResult();
 		duplicateReadResult.totalNumberOfMatches = 1;
 		DataRecordGroupSpy record = new DataRecordGroupSpy();
@@ -140,7 +143,7 @@ public class UniqueValidatorTest {
 		assertNumberOfCallsToReadList(1);
 		assertCallToReadListWithRecordType(RECORD_TYPE);
 
-		addConditionPairForRule(0, "keyA", "valueA");
+		expectedConditionPairForRule(0, "keyA", "valueA");
 		assertFilterForReadList(0);
 	}
 
@@ -158,7 +161,7 @@ public class UniqueValidatorTest {
 		assertNumberOfCallsToReadList(1);
 		assertCallToReadListWithRecordType(RECORD_TYPE);
 
-		addConditionPairForRule(0, "keyA", "valueA");
+		expectedConditionPairForRule(0, "keyA", "valueA");
 		assertFilterForReadList(0);
 	}
 
@@ -187,12 +190,47 @@ public class UniqueValidatorTest {
 		assertNumberOfCallsToReadList(1);
 		assertCallToReadListWithRecordType(RECORD_TYPE);
 
-		addConditionPairForRule(0, "keyA", "valueA");
+		expectedConditionPairForRule(0, "keyA", "valueA");
 		assertFilterForReadList(0);
 	}
 
 	@Test
-	public void oneUniqueRule_HasCollectedData_IsNotValid_SameRecord() throws Exception {
+	public void twoUniqueRule_HasCollectedData_IsValid_SecondIsDuplicateSameRecord_FirstIsDuplicate()
+			throws Exception {
+		StorageReadResult duplicateSameReadResult = new StorageReadResult();
+		DataRecordGroupSpy record = new DataRecordGroupSpy();
+		duplicateSameReadResult.totalNumberOfMatches = 1;
+		duplicateSameReadResult.listOfDataRecordGroups = List.of(record);
+		record.MRV.setDefaultReturnValuesSupplier("getId", () -> RECORD_ID);
+
+		List<StorageReadResult> returnStorageResults = List.of(duplicateReadResult,
+				duplicateSameReadResult);
+
+		recordStorage.MRV.setDefaultReturnValuesSupplier("readList",
+				createSupplierForList(returnStorageResults));
+
+		addUniqueRule("keyA");
+		addUniqueRule("keyB");
+		addStorageTerm("keyA", "valueA");
+		addStorageTerm("keyB", "valueB");
+
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
+				uniqueDefinitions, storageTerms);
+
+		assertDataIsInvalid(answer, List.of(
+				"A record matching the unique rule with [key: keyA, value: valueA] already exists "
+						+ "in the system"));
+		assertNumberOfCallsToReadList(2);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
+
+		expectedConditionPairForRule(0, "keyA", "valueA");
+		assertFilterForReadList(0);
+		expectedConditionPairForRule(1, "keyB", "valueB");
+		assertFilterForReadList(1);
+	}
+
+	@Test
+	public void oneUniqueRule_HasCollectedData_IsValid_IsDuplicateSameRecord() throws Exception {
 		DataRecordGroupSpy record = new DataRecordGroupSpy();
 		duplicateReadResult.listOfDataRecordGroups = List.of(record);
 		record.MRV.setDefaultReturnValuesSupplier("getId", () -> RECORD_ID);
@@ -208,7 +246,7 @@ public class UniqueValidatorTest {
 		assertNumberOfCallsToReadList(1);
 		assertCallToReadListWithRecordType(RECORD_TYPE);
 
-		addConditionPairForRule(0, "keyA", "valueA");
+		expectedConditionPairForRule(0, "keyA", "valueA");
 		assertFilterForReadList(0);
 	}
 
@@ -229,9 +267,9 @@ public class UniqueValidatorTest {
 		assertNumberOfCallsToReadList(1);
 		assertCallToReadListWithRecordType(RECORD_TYPE);
 
-		addConditionPairForRule(0, "keyA", "valueA");
-		addConditionPairForRule(0, "keyB", "valueB");
-		addConditionPairForRule(0, "keyC", "valueC");
+		expectedConditionPairForRule(0, "keyA", "valueA");
+		expectedConditionPairForRule(0, "keyB", "valueB");
+		expectedConditionPairForRule(0, "keyC", "valueC");
 		assertFilterForReadList(0);
 	}
 
@@ -261,7 +299,7 @@ public class UniqueValidatorTest {
 		assertNumberOfCallsToReadList(1);
 		assertCallToReadListWithRecordType(RECORD_TYPE);
 
-		addConditionPairForRule(0, "keyA", "valueA");
+		expectedConditionPairForRule(0, "keyA", "valueA");
 		assertFilterForReadList(0);
 	}
 
@@ -279,8 +317,8 @@ public class UniqueValidatorTest {
 		assertNumberOfCallsToReadList(1);
 		assertCallToReadListWithRecordType(RECORD_TYPE);
 
-		addConditionPairForRule(0, "keyA", "valueA");
-		addConditionPairForRule(0, "keyB", "valueB");
+		expectedConditionPairForRule(0, "keyA", "valueA");
+		expectedConditionPairForRule(0, "keyB", "valueB");
 		assertFilterForReadList(0);
 	}
 
@@ -299,7 +337,7 @@ public class UniqueValidatorTest {
 		assertNumberOfCallsToReadList(1);
 		assertCallToReadListWithRecordType(RECORD_TYPE);
 
-		addConditionPairForRule(0, "keyA", "valueA");
+		expectedConditionPairForRule(0, "keyA", "valueA");
 		assertFilterForReadList(0);
 	}
 
@@ -318,8 +356,8 @@ public class UniqueValidatorTest {
 		assertNumberOfCallsToReadList(1);
 		assertCallToReadListWithRecordType(RECORD_TYPE);
 
-		addConditionPairForRule(0, "keyA", "valueA");
-		addConditionPairForRule(0, "keyC", "valueC");
+		expectedConditionPairForRule(0, "keyA", "valueA");
+		expectedConditionPairForRule(0, "keyC", "valueC");
 		assertFilterForReadList(0);
 	}
 
@@ -339,16 +377,63 @@ public class UniqueValidatorTest {
 		assertNumberOfCallsToReadList(2);
 		assertCallToReadListWithRecordType(RECORD_TYPE);
 
-		addConditionPairForRule(0, "keyA", "valueA");
-		addConditionPairForRule(0, "keyB", "valueB");
+		expectedConditionPairForRule(0, "keyA", "valueA");
+		expectedConditionPairForRule(0, "keyB", "valueB");
 		assertFilterForReadList(0);
 
-		addConditionPairForRule(1, "keyC", "valueC");
+		expectedConditionPairForRule(1, "keyC", "valueC");
 		assertFilterForReadList(1);
 	}
 
 	@Test
-	public void manyUniqueRuleWithTwoCombine_ManyMatchingCollectedData_IsValid() throws Exception {
+	public void twoUniqueRuleWithTwoCombine_AllMatchingCollectedData_IsInValid() throws Exception {
+		addUniqueRule("keyA", "keyB");
+		addUniqueRule("keyC");
+
+		addStorageTerm("keyA", "valueA");
+		addStorageTerm("keyB", "valueB");
+		addStorageTerm("keyC", "valueC");
+
+		List<StorageReadResult> returnStorageResults = List.of(duplicateReadResult,
+				okStorageReadResult);
+
+		recordStorage.MRV.setDefaultReturnValuesSupplier("readList",
+				createSupplierForList(returnStorageResults));
+
+		ValidationAnswer answer = uniqueValidator.validateUnique(RECORD_TYPE, RECORD_ID,
+				uniqueDefinitions, storageTerms);
+
+		String error1 = "A record matching the unique rule with [key: keyA, value: valueA], "
+				+ "[key: keyB, value: valueB] already exists in the system";
+
+		assertDataIsInvalid(answer, List.of(error1));
+		assertNumberOfCallsToReadList(2);
+		assertCallToReadListWithRecordType(RECORD_TYPE);
+
+		expectedConditionPairForRule(0, "keyA", "valueA");
+		expectedConditionPairForRule(0, "keyB", "valueB");
+		assertFilterForReadList(0);
+
+		expectedConditionPairForRule(1, "keyC", "valueC");
+		assertFilterForReadList(1);
+	}
+
+	private Supplier<?> createSupplierForList(List<StorageReadResult> returnStorageResults) {
+		Supplier<?> supplier = new Supplier<StorageReadResult>() {
+			int counter = -1;
+
+			@Override
+			public StorageReadResult get() {
+				counter++;
+				return returnStorageResults.get(counter);
+			}
+		};
+		return supplier;
+	}
+
+	@Test
+	public void manyUniqueRuleWithTwoCombine_ManyMatchingCollectedData_IsInvalid()
+			throws Exception {
 		addUniqueRule("keyA", "keyB");
 		addUniqueRule("keyD", "keyE", "keyF");
 		addUniqueRule("keyC");
@@ -379,22 +464,22 @@ public class UniqueValidatorTest {
 		assertNumberOfCallsToReadList(4);
 		assertCallToReadListWithRecordType(RECORD_TYPE);
 
-		addConditionPairForRule(0, "keyA", "valueA");
-		addConditionPairForRule(0, "keyB", "valueB");
+		expectedConditionPairForRule(0, "keyA", "valueA");
+		expectedConditionPairForRule(0, "keyB", "valueB");
 		assertFilterForReadList(0);
 
-		addConditionPairForRule(1, "keyD", "valueD");
-		addConditionPairForRule(1, "keyE", "valueE");
-		addConditionPairForRule(1, "keyF", "valueF");
+		expectedConditionPairForRule(1, "keyD", "valueD");
+		expectedConditionPairForRule(1, "keyE", "valueE");
+		expectedConditionPairForRule(1, "keyF", "valueF");
 		assertFilterForReadList(1);
 
-		addConditionPairForRule(2, "keyB", "valueB");
-		addConditionPairForRule(2, "keyF", "valueF");
+		expectedConditionPairForRule(2, "keyB", "valueB");
+		expectedConditionPairForRule(2, "keyF", "valueF");
 		assertFilterForReadList(2);
 
-		addConditionPairForRule(3, "keyA", "valueA");
-		addConditionPairForRule(3, "keyF", "valueF");
-		addConditionPairForRule(3, "keyE", "valueE");
+		expectedConditionPairForRule(3, "keyA", "valueA");
+		expectedConditionPairForRule(3, "keyF", "valueF");
+		expectedConditionPairForRule(3, "keyE", "valueE");
 		assertFilterForReadList(3);
 	}
 
@@ -421,26 +506,26 @@ public class UniqueValidatorTest {
 		assertNumberOfCallsToReadList(4);
 		assertCallToReadListWithRecordType(RECORD_TYPE);
 
-		addConditionPairForRule(0, "keyA", "valueA");
-		addConditionPairForRule(0, "keyB", "valueB");
+		expectedConditionPairForRule(0, "keyA", "valueA");
+		expectedConditionPairForRule(0, "keyB", "valueB");
 		assertFilterForReadList(0);
 
-		addConditionPairForRule(1, "keyD", "valueD");
-		addConditionPairForRule(1, "keyE", "valueE");
-		addConditionPairForRule(1, "keyF", "valueF");
+		expectedConditionPairForRule(1, "keyD", "valueD");
+		expectedConditionPairForRule(1, "keyE", "valueE");
+		expectedConditionPairForRule(1, "keyF", "valueF");
 		assertFilterForReadList(1);
 
-		addConditionPairForRule(2, "keyB", "valueB");
-		addConditionPairForRule(2, "keyF", "valueF");
+		expectedConditionPairForRule(2, "keyB", "valueB");
+		expectedConditionPairForRule(2, "keyF", "valueF");
 		assertFilterForReadList(2);
 
-		addConditionPairForRule(3, "keyA", "valueA");
-		addConditionPairForRule(3, "keyF", "valueF");
-		addConditionPairForRule(3, "keyE", "valueE");
+		expectedConditionPairForRule(3, "keyA", "valueA");
+		expectedConditionPairForRule(3, "keyF", "valueF");
+		expectedConditionPairForRule(3, "keyE", "valueE");
 		assertFilterForReadList(3);
 	}
 
-	private void addConditionPairForRule(int uniqueRuleNumber, String key, String value) {
+	private void expectedConditionPairForRule(int uniqueRuleNumber, String key, String value) {
 		expectedConditionsMap.computeIfAbsent(uniqueRuleNumber, ArrayList::new);
 		expectedConditionsMap.get(uniqueRuleNumber).add(new ConditionPair(key, value));
 	}
