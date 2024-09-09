@@ -180,7 +180,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private void validateDataForUniqueThrowErrorIfNot(CollectTerms collectedTerms) {
 		UniqueValidator uniqueValidator = dependencyProvider.getUniqueValidator(recordStorage);
-		ValidationAnswer uniqueAnswer = uniqueValidator.validateUnique(recordType,
+		ValidationAnswer uniqueAnswer = uniqueValidator.validateUniqueForExistingRecord(recordType,
 				recordId, recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
 		if (uniqueAnswer.dataIsInvalid()) {
 			createAndThrowConflictExceptionForUnique(uniqueAnswer);

@@ -43,12 +43,17 @@ public class UniqueValidatorImp implements UniqueValidator {
 		return new UniqueValidatorImp(recordStorage);
 	}
 
-	private UniqueValidatorImp(RecordStorage recordStorage) {
+	UniqueValidatorImp(RecordStorage recordStorage) {
 		this.recordStorage = recordStorage;
 	}
 
 	@Override
-	public ValidationAnswer validateUnique(String recordType, String recordId,
+	public ValidationAnswer validateUniqueForExistingRecord(String recordType, String recordId,
+			List<Unique> uniqueRules, Set<StorageTerm> storageTerms) {
+		return validateUnique(recordType, Optional.of(recordId), uniqueRules, storageTerms);
+	}
+
+	ValidationAnswer validateUnique(String recordType, Optional<String> recordId,
 			List<Unique> uniqueRules, Set<StorageTerm> storageTerms) {
 		if (noNeedToRunValidation(uniqueRules, storageTerms)) {
 			return noDuplicatesFound();
@@ -60,8 +65,8 @@ public class UniqueValidatorImp implements UniqueValidator {
 		return new ValidationAnswer();
 	}
 
-	private ValidationAnswer checkUniqueRulesAndBuildAnswer(String recordType, String recordId,
-			List<Unique> uniqueRules, Set<StorageTerm> storageTerms) {
+	private ValidationAnswer checkUniqueRulesAndBuildAnswer(String recordType,
+			Optional<String> recordId, List<Unique> uniqueRules, Set<StorageTerm> storageTerms) {
 		List<String> errorMessages = checkuniqueRules(recordType, recordId, uniqueRules,
 				storageTerms);
 		return createValidationAnswer(errorMessages);
@@ -73,7 +78,7 @@ public class UniqueValidatorImp implements UniqueValidator {
 		return answer;
 	}
 
-	private List<String> checkuniqueRules(String recordType, String recordId,
+	private List<String> checkuniqueRules(String recordType, Optional<String> recordId,
 			List<Unique> uniqueRules, Set<StorageTerm> storageTerms) {
 		List<String> errorMessages = new ArrayList<>();
 		for (Unique uniqueRule : uniqueRules) {
@@ -86,7 +91,7 @@ public class UniqueValidatorImp implements UniqueValidator {
 		return errorMessages;
 	}
 
-	private Optional<String> checkUniqueRule(String recordType, String recordId,
+	private Optional<String> checkUniqueRule(String recordType, Optional<String> recordId,
 			Set<StorageTerm> storageTerms, Unique unique) {
 		Optional<Filter> filter = possiblyCreateFilter(unique, storageTerms);
 		if (filter.isPresent()) {
@@ -95,8 +100,8 @@ public class UniqueValidatorImp implements UniqueValidator {
 		return Optional.empty();
 	}
 
-	private Optional<String> checkUniqueInStorageUsingFilter(String recordType, String recordId,
-			Filter filter) {
+	private Optional<String> checkUniqueInStorageUsingFilter(String recordType,
+			Optional<String> recordId, Filter filter) {
 		StorageReadResult readResult = recordStorage.readList(recordType, filter);
 
 		if (noDuplicatesFoundInStorage(recordId, readResult)) {
@@ -107,15 +112,16 @@ public class UniqueValidatorImp implements UniqueValidator {
 		return Optional.of(createAndAddErrorAnswer(conditions));
 	}
 
-	private boolean noDuplicatesFoundInStorage(String recordId, StorageReadResult readResult) {
+	private boolean noDuplicatesFoundInStorage(Optional<String> recordId,
+			StorageReadResult readResult) {
 		return readResult.totalNumberOfMatches == 0
 				|| onlyMatchForDuplicatesIsOurCurrentRecord(recordId, readResult);
 	}
 
-	private boolean onlyMatchForDuplicatesIsOurCurrentRecord(String recordId,
+	private boolean onlyMatchForDuplicatesIsOurCurrentRecord(Optional<String> recordId,
 			StorageReadResult readResult) {
-		return readResult.totalNumberOfMatches == 1
-				&& (matchIsOurCurrentRecord(recordId, readResult));
+		return readResult.totalNumberOfMatches == 1 && recordId.isPresent()
+				&& (matchIsOurCurrentRecord(recordId.get(), readResult));
 	}
 
 	private boolean matchIsOurCurrentRecord(String recordId, StorageReadResult readResult) {
@@ -205,5 +211,11 @@ public class UniqueValidatorImp implements UniqueValidator {
 
 	public RecordStorage onlyForTestGetRecordStorage() {
 		return recordStorage;
+	}
+
+	@Override
+	public ValidationAnswer validateUniqueForNewRecord(String recordType, List<Unique> uniques,
+			Set<StorageTerm> storageTerms) {
+		return validateUnique(recordType, Optional.empty(), uniques, storageTerms);
 	}
 }

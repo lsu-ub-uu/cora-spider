@@ -28,19 +28,43 @@ import se.uu.ub.cora.data.collected.StorageTerm;
 
 public interface UniqueValidator {
 	/**
-	 * ValidateUnique verify the unique constrains set in the recordType.
+	 * validateUniqueForExistingRecord verify the unique constrains set in the recordType.
+	 * </p>
+	 * This method checks for duplicate records based on the unique constraints set up in metadata,
+	 * unique in recordType with matching storageTerms in metadata. Matching values found in storage
+	 * are reported as errors in the answer unless the matched values are for the same recordId as
+	 * specified.
 	 * 
 	 * @param recordType
 	 *            is the recordType related to the unique definition to validate.
-	 * @param recordId TODO
+	 * @param recordId
+	 *            is the recordId of the specific record to validate.
 	 * @param uniques
-	 *            is a List of Unique object. Each {@link Unique} object defines a unique rule for a
-	 *            record.
+	 *            A List of Uniques, each {@link Unique} object defines a unique rule for a record.
 	 * @param storageTerms
-	 *            Incomming data as dataGroup. The unique constraints will be match to the variables
-	 *            that matches the storageTerms.
-	 * @return A ValidationAnswer with the result of the validation.
+	 *            A set of {@link StorageTerm}s to be checked for unique
+	 * 
+	 * @return A ValidationAnswer with the result of the unique validation.
 	 */
-	ValidationAnswer validateUnique(String recordType, String recordId,
+	ValidationAnswer validateUniqueForExistingRecord(String recordType, String recordId,
 			List<Unique> uniques, Set<StorageTerm> storageTerms);
+
+	/**
+	 * validateUniqueForNewRecord verify the unique constrains set in the recordType.
+	 * </p>
+	 * This method checks for duplicate records based on the unique constraints set up in metadata,
+	 * unique in recordType with matching storageTerms in metadata. Matching values found in storage
+	 * are reported as errors in the answer.
+	 * 
+	 * @param recordType
+	 *            is the recordType related to the unique definition to validate.
+	 * @param uniques
+	 *            A List of Uniques, each {@link Unique} object defines a unique rule for a record.
+	 * @param storageTerms
+	 *            A set of {@link StorageTerm}s to be checked for unique
+	 * 
+	 * @return A ValidationAnswer with the result of the unique validation.
+	 */
+	ValidationAnswer validateUniqueForNewRecord(String recordType, List<Unique> uniques,
+			Set<StorageTerm> storageTerms);
 }

@@ -20,11 +20,13 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataAtomic;
@@ -33,6 +35,7 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -43,6 +46,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.RecordValidator;
+import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
@@ -58,7 +62,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private RecordIdGenerator idGenerator;
 	private RecordTypeHandler recordTypeHandler;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
-	private String recordTypeFromValidationOrderToValidate;
+	private String recordTypeToValidate;
 
 	private RecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -86,17 +90,20 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForCreateOnValidationOrder();
 		validateValidationOrder(validationOrder);
-		recordTypeFromValidationOrderToValidate = getRecordTypeToValidate(validationOrder);
+		recordTypeToValidate = getRecordTypeToValidate(validationOrder);
 		useExtendedFunctionalityForPosition(
 				ExtendedFunctionalityPosition.VALIDATE_AFTER_AUTHORIZATION);
 
 		createRecordTypeHandlerForRecordToValidate(recordToValidate);
 
-		// DataGroupTermCollector termCollector = dependencyProvider.getDataGroupTermCollector();
-		// UniqueValidator validateUniques = dependencyProvider.getUniqueValidator(recordStorage);
-		// recordTYp
-		// validateUniques.validateUnique(recordTypeFromValidationOrderToValidate, null, null,
-		// null);
+		DataGroupTermCollector termCollector = dependencyProvider.getDataGroupTermCollector();
+		// CollectTerms collectedTerms = termCollector
+		// .collectTerms(recordTypeHandler.getDefinitionId(), recordToValidate);
+		CollectTerms collectedTerms = termCollector.collectTerms(null, null);
+
+		UniqueValidator validateUniques = dependencyProvider.getUniqueValidator(recordStorage);
+		validateUniques.validateUniqueForNewRecord(recordTypeToValidate,
+				recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
 
 		return validateRecordAndCreateValidationResult(validationOrder);
 	}
@@ -106,7 +113,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	// ValidationAnswer uniqueAnswer = uniqueValidator.validateUnique(recordType, recordId,
 	// recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
 	// if (uniqueAnswer.dataIsInvalid()) {
-	// createAndThrowConflictExceptionForUnique(uniqueAnswer);
+	// add to
 	// }
 	// }
 
@@ -156,21 +163,19 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 				.createRecordGroupFromDataGroup(recordToValidate);
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(recordToValidateAsDataRecordGroup);
-
 	}
 
 	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
 		// read from validationorder
 		List<ExtendedFunctionality> exFunctionality = extendedFunctionalityProvider
-				.getFunctionalityForPositionAndRecordType(position,
-						recordTypeFromValidationOrderToValidate);
+				.getFunctionalityForPositionAndRecordType(position, recordTypeToValidate);
 		useExtendedFunctionality(recordToValidate, exFunctionality);
 	}
 
 	@Override
 	protected ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
-		data.recordType = recordTypeFromValidationOrderToValidate;
+		data.recordType = recordTypeToValidate;
 		data.recordId = recordId;
 		data.authToken = authToken;
 		data.user = user;
@@ -179,11 +184,11 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private DataRecord validateRecordAndCreateValidationResult(DataGroup validationOrder) {
-		checkUserIsAuthorizedForValidateOnRecordType(recordTypeFromValidationOrderToValidate);
+		checkUserIsAuthorizedForValidateOnRecordType(recordTypeToValidate);
 
 		createValidationResultDataGroup();
-		validateRecordUsingValidationRecord(validationOrder,
-				recordTypeFromValidationOrderToValidate);
+		validateRecordUsingValidationRecord(validationOrder, recordTypeToValidate);
+
 		DataRecord dataRecord = DataProvider.createRecordWithDataGroup(validationResult);
 		addReadActionToComplyWithRecordStructure(dataRecord);
 		return dataRecord;
@@ -223,8 +228,8 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		metadataToValidate = validationOrder
 				.getFirstAtomicValueWithNameInData("metadataToValidate");
 
-		String recordIdOrNullIfCreate = extractRecordIdIfUpdate();
-		ensureRecordExistWhenActionToPerformIsUpdate(recordTypeToValidate, recordIdOrNullIfCreate);
+		Optional<String> recordId = extractRecordIdIfUpdate();
+		ensureRecordExistWhenActionToPerformIsUpdate(recordTypeToValidate, recordId);
 
 		String metadataId = getMetadataId();
 		possiblyEnsureLinksExist(validationOrder);
@@ -236,10 +241,10 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void ensureRecordTypesMatch() {
 		String recordTypeOfRecord = recordTypeHandler.getRecordTypeId();
-		if (!recordTypeOfRecord.equals(recordTypeFromValidationOrderToValidate)) {
+		if (!recordTypeOfRecord.equals(recordTypeToValidate)) {
 			addErrorToValidationResult("RecordType from record (" + recordTypeOfRecord
-					+ ") does not match recordType from validationOrder ("
-					+ recordTypeFromValidationOrderToValidate + ")");
+					+ ") does not match recordType from validationOrder (" + recordTypeToValidate
+					+ ")");
 		}
 	}
 
@@ -252,8 +257,9 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		return "new".equals(metadataToValidate);
 	}
 
-	private String extractRecordIdIfUpdate() {
-		return "existing".equals(metadataToValidate) ? extractIdFromData() : null;
+	private Optional<String> extractRecordIdIfUpdate() {
+		return "existing".equals(metadataToValidate) ? Optional.of(extractIdFromData())
+				: Optional.empty();
 	}
 
 	private String extractIdFromData() {
@@ -262,9 +268,9 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private void ensureRecordExistWhenActionToPerformIsUpdate(String recordTypeToValidate,
-			String recordIdToUse) {
-		if ("existing".equals(metadataToValidate)) {
-			checkIfRecordExist(recordTypeToValidate, recordIdToUse);
+			Optional<String> recordId) {
+		if (recordId.isPresent()) {
+			checkIfRecordExist(recordTypeToValidate, recordId.get());
 		}
 	}
 
@@ -281,7 +287,6 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		int repeatId = calculateRepeatId(errorMessages);
 		DataAtomic error = createErrorWithMessageAndRepeatId(message, repeatId);
 		errorMessages.addChild(error);
-
 	}
 
 	private DataGroup getErrorMessagesGroup() {

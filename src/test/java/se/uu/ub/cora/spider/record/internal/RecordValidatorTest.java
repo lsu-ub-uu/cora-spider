@@ -33,11 +33,14 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.recordtype.Unique;
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
+import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.data.spies.DataAtomicSpy;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
@@ -315,7 +318,6 @@ public class RecordValidatorTest {
 
 	private void assertCorrectRecordInfo(DataGroupSpy validationResult,
 			IdGeneratorSpy generatorSpy) {
-
 		DataGroupSpy recordInfo = (DataGroupSpy) dataFactorySpy.MCR
 				.assertCalledParametersReturn("factorGroupUsingNameInData", "recordInfo");
 		validationResult.MCR.assertCalledParameters("addChild", recordInfo);
@@ -343,7 +345,6 @@ public class RecordValidatorTest {
 				.assertCalledParametersReturn("factorGroupUsingNameInData", "updated");
 		var tsUpdated = dataFactorySpy.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 2);
 		updated.MCR.assertCalledParameters("addChild", tsUpdated);
-
 	}
 
 	@Test
@@ -617,7 +618,6 @@ public class RecordValidatorTest {
 
 	@Test
 	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() throws Exception {
-
 		DataGroup recordToValidate = createRecordToValidate();
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"new", "true");
@@ -679,51 +679,46 @@ public class RecordValidatorTest {
 		assertValidSetInResultWithValue(validationResult, "false");
 		assertErrorMessages(validationResult, errorString);
 	}
-	//
-	// @Test
-	// public void testRecordUpdaterGetsUniqueValiadatorFromDependencyProvider() throws Exception {
-	// recordStorage = new RecordStorageForValidateDataSpy();
-	// setUpDependencyProvider();
-	//
-	// DataGroup recordToValidate = createDataGroupPlace();
-	// DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
-	// "new", "true");
-	//
-	// DataGroupSpy validationResult = setUpValidationResultForValid();
-	//
-	// recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
-	// recordToValidate);
-	//
-	// dependencyProvider.MCR.assertCalledParameters("getUniqueValidator", recordStorage);
-	// }
-	//
-	// @Test
-	// public void uniqueValidatorCalledWithCorrectParameters() throws Exception {
-	// List<Unique> uniqueList = List.of(new Unique("", Set.of("")));
-	// recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions",
-	// () -> uniqueList);
-	// CollectTerms collectTerms = new CollectTerms();
-	// collectTerms.storageTerms = Set.of(new StorageTerm("id", "key", "value"));
-	// termCollector.MRV.setDefaultReturnValuesSupplier("collectTerms", () -> collectTerms);
-	//
-	// recordStorage = new RecordStorageForValidateDataSpy();
-	// setUpDependencyProvider();
-	//
-	// DataGroup recordToValidate = createDataGroupPlace();
-	// DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
-	// "new", "true");
-	//
-	// DataGroupSpy validationResult = setUpValidationResultForValid();
-	//
-	// recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
-	// recordToValidate);
-	//
-	// uniqueValidator.MCR.assertMethodWasCalled("validateUnique");
-	// // uniqueValidator.MCR.assertParameters("validateUnique", 0, "", uniqueList,
-	// // collectTerms.storageTerms);
-	// uniqueValidator.MCR.assertParameters("validateUnique", 0,
-	// "fakeRecordTypeIdFromRecordTypeHandlerSpy", );
-	// }
+
+	@Test
+	public void testRecordUpdaterGetsUniqueValiadatorFromDependencyProvider() throws Exception {
+		recordStorage = new RecordStorageForValidateDataSpy();
+		setUpDependencyProvider();
+
+		DataGroup recordToValidate = createDataGroupPlace();
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+
+		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+				recordToValidate);
+
+		dependencyProvider.MCR.assertCalledParameters("getUniqueValidator", recordStorage);
+	}
+
+	@Test
+	public void uniqueValidatorCalledWithCorrectParameters() throws Exception {
+		List<Unique> uniqueList = List.of(new Unique("", Set.of("")));
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions",
+				() -> uniqueList);
+		CollectTerms collectTerms = new CollectTerms();
+		collectTerms.storageTerms = Set.of(new StorageTerm("id", "key", "value"));
+		termCollector.MRV.setDefaultReturnValuesSupplier("collectTerms", () -> collectTerms);
+
+		recordStorage = new RecordStorageForValidateDataSpy();
+		setUpDependencyProvider();
+
+		DataGroup recordToValidate = createDataGroupPlace();
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+
+		// DataGroupSpy validationResult = setUpValidationResultForValid();
+
+		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+				recordToValidate);
+
+		uniqueValidator.MCR.assertParameters("validateUniqueForNewRecord", 0,
+				RECORD_TYPE_TO_VALIDATE_AGAINST, uniqueList, collectTerms.storageTerms);
+	}
 	//
 	// @Test
 	// public void testUniqueValidationFails_throwsSpiderConflictException() throws Exception {

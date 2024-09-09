@@ -841,9 +841,9 @@ public class RecordCreatorTest {
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
 
-		uniqueValidator.MCR.assertMethodWasCalled("validateUnique");
-		uniqueValidator.MCR.assertParameters("validateUnique", 0, RECORD_TYPE, uniqueList,
-				collectTerms.storageTerms);
+		uniqueValidator.MCR.assertMethodWasCalled("validateUniqueForExistingRecord");
+		uniqueValidator.MCR.assertParameters("validateUniqueForExistingRecord", 0, RECORD_TYPE,
+				"someRecordId", uniqueList, collectTerms.storageTerms);
 	}
 
 	@Test
@@ -867,7 +867,7 @@ public class RecordCreatorTest {
 		validationAnswer.MRV.setDefaultReturnValuesSupplier("dataIsInvalid", () -> true);
 		validationAnswer.MRV.setDefaultReturnValuesSupplier("getErrorMessages",
 				() -> List.of("error1", "error2", "error3"));
-		uniqueValidator.MRV.setDefaultReturnValuesSupplier("validateUnique",
+		uniqueValidator.MRV.setDefaultReturnValuesSupplier("validateUniqueForExistingRecord",
 				() -> validationAnswer);
 	}
 
