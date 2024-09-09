@@ -48,39 +48,68 @@ public class UniqueValidatorImp implements UniqueValidator {
 	}
 
 	@Override
-	public ValidationAnswer validateUnique(String recordType, String recordId, List<Unique> uniques,
-			Set<StorageTerm> storageTerms) {
-		if (noNeedToRunValidation(uniques, storageTerms)) {
-			return new ValidationAnswer();
+	public ValidationAnswer validateUnique(String recordType, String recordId,
+			List<Unique> uniqueRules, Set<StorageTerm> storageTerms) {
+		if (noNeedToRunValidation(uniqueRules, storageTerms)) {
+			return noDuplicatesFound();
 		}
-		return checkUnique(recordType, recordId, uniques, storageTerms);
+		return checkUniqueRulesAndBuildAnswer(recordType, recordId, uniqueRules, storageTerms);
 	}
 
-	private ValidationAnswer checkUnique(String recordType, String recordId, List<Unique> uniques,
-			Set<StorageTerm> storageTerms) {
+	private ValidationAnswer noDuplicatesFound() {
+		return new ValidationAnswer();
+	}
 
+	private ValidationAnswer checkUniqueRulesAndBuildAnswer(String recordType, String recordId,
+			List<Unique> uniqueRules, Set<StorageTerm> storageTerms) {
+		List<String> errorMessages = checkuniqueRules(recordType, recordId, uniqueRules,
+				storageTerms);
+		return createValidationAnswer(errorMessages);
+	}
+
+	private ValidationAnswer createValidationAnswer(List<String> errorMessages) {
 		ValidationAnswer answer = new ValidationAnswer();
-		for (Unique unique : uniques) {
-			Optional<Filter> filter = possiblyCreateFilter(unique, storageTerms);
-			if (filter.isPresent()) {
-				answer = checkUniqueInStorage(answer, recordType, recordId, filter.get());
-			}
-		}
+		answer.addErrorMessages(errorMessages);
 		return answer;
 	}
 
-	private ValidationAnswer checkUniqueInStorage(ValidationAnswer answer, String recordType,
-			String recordId, Filter filter) {
+	private List<String> checkuniqueRules(String recordType, String recordId,
+			List<Unique> uniqueRules, Set<StorageTerm> storageTerms) {
+		List<String> errorMessages = new ArrayList<>();
+		for (Unique uniqueRule : uniqueRules) {
+			Optional<String> errorMessage = checkUniqueRule(recordType, recordId, storageTerms,
+					uniqueRule);
+			if (errorMessage.isPresent()) {
+				errorMessages.add(errorMessage.get());
+			}
+		}
+		return errorMessages;
+	}
+
+	private Optional<String> checkUniqueRule(String recordType, String recordId,
+			Set<StorageTerm> storageTerms, Unique unique) {
+		Optional<Filter> filter = possiblyCreateFilter(unique, storageTerms);
+		if (filter.isPresent()) {
+			return checkUniqueInStorageUsingFilter(recordType, recordId, filter.get());
+		}
+		return Optional.empty();
+	}
+
+	private Optional<String> checkUniqueInStorageUsingFilter(String recordType, String recordId,
+			Filter filter) {
 		StorageReadResult readResult = recordStorage.readList(recordType, filter);
 
-		if (readResult.totalNumberOfMatches == 0) {
-			return new ValidationAnswer();
+		if (noDuplicatesFoundInStorage(recordId, readResult)) {
+			return Optional.empty();
 		}
-		if (onlyMatchForDuplicatesIsOurCurrentRecord(recordId, readResult)) {
-			return new ValidationAnswer();
-		}
+
 		List<Condition> conditions = getConditionsFromFilter(filter);
-		return createAndAddErrorAnswer(conditions, answer);
+		return Optional.of(createAndAddErrorAnswer(conditions));
+	}
+
+	private boolean noDuplicatesFoundInStorage(String recordId, StorageReadResult readResult) {
+		return readResult.totalNumberOfMatches == 0
+				|| onlyMatchForDuplicatesIsOurCurrentRecord(recordId, readResult);
 	}
 
 	private boolean onlyMatchForDuplicatesIsOurCurrentRecord(String recordId,
@@ -103,12 +132,10 @@ public class UniqueValidatorImp implements UniqueValidator {
 		return filter.include.get(0).conditions;
 	}
 
-	private ValidationAnswer createAndAddErrorAnswer(List<Condition> conditions,
-			ValidationAnswer errorAnswer) {
+	private String createAndAddErrorAnswer(List<Condition> conditions) {
 		String conditionsAsString = conditionsToString(conditions);
-		errorAnswer.addErrorMessage("A record matching the unique rule with " + conditionsAsString
-				+ " already exists in the system");
-		return errorAnswer;
+		return "A record matching the unique rule with " + conditionsAsString
+				+ " already exists in the system";
 	}
 
 	private String conditionsToString(List<Condition> conditions) {
