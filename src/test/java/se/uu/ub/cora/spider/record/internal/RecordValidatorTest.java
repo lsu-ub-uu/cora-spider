@@ -131,8 +131,6 @@ public class RecordValidatorTest {
 				() -> recordStorage);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier(
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandler);
-		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
-				() -> recordTypeHandler);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataValidator",
 				() -> dataValidator);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataRecordLinkCollector",
@@ -700,6 +698,8 @@ public class RecordValidatorTest {
 		List<Unique> uniqueList = List.of(new Unique("", Set.of("")));
 		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions",
 				() -> uniqueList);
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
+				() -> "someDefinition");
 		CollectTerms collectTerms = new CollectTerms();
 		collectTerms.storageTerms = Set.of(new StorageTerm("id", "key", "value"));
 		termCollector.MRV.setDefaultReturnValuesSupplier("collectTerms", () -> collectTerms);
@@ -716,6 +716,7 @@ public class RecordValidatorTest {
 		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
 				recordToValidate);
 
+		termCollector.MCR.assertParameters("collectTerms", 0, "someDefinition", recordToValidate);
 		uniqueValidator.MCR.assertParameters("validateUniqueForNewRecord", 0,
 				RECORD_TYPE_TO_VALIDATE_AGAINST, uniqueList, collectTerms.storageTerms);
 	}

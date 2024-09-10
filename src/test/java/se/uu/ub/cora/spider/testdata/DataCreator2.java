@@ -56,12 +56,9 @@ public final class DataCreator2 {
 	public static DataRecordLink createLinkWithLinkedId(String nameInData, String linkedRecordType,
 			String id) {
 		DataRecordLinkSpy linkSpy = new DataRecordLinkSpy();
-		linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData",
-				(Supplier<String>) () -> nameInData);
-		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
-				(Supplier<String>) () -> linkedRecordType);
-		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
-				(Supplier<String>) () -> id);
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> nameInData);
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType", () -> linkedRecordType);
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> id);
 		return linkSpy;
 	}
 
@@ -105,7 +102,8 @@ public final class DataCreator2 {
 
 		DataGroup recordTypeToSearchIn = new DataGroupOldSpy("recordTypeToSearchIn");
 		recordTypeToSearchIn.addChild(new DataAtomicOldSpy("linkedRecordType", "recordType"));
-		recordTypeToSearchIn.addChild(new DataAtomicOldSpy("linkedRecordId", idRecordTypeToSearchIn));
+		recordTypeToSearchIn
+				.addChild(new DataAtomicOldSpy("linkedRecordId", idRecordTypeToSearchIn));
 		search.addChild(recordTypeToSearchIn);
 		return search;
 	}

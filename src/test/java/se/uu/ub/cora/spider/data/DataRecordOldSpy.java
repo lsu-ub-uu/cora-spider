@@ -24,12 +24,12 @@ import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.data.Action;
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class DataRecordOldSpy implements DataRecord {
-	private DataGroup dataGroup;
+	private DataRecordGroup dataRecordGroup;
 	private List<Action> actions = new ArrayList<>();
 	private Collection<String> readPermissions;
 	private Collection<String> writePermissions;
@@ -37,17 +37,17 @@ public class DataRecordOldSpy implements DataRecord {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 
-	public DataRecordOldSpy(DataGroup dataGroup) {
-		MCR.addCall("dataGroup", dataGroup);
-		this.dataGroup = dataGroup;
-		MCR.addReturned(dataGroup);
+	public DataRecordOldSpy(DataRecordGroup dataRecordGroup) {
+		MCR.addCall("dataRecordGroup", dataRecordGroup);
+		this.dataRecordGroup = dataRecordGroup;
+		MCR.addReturned(dataRecordGroup);
 	}
 
 	@Override
-	public DataGroup getDataGroup() {
+	public DataRecordGroup getDataRecordGroup() {
 		MCR.addCall();
-		MCR.addReturned(dataGroup);
-		return dataGroup;
+		MCR.addReturned(dataRecordGroup);
+		return dataRecordGroup;
 	}
 
 	@Override
@@ -90,9 +90,9 @@ public class DataRecordOldSpy implements DataRecord {
 	}
 
 	@Override
-	public void setDataGroup(DataGroup dataGroup) {
-		MCR.addCall("dataGroup", dataGroup);
-		this.dataGroup = dataGroup;
+	public void setDataRecordGroup(DataRecordGroup dataRecordGroup) {
+		MCR.addCall("dataGroup", dataRecordGroup);
+		this.dataRecordGroup = dataRecordGroup;
 	}
 
 	@Override

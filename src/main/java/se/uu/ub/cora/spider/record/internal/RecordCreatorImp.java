@@ -283,8 +283,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void validateDataForUniqueThrowErrorIfNot() {
 		UniqueValidator uniqueValidator = dependencyProvider.getUniqueValidator(recordStorage);
-		ValidationAnswer uniqueAnswer = uniqueValidator.validateUniqueForExistingRecord(recordType,
-				recordId, recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
+		ValidationAnswer uniqueAnswer = uniqueValidator.validateUniqueForNewRecord(recordType,
+				recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
 		if (uniqueAnswer.dataIsInvalid()) {
 			createAndThrowConflictExceptionForUnique(uniqueAnswer);
 		}

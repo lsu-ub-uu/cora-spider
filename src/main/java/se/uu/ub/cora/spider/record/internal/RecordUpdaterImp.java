@@ -465,7 +465,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private ExtendedFunctionalityData createExtendedFunctionalityDataUsingDataRecord(
 			DataRecord dataRecord) {
-		ExtendedFunctionalityData data = createExtendedFunctionalityData(dataRecord.getDataGroup());
+		ExtendedFunctionalityData data = createExtendedFunctionalityData(dataRecord.getDataRecordGroup());
 		data.dataRecord = dataRecord;
 		data.previouslyStoredTopDataGroup = previouslyStoredRecord;
 		return data;

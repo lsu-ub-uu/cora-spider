@@ -31,7 +31,7 @@ public class BinaryProtocolsExtendedFunctionality implements ExtendedFunctionali
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
 		DataRecord dataRecord = data.dataRecord;
-		DataGroup binaryGroup = dataRecord.getDataGroup();
+		DataGroup binaryGroup = dataRecord.getDataRecordGroup();
 		if (existsJp2ChildWithReadAction(binaryGroup)) {
 			dataRecord.addProtocol("iiif");
 		}

@@ -138,7 +138,7 @@ public final class RecordReaderImp implements RecordReader {
 			DataRecord dataRecord) {
 		ExtendedFunctionalityData data = createExtendedFunctionalityData();
 		data.dataRecord = dataRecord;
-		data.dataGroup = dataRecord.getDataGroup();
+		data.dataGroup = dataRecord.getDataRecordGroup();
 		return data;
 	}
 

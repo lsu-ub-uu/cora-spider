@@ -27,6 +27,7 @@ import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.DataRecordOldSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
@@ -40,8 +41,8 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 	public List<DataGroup> enhancedDataGroups = new ArrayList<>();
 	/**
 	 * addReadAction is default true, if set to false will no read action be added. For method
-	 * {@link #enhance(User, String, DataGroup, DataRedactor)} will an AuthorizationException be
-	 * thrown, if method {@link #enhanceIgnoringReadAccess(User, String, DataGroup, DataRedactor)}
+	 * {@link #enhance(User, String, DataRecordGroup, DataRedactor)} will an AuthorizationException be
+	 * thrown, if method {@link #enhanceIgnoringReadAccess(User, String, DataRecordGroup, DataRedactor)}
 	 * is called, will no exception be thrown and the enhanced record returned, as is specified in
 	 * interface for DataGroupToRecordEnhancer.
 	 */
@@ -60,22 +61,22 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 	public boolean throwOtherException = false;
 
 	@Override
-	public DataRecord enhance(User user, String recordType, DataGroup dataGroup,
+	public DataRecord enhance(User user, String recordType, DataRecordGroup dataRecordGroup,
 			DataRedactor dataRedactor) {
-		MCR.addCall("user", user, "recordType", recordType, "dataGroup", dataGroup, "dataRedactor",
+		MCR.addCall("user", user, "recordType", recordType, "dataGroup", dataRecordGroup, "dataRedactor",
 				dataRedactor);
 
 		if (!addReadAction) {
 			throw new AuthorizationException(recordType);
 		}
 
-		DataRecord dataGroupSpy = spyEnhanceDataGroupToRecord(user, recordType, dataGroup);
+		DataRecord dataGroupSpy = spyEnhanceDataGroupToRecord(user, recordType, dataRecordGroup);
 		MCR.addReturned(dataGroupSpy);
 		return dataGroupSpy;
 	}
 
 	private DataRecord spyEnhanceDataGroupToRecord(User user, String recordType,
-			DataGroup dataGroup) {
+			DataRecordGroup dataGroup) {
 		if (throwOtherException) {
 			throw new RuntimeException();
 		}
@@ -96,11 +97,11 @@ public class DataGroupToRecordEnhancerSpy implements DataGroupToRecordEnhancer {
 	}
 
 	@Override
-	public DataRecord enhanceIgnoringReadAccess(User user, String recordType, DataGroup dataGroup,
+	public DataRecord enhanceIgnoringReadAccess(User user, String recordType, DataRecordGroup dataRecordGroup,
 			DataRedactor dataRedactor) {
-		MCR.addCall("user", user, "recordType", recordType, "dataGroup", dataGroup, "dataRedactor",
+		MCR.addCall("user", user, "recordType", recordType, "dataGroup", dataRecordGroup, "dataRedactor",
 				dataRedactor);
-		DataRecord dataGroupSpy = spyEnhanceDataGroupToRecord(user, recordType, dataGroup);
+		DataRecord dataGroupSpy = spyEnhanceDataGroupToRecord(user, recordType, dataRecordGroup);
 		MCR.addReturned(dataGroupSpy);
 		return dataGroupSpy;
 	}

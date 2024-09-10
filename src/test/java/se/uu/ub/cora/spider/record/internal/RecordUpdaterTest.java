@@ -652,7 +652,7 @@ public class RecordUpdaterTest {
 
 	private void assertUpdatedRepeatIdsInGroupAsListed(DataRecord updatedRecord,
 			String... expectedRepeatIds) {
-		DataGroup updatedDataGroup = updatedRecord.getDataGroup();
+		DataGroup updatedDataGroup = updatedRecord.getDataRecordGroup();
 		DataGroup updatedRecordInfo = updatedDataGroup.getFirstGroupWithNameInData("recordInfo");
 
 		List<DataGroup> updatedGroups = updatedRecordInfo.getAllGroupsWithNameInData("updated");
@@ -666,7 +666,7 @@ public class RecordUpdaterTest {
 	}
 
 	private void assertCorrectUserInfo(DataRecord updatedOnce) {
-		DataGroup updatedOnceDataGroup = updatedOnce.getDataGroup();
+		DataGroup updatedOnceDataGroup = updatedOnce.getDataRecordGroup();
 		DataGroup updatedOnceRecordInfo = updatedOnceDataGroup
 				.getFirstGroupWithNameInData("recordInfo");
 		assertCorrectDataUsingGroupNameInDataAndLinkedRecordId(updatedOnceRecordInfo, "createdBy",
@@ -799,7 +799,7 @@ public class RecordUpdaterTest {
 
 		assertEquals(firstTsUpdated, correctTsUpdated);
 
-		DataGroup updatedDataGroup = updatedRecord.getDataGroup();
+		DataGroup updatedDataGroup = updatedRecord.getDataRecordGroup();
 		DataGroup recordInfo = updatedDataGroup.getFirstGroupWithNameInData("recordInfo");
 		DataGroup createdBy = recordInfo.getFirstGroupWithNameInData("createdBy");
 		assertEquals(createdBy.getFirstAtomicValueWithNameInData("linkedRecordId"), "4422");
@@ -818,7 +818,7 @@ public class RecordUpdaterTest {
 	}
 
 	private DataGroup getFirstUpdatedInfo(DataRecord updatedRecord) {
-		DataGroup updatedRecordInfo = updatedRecord.getDataGroup()
+		DataGroup updatedRecordInfo = updatedRecord.getDataRecordGroup()
 				.getFirstGroupWithNameInData("recordInfo");
 		DataGroup firstUpdated = updatedRecordInfo.getFirstGroupWithNameInData("updated");
 		return firstUpdated;
@@ -1180,7 +1180,7 @@ public class RecordUpdaterTest {
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 		expectedData.previouslyStoredTopDataGroup = (DataGroup) recordStorage.MCR
 				.getReturnValue("read", 0);
-		expectedData.dataGroup = enhancedRecord.getDataGroup();
+		expectedData.dataGroup = enhancedRecord.getDataRecordGroup();
 		expectedData.dataRecord = enhancedRecord;
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				UPDATE_BEFORE_RETURN, expectedData, 5);

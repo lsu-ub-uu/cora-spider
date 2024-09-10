@@ -225,7 +225,7 @@ public class RecordReaderTest {
 
 		DataRecordOldSpy enhancedRecord = (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR
 				.getReturnValue("enhance", 0);
-		expectedData.dataGroup = enhancedRecord.getDataGroup();
+		expectedData.dataGroup = enhancedRecord.getDataRecordGroup();
 		expectedData.dataRecord = enhancedRecord;
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				READ_BEFORE_RETURN, expectedData, 1);

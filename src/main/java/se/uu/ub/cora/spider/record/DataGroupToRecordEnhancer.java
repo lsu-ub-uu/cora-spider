@@ -24,47 +24,48 @@ import java.util.List;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.data.Action;
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 
 /**
- * DataGroupToRecordEnhancer converts a {@link DataGroup} into a {@link DataRecord}. This includes
- * adding actions to the record and read actions to the links in the DataGroup. Use the
- * {@link #enhance(User, String, DataGroup, DataRedactor)} method to convert a DataGroup when read
- * access is required and {@link #enhanceIgnoringReadAccess(User, String, DataGroup, DataRedactor)}
- * when the user might not have read access, create etc.
+ * DataRecordGroupToRecordEnhancer converts a {@link DataRecordGroup} into a {@link DataRecord}.
+ * This includes adding actions to the record and read actions to the links in the DataRecordGroup.
+ * Use the {@link #enhance(User, String, DataRecordGroup, DataRedactor)} method to convert a
+ * DataRecordGroup when read access is required and
+ * {@link #enhanceIgnoringReadAccess(User, String, DataRecordGroup, DataRedactor)} when the user
+ * might not have read access, create etc.
  */
 public interface DataGroupToRecordEnhancer {
 	/**
-	 * Enhance converts a DataGroup into a DataRecord. It is very similar to
-	 * {@link #enhanceIgnoringReadAccess(User, String, DataGroup, DataRedactor)} except that it will
-	 * not complete if the User does not have read access to the enhanced record and it will instead
-	 * throw an exception. This method is intended to be used when enhancing the DataGroup as one of
-	 * the last steps before returning the data to the user, during actions that require read access
-	 * such as read, list, search etc. where the user must have permission to read the affected
-	 * data.
+	 * Enhance converts a DataRecordGroup into a DataRecord. It is very similar to
+	 * {@link #enhanceIgnoringReadAccess(User, String, DataRecordGroup, DataRedactor)} except that
+	 * it will not complete if the User does not have read access to the enhanced record and it will
+	 * instead throw an exception. This method is intended to be used when enhancing the
+	 * DataRecordGroup as one of the last steps before returning the data to the user, during
+	 * actions that require read access such as read, list, search etc. where the user must have
+	 * permission to read the affected data.
 	 * <p>
 	 * The conversion has a few major parts.
 	 * <ol>
-	 * <li>Create a new DataRecord, and add the DataGroup to it.</li>
+	 * <li>Create a new DataRecord, and add the DataRecordGroup to it.</li>
 	 * <li>Find out what actions the User is allowed to do for the record and add those actions to
 	 * the DataRecord. This is a multistep process in itself.
 	 * <ol>
 	 * <li>Add standard actions for all recordTypes (possibly add read, update, delete, index,
 	 * incomingLinks actions)</li>
-	 * <li>If dataGroup beeing enhanced is a binary type, possibly add upload action</li>
-	 * <li>If dataGroup beeing enhanced is a search type, possibly add add search action</li>
-	 * <li>If dataGroup beeing enhanced is a recordType type, add recordType specific actions
+	 * <li>If DataRecordGroup beeing enhanced is a binary type, possibly add upload action</li>
+	 * <li>If DataRecordGroup beeing enhanced is a search type, possibly add add search action</li>
+	 * <li>If DataRecordGroup beeing enhanced is a recordType type, add recordType specific actions
 	 * (create, list, validate, search)</li>
 	 * </ol>
 	 * </li>
 	 * <li>Add the users read and write recordPartPermissions to the record</li>
-	 * <li>Redact information the user is not allowed to read from the DataGroup, based on settings
-	 * in metadata and the users currently active roles.</li>
-	 * <li>Add read links to all linked records in the DataGroup if the User has read access to the
-	 * linked record.</li>
+	 * <li>Redact information the user is not allowed to read from the DataRecordGroup, based on
+	 * settings in metadata and the users currently active roles.</li>
+	 * <li>Add read links to all linked records in the DataRecordGroup if the User has read access
+	 * to the linked record.</li>
 	 * </ol>
 	 * 
 	 * The implementations MUST throw an {@link AuthorizationException} if the user does NOT have
@@ -80,43 +81,43 @@ public interface DataGroupToRecordEnhancer {
 	 * @param recordType
 	 *            A String with the records recordType, it must be the implementing recordType (not
 	 *            the abstract parent type if the recordType has a parent)
-	 * @param dataGroup
-	 *            A DataGroup with data to turn into a DataRecord
+	 * @param dataRecordGroup
+	 *            A DataRecordGroup with data to turn into a DataRecord
 	 * @param dataRedactor
 	 *            A DataRedactor to use when enhancing
 	 * @return A newly created DataRecord constructed as discussed above
 	 */
-	DataRecord enhance(User user, String recordType, DataGroup dataGroup,
+	DataRecord enhance(User user, String recordType, DataRecordGroup dataRecordGroup,
 			DataRedactor dataRedactor);
 
 	/**
-	 * enhanceIgnoringReadAccess converts a DataGroup into a DataRecord. It is very similar to
-	 * {@link #enhance(User, String, DataGroup, DataRedactor)} except that it will complete even if
-	 * the User does not have read access to the enhanced record and not throw an exception. This
-	 * method is intended to be used when enhancing the DataGroup as one of the last steps before
-	 * returning the data to the user, during actions such as create where the user may only have
-	 * permission to create but no permissions to read the affected data.
+	 * enhanceIgnoringReadAccess converts a DataRecordGroup into a DataRecord. It is very similar to
+	 * {@link #enhance(User, String, DataRecordGroup, DataRedactor)} except that it will complete
+	 * even if the User does not have read access to the enhanced record and not throw an exception.
+	 * This method is intended to be used when enhancing the DataRecordGroup as one of the last
+	 * steps before returning the data to the user, during actions such as create where the user may
+	 * only have permission to create but no permissions to read the affected data.
 	 * <p>
 	 * The conversion has a few major parts.
 	 * <ol>
-	 * <li>Create a new DataRecord, and add the DataGroup to it.</li>
+	 * <li>Create a new DataRecord, and add the DataRecordGroup to it.</li>
 	 * <li>Find out what actions the User is allowed to do for the record and add those actions to
 	 * the DataRecord. This is a multistep process in itself.
 	 * <ol>
 	 * <li>Add standard actions for all recordTypes (possibly add read, update, delete, index,
 	 * incomingLinks actions)</li>
-	 * <li>If dataGroup beeing enhanced is a binary type, possibly add upload action</li>
-	 * <li>If dataGroup beeing enhanced is a search type, possibly add add search action</li>
-	 * <li>If dataGroup beeing enhanced is a recordType type, add recordType specific actions
+	 * <li>If DataRecordGroup beeing enhanced is a binary type, possibly add upload action</li>
+	 * <li>If DataRecordGroup beeing enhanced is a search type, possibly add add search action</li>
+	 * <li>If DataRecordGroup beeing enhanced is a recordType type, add recordType specific actions
 	 * (create, list, validate, search)</li>
 	 * </ol>
 	 * </li>
 	 * <li>Add the users read and write recordPartPermissions to the record</li>
-	 * <li>Redact information the user is not allowed to read from the DataGroup, based on settings
-	 * in metadata and the users currently active roles. If the user has no read access SHOULD all
-	 * read protected data be redacted.</li>
-	 * <li>Add read links to all linked records in the DataGroup if the User has read access to the
-	 * linked record.</li>
+	 * <li>Redact information the user is not allowed to read from the DataRecordGroup, based on
+	 * settings in metadata and the users currently active roles. If the user has no read access
+	 * SHOULD all read protected data be redacted.</li>
+	 * <li>Add read links to all linked records in the DataRecordGroup if the User has read access
+	 * to the linked record.</li>
 	 * </ol>
 	 * <p>
 	 * Note that this method does not guarante that the User has read action to the data, and is
@@ -128,13 +129,13 @@ public interface DataGroupToRecordEnhancer {
 	 * @param recordType
 	 *            A String with the records recordType, it must be the implementing recordType (not
 	 *            the abstract parent type if the recordType has a parent)
-	 * @param dataGroup
-	 *            A DataGroup with data to turn into a DataRecord
+	 * @param dataRecordGroup
+	 *            A DataRecordGroup with data to turn into a DataRecord
 	 * @param dataRedactor
 	 *            A DataRedactor to use when enhancing
 	 * @return A newly created DataRecord constructed as discussed above
 	 */
-	DataRecord enhanceIgnoringReadAccess(User user, String recordType, DataGroup dataGroup,
-			DataRedactor dataRedactor);
+	DataRecord enhanceIgnoringReadAccess(User user, String recordType,
+			DataRecordGroup dataRecordGroup, DataRedactor dataRedactor);
 
 }
