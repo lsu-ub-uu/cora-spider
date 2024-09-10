@@ -47,8 +47,6 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
-
-	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private static final String SEARCH = "search";
 
 	private SpiderDependencyProvider dependencyProvider;
@@ -232,20 +230,27 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void addSearchActionIfUserHasAccessToLinkedSearches(DataRecord dataRecord,
 			DataRecordGroup dataRecordGroup) {
-		List<DataGroup> recordTypeToSearchInGroups = dataRecordGroup
-				.getAllGroupsWithNameInData("recordTypeToSearchIn");
-		if (checkUserHasSearchAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups)) {
+		// List<DataGroup> recordTypeToSearchInGroups = dataRecordGroup
+		// .getAllGroupsWithNameInData("recordTypeToSearchIn");
+		// if (checkUserHasSearchAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups)) {
+		// dataRecord.addAction(Action.SEARCH);
+		// }
+		List<DataRecordLink> links = dataRecordGroup.getChildrenOfTypeAndName(DataRecordLink.class,
+				"recordTypeToSearchIn");
+
+		if (checkUserHasSearchAccessOnAllRecordTypesToSearchIn(links)) {
 			dataRecord.addAction(Action.SEARCH);
 		}
 	}
 
-	private boolean checkUserHasSearchAccessOnAllRecordTypesToSearchIn(
-			List<DataGroup> recordTypeToSearchInGroups) {
-		return recordTypeToSearchInGroups.stream().allMatch(this::isAuthorized);
+	private boolean checkUserHasSearchAccessOnAllRecordTypesToSearchIn(List<DataRecordLink> links) {
+		return links.stream().allMatch(this::isAuthorized);
 	}
 
-	private boolean isAuthorized(DataGroup group) {
-		String linkedRecordTypeId = group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	// private boolean isAuthorized(DataGroup group) {
+	private boolean isAuthorized(DataRecordLink link) {
+		// String linkedRecordTypeId = link.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		String linkedRecordTypeId = link.getLinkedRecordId();
 		return spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user, SEARCH,
 				linkedRecordTypeId);
 	}

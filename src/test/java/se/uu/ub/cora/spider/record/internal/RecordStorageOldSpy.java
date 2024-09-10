@@ -24,12 +24,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
@@ -57,8 +57,8 @@ public class RecordStorageOldSpy implements RecordStorage {
 
 	public RecordStorageOldSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("readList",
-				(Supplier<StorageReadResult>) () -> createSpiderReadResult());
+		MRV.setDefaultReturnValuesSupplier("readList", () -> createSpiderReadResult());
+		MRV.setDefaultReturnValuesSupplier("read", DataRecordGroupSpy::new);
 	}
 
 	@Override
@@ -166,8 +166,7 @@ public class RecordStorageOldSpy implements RecordStorage {
 
 	@Override
 	public DataRecordGroup read(String type, String id) {
-		// TODO Auto-generated method stub
-		return null;
+		return (DataRecordGroup) MCR.addCallAndReturnFromMRV("type", type, "id", id);
 	}
 
 	@Override

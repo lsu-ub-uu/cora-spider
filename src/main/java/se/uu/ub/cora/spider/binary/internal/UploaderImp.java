@@ -86,7 +86,6 @@ public final class UploaderImp implements Uploader {
 		recordStorage = dependencyProvider.getRecordStorage();
 		termCollector = dependencyProvider.getDataGroupTermCollector();
 		resourceArchive = dependencyProvider.getResourceArchive();
-
 	}
 
 	public static UploaderImp usingDependencyProviderAndResourceConvertAndMimeTypeToBinaryType(
@@ -119,7 +118,6 @@ public final class UploaderImp implements Uploader {
 
 	private DataRecord uploadAnalyzeStoreAndCallConvert(InputStream resourceStream,
 			DataRecordGroup dataRecordGroup) {
-
 		storeResourceStreamInArchive(resourceStream);
 
 		verifyArchiveDataIntegrity(dataRecordGroup);
@@ -172,7 +170,6 @@ public final class UploaderImp implements Uploader {
 		return ArchiveDataIntergrityException.withMessage(MessageFormat.format(
 				"The {0} verification of uploaded data failed: the actual value was: {1} but the expected value was: {2}.",
 				expectType, archiveData, expectedData));
-
 	}
 
 	private void possiblyVerifyExpectedChecksum(DataRecordGroup dataRecordGroup,
@@ -231,7 +228,6 @@ public final class UploaderImp implements Uploader {
 
 	private DataRecord updateRecordInStorageUsingCalculatedAndInfoFromArchive(
 			DataRecordGroup dataRecordGroup, String detectedMimeType) {
-
 		ResourceMetadata resourceMetadata = resourceArchive.readMasterResourceMetadata(dataDivider,
 				type, id);
 		createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(dataRecordGroup, resourceMetadata,
@@ -304,11 +300,10 @@ public final class UploaderImp implements Uploader {
 	}
 
 	private CollectTerms getCollectedTermsForRecord(DataRecordGroup dataRecordGroup) {
-		DataGroup binaryDG = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
 		RecordTypeHandler recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
 		String definitionId = recordTypeHandler.getDefinitionId();
-		return termCollector.collectTerms(definitionId, binaryDG);
+		return termCollector.collectTerms(definitionId, dataRecordGroup);
 	}
 
 	private void createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(

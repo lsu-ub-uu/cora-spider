@@ -53,7 +53,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
-import se.uu.ub.cora.spider.record.DataRedactorSpy;
+import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
@@ -79,7 +79,7 @@ public class RecordListReaderTest {
 	private DataFactorySpy dataFactorySpy;
 
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
-	private DataRedactorSpy dataRedactor;
+	private DataRedactorOldSpy dataRedactor;
 	private DataListSpy dataList;
 	private SpiderDependencyProviderSpy dependencyProviderSpy;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
@@ -94,7 +94,7 @@ public class RecordListReaderTest {
 		recordStorage = new RecordStorageOldSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		dataValidator = new DataValidatorSpy();
-		dataRedactor = new DataRedactorSpy();
+		dataRedactor = new DataRedactorOldSpy();
 		recordEnhancer = new DataGroupToRecordEnhancerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		recordTypeHandlerSpy = new RecordTypeHandlerSpy();

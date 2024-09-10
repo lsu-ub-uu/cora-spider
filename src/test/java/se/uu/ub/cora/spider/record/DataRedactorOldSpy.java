@@ -28,7 +28,7 @@ import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
-public class DataRedactorSpy implements DataRedactor {
+public class DataRedactorOldSpy implements DataRedactor {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	/**
 	 * returnEnteredDataGroupAsAnswer is default false, if set to true is the dataGroup entered in

@@ -262,10 +262,7 @@ public class DownloaderTest {
 		DataGroupTermCollectorSpy termCollector = (DataGroupTermCollectorSpy) dependencyProvider.MCR
 				.getReturnValue("getDataGroupTermCollector", 0);
 
-		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0, binaryRecordGroup);
-		var dataGroup = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup", 0);
-
-		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, dataGroup);
+		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, binaryRecordGroup);
 		CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
 				.getReturnValue("collectTerms", 0);
 

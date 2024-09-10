@@ -79,7 +79,7 @@ import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
-import se.uu.ub.cora.spider.record.DataRedactorSpy;
+import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
@@ -125,7 +125,7 @@ public class RecordUpdaterTest {
 
 	private DataCopierFactory dataCopierFactory;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
-	private DataRedactorSpy dataRedactor;
+	private DataRedactorOldSpy dataRedactor;
 	private UniqueValidatorSpy uniqueValidator;
 
 	@BeforeMethod
@@ -139,7 +139,7 @@ public class RecordUpdaterTest {
 		linkCollector = new DataRecordLinkCollectorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
-		dataRedactor = new DataRedactorSpy();
+		dataRedactor = new DataRedactorOldSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		recordArchive = new RecordArchiveSpy();
 		uniqueValidator = new UniqueValidatorSpy();

@@ -37,7 +37,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
-import se.uu.ub.cora.spider.record.DataRedactorSpy;
+import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
 import se.uu.ub.cora.spider.record.OldStreamStorageSpy;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.OldRecordSearchSpy;
@@ -71,7 +71,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
 				DataGroupTermCollectorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getPermissionRuleCalculator", RuleCalculatorSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getDataRedactor", DataRedactorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getDataRedactor", DataRedactorOldSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
 				ExtendedFunctionalityProviderSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getAuthenticator", AuthenticatorSpy::new);

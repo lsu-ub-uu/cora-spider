@@ -44,7 +44,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
-import se.uu.ub.cora.spider.record.DataRedactorSpy;
+import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
 import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
@@ -68,7 +68,7 @@ public class RecordSearcherTest {
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private DataValidatorSpy dataValidator;
 	private RecordSearchSpy recordSearch;
-	private DataRedactorSpy dataRedactor;
+	private DataRedactorOldSpy dataRedactor;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private DataRecordGroupSpy dataRecordGroupSpy;
 	private DataGroupSpy dataGroupSpy1;
@@ -83,7 +83,7 @@ public class RecordSearcherTest {
 		authorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = new RecordStorageSpy();
-		dataRedactor = new DataRedactorSpy();
+		dataRedactor = new DataRedactorOldSpy();
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		SearchResult searchResult = setRecordStorage();
 		recordSearch.MRV.setDefaultReturnValuesSupplier(

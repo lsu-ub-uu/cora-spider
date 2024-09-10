@@ -38,7 +38,7 @@ import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.record.DataRedactorSpy;
+import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
 import se.uu.ub.cora.spider.spy.UniqueValidatorSpy;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -68,7 +68,7 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	public RecordIndexer recordIndexer;
 	public boolean readInitInfoWasCalled;
 	public boolean tryToInitializeWasCalled;
-	public DataRedactorSpy dataRedactor = new DataRedactorSpy();
+	public DataRedactorOldSpy dataRedactor = new DataRedactorOldSpy();
 	public RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
 	public Map<String, RecordTypeHandlerSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
 

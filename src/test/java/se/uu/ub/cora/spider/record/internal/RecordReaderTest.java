@@ -44,7 +44,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
-import se.uu.ub.cora.spider.record.DataRedactorSpy;
+import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
@@ -61,7 +61,7 @@ public class RecordReaderTest {
 	private RecordReader recordReader;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private LoggerFactorySpy loggerFactorySpy;
-	private DataRedactorSpy dataRedactor;
+	private DataRedactorOldSpy dataRedactor;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private RecordTypeHandlerSpy recordTypeHandler;
 
@@ -72,7 +72,7 @@ public class RecordReaderTest {
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageSpy();
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataRecordGroupSpy::new);
-		dataRedactor = new DataRedactorSpy();
+		dataRedactor = new DataRedactorOldSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		recordTypeHandler = new RecordTypeHandlerSpy();
 

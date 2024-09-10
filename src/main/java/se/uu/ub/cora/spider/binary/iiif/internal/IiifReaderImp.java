@@ -28,8 +28,6 @@ import se.uu.ub.cora.binary.iiif.IiifAdapterResponse;
 import se.uu.ub.cora.binary.iiif.IiifParameters;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.PermissionTerm;
@@ -107,8 +105,7 @@ public class IiifReaderImp implements IiifReader {
 
 	private List<PermissionTerm> getPermissionTerms(DataRecordGroup binaryRecordGroup) {
 		String definitionId = getDefinitionId(binaryRecordGroup);
-		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(binaryRecordGroup);
-		CollectTerms collectTerms = termCollector.collectTerms(definitionId, dataGroup);
+		CollectTerms collectTerms = termCollector.collectTerms(definitionId, binaryRecordGroup);
 		return collectTerms.permissionTerms;
 	}
 

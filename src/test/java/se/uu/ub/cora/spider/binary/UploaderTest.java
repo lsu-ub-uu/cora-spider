@@ -230,11 +230,7 @@ public class UploaderTest {
 		var definitionId = recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0);
 		var binaryRecord = (DataRecordGroupSpy) recordStorage.MCR.getReturnValue("read", 0);
 
-		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0, binaryRecord);
-		var binaryDG = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup", 0);
-		;
-
-		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, binaryDG);
+		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, binaryRecord);
 
 		var user = authenticator.MCR.getReturnValue("getUserForToken", 0);
 		CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
@@ -327,7 +323,7 @@ public class UploaderTest {
 				RESOURCE_TYPE_MASTER);
 
 		var binaryDG = (DataGroupSpy) dataFactorySpy.MCR
-				.getReturnValue("factorGroupFromDataRecordGroup", 1);
+				.getReturnValue("factorGroupFromDataRecordGroup", 0);
 
 		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", binaryDG);
 
@@ -352,7 +348,7 @@ public class UploaderTest {
 				RESOURCE_TYPE_MASTER);
 
 		var binaryDG = (DataGroupSpy) dataFactorySpy.MCR
-				.getReturnValue("factorGroupFromDataRecordGroup", 1);
+				.getReturnValue("factorGroupFromDataRecordGroup", 0);
 
 		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", binaryDG);
 

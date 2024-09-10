@@ -70,7 +70,7 @@ import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
-import se.uu.ub.cora.spider.record.DataRedactorSpy;
+import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
@@ -115,7 +115,7 @@ public class RecordCreatorTest {
 
 	private DataCopierFactory dataCopierFactory;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
-	private DataRedactorSpy dataRedactor;
+	private DataRedactorOldSpy dataRedactor;
 	private RecordArchiveSpy recordArchive;
 	private DataGroup recordWithoutIdOld;
 	private DataGroupSpy recordWithId;
@@ -137,7 +137,7 @@ public class RecordCreatorTest {
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		recordIndexer = new RecordIndexerSpy();
 		recordArchive = new RecordArchiveSpy();
-		dataRedactor = new DataRedactorSpy();
+		dataRedactor = new DataRedactorOldSpy();
 		recordTypeHandlerSpy = new RecordTypeHandlerSpy();
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		termCollector = new DataGroupTermCollectorSpy();
