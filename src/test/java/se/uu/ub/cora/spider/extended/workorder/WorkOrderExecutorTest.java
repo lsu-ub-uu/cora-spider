@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2019, 2022 Uppsala University Library
+ * Copyright 2017, 2019, 2022, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,10 +18,6 @@
  */
 package se.uu.ub.cora.spider.extended.workorder;
 
-import static org.testng.Assert.assertEquals;
-
-import java.util.List;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -29,6 +25,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
@@ -36,14 +33,12 @@ import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
-import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
-import se.uu.ub.cora.spider.spy.RecordStorageCreateUpdateSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator2;
+import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class WorkOrderExecutorTest {
-
 	SpiderDependencyProviderOldSpy dependencyProvider;
 	WorkOrderExecutor extendedFunctionality;
 	DataGroupTermCollectorSpy termCollector;
@@ -52,17 +47,12 @@ public class WorkOrderExecutorTest {
 	OldAuthenticatorSpy authenticator;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
+	private RecordStorageSpy recordStorage;
 
 	@BeforeMethod
 	public void setUp() {
 		setUpFactoriesAndProviders();
-
-		dependencyProvider = new SpiderDependencyProviderOldSpy();
-		dependencyProvider.recordIndexer = new RecordIndexerSpy();
-		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
-		dependencyProvider.recordStorage = new OldRecordStorageSpy();
-		dependencyProvider.authenticator = new OldAuthenticatorSpy();
-		dependencyProvider.spiderAuthorizator = new OldSpiderAuthorizatorSpy();
+		recordStorage = new RecordStorageSpy();
 
 		setUpDependencyProvider();
 	}
@@ -75,39 +65,37 @@ public class WorkOrderExecutorTest {
 	}
 
 	private void setUpDependencyProvider() {
+		dependencyProvider = new SpiderDependencyProviderOldSpy();
+		dependencyProvider.recordIndexer = new RecordIndexerSpy();
+		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
+		dependencyProvider.recordStorage = recordStorage;
+		dependencyProvider.authenticator = new OldAuthenticatorSpy();
+		dependencyProvider.spiderAuthorizator = new OldSpiderAuthorizatorSpy();
 		extendedFunctionality = WorkOrderExecutor.usingDependencyProvider(dependencyProvider);
 		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
 		recordIndexer = (RecordIndexerSpy) dependencyProvider.getRecordIndexer();
 		authorizator = (OldSpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();
 		authenticator = (OldAuthenticatorSpy) dependencyProvider.getAuthenticator();
+
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataRecordGroupSpy::new);
 	}
 
 	@Test
 	public void testIndexData() {
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
 				"someGeneratedId", "book", "book1");
+
 		callExtendedFunctionalityWithGroup(workOrder);
 
-		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "bookGroup");
-
-		DataGroup dataGroup = (DataGroup) termCollector.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("collectTerms", 0, "dataGroup");
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		assertEquals(recordInfo.getFirstAtomicValueWithNameInData("id"), "book1");
-
+		DataRecordGroupSpy dataToIndex = (DataRecordGroupSpy) recordStorage.MCR
+				.assertCalledParametersReturn("read", "book", "book1");
+		dependencyProvider.MCR.assertCalledParameters("getRecordTypeHandlerUsingDataRecordGroup",
+				dataToIndex);
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.assertCalledParametersReturn(
+				"collectTerms", "fakeDefMetadataIdFromRecordTypeHandlerSpy", dataToIndex);
 		recordIndexer.MCR.assertMethodWasCalled("indexData");
-
-		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
-				0);
-		recordIndexer.MCR.assertParameter("indexData", 0, "indexTerms", collectTerms.indexTerms);
-
-		DataGroup dataRecordGroup = (DataGroup) recordIndexer.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("indexData", 0, "record");
-
-		DataGroup recordInfo2 = dataRecordGroup.getFirstGroupWithNameInData("recordInfo");
-		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
-
-		assertRecordIndexerIdsSetToCombinedId("book_book1", "indexData");
+		recordIndexer.MCR.assertParameters("indexData", 0, "book", "book1", collectTerms.indexTerms,
+				dataToIndex);
 	}
 
 	private void callExtendedFunctionalityWithGroup(DataGroup workOrder) {
@@ -115,25 +103,6 @@ public class WorkOrderExecutorTest {
 		data.authToken = "someToken";
 		data.dataGroup = workOrder;
 		extendedFunctionality.useExtendedFunctionality(data);
-	}
-
-	@Test
-	public void testIndexDataForChildOfAbstract() {
-		dependencyProvider.recordStorage = new RecordStorageCreateUpdateSpy();
-		setUpDependencyProvider();
-		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
-				"someGeneratedId", "image", "image1");
-
-		callExtendedFunctionalityWithGroup(workOrder);
-
-		assertRecordIndexerIdsSetToCombinedId("image_image1", "indexData");
-	}
-
-	private void assertRecordIndexerIdsSetToCombinedId(String combinedId, String methodCalled) {
-		List<String> ids = (List<String>) recordIndexer.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(methodCalled, 0, "ids");
-		assertEquals(ids.size(), 1);
-		assertEquals(ids.get(0), combinedId);
 	}
 
 	@Test
@@ -175,29 +144,16 @@ public class WorkOrderExecutorTest {
 		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
 				"someGeneratedId", "book", "book1");
 		workOrder.addChild(new DataAtomicOldSpy("performCommit", "false"));
+
 		callExtendedFunctionalityWithGroup(workOrder);
 
-		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId", "bookGroup");
-
-		DataGroup dataGroup = (DataGroup) termCollector.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("collectTerms", 0, "dataGroup");
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		assertEquals(recordInfo.getFirstAtomicValueWithNameInData("id"), "book1");
-
-		recordIndexer.MCR.assertMethodWasCalled("indexDataWithoutExplicitCommit");
-		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
-				0);
-		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", 0, "indexTerms",
-				collectTerms.indexTerms);
-
-		DataGroup dataRecordGroup = (DataGroup) recordIndexer.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(
-						"indexDataWithoutExplicitCommit", 0, "record");
-
-		DataGroup recordInfo2 = dataRecordGroup.getFirstGroupWithNameInData("recordInfo");
-		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
-
-		assertRecordIndexerIdsSetToCombinedId("book_book1", "indexDataWithoutExplicitCommit");
+		DataRecordGroupSpy dataToIndex = (DataRecordGroupSpy) recordStorage.MCR
+				.assertCalledParametersReturn("read", "book", "book1");
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.assertCalledParametersReturn(
+				"collectTerms", "fakeDefMetadataIdFromRecordTypeHandlerSpy", dataToIndex);
+		recordIndexer.MCR.assertMethodNotCalled("indexData");
+		recordIndexer.MCR.assertParameters("indexDataWithoutExplicitCommit", 0, "book", "book1",
+				collectTerms.indexTerms, dataToIndex);
 	}
 
 	@Test
@@ -207,16 +163,13 @@ public class WorkOrderExecutorTest {
 		workOrder.addChild(new DataAtomicOldSpy("performCommit", "true"));
 		callExtendedFunctionalityWithGroup(workOrder);
 
-		recordIndexer.MCR.assertMethodWasCalled("indexData");
-		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
-				0);
-		recordIndexer.MCR.assertParameter("indexData", 0, "indexTerms", collectTerms.indexTerms);
+		DataRecordGroupSpy dataToIndex = (DataRecordGroupSpy) recordStorage.MCR
+				.assertCalledParametersReturn("read", "book", "book1");
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.assertCalledParametersReturn(
+				"collectTerms", "fakeDefMetadataIdFromRecordTypeHandlerSpy", dataToIndex);
+		recordIndexer.MCR.assertMethodNotCalled("indexDataWithoutExplicitCommit");
+		recordIndexer.MCR.assertParameters("indexData", 0, "book", "book1", collectTerms.indexTerms,
+				dataToIndex);
 
-		DataGroup dataRecordGroup = (DataGroup) recordIndexer.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("indexData", 0, "record");
-		DataGroup recordInfo2 = dataRecordGroup.getFirstGroupWithNameInData("recordInfo");
-		assertEquals(recordInfo2.getFirstAtomicValueWithNameInData("id"), "book1");
-
-		assertRecordIndexerIdsSetToCombinedId("book_book1", "indexData");
 	}
 }

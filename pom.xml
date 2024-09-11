@@ -39,7 +39,7 @@
 		<storage.version>9.2.0</storage.version>
 		<storagespies.version>1.9.0</storagespies.version>
 		<initialize.version>1.6.0</initialize.version>
-		<search.version>5.7.0</search.version>
+		<search.version>6.0-SNAPSHOT</search.version>
 		<bookkeeper.version>10.0-SNAPSHOT</bookkeeper.version>
 		<beefeater.version>3.13.0</beefeater.version>
 		<contentanalyzer.version>2.0.0</contentanalyzer.version>

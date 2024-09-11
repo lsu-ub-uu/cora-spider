@@ -84,6 +84,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MRV.setDefaultReturnValuesSupplier("getCombinedIdForIndex",
 				() -> List.of("someCombinedIdFromSpy"));
 		MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions", () -> Collections.emptyList());
+		MRV.setDefaultReturnValuesSupplier("isPublicForRead", () -> isPublicForRead);
 	}
 
 	@Override
@@ -108,9 +109,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean isPublicForRead() {
-		MCR.addCall();
-		MCR.addReturned(isPublicForRead);
-		return isPublicForRead;
+		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override

@@ -230,14 +230,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void addSearchActionIfUserHasAccessToLinkedSearches(DataRecord dataRecord,
 			DataRecordGroup dataRecordGroup) {
-		// List<DataGroup> recordTypeToSearchInGroups = dataRecordGroup
-		// .getAllGroupsWithNameInData("recordTypeToSearchIn");
-		// if (checkUserHasSearchAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups)) {
-		// dataRecord.addAction(Action.SEARCH);
-		// }
 		List<DataRecordLink> links = dataRecordGroup.getChildrenOfTypeAndName(DataRecordLink.class,
 				"recordTypeToSearchIn");
-
 		if (checkUserHasSearchAccessOnAllRecordTypesToSearchIn(links)) {
 			dataRecord.addAction(Action.SEARCH);
 		}
@@ -247,9 +241,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return links.stream().allMatch(this::isAuthorized);
 	}
 
-	// private boolean isAuthorized(DataGroup group) {
 	private boolean isAuthorized(DataRecordLink link) {
-		// String linkedRecordTypeId = link.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		String linkedRecordTypeId = link.getLinkedRecordId();
 		return spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user, SEARCH,
 				linkedRecordTypeId);
@@ -321,7 +313,6 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private DataRecordGroup readRecordFromStorageByTypeAndId(String linkedRecordType,
 			String linkedRecordId) {
-		// return recordStorage.read(List.of(linkedRecordType), linkedRecordId);
 		return recordStorage.read(linkedRecordType, linkedRecordId);
 	}
 

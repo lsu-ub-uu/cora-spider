@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2022 Uppsala University Library
+ * Copyright 2017, 2022, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,8 +21,10 @@ package se.uu.ub.cora.spider.extended.workorder;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.IndexTerm;
@@ -122,43 +124,34 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 	}
 
 	private void indexData(boolean performCommit) {
-		DataGroup dataToIndex = readRecordToIndexFromStorage();
+		DataRecordGroup dataToIndex = readRecordToIndexFromStorage();
 		CollectTerms collectedTerms = getCollectedTerms(dataToIndex);
 		sendToIndex(collectedTerms, dataToIndex, performCommit);
 	}
 
-	private DataGroup readRecordToIndexFromStorage() {
-		return recordStorage.read(List.of(recordTypeToIndex), recordIdToIndex);
+	private DataRecordGroup readRecordToIndexFromStorage() {
+		return recordStorage.read(recordTypeToIndex, recordIdToIndex);
 	}
 
-	private CollectTerms getCollectedTerms(DataGroup dataToIndex) {
-		String metadataId = getMetadataIdFromRecordType(recordTypeToIndex);
+	private CollectTerms getCollectedTerms(DataRecordGroup dataToIndex) {
+		RecordTypeHandler recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(dataToIndex);
+		String metadataId = recordTypeHandler.getDefinitionId();
 		return collectTermCollector.collectTerms(metadataId, dataToIndex);
 	}
 
-	private String getMetadataIdFromRecordType(String recordType) {
-		DataGroup readRecordType = recordStorage.read(List.of("recordType"), recordType);
-		DataRecordLink metadataId = (DataRecordLink) readRecordType
-				.getFirstChildWithNameInData("metadataId");
-		return metadataId.getLinkedRecordId();
-	}
-
-	private void sendToIndex(CollectTerms collectedTerms, DataGroup dataToIndex,
+	private void sendToIndex(CollectTerms collectedTerms, DataRecordGroup dataToIndex,
 			boolean performCommit) {
-		List<String> id = getCombinedId();
 		List<IndexTerm> indexTerms = collectedTerms.indexTerms;
 		if (performCommit) {
-			recordIndexer.indexData(id, indexTerms, dataToIndex);
+			recordIndexer.indexData(recordTypeToIndex, recordIdToIndex, indexTerms, dataToIndex);
 		} else {
-			recordIndexer.indexDataWithoutExplicitCommit(id, indexTerms, dataToIndex);
+			recordIndexer.indexDataWithoutExplicitCommit(recordTypeToIndex, recordIdToIndex,
+					indexTerms, dataToIndex);
 		}
 	}
 
-	private List<String> getCombinedId() {
-		return List.of(recordTypeToIndex + "_" + recordIdToIndex);
-	}
-
-	public SpiderDependencyProvider getDependencyProvider() {
+	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {
 		return dependencyProvider;
 	}
 }

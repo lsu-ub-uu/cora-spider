@@ -85,7 +85,7 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 				.factor(CREATE_AFTER_METADATA_VALIDATION, "workOrder");
 
 		WorkOrderExecutor functionality = (WorkOrderExecutor) functionalities.get(0);
-		assertSame(functionality.getDependencyProvider(), dependencyProviderSpy);
+		assertSame(functionality.onlyForTestGetDependencyProvider(), dependencyProviderSpy);
 	}
 
 	@Test

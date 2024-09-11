@@ -154,7 +154,8 @@ public class RecordDeleterTest {
 		String definitionId = (String) recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0);
 		DataRecordGroup dataRecordGroup = getReadDataRecordGroup();
 		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0, dataRecordGroup);
-		DataGroup readDataGroup = getDataGroupCreatedFromDataProvider(0);
+		var readDataGroup = recordStorage.MCR.assertCalledParametersReturn("read", SOME_TYPE,
+				SOME_ID);
 
 		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, readDataGroup);
 	}
@@ -189,9 +190,9 @@ public class RecordDeleterTest {
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				DELETE_AFTER_AUTHORIZATION, getExpectedDataForDeleteAfterAuthorization(), 0);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-				DELETE_BEFORE, getExpectedDataUsingDataProviderCallNumber(1), 1);
+				DELETE_BEFORE, getExpectedDataUsingDataProviderCallNumber(0), 1);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-				DELETE_AFTER, getExpectedDataUsingDataProviderCallNumber(2), 2);
+				DELETE_AFTER, getExpectedDataUsingDataProviderCallNumber(1), 2);
 	}
 
 	private ExtendedFunctionalityData getExpectedDataForDeleteAfterAuthorization() {
