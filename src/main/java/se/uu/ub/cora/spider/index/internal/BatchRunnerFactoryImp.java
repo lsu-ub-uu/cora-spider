@@ -33,7 +33,7 @@ public class BatchRunnerFactoryImp implements BatchRunnerFactory {
 	@Override
 	public BatchRunner factor(IndexBatchJob indexBatchJob) {
 		IndexBatchJobStorer indexBatchJobStorer = new IndexBatchJobStorer(dependencyProvider,
-				new DataGroupHandlerForIndexBatchJobImp());
+				new DataRecordGroupHandlerForIndexBatchJobImp());
 		return new IndexBatchJobRunner(dependencyProvider, indexBatchJobStorer, indexBatchJob);
 	}
 

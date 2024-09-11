@@ -35,7 +35,8 @@ public class IndexBatchJobStorerSpy implements BatchJobStorer {
 		// special to record the number of processed and errors, by each call
 		MCR.addCall("indexBatchJob", indexBatchJob, "indexBatchJob.numberOfProcessedRecords",
 				indexBatchJob.numberOfProcessedRecords, "indexBatchJob.errors",
-				new ArrayList(indexBatchJob.errors), "indexBatchJob.status", indexBatchJob.status);
+				new ArrayList<>(indexBatchJob.errors), "indexBatchJob.status",
+				indexBatchJob.status);
 		this.indexBatchJob = indexBatchJob;
 		numberOfIndexed = indexBatchJob.numberOfProcessedRecords;
 		errors.addAll(indexBatchJob.errors);

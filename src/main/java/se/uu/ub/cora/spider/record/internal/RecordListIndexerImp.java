@@ -39,7 +39,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
-import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJob;
+import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJob;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
@@ -53,7 +53,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 	private static final String FILTER = "filter";
 	private SpiderDependencyProvider dependencyProvider;
 	private IndexBatchHandler indexBatchHandler;
-	private DataGroupHandlerForIndexBatchJob batchJobConverter;
+	private DataRecordGroupHandlerForIndexBatchJob batchJobConverter;
 	private String authToken;
 	private String recordType;
 	private DataGroup indexSettings;
@@ -61,7 +61,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 	private RecordListIndexerImp(SpiderDependencyProvider dependencyProvider,
 			IndexBatchHandler indexBatchHandler,
-			DataGroupHandlerForIndexBatchJob batchJobConverter) {
+			DataRecordGroupHandlerForIndexBatchJob batchJobConverter) {
 		this.dependencyProvider = dependencyProvider;
 		this.indexBatchHandler = indexBatchHandler;
 		this.batchJobConverter = batchJobConverter;
@@ -69,7 +69,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 	public static RecordListIndexerImp usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider, IndexBatchHandler indexBatchHandler,
-			DataGroupHandlerForIndexBatchJob batchJobConverter) {
+			DataRecordGroupHandlerForIndexBatchJob batchJobConverter) {
 		return new RecordListIndexerImp(dependencyProvider, indexBatchHandler, batchJobConverter);
 	}
 
@@ -190,7 +190,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 	private DataRecord storeIndexBatchJobInStorage(String authToken, IndexBatchJob indexBatchJob,
 			DataGroup filterAsData) {
-		DataGroup createDataGroup = batchJobConverter.createDataGroup(indexBatchJob, filterAsData);
+		DataGroup createDataGroup = batchJobConverter.createDataRecordGroup(indexBatchJob, filterAsData);
 		RecordCreator recordCreator = SpiderInstanceProvider.getRecordCreator();
 		return recordCreator.createAndStoreRecord(authToken, "indexBatchJob", createDataGroup);
 	}
@@ -208,7 +208,7 @@ public class RecordListIndexerImp implements RecordListIndexer {
 		return indexBatchHandler;
 	}
 
-	public DataGroupHandlerForIndexBatchJob onlyForTestGetBatchJobConverter() {
+	public DataRecordGroupHandlerForIndexBatchJob onlyForTestGetBatchJobConverter() {
 		return batchJobConverter;
 	}
 }

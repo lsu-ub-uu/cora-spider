@@ -46,7 +46,7 @@ import se.uu.ub.cora.spider.dependency.spy.RecordCreatorSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
-import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobSpy;
+import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJobSpy;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.spy.DataValidatorOldSpy;
@@ -70,7 +70,7 @@ public class RecordListIndexerTest {
 	private DataGroupSpy indexSettingsWithFilter;
 	private DataValidatorOldSpy dataValidatorSpy;
 	private IndexBatchHandlerSpy indexBatchHandler;
-	private DataGroupHandlerForIndexBatchJobSpy batchJobConverterSpy;
+	private DataRecordGroupHandlerForIndexBatchJobSpy batchJobConverterSpy;
 	private SpiderInstanceFactorySpy spiderInstanceFactory;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private RecordTypeHandlerSpy recordTypeHandler;
@@ -98,7 +98,7 @@ public class RecordListIndexerTest {
 		indexSettingsWithFilter.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
 				(Supplier<Boolean>) () -> true);
 		indexBatchHandler = new IndexBatchHandlerSpy();
-		batchJobConverterSpy = new DataGroupHandlerForIndexBatchJobSpy();
+		batchJobConverterSpy = new DataRecordGroupHandlerForIndexBatchJobSpy();
 		setUpRecordCreatorToReturnRecordWithId("someRecordId");
 		recordListIndexer = RecordListIndexerImp.usingDependencyProvider(dependencyProvider,
 				indexBatchHandler, batchJobConverterSpy);

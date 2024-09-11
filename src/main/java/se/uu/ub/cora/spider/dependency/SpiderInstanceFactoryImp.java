@@ -32,8 +32,8 @@ import se.uu.ub.cora.spider.binary.internal.UploaderImp;
 import se.uu.ub.cora.spider.index.BatchRunnerFactory;
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
 import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
-import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJob;
-import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobImp;
+import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJob;
+import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJobImp;
 import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
@@ -158,7 +158,7 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 		BatchRunnerFactory batchRunnerFactory = new BatchRunnerFactoryImp(dependencyProvider);
 		IndexBatchHandler indexBatchHandler = IndexBatchHandlerImp
 				.usingBatchRunnerFactory(batchRunnerFactory);
-		DataGroupHandlerForIndexBatchJob dataGroupHandlerForIndexBatchJob = new DataGroupHandlerForIndexBatchJobImp();
+		DataRecordGroupHandlerForIndexBatchJob dataGroupHandlerForIndexBatchJob = new DataRecordGroupHandlerForIndexBatchJobImp();
 		return RecordListIndexerImp.usingDependencyProvider(dependencyProvider, indexBatchHandler,
 				dataGroupHandlerForIndexBatchJob);
 	}

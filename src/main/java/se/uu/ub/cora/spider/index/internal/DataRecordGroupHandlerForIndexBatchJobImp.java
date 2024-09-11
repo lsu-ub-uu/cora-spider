@@ -1,5 +1,6 @@
 /*
  * Copyright 2021, 2023 Uppsala University Library
+ * Copyright 2024 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -23,10 +24,13 @@ import java.time.format.DateTimeFormatter;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataParent;
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 
-public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForIndexBatchJob {
+public class DataRecordGroupHandlerForIndexBatchJobImp
+		implements DataRecordGroupHandlerForIndexBatchJob {
 	private static final String NUM_OF_PROCESSED_RECORDS = "numberOfProcessedRecords";
 	private static final String ERROR = "error";
 	private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'";
@@ -34,7 +38,8 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 			.ofPattern(DATE_TIME_PATTERN);
 
 	@Override
-	public void updateDataGroup(IndexBatchJob indexBatchJob, DataGroup existingIndexBatchJob) {
+	public void updateDataRecordGroup(IndexBatchJob indexBatchJob,
+			DataRecordGroup existingIndexBatchJob) {
 		updateNumOfProcessedRecordsInDataGroup(indexBatchJob, existingIndexBatchJob);
 		addIndexErrorsToDataGroup(indexBatchJob, existingIndexBatchJob);
 		updateStatusWhenJobbIsFinished(indexBatchJob, existingIndexBatchJob);
@@ -42,48 +47,52 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 	}
 
 	private void updateNumOfProcessedRecordsInDataGroup(IndexBatchJob indexBatchJob,
-			DataGroup existingIndexBatchJob) {
+			DataRecordGroup existingIndexBatchJob) {
 		replaceAtomicChild(existingIndexBatchJob, NUM_OF_PROCESSED_RECORDS,
 				String.valueOf(indexBatchJob.numberOfProcessedRecords));
 	}
 
-	private void replaceAtomicChild(DataGroup dataGroup, String nameInData, String value) {
-		dataGroup.removeFirstChildWithNameInData(nameInData);
-		addAtomicValueToDataGroup(nameInData, value, dataGroup);
+	private void replaceAtomicChild(DataRecordGroup existingIndexBatchJob, String nameInData,
+			String value) {
+		existingIndexBatchJob.removeFirstChildWithNameInData(nameInData);
+		addAtomicValueToDataGroup(nameInData, value, existingIndexBatchJob);
 	}
 
-	private void addAtomicValueToDataGroup(String nameInData, String value, DataGroup dataGroup) {
+	private void addAtomicValueToDataGroup(String nameInData, String value,
+			DataParent existingIndexBatchJob) {
 		DataAtomic atomic = DataProvider.createAtomicUsingNameInDataAndValue(nameInData, value);
-		dataGroup.addChild(atomic);
+		existingIndexBatchJob.addChild(atomic);
 	}
 
-	private void addIndexErrorsToDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		int repeatId = initilizeRepeatIdForError(dataGroup);
+	private void addIndexErrorsToDataGroup(IndexBatchJob indexBatchJob,
+			DataParent existingIndexBatchJob) {
+		int repeatId = initilizeRepeatIdForError(existingIndexBatchJob);
 		for (IndexError indexError : indexBatchJob.errors) {
-			convertIndexErrorAndAddToDataGroup(dataGroup, indexError, repeatId);
+			convertIndexErrorAndAddToDataGroup(existingIndexBatchJob, indexError, repeatId);
 			repeatId++;
 		}
 	}
 
-	private int initilizeRepeatIdForError(DataGroup dataGroup) {
-		return (dataGroup.getAllGroupsWithNameInData(ERROR).size()) + 1;
+	private int initilizeRepeatIdForError(DataParent existingIndexBatchJob) {
+		return (existingIndexBatchJob.getAllGroupsWithNameInData(ERROR).size()) + 1;
 	}
 
-	private void convertIndexErrorAndAddToDataGroup(DataGroup dataGroup, IndexError indexError,
-			int repeatId) {
+	private void convertIndexErrorAndAddToDataGroup(DataParent existingIndexBatchJob,
+			IndexError indexError, int repeatId) {
 		DataGroup error = DataProvider.createGroupUsingNameInData(ERROR);
-		dataGroup.addChild(error);
+		existingIndexBatchJob.addChild(error);
 		error.setRepeatId(String.valueOf(repeatId));
 		addAtomicValueToDataGroup("recordId", indexError.recordId, error);
 		addAtomicValueToDataGroup("message", indexError.message, error);
 	}
 
-	private void updateStatusWhenJobbIsFinished(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		replaceAtomicChild(dataGroup, "status", String.valueOf(indexBatchJob.status));
+	private void updateStatusWhenJobbIsFinished(IndexBatchJob indexBatchJob,
+			DataRecordGroup existingIndexBatchJob) {
+		replaceAtomicChild(existingIndexBatchJob, "status", String.valueOf(indexBatchJob.status));
 	}
 
-	private void addUpdateRecordInfo(DataGroup dataGroup) {
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
+	private void addUpdateRecordInfo(DataRecordGroup existingIndexBatchJob) {
+		DataGroup recordInfo = existingIndexBatchJob.getFirstGroupWithNameInData("recordInfo");
 		addUpdatedDataGroup(recordInfo);
 	}
 
@@ -118,54 +127,52 @@ public class DataGroupHandlerForIndexBatchJobImp implements DataGroupHandlerForI
 	}
 
 	@Override
-	public DataGroup createDataGroup(IndexBatchJob indexBatchJob, DataGroup filterAsDataGroup) {
-		DataGroup dataGroup = DataProvider.createGroupUsingNameInData("indexBatchJob");
-		addRecordInfo(dataGroup);
-		addRecordTypeToIndex(indexBatchJob, dataGroup);
-		addRecordStatus(indexBatchJob, dataGroup);
-		addNumberOfProcessedRecords(indexBatchJob, dataGroup);
-		addTotalNumberToIndex(indexBatchJob, dataGroup);
-		possiblyAddFilter(dataGroup, filterAsDataGroup);
-		addIndexErrorsToDataGroup(indexBatchJob, dataGroup);
-		return dataGroup;
+	public DataRecordGroup createDataRecordGroup(IndexBatchJob indexBatchJob,
+			DataGroup filterAsDataGroup) {
+		DataRecordGroup dataRecordGroup = DataProvider
+				.createRecordGroupUsingNameInData("indexBatchJob");
+		addRecordInfo(dataRecordGroup);
+		addRecordTypeToIndex(indexBatchJob, dataRecordGroup);
+		addRecordStatus(indexBatchJob, dataRecordGroup);
+		addNumberOfProcessedRecords(indexBatchJob, dataRecordGroup);
+		addTotalNumberToIndex(indexBatchJob, dataRecordGroup);
+		possiblyAddFilter(dataRecordGroup, filterAsDataGroup);
+		addIndexErrorsToDataGroup(indexBatchJob, dataRecordGroup);
+		return dataRecordGroup;
 	}
 
-	private void addRecordInfo(DataGroup dataGroup) {
-		DataGroup recordInfo = DataProvider.createGroupUsingNameInData("recordInfo");
-		dataGroup.addChild(recordInfo);
-
-		DataRecordLink dataDivider = DataProvider
-				.createRecordLinkUsingNameInDataAndTypeAndId("dataDivider", "system", "cora");
-		recordInfo.addChild(dataDivider);
-
-		DataRecordLink validationType = DataProvider.createRecordLinkUsingNameInDataAndTypeAndId(
-				"validationType", "validationType", "indexBatchJob");
-		recordInfo.addChild(validationType);
+	private void addRecordInfo(DataRecordGroup dataRecordGroup) {
+		dataRecordGroup.setDataDivider("cora");
+		dataRecordGroup.setValidationType("indexBatchJob");
 	}
 
-	private void addRecordTypeToIndex(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		addAtomicValueToDataGroup("recordTypeToIndex", indexBatchJob.recordTypeToIndex, dataGroup);
+	private void addRecordTypeToIndex(IndexBatchJob indexBatchJob,
+			DataRecordGroup dataRecordGroup) {
+		addAtomicValueToDataGroup("recordTypeToIndex", indexBatchJob.recordTypeToIndex,
+				dataRecordGroup);
 	}
 
-	private void addRecordStatus(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
-		addAtomicValueToDataGroup("status", indexBatchJob.status, dataGroup);
+	private void addRecordStatus(IndexBatchJob indexBatchJob, DataRecordGroup dataRecordGroup) {
+		addAtomicValueToDataGroup("status", indexBatchJob.status, dataRecordGroup);
 	}
 
-	private void addNumberOfProcessedRecords(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+	private void addNumberOfProcessedRecords(IndexBatchJob indexBatchJob,
+			DataRecordGroup dataRecordGroup) {
 		long numOfProcessedRecords = indexBatchJob.numberOfProcessedRecords;
 		addAtomicValueToDataGroup(NUM_OF_PROCESSED_RECORDS, String.valueOf(numOfProcessedRecords),
-				dataGroup);
+				dataRecordGroup);
 	}
 
-	private void addTotalNumberToIndex(IndexBatchJob indexBatchJob, DataGroup dataGroup) {
+	private void addTotalNumberToIndex(IndexBatchJob indexBatchJob,
+			DataRecordGroup dataRecordGroup) {
 		long totalNumberToIndex = indexBatchJob.totalNumberToIndex;
 		addAtomicValueToDataGroup("totalNumberToIndex", String.valueOf(totalNumberToIndex),
-				dataGroup);
+				dataRecordGroup);
 	}
 
-	private void possiblyAddFilter(DataGroup dataGroup, DataGroup filterAsDataGroup) {
+	private void possiblyAddFilter(DataRecordGroup dataRecordGroup, DataGroup filterAsDataGroup) {
 		if (filterAsDataGroup.hasChildren()) {
-			dataGroup.addChild(filterAsDataGroup);
+			dataRecordGroup.addChild(filterAsDataGroup);
 		}
 	}
 }

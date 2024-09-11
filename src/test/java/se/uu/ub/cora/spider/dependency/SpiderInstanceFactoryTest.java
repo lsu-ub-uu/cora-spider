@@ -44,7 +44,7 @@ import se.uu.ub.cora.spider.binary.internal.MimeTypeToBinaryTypeImp;
 import se.uu.ub.cora.spider.binary.internal.UploaderImp;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
-import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJob;
+import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJob;
 import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
@@ -233,7 +233,7 @@ public class SpiderInstanceFactoryTest {
 		assertTrue(batchRunnerFactory instanceof BatchRunnerFactoryImp);
 		assertSame(batchRunnerFactory.getDependencyProvider(), dependencyProvider);
 
-		assertTrue(listIndexer.onlyForTestGetBatchJobConverter() instanceof DataGroupHandlerForIndexBatchJob);
+		assertTrue(listIndexer.onlyForTestGetBatchJobConverter() instanceof DataRecordGroupHandlerForIndexBatchJob);
 
 		RecordListIndexerImp listIndexer2 = (RecordListIndexerImp) factory
 				.factorRecordListIndexer();
