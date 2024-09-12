@@ -35,8 +35,8 @@ public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
 
 	@Override
 	public CollectTerms collectTerms(String metadataId, DataRecordGroup dataRecordGroup) {
-		return (CollectTerms) MCR.addCallAndReturnFromMRV("metadataId", metadataId, "dataGroup",
-				dataRecordGroup);
+		return (CollectTerms) MCR.addCallAndReturnFromMRV("metadataId", metadataId,
+				"dataRecordGroup", dataRecordGroup);
 	}
 
 }

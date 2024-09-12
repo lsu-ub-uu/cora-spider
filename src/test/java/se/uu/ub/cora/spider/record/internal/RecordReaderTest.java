@@ -119,11 +119,9 @@ public class RecordReaderTest {
 		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_USER_TOKEN);
 
 		recordStorage.MCR.assertParameters("read", 0, SOME_RECORD_TYPE, SOME_RECORD_ID);
-		var dataRecordGroup = recordStorage.MCR.getReturnValue("read", 0);
+		recordStorage.MCR.getReturnValue("read", 0);
 
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, SOME_RECORD_TYPE);
-		// dependencyProvider.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
-		// dataRecordGroup);
 
 		recordTypeHandler.MCR.assertMethodWasCalled("isPublicForRead");
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
@@ -193,13 +191,8 @@ public class RecordReaderTest {
 		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 		DataRecordGroup dataGroupFromStorage = (DataRecordGroup) recordStorage.MCR
 				.getReturnValue("read", 0);
-
-		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0,
-				dataGroupFromStorage);
-		var dataGroupFromDataProvider = dataFactorySpy.MCR
-				.getReturnValue("factorGroupFromDataRecordGroup", 0);
 		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, user, SOME_RECORD_TYPE,
-				dataGroupFromDataProvider, dataRedactor);
+				dataGroupFromStorage, dataRedactor);
 	}
 
 	@Test
@@ -219,13 +212,12 @@ public class RecordReaderTest {
 		expectedData.recordId = SOME_RECORD_ID;
 		expectedData.authToken = SOME_USER_TOKEN;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
-		expectedData.previouslyStoredTopDataGroup = null;
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				READ_AFTER_AUTHORIZATION, expectedData, 0);
 
 		DataRecordOldSpy enhancedRecord = (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR
 				.getReturnValue("enhance", 0);
-		expectedData.dataGroup = enhancedRecord.getDataRecordGroup();
+		expectedData.dataRecordGroup = enhancedRecord.getDataRecordGroup();
 		expectedData.dataRecord = enhancedRecord;
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				READ_BEFORE_RETURN, expectedData, 1);

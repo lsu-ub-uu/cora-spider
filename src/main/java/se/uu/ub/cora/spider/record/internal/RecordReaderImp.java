@@ -27,8 +27,6 @@ import java.util.List;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -49,7 +47,6 @@ public final class RecordReaderImp implements RecordReader {
 	private SpiderAuthorizator spiderAuthorizator;
 	private User user;
 	private String authToken;
-	// private RecordTypeHandler recordTypeHandler;
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordStorage recordStorage;
 	private String recordType;
@@ -86,8 +83,8 @@ public final class RecordReaderImp implements RecordReader {
 		checkUserIsAuthorizedForActionOnRecordType();
 		useExtendedFunctionalityForPosition(READ_AFTER_AUTHORIZATION);
 
-		DataRecordGroup readRecord = recordStorage.read(recordType, recordId);
-		DataRecord enhancedRecord = tryToReadAndEnhanceRecord(readRecord);
+		DataRecordGroup readRecordGroup = recordStorage.read(recordType, recordId);
+		DataRecord enhancedRecord = tryToReadAndEnhanceRecord(readRecordGroup);
 		useExtendedFunctionalityBeforeReturn(READ_BEFORE_RETURN, enhancedRecord);
 		return enhancedRecord;
 	}
@@ -123,9 +120,7 @@ public final class RecordReaderImp implements RecordReader {
 
 	private DataRecord tryToReadAndEnhanceRecord(DataRecordGroup dataRecordGroup) {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		DataGroup recordRead = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
-
-		return dataGroupToRecordEnhancer.enhance(user, recordType, recordRead, dataRedactor);
+		return dataGroupToRecordEnhancer.enhance(user, recordType, dataRecordGroup, dataRedactor);
 	}
 
 	private void useExtendedFunctionalityBeforeReturn(ExtendedFunctionalityPosition position,
@@ -138,7 +133,7 @@ public final class RecordReaderImp implements RecordReader {
 			DataRecord dataRecord) {
 		ExtendedFunctionalityData data = createExtendedFunctionalityData();
 		data.dataRecord = dataRecord;
-		data.dataGroup = dataRecord.getDataRecordGroup();
+		data.dataRecordGroup = dataRecord.getDataRecordGroup();
 		return data;
 	}
 

@@ -24,6 +24,7 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.fail;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READLIST_AFTER_AUTHORIZATION;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -38,9 +39,11 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataListSpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
@@ -60,13 +63,14 @@ import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.StorageReadResult;
+import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class RecordListReaderTest {
 
 	private static final String SOME_USER_TOKEN = "someToken78678567";
 	private static final String SOME_RECORD_TYPE = "place";
 
-	private RecordStorageOldSpy recordStorage;
+	private RecordStorageSpy recordStorage;
 	private OldAuthenticatorSpy authenticator;
 	private OldSpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
@@ -84,6 +88,12 @@ public class RecordListReaderTest {
 	private SpiderDependencyProviderSpy dependencyProviderSpy;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 
+	private int start = 0;
+	private int totalNumberOfMatches = 2;
+	private int numberToReturnForReadList = 2;
+	private List<DataRecordGroup> listOfDataRecordGroups = new ArrayList<>();
+	private StorageReadResult storageReadResult;
+
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
@@ -91,7 +101,7 @@ public class RecordListReaderTest {
 		nonEmptyFilter = new DataGroupSpy();
 		authenticator = new OldAuthenticatorSpy();
 		authorizator = new OldSpiderAuthorizatorSpy();
-		recordStorage = new RecordStorageOldSpy();
+		recordStorage = new RecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		dataValidator = new DataValidatorSpy();
 		dataRedactor = new DataRedactorOldSpy();
@@ -107,7 +117,33 @@ public class RecordListReaderTest {
 		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorListUsingNameOfDataType",
 				(Supplier<DataList>) () -> dataList);
 
-		recordStorage.totalNumberOfMatches = 2;
+		storageReadResult = createSpiderReadResult(0, 2, 2);
+		recordStorage.MRV.setDefaultReturnValuesSupplier("readList", () -> storageReadResult);
+	}
+
+	private StorageReadResult createSpiderReadResult(int start, int totalNumberOfMatches,
+			int numberToReturnForReadList) {
+		StorageReadResult readResult = new StorageReadResult();
+		readResult.start = start;
+		readResult.totalNumberOfMatches = totalNumberOfMatches;
+		if (numberToReturnForReadList > 0) {
+			listOfDataRecordGroups = new ArrayList<>();
+			addRecordsToList();
+		}
+		readResult.listOfDataRecordGroups = listOfDataRecordGroups;
+		return readResult;
+	}
+
+	private void addRecordsToList() {
+		int i = start;
+		while (i < numberToReturnForReadList) {
+			DataRecordGroupSpy dataRecordGroup = new DataRecordGroupSpy();
+			String id = "someId" + i;
+			dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getType", () -> "dummyRecordType");
+			dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getId", () -> id);
+			listOfDataRecordGroups.add(dataRecordGroup);
+			i++;
+		}
 	}
 
 	private DataGroupSpy createEmptyFilter() {
@@ -250,46 +286,34 @@ public class RecordListReaderTest {
 
 		converterToFilter.MCR.assertParameters("convert", 0, emptyFilter);
 		var filter = converterToFilter.MCR.getReturnValue("convert", 0);
-		recordStorage.MCR.assertParameterAsEqual("readList", 0, "types", List.of(SOME_RECORD_TYPE));
-		recordStorage.MCR.assertParameter("readList", 0, "filter", filter);
+		recordStorage.MCR.assertParameters("readList", 0, SOME_RECORD_TYPE, filter);
 	}
 
 	@Test
 	public void testEnhanceIsCalledForRecordsReturnedFromStorage() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isAbstract", () -> true);
-		recordStorage.numberToReturnForReadList = 2;
-
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 
+		recordStorage.MCR.assertNumberOfCallsToMethod("readList", 1);
 		recordEnhancer.MCR.assertNumberOfCallsToMethod("enhance", 2);
 
 		StorageReadResult storageReadResult = (StorageReadResult) recordStorage.MCR
 				.getReturnValue("readList", 0);
 		User returnedUser = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
-		List<DataGroup> listOfReturnedDataGroupsFromStorage = storageReadResult.listOfDataGroups;
-		DataGroup returnedDataGroup1 = listOfReturnedDataGroupsFromStorage.get(0);
-		String returnedRecordType1 = extractRecordTypeFromDataGroup(returnedDataGroup1);
+		List<DataRecordGroup> listOfReturnedDataGroupsFromStorage = storageReadResult.listOfDataRecordGroups;
+		DataRecordGroup returnedDataGroup1 = listOfReturnedDataGroupsFromStorage.get(0);
+		String returnedRecordType1 = returnedDataGroup1.getType();
 
 		recordEnhancer.MCR.assertParameters("enhance", 0, returnedUser, returnedRecordType1,
 				returnedDataGroup1, dataRedactor);
 
-		DataGroup returnedDataGroup2 = listOfReturnedDataGroupsFromStorage.get(1);
-		String returnedRecordType2 = extractRecordTypeFromDataGroup(returnedDataGroup2);
+		DataRecordGroup returnedDataGroup2 = listOfReturnedDataGroupsFromStorage.get(1);
+		String returnedRecordType2 = returnedDataGroup1.getType();
 		recordEnhancer.MCR.assertParameters("enhance", 1, returnedUser, returnedRecordType2,
 				returnedDataGroup2, dataRedactor);
 	}
 
-	private String extractRecordTypeFromDataGroup(DataGroup dataGroup) {
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
-
-		return typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
-	}
-
 	@Test
 	public void testEnhancedDataIsReturnedInDataList() throws Exception {
-		recordStorage.numberToReturnForReadList = 2;
-
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				emptyFilter);
 
@@ -306,7 +330,6 @@ public class RecordListReaderTest {
 	@Test
 	public void testOnlyRecordsWithReadActionFromEnhancerIsReturnedNoRecordHasReadAction()
 			throws Exception {
-		recordStorage.numberToReturnForReadList = 2;
 		recordEnhancer.addReadAction = false;
 
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
@@ -318,7 +341,7 @@ public class RecordListReaderTest {
 
 	@Test
 	public void testOnlyRecordsWithReadActionFromEnhancerIsReturned() throws Exception {
-		recordStorage.numberToReturnForReadList = 3;
+		storageReadResult = createSpiderReadResult(0, 3, 3);
 		recordEnhancer.addReadActionOnlyFirst = true;
 
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
@@ -338,9 +361,7 @@ public class RecordListReaderTest {
 		recordEnhancer.addReadActionOnlyFirst = false;
 		recordEnhancer.addReadAction = true;
 
-		recordStorage.totalNumberOfMatches = 25;
-		recordStorage.numberToReturnForReadList = 7;
-		recordStorage.start = 4;
+		storageReadResult = createSpiderReadResult(4, 25, 7);
 
 		dataList.MRV.setDefaultReturnValuesSupplier("getDataList",
 				(Supplier<List<DataGroup>>) () -> List.of(new DataGroupSpy(), new DataGroupSpy(),
@@ -359,18 +380,12 @@ public class RecordListReaderTest {
 	public void testCallsToEnhancerThatThrowsOtherExceptionsPassedOn() throws Exception {
 		recordEnhancer.throwOtherException = true;
 
-		recordStorage.totalNumberOfMatches = 25;
-		recordStorage.numberToReturnForReadList = 7;
-		recordStorage.start = 4;
-
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 	}
 
 	@Test
 	public void testTotalNumberInDataListIsFromStorageOtherNumbers() throws Exception {
-		recordStorage.totalNumberOfMatches = 20;
-		recordStorage.numberToReturnForReadList = 10;
-		recordStorage.start = 1;
+		storageReadResult = createSpiderReadResult(1, 20, 10);
 
 		dataList.MRV.setDefaultReturnValuesSupplier("getDataList",
 				(Supplier<List<DataGroup>>) () -> List.of(new DataGroupSpy(), new DataGroupSpy(),
@@ -389,9 +404,7 @@ public class RecordListReaderTest {
 
 	@Test
 	public void testTotalNumberInDataListIsFromStorageNonHasReadAction() throws Exception {
-		recordStorage.totalNumberOfMatches = 20;
-		recordStorage.numberToReturnForReadList = 10;
-		recordStorage.start = 1;
+		storageReadResult = createSpiderReadResult(1, 20, 10);
 		recordEnhancer.addReadAction = false;
 
 		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,

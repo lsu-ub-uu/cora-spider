@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2022 Uppsala University Library
+ * Copyright 2015, 2022, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,8 +19,8 @@
 
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 
 public interface RecordCreator {
 	/**
@@ -41,9 +41,8 @@ public interface RecordCreator {
 	 * @param type
 	 *            A string with the record type of the record.
 	 * @param recordDataGroup
-	 *            A {@link DataGroup} that contains the data to store.
+	 *            A {@link DataRecordGroup} that contains the data to store.
 	 * @return The {@link DataRecord} with the data that the user is allow to read from the record.
 	 */
-	DataRecord createAndStoreRecord(String authToken, String type, DataGroup record);
-
+	DataRecord createAndStoreRecord(String authToken, String type, DataRecordGroup recordGroup);
 }

@@ -77,7 +77,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private CollectTerms collectedTerms;
 	private Set<Link> collectedLinks;
 	private RecordArchive recordArchive;
-	private DataGroup recordGroup;
+	private DataRecordGroup recordGroup;
 	private String dataDivider;
 
 	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
@@ -104,10 +104,10 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	@Override
 	public DataRecord createAndStoreRecord(String authToken, String recordTypeToCreate,
-			DataGroup dataGroup) {
+			DataRecordGroup dataRecordGroup) {
 		this.authToken = authToken;
 		recordType = recordTypeToCreate;
-		recordGroup = dataGroup;
+		recordGroup = dataRecordGroup;
 
 		try {
 			return tryToValidateAndStoreRecord();
@@ -119,7 +119,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private DataRecord tryToValidateAndStoreRecord() {
 		checkActionAuthorizationForUser();
 		useExtendedFunctionalityForPosition(CREATE_AFTER_AUTHORIZATION);
-		createRecordTypeHandler();
+		recordTypeHandler = createRecordTypeHandler();
 		validateRecordTypeInDataIsSameAsSpecified(recordType);
 		definitionId = recordTypeHandler.getDefinitionId();
 		validateRecord();
@@ -127,9 +127,10 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		completeRecordAndCollectInformationSpecifiedInMetadata();
 		ensureNoDuplicateForTypeAndId();
 		validateDataForUniqueThrowErrorIfNot();
-		dataDivider = extractDataDividerFromData(recordGroup);
-		createRecordInStorage(recordGroup, collectedLinks, collectedTerms.storageTerms);
-		possiblyStoreInArchive();
+		dataDivider = recordGroup.getDataDivider();
+		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
+		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms.storageTerms);
+		possiblyStoreInArchive(recordAsDataGroup);
 		indexRecord(collectedTerms.indexTerms);
 		useExtendedFunctionalityForPosition(CREATE_BEFORE_ENHANCE);
 		return enhanceDataGroupToRecord();
@@ -166,11 +167,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		useExtendedFunctionality(recordGroup, exFunctionality);
 	}
 
-	private void createRecordTypeHandler() {
-		DataRecordGroup dataGroupAsRecordGroup = DataProvider
-				.createRecordGroupFromDataGroup(recordGroup);
-		recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
+	private RecordTypeHandler createRecordTypeHandler() {
+		return dependencyProvider.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
 	}
 
 	private void validateRecord() {
@@ -206,7 +204,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {
 		String createDefinitionId = recordTypeHandler.getCreateDefinitionId();
-
 		ValidationAnswer validationAnswer = dataValidator.validateData(createDefinitionId,
 				recordGroup);
 		if (validationAnswer.dataIsInvalid()) {
@@ -264,8 +261,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void indexRecord(List<IndexTerm> indexTerms) {
-		List<String> ids = recordTypeHandler.getCombinedIdForIndex(recordId);
-		recordIndexer.indexData(ids, indexTerms, recordGroup);
+		// List<String> ids = recordTypeHandler.getCombinedIdForIndex(recordId);
+		recordIndexer.indexData(recordType, recordId, indexTerms, recordGroup);
 	}
 
 	private void ensureNoDuplicateForTypeAndId() {
@@ -299,15 +296,15 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		throw ConflictException.withMessage(errorMessage);
 	}
 
-	private void createRecordInStorage(DataGroup topLevelDataGroup, Set<Link> collectedLinks2,
+	private void createRecordInStorage(DataGroup recordAsDataGroup, Set<Link> collectedLinks,
 			Set<StorageTerm> storageTerms) {
-		recordStorage.create(recordType, recordId, topLevelDataGroup, storageTerms, collectedLinks2,
+		recordStorage.create(recordType, recordId, recordAsDataGroup, storageTerms, collectedLinks,
 				dataDivider);
 	}
 
-	private void possiblyStoreInArchive() {
+	private void possiblyStoreInArchive(DataGroup recordAsDataGroup) {
 		if (recordTypeHandler.storeInArchive()) {
-			recordArchive.create(dataDivider, recordType, recordId, recordGroup);
+			recordArchive.create(dataDivider, recordType, recordId, recordAsDataGroup);
 		}
 	}
 

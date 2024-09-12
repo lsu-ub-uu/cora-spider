@@ -68,7 +68,6 @@ public class DataGroupToRecordEnhancerTest {
 	private static final String UPDATE = "update";
 	private static final String LIST = "list";
 	private static final String DATA_WITH_LINKS = "dataWithLinks";
-	private static final List<String> LIST_DATA_WITH_LINKS = List.of(DATA_WITH_LINKS);
 	private static final String CREATE = "create";
 	private static final String SEARCH = "search";
 	private static final String READ = "read";
@@ -94,7 +93,6 @@ public class DataGroupToRecordEnhancerTest {
 	@BeforeMethod
 	public void setUp() {
 		setUpFactoriesAndProviders();
-		// someDataGroup = createDummyDataGroupForRecord("someId");
 		someDataRecordGroup = new DataRecordGroupSpy();
 		someDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getId", () -> "someId");
 		user = new User("987654321");
@@ -126,15 +124,6 @@ public class DataGroupToRecordEnhancerTest {
 		recordTypeHandlerSpy = dependencyProvider.recordTypeHandlerSpy;
 		enhancer = new DataGroupToRecordEnhancerImp(dependencyProvider);
 	}
-
-	// private DataRecordLink createLinkSpyWithLinkedId(String nameInData, String linkedRecordType,
-	// String linkedRecordId) {
-	// DataRecordLinkSpy linkSpy = new DataRecordLinkSpy();
-	// linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> nameInData);
-	// linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType", () -> linkedRecordType);
-	// linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> linkedRecordId);
-	// return linkSpy;
-	// }
 
 	@Test
 	public void testReadActionPartOfEnhance() throws Exception {
@@ -1531,22 +1520,16 @@ public class DataGroupToRecordEnhancerTest {
 		Set<?> recordPartConstraints = (Set<?>) recordTypeHandlerSpy.MCR
 				.getReturnValue("getReadRecordPartConstraints", 0);
 
-		var dataGroupFromSomeDataRecordGroup = dataFactorySpy.MCR.assertCalledParametersReturn(
-				"factorGroupFromDataRecordGroup", someDataRecordGroup);
-
 		dataRedactor.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
-				recordTypeHandlerSpy.getDefinitionId(), dataGroupFromSomeDataRecordGroup,
-				recordPartConstraints, usersReadRecordPartPermissions);
+				recordTypeHandlerSpy.getDefinitionId(), someDataRecordGroup, recordPartConstraints,
+				usersReadRecordPartPermissions);
 	}
 
 	private void assertAswerFromRedactorIsReturned(DataRecord record) {
-		DataGroup redactedDataGroup = (DataGroup) dataRedactor.MCR
+		DataRecordGroup redactedDataGroup = (DataRecordGroup) dataRedactor.MCR
 				.getReturnValue("removeChildrenForConstraintsWithoutPermissions", 0);
-		var redactedRecordGroup = dataFactorySpy.MCR
-				.assertCalledParametersReturn("factorRecordGroupFromDataGroup", redactedDataGroup);
 		var redactedRecord = dataFactorySpy.MCR.assertCalledParametersReturn(
-				"factorRecordUsingDataRecordGroup", redactedRecordGroup);
-
+				"factorRecordUsingDataRecordGroup", redactedDataGroup);
 		assertSame(record, redactedRecord);
 	}
 
@@ -1572,11 +1555,9 @@ public class DataGroupToRecordEnhancerTest {
 		Set<?> recordPartConstraints = (Set<?>) recordTypeHandlerSpy.MCR
 				.getReturnValue("getReadRecordPartConstraints", 0);
 
-		var convertedSomeDataGroup = dataFactorySpy.MCR.assertCalledParametersReturn(
-				"factorGroupFromDataRecordGroup", someDataRecordGroup);
 		dataRedactor.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
-				recordTypeHandlerSpy.getDefinitionId(), convertedSomeDataGroup,
-				recordPartConstraints, Collections.emptySet());
+				recordTypeHandlerSpy.getDefinitionId(), someDataRecordGroup, recordPartConstraints,
+				Collections.emptySet());
 		assertAswerFromRedactorIsReturned(record);
 	}
 
@@ -1604,15 +1585,15 @@ public class DataGroupToRecordEnhancerTest {
 
 	private void setupReturnedDataGroupOnDataRedactorSpy(DataLink... links) {
 		List<DataLink> linkList = Arrays.asList(links);
-		DataGroupSpy dataGroup = new DataGroupSpy();
-		dataGroup.MRV.setSpecificReturnValuesSupplier("getChildrenOfTypeAndName", () -> linkList,
-				DataRecordLink.class, "recordTypeToSearchIn");
-		dataGroup.MRV.setDefaultReturnValuesSupplier("getChildren", () -> linkList);
+		DataRecordGroupSpy dataRecordGroup = new DataRecordGroupSpy();
+		dataRecordGroup.MRV.setSpecificReturnValuesSupplier("getChildrenOfTypeAndName",
+				() -> linkList, DataRecordLink.class, "recordTypeToSearchIn");
+		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getChildren", () -> linkList);
 
 		dataRedactor.MRV.setDefaultReturnValuesSupplier(
-				"removeChildrenForConstraintsWithoutPermissions", () -> dataGroup);
+				"removeChildrenForConstraintsWithoutPermissions", () -> dataRecordGroup);
 		dataRedactor.MRV.setDefaultReturnValuesSupplier(
-				"replaceChildrenForConstraintsWithoutPermissions", () -> dataGroup);
+				"replaceChildrenForConstraintsWithoutPermissions", () -> dataRecordGroup);
 	}
 
 	@Test
@@ -1724,13 +1705,13 @@ public class DataGroupToRecordEnhancerTest {
 				DataRecordLink.class, "recordTypeToSearchIn");
 		dataGroup.MRV.setDefaultReturnValuesSupplier("getChildren", () -> linkList);
 
-		DataGroupSpy topGroup = new DataGroupSpy();
-		topGroup.MRV.setDefaultReturnValuesSupplier("getChildren", () -> List.of(dataGroup));
+		DataRecordGroupSpy recordGroup = new DataRecordGroupSpy();
+		recordGroup.MRV.setDefaultReturnValuesSupplier("getChildren", () -> List.of(dataGroup));
 
 		dataRedactor.MRV.setDefaultReturnValuesSupplier(
-				"removeChildrenForConstraintsWithoutPermissions", () -> topGroup);
+				"removeChildrenForConstraintsWithoutPermissions", () -> recordGroup);
 		dataRedactor.MRV.setDefaultReturnValuesSupplier(
-				"replaceChildrenForConstraintsWithoutPermissions", () -> topGroup);
+				"replaceChildrenForConstraintsWithoutPermissions", () -> recordGroup);
 	}
 
 	@Test

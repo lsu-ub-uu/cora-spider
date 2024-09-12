@@ -23,7 +23,9 @@ import java.util.Set;
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -34,27 +36,27 @@ public class DataRedactorSpy implements DataRedactor {
 	public DataRedactorSpy() {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("removeChildrenForConstraintsWithoutPermissions",
-				DataGroupSpy::new);
+				DataRecordGroupSpy::new);
 		MRV.setDefaultReturnValuesSupplier("replaceChildrenForConstraintsWithoutPermissions",
-				DataGroupSpy::new);
+				DataRecordGroupSpy::new);
 	}
 
 	@Override
-	public DataGroup removeChildrenForConstraintsWithoutPermissions(String metadataId,
-			DataGroup dataGroup, Set<Constraint> recordPartConstraints,
+	public DataRecordGroup removeChildrenForConstraintsWithoutPermissions(String metadataId,
+			DataRecordGroup dataRecordGroup, Set<Constraint> recordPartConstraints,
 			Set<String> recordPartPermissions) {
-		return (DataGroup) MCR.addCallAndReturnFromMRV("metadataId", metadataId, "dataGroup",
-				dataGroup, "recordPartConstraints", recordPartConstraints, "recordPartPermissions",
-				recordPartPermissions);
+		return (DataRecordGroup) MCR.addCallAndReturnFromMRV("metadataId", metadataId,
+				"dataRecordGroup", dataRecordGroup, "recordPartConstraints", recordPartConstraints,
+				"recordPartPermissions", recordPartPermissions);
 	}
 
 	@Override
-	public DataGroup replaceChildrenForConstraintsWithoutPermissions(String metadataId,
-			DataGroup originalDataGroup, DataGroup changedDataGroup,
+	public DataRecordGroup replaceChildrenForConstraintsWithoutPermissions(String metadataId,
+			DataRecordGroup originalDataRecordGroup, DataRecordGroup changedDataRecordGroup,
 			Set<Constraint> recordPartConstraints, Set<String> recordPartPermissions) {
-		return (DataGroup) MCR.addCallAndReturnFromMRV("metadataId", metadataId,
-				"originalDataGroup", originalDataGroup, "changedDataGroup", changedDataGroup,
-				"recordPartConstraints", recordPartConstraints, "recordPartPermissions",
-				recordPartPermissions);
+		return (DataRecordGroup) MCR.addCallAndReturnFromMRV("metadataId", metadataId,
+				"originalDataGroup", originalDataRecordGroup, "changedDataGroup",
+				changedDataRecordGroup, "recordPartConstraints", recordPartConstraints,
+				"recordPartPermissions", recordPartPermissions);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2018, 2019, 2022 Uppsala University Library
+ * Copyright 2017, 2018, 2019, 2022, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -29,9 +29,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
@@ -216,10 +216,9 @@ public class IncomingLinksReaderTest {
 	private CollectTerms assertCollectTerms() {
 		var metadataIdForType = recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0);
 
-		DataGroup dataGroupFromDataProvider = getDataGroupCreatedFromDataProvider(0);
+		DataRecordGroup dataRecordGroup = getDataRecordGroupReadFromStorage(0);
 
-		termCollector.MCR.assertParameters("collectTerms", 0, metadataIdForType,
-				dataGroupFromDataProvider);
+		termCollector.MCR.assertParameters("collectTerms", 0, metadataIdForType, dataRecordGroup);
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				0);
 		return collectTerms;
@@ -231,9 +230,8 @@ public class IncomingLinksReaderTest {
 		return recordRead;
 	}
 
-	private DataGroup getDataGroupCreatedFromDataProvider(int callNumber) {
-		return (DataGroup) dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup",
-				callNumber);
+	private DataRecordGroup getDataRecordGroupReadFromStorage(int callNumber) {
+		return (DataRecordGroup) recordStorage.MCR.getReturnValue("read", callNumber);
 	}
 
 	@Test

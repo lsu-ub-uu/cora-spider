@@ -34,6 +34,7 @@ import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataLink;
+import se.uu.ub.cora.data.DataParent;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
@@ -123,10 +124,12 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private DataRecord enhanceDataGroupToRecordUsingReadRecordPartPermissions(
 			DataRecordGroup dataRecordGroup, DataRedactor dataRedactor) {
-		DataGroup redactedDataGroup = redact(dataRecordGroup, dataRedactor);
-		addReadActionToAllRecordLinks(redactedDataGroup);
+		DataRecordGroup redactedDataRecordGroup = redact(dataRecordGroup, dataRedactor);
+		addReadActionToAllRecordLinks(redactedDataRecordGroup);
 
-		DataRecord dataRecord = createDataRecord(redactedDataGroup);
+		DataRecord dataRecord = DataProvider
+				.createRecordWithDataRecordGroup(redactedDataRecordGroup);
+		// DataRecord dataRecord = createDataRecord(redactedDataGroup);
 		addActions(dataRecord);
 		addRecordPartPermissions(dataRecord);
 		return dataRecord;
@@ -324,17 +327,16 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		}
 	}
 
-	private DataGroup redact(DataRecordGroup dataRecordGroup, DataRedactor dataRedactor) {
+	private DataRecordGroup redact(DataRecordGroup dataRecordGroup, DataRedactor dataRedactor) {
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getReadRecordPartConstraints();
-		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
 		return dataRedactor.removeChildrenForConstraintsWithoutPermissions(
-				recordTypeHandler.getDefinitionId(), dataGroup, recordPartReadConstraints,
+				recordTypeHandler.getDefinitionId(), dataRecordGroup, recordPartReadConstraints,
 				readRecordPartPermissions);
 	}
 
-	private void addReadActionToAllRecordLinks(DataGroup dataGroup) {
-		for (DataChild dataChild : dataGroup.getChildren()) {
+	private void addReadActionToAllRecordLinks(DataParent redactedDataGroup) {
+		for (DataChild dataChild : redactedDataGroup.getChildren()) {
 			addReadActionToDataRecordLink(dataChild);
 		}
 	}

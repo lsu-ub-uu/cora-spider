@@ -96,7 +96,7 @@ public class IndexBatchJobStorerTest {
 		String metadataIdFromTypeHandler = (String) dependencyProvider.recordTypeHandlerSpy.MCR
 				.getReturnValue("getDefinitionId", 0);
 		assertEquals(parameters.get("metadataId"), metadataIdFromTypeHandler);
-		assertSame(parameters.get("dataGroup"), recordStorage.MCR.getReturnValue("read", 0));
+		assertSame(parameters.get("dataRecordGroup"), recordStorage.MCR.getReturnValue("read", 0));
 
 		DataRecordGroupSpy returnedDataGroupFromRead = (DataRecordGroupSpy) recordStorage.MCR
 				.getReturnValue("read", 0);
