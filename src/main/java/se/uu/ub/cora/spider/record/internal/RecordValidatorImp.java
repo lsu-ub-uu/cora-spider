@@ -180,13 +180,13 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	@Override
-	protected ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
+	protected ExtendedFunctionalityData createExtendedFunctionalityData(DataRecordGroup dataRecordGroup) {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
 		data.recordType = recordTypeToValidate;
 		data.recordId = recordId;
 		data.authToken = authToken;
 		data.user = user;
-		data.dataGroup = dataGroup;
+		data.dataGroup = dataRecordGroup;
 		return data;
 	}
 

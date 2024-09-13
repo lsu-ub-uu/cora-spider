@@ -300,8 +300,8 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	@Override
-	protected ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
-		ExtendedFunctionalityData data = super.createExtendedFunctionalityData(dataGroup);
+	protected ExtendedFunctionalityData createExtendedFunctionalityData(DataRecordGroup dataRecordGroup) {
+		ExtendedFunctionalityData data = super.createExtendedFunctionalityData(dataRecordGroup);
 		data.previouslyStoredTopDataGroup = previouslyStoredRecord;
 		return data;
 	}

@@ -54,7 +54,6 @@ import se.uu.ub.cora.data.spies.DataAtomicSpy;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
-import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
@@ -118,7 +117,7 @@ public class RecordCreatorTest {
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorOldSpy dataRedactor;
 	private RecordArchiveSpy recordArchive;
-	private DataRecordGroup recordWithoutIdOld;
+	private DataRecordGroup recordWithoutId;
 	private DataRecordGroupSpy recordWithId;
 
 	@BeforeMethod
@@ -151,7 +150,7 @@ public class RecordCreatorTest {
 				() -> RECORD_TYPE);
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 
-		recordWithoutIdOld = createRecordExampleRecordWithoutId();
+		recordWithoutId = createRecordExampleRecordWithoutId();
 		recordWithId = createDataGroupForCreate();
 	}
 
@@ -253,10 +252,9 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testRecordTypeHandlerFetchedFromDependencyProvider() {
-		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
-		dataFactorySpy.MCR.assertParameters("factorRecordGroupFromDataGroup", 0,
-				recordWithoutIdOld);
+		dataFactorySpy.MCR.assertParameters("factorRecordGroupFromDataGroup", 0, recordWithoutId);
 		var dataGroupAsRecordGroup = dataFactorySpy.MCR
 				.getReturnValue("factorRecordGroupFromDataGroup", 0);
 		dependencyProviderSpy.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
@@ -273,7 +271,7 @@ public class RecordCreatorTest {
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
 
-		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
@@ -285,7 +283,7 @@ public class RecordCreatorTest {
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
 
-		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 	}
 
 	@Test
@@ -293,14 +291,14 @@ public class RecordCreatorTest {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> RECORD_TYPE);
 
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		authenticatorOld.MCR.assertParameters("getUserForToken", 0, AUTH_TOKEN);
 	}
 
 	@Test
 	public void testAuthorizatorIsCalled() throws Exception {
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		User user = (User) authenticatorOld.MCR.getReturnValue("getUserForToken", 0);
 		spiderAuthorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0,
@@ -312,7 +310,7 @@ public class RecordCreatorTest {
 		recordStorage.MRV.setSpecificReturnValuesSupplier("recordExists",
 				(Supplier<Boolean>) () -> true, List.of(RECORD_TYPE), "1");
 		try {
-			recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+			recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 			assertTrue(false);
 		} catch (Exception e) {
 			assertTrue(e instanceof ConflictException);
@@ -331,16 +329,17 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testExtendedFunctionalityIsCalled() {
-
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
 		expectedData.recordType = RECORD_TYPE;
 		expectedData.recordId = null;
 		expectedData.authToken = AUTH_TOKEN;
 		expectedData.user = (User) authenticatorOld.MCR.getReturnValue("getUserForToken", 0);
-		expectedData.previouslyStoredTopDataGroup = null;
-		expectedData.dataGroup = recordWithoutIdOld;
+		// expectedData.previouslyStoredTopDataGroup = null;
+		expectedData.previouslyStoredDataRecordGroup = null;
+		// expectedData.dataGroup = recordWithoutIdOld;
+		expectedData.dataRecordGroup = recordWithoutId;
 
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				CREATE_AFTER_AUTHORIZATION, expectedData, 0);
@@ -360,7 +359,7 @@ public class RecordCreatorTest {
 		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProviderSpy, dataGroupToRecordEnhancer);
 		try {
-			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 			fail("Should fail as we want to stop execution when the extended functionality is used,"
 					+ " to determin that the extended functionality is called in the correct place"
@@ -384,10 +383,9 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testRecordEnhancerCalled() {
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
-
-		assertCallEnhanceIgnoringReadAccess(recordWithoutIdOld);
+		assertCallEnhanceIgnoringReadAccess(recordWithoutId);
 	}
 
 	private void assertCallEnhanceIgnoringReadAccess(DataRecordGroup recordWithoutIdOld2) {
@@ -400,12 +398,12 @@ public class RecordCreatorTest {
 	public void testGetActiveUserFails() {
 		authenticatorOld.throwAuthenticationException = true;
 
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 	}
 
 	@Test
 	public void testIndexerIsCalled() {
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		var dataRecord = recordStorage.MCR.getParameterForMethodAndCallNumberAndParameter("create",
 				0, "dataRecord");
@@ -427,7 +425,7 @@ public class RecordCreatorTest {
 		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProviderSpy, dataGroupToRecordEnhancer);
 
-		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 	}
 
 	private void setUpDataValidatorToReturnInvalidWithErrors() {
@@ -445,7 +443,7 @@ public class RecordCreatorTest {
 	@Test
 	public void testCreateRecordAutogeneratedId() {
 		DataRecord recordOut = recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE,
-				recordWithoutIdOld);
+				recordWithoutId);
 
 		DataRecordGroup recordGroupOut = recordOut.getDataRecordGroup();
 		DataGroup recordInfo = recordGroupOut.getFirstGroupWithNameInData("recordInfo");
@@ -473,7 +471,7 @@ public class RecordCreatorTest {
 	@Test
 	public void testAutogeneratedIdSentToStorageUsingGeneratedId() {
 		DataRecord recordOut = recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE,
-				recordWithoutIdOld);
+				recordWithoutId);
 
 		DataRecordGroup groupRecordOut = recordOut.getDataRecordGroup();
 		DataGroup recordInfo = groupRecordOut.getFirstGroupWithNameInData("recordInfo");
@@ -623,7 +621,7 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testCreateRecordDataDividerExtractedFromData() {
-		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		recordStorage.MCR.assertParameter("create", 0, "dataDivider", "someDataDivider");
 	}
@@ -648,7 +646,7 @@ public class RecordCreatorTest {
 	public void testCreateRecordUnauthorizedForActionCreate() {
 		spiderAuthorizator.authorizedForActionAndRecordType = false;
 
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 	}
 
 	@Test
@@ -656,7 +654,7 @@ public class RecordCreatorTest {
 		spiderAuthorizator.authorizedForActionAndRecordType = false;
 
 		try {
-			recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+			recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 			fail("It should fail with an AuthorizationException");
 		} catch (Exception e) {
 			assertEquals(e.getClass(), AuthorizationException.class);
@@ -676,13 +674,13 @@ public class RecordCreatorTest {
 	public void testCreateRecordUnauthorizedForDataInRecord() {
 		spiderAuthorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 	}
 
 	@Test
 
 	public void testCreateRecordCollectedDataUsedForAuthorization() {
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
@@ -747,14 +745,14 @@ public class RecordCreatorTest {
 		dataGroupToRecordEnhancer.addReadAction = false;
 
 		DataRecord createdRecord = recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE,
-				recordWithoutIdOld);
+				recordWithoutId);
 
 		dataGroupToRecordEnhancer.MCR.assertReturn("enhanceIgnoringReadAccess", 0, createdRecord);
 	}
 
 	@Test
 	public void testRedactorNotCalledWhenNoRecordPartConstraints() throws Exception {
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		recordTypeHandlerSpy.MCR.assertMethodWasCalled("hasRecordPartCreateConstraint");
 		dataRedactor.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
@@ -764,17 +762,17 @@ public class RecordCreatorTest {
 	public void testRedactorCalledCorrectlyWhenRecordPartConstraints() throws Exception {
 		setupForRecordPartConstraints();
 
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		recordTypeHandlerSpy.MCR.assertMethodWasCalled("hasRecordPartCreateConstraint");
 
-		assertDataRedactorRemoveChildrenForConstraintsWithoutPermissions(recordWithoutIdOld);
+		assertDataRedactorRemoveChildrenForConstraintsWithoutPermissions(recordWithoutId);
 	}
 
 	private void setupForRecordPartConstraints() {
 		DataGroup dataGroupReturnedFromRedactor = DataCreator2
 				.createRecordWithNameInDataAndLinkedDataDividerId("nameInData", "cora");
-		dataRedactor.returnDataGroup = dataGroupReturnedFromRedactor;
+		dataRedactor.returnRecordDataGroup = dataGroupReturnedFromRedactor;
 		recordTypeHandlerSpy.recordPartConstraint = "write";
 	}
 
@@ -793,12 +791,12 @@ public class RecordCreatorTest {
 	@Test
 	public void testValidateIsNotCalledWithRedactedDataGroupWhenNoRecordPartConstraints()
 			throws Exception {
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		String newMetadataId = (String) recordTypeHandlerSpy.MCR
 				.getReturnValue("getCreateDefinitionId", 0);
 
-		dataValidatorOld.MCR.assertParameters("validateData", 0, newMetadataId, recordWithoutIdOld);
+		dataValidatorOld.MCR.assertParameters("validateData", 0, newMetadataId, recordWithoutId);
 	}
 
 	@Test
@@ -806,7 +804,7 @@ public class RecordCreatorTest {
 			throws Exception {
 		setupForRecordPartConstraints();
 
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutIdOld);
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		DataGroup redactedDataGroup = (DataGroup) dataRedactor.MCR
 				.getReturnValue("removeChildrenForConstraintsWithoutPermissions", 0);
@@ -868,7 +866,6 @@ public class RecordCreatorTest {
 							+ "following 3 error messages: [" + "error1, error2, error3]");
 			recordStorage.MCR.assertMethodNotCalled("create");
 		}
-
 	}
 
 	private void setupUniqueValidatorToReturnInvalidAnswerWithThreeErrors() {

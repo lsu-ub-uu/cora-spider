@@ -204,8 +204,11 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {
 		String createDefinitionId = recordTypeHandler.getCreateDefinitionId();
+		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
+		// ValidationAnswer validationAnswer = dataValidator.validateData(createDefinitionId,
+		// recordGroup);
 		ValidationAnswer validationAnswer = dataValidator.validateData(createDefinitionId,
-				recordGroup);
+				dataGroup);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
@@ -215,7 +218,9 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = extractIdFromData();
 		collectedTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup);
-		collectedLinks = linkCollector.collectLinks(definitionId, recordGroup);
+		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
+		// collectedLinks = linkCollector.collectLinks(definitionId, recordGroup);
+		collectedLinks = linkCollector.collectLinks(definitionId, dataGroup);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 	}
 
