@@ -128,6 +128,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		ensureNoDuplicateForTypeAndId();
 		validateDataForUniqueThrowErrorIfNot();
 		dataDivider = recordGroup.getDataDivider();
+
 		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
 		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms.storageTerms);
 		possiblyStoreInArchive(recordAsDataGroup);
@@ -216,7 +217,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void completeRecordAndCollectInformationSpecifiedInMetadata() {
 		ensureCompleteRecordInfo(user.id, recordType);
-		recordId = extractIdFromData();
+		// recordId = extractIdFromData();
+		recordId = recordGroup.getId();
 		collectedTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup);
 		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
 		// collectedLinks = linkCollector.collectLinks(definitionId, recordGroup);
@@ -227,34 +229,34 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
 		DataGroup recordInfo = recordGroup.getFirstGroupWithNameInData(RECORD_INFO);
 		ensureIdExists(recordType, recordInfo);
-		addTypeToRecordInfo(recordType, recordInfo);
+		recordGroup.setType(recordType);
+		// addTypeToRecordInfo(recordType, recordInfo);
 		addCreatedInfoToRecordInfoUsingUserId(recordInfo, userId);
 		addUpdatedInfoToRecordInfoUsingUserId(recordInfo, userId);
 	}
 
 	private void ensureIdExists(String recordType, DataGroup recordInfo) {
 		if (recordTypeHandler.shouldAutoGenerateId()) {
-			removeIdIfPresentInData(recordInfo);
+			// removeIdIfPresentInData(recordInfo);
 			generateAndAddIdToRecordInfo(recordType, recordInfo);
 		}
 	}
 
-	private void removeIdIfPresentInData(DataGroup recordInfo) {
-		if (recordInfo.containsChildWithNameInData("id")) {
-			recordInfo.removeFirstChildWithNameInData("id");
-		}
-	}
+	// private void removeIdIfPresentInData(DataGroup recordInfo) {
+	// if (recordInfo.containsChildWithNameInData("id")) {
+	// recordInfo.removeFirstChildWithNameInData("id");
+	// }
+	// }
 
 	private void generateAndAddIdToRecordInfo(String recordType, DataGroup recordInfo) {
-		recordInfo.addChild(DataProvider.createAtomicUsingNameInDataAndValue("id",
-				idGenerator.getIdForType(recordType)));
+		recordGroup.setId(idGenerator.getIdForType(recordType));
 	}
 
-	private void addTypeToRecordInfo(String recordType, DataGroup recordInfo) {
-		DataRecordLink typeLink = DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("type",
-				"recordType", recordType);
-		recordInfo.addChild(typeLink);
-	}
+	// private void addTypeToRecordInfo(String recordType, DataGroup recordInfo) {
+	// DataRecordLink typeLink = DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("type",
+	// "recordType", recordType);
+	// recordInfo.addChild(typeLink);
+	// }
 
 	private void addCreatedInfoToRecordInfoUsingUserId(DataGroup recordInfo, String userId) {
 		DataRecordLink createdByLink = createLinkToUserUsingNameInDataAndUserId("createdBy",
@@ -267,6 +269,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void indexRecord(List<IndexTerm> indexTerms) {
 		// List<String> ids = recordTypeHandler.getCombinedIdForIndex(recordId);
+
 		recordIndexer.indexData(recordType, recordId, indexTerms, recordGroup);
 	}
 
@@ -313,10 +316,10 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		}
 	}
 
-	private String extractIdFromData() {
-		DataGroup recordInfo = recordGroup.getFirstGroupWithNameInData("recordInfo");
-		return recordInfo.getFirstAtomicValueWithNameInData("id");
-	}
+	// private String extractIdFromData() {
+	// DataGroup recordInfo = recordGroup.getFirstGroupWithNameInData("recordInfo");
+	// return recordInfo.getFirstAtomicValueWithNameInData("id");
+	// }
 
 	private DataRecord enhanceDataGroupToRecord() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();

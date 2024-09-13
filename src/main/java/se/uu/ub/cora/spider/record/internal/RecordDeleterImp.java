@@ -158,8 +158,7 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 			ExtendedFunctionalityPosition position, DataRecordGroup dataRecordGroup) {
 		List<ExtendedFunctionality> extendedFunctionality = extendedFunctionalityProvider
 				.getFunctionalityForPositionAndRecordType(position, recordType);
-		useExtendedFunctionality(DataProvider.createGroupFromRecordGroup(dataRecordGroup),
-				extendedFunctionality);
+		useExtendedFunctionality(dataRecordGroup, extendedFunctionality);
 	}
 
 	private void deleteRecordFromStorageAndIndex() {

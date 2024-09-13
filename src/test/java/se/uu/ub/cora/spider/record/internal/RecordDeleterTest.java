@@ -152,8 +152,6 @@ public class RecordDeleterTest {
 				getReadDataRecordGroup());
 
 		String definitionId = (String) recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0);
-		DataRecordGroup dataRecordGroup = getReadDataRecordGroup();
-		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0, dataRecordGroup);
 		var readDataGroup = recordStorage.MCR.assertCalledParametersReturn("read", SOME_TYPE,
 				SOME_ID);
 
@@ -162,11 +160,6 @@ public class RecordDeleterTest {
 
 	private DataRecordGroup getReadDataRecordGroup() {
 		return (DataRecordGroup) recordStorage.MCR.getReturnValue("read", 0);
-	}
-
-	private DataGroup getDataGroupCreatedFromDataProvider(int callNumber) {
-		return (DataGroup) dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup",
-				callNumber);
 	}
 
 	@Test
@@ -212,7 +205,7 @@ public class RecordDeleterTest {
 		expectedData.authToken = SOME_AUTH_TOKEN;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 		expectedData.previouslyStoredTopDataGroup = null;
-		expectedData.dataGroup = getDataGroupCreatedFromDataProvider(dataProviderCallNumber);
+		expectedData.dataRecordGroup = getReadDataRecordGroup();
 		return expectedData;
 	}
 

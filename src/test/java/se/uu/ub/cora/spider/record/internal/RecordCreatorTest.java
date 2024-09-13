@@ -97,7 +97,7 @@ public class RecordCreatorTest {
 	private RecordStorageSpy recordStorage;
 	private OldAuthenticatorSpy authenticatorOld;
 	private OldSpiderAuthorizatorSpy spiderAuthorizator;
-	private RecordIdGenerator idGenerator;
+	private IdGeneratorSpy idGenerator;
 	private PermissionRuleCalculator ruleCalculator;
 	private RecordCreator recordCreatorOld;
 	private RecordCreator recordCreator;
@@ -117,8 +117,9 @@ public class RecordCreatorTest {
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorOldSpy dataRedactor;
 	private RecordArchiveSpy recordArchive;
-	private DataRecordGroup recordWithoutId;
+	private DataRecordGroupSpy recordWithoutId;
 	private DataRecordGroupSpy recordWithId;
+	private DataGroupSpy recordInfoWithoutId;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -212,17 +213,25 @@ public class RecordCreatorTest {
 				() -> termCollector);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getUniqueValidator",
 				() -> uniqueValidator);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordIndexer",
+				() -> recordIndexer);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordIdGenerators",
+				() -> idGenerator);
 
 		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProviderSpy, dataGroupToRecordEnhancer);
 	}
 
-	private DataRecordGroup createRecordExampleRecordWithoutId() {
+	private DataRecordGroupSpy createRecordExampleRecordWithoutId() {
 		// return DataCreator2.createRecordWithNameInDataAndLinkedDataDividerId("someNameInData",
 		// "someDataDivider");
 		DataRecordGroupSpy recordSpy = new DataRecordGroupSpy();
 		recordSpy.MRV.setDefaultReturnValuesSupplier("getType", () -> "someType");
 		recordSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider", () -> "someDataDivider");
+		recordInfoWithoutId = new DataGroupSpy();
+		recordSpy.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> recordInfoWithoutId, "recordInfo");
+
 		return recordSpy;
 	}
 
@@ -231,6 +240,7 @@ public class RecordCreatorTest {
 		recordSpy.MRV.setDefaultReturnValuesSupplier("getType", () -> "someType");
 		recordSpy.MRV.setDefaultReturnValuesSupplier("getId", () -> "someRecordId");
 		recordSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider", () -> "uu");
+
 		// DataGroupSpy recordInfoSpy = new DataGroupSpy();
 		// recordSpy.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
 		// (Supplier<DataGroupSpy>) () -> recordInfoSpy, "recordInfo");
@@ -254,11 +264,8 @@ public class RecordCreatorTest {
 	public void testRecordTypeHandlerFetchedFromDependencyProvider() {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
-		dataFactorySpy.MCR.assertParameters("factorRecordGroupFromDataGroup", 0, recordWithoutId);
-		var dataGroupAsRecordGroup = dataFactorySpy.MCR
-				.getReturnValue("factorRecordGroupFromDataGroup", 0);
 		dependencyProviderSpy.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
-				dataGroupAsRecordGroup);
+				recordWithoutId);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "The record "
@@ -308,28 +315,22 @@ public class RecordCreatorTest {
 	@Test
 	public void testNotPossibleToCreateRecordWithTypeAndIdWhichAlreadyExists() throws Exception {
 		recordStorage.MRV.setSpecificReturnValuesSupplier("recordExists",
-				(Supplier<Boolean>) () -> true, List.of(RECORD_TYPE), "1");
+				(Supplier<Boolean>) () -> true, List.of(RECORD_TYPE), recordWithId.getId());
 		try {
-			recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
-			assertTrue(false);
+			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
+			fail("It should thow exception");
 		} catch (Exception e) {
 			assertTrue(e instanceof ConflictException);
-			assertEquals(e.getMessage(),
-					"Record " + "with type: someType and id: 1 already exists in storage");
+			assertEquals(e.getMessage(), "Record "
+					+ "with type: someType and id: someRecordId already exists in storage");
 
 			recordTypeHandlerSpy.MCR.assertMethodNotCalled("getParentId");
-
-			Map<String, Object> parameters = recordStorage.MCR
-					.getParametersForMethodAndCallNumber("recordExists", 0);
-			List<?> types = (List<?>) parameters.get("types");
-			assertEquals(types.get(0), RECORD_TYPE);
-			assertEquals(parameters.get("id"), "1");
 		}
 	}
 
 	@Test
 	public void testExtendedFunctionalityIsCalled() {
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
 
 		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
 		expectedData.recordType = RECORD_TYPE;
@@ -338,14 +339,13 @@ public class RecordCreatorTest {
 		expectedData.user = (User) authenticatorOld.MCR.getReturnValue("getUserForToken", 0);
 		// expectedData.previouslyStoredTopDataGroup = null;
 		expectedData.previouslyStoredDataRecordGroup = null;
-		// expectedData.dataGroup = recordWithoutIdOld;
-		expectedData.dataRecordGroup = recordWithoutId;
+		expectedData.dataRecordGroup = recordWithId;
 
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				CREATE_AFTER_AUTHORIZATION, expectedData, 0);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				CREATE_AFTER_METADATA_VALIDATION, expectedData, 1);
-		expectedData.recordId = "1";
+		expectedData.recordId = "someRecordId";
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				CREATE_BEFORE_ENHANCE, expectedData, 2);
 		extendedFunctionalityProvider.MCR
@@ -403,19 +403,12 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testIndexerIsCalled() {
-		recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
 
-		var dataRecord = recordStorage.MCR.getParameterForMethodAndCallNumberAndParameter("create",
-				0, "dataRecord");
-
-		List<?> ids = (List<?>) recordTypeHandlerSpy.MCR.getReturnValue("getCombinedIdForIndex", 0);
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				1);
-		recordIndexer.MCR.assertParameters("indexData", 0, ids, collectTerms.indexTerms,
-				dataRecord);
-
-		recordIndexer.MCR.assertParameter("indexData", 0, "indexTerms", collectTerms.indexTerms);
-		recordIndexer.MCR.assertParameter("indexData", 0, "record", dataRecord);
+		recordIndexer.MCR.assertParameters("indexData", 0, RECORD_TYPE, "someRecordId",
+				collectTerms.indexTerms, recordWithId);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
@@ -447,20 +440,15 @@ public class RecordCreatorTest {
 
 		DataRecordGroup recordGroupOut = recordOut.getDataRecordGroup();
 		DataGroup recordInfo = recordGroupOut.getFirstGroupWithNameInData("recordInfo");
+
 		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
 		assertNotNull(recordId);
 
-		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 1,
-				"createdBy", "user", "12345");
-		var createdByLink = dataFactorySpy.MCR
-				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 1);
-		assertDataChildFoundInChildren(createdByLink, recordInfo.getChildren());
+		var createdByLink = dataFactorySpy.MCR.assertCalledParametersReturn(
+				"factorRecordLinkUsingNameInDataAndTypeAndId", "createdBy", "user", "12345");
+		recordInfoWithoutId.MCR.assertCalledParameters("addChild", createdByLink);
 
-		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
-				"type", "recordType", RECORD_TYPE);
-		var typeLink = dataFactorySpy.MCR
-				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
-		assertDataChildFoundInChildren(typeLink, recordInfo.getChildren());
+		recordWithoutId.MCR.assertParameters("setType", 0, RECORD_TYPE);
 
 		DataGroup groupCreated = (DataGroup) recordStorage.MCR
 				.getParameterForMethodAndCallNumberAndParameter("create", 0, "dataRecord");
@@ -470,109 +458,89 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testAutogeneratedIdSentToStorageUsingGeneratedId() {
-		DataRecord recordOut = recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE,
-				recordWithoutId);
+		recordWithoutId.MRV.setDefaultReturnValuesSupplier("getId", () -> "1");
 
-		DataRecordGroup groupRecordOut = recordOut.getDataRecordGroup();
-		DataGroup recordInfo = groupRecordOut.getFirstGroupWithNameInData("recordInfo");
-		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
-		assertEquals(recordId, "1");
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
-		recordStorage.MCR.assertParameter("create", 0, "type", RECORD_TYPE);
-		recordStorage.MCR.assertParameter("create", 0, "id", "1");
+		recordWithoutId.MCR.assertParameters("setId", 0, "1");
+		recordStorage.MCR.assertParameters("create", 0, RECORD_TYPE, "1");
 	}
 
 	@Test
 	public void testCreateRecordAutogeneratedIdSentInIdIsIgnored() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
-				() -> "typeWithAutoGeneratedIdWrongRecordInfo");
-		DataGroup record = DataCreator2.createRecordWithNameInDataAndLinkedDataDividerId(
-				"typeWithAutoGeneratedIdWrongRecordInfo", "cora");
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> true);
 
-		DataGroupOldSpy createdRecordInfo = (DataGroupOldSpy) record
-				.getFirstGroupWithNameInData("recordInfo");
-		createdRecordInfo.addChild(new DataAtomicOldSpy("id", "someIdThatShouldNotBeHere"));
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
 
-		DataRecord recordOut = recordCreatorOld.createAndStoreRecord(AUTH_TOKEN,
-				"typeWithAutoGeneratedIdWrongRecordInfo", record);
-
-		DataRecordGroup recordGroupOut = recordOut.getDataRecordGroup();
-		DataGroup recordInfo = recordGroupOut.getFirstGroupWithNameInData("recordInfo");
-		int numOfIds = 0;
-		for (DataChild dataElement : recordInfo.getChildren()) {
-			if ("id".equals(dataElement.getNameInData())) {
-				numOfIds++;
-			}
-		}
-		assertEquals(numOfIds, 1);
-		List<String> removedNameInDatas = createdRecordInfo.removedNameInDatas;
-		assertEquals(removedNameInDatas.size(), 1);
-		assertEquals(removedNameInDatas.get(0), "id");
+		recordWithId.MCR.assertParameters("setId", 0, "1");
 	}
 
 	@Test
 	public void testCorrectRecordInfoInCreatedRecord() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId",
-				() -> false);
+		// recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId",
+		// () -> false);
 
-		DataGroup record = DataCreator2.createRecordWithNameInDataAndIdAndLinkedRecordId(
-				"testingRecordInfo", "someId", "cora");
+		// DataGroup record = DataCreator2.createRecordWithNameInDataAndIdAndLinkedRecordId(
+		// "testingRecordInfo", "someId", "cora");
 
-		DataRecord recordOut = recordCreatorOld.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE,
-				record);
-		DataRecordGroup recordGroupOut = recordOut.getDataRecordGroup();
-		DataGroup recordInfo = recordGroupOut.getFirstGroupWithNameInData("recordInfo");
-		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
-		assertEquals(recordId, "someId");
+		DataRecord recordOut = recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE,
+				recordWithoutId);
+		// DataRecordGroup recordGroupOut = recordOut.getDataRecordGroup();
+		// DataGroup recordInfo = recordGroupOut.getFirstGroupWithNameInData("recordInfo");
+		// String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
+		// assertEquals(recordId, "someId");
 
-		assertCorrectUserInfoInRecordInfo(recordInfo);
+		assertCorrectUserInfoInRecordInfo(recordInfoWithoutId);
 
 		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorAtomicUsingNameInDataAndValue", 2);
-		dataFactorySpy.MCR.assertReturn("factorAtomicUsingNameInDataAndValue", 0,
-				recordInfo.getFirstChildWithNameInData("tsCreated"));
+		// dataFactorySpy.MCR.assertReturn("factorAtomicUsingNameInDataAndValue", 0,
+		// recordInfo.getFirstChildWithNameInData("tsCreated"));
 
+		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "tsCreated");
+		var tsCreatedFromFactory = dataFactorySpy.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
+
+		recordInfoWithoutId.MCR.assertParameters("addChild", 1, tsCreatedFromFactory);
 		String tsCreated = (String) dataFactorySpy.MCR
 				.getParameterForMethodAndCallNumberAndParameter(
 						"factorAtomicUsingNameInDataAndValue", 0, "value");
 		assertTrue(tsCreated.matches(TIMESTAMP_FORMAT));
 
-		DataAtomicSpy tsCreatedSpy = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
-
 		DataGroupSpy updated = (DataGroupSpy) dataFactorySpy.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "tsUpdated",
-				tsCreatedSpy.getValue());
+				"safds");
 
 		var createdTsCreated = dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
 		updated.MCR.assertParameters("addChild", 1, createdTsCreated);
-		assertFalse(recordInfo.containsChildWithNameInData("tsUpdated"));
+		// assertFalse(recordInfo.containsChildWithNameInData("tsUpdated"));
 
-		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
-				"type", "recordType", RECORD_TYPE);
-		var typeLink = dataFactorySpy.MCR
-				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
-		assertDataChildFoundInChildren(typeLink, recordInfo.getChildren());
+		// dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
+		// "type", "recordType", RECORD_TYPE);
+		// var typeLink = dataFactorySpy.MCR
+		// .getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
+		// assertDataChildFoundInChildren(typeLink, recordInfo.getChildren());
 	}
 
-	private void assertCorrectUserInfoInRecordInfo(DataGroup recordInfo) {
-		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 1,
-				"createdBy", "user", "12345");
+	private void assertCorrectUserInfoInRecordInfo(DataGroupSpy recordInfo) {
+		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
+				"createdBy", "user", "userSpy");
 		var createdByLink = dataFactorySpy.MCR
-				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 1);
-		assertDataChildFoundInChildren(createdByLink, recordInfo.getChildren());
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
+		// assertDataChildFoundInChildren(createdByLink, recordInfo.getChildren());
+		recordInfo.MCR.assertCalledParameters("addChild", createdByLink);
 
 		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, "updated");
 		DataGroupSpy updated = (DataGroupSpy) dataFactorySpy.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
 		updated.MCR.assertParameters("setRepeatId", 0, "0");
 
-		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 2,
-				"updatedBy", "user", "12345");
+		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 1,
+				"updatedBy", "user", "userSpy");
 		var updatedByLink = dataFactorySpy.MCR
-				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 2);
-		updated.MCR.assertParameters("addChild", 0, updatedByLink);
+				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 1);
+		updated.MCR.assertCalledParameters("addChild", updatedByLink);
 	}
 
 	@Test
