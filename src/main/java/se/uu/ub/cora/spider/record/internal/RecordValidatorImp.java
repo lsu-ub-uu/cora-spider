@@ -64,6 +64,8 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private String recordTypeToValidate;
 	private List<String> errorList = new ArrayList<>();
+	private DataRecordGroup validationResult;
+	private DataRecordGroup recordToValidate;
 
 	private RecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -83,7 +85,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	@Override
 	public DataRecord validateRecord(String authToken, String validationOrderType,
-			DataGroup validationOrder, DataGroup recordToValidate) {
+			DataGroup validationOrder, DataRecordGroup recordToValidate) {
 		this.authToken = authToken;
 		this.recordToValidate = recordToValidate;
 		this.recordType = validationOrderType;
@@ -97,7 +99,9 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		useExtendedFunctionalityForPosition(
 				ExtendedFunctionalityPosition.VALIDATE_AFTER_AUTHORIZATION);
 
-		createRecordTypeHandlerForRecordToValidate(recordToValidate);
+		// createRecordTypeHandlerForRecordToValidate(recordToValidate);
+		recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(recordToValidate);
 
 		checkUserIsAuthorizedForValidateOnRecordType(recordTypeToValidate);
 
@@ -165,12 +169,12 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		return recordTypeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
-	private void createRecordTypeHandlerForRecordToValidate(DataGroup recordToValidate) {
-		DataRecordGroup recordToValidateAsDataRecordGroup = DataProvider
-				.createRecordGroupFromDataGroup(recordToValidate);
-		recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(recordToValidateAsDataRecordGroup);
-	}
+	// private void createRecordTypeHandlerForRecordToValidate(DataGroup recordToValidate) {
+	// DataRecordGroup recordToValidateAsDataRecordGroup = DataProvider
+	// .createRecordGroupFromDataGroup(recordToValidate);
+	// recordTypeHandler = dependencyProvider
+	// .getRecordTypeHandlerUsingDataRecordGroup(recordToValidateAsDataRecordGroup);
+	// }
 
 	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
 		// read from validationorder
@@ -180,13 +184,15 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	@Override
-	protected ExtendedFunctionalityData createExtendedFunctionalityData(DataRecordGroup dataRecordGroup) {
+	protected ExtendedFunctionalityData createExtendedFunctionalityData(
+			DataRecordGroup dataRecordGroup) {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
 		data.recordType = recordTypeToValidate;
 		data.recordId = recordId;
 		data.authToken = authToken;
 		data.user = user;
-		data.dataGroup = dataRecordGroup;
+		// data.dataGroup = dataRecordGroup;
+		data.dataRecordGroup = dataRecordGroup;
 		return data;
 	}
 
@@ -261,7 +267,10 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void ensureLinksExist() {
 		String definitionId = recordTypeHandler.getDefinitionId();
-		Set<Link> collectedLinks = linkCollector.collectLinks(definitionId, recordToValidate);
+		DataGroup recordToValidateAsDataGroup = DataProvider
+				.createGroupFromRecordGroup(recordToValidate);
+		Set<Link> collectedLinks = linkCollector.collectLinks(definitionId,
+				recordToValidateAsDataGroup);
 		checkIfLinksExist(collectedLinks);
 	}
 
@@ -275,8 +284,10 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void validateIncomingDataAsSpecifiedInMetadata() {
 		String metadataId = getDefinitionId();
+		DataGroup recordToValidateAsDataGroup = DataProvider
+				.createGroupFromRecordGroup(recordToValidate);
 		ValidationAnswer validationAnswer = dataValidator.validateData(metadataId,
-				recordToValidate);
+				recordToValidateAsDataGroup);
 
 		possiblyAddErrorMessages(validationAnswer);
 	}
@@ -311,8 +322,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private DataRecordGroup createValidationResultDataGroup() {
 		// validationResult = DataProvider.createGroupUsingNameInData("validationResult");
-		DataRecordGroup validationResult = DataProvider
-				.createRecordGroupUsingNameInData("validationResult");
+		validationResult = DataProvider.createRecordGroupUsingNameInData("validationResult");
 		DataGroup recordInfo = DataProvider.createGroupUsingNameInData("recordInfo");
 		recordInfo.addChild(DataProvider.createAtomicUsingNameInDataAndValue("id",
 				idGenerator.getIdForType(recordType)));

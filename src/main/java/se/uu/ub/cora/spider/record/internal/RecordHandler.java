@@ -48,7 +48,6 @@ public class RecordHandler {
 	protected RecordStorage recordStorage;
 	protected String recordType;
 	protected String recordId;
-	protected DataGroup recordToValidate;
 	protected String authToken;
 	protected User user;
 	protected Map<String, Object> dataSharer = new HashMap<>();
