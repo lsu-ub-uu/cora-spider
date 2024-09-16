@@ -39,7 +39,6 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.IndexTerm;
 import se.uu.ub.cora.data.collected.Link;
@@ -60,7 +59,6 @@ import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 public final class RecordCreatorImp extends RecordHandler implements RecordCreator {
-	private static final String TS_CREATED = "tsCreated";
 	private static final String CREATE = "create";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -78,7 +76,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private Set<Link> collectedLinks;
 	private RecordArchive recordArchive;
 	private DataRecordGroup recordGroup;
-	private String dataDivider;
 
 	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -124,11 +121,11 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		definitionId = recordTypeHandler.getDefinitionId();
 		validateRecord();
 		useExtendedFunctionalityForPosition(CREATE_AFTER_METADATA_VALIDATION);
-		completeRecordAndCollectInformationSpecifiedInMetadata();
+		ensureCompleteRecordInfo(user.id, recordType);
+		recordId = recordGroup.getId();
+		collectInformationSpecifiedInMetadata();
 		ensureNoDuplicateForTypeAndId();
 		validateDataForUniqueThrowErrorIfNot();
-		dataDivider = recordGroup.getDataDivider();
-
 		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
 		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms.storageTerms);
 		possiblyStoreInArchive(recordAsDataGroup);
@@ -206,8 +203,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private void validateDataInRecordAsSpecifiedInMetadata() {
 		String createDefinitionId = recordTypeHandler.getCreateDefinitionId();
 		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
-		// ValidationAnswer validationAnswer = dataValidator.validateData(createDefinitionId,
-		// recordGroup);
 		ValidationAnswer validationAnswer = dataValidator.validateData(createDefinitionId,
 				dataGroup);
 		if (validationAnswer.dataIsInvalid()) {
@@ -215,61 +210,33 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		}
 	}
 
-	private void completeRecordAndCollectInformationSpecifiedInMetadata() {
-		ensureCompleteRecordInfo(user.id, recordType);
-		// recordId = extractIdFromData();
-		recordId = recordGroup.getId();
+	private void ensureCompleteRecordInfo(String userId, String recordType) {
+		recordGroup.getFirstGroupWithNameInData(RECORD_INFO);
+		ensureIdExists(recordType);
+		recordGroup.setType(recordType);
+		recordGroup.setCreatedBy(userId);
+		recordGroup.setTsCreatedToNow();
+		recordGroup.addUpdatedUsingUserIdAndTs(userId, recordGroup.getTsCreated());
+	}
+
+	private void ensureIdExists(String recordType) {
+		if (recordTypeHandler.shouldAutoGenerateId()) {
+			generateAndAddIdToRecordInfo(recordType);
+		}
+	}
+
+	private void generateAndAddIdToRecordInfo(String recordType) {
+		recordGroup.setId(idGenerator.getIdForType(recordType));
+	}
+
+	private void collectInformationSpecifiedInMetadata() {
 		collectedTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup);
 		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
-		// collectedLinks = linkCollector.collectLinks(definitionId, recordGroup);
 		collectedLinks = linkCollector.collectLinks(definitionId, dataGroup);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 	}
 
-	private void ensureCompleteRecordInfo(String userId, String recordType) {
-		DataGroup recordInfo = recordGroup.getFirstGroupWithNameInData(RECORD_INFO);
-		ensureIdExists(recordType, recordInfo);
-		recordGroup.setType(recordType);
-		// addTypeToRecordInfo(recordType, recordInfo);
-		addCreatedInfoToRecordInfoUsingUserId(recordInfo, userId);
-		addUpdatedInfoToRecordInfoUsingUserId(recordInfo, userId);
-	}
-
-	private void ensureIdExists(String recordType, DataGroup recordInfo) {
-		if (recordTypeHandler.shouldAutoGenerateId()) {
-			// removeIdIfPresentInData(recordInfo);
-			generateAndAddIdToRecordInfo(recordType, recordInfo);
-		}
-	}
-
-	// private void removeIdIfPresentInData(DataGroup recordInfo) {
-	// if (recordInfo.containsChildWithNameInData("id")) {
-	// recordInfo.removeFirstChildWithNameInData("id");
-	// }
-	// }
-
-	private void generateAndAddIdToRecordInfo(String recordType, DataGroup recordInfo) {
-		recordGroup.setId(idGenerator.getIdForType(recordType));
-	}
-
-	// private void addTypeToRecordInfo(String recordType, DataGroup recordInfo) {
-	// DataRecordLink typeLink = DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("type",
-	// "recordType", recordType);
-	// recordInfo.addChild(typeLink);
-	// }
-
-	private void addCreatedInfoToRecordInfoUsingUserId(DataGroup recordInfo, String userId) {
-		DataRecordLink createdByLink = createLinkToUserUsingNameInDataAndUserId("createdBy",
-				userId);
-		recordInfo.addChild(createdByLink);
-		String currentTimestamp = getCurrentTimestampAsString();
-		recordInfo.addChild(
-				DataProvider.createAtomicUsingNameInDataAndValue(TS_CREATED, currentTimestamp));
-	}
-
 	private void indexRecord(List<IndexTerm> indexTerms) {
-		// List<String> ids = recordTypeHandler.getCombinedIdForIndex(recordId);
-
 		recordIndexer.indexData(recordType, recordId, indexTerms, recordGroup);
 	}
 
@@ -307,19 +274,15 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private void createRecordInStorage(DataGroup recordAsDataGroup, Set<Link> collectedLinks,
 			Set<StorageTerm> storageTerms) {
 		recordStorage.create(recordType, recordId, recordAsDataGroup, storageTerms, collectedLinks,
-				dataDivider);
+				recordGroup.getDataDivider());
 	}
 
 	private void possiblyStoreInArchive(DataGroup recordAsDataGroup) {
 		if (recordTypeHandler.storeInArchive()) {
-			recordArchive.create(dataDivider, recordType, recordId, recordAsDataGroup);
+			recordArchive.create(recordGroup.getDataDivider(), recordType, recordId,
+					recordAsDataGroup);
 		}
 	}
-
-	// private String extractIdFromData() {
-	// DataGroup recordInfo = recordGroup.getFirstGroupWithNameInData("recordInfo");
-	// return recordInfo.getFirstAtomicValueWithNameInData("id");
-	// }
 
 	private DataRecord enhanceDataGroupToRecord() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();

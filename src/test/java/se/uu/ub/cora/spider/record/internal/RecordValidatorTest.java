@@ -52,7 +52,7 @@ import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -92,7 +92,7 @@ public class RecordValidatorTest {
 	private DataGroupTermCollectorSpy termCollector;
 	private UniqueValidatorSpy uniqueValidator;
 
-	private RecordTypeHandlerSpy recordTypeHandler;
+	private RecordTypeHandlerOldSpy recordTypeHandler;
 	private int index;
 
 	@BeforeMethod
@@ -104,7 +104,7 @@ public class RecordValidatorTest {
 		recordStorage = new RecordStorageForValidateDataSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		recordTypeHandler = new RecordTypeHandlerSpy();
+		recordTypeHandler = new RecordTypeHandlerOldSpy();
 		idGenerator = new IdGeneratorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		uniqueValidator = new UniqueValidatorSpy();
@@ -348,7 +348,7 @@ public class RecordValidatorTest {
 	@Test
 	public void testValidateRecordInvalidData() {
 		dataValidator.setNotValidForMetadataGroupId(RECORD_TYPE_TO_VALIDATE_AGAINST);
-		RecordTypeHandlerSpy placeTypeHandler = new RecordTypeHandlerSpy();
+		RecordTypeHandlerOldSpy placeTypeHandler = new RecordTypeHandlerOldSpy();
 		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getCreateDefinitonId",
 				(Supplier<String>) () -> RECORD_TYPE_TO_VALIDATE_AGAINST);
 		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
@@ -469,16 +469,16 @@ public class RecordValidatorTest {
 		assertErrorMessages(validationResult, errorString, errorString2);
 	}
 
-	private RecordTypeHandlerSpy createDifferentRecordTypeHandlers() {
-		RecordTypeHandlerSpy validationOrderTypeHandler = new RecordTypeHandlerSpy();
-		RecordTypeHandlerSpy placeTypeHandler = new RecordTypeHandlerSpy();
+	private RecordTypeHandlerOldSpy createDifferentRecordTypeHandlers() {
+		RecordTypeHandlerOldSpy validationOrderTypeHandler = new RecordTypeHandlerOldSpy();
+		RecordTypeHandlerOldSpy placeTypeHandler = new RecordTypeHandlerOldSpy();
 		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getCreateDefinitionId",
 				(Supplier<String>) () -> "dataWithLinksNew");
 		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
 				(Supplier<String>) () -> "dataWithLinksNew");
 		placeTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
 				(Supplier<String>) () -> "dataWithLinksNew");
-		List<RecordTypeHandlerSpy> handlers = List.of(validationOrderTypeHandler, placeTypeHandler);
+		List<RecordTypeHandlerOldSpy> handlers = List.of(validationOrderTypeHandler, placeTypeHandler);
 		index++;
 		return handlers.get(index);
 	}

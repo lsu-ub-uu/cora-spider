@@ -53,7 +53,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
@@ -84,7 +84,7 @@ public class DataGroupToRecordEnhancerTest {
 	private DataGroupTermCollectorSpy termCollector;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
-	private RecordTypeHandlerSpy recordTypeHandlerSpy;
+	private RecordTypeHandlerOldSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
 
 	private DataRecordGroupSpy someDataRecordGroup;
@@ -162,7 +162,7 @@ public class DataGroupToRecordEnhancerTest {
 	private List<PermissionTerm> getAssertedCollectedPermissionTermsForRecordType(String recordType,
 			DataRecordGroup dataRecordGroup) {
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, recordType);
-		RecordTypeHandlerSpy recordTypeHandler = (RecordTypeHandlerSpy) dependencyProvider.MCR
+		RecordTypeHandlerOldSpy recordTypeHandler = (RecordTypeHandlerOldSpy) dependencyProvider.MCR
 				.getReturnValue("getRecordTypeHandler", 0);
 
 		recordTypeHandler.MCR.assertMethodWasCalled("getDefinitionId");
@@ -904,7 +904,7 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testCreateActionPartOfEnhanceForRecordTypeRecordType() throws Exception {
-		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForCreateAction();
+		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = setupForCreateAction();
 
 		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
@@ -912,16 +912,16 @@ public class DataGroupToRecordEnhancerTest {
 		assertCreateActionForRecordTypeRecordType(recordTypeHandlerForRecordTypeInData, record);
 	}
 
-	private RecordTypeHandlerSpy setupForCreateAction() {
+	private RecordTypeHandlerOldSpy setupForCreateAction() {
 		createRecordStorageSpy();
-		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = dependencyProvider
+		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = dependencyProvider
 				.createRecordTypeHandlerSpy("someId");
 		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
 		return recordTypeHandlerForRecordTypeInData;
 	}
 
 	private void assertCreateActionForRecordTypeRecordType(
-			RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData, DataRecordSpy record) {
+			RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData, DataRecordSpy record) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
@@ -939,7 +939,7 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testEnhanceIgnoreReadAccessCreateActionPartOfEnhanceForRecordTypeRecordType()
 			throws Exception {
-		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForCreateAction();
+		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = setupForCreateAction();
 
 		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
@@ -1216,7 +1216,7 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testSearchActionPartOfEnhancedWhenEnhancingDataGroupContainingRecordTypeRecord()
 			throws Exception {
-		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordType();
+		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordType();
 
 		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
@@ -1224,22 +1224,22 @@ public class DataGroupToRecordEnhancerTest {
 		assertSearchActionForRecordTypeRecordType(recordTypeHandlerForRecordTypeInData, record);
 	}
 
-	private RecordTypeHandlerSpy setupForSearchActionWhenEnhancingTypeOfRecordType() {
+	private RecordTypeHandlerOldSpy setupForSearchActionWhenEnhancingTypeOfRecordType() {
 		createRecordStorageSpy();
 		createAndSetReturnDataGroupForReadInStorageForReadOfLinkedSearch();
 		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
 		return getRecordTypeHandlerForRecordTypeInData();
 	}
 
-	private RecordTypeHandlerSpy getRecordTypeHandlerForRecordTypeInData() {
-		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = dependencyProvider
+	private RecordTypeHandlerOldSpy getRecordTypeHandlerForRecordTypeInData() {
+		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = dependencyProvider
 				.createRecordTypeHandlerSpy("someId");
 		recordTypeHandlerForRecordTypeInData.hasLinkedSearch = true;
 		return recordTypeHandlerForRecordTypeInData;
 	}
 
 	private void assertSearchActionForRecordTypeRecordType(
-			RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData, DataRecordSpy record) {
+			RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData, DataRecordSpy record) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
@@ -1272,7 +1272,7 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeRecordType()
 			throws Exception {
-		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordType();
+		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordType();
 
 		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
@@ -1283,7 +1283,7 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testSearchActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
 			throws Exception {
-		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordTypeNotAuthorized();
+		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordTypeNotAuthorized();
 
 		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
@@ -1292,7 +1292,7 @@ public class DataGroupToRecordEnhancerTest {
 				record);
 	}
 
-	private RecordTypeHandlerSpy setupForSearchActionWhenEnhancingTypeOfRecordTypeNotAuthorized() {
+	private RecordTypeHandlerOldSpy setupForSearchActionWhenEnhancingTypeOfRecordTypeNotAuthorized() {
 		oldAuthorizator.authorizedForActionAndRecordType = false;
 		createRecordStorageSpy();
 		createAndSetReturnDataGroupForReadInStorageForReadOfLinkedSearch();
@@ -1302,7 +1302,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void assertSearchActionForRecordTypeRecordTypeNotAuthorized(
-			RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData, DataRecord record) {
+			RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData, DataRecord record) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
@@ -1344,7 +1344,7 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
 			throws Exception {
-		RecordTypeHandlerSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordTypeNotAuthorized();
+		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordTypeNotAuthorized();
 
 		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
@@ -1861,13 +1861,13 @@ public class DataGroupToRecordEnhancerTest {
 
 	@Test
 	public void testLinkedRecordUsesCorrectRecordTypeHandlerForReadLinkCollectTermPermission() {
-		RecordTypeHandlerSpy toRecordTypeRecordTypeHandler = new RecordTypeHandlerSpy();
+		RecordTypeHandlerOldSpy toRecordTypeRecordTypeHandler = new RecordTypeHandlerOldSpy();
 		dependencyProvider.mapOfRecordTypeHandlerSpies.put("toRecordType",
 				toRecordTypeRecordTypeHandler);
 		toRecordTypeRecordTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
 				() -> "toRecordType_DefId");
 
-		RecordTypeHandlerSpy toOtherRecordTypeRecordTypeHandler = new RecordTypeHandlerSpy();
+		RecordTypeHandlerOldSpy toOtherRecordTypeRecordTypeHandler = new RecordTypeHandlerOldSpy();
 		dependencyProvider.mapOfRecordTypeHandlerSpies.put("toOtherRecordType",
 				toOtherRecordTypeRecordTypeHandler);
 		toOtherRecordTypeRecordTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",

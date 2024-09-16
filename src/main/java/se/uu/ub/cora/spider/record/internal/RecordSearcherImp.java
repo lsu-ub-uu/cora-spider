@@ -196,8 +196,11 @@ public final class RecordSearcherImp implements RecordSearcher {
 	private void filterEnhanceAndAddToList(DataGroup dataGroup, DataRedactor dataRedactor) {
 		String recordType = extractRecordTypeFromRecordInfo(dataGroup);
 		try {
+
+			DataRecordGroup recordAsDataRecordGroup = DataProvider
+					.createRecordGroupFromDataGroup(dataGroup);
 			DataRecord enhancedRecord = dataGroupToRecordEnhancer.enhance(user, recordType,
-					dataGroup, dataRedactor);
+					recordAsDataRecordGroup, dataRedactor);
 			dataList.addData(enhancedRecord);
 		} catch (AuthorizationException noReadAuthorization) {
 			// do nothing

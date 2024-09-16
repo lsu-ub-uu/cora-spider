@@ -30,7 +30,7 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.internal.UploaderImp;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
@@ -80,7 +80,7 @@ public class UploaderTest {
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private SpiderInstanceFactorySpy spiderInstanceFactory;
 	private DataFactorySpy dataFactorySpy;
-	private RecordTypeHandlerSpy recordTypeHandler;
+	private RecordTypeHandlerOldSpy recordTypeHandler;
 	private LoggerFactory loggerFactory;
 	private ContentAnalyzerInstanceProviderSpy contentAnalyzeInstanceProviderSpy;
 	private ResourceConvertSpy resourceConvert;
@@ -141,7 +141,7 @@ public class UploaderTest {
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getResourceArchive",
 				() -> resourceArchive);
 
-		recordTypeHandler = new RecordTypeHandlerSpy();
+		recordTypeHandler = new RecordTypeHandlerOldSpy();
 		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
 				() -> "someDefintion");
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier(

@@ -69,8 +69,8 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	public boolean readInitInfoWasCalled;
 	public boolean tryToInitializeWasCalled;
 	public DataRedactorOldSpy dataRedactor = new DataRedactorOldSpy();
-	public RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
-	public Map<String, RecordTypeHandlerSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
+	public RecordTypeHandlerOldSpy recordTypeHandlerSpy = new RecordTypeHandlerOldSpy();
+	public Map<String, RecordTypeHandlerOldSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
 
 	public RecordStorage recordStorage = new RecordStorageSpy();
 	public RecordIdGenerator recordIdGenerator;
@@ -172,8 +172,8 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 		return dataRedactor;
 	}
 
-	public RecordTypeHandlerSpy createRecordTypeHandlerSpy(String recordType) {
-		RecordTypeHandlerSpy newRecordTypeHandlerSpy = new RecordTypeHandlerSpy();
+	public RecordTypeHandlerOldSpy createRecordTypeHandlerSpy(String recordType) {
+		RecordTypeHandlerOldSpy newRecordTypeHandlerSpy = new RecordTypeHandlerOldSpy();
 		mapOfRecordTypeHandlerSpies.put(recordType, newRecordTypeHandlerSpy);
 		return newRecordTypeHandlerSpy;
 	}

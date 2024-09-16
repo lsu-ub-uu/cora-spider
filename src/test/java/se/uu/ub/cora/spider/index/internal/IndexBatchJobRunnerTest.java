@@ -33,7 +33,7 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJobRunnerTest.FilterRecorderRecordStorage;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
@@ -62,7 +62,7 @@ public class IndexBatchJobRunnerTest {
 	private int totalNumberOfMatches = 2;
 	private int numberToReturnForReadList = 2;
 	private List<DataRecordGroup> listOfDataRecordGroups = new ArrayList<>();
-	private RecordTypeHandlerSpy recordTypeHandlerSpy;
+	private RecordTypeHandlerOldSpy recordTypeHandlerSpy;
 
 	@BeforeMethod
 	public void setUp() {
@@ -99,7 +99,7 @@ public class IndexBatchJobRunnerTest {
 		recordIndexer = new RecordIndexerSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordIndexer",
 				() -> recordIndexer);
-		recordTypeHandlerSpy = new RecordTypeHandlerSpy();
+		recordTypeHandlerSpy = new RecordTypeHandlerOldSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
 				() -> recordTypeHandlerSpy);
 	}
@@ -222,7 +222,7 @@ public class IndexBatchJobRunnerTest {
 		}
 	}
 
-	private void assertCorrectParametersSentToIndex(RecordTypeHandlerSpy recordTypeHandler,
+	private void assertCorrectParametersSentToIndex(RecordTypeHandlerOldSpy recordTypeHandler,
 			int parameterIndex, int indexDataCall, int indexInReturnedList) {
 		StorageReadResult storageReadResult = (StorageReadResult) recordStorage.MCR
 				.getReturnValue("readList", parameterIndex);

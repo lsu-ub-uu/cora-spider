@@ -29,6 +29,7 @@ import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
@@ -190,7 +191,8 @@ public class RecordListIndexerImp implements RecordListIndexer {
 
 	private DataRecord storeIndexBatchJobInStorage(String authToken, IndexBatchJob indexBatchJob,
 			DataGroup filterAsData) {
-		DataGroup createDataGroup = batchJobConverter.createDataRecordGroup(indexBatchJob, filterAsData);
+		DataRecordGroup createDataGroup = batchJobConverter.createDataRecordGroup(indexBatchJob,
+				filterAsData);
 		RecordCreator recordCreator = SpiderInstanceProvider.getRecordCreator();
 		return recordCreator.createAndStoreRecord(authToken, "indexBatchJob", createDataGroup);
 	}

@@ -40,7 +40,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -67,7 +67,7 @@ public class RecordDeleterTest {
 	private RecordIndexerSpy recordIndexer;
 	private DataGroupTermCollectorSpy termCollector;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
-	private RecordTypeHandlerSpy recordTypeHandler;
+	private RecordTypeHandlerOldSpy recordTypeHandler;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -79,7 +79,7 @@ public class RecordDeleterTest {
 		recordIndexer = new RecordIndexerSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		recordTypeHandler = new RecordTypeHandlerSpy();
+		recordTypeHandler = new RecordTypeHandlerOldSpy();
 		setUpDependencyProvider();
 	}
 
