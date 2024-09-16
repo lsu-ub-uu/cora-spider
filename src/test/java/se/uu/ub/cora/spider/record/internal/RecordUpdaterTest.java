@@ -133,7 +133,7 @@ public class RecordUpdaterTest {
 	private DataRedactorSpy dataRedactor;
 
 	private DataRecordGroupSpy recordWithId;
-	private DataRecordGroupSpy previouslyDataRecordGroup;
+	private DataRecordGroupSpy previouslyStoredRecordGroup;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -157,12 +157,12 @@ public class RecordUpdaterTest {
 		setUpDependencyProviderOld();
 
 		setUpDependencyProvider();
-		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> previouslyDataRecordGroup);
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> previouslyStoredRecordGroup);
 
 		setUpToReturnFakeDataForUpdatedTS();
 
 		recordWithId = createDataGroupForUpdate();
-		previouslyDataRecordGroup = new DataRecordGroupSpy();
+		previouslyStoredRecordGroup = new DataRecordGroupSpy();
 	}
 
 	private void setUpFactoriesAndProviders() {
@@ -351,241 +351,81 @@ public class RecordUpdaterTest {
 	// funktion i dataRecordGroup som kan ändra värden till overwrite. Problemet här är att man
 	// måste justera konverteringen till DataGroups och JSON så att flaggan inkluderas eller inte,
 	// beroende på värdet.
+
+	// use dataRecordGroup.removeOverwriteProtection() (easies solution right now)
 	@Test
 	public void testIgnoreOverwriteProtection_removedFromRecordInfo() throws Exception {
-		// String ignoreOverwriteProtectionValue = "true";
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
-		// DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
-		// Optional.of(ignoreOverwriteProtectionValue), extendedFunctionalitySpy,
-		// Optional.of("2023-12-05T08:51:01.730741Z"));
-		setUpRecordUpdaterWithExtFunctionallityAndValue(extendedFunctionalitySpy);
-
+		setUpExtFuncToImmediatelyAssertOverwriteProtectionHasBeenCalledOnPositionUPDATE_BEFORE_METADATA_VALIDATION();
 		recordWithId.MRV.setDefaultReturnValuesSupplier("overwriteProtectionShouldBeEnforced",
-				() -> false);
+				() -> true);
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
-		// recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
-
-		assertIgnoreOverwriteProtectionDeletedFromTopDataGroup(extendedFunctionalitySpy);
 	}
 
-	@Test
-	public void testIgnoreOverwriteProtection_DifferntLatestUpdated_update() throws Exception {
-		String ignoreOverwriteProtectionValue = "true";
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
-
-		setupPreviouslyStoredRecord("2020-01-01T00:00:00.000001Z");
-
-		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
-				extendedFunctionalitySpy);
-
-		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
-
-		assertIgnoreOverwriteProtectionDeletedFromTopDataGroup(extendedFunctionalitySpy);
-	}
-
-	private void assertIgnoreOverwriteProtectionDeletedFromTopDataGroup(
-			ExtendedFunctionalitySpy extendedFunctionalitySpy) {
-		ExtendedFunctionalityData extData = (ExtendedFunctionalityData) extendedFunctionalitySpy.MCR
-				.getParameterForMethodAndCallNumberAndParameter("useExtendedFunctionality", 0,
-						"data");
-		// DataGroup recordInfoHandled =
-		// extData.dataGroup.getFirstGroupWithNameInData("recordInfo");
-		// assertFalse(recordInfoHandled.containsChildWithNameInData("ignoreOverwriteProtection"));
-		assertTrue(extData.dataRecordGroup.overwriteProtectionShouldBeEnforced());
-	}
-
-	@Test
-	public void testIgnoreOverwriteProtection_SameLatestUpdated_update() throws Exception {
-		String ignoreOverwriteProtectionValue = "false";
-		String sameLatestUpdatedTimestamp = "2020-01-01T00:00:00.000001Z";
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
-
-		setupPreviouslyStoredRecord(sameLatestUpdatedTimestamp);
-		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
-				extendedFunctionalitySpy);
-
-		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
-
-		assertIgnoreOverwriteProtectionDeletedFromTopDataGroup(extendedFunctionalitySpy);
-	}
-
-	@Test
-	public void testIgnoreOverwriteProtection_SameLatestUpdated_noIgnoreFlag_update()
-			throws Exception {
-		String sameLatestUpdatedTimestamp = "2020-01-01T00:00:00.000001Z";
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
-
-		setupPreviouslyStoredRecord(sameLatestUpdatedTimestamp);
-		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
-				extendedFunctionalitySpy);
-
-		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
-
-		assertIgnoreOverwriteProtectionDeletedFromTopDataGroup(extendedFunctionalitySpy);
-	}
-
-	@Test
-	public void testIgnoreOverwriteProtection_DifferntLatestUpdated_noIgnoreFlag_ConflictException()
-			throws Exception {
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
-
-		setupPreviouslyStoredRecord("2020-01-01T00:00:00.000001Z");
-		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
-				extendedFunctionalitySpy);
-
-		try {
-			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
-			fail();
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
-			assertTrue(e instanceof ConflictException);
-			assertEquals(e.getMessage(),
-					"Could not update record because it exist a newer version of the "
-							+ "record in the storage.");
+	private void setUpExtFuncToImmediatelyAssertOverwriteProtectionHasBeenCalledOnPositionUPDATE_BEFORE_METADATA_VALIDATION() {
+		class ExtendedFunctionalityAssertRemovedOverwriteProtectionSpy
+				extends ExtendedFunctionalitySpy {
+			@Override
+			public void useExtendedFunctionality(ExtendedFunctionalityData data) {
+				((DataRecordGroupSpy) data.dataRecordGroup).MCR
+						.assertCalledParameters("removeOverwriteProtection");
+			}
 		}
-	}
 
-	@Test
-	public void testIgnoreOverwriteProtection_DiffrentLatestUpdated_ConflictException()
-			throws Exception {
-		String ignoreOverwriteProtectionValue = "false";
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
-
-		setupPreviouslyStoredRecord("2020-01-01T00:00:00.000001Z");
-		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
-				extendedFunctionalitySpy);
-
-		try {
-			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
-			fail();
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
-			assertTrue(e instanceof ConflictException);
-			assertEquals(e.getMessage(),
-					"Could not update record because it exist a newer version of the "
-							+ "record in the storage.");
-		}
-	}
-
-	@Test
-	public void testIgnoreOverwriteProtection_MissingTSLatestUpdated_ConflictException()
-			throws Exception {
-		// String ignoreOverwriteProtectionValue = "false";
-		ExtendedFunctionalitySpy extendedFunctionalitySpy = new ExtendedFunctionalitySpy();
-
-		setupPreviouslyStoredRecord("2020-01-01T00:00:00.000001Z");
-		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
-				extendedFunctionalitySpy);
-
-		try {
-			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);
-			fail();
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
-			assertTrue(e instanceof ConflictException);
-			assertEquals(e.getMessage(),
-					"Could not update record because it exist a newer version of the "
-							+ "record in the storage.");
-		}
-	}
-
-	private void setupPreviouslyStoredRecord(String updatedTimestamp) {
-		DataGroup dataGroupStored = new DataGroupOldSpy("nameInData");
-		DataGroup recordInfo = DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				RECORD_TYPE, "spyId", "cora");
-
-		dataGroupStored.addChild(recordInfo);
-		DataGroupSpy createdG = new DataGroupSpy();
-		createdG.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "createdBy");
-		recordInfo.addChild(createdG);
-
-		DataAtomicSpy tsCreated = new DataAtomicSpy();
-		tsCreated.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "tsCreated");
-		recordInfo.addChild(tsCreated);
-		//
-		DataGroupSpy updatedG = new DataGroupSpy();
-		updatedG.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData", () -> true);
-		updatedG.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "updated");
-		updatedG.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> updatedTimestamp);
-		updatedG.MRV.setDefaultReturnValuesSupplier("getRepeatId", () -> "1");
-		recordInfo.addChild(updatedG);
-
-		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> dataGroupStored);
-	}
-
-	// private DataGroup setUpRecordUpdaterWithExtFunctionallityAndValue(
-	// Optional<String> ignoreOverwriteProtectionValue,
-	// ExtendedFunctionalitySpy extendedFunctionalitySpy, Optional<String> updatedTimestamp) {
-	// extendedFunctionalityProvider.MRV.setSpecificReturnValuesSupplier(
-	// "getFunctionalityForPositionAndRecordType", () -> List.of(extendedFunctionalitySpy),
-	// UPDATE_BEFORE_METADATA_VALIDATION, RECORD_TYPE);
-	//
-	// recordUpdater = RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-	// dependencyProviderSpy, dataGroupToRecordEnhancer);
-	//
-	// DataGroupSpy dataGroup = createRecordWithRecordInfo(ignoreOverwriteProtectionValue,
-	// updatedTimestamp);
-	// return dataGroup;
-	// }
-	private void setUpRecordUpdaterWithExtFunctionallityAndValue(
-			ExtendedFunctionalitySpy extendedFunctionalitySpy) {
+		var extendedFunctionalitySpy = new ExtendedFunctionalityAssertRemovedOverwriteProtectionSpy();
 		extendedFunctionalityProvider.MRV.setSpecificReturnValuesSupplier(
 				"getFunctionalityForPositionAndRecordType", () -> List.of(extendedFunctionalitySpy),
 				UPDATE_BEFORE_METADATA_VALIDATION, RECORD_TYPE);
-
-		recordUpdater = RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProviderSpy, dataGroupToRecordEnhancer);
-
 	}
 
-	private DataGroupSpy createRecordWithRecordInfo(Optional<String> ignoreOverwriteProtectionValue,
-			Optional<String> updatedTimestamp) {
-		DataGroup recordInfo = DataCreator2.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-				RECORD_TYPE, "spyId", "cora");
+	@org.testng.annotations.DataProvider(name = "overwriteProtection")
+	public Object[][] testDataForOverwriteProtection() {
+		return new Boolean[][] { { false, true }, { false, false }, { true, false } };
+	}
 
-		DataGroupSpy dataGroup = new DataGroupSpy();
-		dataGroup.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "nameInData");
-		dataGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> recordInfo, "recordInfo");
+	@Test(dataProvider = "overwriteProtection")
+	public void testIgnoreOverwriteProtection(boolean overwriteProtectionShouldBeEnforced,
+			boolean lastUpdatedTsIsDifferent) throws Exception {
+		setUpExtFuncToImmediatelyAssertOverwriteProtectionHasBeenCalledOnPositionUPDATE_BEFORE_METADATA_VALIDATION();
+		setUpEnforceAndLastUpdatedTsIsDifferent(overwriteProtectionShouldBeEnforced,
+				lastUpdatedTsIsDifferent);
 
-		setIgnoreOverwriteProtection(ignoreOverwriteProtectionValue, recordInfo);
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", recordWithId);
 
-		DataGroupSpy updatedG = new DataGroupSpy();
-		updatedG.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "updated");
-		if (updatedTimestamp.isPresent()) {
-			updatedG.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
-					"tsUpdated");
-			updatedG.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-					() -> updatedTimestamp.get(), "tsUpdated");
+		recordStorage.MCR.assertMethodWasCalled("update");
+	}
+
+	private void setUpEnforceAndLastUpdatedTsIsDifferent(
+			boolean overwriteProtectionShouldBeEnforced, boolean lastUpdatedTsIsDifferent) {
+		String ts = "2024-01-01T00:00:00.000000Z";
+		String otherTs = "2020-01-01T00:00:00.000000Z";
+		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getLatestTsUpdated",
+				() -> ts);
+		recordWithId.MRV.setDefaultReturnValuesSupplier("overwriteProtectionShouldBeEnforced",
+				() -> overwriteProtectionShouldBeEnforced);
+		if (lastUpdatedTsIsDifferent) {
+			recordWithId.MRV.setDefaultReturnValuesSupplier("getLatestTsUpdated", () -> otherTs);
 		} else {
-			updatedG.MRV.setThrowException("getFirstAtomicValueWithNameInData",
-					new DataMissingException("spy value not found"), "tsUpdated");
-		}
-		updatedG.MRV.setDefaultReturnValuesSupplier("getRepeatId", () -> "1");
-
-		recordInfo.addChild(updatedG);
-		return dataGroup;
-	}
-
-	private void setIgnoreOverwriteProtection(Optional<String> ignoreOverwriteProtectionValue,
-			DataGroup recordInfo) {
-		if (ignoreOverwriteProtectionValue.isPresent()) {
-			DataAtomicSpy ignoreOverwriteProtection = createAtomicForOverwriteProtection(
-					ignoreOverwriteProtectionValue.get());
-			recordInfo.addChild(ignoreOverwriteProtection);
+			recordWithId.MRV.setDefaultReturnValuesSupplier("getLatestTsUpdated", () -> ts);
 		}
 	}
 
-	private DataAtomicSpy createAtomicForOverwriteProtection(
-			String ignoreOverwriteProtectionValue) {
-		DataAtomicSpy ignoreOverwriteProtection = new DataAtomicSpy();
-		ignoreOverwriteProtection.MRV.setDefaultReturnValuesSupplier("getNameInData",
-				() -> "ignoreOverwriteProtection");
-		ignoreOverwriteProtection.MRV.setDefaultReturnValuesSupplier("getValue",
-				() -> ignoreOverwriteProtectionValue);
-		return ignoreOverwriteProtection;
+	@Test
+	public void testIgnoreOverwriteProtection_DifferentLatestUpdated_noIgnoreFlag_ConflictException()
+			throws Exception {
+		setUpExtFuncToImmediatelyAssertOverwriteProtectionHasBeenCalledOnPositionUPDATE_BEFORE_METADATA_VALIDATION();
+		setUpEnforceAndLastUpdatedTsIsDifferent(true, true);
+
+		try {
+			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", recordWithId);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof ConflictException);
+			assertEquals(e.getMessage(), "Could not update record because it exist a newer "
+					+ "version of the record in the storage.");
+		}
+
+		recordStorage.MCR.assertMethodNotCalled("update");
 	}
 
 	@Test
@@ -1106,7 +946,7 @@ public class RecordUpdaterTest {
 
 		String sameLatestUpdatedTimestamp = "2020-01-01T00:00:00.000001Z";
 		setupPreviouslyStoredRecord(sameLatestUpdatedTimestamp);
-		DataGroup dataGroup = setUpRecordUpdaterWithExtFunctionallityAndValue(
+		DataGroup dataGroup = setUpExtFuncToImediatelyValidateThatRemoveOverwriteProtectionHasBeenCalled(
 				extendedFunctionalitySpy);
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, "spyId", dataGroup);

@@ -65,7 +65,6 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordUpdaterImp extends RecordHandler implements RecordUpdater {
-	private static final String IGNORE_OVERWRITE_PROTECTION = "ignoreOverwriteProtection";
 	private static final String RECORD_INFO = "recordInfo";
 	private static final String UPDATED_STRING = "updated";
 	private static final String TS_UPDATED = "tsUpdated";
@@ -215,34 +214,11 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private void doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection() {
-		// DataGroup recordInfo = recordGroup.getFirstGroupWithNameInData(RECORD_INFO);
-		// boolean overwriteProtection = true;
-		// overwriteProtection = readIgnoreOverwriteProtectionSettingIfExists(recordInfo,
-		// overwriteProtection);
-		// if (overwriteProtection) {
-		// ifDifferentVersionThrowConflictException();
-		// }
-		if (!recordGroup.overwriteProtectionShouldBeEnforced()) {
+		if (recordGroup.overwriteProtectionShouldBeEnforced()) {
 			ifDifferentVersionThrowConflictException();
 		}
-		// recordGroup.setOverwriteProtectionShouldBeEnforced(false);
-		// recordInfo.removeFirstChildWithNameInData(IGNORE_OVERWRITE_PROTECTION);
-		// recordGroup.overwriteProtectionShouldBeEnforced()
+		recordGroup.removeOverwriteProtection();
 	}
-
-	// private boolean readIgnoreOverwriteProtectionSettingIfExists(DataGroup recordInfo,
-	// boolean overwriteProtection) {
-	// if (recordInfo.containsChildWithNameInData(IGNORE_OVERWRITE_PROTECTION)) {
-	// overwriteProtection = getOverwriteProtectionSetting(recordInfo);
-	// }
-	// return overwriteProtection;
-	// }
-
-	// private boolean getOverwriteProtectionSetting(DataGroup recordInfo) {
-	// String ignoreOverwriteProtection = recordInfo
-	// .getFirstAtomicValueWithNameInData(IGNORE_OVERWRITE_PROTECTION);
-	// return !"true".equals(ignoreOverwriteProtection);
-	// }
 
 	private void ifDifferentVersionThrowConflictException() {
 		// String latestUpdatedTopDataG = getLatestDateFromARecord(recordGroup);
