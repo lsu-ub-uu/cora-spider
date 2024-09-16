@@ -240,8 +240,7 @@ public final class UploaderImp implements Uploader {
 
 	private DataRecord updateRecord(DataRecordGroup dataRecordGroup) {
 		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
-		DataGroup binaryDataGroup = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
-		return recordUpdater.updateRecord(authToken, type, id, binaryDataGroup);
+		return recordUpdater.updateRecord(authToken, type, id, dataRecordGroup);
 	}
 
 	private String detectMimeTypeFromResourceInArchive(String dataDivider) {

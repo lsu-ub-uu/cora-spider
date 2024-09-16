@@ -322,10 +322,7 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
-		var binaryDG = (DataGroupSpy) dataFactorySpy.MCR
-				.getReturnValue("factorGroupFromDataRecordGroup", 0);
-
-		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", binaryDG);
+		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", readBinarySpy);
 
 		assertMasterIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
 		assertRemoveExpectedFieldsFromBinaryRecord(readBinarySpy);
@@ -347,10 +344,7 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
-		var binaryDG = (DataGroupSpy) dataFactorySpy.MCR
-				.getReturnValue("factorGroupFromDataRecordGroup", 0);
-
-		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", binaryDG);
+		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", readBinarySpy);
 
 		assertMasterIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
 		assertRemoveExpectedFieldsFromBinaryRecord(readBinarySpy);
