@@ -59,7 +59,6 @@ import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
-import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.StorageReadResult;
@@ -72,7 +71,7 @@ public class RecordListReaderTest {
 
 	private RecordStorageSpy recordStorage;
 	private OldAuthenticatorSpy authenticator;
-	private OldSpiderAuthorizatorSpy authorizator;
+	private SpiderAuthorizatorSpy authorizator;
 	private PermissionRuleCalculator ruleCalculator;
 	private RecordListReader recordListReader;
 	private DataGroupToRecordEnhancerSpy recordEnhancer;
@@ -100,7 +99,7 @@ public class RecordListReaderTest {
 		emptyFilter = createEmptyFilter();
 		nonEmptyFilter = new DataGroupSpy();
 		authenticator = new OldAuthenticatorSpy();
-		authorizator = new OldSpiderAuthorizatorSpy();
+		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		dataValidator = new DataValidatorSpy();
@@ -202,7 +201,8 @@ public class RecordListReaderTest {
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "Exception from SpiderAuthorizatorSpy")
 	public void testUserIsNotAuthorizedForActionOnRecordType() {
-		authorizator.authorizedForActionAndRecordType = false;
+		authorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForActionOnRecordType",
+				new AuthorizationException("Exception from SpiderAuthorizatorSpy"));
 
 		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
 	}
