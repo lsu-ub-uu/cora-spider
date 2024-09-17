@@ -49,6 +49,8 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MRV.setDefaultReturnValuesSupplier("hasRecordPartWriteConstraint", () -> false);
 		MRV.setDefaultReturnValuesSupplier("getWriteRecordPartConstraints",
 				() -> Collections.emptySet());
+		MRV.setDefaultReturnValuesSupplier("getUpdateWriteRecordPartConstraints",
+				() -> Collections.emptySet());
 		MRV.setDefaultReturnValuesSupplier("representsTheRecordTypeDefiningSearches", () -> false);
 		MRV.setDefaultReturnValuesSupplier("representsTheRecordTypeDefiningRecordTypes",
 				() -> false);

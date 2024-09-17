@@ -60,7 +60,7 @@ import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
-import se.uu.ub.cora.spider.spy.IdGeneratorSpy;
+import se.uu.ub.cora.spider.spy.IdGeneratorOldSpy;
 import se.uu.ub.cora.spider.spy.RecordArchiveSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
@@ -74,7 +74,7 @@ public class RecordCreatorTest {
 	private static final String AUTH_TOKEN = "someToken";
 	private RecordStorageSpy recordStorage;
 	private SpiderAuthorizatorSpy spiderAuthorizator;
-	private IdGeneratorSpy idGenerator;
+	private IdGeneratorOldSpy idGenerator;
 	private RecordCreator recordCreator;
 	private DataValidatorSpy dataValidator;
 	private DataRecordLinkCollectorSpy linkCollector;
@@ -104,7 +104,7 @@ public class RecordCreatorTest {
 		spiderAuthorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = new RecordStorageSpy();
-		idGenerator = new IdGeneratorSpy();
+		idGenerator = new IdGeneratorOldSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		recordIndexer = new RecordIndexerSpy();

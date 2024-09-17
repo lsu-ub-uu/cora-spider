@@ -63,7 +63,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MRV.setDefaultReturnValuesSupplier("getRecordArchive", RecordArchiveSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getResourceArchive", ResourceArchiveSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getStreamStorage", OldStreamStorageSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getRecordIdGenerator", IdGeneratorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordIdGenerator", IdGeneratorOldSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator", SpiderAuthorizatorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataValidator", DataValidatorOldSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataRecordLinkCollector",

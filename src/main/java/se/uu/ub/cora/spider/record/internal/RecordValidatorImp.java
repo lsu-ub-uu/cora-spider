@@ -35,7 +35,6 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -55,7 +54,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private static final String ERROR_MESSAGES = "errorMessages";
 	private static final String VALIDATE = "validate";
 	private Authenticator authenticator;
-	private SpiderAuthorizator spiderAuthorizator;
+	private SpiderAuthorizator authorizator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private String newOrExisting;
@@ -70,7 +69,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private RecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 		this.authenticator = dependencyProvider.getAuthenticator();
-		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
+		this.authorizator = dependencyProvider.getSpiderAuthorizator();
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
@@ -143,7 +142,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private void checkUserIsAuthorizedForCreateOnValidationOrder() {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "create", recordType);
+		authorizator.checkUserIsAuthorizedForActionOnRecordType(user, "create", recordType);
 	}
 
 	private void validateValidationOrderThrowErrorIfInvalid(DataGroup validationOrder) {
@@ -197,7 +196,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private void checkUserIsAuthorizedForValidateOnRecordType(String recordTypeToValidate) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, VALIDATE,
+		authorizator.checkUserIsAuthorizedForActionOnRecordType(user, VALIDATE,
 				recordTypeToValidate);
 	}
 
@@ -312,38 +311,22 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private DataRecord createAnswerDataRecord() {
-		DataRecordGroup validationResult = createValidationResultDataGroup();
+		DataRecordGroup validationRecordGroup = createValidationRecordGroup();
 		addErrorToValidationResult();
 		setValidStatus();
-		DataRecord dataRecord = DataProvider.createRecordWithDataRecordGroup(validationResult);
+		DataRecord dataRecord = DataProvider.createRecordWithDataRecordGroup(validationRecordGroup);
 		addReadActionToComplyWithRecordStructure(dataRecord);
 		return dataRecord;
 	}
 
-	private DataRecordGroup createValidationResultDataGroup() {
-		// validationResult = DataProvider.createGroupUsingNameInData("validationResult");
+	private DataRecordGroup createValidationRecordGroup() {
 		validationResult = DataProvider.createRecordGroupUsingNameInData("validationResult");
-		DataGroup recordInfo = DataProvider.createGroupUsingNameInData("recordInfo");
-		recordInfo.addChild(DataProvider.createAtomicUsingNameInDataAndValue("id",
-				idGenerator.getIdForType(recordType)));
-
-		DataRecordLink typeLink = DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("type",
-				"recordType", recordType);
-		recordInfo.addChild(typeLink);
-
-		addCreatedInfoToRecordInfoUsingUserId(recordInfo, user.id);
-		addUpdatedInfoToRecordInfoUsingUserId(recordInfo, user.id);
-		validationResult.addChild(recordInfo);
+		validationResult.setId(idGenerator.getIdForType(recordType));
+		validationResult.setType(recordType);
+		validationResult.setCreatedBy(user.id);
+		validationResult.setTsCreatedToNow();
+		validationResult.addUpdatedUsingUserIdAndTs(user.id, validationResult.getTsCreated());
 		return validationResult;
-	}
-
-	private void addCreatedInfoToRecordInfoUsingUserId(DataGroup recordInfo, String userId) {
-		DataRecordLink createdByLink = DataProvider
-				.createRecordLinkUsingNameInDataAndTypeAndId("createdBy", "user", userId);
-		recordInfo.addChild(createdByLink);
-		String currentLocalDateTime = getCurrentTimestampAsString();
-		recordInfo.addChild(
-				DataProvider.createAtomicUsingNameInDataAndValue(TS_CREATED, currentLocalDateTime));
 	}
 
 	private void addErrorToValidationResult() {
