@@ -21,40 +21,58 @@ package se.uu.ub.cora.spider.extended.workorder;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
-import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
+import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
+import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
-import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
-import se.uu.ub.cora.spider.testdata.DataCreator2;
+import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class WorkOrderExecutorTest {
-	SpiderDependencyProviderOldSpy dependencyProvider;
+	SpiderDependencyProviderSpy dependencyProviderSpy;
 	WorkOrderExecutor extendedFunctionality;
 	DataGroupTermCollectorSpy termCollector;
 	RecordIndexerSpy recordIndexer;
-	OldSpiderAuthorizatorSpy authorizator;
-	OldAuthenticatorSpy authenticator;
+	SpiderAuthorizatorSpy authorizator;
+	AuthenticatorSpy authenticator;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
 	private RecordStorageSpy recordStorage;
+	private DataRecordGroupSpy workOrder;
 
 	@BeforeMethod
 	public void setUp() {
 		setUpFactoriesAndProviders();
-		recordStorage = new RecordStorageSpy();
-
 		setUpDependencyProvider();
+		createWorkOrderWithTypeAndId("book", "book1");
+		extendedFunctionality = WorkOrderExecutor.usingDependencyProvider(dependencyProviderSpy);
+	}
+
+	private void createWorkOrderWithTypeAndId(String recordTypeToIndex, String recordIdToIndex) {
+		DataRecordLinkSpy recordTypeLink = new DataRecordLinkSpy();
+		recordTypeLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+				() -> recordTypeToIndex);
+
+		workOrder = new DataRecordGroupSpy();
+		workOrder.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
+				() -> recordTypeLink, DataRecordLink.class, "recordType");
+		workOrder.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> recordIdToIndex, "recordId");
+	}
+
+	private void setUpIndexActionForWorkOrder(String indexAction) {
+		workOrder.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> indexAction, "type");
 	}
 
 	private void setUpFactoriesAndProviders() {
@@ -65,31 +83,34 @@ public class WorkOrderExecutorTest {
 	}
 
 	private void setUpDependencyProvider() {
-		dependencyProvider = new SpiderDependencyProviderOldSpy();
-		dependencyProvider.recordIndexer = new RecordIndexerSpy();
-		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
-		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.authenticator = new OldAuthenticatorSpy();
-		dependencyProvider.spiderAuthorizator = new OldSpiderAuthorizatorSpy();
-		extendedFunctionality = WorkOrderExecutor.usingDependencyProvider(dependencyProvider);
-		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
-		recordIndexer = (RecordIndexerSpy) dependencyProvider.getRecordIndexer();
-		authorizator = (OldSpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();
-		authenticator = (OldAuthenticatorSpy) dependencyProvider.getAuthenticator();
+		dependencyProviderSpy = new SpiderDependencyProviderSpy();
+		recordStorage = new RecordStorageSpy();
+		authorizator = new SpiderAuthorizatorSpy();
+		authenticator = new AuthenticatorSpy();
+		termCollector = new DataGroupTermCollectorSpy();
+		recordIndexer = new RecordIndexerSpy();
 
-		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataRecordGroupSpy::new);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
+				() -> recordStorage);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
+				() -> authorizator);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
+				() -> authenticator);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
+				() -> termCollector);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordIndexer",
+				() -> recordIndexer);
 	}
 
 	@Test
 	public void testIndexData() {
-		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
-				"someGeneratedId", "book", "book1");
+		setUpIndexActionForWorkOrder("NotRemoveFromIndex");
 
 		callExtendedFunctionalityWithGroup(workOrder);
 
 		DataRecordGroupSpy dataToIndex = (DataRecordGroupSpy) recordStorage.MCR
 				.assertCalledParametersReturn("read", "book", "book1");
-		dependencyProvider.MCR.assertCalledParameters("getRecordTypeHandlerUsingDataRecordGroup",
+		dependencyProviderSpy.MCR.assertCalledParameters("getRecordTypeHandlerUsingDataRecordGroup",
 				dataToIndex);
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.assertCalledParametersReturn(
 				"collectTerms", "fakeDefMetadataIdFromRecordTypeHandlerSpy", dataToIndex);
@@ -98,19 +119,19 @@ public class WorkOrderExecutorTest {
 				dataToIndex);
 	}
 
-	private void callExtendedFunctionalityWithGroup(DataGroup workOrder) {
+	private void callExtendedFunctionalityWithGroup(DataRecordGroup workOrder) {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
 		data.authToken = "someToken";
-		data.dataGroup = workOrder;
+		data.dataRecordGroup = workOrder;
 		extendedFunctionality.useExtendedFunctionality(data);
 	}
 
 	@Test
 	public void testIndexDataWithNoRightToIndexRecordType() {
-		authorizator.setNotAutorizedForActionOnRecordType("index", "book");
+		setUpIndexActionForWorkOrder("NotRemoveFromIndex");
+		authorizator.MRV.setDefaultReturnValuesSupplier("userIsAuthorizedForActionOnRecordType",
+				() -> false);
 
-		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
-				"someGeneratedId", "book", "book1");
 		callExtendedFunctionalityWithGroup(workOrder);
 
 		termCollector.MCR.assertMethodNotCalled("collectTerms");
@@ -119,20 +140,19 @@ public class WorkOrderExecutorTest {
 
 	@Test
 	public void testRemoveFromIndex() {
-		DataGroup workOrder = DataCreator2.createWorkOrderWithIdRecordTypeRecordIdAndWorkOrderType(
-				"someGeneratedId", "book", "book1", "removeFromIndex");
+		setUpIndexActionForWorkOrder("removeFromIndex");
 
 		callExtendedFunctionalityWithGroup(workOrder);
+
 		recordIndexer.MCR.assertParameter("deleteFromIndex", 0, "type", "book");
 		recordIndexer.MCR.assertParameter("deleteFromIndex", 0, "id", "book1");
 	}
 
 	@Test
 	public void testRemoveFromIndexNoRightToIndexRecordType() {
-		authorizator.setNotAutorizedForActionOnRecordType("index", "book");
-
-		DataGroup workOrder = DataCreator2.createWorkOrderWithIdRecordTypeRecordIdAndWorkOrderType(
-				"someGeneratedId", "book", "book1", "removeFromIndex");
+		setUpIndexActionForWorkOrder("removeFromIndex");
+		authorizator.MRV.setDefaultReturnValuesSupplier("userIsAuthorizedForActionOnRecordType",
+				() -> false);
 
 		callExtendedFunctionalityWithGroup(workOrder);
 
@@ -141,9 +161,8 @@ public class WorkOrderExecutorTest {
 
 	@Test
 	public void testIndexDataPerformCommitFalseInWorkOrder() {
-		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
-				"someGeneratedId", "book", "book1");
-		workOrder.addChild(new DataAtomicOldSpy("performCommit", "false"));
+		setUpIndexActionForWorkOrder("NotRemoveFromIndex");
+		setUpPerfromCommitForWorkOrder("false");
 
 		callExtendedFunctionalityWithGroup(workOrder);
 
@@ -156,11 +175,18 @@ public class WorkOrderExecutorTest {
 				collectTerms.indexTerms, dataToIndex);
 	}
 
+	private void setUpPerfromCommitForWorkOrder(String performCommit) {
+		workOrder.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				"performCommit");
+		workOrder.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> performCommit, "performCommit");
+	}
+
 	@Test
 	public void testIndexDataPerformCommitTrueInWorkOrder() {
-		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(
-				"someGeneratedId", "book", "book1");
-		workOrder.addChild(new DataAtomicOldSpy("performCommit", "true"));
+		setUpIndexActionForWorkOrder("NotRemoveFromIndex");
+		setUpPerfromCommitForWorkOrder("true");
+
 		callExtendedFunctionalityWithGroup(workOrder);
 
 		DataRecordGroupSpy dataToIndex = (DataRecordGroupSpy) recordStorage.MCR
@@ -170,6 +196,5 @@ public class WorkOrderExecutorTest {
 		recordIndexer.MCR.assertMethodNotCalled("indexDataWithoutExplicitCommit");
 		recordIndexer.MCR.assertParameters("indexData", 0, "book", "book1", collectTerms.indexTerms,
 				dataToIndex);
-
 	}
 }

@@ -25,6 +25,7 @@ import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -64,21 +65,22 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
 		setUpDataSharer(data);
-		DataGroup previousDataGroup = data.previouslyStoredTopDataGroup;
-		DataGroup currentDataGroup = data.dataGroup;
-		currentDataDivider = readDataDividerFromUserGroup(currentDataGroup);
-		possiblySetAppTokensGroup(currentDataGroup);
+		DataRecordGroup previousDataRecordGroup = data.previouslyStoredDataRecordGroup;
+		DataRecordGroup currentDataRecordGroup = data.dataRecordGroup;
+		currentDataDivider = currentDataRecordGroup.getDataDivider();
 
-		currentAppTokenGroups = getListOfCurrentAppTokens(currentDataGroup);
-		previousAppTokenLinkIds = getPreviousAppTokenLinkIds(previousDataGroup);
-		possiblyRemoveAllAppTokensBeforeProcessing(currentDataGroup);
+		possiblySetAppTokensGroup(currentDataRecordGroup);
+
+		currentAppTokenGroups = getListOfCurrentAppTokens(currentDataRecordGroup);
+		previousAppTokenLinkIds = getPreviousAppTokenLinkIds(previousDataRecordGroup);
+		possiblyRemoveAllAppTokensBeforeProcessing(currentDataRecordGroup);
 
 		handleApptokens();
-		removeAppTokensGroupIfNoAppTokensExists(currentDataGroup);
+		removeAppTokensGroupIfNoAppTokensExists(currentDataRecordGroup);
 		removePreviousAppTokensNotInCurrent();
 	}
 
-	private void possiblyRemoveAllAppTokensBeforeProcessing(DataGroup currentDataGroup) {
+	private void possiblyRemoveAllAppTokensBeforeProcessing(DataRecordGroup currentDataGroup) {
 		if (hasAppTokens(currentDataGroup)) {
 			removeAllAppTokensFromAppTokensGroupToKeepOriginalReferenceInParent(
 					currentAppTokensGroup);
@@ -90,21 +92,14 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 		data.dataSharer.put(this.getClass().getSimpleName(), efSystemSecretIdAndClearTextToken);
 	}
 
-	private String readDataDividerFromUserGroup(DataGroup currentDataGroup) {
-		DataGroup usersRecordInfo = currentDataGroup.getFirstGroupWithNameInData("recordInfo");
-		DataRecordLink userDataDivider = (DataRecordLink) usersRecordInfo
-				.getFirstChildWithNameInData("dataDivider");
-		return userDataDivider.getLinkedRecordId();
-	}
-
-	private void possiblySetAppTokensGroup(DataGroup currentDataGroup) {
+	private void possiblySetAppTokensGroup(DataRecordGroup currentDataGroup) {
 		if (hasAppTokens(currentDataGroup)) {
 			currentAppTokensGroup = currentDataGroup
 					.getFirstGroupWithNameInData(APP_TOKENS_GROUP_NAME_IN_DATA);
 		}
 	}
 
-	private List<String> getPreviousAppTokenLinkIds(DataGroup previousDataGroup) {
+	private List<String> getPreviousAppTokenLinkIds(DataRecordGroup previousDataGroup) {
 		if (previousDataGroup.containsChildOfTypeAndName(DataGroup.class,
 				APP_TOKENS_GROUP_NAME_IN_DATA)) {
 			List<DataGroup> previousAppTokenGroups = getPreviousAppTokensList(previousDataGroup);
@@ -113,14 +108,14 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 		return Collections.emptyList();
 	}
 
-	private List<DataGroup> getPreviousAppTokensList(DataGroup previousDataGroup) {
+	private List<DataGroup> getPreviousAppTokensList(DataRecordGroup previousDataGroup) {
 		DataGroup previousAppTokensGroup = previousDataGroup
 				.getFirstGroupWithNameInData(APP_TOKENS_GROUP_NAME_IN_DATA);
 		return previousAppTokensGroup.getChildrenOfTypeAndName(DataGroup.class,
 				APP_TOKEN_GROUP_NAME_IN_DATA);
 	}
 
-	private List<DataGroup> getListOfCurrentAppTokens(DataGroup currentDataGroup) {
+	private List<DataGroup> getListOfCurrentAppTokens(DataRecordGroup currentDataGroup) {
 		if (hasAppTokens(currentDataGroup)) {
 			return currentAppTokensGroup.getChildrenOfTypeAndName(DataGroup.class,
 					APP_TOKEN_GROUP_NAME_IN_DATA);
@@ -128,7 +123,7 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 		return Collections.emptyList();
 	}
 
-	private boolean hasAppTokens(DataGroup currentDataGroup) {
+	private boolean hasAppTokens(DataRecordGroup currentDataGroup) {
 		return currentDataGroup.containsChildOfTypeAndName(DataGroup.class,
 				APP_TOKENS_GROUP_NAME_IN_DATA);
 	}
@@ -205,7 +200,7 @@ public class AppTokenHandlerExtendedFunctionality implements ExtendedFunctionali
 		currentAppTokensGroup.removeAllChildrenWithNameInData(APP_TOKEN_GROUP_NAME_IN_DATA);
 	}
 
-	private void removeAppTokensGroupIfNoAppTokensExists(DataGroup currentDataGroup) {
+	private void removeAppTokensGroupIfNoAppTokensExists(DataRecordGroup currentDataGroup) {
 		if (hasAppTokens(currentDataGroup) && !currentAppTokensGroup
 				.containsChildWithNameInData(APP_TOKEN_GROUP_NAME_IN_DATA)) {
 			currentDataGroup.removeFirstChildWithNameInData(APP_TOKENS_GROUP_NAME_IN_DATA);

@@ -25,6 +25,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.List;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
@@ -32,17 +33,55 @@ import se.uu.ub.cora.beefeater.authorization.RuleImp;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
 import se.uu.ub.cora.spider.spy.RulesRecordPartRecordStorageSpy;
-import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.RecordNotFoundException;
+import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class RulesProviderTest {
+
+	private static final String SOME_ROLE = "someRole";
+	private RecordStorageSpy recordStorage;
+	private RulesProviderImp rulesProvider;
+
+	@BeforeMethod
+	private void beforeMethod() {
+		recordStorage = new RecordStorageSpy();
+		rulesProvider = new RulesProviderImp(recordStorage);
+	}
+
+	@Test
+	public void testGetRecordStorage() {
+		assertSame(rulesProvider.getRecordStorage(), recordStorage);
+	}
+
+	@Test
+	public void testRoleNotFoundInStorage() {
+		recordStorage.MRV.setThrowException("read",
+				RecordNotFoundException.withMessage("someMessage"), "permissionRole", SOME_ROLE);
+
+		List<Rule> rules = rulesProvider.getActiveRules(SOME_ROLE);
+		assertEquals(rules.size(), 0);
+	}
+
+	////////////////////////////
+
+	@Test
+	public void testInactiveRole() {
+		String roleId = "inactive";
+
+		// readRule.getFirstAtomicValueWithNameInData("activeStatus")
+
+		List<Rule> rules = rulesProvider.getActiveRules(roleId);
+
+		assertEquals(rules.size(), 0);
+	}
+
 	@Test
 	public void test() {
-		RecordStorage recordStorage = new OldRecordStorageSpy();
-		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
 		String roleId = "guest";
+
 		List<Rule> rules = rulesProvider.getActiveRules(roleId);
+
 		assertEquals(rules.size(), 1);
 		Rule rule = rules.get(0);
 		RulePartValues actionRulePart = rule.getRulePartValuesForKey("action");
@@ -52,16 +91,9 @@ public class RulesProviderTest {
 	}
 
 	@Test
-	public void testGetRecordStorage() {
-		RecordStorage recordStorage = new OldRecordStorageSpy();
-		RulesProviderImp rulesProvider = new RulesProviderImp(recordStorage);
-		assertSame(rulesProvider.getRecordStorage(), recordStorage);
-	}
-
-	@Test
 	public void testWithPermissionTerms() {
-		RecordStorage recordStorage = new OldRecordStorageSpy();
-		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
+		// RecordStorage recordStorage = new OldRecordStorageSpy();
+		// RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
 		String roleId = "guestWithPermissionTerms";
 		List<Rule> rules = rulesProvider.getActiveRules(roleId);
 		assertEquals(rules.size(), 2);
@@ -90,8 +122,8 @@ public class RulesProviderTest {
 
 	@Test
 	public void testWithMultiplePermissionTerms() {
-		RecordStorage recordStorage = new OldRecordStorageSpy();
-		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
+		// RecordStorage recordStorage = new OldRecordStorageSpy();
+		// RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
 		String roleId = "guestWithMultiplePermissionTerms";
 		List<Rule> rules = rulesProvider.getActiveRules(roleId);
 		assertEquals(rules.size(), 3);
@@ -135,24 +167,6 @@ public class RulesProviderTest {
 		assertTrue(permissionPublishedRulePart3.contains("system.published"));
 		assertTrue(permissionPublishedRulePart3.contains("system.notPublished"));
 
-	}
-
-	@Test
-	public void testInactiveRole() {
-		RecordStorage recordStorage = new OldRecordStorageSpy();
-		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
-		String roleId = "inactive";
-		List<Rule> rules = rulesProvider.getActiveRules(roleId);
-		assertEquals(rules.size(), 0);
-	}
-
-	@Test
-	public void testNotFoundRole() {
-		RecordStorage recordStorage = new OldRecordStorageSpy();
-		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
-		String roleId = "roleNotFoundInStorage";
-		List<Rule> rules = rulesProvider.getActiveRules(roleId);
-		assertEquals(rules.size(), 0);
 	}
 
 	@Test

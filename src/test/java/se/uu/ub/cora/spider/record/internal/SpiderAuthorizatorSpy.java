@@ -45,7 +45,8 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		return false;
+		return (boolean) MCR.addCallAndReturnFromMRV("user", user, "action", action, "recordType",
+				recordType);
 	}
 
 	@Override

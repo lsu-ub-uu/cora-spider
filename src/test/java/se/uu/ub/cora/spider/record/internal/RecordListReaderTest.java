@@ -424,7 +424,6 @@ public class RecordListReaderTest {
 		expectedData.recordType = SOME_RECORD_TYPE;
 		expectedData.authToken = SOME_USER_TOKEN;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
-		expectedData.previouslyStoredTopDataGroup = null;
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				READLIST_AFTER_AUTHORIZATION, expectedData, 0);
 	}

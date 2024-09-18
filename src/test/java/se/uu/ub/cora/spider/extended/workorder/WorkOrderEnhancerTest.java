@@ -25,10 +25,9 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
-import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
 public class WorkOrderEnhancerTest {
@@ -51,49 +50,29 @@ public class WorkOrderEnhancerTest {
 
 	@Test
 	public void testAddRecordInfo() {
-		DataGroupSpy workOrder = new DataGroupSpy();
+		DataRecordGroupSpy workOrder = new DataRecordGroupSpy();
+
 		callExtendedFunctionalityWithGroup(workOrder);
 
-		DataGroupSpy recordInfo = (DataGroupSpy) dataFactorySpy.MCR
-				.getReturnValue("factorGroupUsingNameInData", 0);
-		workOrder.MCR.assertParameters("addChild", 0, recordInfo);
-
-		assertDataDividerAdded(recordInfo);
-		assertValidationTypeAdded(recordInfo);
+		workOrder.MCR.assertParameters("setDataDivider", 0, "cora");
+		workOrder.MCR.assertParameters("setValidationType", 0, "workOrder");
 	}
 
-	private void assertDataDividerAdded(DataGroupSpy recordInfo) {
-		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 0,
-				"dataDivider", "system", "cora");
-		var dataDivider = dataFactorySpy.MCR
-				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 0);
-		recordInfo.MCR.assertParameters("addChild", 0, dataDivider);
-	}
-
-	private void assertValidationTypeAdded(DataGroupSpy recordInfo) {
-		dataFactorySpy.MCR.assertParameters("factorRecordLinkUsingNameInDataAndTypeAndId", 1,
-				"validationType", "validationType", "workOrder");
-		var dataDivider = dataFactorySpy.MCR
-				.getReturnValue("factorRecordLinkUsingNameInDataAndTypeAndId", 1);
-		recordInfo.MCR.assertParameters("addChild", 1, dataDivider);
-	}
-
-	private void callExtendedFunctionalityWithGroup(DataGroup workOrder) {
+	private void callExtendedFunctionalityWithGroup(DataRecordGroupSpy workOrder) {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
 		data.authToken = "someToken";
-		data.dataGroup = workOrder;
+		data.dataRecordGroup = workOrder;
 		extendedFunctionality.useExtendedFunctionality(data);
 	}
 
 	@Test
 	public void testRecordInfoAlreadyExistsNotReplacedByExtendedFunctionality() {
-		DataGroupSpy workOrder = new DataGroupSpy();
+		DataRecordGroupSpy workOrder = new DataRecordGroupSpy();
 		workOrder.MRV.setReturnValues("containsChildWithNameInData", List.of(true), "recordInfo");
 
 		callExtendedFunctionalityWithGroup(workOrder);
 
-		dataFactorySpy.MCR.assertMethodNotCalled("factorGroupUsingNameInData");
-		dataFactorySpy.MCR.assertMethodNotCalled("factorRecordLinkUsingNameInDataAndTypeAndId");
-		workOrder.MCR.assertMethodNotCalled("addChild");
+		workOrder.MCR.assertMethodNotCalled("setDataDivider");
+		workOrder.MCR.assertMethodNotCalled("setValidationType");
 	}
 }

@@ -30,7 +30,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
@@ -204,7 +203,6 @@ public class RecordDeleterTest {
 		expectedData.recordId = SOME_ID;
 		expectedData.authToken = SOME_AUTH_TOKEN;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
-		expectedData.previouslyStoredTopDataGroup = null;
 		expectedData.dataRecordGroup = getReadDataRecordGroup();
 		return expectedData;
 	}

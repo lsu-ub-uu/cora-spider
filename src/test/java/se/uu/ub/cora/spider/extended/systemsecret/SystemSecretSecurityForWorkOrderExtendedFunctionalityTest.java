@@ -27,10 +27,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.extended.systemsecret.SystemSecretSecurityForWorkOrderExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
@@ -47,12 +46,12 @@ public class SystemSecretSecurityForWorkOrderExtendedFunctionalityTest {
 	}
 
 	private void setUpExDataToContainLinksWithRecordTypesToSearch(String recordType) {
-		DataGroupSpy workOrder = new DataGroupSpy();
+		DataRecordGroupSpy workOrder = new DataRecordGroupSpy();
 		List<DataRecordLinkSpy> recordTypeLinks = createListOfRecordTypeLinksForTypes(recordType);
 		workOrder.MRV.setSpecificReturnValuesSupplier("getChildrenOfTypeAndName",
 				() -> recordTypeLinks, DataRecordLink.class, "recordType");
 
-		extData.dataGroup = workOrder;
+		extData.dataRecordGroup = workOrder;
 	}
 
 	private List<DataRecordLinkSpy> createListOfRecordTypeLinksForTypes(String... recordTypes) {

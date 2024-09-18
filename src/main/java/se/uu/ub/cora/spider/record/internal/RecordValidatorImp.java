@@ -35,6 +35,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -61,7 +62,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private RecordIdGenerator idGenerator;
 	private RecordTypeHandler recordTypeHandler;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
-	private String recordTypeToValidate;
+	private String recordTypeIdToValidate;
 	private List<String> errorList = new ArrayList<>();
 	private DataRecordGroup validationResult;
 	private DataRecordGroup recordToValidate;
@@ -94,7 +95,8 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		checkUserIsAuthorizedForCreateOnValidationOrder();
 		validateValidationOrderThrowErrorIfInvalid(validationOrder);
 
-		recordTypeToValidate = getRecordTypeToValidate(validationOrder);
+		recordTypeIdToValidate = getRecordTypeToValidate(validationOrder);
+		checkUserIsAuthorizedForValidateOnRecordType(recordTypeIdToValidate);
 		useExtendedFunctionalityForPosition(
 				ExtendedFunctionalityPosition.VALIDATE_AFTER_AUTHORIZATION);
 
@@ -102,9 +104,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(recordToValidate);
 
-		checkUserIsAuthorizedForValidateOnRecordType(recordTypeToValidate);
-
-		validateRecordUsingValidationRecord(validationOrder, recordTypeToValidate);
+		validateRecordUsingValidationRecord(validationOrder, recordTypeIdToValidate);
 
 		// here!
 		DataGroupTermCollector termCollector = dependencyProvider.getDataGroupTermCollector();
@@ -112,7 +112,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 				.collectTerms(recordTypeHandler.getDefinitionId(), recordToValidate);
 
 		UniqueValidator validateUniques = dependencyProvider.getUniqueValidator(recordStorage);
-		validateUniques.validateUniqueForNewRecord(recordTypeToValidate,
+		validateUniques.validateUniqueForNewRecord(recordTypeIdToValidate,
 				recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
 
 		return createAnswerDataRecord();
@@ -146,15 +146,15 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private void validateValidationOrderThrowErrorIfInvalid(DataGroup validationOrder) {
-		String metadataIdForWorkOrder = getMetadataIdForWorkOrder(validationOrder);
-		ValidationAnswer validationAnswer = dataValidator.validateData(metadataIdForWorkOrder,
+		String createDefinitionId = getMetadataIdForValidationOrder(validationOrder);
+		ValidationAnswer validationAnswer = dataValidator.validateData(createDefinitionId,
 				validationOrder);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
 	}
 
-	private String getMetadataIdForWorkOrder(DataGroup validationOrder) {
+	private String getMetadataIdForValidationOrder(DataGroup validationOrder) {
 		DataRecordGroup validationOrderAsDataRecordGroup = DataProvider
 				.createRecordGroupFromDataGroup(validationOrder);
 		RecordTypeHandler validationOrderRecordTypeHandler = dependencyProvider
@@ -164,8 +164,11 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	}
 
 	private String getRecordTypeToValidate(DataGroup validationOrder) {
-		DataGroup recordTypeGroup = validationOrder.getFirstGroupWithNameInData("recordType");
-		return recordTypeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		// DataGroup recordTypeGroup = validationOrder.getFirstGroupWithNameInData("recordType");
+		// return recordTypeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+		DataRecordLink typeLink = validationOrder.getFirstChildOfTypeAndName(DataRecordLink.class,
+				"recordType");
+		return typeLink.getLinkedRecordId();
 	}
 
 	// private void createRecordTypeHandlerForRecordToValidate(DataGroup recordToValidate) {
@@ -178,7 +181,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
 		// read from validationorder
 		List<ExtendedFunctionality> exFunctionality = extendedFunctionalityProvider
-				.getFunctionalityForPositionAndRecordType(position, recordTypeToValidate);
+				.getFunctionalityForPositionAndRecordType(position, recordTypeIdToValidate);
 		useExtendedFunctionality(recordToValidate, exFunctionality);
 	}
 
@@ -186,7 +189,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	protected ExtendedFunctionalityData createExtendedFunctionalityData(
 			DataRecordGroup dataRecordGroup) {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
-		data.recordType = recordTypeToValidate;
+		data.recordType = recordTypeIdToValidate;
 		data.recordId = recordId;
 		data.authToken = authToken;
 		data.user = user;
@@ -212,10 +215,10 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void validateRecordTypesMatchBetweenValidationOrderAndRecord() {
 		String recordTypeOfRecord = recordTypeHandler.getRecordTypeId();
-		if (!recordTypeOfRecord.equals(recordTypeToValidate)) {
+		if (!recordTypeOfRecord.equals(recordTypeIdToValidate)) {
 
 			String message = "RecordType from record (" + recordTypeOfRecord
-					+ ") does not match recordType from validationOrder (" + recordTypeToValidate
+					+ ") does not match recordType from validationOrder (" + recordTypeIdToValidate
 					+ ")";
 			errorList.add(message);
 		}
@@ -224,8 +227,8 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private void validateRecordExistInStorageWhenActionToPerformIsUpdate(
 			String recordTypeToValidate) {
 		if (validationIsForUpdate()) {
-			String recordId = extractIdFromData();
-			checkIfRecordExist(recordTypeToValidate, recordId);
+			// String recordId = extractIdFromData();
+			checkIfRecordExist(recordTypeToValidate, recordToValidate.getId());
 		}
 	}
 
@@ -240,7 +243,8 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void checkIfRecordExist(String recordType, String recordId) {
 		try {
-			recordStorage.read(List.of(recordType), recordId);
+			// recordStorage.read("recordType", recordType);
+			recordStorage.read(recordType, recordId);
 		} catch (RecordNotFoundException exception) {
 			errorList.add(exception.getMessage());
 		}

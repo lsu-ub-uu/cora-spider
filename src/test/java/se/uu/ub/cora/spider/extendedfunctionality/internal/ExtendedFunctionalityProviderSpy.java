@@ -106,13 +106,11 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 		extendedFunctionality.MCR.assertMethodWasCalled(methodName2);
 		extendedFunctionality.MCR.assertNumberOfCallsToMethod(methodName2, 1);
 		ExtendedFunctionalityData data = (ExtendedFunctionalityData) extendedFunctionality.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(methodName2, 0, "data");
+				.getParameterForMethodAndCallNumberAndParameter(methodName2, 0, "data");
 		assertEquals(data.recordType, expectedData.recordType);
 		assertEquals(data.recordId, expectedData.recordId);
 		assertEquals(data.authToken, expectedData.authToken);
 		assertEquals(data.user, expectedData.user);
-		assertEquals(data.previouslyStoredTopDataGroup, expectedData.previouslyStoredTopDataGroup);
-		assertEquals(data.dataGroup, expectedData.dataGroup);
 		assertEquals(data.previouslyStoredDataRecordGroup,
 				expectedData.previouslyStoredDataRecordGroup);
 		assertEquals(data.dataRecordGroup, expectedData.dataRecordGroup);

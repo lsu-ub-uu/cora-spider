@@ -23,7 +23,6 @@ import java.util.List;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
@@ -64,7 +63,7 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
 		String authToken = data.authToken;
-		DataGroup workOrder = data.dataGroup;
+		DataRecordGroup workOrder = data.dataRecordGroup;
 		recordTypeToIndex = getRecordTypeToIndexFromWorkOrder(workOrder);
 		recordIdToIndex = getRecordIdToIndexFromWorkOrder(workOrder);
 
@@ -73,11 +72,10 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 			deleteFromIndexIfUserIsAuthorized(authToken);
 		} else {
 			indexDataIfUserIsAuthorized(authToken, performExplicitCommit);
-
 		}
 	}
 
-	private boolean getPerformExplicitCommit(DataGroup workOrder) {
+	private boolean getPerformExplicitCommit(DataRecordGroup workOrder) {
 		boolean performCommit = true;
 		if (workOrder.containsChildWithNameInData("performCommit")
 				&& performExplicitCommitIsFalse(workOrder)) {
@@ -86,11 +84,11 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 		return performCommit;
 	}
 
-	private boolean performExplicitCommitIsFalse(DataGroup workOrder) {
+	private boolean performExplicitCommitIsFalse(DataRecordGroup workOrder) {
 		return "false".equals(workOrder.getFirstAtomicValueWithNameInData("performCommit"));
 	}
 
-	private boolean workOrderTypeIsDeleteFromIndex(DataGroup workOrder) {
+	private boolean workOrderTypeIsDeleteFromIndex(DataRecordGroup workOrder) {
 		String workOrderType = workOrder.getFirstAtomicValueWithNameInData("type");
 		return "removeFromIndex".equals(workOrderType);
 	}
@@ -101,13 +99,13 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 		}
 	}
 
-	private String getRecordTypeToIndexFromWorkOrder(DataGroup workOrder) {
-		DataRecordLink recordTypeLink = (DataRecordLink) workOrder
-				.getFirstChildWithNameInData("recordType");
+	private String getRecordTypeToIndexFromWorkOrder(DataRecordGroup workOrder) {
+		DataRecordLink recordTypeLink = workOrder.getFirstChildOfTypeAndName(DataRecordLink.class,
+				"recordType");
 		return recordTypeLink.getLinkedRecordId();
 	}
 
-	private String getRecordIdToIndexFromWorkOrder(DataGroup workOrder) {
+	private String getRecordIdToIndexFromWorkOrder(DataRecordGroup workOrder) {
 		return workOrder.getFirstAtomicValueWithNameInData("recordId");
 	}
 

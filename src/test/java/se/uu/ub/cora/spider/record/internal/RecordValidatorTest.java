@@ -36,6 +36,7 @@ import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
@@ -43,11 +44,10 @@ import se.uu.ub.cora.data.spies.DataAtomicSpy;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.data.spies.DataRecordSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
@@ -64,6 +64,7 @@ import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.spy.UniqueValidatorSpy;
 import se.uu.ub.cora.spider.spy.ValidationAnswerSpy;
+import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class RecordValidatorTest {
@@ -183,17 +184,29 @@ public class RecordValidatorTest {
 
 	private DataGroup createValidationOrderWithMetadataToValidateAndValidateLinks(
 			String metadataToValidate, String validateLinks) {
-		DataGroup validationOrder = new DataGroupOldSpy(VALIDATION_ORDER_TYPE);
-		validationOrder.addChild(new DataAtomicOldSpy("metadataToValidate", metadataToValidate));
-		validationOrder.addChild(new DataAtomicOldSpy("validateLinks", validateLinks));
+		DataGroupSpy validationOrder = new DataGroupSpy();
+		DataRecordLinkSpy recordTypeToValidate = new DataRecordLinkSpy();
+		validationOrder.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
+				() -> recordTypeToValidate, DataRecordLink.class, "recordType");
+		recordTypeToValidate.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+				() -> RECORD_TYPE_TO_VALIDATE_AGAINST);
+		validationOrder.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> metadataToValidate, "metadataToValidate");
+		validationOrder.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> validateLinks, "validateLinks");
 
-		DataGroup recordTypeToValidateAgainstGroup = new DataGroupOldSpy("recordType");
-		recordTypeToValidateAgainstGroup
-				.addChild(new DataAtomicOldSpy("linkedRecordType", "recordType"));
-		recordTypeToValidateAgainstGroup
-				.addChild(new DataAtomicOldSpy("linkedRecordId", RECORD_TYPE_TO_VALIDATE_AGAINST));
-		validationOrder.addChild(recordTypeToValidateAgainstGroup);
 		return validationOrder;
+		// DataGroup validationOrder = new DataGroupOldSpy(VALIDATION_ORDER_TYPE);
+		// validationOrder.addChild(new DataAtomicOldSpy("metadataToValidate", metadataToValidate));
+		// validationOrder.addChild(new DataAtomicOldSpy("validateLinks", validateLinks));
+		//
+		// DataGroup recordTypeToValidateAgainstGroup = new DataGroupOldSpy("recordType");
+		// recordTypeToValidateAgainstGroup
+		// .addChild(new DataAtomicOldSpy("linkedRecordType", "recordType"));
+		// recordTypeToValidateAgainstGroup
+		// .addChild(new DataAtomicOldSpy("linkedRecordId", RECORD_TYPE_TO_VALIDATE_AGAINST));
+		// validationOrder.addChild(recordTypeToValidateAgainstGroup);
+		// return validationOrder;
 	}
 
 	@Test
@@ -496,19 +509,16 @@ public class RecordValidatorTest {
 		dataValidator.MCR.assertNumberOfCallsToMethod("validateData", 1);
 	}
 
-	private void changeRecordTypeTo(DataGroup validationOrder, String recordType) {
-		DataGroup recordTypeGroup = validationOrder.getFirstGroupWithNameInData("recordType");
-		recordTypeGroup.removeFirstChildWithNameInData("linkedRecordId");
-		recordTypeGroup.addChild(new DataAtomicOldSpy("linkedRecordId", recordType));
-	}
-
 	@Test
-	public void testNonExistingRecordType() {
+	public void testNoExisting() {
+		recordStorage.MRV.setAlwaysThrowException("read",
+				RecordNotFoundException.withMessage("someMessage"));
+
 		// DataGroup dataGroup = createDataGroupPlace();
 		//
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
-		changeRecordTypeTo(validationOrder, "recordType_NOT_EXISTING");
+		// changeRecordTypeTo(validationOrder, "recordType_NOT_EXISTING");
 		DataRecordGroupSpy validationResult = setUpValidationResultForError();
 
 		DataRecord validationRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
@@ -516,8 +526,7 @@ public class RecordValidatorTest {
 		// DataRecord validationRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
 		// VALIDATION_ORDER_TYPE, validationOrder, dataGroup);
 
-		String errorString = "No records exists with recordType: recordType_NOT_EXISTING and "
-				+ "recordId place";
+		String errorString = "someMessage";
 		assertDataRecordCreatedWithValidationResult(validationResult, validationRecord);
 		assertValidSetInResultWithValue(validationResult, "false");
 		assertErrorMessages(validationResult, errorString);

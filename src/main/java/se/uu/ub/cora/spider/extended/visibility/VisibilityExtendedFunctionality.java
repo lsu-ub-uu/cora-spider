@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
@@ -35,19 +36,19 @@ public class VisibilityExtendedFunctionality implements ExtendedFunctionality {
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		DataGroup updatedDataGroup = data.dataGroup;
-		DataGroup storedDataGroup = data.previouslyStoredTopDataGroup;
+		DataRecordGroup updatedRecord = data.dataRecordGroup;
+		DataRecordGroup storedRecord = data.previouslyStoredDataRecordGroup;
 
-		if (hasAdminInfo(updatedDataGroup)) {
-			possiblyUpdateTsVisibility(storedDataGroup, updatedDataGroup);
+		if (hasAdminInfo(updatedRecord)) {
+			possiblyUpdateTsVisibility(storedRecord, updatedRecord);
 		}
 	}
 
-	private void possiblyUpdateTsVisibility(DataGroup storedDataGroup, DataGroup updatedDataGroup) {
-		DataGroup updatedAdminInfo = updatedDataGroup.getFirstGroupWithNameInData(ADMIN_INFO);
-		if (hasAdminInfo(storedDataGroup)) {
-			DataGroup storedAdminInfo = storedDataGroup.getFirstGroupWithNameInData(ADMIN_INFO);
-
+	private void possiblyUpdateTsVisibility(DataRecordGroup storedRecord,
+			DataRecordGroup updatedRecord) {
+		DataGroup updatedAdminInfo = updatedRecord.getFirstGroupWithNameInData(ADMIN_INFO);
+		if (hasAdminInfo(storedRecord)) {
+			DataGroup storedAdminInfo = storedRecord.getFirstGroupWithNameInData(ADMIN_INFO);
 			updateTsVisibilityIfVisibilityChanged(updatedAdminInfo, storedAdminInfo);
 		} else {
 			createAndAddTsVisiblity(updatedAdminInfo);
@@ -66,8 +67,8 @@ public class VisibilityExtendedFunctionality implements ExtendedFunctionality {
 		createAndAddTsVisiblity(updatedAdminInfo);
 	}
 
-	private boolean hasAdminInfo(DataGroup dataGroup) {
-		return dataGroup != null && dataGroup.containsChildWithNameInData(ADMIN_INFO);
+	private boolean hasAdminInfo(DataRecordGroup updatedRecord) {
+		return updatedRecord != null && updatedRecord.containsChildWithNameInData(ADMIN_INFO);
 	}
 
 	private boolean isVisibiltyChanged(DataGroup updatedAdminInfo, DataGroup storedAdminInfo) {

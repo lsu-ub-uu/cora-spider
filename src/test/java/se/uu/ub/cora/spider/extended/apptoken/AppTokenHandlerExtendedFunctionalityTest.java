@@ -35,6 +35,7 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -45,11 +46,10 @@ import se.uu.ub.cora.spider.systemsecret.SystemSecretOperations;
 public class AppTokenHandlerExtendedFunctionalityTest {
 
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
-	private DataGroupSpy previousDataGroup;
-	private DataGroupSpy currentDataGroup;
+	private DataRecordGroupSpy previousDataGroup;
+	private DataRecordGroupSpy currentDataGroup;
 	private ExtendedFunctionalityData efData;
 	private AppTokenHandlerExtendedFunctionality appTokenHandler;
-	private DataRecordLinkSpy dataDivider;
 	private SystemSecretOperationsSpy systemSecretOperations;
 	private AppTokenGeneratorSpy appTokenGenerator;
 	private DataGroupSpy previousAppTokensGroup;
@@ -92,28 +92,20 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 
 	private void createPreviousData() {
 		previousAppTokensGroup = new DataGroupSpy();
-		previousDataGroup = new DataGroupSpy();
+		previousDataGroup = new DataRecordGroupSpy();
 	}
 
 	private void createCurrentExtendedFunctionalityData() {
 		currentAppTokensGroup = new DataGroupSpy();
 		setupCurrentDataRecordGroupWithDataDivider();
 		efData = new ExtendedFunctionalityData();
-		efData.dataGroup = currentDataGroup;
-		efData.previouslyStoredTopDataGroup = previousDataGroup;
+		efData.dataRecordGroup = currentDataGroup;
+		efData.previouslyStoredDataRecordGroup = previousDataGroup;
 	}
 
 	private void setupCurrentDataRecordGroupWithDataDivider() {
-		currentDataGroup = new DataGroupSpy();
-
-		DataGroupSpy recordInfo = new DataGroupSpy();
-		currentDataGroup.MRV.setReturnValues("getFirstGroupWithNameInData", List.of(recordInfo),
-				"recordInfo");
-
-		dataDivider = new DataRecordLinkSpy();
-		recordInfo.MRV.setSpecificReturnValuesSupplier("getFirstChildWithNameInData",
-				() -> dataDivider, "dataDivider");
-		dataDivider.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+		currentDataGroup = new DataRecordGroupSpy();
+		currentDataGroup.MRV.setDefaultReturnValuesSupplier("getDataDivider",
 				() -> SOME_DATA_DIVIDER);
 	}
 
@@ -367,7 +359,7 @@ public class AppTokenHandlerExtendedFunctionalityTest {
 				appTokenGroup);
 	}
 
-	private void setupAppTokensGroupsUsingAppTokenGroups(DataGroupSpy userDataGroup,
+	private void setupAppTokensGroupsUsingAppTokenGroups(DataRecordGroupSpy userDataGroup,
 			DataGroupSpy appTokensGroup, DataGroupSpy... appTokenGroups) {
 		if (appTokenGroups.length > 0) {
 			userDataGroup.MRV.setSpecificReturnValuesSupplier("containsChildOfTypeAndName",

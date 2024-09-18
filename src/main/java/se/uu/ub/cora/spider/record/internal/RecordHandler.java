@@ -134,7 +134,6 @@ public class RecordHandler {
 		exData.recordId = recordId;
 		exData.authToken = authToken;
 		exData.user = user;
-		// exData.dataGroup = dataGroup;
 		exData.dataRecordGroup = dataRecordGroup;
 		exData.dataSharer = dataSharer;
 		return exData;

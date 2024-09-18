@@ -20,13 +20,14 @@ package se.uu.ub.cora.spider.extended.systemsecret;
 
 import java.util.List;
 
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
-public class SystemSecretSecurityForWorkOrderExtendedFunctionality implements ExtendedFunctionality {
+public class SystemSecretSecurityForWorkOrderExtendedFunctionality
+		implements ExtendedFunctionality {
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
@@ -37,7 +38,7 @@ public class SystemSecretSecurityForWorkOrderExtendedFunctionality implements Ex
 	}
 
 	private List<DataRecordLink> getListOfLinkedRecordTypes(ExtendedFunctionalityData data) {
-		DataGroup workOrder = data.dataGroup;
+		DataRecordGroup workOrder = data.dataRecordGroup;
 		return workOrder.getChildrenOfTypeAndName(DataRecordLink.class, "recordType");
 	}
 

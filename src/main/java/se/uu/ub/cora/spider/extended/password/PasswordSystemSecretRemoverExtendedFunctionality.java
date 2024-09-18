@@ -18,7 +18,7 @@
  */
 package se.uu.ub.cora.spider.extended.password;
 
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -35,8 +35,8 @@ public class PasswordSystemSecretRemoverExtendedFunctionality implements Extende
 	}
 
 	private SpiderDependencyProvider dependencyProvider;
-	private DataGroup previousDataGroup;
-	private DataGroup currentDataGroup;
+	private DataRecordGroup previousRecord;
+	private DataRecordGroup currentRecord;
 	private SystemSecretOperations systemSecretOperations;
 
 	private PasswordSystemSecretRemoverExtendedFunctionality(
@@ -48,8 +48,8 @@ public class PasswordSystemSecretRemoverExtendedFunctionality implements Extende
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		previousDataGroup = data.previouslyStoredTopDataGroup;
-		currentDataGroup = data.dataGroup;
+		previousRecord = data.previouslyStoredDataRecordGroup;
+		currentRecord = data.dataRecordGroup;
 		if (systemSecretShouldBeRemoved()) {
 			removeSystemSecret();
 		}
@@ -61,7 +61,7 @@ public class PasswordSystemSecretRemoverExtendedFunctionality implements Extende
 	}
 
 	private DataRecordLink getPasswordLinkFromPreviousRecord() {
-		return previousDataGroup.getFirstChildOfTypeAndName(DataRecordLink.class, "passwordLink");
+		return previousRecord.getFirstChildOfTypeAndName(DataRecordLink.class, "passwordLink");
 	}
 
 	private void removeSystemSecretUsingLink(DataRecordLink passwordLink) {
@@ -69,9 +69,9 @@ public class PasswordSystemSecretRemoverExtendedFunctionality implements Extende
 	}
 
 	private boolean systemSecretShouldBeRemoved() {
-		String previousUsePassword = previousDataGroup
+		String previousUsePassword = previousRecord
 				.getFirstAtomicValueWithNameInData("usePassword");
-		String currentUsePassword = currentDataGroup
+		String currentUsePassword = currentRecord
 				.getFirstAtomicValueWithNameInData("usePassword");
 		return "true".equals(previousUsePassword) && "false".equals(currentUsePassword);
 	}

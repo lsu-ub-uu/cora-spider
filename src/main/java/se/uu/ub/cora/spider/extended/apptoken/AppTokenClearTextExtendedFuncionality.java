@@ -25,6 +25,7 @@ import java.util.Map;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -46,12 +47,12 @@ public class AppTokenClearTextExtendedFuncionality implements ExtendedFunctional
 		efSystemSecretIdAndClearTextToken = (Map<String, String>) dataSharer
 				.getOrDefault("AppTokenHandlerExtendedFunctionality", Collections.emptyMap());
 
-		possiblyAddClearTextsToAppTokens(data.dataGroup);
+		possiblyAddClearTextsToAppTokens(data.dataRecordGroup);
 	}
 
-	private void possiblyAddClearTextsToAppTokens(DataGroup dataGroup) {
+	private void possiblyAddClearTextsToAppTokens(DataRecordGroup dataRecordGroup) {
 		if (clearTextsExists()) {
-			addClearTextsToAppTokens(dataGroup);
+			addClearTextsToAppTokens(dataRecordGroup);
 		}
 	}
 
@@ -59,15 +60,15 @@ public class AppTokenClearTextExtendedFuncionality implements ExtendedFunctional
 		return !efSystemSecretIdAndClearTextToken.isEmpty();
 	}
 
-	private void addClearTextsToAppTokens(DataGroup dataGroup) {
-		List<DataGroup> appTokenGroups = getListOfAppTokenGroups(dataGroup);
+	private void addClearTextsToAppTokens(DataRecordGroup dataRecordGroup) {
+		List<DataGroup> appTokenGroups = getListOfAppTokenGroups(dataRecordGroup);
 		for (DataGroup appTokenGroup : appTokenGroups) {
 			possiblySetClearTextInAppTokenGroup(appTokenGroup);
 		}
 	}
 
-	private List<DataGroup> getListOfAppTokenGroups(DataGroup dataGroup) {
-		DataGroup appTokensGroup = dataGroup.getFirstGroupWithNameInData("appTokens");
+	private List<DataGroup> getListOfAppTokenGroups(DataRecordGroup dataRecordGroup) {
+		DataGroup appTokensGroup = dataRecordGroup.getFirstGroupWithNameInData("appTokens");
 		return appTokensGroup.getChildrenOfTypeAndName(DataGroup.class, "appToken");
 	}
 
