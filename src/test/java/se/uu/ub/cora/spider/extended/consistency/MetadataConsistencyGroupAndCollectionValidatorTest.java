@@ -23,7 +23,6 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -34,7 +33,6 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
-import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
@@ -64,7 +62,6 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		dependencyProvider = new SpiderDependencyProviderSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				(Supplier<RecordStorage>) () -> recordStorage);
-
 	}
 
 	private void setUpDependencies() {
@@ -88,8 +85,10 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		// DataCreator2.createLinkWithLinkedId("refParentId", METADATA, "testGroup"));
 		DataRecordLink refLink = DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
 				"testGroup");
-		recordGroup.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName", () -> refLink,
-				DataRecordLink.class, "ref");
+		// recordGroup.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName", () ->
+		// refLink,
+		// DataRecordLink.class, "ref");
+		DataCreator2.attachLinkToRecord(refLink, recordGroup);
 
 		setUpDependencies();
 
@@ -98,7 +97,6 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 
 	@Test
 	public void testMetadataGroupChildDoesNotExistInParentCatch() {
-
 		recordGroup = DataCreator2.createMetadataGroupWithTwoChildren();
 		DataRecordLink link = DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
 				"testGroup");
@@ -113,26 +111,26 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 			recordStorage.MCR.assertNumberOfCallsToMethod("read", 6);
 			// metadataGroup X
 			recordStorage.MCR.assertParameter("read", 0, "id", "childOne");
-			recordStorage.MCR.assertParameterAsEqual("read", 0, "types", List.of(METADATA));
+			recordStorage.MCR.assertParameterAsEqual("read", 0, "type", METADATA);
 			// metadataGroup
 			recordStorage.MCR.assertParameter("read", 1, "id", "testGroup");
-			recordStorage.MCR.assertParameterAsEqual("read", 1, "types", List.of(METADATA));
+			recordStorage.MCR.assertParameterAsEqual("read", 1, "type", METADATA);
 			// metadataGroup X
 			recordStorage.MCR.assertParameter("read", 2, "id", "childOne");
-			recordStorage.MCR.assertParameterAsEqual("read", 2, "types", List.of(METADATA));
+			recordStorage.MCR.assertParameterAsEqual("read", 2, "type", METADATA);
 			// metadataGroup X
 			recordStorage.MCR.assertParameter("read", 3, "id", "childTwo");
-			recordStorage.MCR.assertParameterAsEqual("read", 3, "types", List.of(METADATA));
+			recordStorage.MCR.assertParameterAsEqual("read", 3, "type", METADATA);
 			// metadataGroup
 			recordStorage.MCR.assertParameter("read", 4, "id", "testGroup");
-			recordStorage.MCR.assertParameterAsEqual("read", 4, "types", List.of(METADATA));
+			recordStorage.MCR.assertParameterAsEqual("read", 4, "type", METADATA);
 			// metadataGroup X
 			recordStorage.MCR.assertParameter("read", 5, "id", "childOne");
-			recordStorage.MCR.assertParameterAsEqual("read", 5, "types", List.of(METADATA));
+			recordStorage.MCR.assertParameterAsEqual("read", 5, "type", METADATA);
 
 			dependencyProvider.MCR.assertMethodNotCalled("getRecordTypeHandler");
 			recordStorage.MCR.assertParameter("read", 0, "id", "childOne");
-			recordStorage.MCR.assertParameterAsEqual("read", 0, "types", List.of(METADATA));
+			recordStorage.MCR.assertParameterAsEqual("read", 0, "type", METADATA);
 
 		}
 	}
@@ -147,8 +145,11 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testMetadataGroupChildWithDifferentIdButSameNameInDataExistInParent() {
 		recordGroup = DataCreator2.createMetadataGroupWithTwoChildren();
-		recordGroup.addChild(DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
-				"testGroupWithTwoChildren"));
+
+		DataRecordLink refParent = DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
+				"testGroupWithTwoChildren");
+		DataCreator2.attachLinkToRecord(refParent, recordGroup);
+
 		setUpDependencies();
 		exceptNoException();
 	}
@@ -164,8 +165,9 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testMetadataGroupChildWithOneChild() {
 		recordGroup = DataCreator2.createMetadataGroupWithOneChild();
-		recordGroup.addChild(DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
-				"testGroupWithOneChild"));
+		DataRecordLink refParent = DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
+				"testGroupWithOneChild");
+		DataCreator2.attachLinkToRecord(refParent, recordGroup);
 		setUpDependencies();
 		exceptNoException();
 	}
@@ -174,8 +176,10 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 			+ "Data is not valid: referenced child:  does not exist")
 	public void testMetadataGroupChildDoesNotExistInStorage() {
 		recordGroup = DataCreator2.createMetadataGroupWithThreeChildren();
-		recordGroup.addChild(DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
-				"testGroupWithThreeChildren"));
+
+		DataRecordLink refParent = DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
+				"testGroupWithThreeChildren");
+		DataCreator2.attachLinkToRecord(refParent, recordGroup);
 		setUpDependencies();
 		callValidatorUseExtendedFunctionality();
 	}
@@ -183,8 +187,6 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testMetadataGroupWithoutTypeAttributeIsNotValidated() {
 		recordGroup = DataCreator2.createMetadataGroupWithThreeChildren();
-		// recordGroup.addChild(DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
-		// "testGroupWithThreeChildren"));
 		DataRecordLink refParent = DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
 				"testGroupWithThreeChildren");
 		DataCreator2.attachLinkToRecord(refParent, recordGroup);
@@ -201,8 +203,10 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testMetadataGroupChildDoesNotExistInStorageExceptionIsSentAlong() {
 		recordGroup = DataCreator2.createMetadataGroupWithThreeChildren();
-		recordGroup.addChild(DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
-				"testGroupWithThreeChildren"));
+		DataRecordLink parentLink = DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
+				"testGroupWithThreeChildren");
+		DataCreator2.attachLinkToRecord(parentLink, recordGroup);
+
 		setUpDependencies();
 		try {
 			callValidatorUseExtendedFunctionality();
@@ -215,8 +219,9 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 			+ "Data is not valid: childItem: thatItem does not exist in parent")
 	public void testCollectionVariableItemDoesNotExistInParent() {
 		recordGroup = DataCreator2.createDataGroupDescribingACollectionVariable();
-		recordGroup.addChild(DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
-				"testParentMissingItemCollectionVar"));
+		DataRecordLink parentLink = DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
+				"testParentMissingItemCollectionVar");
+		DataCreator2.attachLinkToRecord(parentLink, recordGroup);
 		setUpDependencies();
 		callValidatorUseExtendedFunctionality();
 	}
@@ -224,26 +229,26 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testCollectionVariableItemExistInParent() {
 		recordGroup = DataCreator2.createDataGroupDescribingACollectionVariable();
-		recordGroup.addChild(DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
-				"testParentCollectionVar"));
+		DataRecordLink parentLink = DataCreator2.createLinkWithLinkedId("refParentId", METADATA,
+				"testParentCollectionVar");
+		DataCreator2.attachLinkToRecord(parentLink, recordGroup);
 		setUpDependencies();
 		exceptNoException();
 
 		recordStorage.MCR.assertNumberOfCallsToMethod("read", 3);
 		recordStorage.MCR.assertParameter("read", 0, "id", "testItemCollection");
-		recordStorage.MCR.assertParameterAsEqual("read", 0, "types", List.of(METADATA));
+		recordStorage.MCR.assertParameterAsEqual("read", 0, "type", METADATA);
 
 		recordStorage.MCR.assertParameter("read", 1, "id", "testParentCollectionVar");
-		recordStorage.MCR.assertParameterAsEqual("read", 1, "types", List.of(METADATA));
+		recordStorage.MCR.assertParameterAsEqual("read", 1, "type", METADATA);
 
 		recordStorage.MCR.assertParameter("read", 2, "id", "testParentItemCollection");
-		recordStorage.MCR.assertParameterAsEqual("read", 2, "types", List.of(METADATA));
+		recordStorage.MCR.assertParameterAsEqual("read", 2, "type", METADATA);
 	}
 
 	@Test
 	public void testCollectionVariableFinalValueExistInCollection() throws Exception {
 		recordGroup = DataCreator2.createDataGroupDescribingACollectionVariable();
-		// recordGroup.addChild(new DataAtomicOldSpy("finalValue", "that"));
 		DataCreator2.setAtomicNameInDataUsingValueInRecord("finalValue", "that", recordGroup);
 
 		setUpDependencies();
@@ -252,20 +257,22 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 		recordStorage.MCR.assertNumberOfCallsToMethod("read", 3);
 
 		recordStorage.MCR.assertParameter("read", 0, "id", "testItemCollection");
-		recordStorage.MCR.assertParameterAsEqual("read", 0, "types", List.of(METADATA));
+		recordStorage.MCR.assertParameterAsEqual("read", 0, "type", METADATA);
 
 		recordStorage.MCR.assertParameter("read", 1, "id", "thisItem");
-		recordStorage.MCR.assertParameterAsEqual("read", 1, "types", List.of(METADATA));
+		recordStorage.MCR.assertParameterAsEqual("read", 1, "type", METADATA);
 
 		recordStorage.MCR.assertParameter("read", 2, "id", "thatItem");
-		recordStorage.MCR.assertParameterAsEqual("read", 2, "types", List.of(METADATA));
+		recordStorage.MCR.assertParameterAsEqual("read", 2, "type", METADATA);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
 			+ "Data is not valid: final value does not exist in collection")
 	public void testCollectionVariableFinalValueDoesNotExistInCollection() {
 		recordGroup = DataCreator2.createDataGroupDescribingACollectionVariable();
-		recordGroup.addChild(new DataAtomicOldSpy("finalValue", "doesNotExist"));
+		// recordGroup.addChild(new DataAtomicOldSpy("finalValue", "doesNotExist"));
+		DataCreator2.setAtomicNameInDataUsingValueInRecord("finalValue", "doesNotExist",
+				recordGroup);
 		setUpDependencies();
 		callValidatorUseExtendedFunctionality();
 	}
@@ -273,7 +280,10 @@ public class MetadataConsistencyGroupAndCollectionValidatorTest {
 	@Test
 	public void testMetadataTypeThatHasNoInheritanceRules() {
 		recordGroup = DataCreator2.createMetadataGroupWithRecordLinkAsChild();
-		recordGroup.addChild(new DataAtomicOldSpy("refParentId", "testParentRecordLink"));
+		// recordGroup.addChild(new DataAtomicOldSpy("refParentId", "testParentRecordLink"));
+		DataCreator2.setAtomicNameInDataUsingValueInRecord("refParentId", "testParentRecordLink",
+				recordGroup);
+
 		setUpDependencies();
 		exceptNoException();
 	}

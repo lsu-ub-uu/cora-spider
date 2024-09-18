@@ -426,6 +426,9 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			DataRecordLinkSpy item2 = (DataRecordLinkSpy) createLinkWithLinkedId("ref", METADATA,
 					"thatItem");
 			DataCreator2.attachLinkToParent(item2, collectionItemReferences);
+
+			collectionItemReferences.MRV.setDefaultReturnValuesSupplier("getChildren",
+					() -> List.of(item1, item2));
 			return record;
 
 		}
@@ -469,6 +472,9 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			DataRecordLinkSpy item2 = (DataRecordLinkSpy) createLinkWithLinkedId("ref", METADATA,
 					"thoseItem");
 			DataCreator2.attachLinkToParent(item2, collectionItemReferences);
+
+			collectionItemReferences.MRV.setDefaultReturnValuesSupplier("getChildren",
+					() -> List.of(item1, item2));
 			return record;
 		}
 		if (id.equals("testParentCollectionVar")) {
@@ -517,6 +523,8 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 			DataRecordLinkSpy item3 = (DataRecordLinkSpy) createLinkWithLinkedId("ref", METADATA,
 					"thoseItem");
 			DataCreator2.attachLinkToParent(item3, collectionItemReferences);
+			collectionItemReferences.MRV.setDefaultReturnValuesSupplier("getChildren",
+					() -> List.of(item1, item2, item3));
 			return record;
 		}
 		if (id.equals("thisItem")) {
@@ -615,7 +623,6 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 	@Override
 	public void deleteByTypeAndId(String type, String id) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -665,7 +672,6 @@ public class RecordStorageCreateUpdateSpy implements RecordStorage {
 		StorageReadResult spiderReadResult = new StorageReadResult();
 		spiderReadResult.listOfDataGroups = recordTypeList;
 		return spiderReadResult;
-
 	}
 
 	@Override

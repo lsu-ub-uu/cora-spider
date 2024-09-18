@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 import se.uu.ub.cora.data.DataChild;
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
@@ -36,13 +37,14 @@ public final class DataCreator2 {
 	// return recordInfo;
 	// }
 
-	// public static DataGroup createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
-	// String recordType, String recordId, String dataDivider) {
-	// DataGroup recordInfo = createRecordInfoWithRecordType(recordType);
-	// recordInfo.addChild(new DataAtomicOldSpy("id", recordId));
-	// recordInfo.addChild(createDataDividerWithLinkedRecordId(dataDivider));
-	// return recordInfo;
-	// }
+	public static DataGroup createRecordInfoWithRecordTypeAndRecordIdAndDataDivider(
+			String recordType, String recordId, String dataDivider) {
+		// DataGroup recordInfo = createRecordInfoWithRecordType(recordType);
+		// recordInfo.addChild(new DataAtomicOldSpy("id", recordId));
+		// recordInfo.addChild(createDataDividerWithLinkedRecordId(dataDivider));
+		// return recordInfo;
+		return createRecordInfoWithIdAndTypeAndLinkedRecordId(recordId, recordType, dataDivider);
+	}
 
 	// public static DataGroup createRecordInfoWithIdAndLinkedRecordId(String id,
 	// String linkedRecordId) {
@@ -140,11 +142,15 @@ public final class DataCreator2 {
 	public static void attachLinkToRecord(DataRecordLink link, DataRecordGroupSpy parent) {
 		parent.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName", () -> link,
 				DataRecordLink.class, link.getNameInData());
+		parent.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				link.getNameInData());
 	}
 
 	public static void attachLinkToParent(DataRecordLink link, DataGroupSpy parent) {
 		parent.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName", () -> link,
 				DataRecordLink.class, link.getNameInData());
+		parent.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				link.getNameInData());
 	}
 
 	// public static DataRecordGroupSpy createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(String
@@ -243,7 +249,6 @@ public final class DataCreator2 {
 				() -> childReferences, "childReferences");
 
 		return recordGroup;
-
 	}
 
 	public static DataRecordGroupSpy createDataGroupDescribingACollectionVariable() {

@@ -121,8 +121,8 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 	}
 
 	private String extractParentId() {
-		DataRecordLink ref = recordGroup
-				.getFirstChildOfTypeAndName(DataRecordLink.class, REF_PARENT_ID);
+		DataRecordLink ref = recordGroup.getFirstChildOfTypeAndName(DataRecordLink.class,
+				REF_PARENT_ID);
 		return ref.getLinkedRecordId();
 	}
 
@@ -150,8 +150,8 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 	}
 
 	private DataGroup getItemReferencesFromLinkedItemCollection() {
-		DataRecordLink refCollection = recordGroup
-				.getFirstChildOfTypeAndName(DataRecordLink.class, "refCollection");
+		DataRecordLink refCollection = recordGroup.getFirstChildOfTypeAndName(DataRecordLink.class,
+				"refCollection");
 		String refCollectionId = refCollection.getLinkedRecordId();
 		return readItemCollectionAndExtractCollectionItemReferences(refCollectionId);
 	}
@@ -187,8 +187,7 @@ public class MetadataConsistencyGroupAndCollectionValidator implements ExtendedF
 
 	private void possiblyValidateFinalValue() {
 		if (hasFinalValue()) {
-			String finalValue = recordGroup
-					.getFirstAtomicValueWithNameInData("finalValue");
+			String finalValue = recordGroup.getFirstAtomicValueWithNameInData("finalValue");
 			if (!validateFinalValue(finalValue)) {
 				throw new DataException(
 						"Data is not valid: final value does not exist in collection");

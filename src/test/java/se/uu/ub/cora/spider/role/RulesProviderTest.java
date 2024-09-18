@@ -66,7 +66,16 @@ public class RulesProviderTest {
 	////////////////////////////
 
 	@Test
-	public void testInactiveRole() {
+	public void testInactiveRoleGivesEmptyRuleListEvenThoughItHasActiveLinkedRules() {
+		// TODO: create an inactive role with at least one linked active rule, check no rules
+		// returned
+		// DataRecordGroupSpy role = new DataRecordGroupSpy();
+		// // DataCreator2.setAtomicNameInDataUsingValueInRecord("activeStatus", "inactive", role);
+		// DataCreator2.setAtomicNameInDataUsingValueInRecord("activeStatus", "inactive", role);
+		// DataCreator2.createLinkWithLinkedId("permissionRuleLink", "permissionRule", "");
+		// recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> role, "permissionRole",
+		// "inactive");
+
 		String roleId = "inactive";
 
 		// readRule.getFirstAtomicValueWithNameInData("activeStatus")
@@ -166,7 +175,6 @@ public class RulesProviderTest {
 		assertEquals(permissionPublishedRulePart3.size(), 2);
 		assertTrue(permissionPublishedRulePart3.contains("system.published"));
 		assertTrue(permissionPublishedRulePart3.contains("system.notPublished"));
-
 	}
 
 	@Test
@@ -182,7 +190,6 @@ public class RulesProviderTest {
 
 		DataGroup secondRuleInStorage = recordStorage.returnedReadDataGroups.get(2);
 		assertCorrectRuleWithTwoReadPermissions(rules, secondRuleInStorage);
-
 	}
 
 	private void assertCorrectRuleWithOneReadPermission(List<Rule> rules, DataGroup ruleInStorage) {
@@ -284,7 +291,6 @@ public class RulesProviderTest {
 
 		assertWriteFromMetadataIsAddedToReadInPopulatedRule(readPermissionsInRule,
 				writePermissionsFromMetadata);
-
 	}
 
 	private void assertWriteFromMetadataIsAddedToReadInPopulatedRule(
