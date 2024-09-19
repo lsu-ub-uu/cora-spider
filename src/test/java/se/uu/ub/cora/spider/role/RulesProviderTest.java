@@ -23,6 +23,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
@@ -33,6 +34,12 @@ import se.uu.ub.cora.beefeater.authorization.RuleImp;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.spies.DataAtomicSpy;
+import se.uu.ub.cora.data.spies.DataAttributeSpy;
+import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.spy.RulesRecordPartRecordStorageSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
@@ -63,48 +70,182 @@ public class RulesProviderTest {
 		assertEquals(rules.size(), 0);
 	}
 
-	////////////////////////////
+	@Test
+	public void inactiveRoleGivesEmptyRuleList() {
+		DataRecordGroupSpy inactiveRole = createInactiveRole();
+		recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> inactiveRole,
+				"permissionRole", SOME_ROLE);
+
+		List<Rule> rules = rulesProvider.getActiveRules(SOME_ROLE);
+
+		recordStorage.MCR.assertParameters("read", 0, "permissionRole", SOME_ROLE);
+		assertEquals(rules.size(), 0);
+	}
+
+	private DataRecordGroupSpy createInactiveRole() {
+		DataRecordGroupSpy role = new DataRecordGroupSpy();
+		role.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "inactive");
+		recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> role, "permissionRole",
+				SOME_ROLE);
+		return role;
+	}
+
+	private DataRecordGroupSpy createActiveRole() {
+		DataRecordGroupSpy role = new DataRecordGroupSpy();
+		role.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "active");
+		recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> role, "permissionRole",
+				SOME_ROLE);
+		return role;
+	}
+
+	private DataRecordGroupSpy createActiveRule(String id) {
+		DataRecordGroupSpy rule = new DataRecordGroupSpy();
+		rule.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "active");
+		recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> rule, "permissionRule", id);
+		return rule;
+	}
+
+	private void addRulePartToRule(DataRecordGroupSpy rule, DataGroupSpy... rulePart) {
+		rule.MRV.setSpecificReturnValuesSupplier("getAllGroupsWithNameInData",
+				() -> Arrays.asList(rulePart), "permissionRulePart");
+	}
+
+	private DataGroupSpy createRulePartWithTwoActions() {
+		DataAttributeSpy actionAttribute = new DataAttributeSpy();
+		actionAttribute.MRV.setDefaultReturnValuesSupplier("getValue", () -> "action");
+		DataAtomicSpy rulePartValue0 = new DataAtomicSpy();
+		rulePartValue0.MRV.setDefaultReturnValuesSupplier("getValue", () -> "system.create");
+		DataAtomicSpy rulePartValue1 = new DataAtomicSpy();
+		rulePartValue1.MRV.setDefaultReturnValuesSupplier("getValue", () -> "system.read");
+
+		DataGroupSpy rulePart = new DataGroupSpy();
+		rulePart.MRV.setDefaultReturnValuesSupplier("getChildren",
+				() -> List.of(rulePartValue0, rulePartValue1));
+		rulePart.MRV.setSpecificReturnValuesSupplier("getAttribute", () -> actionAttribute, "type");
+		return rulePart;
+	}
+
+	private DataGroupSpy createRulePartWithTwoRecordTypes() {
+		DataAttributeSpy actionAttribute = new DataAttributeSpy();
+		actionAttribute.MRV.setDefaultReturnValuesSupplier("getValue", () -> "recordType");
+		DataAtomicSpy rulePartValue0 = new DataAtomicSpy();
+		rulePartValue0.MRV.setDefaultReturnValuesSupplier("getValue", () -> "system.person");
+		DataAtomicSpy rulePartValue1 = new DataAtomicSpy();
+		rulePartValue1.MRV.setDefaultReturnValuesSupplier("getValue", () -> "system.place");
+
+		DataGroupSpy rulePart = new DataGroupSpy();
+		rulePart.MRV.setDefaultReturnValuesSupplier("getChildren",
+				() -> List.of(rulePartValue0, rulePartValue1));
+		rulePart.MRV.setSpecificReturnValuesSupplier("getAttribute", () -> actionAttribute, "type");
+		return rulePart;
+	}
+
+	private DataRecordGroupSpy createInactiveRule(String id) {
+		DataRecordGroupSpy rule = new DataRecordGroupSpy();
+		rule.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "inactive");
+		recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> rule, "permissionRule", id);
+		return rule;
+	}
 
 	@Test
-	public void testInactiveRoleGivesEmptyRuleListEvenThoughItHasActiveLinkedRules() {
-		// TODO: create an inactive role with at least one linked active rule, check no rules
-		// returned
-		// DataRecordGroupSpy role = new DataRecordGroupSpy();
-		// // DataCreator2.setAtomicNameInDataUsingValueInRecord("activeStatus", "inactive", role);
-		// DataCreator2.setAtomicNameInDataUsingValueInRecord("activeStatus", "inactive", role);
-		// DataCreator2.createLinkWithLinkedId("permissionRuleLink", "permissionRule", "");
-		// recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> role, "permissionRole",
-		// "inactive");
+	public void activeRoleGivesWithTwoInactiveRules() {
+		DataRecordGroupSpy activeRole = createActiveRole();
+		DataRecordLinkSpy ruleLink0 = createLink("someRuleId0");
+		DataRecordLinkSpy ruleLink1 = createLink("someRuleId1");
+		addRulesToRole(activeRole, ruleLink0, ruleLink1);
+		createInactiveRule("someRuleId0");
+		createInactiveRule("someRuleId1");
 
-		String roleId = "inactive";
+		List<Rule> rules = rulesProvider.getActiveRules(SOME_ROLE);
 
-		// readRule.getFirstAtomicValueWithNameInData("activeStatus")
-
-		List<Rule> rules = rulesProvider.getActiveRules(roleId);
+		recordStorage.MCR.assertNumberOfCallsToMethod("read", 3);
+		recordStorage.MCR.assertParameters("read", 0, "permissionRole", SOME_ROLE);
+		recordStorage.MCR.assertParameters("read", 1, "permissionRule", "someRuleId0");
+		recordStorage.MCR.assertParameters("read", 2, "permissionRule", "someRuleId1");
 
 		assertEquals(rules.size(), 0);
 	}
 
 	@Test
-	public void test() {
-		String roleId = "guest";
+	public void inactiveRoleGivesWithTwoActiveRules() {
+		DataRecordGroupSpy activeRole = createInactiveRole();
+		DataRecordLinkSpy ruleLink0 = createLink("someRuleId0");
+		DataRecordLinkSpy ruleLink1 = createLink("someRuleId1");
+		addRulesToRole(activeRole, ruleLink0, ruleLink1);
+		createActiveRule("someRuleId0");
+		createActiveRule("someRuleId1");
 
-		List<Rule> rules = rulesProvider.getActiveRules(roleId);
+		List<Rule> rules = rulesProvider.getActiveRules(SOME_ROLE);
 
-		assertEquals(rules.size(), 1);
-		Rule rule = rules.get(0);
+		recordStorage.MCR.assertNumberOfCallsToMethod("read", 1);
+		recordStorage.MCR.assertParameters("read", 0, "permissionRole", SOME_ROLE);
+		assertEquals(rules.size(), 0);
+	}
+
+	@Test
+	public void activeRoleGivesWithTwoActiveRules() {
+		DataRecordGroupSpy activeRole = createActiveRole();
+		DataRecordLinkSpy ruleLink0 = createLink("someRuleId0");
+		DataRecordLinkSpy ruleLink1 = createLink("someRuleId1");
+		addRulesToRole(activeRole, ruleLink0, ruleLink1);
+		DataRecordGroupSpy activeRule0 = createActiveRule("someRuleId0");
+		addRulePartToRule(activeRule0, createRulePartWithTwoActions());
+		DataRecordGroupSpy activeRule1 = createActiveRule("someRuleId1");
+		addRulePartToRule(activeRule1, createRulePartWithTwoActions());
+
+		List<Rule> rules = rulesProvider.getActiveRules(SOME_ROLE);
+
+		recordStorage.MCR.assertNumberOfCallsToMethod("read", 3);
+		recordStorage.MCR.assertParameters("read", 0, "permissionRole", SOME_ROLE);
+		recordStorage.MCR.assertParameters("read", 1, "permissionRule", "someRuleId0");
+		recordStorage.MCR.assertParameters("read", 2, "permissionRule", "someRuleId1");
+
+		assertEquals(rules.size(), 2);
+
+		assertRules(rules.get(0));
+		assertRules(rules.get(1));
+	}
+
+	private void assertRules(Rule rule) {
 		RulePartValues actionRulePart = rule.getRulePartValuesForKey("action");
 		assertEquals(actionRulePart.size(), 2);
 		assertTrue(actionRulePart.contains("system.create"));
 		assertTrue(actionRulePart.contains("system.read"));
 	}
 
+	private void addRulesToRole(DataRecordGroupSpy activeRole,
+			DataRecordLinkSpy... permissionRuleLink) {
+		activeRole.MRV.setSpecificReturnValuesSupplier("getChildrenOfTypeAndName",
+				() -> Arrays.asList(permissionRuleLink), DataRecordLink.class,
+				"permissionRuleLink");
+	}
+
+	private DataRecordLinkSpy createLink(String ruleId) {
+		DataRecordLinkSpy permissionRuleLink = new DataRecordLinkSpy();
+		permissionRuleLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> ruleId);
+		return permissionRuleLink;
+	}
+
 	@Test
 	public void testWithPermissionTerms() {
-		// RecordStorage recordStorage = new OldRecordStorageSpy();
-		// RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
-		String roleId = "guestWithPermissionTerms";
-		List<Rule> rules = rulesProvider.getActiveRules(roleId);
+		DataRecordGroupSpy activeRole = createActiveRole();
+		DataRecordLinkSpy ruleLink0 = createLink("someRuleId0");
+		DataRecordLinkSpy ruleLink1 = createLink("someRuleId1");
+		addRulesToRole(activeRole, ruleLink0, ruleLink1);
+		DataRecordGroupSpy someRuleId0 = createActiveRule("someRuleId0");
+		addRulePartToRule(someRuleId0, createRulePartWithTwoActions(),
+				createRulePartWithTwoRecordTypes());
+		DataRecordGroupSpy someRuleId1 = createActiveRule("someRuleId1");
+		addRulePartToRule(someRuleId1, createRulePartWithTwoActions());
+		addPermissionTermRulePart(someRuleId1, createPermissionTermRulePart("PUBLISHED_STATUS",
+				createPermissionValue("system.published")));
+
+		List<Rule> rules = rulesProvider.getActiveRules(SOME_ROLE);
+
 		assertEquals(rules.size(), 2);
 		Rule rule = rules.get(0);
 		RulePartValues actionRulePart = rule.getRulePartValuesForKey("action");
@@ -129,52 +270,118 @@ public class RulesProviderTest {
 		assertTrue(permissionPublishedRulePart.contains("system.published"));
 	}
 
+	private void addPermissionTermRulePart(DataRecordGroupSpy someRuleId1,
+			DataGroupSpy dataGroupSpy) {
+		someRuleId1.MRV.setSpecificReturnValuesSupplier("getAllGroupsWithNameInData",
+				() -> List.of(dataGroupSpy), "permissionTermRulePart");
+	}
+
+	private DataGroupSpy createPermissionTermRulePart(String permissionKey,
+			DataAtomicSpy... values) {
+		String id = "someCollectTerm" + System.currentTimeMillis();
+		DataGroupSpy permissionTermRulePart = createPermissionRuleParts(id, values);
+		createPermissionTermInStorage(id, permissionKey);
+		return permissionTermRulePart;
+	}
+
+	private DataGroupSpy createPermissionRuleParts(String id, DataAtomicSpy... values) {
+		DataGroupSpy permissionTermRulePart = new DataGroupSpy();
+		permissionTermRulePart.MRV.setSpecificReturnValuesSupplier(
+				"getAllDataAtomicsWithNameInData", () -> Arrays.asList(values), "value");
+
+		DataRecordLinkSpy permissionRuleLink = createLink(id);
+		permissionTermRulePart.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
+				() -> permissionRuleLink, DataRecordLink.class, "rule");
+		return permissionTermRulePart;
+	}
+
+	private DataAtomicSpy createPermissionValue(String value) {
+		DataAtomicSpy value0 = new DataAtomicSpy();
+		value0.MRV.setDefaultReturnValuesSupplier("getValue", () -> value);
+		return value0;
+	}
+
+	private void createPermissionTermInStorage(String id, String permissionKey) {
+		DataRecordGroupSpy permissionTerm = new DataRecordGroupSpy();
+		DataGroupSpy extraData = new DataGroupSpy();
+		permissionTerm.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> extraData, "extraData");
+		extraData.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> permissionKey, "permissionKey");
+
+		recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> permissionTerm,
+				"collectTerm", id);
+	}
+
 	@Test
 	public void testWithMultiplePermissionTerms() {
-		// RecordStorage recordStorage = new OldRecordStorageSpy();
-		// RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
-		String roleId = "guestWithMultiplePermissionTerms";
-		List<Rule> rules = rulesProvider.getActiveRules(roleId);
+		DataRecordGroupSpy activeRole = createActiveRole();
+		DataRecordLinkSpy ruleLink0 = createLink("someRuleId0");
+		DataRecordLinkSpy ruleLink1 = createLink("someRuleId1");
+		DataRecordLinkSpy ruleLink2 = createLink("someRuleId2");
+		addRulesToRole(activeRole, ruleLink0, ruleLink1, ruleLink2);
+
+		DataRecordGroupSpy someRuleId0 = createActiveRule("someRuleId0");
+		addRulePartToRule(someRuleId0, createRulePartWithTwoActions(),
+				createRulePartWithTwoRecordTypes());
+
+		DataRecordGroupSpy someRuleId1 = createActiveRule("someRuleId1");
+		addRulePartToRule(someRuleId1, createRulePartWithTwoActions());
+		addPermissionTermRulePart(someRuleId1, createPermissionTermRulePart("PUBLISHED_STATUS",
+				createPermissionValue("system.published")));
+
+		DataRecordGroupSpy someRuleId2 = createActiveRule("someRuleId2");
+		addRulePartToRule(someRuleId2, createRulePartWithTwoActions());
+		addPermissionTermRulePart(someRuleId2,
+				createPermissionTermRulePart("PUBLISHED_STATUS",
+						createPermissionValue("system.published"),
+						createPermissionValue("system.notPublished")));
+		addPermissionTermRulePart(someRuleId2,
+				createPermissionTermRulePart("DELETED_STATUS",
+						createPermissionValue("system.deleted"),
+						createPermissionValue("system.notDeleted")));
+
+		List<Rule> rules = rulesProvider.getActiveRules(SOME_ROLE);
 		assertEquals(rules.size(), 3);
-		Rule rule = rules.get(0);
-		RulePartValues actionRulePart = rule.getRulePartValuesForKey("action");
-		assertEquals(actionRulePart.size(), 2);
-		assertTrue(actionRulePart.contains("system.create"));
-		assertTrue(actionRulePart.contains("system.read"));
+		Rule rule0 = rules.get(0);
+		RulePartValues actionRulePart0 = rule0.getRulePartValuesForKey("action");
+		assertEquals(actionRulePart0.size(), 2);
+		assertTrue(actionRulePart0.contains("system.create"));
+		assertTrue(actionRulePart0.contains("system.read"));
 
-		RulePartValues recordTypeRulePart = rule.getRulePartValuesForKey("recordType");
-		assertEquals(recordTypeRulePart.size(), 2);
-		assertTrue(recordTypeRulePart.contains("system.person"));
-		assertTrue(recordTypeRulePart.contains("system.place"));
+		RulePartValues recordTypeRulePart0 = rule0.getRulePartValuesForKey("recordType");
+		assertEquals(recordTypeRulePart0.size(), 2);
+		assertTrue(recordTypeRulePart0.contains("system.person"));
+		assertTrue(recordTypeRulePart0.contains("system.place"));
 
-		Rule rule2 = rules.get(1);
+		Rule rule1 = rules.get(1);
+		RulePartValues actionRulePart1 = rule1.getRulePartValuesForKey("action");
+		assertEquals(actionRulePart1.size(), 2);
+		assertTrue(actionRulePart1.contains("system.create"));
+		assertTrue(actionRulePart1.contains("system.read"));
+
+		RulePartValues permissionPublishedRulePart1 = rule1
+				.getRulePartValuesForKey("PUBLISHED_STATUS");
+		assertEquals(permissionPublishedRulePart1.size(), 1);
+		assertTrue(permissionPublishedRulePart1.contains("system.published"));
+
+		Rule rule2 = rules.get(2);
 		RulePartValues actionRulePart2 = rule2.getRulePartValuesForKey("action");
 		assertEquals(actionRulePart2.size(), 2);
 		assertTrue(actionRulePart2.contains("system.create"));
 		assertTrue(actionRulePart2.contains("system.read"));
 
-		RulePartValues permissionPublishedRulePart = rule2
-				.getRulePartValuesForKey("PUBLISHED_STATUS");
-		assertEquals(permissionPublishedRulePart.size(), 1);
-		assertTrue(permissionPublishedRulePart.contains("system.published"));
-
-		Rule rule3 = rules.get(2);
-		RulePartValues actionRulePart3 = rule3.getRulePartValuesForKey("action");
-		assertEquals(actionRulePart3.size(), 2);
-		assertTrue(actionRulePart3.contains("system.create"));
-		assertTrue(actionRulePart3.contains("system.read"));
-
-		RulePartValues permissionPublishedRulePart2 = rule3
+		RulePartValues permissionPublishedRulePart2_a = rule2
 				.getRulePartValuesForKey("DELETED_STATUS");
-		assertEquals(permissionPublishedRulePart2.size(), 2);
-		assertTrue(permissionPublishedRulePart2.contains("system.deleted"));
-		assertTrue(permissionPublishedRulePart2.contains("system.notDeleted"));
+		assertEquals(permissionPublishedRulePart2_a.size(), 2);
+		assertTrue(permissionPublishedRulePart2_a.contains("system.deleted"));
+		assertTrue(permissionPublishedRulePart2_a.contains("system.notDeleted"));
 
-		RulePartValues permissionPublishedRulePart3 = rule3
+		RulePartValues permissionPublishedRulePart2_b = rule2
 				.getRulePartValuesForKey("PUBLISHED_STATUS");
-		assertEquals(permissionPublishedRulePart3.size(), 2);
-		assertTrue(permissionPublishedRulePart3.contains("system.published"));
-		assertTrue(permissionPublishedRulePart3.contains("system.notPublished"));
+		assertEquals(permissionPublishedRulePart2_b.size(), 2);
+		assertTrue(permissionPublishedRulePart2_b.contains("system.published"));
+		assertTrue(permissionPublishedRulePart2_b.contains("system.notPublished"));
 	}
 
 	@Test

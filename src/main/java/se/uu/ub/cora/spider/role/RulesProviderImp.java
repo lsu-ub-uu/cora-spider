@@ -22,7 +22,6 @@ package se.uu.ub.cora.spider.role;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
 
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.beefeater.authorization.RuleImp;
@@ -31,6 +30,7 @@ import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -49,6 +49,7 @@ public class RulesProviderImp implements RulesProvider {
 			if (isInactiveRole(readRole)) {
 				return Collections.emptyList();
 			}
+			System.out.println("Active");
 			return getActiveRulesForRole(readRole);
 		} catch (RecordNotFoundException e) {
 			return Collections.emptyList();
@@ -69,25 +70,31 @@ public class RulesProviderImp implements RulesProvider {
 
 	private List<Rule> getActiveRulesForRole(DataRecordGroup readRole) {
 		List<Rule> listOfRules = new ArrayList<>();
-		List<DataChild> children = readRole.getChildren();
-		Stream<DataChild> permissionRuleLinks = children.stream()
-				.filter(child -> "permissionRuleLink".equals(child.getNameInData()));
+		// List<DataChild> children = readRole.getChildren();
+		// Stream<DataChild> permissionRuleLinks = children.stream()
+		// .filter(child -> "permissionRuleLink".equals(child.getNameInData()));
 
-		permissionRuleLinks.forEach(rule -> possiblyAddRuleToListOfRules(rule, listOfRules));
+		List<DataRecordLink> ruleLinks = readRole.getChildrenOfTypeAndName(DataRecordLink.class,
+				"permissionRuleLink");
+		for (DataRecordLink ruleLink : ruleLinks) {
+			possiblyAddRuleToListOfRules(ruleLink, listOfRules);
+		}
+		// permissionRuleLinks.forEach(rule -> possiblyAddRuleToListOfRules(rule, listOfRules));
 		return listOfRules;
 	}
 
-	private void possiblyAddRuleToListOfRules(DataChild dataElementRule, List<Rule> listOfRules) {
+	private void possiblyAddRuleToListOfRules(DataRecordLink dataElementRule,
+			List<Rule> listOfRules) {
 		DataRecordGroup readRule = getLinkedRuleFromStorage(dataElementRule);
 		if (dataContainsActiveStatusAsActive(readRule)) {
 			addRuleToListOfRules(listOfRules, readRule);
 		}
 	}
 
-	private DataRecordGroup getLinkedRuleFromStorage(DataChild dataElementRule) {
-		String ruleId = ((DataGroup) dataElementRule)
-				.getFirstAtomicValueWithNameInData("linkedRecordId");
-		return recordStorage.read("permissionRule", ruleId);
+	private DataRecordGroup getLinkedRuleFromStorage(DataRecordLink ruleLink) {
+		// String ruleId = ((DataGroup)
+		// ruleLink).getFirstAtomicValueWithNameInData("linkedRecordId");
+		return recordStorage.read("permissionRule", ruleLink.getLinkedRecordId());
 	}
 
 	private boolean dataContainsActiveStatusAsActive(DataRecordGroup readRule) {
@@ -118,8 +125,8 @@ public class RulesProviderImp implements RulesProvider {
 
 	private RulePartValuesImp createRulePartValuesForRulePart(DataGroup rulePart) {
 		RulePartValuesImp ruleValues = new RulePartValuesImp();
-		List<DataChild> children = rulePart.getChildren();
-		children.forEach(ruleValue -> ruleValues.add(((DataAtomic) ruleValue).getValue()));
+		List<DataChild> rulePartsValues = rulePart.getChildren();
+		rulePartsValues.forEach(ruleValue -> ruleValues.add(((DataAtomic) ruleValue).getValue()));
 		return ruleValues;
 	}
 
@@ -127,7 +134,6 @@ public class RulesProviderImp implements RulesProvider {
 		List<DataGroup> permissionTermRuleParts = readRule
 				.getAllGroupsWithNameInData("permissionTermRulePart");
 		permissionTermRuleParts.forEach(rulePart -> addTermRulePartToRule(rulePart, rule));
-
 	}
 
 	private void addTermRulePartToRule(DataGroup ruleTermPart, Rule rule) {
@@ -141,9 +147,14 @@ public class RulesProviderImp implements RulesProvider {
 	}
 
 	private String getPermissionKeyForRuleTermPart(DataGroup ruleTermPart) {
-		DataGroup internalRule = ruleTermPart.getFirstGroupWithNameInData("rule");
-		String permissionTermId = internalRule.getFirstAtomicValueWithNameInData("linkedRecordId");
-		DataRecordGroup permissionTerm = recordStorage.read("collectTerm", permissionTermId);
+		DataRecordLink permissionTermRuleLink = ruleTermPart
+				.getFirstChildOfTypeAndName(DataRecordLink.class, "rule");
+		// DataGroup internalRule = ruleTermPart.getFirstGroupWithNameInData("rule");
+		// String permissionTermId =
+		// internalRule.getFirstAtomicValueWithNameInData("linkedRecordId");
+
+		DataRecordGroup permissionTerm = recordStorage.read("collectTerm",
+				permissionTermRuleLink.getLinkedRecordId());
 		DataGroup extraData = permissionTerm.getFirstGroupWithNameInData("extraData");
 		return extraData.getFirstAtomicValueWithNameInData("permissionKey");
 	}
