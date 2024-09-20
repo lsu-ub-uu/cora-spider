@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2018, 2019 Uppsala University Library
+ * Copyright 2016, 2018, 2019, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -270,18 +270,21 @@ public class RulesProviderTest {
 		assertTrue(permissionPublishedRulePart.contains("system.published"));
 	}
 
-	private void addPermissionTermRulePart(DataRecordGroupSpy someRuleId1,
-			DataGroupSpy dataGroupSpy) {
-		someRuleId1.MRV.setSpecificReturnValuesSupplier("getAllGroupsWithNameInData",
-				() -> List.of(dataGroupSpy), "permissionTermRulePart");
+	private void addPermissionTermRulePart(DataRecordGroupSpy rule, DataGroupSpy... dataGroupSpy) {
+		rule.MRV.setSpecificReturnValuesSupplier("getAllGroupsWithNameInData",
+				() -> Arrays.asList(dataGroupSpy), "permissionTermRulePart");
 	}
 
 	private DataGroupSpy createPermissionTermRulePart(String permissionKey,
 			DataAtomicSpy... values) {
-		String id = "someCollectTerm" + System.currentTimeMillis();
+		String id = createUniqueId();
 		DataGroupSpy permissionTermRulePart = createPermissionRuleParts(id, values);
 		createPermissionTermInStorage(id, permissionKey);
 		return permissionTermRulePart;
+	}
+
+	private String createUniqueId() {
+		return "someCollectTerm" + System.nanoTime();
 	}
 
 	private DataGroupSpy createPermissionRuleParts(String id, DataAtomicSpy... values) {
@@ -335,8 +338,7 @@ public class RulesProviderTest {
 		addPermissionTermRulePart(someRuleId2,
 				createPermissionTermRulePart("PUBLISHED_STATUS",
 						createPermissionValue("system.published"),
-						createPermissionValue("system.notPublished")));
-		addPermissionTermRulePart(someRuleId2,
+						createPermissionValue("system.notPublished")),
 				createPermissionTermRulePart("DELETED_STATUS",
 						createPermissionValue("system.deleted"),
 						createPermissionValue("system.notDeleted")));

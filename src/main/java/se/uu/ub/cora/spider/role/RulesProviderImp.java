@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2018, 2019 Uppsala University Library
+ * Copyright 2016, 2018, 2019, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -64,9 +64,9 @@ public class RulesProviderImp implements RulesProvider {
 	// return null == readRole;
 	// }
 
-	private boolean roleIsInactive(DataRecordGroup readRole) {
-		return !dataContainsActiveStatusAsActive(readRole);
-	}
+	// private boolean roleIsInactive(DataRecordGroup readRole) {
+	// return !dataContainsActiveStatusAsActive(readRole);
+	// }
 
 	private List<Rule> getActiveRulesForRole(DataRecordGroup readRole) {
 		List<Rule> listOfRules = new ArrayList<>();
@@ -152,7 +152,6 @@ public class RulesProviderImp implements RulesProvider {
 		// DataGroup internalRule = ruleTermPart.getFirstGroupWithNameInData("rule");
 		// String permissionTermId =
 		// internalRule.getFirstAtomicValueWithNameInData("linkedRecordId");
-
 		DataRecordGroup permissionTerm = recordStorage.read("collectTerm",
 				permissionTermRuleLink.getLinkedRecordId());
 		DataGroup extraData = permissionTerm.getFirstGroupWithNameInData("extraData");
