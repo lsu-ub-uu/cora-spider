@@ -20,7 +20,7 @@ package se.uu.ub.cora.spider.dependency.spy;
 
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactory;
-import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
+import se.uu.ub.cora.spider.record.internal.DataRedactorSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -30,7 +30,7 @@ public class DataRedactorFactorySpy implements DataRedactorFactory {
 
 	public DataRedactorFactorySpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", DataRedactorOldSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factor", DataRedactorSpy::new);
 	}
 
 	@Override

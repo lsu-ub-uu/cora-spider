@@ -49,7 +49,6 @@ public class RulesProviderImp implements RulesProvider {
 			if (isInactiveRole(readRole)) {
 				return Collections.emptyList();
 			}
-			System.out.println("Active");
 			return getActiveRulesForRole(readRole);
 		} catch (RecordNotFoundException e) {
 			return Collections.emptyList();
@@ -60,26 +59,13 @@ public class RulesProviderImp implements RulesProvider {
 		return !dataContainsActiveStatusAsActive(readRole);
 	}
 
-	// private boolean roleNotFoundInStorage(DataRecordGroup readRole) {
-	// return null == readRole;
-	// }
-
-	// private boolean roleIsInactive(DataRecordGroup readRole) {
-	// return !dataContainsActiveStatusAsActive(readRole);
-	// }
-
 	private List<Rule> getActiveRulesForRole(DataRecordGroup readRole) {
 		List<Rule> listOfRules = new ArrayList<>();
-		// List<DataChild> children = readRole.getChildren();
-		// Stream<DataChild> permissionRuleLinks = children.stream()
-		// .filter(child -> "permissionRuleLink".equals(child.getNameInData()));
-
 		List<DataRecordLink> ruleLinks = readRole.getChildrenOfTypeAndName(DataRecordLink.class,
 				"permissionRuleLink");
 		for (DataRecordLink ruleLink : ruleLinks) {
 			possiblyAddRuleToListOfRules(ruleLink, listOfRules);
 		}
-		// permissionRuleLinks.forEach(rule -> possiblyAddRuleToListOfRules(rule, listOfRules));
 		return listOfRules;
 	}
 
@@ -92,8 +78,6 @@ public class RulesProviderImp implements RulesProvider {
 	}
 
 	private DataRecordGroup getLinkedRuleFromStorage(DataRecordLink ruleLink) {
-		// String ruleId = ((DataGroup)
-		// ruleLink).getFirstAtomicValueWithNameInData("linkedRecordId");
 		return recordStorage.read("permissionRule", ruleLink.getLinkedRecordId());
 	}
 
@@ -149,9 +133,6 @@ public class RulesProviderImp implements RulesProvider {
 	private String getPermissionKeyForRuleTermPart(DataGroup ruleTermPart) {
 		DataRecordLink permissionTermRuleLink = ruleTermPart
 				.getFirstChildOfTypeAndName(DataRecordLink.class, "rule");
-		// DataGroup internalRule = ruleTermPart.getFirstGroupWithNameInData("rule");
-		// String permissionTermId =
-		// internalRule.getFirstAtomicValueWithNameInData("linkedRecordId");
 		DataRecordGroup permissionTerm = recordStorage.read("collectTerm",
 				permissionTermRuleLink.getLinkedRecordId());
 		DataGroup extraData = permissionTerm.getFirstGroupWithNameInData("extraData");
@@ -192,9 +173,7 @@ public class RulesProviderImp implements RulesProvider {
 		}
 	}
 
-	public RecordStorage getRecordStorage() {
-		// needed for test
+	public RecordStorage onlyForTestGetRecordStorage() {
 		return recordStorage;
 	}
-
 }

@@ -34,13 +34,13 @@ import se.uu.ub.cora.beefeater.authorization.RuleImp;
 import se.uu.ub.cora.beefeater.authorization.RulePartValues;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.spies.DataAtomicSpy;
 import se.uu.ub.cora.data.spies.DataAttributeSpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
-import se.uu.ub.cora.spider.spy.RulesRecordPartRecordStorageSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
@@ -57,8 +57,8 @@ public class RulesProviderTest {
 	}
 
 	@Test
-	public void testGetRecordStorage() {
-		assertSame(rulesProvider.getRecordStorage(), recordStorage);
+	public void testOnlyForTestGetRecordStorage() {
+		assertSame(rulesProvider.onlyForTestGetRecordStorage(), recordStorage);
 	}
 
 	@Test
@@ -344,6 +344,7 @@ public class RulesProviderTest {
 						createPermissionValue("system.notDeleted")));
 
 		List<Rule> rules = rulesProvider.getActiveRules(SOME_ROLE);
+
 		assertEquals(rules.size(), 3);
 		Rule rule0 = rules.get(0);
 		RulePartValues actionRulePart0 = rule0.getRulePartValuesForKey("action");
@@ -388,20 +389,49 @@ public class RulesProviderTest {
 
 	@Test
 	public void testWithReadRecordPartPermissions() {
-		RulesRecordPartRecordStorageSpy recordStorage = new RulesRecordPartRecordStorageSpy();
-		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
+		DataRecordGroupSpy activeRole = createActiveRole();
+		DataRecordLinkSpy ruleLink0 = createLink("someRuleId0");
+		DataRecordLinkSpy ruleLink1 = createLink("someRuleId1");
+		addRulesToRole(activeRole, ruleLink0, ruleLink1);
 
-		List<Rule> rules = rulesProvider.getActiveRules("roleWithReadRecordPartPermissions");
+		DataRecordGroupSpy someRuleId0 = createActiveRule("someRuleId0");
+		DataAtomicSpy readPermissionO = createPermissionValue("readPermission0value");
+		addReadPermissionsToRule(someRuleId0, readPermissionO);
+
+		DataRecordGroupSpy someRuleId1 = createActiveRule("someRuleId1");
+		DataAtomicSpy readPermission1 = createPermissionValue("readPermission1value");
+		DataAtomicSpy readPermission2 = createPermissionValue("readPermission2value");
+		addReadPermissionsToRule(someRuleId1, readPermission1, readPermission2);
+
+		List<Rule> rules = rulesProvider.getActiveRules(SOME_ROLE);
+
 		assertEquals(rules.size(), 2);
-
-		DataGroup ruleInStorage = recordStorage.returnedReadDataGroups.get(1);
-		assertCorrectRuleWithOneReadPermission(rules, ruleInStorage);
-
-		DataGroup secondRuleInStorage = recordStorage.returnedReadDataGroups.get(2);
-		assertCorrectRuleWithTwoReadPermissions(rules, secondRuleInStorage);
+		assertCorrectRuleWithOneReadPermission(rules, someRuleId0);
+		assertCorrectRuleWithTwoReadPermissions(rules, someRuleId1);
 	}
 
-	private void assertCorrectRuleWithOneReadPermission(List<Rule> rules, DataGroup ruleInStorage) {
+	private void addReadPermissionsToRule(DataRecordGroupSpy rule, DataAtomicSpy... permission) {
+		DataGroupSpy readPermissionsGroup = new DataGroupSpy();
+		readPermissionsGroup.MRV.setSpecificReturnValuesSupplier("getAllDataAtomicsWithNameInData",
+				() -> Arrays.asList(permission), "readPermission");
+		rule.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> readPermissionsGroup, "readPermissions");
+		rule.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				"readPermissions");
+	}
+
+	private void addWritePermissionsToRule(DataRecordGroupSpy rule, DataAtomicSpy... permission) {
+		DataGroupSpy readPermissionsGroup = new DataGroupSpy();
+		readPermissionsGroup.MRV.setSpecificReturnValuesSupplier("getAllDataAtomicsWithNameInData",
+				() -> Arrays.asList(permission), "writePermission");
+		rule.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> readPermissionsGroup, "writePermissions");
+		rule.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
+				"writePermissions");
+	}
+
+	private void assertCorrectRuleWithOneReadPermission(List<Rule> rules,
+			DataRecordGroup ruleInStorage) {
 		RuleImp rule = (RuleImp) rules.get(0);
 		assertEquals(rule.getReadRecordPartPermissions().size(), 1);
 
@@ -416,7 +446,7 @@ public class RulesProviderTest {
 	}
 
 	private void assertCorrectRuleWithTwoReadPermissions(List<Rule> rules,
-			DataGroup ruleInStorage) {
+			DataRecordGroup ruleInStorage) {
 		RuleImp ruleWithTwoReadPermissions = (RuleImp) rules.get(1);
 
 		DataGroup readPermissionsFromRuleInStorage = ruleInStorage
@@ -435,25 +465,33 @@ public class RulesProviderTest {
 
 	@Test
 	public void testWithWriteRecordPartPermissions() {
-		RulesRecordPartRecordStorageSpy recordStorage = new RulesRecordPartRecordStorageSpy();
-		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
+		DataRecordGroupSpy activeRole = createActiveRole();
+		DataRecordLinkSpy ruleLink0 = createLink("someRuleId0");
+		DataRecordLinkSpy ruleLink1 = createLink("someRuleId1");
+		addRulesToRole(activeRole, ruleLink0, ruleLink1);
 
-		List<Rule> rules = rulesProvider.getActiveRules("roleWithWriteRecordPartPermissions");
+		DataRecordGroupSpy someRuleId0 = createActiveRule("someRuleId0");
+		DataAtomicSpy writePermissionO = createPermissionValue("writePermission0value");
+		addWritePermissionsToRule(someRuleId0, writePermissionO);
+
+		DataRecordGroupSpy someRuleId1 = createActiveRule("someRuleId1");
+		DataAtomicSpy writePermission1 = createPermissionValue("writePermission1value");
+		DataAtomicSpy writePermission2 = createPermissionValue("writePermission2value");
+		addWritePermissionsToRule(someRuleId1, writePermission1, writePermission2);
+
+		List<Rule> rules = rulesProvider.getActiveRules(SOME_ROLE);
+
 		assertEquals(rules.size(), 2);
-
-		DataGroup ruleInStorage = recordStorage.returnedReadDataGroups.get(1);
-		assertCorrectRuleWithOneWritePermission(rules, ruleInStorage);
-
-		DataGroup secondRuleInStorage = recordStorage.returnedReadDataGroups.get(2);
-		assertCorrectRuleWithTwoWritePermissions(rules, secondRuleInStorage);
+		assertCorrectRuleWithOneWritePermission(rules, someRuleId0);
+		assertCorrectRuleWithTwoWritePermissions(rules, someRuleId1);
 	}
 
 	private void assertCorrectRuleWithOneWritePermission(List<Rule> rules,
-			DataGroup ruleInStorage) {
+			DataRecordGroupSpy someRuleId0) {
 		RuleImp rule = (RuleImp) rules.get(0);
 		assertEquals(rule.getWriteRecordPartPermissions().size(), 1);
 
-		DataGroup writePermissionsFromRuleInStorage = ruleInStorage
+		DataGroup writePermissionsFromRuleInStorage = someRuleId0
 				.getFirstGroupWithNameInData("writePermissions");
 
 		DataAtomic firstWritePermissionFromStorage = writePermissionsFromRuleInStorage
@@ -464,10 +502,10 @@ public class RulesProviderTest {
 	}
 
 	private void assertCorrectRuleWithTwoWritePermissions(List<Rule> rules,
-			DataGroup ruleInStorage) {
+			DataRecordGroupSpy someRuleId1) {
 		RuleImp ruleWithTwoWritePermissions = (RuleImp) rules.get(1);
 
-		DataGroup writePermissionsFromRuleInStorage = ruleInStorage
+		DataGroup writePermissionsFromRuleInStorage = someRuleId1
 				.getFirstGroupWithNameInData("writePermissions");
 
 		DataAtomic firstReadPermissionFromStorage = writePermissionsFromRuleInStorage
@@ -483,11 +521,20 @@ public class RulesProviderTest {
 
 	@Test
 	public void testReadAndWritePermissions() {
-		RulesRecordPartRecordStorageSpy recordStorage = new RulesRecordPartRecordStorageSpy();
-		RulesProvider rulesProvider = new RulesProviderImp(recordStorage);
+		DataRecordGroupSpy activeRole = createActiveRole();
+		DataRecordLinkSpy ruleLink0 = createLink("someRuleId0");
+		DataRecordLinkSpy ruleLink1 = createLink("someRuleId1");
+		addRulesToRole(activeRole, ruleLink0, ruleLink1);
 
-		List<Rule> rules = rulesProvider
-				.getActiveRules("roleWithReadAndWriteRecordPartPermissions");
+		DataRecordGroupSpy someRuleId0 = createActiveRule("someRuleId0");
+		DataAtomicSpy readPermission0 = createPermissionValue("readPermission0value");
+		DataAtomicSpy writePermissionO = createPermissionValue("writePermission0value");
+		DataAtomicSpy writePermission1 = createPermissionValue("writePermission1value");
+		addReadPermissionsToRule(someRuleId0, readPermission0);
+		addWritePermissionsToRule(someRuleId0, writePermissionO, writePermission1);
+
+		List<Rule> rules = rulesProvider.getActiveRules(SOME_ROLE);
+
 		assertEquals(rules.size(), 1);
 
 		RuleImp rule = (RuleImp) rules.get(0);
@@ -496,7 +543,7 @@ public class RulesProviderTest {
 		assertEquals(readPermissionsInRule.size(), 3);
 
 		List<DataAtomic> writePermissionsFromMetadata = getWritePermissionsFromRuleInStorage(
-				recordStorage);
+				someRuleId0);
 
 		assertWriteFromMetadataIsAddedToReadInPopulatedRule(readPermissionsInRule,
 				writePermissionsFromMetadata);
@@ -508,9 +555,7 @@ public class RulesProviderTest {
 		assertEquals(readPermissionsInRule.get(2), writePermissionsFromMetadata.get(1).getValue());
 	}
 
-	private List<DataAtomic> getWritePermissionsFromRuleInStorage(
-			RulesRecordPartRecordStorageSpy recordStorage) {
-		DataGroup ruleFromStorage = recordStorage.returnedReadDataGroups.get(1);
+	private List<DataAtomic> getWritePermissionsFromRuleInStorage(DataRecordGroup ruleFromStorage) {
 		DataGroup writePermissionsFromRuleInStorage = ruleFromStorage
 				.getFirstGroupWithNameInData("writePermissions");
 
