@@ -58,7 +58,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private SpiderAuthorizator authorizator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
-	private String newOrExisting;
+	// private String newOrExisting;
 	private RecordIdGenerator idGenerator;
 	private RecordTypeHandler recordTypeHandler;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
@@ -66,6 +66,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private List<String> errorList = new ArrayList<>();
 	private DataRecordGroup validationResult;
 	private DataRecordGroup recordToValidate;
+	private DataGroup validationOrder;
 
 	private RecordValidatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -87,6 +88,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	public DataRecord validateRecord(String authToken, String validationOrderType,
 			DataGroup validationOrder, DataRecordGroup recordToValidate) {
 		this.authToken = authToken;
+		this.validationOrder = validationOrder;
 		this.recordToValidate = recordToValidate;
 		this.recordType = validationOrderType;
 
@@ -105,7 +107,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(recordToValidate);
 
-		validateRecordUsingValidationRecord(validationOrder, specifiedRecordTypeToValidate);
+		validateRecordUsingValidationRecord();
 
 		// here!
 		DataGroupTermCollector termCollector = dependencyProvider.getDataGroupTermCollector();
@@ -202,12 +204,10 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	// .getRecordTypeHandlerUsingDataRecordGroup(recordToValidateAsDataRecordGroup);
 	// }
 
-	private void validateRecordUsingValidationRecord(DataGroup validationOrder,
-			String recordTypeToValidate) {
-		newOrExisting = validationOrder.getFirstAtomicValueWithNameInData("metadataToValidate");
+	private void validateRecordUsingValidationRecord() {
 
-		validateRecordExistInStorageWhenActionToPerformIsUpdate(recordTypeToValidate);
-		possiblyEnsureLinksExist(validationOrder);
+		validateRecordExistInStorageWhenActionToPerformIsUpdate();
+		possiblyEnsureLinksExist();
 		validateRecordTypesMatchBetweenValidationOrderAndRecord();
 		validateIncomingDataAsSpecifiedInMetadata();
 	}
@@ -223,16 +223,24 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		}
 	}
 
-	private void validateRecordExistInStorageWhenActionToPerformIsUpdate(
-			String recordTypeToValidate) {
+	private void validateRecordExistInStorageWhenActionToPerformIsUpdate() {
 		if (validationIsForUpdate()) {
 			// String recordId = extractIdFromData();
-			checkIfRecordExist(recordTypeToValidate, recordToValidate.getId());
+			checkIfRecordToValidateIdAlreadyExistsInStorage();
 		}
 	}
 
 	private boolean validationIsForUpdate() {
-		return "existing".equals(newOrExisting);
+		return "update".equals(getDefinitionTypeFromValidationOrder());
+	}
+
+	private String getDefinitionTypeFromValidationOrder() {
+		String newOrExisting = validationOrder
+				.getFirstAtomicValueWithNameInData("metadataToValidate");
+		if ("new".equals(newOrExisting)) {
+			return "create";
+		}
+		return "update";
 	}
 
 	private String extractIdFromData() {
@@ -240,10 +248,10 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 				.getFirstAtomicValueWithNameInData("id");
 	}
 
-	private void checkIfRecordExist(String recordType, String recordId) {
+	private void checkIfRecordToValidateIdAlreadyExistsInStorage() {
 		try {
 			// recordStorage.read("recordType", recordType);
-			recordStorage.read(recordType, recordId);
+			recordStorage.read(specifiedRecordTypeToValidate, recordToValidate.getId());
 		} catch (RecordNotFoundException exception) {
 			errorList.add(exception.getMessage());
 		}
@@ -260,11 +268,14 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		return error;
 	}
 
-	private void possiblyEnsureLinksExist(DataGroup validationOrder) {
-		String validateLinks = validationOrder.getFirstAtomicValueWithNameInData("validateLinks");
-		if ("true".equals(validateLinks)) {
+	private void possiblyEnsureLinksExist() {
+		if (getValidateLinksFromValidationOrder()) {
 			ensureLinksExist();
 		}
+	}
+
+	private boolean getValidateLinksFromValidationOrder() {
+		return "true".equals(validationOrder.getFirstAtomicValueWithNameInData("validateLinks"));
 	}
 
 	private void ensureLinksExist() {
