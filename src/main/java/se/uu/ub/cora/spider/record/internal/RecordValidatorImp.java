@@ -62,7 +62,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private RecordIdGenerator idGenerator;
 	private RecordTypeHandler recordTypeHandler;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
-	private String recordTypeIdToValidate;
+	private String specifiedRecordTypeToValidate;
 	private List<String> errorList = new ArrayList<>();
 	private DataRecordGroup validationResult;
 	private DataRecordGroup recordToValidate;
@@ -91,12 +91,13 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		this.recordType = validationOrderType;
 
 		user = tryToGetActiveUser();
-
 		checkUserIsAuthorizedForCreateOnValidationOrder();
+
 		validateValidationOrderThrowErrorIfInvalid(validationOrder);
 
-		recordTypeIdToValidate = getRecordTypeToValidate(validationOrder);
-		checkUserIsAuthorizedForValidateOnRecordType(recordTypeIdToValidate);
+		specifiedRecordTypeToValidate = getRecordTypeIdToValidate(validationOrder);
+		checkUserIsAuthorizedForValidateOnRecordType(specifiedRecordTypeToValidate);
+
 		useExtendedFunctionalityForPosition(
 				ExtendedFunctionalityPosition.VALIDATE_AFTER_AUTHORIZATION);
 
@@ -104,7 +105,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(recordToValidate);
 
-		validateRecordUsingValidationRecord(validationOrder, recordTypeIdToValidate);
+		validateRecordUsingValidationRecord(validationOrder, specifiedRecordTypeToValidate);
 
 		// here!
 		DataGroupTermCollector termCollector = dependencyProvider.getDataGroupTermCollector();
@@ -112,30 +113,11 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 				.collectTerms(recordTypeHandler.getDefinitionId(), recordToValidate);
 
 		UniqueValidator validateUniques = dependencyProvider.getUniqueValidator(recordStorage);
-		validateUniques.validateUniqueForNewRecord(recordTypeIdToValidate,
+		validateUniques.validateUniqueForNewRecord(specifiedRecordTypeToValidate,
 				recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
 
 		return createAnswerDataRecord();
 	}
-
-	// private void validateDataForUniqueThrowErrorIfNot() {
-	// UniqueValidator uniqueValidator = dependencyProvider.getUniqueValidator(recordStorage);
-	// ValidationAnswer uniqueAnswer = uniqueValidator.validateUnique(recordType, recordId,
-	// recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
-	// if (uniqueAnswer.dataIsInvalid()) {
-	// add to
-	// }
-	// }
-
-	// private void createAndThrowConflictExceptionForUnique(ValidationAnswer uniqueAnswer) {
-	// String errorMessageTemplate = "The record could not be created as it fails unique validation
-	// with the "
-	// + "following {0} error messages: {1}";
-	// Collection<String> errorMessages = uniqueAnswer.getErrorMessages();
-	// String errorMessage = MessageFormat.format(errorMessageTemplate, errorMessages.size(),
-	// errorMessages);
-	// throw ConflictException.withMessage(errorMessage);
-	// }
 
 	private User tryToGetActiveUser() {
 		return authenticator.getUserForToken(authToken);
@@ -163,7 +145,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		return validationOrderRecordTypeHandler.getCreateDefinitionId();
 	}
 
-	private String getRecordTypeToValidate(DataGroup validationOrder) {
+	private String getRecordTypeIdToValidate(DataGroup validationOrder) {
 		// DataGroup recordTypeGroup = validationOrder.getFirstGroupWithNameInData("recordType");
 		// return recordTypeGroup.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 		DataRecordLink typeLink = validationOrder.getFirstChildOfTypeAndName(DataRecordLink.class,
@@ -171,17 +153,15 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		return typeLink.getLinkedRecordId();
 	}
 
-	// private void createRecordTypeHandlerForRecordToValidate(DataGroup recordToValidate) {
-	// DataRecordGroup recordToValidateAsDataRecordGroup = DataProvider
-	// .createRecordGroupFromDataGroup(recordToValidate);
-	// recordTypeHandler = dependencyProvider
-	// .getRecordTypeHandlerUsingDataRecordGroup(recordToValidateAsDataRecordGroup);
-	// }
+	private void checkUserIsAuthorizedForValidateOnRecordType(String recordTypeToValidate) {
+		authorizator.checkUserIsAuthorizedForActionOnRecordType(user, VALIDATE,
+				recordTypeToValidate);
+	}
 
 	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
 		// read from validationorder
 		List<ExtendedFunctionality> exFunctionality = extendedFunctionalityProvider
-				.getFunctionalityForPositionAndRecordType(position, recordTypeIdToValidate);
+				.getFunctionalityForPositionAndRecordType(position, specifiedRecordTypeToValidate);
 		useExtendedFunctionality(recordToValidate, exFunctionality);
 	}
 
@@ -189,19 +169,38 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	protected ExtendedFunctionalityData createExtendedFunctionalityData(
 			DataRecordGroup dataRecordGroup) {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
-		data.recordType = recordTypeIdToValidate;
-		data.recordId = recordId;
+		data.recordType = specifiedRecordTypeToValidate;
+		data.recordId = dataRecordGroup.getId();
 		data.authToken = authToken;
 		data.user = user;
-		// data.dataGroup = dataRecordGroup;
 		data.dataRecordGroup = dataRecordGroup;
 		return data;
 	}
+	// private void validateDataForUniqueThrowErrorIfNot() {
+	// UniqueValidator uniqueValidator = dependencyProvider.getUniqueValidator(recordStorage);
+	// ValidationAnswer uniqueAnswer = uniqueValidator.validateUnique(recordType, recordId,
+	// recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
+	// if (uniqueAnswer.dataIsInvalid()) {
+	// add to
+	// }
+	// }
 
-	private void checkUserIsAuthorizedForValidateOnRecordType(String recordTypeToValidate) {
-		authorizator.checkUserIsAuthorizedForActionOnRecordType(user, VALIDATE,
-				recordTypeToValidate);
-	}
+	// private void createAndThrowConflictExceptionForUnique(ValidationAnswer uniqueAnswer) {
+	// String errorMessageTemplate = "The record could not be created as it fails unique validation
+	// with the "
+	// + "following {0} error messages: {1}";
+	// Collection<String> errorMessages = uniqueAnswer.getErrorMessages();
+	// String errorMessage = MessageFormat.format(errorMessageTemplate, errorMessages.size(),
+	// errorMessages);
+	// throw ConflictException.withMessage(errorMessage);
+	// }
+
+	// private void createRecordTypeHandlerForRecordToValidate(DataGroup recordToValidate) {
+	// DataRecordGroup recordToValidateAsDataRecordGroup = DataProvider
+	// .createRecordGroupFromDataGroup(recordToValidate);
+	// recordTypeHandler = dependencyProvider
+	// .getRecordTypeHandlerUsingDataRecordGroup(recordToValidateAsDataRecordGroup);
+	// }
 
 	private void validateRecordUsingValidationRecord(DataGroup validationOrder,
 			String recordTypeToValidate) {
@@ -215,11 +214,11 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void validateRecordTypesMatchBetweenValidationOrderAndRecord() {
 		String recordTypeOfRecord = recordTypeHandler.getRecordTypeId();
-		if (!recordTypeOfRecord.equals(recordTypeIdToValidate)) {
+		if (!recordTypeOfRecord.equals(specifiedRecordTypeToValidate)) {
 
 			String message = "RecordType from record (" + recordTypeOfRecord
-					+ ") does not match recordType from validationOrder (" + recordTypeIdToValidate
-					+ ")";
+					+ ") does not match recordType from validationOrder ("
+					+ specifiedRecordTypeToValidate + ")";
 			errorList.add(message);
 		}
 	}

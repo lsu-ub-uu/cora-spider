@@ -24,6 +24,7 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.fail;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.VALIDATE_AFTER_AUTHORIZATION;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -87,7 +88,8 @@ public class RecordValidatorTest {
 	private DataGroupTermCollectorSpy termCollector;
 	private UniqueValidatorSpy uniqueValidator;
 
-	private RecordTypeHandlerSpy recordTypeHandler;
+	private RecordTypeHandlerSpy recordTypeHandlerForValidationOrder;
+	private RecordTypeHandlerSpy recordTypeHandlerForDataToValidate;
 	private DataRecordGroupSpy recordToValidate;
 	private User currentUser;
 
@@ -100,16 +102,17 @@ public class RecordValidatorTest {
 		recordStorage = new RecordStorageSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		recordTypeHandler = new RecordTypeHandlerSpy();
+		recordTypeHandlerForValidationOrder = new RecordTypeHandlerSpy();
+		recordTypeHandlerForDataToValidate = new RecordTypeHandlerSpy();
 		idGenerator = new RecordIdGeneratorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		uniqueValidator = new UniqueValidatorSpy();
 		setUpDependencyProvider();
-		recordToValidate = createRecordToValidate();
 		currentUser = new User("someUserId");
 
 		authenticator.MRV.setDefaultReturnValuesSupplier("getUserForToken", () -> currentUser);
 
+		recordToValidate = createRecordToValidate();
 	}
 
 	private void setUpFactoriesAndProviders() {
@@ -129,8 +132,11 @@ public class RecordValidatorTest {
 				() -> extendedFunctionalityProvider);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
+		Iterator<RecordTypeHandlerSpy> recordTypeHandlers = List
+				.of(recordTypeHandlerForValidationOrder, recordTypeHandlerForDataToValidate)
+				.iterator();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier(
-				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandler);
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlers.next());
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataValidator",
 				() -> dataValidator);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataRecordLinkCollector",
@@ -159,37 +165,39 @@ public class RecordValidatorTest {
 		return recordSpy;
 	}
 
-	@Test
-	public void testExternalDependenciesAreCalledForValidateNew() {
-		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
-				"new", "true");
+	private DataRecordGroupSpy setUpDataProviderValidationResultForValid() {
+		DataRecordGroupSpy validationResult = new DataRecordGroupSpy();
+		validationResult.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> false, "errorMessages");
+		dataFactorySpy.MRV.setSpecificReturnValuesSupplier("factorRecordGroupUsingNameInData",
+				() -> validationResult, "validationResult");
+		return validationResult;
+	}
 
-		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
-				recordToValidate);
+	private DataRecordGroupSpy setUpDataProviderValidationResultForError() {
+		DataRecordGroupSpy validationResult = new DataRecordGroupSpy();
+		validationResult.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> true, "errorMessages");
+		dataFactorySpy.MRV.setSpecificReturnValuesSupplier("factorRecordGroupUsingNameInData",
+				() -> validationResult, "validationResult");
+		return validationResult;
+	}
 
-		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
-
-		dataValidator.MCR.assertParameters("validateData", 0,
-				"fakeCreateMetadataIdFromRecordTypeHandlerSpy", validationOrder);
-		var recordToValidateAsDataGroup1 = dataFactorySpy.MCR
-				.getReturnValue("factorGroupFromDataRecordGroup", 1);
-		dataValidator.MCR.assertParameters("validateData", 1,
-				"fakeCreateMetadataIdFromRecordTypeHandlerSpy", recordToValidateAsDataGroup1);
-
-		var recordToValidateAsDataGroup0 = dataFactorySpy.MCR
-				.getReturnValue("factorGroupFromDataRecordGroup", 0);
-		linkCollector.MCR.assertParameters("collectLinks", 0,
-				"fakeDefMetadataIdFromRecordTypeHandlerSpy", recordToValidateAsDataGroup0);
+	private void fillCollectLinksReturnValue() {
+		Link link = new Link("toRecordType", "toRecordId");
+		linkCollector.MRV.setDefaultReturnValuesSupplier("collectLinks", () -> Set.of(link));
 	}
 
 	private DataGroup createValidationOrderWithMetadataToValidateAndValidateLinks(
 			String metadataToValidate, String validateLinks) {
 		DataGroupSpy validationOrder = new DataGroupSpy();
+
 		DataRecordLinkSpy recordTypeToValidate = new DataRecordLinkSpy();
 		validationOrder.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
 				() -> recordTypeToValidate, DataRecordLink.class, "recordType");
 		recordTypeToValidate.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
 				() -> RECORD_TYPE_TO_VALIDATE_AGAINST);
+
 		validationOrder.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> metadataToValidate, "metadataToValidate");
 		validationOrder.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
@@ -207,6 +215,224 @@ public class RecordValidatorTest {
 		// .addChild(new DataAtomicOldSpy("linkedRecordId", RECORD_TYPE_TO_VALIDATE_AGAINST));
 		// validationOrder.addChild(recordTypeToValidateAgainstGroup);
 		// return validationOrder;
+	}
+
+	@Test
+	public void testGetActiveUserIsUsedToAuthorizeCreateForValidationOrder() {
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+
+		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+				recordToValidate);
+
+		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_AUTH_TOKEN);
+		var activeUser = authenticator.MCR.assertCalledParametersReturn("getUserForToken",
+				SOME_AUTH_TOKEN);
+
+		authorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0,
+				activeUser, "create", VALIDATION_ORDER_TYPE);
+	}
+
+	@Test
+	public void testUnauthorizedForCreateOnValidationOrderRecordTypeShouldNotValidate() {
+		authorizator.MRV.setThrowException("checkUserIsAuthorizedForActionOnRecordType",
+				new AuthorizationException("Exception from SpiderAuthorizatorSpy"), currentUser,
+				"create", VALIDATION_ORDER_TYPE);
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"existing", "true");
+
+		try {
+			recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+					recordToValidate);
+			fail("It should throw exception");
+		} catch (Exception e) {
+			assertEquals(e.getClass(), AuthorizationException.class);
+			assertEquals(e.getMessage(), "Exception from SpiderAuthorizatorSpy");
+		}
+
+		authorizator.MCR.assertParameter("checkUserIsAuthorizedForActionOnRecordType", 0, "action",
+				"create");
+		dataValidator.MCR.assertMethodNotCalled("validateData");
+	}
+
+	@Test
+	public void testValidationOrderIsValidated() {
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+
+		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+				recordToValidate);
+
+		String validationOrderDefId = assertValidationOrderDefIdFetchedCorrectly(validationOrder);
+		dataValidator.MCR.assertParameters("validateData", 0, validationOrderDefId,
+				validationOrder);
+	}
+
+	private String assertValidationOrderDefIdFetchedCorrectly(DataGroup validationOrder) {
+		dataFactorySpy.MCR.assertParameters("factorRecordGroupFromDataGroup", 0, validationOrder);
+		var validationOrderAsRecordGroup = dataFactorySpy.MCR
+				.getReturnValue("factorRecordGroupFromDataGroup", 0);
+
+		RecordTypeHandlerSpy recordTypeHandlerForValidationOrder = (RecordTypeHandlerSpy) dependencyProvider.MCR
+				.assertCalledParametersReturn("getRecordTypeHandlerUsingDataRecordGroup",
+						validationOrderAsRecordGroup);
+
+		String validationOrderDefId = (String) recordTypeHandlerForValidationOrder.MCR
+				.assertCalledParametersReturn("getCreateDefinitionId");
+		return validationOrderDefId;
+	}
+
+	@Test
+	public void testInvalidDataForCreateOnValidationOrderShouldThrowException() {
+		setupDataValidatorToReturnAnInvalidValidationAnswer();
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"existing", "true");
+
+		try {
+			recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+					recordToValidate);
+			fail("It should throw exception");
+		} catch (Exception e) {
+			assertEquals(e.getClass(), DataException.class);
+			assertEquals(e.getMessage(), "Data is not valid: [Error from dataValidator]");
+		}
+	}
+
+	private void setupDataValidatorToReturnAnInvalidValidationAnswer() {
+		ValidationAnswerSpy invalidForValidationOrder = new ValidationAnswerSpy();
+		invalidForValidationOrder.MRV.setDefaultReturnValuesSupplier("dataIsInvalid", () -> true);
+		invalidForValidationOrder.MRV.setDefaultReturnValuesSupplier("getErrorMessages",
+				() -> List.of("Error from dataValidator"));
+		dataValidator.MRV.setDefaultReturnValuesSupplier("validateData",
+				() -> invalidForValidationOrder);
+	}
+
+	@Test
+	public void testGetActiveUserIsUsedToAuthorizeValidateOnRecordTypeToValidate() {
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+
+		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+				recordToValidate);
+
+		authorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 1,
+				currentUser, "validate", RECORD_TYPE_TO_VALIDATE_AGAINST);
+	}
+
+	@Test
+	public void testUnauthorizedForValidateOnRecordTypeToValidateShouldNotValidate() {
+		authorizator.MRV.setThrowException("checkUserIsAuthorizedForActionOnRecordType",
+				new AuthorizationException("Exception from SpiderAuthorizatorSpy"), currentUser,
+				"validate", RECORD_TYPE_TO_VALIDATE_AGAINST);
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"existing", "true");
+
+		try {
+			recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+					recordToValidate);
+			fail("It should throw exception");
+		} catch (Exception e) {
+			assertEquals(e.getClass(), AuthorizationException.class);
+			assertEquals(e.getMessage(), "Exception from SpiderAuthorizatorSpy");
+		}
+	}
+
+	@Test
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() throws Exception {
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+
+		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+				recordToValidate);
+
+		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
+		expectedData.authToken = SOME_AUTH_TOKEN;
+		expectedData.recordType = RECORD_TYPE_TO_VALIDATE_AGAINST;
+		expectedData.recordId = recordToValidate.getId();
+		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.dataRecordGroup = recordToValidate;
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				VALIDATE_AFTER_AUTHORIZATION, expectedData, 0);
+	}
+
+	/// TODO: HREEre
+	@Test
+	public void testValidationOrderIsValidated2() {
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+
+		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+				recordToValidate);
+
+		String validationOrderDefId = assertValidationOrderDefIdFetchedCorrectly(validationOrder);
+		dataValidator.MCR.assertParameters("validateData", 0, validationOrderDefId,
+				validationOrder);
+	}
+
+	private String assertValidationOrderDefIdFetchedCorrectly2(DataGroup validationOrder) {
+		dataFactorySpy.MCR.assertParameters("factorRecordGroupFromDataGroup", 0, validationOrder);
+		var validationOrderAsRecordGroup = dataFactorySpy.MCR
+				.getReturnValue("factorRecordGroupFromDataGroup", 0);
+
+		RecordTypeHandlerSpy recordTypeHandlerForValidationOrder = (RecordTypeHandlerSpy) dependencyProvider.MCR
+				.assertCalledParametersReturn("getRecordTypeHandlerUsingDataRecordGroup",
+						validationOrderAsRecordGroup);
+
+		String validationOrderDefId = (String) recordTypeHandlerForValidationOrder.MCR
+				.assertCalledParametersReturn("getCreateDefinitionId");
+		return validationOrderDefId;
+	}
+
+	@Test
+	public void testInvalidDataForCreateOnValidationOrderShouldThrowException2() {
+		setupDataValidatorToReturnAnInvalidValidationAnswer();
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"existing", "true");
+
+		try {
+			recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+					recordToValidate);
+			fail("It should throw exception");
+		} catch (Exception e) {
+			assertEquals(e.getClass(), DataException.class);
+			assertEquals(e.getMessage(), "Data is not valid: [Error from dataValidator]");
+		}
+	}
+
+	private void setupDataValidatorToReturnAnInvalidValidationAnswer2() {
+		ValidationAnswerSpy invalidForValidationOrder = new ValidationAnswerSpy();
+		invalidForValidationOrder.MRV.setDefaultReturnValuesSupplier("dataIsInvalid", () -> true);
+		invalidForValidationOrder.MRV.setDefaultReturnValuesSupplier("getErrorMessages",
+				() -> List.of("Error from dataValidator"));
+		dataValidator.MRV.setDefaultReturnValuesSupplier("validateData",
+				() -> invalidForValidationOrder);
+	}
+
+	// TODO: to here
+	@Test
+	public void testValidationOrderIsValidatedOLD() {
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				"new", "true");
+
+		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+				recordToValidate);
+
+		dataValidator.MCR.assertParameters("validateData", 0,
+				"fakeCreateMetadataIdFromRecordTypeHandlerSpy", validationOrder);
+
+		var recordToValidateAsDataGroup1 = dataFactorySpy.MCR
+				.getReturnValue("factorGroupFromDataRecordGroup", 1);
+		// var recordToValidateAsDataGroup1 = dataFactorySpy.MCR
+		// .assertCalledParametersReturn("factorGroupFromDataRecordGroup", recordToValidate);
+		dataValidator.MCR.assertParameters("validateData", 1,
+				"fakeCreateMetadataIdFromRecordTypeHandlerSpy", recordToValidateAsDataGroup1);
+		// dataValidator.MCR.assertCalledParameters("validateData",
+		// "fakeCreateMetadataIdFromRecordTypeHandlerSpy", recordToValidateAsDataGroup1);
+
+		var recordToValidateAsDataGroup0 = dataFactorySpy.MCR
+				.getReturnValue("factorGroupFromDataRecordGroup", 0);
+		linkCollector.MCR.assertParameters("collectLinks", 0,
+				"fakeDefMetadataIdFromRecordTypeHandlerSpy", recordToValidateAsDataGroup0);
 	}
 
 	@Test
@@ -300,30 +526,21 @@ public class RecordValidatorTest {
 		validationRecord.MCR.assertCalledParameters("addAction", Action.READ);
 	}
 
-	private void assertCorrectRecordInfo(DataRecordGroupSpy validationResult) {
-		validationResult.MCR.assertParameters("setId", 0,
-				idGenerator.MCR.getReturnValue("getIdForType", 0));
-		validationResult.MCR.assertParameters("setType", 0, VALIDATION_ORDER_TYPE);
-		validationResult.MCR.assertParameters("setCreatedBy", 0, currentUser.id);
-		validationResult.MCR.methodWasCalled("setTsCreatedToNow");
-		validationResult.MCR.assertParameters("addUpdatedUsingUserIdAndTs", 0, currentUser.id,
-				validationResult.MCR.getReturnValue("getTsCreated", 0));
-	}
-
 	@Test
 	public void testValidateRecordInvalidData() {
 		ValidationAnswerSpy invalid = new ValidationAnswerSpy();
 		invalid.MRV.setReturnValues("dataIsInvalid", List.of(false, true));
 		dataValidator.MRV.setDefaultReturnValuesSupplier("validateData", () -> invalid);
-		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getCreateDefinitonId",
-				() -> RECORD_TYPE_TO_VALIDATE_AGAINST);
-		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
-				() -> RECORD_TYPE_TO_VALIDATE_AGAINST);
-		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
+
+		recordTypeHandlerForValidationOrder.MRV.setDefaultReturnValuesSupplier(
+				"getCreateDefinitonId", () -> RECORD_TYPE_TO_VALIDATE_AGAINST);
+		recordTypeHandlerForValidationOrder.MRV.setDefaultReturnValuesSupplier(
+				"getUpdateDefinitionId", () -> RECORD_TYPE_TO_VALIDATE_AGAINST);
+		recordTypeHandlerForValidationOrder.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
 				() -> RECORD_TYPE_TO_VALIDATE_AGAINST);
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
-		DataRecordGroupSpy validationResult = setUpValidationResultForError();
+		DataRecordGroupSpy validationResult = setUpDataProviderValidationResultForError();
 
 		DataRecord validationRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
 				VALIDATION_ORDER_TYPE, validationOrder, recordToValidate);
@@ -342,7 +559,7 @@ public class RecordValidatorTest {
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"new", "true");
 
-		DataRecordGroupSpy validationResult = setUpValidationResultForError();
+		DataRecordGroupSpy validationResult = setUpDataProviderValidationResultForError();
 
 		DataRecord validationRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
 				VALIDATION_ORDER_TYPE, validationOrder, recordToValidate);
@@ -353,44 +570,6 @@ public class RecordValidatorTest {
 		assertDataRecordCreatedWithValidationResult(validationResult, validationRecord);
 		assertValidSetInResultWithValue(validationResult, "false");
 		assertErrorMessages(validationResult, errorString);
-	}
-
-	private void assertDataRecordCreatedWithValidationResult(DataRecordGroupSpy validationResult,
-			DataRecord validationRecord) {
-		var factoredValidationResultRecord = dataFactorySpy.MCR
-				.assertCalledParametersReturn("factorRecordUsingDataRecordGroup", validationResult);
-		assertSame(validationRecord, factoredValidationResultRecord);
-	}
-
-	private DataRecordGroupSpy setUpValidationResultForError() {
-		DataRecordGroupSpy validationResult = new DataRecordGroupSpy();
-		validationResult.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
-				() -> true, "errorMessages");
-		dataFactorySpy.MRV.setSpecificReturnValuesSupplier("factorRecordGroupUsingNameInData",
-				() -> validationResult, "validationResult");
-		return validationResult;
-	}
-
-	private void assertErrorMessages(DataRecordGroupSpy validationResult, String... errorStrings) {
-		int repeatId = 0;
-		for (String errorString : errorStrings) {
-			DataGroupSpy errorMessages = (DataGroupSpy) validationResult.MCR
-					.getReturnValue("getFirstGroupWithNameInData", repeatId);
-			DataAtomicSpy errorMessage = (DataAtomicSpy) dataFactorySpy.MCR
-					.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValue",
-							"errorMessage", errorString);
-			errorMessage.MCR.assertNumberOfCallsToMethod("setRepeatId", 1);
-			errorMessage.MCR.assertParameters("setRepeatId", 0, "0");
-			errorMessages.MCR.assertCalledParameters("addChild", errorMessage);
-			repeatId++;
-		}
-	}
-
-	private void assertValidSetInResultWithValue(DataRecordGroupSpy validationResult,
-			String validValue) {
-		var valid = dataFactorySpy.MCR.assertCalledParametersReturn(
-				"factorAtomicUsingNameInDataAndValue", "valid", validValue);
-		validationResult.MCR.assertCalledParameters("addChild", valid);
 	}
 
 	@Test
@@ -405,7 +584,7 @@ public class RecordValidatorTest {
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"new", "true");
 
-		DataRecordGroupSpy validationResult = setUpValidationResultForError();
+		DataRecordGroupSpy validationResult = setUpDataProviderValidationResultForError();
 
 		DataRecord validationRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
 				VALIDATION_ORDER_TYPE, validationOrder, recordToValidate);
@@ -431,64 +610,6 @@ public class RecordValidatorTest {
 
 		assertDataRecordCreatedWithValidationResult(validationResult, validationRecord);
 		assertValidSetInResultWithValue(validationResult, "true");
-	}
-
-	private DataRecordGroupSpy setUpDataProviderValidationResultForValid() {
-		DataRecordGroupSpy validationResult = new DataRecordGroupSpy();
-		validationResult.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
-				() -> false, "errorMessages");
-		dataFactorySpy.MRV.setSpecificReturnValuesSupplier("factorRecordGroupUsingNameInData",
-				() -> validationResult, "validationResult");
-		return validationResult;
-	}
-
-	private void fillCollectLinksReturnValue() {
-		Link link = new Link("toRecordType", "toRecordId");
-		linkCollector.MRV.setDefaultReturnValuesSupplier("collectLinks", () -> Set.of(link));
-	}
-
-	@Test
-	public void testUnauthorizedForCreateOnValidationorderRecordTypeShouldNotValidate() {
-		authorizator.MRV.setThrowException("checkUserIsAuthorizedForActionOnRecordType",
-				new AuthorizationException("Exception from SpiderAuthorizatorSpy"), currentUser,
-				"create", VALIDATION_ORDER_TYPE);
-		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
-				"existing", "true");
-
-		try {
-			recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
-					recordToValidate);
-			fail("It should throw exception");
-		} catch (Exception e) {
-			assertEquals(e.getClass(), AuthorizationException.class);
-			assertEquals(e.getMessage(), "Exception from SpiderAuthorizatorSpy");
-		}
-
-		authorizator.MCR.assertParameter("checkUserIsAuthorizedForActionOnRecordType", 0, "action",
-				"create");
-		dataValidator.MCR.assertMethodNotCalled("validateData");
-	}
-
-	@Test
-
-	public void testInvalidDataForCreateOnValidationOrderShouldThrowException() {
-		ValidationAnswerSpy invalidForValidationOrder = new ValidationAnswerSpy();
-		invalidForValidationOrder.MRV.setDefaultReturnValuesSupplier("dataIsInvalid", () -> true);
-		invalidForValidationOrder.MRV.setDefaultReturnValuesSupplier("getErrorMessages",
-				() -> List.of("Error from dataValidator"));
-		dataValidator.MRV.setDefaultReturnValuesSupplier("validateData",
-				() -> invalidForValidationOrder);
-		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
-				"existing", "true");
-
-		try {
-			recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
-					recordToValidate);
-			fail("It should throw exception");
-		} catch (Exception e) {
-			assertEquals(e.getClass(), DataException.class);
-			assertEquals(e.getMessage(), "Data is not valid: [Error from dataValidator]");
-		}
 	}
 
 	@Test
@@ -519,7 +640,7 @@ public class RecordValidatorTest {
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"existing", "true");
 		// changeRecordTypeTo(validationOrder, "recordType_NOT_EXISTING");
-		DataRecordGroupSpy validationResult = setUpValidationResultForError();
+		DataRecordGroupSpy validationResult = setUpDataProviderValidationResultForError();
 
 		DataRecord validationRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
 				VALIDATION_ORDER_TYPE, validationOrder, recordToValidate);
@@ -530,24 +651,6 @@ public class RecordValidatorTest {
 		assertDataRecordCreatedWithValidationResult(validationResult, validationRecord);
 		assertValidSetInResultWithValue(validationResult, "false");
 		assertErrorMessages(validationResult, errorString);
-	}
-
-	@Test
-	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() throws Exception {
-		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
-				"new", "true");
-
-		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
-				recordToValidate);
-
-		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
-		expectedData.authToken = SOME_AUTH_TOKEN;
-		expectedData.recordType = RECORD_TYPE_TO_VALIDATE_AGAINST;
-		expectedData.recordId = null;
-		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
-		expectedData.dataRecordGroup = recordToValidate;
-		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-				VALIDATE_AFTER_AUTHORIZATION, expectedData, 0);
 	}
 
 	@Test
@@ -578,9 +681,9 @@ public class RecordValidatorTest {
 	public void testValidateRecordTypesOfRecordAndValidationOrderDoesNotMatch() throws Exception {
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				"new", "true");
-		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
+		recordTypeHandlerForValidationOrder.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "someOtherRecordType");
-		DataRecordGroupSpy validationResult = setUpValidationResultForError();
+		DataRecordGroupSpy validationResult = setUpDataProviderValidationResultForError();
 
 		DataRecord validationRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
 				VALIDATION_ORDER_TYPE, validationOrder, recordToValidate);
@@ -606,9 +709,9 @@ public class RecordValidatorTest {
 	@Test
 	public void uniqueValidatorCalledWithCorrectParameters() throws Exception {
 		List<Unique> uniqueList = List.of(new Unique("", Set.of("")));
-		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions",
-				() -> uniqueList);
-		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
+		recordTypeHandlerForValidationOrder.MRV
+				.setDefaultReturnValuesSupplier("getUniqueDefinitions", () -> uniqueList);
+		recordTypeHandlerForValidationOrder.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
 				() -> "someDefinition");
 		CollectTerms collectTerms = new CollectTerms();
 		collectTerms.storageTerms = Set.of(new StorageTerm("id", "key", "value"));
@@ -626,6 +729,34 @@ public class RecordValidatorTest {
 		uniqueValidator.MCR.assertParameters("validateUniqueForNewRecord", 0,
 				RECORD_TYPE_TO_VALIDATE_AGAINST, uniqueList, collectTerms.storageTerms);
 	}
+
+	// @Test
+	// public void uniqueValidatorReturnsValid() throws Exception {
+	// List<Unique> uniqueList = List.of(new Unique("", Set.of("")));
+	// recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions",
+	// () -> uniqueList);
+	// recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
+	// () -> "someDefinition");
+	// CollectTerms collectTerms = new CollectTerms();
+	// collectTerms.storageTerms = Set.of(new StorageTerm("id", "key", "value"));
+	// termCollector.MRV.setDefaultReturnValuesSupplier("collectTerms", () -> collectTerms);
+	//
+	// DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+	// "new", "true");
+	//
+	// DataRecordGroupSpy validationResult = setUpDataProviderValidationResultForValid();
+	//
+	// DataRecord validationAnswer = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+	// VALIDATION_ORDER_TYPE, validationOrder, recordToValidate);
+	//
+	// termCollector.MCR.assertParameters("collectTerms", 0, "someDefinition", recordToValidate);
+	// uniqueValidator.MCR.assertParameters("validateUniqueForNewRecord", 0,
+	// RECORD_TYPE_TO_VALIDATE_AGAINST, uniqueList, collectTerms.storageTerms);
+	//
+	// assertValidSetInResultWithValue(validationResult, "false");
+	// assertErrorMessages(validationResult, errorString);
+	// }
+
 	//
 	// @Test
 	// public void testUniqueValidationFails_throwsSpiderConflictException() throws Exception {
@@ -653,4 +784,43 @@ public class RecordValidatorTest {
 	// uniqueValidator.MRV.setDefaultReturnValuesSupplier("validateUnique",
 	// () -> validationAnswer);
 	// }
+
+	private void assertCorrectRecordInfo(DataRecordGroupSpy validationResult) {
+		validationResult.MCR.assertParameters("setId", 0,
+				idGenerator.MCR.getReturnValue("getIdForType", 0));
+		validationResult.MCR.assertParameters("setType", 0, VALIDATION_ORDER_TYPE);
+		validationResult.MCR.assertParameters("setCreatedBy", 0, currentUser.id);
+		validationResult.MCR.methodWasCalled("setTsCreatedToNow");
+		validationResult.MCR.assertParameters("addUpdatedUsingUserIdAndTs", 0, currentUser.id,
+				validationResult.MCR.getReturnValue("getTsCreated", 0));
+	}
+
+	private void assertDataRecordCreatedWithValidationResult(DataRecordGroupSpy validationResult,
+			DataRecord validationRecord) {
+		var factoredValidationResultRecord = dataFactorySpy.MCR
+				.assertCalledParametersReturn("factorRecordUsingDataRecordGroup", validationResult);
+		assertSame(validationRecord, factoredValidationResultRecord);
+	}
+
+	private void assertErrorMessages(DataRecordGroupSpy validationResult, String... errorStrings) {
+		int repeatId = 0;
+		for (String errorString : errorStrings) {
+			DataGroupSpy errorMessages = (DataGroupSpy) validationResult.MCR
+					.getReturnValue("getFirstGroupWithNameInData", repeatId);
+			DataAtomicSpy errorMessage = (DataAtomicSpy) dataFactorySpy.MCR
+					.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValue",
+							"errorMessage", errorString);
+			errorMessage.MCR.assertNumberOfCallsToMethod("setRepeatId", 1);
+			errorMessage.MCR.assertParameters("setRepeatId", 0, "0");
+			errorMessages.MCR.assertCalledParameters("addChild", errorMessage);
+			repeatId++;
+		}
+	}
+
+	private void assertValidSetInResultWithValue(DataRecordGroupSpy validationResult,
+			String validValue) {
+		var valid = dataFactorySpy.MCR.assertCalledParametersReturn(
+				"factorAtomicUsingNameInDataAndValue", "valid", validValue);
+		validationResult.MCR.assertCalledParameters("addChild", valid);
+	}
 }
