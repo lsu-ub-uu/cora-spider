@@ -215,11 +215,6 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 	}
 
 	@Override
-	public List<String> getCombinedIdForIndex(String recordId) {
-		return (List<String>) MCR.addCallAndReturnFromMRV("recordId", recordId);
-	}
-
-	@Override
 	public List<Unique> getUniqueDefinitions() {
 		return (List<Unique>) MCR.addCallAndReturnFromMRV();
 	}

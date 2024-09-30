@@ -90,9 +90,17 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		this.recordToValidate = recordToValidate;
 		this.recordType = validationOrderType;
 
+		try {
+			return tryToValidateRecord(validationOrder, recordToValidate);
+		} catch (se.uu.ub.cora.bookkeeper.metadata.DataMissingException e) {
+			return createAnswerForDataMissing(e);
+		}
+	}
+
+	private DataRecord tryToValidateRecord(DataGroup validationOrder,
+			DataRecordGroup recordToValidate) {
 		user = tryToGetActiveUser();
 		checkUserIsAuthorizedForCreateOnValidationOrder();
-
 		validateValidationOrderThrowErrorIfInvalid(validationOrder);
 
 		specifiedRecordTypeToValidate = getRecordTypeIdToValidate(validationOrder);
@@ -103,37 +111,8 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 		recordTypeHandlerForDataToValidate = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(recordToValidate);
-
-		validateRecordExistInStorageWhenActionToPerformIsUpdate();
-
-		DataGroup recordToValidateAsDataGroup = DataProvider
-				.createGroupFromRecordGroup(recordToValidate);
-
-		possiblyEnsureLinksExist(recordToValidateAsDataGroup);
-
-		validateRecordTypesMatchBetweenValidationTypeAndSpecifiedType();
-		possiblyValidateRecordTypesMatchBetweenValidationOrderAndRecord();
-
-		validateIncomingDataAsSpecifiedInMetadata(recordToValidateAsDataGroup);
-
-		DataGroupTermCollector termCollector = dependencyProvider.getDataGroupTermCollector();
-		CollectTerms collectedTerms = termCollector.collectTerms(
-				recordTypeHandlerForDataToValidate.getDefinitionId(), recordToValidate);
-
-		UniqueValidator validateUniques = dependencyProvider.getUniqueValidator(recordStorage);
-		if (validationIsForUpdate()) {
-			ValidationAnswer validationAnswer = validateUniques.validateUniqueForExistingRecord(
-					specifiedRecordTypeToValidate, recordToValidate.getId(),
-					recordTypeHandlerForDataToValidate.getUniqueDefinitions(),
-					collectedTerms.storageTerms);
-			possiblyAddErrorMessages(validationAnswer);
-		} else {
-			ValidationAnswer validationAnswer = validateUniques.validateUniqueForNewRecord(
-					specifiedRecordTypeToValidate,
-					recordTypeHandlerForDataToValidate.getUniqueDefinitions(),
-					collectedTerms.storageTerms);
-			possiblyAddErrorMessages(validationAnswer);
-		}
+		validateRecord(recordToValidate);
+		validateUnique(recordToValidate);
 		return createAnswerDataRecord();
 	}
 
@@ -185,11 +164,30 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 			DataRecordGroup dataRecordGroup) {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
 		data.recordType = specifiedRecordTypeToValidate;
-		data.recordId = dataRecordGroup.getId();
+		possiblySetRecordId(data, dataRecordGroup);
 		data.authToken = authToken;
 		data.user = user;
 		data.dataRecordGroup = dataRecordGroup;
 		return data;
+	}
+
+	private void possiblySetRecordId(ExtendedFunctionalityData data,
+			DataRecordGroup dataRecordGroup) {
+		try {
+			data.recordId = dataRecordGroup.getId();
+		} catch (se.uu.ub.cora.data.DataMissingException e) {
+			// do nothing as we do not know the recordId in this case
+		}
+	}
+
+	private void validateRecord(DataRecordGroup recordToValidate) {
+		validateRecordExistInStorageWhenActionToPerformIsUpdate();
+		DataGroup recordToValidateAsDataGroup = DataProvider
+				.createGroupFromRecordGroup(recordToValidate);
+		possiblyEnsureLinksExist(recordToValidateAsDataGroup);
+		validateRecordTypesMatchBetweenValidationTypeAndSpecifiedType();
+		possiblyValidateRecordTypesMatchBetweenValidationOrderAndRecord();
+		validateIncomingDataAsSpecifiedInMetadata(recordToValidateAsDataGroup);
 	}
 
 	private void possiblyValidateRecordTypesMatchBetweenValidationOrderAndRecord() {
@@ -310,6 +308,41 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		}
 	}
 
+	private void validateUnique(DataRecordGroup recordToValidate) {
+		DataGroupTermCollector termCollector = dependencyProvider.getDataGroupTermCollector();
+		CollectTerms collectedTerms = termCollector.collectTerms(
+				recordTypeHandlerForDataToValidate.getDefinitionId(), recordToValidate);
+		UniqueValidator validateUniques = dependencyProvider.getUniqueValidator(recordStorage);
+		validateUniqueForCreateOrUpdate(recordToValidate, collectedTerms, validateUniques);
+	}
+
+	private void validateUniqueForCreateOrUpdate(DataRecordGroup recordToValidate,
+			CollectTerms collectedTerms, UniqueValidator validateUniques) {
+		if (validationIsForUpdate()) {
+			validateUniqueForUpdate(recordToValidate, collectedTerms, validateUniques);
+		} else {
+			validateUniqueForCreate(collectedTerms, validateUniques);
+		}
+	}
+
+	private void validateUniqueForUpdate(DataRecordGroup recordToValidate,
+			CollectTerms collectedTerms, UniqueValidator validateUniques) {
+		ValidationAnswer validationAnswer = validateUniques.validateUniqueForExistingRecord(
+				specifiedRecordTypeToValidate, recordToValidate.getId(),
+				recordTypeHandlerForDataToValidate.getUniqueDefinitions(),
+				collectedTerms.storageTerms);
+		possiblyAddErrorMessages(validationAnswer);
+	}
+
+	private void validateUniqueForCreate(CollectTerms collectedTerms,
+			UniqueValidator validateUniques) {
+		ValidationAnswer validationAnswer = validateUniques.validateUniqueForNewRecord(
+				specifiedRecordTypeToValidate,
+				recordTypeHandlerForDataToValidate.getUniqueDefinitions(),
+				collectedTerms.storageTerms);
+		possiblyAddErrorMessages(validationAnswer);
+	}
+
 	private DataRecord createAnswerDataRecord() {
 		DataRecordGroup validationRecordGroup = createValidationRecordGroup();
 		addErrorToValidationResult();
@@ -361,5 +394,12 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private void addReadActionToComplyWithRecordStructure(DataRecord dataRecord) {
 		dataRecord.addAction(Action.READ);
+	}
+
+	private DataRecord createAnswerForDataMissing(
+			se.uu.ub.cora.bookkeeper.metadata.DataMissingException e) {
+		String errorMessage = "Validation of record to validate not possible due to missing data: ";
+		errorList.add(errorMessage + e.getMessage());
+		return createAnswerDataRecord();
 	}
 }

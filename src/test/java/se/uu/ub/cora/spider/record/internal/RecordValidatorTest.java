@@ -35,7 +35,6 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordtype.Unique;
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataMissingException;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
@@ -386,6 +385,27 @@ public class RecordValidatorTest {
 	}
 
 	@Test
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesMissingRecordId()
+			throws Exception {
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				CREATE, WITH_LINKS);
+		recordToValidate.MRV.setThrowException("getId",
+				new se.uu.ub.cora.data.DataMissingException("mess"));
+
+		recordValidator.validateRecord(SOME_AUTH_TOKEN, VALIDATION_ORDER_TYPE, validationOrder,
+				recordToValidate);
+
+		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
+		expectedData.authToken = SOME_AUTH_TOKEN;
+		expectedData.recordType = SPECIFIED_RECORD_TYPE_TO_VALIDATE;
+		expectedData.recordId = null;
+		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.dataRecordGroup = recordToValidate;
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				VALIDATE_AFTER_AUTHORIZATION, expectedData, 0);
+	}
+
+	@Test
 	public void testEnsureExtendedFunctionalityPosition_AfterAuthorizathion() throws Exception {
 		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
 				dependencyProvider, VALIDATE_AFTER_AUTHORIZATION,
@@ -411,12 +431,29 @@ public class RecordValidatorTest {
 	}
 
 	@Test
+	public void testDataMissingExceptionOnCreatingRecordTypeHandlerShouldThrowDataMissingException()
+			throws Exception {
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				CREATE, WITH_LINKS);
+		dependencyProvider.MRV.setAlwaysThrowException("getRecordTypeHandlerUsingDataRecordGroup",
+				new se.uu.ub.cora.bookkeeper.metadata.DataMissingException("someError"));
+
+		DataRecord validationRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				VALIDATION_ORDER_TYPE, validationOrder, recordToValidate);
+
+		String errorMessage = "Validation of record to validate not possible due to missing "
+				+ "data: " + "someError";
+		assertAnswerFromRecordValidator(validationRecord, errorMessage);
+	}
+
+	@Test
 	public void testValidateRecordTypesOfRecordAndValidationOrderMissingRecordTypeDoesNothing()
 			throws Exception {
 		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
 				CREATE, WITH_LINKS);
 
-		recordToValidate.MRV.setAlwaysThrowException("getType", new DataMissingException("mess"));
+		recordToValidate.MRV.setAlwaysThrowException("getType",
+				new se.uu.ub.cora.data.DataMissingException("mess"));
 
 		DataRecord validationRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
 				VALIDATION_ORDER_TYPE, validationOrder, recordToValidate);
