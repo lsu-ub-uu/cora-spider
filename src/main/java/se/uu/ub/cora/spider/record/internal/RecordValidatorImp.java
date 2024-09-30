@@ -111,7 +111,8 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 		possiblyEnsureLinksExist(recordToValidateAsDataGroup);
 
-		validateRecordTypesMatchBetweenValidationOrderAndRecord();
+		validateRecordTypesMatchBetweenValidationTypeAndSpecifiedType();
+		possiblyValidateRecordTypesMatchBetweenValidationOrderAndRecord();
 
 		validateIncomingDataAsSpecifiedInMetadata(recordToValidateAsDataGroup);
 
@@ -191,11 +192,28 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		return data;
 	}
 
+	private void possiblyValidateRecordTypesMatchBetweenValidationOrderAndRecord() {
+		try {
+			validateRecordTypesMatchBetweenValidationOrderAndRecord();
+		} catch (Exception e) {
+			// missing recordType is currently ok, do nothing if it is not set
+		}
+	}
+
 	private void validateRecordTypesMatchBetweenValidationOrderAndRecord() {
 		String recordTypeOfRecord = recordToValidate.getType();
 		if (!recordTypeOfRecord.equals(specifiedRecordTypeToValidate)) {
-
 			String message = "RecordType from record (" + recordTypeOfRecord
+					+ ") does not match recordType from validationOrder ("
+					+ specifiedRecordTypeToValidate + ")";
+			errorList.add(message);
+		}
+	}
+
+	private void validateRecordTypesMatchBetweenValidationTypeAndSpecifiedType() {
+		String recordTypeFromValidationType = recordTypeHandlerForDataToValidate.getRecordTypeId();
+		if (!recordTypeFromValidationType.equals(specifiedRecordTypeToValidate)) {
+			String message = "RecordType from validationType (" + recordTypeFromValidationType
 					+ ") does not match recordType from validationOrder ("
 					+ specifiedRecordTypeToValidate + ")";
 			errorList.add(message);

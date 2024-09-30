@@ -35,6 +35,7 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordtype.Unique;
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataMissingException;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordLink;
@@ -142,6 +143,8 @@ public class RecordValidatorTest {
 		uniqueList = List.of(new Unique("", Set.of("")));
 		recordTypeHandlerForDataToValidate.MRV
 				.setDefaultReturnValuesSupplier("getUniqueDefinitions", () -> uniqueList);
+		recordTypeHandlerForDataToValidate.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
+				() -> SPECIFIED_RECORD_TYPE_TO_VALIDATE);
 	}
 
 	private void setUpAnswerForCollectTerms() {
@@ -405,6 +408,36 @@ public class RecordValidatorTest {
 					+ " in the code");
 		} catch (Exception e) {
 		}
+	}
+
+	@Test
+	public void testValidateRecordTypesOfRecordAndValidationOrderMissingRecordTypeDoesNothing()
+			throws Exception {
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				CREATE, WITH_LINKS);
+
+		recordToValidate.MRV.setAlwaysThrowException("getType", new DataMissingException("mess"));
+
+		DataRecord validationRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				VALIDATION_ORDER_TYPE, validationOrder, recordToValidate);
+
+		assertAnswerFromRecordValidator(validationRecord);
+	}
+
+	@Test
+	public void testValidateRecordTypesOfValidationOrderAndValidationType() throws Exception {
+		DataGroup validationOrder = createValidationOrderWithMetadataToValidateAndValidateLinks(
+				CREATE, WITH_LINKS);
+
+		recordTypeHandlerForDataToValidate.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
+				() -> "someOtherRecordType");
+
+		DataRecord validationRecord = recordValidator.validateRecord(SOME_AUTH_TOKEN,
+				VALIDATION_ORDER_TYPE, validationOrder, recordToValidate);
+
+		String errorString = "RecordType from validationType (someOtherRecordType) does not match "
+				+ "recordType from validationOrder (" + SPECIFIED_RECORD_TYPE_TO_VALIDATE + ")";
+		assertAnswerFromRecordValidator(validationRecord, errorString);
 	}
 
 	@Test
