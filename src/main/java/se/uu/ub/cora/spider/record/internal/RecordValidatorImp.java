@@ -32,6 +32,7 @@ import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataMissingException;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
@@ -185,11 +186,20 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 			DataRecordGroup dataRecordGroup) {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
 		data.recordType = specifiedRecordTypeToValidate;
-		data.recordId = dataRecordGroup.getId();
+		possiblySetRecordId(data, dataRecordGroup);
 		data.authToken = authToken;
 		data.user = user;
 		data.dataRecordGroup = dataRecordGroup;
 		return data;
+	}
+
+	private void possiblySetRecordId(ExtendedFunctionalityData data,
+			DataRecordGroup dataRecordGroup) {
+		try {
+			data.recordId = dataRecordGroup.getId();
+		} catch (DataMissingException e) {
+			// do nothing
+		}
 	}
 
 	private void possiblyValidateRecordTypesMatchBetweenValidationOrderAndRecord() {

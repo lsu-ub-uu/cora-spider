@@ -19,7 +19,14 @@
 package se.uu.ub.cora.spider.extended.systemsecret;
 
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.INCOMING_LINKS_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.INDEX_BATCH_JOB_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READLIST_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.SEARCH_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.VALIDATE_AFTER_AUTHORIZATION;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +60,15 @@ public class SystemSecretSecurityExtendedFunctionalityFactory
 	}
 
 	private boolean endsWithAfterAuthorization(ExtendedFunctionalityPosition position) {
-		return position.toString().endsWith("_AFTER_AUTHORIZATION");
+		return SEARCH_AFTER_AUTHORIZATION.equals(position)
+				|| CREATE_AFTER_AUTHORIZATION.equals(position)
+				|| DELETE_AFTER_AUTHORIZATION.equals(position)
+				|| INCOMING_LINKS_AFTER_AUTHORIZATION.equals(position)
+				|| INDEX_BATCH_JOB_AFTER_AUTHORIZATION.equals(position)
+				|| READ_AFTER_AUTHORIZATION.equals(position)
+				|| READLIST_AFTER_AUTHORIZATION.equals(position)
+				|| UPDATE_AFTER_AUTHORIZATION.equals(position)
+				|| VALIDATE_AFTER_AUTHORIZATION.equals(position);
 	}
 
 	private void createContextForRecordType(ExtendedFunctionalityPosition position) {
