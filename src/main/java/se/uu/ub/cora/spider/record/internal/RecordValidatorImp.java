@@ -321,7 +321,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		if (validationIsForUpdate()) {
 			validateUniqueForUpdate(recordToValidate, collectedTerms, validateUniques);
 		} else {
-			validateUniqueForCreate(collectedTerms, validateUniques);
+			validateUniqueForNewRecord(collectedTerms, validateUniques);
 		}
 	}
 
@@ -334,7 +334,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		possiblyAddErrorMessages(validationAnswer);
 	}
 
-	private void validateUniqueForCreate(CollectTerms collectedTerms,
+	private void validateUniqueForNewRecord(CollectTerms collectedTerms,
 			UniqueValidator validateUniques) {
 		ValidationAnswer validationAnswer = validateUniques.validateUniqueForNewRecord(
 				specifiedRecordTypeToValidate,
