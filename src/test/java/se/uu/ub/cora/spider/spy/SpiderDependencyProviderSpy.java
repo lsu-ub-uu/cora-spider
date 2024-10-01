@@ -32,15 +32,15 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
-import se.uu.ub.cora.spider.record.DataRedactorSpy;
-import se.uu.ub.cora.spider.record.OldStreamStorageSpy;
+import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
-import se.uu.ub.cora.spider.record.internal.OldRecordSearchSpy;
+import se.uu.ub.cora.spider.record.internal.RecordSearchSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -62,24 +62,24 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MRV.setDefaultReturnValuesSupplier("getRecordStorage", RecordStorageSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordArchive", RecordArchiveSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getResourceArchive", ResourceArchiveSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getStreamStorage", OldStreamStorageSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getRecordIdGenerator", IdGeneratorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getStreamStorage", StreamStorageSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordIdGenerator", RecordIdGeneratorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator", SpiderAuthorizatorSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getDataValidator", DataValidatorOldSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getDataValidator", DataValidatorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataRecordLinkCollector",
 				DataRecordLinkCollectorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
 				DataGroupTermCollectorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getPermissionRuleCalculator", RuleCalculatorSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getDataRedactor", DataRedactorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getDataRedactor", DataRedactorOldSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
 				ExtendedFunctionalityProviderSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getAuthenticator", AuthenticatorSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getRecordSearch", OldRecordSearchSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordSearch", RecordSearchSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordIndexer", RecordIndexerSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler", RecordTypeHandlerSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler", RecordTypeHandlerOldSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeHandlerUsingDataRecordGroup",
-				RecordTypeHandlerSpy::new);
+				RecordTypeHandlerOldSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataGroupToRecordEnhancer",
 				DataGroupToRecordEnhancerSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataGroupToFilterConverter",

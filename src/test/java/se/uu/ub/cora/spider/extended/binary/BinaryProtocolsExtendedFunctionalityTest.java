@@ -22,6 +22,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordSpy;
 import se.uu.ub.cora.data.spies.DataResourceLinkSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -32,7 +33,7 @@ public class BinaryProtocolsExtendedFunctionalityTest {
 	private ExtendedFunctionality extFunctionality;
 	private ExtendedFunctionalityData data;
 	private DataRecordSpy dataRecordSpy;
-	private DataGroupSpy binaryGroup;
+	private DataRecordGroupSpy binaryRecordGroup;
 	private DataGroupSpy jp2Group;
 	private DataResourceLinkSpy jp2ResourceLink;
 
@@ -40,8 +41,9 @@ public class BinaryProtocolsExtendedFunctionalityTest {
 	public void beforeMethod() {
 		extFunctionality = new BinaryProtocolsExtendedFunctionality();
 		dataRecordSpy = new DataRecordSpy();
-		binaryGroup = new DataGroupSpy();
-		dataRecordSpy.MRV.setDefaultReturnValuesSupplier("getDataGroup", () -> binaryGroup);
+		binaryRecordGroup = new DataRecordGroupSpy();
+		dataRecordSpy.MRV.setDefaultReturnValuesSupplier("getDataRecordGroup",
+				() -> binaryRecordGroup);
 		createJp2Group();
 
 		data = new ExtendedFunctionalityData();
@@ -54,14 +56,14 @@ public class BinaryProtocolsExtendedFunctionalityTest {
 		jp2ResourceLink = new DataResourceLinkSpy();
 		jp2Group.MRV.setDefaultReturnValuesSupplier("getFirstChildOfTypeAndName",
 				() -> jp2ResourceLink);
-		binaryGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+		binaryRecordGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
 				() -> jp2Group, "jp2");
 	}
 
 	@Test
 	public void testSetUpProtocolIfJp2GroupExistsAndHasReadAction() throws Exception {
-		binaryGroup.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
-				"jp2");
+		binaryRecordGroup.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> true, "jp2");
 		jp2ResourceLink.MRV.setDefaultReturnValuesSupplier("hasReadAction", () -> true);
 
 		extFunctionality.useExtendedFunctionality(data);
@@ -71,8 +73,8 @@ public class BinaryProtocolsExtendedFunctionalityTest {
 
 	@Test
 	public void testDoNotSetUpProtocolIfJp2GroupExistsAndWithoutReadAction() throws Exception {
-		binaryGroup.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
-				"jp2");
+		binaryRecordGroup.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> true, "jp2");
 
 		extFunctionality.useExtendedFunctionality(data);
 

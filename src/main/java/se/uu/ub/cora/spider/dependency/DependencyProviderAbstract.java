@@ -174,10 +174,6 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 		return extendedFunctionalityProvider;
 	}
 
-	/**
-	 * @deprecated use {@link #getRecordTypeHandlerUsingDataRecordGroup(DataRecordGroup)} instead
-	 */
-	@Deprecated(forRemoval = true)
 	@Override
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
 		RecordTypeHandlerFactory recordTypeHandlerFactory = createRecordTypeHandlerFactory();

@@ -31,7 +31,6 @@ import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 import se.uu.ub.cora.spider.testdata.DataCreator;
-import se.uu.ub.cora.spider.testdata.DataCreator2;
 import se.uu.ub.cora.spider.testdata.RecordLinkTestsDataCreator;
 import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -53,7 +52,6 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 
 	@Override
 	public DataGroup read(List<String> types, String id) {
-
 		MCR.addCall("types", types, "id", id);
 		for (String type : types) {
 
@@ -137,17 +135,17 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 							.withMessage("no record with id " + id + " exists");
 				}
 
-			} else if (type.equals("search")) {
-				if ("aSearchId".equals(id)) {
-					datagroup = DataCreator2.createSearchWithIdAndRecordTypeToSearchIn("aSearchId",
-							"place");
-				} else if ("anotherSearchId".equals(id)) {
-					datagroup = DataCreator2
-							.createSearchWithIdAndRecordTypeToSearchIn("anotherSearchId", "image");
-				} else if ("someDefaultSearch".equals(id)) {
-					datagroup = DataCreator2.createSearchWithIdAndRecordTypeToSearchIn(
-							"someDefaultSearch", "someRecordType");
-				}
+				// } else if (type.equals("search")) {
+				// if ("aSearchId".equals(id)) {
+				// datagroup = DataCreator2.createSearchWithIdAndRecordTypeToSearchIn("aSearchId",
+				// "place");
+				// } else if ("anotherSearchId".equals(id)) {
+				// datagroup = DataCreator2
+				// .createSearchWithIdAndRecordTypeToSearchIn("anotherSearchId", "image");
+				// } else if ("someDefaultSearch".equals(id)) {
+				// datagroup = DataCreator2.createSearchWithIdAndRecordTypeToSearchIn(
+				// "someDefaultSearch", "someRecordType");
+				// }
 			} else if (type.equals("system")) {
 				if (id.equals("cora")) {
 					datagroup = DataCreator.createDataGroupWithNameInDataTypeAndId("system", type,
@@ -172,13 +170,11 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 	public void create(String type, String id, DataGroup record, Set<StorageTerm> storageTerms,
 			Set<Link> links, String dataDivider) {
 		createWasRead = true;
-
 	}
 
 	@Override
 	public void deleteByTypeAndId(String type, String id) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -199,7 +195,6 @@ public class RecordEnhancerTestsRecordStorage implements RecordStorage {
 	public void update(String type, String id, DataGroup record, Set<StorageTerm> collectedTerms,
 			Set<Link> links, String dataDivider) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override

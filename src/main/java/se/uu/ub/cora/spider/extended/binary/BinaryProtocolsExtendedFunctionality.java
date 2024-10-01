@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.extended.binary;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -31,26 +32,26 @@ public class BinaryProtocolsExtendedFunctionality implements ExtendedFunctionali
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
 		DataRecord dataRecord = data.dataRecord;
-		DataGroup binaryGroup = dataRecord.getDataGroup();
-		if (existsJp2ChildWithReadAction(binaryGroup)) {
+		DataRecordGroup binaryRecordGroup = dataRecord.getDataRecordGroup();
+		if (existsJp2ChildWithReadAction(binaryRecordGroup)) {
 			dataRecord.addProtocol("iiif");
 		}
 	}
 
-	private boolean existsJp2ChildWithReadAction(DataGroup binaryGroup) {
-		if (binaryGroup.containsChildWithNameInData(JP2)) {
-			return jp2ResourceLinkHasReadAction(binaryGroup);
+	private boolean existsJp2ChildWithReadAction(DataRecordGroup binaryRecordGroup) {
+		if (binaryRecordGroup.containsChildWithNameInData(JP2)) {
+			return jp2ResourceLinkHasReadAction(binaryRecordGroup);
 		}
 		return false;
 	}
 
-	private boolean jp2ResourceLinkHasReadAction(DataGroup binaryGroup) {
-		DataResourceLink jp2ResourceLink = getResourceLink(binaryGroup);
+	private boolean jp2ResourceLinkHasReadAction(DataRecordGroup binaryRecordGroup) {
+		DataResourceLink jp2ResourceLink = getResourceLink(binaryRecordGroup);
 		return jp2ResourceLink.hasReadAction();
 	}
 
-	private DataResourceLink getResourceLink(DataGroup binaryGroup) {
-		DataGroup jp2Group = binaryGroup.getFirstGroupWithNameInData(JP2);
+	private DataResourceLink getResourceLink(DataRecordGroup binaryRecordGroup) {
+		DataGroup jp2Group = binaryRecordGroup.getFirstGroupWithNameInData(JP2);
 		return jp2Group.getFirstChildOfTypeAndName(DataResourceLink.class, JP2);
 	}
 }

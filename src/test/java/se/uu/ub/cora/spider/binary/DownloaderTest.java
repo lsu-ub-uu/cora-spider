@@ -38,7 +38,7 @@ import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.internal.DownloaderImp;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.ResourceNotFoundException;
@@ -255,17 +255,14 @@ public class DownloaderTest {
 				.getReturnValue("read", 0);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
 				binaryRecordGroup);
-		RecordTypeHandlerSpy recordTypeHandlerSpy = (RecordTypeHandlerSpy) dependencyProvider.MCR
+		RecordTypeHandlerOldSpy recordTypeHandlerSpy = (RecordTypeHandlerOldSpy) dependencyProvider.MCR
 				.getReturnValue("getRecordTypeHandlerUsingDataRecordGroup", 0);
 		var definitionId = recordTypeHandlerSpy.MCR.getReturnValue("getDefinitionId", 0);
 
 		DataGroupTermCollectorSpy termCollector = (DataGroupTermCollectorSpy) dependencyProvider.MCR
 				.getReturnValue("getDataGroupTermCollector", 0);
 
-		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0, binaryRecordGroup);
-		var dataGroup = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup", 0);
-
-		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, dataGroup);
+		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, binaryRecordGroup);
 		CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
 				.getReturnValue("collectTerms", 0);
 

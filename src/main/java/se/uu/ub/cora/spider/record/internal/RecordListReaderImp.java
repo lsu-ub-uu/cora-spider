@@ -33,6 +33,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -51,7 +52,7 @@ import se.uu.ub.cora.storage.StorageReadResult;
 public final class RecordListReaderImp extends RecordHandler implements RecordListReader {
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
-	private DataList readRecordList;
+	private DataList dataList;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataValidator dataValidator;
 	private StorageReadResult readResult;
@@ -83,13 +84,13 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		ensureActiveUserHasListPermissionUsingAuthToken();
 		useExtendedFunctionalityForPosition(READLIST_AFTER_AUTHORIZATION);
 
-		readRecordList = DataProvider.createListWithNameOfDataType(recordType);
+		dataList = DataProvider.createListWithNameOfDataType(recordType);
 		validateFilterIfNotEmpty(filter, recordType);
 
 		readRecordsOfType(filter);
 		setFromToInReadRecordList();
 
-		return readRecordList;
+		return dataList;
 	}
 
 	private void ensureActiveUserHasListPermissionUsingAuthToken() {
@@ -161,41 +162,33 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 	private void readRecordsOfType(DataGroup dataFilter) {
 		DataGroupToFilter converter = dependencyProvider.getDataGroupToFilterConverter();
 		Filter filter = converter.convert(dataFilter);
+
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		readAndAddToReadRecordList(filter, dataRedactor);
 	}
 
 	private void readAndAddToReadRecordList(Filter filter, DataRedactor dataRedactor) {
-		readResult = recordStorage.readList(List.of(recordType), filter);
-		Collection<DataGroup> dataGroupList = readResult.listOfDataGroups;
-
-		for (DataGroup dataGroup : dataGroupList) {
-			String type = extractRecordTypeFromDataGroup(dataGroup);
-			recordType = type;
-			enhanceDataGroupAndPossiblyAddToRecordList(dataGroup, type, dataRedactor);
+		readResult = recordStorage.readList(recordType, filter);
+		Collection<DataRecordGroup> dataGroupList = readResult.listOfDataRecordGroups;
+		for (DataRecordGroup dataRecordGroup : dataGroupList) {
+			enhanceDataGroupAndPossiblyAddToRecordList(dataRecordGroup, dataRecordGroup.getType(),
+					dataRedactor);
 		}
 	}
 
-	private String extractRecordTypeFromDataGroup(DataGroup dataGroup) {
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		DataGroup typeGroup = recordInfo.getFirstGroupWithNameInData("type");
-
-		return typeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
-	}
-
-	private void enhanceDataGroupAndPossiblyAddToRecordList(DataGroup dataGroup,
+	private void enhanceDataGroupAndPossiblyAddToRecordList(DataRecordGroup dataRecordGroup,
 			String recordTypeForRecord, DataRedactor dataRedactor) {
 		try {
 			DataRecord dataRecord = dataGroupToRecordEnhancer.enhance(user, recordTypeForRecord,
-					dataGroup, dataRedactor);
-			readRecordList.addData(dataRecord);
+					dataRecordGroup, dataRedactor);
+			dataList.addData(dataRecord);
 		} catch (AuthorizationException noReadAuthorization) {
 			// do nothing
 		}
 	}
 
 	private void setFromToInReadRecordList() {
-		readRecordList.setTotalNo(String.valueOf(readResult.totalNumberOfMatches));
+		dataList.setTotalNo(String.valueOf(readResult.totalNumberOfMatches));
 		if (resultContainsRecords()) {
 			setFromToValuesForReturnedRecords();
 		} else {
@@ -204,17 +197,16 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 	}
 
 	private boolean resultContainsRecords() {
-		return !readRecordList.getDataList().isEmpty();
+		return !dataList.getDataList().isEmpty();
 	}
 
 	private void setFromToValuesForReturnedRecords() {
-		readRecordList.setFromNo(String.valueOf(readResult.start));
-		readRecordList
-				.setToNo(String.valueOf(readResult.start + readRecordList.getDataList().size()));
+		dataList.setFromNo(String.valueOf(readResult.start));
+		dataList.setToNo(String.valueOf(readResult.start + dataList.getDataList().size()));
 	}
 
 	private void setFromToValuesToZeroForResultWithoutRecords() {
-		readRecordList.setFromNo("0");
-		readRecordList.setToNo("0");
+		dataList.setFromNo("0");
+		dataList.setToNo("0");
 	}
 }

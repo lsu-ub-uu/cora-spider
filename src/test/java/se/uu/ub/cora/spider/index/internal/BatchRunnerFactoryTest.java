@@ -54,7 +54,7 @@ public class BatchRunnerFactoryTest {
 		IndexBatchJobStorer batchJobStorer = (IndexBatchJobStorer) runner.getBatchJobStorer();
 		assertTrue(batchJobStorer instanceof IndexBatchJobStorer);
 		assertTrue(batchJobStorer
-				.getDataGroupHandlerForIndexBatchJob() instanceof DataGroupHandlerForIndexBatchJobImp);
+				.getDataGroupHandlerForIndexBatchJob() instanceof DataRecordGroupHandlerForIndexBatchJobImp);
 		assertEquals(batchJobStorer.getDependencyProvider(), dependencyProvider);
 	}
 

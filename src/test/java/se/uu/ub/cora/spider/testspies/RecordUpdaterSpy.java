@@ -19,8 +19,8 @@
  */
 package se.uu.ub.cora.spider.testspies;
 
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.spies.DataRecordSpy;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
@@ -36,7 +36,7 @@ public class RecordUpdaterSpy implements RecordUpdater {
 	}
 
 	@Override
-	public DataRecord updateRecord(String authToken, String type, String id, DataGroup record) {
+	public DataRecord updateRecord(String authToken, String type, String id, DataRecordGroup record) {
 		return (DataRecord) MCR.addCallAndReturnFromMRV("authToken", authToken, "type", type, "id",
 				id, "record", record);
 	}

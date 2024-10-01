@@ -28,7 +28,6 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.PermissionTerm;
@@ -127,10 +126,8 @@ public final class DownloaderImp implements Downloader {
 	}
 
 	private List<PermissionTerm> getPermissionTerms(DataRecordGroup binaryRecordGroup) {
-		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(binaryRecordGroup);
 		String definitionId = getDefinitionId(binaryRecordGroup);
-
-		CollectTerms collectTerms = termCollector.collectTerms(definitionId, dataGroup);
+		CollectTerms collectTerms = termCollector.collectTerms(definitionId, binaryRecordGroup);
 		return collectTerms.permissionTerms;
 	}
 

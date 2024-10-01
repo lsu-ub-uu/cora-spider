@@ -81,8 +81,8 @@ public final class DataCreator {
 				"pg" + idWithCapitalFirst + "SearchForm"));
 
 		dataGroup.addChild(new DataAtomicOldSpy(USER_SUPPLIED_ID, userSuppliedId));
-		dataGroup.addChild(
-				new DataAtomicOldSpy(SELF_PRESENTATION_VIEW_ID, "pg" + idWithCapitalFirst + "Self"));
+		dataGroup.addChild(new DataAtomicOldSpy(SELF_PRESENTATION_VIEW_ID,
+				"pg" + idWithCapitalFirst + "Self"));
 		return dataGroup;
 	}
 

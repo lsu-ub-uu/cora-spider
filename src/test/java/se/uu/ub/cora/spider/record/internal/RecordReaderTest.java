@@ -39,12 +39,12 @@ import se.uu.ub.cora.spider.data.DataRecordOldSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
-import se.uu.ub.cora.spider.record.DataRedactorSpy;
+import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
@@ -61,9 +61,9 @@ public class RecordReaderTest {
 	private RecordReader recordReader;
 	private DataGroupToRecordEnhancerSpy dataGroupToRecordEnhancer;
 	private LoggerFactorySpy loggerFactorySpy;
-	private DataRedactorSpy dataRedactor;
+	private DataRedactorOldSpy dataRedactor;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
-	private RecordTypeHandlerSpy recordTypeHandler;
+	private RecordTypeHandlerOldSpy recordTypeHandler;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -72,9 +72,9 @@ public class RecordReaderTest {
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageSpy();
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataRecordGroupSpy::new);
-		dataRedactor = new DataRedactorSpy();
+		dataRedactor = new DataRedactorOldSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		recordTypeHandler = new RecordTypeHandlerSpy();
+		recordTypeHandler = new RecordTypeHandlerOldSpy();
 
 		recordReader = setUpDependencyProvider();
 	}
@@ -119,11 +119,9 @@ public class RecordReaderTest {
 		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_USER_TOKEN);
 
 		recordStorage.MCR.assertParameters("read", 0, SOME_RECORD_TYPE, SOME_RECORD_ID);
-		var dataRecordGroup = recordStorage.MCR.getReturnValue("read", 0);
+		recordStorage.MCR.getReturnValue("read", 0);
 
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, SOME_RECORD_TYPE);
-		// dependencyProvider.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
-		// dataRecordGroup);
 
 		recordTypeHandler.MCR.assertMethodWasCalled("isPublicForRead");
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
@@ -193,13 +191,8 @@ public class RecordReaderTest {
 		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 		DataRecordGroup dataGroupFromStorage = (DataRecordGroup) recordStorage.MCR
 				.getReturnValue("read", 0);
-
-		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0,
-				dataGroupFromStorage);
-		var dataGroupFromDataProvider = dataFactorySpy.MCR
-				.getReturnValue("factorGroupFromDataRecordGroup", 0);
 		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, user, SOME_RECORD_TYPE,
-				dataGroupFromDataProvider, dataRedactor);
+				dataGroupFromStorage, dataRedactor);
 	}
 
 	@Test
@@ -219,13 +212,12 @@ public class RecordReaderTest {
 		expectedData.recordId = SOME_RECORD_ID;
 		expectedData.authToken = SOME_USER_TOKEN;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
-		expectedData.previouslyStoredTopDataGroup = null;
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				READ_AFTER_AUTHORIZATION, expectedData, 0);
 
 		DataRecordOldSpy enhancedRecord = (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR
 				.getReturnValue("enhance", 0);
-		expectedData.dataGroup = enhancedRecord.getDataGroup();
+		expectedData.dataRecordGroup = enhancedRecord.getDataRecordGroup();
 		expectedData.dataRecord = enhancedRecord;
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				READ_BEFORE_RETURN, expectedData, 1);

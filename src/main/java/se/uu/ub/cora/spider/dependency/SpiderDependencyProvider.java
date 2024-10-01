@@ -69,10 +69,6 @@ public interface SpiderDependencyProvider {
 
 	RecordIndexer getRecordIndexer();
 
-	/**
-	 * @Deprecated use {@link #getRecordTypeHandlerUsingDataRecordGroup(DataRecordGroup)} instead
-	 */
-	@Deprecated(forRemoval = true)
 	RecordTypeHandler getRecordTypeHandler(String recordTypeId);
 
 	RecordTypeHandler getRecordTypeHandlerUsingDataRecordGroup(DataRecordGroup dataRecordGroup);

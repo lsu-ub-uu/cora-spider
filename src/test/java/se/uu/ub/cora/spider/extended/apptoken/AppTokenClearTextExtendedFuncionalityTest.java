@@ -34,6 +34,7 @@ import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -41,7 +42,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 public class AppTokenClearTextExtendedFuncionalityTest {
 	private DataFactorySpy dataFactory;
 	private ExtendedFunctionalityData efData;
-	private DataGroupSpy currentDataGroup;
+	private DataRecordGroupSpy currentRecordGroup;
 	private DataGroupSpy linkAppTokenGroup1;
 	private DataGroupSpy linkAppTokenGroup2;
 	private AppTokenClearTextExtendedFuncionality exFunc;
@@ -65,15 +66,15 @@ public class AppTokenClearTextExtendedFuncionalityTest {
 		appTokensClearText = new HashMap<>();
 		setupCurrentDataRecordGroup();
 		efData = new ExtendedFunctionalityData();
-		efData.dataGroup = currentDataGroup;
+		efData.dataRecordGroup = currentRecordGroup;
 		efData.dataSharer.put("AppTokenHandlerExtendedFunctionality", appTokensClearText);
 	}
 
 	private void setupCurrentDataRecordGroup() {
-		currentDataGroup = new DataGroupSpy();
+		currentRecordGroup = new DataRecordGroupSpy();
 
 		DataGroupSpy recordInfo = new DataGroupSpy();
-		currentDataGroup.MRV.setReturnValues("getFirstGroupWithNameInData", List.of(recordInfo),
+		currentRecordGroup.MRV.setReturnValues("getFirstGroupWithNameInData", List.of(recordInfo),
 				"recordInfo");
 	}
 
@@ -102,7 +103,7 @@ public class AppTokenClearTextExtendedFuncionalityTest {
 		exFunc.useExtendedFunctionality(efData);
 
 		dataFactory.MCR.assertMethodNotCalled("factorAtomicUsingNameInDataAndValue");
-		currentDataGroup.MCR.assertMethodNotCalled("getFirstGroupWithNameInData");
+		currentRecordGroup.MCR.assertMethodNotCalled("getFirstGroupWithNameInData");
 	}
 
 	@Test
@@ -144,11 +145,11 @@ public class AppTokenClearTextExtendedFuncionalityTest {
 	}
 
 	private void setUpCurrentWithAppTokens(DataGroupSpy... appTokenGroup) {
-		setupAppTokensGroupsUsingAppTokenGroups(currentDataGroup, currentAppTokensGroup,
+		setupAppTokensGroupsUsingAppTokenGroups(currentRecordGroup, currentAppTokensGroup,
 				appTokenGroup);
 	}
 
-	private void setupAppTokensGroupsUsingAppTokenGroups(DataGroupSpy userDataGroup,
+	private void setupAppTokensGroupsUsingAppTokenGroups(DataRecordGroupSpy userDataGroup,
 			DataGroupSpy appTokensGroup, DataGroupSpy... appTokenGroups) {
 		if (appTokenGroups.length > 0) {
 			userDataGroup.MRV.setSpecificReturnValuesSupplier("containsChildOfTypeAndName",

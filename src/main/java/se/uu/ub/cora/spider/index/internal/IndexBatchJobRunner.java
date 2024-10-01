@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2021, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,7 +23,7 @@ import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -123,40 +123,31 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 
 	private StorageReadResult readList() {
 		Filter filter = indexBatchJob.filter;
-		List<String> types = List.of(indexBatchJob.recordTypeToIndex);
-		return recordStorage.readList(types, filter);
+		return recordStorage.readList(indexBatchJob.recordTypeToIndex, filter);
 	}
 
 	private void indexData(String metadataId, StorageReadResult readResult) {
-		for (DataGroup dataGroup : readResult.listOfDataGroups) {
-			indexRecord(metadataId, dataGroup);
+		for (DataRecordGroup dataRecordGroup : readResult.listOfDataRecordGroups) {
+			indexRecord(metadataId, dataRecordGroup);
 		}
 	}
 
-	private void indexRecord(String metadataId, DataGroup dataGroup) {
-		String recordId = getRecordId(dataGroup);
+	private void indexRecord(String metadataId, DataRecordGroup dataRecordGroup) {
 		try {
-			tryToIndexData(metadataId, recordId, dataGroup);
+			tryToIndexData(metadataId, dataRecordGroup);
 		} catch (Exception e) {
+			String recordId = dataRecordGroup.getId();
 			IndexError error = new IndexError(recordId, e.getMessage());
 			errors.add(error);
 		}
 	}
 
-	private String getRecordId(DataGroup dataGroup) {
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		return recordInfo.getFirstAtomicValueWithNameInData("id");
-	}
-
-	private void tryToIndexData(String metadataId, String recordId, DataGroup dataGroup) {
-		List<String> combinedIds = getCombinedId(recordId);
-		CollectTerms collectedTerms = termCollector.collectTerms(metadataId, dataGroup);
-		recordIndexer.indexDataWithoutExplicitCommit(combinedIds, collectedTerms.indexTerms,
-				dataGroup);
-	}
-
-	private List<String> getCombinedId(String recordId) {
-		return List.of(indexBatchJob.recordTypeToIndex + "_" + recordId);
+	private void tryToIndexData(String metadataId, DataRecordGroup dataRecordGroup) {
+		CollectTerms collectedTerms = termCollector.collectTerms(metadataId, dataRecordGroup);
+		String recordId = dataRecordGroup.getId();
+		String recordType = dataRecordGroup.getType();
+		recordIndexer.indexDataWithoutExplicitCommit(recordType, recordId,
+				collectedTerms.indexTerms, dataRecordGroup);
 	}
 
 	private void updateAndStoreIndexBatchJob(StorageReadResult readResult) {
@@ -166,7 +157,7 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	}
 
 	private void increaseNumOfIndexedInBatchJob(StorageReadResult readResult) {
-		int numberOfRecordsSentToIndex = readResult.listOfDataGroups.size();
+		int numberOfRecordsSentToIndex = readResult.listOfDataRecordGroups.size();
 		indexBatchJob.numberOfProcessedRecords += numberOfRecordsSentToIndex;
 	}
 
@@ -202,5 +193,4 @@ public class IndexBatchJobRunner implements BatchRunner, Runnable {
 	BatchJobStorer getBatchJobStorer() {
 		return storer;
 	}
-
 }

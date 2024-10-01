@@ -35,16 +35,14 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.binary.BinaryProvider;
 import se.uu.ub.cora.binary.iiif.IiifAdapterResponse;
 import se.uu.ub.cora.binary.iiif.IiifParameters;
-import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.collected.CollectTerms;
-import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.iiif.internal.IiifReaderImp;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
@@ -84,15 +82,11 @@ public class IiifReaderTest {
 	private DataGroupSpy adminInfo;
 	private IiifAdapterSpy iiifAdapterSpy;
 	Map<String, String> headersMap;
-	private DataFactorySpy dataFactorySpy;
 
 	@BeforeMethod
 	private void beforeMethod() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-
-		dataFactorySpy = new DataFactorySpy();
-		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 
 		headersMap = new HashMap<>();
 
@@ -279,17 +273,14 @@ public class IiifReaderTest {
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
 				readBinaryDGS);
 
-		RecordTypeHandlerSpy recordTypeHandlerSpy = (RecordTypeHandlerSpy) dependencyProvider.MCR
+		RecordTypeHandlerOldSpy recordTypeHandlerSpy = (RecordTypeHandlerOldSpy) dependencyProvider.MCR
 				.getReturnValue("getRecordTypeHandlerUsingDataRecordGroup", 0);
 		DataGroupTermCollectorSpy termCollectorSpy = (DataGroupTermCollectorSpy) dependencyProvider.MCR
 				.getReturnValue("getDataGroupTermCollector", 0);
 
 		var definitionId = recordTypeHandlerSpy.MCR.getReturnValue("getDefinitionId", 0);
 
-		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0, readBinaryDGS);
-		var binaryGroup = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup", 0);
-
-		termCollectorSpy.MCR.assertParameters("collectTerms", 0, definitionId, binaryGroup);
+		termCollectorSpy.MCR.assertParameters("collectTerms", 0, definitionId, readBinaryDGS);
 
 		CollectTerms terms = (CollectTerms) termCollectorSpy.MCR.getReturnValue("collectTerms", 0);
 

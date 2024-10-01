@@ -33,6 +33,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
+import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
@@ -46,10 +47,10 @@ import se.uu.ub.cora.spider.dependency.spy.RecordCreatorSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
-import se.uu.ub.cora.spider.index.internal.DataGroupHandlerForIndexBatchJobSpy;
+import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJobSpy;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
-import se.uu.ub.cora.spider.spy.DataValidatorOldSpy;
+import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
 import se.uu.ub.cora.storage.Filter;
@@ -68,9 +69,9 @@ public class RecordListIndexerTest {
 	private SpiderAuthorizatorSpy authorizatorSpy;
 	private DataGroupSpy indexSettingsWithoutFilter;
 	private DataGroupSpy indexSettingsWithFilter;
-	private DataValidatorOldSpy dataValidatorSpy;
+	private DataValidatorSpy dataValidatorSpy;
 	private IndexBatchHandlerSpy indexBatchHandler;
-	private DataGroupHandlerForIndexBatchJobSpy batchJobConverterSpy;
+	private DataRecordGroupHandlerForIndexBatchJobSpy batchJobConverterSpy;
 	private SpiderInstanceFactorySpy spiderInstanceFactory;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private RecordTypeHandlerSpy recordTypeHandler;
@@ -83,7 +84,7 @@ public class RecordListIndexerTest {
 
 		authenticatorSpy = new AuthenticatorSpy();
 		authorizatorSpy = new SpiderAuthorizatorSpy();
-		dataValidatorSpy = new DataValidatorOldSpy();
+		dataValidatorSpy = new DataValidatorSpy();
 		recordStorage = new RecordStorageSpy();
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataRecordGroupSpy::new);
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
@@ -92,13 +93,12 @@ public class RecordListIndexerTest {
 		setUpDependencyProvider();
 		setUpDataProviders();
 		indexSettingsWithoutFilter = new DataGroupSpy();
-		indexSettingsWithoutFilter.MRV.setDefaultReturnValuesSupplier("hasChildren",
-				(Supplier<Boolean>) () -> false);
+		indexSettingsWithoutFilter.MRV.setDefaultReturnValuesSupplier("hasChildren", () -> false);
 		indexSettingsWithFilter = new DataGroupSpy();
 		indexSettingsWithFilter.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
-				(Supplier<Boolean>) () -> true);
+				() -> true);
 		indexBatchHandler = new IndexBatchHandlerSpy();
-		batchJobConverterSpy = new DataGroupHandlerForIndexBatchJobSpy();
+		batchJobConverterSpy = new DataRecordGroupHandlerForIndexBatchJobSpy();
 		setUpRecordCreatorToReturnRecordWithId("someRecordId");
 		recordListIndexer = RecordListIndexerImp.usingDependencyProvider(dependencyProvider,
 				indexBatchHandler, batchJobConverterSpy);
@@ -120,7 +120,6 @@ public class RecordListIndexerTest {
 				() -> recordTypeHandler);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
-
 	}
 
 	private void setUpDataProviders() {
@@ -171,9 +170,10 @@ public class RecordListIndexerTest {
 
 	// TODO: rewrite to a Spider exception
 	@Test(expectedExceptions = DataValidationException.class, expectedExceptionsMessageRegExp = ""
-			+ "DataValidatorSpy, No indexSettings exists for recordType, " + SOME_RECORD_TYPE)
+			+ "someMessage")
 	public void testErrorInIndexSettingOnValidation() throws Exception {
-		dataValidatorSpy.throwExcpetionIndexSettingsNotFound = true;
+		dataValidatorSpy.MRV.setAlwaysThrowException("validateIndexSettings",
+				DataValidationException.withMessage("someMessage"));
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithFilter);
@@ -183,7 +183,11 @@ public class RecordListIndexerTest {
 			+ "Error while validating index settings against defined "
 			+ "metadata: \\[DataValidatorSpy not valid 1, DataValidatorSpy not valid 2\\]")
 	public void testErrorIsThrownOnFilterValidationFailure() throws Exception {
-		dataValidatorSpy.invalidIndexSettingsValidation = true;
+		ValidationAnswer validationAnswer = new ValidationAnswer();
+		validationAnswer.addErrorMessage("DataValidatorSpy not valid 1");
+		validationAnswer.addErrorMessage("DataValidatorSpy not valid 2");
+		dataValidatorSpy.MRV.setDefaultReturnValuesSupplier("validateIndexSettings",
+				() -> validationAnswer);
 
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithFilter);
@@ -198,7 +202,6 @@ public class RecordListIndexerTest {
 				.getReturnValue("factorGroupUsingNameInData", 0);
 
 		assertGetTotalNumberOfRecords(SOME_RECORD_TYPE, createdFilter);
-
 	}
 
 	private void assertGetTotalNumberOfRecords(String recordType, DataGroup filterAsDataGroup) {
@@ -210,7 +213,6 @@ public class RecordListIndexerTest {
 
 	@Test
 	public void testGetTotalNumberOfMatchesFromStorageWithFilter() throws Exception {
-
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithFilter);
 
@@ -229,14 +231,14 @@ public class RecordListIndexerTest {
 		recordListIndexer.indexRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
 				indexSettingsWithoutFilter);
 
-		batchJobConverterSpy.MCR.assertMethodWasCalled("createDataGroup");
+		batchJobConverterSpy.MCR.assertMethodWasCalled("createDataRecordGroup");
 
 		DataGroup filterAsDataGroup = (DataGroup) dataFactory.MCR
 				.getReturnValue("factorGroupUsingNameInData", 0);
 		Filter filter = getFilter(filterAsDataGroup);
 
 		IndexBatchJob indexBatchJob = getParameterIndexBatchJobFromConverterSpy();
-		batchJobConverterSpy.MCR.assertParameters("createDataGroup", 0, indexBatchJob,
+		batchJobConverterSpy.MCR.assertParameters("createDataRecordGroup", 0, indexBatchJob,
 				filterAsDataGroup);
 
 		assertEquals(indexBatchJob.recordTypeToIndex, SOME_RECORD_TYPE);
@@ -256,7 +258,7 @@ public class RecordListIndexerTest {
 
 		IndexBatchJob indexBatchJob = getParameterIndexBatchJobFromConverterSpy();
 
-		batchJobConverterSpy.MCR.assertParameters("createDataGroup", 0, indexBatchJob,
+		batchJobConverterSpy.MCR.assertParameters("createDataRecordGroup", 0, indexBatchJob,
 				extractedFilterFromIndexSettings);
 
 		assertEquals(indexBatchJob.recordTypeToIndex, SOME_RECORD_TYPE);
@@ -280,7 +282,8 @@ public class RecordListIndexerTest {
 				.getReturnValue("factorRecordCreator", 0);
 		recordCreatorSpy.MCR.assertMethodWasCalled("createAndStoreRecord");
 
-		var indexBatchJobDataGroup = batchJobConverterSpy.MCR.getReturnValue("createDataGroup", 0);
+		var indexBatchJobDataGroup = batchJobConverterSpy.MCR
+				.getReturnValue("createDataRecordGroup", 0);
 
 		recordCreatorSpy.MCR.assertParameters("createAndStoreRecord", 0, SOME_USER_TOKEN,
 				"indexBatchJob", indexBatchJobDataGroup);
@@ -330,7 +333,7 @@ public class RecordListIndexerTest {
 
 	private IndexBatchJob getParameterIndexBatchJobFromConverterSpy() {
 		return (IndexBatchJob) batchJobConverterSpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("createDataGroup", 0,
+				.getParameterForMethodAndCallNumberAndParameter("createDataRecordGroup", 0,
 						"indexBatchJob");
 	}
 
@@ -400,6 +403,5 @@ public class RecordListIndexerTest {
 		assertEquals(recordListIndexer.onlyForTestGetDependencyProvider(), dependencyProvider);
 		assertEquals(recordListIndexer.onlyForTestGetIndexBatchHandler(), indexBatchHandler);
 		assertEquals(recordListIndexer.onlyForTestGetBatchJobConverter(), batchJobConverterSpy);
-
 	}
 }

@@ -44,7 +44,6 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
-import se.uu.ub.cora.spider.record.DataRedactorSpy;
 import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
@@ -272,7 +271,7 @@ public class RecordSearcherTest {
 		dataGroupSpy2.MCR.assertNumberOfCallsToMethod("getFirstAtomicValueWithNameInData", 2);
 
 		List<String> recordTypeList = (List<String>) recordSearch.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(
+				.getParameterForMethodAndCallNumberAndParameter(
 						"searchUsingListOfRecordTypesToSearchInAndSearchData", 0, "recordTypes");
 		assertEquals(recordTypeList.get(0), "someNameInData1");
 		assertEquals(recordTypeList.get(1), "someNameInData2");
@@ -293,9 +292,12 @@ public class RecordSearcherTest {
 		DataGroup firstDataGroupFromSearchResult = searchResult.listOfDataGroups.get(0);
 		assertEquals(dataGroupToRecordEnhancer.recordType, "someNameInData1");
 
+		var recordAsDataRecordGroup = dataFactorySpy.MCR.assertCalledParametersReturn(
+				"factorRecordGroupFromDataGroup", firstDataGroupFromSearchResult);
+
 		dataGroupToRecordEnhancer.MCR.assertNumberOfCallsToMethod("enhance", 1);
 		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, getAuthenticatedUser(),
-				"someNameInData1", firstDataGroupFromSearchResult, dataRedactor);
+				"someNameInData1", recordAsDataRecordGroup, dataRedactor);
 
 		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorListUsingNameOfDataType", 1);
 		dataFactorySpy.MCR.assertParameters("factorListUsingNameOfDataType", 0, "mix");

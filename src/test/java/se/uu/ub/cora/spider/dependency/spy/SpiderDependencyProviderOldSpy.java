@@ -38,7 +38,7 @@ import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.record.DataRedactorSpy;
+import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
 import se.uu.ub.cora.spider.spy.UniqueValidatorSpy;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -68,9 +68,9 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	public RecordIndexer recordIndexer;
 	public boolean readInitInfoWasCalled;
 	public boolean tryToInitializeWasCalled;
-	public DataRedactorSpy dataRedactor = new DataRedactorSpy();
-	public RecordTypeHandlerSpy recordTypeHandlerSpy = new RecordTypeHandlerSpy();
-	public Map<String, RecordTypeHandlerSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
+	public DataRedactorOldSpy dataRedactor = new DataRedactorOldSpy();
+	public RecordTypeHandlerOldSpy recordTypeHandlerSpy = new RecordTypeHandlerOldSpy();
+	public Map<String, RecordTypeHandlerOldSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
 
 	public RecordStorage recordStorage = new RecordStorageSpy();
 	public RecordIdGenerator recordIdGenerator;
@@ -162,14 +162,6 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	@Override
 	public RecordTypeHandler getRecordTypeHandlerUsingDataRecordGroup(
 			DataRecordGroup dataRecordGroup) {
-		// // MCR.addCall("recordTypeId", recordTypeId);
-		// MCR.addCall("dataRecordGroup", dataRecordGroup);
-		// RecordTypeHandler recordTypeHandlerSpyToReturn = recordTypeHandlerSpy;
-		// // if (mapOfRecordTypeHandlerSpies.containsKey(recordTypeId)) {
-		// // recordTypeHandlerSpyToReturn = mapOfRecordTypeHandlerSpies.get(recordTypeId);
-		// // }
-		// MCR.addReturned(recordTypeHandlerSpyToReturn);
-		// return recordTypeHandlerSpyToReturn;
 		return (RecordTypeHandler) MCR.addCallAndReturnFromMRV("dataRecordGroup", dataRecordGroup);
 	}
 
@@ -180,8 +172,8 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 		return dataRedactor;
 	}
 
-	public RecordTypeHandlerSpy createRecordTypeHandlerSpy(String recordType) {
-		RecordTypeHandlerSpy newRecordTypeHandlerSpy = new RecordTypeHandlerSpy();
+	public RecordTypeHandlerOldSpy createRecordTypeHandlerSpy(String recordType) {
+		RecordTypeHandlerOldSpy newRecordTypeHandlerSpy = new RecordTypeHandlerOldSpy();
 		mapOfRecordTypeHandlerSpies.put(recordType, newRecordTypeHandlerSpy);
 		return newRecordTypeHandlerSpy;
 	}

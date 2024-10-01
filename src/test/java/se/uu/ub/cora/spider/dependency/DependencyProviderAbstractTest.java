@@ -218,7 +218,7 @@ public class DependencyProviderAbstractTest {
 		RulesProviderImp rulesProvider = (RulesProviderImp) spiderAuthorizator.getRulesProvider();
 		assertTrue(rulesProvider instanceof RulesProviderImp);
 		recordStorageInstanceProvider.MCR.assertReturn("getRecordStorage", 0,
-				rulesProvider.getRecordStorage());
+				rulesProvider.onlyForTestGetRecordStorage());
 	}
 
 	@Test

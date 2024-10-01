@@ -19,7 +19,7 @@
 package se.uu.ub.cora.spider.spy;
 
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
@@ -34,9 +34,9 @@ public class DataGroupTermCollectorSpy implements DataGroupTermCollector {
 	}
 
 	@Override
-	public CollectTerms collectTerms(String metadataId, DataGroup dataGroup) {
-		return (CollectTerms) MCR.addCallAndReturnFromMRV("metadataId", metadataId, "dataGroup",
-				dataGroup);
+	public CollectTerms collectTerms(String metadataId, DataRecordGroup dataRecordGroup) {
+		return (CollectTerms) MCR.addCallAndReturnFromMRV("metadataId", metadataId,
+				"dataRecordGroup", dataRecordGroup);
 	}
 
 }

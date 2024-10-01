@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Uppsala University Library
+ * Copyright 2020 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,7 +18,9 @@
  */
 package se.uu.ub.cora.spider.dependency.spy;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -28,44 +30,61 @@ import se.uu.ub.cora.bookkeeper.recordtype.Unique;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class RecordTypeHandlerSpy implements RecordTypeHandler {
+public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public RecordTypeHandlerSpy() {
+	/**
+	 * isPublicForRead is default false, if set to true, the recordType is considered totaly public
+	 * and no security checks are supposed to be done for reading
+	 */
+	public boolean isPublicForRead = false;
+
+	/**
+	 * recordPartConstraints is default empty, can be set to "readWrite" or "write" to change
+	 * behavior of {@link #hasRecordPartReadConstraint()} and
+	 * {@link #hasRecordPartWriteConstraint()}
+	 */
+	public String recordPartConstraint = "";
+	public Set<Constraint> writeStringConstraints = new HashSet<Constraint>();
+	public Set<Constraint> writeConstraints = new HashSet<Constraint>();
+
+	public String id = "id";
+	public String parentId = "someParentId";
+
+	public boolean isChildOfBinary = false;
+	public boolean representsTheRecordTypeDefiningSearches = false;
+	public boolean representsTheRecordTypeDefiningRecordTypes = false;
+
+	public boolean hasLinkedSearch = false;
+
+	public String returnedSearchId = "someSearchId";
+
+	// /**
+	// * shouldAutoGenerateId is default false, if set to true will method shouldAutoGenerateId()
+	// * return true instead of false.
+	// */
+	// public boolean shouldAutoGenerateId = false;
+
+	public List<String> listOfimplementingTypesIds = new ArrayList<>();
+
+	public RecordTypeHandlerOldSpy() {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("shouldAutoGenerateId", () -> false);
 		MRV.setDefaultReturnValuesSupplier("getCreateDefinitionId",
 				() -> "fakeCreateMetadataIdFromRecordTypeHandlerSpy");
-		MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
-				() -> "fakeUpdateMetadataIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("getDefinitionId",
 				() -> "fakeDefMetadataIdFromRecordTypeHandlerSpy");
-		MRV.setDefaultReturnValuesSupplier("isPublicForRead", () -> false);
-		MRV.setDefaultReturnValuesSupplier("hasRecordPartReadConstraint", () -> false);
-		MRV.setDefaultReturnValuesSupplier("getReadRecordPartConstraints",
-				() -> Collections.emptySet());
-		MRV.setDefaultReturnValuesSupplier("hasRecordPartWriteConstraint", () -> false);
-		MRV.setDefaultReturnValuesSupplier("getWriteRecordPartConstraints",
-				() -> Collections.emptySet());
-		MRV.setDefaultReturnValuesSupplier("getUpdateWriteRecordPartConstraints",
-				() -> Collections.emptySet());
-		MRV.setDefaultReturnValuesSupplier("representsTheRecordTypeDefiningSearches", () -> false);
-		MRV.setDefaultReturnValuesSupplier("representsTheRecordTypeDefiningRecordTypes",
-				() -> false);
-		MRV.setDefaultReturnValuesSupplier("hasLinkedSearch", () -> false);
-		MRV.setDefaultReturnValuesSupplier("getSearchId",
-				() -> "fakeUpdateSearchIdFromRecordTypeHandlerSpy");
-		MRV.setDefaultReturnValuesSupplier("hasRecordPartCreateConstraint", () -> false);
-		MRV.setDefaultReturnValuesSupplier("getCreateWriteRecordPartConstraints",
-				() -> Collections.emptySet());
+		MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
+				() -> "fakeUpdateMetadataIdFromRecordTypeHandlerSpy");
+		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "fakeRecordTypeIdFromRecordTypeHandlerSpy");
-		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
 		MRV.setDefaultReturnValuesSupplier("getCombinedIdForIndex",
 				() -> List.of("someCombinedIdFromSpy"));
 		MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions", () -> Collections.emptyList());
+		MRV.setDefaultReturnValuesSupplier("isPublicForRead", () -> isPublicForRead);
 	}
 
 	@Override
@@ -95,52 +114,94 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean hasRecordPartReadConstraint() {
-		return (boolean) MCR.addCallAndReturnFromMRV();
+		MCR.addCall();
+		boolean answer = false;
+		if ("readWrite".equals(recordPartConstraint)) {
+			answer = true;
+		} else
+
+		if ("write".equals(recordPartConstraint)) {
+			answer = false;
+		}
+		MCR.addReturned(answer);
+		return answer;
 	}
 
 	@Override
 	public Set<Constraint> getReadRecordPartConstraints() {
-		return (Set<Constraint>) MCR.addCallAndReturnFromMRV();
+		MCR.addCall();
+		Set<Constraint> constraints = new HashSet<Constraint>();
+		constraints.add(new Constraint("someKey"));
+		MCR.addReturned(constraints);
+		return constraints;
 	}
 
 	@Override
 	public boolean hasRecordPartWriteConstraint() {
-		return (boolean) MCR.addCallAndReturnFromMRV();
+		MCR.addCall();
+		boolean answer = false;
+		if ("readWrite".equals(recordPartConstraint)) {
+			answer = true;
+		} else if ("write".equals(recordPartConstraint)) {
+			answer = true;
+		}
+		MCR.addReturned(answer);
+		return answer;
 	}
 
 	@Override
 	public Set<Constraint> getUpdateWriteRecordPartConstraints() {
-		return (Set<Constraint>) MCR.addCallAndReturnFromMRV();
+		MCR.addCall();
+		MCR.addReturned(writeConstraints);
+		return writeConstraints;
 	}
 
 	@Override
 	public boolean representsTheRecordTypeDefiningSearches() {
-		return (boolean) MCR.addCallAndReturnFromMRV();
+		MCR.addCall();
+		MCR.addReturned(representsTheRecordTypeDefiningSearches);
+		return representsTheRecordTypeDefiningSearches;
 	}
 
 	@Override
 	public boolean representsTheRecordTypeDefiningRecordTypes() {
-		return (boolean) MCR.addCallAndReturnFromMRV();
+		MCR.addCall();
+		MCR.addReturned(representsTheRecordTypeDefiningRecordTypes);
+		return representsTheRecordTypeDefiningRecordTypes;
 	}
 
 	@Override
 	public boolean hasLinkedSearch() {
-		return (boolean) MCR.addCallAndReturnFromMRV();
+		MCR.addCall();
+		MCR.addReturned(hasLinkedSearch);
+		return hasLinkedSearch;
 	}
 
 	@Override
 	public String getSearchId() {
-		return (String) MCR.addCallAndReturnFromMRV();
+		MCR.addCall();
+		MCR.addReturned(returnedSearchId);
+		return returnedSearchId;
 	}
 
 	@Override
 	public boolean hasRecordPartCreateConstraint() {
-		return (boolean) MCR.addCallAndReturnFromMRV();
+		MCR.addCall();
+		boolean answer = false;
+		if ("readWrite".equals(recordPartConstraint)) {
+			answer = true;
+		} else if ("write".equals(recordPartConstraint)) {
+			answer = true;
+		}
+		MCR.addReturned(answer);
+		return answer;
 	}
 
 	@Override
 	public Set<Constraint> getCreateWriteRecordPartConstraints() {
-		return (Set<Constraint>) MCR.addCallAndReturnFromMRV();
+		MCR.addCall();
+		MCR.addReturned(writeStringConstraints);
+		return writeStringConstraints;
 	}
 
 	@Override

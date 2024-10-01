@@ -120,8 +120,7 @@ public class IncomingLinksReaderImp extends RecordHandler implements IncomingLin
 		RecordTypeHandler recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
 		String metadataId = recordTypeHandler.getDefinitionId();
-		return termCollector.collectTerms(metadataId,
-				DataProvider.createGroupFromRecordGroup(dataRecordGroup));
+		return termCollector.collectTerms(metadataId, dataRecordGroup);
 	}
 
 	private DataList collectLinksAndConvertToDataList() {

@@ -30,6 +30,7 @@ import java.util.Set;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -47,7 +48,6 @@ public class RecordHandler {
 	protected RecordStorage recordStorage;
 	protected String recordType;
 	protected String recordId;
-	protected DataGroup recordToValidate;
 	protected String authToken;
 	protected User user;
 	protected Map<String, Object> dataSharer = new HashMap<>();
@@ -119,21 +119,22 @@ public class RecordHandler {
 		return DataProvider.createRecordLinkUsingNameInDataAndTypeAndId(nameInData, "user", userId);
 	}
 
-	protected void useExtendedFunctionality(DataGroup dataGroup,
+	protected void useExtendedFunctionality(DataRecordGroup dataRecordGroup,
 			List<ExtendedFunctionality> functionalityList) {
 		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
-			ExtendedFunctionalityData data = createExtendedFunctionalityData(dataGroup);
+			ExtendedFunctionalityData data = createExtendedFunctionalityData(dataRecordGroup);
 			extendedFunctionality.useExtendedFunctionality(data);
 		}
 	}
 
-	protected ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
+	protected ExtendedFunctionalityData createExtendedFunctionalityData(
+			DataRecordGroup dataRecordGroup) {
 		ExtendedFunctionalityData exData = new ExtendedFunctionalityData();
 		exData.recordType = recordType;
 		exData.recordId = recordId;
 		exData.authToken = authToken;
 		exData.user = user;
-		exData.dataGroup = dataGroup;
+		exData.dataRecordGroup = dataRecordGroup;
 		exData.dataSharer = dataSharer;
 		return exData;
 	}

@@ -37,8 +37,6 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 		MRV.setDefaultReturnValuesSupplier("userIsAuthorizedForActionOnRecordType", () -> true);
 		MRV.setDefaultReturnValuesSupplier("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
 				() -> true);
-		MRV.setDefaultReturnValuesSupplier("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
-				() -> Collections.emptySet());
 		MRV.setDefaultReturnValuesSupplier(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				() -> Collections.emptySet());
@@ -47,7 +45,8 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	@Override
 	public boolean userIsAuthorizedForActionOnRecordType(User user, String action,
 			String recordType) {
-		return false;
+		return (boolean) MCR.addCallAndReturnFromMRV("user", user, "action", action, "recordType",
+				recordType);
 	}
 
 	@Override

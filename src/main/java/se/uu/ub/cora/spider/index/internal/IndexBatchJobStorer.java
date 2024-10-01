@@ -1,5 +1,6 @@
 /*
  * Copyright 2021, 2024 Uppsala University Library
+ * Copyright 2024 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -18,14 +19,14 @@
  */
 package se.uu.ub.cora.spider.index.internal;
 
-import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -36,10 +37,10 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordStorage recordStorage;
 	private static final String INDEX_BATCH_JOB = "indexBatchJob";
-	private DataGroupHandlerForIndexBatchJob dataGroupHandlerForIndexBatchJob;
+	private DataRecordGroupHandlerForIndexBatchJob dataGroupHandlerForIndexBatchJob;
 
 	public IndexBatchJobStorer(SpiderDependencyProvider dependencyProvider,
-			DataGroupHandlerForIndexBatchJob dataGroupHandlerForIndexBatchJob) {
+			DataRecordGroupHandlerForIndexBatchJob dataGroupHandlerForIndexBatchJob) {
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupHandlerForIndexBatchJob = dataGroupHandlerForIndexBatchJob;
 		recordStorage = dependencyProvider.getRecordStorage();
@@ -48,56 +49,52 @@ public class IndexBatchJobStorer implements BatchJobStorer {
 	@Override
 	public void store(IndexBatchJob indexBatchJob) {
 		this.indexBatchJob = indexBatchJob;
-		DataGroup completedDataGroup = completeStoredDataGroup(indexBatchJob);
+		DataRecordGroup completedDataRecordGroup = completeStoredDataGroup(indexBatchJob);
 
-		storeUpdatedDataGroup(completedDataGroup);
+		storeUpdatedDataGroup(completedDataRecordGroup);
 	}
 
-	private DataGroup completeStoredDataGroup(IndexBatchJob indexBatchJob) {
-		DataGroup dataGroup = recordStorage.read(List.of(INDEX_BATCH_JOB), indexBatchJob.recordId);
-		dataGroupHandlerForIndexBatchJob.updateDataGroup(indexBatchJob, dataGroup);
-		return dataGroup;
+	private DataRecordGroup completeStoredDataGroup(IndexBatchJob indexBatchJob) {
+		DataRecordGroup dataRecordGroup = recordStorage.read(INDEX_BATCH_JOB,
+				indexBatchJob.recordId);
+		dataGroupHandlerForIndexBatchJob.updateDataRecordGroup(indexBatchJob, dataRecordGroup);
+		return dataRecordGroup;
 	}
 
-	private void storeUpdatedDataGroup(DataGroup completedDataGroup) {
-		String metadataId = getMetadataIdFromRecordTypeHandler();
-		CollectTerms collectedTerms = collectTerms(completedDataGroup, metadataId);
-		Set<Link> collectedLinks = collectLinks(metadataId, completedDataGroup);
-		String dataDivider = extractDataDivider(completedDataGroup);
+	private void storeUpdatedDataGroup(DataRecordGroup completedDataRecordGroup) {
+		String metadataId = getMetadataIdFromRecordTypeHandler(completedDataRecordGroup);
+		CollectTerms collectedTerms = collectTerms(completedDataRecordGroup, metadataId);
+		DataGroup groupFromRecordGroup = DataProvider
+				.createGroupFromRecordGroup(completedDataRecordGroup);
+		Set<Link> collectedLinks = collectLinks(metadataId, groupFromRecordGroup);
+		String dataDivider = completedDataRecordGroup.getDataDivider();
 
-		recordStorage.update(INDEX_BATCH_JOB, indexBatchJob.recordId, completedDataGroup,
+		recordStorage.update(INDEX_BATCH_JOB, indexBatchJob.recordId, groupFromRecordGroup,
 				collectedTerms.storageTerms, collectedLinks, dataDivider);
 	}
 
-	private String getMetadataIdFromRecordTypeHandler() {
+	private String getMetadataIdFromRecordTypeHandler(DataRecordGroup completedDataRecordGroup) {
 		RecordTypeHandler recordTypeHandler = dependencyProvider
-				.getRecordTypeHandler(INDEX_BATCH_JOB);
+				.getRecordTypeHandlerUsingDataRecordGroup(completedDataRecordGroup);
 		return recordTypeHandler.getDefinitionId();
 	}
 
-	private CollectTerms collectTerms(DataGroup completedDataGroup, String metadataId) {
+	private CollectTerms collectTerms(DataRecordGroup completedDataRecordGroup, String metadataId) {
 		DataGroupTermCollector dataGroupTermCollector = dependencyProvider
 				.getDataGroupTermCollector();
-		return dataGroupTermCollector.collectTerms(metadataId, completedDataGroup);
+		return dataGroupTermCollector.collectTerms(metadataId, completedDataRecordGroup);
 	}
 
-	private Set<Link> collectLinks(String metadataId, DataGroup completedDataGroup) {
+	private Set<Link> collectLinks(String metadataId, DataGroup groupFromRecordGroup) {
 		DataRecordLinkCollector linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		return linkCollector.collectLinks(metadataId, completedDataGroup);
-	}
-
-	private String extractDataDivider(DataGroup convertedDataGroup) {
-		DataGroup recordInfo = convertedDataGroup.getFirstGroupWithNameInData("recordInfo");
-		DataRecordLink dataDivider = recordInfo.getFirstChildOfTypeAndName(DataRecordLink.class,
-				"dataDivider");
-		return dataDivider.getLinkedRecordId();
+		return linkCollector.collectLinks(metadataId, groupFromRecordGroup);
 	}
 
 	SpiderDependencyProvider getDependencyProvider() {
 		return dependencyProvider;
 	}
 
-	DataGroupHandlerForIndexBatchJob getDataGroupHandlerForIndexBatchJob() {
+	DataRecordGroupHandlerForIndexBatchJob getDataGroupHandlerForIndexBatchJob() {
 		return dataGroupHandlerForIndexBatchJob;
 	}
 }

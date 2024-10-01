@@ -23,12 +23,11 @@ import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
-import se.uu.ub.cora.spider.testdata.DataCreator2;
+import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
-public class DataRedactorSpy implements DataRedactor {
+public class DataRedactorOldSpy implements DataRedactor {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	/**
 	 * returnEnteredDataGroupAsAnswer is default false, if set to true is the dataGroup entered in
@@ -39,63 +38,49 @@ public class DataRedactorSpy implements DataRedactor {
 	 * returnDataGroup is initially null, if set to a DataGroup is that dataGroup returned as
 	 * answer.
 	 */
-	public DataGroup returnDataGroup;
+	public DataRecordGroup returnRecordDataGroup;
 
 	@Override
-	public DataGroup removeChildrenForConstraintsWithoutPermissions(String metadataId,
-			DataGroup originalDataGroup, Set<Constraint> recordPartConstraints,
+	public DataRecordGroup removeChildrenForConstraintsWithoutPermissions(String metadataId,
+			DataRecordGroup originalDataGroup, Set<Constraint> recordPartConstraints,
 			Set<String> recordPartReadPermissions) {
 		MCR.addCall("metadataId", metadataId, "recordRead", originalDataGroup,
 				"recordPartConstraints", recordPartConstraints, "recordPartReadPermissions",
 				recordPartReadPermissions);
-		DataGroupOldSpy returnedRemovedDataGroup = new DataGroupOldSpy("someDataGroupSpy");
+		DataRecordGroupSpy returnedRemovedDataGroup = new DataRecordGroupSpy();
 		if (returnEnteredDataGroupAsAnswer) {
 			MCR.addReturned(originalDataGroup);
 			return originalDataGroup;
 		}
-		if (null != returnDataGroup) {
-			MCR.addReturned(returnDataGroup);
-			return returnDataGroup;
+		if (null != returnRecordDataGroup) {
+			MCR.addReturned(returnRecordDataGroup);
+			return returnRecordDataGroup;
 		}
 		MCR.addReturned(returnedRemovedDataGroup);
 		return returnedRemovedDataGroup;
 	}
 
 	@Override
-	public DataGroup replaceChildrenForConstraintsWithoutPermissions(String metadataId,
-			DataGroup originalDataGroup, DataGroup changedDataGroup,
+	public DataRecordGroup replaceChildrenForConstraintsWithoutPermissions(String metadataId,
+			DataRecordGroup originalDataRecordGroup, DataRecordGroup changedDataRecordGroup,
 			Set<Constraint> recordPartConstraints, Set<String> recordPartPermissions) {
-		MCR.addCall("metadataId", metadataId, "originalDataGroup", originalDataGroup,
-				"changedDataGroup", changedDataGroup, "recordPartConstraints",
+		MCR.addCall("metadataId", metadataId, "originalDataGroup", originalDataRecordGroup,
+				"changedDataGroup", changedDataRecordGroup, "recordPartConstraints",
 				recordPartConstraints, "recordPartPermissions", recordPartPermissions);
-		DataGroupOldSpy returnedReplacedDataGroup = new DataGroupOldSpy("someDataGroupSpy");
-		DataGroupOldSpy recordInfo = createRecordInfo();
-		returnedReplacedDataGroup.addChild(recordInfo);
+
+		DataRecordGroupSpy returnedReplacedDataGroup = new DataRecordGroupSpy();
+		returnedReplacedDataGroup.MRV.setDefaultReturnValuesSupplier("getType", () -> "spyType");
+		returnedReplacedDataGroup.MRV.setDefaultReturnValuesSupplier("getId", () -> "spyId");
+
 		if (returnEnteredDataGroupAsAnswer) {
-			MCR.addReturned(originalDataGroup);
-			return originalDataGroup;
+			MCR.addReturned(originalDataRecordGroup);
+			return originalDataRecordGroup;
 		}
-		if (null != returnDataGroup) {
-			MCR.addReturned(returnDataGroup);
-			return returnDataGroup;
+		if (null != returnRecordDataGroup) {
+			MCR.addReturned(returnRecordDataGroup);
+			return returnRecordDataGroup;
 		}
 		MCR.addReturned(returnedReplacedDataGroup);
 		return returnedReplacedDataGroup;
 	}
-
-	private DataGroupOldSpy createRecordInfo() {
-		// DataGroupOldSpy recordInfo = new DataGroupOldSpy("recordInfo");
-		// recordInfo.addChild(new DataAtomicSpy("id", "spyId"));
-		// DataGroupOldSpy type = new DataGroupOldSpy("type");
-		// type.addChild(new DataAtomicSpy("linkedRecordId", "spyType"));
-		// recordInfo.addChild(type);
-		// DataGroupOldSpy dataDivider = new DataGroupOldSpy("dataDivider");
-		// dataDivider.addChild(new DataAtomicSpy("linkedRecordId", "someSystem"));
-		// recordInfo.addChild(dataDivider);
-		// return recordInfo;
-		return (DataGroupOldSpy) DataCreator2
-				.createRecordInfoWithRecordTypeAndRecordIdAndDataDivider("spyType", "spyId",
-						"someSystem");
-	}
-
 }

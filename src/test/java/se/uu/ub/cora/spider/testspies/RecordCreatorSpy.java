@@ -18,8 +18,8 @@
  */
 package se.uu.ub.cora.spider.testspies;
 
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.spies.DataRecordSpy;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
@@ -36,7 +36,7 @@ public class RecordCreatorSpy implements RecordCreator {
 	}
 
 	@Override
-	public DataRecord createAndStoreRecord(String authToken, String type, DataGroup recordGroup) {
+	public DataRecord createAndStoreRecord(String authToken, String type, DataRecordGroup recordGroup) {
 		return (DataRecord) MCR.addCallAndReturnFromMRV("authToken", authToken, "type", type,
 				"recordGroup", recordGroup);
 	}

@@ -1,5 +1,6 @@
 /*
  * Copyright 2021, 2024 Uppsala University Library
+ * Copyright 2024 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -29,11 +30,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataProvider;
-import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
-import se.uu.ub.cora.data.spies.DataGroupSpy;
-import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
@@ -46,7 +45,7 @@ public class IndexBatchJobStorerTest {
 	private IndexBatchJob indexBatchJob;
 	private DataGroupTermCollectorSpy termCollector;
 	private DataRecordLinkCollectorSpy linkCollector;
-	private DataGroupHandlerForIndexBatchJobSpy dataGroupHandlerForIndexBatchJobSpy;
+	private DataRecordGroupHandlerForIndexBatchJobSpy dataRecordGroupHandlerForIndexBatchJobSpy;
 	private DataFactorySpy dataFactory;
 	private BatchJobStorer storer;
 
@@ -63,40 +62,29 @@ public class IndexBatchJobStorerTest {
 		dependencyProvider.termCollector = termCollector;
 		dependencyProvider.linkCollector = linkCollector;
 
-		dataGroupHandlerForIndexBatchJobSpy = new DataGroupHandlerForIndexBatchJobSpy();
+		dataRecordGroupHandlerForIndexBatchJobSpy = new DataRecordGroupHandlerForIndexBatchJobSpy();
 
 		createDefaultBatchJob();
 
-		DataGroupSpy indexBatchJobDataGroup = createIndexBatchJobDataGroup();
+		DataRecordGroupSpy indexBatchJobDataGroup = createIndexBatchJobDataGroup();
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> indexBatchJobDataGroup);
 
-		storer = new IndexBatchJobStorer(dependencyProvider, dataGroupHandlerForIndexBatchJobSpy);
+		storer = new IndexBatchJobStorer(dependencyProvider,
+				dataRecordGroupHandlerForIndexBatchJobSpy);
 	}
 
-	private DataGroupSpy createIndexBatchJobDataGroup() {
-		DataGroupSpy dataGroup = new DataGroupSpy();
-		DataGroupSpy recordInfo = new DataGroupSpy();
-		dataGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> recordInfo, "recordInfo");
-		DataRecordLinkSpy dataDivider = new DataRecordLinkSpy();
-		recordInfo.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
-				() -> dataDivider, DataRecordLink.class, "dataDivider");
-		dataDivider.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
+	private DataRecordGroupSpy createIndexBatchJobDataGroup() {
+		DataRecordGroupSpy dataRecordGroup = new DataRecordGroupSpy();
+		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getDataDivider",
 				() -> "someDataDivider");
-
-		return dataGroup;
+		return dataRecordGroup;
 	}
 
 	@Test
 	public void testCorrectRead() {
 		storer.store(indexBatchJob);
 
-		List<?> types = (List<?>) recordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("read", 0, "types");
-		assertEquals(types.get(0), "indexBatchJob");
-		assertEquals(types.size(), 1);
-
-		recordStorage.MCR.assertParameter("read", 0, "id", "someRecordId");
+		recordStorage.MCR.assertParameters("read", 0, "indexBatchJob", indexBatchJob.recordId);
 	}
 
 	@Test
@@ -108,7 +96,12 @@ public class IndexBatchJobStorerTest {
 		String metadataIdFromTypeHandler = (String) dependencyProvider.recordTypeHandlerSpy.MCR
 				.getReturnValue("getDefinitionId", 0);
 		assertEquals(parameters.get("metadataId"), metadataIdFromTypeHandler);
-		assertSame(parameters.get("dataGroup"), recordStorage.MCR.getReturnValue("read", 0));
+		assertSame(parameters.get("dataRecordGroup"), recordStorage.MCR.getReturnValue("read", 0));
+
+		DataRecordGroupSpy returnedDataGroupFromRead = (DataRecordGroupSpy) recordStorage.MCR
+				.getReturnValue("read", 0);
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
+				returnedDataGroupFromRead);
 	}
 
 	@Test
@@ -118,8 +111,10 @@ public class IndexBatchJobStorerTest {
 		String metadataIdFromTypeHandler = (String) dependencyProvider.recordTypeHandlerSpy.MCR
 				.getReturnValue("getDefinitionId", 0);
 		var readBatchJob = recordStorage.MCR.getReturnValue("read", 0);
+		var convertedBatchJob = dataFactory.MCR
+				.assertCalledParametersReturn("factorGroupFromDataRecordGroup", readBatchJob);
 		linkCollector.MCR.assertParameters("collectLinks", 0, metadataIdFromTypeHandler,
-				readBatchJob);
+				convertedBatchJob);
 	}
 
 	@Test
@@ -127,7 +122,7 @@ public class IndexBatchJobStorerTest {
 		storer.store(indexBatchJob);
 
 		var readBatchJob = recordStorage.MCR.getReturnValue("read", 0);
-		dataGroupHandlerForIndexBatchJobSpy.MCR.assertParameters("updateDataGroup", 0,
+		dataRecordGroupHandlerForIndexBatchJobSpy.MCR.assertParameters("updateDataRecordGroup", 0,
 				indexBatchJob, readBatchJob);
 	}
 
@@ -137,9 +132,11 @@ public class IndexBatchJobStorerTest {
 
 		Map<String, Object> parameters = recordStorage.MCR
 				.getParametersForMethodAndCallNumber("update", 0);
-		DataGroupSpy returnedDataGroupFromRead = (DataGroupSpy) recordStorage.MCR
+		DataRecordGroupSpy returnedDataGroupFromRead = (DataRecordGroupSpy) recordStorage.MCR
 				.getReturnValue("read", 0);
-		assertSame(parameters.get("dataRecord"), returnedDataGroupFromRead);
+		var convertedBatchJob = dataFactory.MCR.assertCalledParametersReturn(
+				"factorGroupFromDataRecordGroup", returnedDataGroupFromRead);
+		assertSame(parameters.get("dataRecord"), convertedBatchJob);
 		assertEquals(parameters.get("type"), "indexBatchJob");
 		assertEquals(parameters.get("id"), "someRecordId");
 		linkCollector.MCR.assertReturn("collectLinks", 0, parameters.get("links"));

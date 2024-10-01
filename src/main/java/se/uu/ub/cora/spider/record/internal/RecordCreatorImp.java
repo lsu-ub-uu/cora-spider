@@ -39,7 +39,6 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.IndexTerm;
 import se.uu.ub.cora.data.collected.Link;
@@ -60,7 +59,6 @@ import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 public final class RecordCreatorImp extends RecordHandler implements RecordCreator {
-	private static final String TS_CREATED = "tsCreated";
 	private static final String CREATE = "create";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -77,8 +75,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private CollectTerms collectedTerms;
 	private Set<Link> collectedLinks;
 	private RecordArchive recordArchive;
-	private DataGroup recordGroup;
-	private String dataDivider;
+	private DataRecordGroup recordGroup;
 
 	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -104,10 +101,10 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	@Override
 	public DataRecord createAndStoreRecord(String authToken, String recordTypeToCreate,
-			DataGroup dataGroup) {
+			DataRecordGroup dataRecordGroup) {
 		this.authToken = authToken;
 		recordType = recordTypeToCreate;
-		recordGroup = dataGroup;
+		recordGroup = dataRecordGroup;
 
 		try {
 			return tryToValidateAndStoreRecord();
@@ -119,17 +116,19 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private DataRecord tryToValidateAndStoreRecord() {
 		checkActionAuthorizationForUser();
 		useExtendedFunctionalityForPosition(CREATE_AFTER_AUTHORIZATION);
-		createRecordTypeHandler();
+		recordTypeHandler = createRecordTypeHandler();
 		validateRecordTypeInDataIsSameAsSpecified(recordType);
 		definitionId = recordTypeHandler.getDefinitionId();
 		validateRecord();
 		useExtendedFunctionalityForPosition(CREATE_AFTER_METADATA_VALIDATION);
-		completeRecordAndCollectInformationSpecifiedInMetadata();
+		ensureCompleteRecordInfo(user.id, recordType);
+		recordId = recordGroup.getId();
+		collectInformationSpecifiedInMetadata();
 		ensureNoDuplicateForTypeAndId();
 		validateDataForUniqueThrowErrorIfNot();
-		dataDivider = extractDataDividerFromData(recordGroup);
-		createRecordInStorage(recordGroup, collectedLinks, collectedTerms.storageTerms);
-		possiblyStoreInArchive();
+		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
+		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms.storageTerms);
+		possiblyStoreInArchive(recordAsDataGroup);
 		indexRecord(collectedTerms.indexTerms);
 		useExtendedFunctionalityForPosition(CREATE_BEFORE_ENHANCE);
 		return enhanceDataGroupToRecord();
@@ -166,11 +165,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		useExtendedFunctionality(recordGroup, exFunctionality);
 	}
 
-	private void createRecordTypeHandler() {
-		DataRecordGroup dataGroupAsRecordGroup = DataProvider
-				.createRecordGroupFromDataGroup(recordGroup);
-		recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
+	private RecordTypeHandler createRecordTypeHandler() {
+		return dependencyProvider.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
 	}
 
 	private void validateRecord() {
@@ -206,66 +202,42 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {
 		String createDefinitionId = recordTypeHandler.getCreateDefinitionId();
-
+		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
 		ValidationAnswer validationAnswer = dataValidator.validateData(createDefinitionId,
-				recordGroup);
+				dataGroup);
 		if (validationAnswer.dataIsInvalid()) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
 		}
 	}
 
-	private void completeRecordAndCollectInformationSpecifiedInMetadata() {
-		ensureCompleteRecordInfo(user.id, recordType);
-		recordId = extractIdFromData();
+	private void ensureCompleteRecordInfo(String userId, String recordType) {
+		recordGroup.getFirstGroupWithNameInData(RECORD_INFO);
+		ensureIdExists(recordType);
+		recordGroup.setType(recordType);
+		recordGroup.setCreatedBy(userId);
+		recordGroup.setTsCreatedToNow();
+		recordGroup.addUpdatedUsingUserIdAndTs(userId, recordGroup.getTsCreated());
+	}
+
+	private void ensureIdExists(String recordType) {
+		if (recordTypeHandler.shouldAutoGenerateId()) {
+			generateAndAddIdToRecordInfo(recordType);
+		}
+	}
+
+	private void generateAndAddIdToRecordInfo(String recordType) {
+		recordGroup.setId(idGenerator.getIdForType(recordType));
+	}
+
+	private void collectInformationSpecifiedInMetadata() {
 		collectedTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup);
-		collectedLinks = linkCollector.collectLinks(definitionId, recordGroup);
+		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
+		collectedLinks = linkCollector.collectLinks(definitionId, dataGroup);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 	}
 
-	private void ensureCompleteRecordInfo(String userId, String recordType) {
-		DataGroup recordInfo = recordGroup.getFirstGroupWithNameInData(RECORD_INFO);
-		ensureIdExists(recordType, recordInfo);
-		addTypeToRecordInfo(recordType, recordInfo);
-		addCreatedInfoToRecordInfoUsingUserId(recordInfo, userId);
-		addUpdatedInfoToRecordInfoUsingUserId(recordInfo, userId);
-	}
-
-	private void ensureIdExists(String recordType, DataGroup recordInfo) {
-		if (recordTypeHandler.shouldAutoGenerateId()) {
-			removeIdIfPresentInData(recordInfo);
-			generateAndAddIdToRecordInfo(recordType, recordInfo);
-		}
-	}
-
-	private void removeIdIfPresentInData(DataGroup recordInfo) {
-		if (recordInfo.containsChildWithNameInData("id")) {
-			recordInfo.removeFirstChildWithNameInData("id");
-		}
-	}
-
-	private void generateAndAddIdToRecordInfo(String recordType, DataGroup recordInfo) {
-		recordInfo.addChild(DataProvider.createAtomicUsingNameInDataAndValue("id",
-				idGenerator.getIdForType(recordType)));
-	}
-
-	private void addTypeToRecordInfo(String recordType, DataGroup recordInfo) {
-		DataRecordLink typeLink = DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("type",
-				"recordType", recordType);
-		recordInfo.addChild(typeLink);
-	}
-
-	private void addCreatedInfoToRecordInfoUsingUserId(DataGroup recordInfo, String userId) {
-		DataRecordLink createdByLink = createLinkToUserUsingNameInDataAndUserId("createdBy",
-				userId);
-		recordInfo.addChild(createdByLink);
-		String currentTimestamp = getCurrentTimestampAsString();
-		recordInfo.addChild(
-				DataProvider.createAtomicUsingNameInDataAndValue(TS_CREATED, currentTimestamp));
-	}
-
 	private void indexRecord(List<IndexTerm> indexTerms) {
-		List<String> ids = recordTypeHandler.getCombinedIdForIndex(recordId);
-		recordIndexer.indexData(ids, indexTerms, recordGroup);
+		recordIndexer.indexData(recordType, recordId, indexTerms, recordGroup);
 	}
 
 	private void ensureNoDuplicateForTypeAndId() {
@@ -283,8 +255,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void validateDataForUniqueThrowErrorIfNot() {
 		UniqueValidator uniqueValidator = dependencyProvider.getUniqueValidator(recordStorage);
-		ValidationAnswer uniqueAnswer = uniqueValidator.validateUnique(recordType,
-				recordId, recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
+		ValidationAnswer uniqueAnswer = uniqueValidator.validateUniqueForNewRecord(recordType,
+				recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
 		if (uniqueAnswer.dataIsInvalid()) {
 			createAndThrowConflictExceptionForUnique(uniqueAnswer);
 		}
@@ -299,21 +271,17 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		throw ConflictException.withMessage(errorMessage);
 	}
 
-	private void createRecordInStorage(DataGroup topLevelDataGroup, Set<Link> collectedLinks2,
+	private void createRecordInStorage(DataGroup recordAsDataGroup, Set<Link> collectedLinks,
 			Set<StorageTerm> storageTerms) {
-		recordStorage.create(recordType, recordId, topLevelDataGroup, storageTerms, collectedLinks2,
-				dataDivider);
+		recordStorage.create(recordType, recordId, recordAsDataGroup, storageTerms, collectedLinks,
+				recordGroup.getDataDivider());
 	}
 
-	private void possiblyStoreInArchive() {
+	private void possiblyStoreInArchive(DataGroup recordAsDataGroup) {
 		if (recordTypeHandler.storeInArchive()) {
-			recordArchive.create(dataDivider, recordType, recordId, recordGroup);
+			recordArchive.create(recordGroup.getDataDivider(), recordType, recordId,
+					recordAsDataGroup);
 		}
-	}
-
-	private String extractIdFromData() {
-		DataGroup recordInfo = recordGroup.getFirstGroupWithNameInData("recordInfo");
-		return recordInfo.getFirstAtomicValueWithNameInData("id");
 	}
 
 	private DataRecord enhanceDataGroupToRecord() {

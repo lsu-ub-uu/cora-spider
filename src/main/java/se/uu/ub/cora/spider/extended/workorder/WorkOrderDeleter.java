@@ -18,7 +18,7 @@
  */
 package se.uu.ub.cora.spider.extended.workorder;
 
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -40,16 +40,10 @@ public final class WorkOrderDeleter implements ExtendedFunctionality {
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
 		String authToken = data.authToken;
-		DataGroup dataGroup = data.dataGroup;
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		String recordType = extractRecordType(recordInfo);
-		String recordId = recordInfo.getFirstAtomicValueWithNameInData("id");
+		DataRecordGroup dataRecordGroup = data.dataRecordGroup;
+		String recordType = dataRecordGroup.getType();
+		String recordId = dataRecordGroup.getId();
 		tryToDeleteRecord(authToken, recordType, recordId);
-	}
-
-	private String extractRecordType(DataGroup recordInfo) {
-		DataGroup recordTypeGroup = recordInfo.getFirstGroupWithNameInData("type");
-		return recordTypeGroup.getFirstAtomicValueWithNameInData("linkedRecordId");
 	}
 
 	private void tryToDeleteRecord(String authToken, String recordType, String recordId) {

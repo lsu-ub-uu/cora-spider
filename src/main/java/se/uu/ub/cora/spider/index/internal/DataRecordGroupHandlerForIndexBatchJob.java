@@ -1,5 +1,6 @@
 /*
  * Copyright 2021 Uppsala University Library
+ * Copyright 2024 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -19,14 +20,15 @@
 package se.uu.ub.cora.spider.index.internal;
 
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
 
 /**
- * DataGroupHandlerForIndexBatchJob is responsible for
+ * DataRecordGroupHandlerForIndexBatchJob is responsible for
  * 
  * 
  */
 
-public interface DataGroupHandlerForIndexBatchJob {
+public interface DataRecordGroupHandlerForIndexBatchJob {
 
 	/**
 	 * updateDataGroup
@@ -35,10 +37,10 @@ public interface DataGroupHandlerForIndexBatchJob {
 	 *            An IndexBatchJob containing information about what to index, including RecordType,
 	 *            the number of records to index, and Filter
 	 * 
-	 * @param dataGroup
-	 *            Is the updated DataGroup containing the changes from indexBatchJob
+	 * @param dataRecordGroup
+	 *            Is the updated DataRecordGroup containing the changes from indexBatchJob
 	 */
-	void updateDataGroup(IndexBatchJob indexBatchJob, DataGroup dataGroup);
+	void updateDataRecordGroup(IndexBatchJob indexBatchJob, DataRecordGroup dataGroup);
 
 	/**
 	 * createDataGroup
@@ -48,7 +50,8 @@ public interface DataGroupHandlerForIndexBatchJob {
 	 *            the number of records to index, and Filter
 	 * @param filterAsDataGroup
 	 *            A DataGroup, filter, as set by the user
+	 * @return A {@link DataRecordGroup} with the created indexBathJob
 	 */
-	DataGroup createDataGroup(IndexBatchJob indexBatchJob, DataGroup filterAsDataGroup);
+	DataRecordGroup createDataRecordGroup(IndexBatchJob indexBatchJob, DataGroup filterAsDataGroup);
 
 }

@@ -27,9 +27,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -40,13 +38,10 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
-import se.uu.ub.cora.data.DataAtomic;
-import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.search.RecordIndexer;
@@ -66,11 +61,6 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordUpdaterImp extends RecordHandler implements RecordUpdater {
-	private static final String IGNORE_OVERWRITE_PROTECTION = "ignoreOverwriteProtection";
-	private static final String RECORD_INFO = "recordInfo";
-	private static final String UPDATED_STRING = "updated";
-	private static final String TS_UPDATED = "tsUpdated";
-	private static final String UPDATED_BY = "updatedBy";
 	private static final String UPDATE = "update";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -81,9 +71,9 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataGroupTermCollector dataGroupTermCollector;
 	private RecordIndexer recordIndexer;
-	private DataGroup topDataGroup;
+	private DataRecordGroup recordGroup;
 	private RecordTypeHandler recordTypeHandler;
-	private DataGroup previouslyStoredRecord;
+	private DataRecordGroup previouslyStoredRecord;
 	private Set<String> writePermissions;
 	private RecordArchive recordArchive;
 	private String updateDefinitionId;
@@ -112,9 +102,9 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	@Override
 	public DataRecord updateRecord(String authToken, String recordType, String recordId,
-			DataGroup recordGroup) {
+			DataRecordGroup recordGroup) {
 		this.authToken = authToken;
-		topDataGroup = recordGroup;
+		this.recordGroup = recordGroup;
 		this.recordType = recordType;
 		this.recordId = recordId;
 
@@ -129,50 +119,48 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
 		useExtendedFunctionalityForPosition(UPDATE_AFTER_AUTHORIZATION);
-		DataRecordGroup dataGroupAsRecordGroup = DataProvider
-				.createRecordGroupFromDataGroup(topDataGroup);
 		recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(dataGroupAsRecordGroup);
+				.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
 		validateRecordTypeInDataIsSameAsSpecified(recordType);
 
 		definitionId = recordTypeHandler.getDefinitionId();
 		updateDefinitionId = recordTypeHandler.getUpdateDefinitionId();
 
-		previouslyStoredRecord = recordStorage.read(List.of(recordType), recordId);
+		previouslyStoredRecord = recordStorage.read(recordType, recordId);
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 
 		doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection();
 
 		useExtendedFunctionalityForPosition(UPDATE_BEFORE_METADATA_VALIDATION);
 
-		updateRecordInfo();
+		replaceImmutableFieldsInRecordInfoFromPreviouslyStoredRecord();
+		recordGroup.addUpdatedUsingUserIdAndTsNow(user.id);
+
 		possiblyReplaceRecordPartsUserIsNotAllowedToChange();
 
 		validateIncomingDataAsSpecifiedInMetadata();
 		useExtendedFunctionalityForPosition(UPDATE_AFTER_METADATA_VALIDATION);
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
-		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(definitionId, topDataGroup);
+		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup);
 		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectTerms);
 		validateDataForUniqueThrowErrorIfNot(collectTerms);
 
-		Set<Link> collectedLinks = linkCollector.collectLinks(definitionId, topDataGroup);
+		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
+		Set<Link> collectedLinks = linkCollector.collectLinks(definitionId, recordAsDataGroup);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		useExtendedFunctionalityForPosition(UPDATE_BEFORE_STORE);
-		dataDivider = extractDataDividerFromData(topDataGroup);
-		updateRecordInStorage(collectTerms, collectedLinks);
-		if (recordTypeHandler.storeInArchive()) {
-			try {
-				recordArchive.update(dataDivider, recordType, recordId, topDataGroup);
-			} catch (RecordNotFoundException e) {
-				recordArchive.create(dataDivider, recordType, recordId, topDataGroup);
-			}
-		}
+		dataDivider = recordGroup.getDataDivider();
+		DataGroup recordAsDataGroupForStorage = DataProvider
+				.createGroupFromRecordGroup(recordGroup);
+		updateRecordInStorage(recordAsDataGroupForStorage, collectTerms, collectedLinks);
+
+		possiblyStoreInArchive(recordAsDataGroupForStorage);
 		indexData(collectTerms);
 		useExtendedFunctionalityForPosition(UPDATE_AFTER_STORE);
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		DataRecord dataRecord = dataGroupToRecordEnhancer.enhance(user, recordType, topDataGroup,
+		DataRecord dataRecord = dataGroupToRecordEnhancer.enhance(user, recordType, recordGroup,
 				dataRedactor);
 		useExtendedFunctionalityBeforeReturn(dataRecord);
 		return dataRecord;
@@ -180,7 +168,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private void validateDataForUniqueThrowErrorIfNot(CollectTerms collectedTerms) {
 		UniqueValidator uniqueValidator = dependencyProvider.getUniqueValidator(recordStorage);
-		ValidationAnswer uniqueAnswer = uniqueValidator.validateUnique(recordType,
+		ValidationAnswer uniqueAnswer = uniqueValidator.validateUniqueForExistingRecord(recordType,
 				recordId, recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
 		if (uniqueAnswer.dataIsInvalid()) {
 			createAndThrowConflictExceptionForUnique(uniqueAnswer);
@@ -207,37 +195,19 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
 		List<ExtendedFunctionality> exFunctionality = extendedFunctionalityProvider
 				.getFunctionalityForPositionAndRecordType(position, recordType);
-		useExtendedFunctionality(topDataGroup, exFunctionality);
+		useExtendedFunctionality(recordGroup, exFunctionality);
 	}
 
 	private void doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection() {
-		DataGroup recordInfo = topDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
-		boolean overwriteProtection = true;
-		overwriteProtection = readIgnoreOverwriteProtectionSettingIfExists(recordInfo,
-				overwriteProtection);
-		if (overwriteProtection) {
+		if (recordGroup.overwriteProtectionShouldBeEnforced()) {
 			ifDifferentVersionThrowConflictException();
 		}
-		recordInfo.removeFirstChildWithNameInData(IGNORE_OVERWRITE_PROTECTION);
-	}
-
-	private boolean readIgnoreOverwriteProtectionSettingIfExists(DataGroup recordInfo,
-			boolean overwriteProtection) {
-		if (recordInfo.containsChildWithNameInData(IGNORE_OVERWRITE_PROTECTION)) {
-			overwriteProtection = getOverwriteProtectionSetting(recordInfo);
-		}
-		return overwriteProtection;
-	}
-
-	private boolean getOverwriteProtectionSetting(DataGroup recordInfo) {
-		String ignoreOverwriteProtection = recordInfo
-				.getFirstAtomicValueWithNameInData(IGNORE_OVERWRITE_PROTECTION);
-		return !"true".equals(ignoreOverwriteProtection);
+		recordGroup.removeOverwriteProtection();
 	}
 
 	private void ifDifferentVersionThrowConflictException() {
-		String latestUpdatedTopDataG = getLatestDateFromARecord(topDataGroup);
-		String latestUpdatedPreviouslyStored = getLatestDateFromARecord(previouslyStoredRecord);
+		String latestUpdatedTopDataG = recordGroup.getLatestTsUpdated();
+		String latestUpdatedPreviouslyStored = previouslyStoredRecord.getLatestTsUpdated();
 
 		if (differentValues(latestUpdatedTopDataG, latestUpdatedPreviouslyStored)) {
 			throw ConflictException
@@ -249,22 +219,6 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private boolean differentValues(String latestUpdatedTopDataG,
 			String latestUpdatedPreviouslyStored) {
 		return !latestUpdatedTopDataG.equals(latestUpdatedPreviouslyStored);
-	}
-
-	private String getLatestDateFromARecord(DataGroup dataGroup) {
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData(RECORD_INFO);
-		List<DataChild> updatedGsList = recordInfo.getAllChildrenWithNameInData(UPDATED_STRING);
-		if (listHasElements(updatedGsList)) {
-			DataGroup lastUpdatedG = (DataGroup) updatedGsList.get(updatedGsList.size() - 1);
-			if (lastUpdatedG.containsChildWithNameInData(TS_UPDATED)) {
-				return lastUpdatedG.getFirstAtomicValueWithNameInData(TS_UPDATED);
-			}
-		}
-		return "nonExistentUpdatedDate";
-	}
-
-	private boolean listHasElements(List<DataChild> updatedGsList) {
-		return !updatedGsList.isEmpty();
 	}
 
 	private void validateRecordTypeInDataIsSameAsSpecified(String recordTypeToUpdate) {
@@ -300,96 +254,19 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	@Override
-	protected ExtendedFunctionalityData createExtendedFunctionalityData(DataGroup dataGroup) {
-		ExtendedFunctionalityData data = super.createExtendedFunctionalityData(dataGroup);
-		data.previouslyStoredTopDataGroup = previouslyStoredRecord;
+	protected ExtendedFunctionalityData createExtendedFunctionalityData(
+			DataRecordGroup dataRecordGroup) {
+		ExtendedFunctionalityData data = super.createExtendedFunctionalityData(dataRecordGroup);
+		data.previouslyStoredDataRecordGroup = previouslyStoredRecord;
 		return data;
 	}
 
-	private void updateRecordInfo() {
-		DataGroup recordInfo = topDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
-		replaceUpdatedInfoWithInfoFromPreviousRecord(recordInfo);
-		DataGroup updated = createUpdateInfoForThisUpdate(recordInfo);
-		recordInfo.addChild(updated);
-		recordInfo.removeFirstChildWithNameInData("createdBy");
-
-		DataGroup recordInfoStoredRecord = getRecordInfoFromStoredData();
-
-		DataGroup originalCreatedBy = recordInfoStoredRecord
-				.getFirstGroupWithNameInData("createdBy");
-		recordInfo.addChild(originalCreatedBy);
-		recordInfo.removeFirstChildWithNameInData("tsCreated");
-		DataAtomic originalTscreated = recordInfoStoredRecord
-				.getFirstDataAtomicWithNameInData("tsCreated");
-		recordInfo.addChild(originalTscreated);
-	}
-
-	private void replaceUpdatedInfoWithInfoFromPreviousRecord(DataGroup recordInfo) {
-		removeUpdateInfoFromIncomingData(recordInfo);
-		addUpdateToRecordInfoFromReadData(recordInfo);
-	}
-
-	private void removeUpdateInfoFromIncomingData(DataGroup recordInfo) {
-		while (recordInfo.containsChildWithNameInData(UPDATED_STRING)) {
-			recordInfo.removeFirstChildWithNameInData(UPDATED_STRING);
-		}
-	}
-
-	private void addUpdateToRecordInfoFromReadData(DataGroup recordInfo) {
-		DataGroup recordInfoStoredRecord = getRecordInfoFromStoredData();
-		List<DataGroup> updatedGroups = recordInfoStoredRecord
-				.getAllGroupsWithNameInData(UPDATED_STRING);
-		for (DataGroup dataGroup : updatedGroups) {
-			recordInfo.addChild(dataGroup);
-		}
-	}
-
-	private DataGroup getRecordInfoFromStoredData() {
-		return previouslyStoredRecord.getFirstGroupWithNameInData(RECORD_INFO);
-	}
-
-	private DataGroup createUpdateInfoForThisUpdate(DataGroup recordInfo) {
-		DataGroup updated = DataProvider.createGroupUsingNameInData(UPDATED_STRING);
-		String repeatId = getRepeatId(recordInfo);
-		updated.setRepeatId(repeatId);
-
-		setUpdatedBy(updated);
-		setTsUpdated(updated);
-		return updated;
-	}
-
-	private String getRepeatId(DataGroup recordInfo) {
-		List<DataGroup> updatedList = recordInfo.getAllGroupsWithNameInData(UPDATED_STRING);
-		if (updatedList.isEmpty()) {
-			return "0";
-		}
-		return calculateRepeatId(updatedList);
-	}
-
-	private String calculateRepeatId(List<DataGroup> updatedList) {
-		List<Integer> repeatIds = getAllCurrentRepeatIds(updatedList);
-		Integer max = Collections.max(repeatIds);
-		return String.valueOf(max + 1);
-	}
-
-	private List<Integer> getAllCurrentRepeatIds(List<DataGroup> updatedList) {
-		List<Integer> repeatIds = new ArrayList<>(updatedList.size());
-		for (DataGroup updated : updatedList) {
-			repeatIds.add(Integer.valueOf(updated.getRepeatId()));
-		}
-		return repeatIds;
-	}
-
-	private void setUpdatedBy(DataGroup updated) {
-		DataRecordLink updatedBy = DataProvider
-				.createRecordLinkUsingNameInDataAndTypeAndId(UPDATED_BY, "user", user.id);
-		updated.addChild(updatedBy);
-	}
-
-	private void setTsUpdated(DataGroup updated) {
-		String currentLocalDateTime = getCurrentTimestampAsString();
-		updated.addChild(
-				DataProvider.createAtomicUsingNameInDataAndValue(TS_UPDATED, currentLocalDateTime));
+	private void replaceImmutableFieldsInRecordInfoFromPreviouslyStoredRecord() {
+		recordGroup.setId(previouslyStoredRecord.getId());
+		recordGroup.setType(previouslyStoredRecord.getType());
+		recordGroup.setCreatedBy(previouslyStoredRecord.getCreatedBy());
+		recordGroup.setTsCreated(previouslyStoredRecord.getTsCreated());
+		recordGroup.setAllUpdated(previouslyStoredRecord.getAllUpdated());
 	}
 
 	private void possiblyReplaceRecordPartsUserIsNotAllowedToChange() {
@@ -400,14 +277,15 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private void replaceRecordPartsUserIsNotAllowedToChange() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		topDataGroup = dataRedactor.replaceChildrenForConstraintsWithoutPermissions(definitionId,
-				previouslyStoredRecord, topDataGroup,
+		recordGroup = dataRedactor.replaceChildrenForConstraintsWithoutPermissions(definitionId,
+				previouslyStoredRecord, recordGroup,
 				recordTypeHandler.getUpdateWriteRecordPartConstraints(), writePermissions);
 	}
 
 	private void validateIncomingDataAsSpecifiedInMetadata() {
+		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
 		ValidationAnswer validationAnswer = dataValidator.validateData(updateDefinitionId,
-				topDataGroup);
+				recordAsDataGroup);
 		boolean dataIsInvalid = validationAnswer.dataIsInvalid();
 		if (dataIsInvalid) {
 			throw new DataException("Data is not valid: " + validationAnswer.getErrorMessages());
@@ -415,14 +293,10 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private void checkRecordTypeAndIdIsSameAsInEnteredRecord() {
-		DataGroup recordInfo = topDataGroup.getFirstGroupWithNameInData(RECORD_INFO);
-		checkIdIsSameAsInEnteredRecord(recordInfo);
-		checkTypeIsSameAsInEnteredRecord(recordInfo);
-	}
-
-	private void checkIdIsSameAsInEnteredRecord(DataGroup recordInfo) {
-		String valueFromRecord = recordInfo.getFirstAtomicValueWithNameInData("id");
-		ensureValuesAreEqualThrowErrorIfNot(recordId, valueFromRecord);
+		String id = recordGroup.getId();
+		ensureValuesAreEqualThrowErrorIfNot(recordId, id);
+		String type = recordGroup.getType();
+		ensureValuesAreEqualThrowErrorIfNot(recordType, type);
 	}
 
 	private void ensureValuesAreEqualThrowErrorIfNot(String value,
@@ -433,24 +307,28 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		}
 	}
 
-	private void checkTypeIsSameAsInEnteredRecord(DataGroup recordInfo) {
-		String type = extractTypeFromRecordInfo(recordInfo);
-		ensureValuesAreEqualThrowErrorIfNot(recordType, type);
+	private void updateRecordInStorage(DataGroup recordAsDataGroupForStorage,
+			CollectTerms collectTerms, Set<Link> collectedLinks) {
+		recordStorage.update(recordType, recordId, recordAsDataGroupForStorage,
+				collectTerms.storageTerms, collectedLinks, dataDivider);
 	}
 
-	private String extractTypeFromRecordInfo(DataGroup recordInfo) {
-		DataRecordLink type = (DataRecordLink) recordInfo.getFirstChildWithNameInData("type");
-		return type.getLinkedRecordId();
+	private void possiblyStoreInArchive(DataGroup recordAsDataGroupForStorage) {
+		if (recordTypeHandler.storeInArchive()) {
+			storeInArchive(recordAsDataGroupForStorage);
+		}
 	}
 
-	private void updateRecordInStorage(CollectTerms collectTerms, Set<Link> collectedLinks) {
-		recordStorage.update(recordType, recordId, topDataGroup, collectTerms.storageTerms,
-				collectedLinks, dataDivider);
+	private void storeInArchive(DataGroup recordAsDataGroupForStorage) {
+		try {
+			recordArchive.update(dataDivider, recordType, recordId, recordAsDataGroupForStorage);
+		} catch (RecordNotFoundException e) {
+			recordArchive.create(dataDivider, recordType, recordId, recordAsDataGroupForStorage);
+		}
 	}
 
 	private void indexData(CollectTerms collectTerms) {
-		List<String> ids = recordTypeHandler.getCombinedIdForIndex(recordId);
-		recordIndexer.indexData(ids, collectTerms.indexTerms, topDataGroup);
+		recordIndexer.indexData(recordType, recordId, collectTerms.indexTerms, recordGroup);
 	}
 
 	private void useExtendedFunctionalityBeforeReturn(DataRecord dataRecord) {
@@ -465,10 +343,10 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private ExtendedFunctionalityData createExtendedFunctionalityDataUsingDataRecord(
 			DataRecord dataRecord) {
-		ExtendedFunctionalityData data = createExtendedFunctionalityData(dataRecord.getDataGroup());
+		ExtendedFunctionalityData data = createExtendedFunctionalityData(
+				dataRecord.getDataRecordGroup());
 		data.dataRecord = dataRecord;
-		data.previouslyStoredTopDataGroup = previouslyStoredRecord;
+		data.previouslyStoredDataRecordGroup = previouslyStoredRecord;
 		return data;
 	}
-
 }

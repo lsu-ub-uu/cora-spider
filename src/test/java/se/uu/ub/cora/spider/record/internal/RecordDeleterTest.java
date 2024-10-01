@@ -30,7 +30,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
@@ -40,7 +39,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -67,7 +66,7 @@ public class RecordDeleterTest {
 	private RecordIndexerSpy recordIndexer;
 	private DataGroupTermCollectorSpy termCollector;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
-	private RecordTypeHandlerSpy recordTypeHandler;
+	private RecordTypeHandlerOldSpy recordTypeHandler;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -79,7 +78,7 @@ public class RecordDeleterTest {
 		recordIndexer = new RecordIndexerSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		recordTypeHandler = new RecordTypeHandlerSpy();
+		recordTypeHandler = new RecordTypeHandlerOldSpy();
 		setUpDependencyProvider();
 	}
 
@@ -152,20 +151,14 @@ public class RecordDeleterTest {
 				getReadDataRecordGroup());
 
 		String definitionId = (String) recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0);
-		DataRecordGroup dataRecordGroup = getReadDataRecordGroup();
-		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0, dataRecordGroup);
-		DataGroup readDataGroup = getDataGroupCreatedFromDataProvider(0);
+		var readDataGroup = recordStorage.MCR.assertCalledParametersReturn("read", SOME_TYPE,
+				SOME_ID);
 
 		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, readDataGroup);
 	}
 
 	private DataRecordGroup getReadDataRecordGroup() {
 		return (DataRecordGroup) recordStorage.MCR.getReturnValue("read", 0);
-	}
-
-	private DataGroup getDataGroupCreatedFromDataProvider(int callNumber) {
-		return (DataGroup) dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup",
-				callNumber);
 	}
 
 	@Test
@@ -189,9 +182,9 @@ public class RecordDeleterTest {
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				DELETE_AFTER_AUTHORIZATION, getExpectedDataForDeleteAfterAuthorization(), 0);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-				DELETE_BEFORE, getExpectedDataUsingDataProviderCallNumber(1), 1);
+				DELETE_BEFORE, getExpectedDataUsingDataProviderCallNumber(0), 1);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-				DELETE_AFTER, getExpectedDataUsingDataProviderCallNumber(2), 2);
+				DELETE_AFTER, getExpectedDataUsingDataProviderCallNumber(1), 2);
 	}
 
 	private ExtendedFunctionalityData getExpectedDataForDeleteAfterAuthorization() {
@@ -210,8 +203,7 @@ public class RecordDeleterTest {
 		expectedData.recordId = SOME_ID;
 		expectedData.authToken = SOME_AUTH_TOKEN;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
-		expectedData.previouslyStoredTopDataGroup = null;
-		expectedData.dataGroup = getDataGroupCreatedFromDataProvider(dataProviderCallNumber);
+		expectedData.dataRecordGroup = getReadDataRecordGroup();
 		return expectedData;
 	}
 

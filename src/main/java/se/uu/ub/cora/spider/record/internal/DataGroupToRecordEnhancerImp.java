@@ -34,9 +34,11 @@ import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataLink;
+import se.uu.ub.cora.data.DataParent;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.data.DataRecordProvider;
 import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -46,8 +48,6 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
-
-	private static final String LINKED_RECORD_ID = "linkedRecordId";
 	private static final String SEARCH = "search";
 
 	private SpiderDependencyProvider dependencyProvider;
@@ -75,18 +75,19 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	@Override
-	public DataRecord enhance(User user, String recordType, DataGroup dataGroup,
+	public DataRecord enhance(User user, String recordType, DataRecordGroup dataRecordGroup,
 			DataRedactor dataRedactor) {
-		commonSetupForEnhance(user, recordType, dataGroup);
-		return enhanceDataGroupToRecord(dataGroup, dataRedactor);
+		commonSetupForEnhance(user, recordType, dataRecordGroup);
+		return enhanceDataGroupToRecord(dataRecordGroup, dataRedactor);
 	}
 
-	private void commonSetupForEnhance(User user, String recordType, DataGroup dataGroup) {
+	private void commonSetupForEnhance(User user, String recordType,
+			DataRecordGroup dataRecordGroup) {
 		this.user = user;
 		this.recordType = recordType;
 		recordTypeHandler = getRecordTypeHandlerForRecordType(recordType);
-		collectedTerms = getCollectedTermsForRecordTypeAndRecord(recordType, dataGroup);
-		handledRecordId = getRecordIdFromDataRecord(dataGroup);
+		collectedTerms = getCollectedTermsForRecordTypeAndRecord(recordType, dataRecordGroup);
+		handledRecordId = dataRecordGroup.getId();
 	}
 
 	private RecordTypeHandler getRecordTypeHandlerForRecordType(String recordType) {
@@ -107,31 +108,30 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private CollectTerms getCollectedTermsForRecordTypeAndRecord(String recordType,
-			DataGroup dataGroup) {
+			DataRecordGroup dataRecordGroup) {
 		RecordTypeHandler recordTypeHandlerForRecordType = getRecordTypeHandlerForRecordType(
 				recordType);
 		String definitionId = recordTypeHandlerForRecordType.getDefinitionId();
-		return termCollector.collectTerms(definitionId, dataGroup);
+		return termCollector.collectTerms(definitionId, dataRecordGroup);
 	}
 
-	private String getRecordIdFromDataRecord(DataGroup dataGroup) {
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		return recordInfo.getFirstAtomicValueWithNameInData("id");
-	}
-
-	private DataRecord enhanceDataGroupToRecord(DataGroup dataGroup, DataRedactor dataRedactor) {
-		ensurePublicOrReadAccess();
-		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataGroup, dataRedactor);
-	}
-
-	private DataRecord enhanceDataGroupToRecordUsingReadRecordPartPermissions(DataGroup dataGroup,
+	private DataRecord enhanceDataGroupToRecord(DataRecordGroup dataRecordGroup,
 			DataRedactor dataRedactor) {
-		DataRecord dataRecord = createDataRecord(dataGroup);
+		ensurePublicOrReadAccess();
+		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataRecordGroup,
+				dataRedactor);
+	}
+
+	private DataRecord enhanceDataGroupToRecordUsingReadRecordPartPermissions(
+			DataRecordGroup dataRecordGroup, DataRedactor dataRedactor) {
+		DataRecordGroup redactedDataRecordGroup = redact(dataRecordGroup, dataRedactor);
+		addReadActionToAllRecordLinks(redactedDataRecordGroup);
+
+		DataRecord dataRecord = DataProvider
+				.createRecordWithDataRecordGroup(redactedDataRecordGroup);
+		// DataRecord dataRecord = createDataRecord(redactedDataGroup);
 		addActions(dataRecord);
 		addRecordPartPermissions(dataRecord);
-		DataGroup redactedDataGroup = redact(dataGroup, dataRedactor);
-		dataRecord.setDataGroup(redactedDataGroup);
-		addReadActionToAllRecordLinks(redactedDataGroup);
 		return dataRecord;
 	}
 
@@ -150,7 +150,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private DataRecord createDataRecord(DataGroup dataGroup) {
-		return DataRecordProvider.getDataRecordWithDataGroup(dataGroup);
+		DataRecordGroup recordGroup = DataProvider.createRecordGroupFromDataGroup(dataGroup);
+		return DataProvider.createRecordWithDataRecordGroup(recordGroup);
 	}
 
 	private void addActions(DataRecord dataRecord) {
@@ -221,7 +222,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void possiblyAddSearchActionWhenDataRepresentsASearch(DataRecord dataRecord) {
 		if (theDataBeeingTurnedIntoARecordIsASearch()) {
-			addSearchActionIfUserHasAccessToLinkedSearches(dataRecord, dataRecord.getDataGroup());
+			addSearchActionIfUserHasAccessToLinkedSearches(dataRecord,
+					dataRecord.getDataRecordGroup());
 		}
 	}
 
@@ -230,21 +232,20 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void addSearchActionIfUserHasAccessToLinkedSearches(DataRecord dataRecord,
-			DataGroup dataGroup) {
-		List<DataGroup> recordTypeToSearchInGroups = dataGroup
-				.getAllGroupsWithNameInData("recordTypeToSearchIn");
-		if (checkUserHasSearchAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups)) {
+			DataRecordGroup dataRecordGroup) {
+		List<DataRecordLink> links = dataRecordGroup.getChildrenOfTypeAndName(DataRecordLink.class,
+				"recordTypeToSearchIn");
+		if (checkUserHasSearchAccessOnAllRecordTypesToSearchIn(links)) {
 			dataRecord.addAction(Action.SEARCH);
 		}
 	}
 
-	private boolean checkUserHasSearchAccessOnAllRecordTypesToSearchIn(
-			List<DataGroup> recordTypeToSearchInGroups) {
-		return recordTypeToSearchInGroups.stream().allMatch(this::isAuthorized);
+	private boolean checkUserHasSearchAccessOnAllRecordTypesToSearchIn(List<DataRecordLink> links) {
+		return links.stream().allMatch(this::isAuthorized);
 	}
 
-	private boolean isAuthorized(DataGroup group) {
-		String linkedRecordTypeId = group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
+	private boolean isAuthorized(DataRecordLink link) {
+		String linkedRecordTypeId = link.getLinkedRecordId();
 		return spiderAuthorizator.userIsAuthorizedForActionOnRecordType(user, SEARCH,
 				linkedRecordTypeId);
 	}
@@ -297,7 +298,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private void possiblyAddSearchAction(RecordTypeHandler handledRecordTypeHandler,
 			DataRecord dataRecord) {
 		if (hasLinkedSearch(handledRecordTypeHandler)) {
-			DataGroup searchGroup = getLinkedSearchForSearchForRecordHandledByRecordHandler(
+			DataRecordGroup searchGroup = getLinkedSearchForSearchForRecordHandledByRecordHandler(
 					handledRecordTypeHandler);
 			addSearchActionIfUserHasAccessToLinkedSearches(dataRecord, searchGroup);
 		}
@@ -307,15 +308,15 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return handledRecordTypeHandler.hasLinkedSearch();
 	}
 
-	private DataGroup getLinkedSearchForSearchForRecordHandledByRecordHandler(
+	private DataRecordGroup getLinkedSearchForSearchForRecordHandledByRecordHandler(
 			RecordTypeHandler handledRecordTypeHandler) {
 		String searchId = handledRecordTypeHandler.getSearchId();
 		return readRecordFromStorageByTypeAndId(SEARCH, searchId);
 	}
 
-	private DataGroup readRecordFromStorageByTypeAndId(String linkedRecordType,
+	private DataRecordGroup readRecordFromStorageByTypeAndId(String linkedRecordType,
 			String linkedRecordId) {
-		return recordStorage.read(List.of(linkedRecordType), linkedRecordId);
+		return recordStorage.read(linkedRecordType, linkedRecordId);
 	}
 
 	private void addRecordPartPermissions(DataRecord dataRecord) {
@@ -326,16 +327,16 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		}
 	}
 
-	private DataGroup redact(DataGroup dataGroup, DataRedactor dataRedactor) {
+	private DataRecordGroup redact(DataRecordGroup dataRecordGroup, DataRedactor dataRedactor) {
 		Set<Constraint> recordPartReadConstraints = recordTypeHandler
 				.getReadRecordPartConstraints();
 		return dataRedactor.removeChildrenForConstraintsWithoutPermissions(
-				recordTypeHandler.getDefinitionId(), dataGroup, recordPartReadConstraints,
+				recordTypeHandler.getDefinitionId(), dataRecordGroup, recordPartReadConstraints,
 				readRecordPartPermissions);
 	}
 
-	private void addReadActionToAllRecordLinks(DataGroup dataGroup) {
-		for (DataChild dataChild : dataGroup.getChildren()) {
+	private void addReadActionToAllRecordLinks(DataParent redactedDataGroup) {
+		for (DataChild dataChild : redactedDataGroup.getChildren()) {
 			addReadActionToDataRecordLink(dataChild);
 		}
 	}
@@ -413,7 +414,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private boolean readRecordLinkAuthorization(String linkedRecordType, String linkedRecordId) {
 		try {
-			DataGroup linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType,
+			DataRecordGroup linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType,
 					linkedRecordId);
 			return userIsAuthorizedForActionOnRecordLinkAndData("read", linkedRecordType,
 					linkedRecord);
@@ -423,9 +424,9 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private boolean userIsAuthorizedForActionOnRecordLinkAndData(String action, String recordType,
-			DataGroup dataGroup) {
+			DataRecordGroup linkedRecord) {
 		CollectTerms linkedRecordCollectedTerms = getCollectedTermsForRecordTypeAndRecord(
-				recordType, dataGroup);
+				recordType, linkedRecord);
 
 		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
 				action, recordType, linkedRecordCollectedTerms.permissionTerms);
@@ -443,16 +444,17 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	@Override
-	public DataRecord enhanceIgnoringReadAccess(User user, String recordType, DataGroup dataGroup,
-			DataRedactor dataRedactor) {
-		commonSetupForEnhance(user, recordType, dataGroup);
-		return enhanceDataGroupToRecordIgnoringReadAccess(dataGroup, dataRedactor);
+	public DataRecord enhanceIgnoringReadAccess(User user, String recordType,
+			DataRecordGroup dataRecordGroup, DataRedactor dataRedactor) {
+		commonSetupForEnhance(user, recordType, dataRecordGroup);
+		return enhanceDataGroupToRecordIgnoringReadAccess(dataRecordGroup, dataRedactor);
 	}
 
-	private DataRecord enhanceDataGroupToRecordIgnoringReadAccess(DataGroup dataGroup,
+	private DataRecord enhanceDataGroupToRecordIgnoringReadAccess(DataRecordGroup dataRecordGroup,
 			DataRedactor dataRedactor) {
 		setNoReadPermissionsIfUserHasNoReadAccess();
-		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataGroup, dataRedactor);
+		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataRecordGroup,
+				dataRedactor);
 	}
 
 	private void setNoReadPermissionsIfUserHasNoReadAccess() {

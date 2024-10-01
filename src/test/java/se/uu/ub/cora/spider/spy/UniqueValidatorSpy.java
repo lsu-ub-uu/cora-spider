@@ -34,12 +34,21 @@ public class UniqueValidatorSpy implements UniqueValidator {
 
 	public UniqueValidatorSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("validateUnique", ValidationAnswerSpy::new);
+		MRV.setDefaultReturnValuesSupplier("validateUniqueForExistingRecord",
+				ValidationAnswerSpy::new);
+		MRV.setDefaultReturnValuesSupplier("validateUniqueForNewRecord", ValidationAnswerSpy::new);
 	}
 
 	@Override
-	public ValidationAnswer validateUnique(String recordType, String recordId,
+	public ValidationAnswer validateUniqueForExistingRecord(String recordType, String recordId,
 			List<Unique> uniques, Set<StorageTerm> storageTerms) {
+		return (ValidationAnswer) MCR.addCallAndReturnFromMRV("recordType", recordType, "recordId",
+				recordId, "uniques", uniques, "storageTerms", storageTerms);
+	}
+
+	@Override
+	public ValidationAnswer validateUniqueForNewRecord(String recordType, List<Unique> uniques,
+			Set<StorageTerm> storageTerms) {
 		return (ValidationAnswer) MCR.addCallAndReturnFromMRV("recordType", recordType, "uniques",
 				uniques, "storageTerms", storageTerms);
 	}

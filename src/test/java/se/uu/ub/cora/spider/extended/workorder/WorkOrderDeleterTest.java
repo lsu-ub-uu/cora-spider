@@ -26,42 +26,39 @@ import java.util.Set;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
-import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
-import se.uu.ub.cora.spider.data.DataGroupOldSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
+import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
+import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
-import se.uu.ub.cora.spider.spy.OldRecordStorageSpy;
-import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
-import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.RecordDeleterSpy;
-import se.uu.ub.cora.spider.testdata.DataCreator2;
+import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
+import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class WorkOrderDeleterTest {
 
-	SpiderDependencyProviderOldSpy dependencyProvider;
+	SpiderDependencyProviderSpy dependencyProviderSpy;
 	WorkOrderDeleter extendedFunctionality;
 	DataGroupTermCollectorSpy termCollector;
-	OldSpiderAuthorizatorSpy authorizator;
-	OldAuthenticatorSpy authenticator;
+	SpiderAuthorizatorSpy authorizator;
+	AuthenticatorSpy authenticator;
 	RecordDeleterSpy recordDeleter;
 	private LoggerFactorySpy loggerFactorySpy;
+	private RecordIndexerSpy recordIndexer;
+	private RecordStorageSpy recordStorage;
+	private SpiderAuthorizatorSpy spiderAuthorizator;
 
 	@BeforeMethod
 	public void setUp() {
 		setUpFactoriesAndProviders();
-
-		dependencyProvider = new SpiderDependencyProviderOldSpy();
-		dependencyProvider.recordIndexer = new RecordIndexerSpy();
-		dependencyProvider.termCollector = new DataGroupTermCollectorSpy();
-		dependencyProvider.authenticator = new OldAuthenticatorSpy();
-		dependencyProvider.recordStorage = new OldRecordStorageSpy();
-		dependencyProvider.spiderAuthorizator = new OldSpiderAuthorizatorSpy();
 		setUpDependencyProvider();
+
+		recordDeleter = new RecordDeleterSpy();
+		extendedFunctionality = WorkOrderDeleter.usingDeleter(recordDeleter);
 	}
 
 	private void setUpFactoriesAndProviders() {
@@ -70,16 +67,28 @@ public class WorkOrderDeleterTest {
 	}
 
 	private void setUpDependencyProvider() {
-		recordDeleter = new RecordDeleterSpy();
-		extendedFunctionality = WorkOrderDeleter.usingDeleter(recordDeleter);
-		termCollector = (DataGroupTermCollectorSpy) dependencyProvider.getDataGroupTermCollector();
-		authorizator = (OldSpiderAuthorizatorSpy) dependencyProvider.getSpiderAuthorizator();
-		authenticator = (OldAuthenticatorSpy) dependencyProvider.getAuthenticator();
+		dependencyProviderSpy = new SpiderDependencyProviderSpy();
+		recordStorage = new RecordStorageSpy();
+		spiderAuthorizator = new SpiderAuthorizatorSpy();
+		authenticator = new AuthenticatorSpy();
+		termCollector = new DataGroupTermCollectorSpy();
+		recordIndexer = new RecordIndexerSpy();
+
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
+				() -> recordStorage);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
+				() -> spiderAuthorizator);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
+				() -> authenticator);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
+				() -> termCollector);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordIndexer",
+				() -> recordIndexer);
 	}
 
 	@Test
 	public void testDeleteData() {
-		DataGroup workOrder = createWorkOrderUsingId("someGeneratedId");
+		DataRecordGroup workOrder = createWorkOrderUsingId("someGeneratedId");
 
 		callExtendedFunctionalityWithGroup(workOrder);
 		assertEquals(recordDeleter.deletedTypes.size(), 1);
@@ -87,25 +96,17 @@ public class WorkOrderDeleterTest {
 		assertEquals(recordDeleter.deletedIds.get(0), "someGeneratedId");
 	}
 
-	private DataGroup createWorkOrderUsingId(String id) {
-		DataGroup workOrder = DataCreator2.createWorkOrderWithIdAndRecordTypeAndRecordIdToIndex(id,
-				"book", "book1");
-		addTypeToRecordInfo(workOrder);
+	private DataRecordGroup createWorkOrderUsingId(String id) {
+		DataRecordGroupSpy workOrder = new DataRecordGroupSpy();
+		workOrder.MRV.setDefaultReturnValuesSupplier("getType", () -> "workOrder");
+		workOrder.MRV.setDefaultReturnValuesSupplier("getId", () -> id);
 		return workOrder;
 	}
 
-	private void addTypeToRecordInfo(DataGroup workOrder) {
-		DataGroup recordInfo = workOrder.getFirstGroupWithNameInData("recordInfo");
-		DataGroup type = new DataGroupOldSpy("type");
-		type.addChild(new DataAtomicOldSpy("linkedRecordType", "recordType"));
-		type.addChild(new DataAtomicOldSpy("linkedRecordId", "workOrder"));
-		recordInfo.addChild(type);
-	}
-
-	private void callExtendedFunctionalityWithGroup(DataGroup workOrder) {
+	private void callExtendedFunctionalityWithGroup(DataRecordGroup workOrder) {
 		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
 		data.authToken = "someToken";
-		data.dataGroup = workOrder;
+		data.dataRecordGroup = workOrder;
 		extendedFunctionality.useExtendedFunctionality(data);
 	}
 
@@ -114,7 +115,7 @@ public class WorkOrderDeleterTest {
 		Set<String> actions = new HashSet<>();
 		actions.add("delete");
 
-		DataGroup workOrder = createWorkOrderUsingId("someGeneratedIdDeleteNotAllowed");
+		DataRecordGroup workOrder = createWorkOrderUsingId("someGeneratedIdDeleteNotAllowed");
 		callExtendedFunctionalityWithGroup(workOrder);
 		assertEquals(recordDeleter.deletedTypes.size(), 0);
 	}
@@ -124,7 +125,7 @@ public class WorkOrderDeleterTest {
 		Set<String> actions = new HashSet<>();
 		actions.add("delete");
 
-		DataGroup workOrder = createWorkOrderUsingId("nonExistingId");
+		DataRecordGroup workOrder = createWorkOrderUsingId("nonExistingId");
 		callExtendedFunctionalityWithGroup(workOrder);
 		assertEquals(recordDeleter.deletedTypes.size(), 0);
 	}

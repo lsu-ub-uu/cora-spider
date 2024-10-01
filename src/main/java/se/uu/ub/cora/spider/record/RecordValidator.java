@@ -20,10 +20,11 @@ package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 
 public interface RecordValidator {
 
 	DataRecord validateRecord(String authToken, String recordType, DataGroup validationOrder,
-			DataGroup recordToValidate);
+			DataRecordGroup recordToValidate);
 
 }

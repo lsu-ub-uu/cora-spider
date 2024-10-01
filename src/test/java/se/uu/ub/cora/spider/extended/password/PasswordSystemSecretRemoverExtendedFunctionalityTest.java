@@ -24,7 +24,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.data.spies.DataGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -40,8 +40,8 @@ public class PasswordSystemSecretRemoverExtendedFunctionalityTest {
 	private SpiderDependencyProviderSpy dependencyProviderSpy;
 	private ExtendedFunctionalityData exData;
 	private ExtendedFunctionality exFunc;
-	private DataGroupSpy previousGroup;
-	private DataGroupSpy currentGroup;
+	private DataRecordGroupSpy previousRecord;
+	private DataRecordGroupSpy currentRecord;
 	private RecordStorageSpy recordStorage;
 	private SystemSecretOperationsSpy systemSecretOperations;
 
@@ -57,8 +57,8 @@ public class PasswordSystemSecretRemoverExtendedFunctionalityTest {
 				.usingDependencyProviderAndSystemSecretOperations(dependencyProviderSpy,
 						systemSecretOperations);
 		exData = new ExtendedFunctionalityData();
-		previousGroup = new DataGroupSpy();
-		currentGroup = new DataGroupSpy();
+		previousRecord = new DataRecordGroupSpy();
+		currentRecord = new DataRecordGroupSpy();
 	}
 
 	@Test
@@ -72,14 +72,14 @@ public class PasswordSystemSecretRemoverExtendedFunctionalityTest {
 	}
 
 	private void setUpPreviousPasswordWithValue(String usePasswordValue) {
-		exData.previouslyStoredTopDataGroup = previousGroup;
-		previousGroup.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+		exData.previouslyStoredDataRecordGroup = previousRecord;
+		previousRecord.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> usePasswordValue, "usePassword");
 	}
 
 	private void setUpCurrentPasswordWithValue(String usePasswordValue) {
-		exData.dataGroup = currentGroup;
-		currentGroup.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+		exData.dataRecordGroup = currentRecord;
+		currentRecord.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> usePasswordValue, "usePassword");
 	}
 
@@ -111,7 +111,7 @@ public class PasswordSystemSecretRemoverExtendedFunctionalityTest {
 				() -> "systemSecretType");
 		systemSecretLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
 				() -> "systemSecretId");
-		previousGroup.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
+		previousRecord.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
 				() -> systemSecretLink, DataRecordLink.class, "passwordLink");
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2021, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -22,48 +22,53 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
-import se.uu.ub.cora.data.spies.DataFactorySpy;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
+import se.uu.ub.cora.spider.index.internal.IndexBatchJobRunnerTest.FilterRecorderRecordStorage;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.record.internal.RecordStorageOldSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
+import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.StorageReadResult;
+import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class IndexBatchJobRunnerTest {
 	private static final String FINISHED = "finished";
 	private static final String STARTED = "started";
 	private static final int TOTAL_NUMBER_TO_INDEX = 11700;
 	private static final int INDEX_BATCH_SIZE = 1000;
-	private SpiderDependencyProviderOldSpy dependencyProvider;
+	private SpiderDependencyProviderSpy dependencyProvider;
 	private Filter indexBatchJobFilter;
-	private RecordStorageOldSpy recordStorage;
+	private FilterRecorderRecordStorage recordStorage;
 	private IndexBatchJob indexBatchJob;
 	private IndexBatchJobRunner batchRunner;
 	private RecordIndexerSpy recordIndexer;
 	private DataGroupTermCollectorSpy termCollector;
 	private IndexBatchJobStorerSpy storerSpy;
 	long lastLoopBeforeEnd;
-	private DataFactorySpy dataFactorySpy;
+
+	private int start = 0;
+	private int totalNumberOfMatches = 2;
+	private int numberToReturnForReadList = 2;
+	private List<DataRecordGroup> listOfDataRecordGroups = new ArrayList<>();
+	private RecordTypeHandlerOldSpy recordTypeHandlerSpy;
 
 	@BeforeMethod
 	public void setUp() {
 		setUpProviders();
 		createDefaultParameters();
 		setUpSpies();
-		recordStorage.totalNumberOfMatches = 2;
-		recordStorage.numberToReturnForReadList = 2;
 		storerSpy = new IndexBatchJobStorerSpy();
 		batchRunner = new IndexBatchJobRunner(dependencyProvider, storerSpy, indexBatchJob);
 		lastLoopBeforeEnd = (indexBatchJob.totalNumberToIndex / INDEX_BATCH_SIZE);
@@ -72,9 +77,6 @@ public class IndexBatchJobRunnerTest {
 	private void setUpProviders() {
 		LoggerFactorySpy loggerFactory = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactory);
-
-		dataFactorySpy = new DataFactorySpy();
-		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 	}
 
 	private void createDefaultParameters() {
@@ -84,13 +86,46 @@ public class IndexBatchJobRunnerTest {
 	}
 
 	private void setUpSpies() {
-		dependencyProvider = new SpiderDependencyProviderOldSpy();
-		recordStorage = new RecordStorageOldSpy();
+		dependencyProvider = new SpiderDependencyProviderSpy();
+		recordStorage = new FilterRecorderRecordStorage();
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
+				() -> recordStorage);
+		recordStorage.MRV.setDefaultReturnValuesSupplier("readList",
+				() -> createSpiderReadResult());
+
 		termCollector = new DataGroupTermCollectorSpy();
-		dependencyProvider.recordStorage = recordStorage;
-		dependencyProvider.termCollector = termCollector;
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
+				() -> termCollector);
 		recordIndexer = new RecordIndexerSpy();
-		dependencyProvider.recordIndexer = recordIndexer;
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordIndexer",
+				() -> recordIndexer);
+		recordTypeHandlerSpy = new RecordTypeHandlerOldSpy();
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
+				() -> recordTypeHandlerSpy);
+	}
+
+	private StorageReadResult createSpiderReadResult() {
+		StorageReadResult readResult = new StorageReadResult();
+		readResult.start = start;
+		readResult.totalNumberOfMatches = totalNumberOfMatches;
+		if (numberToReturnForReadList > 0) {
+			listOfDataRecordGroups = new ArrayList<>();
+			addRecordsToList();
+		}
+		readResult.listOfDataRecordGroups = listOfDataRecordGroups;
+		return readResult;
+	}
+
+	private void addRecordsToList() {
+		int i = start;
+		while (i < numberToReturnForReadList) {
+			DataRecordGroupSpy dataRecordGroup = new DataRecordGroupSpy();
+			String id = "someId" + i;
+			dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getType", () -> "dummyRecordType");
+			dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getId", () -> id);
+			listOfDataRecordGroups.add(dataRecordGroup);
+			i++;
+		}
 	}
 
 	@Test
@@ -106,18 +141,26 @@ public class IndexBatchJobRunnerTest {
 	public void testCorrectReadList() {
 		batchRunner.run();
 
-		assertReadRecordType();
-		recordStorage.MCR.assertParameter("readList", 0, "filter", indexBatchJobFilter);
+		recordStorage.MCR.assertParameters("readList", 0, "someRecordType", indexBatchJobFilter);
 		recordStorage.MCR.assertNumberOfCallsToMethod("readList", 12);
 
 		assertAllFiltersAreSentCorrectlyToReadList("readList");
 	}
 
-	private void assertReadRecordType() {
-		List<String> types = (List<String>) recordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("readList", 0, "types");
-		assertEquals(types.size(), 1);
-		assertEquals(types.get(0), "someRecordType");
+	class FilterRecorderRecordStorage extends RecordStorageSpy {
+		List<Long> from = new ArrayList<>();
+		List<Long> to = new ArrayList<>();
+
+		public FilterRecorderRecordStorage() {
+			super();
+			MRV.setDefaultReturnValuesSupplier("readList", StorageReadResult::new);
+		}
+
+		public StorageReadResult readList(String type, Filter filter) {
+			from.add(filter.fromNo);
+			to.add(filter.toNo);
+			return (StorageReadResult) MCR.addCallAndReturnFromMRV("type", type, "filter", filter);
+		};
 	}
 
 	private void assertAllFiltersAreSentCorrectlyToReadList(String methodName) {
@@ -135,8 +178,8 @@ public class IndexBatchJobRunnerTest {
 
 	private void assertCorrectFilterForOneLoopInBatch(long from, long to, int batchLoopNumber,
 			String methodName) {
-		assertEquals(recordStorage.readListFromNos.get(batchLoopNumber), from);
-		assertEquals(recordStorage.readListToNos.get(batchLoopNumber), to);
+		assertEquals(recordStorage.from.get(batchLoopNumber), from);
+		assertEquals(recordStorage.to.get(batchLoopNumber), to);
 	}
 
 	@Test
@@ -151,21 +194,13 @@ public class IndexBatchJobRunnerTest {
 	public void testCorrectCallForTermCollectorWhenRun() {
 		batchRunner.run();
 
-		RecordTypeHandlerSpy recordTypeHandler = dependencyProvider.recordTypeHandlerSpy;
-		termCollector.MCR.assertParameter("collectTerms", 0, "metadataId",
-				recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0));
-
+		String definitionId = (String) recordTypeHandlerSpy.MCR.getReturnValue("getDefinitionId",
+				0);
 		StorageReadResult srr1 = (StorageReadResult) recordStorage.MCR.getReturnValue("readList",
 				0);
-
-		termCollector.MCR.assertParameter("collectTerms", 0, "dataGroup",
-				srr1.listOfDataGroups.get(0));
-
-		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
-				recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0));
-
-		termCollector.MCR.assertParameter("collectTerms", 1, "dataGroup",
-				srr1.listOfDataGroups.get(1));
+		List<DataRecordGroup> firstList = srr1.listOfDataRecordGroups;
+		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, firstList.get(0));
+		termCollector.MCR.assertParameters("collectTerms", 1, definitionId, firstList.get(1));
 
 		int numOfBatchesTimesTwoWhichIsReturned = 24;
 		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms",
@@ -175,47 +210,34 @@ public class IndexBatchJobRunnerTest {
 	@Test
 	public void testCorrectCallToIndexPerBatch() {
 		batchRunner.run();
-		RecordTypeHandlerSpy recordTypeHandler = dependencyProvider.recordTypeHandlerSpy;
 
+		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 24);
+		recordIndexer.MCR.assertNumberOfCallsToMethod("indexDataWithoutExplicitCommit", 24);
 		int indexDataCall = 0;
 		for (int i = 0; i < 12; i++) {
-			recordIndexer.MCR.assertNumberOfCallsToMethod("indexDataWithoutExplicitCommit", 24);
-			assertCorrectParametersSentToIndex(recordTypeHandler, i, indexDataCall, 0);
+			assertCorrectParametersSentToIndex(recordTypeHandlerSpy, i, indexDataCall, 0);
 			indexDataCall++;
-			assertCorrectParametersSentToIndex(recordTypeHandler, i, indexDataCall, 1);
+			assertCorrectParametersSentToIndex(recordTypeHandlerSpy, i, indexDataCall, 1);
 			indexDataCall++;
 		}
 	}
 
-	private void assertCorrectParametersSentToIndex(RecordTypeHandlerSpy recordTypeHandler,
+	private void assertCorrectParametersSentToIndex(RecordTypeHandlerOldSpy recordTypeHandler,
 			int parameterIndex, int indexDataCall, int indexInReturnedList) {
 		StorageReadResult storageReadResult = (StorageReadResult) recordStorage.MCR
 				.getReturnValue("readList", parameterIndex);
-
-		assertIndexedIds(indexDataCall, indexInReturnedList);
-
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
-				parameterIndex);
-		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", parameterIndex,
-				"indexTerms", collectTerms.indexTerms);
-
-		recordIndexer.MCR.assertParameter("indexDataWithoutExplicitCommit", indexDataCall, "record",
-				storageReadResult.listOfDataGroups.get(indexInReturnedList));
-	}
-
-	private void assertIndexedIds(int indexDataCall, int indexInReturnedList) {
-		String combinedId = indexBatchJob.recordTypeToIndex + "_" + "someId" + indexInReturnedList;
-		List<String> ids = (List<String>) recordIndexer.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(
-						"indexDataWithoutExplicitCommit", indexDataCall, "ids");
-		assertEquals(ids.size(), 1);
-		assertEquals(ids.get(0), combinedId);
+				indexDataCall);
+		recordIndexer.MCR.assertParameters("indexDataWithoutExplicitCommit", indexDataCall,
+				"dummyRecordType", "someId" + indexInReturnedList, collectTerms.indexTerms,
+				storageReadResult.listOfDataRecordGroups.get(indexInReturnedList));
 	}
 
 	@Test
 	public void testCorrectCallToBatchJobStorer() {
 		indexBatchJob.numberOfProcessedRecords = 3;
 		batchRunner.run();
+
 		storerSpy.MCR.assertNumberOfCallsToMethod("store", 13);
 
 		long expectedNumberOfIndexedReturnedFromSpy = 2;
@@ -233,7 +255,7 @@ public class IndexBatchJobRunnerTest {
 
 		for (int i = 0; i < 12; i++) {
 			List<IndexError> errors = (List<IndexError>) storerSpy.MCR
-					.getValueForMethodNameAndCallNumberAndParameterName("store", i,
+					.getParameterForMethodAndCallNumberAndParameter("store", i,
 							"indexBatchJob.errors");
 			assertEquals(errors.size(), 1);
 			assertEquals(errors.get(0).recordId, "someId1");
@@ -242,7 +264,7 @@ public class IndexBatchJobRunnerTest {
 		}
 
 		List<IndexError> errors = (List<IndexError>) storerSpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("store", 12,
+				.getParameterForMethodAndCallNumberAndParameter("store", 12,
 						"indexBatchJob.errors");
 		assertEquals(errors.size(), 0);
 	}
@@ -255,18 +277,17 @@ public class IndexBatchJobRunnerTest {
 		batchRunner.run();
 
 		IndexBatchJob indexBatchJob = (IndexBatchJob) storerSpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("store", 0, "indexBatchJob");
+				.getParameterForMethodAndCallNumberAndParameter("store", 0, "indexBatchJob");
 		List<IndexError> errors = indexBatchJob.errors;
 		assertEquals(errors.size(), 1);
 		assertEquals(errors.get(0).recordId, "IndexBatchJobRunner");
 		assertEquals(errors.get(0).message, "readList failed");
 		assertEquals(indexBatchJob.status, FINISHED);
-		// finished
 	}
 
 	@Test
 	public void testStatusInIndexBatchJob() {
-		recordStorage.numberToReturnForReadList = 2;
+		numberToReturnForReadList = 2;
 
 		batchRunner.run();
 
@@ -296,5 +317,4 @@ public class IndexBatchJobRunnerTest {
 		Filter filter = (Filter) parameters.get("filter");
 		assertEquals(filter.toNo, 4);
 	}
-
 }

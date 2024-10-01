@@ -19,11 +19,11 @@
 
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
 
 public interface RecordUpdater {
 
-	DataRecord updateRecord(String authToken, String type, String id, DataGroup record);
+	DataRecord updateRecord(String authToken, String type, String id, DataRecordGroup record);
 
 }

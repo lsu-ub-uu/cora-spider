@@ -138,8 +138,7 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 
 	private CollectTerms getCollectedTermsForPreviouslyReadRecord(DataRecordGroup dataRecordGroup) {
 		String definitionId = getDefinitionIdUsingDataRecord(dataRecordGroup);
-		return termCollector.collectTerms(definitionId,
-				DataProvider.createGroupFromRecordGroup(dataRecordGroup));
+		return termCollector.collectTerms(definitionId, dataRecordGroup);
 	}
 
 	private String getDefinitionIdUsingDataRecord(DataRecordGroup dataRecordGroup) {
@@ -159,8 +158,7 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 			ExtendedFunctionalityPosition position, DataRecordGroup dataRecordGroup) {
 		List<ExtendedFunctionality> extendedFunctionality = extendedFunctionalityProvider
 				.getFunctionalityForPositionAndRecordType(position, recordType);
-		useExtendedFunctionality(DataProvider.createGroupFromRecordGroup(dataRecordGroup),
-				extendedFunctionality);
+		useExtendedFunctionality(dataRecordGroup, extendedFunctionality);
 	}
 
 	private void deleteRecordFromStorageAndIndex() {

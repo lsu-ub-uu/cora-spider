@@ -18,9 +18,7 @@
  */
 package se.uu.ub.cora.spider.extended.workorder;
 
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
-import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
@@ -28,31 +26,18 @@ public class WorkOrderEnhancer implements ExtendedFunctionality {
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		DataGroup dataGroup = data.dataGroup;
-		if (recordInfoIsMissing(dataGroup)) {
-			addRecordInfo(dataGroup);
+		DataRecordGroup dataRecordGroup = data.dataRecordGroup;
+		if (recordInfoIsMissing(dataRecordGroup)) {
+			addRecordInfo(dataRecordGroup);
 		}
 	}
 
-	private boolean recordInfoIsMissing(DataGroup dataGroup) {
-		return !dataGroup.containsChildWithNameInData("recordInfo");
+	private boolean recordInfoIsMissing(DataRecordGroup dataRecordGroup) {
+		return !dataRecordGroup.containsChildWithNameInData("recordInfo");
 	}
 
-	private void addRecordInfo(DataGroup dataGroup) {
-		DataGroup recordInfo = DataProvider.createGroupUsingNameInData("recordInfo");
-		dataGroup.addChild(recordInfo);
-
-		recordInfo.addChild(createDataDivider());
-		recordInfo.addChild(createValidationType());
-	}
-
-	private DataRecordLink createDataDivider() {
-		return DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("dataDivider", "system",
-				"cora");
-	}
-
-	private DataRecordLink createValidationType() {
-		return DataProvider.createRecordLinkUsingNameInDataAndTypeAndId("validationType",
-				"validationType", "workOrder");
+	private void addRecordInfo(DataRecordGroup dataRecordGroup) {
+		dataRecordGroup.setDataDivider("cora");
+		dataRecordGroup.setValidationType("workOrder");
 	}
 }
