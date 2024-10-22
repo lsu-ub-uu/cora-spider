@@ -18,6 +18,10 @@
  */
 package se.uu.ub.cora.spider.extended.binary;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_AFTER;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_RETURN;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,16 +32,15 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 
-public class BinaryProtocolsExtendedFunctionalityFactory implements ExtendedFunctionalityFactory {
+public class BinaryExtendedFunctionalityFactory implements ExtendedFunctionalityFactory {
 
 	List<ExtendedFunctionalityContext> contexts = new ArrayList<>();
 
 	@Override
 	public void initializeUsingDependencyProvider(SpiderDependencyProvider dependencyProvider) {
-		contexts.add(new ExtendedFunctionalityContext(
-				ExtendedFunctionalityPosition.READ_BEFORE_RETURN, "binary", 0));
-		contexts.add(new ExtendedFunctionalityContext(
-				ExtendedFunctionalityPosition.UPDATE_BEFORE_RETURN, "binary", 0));
+		contexts.add(new ExtendedFunctionalityContext(READ_BEFORE_RETURN, "binary", 0));
+		contexts.add(new ExtendedFunctionalityContext(UPDATE_BEFORE_RETURN, "binary", 0));
+		contexts.add(new ExtendedFunctionalityContext(DELETE_AFTER, "binary", 0));
 	}
 
 	@Override
@@ -48,6 +51,9 @@ public class BinaryProtocolsExtendedFunctionalityFactory implements ExtendedFunc
 	@Override
 	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
 			String recordType) {
+		if (position.equals(DELETE_AFTER)) {
+			return Collections.singletonList(new DeleteStreamsExtendedFunctionality());
+		}
 		return Collections.singletonList(new BinaryProtocolsExtendedFunctionality());
 	}
 

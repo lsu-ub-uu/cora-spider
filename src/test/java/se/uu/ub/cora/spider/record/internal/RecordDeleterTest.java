@@ -39,7 +39,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
@@ -50,6 +50,7 @@ import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
+import se.uu.ub.cora.storage.spies.archive.RecordArchiveSpy;
 
 public class RecordDeleterTest {
 	private RecordDeleter recordDeleter;
@@ -60,13 +61,14 @@ public class RecordDeleterTest {
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
 	private RecordStorageSpy recordStorage;
+	private RecordArchiveSpy recordArchive;
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private RecordIndexerSpy recordIndexer;
 	private DataGroupTermCollectorSpy termCollector;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
-	private RecordTypeHandlerOldSpy recordTypeHandler;
+	private RecordTypeHandlerSpy recordTypeHandler;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -74,11 +76,12 @@ public class RecordDeleterTest {
 		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageSpy();
+		recordArchive = new RecordArchiveSpy();
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataRecordGroupSpy::new);
 		recordIndexer = new RecordIndexerSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		recordTypeHandler = new RecordTypeHandlerOldSpy();
+		recordTypeHandler = new RecordTypeHandlerSpy();
 		setUpDependencyProvider();
 	}
 
@@ -97,6 +100,8 @@ public class RecordDeleterTest {
 				() -> authorizator);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordArchive",
+				() -> recordArchive);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
 				() -> extendedFunctionalityProvider);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordIndexer",
@@ -301,5 +306,45 @@ public class RecordDeleterTest {
 		RecordDeleterImp recordDeleterImp = (RecordDeleterImp) recordDeleter;
 		assertEquals(recordDeleterImp.onlyForTestGetDependencyProvider(), dependencyProvider);
 
+	}
+
+	@Test
+	public void deleteFromArchive_NotSetToBeStoredInArchive() throws Exception {
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
+
+		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+
+		recordArchive.MCR.assertMethodNotCalled("delete");
+	}
+
+	@Test
+	public void deleteFromArchive() throws Exception {
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
+
+		DataRecordGroupSpy dataRecordGroup = new DataRecordGroupSpy();
+		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getDataDivider",
+				() -> "someDataDivider");
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> dataRecordGroup);
+
+		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+
+		recordArchive.MCR.assertParameters("delete", 0, "someDataDivider", SOME_TYPE, SOME_ID);
+	}
+
+	@Test
+	public void deletefromArchive_NotFound() {
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
+		recordArchive.MRV.setAlwaysThrowException("delete",
+				se.uu.ub.cora.storage.RecordNotFoundException.withMessage("someError"));
+
+		try {
+			recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+			fail("It should throw exception");
+		} catch (Exception e) {
+			assertTrue(e instanceof RecordNotFoundException);
+			assertEquals(e.getMessage(),
+					"Record with type: someType and id: someId could not be deleted.");
+			assertEquals(e.getCause().getMessage(), "someError");
+		}
 	}
 }

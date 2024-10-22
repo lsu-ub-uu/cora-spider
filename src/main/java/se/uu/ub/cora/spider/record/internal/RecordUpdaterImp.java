@@ -155,8 +155,8 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		DataGroup recordAsDataGroupForStorage = DataProvider
 				.createGroupFromRecordGroup(recordGroup);
 		updateRecordInStorage(recordAsDataGroupForStorage, collectTerms, collectedLinks);
-
 		possiblyStoreInArchive(recordAsDataGroupForStorage);
+
 		indexData(collectTerms);
 		useExtendedFunctionalityForPosition(UPDATE_AFTER_STORE);
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();

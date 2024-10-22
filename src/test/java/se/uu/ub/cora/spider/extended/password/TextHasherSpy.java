@@ -18,8 +18,6 @@
  */
 package se.uu.ub.cora.spider.extended.password;
 
-import java.util.function.Supplier;
-
 import se.uu.ub.cora.password.texthasher.TextHasher;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;

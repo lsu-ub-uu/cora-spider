@@ -27,7 +27,6 @@ import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
-import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.search.RecordIndexer;
@@ -41,6 +40,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
+import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordDeleterImp extends RecordHandler implements RecordDeleter {
 	private static final String DELETE = "delete";
@@ -49,12 +49,16 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 	private RecordIndexer recordIndexer;
 	private DataGroupTermCollector termCollector;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
+	private RecordArchive recordArchive;
+	private DataRecordGroup dataRecordGroup;
+	private RecordTypeHandler recordTypeHandler;
 
 	private RecordDeleterImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 		authenticator = dependencyProvider.getAuthenticator();
 		authorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
+		recordArchive = dependencyProvider.getRecordArchive();
 		recordIndexer = dependencyProvider.getRecordIndexer();
 		termCollector = dependencyProvider.getDataGroupTermCollector();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
@@ -85,7 +89,8 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 
 		useExtendedFunctionalityUsingPosition(DELETE_AFTER_AUTHORIZATION);
 
-		DataRecordGroup dataRecordGroup = readRecordFromStorage();
+		dataRecordGroup = readRecordFromStorage();
+		recordTypeHandler = getRecordTypeHandler();
 		checkUserIsAuthorizedToDeleteStoredRecord(dataRecordGroup);
 		checkNoIncomingLinksExists();
 
@@ -94,6 +99,10 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 		deleteRecordFromStorageAndIndex();
 
 		useExtendedFunctionalityUsingPositionAndDataGroup(DELETE_AFTER, dataRecordGroup);
+	}
+
+	private RecordTypeHandler getRecordTypeHandler() {
+		return dependencyProvider.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
 	}
 
 	private void tryToGetActiveUser() {
@@ -137,13 +146,11 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 	}
 
 	private CollectTerms getCollectedTermsForPreviouslyReadRecord(DataRecordGroup dataRecordGroup) {
-		String definitionId = getDefinitionIdUsingDataRecord(dataRecordGroup);
+		String definitionId = getDefinitionIdUsingDataRecord();
 		return termCollector.collectTerms(definitionId, dataRecordGroup);
 	}
 
-	private String getDefinitionIdUsingDataRecord(DataRecordGroup dataRecordGroup) {
-		RecordTypeHandler recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
+	private String getDefinitionIdUsingDataRecord() {
 		return recordTypeHandler.getDefinitionId();
 	}
 
@@ -164,6 +171,19 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 	private void deleteRecordFromStorageAndIndex() {
 		recordStorage.deleteByTypeAndId(recordType, recordId);
 		recordIndexer.deleteFromIndex(recordType, recordId);
+		possiblyDeleteRecordFromArchive();
+
+		// TODO: delete resources if binary in extFunc
+	}
+
+	private void possiblyDeleteRecordFromArchive() {
+		if (recordTypeHandler.storeInArchive()) {
+			deleteRecordFromArchive();
+		}
+	}
+
+	private void deleteRecordFromArchive() {
+		recordArchive.delete(dataRecordGroup.getDataDivider(), recordType, recordId);
 	}
 
 	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {

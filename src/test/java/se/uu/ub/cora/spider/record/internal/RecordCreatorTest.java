@@ -61,13 +61,13 @@ import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
-import se.uu.ub.cora.spider.spy.RecordArchiveSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.spy.UniqueValidatorSpy;
 import se.uu.ub.cora.spider.spy.ValidationAnswerSpy;
 import se.uu.ub.cora.storage.RecordConflictException;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
+import se.uu.ub.cora.storage.spies.archive.RecordArchiveSpy;
 
 public class RecordCreatorTest {
 	private static final String RECORD_TYPE = "someType";
@@ -178,7 +178,7 @@ public class RecordCreatorTest {
 		DataRecordGroupSpy recordSpy = new DataRecordGroupSpy();
 		recordSpy.MRV.setDefaultReturnValuesSupplier("getType", () -> "someType");
 		recordSpy.MRV.setDefaultReturnValuesSupplier("getId", () -> "someRecordId");
-		recordSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider", () -> "uu");
+		recordSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider", () -> "someDataDivider");
 		return recordSpy;
 	}
 
@@ -433,7 +433,7 @@ public class RecordCreatorTest {
 		var recordAsDataGroup = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup",
 				2);
 		recordStorage.MCR.assertParameters("create", 0, RECORD_TYPE, "someRecordId",
-				recordAsDataGroup, collectTerms.storageTerms, collectedLinks, "uu");
+				recordAsDataGroup, collectTerms.storageTerms, collectedLinks, "someDataDivider");
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
@@ -614,8 +614,8 @@ public class RecordCreatorTest {
 
 		var recordAsDataGroup = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup",
 				2);
-		recordArchive.MCR.assertParameters("create", 0, RECORD_TYPE, "someRecordId",
-				recordAsDataGroup);
+		recordArchive.MCR.assertParameters("create", 0, "someDataDivider", RECORD_TYPE,
+				"someRecordId", recordAsDataGroup);
 	}
 
 	@Test

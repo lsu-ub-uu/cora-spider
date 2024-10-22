@@ -68,13 +68,13 @@ import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
-import se.uu.ub.cora.spider.spy.RecordArchiveSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.spy.UniqueValidatorSpy;
 import se.uu.ub.cora.spider.spy.ValidationAnswerSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
+import se.uu.ub.cora.storage.spies.archive.RecordArchiveSpy;
 
 public class RecordUpdaterTest {
 	private static final String AUTH_TOKEN = "someAuthToken";
@@ -188,7 +188,7 @@ public class RecordUpdaterTest {
 		DataRecordGroupSpy recordSpy = new DataRecordGroupSpy();
 		recordSpy.MRV.setDefaultReturnValuesSupplier("getType", () -> RECORD_TYPE);
 		recordSpy.MRV.setDefaultReturnValuesSupplier("getId", () -> RECORD_ID);
-		recordSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider", () -> "uu");
+		recordSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider", () -> "someDataDivider");
 		recordSpy.MRV.setDefaultReturnValuesSupplier("overwriteProtectionShouldBeEnforced",
 				() -> true);
 		return recordSpy;
@@ -546,7 +546,7 @@ public class RecordUpdaterTest {
 	public void testUpdateRecordDataDividerExtractedFromData() {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
-		recordStorage.MCR.assertParameter("update", 0, "dataDivider", "uu");
+		recordStorage.MCR.assertParameter("update", 0, "dataDivider", "someDataDivider");
 	}
 
 	@Test
@@ -621,7 +621,8 @@ public class RecordUpdaterTest {
 		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 2, recordWithId);
 		var recordAsDataGroup = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup",
 				2);
-		recordArchive.MCR.assertParameters("update", 0, RECORD_TYPE, RECORD_ID, recordAsDataGroup);
+		recordArchive.MCR.assertParameters("update", 0, "someDataDivider", RECORD_TYPE, RECORD_ID,
+				recordAsDataGroup);
 	}
 
 	@Test
@@ -636,8 +637,10 @@ public class RecordUpdaterTest {
 		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 2, recordWithId);
 		var recordAsDataGroup = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup",
 				2);
-		recordArchive.MCR.assertParameters("update", 0, RECORD_TYPE, RECORD_ID, recordAsDataGroup);
-		recordArchive.MCR.assertParameters("create", 0, RECORD_TYPE, RECORD_ID, recordAsDataGroup);
+		recordArchive.MCR.assertParameters("update", 0, "someDataDivider", RECORD_TYPE, RECORD_ID,
+				recordAsDataGroup);
+		recordArchive.MCR.assertParameters("create", 0, "someDataDivider", RECORD_TYPE, RECORD_ID,
+				recordAsDataGroup);
 	}
 
 	@Test

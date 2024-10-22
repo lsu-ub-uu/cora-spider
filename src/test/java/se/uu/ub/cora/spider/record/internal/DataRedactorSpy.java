@@ -22,9 +22,7 @@ import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;

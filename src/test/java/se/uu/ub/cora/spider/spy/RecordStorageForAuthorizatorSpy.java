@@ -3,9 +3,25 @@
 
 package se.uu.ub.cora.spider.spy;
 
-import java.util.ArrayList;import java.util.Collection;import java.util.HashMap;import java.util.List;import java.util.Map;import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import se.uu.ub.cora.data.DataGroup;import se.uu.ub.cora.data.DataRecordGroup;import se.uu.ub.cora.data.collected.Link;import se.uu.ub.cora.data.collected.StorageTerm;import se.uu.ub.cora.spider.data.DataAtomicOldSpy;import se.uu.ub.cora.spider.data.DataGroupOldSpy;import se.uu.ub.cora.storage.Filter;import se.uu.ub.cora.storage.RecordNotFoundException;import se.uu.ub.cora.storage.RecordStorage;import se.uu.ub.cora.storage.StorageReadResult;import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.data.collected.Link;
+import se.uu.ub.cora.data.collected.StorageTerm;
+import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
+import se.uu.ub.cora.spider.data.DataGroupOldSpy;
+import se.uu.ub.cora.storage.Filter;
+import se.uu.ub.cora.storage.RecordNotFoundException;
+import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.storage.StorageReadResult;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 

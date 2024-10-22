@@ -27,8 +27,6 @@ import java.nio.charset.StandardCharsets;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.spider.binary.ResourceInputStream;
-
 public class ResourceInputStreamTest {
 	@Test
 	public void testContent() {
