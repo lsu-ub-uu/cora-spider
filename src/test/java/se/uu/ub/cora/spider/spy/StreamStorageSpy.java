@@ -47,4 +47,10 @@ public class StreamStorageSpy implements StreamStorage {
 				dataDivider);
 	}
 
+	@Override
+	public void delete(String streamId, String dataDivider) {
+		// TODO Auto-generated method stub
+
+	}
+
 }

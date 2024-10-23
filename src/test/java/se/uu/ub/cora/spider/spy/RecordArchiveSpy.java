@@ -43,4 +43,10 @@ public class RecordArchiveSpy implements RecordArchive {
 		MCR.addCall("type", type, "id", id, "dataRecord", dataRecord);
 	}
 
+	@Override
+	public void delete(String dataDivider, String type, String id) {
+		// TODO Auto-generated method stub
+
+	}
+
 }
