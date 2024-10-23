@@ -28,7 +28,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataProvider;
-import se.uu.ub.cora.data.spies.DataAtomicSpy;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -41,23 +40,10 @@ public class RegexExtendedFunctionalityTest {
 	private DataRecordGroupSpy someRecord;
 	private ExtendedFunctionalityData extendedFunctionalityData;
 	private DataFactorySpy dataFactory;
-	private DataAtomicSpy regEx;
 
 	@BeforeMethod
 	private void beforeTest() {
-		someRecord = new DataRecordGroupSpy();
-		someRecord.MRV.setSpecificReturnValuesSupplier("hasAttributes", () -> true);
-		someRecord.MRV.setSpecificReturnValuesSupplier("getAttributeValue",
-				() -> Optional.of("textVariable"), "type");
-
-		regEx = new DataAtomicSpy();
-		regEx.MRV.setDefaultReturnValuesSupplier("getValue", () -> ".+");
-
-		someRecord.MRV.setSpecificReturnValuesSupplier("getFirstDataAtomicWithNameInData",
-				() -> regEx, "regEx");
-
-		extendedFunctionalityData = new ExtendedFunctionalityData();
-		extendedFunctionalityData.dataRecordGroup = someRecord;
+		setupTextVariable();
 
 		dataFactory = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactory);
@@ -71,29 +57,64 @@ public class RegexExtendedFunctionalityTest {
 	}
 
 	@Test
+	public void testNoAttributes() throws Exception {
+		someRecord.MRV.setSpecificReturnValuesSupplier("hasAttributes", () -> false);
+
+		regexExtFunc.useExtendedFunctionality(extendedFunctionalityData);
+
+		someRecord.MCR.assertMethodWasCalled("hasAttributes");
+		someRecord.MCR.assertMethodNotCalled("getAttributeValue");
+	}
+
+	@Test
+	public void testNotTextVariable() throws Exception {
+		someRecord.MRV.setSpecificReturnValuesSupplier("getAttributeValue",
+				() -> Optional.of("somethingElse"), "type");
+
+		regexExtFunc.useExtendedFunctionality(extendedFunctionalityData);
+
+		someRecord.MCR.assertMethodNotCalled("getFirstAtomicValueWithNameInData");
+	}
+
+	@Test
 	public void testRegexValid() throws Exception {
+		someRecord.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "[a-z]");
 		try {
 			regexExtFunc.useExtendedFunctionality(extendedFunctionalityData);
 		} catch (Exception e) {
-			fail("no exception should have been thrown");
+			fail("No exception should have been thrown");
 		}
 
-		someRecord.MCR.assertParameters("getFirstDataAtomicWithNameInData", 0, "regEx");
 		someRecord.MCR.assertMethodWasCalled("hasAttributes");
+		someRecord.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "regEx");
 	}
 
 	@Test
 	public void testRegexInvalid() throws Exception {
-		regEx.MRV.setDefaultReturnValuesSupplier("getValue", () -> "(b0rked");
+		someRecord.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "a{1");
 		try {
 			regexExtFunc.useExtendedFunctionality(extendedFunctionalityData);
+			fail("Exception should have been thrown");
 		} catch (Exception e) {
-			assertEquals(e.getClass(), DataException.class);
-			assertEquals(e.getMessage(), "Failed to compile the supplied regEx: (b0rked");
+			assertTrue(e instanceof DataException);
+			assertEquals(e.getMessage(),
+					"The supplied regEx is invalid, Unclosed counted closure near index 3\n"
+							+ "a{1");
 		}
 
-		someRecord.MCR.assertParameters("getFirstDataAtomicWithNameInData", 0, "regEx");
 		someRecord.MCR.assertMethodWasCalled("hasAttributes");
+		someRecord.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "regEx");
 	}
 
+	private void setupTextVariable() {
+		someRecord = new DataRecordGroupSpy();
+		someRecord.MRV.setSpecificReturnValuesSupplier("hasAttributes", () -> true);
+		someRecord.MRV.setSpecificReturnValuesSupplier("getAttributeValue",
+				() -> Optional.of("textVariable"), "type");
+
+		extendedFunctionalityData = new ExtendedFunctionalityData();
+		extendedFunctionalityData.dataRecordGroup = someRecord;
+	}
 }

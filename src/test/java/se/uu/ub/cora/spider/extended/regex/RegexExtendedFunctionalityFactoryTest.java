@@ -55,7 +55,7 @@ public class RegexExtendedFunctionalityFactoryTest {
 	@Test
 	public void testGetExtendedFunctionalityContextsForUpdate() {
 		assertEquals(factory.getExtendedFunctionalityContexts().size(), 2);
-		assertContext(ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION);
+		assertContext(ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION);
 	}
 
 	@Test
@@ -65,8 +65,8 @@ public class RegexExtendedFunctionalityFactoryTest {
 
 	@Test
 	public void testFactorUpdate() throws Exception {
-		List<ExtendedFunctionality> functionalities = factory.factor(
-				ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION, "metadata");
+		List<ExtendedFunctionality> functionalities = factory
+				.factor(ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION, "metadata");
 		assertTrue(functionalities.get(0) instanceof RegexExtendedFunctionality);
 	}
 

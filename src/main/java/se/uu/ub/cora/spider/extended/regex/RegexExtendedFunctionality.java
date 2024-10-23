@@ -21,39 +21,39 @@ package se.uu.ub.cora.spider.extended.regex;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import se.uu.ub.cora.data.DataAtomic;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.record.DataException;
 
 public class RegexExtendedFunctionality implements ExtendedFunctionality {
 
-	private static final String TEXT_VARIABLE = "textVariable";
 	private static final String TYPE = "type";
+	private static final String REGEX = "regEx";
+	private static final String TEXT_VARIABLE = "textVariable";
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		if (isTextVariable(data)) {
-			isValidRegexOrThrowException(data);
+		DataRecordGroup dataRecordGroup = data.dataRecordGroup;
+		if (isTextVariable(dataRecordGroup)) {
+			isValidRegexOrThrowException(dataRecordGroup);
 		}
 	}
 
-	private void isValidRegexOrThrowException(ExtendedFunctionalityData data) {
-		DataAtomic regEx = data.dataRecordGroup.getFirstDataAtomicWithNameInData("regEx");
-		String regExValue = regEx.getValue();
-		try {
-			Pattern.compile(regExValue);
-		} catch (Exception e) {
-			throw new DataException("Failed to compile the supplied regEx: " + regExValue);
-		}
-	}
-
-	private boolean isTextVariable(ExtendedFunctionalityData data) {
-		if (data.dataRecordGroup.hasAttributes()) {
-			Optional<String> type = data.dataRecordGroup.getAttributeValue(TYPE);
+	private boolean isTextVariable(DataRecordGroup dataRecordGroup) {
+		if (dataRecordGroup.hasAttributes()) {
+			Optional<String> type = dataRecordGroup.getAttributeValue(TYPE);
 			return type.isPresent() && TEXT_VARIABLE.equals(type.get());
 		}
 		return false;
 	}
 
+	private void isValidRegexOrThrowException(DataRecordGroup dataRecordGroup) {
+		String regExValue = dataRecordGroup.getFirstAtomicValueWithNameInData(REGEX);
+		try {
+			Pattern.compile(regExValue);
+		} catch (Exception e) {
+			throw new DataException("The supplied regEx is invalid, " + e.getMessage());
+		}
+	}
 }

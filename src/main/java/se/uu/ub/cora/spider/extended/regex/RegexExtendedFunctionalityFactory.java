@@ -19,7 +19,7 @@
 package se.uu.ub.cora.spider.extended.regex;
 
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_AFTER_METADATA_VALIDATION;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,6 +33,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 
 public class RegexExtendedFunctionalityFactory implements ExtendedFunctionalityFactory {
 
+	private static final String METADATA = "metadata";
 	private List<ExtendedFunctionalityContext> contexts = new ArrayList<>();
 
 	@Override
@@ -42,11 +43,11 @@ public class RegexExtendedFunctionalityFactory implements ExtendedFunctionalityF
 
 	private void createListOfContexts() {
 		createContext(CREATE_AFTER_METADATA_VALIDATION);
-		createContext(UPDATE_BEFORE_METADATA_VALIDATION);
+		createContext(UPDATE_AFTER_METADATA_VALIDATION);
 	}
 
 	private void createContext(ExtendedFunctionalityPosition position) {
-		contexts.add(new ExtendedFunctionalityContext(position, "metadata", 0));
+		contexts.add(new ExtendedFunctionalityContext(position, METADATA, 0));
 	}
 
 	@Override
