@@ -46,8 +46,8 @@ import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.spy.StreamStorageSpy;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
+import se.uu.ub.cora.storage.spies.StreamStorageSpy;
 import se.uu.ub.cora.storage.spies.archive.ResourceArchiveSpy;
 
 public class DownloaderTest {

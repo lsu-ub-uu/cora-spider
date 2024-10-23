@@ -3,6 +3,6 @@ se.uu.ub.cora.spider.extended.apptoken.ApptokenExtendedFunctionalityFactory
 se.uu.ub.cora.spider.extended.consistency.MetadataValidatorExtendedFunctionalityFactory
 se.uu.ub.cora.spider.extended.password.PasswordExtendedFunctionalityFactory
 se.uu.ub.cora.spider.extended.systemsecret.SystemSecretSecurityExtendedFunctionalityFactory
-se.uu.ub.cora.spider.extended.binary.BinaryProtocolsExtendedFunctionalityFactory
+se.uu.ub.cora.spider.extended.binary.BinaryExtendedFunctionalityFactory
 se.uu.ub.cora.spider.extended.visibility.VisibilityExtendedFunctionalityFactory
 se.uu.ub.cora.spider.extended.regex.RegexExtendedFunctionalityFactory

@@ -19,7 +19,11 @@
 package se.uu.ub.cora.spider.extended.binary;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_AFTER;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_RETURN;
 
 import java.util.List;
 
@@ -30,17 +34,16 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityContext;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
-import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 
-public class BinaryProtocolsExtendedFunctionalityFactoryTest {
+public class BinaryExtendedFunctionalityFactoryTest {
 
 	private ExtendedFunctionalityFactory factory;
 	private SpiderDependencyProvider dependencyProvider;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		factory = new BinaryProtocolsExtendedFunctionalityFactory();
+		factory = new BinaryExtendedFunctionalityFactory();
 		dependencyProvider = new SpiderDependencyProviderSpy();
 
 	}
@@ -53,24 +56,51 @@ public class BinaryProtocolsExtendedFunctionalityFactoryTest {
 		List<ExtendedFunctionalityContext> extendedFunctionalityContexts = factory
 				.getExtendedFunctionalityContexts();
 
-		assertEquals(extendedFunctionalityContexts.size(), 2);
+		assertEquals(extendedFunctionalityContexts.size(), 3);
 
 		ExtendedFunctionalityContext firstContext = extendedFunctionalityContexts.get(0);
-		assertEquals(firstContext.position, ExtendedFunctionalityPosition.READ_BEFORE_RETURN);
+		assertEquals(firstContext.position, READ_BEFORE_RETURN);
 		assertEquals(firstContext.recordType, "binary");
 
 		ExtendedFunctionalityContext secondContext = extendedFunctionalityContexts.get(1);
-		assertEquals(secondContext.position, ExtendedFunctionalityPosition.UPDATE_BEFORE_RETURN);
+		assertEquals(secondContext.position, UPDATE_BEFORE_RETURN);
 		assertEquals(secondContext.recordType, "binary");
+
+		ExtendedFunctionalityContext thirdContext = extendedFunctionalityContexts.get(2);
+		assertEquals(thirdContext.position, DELETE_AFTER);
+		assertEquals(thirdContext.recordType, "binary");
 
 	}
 
 	@Test
-	public void testFactor() throws Exception {
-		List<ExtendedFunctionality> extendedFunctionalities = factory.factor(null, null);
+	public void testFactorBinaryExtendedFunctionality_READ_BEFORE_RETURN() throws Exception {
+		List<ExtendedFunctionality> extendedFunctionalities = factory.factor(READ_BEFORE_RETURN,
+				"someRecordType");
 
 		assertEquals(extendedFunctionalities.size(), 1);
 		assertTrue(extendedFunctionalities.get(0) instanceof BinaryProtocolsExtendedFunctionality);
+	}
 
+	@Test
+	public void testFactorBinaryExtendedFunctionality_UPDATE_BEFORE_RETURN() throws Exception {
+		List<ExtendedFunctionality> extendedFunctionalities = factory.factor(UPDATE_BEFORE_RETURN,
+				"someRecordType");
+
+		assertEquals(extendedFunctionalities.size(), 1);
+		assertTrue(extendedFunctionalities.get(0) instanceof BinaryProtocolsExtendedFunctionality);
+	}
+
+	@Test
+	public void testFactorBinaryExtendedFunctionality_DELETE_AFTER() throws Exception {
+		factory.initializeUsingDependencyProvider(dependencyProvider);
+
+		List<ExtendedFunctionality> extendedFunctionalities = factory.factor(DELETE_AFTER,
+				"someRecordType");
+
+		assertEquals(extendedFunctionalities.size(), 1);
+		ExtendedFunctionality extendedFunctionality = extendedFunctionalities.get(0);
+		assertTrue(extendedFunctionality instanceof DeleteStreamsExtendedFunctionality);
+		assertSame(((DeleteStreamsExtendedFunctionality) extendedFunctionality)
+				.onlyForTestGetDependencyProvider(), dependencyProvider);
 	}
 }

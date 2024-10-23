@@ -34,7 +34,6 @@ import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
-import se.uu.ub.cora.spider.index.internal.IndexBatchJobRunnerTest.FilterRecorderRecordStorage;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
