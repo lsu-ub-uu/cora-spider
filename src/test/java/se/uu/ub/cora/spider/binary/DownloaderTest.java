@@ -46,8 +46,8 @@ import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
-import se.uu.ub.cora.spider.spy.StreamStorageSpy;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
+import se.uu.ub.cora.storage.spies.StreamStorageSpy;
 import se.uu.ub.cora.storage.spies.archive.ResourceArchiveSpy;
 
 public class DownloaderTest {
@@ -81,6 +81,11 @@ public class DownloaderTest {
 	private DataGroupSpy resourceTypeDGS;
 	private DataRecordGroupSpy readBinaryDGS;
 	private StreamStorageSpy streamStorage;
+	private DataGroupSpy thumbnailResourceTypeDGS;
+	private DataGroupSpy mediumResourceTypeDGS;
+	private DataGroupSpy largeResourceTypeDGS;
+	private DataGroupSpy jp2ResourceTypeDGS;
+	private DataGroupSpy masterResourceTypeDGS;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -117,29 +122,42 @@ public class DownloaderTest {
 	}
 
 	private void setupBinaryRecord() {
-		resourceTypeDGS = new DataGroupSpy();
-		resourceTypeDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> SOME_FILE_SIZE, "fileSize");
-		resourceTypeDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> SOME_MIME_TYPE, "mimeType");
+		resourceTypeDGS = createResourceDataGroupForResourceId(MASTER);
+		masterResourceTypeDGS = createResourceDataGroupForResourceId(MASTER);
+		thumbnailResourceTypeDGS = createResourceDataGroupForResourceId(THUMBNAIL);
+		mediumResourceTypeDGS = createResourceDataGroupForResourceId(MEDIUM);
+		largeResourceTypeDGS = createResourceDataGroupForResourceId(LARGE);
+		jp2ResourceTypeDGS = createResourceDataGroupForResourceId(JP2);
 
 		readBinaryDGS = new DataRecordGroupSpy();
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceTypeDGS, MASTER);
+				() -> masterResourceTypeDGS, MASTER);
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceTypeDGS, THUMBNAIL);
+				() -> thumbnailResourceTypeDGS, THUMBNAIL);
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceTypeDGS, MEDIUM);
+				() -> mediumResourceTypeDGS, MEDIUM);
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceTypeDGS, LARGE);
+				() -> largeResourceTypeDGS, LARGE);
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> resourceTypeDGS, JP2);
+				() -> jp2ResourceTypeDGS, JP2);
+		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData", () -> true);
 
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> ORIGINAL_FILE_NAME, "originalFileName");
 		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getDataDivider", () -> SOME_DATA_DIVIDER);
 
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> readBinaryDGS);
+	}
+
+	private DataGroupSpy createResourceDataGroupForResourceId(String resourceId) {
+		DataGroupSpy resourceTypeDGS = new DataGroupSpy();
+		resourceTypeDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> SOME_FILE_SIZE, "fileSize");
+		resourceTypeDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> SOME_MIME_TYPE, "mimeType");
+		resourceTypeDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "someId-" + resourceId, "resourceId");
+		return resourceTypeDGS;
 	}
 
 	@Test
@@ -309,14 +327,11 @@ public class DownloaderTest {
 
 	@Test
 	public void testReturnCorrectInfoForMaster() throws Exception {
+		resourceTypeDGS = masterResourceTypeDGS;
+
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
-		assertReturnedDataFromCorrectResourceType(MASTER, resourceDownloaded);
-	}
-
-	private void assertReturnedDataFromCorrectResourceType(String resourceType,
-			ResourceInputStream resourceDownloaded) {
-		readBinaryDGS.MCR.assertParameters("getFirstGroupWithNameInData", 0, resourceType);
+		readBinaryDGS.MCR.assertParameters("getFirstGroupWithNameInData", 0, MASTER);
 		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "resourceId");
 		var fileName = resourceTypeDGS.MCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
 		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "fileSize");
@@ -327,8 +342,44 @@ public class DownloaderTest {
 		assertEquals(resourceDownloaded.mimeType, SOME_MIME_TYPE);
 	}
 
+	private void assertReturnedDataFromCorrectResourceType(String resourceType,
+			ResourceInputStream resourceDownloaded) {
+		readBinaryDGS.MCR.assertParameters("getFirstGroupWithNameInData", 0, resourceType);
+		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "resourceId");
+		var fileName = resourceTypeDGS.MCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
+		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "resourceId");
+		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 2, "fileSize");
+		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 3, "mimeType");
+
+		assertEquals(resourceDownloaded.name, fileName);
+		assertEquals(String.valueOf(resourceDownloaded.size), SOME_FILE_SIZE);
+		assertEquals(resourceDownloaded.mimeType, SOME_MIME_TYPE);
+	}
+
+	@Test(expectedExceptions = ResourceNotFoundException.class, expectedExceptionsMessageRegExp = ""
+			+ "Could not download the stream because the binary does not have the requested "
+			+ "representation. Type: binary, id: someId and representation: thumbnail")
+	public void testDownloadANonExistingRepresentation_thumbnail() throws Exception {
+		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> false, THUMBNAIL);
+
+		downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, THUMBNAIL);
+	}
+
+	@Test(expectedExceptions = ResourceNotFoundException.class, expectedExceptionsMessageRegExp = ""
+			+ "Could not download the stream because the binary does not have the requested "
+			+ "representation. Type: binary, id: someId and representation: master")
+	public void testDownloadANonExistingRepresentation_master() throws Exception {
+		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> false, MASTER);
+
+		downloader.download(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, MASTER);
+	}
+
 	@Test
 	public void testDownloadAThumbnail() throws Exception {
+		resourceTypeDGS = thumbnailResourceTypeDGS;
+
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, THUMBNAIL);
 
@@ -347,6 +398,7 @@ public class DownloaderTest {
 
 	@Test
 	public void testDownloadAMedium() throws Exception {
+		resourceTypeDGS = mediumResourceTypeDGS;
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, MEDIUM);
 
@@ -355,6 +407,8 @@ public class DownloaderTest {
 
 	@Test
 	public void testDownloadALarge() throws Exception {
+		resourceTypeDGS = largeResourceTypeDGS;
+
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, LARGE);
 
@@ -363,6 +417,8 @@ public class DownloaderTest {
 
 	@Test
 	public void testDownloadJp2() throws Exception {
+		resourceTypeDGS = jp2ResourceTypeDGS;
+
 		ResourceInputStream resourceDownloaded = downloader.download(SOME_AUTH_TOKEN,
 				BINARY_RECORD_TYPE, SOME_RECORD_ID, JP2);
 

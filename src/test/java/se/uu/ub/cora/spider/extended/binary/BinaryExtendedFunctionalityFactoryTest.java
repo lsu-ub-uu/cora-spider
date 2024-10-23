@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.extended.binary;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_AFTER;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
@@ -72,8 +73,7 @@ public class BinaryExtendedFunctionalityFactoryTest {
 	}
 
 	@Test
-	public void testFactorBinaryProtocolsExtendedFunctionality_READ_BEFORE_RETURN()
-			throws Exception {
+	public void testFactorBinaryExtendedFunctionality_READ_BEFORE_RETURN() throws Exception {
 		List<ExtendedFunctionality> extendedFunctionalities = factory.factor(READ_BEFORE_RETURN,
 				"someRecordType");
 
@@ -82,8 +82,7 @@ public class BinaryExtendedFunctionalityFactoryTest {
 	}
 
 	@Test
-	public void testFactorBinaryProtocolsExtendedFunctionality_UPDATE_BEFORE_RETURN()
-			throws Exception {
+	public void testFactorBinaryExtendedFunctionality_UPDATE_BEFORE_RETURN() throws Exception {
 		List<ExtendedFunctionality> extendedFunctionalities = factory.factor(UPDATE_BEFORE_RETURN,
 				"someRecordType");
 
@@ -92,11 +91,16 @@ public class BinaryExtendedFunctionalityFactoryTest {
 	}
 
 	@Test
-	public void testFactorBinaryProtocolsExtendedFunctionality_DELETE_AFTER() throws Exception {
+	public void testFactorBinaryExtendedFunctionality_DELETE_AFTER() throws Exception {
+		factory.initializeUsingDependencyProvider(dependencyProvider);
+
 		List<ExtendedFunctionality> extendedFunctionalities = factory.factor(DELETE_AFTER,
 				"someRecordType");
 
 		assertEquals(extendedFunctionalities.size(), 1);
-		assertTrue(extendedFunctionalities.get(0) instanceof DeleteStreamsExtendedFunctionality);
+		ExtendedFunctionality extendedFunctionality = extendedFunctionalities.get(0);
+		assertTrue(extendedFunctionality instanceof DeleteStreamsExtendedFunctionality);
+		assertSame(((DeleteStreamsExtendedFunctionality) extendedFunctionality)
+				.onlyForTestGetDependencyProvider(), dependencyProvider);
 	}
 }

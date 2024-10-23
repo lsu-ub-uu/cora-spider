@@ -154,11 +154,23 @@ public final class DownloaderImp implements Downloader {
 	}
 
 	private ResourceInputStream readRepresentation(DataRecordGroup binaryRecordGroup) {
+		if (!binaryRecordGroup.containsChildWithNameInData(representation)) {
+			throwRepresentationDoesNotExist();
+		}
 		String dataDivider = binaryRecordGroup.getDataDivider();
 		if (isMasterRepresentation(representation)) {
 			return readMasterRepresentation(binaryRecordGroup, dataDivider);
 		}
+
 		return readConvertedRepresentation(binaryRecordGroup, dataDivider);
+	}
+
+	private void throwRepresentationDoesNotExist() {
+		String errorMessage = MessageFormat.format(
+				"Could not download the stream because the binary does not have the requested "
+						+ "representation. Type: {0}, id: {1} and representation: {2}",
+				type, id, representation);
+		throw ResourceNotFoundException.withMessage(errorMessage);
 	}
 
 	private boolean isMasterRepresentation(String representation) {
@@ -167,8 +179,9 @@ public final class DownloaderImp implements Downloader {
 
 	private ResourceInputStream readConvertedRepresentation(DataRecordGroup binaryRecordGroup,
 			String dataDivider) {
-		InputStream stream = streamStorage.retrieve(type + ":" + id + "-" + representation,
-				dataDivider);
+		DataGroup resourceGroup = binaryRecordGroup.getFirstGroupWithNameInData(representation);
+		String resourceId = resourceGroup.getFirstAtomicValueWithNameInData("resourceId");
+		InputStream stream = streamStorage.retrieve(type + ":" + resourceId, dataDivider);
 		return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
 	}
 

@@ -20,9 +20,9 @@ package se.uu.ub.cora.spider.dependency.spy;
 
 import java.util.Map;
 
-import se.uu.ub.cora.spider.spy.StreamStorageSpy;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.StreamStorageProvider;
+import se.uu.ub.cora.storage.spies.StreamStorageSpy;
 
 public class StreamStorageProviderSpy implements StreamStorageProvider {
 	public StreamStorage streamStorage = new StreamStorageSpy();
