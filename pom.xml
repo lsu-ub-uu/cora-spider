@@ -27,7 +27,7 @@
 	</parent>
 
 	<artifactId>spider</artifactId>
-	<version>9.2-SNAPSHOT</version>
+	<version>9.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Spider</name>
