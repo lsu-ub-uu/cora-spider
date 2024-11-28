@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.binary.iiif.internal;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.binary.BinaryProvider;
@@ -100,7 +101,16 @@ public class IiifReaderImp implements IiifReader {
 	}
 
 	private User getUserFromToken(Map<String, String> headersMap) {
-		return authenticator.getUserForToken(headersMap.get(AUTH_TOKEN));
+		return authenticator.getUserForToken(possiblyGetAuthToken(headersMap));
+	}
+
+	private String possiblyGetAuthToken(Map<String, String> headersMap) {
+		for (Entry<String, String> entry : headersMap.entrySet()) {
+			if (entry.getKey().equalsIgnoreCase(AUTH_TOKEN)) {
+				return entry.getValue();
+			}
+		}
+		return null;
 	}
 
 	private List<PermissionTerm> getPermissionTerms(DataRecordGroup binaryRecordGroup) {
