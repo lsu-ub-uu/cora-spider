@@ -26,6 +26,7 @@ import static org.testng.Assert.fail;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_STORE;
 
 import java.util.List;
 import java.util.Set;
@@ -273,10 +274,30 @@ public class RecordCreatorTest {
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				CREATE_AFTER_METADATA_VALIDATION, expectedData, 1);
 		expectedData.recordId = "someRecordId";
+
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-				CREATE_BEFORE_ENHANCE, expectedData, 2);
+				CREATE_BEFORE_STORE, expectedData, 2);
+
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				CREATE_BEFORE_ENHANCE, expectedData, 3);
 		extendedFunctionalityProvider.MCR
-				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 3);
+				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 4);
+	}
+
+	@Test
+	public void testCreateBeforeStorePosition() {
+		recordStorage.MRV.setAlwaysThrowException("create", new RuntimeException("someError"));
+
+		try {
+			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
+		} catch (Exception e) {
+			assertEquals(e.getMessage(), "someError");
+
+			uniqueValidator.MCR.assertMethodWasCalled("validateUniqueForNewRecord");
+			extendedFunctionalityProvider.MCR.assertParameter(
+					"getFunctionalityForPositionAndRecordType", 2, "position", CREATE_BEFORE_STORE);
+			recordTypeHandlerSpy.MCR.assertMethodNotCalled("storeInArchive");
+		}
 	}
 
 	@Test

@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.record.internal;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_STORE;
 
 import java.text.MessageFormat;
 import java.util.Collection;
@@ -126,6 +127,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		collectInformationSpecifiedInMetadata();
 		ensureNoDuplicateForTypeAndId();
 		validateDataForUniqueThrowErrorIfNot();
+		useExtendedFunctionalityForPosition(CREATE_BEFORE_STORE);
 		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
 		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms.storageTerms);
 		possiblyStoreInArchive(recordAsDataGroup);

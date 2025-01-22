@@ -61,6 +61,12 @@ public enum ExtendedFunctionalityPosition {
 	CREATE_AFTER_METADATA_VALIDATION,
 
 	/**
+	 * CREATE_BEFORE_STORE, as the name suggests is the functionality plugged into a create
+	 * operation, right after data is created in storage
+	 */
+	CREATE_BEFORE_STORE,
+
+	/**
 	 * CREATE_BEFORE_ENHANCE, as the name suggests is the functionality plugged into a create
 	 * operation, before the method returns.
 	 */
