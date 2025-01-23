@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, 2021, 2024 Uppsala University Library
+ * Copyright 2020, 2021, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -62,7 +62,7 @@ public enum ExtendedFunctionalityPosition {
 
 	/**
 	 * CREATE_BEFORE_STORE, as the name suggests is the functionality plugged into a create
-	 * operation, right after data is created in storage
+	 * operation, right before data is created in storage
 	 */
 	CREATE_BEFORE_STORE,
 
