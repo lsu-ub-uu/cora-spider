@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, 2021, 2024 Uppsala University Library
+ * Copyright 2020, 2021, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -59,6 +59,12 @@ public enum ExtendedFunctionalityPosition {
 	 * create operation, after metadataValidation is done.
 	 */
 	CREATE_AFTER_METADATA_VALIDATION,
+
+	/**
+	 * CREATE_BEFORE_STORE, as the name suggests is the functionality plugged into a create
+	 * operation, right before data is created in storage
+	 */
+	CREATE_BEFORE_STORE,
 
 	/**
 	 * CREATE_BEFORE_ENHANCE, as the name suggests is the functionality plugged into a create
