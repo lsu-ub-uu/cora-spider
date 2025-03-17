@@ -25,6 +25,8 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_STORE;
 
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +38,7 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
@@ -129,6 +132,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		validateDataForUniqueThrowErrorIfNot();
 		useExtendedFunctionalityForPosition(CREATE_BEFORE_STORE);
 		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
+		possiblyCreateVisibilityTimeStamp(recordAsDataGroup);
 		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms.storageTerms);
 		possiblyStoreInArchive(recordAsDataGroup);
 		indexRecord(collectedTerms.indexTerms);
@@ -286,6 +290,19 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		}
 	}
 
+	private void possiblyCreateVisibilityTimeStamp(DataGroup recordAsDataGroup) {
+		if (recordTypeHandler.useVisibility()) {
+			createAndAddTsVisibility();
+		}
+	}
+
+	private void createAndAddTsVisibility() {
+		DataGroup recordInfoGroup = recordGroup.getFirstGroupWithNameInData(RECORD_INFO);
+		DataAtomic tsVisibility = DataProvider
+				.createAtomicUsingNameInDataAndValue(TS_VISIBILITY, getCurrentTimestamp());
+		recordInfoGroup.addChild(tsVisibility);
+	}
+
 	private DataRecord enhanceDataGroupToRecord() {
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		return dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user, recordType, recordGroup,
@@ -294,5 +311,12 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	public DataGroupToRecordEnhancer onlyForTestGetDataGroupToRecordEnhancer() {
 		return dataGroupToRecordEnhancer;
+	}
+
+	private String getCurrentTimestamp() {
+		String format = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'";
+		DateTimeFormatter timeFormater = DateTimeFormatter.ofPattern(format);
+		LocalDateTime currentTime = LocalDateTime.now();
+		return timeFormater.format(currentTime);
 	}
 }

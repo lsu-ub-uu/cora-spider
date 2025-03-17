@@ -44,6 +44,8 @@ public class RecordHandler {
 	protected static final String RECORD_TYPE = "recordType";
 	protected static final String RECORD_INFO = "recordInfo";
 	protected static final String TS_CREATED = "tsCreated";
+	protected static final String VISIBILITY = "visibility";
+	protected static final String TS_VISIBILITY = "tsVisibility";
 	protected SpiderDependencyProvider dependencyProvider;
 	protected RecordStorage recordStorage;
 	protected String recordType;

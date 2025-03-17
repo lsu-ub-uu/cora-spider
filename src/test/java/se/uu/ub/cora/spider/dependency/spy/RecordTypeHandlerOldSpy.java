@@ -79,6 +79,7 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 		MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
 				() -> "fakeUpdateMetadataIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
+		MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "fakeRecordTypeIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("getCombinedIdForIndex",
@@ -217,5 +218,10 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 	@Override
 	public List<Unique> getUniqueDefinitions() {
 		return (List<Unique>) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public boolean useVisibility() {
+		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
 }

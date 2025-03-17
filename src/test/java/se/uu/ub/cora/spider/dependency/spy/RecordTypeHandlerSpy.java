@@ -63,6 +63,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "fakeRecordTypeIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
+		MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
 		MRV.setDefaultReturnValuesSupplier("getCombinedIdForIndex",
 				() -> List.of("someCombinedIdFromSpy"));
 		MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions", () -> Collections.emptyList());
@@ -156,5 +157,10 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	@Override
 	public List<Unique> getUniqueDefinitions() {
 		return (List<Unique>) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public boolean useVisibility() {
+		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
 }

@@ -27,6 +27,8 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.UPDATE_BEFORE_STORE;
 
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +40,7 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
+import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
@@ -151,6 +154,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		useExtendedFunctionalityForPosition(UPDATE_BEFORE_STORE);
+		possiblyUpdateVisibilityTimeStamp();
 		dataDivider = recordGroup.getDataDivider();
 		DataGroup recordAsDataGroupForStorage = DataProvider
 				.createGroupFromRecordGroup(recordGroup);
@@ -305,6 +309,51 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 			throw new DataException("Value in data(" + extractedValueFromRecord
 					+ ") does not match entered value(" + value + ")");
 		}
+	}
+
+	private void possiblyUpdateVisibilityTimeStamp() {
+		if (recordTypeHandler.useVisibility()) {
+			possiblyUpdateTsVisibility();
+		}
+	}
+
+	private void possiblyUpdateTsVisibility() {
+		DataGroup previousRecordInfoGroup = previouslyStoredRecord
+				.getFirstGroupWithNameInData(RECORD_INFO);
+		DataGroup updatedRecordInfoGroup = recordGroup.getFirstGroupWithNameInData(RECORD_INFO);
+
+		if (isVisibiltyChanged(previousRecordInfoGroup, updatedRecordInfoGroup)) {
+			removeOutdatedTsVisibilityIfPresent(updatedRecordInfoGroup);
+			createAndAddTsVisibility(updatedRecordInfoGroup);
+		}
+	}
+
+	private boolean isVisibiltyChanged(DataGroup previousRecordInfoGroup,
+			DataGroup updatedRecordInfoGroup) {
+		String previousTsVisibility = previousRecordInfoGroup
+				.getFirstAtomicValueWithNameInData(VISIBILITY);
+		String updatedTsVisibility = updatedRecordInfoGroup
+				.getFirstAtomicValueWithNameInData(VISIBILITY);
+		return !previousTsVisibility.equals(updatedTsVisibility);
+	}
+
+	private void removeOutdatedTsVisibilityIfPresent(DataGroup updatedRecordInfoGroup) {
+		if (updatedRecordInfoGroup.containsChildWithNameInData(TS_VISIBILITY)) {
+			updatedRecordInfoGroup.removeFirstChildWithNameInData(TS_VISIBILITY);
+		}
+	}
+
+	private void createAndAddTsVisibility(DataGroup updatedRecordInfoGroup) {
+		DataAtomic tsVisibility = DataProvider.createAtomicUsingNameInDataAndValue(TS_VISIBILITY,
+				getCurrentTimestamp());
+		updatedRecordInfoGroup.addChild(tsVisibility);
+	}
+
+	private String getCurrentTimestamp() {
+		String format = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'";
+		DateTimeFormatter timeFormater = DateTimeFormatter.ofPattern(format);
+		LocalDateTime currentTime = LocalDateTime.now();
+		return timeFormater.format(currentTime);
 	}
 
 	private void updateRecordInStorage(DataGroup recordAsDataGroupForStorage,

@@ -51,6 +51,7 @@ import se.uu.ub.cora.data.copier.DataCopierFactory;
 import se.uu.ub.cora.data.copier.DataCopierProvider;
 import se.uu.ub.cora.data.spies.DataAtomicSpy;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
+import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
@@ -77,6 +78,7 @@ import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.storage.spies.archive.RecordArchiveSpy;
 
 public class RecordUpdaterTest {
+	private static final String RECORD_INFO = "recordInfo";
 	private static final String AUTH_TOKEN = "someAuthToken";
 	private static final String RECORD_ID = "someRecordId";
 	private static final String RECORD_TYPE = "spyType";
@@ -731,5 +733,97 @@ public class RecordUpdaterTest {
 				() -> List.of("error1", "error2", "error3"));
 		uniqueValidator.MRV.setDefaultReturnValuesSupplier("validateUniqueForExistingRecord",
 				() -> validationAnswer);
+	}
+
+	@Test
+	public void testUpdateTsVisibilityWhenVisibilityDoNotMatch() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+
+		DataGroupSpy previousRecordInfo = createRecordInfoWithTsVisibilityValue("unpublished");
+		previouslyStoredRecordGroup.MRV.setSpecificReturnValuesSupplier(
+				"getFirstGroupWithNameInData", () -> previousRecordInfo, RECORD_INFO);
+
+		DataGroupSpy updatedRecordInfo = createRecordInfoWithTsVisibilityValue("published");
+		updatedRecordInfo.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
+				() -> true);
+		recordWithId.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> updatedRecordInfo, RECORD_INFO);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		previouslyStoredRecordGroup.MCR.assertNumberOfCallsToMethod("getFirstGroupWithNameInData",
+				1);
+		previousRecordInfo.MCR.assertNumberOfCallsToMethod("getFirstAtomicValueWithNameInData", 1);
+
+		recordWithId.MCR.assertNumberOfCallsToMethod("getFirstGroupWithNameInData", 1);
+		updatedRecordInfo.MCR.assertNumberOfCallsToMethod("getFirstAtomicValueWithNameInData", 1);
+		updatedRecordInfo.MCR.assertMethodWasCalled("containsChildWithNameInData");
+		updatedRecordInfo.MCR.assertMethodWasCalled("removeFirstChildWithNameInData");
+		assertTsVisibilityIsSetWithCorrectFormat();
+		updatedRecordInfo.MCR.assertMethodWasCalled("addChild");
+	}
+
+	private DataGroupSpy createRecordInfoWithTsVisibilityValue(String visibility) {
+		DataGroupSpy recordInfoGroup = new DataGroupSpy();
+		recordInfoGroup.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> visibility);
+		return recordInfoGroup;
+	}
+
+	private void assertTsVisibilityIsSetWithCorrectFormat() {
+		String regex = "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{6}Z$";
+		String tsVisibility = (String) dataFactorySpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"factorAtomicUsingNameInDataAndValue", 0, "value");
+		if (!tsVisibility.matches(regex)) {
+			fail(tsVisibility + " does not match expected format");
+		}
+	}
+
+	@Test
+	public void testUpdateTsVisibilityWhenVisibilityMatch() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+
+		DataGroupSpy previousRecordInfo = createRecordInfoWithTsVisibilityValue("unpublished");
+		previouslyStoredRecordGroup.MRV.setSpecificReturnValuesSupplier(
+				"getFirstGroupWithNameInData", () -> previousRecordInfo, RECORD_INFO);
+
+		DataGroupSpy updatedRecordInfo = createRecordInfoWithTsVisibilityValue("unpublished");
+		updatedRecordInfo.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
+				() -> true);
+		recordWithId.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> updatedRecordInfo, RECORD_INFO);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		previouslyStoredRecordGroup.MCR.assertNumberOfCallsToMethod("getFirstGroupWithNameInData",
+				1);
+		previousRecordInfo.MCR.assertNumberOfCallsToMethod("getFirstAtomicValueWithNameInData", 1);
+
+		recordWithId.MCR.assertNumberOfCallsToMethod("getFirstGroupWithNameInData", 1);
+		updatedRecordInfo.MCR.assertNumberOfCallsToMethod("getFirstAtomicValueWithNameInData", 1);
+		updatedRecordInfo.MCR.assertMethodNotCalled("containsChildWithNameInData");
+		updatedRecordInfo.MCR.assertMethodNotCalled("removeFirstChildWithNameInData");
+		updatedRecordInfo.MCR.assertMethodNotCalled("addChild");
+	}
+
+	@Test
+	public void testUpdateTsVisibilityWhenNotUsingVisibility() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
+
+		DataGroupSpy previousRecordInfo = createRecordInfoWithTsVisibilityValue("unpublished");
+		previouslyStoredRecordGroup.MRV.setSpecificReturnValuesSupplier(
+				"getFirstGroupWithNameInData", () -> previousRecordInfo, RECORD_INFO);
+
+		DataGroupSpy updatedRecordInfo = createRecordInfoWithTsVisibilityValue("unpublished");
+		updatedRecordInfo.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
+				() -> true);
+		recordWithId.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> updatedRecordInfo, RECORD_INFO);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		previouslyStoredRecordGroup.MCR.assertMethodNotCalled("getFirstGroupWithNameInData");
+		recordWithId.MCR.assertMethodNotCalled("getFirstGroupWithNameInData");
 	}
 }

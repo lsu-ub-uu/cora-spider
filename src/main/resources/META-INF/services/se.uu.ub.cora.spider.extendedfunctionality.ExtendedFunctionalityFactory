@@ -4,5 +4,4 @@ se.uu.ub.cora.spider.extended.consistency.MetadataValidatorExtendedFunctionality
 se.uu.ub.cora.spider.extended.password.PasswordExtendedFunctionalityFactory
 se.uu.ub.cora.spider.extended.systemsecret.SystemSecretSecurityExtendedFunctionalityFactory
 se.uu.ub.cora.spider.extended.binary.BinaryExtendedFunctionalityFactory
-se.uu.ub.cora.spider.extended.visibility.VisibilityExtendedFunctionalityFactory
 se.uu.ub.cora.spider.extended.regex.RegexExtendedFunctionalityFactory

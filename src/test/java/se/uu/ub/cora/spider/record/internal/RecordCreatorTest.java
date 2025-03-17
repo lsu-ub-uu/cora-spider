@@ -723,4 +723,35 @@ public class RecordCreatorTest {
 		uniqueValidator.MRV.setDefaultReturnValuesSupplier("validateUniqueForNewRecord",
 				() -> validationAnswer);
 	}
+
+	@Test
+	public void testUseVisibilityTrue() throws Exception {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+
+		recordWithoutId.MCR.assertNumberOfCallsToMethod("getFirstGroupWithNameInData", 2);
+		assertTsVisibilityIsSetWithCorrectFormat();
+		recordInfoWithoutId.MCR.assertNumberOfCallsToMethod("addChild", 1);
+	}
+
+	private void assertTsVisibilityIsSetWithCorrectFormat() {
+		String regex = "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{6}Z$";
+		String tsVisibility = (String) dataFactorySpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName(
+						"factorAtomicUsingNameInDataAndValue", 0, "value");
+		if (!tsVisibility.matches(regex)) {
+			fail(tsVisibility + " does not match expected format");
+		}
+	}
+
+	@Test
+	public void testUseVisibilityFalse() throws Exception {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
+
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+
+		dataFactorySpy.MCR.assertMethodNotCalled("factorAtomicUsingNameInDataAndValue");
+
+	}
 }
