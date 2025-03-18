@@ -40,7 +40,6 @@ public class DataChangeMessageReceiverTest {
 
 	private static final String EMPTY_MESSAGE = "";
 	private DataChangeMessageReceiver receiver;
-	// private GatekeeperLocatorSpy locator;
 
 	private RecordStorageInstanceProviderSpy recordStorageProvider;
 	private LoggerFactorySpy loggerFactory;
@@ -50,8 +49,6 @@ public class DataChangeMessageReceiverTest {
 	@BeforeMethod
 	private void beforeMethod() {
 		setUpRecordStorageProvider();
-		// locator = new GatekeeperLocatorSpy();
-		// GatekeeperInstanceProvider.setGatekeeperLocator(locator);
 
 		receiver = new DataChangeMessageReceiver();
 	}
