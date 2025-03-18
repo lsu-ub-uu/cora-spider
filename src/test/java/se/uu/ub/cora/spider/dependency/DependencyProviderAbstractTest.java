@@ -200,7 +200,7 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testExtendedFunctionalityProviderReturnsSame() {
+	public void testExtendedFunctionalityProviderReturnsSame() throws Exception {
 		ExtendedFunctionalityProvider extendedFunctionalityProvider1 = dependencyProvider
 				.getExtendedFunctionalityProvider();
 		ExtendedFunctionalityProvider extendedFunctionalityProvider2 = dependencyProvider
@@ -231,7 +231,7 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testGetDataValidatorFactory() {
+	public void testGetDataValidatorFactory() throws Exception {
 		dependencyProvider.standardDataValidatorFactory = true;
 		DataValidatorFactory dataValidatorFactory = dependencyProvider.getDataValidatorFactory();
 		assertTrue(dataValidatorFactory instanceof DataValidatorFactoryImp);
@@ -272,7 +272,8 @@ public class DependencyProviderAbstractTest {
 	public void testGetRecordTypeHandler() throws Exception {
 		String recordTypeId = "someRecordType";
 
-		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordTypeId);
+		RecordTypeHandler recordTypeHandler = ((SpiderDependencyProvider) dependencyProvider)
+				.getRecordTypeHandler(recordTypeId);
 
 		RecordTypeHandlerFactorySpy typeHandlerFactorySpy = (RecordTypeHandlerFactorySpy) dependencyProvider.recordTypeHandlerFactory;
 
@@ -284,7 +285,7 @@ public class DependencyProviderAbstractTest {
 	public void testGetRecordTypeHandlerUsingDataRecordGroup() throws Exception {
 		DataRecordGroup dataRecordGroup = new DataRecordGroupSpy();
 
-		RecordTypeHandler recordTypeHandler = dependencyProvider
+		RecordTypeHandler recordTypeHandler = ((SpiderDependencyProvider) dependencyProvider)
 				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
 
 		RecordTypeHandlerFactorySpy typeHandlerFactorySpy = (RecordTypeHandlerFactorySpy) dependencyProvider.recordTypeHandlerFactory;

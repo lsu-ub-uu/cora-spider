@@ -268,16 +268,4 @@ public class RecordStorageForAuthorizatorSpy implements RecordStorage {
 		return null;
 	}
 
-	@Override
-	public Set<Link> getLinksFromRecord(String arg0, String arg1) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Set<StorageTerm> getStorageTermsForRecord(String arg0, String arg1) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

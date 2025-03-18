@@ -24,50 +24,45 @@ import java.util.List;
 import java.util.Optional;
 
 import se.uu.ub.cora.bookkeeper.metadata.CollectTermHolder;
-import se.uu.ub.cora.bookkeeper.metadata.MetadataElement;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageView;
 import se.uu.ub.cora.bookkeeper.validator.ValidationType;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
-import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
 
 public class MetadataStorageViewSpy implements MetadataStorageView {
 
 	public List<DataGroup> recordTypes = new ArrayList<>();
-	public List<DataRecordGroup> metadataElements = new ArrayList<>();
+	public List<DataGroup> metadataElements = new ArrayList<>();
 	public boolean getMetadataElementsWasCalled = false;
 
 	@Override
-	public Collection<DataRecordGroup> getMetadataElements() {
+	public Collection<DataGroup> getMetadataElements() {
 		getMetadataElementsWasCalled = true;
 		metadataElements = new ArrayList<>();
-		DataRecordGroup spyDataGroup = createAndAddMetadataGroupToMetedataElementsUsingId(
+		DataGroup spyDataGroup = createAndAddMetadataGroupToMetedataElementsUsingId(
 				"someMetadata1");
 
 		metadataElements.add(spyDataGroup);
 		return metadataElements;
 	}
 
-	private DataRecordGroup createAndAddMetadataGroupToMetedataElementsUsingId(String id) {
-		DataRecordGroupSpy recordGroup = new DataRecordGroupSpy();
-		recordGroup.MRV.setDefaultReturnValuesSupplier("getId", () -> id);
-		recordGroup.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "metadata");
-		recordGroup.MRV.setSpecificReturnValuesSupplier("getAttributeValue",
-				() -> Optional.of("textVariable"), "type");
-		DataRecordLinkSpy textLink = new DataRecordLinkSpy();
-		recordGroup.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
-				() -> textLink, DataRecordLink.class, "textId");
-		DataRecordLinkSpy defTextLink = new DataRecordLinkSpy();
-		recordGroup.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
-				() -> defTextLink, DataRecordLink.class, "defTextId");
-		recordGroup.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> "someRegexp", "regEx");
+	private DataGroup createAndAddMetadataGroupToMetedataElementsUsingId(String id) {
+		DataGroup spyDataGroup = createRecordTypeDataGroup("metadata", id);
+		spyDataGroup.addChild(new DataAtomicOldSpy("nameInData", id));
+		spyDataGroup.addAttributeByIdWithValue("type", "textVariable");
+		spyDataGroup.addChild(new DataAtomicOldSpy("regEx", "someRegexp"));
+		createAndAddTexts(id, spyDataGroup);
+		return spyDataGroup;
+	}
 
-		return recordGroup;
+	private void createAndAddTexts(String id, DataGroup spyDataGroup) {
+		DataGroup textId = new DataGroupOldSpy("textId");
+		textId.addChild(new DataAtomicOldSpy("linkedRecordId", id + "Text"));
+		spyDataGroup.addChild(textId);
+		DataGroup defTextId = new DataGroupOldSpy("defTextId");
+		defTextId.addChild(new DataAtomicOldSpy("linkedRecordId", id + "DefText"));
+		spyDataGroup.addChild(defTextId);
 	}
 
 	@Override
@@ -120,12 +115,6 @@ public class MetadataStorageViewSpy implements MetadataStorageView {
 
 	@Override
 	public CollectTermHolder getCollectTermHolder() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public MetadataElement getMetadataElement(String elementId) {
 		// TODO Auto-generated method stub
 		return null;
 	}
