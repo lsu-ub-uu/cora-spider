@@ -61,6 +61,7 @@ import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.spy.DataChangedSenderSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
@@ -161,6 +162,8 @@ public class RecordCreatorTest {
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
 				() -> extendedFunctionalityProvider);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataRedactor",
+				() -> dataRedactor);
 
 		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProviderSpy, dataGroupToRecordEnhancer);
@@ -658,7 +661,19 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testStoreInArchiveTrue() throws Exception {
+	public void testSendDataChanged() {
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
+
+		var sender = (DataChangedSenderSpy) dependencyProviderSpy.MCR
+				.assertCalledParametersReturn("getDataChangeSender");
+		sender.MCR.assertParameters("sendDataChanged", 0, RECORD_TYPE, "someRecordId", "create");
+
+		fail();
+		// TODO: test the position of sendDataChanged. Maybe throw some exception
+	}
+
+	@Test
+	public void testStoreInArchiveTrue() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);

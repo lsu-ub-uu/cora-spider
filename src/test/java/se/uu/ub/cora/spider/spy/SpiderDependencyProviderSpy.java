@@ -29,6 +29,7 @@ import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
@@ -87,6 +88,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MRV.setDefaultReturnValuesSupplier("getDataGroupToFilterConverter",
 				DataGroupToFilterSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getUniqueValidator", UniqueValidatorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getDataChangeSender", DataChangedSenderSpy::new);
 	}
 
 	@Override
@@ -189,5 +191,10 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	@Override
 	public UniqueValidator getUniqueValidator(RecordStorage recordStorage) {
 		return (UniqueValidator) MCR.addCallAndReturnFromMRV("recordStorage", recordStorage);
+	}
+
+	@Override
+	public DataChangedSender getDataChangeSender() {
+		return (DataChangedSender) MCR.addCallAndReturnFromMRV();
 	}
 }
