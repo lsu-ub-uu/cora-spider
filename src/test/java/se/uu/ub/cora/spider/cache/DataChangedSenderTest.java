@@ -109,6 +109,7 @@ public class DataChangedSenderTest {
 		headers.put("type", type);
 		headers.put("id", id);
 		headers.put("action", action);
+		headers.put("messagingId", MessagingProvider.getMessagingId());
 		messageSender.MCR.assertMethodWasCalled("sendMessage");
 		messageSender.MCR.assertParameterAsEqual("sendMessage", 0, "headers", headers);
 		messageSender.MCR.assertParameterAsEqual("sendMessage", 0, "message", "");

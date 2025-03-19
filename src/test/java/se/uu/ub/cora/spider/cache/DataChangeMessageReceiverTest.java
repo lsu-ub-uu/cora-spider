@@ -33,11 +33,15 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.logger.spies.LoggerSpy;
 import se.uu.ub.cora.messaging.MessageReceiver;
+import se.uu.ub.cora.messaging.MessagingProvider;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.spies.RecordStorageInstanceProviderSpy;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class DataChangeMessageReceiverTest {
 
+	private static final String SOME_OTHER_MESSAGING_ID = "someOtherMessagingId";
 	private static final String EMPTY_MESSAGE = "";
 	private DataChangeMessageReceiver receiver;
 
@@ -55,7 +59,6 @@ public class DataChangeMessageReceiverTest {
 
 	@AfterMethod
 	private void afterMethod() {
-		LoggerProvider.setLoggerFactory(null);
 		RecordStorageProvider.onlyForTestSetRecordStorageInstanceProvider(null);
 		MetadataHolderProvider.onlyForTestSetHolder(null);
 	}
@@ -82,7 +85,8 @@ public class DataChangeMessageReceiverTest {
 
 	@Test
 	public void testReceiveMessage_AnyType_updateRecordStorage() {
-		Map<String, String> headers = createHeadersForType("someType", "someAction");
+		Map<String, String> headers = createHeadersForType("someType", "someAction",
+				SOME_OTHER_MESSAGING_ID);
 
 		receiver.receiveMessage(headers, EMPTY_MESSAGE);
 
@@ -92,8 +96,20 @@ public class DataChangeMessageReceiverTest {
 	}
 
 	@Test
+	public void testReceiveMessage_forMetadata_sameMessagingId() {
+		Map<String, String> headers = createHeadersForType("metadata", "someAction",
+				MessagingProvider.getMessagingId());
+
+		receiver.receiveMessage(headers, EMPTY_MESSAGE);
+
+		recordStorageProvider.MCR.assertMethodNotCalled("dataChanged");
+		metadataHolder.MCR.assertMethodNotCalled("addMetadataElement");
+	}
+
+	@Test
 	public void testReceiveMessageAndCallDataChanged_forMetadata_metadataHolderUpdated() {
-		Map<String, String> headers = createHeadersForType("metadata", "someAction");
+		Map<String, String> headers = createHeadersForType("metadata", "someAction",
+				SOME_OTHER_MESSAGING_ID);
 
 		receiver.receiveMessage(headers, EMPTY_MESSAGE);
 
@@ -108,7 +124,8 @@ public class DataChangeMessageReceiverTest {
 
 	@Test
 	public void testReceiveMessageAndCallDataChanged_forMetadata_metadataHolderDelete() {
-		Map<String, String> headers = createHeadersForType("metadata", "delete");
+		Map<String, String> headers = createHeadersForType("metadata", "delete",
+				SOME_OTHER_MESSAGING_ID);
 
 		receiver.receiveMessage(headers, EMPTY_MESSAGE);
 
@@ -117,26 +134,62 @@ public class DataChangeMessageReceiverTest {
 		metadataHolder.MCR.assertParameters("deleteMetadataElement", 0, "someId");
 	}
 
-	@Test(enabled = false)
+	@Test
 	public void testTopicClosed() {
+		DataChangeMessageRecieverForTest receiverForTest = new DataChangeMessageRecieverForTest();
 		// can not be tested as security manager is removed from java
-		receiver.topicClosed();
+		receiverForTest.topicClosed();
 
-		LoggerSpy logger = getLogger();
+		LoggerSpy logger = (LoggerSpy) loggerFactory.MCR.assertCalledParametersReturn(
+				"factorForClass", DataChangeMessageRecieverForTest.class);
 		logger.MCR.assertParameters("logFatalUsingMessage", 0,
-				"Shuting down Spider due to lost connection with message broker,"
+				"Shuting down due to lost connection with message broker,"
 						+ "continued operation would lead to system inconsistencies.");
+		receiverForTest.MCR.assertMethodWasCalled("shutdownSystemToPreventDataInconsistency");
 	}
 
-	private LoggerSpy getLogger() {
-		return (LoggerSpy) loggerFactory.MCR.getReturnValue("factorForClass", 0);
+	@Test
+	public void testReceiveMessage_errorUpdateingCache() {
+		DataChangeMessageRecieverForTest receiverForTest = new DataChangeMessageRecieverForTest();
+		RuntimeException returnException = new RuntimeException("someException");
+		recordStorageProvider.MRV.setAlwaysThrowException("dataChanged", returnException);
+
+		Map<String, String> headers = createHeadersForType("metadata", "someAction",
+				SOME_OTHER_MESSAGING_ID);
+
+		receiverForTest.receiveMessage(headers, EMPTY_MESSAGE);
+
+		LoggerSpy logger = (LoggerSpy) loggerFactory.MCR.assertCalledParametersReturn(
+				"factorForClass", DataChangeMessageRecieverForTest.class);
+		logger.MCR.assertParameters("logFatalUsingMessageAndException", 0,
+				"Shuting down due to error keeping data in sync,"
+						+ "continued operation would lead to system inconsistencies.",
+				returnException);
+		receiverForTest.MCR.assertMethodWasCalled("shutdownSystemToPreventDataInconsistency");
 	}
 
-	private Map<String, String> createHeadersForType(String type, String action) {
+	class DataChangeMessageRecieverForTest extends DataChangeMessageReceiver {
+		public MethodCallRecorder MCR = new MethodCallRecorder();
+		public MethodReturnValues MRV = new MethodReturnValues();
+
+		public DataChangeMessageRecieverForTest() {
+			log = LoggerProvider.getLoggerForClass(DataChangeMessageRecieverForTest.class);
+			MCR.useMRV(MRV);
+		}
+
+		@Override
+		void shutdownSystemToPreventDataInconsistency() {
+			MCR.addCall();
+		}
+	}
+
+	private Map<String, String> createHeadersForType(String type, String action,
+			String messagingId) {
 		Map<String, String> headers = new HashMap<>();
 		headers.put("type", type);
 		headers.put("id", "someId");
 		headers.put("action", action);
+		headers.put("messagingId", messagingId);
 		return headers;
 	}
 

@@ -59,6 +59,7 @@ public class DataChangedSenderImp implements DataChangedSender {
 		headers.put("type", type);
 		headers.put("id", id);
 		headers.put("action", action);
+		headers.put("messagingId", MessagingProvider.getMessagingId());
 		return headers;
 	}
 }

@@ -24,30 +24,64 @@ import se.uu.ub.cora.bookkeeper.metadata.MetadataHolderProvider;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.MessageReceiver;
+import se.uu.ub.cora.messaging.MessagingProvider;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 
 public class DataChangeMessageReceiver implements MessageReceiver {
-	private Logger log = LoggerProvider.getLoggerForClass(DataChangeMessageReceiver.class);
+	protected Logger log = LoggerProvider.getLoggerForClass(DataChangeMessageReceiver.class);
 
 	@Override
 	public void receiveMessage(Map<String, String> headers, String message) {
+		System.err.println("DataChangeMessageReceiver 1");
 		String type = headers.get("type");
+		System.err.println("DataChangeMessageReceiver 2");
 		String id = headers.get("id");
+		System.err.println("DataChangeMessageReceiver 3");
 		String action = headers.get("action");
-		updateCachedData(type, id, action);
+		System.err.println("DataChangeMessageReceiver 4");
+
+		String messagingId = headers.get("messagingId");
+		if (messageSentFromAnotherInstance(messagingId)) {
+			try {
+				updateCachedData(type, id, action);
+			} catch (Exception e) {
+				log.logFatalUsingMessageAndException(
+						"Shuting down due to error keeping data in sync,"
+								+ "continued operation would lead to system inconsistencies.",
+						e);
+				shutdownSystemToPreventDataInconsistency();
+			}
+
+		}
+		System.err.println("DataChangeMessageReceiver 5");
+	}
+
+	private boolean messageSentFromAnotherInstance(String messagingId) {
+		return !messagingId.equals(MessagingProvider.getMessagingId());
 	}
 
 	private void updateCachedData(String type, String id, String action) {
+		System.err.println("DataChangeMessageReceiver 6");
 		RecordStorageProvider.dataChanged(type, id, action);
+		System.err.println("DataChangeMessageReceiver 7");
 		if ("metadata".equals(type)) {
+			System.err.println("DataChangeMessageReceiver 8");
 			MetadataHolderProvider.dataChanged(id, action);
+			System.err.println("DataChangeMessageReceiver 9");
 		}
+		System.err.println("DataChangeMessageReceiver 10");
 	}
 
 	@Override
 	public void topicClosed() {
-		log.logFatalUsingMessage("Shuting down Spider due to lost connection with message broker,"
+		System.err.println("DataChangeMessageReceiver 11");
+		log.logFatalUsingMessage("Shuting down due to lost connection with message broker,"
 				+ "continued operation would lead to system inconsistencies.");
+		shutdownSystemToPreventDataInconsistency();
+	}
+
+	void shutdownSystemToPreventDataInconsistency() {
+		// Important! The JVM will be shutdown.
 		System.exit(-1);
 	}
 }
