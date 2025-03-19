@@ -310,24 +310,15 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private void possiblyUpdateVisibilityTimeStamp() {
-		if (recordTypeHandler.useVisibility()) {
-			possiblyUpdateTsVisibility();
-		}
-	}
-
-	private void possiblyUpdateTsVisibility() {
-		if (isVisibiltyChanged()) {
+		if (recordTypeHandler.useVisibility() && isVisibilityChanged()) {
 			recordGroup.setTsVisibilityNow();
 		}
 	}
 
-	private boolean isVisibiltyChanged() {
+	private boolean isVisibilityChanged() {
 		Optional<String> previousVisibility = previouslyStoredRecord.getVisibility();
 		Optional<String> updatedVisibility = recordGroup.getVisibility();
-		if (previousVisibility.isPresent() && updatedVisibility.isPresent()) {
-			return !previousVisibility.get().equals(updatedVisibility.get());
-		}
-		return true;
+		return !previousVisibility.equals(updatedVisibility);
 	}
 
 	private void updateRecordInStorage(DataGroup recordAsDataGroupForStorage,

@@ -725,7 +725,7 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testTsVisibilityIsSetIfUseVisibilityIsTrue() throws Exception {
+	public void testTsVisibilityIsSetIfUseVisibilityIsTrue() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
@@ -735,7 +735,7 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testUseVisibilityFalse() throws Exception {
+	public void testUseVisibilityFalse() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);

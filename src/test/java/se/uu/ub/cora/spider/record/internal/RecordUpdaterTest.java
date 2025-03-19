@@ -33,6 +33,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
@@ -77,7 +78,6 @@ import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.storage.spies.archive.RecordArchiveSpy;
 
 public class RecordUpdaterTest {
-	private static final String RECORD_INFO = "recordInfo";
 	private static final String AUTH_TOKEN = "someAuthToken";
 	private static final String RECORD_ID = "someRecordId";
 	private static final String RECORD_TYPE = "spyType";
@@ -738,9 +738,10 @@ public class RecordUpdaterTest {
 	public void testUpdateTsVisibilityWhenVisibilityDoNotMatch() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
 
-		recordWithId.MRV.setDefaultReturnValuesSupplier("getVisibility", () -> "published");
+		recordWithId.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("published"));
 		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
-				() -> "unpublished");
+				() -> Optional.of("unpublished"));
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
@@ -753,15 +754,33 @@ public class RecordUpdaterTest {
 	public void testUpdateTsVisibilityWhenVisibilityMatch() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
 
-		recordWithId.MRV.setDefaultReturnValuesSupplier("getVisibility", () -> "published");
+		recordWithId.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("published"));
 		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
-				() -> "published");
+				() -> Optional.of("published"));
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
 		previouslyStoredRecordGroup.MCR.assertMethodWasCalled("getVisibility");
 		recordWithId.MCR.assertMethodWasCalled("getVisibility");
 		recordWithId.MCR.assertMethodNotCalled("setTsVisibilityNow");
+
+	}
+
+	@Test
+	public void testUpdateTsVisibilityWhenVisibilityIsPresentInOnlyOneVersion() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+
+		recordWithId.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("published"));
+		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				Optional::empty);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		previouslyStoredRecordGroup.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertMethodWasCalled("setTsVisibilityNow");
 
 	}
 
