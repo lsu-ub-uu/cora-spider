@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2022, 2024 Uppsala University Library
+ * Copyright 2015, 2022, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -32,6 +32,7 @@ import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -97,8 +98,15 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 		useExtendedFunctionalityUsingPositionAndDataGroup(DELETE_BEFORE, dataRecordGroup);
 
 		deleteRecordFromStorageAndIndex();
-
+		sendDataChanged();
+		possiblyDeleteRecordFromArchive();
+		// delete resources if binary is done in an extFunc
 		useExtendedFunctionalityUsingPositionAndDataGroup(DELETE_AFTER, dataRecordGroup);
+	}
+
+	private void sendDataChanged() {
+		DataChangedSender dataChangedSender = dependencyProvider.getDataChangeSender();
+		dataChangedSender.sendDataChanged(recordType, recordId, DELETE);
 	}
 
 	private RecordTypeHandler getRecordTypeHandler() {
@@ -171,9 +179,6 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 	private void deleteRecordFromStorageAndIndex() {
 		recordStorage.deleteByTypeAndId(recordType, recordId);
 		recordIndexer.deleteFromIndex(recordType, recordId);
-		possiblyDeleteRecordFromArchive();
-
-		// TODO: delete resources if binary in extFunc
 	}
 
 	private void possiblyDeleteRecordFromArchive() {

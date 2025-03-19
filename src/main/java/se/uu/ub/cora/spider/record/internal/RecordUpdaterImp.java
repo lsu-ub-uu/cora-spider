@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023, 2024 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -47,6 +47,7 @@ import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -155,6 +156,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		DataGroup recordAsDataGroupForStorage = DataProvider
 				.createGroupFromRecordGroup(recordGroup);
 		updateRecordInStorage(recordAsDataGroupForStorage, collectTerms, collectedLinks);
+		sendDataChanged();
 		possiblyStoreInArchive(recordAsDataGroupForStorage);
 
 		indexData(collectTerms);
@@ -311,6 +313,11 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 			CollectTerms collectTerms, Set<Link> collectedLinks) {
 		recordStorage.update(recordType, recordId, recordAsDataGroupForStorage,
 				collectTerms.storageTerms, collectedLinks, dataDivider);
+	}
+
+	private void sendDataChanged() {
+		DataChangedSender dataChangedSender = dependencyProvider.getDataChangeSender();
+		dataChangedSender.sendDataChanged(recordType, recordId, UPDATE);
 	}
 
 	private void possiblyStoreInArchive(DataGroup recordAsDataGroupForStorage) {

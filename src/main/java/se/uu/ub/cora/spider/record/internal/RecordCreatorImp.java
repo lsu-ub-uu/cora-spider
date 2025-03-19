@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017, 2022, 2023, 2024 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2022, 2023, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -136,12 +136,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		indexRecord(collectedTerms.indexTerms);
 		useExtendedFunctionalityForPosition(CREATE_BEFORE_ENHANCE);
 		return enhanceDataGroupToRecord();
-	}
-
-	private void sendDataChanged() {
-		DataChangedSender dataChangedSender = dependencyProvider.getDataChangeSender();
-		dataChangedSender.sendDataChanged(recordType, recordId, CREATE);
-
 	}
 
 	private void validateRecordTypeInDataIsSameAsSpecified(String recordTypeToCreate) {
@@ -285,6 +279,11 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 			Set<StorageTerm> storageTerms) {
 		recordStorage.create(recordType, recordId, recordAsDataGroup, storageTerms, collectedLinks,
 				recordGroup.getDataDivider());
+	}
+
+	private void sendDataChanged() {
+		DataChangedSender dataChangedSender = dependencyProvider.getDataChangeSender();
+		dataChangedSender.sendDataChanged(recordType, recordId, CREATE);
 	}
 
 	private void possiblyStoreInArchive(DataGroup recordAsDataGroup) {

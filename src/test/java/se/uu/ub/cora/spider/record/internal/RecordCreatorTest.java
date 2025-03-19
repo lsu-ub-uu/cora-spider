@@ -189,7 +189,7 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testOnlyForTestGetDataGroupToRecordEnhancer() throws Exception {
+	public void testOnlyForTestGetDataGroupToRecordEnhancer() {
 		RecordCreatorImp creatorImp = (RecordCreatorImp) recordCreator;
 		assertSame(creatorImp.onlyForTestGetDataGroupToRecordEnhancer(), dataGroupToRecordEnhancer);
 	}
@@ -205,7 +205,7 @@ public class RecordCreatorTest {
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "The record "
 			+ "cannot be created because the record type provided does not match the record type "
 			+ "that the validation type is set to validate.")
-	public void testRecordTypePassedNOTEqualsTheLinkedInValidationType() throws Exception {
+	public void testRecordTypePassedNOTEqualsTheLinkedInValidationType() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "NOTRecordTypeId");
 
@@ -217,7 +217,7 @@ public class RecordCreatorTest {
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
 			+ "Data is not valid: some message")
-	public void testValidationTypeDoesNotExist() throws Exception {
+	public void testValidationTypeDoesNotExist() {
 		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getCreateDefinitionId",
 				DataValidationException.withMessage("some message"));
 
@@ -228,7 +228,7 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testAuthenticatorIsCalled() throws Exception {
+	public void testAuthenticatorIsCalled() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> RECORD_TYPE);
 
@@ -238,7 +238,7 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testAuthorizatorIsCalled() throws Exception {
+	public void testAuthorizatorIsCalled() {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
@@ -247,7 +247,7 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testNotPossibleToCreateRecordWithTypeAndIdWhichAlreadyExists() throws Exception {
+	public void testNotPossibleToCreateRecordWithTypeAndIdWhichAlreadyExists() {
 		recordStorage.MRV.setSpecificReturnValuesSupplier("recordExists",
 				(Supplier<Boolean>) () -> true, List.of(RECORD_TYPE), recordWithId.getId());
 		try {
@@ -467,7 +467,7 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testCallCollectTermWithCorrectValues() throws Exception {
+	public void testCallCollectTermWithCorrectValues() {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
 
 		termCollector.MCR.assertNumberOfCallsToMethod("collectTerms", 2);
@@ -597,7 +597,7 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testRedactorNotCalledWhenNoRecordPartConstraints() throws Exception {
+	public void testRedactorNotCalledWhenNoRecordPartConstraints() {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		recordTypeHandlerSpy.MCR.assertMethodWasCalled("hasRecordPartCreateConstraint");
@@ -605,7 +605,7 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testRedactorCalledCorrectlyWhenRecordPartConstraints() throws Exception {
+	public void testRedactorCalledCorrectlyWhenRecordPartConstraints() {
 		setupForRecordPartConstraints();
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
@@ -633,8 +633,7 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testValidateIsNotCalledWithRedactedDataGroupWhenNoRecordPartConstraints()
-			throws Exception {
+	public void testValidateIsNotCalledWithRedactedDataGroupWhenNoRecordPartConstraints() {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		String newMetadataId = (String) recordTypeHandlerSpy.MCR
@@ -645,8 +644,7 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testValidateIsCalledWithRedactedDataGroupWhenRecordPartConstraints()
-			throws Exception {
+	public void testValidateIsCalledWithRedactedDataGroupWhenRecordPartConstraints() {
 		setupForRecordPartConstraints();
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
@@ -661,15 +659,41 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testSendDataChanged() {
+	public void testCallSendDataChanged() {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
 
-		var sender = (DataChangedSenderSpy) dependencyProviderSpy.MCR
-				.assertCalledParametersReturn("getDataChangeSender");
+		var sender = getDataChangedSender();
 		sender.MCR.assertParameters("sendDataChanged", 0, RECORD_TYPE, "someRecordId", "create");
+	}
 
-		fail();
-		// TODO: test the position of sendDataChanged. Maybe throw some exception
+	private DataChangedSenderSpy getDataChangedSender() {
+		return (DataChangedSenderSpy) dependencyProviderSpy.MCR
+				.assertCalledParametersReturn("getDataChangeSender");
+	}
+
+	@Test
+	public void testSendDataChangedAfterStoreInStorage() {
+		recordStorage.MRV.setAlwaysThrowException("create", new RuntimeException("someError"));
+
+		try {
+			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
+			fail();
+		} catch (Exception e) {
+			dependencyProviderSpy.MCR.assertMethodNotCalled("getDataChangeSender");
+		}
+	}
+
+	@Test
+	public void testSendDataChangedBeforeStoreInArchive() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
+		recordArchive.MRV.setAlwaysThrowException("create", new RuntimeException("someError"));
+
+		try {
+			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
+			fail();
+		} catch (Exception e) {
+			dependencyProviderSpy.MCR.assertMethodWasCalled("getDataChangeSender");
+		}
 	}
 
 	@Test
@@ -685,21 +709,21 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testStoreInArchiveFalse() throws Exception {
+	public void testStoreInArchiveFalse() {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
 
 		recordArchive.MCR.assertMethodNotCalled("create");
 	}
 
 	@Test
-	public void testRecordCreatorGetsUniqueValiadatorFromDependencyProvider() throws Exception {
+	public void testRecordCreatorGetsUniqueValiadatorFromDependencyProvider() {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
 
 		dependencyProviderSpy.MCR.assertCalledParameters("getUniqueValidator", recordStorage);
 	}
 
 	@Test
-	public void uniqueValidatorCalledWithCorrectParameters() throws Exception {
+	public void uniqueValidatorCalledWithCorrectParameters() {
 		List<Unique> uniqueList = List.of(new Unique("", Set.of("")));
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions",
 				() -> uniqueList);
@@ -716,7 +740,7 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testUniqueValidationFails_throwsSpiderConflictException() throws Exception {
+	public void testUniqueValidationFails_throwsSpiderConflictException() {
 		setupUniqueValidatorToReturnInvalidAnswerWithThreeErrors();
 		try {
 			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
