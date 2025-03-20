@@ -103,7 +103,7 @@ public class DataChangeMessageReceiverTest {
 		receiver.receiveMessage(headers, EMPTY_MESSAGE);
 
 		recordStorageProvider.MCR.assertMethodNotCalled("dataChanged");
-		metadataHolder.MCR.assertMethodNotCalled("addMetadataElement");
+		metadataHolder.MCR.assertMethodWasCalled("addMetadataElement");
 	}
 
 	@Test

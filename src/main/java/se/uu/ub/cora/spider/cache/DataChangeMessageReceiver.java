@@ -36,30 +36,36 @@ public class DataChangeMessageReceiver implements MessageReceiver {
 		String id = headers.get("id");
 		String action = headers.get("action");
 
-		String messagingId = headers.get("messagingId");
-		if (messageSentFromAnotherInstance(messagingId)) {
-			try {
-				updateCachedData(type, id, action);
-			} catch (Exception e) {
-				log.logFatalUsingMessageAndException(
-						"Shuting down due to error keeping data in sync,"
-								+ "continued operation would lead to system inconsistencies.",
-						e);
-				shutdownSystemToPreventDataInconsistency();
-			}
-
+		if (messageSentFromAnotherInstance(headers)) {
+			tryToUpdateCachedRecordStorageData(type, id, action);
 		}
-	}
-
-	private boolean messageSentFromAnotherInstance(String messagingId) {
-		return !messagingId.equals(MessagingProvider.getMessagingId());
-	}
-
-	private void updateCachedData(String type, String id, String action) {
-		RecordStorageProvider.dataChanged(type, id, action);
 		if ("metadata".equals(type)) {
 			MetadataHolderProvider.dataChanged(id, action);
 		}
+	}
+
+	private boolean messageSentFromAnotherInstance(Map<String, String> headers) {
+		String messagingId = headers.get("messagingId");
+		return !messagingId.equals(MessagingProvider.getMessagingId());
+	}
+
+	private void tryToUpdateCachedRecordStorageData(String type, String id, String action) {
+		try {
+			updateCachedRecordStorageData(type, id, action);
+		} catch (Exception e) {
+			log.logFatalUsingMessageAndException("Shuting down due to error keeping data in sync,"
+					+ "continued operation would lead to system inconsistencies.", e);
+			shutdownSystemToPreventDataInconsistency();
+		}
+	}
+
+	private void updateCachedRecordStorageData(String type, String id, String action) {
+		RecordStorageProvider.dataChanged(type, id, action);
+	}
+
+	void shutdownSystemToPreventDataInconsistency() {
+		// Important! The JVM will be shutdown.
+		System.exit(-1);
 	}
 
 	@Override
@@ -69,8 +75,4 @@ public class DataChangeMessageReceiver implements MessageReceiver {
 		shutdownSystemToPreventDataInconsistency();
 	}
 
-	void shutdownSystemToPreventDataInconsistency() {
-		// Important! The JVM will be shutdown.
-		System.exit(-1);
-	}
 }
