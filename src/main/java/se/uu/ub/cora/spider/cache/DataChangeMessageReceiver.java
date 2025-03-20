@@ -32,13 +32,9 @@ public class DataChangeMessageReceiver implements MessageReceiver {
 
 	@Override
 	public void receiveMessage(Map<String, String> headers, String message) {
-		System.err.println("DataChangeMessageReceiver 1");
 		String type = headers.get("type");
-		System.err.println("DataChangeMessageReceiver 2");
 		String id = headers.get("id");
-		System.err.println("DataChangeMessageReceiver 3");
 		String action = headers.get("action");
-		System.err.println("DataChangeMessageReceiver 4");
 
 		String messagingId = headers.get("messagingId");
 		if (messageSentFromAnotherInstance(messagingId)) {
@@ -53,7 +49,6 @@ public class DataChangeMessageReceiver implements MessageReceiver {
 			}
 
 		}
-		System.err.println("DataChangeMessageReceiver 5");
 	}
 
 	private boolean messageSentFromAnotherInstance(String messagingId) {
@@ -61,20 +56,14 @@ public class DataChangeMessageReceiver implements MessageReceiver {
 	}
 
 	private void updateCachedData(String type, String id, String action) {
-		System.err.println("DataChangeMessageReceiver 6");
 		RecordStorageProvider.dataChanged(type, id, action);
-		System.err.println("DataChangeMessageReceiver 7");
 		if ("metadata".equals(type)) {
-			System.err.println("DataChangeMessageReceiver 8");
 			MetadataHolderProvider.dataChanged(id, action);
-			System.err.println("DataChangeMessageReceiver 9");
 		}
-		System.err.println("DataChangeMessageReceiver 10");
 	}
 
 	@Override
 	public void topicClosed() {
-		System.err.println("DataChangeMessageReceiver 11");
 		log.logFatalUsingMessage("Shuting down due to lost connection with message broker,"
 				+ "continued operation would lead to system inconsistencies.");
 		shutdownSystemToPreventDataInconsistency();
