@@ -38,11 +38,9 @@ public class DeleteStreamsExtendedFunctionality implements ExtendedFunctionality
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-
 		DataRecordGroup binaryRecordGroup = data.dataRecordGroup;
 		deleteStreamFromMasterRepresentation(binaryRecordGroup);
 		deleteStreamsFromOtherRepresentations(binaryRecordGroup);
-
 	}
 
 	private void deleteStreamsFromOtherRepresentations(DataRecordGroup binaryRecordGroup) {

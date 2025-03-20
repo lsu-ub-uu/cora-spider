@@ -51,6 +51,8 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.internal.SpiderAuthorizatorImp;
+import se.uu.ub.cora.spider.cache.DataChangedSender;
+import se.uu.ub.cora.spider.cache.DataChangedSenderImp;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.data.internal.DataGroupToFilterImp;
 import se.uu.ub.cora.spider.dependency.spy.DataValidatorFactoySpy;
@@ -116,7 +118,7 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testGetExtendedFunctionalityProviderStartedOnCall() throws Exception {
+	public void testGetExtendedFunctionalityProviderStartedOnCall() {
 		ExtendedFunctionalityProviderImp extendedFunctionalityProvider = (ExtendedFunctionalityProviderImp) dependencyProvider
 				.getExtendedFunctionalityProvider();
 
@@ -133,18 +135,18 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testReadInitInfoIsCalledOnStartup() throws Exception {
+	public void testReadInitInfoIsCalledOnStartup() {
 		assertTrue(dependencyProvider.readInitInfoWasCalled);
 	}
 
 	@Test
-	public void testTryToInitializeIsCalledOnStartup() throws Exception {
+	public void testTryToInitializeIsCalledOnStartup() {
 		assertTrue(dependencyProvider.tryToInitializeWasCalled);
 	}
 
 	@Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = ""
 			+ "Error starting SpiderDependencyProviderTestHelper: some runtime error message")
-	public void testStartupThrowsRuntimeException() throws Exception {
+	public void testStartupThrowsRuntimeException() {
 		SpiderDependencyProviderTestHelper.MRV.setAlwaysThrowException("tryToInitialize",
 				new RuntimeException("some runtime error message"));
 
@@ -152,7 +154,7 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testStartupThrowsRuntimeExceptionInitialExceptionIsSentAlong() throws Exception {
+	public void testStartupThrowsRuntimeExceptionInitialExceptionIsSentAlong() {
 		SpiderDependencyProviderTestHelper.MRV.setAlwaysThrowException("tryToInitialize",
 				new RuntimeException("some runtime error message"));
 		try {
@@ -200,7 +202,7 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testExtendedFunctionalityProviderReturnsSame() throws Exception {
+	public void testExtendedFunctionalityProviderReturnsSame() {
 		ExtendedFunctionalityProvider extendedFunctionalityProvider1 = dependencyProvider
 				.getExtendedFunctionalityProvider();
 		ExtendedFunctionalityProvider extendedFunctionalityProvider2 = dependencyProvider
@@ -231,7 +233,7 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testGetDataValidatorFactory() throws Exception {
+	public void testGetDataValidatorFactory() {
 		dependencyProvider.standardDataValidatorFactory = true;
 		DataValidatorFactory dataValidatorFactory = dependencyProvider.getDataValidatorFactory();
 		assertTrue(dataValidatorFactory instanceof DataValidatorFactoryImp);
@@ -261,7 +263,7 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testDefaultRecordTypeHandlerFactoryIsImplFromBookkeeper() throws Exception {
+	public void testDefaultRecordTypeHandlerFactoryIsImplFromBookkeeper() {
 		RecordTypeHandlerFactory factory = dependencyProvider
 				.useOriginalGetRecordTypeHandlerFactory();
 
@@ -269,11 +271,10 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testGetRecordTypeHandler() throws Exception {
+	public void testGetRecordTypeHandler() {
 		String recordTypeId = "someRecordType";
 
-		RecordTypeHandler recordTypeHandler = ((SpiderDependencyProvider) dependencyProvider)
-				.getRecordTypeHandler(recordTypeId);
+		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordTypeId);
 
 		RecordTypeHandlerFactorySpy typeHandlerFactorySpy = (RecordTypeHandlerFactorySpy) dependencyProvider.recordTypeHandlerFactory;
 
@@ -282,10 +283,10 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testGetRecordTypeHandlerUsingDataRecordGroup() throws Exception {
+	public void testGetRecordTypeHandlerUsingDataRecordGroup() {
 		DataRecordGroup dataRecordGroup = new DataRecordGroupSpy();
 
-		RecordTypeHandler recordTypeHandler = ((SpiderDependencyProvider) dependencyProvider)
+		RecordTypeHandler recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
 
 		RecordTypeHandlerFactorySpy typeHandlerFactorySpy = (RecordTypeHandlerFactorySpy) dependencyProvider.recordTypeHandlerFactory;
@@ -296,7 +297,7 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testGetDefaultDataRedactor() throws Exception {
+	public void testGetDefaultDataRedactor() {
 		assertTrue(dependencyProvider
 				.useOriginalGetDataRedactorFactory() instanceof DataRedactorFactoryImp);
 	}
@@ -309,14 +310,14 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	public void testGetDataGroupToRecordEnhancer() throws Exception {
+	public void testGetDataGroupToRecordEnhancer() {
 		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) dependencyProvider
 				.getDataGroupToRecordEnhancer();
 		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
 	}
 
 	@Test
-	public void testDataGroupToFilterConverter() throws Exception {
+	public void testDataGroupToFilterConverter() {
 		DataGroupToFilter converter1 = dependencyProvider.getDataGroupToFilterConverter();
 		DataGroupToFilter converter2 = dependencyProvider.getDataGroupToFilterConverter();
 		assertNotNull(converter1);
@@ -327,13 +328,20 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
-	private void testGetUniqueValidator() throws Exception {
+	private void testGetUniqueValidator() {
 		RecordStorageSpy recordStorage = new RecordStorageSpy();
 		UniqueValidatorImp uniqueValidator = (UniqueValidatorImp) dependencyProvider
 				.getUniqueValidator(recordStorage);
 
 		assertNotNull(uniqueValidator);
 		assertSame(uniqueValidator.onlyForTestGetRecordStorage(), recordStorage);
+	}
+
+	@Test
+	public void testGetDataChangeSender() {
+		DataChangedSender sender = dependencyProvider.getDataChangeSender();
+
+		assertTrue(sender instanceof DataChangedSenderImp);
 	}
 
 }

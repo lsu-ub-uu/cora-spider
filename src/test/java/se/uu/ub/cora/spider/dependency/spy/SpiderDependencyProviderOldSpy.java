@@ -34,6 +34,7 @@ import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.binary.Uploader;
+import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
@@ -224,5 +225,11 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	@Override
 	public UniqueValidator getUniqueValidator(RecordStorage recordStorage) {
 		return (UniqueValidator) MCR.addCallAndReturnFromMRV("recordStorage", recordStorage);
+	}
+
+	@Override
+	public DataChangedSender getDataChangeSender() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

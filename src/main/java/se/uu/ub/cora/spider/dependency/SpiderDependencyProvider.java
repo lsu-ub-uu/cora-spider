@@ -29,6 +29,7 @@ import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
@@ -95,5 +96,7 @@ public interface SpiderDependencyProvider {
 	 * @return A new instance of {@link UniqueValidator}
 	 */
 	UniqueValidator getUniqueValidator(RecordStorage recordStorage);
+
+	DataChangedSender getDataChangeSender();
 
 }

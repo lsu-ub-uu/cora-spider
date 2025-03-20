@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2019, 2024 Uppsala University Library
+ * Copyright 2015, 2019, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -46,6 +46,7 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
+import se.uu.ub.cora.spider.spy.DataChangedSenderSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
@@ -129,7 +130,7 @@ public class RecordDeleterTest {
 	}
 
 	@Test
-	public void testAuthenticatorCalled() throws Exception {
+	public void testAuthenticatorCalled() {
 		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
 
 		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_AUTH_TOKEN);
@@ -213,7 +214,7 @@ public class RecordDeleterTest {
 	}
 
 	@Test
-	public void testEnsureExtendedFunctionalityPositionFor_AfterAuthorization() throws Exception {
+	public void testEnsureExtendedFunctionalityPositionFor_AfterAuthorization() {
 		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
 				dependencyProvider, DELETE_AFTER_AUTHORIZATION, SOME_TYPE);
 
@@ -236,7 +237,7 @@ public class RecordDeleterTest {
 	}
 
 	@Test
-	public void testEnsureExtendedFunctionalityPositionFor_DeleteBefore() throws Exception {
+	public void testEnsureExtendedFunctionalityPositionFor_DeleteBefore() {
 		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
 				dependencyProvider, DELETE_BEFORE, SOME_TYPE);
 
@@ -249,7 +250,7 @@ public class RecordDeleterTest {
 	}
 
 	@Test
-	public void testEnsureExtendedFunctionalityPositionFor_DeleteAfter() throws Exception {
+	public void testEnsureExtendedFunctionalityPositionFor_DeleteAfter() {
 		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
 				dependencyProvider, DELETE_AFTER, SOME_TYPE);
 
@@ -309,7 +310,46 @@ public class RecordDeleterTest {
 	}
 
 	@Test
-	public void deleteFromArchive_NotSetToBeStoredInArchive() throws Exception {
+	public void testCallSendDataChanged() {
+		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+
+		var sender = getDataChangedSender();
+		sender.MCR.assertParameters("sendDataChanged", 0, SOME_TYPE, SOME_ID, "delete");
+	}
+
+	private DataChangedSenderSpy getDataChangedSender() {
+		return (DataChangedSenderSpy) dependencyProvider.MCR
+				.assertCalledParametersReturn("getDataChangeSender");
+	}
+
+	@Test
+	public void testSendDataChangedAfterStoreInStorage() {
+		recordStorage.MRV.setAlwaysThrowException("deleteByTypeAndId",
+				new RuntimeException("someError"));
+
+		try {
+			recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+			fail();
+		} catch (Exception e) {
+			dependencyProvider.MCR.assertMethodNotCalled("getDataChangeSender");
+		}
+	}
+
+	@Test
+	public void testSendDataChangedBeforeStoreInArchive() {
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
+		recordArchive.MRV.setAlwaysThrowException("delete", new RuntimeException("someError"));
+
+		try {
+			recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+			fail();
+		} catch (Exception e) {
+			dependencyProvider.MCR.assertMethodWasCalled("getDataChangeSender");
+		}
+	}
+
+	@Test
+	public void deleteFromArchive_NotSetToBeStoredInArchive() {
 		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
 
 		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
@@ -318,7 +358,7 @@ public class RecordDeleterTest {
 	}
 
 	@Test
-	public void deleteFromArchive() throws Exception {
+	public void deleteFromArchive() {
 		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
 
 		DataRecordGroupSpy dataRecordGroup = new DataRecordGroupSpy();

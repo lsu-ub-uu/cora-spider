@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017, 2022, 2023, 2024 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2022, 2023, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -47,6 +47,7 @@ import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
@@ -130,6 +131,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		useExtendedFunctionalityForPosition(CREATE_BEFORE_STORE);
 		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
 		createRecordInStorage(recordAsDataGroup, collectedLinks, collectedTerms.storageTerms);
+		sendDataChanged();
 		possiblyStoreInArchive(recordAsDataGroup);
 		indexRecord(collectedTerms.indexTerms);
 		useExtendedFunctionalityForPosition(CREATE_BEFORE_ENHANCE);
@@ -277,6 +279,11 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 			Set<StorageTerm> storageTerms) {
 		recordStorage.create(recordType, recordId, recordAsDataGroup, storageTerms, collectedLinks,
 				recordGroup.getDataDivider());
+	}
+
+	private void sendDataChanged() {
+		DataChangedSender dataChangedSender = dependencyProvider.getDataChangeSender();
+		dataChangedSender.sendDataChanged(recordType, recordId, CREATE);
 	}
 
 	private void possiblyStoreInArchive(DataGroup recordAsDataGroup) {
