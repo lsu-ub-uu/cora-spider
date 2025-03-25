@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023, 2024 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -66,6 +66,7 @@ import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.spy.DataChangedSenderSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
@@ -237,7 +238,7 @@ public class RecordUpdaterTest {
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = "The record "
 			+ "cannot be updated because the record type provided does not match the record type "
 			+ "that the validation type is set to validate.")
-	public void testRecordTypePassedNOTEqualsTheLinkedInValidationType() throws Exception {
+	public void testRecordTypePassedNOTEqualsTheLinkedInValidationType() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "NOTRecordTypeId");
 
@@ -253,7 +254,7 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
-	public void testValidationTypeDoesNotExist() throws Exception {
+	public void testValidationTypeDoesNotExist() {
 		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getUpdateDefinitionId",
 				DataValidationException.withMessage("some message"));
 
@@ -267,7 +268,7 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
-	public void testIgnoreOverwriteProtection_removedFromRecordInfo() throws Exception {
+	public void testIgnoreOverwriteProtection_removedFromRecordInfo() {
 		setUpExtFuncToImmediatelyAssertOverwriteProtectionHasBeenCalledOnPositionUPDATE_BEFORE_METADATA_VALIDATION();
 		recordWithId.MRV.setDefaultReturnValuesSupplier("overwriteProtectionShouldBeEnforced",
 				() -> true);
@@ -298,7 +299,7 @@ public class RecordUpdaterTest {
 
 	@Test(dataProvider = "overwriteProtection")
 	public void testIgnoreOverwriteProtection(boolean overwriteProtectionShouldBeEnforced,
-			boolean lastUpdatedTsIsDifferent) throws Exception {
+			boolean lastUpdatedTsIsDifferent) {
 		setUpExtFuncToImmediatelyAssertOverwriteProtectionHasBeenCalledOnPositionUPDATE_BEFORE_METADATA_VALIDATION();
 		setUpEnforceAndLastUpdatedTsIsDifferent(overwriteProtectionShouldBeEnforced,
 				lastUpdatedTsIsDifferent);
@@ -324,8 +325,7 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
-	public void testIgnoreOverwriteProtection_DifferentLatestUpdated_noIgnoreFlag_ConflictException()
-			throws Exception {
+	public void testIgnoreOverwriteProtection_DifferentLatestUpdated_noIgnoreFlag_ConflictException() {
 		setUpExtFuncToImmediatelyAssertOverwriteProtectionHasBeenCalledOnPositionUPDATE_BEFORE_METADATA_VALIDATION();
 		setUpEnforceAndLastUpdatedTsIsDifferent(true, true);
 
@@ -336,13 +336,12 @@ public class RecordUpdaterTest {
 			assertTrue(e instanceof ConflictException);
 			assertEquals(e.getMessage(), "Could not update record because it exist a newer "
 					+ "version of the record in the storage.");
+			recordStorage.MCR.assertMethodNotCalled("update");
 		}
-
-		recordStorage.MCR.assertMethodNotCalled("update");
 	}
 
 	@Test
-	public void testCorrectSpiderAuthorizatorForNoRecordPartConstraints() throws Exception {
+	public void testCorrectSpiderAuthorizatorForNoRecordPartConstraints() {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
 		var returnedUser = authenticator.MCR.getReturnValue("getUserForToken", 0);
@@ -370,7 +369,7 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
-	public void testCorrectSpiderAuthorizatorForWriteRecordPartConstraints() throws Exception {
+	public void testCorrectSpiderAuthorizatorForWriteRecordPartConstraints() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("hasRecordPartWriteConstraint",
 				() -> true);
 		Set<String> writeConstraints = Set.of("someConstraint");
@@ -439,7 +438,7 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
-	public void testCurrentUserAddedAsLastUpdated() throws Exception {
+	public void testCurrentUserAddedAsLastUpdated() {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
 		recordWithId.MCR.assertParameters("addUpdatedUsingUserIdAndTsNow", 0, currentUser.id);
@@ -571,7 +570,7 @@ public class RecordUpdaterTest {
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
 			+ "Data is not valid: \\[Error1, Error2\\]")
-	public void testUpdateRecordInvalidData() throws Exception {
+	public void testUpdateRecordInvalidData() {
 		setUpDataValidatorToReturnInvalidWithErrors();
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
@@ -614,7 +613,45 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
-	public void testStoreInArchiveTrue() throws Exception {
+	public void testCallSendDataChanged() {
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		var sender = getDataChangedSender();
+		sender.MCR.assertParameters("sendDataChanged", 0, RECORD_TYPE, "someRecordId", "update");
+	}
+
+	private DataChangedSenderSpy getDataChangedSender() {
+		return (DataChangedSenderSpy) dependencyProviderSpy.MCR
+				.assertCalledParametersReturn("getDataChangeSender");
+	}
+
+	@Test
+	public void testSendDataChangedAfterStoreInStorage() {
+		recordStorage.MRV.setAlwaysThrowException("update", new RuntimeException("someError"));
+
+		try {
+			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+			fail();
+		} catch (Exception e) {
+			dependencyProviderSpy.MCR.assertMethodNotCalled("getDataChangeSender");
+		}
+	}
+
+	@Test
+	public void testSendDataChangedBeforeStoreInArchive() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
+		recordArchive.MRV.setAlwaysThrowException("update", new RuntimeException("someError"));
+
+		try {
+			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+			fail();
+		} catch (Exception e) {
+			dependencyProviderSpy.MCR.assertMethodWasCalled("getDataChangeSender");
+		}
+	}
+
+	@Test
+	public void testStoreInArchiveTrue() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
@@ -627,8 +664,7 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
-	public void testStoreInArchive_MissingInArchiveThrowsException_createInstead()
-			throws Exception {
+	public void testStoreInArchive_MissingInArchiveThrowsException_createInstead() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
 		recordArchive.MRV.setAlwaysThrowException("update",
 				RecordNotFoundException.withMessage("sorry not found"));
@@ -645,14 +681,14 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
-	public void testStoreInArchiveFalse() throws Exception {
+	public void testStoreInArchiveFalse() {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
 		recordArchive.MCR.assertMethodNotCalled("update");
 	}
 
 	@Test
-	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() throws Exception {
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
 		DataRecordOldSpy enhancedRecord = (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR
@@ -671,7 +707,7 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
-	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists2() throws Exception {
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists2() {
 		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
 				dependencyProviderSpy, UPDATE_AFTER_AUTHORIZATION, RECORD_TYPE);
 		try {
@@ -680,21 +716,20 @@ public class RecordUpdaterTest {
 					+ " to determin that the extended functionality is called in the correct place"
 					+ " in the code");
 		} catch (Exception e) {
+			authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+			dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
 		}
-
-		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
-		dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
 	}
 
 	@Test
-	public void testRecordUpdaterGetsUniqueValiadatorFromDependencyProvider() throws Exception {
+	public void testRecordUpdaterGetsUniqueValiadatorFromDependencyProvider() {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
 		dependencyProviderSpy.MCR.assertCalledParameters("getUniqueValidator", recordStorage);
 	}
 
 	@Test
-	public void uniqueValidatorCalledWithCorrectParameters() throws Exception {
+	public void uniqueValidatorCalledWithCorrectParameters() {
 		List<Unique> uniqueList = List.of(new Unique("", Set.of("")));
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions",
 				() -> uniqueList);
@@ -709,7 +744,7 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
-	public void testUniqueValidationFails_throwsSpiderConflictException() throws Exception {
+	public void testUniqueValidationFails_throwsSpiderConflictException() {
 		setupUniqueValidatorToReturnInvalidAnswerWithThreeErrors();
 
 		try {

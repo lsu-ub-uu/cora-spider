@@ -38,6 +38,8 @@ import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.authorization.internal.SpiderAuthorizatorImp;
+import se.uu.ub.cora.spider.cache.DataChangedSender;
+import se.uu.ub.cora.spider.cache.DataChangedSenderImp;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.data.internal.DataGroupToFilterImp;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
@@ -204,5 +206,10 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	@Override
 	public UniqueValidator getUniqueValidator(RecordStorage recordStorage) {
 		return UniqueValidatorImp.usingRecordStorage(recordStorage);
+	}
+
+	@Override
+	public DataChangedSender getDataChangeSender() {
+		return DataChangedSenderImp.create();
 	}
 }

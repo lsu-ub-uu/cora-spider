@@ -23,6 +23,7 @@ module se.uu.ub.cora.spider {
 
 	exports se.uu.ub.cora.spider.authentication;
 	exports se.uu.ub.cora.spider.authorization;
+	exports se.uu.ub.cora.spider.cache;
 	exports se.uu.ub.cora.spider.data;
 	exports se.uu.ub.cora.spider.dependency;
 	exports se.uu.ub.cora.spider.extendedfunctionality;
