@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
@@ -61,6 +62,7 @@ import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 public final class RecordCreatorImp extends RecordHandler implements RecordCreator {
+	private static final String UNPUBLISHED = "unpublished";
 	private static final String CREATE = "create";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -78,6 +80,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private Set<Link> collectedLinks;
 	private RecordArchive recordArchive;
 	private DataRecordGroup recordGroup;
+	private Set<Constraint> writeRecordPartConstraints;
 
 	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -198,10 +201,10 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void removeRecordPartsUserIsNotAllowedToChange() {
+		writeRecordPartConstraints = recordTypeHandler.getCreateWriteRecordPartConstraints();
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		recordGroup = dataRedactor.removeChildrenForConstraintsWithoutPermissions(definitionId,
-				recordGroup, recordTypeHandler.getCreateWriteRecordPartConstraints(),
-				writePermissions);
+				recordGroup, writeRecordPartConstraints, writePermissions);
 	}
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {
@@ -221,7 +224,25 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		recordGroup.setCreatedBy(userId);
 		recordGroup.setTsCreatedToNow();
 		recordGroup.addUpdatedUsingUserIdAndTs(userId, recordGroup.getTsCreated());
-		possiblyCreateVisibilityTimeStamp();
+		handleVisibility();
+	}
+
+	private void handleVisibility() {
+		if (recordTypeHandler.useVisibility()) {
+			ensureCorrectVisibilityValue();
+			createVisibilityTimeStamp();
+		}
+	}
+
+	private void ensureCorrectVisibilityValue() {
+		if (noWritePermissionForVisibility()) {
+			recordGroup.setVisibility(UNPUBLISHED);
+		}
+	}
+
+	private boolean noWritePermissionForVisibility() {
+		return writeRecordPartConstraints.stream().map(Constraint::getNameInData)
+				.noneMatch(writePermissions::contains);
 	}
 
 	private void ensureIdExists(String recordType) {
@@ -294,10 +315,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		}
 	}
 
-	private void possiblyCreateVisibilityTimeStamp() {
-		if (recordTypeHandler.useVisibility()) {
-			recordGroup.setTsVisibility(recordGroup.getTsCreated());
-		}
+	private void createVisibilityTimeStamp() {
+		recordGroup.setTsVisibility(recordGroup.getTsCreated());
 	}
 
 	private DataRecord enhanceDataGroupToRecord() {
