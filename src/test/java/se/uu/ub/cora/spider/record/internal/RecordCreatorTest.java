@@ -28,9 +28,9 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_STORE;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -38,7 +38,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.recordtype.Unique;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.data.DataProvider;
@@ -766,29 +765,30 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testTsVisibilityAndVisibilityDefaultIsSetIfNoWritePermission() {
+	public void testVisibilityIsSetIfMissing() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
 
-		createConstraintSet("someConstraint");
-		spiderAuthorizator.MRV.setDefaultReturnValuesSupplier(
-				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
-				() -> Set.of("someOtherConstraint"));
-		setupForRecordPartConstraints();
+		recordWithoutId.MRV.setDefaultReturnValuesSupplier("getVisibility", Optional::empty);
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
-		recordWithoutId.MCR.assertMethodWasCalled("setVisibility");
+		recordWithoutId.MCR.assertParameters("setVisibility", 0, "unpublished");
 		recordWithoutId.MCR.assertCalledParameters("setTsVisibility",
 				recordWithoutId.MCR.getReturnValue("getTsCreated", 0));
 	}
 
-	private void createConstraintSet(String... constraints) {
-		Set<Constraint> constraintSet = new HashSet<>();
-		for (String constraintName : constraints) {
-			constraintSet.add(new Constraint(constraintName));
-		}
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier(
-				"getCreateWriteRecordPartConstraints", () -> constraintSet);
+	@Test
+	public void testVisibilityIsNotSetToDefaultIfPresent() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+
+		recordWithoutId.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("hidden"));
+
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+
+		recordWithoutId.MCR.assertMethodNotCalled("setVisibility");
+		recordWithoutId.MCR.assertCalledParameters("setTsVisibility",
+				recordWithoutId.MCR.getReturnValue("getTsCreated", 0));
 	}
 
 	@Test
@@ -797,6 +797,8 @@ public class RecordCreatorTest {
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
+		recordWithoutId.MCR.assertMethodNotCalled("getVisibility");
+		recordWithoutId.MCR.assertMethodNotCalled("setVisibility");
 		recordWithoutId.MCR.assertMethodNotCalled("setTsVisibility");
 	}
 }

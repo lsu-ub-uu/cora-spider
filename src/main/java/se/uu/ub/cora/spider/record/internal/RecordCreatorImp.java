@@ -178,6 +178,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void validateRecord() {
 		checkRecordPartsUserIsNotAllowtoChange();
+		possiblyHandleVisibility();
 		validateDataInRecordAsSpecifiedInMetadata();
 	}
 
@@ -207,6 +208,23 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 				recordGroup, writeRecordPartConstraints, writePermissions);
 	}
 
+	private void possiblyHandleVisibility() {
+		if (recordTypeHandler.useVisibility()) {
+			possiblySetVisibilityToDefault();
+			createVisibilityTimeStamp();
+		}
+	}
+
+	private void possiblySetVisibilityToDefault() {
+		if (recordGroup.getVisibility().isEmpty()) {
+			recordGroup.setVisibility(UNPUBLISHED);
+		}
+	}
+
+	private void createVisibilityTimeStamp() {
+		recordGroup.setTsVisibility(recordGroup.getTsCreated());
+	}
+
 	private void validateDataInRecordAsSpecifiedInMetadata() {
 		String createDefinitionId = recordTypeHandler.getCreateDefinitionId();
 		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
@@ -218,31 +236,11 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
-		recordGroup.getFirstGroupWithNameInData(RECORD_INFO);
 		ensureIdExists(recordType);
 		recordGroup.setType(recordType);
 		recordGroup.setCreatedBy(userId);
 		recordGroup.setTsCreatedToNow();
 		recordGroup.addUpdatedUsingUserIdAndTs(userId, recordGroup.getTsCreated());
-		handleVisibility();
-	}
-
-	private void handleVisibility() {
-		if (recordTypeHandler.useVisibility()) {
-			ensureCorrectVisibilityValue();
-			createVisibilityTimeStamp();
-		}
-	}
-
-	private void ensureCorrectVisibilityValue() {
-		if (noWritePermissionForVisibility()) {
-			recordGroup.setVisibility(UNPUBLISHED);
-		}
-	}
-
-	private boolean noWritePermissionForVisibility() {
-		return writeRecordPartConstraints.stream().map(Constraint::getNameInData)
-				.noneMatch(writePermissions::contains);
 	}
 
 	private void ensureIdExists(String recordType) {
@@ -313,10 +311,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 			recordArchive.create(recordGroup.getDataDivider(), recordType, recordId,
 					recordAsDataGroup);
 		}
-	}
-
-	private void createVisibilityTimeStamp() {
-		recordGroup.setTsVisibility(recordGroup.getTsCreated());
 	}
 
 	private DataRecord enhanceDataGroupToRecord() {
