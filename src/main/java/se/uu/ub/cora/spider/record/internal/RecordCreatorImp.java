@@ -222,7 +222,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void createVisibilityTimeStamp() {
-		recordGroup.setTsVisibility(recordGroup.getTsCreated());
+		recordGroup.setTsVisibilityNow();
 	}
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {

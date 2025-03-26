@@ -773,8 +773,7 @@ public class RecordCreatorTest {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		recordWithoutId.MCR.assertParameters("setVisibility", 0, "unpublished");
-		recordWithoutId.MCR.assertCalledParameters("setTsVisibility",
-				recordWithoutId.MCR.getReturnValue("getTsCreated", 0));
+		recordWithoutId.MCR.assertMethodWasCalled("setTsVisibilityNow");
 	}
 
 	@Test
@@ -787,8 +786,7 @@ public class RecordCreatorTest {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		recordWithoutId.MCR.assertMethodNotCalled("setVisibility");
-		recordWithoutId.MCR.assertCalledParameters("setTsVisibility",
-				recordWithoutId.MCR.getReturnValue("getTsCreated", 0));
+		recordWithoutId.MCR.assertMethodWasCalled("setTsVisibilityNow");
 	}
 
 	@Test
