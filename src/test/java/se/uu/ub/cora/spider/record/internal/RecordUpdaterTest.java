@@ -770,7 +770,7 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
-	public void testUpdateTsVisibilityWhenVisibilityDoNotMatch() {
+	public void testUpdateVisibilityWhenVisibilityDoNotMatch() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
 
 		recordWithId.MRV.setDefaultReturnValuesSupplier("getVisibility",
@@ -782,11 +782,13 @@ public class RecordUpdaterTest {
 
 		previouslyStoredRecordGroup.MCR.assertMethodWasCalled("getVisibility");
 		recordWithId.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertMethodNotCalled("setVisiblity");
+
 		recordWithId.MCR.assertMethodWasCalled("setTsVisibilityNow");
 	}
 
 	@Test
-	public void testUpdateTsVisibilityWhenVisibilityMatch() {
+	public void testUpdateVisibilityWhenVisibilityMatch() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
 
 		recordWithId.MRV.setDefaultReturnValuesSupplier("getVisibility",
@@ -798,12 +800,13 @@ public class RecordUpdaterTest {
 
 		previouslyStoredRecordGroup.MCR.assertMethodWasCalled("getVisibility");
 		recordWithId.MCR.assertMethodWasCalled("getVisibility");
-		recordWithId.MCR.assertMethodNotCalled("setTsVisibilityNow");
+		recordWithId.MCR.assertMethodNotCalled("setVisiblity");
 
+		recordWithId.MCR.assertMethodNotCalled("setTsVisibilityNow");
 	}
 
 	@Test
-	public void testUpdateTsVisibilityWhenVisibilityIsPresentInOnlyOneVersion() {
+	public void testUpdateVisibilityWhenVisibilityIsOnlyPresentInUpdatedVersion() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
 
 		recordWithId.MRV.setDefaultReturnValuesSupplier("getVisibility",
@@ -815,8 +818,50 @@ public class RecordUpdaterTest {
 
 		previouslyStoredRecordGroup.MCR.assertMethodWasCalled("getVisibility");
 		recordWithId.MCR.assertMethodWasCalled("getVisibility");
-		recordWithId.MCR.assertMethodWasCalled("setTsVisibilityNow");
+		recordWithId.MCR.assertMethodNotCalled("setVisiblity");
 
+		recordWithId.MCR.assertMethodWasCalled("setTsVisibilityNow");
+	}
+
+	@Test
+	public void testUpdateVisibilityWhenVisibilityOnlyPresentInPreviousVersion() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+
+		recordWithId.MRV.setReturnValues("getVisibility",
+				List.of(Optional.empty(), Optional.of("hidden")));
+
+		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("hidden"));
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		previouslyStoredRecordGroup.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertCalledParameters("setVisibility", "hidden");
+
+		recordWithId.MCR.assertMethodNotCalled("setTsVisibilityNow");
+	}
+
+	@Test
+	public void testUpdateVisibilityWhenVisibilityIsMissingInBothRecords() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+
+		// The second value is just used to simulate a change in visibility, we
+		// assert that the actual expected "unpublished" is set below.
+		recordWithId.MRV.setReturnValues("getVisibility", List.of(Optional.empty(),
+				Optional.of("placeholderNonEmptyValueForVisiblityChangedPurpose")));
+
+		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				Optional::empty);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		previouslyStoredRecordGroup.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertMethodWasCalled("getVisibility");
+		// assert default is set if missing in new AND old
+		recordWithId.MCR.assertCalledParameters("setVisibility", "unpublished");
+
+		recordWithId.MCR.assertMethodWasCalled("setTsVisibilityNow");
 	}
 
 	@Test

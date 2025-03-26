@@ -63,6 +63,7 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordUpdaterImp extends RecordHandler implements RecordUpdater {
+	private static final String UNPUBLISHED = "unpublished";
 	private static final String UPDATE = "update";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -140,6 +141,8 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 		possiblyReplaceRecordPartsUserIsNotAllowedToChange();
 
+		possiblyHandleVisibility();
+
 		validateIncomingDataAsSpecifiedInMetadata();
 		useExtendedFunctionalityForPosition(UPDATE_AFTER_METADATA_VALIDATION);
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
@@ -153,7 +156,6 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 
 		useExtendedFunctionalityForPosition(UPDATE_BEFORE_STORE);
-		possiblyUpdateVisibilityTimeStamp();
 		dataDivider = recordGroup.getDataDivider();
 		DataGroup recordAsDataGroupForStorage = DataProvider
 				.createGroupFromRecordGroup(recordGroup);
@@ -311,8 +313,21 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		}
 	}
 
+	private void possiblyHandleVisibility() {
+		if (recordTypeHandler.useVisibility()) {
+			possiblySetVisibilityToDefault();
+			possiblyUpdateVisibilityTimeStamp();
+		}
+	}
+
+	private void possiblySetVisibilityToDefault() {
+		if (recordGroup.getVisibility().isEmpty()) {
+			recordGroup.setVisibility(previouslyStoredRecord.getVisibility().orElse(UNPUBLISHED));
+		}
+	}
+
 	private void possiblyUpdateVisibilityTimeStamp() {
-		if (recordTypeHandler.useVisibility() && isVisibilityChanged()) {
+		if (isVisibilityChanged()) {
 			recordGroup.setTsVisibilityNow();
 		}
 	}
