@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2019, 2024 Uppsala University Library
+ * Copyright 2016, 2019, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -350,4 +350,10 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		return matchedRules;
 	}
 
+	@Override
+	public boolean checkUserIsAuthorizedForPemissionUnit(User user,
+			boolean recordTypeUsesPermissionUnit, String recordPermissionUnit) {
+		return beefeaterAuthorizator.checkUserIsAuthorizedForPemissionUnit(user,
+				recordTypeUsesPermissionUnit, recordPermissionUnit);
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2017, 2018, 2019 Uppsala University Library
+ * Copyright 2016, 2017, 2018, 2019, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -807,7 +807,7 @@ public class SpiderAuthorizatorTest {
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "user with id userWithTwoRolesPermissionTerm is not authorized to read a record of type: book")
-	public void testEmptyMatchedRulesGivesNoAuthorzation() throws Exception {
+	public void testEmptyMatchedRulesGivesNoAuthorzation() {
 		setupUserWithTwoRolesPermissionTerm();
 		BeefeaterAuthorizatorSpy authorizatorSpy = beefeaterAuthorizator;
 		authorizatorSpy.returnNoMatchedRules = true;
@@ -815,5 +815,16 @@ public class SpiderAuthorizatorTest {
 		spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
 						user, READ, BOOK, permissionTerms, true);
+	}
+
+	@Test
+	public void testCheckUserIsAuthorizedForPemissionUnit_isCalledAndReturn() {
+		boolean authorized = spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, true,
+				"somePermissionUnit");
+
+		beefeaterAuthorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
+				true, "somePermissionUnit");
+		beefeaterAuthorizator.MCR.assertReturn("checkUserIsAuthorizedForPemissionUnit", 0,
+				authorized);
 	}
 }

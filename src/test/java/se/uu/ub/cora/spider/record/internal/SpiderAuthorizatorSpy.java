@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -40,6 +40,7 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 		MRV.setDefaultReturnValuesSupplier(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				() -> Collections.emptySet());
+		MRV.setDefaultReturnValuesSupplier("checkUserIsAuthorizedForPemissionUnit", () -> false);
 	}
 
 	@Override
@@ -76,6 +77,13 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 		return (Set<String>) MCR.addCallAndReturnFromMRV("user", user, "action", action,
 				"recordType", recordType, "permissionTerms", permissionTerms,
 				"calculateRecordPartPermissions", calculateRecordPartPermissions);
+	}
+
+	@Override
+	public boolean checkUserIsAuthorizedForPemissionUnit(User user,
+			boolean recordTypeUsesPermissionUnit, String recordPermissionUnit) {
+		return (boolean) MCR.addCallAndReturnFromMRV("user", user, "recordTypeUsesPermissionUnit",
+				recordTypeUsesPermissionUnit, "recordPermissionUnit", recordPermissionUnit);
 	}
 
 }

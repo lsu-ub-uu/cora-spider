@@ -62,7 +62,6 @@ import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 public final class RecordCreatorImp extends RecordHandler implements RecordCreator {
-	private static final String UNPUBLISHED = "unpublished";
 	private static final String CREATE = "create";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -80,7 +79,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private Set<Link> collectedLinks;
 	private RecordArchive recordArchive;
 	private DataRecordGroup recordGroup;
-	private Set<Constraint> writeRecordPartConstraints;
 
 	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
 			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
@@ -202,7 +200,8 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void removeRecordPartsUserIsNotAllowedToChange() {
-		writeRecordPartConstraints = recordTypeHandler.getCreateWriteRecordPartConstraints();
+		Set<Constraint> writeRecordPartConstraints = recordTypeHandler
+				.getCreateWriteRecordPartConstraints();
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		recordGroup = dataRedactor.removeChildrenForConstraintsWithoutPermissions(definitionId,
 				recordGroup, writeRecordPartConstraints, writePermissions);
@@ -217,7 +216,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private void possiblySetVisibilityToDefault() {
 		if (recordGroup.getVisibility().isEmpty()) {
-			recordGroup.setVisibility(UNPUBLISHED);
+			recordGroup.setVisibility("unpublished");
 		}
 	}
 

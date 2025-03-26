@@ -23,12 +23,20 @@ import java.util.Collections;
 import java.util.List;
 
 import se.uu.ub.cora.beefeater.Authorizator;
+import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.beefeater.authorization.Rule;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class BeefeaterAuthorizatorSpy implements Authorizator {
 
 	MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public BeefeaterAuthorizatorSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("checkUserIsAuthorizedForPemissionUnit", () -> false);
+	}
 
 	/**
 	 * providedRulesSatisfiesRequiredRules is default true, is used as return value for
@@ -61,5 +69,12 @@ public class BeefeaterAuthorizatorSpy implements Authorizator {
 		}
 		MCR.addReturned(matchedRules);
 		return matchedRules;
+	}
+
+	@Override
+	public boolean checkUserIsAuthorizedForPemissionUnit(User user,
+			boolean recordTypeUsesPermissionUnit, String recordPermissionUnit) {
+		return (boolean) MCR.addCallAndReturnFromMRV("user", user, "recordTypeUsesPermissionUnit",
+				recordTypeUsesPermissionUnit, "recordPermissionUnit", recordPermissionUnit);
 	}
 }

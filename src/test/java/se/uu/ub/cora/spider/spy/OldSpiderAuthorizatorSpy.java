@@ -159,4 +159,11 @@ public class OldSpiderAuthorizatorSpy implements SpiderAuthorizator {
 		}
 	}
 
+	@Override
+	public boolean checkUserIsAuthorizedForPemissionUnit(User user,
+			boolean recordTypeUsesPermissionUnit, String recordPermissionUnit) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }
