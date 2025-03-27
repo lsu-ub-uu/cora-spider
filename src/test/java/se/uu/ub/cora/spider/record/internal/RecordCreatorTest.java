@@ -806,7 +806,6 @@ public class RecordCreatorTest {
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "someExceptionFromSpy")
 	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_NotAuthorized() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
 		spiderAuthorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForPemissionUnit",
 				new AuthorizationException("someExceptionFromSpy"));
 

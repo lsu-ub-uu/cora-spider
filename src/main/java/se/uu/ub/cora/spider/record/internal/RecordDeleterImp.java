@@ -92,6 +92,8 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 
 		dataRecordGroup = readRecordFromStorage();
 		recordTypeHandler = getRecordTypeHandler();
+
+		checkUserIsAuthorizedForPermissionUnit();
 		checkUserIsAuthorizedToDeleteStoredRecord(dataRecordGroup);
 		checkNoIncomingLinksExists();
 
@@ -141,6 +143,14 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 		data.authToken = authToken;
 		data.user = user;
 		return data;
+	}
+
+	private void checkUserIsAuthorizedForPermissionUnit() {
+		boolean usePermissionUnit = recordTypeHandler.usePermissionUnit();
+
+		String previousRecordPermissionUnit = dataRecordGroup.getPermissionUnit();
+		authorizator.checkUserIsAuthorizedForPemissionUnit(user, usePermissionUnit,
+				previousRecordPermissionUnit);
 	}
 
 	private DataRecordGroup readRecordFromStorage() {

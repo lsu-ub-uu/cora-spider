@@ -63,7 +63,6 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordUpdaterImp extends RecordHandler implements RecordUpdater {
-	private static final String UNPUBLISHED = "unpublished";
 	private static final String UPDATE = "update";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
@@ -125,11 +124,11 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
 		validateRecordTypeInDataIsSameAsSpecified(recordType);
-
+		previouslyStoredRecord = recordStorage.read(recordType, recordId);
+		checkUserIsAuthorizedForPermissionUnit();
 		definitionId = recordTypeHandler.getDefinitionId();
 		updateDefinitionId = recordTypeHandler.getUpdateDefinitionId();
 
-		previouslyStoredRecord = recordStorage.read(recordType, recordId);
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 
 		doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection();
@@ -202,6 +201,18 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		List<ExtendedFunctionality> exFunctionality = extendedFunctionalityProvider
 				.getFunctionalityForPositionAndRecordType(position, recordType);
 		useExtendedFunctionality(recordGroup, exFunctionality);
+	}
+
+	private void checkUserIsAuthorizedForPermissionUnit() {
+		boolean usePermissionUnit = recordTypeHandler.usePermissionUnit();
+
+		String previousRecordPermissionUnit = previouslyStoredRecord.getPermissionUnit();
+		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, usePermissionUnit,
+				previousRecordPermissionUnit);
+
+		String recordPermissionUnit = recordGroup.getPermissionUnit();
+		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, usePermissionUnit,
+				recordPermissionUnit);
 	}
 
 	private void doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection() {
@@ -322,7 +333,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 	private void possiblySetVisibilityToDefault() {
 		if (recordGroup.getVisibility().isEmpty()) {
-			recordGroup.setVisibility(previouslyStoredRecord.getVisibility().orElse(UNPUBLISHED));
+			recordGroup.setVisibility(previouslyStoredRecord.getVisibility().orElse("unpublished"));
 		}
 	}
 
