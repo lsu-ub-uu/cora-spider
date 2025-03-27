@@ -30,9 +30,11 @@ import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class OldSpiderAuthorizatorSpy implements SpiderAuthorizator {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
 	/**
 	 * authorizedForActionAndRecordType is used to authorize the a user for an action and
@@ -138,15 +140,6 @@ public class OldSpiderAuthorizatorSpy implements SpiderAuthorizator {
 		notAutorizedForAction.add(action);
 	}
 
-	// @Override
-	// public Set<String> getUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-	// User user, String action, String recordType, DataGroup collectedData) {
-	// MCR.addCall("user", user, "action", action, "recordType", recordType, "collectedData",
-	// collectedData);
-	// MCR.addReturned(null);
-	// return null;
-	// }
-
 	@Override
 	public void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(User user, String action,
 			String recordType, List<PermissionTerm> permissionTerms) {
@@ -160,10 +153,10 @@ public class OldSpiderAuthorizatorSpy implements SpiderAuthorizator {
 	}
 
 	@Override
-	public boolean checkUserIsAuthorizedForPemissionUnit(User user,
+	public void checkUserIsAuthorizedForPemissionUnit(User user,
 			boolean recordTypeUsesPermissionUnit, String recordPermissionUnit) {
-		// TODO Auto-generated method stub
-		return false;
+		MCR.addCall("user", user, "recordTypeUsesPermissionUnit", recordTypeUsesPermissionUnit,
+				"recordPermissionUnit", recordPermissionUnit);
 	}
 
 }

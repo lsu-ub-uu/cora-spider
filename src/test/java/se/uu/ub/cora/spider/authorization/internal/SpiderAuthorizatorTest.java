@@ -819,12 +819,22 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void testCheckUserIsAuthorizedForPemissionUnit_isCalledAndReturn() {
-		boolean authorized = spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, true,
-				"somePermissionUnit");
+		beefeaterAuthorizator.MRV.setDefaultReturnValuesSupplier(
+				"checkUserIsAuthorizedForPemissionUnit", () -> true);
+		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, true, "somePermissionUnit");
 
 		beefeaterAuthorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
 				true, "somePermissionUnit");
-		beefeaterAuthorizator.MCR.assertReturn("checkUserIsAuthorizedForPemissionUnit", 0,
-				authorized);
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = "User someUserId is not authorized for permssionUnit: somePermissionUnit.")
+	public void testCheckUserIsNotAuthorizedForPemissionUnit_isCalledAndReturn() {
+		beefeaterAuthorizator.MRV.setDefaultReturnValuesSupplier(
+				"checkUserIsAuthorizedForPemissionUnit", () -> false);
+
+		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, true, "somePermissionUnit");
+
+		beefeaterAuthorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
+				true, "somePermissionUnit");
 	}
 }

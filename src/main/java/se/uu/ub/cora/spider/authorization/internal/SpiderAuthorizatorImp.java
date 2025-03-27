@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.authorization.internal;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -345,15 +346,20 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		return usersWriteRecordPartPermissions;
 	}
 
+	@Override
+	public void checkUserIsAuthorizedForPemissionUnit(User user,
+			boolean recordTypeUsesPermissionUnit, String recordPermissionUnit) {
+		boolean isAuthorized = beefeaterAuthorizator.checkUserIsAuthorizedForPemissionUnit(user,
+				recordTypeUsesPermissionUnit, recordPermissionUnit);
+		if (!isAuthorized) {
+			throw new AuthorizationException(
+					MessageFormat.format("User {0} is not authorized for permssionUnit: {1}.",
+							user.id, recordPermissionUnit));
+		}
+	}
+
 	List<Rule> getMatchedRules() {
 		// needed for test
 		return matchedRules;
-	}
-
-	@Override
-	public boolean checkUserIsAuthorizedForPemissionUnit(User user,
-			boolean recordTypeUsesPermissionUnit, String recordPermissionUnit) {
-		return beefeaterAuthorizator.checkUserIsAuthorizedForPemissionUnit(user,
-				recordTypeUsesPermissionUnit, recordPermissionUnit);
 	}
 }

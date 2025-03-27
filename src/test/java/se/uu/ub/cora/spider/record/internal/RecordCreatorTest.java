@@ -242,9 +242,13 @@ public class RecordCreatorTest {
 	public void testAuthorizatorIsCalled() {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
-		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		User user = getAuthenticatedUser();
 		spiderAuthorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0,
 				user, "create", RECORD_TYPE);
+	}
+
+	private User getAuthenticatedUser() {
+		return (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 	}
 
 	@Test
@@ -271,7 +275,7 @@ public class RecordCreatorTest {
 		expectedData.recordType = RECORD_TYPE;
 		expectedData.recordId = null;
 		expectedData.authToken = AUTH_TOKEN;
-		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.user = getAuthenticatedUser();
 		expectedData.previouslyStoredDataRecordGroup = null;
 		expectedData.dataRecordGroup = recordWithId;
 
@@ -347,27 +351,26 @@ public class RecordCreatorTest {
 					+ " to determin that the extended functionality is called in the correct place"
 					+ " in the code");
 		} catch (Exception e) {
-
+			SpiderAuthorizatorSpy authorizator = getCorrectAuthorizator();
+			authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+			dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
+			dependencyProviderSpy.MCR
+					.assertMethodNotCalled("getRecordTypeHandlerUsingDataRecordGroup");
 		}
-		SpiderAuthorizatorSpy authorizator = getCorrectAuthorizator();
-		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
-		dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
-		dependencyProviderSpy.MCR.assertMethodNotCalled("getRecordTypeHandlerUsingDataRecordGroup");
 	}
 
 	private SpiderAuthorizatorSpy getCorrectAuthorizator() {
-		int callNumberIsOneAs_recordCreatorIsCreatedTwiceOneInSetUpAndOneHereWithNewDependencies = 1;
-		SpiderAuthorizatorSpy authorizator = (SpiderAuthorizatorSpy) dependencyProviderSpy.MCR
-				.getReturnValue("getSpiderAuthorizator",
-						callNumberIsOneAs_recordCreatorIsCreatedTwiceOneInSetUpAndOneHereWithNewDependencies);
-		return authorizator;
+		int callNumberIsOneAsRecordCreatorIsCreatedTwiceOneInSetUpAndOneHereWithNewDependencies = 1;
+		return (SpiderAuthorizatorSpy) dependencyProviderSpy.MCR.getReturnValue(
+				"getSpiderAuthorizator",
+				callNumberIsOneAsRecordCreatorIsCreatedTwiceOneInSetUpAndOneHereWithNewDependencies);
 	}
 
 	@Test
 	public void testRecordEnhancerCalled() {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
-		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		User user = getAuthenticatedUser();
 		dataGroupToRecordEnhancer.MCR.assertParameters("enhanceIgnoringReadAccess", 0, user,
 				RECORD_TYPE, recordWithoutId, dataRedactor);
 	}
@@ -798,5 +801,53 @@ public class RecordCreatorTest {
 		recordWithoutId.MCR.assertMethodNotCalled("getVisibility");
 		recordWithoutId.MCR.assertMethodNotCalled("setVisibility");
 		recordWithoutId.MCR.assertMethodNotCalled("setTsVisibility");
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "someExceptionFromSpy")
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_NotAuthorized() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		spiderAuthorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForPemissionUnit",
+				new AuthorizationException("someExceptionFromSpy"));
+
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+	}
+
+	@Test
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_isAuthorized() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+
+		User user = getAuthenticatedUser();
+		var usePermissionUnit = recordTypeHandlerSpy.MCR.getReturnValue("usePermissionUnit", 0);
+		var recordPermissionUnit = recordWithoutId.MCR
+				.assertCalledParametersReturn("getPermissionUnit");
+		spiderAuthorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
+				usePermissionUnit, recordPermissionUnit);
+	}
+
+	@Test
+	public void testPermissionUnitAuthorizationCheck_positionAfter() {
+		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getRecordTypeId", new RuntimeException());
+
+		try {
+			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+			fail();
+		} catch (Exception e) {
+			spiderAuthorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForPemissionUnit");
+		}
+	}
+
+	@Test
+	public void testPermissionUnitAuthorizationCheck_positionBefore() {
+		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getDefinitionId", new RuntimeException());
+
+		try {
+			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+			fail();
+		} catch (Exception e) {
+			spiderAuthorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForPemissionUnit");
+		}
 	}
 }

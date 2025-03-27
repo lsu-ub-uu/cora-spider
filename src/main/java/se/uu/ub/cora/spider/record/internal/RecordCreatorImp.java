@@ -121,6 +121,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		useExtendedFunctionalityForPosition(CREATE_AFTER_AUTHORIZATION);
 		recordTypeHandler = createRecordTypeHandler();
 		validateRecordTypeInDataIsSameAsSpecified(recordType);
+		checkUserIsAuthorizedForPermissionUnit();
 		definitionId = recordTypeHandler.getDefinitionId();
 		validateRecord();
 		useExtendedFunctionalityForPosition(CREATE_AFTER_METADATA_VALIDATION);
@@ -139,21 +140,10 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		return enhanceDataGroupToRecord();
 	}
 
-	private void validateRecordTypeInDataIsSameAsSpecified(String recordTypeToCreate) {
-		if (recordTypeDoesNotMatchRecordTypeFromValidationType(recordTypeToCreate)) {
-			throw new DataException("The record "
-					+ "cannot be created because the record type provided does not match the record type "
-					+ "that the validation type is set to validate.");
-		}
-	}
-
-	private boolean recordTypeDoesNotMatchRecordTypeFromValidationType(String recordTypeToCreate) {
-		return !recordTypeHandler.getRecordTypeId().equals(recordTypeToCreate);
-	}
-
 	private void checkActionAuthorizationForUser() {
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
+
 	}
 
 	private void tryToGetActiveUser() {
@@ -172,6 +162,25 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private RecordTypeHandler createRecordTypeHandler() {
 		return dependencyProvider.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
+	}
+
+	private void validateRecordTypeInDataIsSameAsSpecified(String recordTypeToCreate) {
+		if (recordTypeDoesNotMatchRecordTypeFromValidationType(recordTypeToCreate)) {
+			throw new DataException("The record "
+					+ "cannot be created because the record type provided does not match the record type "
+					+ "that the validation type is set to validate.");
+		}
+	}
+
+	private boolean recordTypeDoesNotMatchRecordTypeFromValidationType(String recordTypeToCreate) {
+		return !recordTypeHandler.getRecordTypeId().equals(recordTypeToCreate);
+	}
+
+	private void checkUserIsAuthorizedForPermissionUnit() {
+		boolean usePermissionUnit = recordTypeHandler.usePermissionUnit();
+		String recordPermissionUnit = recordGroup.getPermissionUnit();
+		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, usePermissionUnit,
+				recordPermissionUnit);
 	}
 
 	private void validateRecord() {
@@ -281,17 +290,18 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		ValidationAnswer uniqueAnswer = uniqueValidator.validateUniqueForNewRecord(recordType,
 				recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
 		if (uniqueAnswer.dataIsInvalid()) {
-			createAndThrowConflictExceptionForUnique(uniqueAnswer);
+			throw createAndThrowConflictExceptionForUnique(uniqueAnswer);
 		}
 	}
 
-	private void createAndThrowConflictExceptionForUnique(ValidationAnswer uniqueAnswer) {
+	private ConflictException createAndThrowConflictExceptionForUnique(
+			ValidationAnswer uniqueAnswer) {
 		String errorMessageTemplate = "The record could not be created as it fails unique validation with the "
 				+ "following {0} error messages: {1}";
 		Collection<String> errorMessages = uniqueAnswer.getErrorMessages();
 		String errorMessage = MessageFormat.format(errorMessageTemplate, errorMessages.size(),
 				errorMessages);
-		throw ConflictException.withMessage(errorMessage);
+		return ConflictException.withMessage(errorMessage);
 	}
 
 	private void createRecordInStorage(DataGroup recordAsDataGroup, Set<Link> collectedLinks,
