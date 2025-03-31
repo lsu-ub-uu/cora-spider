@@ -72,9 +72,8 @@ public class BeefeaterAuthorizatorSpy implements Authorizator {
 	}
 
 	@Override
-	public boolean checkUserIsAuthorizedForPemissionUnit(User user,
-			boolean recordTypeUsesPermissionUnit, String recordPermissionUnit) {
-		return (boolean) MCR.addCallAndReturnFromMRV("user", user, "recordTypeUsesPermissionUnit",
-				recordTypeUsesPermissionUnit, "recordPermissionUnit", recordPermissionUnit);
+	public boolean checkUserIsAuthorizedForPemissionUnit(User user, String recordPermissionUnit) {
+		return (boolean) MCR.addCallAndReturnFromMRV("user", user, "recordPermissionUnit",
+				recordPermissionUnit);
 	}
 }

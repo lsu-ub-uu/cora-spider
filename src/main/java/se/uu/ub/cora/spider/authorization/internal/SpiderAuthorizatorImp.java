@@ -348,9 +348,9 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 
 	@Override
 	public void checkUserIsAuthorizedForPemissionUnit(User user,
-			boolean recordTypeUsesPermissionUnit, String recordPermissionUnit) {
+			String recordPermissionUnit) {
 		boolean isAuthorized = beefeaterAuthorizator.checkUserIsAuthorizedForPemissionUnit(user,
-				recordTypeUsesPermissionUnit, recordPermissionUnit);
+				recordPermissionUnit);
 		if (!isAuthorized) {
 			throw new AuthorizationException(
 					MessageFormat.format("User {0} is not authorized for permssionUnit: {1}.",

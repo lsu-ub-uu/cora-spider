@@ -234,8 +234,7 @@ public class SpiderAuthorizatorTest {
 
 	private User setupForInactiveAndNotSatisfyActionForRecordType() {
 		setUpDependencyProvider();
-		User inactiveUser = new User("inactiveUserId");
-		return inactiveUser;
+		return new User("inactiveUserId");
 	}
 
 	@Test
@@ -270,8 +269,7 @@ public class SpiderAuthorizatorTest {
 
 	private User setupForNonExistingUser() {
 		setUpDependencyProvider();
-		User nonExistingUser = new User("nonExistingUserId");
-		return nonExistingUser;
+		return new User("nonExistingUserId");
 	}
 
 	@Test
@@ -346,7 +344,7 @@ public class SpiderAuthorizatorTest {
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
 						user, READ, BOOK, permissionTerms, false);
 		List<Rule> providedRules = (List<Rule>) beefeaterAuthorizator.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(
+				.getParameterForMethodAndCallNumberAndParameter(
 						"providedRulesSatisfiesRequiredRules", 0, "providedRules");
 		Rule firstFakeRuleFromRulesProviderSpy = providedRules.get(0);
 		RulePartValues rulePartValuesForKey = firstFakeRuleFromRulesProviderSpy
@@ -403,7 +401,7 @@ public class SpiderAuthorizatorTest {
 
 	private List<Rule> getProvidedRulesForFirstCallToProvidedRulesSatisfiesRequiredRules() {
 		return (List<Rule>) beefeaterAuthorizator.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(
+				.getParameterForMethodAndCallNumberAndParameter(
 						"providedRulesSatisfiesRequiredRules", 0, "providedRules");
 	}
 
@@ -677,8 +675,8 @@ public class SpiderAuthorizatorTest {
 
 	private List<Rule> getProvidedRulesForFirstCallToProvidedRulesMatchRequiredRules() {
 		return (List<Rule>) beefeaterAuthorizator.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(
-						"providedRulesMatchRequiredRules", 0, "providedRules");
+				.getParameterForMethodAndCallNumberAndParameter("providedRulesMatchRequiredRules",
+						0, "providedRules");
 	}
 
 	@Test
@@ -821,10 +819,10 @@ public class SpiderAuthorizatorTest {
 	public void testCheckUserIsAuthorizedForPemissionUnit_isCalledAndReturn() {
 		beefeaterAuthorizator.MRV.setDefaultReturnValuesSupplier(
 				"checkUserIsAuthorizedForPemissionUnit", () -> true);
-		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, true, "somePermissionUnit");
+		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, "somePermissionUnit");
 
 		beefeaterAuthorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
-				true, "somePermissionUnit");
+				"somePermissionUnit");
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = "User someUserId is not authorized for permssionUnit: somePermissionUnit.")
@@ -832,9 +830,6 @@ public class SpiderAuthorizatorTest {
 		beefeaterAuthorizator.MRV.setDefaultReturnValuesSupplier(
 				"checkUserIsAuthorizedForPemissionUnit", () -> false);
 
-		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, true, "somePermissionUnit");
-
-		beefeaterAuthorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
-				true, "somePermissionUnit");
+		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, "somePermissionUnit");
 	}
 }

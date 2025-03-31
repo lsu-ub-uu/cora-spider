@@ -172,7 +172,7 @@ public interface SpiderAuthorizator {
 
 	/**
 	 * checkUserIsAuthorizedForPemissionUnit is supposed to wrap the method:
-	 * {@link Authorizator#checkUserIsAuthorizedForPemissionUnit(User, boolean, String)} The
+	 * {@link Authorizator#checkUserIsAuthorizedForPemissionUnit(User, String)} The
 	 * implementation must ensure that the user is authorized to handler records of an specific
 	 * permisssionUnit.
 	 * <p>
@@ -180,13 +180,10 @@ public interface SpiderAuthorizator {
 	 * 
 	 * @param user
 	 *            The {@link User} to check if is authorized.
-	 * @param recordTypeUsesPermissionUnit
-	 *            A boolean indicating if the recordType uses permissionUnit
 	 * @param recordPermissionUnit
 	 *            The permissionUnit associated with the record
 	 * @return a boolean, true if the user is allowed to regarding its permissionUnits.
 	 */
-	void checkUserIsAuthorizedForPemissionUnit(User user, boolean recordTypeUsesPermissionUnit,
-			String recordPermissionUnit);
+	void checkUserIsAuthorizedForPemissionUnit(User user, String recordPermissionUnit);
 
 }

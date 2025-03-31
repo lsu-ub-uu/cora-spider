@@ -879,16 +879,30 @@ public class RecordUpdaterTest {
 		recordWithId.MCR.assertMethodNotCalled("setTsVisibilityNow");
 	}
 
+	@Test
+	public void testPermissionUnitAuthorizationCheck_DoNotUsePermissionUnit() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> false);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForPemissionUnit");
+	}
+
+	private void setUpRecordTypeUsesPermissionUnits() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				() -> Optional.of("updatedRecordPermissionUnit"));
+		recordWithId.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				() -> Optional.of("previousRecordPermissionUnit"));
+	}
+
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "someExceptionFromSpy")
 	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_NotAuthorizedOnPreviousRecord() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
-		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
-				() -> "previousRecordPermissionUnit");
-
+		setUpRecordTypeUsesPermissionUnits();
 		authorizator.MRV.setThrowException("checkUserIsAuthorizedForPemissionUnit",
-				new AuthorizationException("someExceptionFromSpy"), currentUser, true,
-				"previousRecordPermissionUnit");
+				new AuthorizationException("someExceptionFromSpy"), currentUser,
+				"updatedRecordPermissionUnit");
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 	}
@@ -896,38 +910,57 @@ public class RecordUpdaterTest {
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "someExceptionFromSpy")
 	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_NotAuthorizedOnUpdatedRecord() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
-		recordWithId.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
-				() -> "previousRecordPermissionUnit");
-
+		setUpRecordTypeUsesPermissionUnits();
 		authorizator.MRV.setThrowException("checkUserIsAuthorizedForPemissionUnit",
-				new AuthorizationException("someExceptionFromSpy"), currentUser, true,
+				new AuthorizationException("someExceptionFromSpy"), currentUser,
 				"previousRecordPermissionUnit");
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 	}
 
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "User someUserId is not authorized to delete record.")
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_missingPermissionUnitInPreviousRecord() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				Optional::empty);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "PermissionUnit is missing in the record.")
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_missingPermissionUnitInUpdatedRecord() {
+		setUpRecordTypeUsesPermissionUnits();
+		recordWithId.MRV.setDefaultReturnValuesSupplier("getPermissionUnit", Optional::empty);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+	}
+
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_isAuthorized() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		setUpRecordTypeUsesPermissionUnits();
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
 		var user = getAuthenticatedUser();
-		var usePermissionUnit = recordTypeHandlerSpy.MCR.getReturnValue("usePermissionUnit", 0);
-		var previousRecordPermissionUnit = previouslyStoredRecordGroup.MCR
+		recordTypeHandlerSpy.MCR.assertMethodWasCalled("usePermissionUnit");
+		var previousRecordPermissionUnit = (Optional<String>) previouslyStoredRecordGroup.MCR
 				.assertCalledParametersReturn("getPermissionUnit");
 		authorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
-				usePermissionUnit, previousRecordPermissionUnit);
+				previousRecordPermissionUnit.get());
 
-		var recordPermissionUnit = recordWithId.MCR
+		var recordPermissionUnit = (Optional<String>) recordWithId.MCR
 				.assertCalledParametersReturn("getPermissionUnit");
 		authorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 1, user,
-				usePermissionUnit, recordPermissionUnit);
+				recordPermissionUnit.get());
+
 	}
 
 	@Test
 	public void testPermissionUnitAuthorizationCheck_positionAfter() {
+		setUpRecordTypeUsesPermissionUnits();
 		recordStorage.MRV.setThrowException("read", new RuntimeException(), RECORD_TYPE, RECORD_ID);
 
 		try {
@@ -940,6 +973,7 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testPermissionUnitAuthorizationCheck_positionBefore() {
+		setUpRecordTypeUsesPermissionUnits();
 		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getDefinitionId", new RuntimeException());
 
 		try {

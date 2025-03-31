@@ -23,7 +23,9 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_BEFORE;
 
+import java.text.MessageFormat;
 import java.util.List;
+import java.util.function.Consumer;
 
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
@@ -31,6 +33,7 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -146,11 +149,28 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 	}
 
 	private void checkUserIsAuthorizedForPermissionUnit() {
-		boolean usePermissionUnit = recordTypeHandler.usePermissionUnit();
+		if (recordTypeUsesPermissionUnits()) {
+			getPermissionUnitFromRecordAndCheckIfAuthorized();
+		}
+	}
 
-		String previousRecordPermissionUnit = dataRecordGroup.getPermissionUnit();
-		authorizator.checkUserIsAuthorizedForPemissionUnit(user, usePermissionUnit,
-				previousRecordPermissionUnit);
+	private boolean recordTypeUsesPermissionUnits() {
+		return recordTypeHandler.usePermissionUnit();
+	}
+
+	private void getPermissionUnitFromRecordAndCheckIfAuthorized() {
+		dataRecordGroup.getPermissionUnit().ifPresentOrElse(checkUserIsAuthorizedForPemissionUnit(),
+				this::userIsUnAuthorizedForPermissionUnit);
+	}
+
+	private Consumer<? super String> checkUserIsAuthorizedForPemissionUnit() {
+		return recordPermissionUnit -> authorizator.checkUserIsAuthorizedForPemissionUnit(user,
+				recordPermissionUnit);
+	}
+
+	private void userIsUnAuthorizedForPermissionUnit() {
+		throw new AuthorizationException(
+				MessageFormat.format("User {0} is not authorized to delete record.", user.id));
 	}
 
 	private DataRecordGroup readRecordFromStorage() {

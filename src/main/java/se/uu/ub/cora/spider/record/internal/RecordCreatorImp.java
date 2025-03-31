@@ -28,6 +28,7 @@ import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.metadata.Constraint;
@@ -177,10 +178,27 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void checkUserIsAuthorizedForPermissionUnit() {
-		boolean usePermissionUnit = recordTypeHandler.usePermissionUnit();
-		String recordPermissionUnit = recordGroup.getPermissionUnit();
-		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, usePermissionUnit,
-				recordPermissionUnit);
+		if (recordTypeUsesPermissionUnits()) {
+			getPermissionUnitFromRecordAndCheckIfAuthorized();
+		}
+	}
+
+	private boolean recordTypeUsesPermissionUnits() {
+		return recordTypeHandler.usePermissionUnit();
+	}
+
+	private void getPermissionUnitFromRecordAndCheckIfAuthorized() {
+		recordGroup.getPermissionUnit().ifPresentOrElse(checkUserIsAuthorizedForPemissionUnit(),
+				this::permissionUnitMissingButExpected);
+	}
+
+	private Consumer<? super String> checkUserIsAuthorizedForPemissionUnit() {
+		return recordPermissionUnit -> spiderAuthorizator
+				.checkUserIsAuthorizedForPemissionUnit(user, recordPermissionUnit);
+	}
+
+	private void permissionUnitMissingButExpected() {
+		throw new DataException("PermissionUnit is missing in the record.");
 	}
 
 	private void validateRecord() {

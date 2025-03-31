@@ -26,6 +26,8 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_BEFORE;
 
+import java.util.Optional;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -71,6 +73,7 @@ public class RecordDeleterTest {
 	private DataGroupTermCollectorSpy termCollector;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private RecordTypeHandlerSpy recordTypeHandler;
+	private DataRecordGroupSpy recordToDelete;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -79,7 +82,8 @@ public class RecordDeleterTest {
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageSpy();
 		recordArchive = new RecordArchiveSpy();
-		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataRecordGroupSpy::new);
+		recordToDelete = new DataRecordGroupSpy();
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> recordToDelete);
 		recordIndexer = new RecordIndexerSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
@@ -392,32 +396,61 @@ public class RecordDeleterTest {
 		}
 	}
 
+	@Test
+	public void testPermissionUnitAuthorizationCheck_DoNotUsePermissionUnit() {
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> false);
+
+		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+
+		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForPemissionUnit");
+	}
+
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "someExceptionFromSpy")
 	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_NotAuthorizedOnPreviousRecord() {
+		setUpRecordTypeUsesPermissionUnits();
 		authorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForPemissionUnit",
 				new AuthorizationException("someExceptionFromSpy"));
 
 		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
 	}
 
+	private void setUpRecordTypeUsesPermissionUnits() {
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		recordToDelete.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				() -> Optional.of("permissionUnit001"));
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "User userSpy is not authorized to delete record.")
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_missingPermissionUnitInRecord() {
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		recordToDelete.MRV.setDefaultReturnValuesSupplier("getPermissionUnit", Optional::empty);
+
+		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+	}
+
 	@Test
 	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_isAuthorized() {
-		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		setUpRecordTypeUsesPermissionUnits();
 
 		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
 
 		var user = getAuthenticatedUser();
-		var usePermissionUnit = recordTypeHandler.MCR.getReturnValue("usePermissionUnit", 0);
-		DataRecordGroupSpy storedRecord = (DataRecordGroupSpy) getReadDataRecordGroup();
-		var previousRecordPermissionUnit = storedRecord.MCR
-				.assertCalledParametersReturn("getPermissionUnit");
+		recordTypeHandler.MCR.assertMethodWasCalled("usePermissionUnit");
+		Optional<String> recordPermissionUnit = assertAndReturnGetPermissionUnit();
 		authorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
-				usePermissionUnit, previousRecordPermissionUnit);
+				recordPermissionUnit.get());
+	}
+
+	private Optional<String> assertAndReturnGetPermissionUnit() {
+		return (Optional<String>) recordToDelete.MCR
+				.assertCalledParametersReturn("getPermissionUnit");
 	}
 
 	@Test
 	public void testPermissionUnitAuthorizationCheck_positionAfter() {
+		setUpRecordTypeUsesPermissionUnits();
 		dependencyProvider.MRV.setAlwaysThrowException("getRecordTypeHandlerUsingDataRecordGroup",
 				new RuntimeException());
 
@@ -431,6 +464,7 @@ public class RecordDeleterTest {
 
 	@Test
 	public void testPermissionUnitAuthorizationCheck_positionBefore() {
+		setUpRecordTypeUsesPermissionUnits();
 		recordTypeHandler.MRV.setAlwaysThrowException("getDefinitionId", new RuntimeException());
 
 		try {

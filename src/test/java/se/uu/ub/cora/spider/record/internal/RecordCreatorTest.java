@@ -806,6 +806,7 @@ public class RecordCreatorTest {
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "someExceptionFromSpy")
 	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_NotAuthorized() {
+		setUpRecordTypeUsesPermissionUnits();
 		spiderAuthorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForPemissionUnit",
 				new AuthorizationException("someExceptionFromSpy"));
 
@@ -813,21 +814,44 @@ public class RecordCreatorTest {
 	}
 
 	@Test
-	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_isAuthorized() {
+	public void testPermissionUnitAuthorizationCheck_DoNotUsePermissionUnit() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> false);
+
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+
+		spiderAuthorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForPemissionUnit");
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "PermissionUnit is missing in the record.")
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_missingPermissionUnitInRecord() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		recordWithoutId.MRV.setDefaultReturnValuesSupplier("getPermissionUnit", Optional::empty);
+
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+	}
+
+	@Test
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_isAuthorized() {
+		setUpRecordTypeUsesPermissionUnits();
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		User user = getAuthenticatedUser();
-		var usePermissionUnit = recordTypeHandlerSpy.MCR.getReturnValue("usePermissionUnit", 0);
-		var recordPermissionUnit = recordWithoutId.MCR
-				.assertCalledParametersReturn("getPermissionUnit");
+		recordTypeHandlerSpy.MCR.assertMethodWasCalled("usePermissionUnit");
+		Optional<String> recordPermissionUnit = assertAndReturnGetPermissionUnit();
 		spiderAuthorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
-				usePermissionUnit, recordPermissionUnit);
+				recordPermissionUnit.get());
+	}
+
+	private Optional<String> assertAndReturnGetPermissionUnit() {
+		return (Optional<String>) recordWithoutId.MCR
+				.assertCalledParametersReturn("getPermissionUnit");
 	}
 
 	@Test
 	public void testPermissionUnitAuthorizationCheck_positionAfter() {
+		setUpRecordTypeUsesPermissionUnits();
 		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getRecordTypeId", new RuntimeException());
 
 		try {
@@ -840,6 +864,7 @@ public class RecordCreatorTest {
 
 	@Test
 	public void testPermissionUnitAuthorizationCheck_positionBefore() {
+		setUpRecordTypeUsesPermissionUnits();
 		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getDefinitionId", new RuntimeException());
 
 		try {
@@ -848,5 +873,11 @@ public class RecordCreatorTest {
 		} catch (Exception e) {
 			spiderAuthorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForPemissionUnit");
 		}
+	}
+
+	private void setUpRecordTypeUsesPermissionUnits() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		recordWithoutId.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				() -> Optional.of("permissionUnit001"));
 	}
 }
