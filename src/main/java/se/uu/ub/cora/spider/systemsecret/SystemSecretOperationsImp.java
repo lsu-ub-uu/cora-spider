@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Uppsala University Library
+ * Copyright 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -26,6 +26,7 @@ import se.uu.ub.cora.data.DataParent;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.password.texthasher.TextHasher;
+import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
@@ -57,6 +58,7 @@ public class SystemSecretOperationsImp implements SystemSecretOperations {
 		DataRecordGroup systemSecretRecordGroup = createSystemSecretRecordGroupWithHashedSecret(
 				secret, systemSecretId, dataDivider);
 		storeSystemSecretIntoStorage(dataDivider, systemSecretId, systemSecretRecordGroup);
+		sendDataChanged(systemSecretId, "create");
 		return systemSecretId;
 	}
 
@@ -99,12 +101,18 @@ public class SystemSecretOperationsImp implements SystemSecretOperations {
 				Collections.emptySet(), Collections.emptySet(), dataDivider);
 	}
 
+	private void sendDataChanged(String recordId, String action) {
+		DataChangedSender dataChangedSender = dependencyProvider.getDataChangeSender();
+		dataChangedSender.sendDataChanged(SYSTEM_SECRET_TYPE, recordId, action);
+	}
+
 	@Override
 	public void updateSecretForASystemSecret(String systemSecretId, String dataDivider,
 			String secret) {
 		DataRecordGroup systemSecretRecordGroup = updateSecretForASystemSecret(systemSecretId,
 				secret);
 		updateSystemSecretRecordIntoStorage(dataDivider, systemSecretId, systemSecretRecordGroup);
+		sendDataChanged(systemSecretId, "update");
 	}
 
 	private DataRecordGroup updateSecretForASystemSecret(String systemSecretId, String secret) {
@@ -137,6 +145,7 @@ public class SystemSecretOperationsImp implements SystemSecretOperations {
 	public void deleteSystemSecretFromStorage(String systemSecretId) {
 		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
 		recordStorage.deleteByTypeAndId(SYSTEM_SECRET_TYPE, systemSecretId);
+		sendDataChanged(systemSecretId, "delete");
 	}
 
 	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {
