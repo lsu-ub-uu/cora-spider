@@ -55,7 +55,7 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 
 	public boolean isChildOfBinary = false;
 	public boolean representsTheRecordTypeDefiningSearches = false;
-	public boolean representsTheRecordTypeDefiningRecordTypes = false;
+	// public boolean representsTheRecordTypeDefiningRecordTypes = false;
 
 	public boolean hasLinkedSearch = false;
 
@@ -81,6 +81,8 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
 		MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
 		MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> false);
+		MRV.setDefaultReturnValuesSupplier("representsTheRecordTypeDefiningRecordTypes",
+				() -> false);
 	}
 
 	@Override
@@ -156,9 +158,7 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean representsTheRecordTypeDefiningRecordTypes() {
-		MCR.addCall();
-		MCR.addReturned(representsTheRecordTypeDefiningRecordTypes);
-		return representsTheRecordTypeDefiningRecordTypes;
+		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override

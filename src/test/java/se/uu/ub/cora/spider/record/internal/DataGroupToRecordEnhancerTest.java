@@ -24,10 +24,12 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
@@ -125,18 +127,18 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testReadActionPartOfEnhance() throws Exception {
+	public void testReadActionPartOfEnhance() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertReadActionPartOfEnhance(record);
+		assertReadActionPartOfEnhance(recordToEnhance);
 	}
 
-	private void assertReadActionPartOfEnhance(DataRecordSpy record) {
+	private void assertReadActionPartOfEnhance(DataRecordSpy recordToEnhance) {
 		assertCheckAndGetAuthorizationCalledForReadActionPartOfEnhance();
-		assertRecordContainsReadAction(record);
+		assertRecordContainsReadAction(recordToEnhance);
 	}
 
 	private void assertCheckAndGetAuthorizationCalledForReadActionPartOfEnhance() {
@@ -147,8 +149,8 @@ public class DataGroupToRecordEnhancerTest {
 				user, READ, SOME_RECORD_TYPE, permissionTerms, true);
 	}
 
-	private void assertRecordContainsReadAction(DataRecordSpy record) {
-		record.MCR.assertParameters("addAction", 0, Action.READ);
+	private void assertRecordContainsReadAction(DataRecordSpy recordToEnhance) {
+		recordToEnhance.MCR.assertParameters("addAction", 0, Action.READ);
 	}
 
 	private RecordStorageOldSpy createRecordStorageSpy() {
@@ -179,17 +181,17 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessReadActionPartOfEnhance() throws Exception {
+	public void testEnhanceIgnoreReadAccessReadActionPartOfEnhance() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertReadActionPartOfEnhance(record);
+		assertReadActionPartOfEnhance(recordToEnhance);
 	}
 
 	@Test
-	public void testReadActionPartOfEnhanceNotAuthorized() throws Exception {
+	public void testReadActionPartOfEnhanceNotAuthorized() {
 		setupForNoReadAccess();
 
 		Exception auxiliaryException = runEnhanceAndCatchException();
@@ -222,29 +224,29 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessReadActionPartOfEnhanceNotAuthorized() throws Exception {
+	public void testEnhanceIgnoreReadAccessReadActionPartOfEnhanceNotAuthorized() {
 		setupForNoReadAccess();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
 		assertCheckAndGetAuthorizationCalledForReadActionPartOfEnhance();
 
-		assertRecordDoesNotContainReadAction(record);
+		assertRecordDoesNotContainReadAction(recordToEnhance);
 	}
 
-	private void assertRecordDoesNotContainReadAction(DataRecord record) {
-		assertFalse(record.getActions().contains(Action.READ));
+	private void assertRecordDoesNotContainReadAction(DataRecord recordToEnhance) {
+		assertFalse(recordToEnhance.getActions().contains(Action.READ));
 	}
 
 	@Test
-	public void testReadActionPartOfEnhanceNotAuthorizedButPublicData() throws Exception {
+	public void testReadActionPartOfEnhanceNotAuthorizedButPublicData() {
 		setupForNoReadAccessButPublicData();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertReadActionPartOfEnhanceNotAuthorizedButPublicData(record);
+		assertReadActionPartOfEnhanceNotAuthorizedButPublicData(recordToEnhance);
 	}
 
 	private void setupForNoReadAccessButPublicData() {
@@ -253,42 +255,42 @@ public class DataGroupToRecordEnhancerTest {
 		oldAuthorizator.authorizedForActionAndRecordTypeAndCollectedData = false;
 	}
 
-	private void assertReadActionPartOfEnhanceNotAuthorizedButPublicData(DataRecordSpy record) {
+	private void assertReadActionPartOfEnhanceNotAuthorizedButPublicData(
+			DataRecordSpy recordToEnhance) {
 		recordTypeHandlerSpy.MCR.assertMethodWasCalled("isPublicForRead");
 		oldAuthorizator.MCR.assertNumberOfCallsToMethod(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				1);
-		assertRecordContainsReadAction(record);
+		assertRecordContainsReadAction(recordToEnhance);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessReadActionPartOfEnhanceNotAuthorizedButPublicData()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessReadActionPartOfEnhanceNotAuthorizedButPublicData() {
 		setupForNoReadAccessButPublicData();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertReadActionPartOfEnhanceNotAuthorizedButPublicData(record);
+		assertReadActionPartOfEnhanceNotAuthorizedButPublicData(recordToEnhance);
 	}
 
 	@Test
-	public void testUpdateActionPartOfEnhance() throws Exception {
+	public void testUpdateActionPartOfEnhance() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertUpdateActionPartOfEnhance(record);
+		assertUpdateActionPartOfEnhance(recordToEnhance);
 	}
 
-	private void assertUpdateActionPartOfEnhance(DataRecordSpy record) {
+	private void assertUpdateActionPartOfEnhance(DataRecordSpy recordToEnhance) {
 		assertCheckAndGetAuthorizationCalledForUpdateActionPartOfEnhance();
-		assertRecordContainsUpdateAction(record);
+		assertRecordContainsUpdateAction(recordToEnhance);
 	}
 
-	private void assertRecordContainsUpdateAction(DataRecordSpy record) {
-		record.MCR.assertCalledParameters("addAction", Action.UPDATE);
+	private void assertRecordContainsUpdateAction(DataRecordSpy recordToEnhance) {
+		recordToEnhance.MCR.assertCalledParameters("addAction", Action.UPDATE);
 	}
 
 	private void assertCheckAndGetAuthorizationCalledForUpdateActionPartOfEnhance() {
@@ -300,23 +302,23 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessUpdateActionPartOfEnhance() throws Exception {
+	public void testEnhanceIgnoreReadAccessUpdateActionPartOfEnhance() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertUpdateActionPartOfEnhance(record);
+		assertUpdateActionPartOfEnhance(recordToEnhance);
 	}
 
 	@Test
-	public void testUpdateActionPartOfEnhanceNotAuthorized() throws Exception {
+	public void testUpdateActionPartOfEnhanceNotAuthorized() {
 		setupForNoUpdateAccess();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertUpdateActionPartOfEnhanceNotAuthorized(record);
+		assertUpdateActionPartOfEnhanceNotAuthorized(recordToEnhance);
 	}
 
 	private void setupForNoUpdateAccess() {
@@ -324,35 +326,34 @@ public class DataGroupToRecordEnhancerTest {
 		oldAuthorizator.setNotAutorizedForAction(UPDATE);
 	}
 
-	private void assertUpdateActionPartOfEnhanceNotAuthorized(DataRecord record) {
+	private void assertUpdateActionPartOfEnhanceNotAuthorized(DataRecord recordToEnhance) {
 		assertCheckAndGetAuthorizationCalledForUpdateActionPartOfEnhance();
-		assertFalse(record.getActions().contains(Action.UPDATE));
+		assertFalse(recordToEnhance.getActions().contains(Action.UPDATE));
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessUpdateActionPartOfEnhanceNotAuthorized()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessUpdateActionPartOfEnhanceNotAuthorized() {
 		setupForNoUpdateAccess();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertUpdateActionPartOfEnhanceNotAuthorized(record);
+		assertUpdateActionPartOfEnhanceNotAuthorized(recordToEnhance);
 	}
 
 	@Test
-	public void testIndexActionPartOfEnhance() throws Exception {
+	public void testIndexActionPartOfEnhance() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertIndexAction(record);
+		assertIndexAction(recordToEnhance);
 	}
 
-	private void assertIndexAction(DataRecordSpy record) {
+	private void assertIndexAction(DataRecordSpy recordToEnhance) {
 		assertTypeAndCollectedDataAuthorizationCalledForIndexActionPartOfEnhance();
-		assertRecordContainsIndexAction(record);
+		assertRecordContainsIndexAction(recordToEnhance);
 	}
 
 	private void assertTypeAndCollectedDataAuthorizationCalledForIndexActionPartOfEnhance() {
@@ -363,24 +364,25 @@ public class DataGroupToRecordEnhancerTest {
 				SOME_RECORD_TYPE, permissionTerms);
 	}
 
-	private void assertRecordContainsIndexAction(DataRecordSpy record) {
-		record.MCR.assertCalledParameters("addAction", Action.INDEX);
+	private void assertRecordContainsIndexAction(DataRecordSpy recordToEnhance) {
+		recordToEnhance.MCR.assertCalledParameters("addAction", Action.INDEX);
 	}
 
 	@Test
-	public void testBatchIndexActionPartOfEnhance() throws Exception {
+	public void testBatchIndexActionPartOfEnhance() {
 		createRecordStorageSpy();
-		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier(
+				"representsTheRecordTypeDefiningRecordTypes", () -> true);
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertBatchIndexAction(record);
+		assertBatchIndexAction(recordToEnhance);
 	}
 
-	private void assertBatchIndexAction(DataRecordSpy record) {
+	private void assertBatchIndexAction(DataRecordSpy recordToEnhance) {
 		assertTypeAndCollectedDataAuthorizationCalledForBatchIndexActionPartOfEnhance();
-		assertRecordContainsBatchIndexAction(record);
+		assertRecordContainsBatchIndexAction(recordToEnhance);
 	}
 
 	private void assertTypeAndCollectedDataAuthorizationCalledForBatchIndexActionPartOfEnhance() {
@@ -388,64 +390,66 @@ public class DataGroupToRecordEnhancerTest {
 				"batch_index", "someId");
 	}
 
-	private void assertRecordContainsBatchIndexAction(DataRecordSpy record) {
-		record.MCR.assertCalledParameters("addAction", Action.BATCH_INDEX);
+	private void assertRecordContainsBatchIndexAction(DataRecordSpy recordToEnhance) {
+		recordToEnhance.MCR.assertCalledParameters("addAction", Action.BATCH_INDEX);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessBatchIndexActionPartOfEnhance() throws Exception {
+	public void testEnhanceIgnoreReadAccessBatchIndexActionPartOfEnhance() {
 		createRecordStorageSpy();
-		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier(
+				"representsTheRecordTypeDefiningRecordTypes", () -> true);
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertBatchIndexAction(record);
+		assertBatchIndexAction(recordToEnhance);
 	}
 
 	@Test
-	public void testBatchIndexActionPartOfEnhanceNotAuthorized() throws Exception {
+	public void testBatchIndexActionPartOfEnhanceNotAuthorized() {
 		setupForNoBatchIndexAccess();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertBatchIndexActionNotAuthorized(record);
+		assertBatchIndexActionNotAuthorized(recordToEnhance);
 	}
 
 	private void setupForNoBatchIndexAccess() {
 		createRecordStorageSpy();
-		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier(
+				"representsTheRecordTypeDefiningRecordTypes", () -> true);
 		oldAuthorizator.setNotAutorizedForAction("batch_index");
 	}
 
-	private void assertBatchIndexActionNotAuthorized(DataRecord record) {
+	private void assertBatchIndexActionNotAuthorized(DataRecord recordToEnhance) {
 		assertTypeAndCollectedDataAuthorizationCalledForBatchIndexActionPartOfEnhance();
-		assertRecordDoesNotContainBatchIndexAction(record);
+		assertRecordDoesNotContainBatchIndexAction(recordToEnhance);
 	}
 
-	private void assertRecordDoesNotContainBatchIndexAction(DataRecord record) {
-		assertFalse(record.getActions().contains(Action.BATCH_INDEX));
+	private void assertRecordDoesNotContainBatchIndexAction(DataRecord recordToEnhance) {
+		assertFalse(recordToEnhance.getActions().contains(Action.BATCH_INDEX));
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessIndexActionPartOfEnhance() throws Exception {
+	public void testEnhanceIgnoreReadAccessIndexActionPartOfEnhance() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertIndexAction(record);
+		assertIndexAction(recordToEnhance);
 	}
 
 	@Test
-	public void testIndexActionPartOfEnhanceNotAuthorized() throws Exception {
+	public void testIndexActionPartOfEnhanceNotAuthorized() {
 		setupForNoIndexAccess();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertIndexActionNotAuthorized(record);
+		assertIndexActionNotAuthorized(recordToEnhance);
 	}
 
 	private void setupForNoIndexAccess() {
@@ -453,43 +457,42 @@ public class DataGroupToRecordEnhancerTest {
 		oldAuthorizator.setNotAutorizedForAction("index");
 	}
 
-	private void assertIndexActionNotAuthorized(DataRecord record) {
+	private void assertIndexActionNotAuthorized(DataRecord recordToEnhance) {
 		assertTypeAndCollectedDataAuthorizationCalledForIndexActionPartOfEnhance();
-		assertRecordDoesNotContainIndexAction(record);
+		assertRecordDoesNotContainIndexAction(recordToEnhance);
 	}
 
-	private void assertRecordDoesNotContainIndexAction(DataRecord record) {
-		assertFalse(record.getActions().contains(Action.INDEX));
+	private void assertRecordDoesNotContainIndexAction(DataRecord recordToEnhance) {
+		assertFalse(recordToEnhance.getActions().contains(Action.INDEX));
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessIndexActionPartOfEnhanceNotAuthorized()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessIndexActionPartOfEnhanceNotAuthorized() {
 		setupForNoIndexAccess();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertIndexActionNotAuthorized(record);
+		assertIndexActionNotAuthorized(recordToEnhance);
 	}
 
 	@Test
-	public void testDeleteActionPartOfEnhance() throws Exception {
+	public void testDeleteActionPartOfEnhance() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertDeleteAction(record);
+		assertDeleteAction(recordToEnhance);
 	}
 
-	private void assertDeleteAction(DataRecordSpy record) {
+	private void assertDeleteAction(DataRecordSpy recordToEnhance) {
 		assertTypeAndCollectedDataAuthorizationCalledForDeleteActionPartOfEnhance();
-		assertRecordContainsDeleteAction(record);
+		assertRecordContainsDeleteAction(recordToEnhance);
 	}
 
-	private void assertRecordContainsDeleteAction(DataRecordSpy record) {
-		record.MCR.assertCalledParameters("addAction", Action.DELETE);
+	private void assertRecordContainsDeleteAction(DataRecordSpy recordToEnhance) {
+		recordToEnhance.MCR.assertCalledParameters("addAction", Action.DELETE);
 	}
 
 	private void assertTypeAndCollectedDataAuthorizationCalledForDeleteActionPartOfEnhance() {
@@ -501,23 +504,23 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessDeleteActionPartOfEnhance() throws Exception {
+	public void testEnhanceIgnoreReadAccessDeleteActionPartOfEnhance() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertDeleteAction(record);
+		assertDeleteAction(recordToEnhance);
 	}
 
 	@Test
-	public void testDeleteActionPartOfEnhanceNotAuthorized() throws Exception {
+	public void testDeleteActionPartOfEnhanceNotAuthorized() {
 		setupForNoDeleteAccess();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertDeleteActionNotAuthorized(record);
+		assertDeleteActionNotAuthorized(recordToEnhance);
 	}
 
 	private void setupForNoDeleteAccess() {
@@ -525,34 +528,33 @@ public class DataGroupToRecordEnhancerTest {
 		oldAuthorizator.setNotAutorizedForAction("delete");
 	}
 
-	private void assertDeleteActionNotAuthorized(DataRecord record) {
+	private void assertDeleteActionNotAuthorized(DataRecord recordToEnhance) {
 		assertTypeAndCollectedDataAuthorizationCalledForDeleteActionPartOfEnhance();
-		assertRecordDoesNotContainDeleteAction(record);
+		assertRecordDoesNotContainDeleteAction(recordToEnhance);
 	}
 
-	private void assertRecordDoesNotContainDeleteAction(DataRecord record) {
-		assertFalse(record.getActions().contains(Action.DELETE));
+	private void assertRecordDoesNotContainDeleteAction(DataRecord recordToEnhance) {
+		assertFalse(recordToEnhance.getActions().contains(Action.DELETE));
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessDeleteActionPartOfEnhanceNotAuthorized()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessDeleteActionPartOfEnhanceNotAuthorized() {
 		setupForNoDeleteAccess();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertDeleteActionNotAuthorized(record);
+		assertDeleteActionNotAuthorized(recordToEnhance);
 	}
 
 	@Test
-	public void testDeleteActionPartOfEnhanceAuthorizedButHasIncomingLinks() throws Exception {
+	public void testDeleteActionPartOfEnhanceAuthorizedButHasIncomingLinks() {
 		setupForDeleteButIncomingLinksExists();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertDeleteActionAuthorizedButHasIncomingLinks(record);
+		assertDeleteActionAuthorizedButHasIncomingLinks(recordToEnhance);
 	}
 
 	private void setupForDeleteButIncomingLinksExists() {
@@ -560,7 +562,7 @@ public class DataGroupToRecordEnhancerTest {
 		recordStorageSpy.incomingLinksExistsForType.add(SOME_RECORD_TYPE);
 	}
 
-	private void assertDeleteActionAuthorizedButHasIncomingLinks(DataRecord record) {
+	private void assertDeleteActionAuthorizedButHasIncomingLinks(DataRecord recordToEnhance) {
 		assertTypeAndCollectedDataAuthorizationCalledForDeleteActionPartOfEnhance();
 
 		RecordStorageOldSpy recordStorageSpy = (RecordStorageOldSpy) dependencyProvider
@@ -568,87 +570,84 @@ public class DataGroupToRecordEnhancerTest {
 		recordStorageSpy.MCR.assertNumberOfCallsToMethod("linksExistForRecord", 1);
 		recordStorageSpy.MCR.assertParameters("linksExistForRecord", 0, SOME_RECORD_TYPE, "someId");
 
-		assertRecordDoesNotContainDeleteAction(record);
+		assertRecordDoesNotContainDeleteAction(recordToEnhance);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessDeleteActionPartOfEnhanceAuthorizedButHasIncomingLinks()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessDeleteActionPartOfEnhanceAuthorizedButHasIncomingLinks() {
 		setupForDeleteButIncomingLinksExists();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertDeleteActionAuthorizedButHasIncomingLinks(record);
+		assertDeleteActionAuthorizedButHasIncomingLinks(recordToEnhance);
 	}
 
 	@Test
-	public void testIncomingLinksActionPartOfEnhanceHasNoIncommingLinks() throws Exception {
+	public void testIncomingLinksActionPartOfEnhanceHasNoIncommingLinks() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertRecordDoesNotContainIncomingLinksAction(record);
+		assertRecordDoesNotContainIncomingLinksAction(recordToEnhance);
 	}
 
-	private void assertRecordDoesNotContainIncomingLinksAction(DataRecord record) {
-		assertFalse(record.getActions().contains(Action.READ_INCOMING_LINKS));
+	private void assertRecordDoesNotContainIncomingLinksAction(DataRecord recordToEnhance) {
+		assertFalse(recordToEnhance.getActions().contains(Action.READ_INCOMING_LINKS));
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessIncomingLinksActionPartOfEnhanceHasNoIncommingLinks()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessIncomingLinksActionPartOfEnhanceHasNoIncommingLinks() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertRecordDoesNotContainIncomingLinksAction(record);
+		assertRecordDoesNotContainIncomingLinksAction(recordToEnhance);
 	}
 
 	@Test
-	public void testIncomingLinksActionPartOfEnhanceHasIncomingLinks() throws Exception {
+	public void testIncomingLinksActionPartOfEnhanceHasIncomingLinks() {
 		setupForDeleteButIncomingLinksExists();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertRecordContainsIncomingLinksAction(record);
+		assertRecordContainsIncomingLinksAction(recordToEnhance);
 	}
 
-	private void assertRecordContainsIncomingLinksAction(DataRecordSpy record) {
-		record.MCR.assertCalledParameters("addAction", Action.READ_INCOMING_LINKS);
+	private void assertRecordContainsIncomingLinksAction(DataRecordSpy recordToEnhance) {
+		recordToEnhance.MCR.assertCalledParameters("addAction", Action.READ_INCOMING_LINKS);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessIncomingLinksActionPartOfEnhanceHasIncomingLinks()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessIncomingLinksActionPartOfEnhanceHasIncomingLinks() {
 		setupForDeleteButIncomingLinksExists();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertRecordContainsIncomingLinksAction(record);
+		assertRecordContainsIncomingLinksAction(recordToEnhance);
 	}
 
 	@Test
-	public void testUploadActionPartOfEnhance() throws Exception {
+	public void testUploadActionPartOfEnhance() {
 		setupForUploadAction();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, BINARY_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, BINARY_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertUploadAction(record);
+		assertUploadAction(recordToEnhance);
 	}
 
 	private void setupForUploadAction() {
 		createRecordStorageSpy();
 	}
 
-	private void assertUploadAction(DataRecordSpy record) {
+	private void assertUploadAction(DataRecordSpy recordToEnhance) {
 		assertTypeAndCollectedDataAuthorizationCalledForUploadActionPartOfEnhance();
-		assertRecordContainsUploadAction(record);
+		assertRecordContainsUploadAction(recordToEnhance);
 	}
 
 	private void assertTypeAndCollectedDataAuthorizationCalledForUploadActionPartOfEnhance() {
@@ -659,28 +658,28 @@ public class DataGroupToRecordEnhancerTest {
 				BINARY_RECORD_TYPE, permissionTerms);
 	}
 
-	private void assertRecordContainsUploadAction(DataRecordSpy record) {
-		record.MCR.assertCalledParameters("addAction", Action.UPLOAD);
+	private void assertRecordContainsUploadAction(DataRecordSpy recordToEnhance) {
+		recordToEnhance.MCR.assertCalledParameters("addAction", Action.UPLOAD);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessUploadActionPartOfEnhance() throws Exception {
+	public void testEnhanceIgnoreReadAccessUploadActionPartOfEnhance() {
 		setupForUploadAction();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				BINARY_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertUploadAction(record);
+		assertUploadAction(recordToEnhance);
 	}
 
 	@Test
-	public void testUploadActionPartOfEnhanceNotAuthorized() throws Exception {
+	public void testUploadActionPartOfEnhanceNotAuthorized() {
 		setupForNoUploadAccess();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, BINARY_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, BINARY_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertUploadActionNotAuthorized(record);
+		assertUploadActionNotAuthorized(recordToEnhance);
 	}
 
 	private void setupForNoUploadAccess() {
@@ -688,64 +687,62 @@ public class DataGroupToRecordEnhancerTest {
 		oldAuthorizator.setNotAutorizedForAction("upload");
 	}
 
-	private void assertUploadActionNotAuthorized(DataRecord record) {
+	private void assertUploadActionNotAuthorized(DataRecord recordToEnhance) {
 		assertTypeAndCollectedDataAuthorizationCalledForUploadActionPartOfEnhance();
-		assertRecordDoesNotContainUploadAction(record);
+		assertRecordDoesNotContainUploadAction(recordToEnhance);
 
 		oldAuthorizator.MCR.assertNumberOfCallsToMethod(
 				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", 3);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessUploadActionPartOfEnhanceNotAuthorized()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessUploadActionPartOfEnhanceNotAuthorized() {
 		setupForNoUploadAccess();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				BINARY_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertUploadActionNotAuthorized(record);
+		assertUploadActionNotAuthorized(recordToEnhance);
 	}
 
 	@Test
-	public void testUploadActionPartOfEnhanceNotBinary() throws Exception {
+	public void testUploadActionPartOfEnhanceNotBinary() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertUploadActionNotChildOfBinary(record);
+		assertUploadActionNotChildOfBinary(recordToEnhance);
 	}
 
-	private void assertUploadActionNotChildOfBinary(DataRecord record) {
+	private void assertUploadActionNotChildOfBinary(DataRecord recordToEnhance) {
 		oldAuthorizator.MCR.assertNumberOfCallsToMethod(
 				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", 2);
-		assertRecordDoesNotContainUploadAction(record);
+		assertRecordDoesNotContainUploadAction(recordToEnhance);
 	}
 
-	private void assertRecordDoesNotContainUploadAction(DataRecord record) {
-		assertFalse(record.getActions().contains(Action.UPLOAD));
+	private void assertRecordDoesNotContainUploadAction(DataRecord recordToEnhance) {
+		assertFalse(recordToEnhance.getActions().contains(Action.UPLOAD));
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessUploadActionPartOfEnhanceNotChildOfBinary()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessUploadActionPartOfEnhanceNotChildOfBinary() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertUploadActionNotChildOfBinary(record);
+		assertUploadActionNotChildOfBinary(recordToEnhance);
 	}
 
 	@Test
-	public void testSearchActionPartOfEnhanceForRecordTypeSearch() throws Exception {
+	public void testSearchActionPartOfEnhanceForRecordTypeSearch() {
 		setupForSearchAction();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertSearchActionForRecordTypeSearch(record);
+		assertSearchActionForRecordTypeSearch(recordToEnhance);
 	}
 
 	private void setupForSearchAction() {
@@ -767,23 +764,8 @@ public class DataGroupToRecordEnhancerTest {
 		convertedSomeDataRecord.MRV.setDefaultReturnValuesSupplier("getDataRecordGroup",
 				() -> convertedDataRecordGroup);
 
-		// dataFactorySpy.MRV.setSpecificReturnValuesSupplier("factorGroupFromDataRecordGroup",
-		// () -> someDataGroup, someDataRecordGroup);
-
-		// DataGroupSpy redactedSomeDataGroup = new DataGroupSpy();
-		// dataRedactor.MRV.setDefaultReturnValuesSupplier(
-		// "removeChildrenForConstraintsWithoutPermissions", () -> redactedSomeDataGroup);
-		//
-		// DataRecordGroupSpy convertedSomeDataRecordGroup = new DataRecordGroupSpy();
-		// // obs double dataProvider....
-		// dataFactorySpy.MRV.setSpecificReturnValuesSupplier("factorRecordGroupFromDataGroup",
-		// () -> convertedSomeDataRecordGroup);
-
-		// obs double dataProvider....
 		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorRecordUsingDataRecordGroup",
 				() -> convertedSomeDataRecord);
-		// dataFactorySpy.MRV.setSpecificReturnValuesSupplier("factorRecordUsingDataRecordGroup",
-		// () -> convertedSomeDataRecord, convertedSomeDataRecordGroup);
 	}
 
 	private DataRecordLinkSpy createRecordLinkSpyUsingId(String linkedRecordId) {
@@ -810,39 +792,38 @@ public class DataGroupToRecordEnhancerTest {
 		return linkSpy;
 	}
 
-	private void assertSearchActionForRecordTypeSearch(DataRecordSpy record) {
+	private void assertSearchActionForRecordTypeSearch(DataRecordSpy recordToEnhance) {
 		recordTypeHandlerSpy.MCR.assertMethodWasCalled("representsTheRecordTypeDefiningSearches");
 		oldAuthorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 0, user,
 				SEARCH, "linkedSearchId1");
 		oldAuthorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 1, user,
 				SEARCH, "linkedSearchId2");
 		oldAuthorizator.MCR.assertNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType", 2);
-		assertRecordContainsSearchAction(record);
+		assertRecordContainsSearchAction(recordToEnhance);
 	}
 
-	private void assertRecordContainsSearchAction(DataRecordSpy record) {
-		record.MCR.assertCalledParameters("addAction", Action.SEARCH);
+	private void assertRecordContainsSearchAction(DataRecordSpy recordToEnhance) {
+		recordToEnhance.MCR.assertCalledParameters("addAction", Action.SEARCH);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeSearch()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeSearch() {
 		setupForSearchAction();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertSearchActionForRecordTypeSearch(record);
+		assertSearchActionForRecordTypeSearch(recordToEnhance);
 	}
 
 	@Test
-	public void testSearchActionPartOfEnhanceForRecordTypeSearchNotAuthorized() throws Exception {
+	public void testSearchActionPartOfEnhanceForRecordTypeSearchNotAuthorized() {
 		setupForSearchActionNotAuthorized();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertSearchActionForRecordTypeSearchNotAuthorized(record);
+		assertSearchActionForRecordTypeSearchNotAuthorized(recordToEnhance);
 	}
 
 	private void setupForSearchActionNotAuthorized() {
@@ -852,75 +833,70 @@ public class DataGroupToRecordEnhancerTest {
 		addSearchChildsToSomeType();
 	}
 
-	private void assertSearchActionForRecordTypeSearchNotAuthorized(DataRecord record) {
+	private void assertSearchActionForRecordTypeSearchNotAuthorized(DataRecord recordToEnhance) {
 		recordTypeHandlerSpy.MCR.assertMethodWasCalled("representsTheRecordTypeDefiningSearches");
 		oldAuthorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 0, user,
 				SEARCH, "linkedSearchId1");
 		oldAuthorizator.MCR.assertNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType", 1);
-		assertRecordDoesNotContainSearchAction(record);
+		assertRecordDoesNotContainSearchAction(recordToEnhance);
 	}
 
-	private void assertRecordDoesNotContainSearchAction(DataRecord record) {
-		assertFalse(record.getActions().contains(Action.SEARCH));
+	private void assertRecordDoesNotContainSearchAction(DataRecord recordToEnhance) {
+		assertFalse(recordToEnhance.getActions().contains(Action.SEARCH));
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeSearchNotAuthorized()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeSearchNotAuthorized() {
 		setupForSearchActionNotAuthorized();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertSearchActionForRecordTypeSearchNotAuthorized(record);
+		assertSearchActionForRecordTypeSearchNotAuthorized(recordToEnhance);
 	}
 
 	@Test
-	public void testSearchActionPartOfEnhanceForRecordTypeSearchNoSearchType() throws Exception {
+	public void testSearchActionPartOfEnhanceForRecordTypeSearchNoSearchType() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertSearchActionForRecordTypeSearchNoSearchType(record);
+		assertSearchActionForRecordTypeSearchNoSearchType(recordToEnhance);
 	}
 
-	private void assertSearchActionForRecordTypeSearchNoSearchType(DataRecord record) {
+	private void assertSearchActionForRecordTypeSearchNoSearchType(DataRecord recordToEnhance) {
 		recordTypeHandlerSpy.MCR.assertMethodWasCalled("representsTheRecordTypeDefiningSearches");
-		assertRecordDoesNotContainSearchAction(record);
+		assertRecordDoesNotContainSearchAction(recordToEnhance);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeSearchNoSearchType()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeSearchNoSearchType() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertSearchActionForRecordTypeSearchNoSearchType(record);
+		assertSearchActionForRecordTypeSearchNoSearchType(recordToEnhance);
 	}
 
 	@Test
-	public void testCreateActionPartOfEnhanceForRecordTypeRecordType() throws Exception {
-		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = setupForCreateAction();
+	public void testCreateActionPartOfEnhanceForRecordTypeRecordType() {
+		setupForCreateAction();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertCreateActionForRecordTypeRecordType(recordTypeHandlerForRecordTypeInData, record);
+		assertCreateActionForRecordTypeRecordType(recordToEnhance);
 	}
 
-	private RecordTypeHandlerOldSpy setupForCreateAction() {
+	private void setupForCreateAction() {
 		createRecordStorageSpy();
-		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = dependencyProvider
-				.createRecordTypeHandlerSpy("someId");
-		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
-		return recordTypeHandlerForRecordTypeInData;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier(
+				"representsTheRecordTypeDefiningRecordTypes", () -> true);
 	}
 
-	private void assertCreateActionForRecordTypeRecordType(
-			RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData, DataRecordSpy record) {
+	private void assertCreateActionForRecordTypeRecordType(DataRecordSpy recordToEnhance) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
@@ -928,141 +904,139 @@ public class DataGroupToRecordEnhancerTest {
 
 		oldAuthorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 0, user,
 				CREATE, "someId");
-		assertRecordContainsCreateAction(record);
+		assertRecordContainsCreateAction(recordToEnhance);
 	}
 
-	private void assertRecordContainsCreateAction(DataRecordSpy record) {
-		record.MCR.assertCalledParameters("addAction", Action.CREATE);
+	private void assertRecordContainsCreateAction(DataRecordSpy recordToEnhance) {
+		recordToEnhance.MCR.assertCalledParameters("addAction", Action.CREATE);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessCreateActionPartOfEnhanceForRecordTypeRecordType()
-			throws Exception {
-		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = setupForCreateAction();
+	public void testEnhanceIgnoreReadAccessCreateActionPartOfEnhanceForRecordTypeRecordType() {
+		setupForCreateAction();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertCreateActionForRecordTypeRecordType(recordTypeHandlerForRecordTypeInData, record);
+		assertCreateActionForRecordTypeRecordType(recordToEnhance);
 	}
 
 	@Test
-	public void testCreateActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
-			throws Exception {
+	public void testCreateActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized() {
 		setupForCreateActionNotAuthorized();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertCreateActionForRecordTypeRecordTypeNotAuthorized(record);
+		assertCreateActionForRecordTypeRecordTypeNotAuthorized(recordToEnhance);
 	}
 
 	private void setupForCreateActionNotAuthorized() {
 		createRecordStorageSpy();
 		someDataRecordGroup = new DataRecordGroupSpy();
 		someDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getId", () -> "otherId");
-		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier(
+				"representsTheRecordTypeDefiningRecordTypes", () -> true);
 		oldAuthorizator.authorizedForActionAndRecordType = false;
 	}
 
-	private void assertCreateActionForRecordTypeRecordTypeNotAuthorized(DataRecord record) {
+	private void assertCreateActionForRecordTypeRecordTypeNotAuthorized(
+			DataRecord recordToEnhance) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
 		oldAuthorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 0, user,
 				CREATE, "otherId");
-		assertRecordDoesNotContainCreateAction(record);
+		assertRecordDoesNotContainCreateAction(recordToEnhance);
 	}
 
-	private void assertRecordDoesNotContainCreateAction(DataRecord record) {
-		assertFalse(record.getActions().contains(Action.CREATE));
+	private void assertRecordDoesNotContainCreateAction(DataRecord recordToEnhance) {
+		assertFalse(recordToEnhance.getActions().contains(Action.CREATE));
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessCreateActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessCreateActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized() {
 		setupForCreateActionNotAuthorized();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertCreateActionForRecordTypeRecordTypeNotAuthorized(record);
+		assertCreateActionForRecordTypeRecordTypeNotAuthorized(recordToEnhance);
 	}
 
 	@Test
-	public void testCreateActionPartOfEnhanceForRecordTypeRecordTypeIsNotRecordType()
-			throws Exception {
+	public void testCreateActionPartOfEnhanceForRecordTypeRecordTypeIsNotRecordType() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertCreateActionForRecordTypeRecordTypeIsNotRecordType(record);
+		assertCreateActionForRecordTypeRecordTypeIsNotRecordType(recordToEnhance);
 	}
 
-	private void assertCreateActionForRecordTypeRecordTypeIsNotRecordType(DataRecord record) {
+	private void assertCreateActionForRecordTypeRecordTypeIsNotRecordType(
+			DataRecord recordToEnhance) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
 		recordTypeHandlerSpy.MCR.assertMethodNotCalled("isAbstract");
-		assertRecordDoesNotContainCreateAction(record);
+		assertRecordDoesNotContainCreateAction(recordToEnhance);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessCreateActionPartOfEnhanceForRecordTypeRecordTypeIsNotRecordType()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessCreateActionPartOfEnhanceForRecordTypeRecordTypeIsNotRecordType() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertCreateActionForRecordTypeRecordTypeIsNotRecordType(record);
+		assertCreateActionForRecordTypeRecordTypeIsNotRecordType(recordToEnhance);
 	}
 
 	@Test
-	public void testListActionPartOfEnhanceForRecordTypeRecordType() throws Exception {
+	public void testListActionPartOfEnhanceForRecordTypeRecordType() {
 		setupForListAction();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertListActionForRecordTypeRecordType(record);
+		assertListActionForRecordTypeRecordType(recordToEnhance);
 	}
 
 	private void setupForListAction() {
 		createRecordStorageSpy();
-		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier(
+				"representsTheRecordTypeDefiningRecordTypes", () -> true);
 	}
 
-	private void assertListActionForRecordTypeRecordType(DataRecordSpy record) {
+	private void assertListActionForRecordTypeRecordType(DataRecordSpy recordToEnhance) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
 		oldAuthorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 1, user, LIST,
 				"someId");
-		assertRecordContainsListAction(record);
+		assertRecordContainsListAction(recordToEnhance);
 	}
 
-	private void assertRecordContainsListAction(DataRecordSpy record) {
-		record.MCR.assertCalledParameters("addAction", Action.LIST);
+	private void assertRecordContainsListAction(DataRecordSpy recordToEnhance) {
+		recordToEnhance.MCR.assertCalledParameters("addAction", Action.LIST);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessListActionPartOfEnhanceForRecordTypeRecordType()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessListActionPartOfEnhanceForRecordTypeRecordType() {
 		setupForListAction();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertListActionForRecordTypeRecordType(record);
+		assertListActionForRecordTypeRecordType(recordToEnhance);
 	}
 
 	@Test
-	public void testListActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized() throws Exception {
+	public void testListActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized() {
 		setupForListActionNotAuthorized();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertListActionForRecordTypeRecordTypeNotAuthorized(record);
+		assertListActionForRecordTypeRecordTypeNotAuthorized(recordToEnhance);
 	}
 
 	private void setupForListActionNotAuthorized() {
@@ -1070,163 +1044,159 @@ public class DataGroupToRecordEnhancerTest {
 		oldAuthorizator.authorizedForActionAndRecordType = false;
 	}
 
-	private void assertListActionForRecordTypeRecordTypeNotAuthorized(DataRecord record) {
+	private void assertListActionForRecordTypeRecordTypeNotAuthorized(DataRecord recordToEnhance) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
 		oldAuthorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 1, user, LIST,
 				"someId");
-		assertRecordDoesNotContainListAction(record);
+		assertRecordDoesNotContainListAction(recordToEnhance);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessListActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessListActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized() {
 		setupForListActionNotAuthorized();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertListActionForRecordTypeRecordTypeNotAuthorized(record);
+		assertListActionForRecordTypeRecordTypeNotAuthorized(recordToEnhance);
 	}
 
 	@Test
-	public void testListActionPartOfEnhanceForRecordTypeRecordTypeNotRecordType() throws Exception {
+	public void testListActionPartOfEnhanceForRecordTypeRecordTypeNotRecordType() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertListActionForRecordTypeRecordTypeNotRecordType(record);
+		assertListActionForRecordTypeRecordTypeNotRecordType(recordToEnhance);
 	}
 
-	private void assertListActionForRecordTypeRecordTypeNotRecordType(DataRecord record) {
+	private void assertListActionForRecordTypeRecordTypeNotRecordType(DataRecord recordToEnhance) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
 
-		assertRecordDoesNotContainListAction(record);
+		assertRecordDoesNotContainListAction(recordToEnhance);
 	}
 
-	private void assertRecordDoesNotContainListAction(DataRecord record) {
-		assertFalse(record.getActions().contains(Action.LIST));
+	private void assertRecordDoesNotContainListAction(DataRecord recordToEnhance) {
+		assertFalse(recordToEnhance.getActions().contains(Action.LIST));
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessListActionPartOfEnhanceForRecordTypeRecordTypeNotRecordType()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessListActionPartOfEnhanceForRecordTypeRecordTypeNotRecordType() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertListActionForRecordTypeRecordTypeNotRecordType(record);
+		assertListActionForRecordTypeRecordTypeNotRecordType(recordToEnhance);
 	}
 
 	@Test
-	public void testValidateActionPartOfEnhanceForRecordTypeRecordType() throws Exception {
+	public void testValidateActionPartOfEnhanceForRecordTypeRecordType() {
 		setupForListAction();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertValidateActionForRecordTypeRecordType(record);
+		assertValidateActionForRecordTypeRecordType(recordToEnhance);
 	}
 
-	private void assertValidateActionForRecordTypeRecordType(DataRecordSpy record) {
+	private void assertValidateActionForRecordTypeRecordType(DataRecordSpy recordToEnhance) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
 		oldAuthorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 2, user,
 				"validate", "someId");
-		record.MCR.assertCalledParameters("addAction", Action.VALIDATE);
+		recordToEnhance.MCR.assertCalledParameters("addAction", Action.VALIDATE);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessValidateActionPartOfEnhanceForRecordTypeRecordType()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessValidateActionPartOfEnhanceForRecordTypeRecordType() {
 		setupForListAction();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertValidateActionForRecordTypeRecordType(record);
+		assertValidateActionForRecordTypeRecordType(recordToEnhance);
 	}
 
 	@Test
-	public void testValidateActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
-			throws Exception {
+	public void testValidateActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized() {
 		setupForCreateActionNotAuthorized();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertValidateActionForRecordTypeRecordTypeNotAuthorized(record);
+		assertValidateActionForRecordTypeRecordTypeNotAuthorized(recordToEnhance);
 	}
 
-	private void assertValidateActionForRecordTypeRecordTypeNotAuthorized(DataRecord record) {
+	private void assertValidateActionForRecordTypeRecordTypeNotAuthorized(
+			DataRecord recordToEnhance) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
 		oldAuthorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 2, user,
 				"validate", "otherId");
-		assertValidateActionForRecordTypeRecordTypeNotRecordType(record);
+		assertValidateActionForRecordTypeRecordTypeNotRecordType(recordToEnhance);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessValidateActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessValidateActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized() {
 		setupForCreateActionNotAuthorized();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertValidateActionForRecordTypeRecordTypeNotAuthorized(record);
+		assertValidateActionForRecordTypeRecordTypeNotAuthorized(recordToEnhance);
 	}
 
 	@Test
-	public void testValidateActionPartOfEnhanceForRecordTypeRecordTypeNotRecordType()
-			throws Exception {
+	public void testValidateActionPartOfEnhanceForRecordTypeRecordTypeNotRecordType() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertValidateActionForRecordTypeRecordTypeNotRecordType(record);
+		assertValidateActionForRecordTypeRecordTypeNotRecordType(recordToEnhance);
 	}
 
-	private void assertValidateActionForRecordTypeRecordTypeNotRecordType(DataRecord record) {
+	private void assertValidateActionForRecordTypeRecordTypeNotRecordType(
+			DataRecord recordToEnhance) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
-		assertRecordContainsValidateAction(record);
+		assertRecordContainsValidateAction(recordToEnhance);
 	}
 
-	private void assertRecordContainsValidateAction(DataRecord record) {
-		assertFalse(record.getActions().contains(Action.VALIDATE));
+	private void assertRecordContainsValidateAction(DataRecord recordToEnhance) {
+		assertFalse(recordToEnhance.getActions().contains(Action.VALIDATE));
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessValidateActionPartOfEnhanceForRecordTypeRecordTypeNotRecordType()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessValidateActionPartOfEnhanceForRecordTypeRecordTypeNotRecordType() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertValidateActionForRecordTypeRecordTypeNotRecordType(record);
+		assertValidateActionForRecordTypeRecordTypeNotRecordType(recordToEnhance);
 	}
 
 	@Test
-	public void testSearchActionPartOfEnhancedWhenEnhancingDataGroupContainingRecordTypeRecord()
-			throws Exception {
+	public void testSearchActionPartOfEnhancedWhenEnhancingDataGroupContainingRecordTypeRecord() {
 		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordType();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertSearchActionForRecordTypeRecordType(recordTypeHandlerForRecordTypeInData, record);
+		assertSearchActionForRecordTypeRecordType(recordTypeHandlerForRecordTypeInData,
+				recordToEnhance);
 	}
 
 	private RecordTypeHandlerOldSpy setupForSearchActionWhenEnhancingTypeOfRecordType() {
 		createRecordStorageSpy();
 		createAndSetReturnDataGroupForReadInStorageForReadOfLinkedSearch();
-		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier(
+				"representsTheRecordTypeDefiningRecordTypes", () -> true);
 		return getRecordTypeHandlerForRecordTypeInData();
 	}
 
@@ -1238,7 +1208,8 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	private void assertSearchActionForRecordTypeRecordType(
-			RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData, DataRecordSpy record) {
+			RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData,
+			DataRecordSpy recordToEnhance) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
@@ -1249,17 +1220,16 @@ public class DataGroupToRecordEnhancerTest {
 		recordTypeHandlerForRecordTypeInData.MCR.assertMethodWasCalled("hasLinkedSearch");
 		recordTypeHandlerForRecordTypeInData.MCR.getReturnValue("getSearchId", 0);
 
-		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
-				.getRecordStorage();
+		var oldReturnedRecordStorage = (RecordStorageOldSpy) dependencyProvider.getRecordStorage();
 
-		assertReadForSearchRecordToOldRecordStorageSpy(recordStorage);
+		assertReadForSearchRecordToOldRecordStorageSpy(oldReturnedRecordStorage);
 
 		oldAuthorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user,
 				SEARCH, "linkedSearchId1");
 		oldAuthorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 4, user,
 				SEARCH, "linkedSearchId2");
 		oldAuthorizator.MCR.assertNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType", 6);
-		assertRecordContainsSearchAction(record);
+		assertRecordContainsSearchAction(recordToEnhance);
 	}
 
 	private void assertReadForSearchRecordToOldRecordStorageSpy(RecordStorageOldSpy recordStorage) {
@@ -1269,39 +1239,40 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeRecordType()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeRecordType() {
 		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordType();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertSearchActionForRecordTypeRecordType(recordTypeHandlerForRecordTypeInData, record);
+		assertSearchActionForRecordTypeRecordType(recordTypeHandlerForRecordTypeInData,
+				recordToEnhance);
 	}
 
 	@Test
-	public void testSearchActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
-			throws Exception {
+	public void testSearchActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized() {
 		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordTypeNotAuthorized();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
 		assertSearchActionForRecordTypeRecordTypeNotAuthorized(recordTypeHandlerForRecordTypeInData,
-				record);
+				recordToEnhance);
 	}
 
 	private RecordTypeHandlerOldSpy setupForSearchActionWhenEnhancingTypeOfRecordTypeNotAuthorized() {
 		oldAuthorizator.authorizedForActionAndRecordType = false;
 		createRecordStorageSpy();
 		createAndSetReturnDataGroupForReadInStorageForReadOfLinkedSearch();
-		recordTypeHandlerSpy.representsTheRecordTypeDefiningRecordTypes = true;
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier(
+				"representsTheRecordTypeDefiningRecordTypes", () -> true);
 
 		return getRecordTypeHandlerForRecordTypeInData();
 	}
 
 	private void assertSearchActionForRecordTypeRecordTypeNotAuthorized(
-			RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData, DataRecord record) {
+			RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData,
+			DataRecord recordToEnhance) {
 		recordTypeHandlerSpy.MCR
 				.assertMethodWasCalled("representsTheRecordTypeDefiningRecordTypes");
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
@@ -1312,16 +1283,15 @@ public class DataGroupToRecordEnhancerTest {
 		recordTypeHandlerForRecordTypeInData.MCR.assertMethodWasCalled("hasLinkedSearch");
 		String returnedSearchId = (String) recordTypeHandlerForRecordTypeInData.MCR
 				.getReturnValue("getSearchId", 0);
-		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
-				.getRecordStorage();
+		var oldReturnedRecordStorage = (RecordStorageOldSpy) dependencyProvider.getRecordStorage();
 
-		assertReadForSearchRecordToOldRecordStorageSpy(recordStorage);
+		assertReadForSearchRecordToOldRecordStorageSpy(oldReturnedRecordStorage);
 
-		recordStorage.MCR.assertParameter("read", 0, "id", returnedSearchId);
+		oldReturnedRecordStorage.MCR.assertParameter("read", 0, "id", returnedSearchId);
 		oldAuthorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordType", 3, user,
 				SEARCH, "linkedSearchId1");
 		oldAuthorizator.MCR.assertNumberOfCallsToMethod("userIsAuthorizedForActionOnRecordType", 5);
-		assertRecordDoesNotContainSearchAction(record);
+		assertRecordDoesNotContainSearchAction(recordToEnhance);
 	}
 
 	private void createAndSetReturnDataGroupForReadInStorageForReadOfLinkedSearch() {
@@ -1334,35 +1304,32 @@ public class DataGroupToRecordEnhancerTest {
 				"getChildrenOfTypeAndName", () -> linkList2, DataRecordLink.class,
 				"recordTypeToSearchIn");
 
-		RecordStorageOldSpy recordStorage = (RecordStorageOldSpy) dependencyProvider
-				.getRecordStorage();
-		recordStorage.MRV.setSpecificReturnValuesSupplier("read",
+		var oldReturnedRecordStorage = (RecordStorageOldSpy) dependencyProvider.getRecordStorage();
+		oldReturnedRecordStorage.MRV.setSpecificReturnValuesSupplier("read",
 				() -> searchGroupLinkedFromRecordType, "search", "someSearchId");
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessSearchActionPartOfEnhanceForRecordTypeRecordTypeNotAuthorized() {
 		RecordTypeHandlerOldSpy recordTypeHandlerForRecordTypeInData = setupForSearchActionWhenEnhancingTypeOfRecordTypeNotAuthorized();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
 		assertSearchActionForRecordTypeRecordTypeNotAuthorized(recordTypeHandlerForRecordTypeInData,
-				record);
+				recordToEnhance);
 	}
 
 	@Test
-	public void testReadPermissionsAreAddedToRecord() throws Exception {
+	public void testReadPermissionsAreAddedToRecord() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
-				someDataRecordGroup, dataRedactor);
+		enhancer.enhance(user, SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertReadPermissionsAreAddedToRecord(record);
+		assertReadPermissionsAreAddedToRecord();
 	}
 
-	private void assertReadPermissionsAreAddedToRecord(DataRecord record) {
+	private void assertReadPermissionsAreAddedToRecord() {
 		String expectedPermissions = "someRecordType.someReadMetadataId";
 
 		oldAuthorizator.MCR.assertParameter(
@@ -1371,40 +1338,38 @@ public class DataGroupToRecordEnhancerTest {
 		Set<?> readPermissions = (Set<?>) oldAuthorizator.MCR.getReturnValue(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				0);
-
 		assertTrue(readPermissions.contains(expectedPermissions));
 		assertTrue(readPermissions.size() == 1);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessReadPermissionsAreAddedToRecord() throws Exception {
+	public void testEnhanceIgnoreReadAccessReadPermissionsAreAddedToRecord() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
-				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
+		enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE, someDataRecordGroup,
+				dataRedactor);
 
-		assertReadPermissionsAreAddedToRecord(record);
+		assertReadPermissionsAreAddedToRecord();
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessReadPermissionsAreAddedToRecordWhenNoReadAccess()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessReadPermissionsAreAddedToRecordWhenNoReadAccess() {
 		setupForNoReadAccess();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertReadPermissionsAreAddedToRecordPublicData(record);
+		assertReadPermissionsAreAddedToRecordPublicData(recordToEnhance);
 	}
 
 	@Test
-	public void testReadPermissionsAreAddedToRecordPublicData() throws Exception {
+	public void testReadPermissionsAreAddedToRecordPublicData() {
 		setupForPublicRecord();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertReadPermissionsAreAddedToRecordPublicData(record);
+		assertReadPermissionsAreAddedToRecordPublicData(recordToEnhance);
 	}
 
 	private void setupForPublicRecord() {
@@ -1412,45 +1377,44 @@ public class DataGroupToRecordEnhancerTest {
 		createRecordStorageSpy();
 	}
 
-	private void assertReadPermissionsAreAddedToRecordPublicData(DataRecord record) {
-		assertEquals(record.getReadPermissions(), Collections.emptySet());
+	private void assertReadPermissionsAreAddedToRecordPublicData(DataRecord recordToEnhance) {
+		assertEquals(recordToEnhance.getReadPermissions(), Collections.emptySet());
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessReadPermissionsAreAddedToRecordPublicData()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessReadPermissionsAreAddedToRecordPublicData() {
 		setupForPublicRecord();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertReadPermissionsAreAddedToRecordPublicData(record);
+		assertReadPermissionsAreAddedToRecordPublicData(recordToEnhance);
 	}
 
 	@Test
-	public void testWritePermissionsAreAddedToRecord() throws Exception {
+	public void testWritePermissionsAreAddedToRecord() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertWritePermissionsAreAddedToRecord(record);
+		assertWritePermissionsAreAddedToRecord(recordToEnhance);
 	}
 
-	private void assertWritePermissionsAreAddedToRecord(DataRecordSpy record) {
+	private void assertWritePermissionsAreAddedToRecord(DataRecordSpy recordToEnhance) {
 		oldAuthorizator.MCR.assertParameter(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
 				"action", UPDATE);
-		var writePermissions = record.MCR.getValueForMethodNameAndCallNumberAndParameterName(
+		var writePermissions = recordToEnhance.MCR.getParameterForMethodAndCallNumberAndParameter(
 				"addWritePermissions", 0, "writePermissions");
 		oldAuthorizator.MCR.assertReturn(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
 				writePermissions);
 
-		record.MCR.assertNumberOfCallsToMethod("addReadPermissions", 2);
-		Set<?> call1 = (Set<?>) record.MCR.getValueForMethodNameAndCallNumberAndParameterName(
+		recordToEnhance.MCR.assertNumberOfCallsToMethod("addReadPermissions", 2);
+		Set<?> call1 = (Set<?>) recordToEnhance.MCR.getParameterForMethodAndCallNumberAndParameter(
 				"addReadPermissions", 0, "readPermissions");
-		Set<?> call2 = (Set<?>) record.MCR.getValueForMethodNameAndCallNumberAndParameterName(
+		Set<?> call2 = (Set<?>) recordToEnhance.MCR.getParameterForMethodAndCallNumberAndParameter(
 				"addReadPermissions", 1, "readPermissions");
 
 		assertTrue(call1.contains("someRecordType.someReadMetadataId"));
@@ -1458,23 +1422,23 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessWritePermissionsAreAddedToRecord() throws Exception {
+	public void testEnhanceIgnoreReadAccessWritePermissionsAreAddedToRecord() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertWritePermissionsAreAddedToRecord(record);
+		assertWritePermissionsAreAddedToRecord(recordToEnhance);
 	}
 
 	@Test
-	public void testWritePermissionsAreAddedToRecordNotAutorized() throws Exception {
+	public void testWritePermissionsAreAddedToRecordNotAutorized() {
 		setupForNoAccessOnUpdateActionOnRecordType();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
-		assertWritePermissionsAreAddedToRecordNotAutorized(record);
+		assertWritePermissionsAreAddedToRecordNotAutorized(recordToEnhance);
 	}
 
 	private void setupForNoAccessOnUpdateActionOnRecordType() {
@@ -1482,33 +1446,32 @@ public class DataGroupToRecordEnhancerTest {
 		oldAuthorizator.setNotAutorizedForActionOnRecordType(UPDATE, SOME_RECORD_TYPE);
 	}
 
-	private void assertWritePermissionsAreAddedToRecordNotAutorized(DataRecord record) {
+	private void assertWritePermissionsAreAddedToRecordNotAutorized(DataRecord recordToEnhance) {
 		oldAuthorizator.MCR.assertParameter(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
 				"action", UPDATE);
-		assertEquals(record.getWritePermissions(), Collections.emptySet());
+		assertEquals(recordToEnhance.getWritePermissions(), Collections.emptySet());
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessWritePermissionsAreAddedToRecordNotAutorized()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessWritePermissionsAreAddedToRecordNotAutorized() {
 		setupForNoAccessOnUpdateActionOnRecordType();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertWritePermissionsAreAddedToRecordNotAutorized(record);
+		assertWritePermissionsAreAddedToRecordNotAutorized(recordToEnhance);
 	}
 
 	@Test
-	public void testRedactData() throws Exception {
+	public void testRedactData() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
 				someDataRecordGroup, dataRedactor);
 
 		assertRedactCalledWithCorrectArguments();
-		assertAswerFromRedactorIsReturned(record);
+		assertAswerFromRedactorIsReturned(recordToEnhance);
 	}
 
 	private void assertRedactCalledWithCorrectArguments() {
@@ -1524,31 +1487,30 @@ public class DataGroupToRecordEnhancerTest {
 				usersReadRecordPartPermissions);
 	}
 
-	private void assertAswerFromRedactorIsReturned(DataRecord record) {
+	private void assertAswerFromRedactorIsReturned(DataRecord recordToEnhance) {
 		DataRecordGroup redactedDataGroup = (DataRecordGroup) dataRedactor.MCR
 				.getReturnValue("removeChildrenForConstraintsWithoutPermissions", 0);
 		var redactedRecord = dataFactorySpy.MCR.assertCalledParametersReturn(
 				"factorRecordUsingDataRecordGroup", redactedDataGroup);
-		assertSame(record, redactedRecord);
+		assertSame(recordToEnhance, redactedRecord);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessRedactData() throws Exception {
+	public void testEnhanceIgnoreReadAccessRedactData() {
 		createRecordStorageSpy();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
 		assertRedactCalledWithCorrectArguments();
-		assertAswerFromRedactorIsReturned(record);
+		assertAswerFromRedactorIsReturned(recordToEnhance);
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessRedactDataIsCalledCorrectlyWhenNoAccess()
-			throws Exception {
+	public void testEnhanceIgnoreReadAccessRedactDataIsCalledCorrectlyWhenNoAccess() {
 		setupForNoReadAccess();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
 		Set<?> recordPartConstraints = (Set<?>) recordTypeHandlerSpy.MCR
@@ -1557,11 +1519,11 @@ public class DataGroupToRecordEnhancerTest {
 		dataRedactor.MCR.assertParameters("removeChildrenForConstraintsWithoutPermissions", 0,
 				recordTypeHandlerSpy.getDefinitionId(), someDataRecordGroup, recordPartConstraints,
 				Collections.emptySet());
-		assertAswerFromRedactorIsReturned(record);
+		assertAswerFromRedactorIsReturned(recordToEnhance);
 	}
 
 	@Test
-	public void testLinksAreAddedToRedactedDataGroup() throws Exception {
+	public void testLinksAreAddedToRedactedDataGroup() {
 		DataRecordLinkSpy linkSpy1 = createRecordLinkSpyUsingId("linkedSearchId1");
 		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId2");
 		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
@@ -1596,7 +1558,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessLinksAreAddedToRedactedDataGroup() throws Exception {
+	public void testEnhanceIgnoreReadAccessLinksAreAddedToRedactedDataGroup() {
 		DataRecordLinkSpy linkSpy1 = createRecordLinkSpyUsingId("linkedSearchId1");
 		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId2");
 		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
@@ -1805,15 +1767,14 @@ public class DataGroupToRecordEnhancerTest {
 		changeToModernSpies();
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isPublicForRead", () -> true);
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
-				someDataRecordGroup, dataRedactor);
+		enhancer.enhance(user, SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
 		assertLinkOnlyHasReadAction(linkSpy1);
 		assertLinkOnlyHasReadAction(linkSpy2);
-		assertLinkIsNotReadWhenRecordTypeIsPublic(record);
+		assertLinkIsNotReadWhenRecordTypeIsPublic();
 	}
 
-	private void assertLinkIsNotReadWhenRecordTypeIsPublic(DataRecordSpy record) {
+	private void assertLinkIsNotReadWhenRecordTypeIsPublic() {
 		recordStorage.MCR.assertNumberOfCallsToMethod("read", 0);
 
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, SOME_RECORD_TYPE);
@@ -1829,12 +1790,12 @@ public class DataGroupToRecordEnhancerTest {
 		changeToModernSpies();
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isPublicForRead", () -> true);
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
-				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
+		enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE, someDataRecordGroup,
+				dataRedactor);
 
 		assertLinkOnlyHasReadAction(linkSpy1);
 		assertLinkOnlyHasReadAction(linkSpy2);
-		assertLinkIsNotReadWhenRecordTypeIsPublic(record);
+		assertLinkIsNotReadWhenRecordTypeIsPublic();
 	}
 
 	@Test
@@ -1849,13 +1810,6 @@ public class DataGroupToRecordEnhancerTest {
 				dataRedactor);
 
 		recordStorage.MCR.assertNumberOfCallsToMethod("read", 1);
-	}
-
-	private void assertCallToReadForTypeParameter(int callNumber, String recordType) {
-		List<String> types = (List<String>) oldRecordStorage.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("read", callNumber, "types");
-		assertEquals(types.size(), 1);
-		assertEquals(types.get(0), recordType);
 	}
 
 	@Test
@@ -1905,16 +1859,16 @@ public class DataGroupToRecordEnhancerTest {
 		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
 		changeToModernSpies();
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				DATA_WITH_LINKS, someDataRecordGroup, dataRedactor);
 
 		assertLinkOnlyHasReadAction(linkSpy1);
 		assertLinkOnlyHasReadAction(linkSpy2);
-		assertTwoLinksConatainReadActionOnly(record);
-		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
+		assertTwoLinksConatainReadActionOnly(recordToEnhance);
+		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord();
 	}
 
-	private void assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(DataRecord record) {
+	private void assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord() {
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "dataWithLinks");
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "someRecordLinkType");
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
@@ -1943,12 +1897,12 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator.MCR.assertParameters(methodName2, 3, user, "delete", DATA_WITH_LINKS);
 	}
 
-	private void assertTwoLinksConatainReadActionOnly(DataRecordSpy record) {
-		record.MCR.assertNumberOfCallsToMethod("addAction", 4);
-		record.MCR.assertParameters("addAction", 0, Action.READ);
-		record.MCR.assertParameters("addAction", 1, Action.UPDATE);
-		record.MCR.assertParameters("addAction", 2, Action.INDEX);
-		record.MCR.assertParameters("addAction", 3, Action.DELETE);
+	private void assertTwoLinksConatainReadActionOnly(DataRecordSpy recordToEnhance) {
+		recordToEnhance.MCR.assertNumberOfCallsToMethod("addAction", 4);
+		recordToEnhance.MCR.assertParameters("addAction", 0, Action.READ);
+		recordToEnhance.MCR.assertParameters("addAction", 1, Action.UPDATE);
+		recordToEnhance.MCR.assertParameters("addAction", 2, Action.INDEX);
+		recordToEnhance.MCR.assertParameters("addAction", 3, Action.DELETE);
 	}
 
 	@Test
@@ -1960,12 +1914,11 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator.MRV.setDefaultReturnValuesSupplier(
 				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", () -> false);
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhance(user, DATA_WITH_LINKS,
-				someDataRecordGroup, dataRedactor);
+		enhancer.enhance(user, DATA_WITH_LINKS, someDataRecordGroup, dataRedactor);
 
 		assertLinkHasNoAction(linkSpy1);
 		assertLinkHasNoAction(linkSpy2);
-		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
+		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord();
 	}
 
 	@Test
@@ -1978,11 +1931,38 @@ public class DataGroupToRecordEnhancerTest {
 		authorizator.MRV.setDefaultReturnValuesSupplier(
 				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", () -> false);
 
-		DataRecordSpy record = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
-				DATA_WITH_LINKS, someDataRecordGroup, dataRedactor);
+		enhancer.enhanceIgnoringReadAccess(user, DATA_WITH_LINKS, someDataRecordGroup,
+				dataRedactor);
 
 		assertLinkHasNoAction(linkSpy1);
 		assertLinkHasNoAction(linkSpy2);
-		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord(record);
+		assertLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord();
+	}
+
+	@Test
+	public void testIfPermissionUnitsNotUsedInRecordTypeDoNotCheckUserAuthorization() {
+		changeToModernSpies();
+
+		enhancer.enhance(user, DATA_WITH_LINKS, someDataRecordGroup, dataRedactor);
+
+		recordTypeHandlerSpy.MCR.assertMethodWasCalled("usePermissionUnit");
+		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForPemissionUnit");
+	}
+
+	@Test
+	public void testCallCheckUserIsAuthorizedForPermissionUnitsIfPermissionUnitsAreUsedInRecordType() {
+		changeToModernSpies();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		String somePermissionUnit = "somePermissionUnit";
+		someDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				() -> Optional.of(somePermissionUnit));
+
+		enhancer.enhance(user, DATA_WITH_LINKS, someDataRecordGroup, dataRedactor);
+
+		recordTypeHandlerSpy.MCR.assertMethodWasCalled("usePermissionUnit");
+		authorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
+				somePermissionUnit);
+		// TODO:continue
+		fail();
 	}
 }
