@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2017, 2018, 2019 Uppsala University Library
+ * Copyright 2016, 2017, 2018, 2019, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -234,8 +234,7 @@ public class SpiderAuthorizatorTest {
 
 	private User setupForInactiveAndNotSatisfyActionForRecordType() {
 		setUpDependencyProvider();
-		User inactiveUser = new User("inactiveUserId");
-		return inactiveUser;
+		return new User("inactiveUserId");
 	}
 
 	@Test
@@ -270,8 +269,7 @@ public class SpiderAuthorizatorTest {
 
 	private User setupForNonExistingUser() {
 		setUpDependencyProvider();
-		User nonExistingUser = new User("nonExistingUserId");
-		return nonExistingUser;
+		return new User("nonExistingUserId");
 	}
 
 	@Test
@@ -346,7 +344,7 @@ public class SpiderAuthorizatorTest {
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
 						user, READ, BOOK, permissionTerms, false);
 		List<Rule> providedRules = (List<Rule>) beefeaterAuthorizator.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(
+				.getParameterForMethodAndCallNumberAndParameter(
 						"providedRulesSatisfiesRequiredRules", 0, "providedRules");
 		Rule firstFakeRuleFromRulesProviderSpy = providedRules.get(0);
 		RulePartValues rulePartValuesForKey = firstFakeRuleFromRulesProviderSpy
@@ -403,7 +401,7 @@ public class SpiderAuthorizatorTest {
 
 	private List<Rule> getProvidedRulesForFirstCallToProvidedRulesSatisfiesRequiredRules() {
 		return (List<Rule>) beefeaterAuthorizator.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(
+				.getParameterForMethodAndCallNumberAndParameter(
 						"providedRulesSatisfiesRequiredRules", 0, "providedRules");
 	}
 
@@ -677,8 +675,8 @@ public class SpiderAuthorizatorTest {
 
 	private List<Rule> getProvidedRulesForFirstCallToProvidedRulesMatchRequiredRules() {
 		return (List<Rule>) beefeaterAuthorizator.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(
-						"providedRulesMatchRequiredRules", 0, "providedRules");
+				.getParameterForMethodAndCallNumberAndParameter("providedRulesMatchRequiredRules",
+						0, "providedRules");
 	}
 
 	@Test
@@ -807,7 +805,7 @@ public class SpiderAuthorizatorTest {
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "user with id userWithTwoRolesPermissionTerm is not authorized to read a record of type: book")
-	public void testEmptyMatchedRulesGivesNoAuthorzation() throws Exception {
+	public void testEmptyMatchedRulesGivesNoAuthorzation() {
 		setupUserWithTwoRolesPermissionTerm();
 		BeefeaterAuthorizatorSpy authorizatorSpy = beefeaterAuthorizator;
 		authorizatorSpy.returnNoMatchedRules = true;
@@ -815,5 +813,23 @@ public class SpiderAuthorizatorTest {
 		spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
 						user, READ, BOOK, permissionTerms, true);
+	}
+
+	@Test
+	public void testCheckUserIsAuthorizedForPemissionUnit_isCalledAndReturn() {
+		beefeaterAuthorizator.MRV.setDefaultReturnValuesSupplier(
+				"checkUserIsAuthorizedForPemissionUnit", () -> true);
+		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, "somePermissionUnit");
+
+		beefeaterAuthorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
+				"somePermissionUnit");
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = "User someUserId is not authorized for permssionUnit: somePermissionUnit.")
+	public void testCheckUserIsNotAuthorizedForPemissionUnit_isCalledAndReturn() {
+		beefeaterAuthorizator.MRV.setDefaultReturnValuesSupplier(
+				"checkUserIsAuthorizedForPemissionUnit", () -> false);
+
+		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, "somePermissionUnit");
 	}
 }

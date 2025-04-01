@@ -44,13 +44,11 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 				() -> "fakeDefMetadataIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("isPublicForRead", () -> false);
 		MRV.setDefaultReturnValuesSupplier("hasRecordPartReadConstraint", () -> false);
-		MRV.setDefaultReturnValuesSupplier("getReadRecordPartConstraints",
-				() -> Collections.emptySet());
+		MRV.setDefaultReturnValuesSupplier("getReadRecordPartConstraints", Collections::emptySet);
 		MRV.setDefaultReturnValuesSupplier("hasRecordPartWriteConstraint", () -> false);
-		MRV.setDefaultReturnValuesSupplier("getWriteRecordPartConstraints",
-				() -> Collections.emptySet());
+		MRV.setDefaultReturnValuesSupplier("getWriteRecordPartConstraints", Collections::emptySet);
 		MRV.setDefaultReturnValuesSupplier("getUpdateWriteRecordPartConstraints",
-				() -> Collections.emptySet());
+				Collections::emptySet);
 		MRV.setDefaultReturnValuesSupplier("representsTheRecordTypeDefiningSearches", () -> false);
 		MRV.setDefaultReturnValuesSupplier("representsTheRecordTypeDefiningRecordTypes",
 				() -> false);
@@ -62,10 +60,12 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 				() -> Collections.emptySet());
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "fakeRecordTypeIdFromRecordTypeHandlerSpy");
-		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
 		MRV.setDefaultReturnValuesSupplier("getCombinedIdForIndex",
 				() -> List.of("someCombinedIdFromSpy"));
-		MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions", () -> Collections.emptyList());
+		MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions", Collections::emptyList);
+		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
+		MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
+		MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> false);
 	}
 
 	@Override
@@ -156,5 +156,15 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	@Override
 	public List<Unique> getUniqueDefinitions() {
 		return (List<Unique>) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public boolean useVisibility() {
+		return (boolean) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public boolean usePermissionUnit() {
+		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
 }

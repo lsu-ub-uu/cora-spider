@@ -33,6 +33,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
@@ -343,7 +344,7 @@ public class RecordUpdaterTest {
 	public void testCorrectSpiderAuthorizatorForNoRecordPartConstraints() {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
-		var returnedUser = authenticator.MCR.getReturnValue("getUserForToken", 0);
+		var returnedUser = getAuthenticatedUser();
 		authorizator.MCR.assertParameters(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
 				returnedUser, "update", RECORD_TYPE, getPermissionTermUsingCallNo(0), false);
@@ -360,6 +361,10 @@ public class RecordUpdaterTest {
 		var recordGroupAsDataGroup = dataFactorySpy.MCR
 				.assertCalledParametersReturn("factorGroupFromDataRecordGroup", recordWithId);
 		dataValidator.MCR.assertParameter("validateData", 0, "dataGroup", recordGroupAsDataGroup);
+	}
+
+	private Object getAuthenticatedUser() {
+		return authenticator.MCR.getReturnValue("getUserForToken", 0);
 	}
 
 	private List<PermissionTerm> getPermissionTermUsingCallNo(int callNumber) {
@@ -379,7 +384,7 @@ public class RecordUpdaterTest {
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
-		var returnedUser = authenticator.MCR.getReturnValue("getUserForToken", 0);
+		var returnedUser = getAuthenticatedUser();
 		authorizator.MCR.assertParameters(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
 				returnedUser, "update", RECORD_TYPE, getPermissionTermUsingCallNo(0), true);
@@ -420,7 +425,7 @@ public class RecordUpdaterTest {
 	public void testRecordEnhancerCalled() {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
-		var returnedUser = authenticator.MCR.getReturnValue("getUserForToken", 0);
+		var returnedUser = getAuthenticatedUser();
 		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, returnedUser, RECORD_TYPE,
 				recordWithId, dataRedactor);
 	}
@@ -492,7 +497,7 @@ public class RecordUpdaterTest {
 		expectedData.recordType = RECORD_TYPE;
 		expectedData.recordId = RECORD_ID;
 		expectedData.authToken = AUTH_TOKEN;
-		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.user = (User) getAuthenticatedUser();
 		expectedData.dataRecordGroup = recordWithId;
 
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
@@ -696,7 +701,7 @@ public class RecordUpdaterTest {
 		expectedData.recordType = RECORD_TYPE;
 		expectedData.recordId = RECORD_ID;
 		expectedData.authToken = AUTH_TOKEN;
-		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.user = (User) getAuthenticatedUser();
 		expectedData.previouslyStoredDataRecordGroup = (DataRecordGroup) recordStorage.MCR
 				.getReturnValue("read", 0);
 		expectedData.dataRecordGroup = enhancedRecord.getDataRecordGroup();
@@ -766,5 +771,216 @@ public class RecordUpdaterTest {
 				() -> List.of("error1", "error2", "error3"));
 		uniqueValidator.MRV.setDefaultReturnValuesSupplier("validateUniqueForExistingRecord",
 				() -> validationAnswer);
+	}
+
+	@Test
+	public void testUpdateVisibilityWhenVisibilityDoNotMatch() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+
+		recordWithId.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("published"));
+		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("unpublished"));
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		previouslyStoredRecordGroup.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertMethodNotCalled("setVisiblity");
+
+		recordWithId.MCR.assertMethodWasCalled("setTsVisibilityNow");
+	}
+
+	@Test
+	public void testUpdateVisibilityWhenVisibilityMatch() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+
+		recordWithId.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("published"));
+		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("published"));
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		previouslyStoredRecordGroup.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertMethodNotCalled("setVisiblity");
+
+		recordWithId.MCR.assertMethodNotCalled("setTsVisibilityNow");
+	}
+
+	@Test
+	public void testUpdateVisibilityWhenVisibilityIsOnlyPresentInUpdatedVersion() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+
+		recordWithId.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("published"));
+		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				Optional::empty);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		previouslyStoredRecordGroup.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertMethodNotCalled("setVisiblity");
+
+		recordWithId.MCR.assertMethodWasCalled("setTsVisibilityNow");
+	}
+
+	@Test
+	public void testUpdateVisibilityWhenVisibilityOnlyPresentInPreviousVersion() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+
+		recordWithId.MRV.setReturnValues("getVisibility",
+				List.of(Optional.empty(), Optional.of("hidden")));
+
+		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("hidden"));
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		previouslyStoredRecordGroup.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertCalledParameters("setVisibility", "hidden");
+
+		recordWithId.MCR.assertMethodNotCalled("setTsVisibilityNow");
+	}
+
+	@Test
+	public void testUpdateVisibilityWhenVisibilityIsMissingInBothRecords() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+
+		// The second value is just used to simulate a change in visibility, we
+		// assert that the actual expected "unpublished" is set below.
+		recordWithId.MRV.setReturnValues("getVisibility", List.of(Optional.empty(),
+				Optional.of("placeholderNonEmptyValueForVisiblityChangedPurpose")));
+
+		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				Optional::empty);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		previouslyStoredRecordGroup.MCR.assertMethodWasCalled("getVisibility");
+		recordWithId.MCR.assertMethodWasCalled("getVisibility");
+		// assert default is set if missing in new AND old
+		recordWithId.MCR.assertCalledParameters("setVisibility", "unpublished");
+
+		recordWithId.MCR.assertMethodWasCalled("setTsVisibilityNow");
+	}
+
+	@Test
+	public void testUpdateTsVisibilityWhenNotUsingVisibility() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		previouslyStoredRecordGroup.MCR.assertMethodNotCalled("getVisibility");
+		recordWithId.MCR.assertMethodNotCalled("getVisibility");
+		recordWithId.MCR.assertMethodNotCalled("setTsVisibilityNow");
+	}
+
+	@Test
+	public void testPermissionUnitAuthorizationCheck_DoNotUsePermissionUnit() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> false);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForPemissionUnit");
+	}
+
+	private void setUpRecordTypeUsesPermissionUnits() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				() -> Optional.of("updatedRecordPermissionUnit"));
+		recordWithId.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				() -> Optional.of("previousRecordPermissionUnit"));
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "someExceptionFromSpy")
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_NotAuthorizedOnPreviousRecord() {
+		setUpRecordTypeUsesPermissionUnits();
+		authorizator.MRV.setThrowException("checkUserIsAuthorizedForPemissionUnit",
+				new AuthorizationException("someExceptionFromSpy"), currentUser,
+				"updatedRecordPermissionUnit");
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "someExceptionFromSpy")
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_NotAuthorizedOnUpdatedRecord() {
+		setUpRecordTypeUsesPermissionUnits();
+		authorizator.MRV.setThrowException("checkUserIsAuthorizedForPemissionUnit",
+				new AuthorizationException("someExceptionFromSpy"), currentUser,
+				"previousRecordPermissionUnit");
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "User someUserId is not authorized to delete record.")
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_missingPermissionUnitInPreviousRecord() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		previouslyStoredRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				Optional::empty);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "PermissionUnit is missing in the record.")
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_missingPermissionUnitInUpdatedRecord() {
+		setUpRecordTypeUsesPermissionUnits();
+		recordWithId.MRV.setDefaultReturnValuesSupplier("getPermissionUnit", Optional::empty);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_isAuthorized() {
+		setUpRecordTypeUsesPermissionUnits();
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		var user = getAuthenticatedUser();
+		recordTypeHandlerSpy.MCR.assertMethodWasCalled("usePermissionUnit");
+		var previousRecordPermissionUnit = (Optional<String>) previouslyStoredRecordGroup.MCR
+				.assertCalledParametersReturn("getPermissionUnit");
+		authorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
+				previousRecordPermissionUnit.get());
+
+		var recordPermissionUnit = (Optional<String>) recordWithId.MCR
+				.assertCalledParametersReturn("getPermissionUnit");
+		authorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 1, user,
+				recordPermissionUnit.get());
+
+	}
+
+	@Test
+	public void testPermissionUnitAuthorizationCheck_positionAfter() {
+		setUpRecordTypeUsesPermissionUnits();
+		recordStorage.MRV.setThrowException("read", new RuntimeException(), RECORD_TYPE, RECORD_ID);
+
+		try {
+			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+			fail();
+		} catch (Exception e) {
+			authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForPemissionUnit");
+		}
+	}
+
+	@Test
+	public void testPermissionUnitAuthorizationCheck_positionBefore() {
+		setUpRecordTypeUsesPermissionUnits();
+		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getDefinitionId", new RuntimeException());
+
+		try {
+			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+			fail();
+		} catch (Exception e) {
+			authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForPemissionUnit");
+		}
 	}
 }

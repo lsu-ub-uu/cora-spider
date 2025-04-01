@@ -26,6 +26,8 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.DELETE_BEFORE;
 
+import java.util.Optional;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -36,6 +38,7 @@ import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
@@ -70,6 +73,7 @@ public class RecordDeleterTest {
 	private DataGroupTermCollectorSpy termCollector;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 	private RecordTypeHandlerSpy recordTypeHandler;
+	private DataRecordGroupSpy recordToDelete;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -78,7 +82,8 @@ public class RecordDeleterTest {
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageSpy();
 		recordArchive = new RecordArchiveSpy();
-		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataRecordGroupSpy::new);
+		recordToDelete = new DataRecordGroupSpy();
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> recordToDelete);
 		recordIndexer = new RecordIndexerSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
@@ -140,12 +145,16 @@ public class RecordDeleterTest {
 	public void testDeleteAuthorizedNoIncomingLinksCheckExternalDependenciesAreCalled() {
 		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
 
-		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		var user = getAuthenticatedUser();
 		String methodName = "checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData";
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				0);
 		authorizator.MCR.assertParameters(methodName, 0, user, "delete", SOME_TYPE,
 				collectTerms.permissionTerms);
+	}
+
+	private Object getAuthenticatedUser() {
+		return authenticator.MCR.getReturnValue("getUserForToken", 0);
 	}
 
 	@Test
@@ -188,9 +197,9 @@ public class RecordDeleterTest {
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				DELETE_AFTER_AUTHORIZATION, getExpectedDataForDeleteAfterAuthorization(), 0);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-				DELETE_BEFORE, getExpectedDataUsingDataProviderCallNumber(0), 1);
+				DELETE_BEFORE, getExpectedDataUsingDataProviderCallNumber(), 1);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-				DELETE_AFTER, getExpectedDataUsingDataProviderCallNumber(1), 2);
+				DELETE_AFTER, getExpectedDataUsingDataProviderCallNumber(), 2);
 	}
 
 	private ExtendedFunctionalityData getExpectedDataForDeleteAfterAuthorization() {
@@ -198,17 +207,16 @@ public class RecordDeleterTest {
 		expectedData.recordType = SOME_TYPE;
 		expectedData.recordId = SOME_ID;
 		expectedData.authToken = SOME_AUTH_TOKEN;
-		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.user = (User) getAuthenticatedUser();
 		return expectedData;
 	}
 
-	private ExtendedFunctionalityData getExpectedDataUsingDataProviderCallNumber(
-			int dataProviderCallNumber) {
+	private ExtendedFunctionalityData getExpectedDataUsingDataProviderCallNumber() {
 		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
 		expectedData.recordType = SOME_TYPE;
 		expectedData.recordId = SOME_ID;
 		expectedData.authToken = SOME_AUTH_TOKEN;
-		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.user = (User) getAuthenticatedUser();
 		expectedData.dataRecordGroup = getReadDataRecordGroup();
 		return expectedData;
 	}
@@ -385,6 +393,85 @@ public class RecordDeleterTest {
 			assertEquals(e.getMessage(),
 					"Record with type: someType and id: someId could not be deleted.");
 			assertEquals(e.getCause().getMessage(), "someError");
+		}
+	}
+
+	@Test
+	public void testPermissionUnitAuthorizationCheck_DoNotUsePermissionUnit() {
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> false);
+
+		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+
+		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForPemissionUnit");
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "someExceptionFromSpy")
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_NotAuthorizedOnPreviousRecord() {
+		setUpRecordTypeUsesPermissionUnits();
+		authorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForPemissionUnit",
+				new AuthorizationException("someExceptionFromSpy"));
+
+		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+	}
+
+	private void setUpRecordTypeUsesPermissionUnits() {
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		recordToDelete.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				() -> Optional.of("permissionUnit001"));
+	}
+
+	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
+			+ "User userSpy is not authorized to delete record.")
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_missingPermissionUnitInRecord() {
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		recordToDelete.MRV.setDefaultReturnValuesSupplier("getPermissionUnit", Optional::empty);
+
+		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+	}
+
+	@Test
+	public void testPermissionUnitAuthorizationCheck_usePermissionUnit_isAuthorized() {
+		setUpRecordTypeUsesPermissionUnits();
+
+		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+
+		var user = getAuthenticatedUser();
+		recordTypeHandler.MCR.assertMethodWasCalled("usePermissionUnit");
+		Optional<String> recordPermissionUnit = assertAndReturnGetPermissionUnit();
+		authorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
+				recordPermissionUnit.get());
+	}
+
+	private Optional<String> assertAndReturnGetPermissionUnit() {
+		return (Optional<String>) recordToDelete.MCR
+				.assertCalledParametersReturn("getPermissionUnit");
+	}
+
+	@Test
+	public void testPermissionUnitAuthorizationCheck_positionAfter() {
+		setUpRecordTypeUsesPermissionUnits();
+		dependencyProvider.MRV.setAlwaysThrowException("getRecordTypeHandlerUsingDataRecordGroup",
+				new RuntimeException());
+
+		try {
+			recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+			fail();
+		} catch (Exception e) {
+			authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForPemissionUnit");
+		}
+	}
+
+	@Test
+	public void testPermissionUnitAuthorizationCheck_positionBefore() {
+		setUpRecordTypeUsesPermissionUnits();
+		recordTypeHandler.MRV.setAlwaysThrowException("getDefinitionId", new RuntimeException());
+
+		try {
+			recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+			fail();
+		} catch (Exception e) {
+			authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForPemissionUnit");
 		}
 	}
 }

@@ -61,12 +61,6 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 
 	public String returnedSearchId = "someSearchId";
 
-	// /**
-	// * shouldAutoGenerateId is default false, if set to true will method shouldAutoGenerateId()
-	// * return true instead of false.
-	// */
-	// public boolean shouldAutoGenerateId = false;
-
 	public List<String> listOfimplementingTypesIds = new ArrayList<>();
 
 	public RecordTypeHandlerOldSpy() {
@@ -78,13 +72,15 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 				() -> "fakeDefMetadataIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("getUpdateDefinitionId",
 				() -> "fakeUpdateMetadataIdFromRecordTypeHandlerSpy");
-		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "fakeRecordTypeIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("getCombinedIdForIndex",
 				() -> List.of("someCombinedIdFromSpy"));
-		MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions", () -> Collections.emptyList());
+		MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions", Collections::emptyList);
 		MRV.setDefaultReturnValuesSupplier("isPublicForRead", () -> isPublicForRead);
+		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
+		MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
+		MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> false);
 	}
 
 	@Override
@@ -139,12 +135,7 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 	@Override
 	public boolean hasRecordPartWriteConstraint() {
 		MCR.addCall();
-		boolean answer = false;
-		if ("readWrite".equals(recordPartConstraint)) {
-			answer = true;
-		} else if ("write".equals(recordPartConstraint)) {
-			answer = true;
-		}
+		boolean answer = hasRecordPartConstraints();
 		MCR.addReturned(answer);
 		return answer;
 	}
@@ -187,14 +178,16 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 	@Override
 	public boolean hasRecordPartCreateConstraint() {
 		MCR.addCall();
-		boolean answer = false;
-		if ("readWrite".equals(recordPartConstraint)) {
-			answer = true;
-		} else if ("write".equals(recordPartConstraint)) {
-			answer = true;
-		}
+		boolean answer = hasRecordPartConstraints();
 		MCR.addReturned(answer);
 		return answer;
+	}
+
+	private boolean hasRecordPartConstraints() {
+		if ("readWrite".equals(recordPartConstraint) || "write".equals(recordPartConstraint)) {
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -217,5 +210,15 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 	@Override
 	public List<Unique> getUniqueDefinitions() {
 		return (List<Unique>) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public boolean useVisibility() {
+		return (boolean) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public boolean usePermissionUnit() {
+		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
 }

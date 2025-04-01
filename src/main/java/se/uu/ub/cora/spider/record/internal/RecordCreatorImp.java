@@ -28,8 +28,10 @@ import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
+import se.uu.ub.cora.bookkeeper.metadata.Constraint;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
@@ -120,6 +122,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		useExtendedFunctionalityForPosition(CREATE_AFTER_AUTHORIZATION);
 		recordTypeHandler = createRecordTypeHandler();
 		validateRecordTypeInDataIsSameAsSpecified(recordType);
+		checkUserIsAuthorizedForPermissionUnit();
 		definitionId = recordTypeHandler.getDefinitionId();
 		validateRecord();
 		useExtendedFunctionalityForPosition(CREATE_AFTER_METADATA_VALIDATION);
@@ -138,21 +141,10 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		return enhanceDataGroupToRecord();
 	}
 
-	private void validateRecordTypeInDataIsSameAsSpecified(String recordTypeToCreate) {
-		if (recordTypeDoesNotMatchRecordTypeFromValidationType(recordTypeToCreate)) {
-			throw new DataException("The record "
-					+ "cannot be created because the record type provided does not match the record type "
-					+ "that the validation type is set to validate.");
-		}
-	}
-
-	private boolean recordTypeDoesNotMatchRecordTypeFromValidationType(String recordTypeToCreate) {
-		return !recordTypeHandler.getRecordTypeId().equals(recordTypeToCreate);
-	}
-
 	private void checkActionAuthorizationForUser() {
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
+
 	}
 
 	private void tryToGetActiveUser() {
@@ -173,8 +165,45 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		return dependencyProvider.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
 	}
 
+	private void validateRecordTypeInDataIsSameAsSpecified(String recordTypeToCreate) {
+		if (recordTypeDoesNotMatchRecordTypeFromValidationType(recordTypeToCreate)) {
+			throw new DataException("The record "
+					+ "cannot be created because the record type provided does not match the record type "
+					+ "that the validation type is set to validate.");
+		}
+	}
+
+	private boolean recordTypeDoesNotMatchRecordTypeFromValidationType(String recordTypeToCreate) {
+		return !recordTypeHandler.getRecordTypeId().equals(recordTypeToCreate);
+	}
+
+	private void checkUserIsAuthorizedForPermissionUnit() {
+		if (recordTypeUsesPermissionUnits()) {
+			getPermissionUnitFromRecordAndCheckIfAuthorized();
+		}
+	}
+
+	private boolean recordTypeUsesPermissionUnits() {
+		return recordTypeHandler.usePermissionUnit();
+	}
+
+	private void getPermissionUnitFromRecordAndCheckIfAuthorized() {
+		recordGroup.getPermissionUnit().ifPresentOrElse(checkUserIsAuthorizedForPemissionUnit(),
+				this::permissionUnitMissingButExpected);
+	}
+
+	private Consumer<? super String> checkUserIsAuthorizedForPemissionUnit() {
+		return recordPermissionUnit -> spiderAuthorizator
+				.checkUserIsAuthorizedForPemissionUnit(user, recordPermissionUnit);
+	}
+
+	private void permissionUnitMissingButExpected() {
+		throw new DataException("PermissionUnit is missing in the record.");
+	}
+
 	private void validateRecord() {
 		checkRecordPartsUserIsNotAllowtoChange();
+		possiblyHandleVisibility();
 		validateDataInRecordAsSpecifiedInMetadata();
 	}
 
@@ -198,10 +227,28 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void removeRecordPartsUserIsNotAllowedToChange() {
+		Set<Constraint> writeRecordPartConstraints = recordTypeHandler
+				.getCreateWriteRecordPartConstraints();
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		recordGroup = dataRedactor.removeChildrenForConstraintsWithoutPermissions(definitionId,
-				recordGroup, recordTypeHandler.getCreateWriteRecordPartConstraints(),
-				writePermissions);
+				recordGroup, writeRecordPartConstraints, writePermissions);
+	}
+
+	private void possiblyHandleVisibility() {
+		if (recordTypeHandler.useVisibility()) {
+			possiblySetVisibilityToDefault();
+			createVisibilityTimeStamp();
+		}
+	}
+
+	private void possiblySetVisibilityToDefault() {
+		if (recordGroup.getVisibility().isEmpty()) {
+			recordGroup.setVisibility("unpublished");
+		}
+	}
+
+	private void createVisibilityTimeStamp() {
+		recordGroup.setTsVisibilityNow();
 	}
 
 	private void validateDataInRecordAsSpecifiedInMetadata() {
@@ -215,7 +262,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
-		recordGroup.getFirstGroupWithNameInData(RECORD_INFO);
 		ensureIdExists(recordType);
 		recordGroup.setType(recordType);
 		recordGroup.setCreatedBy(userId);
@@ -262,17 +308,18 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		ValidationAnswer uniqueAnswer = uniqueValidator.validateUniqueForNewRecord(recordType,
 				recordTypeHandler.getUniqueDefinitions(), collectedTerms.storageTerms);
 		if (uniqueAnswer.dataIsInvalid()) {
-			createAndThrowConflictExceptionForUnique(uniqueAnswer);
+			throw createAndThrowConflictExceptionForUnique(uniqueAnswer);
 		}
 	}
 
-	private void createAndThrowConflictExceptionForUnique(ValidationAnswer uniqueAnswer) {
+	private ConflictException createAndThrowConflictExceptionForUnique(
+			ValidationAnswer uniqueAnswer) {
 		String errorMessageTemplate = "The record could not be created as it fails unique validation with the "
 				+ "following {0} error messages: {1}";
 		Collection<String> errorMessages = uniqueAnswer.getErrorMessages();
 		String errorMessage = MessageFormat.format(errorMessageTemplate, errorMessages.size(),
 				errorMessages);
-		throw ConflictException.withMessage(errorMessage);
+		return ConflictException.withMessage(errorMessage);
 	}
 
 	private void createRecordInStorage(DataGroup recordAsDataGroup, Set<Link> collectedLinks,

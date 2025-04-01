@@ -29,7 +29,9 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
@@ -46,6 +48,7 @@ import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
+import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -123,11 +126,11 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
 		validateRecordTypeInDataIsSameAsSpecified(recordType);
-
+		previouslyStoredRecord = recordStorage.read(recordType, recordId);
+		checkUserIsAuthorizedForPermissionUnit();
 		definitionId = recordTypeHandler.getDefinitionId();
 		updateDefinitionId = recordTypeHandler.getUpdateDefinitionId();
 
-		previouslyStoredRecord = recordStorage.read(recordType, recordId);
 		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 
 		doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection();
@@ -138,6 +141,8 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		recordGroup.addUpdatedUsingUserIdAndTsNow(user.id);
 
 		possiblyReplaceRecordPartsUserIsNotAllowedToChange();
+
+		possiblyHandleVisibility();
 
 		validateIncomingDataAsSpecifiedInMetadata();
 		useExtendedFunctionalityForPosition(UPDATE_AFTER_METADATA_VALIDATION);
@@ -198,6 +203,41 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		List<ExtendedFunctionality> exFunctionality = extendedFunctionalityProvider
 				.getFunctionalityForPositionAndRecordType(position, recordType);
 		useExtendedFunctionality(recordGroup, exFunctionality);
+	}
+
+	private void checkUserIsAuthorizedForPermissionUnit() {
+		if (recordTypeUsesPermissionUnits()) {
+			getPermissionUnitFromPrevoiusRecordAndCheckIfAuthorized();
+			getPermissionUnitFromUpdatedRecordAndCheckIfAuthorized();
+		}
+	}
+
+	private boolean recordTypeUsesPermissionUnits() {
+		return recordTypeHandler.usePermissionUnit();
+	}
+
+	private void getPermissionUnitFromPrevoiusRecordAndCheckIfAuthorized() {
+		previouslyStoredRecord.getPermissionUnit().ifPresentOrElse(
+				checkUserIsAuthorizedForPemissionUnit(), this::userIsUnAuthorizedForPermissionUnit);
+	}
+
+	private Consumer<? super String> checkUserIsAuthorizedForPemissionUnit() {
+		return recordPermissionUnit -> spiderAuthorizator
+				.checkUserIsAuthorizedForPemissionUnit(user, recordPermissionUnit);
+	}
+
+	private void userIsUnAuthorizedForPermissionUnit() {
+		throw new AuthorizationException(
+				MessageFormat.format("User {0} is not authorized to delete record.", user.id));
+	}
+
+	private void getPermissionUnitFromUpdatedRecordAndCheckIfAuthorized() {
+		recordGroup.getPermissionUnit().ifPresentOrElse(checkUserIsAuthorizedForPemissionUnit(),
+				this::permissionUnitMissingButExpected);
+	}
+
+	private void permissionUnitMissingButExpected() {
+		throw new DataException("PermissionUnit is missing in the record.");
 	}
 
 	private void doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection() {
@@ -307,6 +347,31 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 			throw new DataException("Value in data(" + extractedValueFromRecord
 					+ ") does not match entered value(" + value + ")");
 		}
+	}
+
+	private void possiblyHandleVisibility() {
+		if (recordTypeHandler.useVisibility()) {
+			possiblySetVisibilityToDefault();
+			possiblyUpdateVisibilityTimeStamp();
+		}
+	}
+
+	private void possiblySetVisibilityToDefault() {
+		if (recordGroup.getVisibility().isEmpty()) {
+			recordGroup.setVisibility(previouslyStoredRecord.getVisibility().orElse("unpublished"));
+		}
+	}
+
+	private void possiblyUpdateVisibilityTimeStamp() {
+		if (isVisibilityChanged()) {
+			recordGroup.setTsVisibilityNow();
+		}
+	}
+
+	private boolean isVisibilityChanged() {
+		Optional<String> previousVisibility = previouslyStoredRecord.getVisibility();
+		Optional<String> updatedVisibility = recordGroup.getVisibility();
+		return !previousVisibility.equals(updatedVisibility);
 	}
 
 	private void updateRecordInStorage(DataGroup recordAsDataGroupForStorage,
