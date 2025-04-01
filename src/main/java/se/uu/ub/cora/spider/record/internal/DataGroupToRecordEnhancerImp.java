@@ -117,7 +117,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private DataRecord enhanceDataGroupToRecord(DataRecordGroup dataRecordGroup,
 			DataRedactor dataRedactor) {
-		ensurePublicOrReadAccess();
+		ensurePublicOrReadAccess(dataRecordGroup);
 		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataRecordGroup,
 				dataRedactor);
 	}
@@ -129,13 +129,29 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 		DataRecord dataRecord = DataProvider
 				.createRecordWithDataRecordGroup(redactedDataRecordGroup);
-		// DataRecord dataRecord = createDataRecord(redactedDataGroup);
 		addActions(dataRecord);
 		addRecordPartPermissions(dataRecord);
 		return dataRecord;
 	}
 
-	private void ensurePublicOrReadAccess() {
+	// TODO: is called from enhance and enhanceIgnoringReadAccess. Not yet sure what to do when
+	// calling from enhanceIgnoringReadAccess.
+	private void ensurePublicOrReadAccess(DataRecordGroup dataRecordGroup) {
+		// if (!recordTypeHandler.isPublicForRead()||!recordPublished) {
+		if (!recordTypeHandler.isPublicForRead()) {
+			if (recordTypeHandler.usePermissionUnit()) {
+				// TODO: throw AuthorizationException if permissionUnit does not exists.
+				spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user,
+						dataRecordGroup.getPermissionUnit().get());
+			}
+			checkAndGetUserAuthorizationsForReadAction();
+		} else {
+			readRecordPartPermissions = Collections.emptySet();
+		}
+	}
+
+	// TODO: Evaluate what to do when calling from enhanceIgnoringReadAccess
+	private void ensurePublicOrReadAccess_FOR_enhanceIgnoringReadAccess() {
 		if (!recordTypeHandler.isPublicForRead()) {
 			checkAndGetUserAuthorizationsForReadAction();
 		} else {
@@ -147,11 +163,6 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		readRecordPartPermissions = spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
 						user, "read", recordType, collectedTerms.permissionTerms, true);
-	}
-
-	private DataRecord createDataRecord(DataGroup dataGroup) {
-		DataRecordGroup recordGroup = DataProvider.createRecordGroupFromDataGroup(dataGroup);
-		return DataProvider.createRecordWithDataRecordGroup(recordGroup);
 	}
 
 	private void addActions(DataRecord dataRecord) {
@@ -459,7 +470,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void setNoReadPermissionsIfUserHasNoReadAccess() {
 		try {
-			ensurePublicOrReadAccess();
+			ensurePublicOrReadAccess_FOR_enhanceIgnoringReadAccess();
 		} catch (Exception catchedException) {
 			addActionRead = false;
 			readRecordPartPermissions = Collections.emptySet();
