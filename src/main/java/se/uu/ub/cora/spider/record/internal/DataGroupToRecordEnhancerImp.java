@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
@@ -43,6 +44,7 @@ import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -117,7 +119,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private DataRecord enhanceDataGroupToRecord(DataRecordGroup dataRecordGroup,
 			DataRedactor dataRedactor) {
-		ensurePublicOrReadAccess(dataRecordGroup);
+		readRecordPartPermissions = ensureReadAccessAndReturnReadRecordPartPemission(
+				dataRecordGroup);
 		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataRecordGroup,
 				dataRedactor);
 	}
@@ -134,33 +137,68 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return dataRecord;
 	}
 
-	// TODO: is called from enhance and enhanceIgnoringReadAccess. Not yet sure what to do when
-	// calling from enhanceIgnoringReadAccess.
-	private void ensurePublicOrReadAccess(DataRecordGroup dataRecordGroup) {
-		// if (!recordTypeHandler.isPublicForRead()||!recordPublished) {
-		if (!recordTypeHandler.isPublicForRead()) {
-			if (recordTypeHandler.usePermissionUnit()) {
-				// TODO: throw AuthorizationException if permissionUnit does not exists.
-				spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user,
-						dataRecordGroup.getPermissionUnit().get());
-			}
-			checkAndGetUserAuthorizationsForReadAction();
-		} else {
-			readRecordPartPermissions = Collections.emptySet();
+	Set<String> ensureReadAccessAndReturnReadRecordPartPemission(DataRecordGroup dataRecordGroup) {
+		if (recordTypeHandler.isPublicForRead()) {
+			return noRecordPartPermissions();
+		}
+		if (recordTypeUsesVisibilityAndRecordIsPublished(dataRecordGroup)) {
+			return tryToGetUsersRecordPartPermissions();
+		}
+		if (recordTypeHandler.usePermissionUnit()) {
+			checkUserIsAuthorizedForPermissionUnits(dataRecordGroup);
+		}
+		return checkAndGetUserAuthorizationsForReadAction();
+	}
+
+	private Set<String> noRecordPartPermissions() {
+		return Collections.emptySet();
+	}
+
+	private Set<String> tryToGetUsersRecordPartPermissions() {
+		try {
+			return spiderAuthorizator
+					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
+							user, "read", recordType, collectedTerms.permissionTerms, true);
+		} catch (Exception e) {
+			return noRecordPartPermissions();
 		}
 	}
 
-	// TODO: Evaluate what to do when calling from enhanceIgnoringReadAccess
-	private void ensurePublicOrReadAccess_FOR_enhanceIgnoringReadAccess() {
-		if (!recordTypeHandler.isPublicForRead()) {
-			checkAndGetUserAuthorizationsForReadAction();
-		} else {
-			readRecordPartPermissions = Collections.emptySet();
+	private boolean recordTypeUsesVisibilityAndRecordIsPublished(DataRecordGroup dataRecordGroup) {
+		return recordTypeHandler.useVisibility() && recordIsPublished(dataRecordGroup);
+	}
+
+	private boolean recordIsPublished(DataRecordGroup dataRecordGroup) {
+		Optional<String> visibility = dataRecordGroup.getVisibility();
+		throwExceptionIfVisibilityIsMissing(visibility);
+		return "published".equals(visibility.get());
+	}
+
+	private void throwExceptionIfVisibilityIsMissing(Optional<String> visibility) {
+		if (visibility.isEmpty()) {
+			throw new DataException("Visibility is missing in the record.");
 		}
 	}
 
-	private void checkAndGetUserAuthorizationsForReadAction() {
-		readRecordPartPermissions = spiderAuthorizator
+	private void checkUserIsAuthorizedForPermissionUnits(DataRecordGroup dataRecordGroup) {
+		Optional<String> permissionUnit = getPermissionUnitFromRecord(dataRecordGroup);
+		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, permissionUnit.get());
+	}
+
+	private Optional<String> getPermissionUnitFromRecord(DataRecordGroup dataRecordGroup) {
+		Optional<String> permissionUnit = dataRecordGroup.getPermissionUnit();
+		if (permissionUnit.isEmpty()) {
+			throwDataExceptionPermissionUnitMissing();
+		}
+		return permissionUnit;
+	}
+
+	private void throwDataExceptionPermissionUnitMissing() {
+		throw new DataException("PermissionUnit is missing in the record.");
+	}
+
+	private Set<String> checkAndGetUserAuthorizationsForReadAction() {
+		return spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
 						user, "read", recordType, collectedTerms.permissionTerms, true);
 	}
@@ -463,14 +501,15 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private DataRecord enhanceDataGroupToRecordIgnoringReadAccess(DataRecordGroup dataRecordGroup,
 			DataRedactor dataRedactor) {
-		setNoReadPermissionsIfUserHasNoReadAccess();
+		setNoReadPermissionsIfUserHasNoReadAccess(dataRecordGroup);
 		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataRecordGroup,
 				dataRedactor);
 	}
 
-	private void setNoReadPermissionsIfUserHasNoReadAccess() {
+	private void setNoReadPermissionsIfUserHasNoReadAccess(DataRecordGroup dataRecordGroup) {
 		try {
-			ensurePublicOrReadAccess_FOR_enhanceIgnoringReadAccess();
+			readRecordPartPermissions = ensureReadAccessAndReturnReadRecordPartPemission(
+					dataRecordGroup);
 		} catch (Exception catchedException) {
 			addActionRead = false;
 			readRecordPartPermissions = Collections.emptySet();
