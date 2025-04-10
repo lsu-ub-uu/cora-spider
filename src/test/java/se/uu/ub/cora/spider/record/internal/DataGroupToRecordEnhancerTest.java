@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2017, 2019, 2020 Uppsala University Library
+ * Copyright 2016, 2017, 2019, 2020, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -1531,6 +1531,7 @@ public class DataGroupToRecordEnhancerTest {
 	public void testLinksAreAddedToRedactedDataGroup() {
 		DataRecordLinkSpy linkSpy1 = createRecordLinkSpyUsingId("linkedSearchId1");
 		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId2");
+		changeToModernSpies();
 		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
 
 		enhancer.enhance(user, DATA_WITH_LINKS, someDataRecordGroup, dataRedactor);
@@ -1567,6 +1568,8 @@ public class DataGroupToRecordEnhancerTest {
 		DataRecordLinkSpy linkSpy1 = createRecordLinkSpyUsingId("linkedSearchId1");
 		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId2");
 		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
+		changeToModernSpies();
+		setUpRecordStorageToReturnRecordsForLinkedData();
 
 		enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE, someDataRecordGroup,
 				dataRedactor);
@@ -1809,8 +1812,15 @@ public class DataGroupToRecordEnhancerTest {
 		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId2");
 		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
 		changeToModernSpies();
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isPublicForRead", () -> false);
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+
+		RecordTypeHandlerOldSpy toRecordTypeRecordTypeHandler = new RecordTypeHandlerOldSpy();
+		toRecordTypeRecordTypeHandler.MRV.setDefaultReturnValuesSupplier("isPublicForRead",
+				() -> false);
+		toRecordTypeRecordTypeHandler.MRV.setDefaultReturnValuesSupplier("useVisibility",
+				() -> true);
+		dependencyProvider.mapOfRecordTypeHandlerSpies.put("someRecordLinkType",
+				toRecordTypeRecordTypeHandler);
+
 		setUpRecordStorageToReturnRecordsForLinkedData();
 		authorizator.MRV.setDefaultReturnValuesSupplier(
 				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", () -> false);
@@ -1857,10 +1867,12 @@ public class DataGroupToRecordEnhancerTest {
 		DataRecordGroupSpy link1Record = new DataRecordGroupSpy();
 		link1Record.MRV.setDefaultReturnValuesSupplier("getVisibility",
 				() -> Optional.of("published"));
+		link1Record.MRV.setDefaultReturnValuesSupplier("getType", () -> "someRecordLinkType");
 
 		DataRecordGroupSpy link2Record = new DataRecordGroupSpy();
 		link2Record.MRV.setDefaultReturnValuesSupplier("getVisibility",
 				() -> Optional.of("unpublished"));
+		link2Record.MRV.setDefaultReturnValuesSupplier("getType", () -> "someRecordLinkType");
 
 		List<DataRecordGroupSpy> records = List.of(link1Record, link2Record);
 		Iterator<DataRecordGroupSpy> it = records.iterator();
@@ -1902,7 +1914,9 @@ public class DataGroupToRecordEnhancerTest {
 				"linkedSearchId1");
 		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingTypeAndId("toOtherRecordType",
 				"linkedSearchId2");
+		changeToModernSpies();
 		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
+		setUpRecordStorageToReturnRecordsForLinkedData2();
 
 		enhancer.enhance(user, DATA_WITH_LINKS, someDataRecordGroup, dataRedactor);
 
@@ -1924,12 +1938,32 @@ public class DataGroupToRecordEnhancerTest {
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 3);
 	}
 
+	private void setUpRecordStorageToReturnRecordsForLinkedData2() {
+		DataRecordGroupSpy link1Record = new DataRecordGroupSpy();
+		link1Record.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("published"));
+		link1Record.MRV.setDefaultReturnValuesSupplier("getType", () -> "toRecordType");
+
+		DataRecordGroupSpy link2Record = new DataRecordGroupSpy();
+		link2Record.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("unpublished"));
+		link2Record.MRV.setDefaultReturnValuesSupplier("getType", () -> "toOtherRecordType");
+
+		List<DataRecordGroupSpy> records = List.of(link1Record, link2Record);
+		Iterator<DataRecordGroupSpy> it = records.iterator();
+		Supplier<DataRecordGroupSpy> supplier = () -> it.hasNext() ? it.next()
+				: new DataRecordGroupSpy();
+
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", supplier);
+	}
+
 	@Test
 	public void testEnhanceIgnoreReadAccessLinkedRecordForLinkIsOnlyReadOnceForSameLinkedRecord() {
 		DataRecordLinkSpy linkSpy1 = createRecordLinkSpyUsingId("linkedSearchId1");
 		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId2");
 		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
 		changeToModernSpies();
+		setUpRecordStorageToReturnRecordsForLinkedData();
 
 		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				DATA_WITH_LINKS, someDataRecordGroup, dataRedactor);
@@ -1983,6 +2017,7 @@ public class DataGroupToRecordEnhancerTest {
 		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId2");
 		setupReturnedDataGroupLinksOneLevelDownOnDataRedactorSpy(linkSpy1, linkSpy2);
 		changeToModernSpies();
+		setUpRecordStorageToReturnRecordsForLinkedData();
 		authorizator.MRV.setDefaultReturnValuesSupplier(
 				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", () -> false);
 
@@ -1999,6 +2034,7 @@ public class DataGroupToRecordEnhancerTest {
 		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId2");
 		setupReturnedDataGroupLinksOneLevelDownOnDataRedactorSpy(linkSpy1, linkSpy2);
 		changeToModernSpies();
+		setUpRecordStorageToReturnRecordsForLinkedData();
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isPublicForRead", () -> false);
 		authorizator.MRV.setDefaultReturnValuesSupplier(
 				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", () -> false);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2017, 2019, 2020, 2024 Uppsala University Library
+ * Copyright 2016, 2017, 2019, 2020, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -466,7 +466,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 			DataRecordGroup linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType,
 					linkedRecordId);
 
-			if (recordTypeUsesVisibilityAndRecordIsPublished(linkedRecord)) {
+			if (recordTypeUsesVisibilityAndRecordIsPublished2(linkedRecord)) {
 				return true;
 			}
 			return userIsAuthorizedForActionOnRecordLinkAndData("read", linkedRecordType,
@@ -474,6 +474,12 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		} catch (RecordNotFoundException exception) {
 			return false;
 		}
+	}
+
+	private boolean recordTypeUsesVisibilityAndRecordIsPublished2(DataRecordGroup dataRecordGroup) {
+		RecordTypeHandler recordTypeHandlerForRecordType = getRecordTypeHandlerForRecordType(
+				dataRecordGroup.getType());
+		return recordTypeHandlerForRecordType.useVisibility() && recordIsPublished(dataRecordGroup);
 	}
 
 	private boolean userIsAuthorizedForActionOnRecordLinkAndData(String action, String recordType,
