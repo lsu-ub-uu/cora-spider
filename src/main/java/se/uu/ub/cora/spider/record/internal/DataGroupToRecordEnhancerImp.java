@@ -465,6 +465,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		try {
 			DataRecordGroup linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType,
 					linkedRecordId);
+
+			if (recordTypeUsesVisibilityAndRecordIsPublished(linkedRecord)) {
+				return true;
+			}
 			return userIsAuthorizedForActionOnRecordLinkAndData("read", linkedRecordType,
 					linkedRecord);
 		} catch (RecordNotFoundException exception) {

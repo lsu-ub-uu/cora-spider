@@ -27,9 +27,11 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -1799,6 +1801,73 @@ public class DataGroupToRecordEnhancerTest {
 		assertLinkOnlyHasReadAction(linkSpy1);
 		assertLinkOnlyHasReadAction(linkSpy2);
 		assertLinkIsNotReadWhenRecordTypeIsPublic();
+	}
+
+	@Test
+	public void testEnhanceIgnoreReadAccessLinkIsNotReadWhenRecordIsPublic() {
+		DataRecordLinkSpy linkSpy1 = createRecordLinkSpyUsingId("linkedSearchId1");
+		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId2");
+		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
+		changeToModernSpies();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isPublicForRead", () -> false);
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+		setUpRecordStorageToReturnRecordsForLinkedData();
+		authorizator.MRV.setDefaultReturnValuesSupplier(
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", () -> false);
+
+		enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE, someDataRecordGroup,
+				dataRedactor);
+
+		assertLinkOnlyHasReadAction(linkSpy1);
+		assertLinkHasNoAction(linkSpy2);
+
+		recordStorage.MCR.assertNumberOfCallsToMethod("read", 2);
+
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, SOME_RECORD_TYPE);
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "someRecordLinkType");
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
+	}
+
+	@Test
+	public void testEnhanceIgnoreReadAccessLinkIsNotReadWhenRecordIsPublicOnlyCalculatedOnce() {
+		DataRecordLinkSpy linkSpy1 = createRecordLinkSpyUsingId("linkedSearchId1");
+		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId1");
+		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
+		changeToModernSpies();
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("isPublicForRead", () -> false);
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+		setUpRecordStorageToReturnRecordsForLinkedData();
+		authorizator.MRV.setDefaultReturnValuesSupplier(
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", () -> false);
+
+		enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE, someDataRecordGroup,
+				dataRedactor);
+
+		assertLinkOnlyHasReadAction(linkSpy1);
+		assertLinkOnlyHasReadAction(linkSpy2);
+
+		recordStorage.MCR.assertNumberOfCallsToMethod("read", 1);
+
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, SOME_RECORD_TYPE);
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 1, "someRecordLinkType");
+		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
+	}
+
+	private void setUpRecordStorageToReturnRecordsForLinkedData() {
+		DataRecordGroupSpy link1Record = new DataRecordGroupSpy();
+		link1Record.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("published"));
+
+		DataRecordGroupSpy link2Record = new DataRecordGroupSpy();
+		link2Record.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("unpublished"));
+
+		List<DataRecordGroupSpy> records = List.of(link1Record, link2Record);
+		Iterator<DataRecordGroupSpy> it = records.iterator();
+		Supplier<DataRecordGroupSpy> supplier = () -> it.hasNext() ? it.next()
+				: new DataRecordGroupSpy();
+
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", supplier);
 	}
 
 	@Test
