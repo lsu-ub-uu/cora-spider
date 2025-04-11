@@ -145,7 +145,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 			return tryToGetUsersRecordPartPermissions();
 		}
 		if (recordTypeHandler.usePermissionUnit()) {
-			checkUserIsAuthorizedForPermissionUnits(dataRecordGroup);
+			checkUserIsAuthorizedForPermissionUnit(dataRecordGroup);
 		}
 		return checkAndGetUserAuthorizationsForReadAction();
 	}
@@ -180,7 +180,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		}
 	}
 
-	private void checkUserIsAuthorizedForPermissionUnits(DataRecordGroup dataRecordGroup) {
+	private void checkUserIsAuthorizedForPermissionUnit(DataRecordGroup dataRecordGroup) {
 		Optional<String> permissionUnit = getPermissionUnitFromRecord(dataRecordGroup);
 		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, permissionUnit.get());
 	}
@@ -204,15 +204,29 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void addActions(DataRecord dataRecord) {
+		boolean permissionUnitAccess = ifPermissionUnitIsUsedUserHasPermissionUnit(dataRecord);
 		possiblyAddReadAction(dataRecord);
-		possiblyAddUpdateAction(dataRecord);
-		possiblyAddIndexAction(dataRecord);
 		boolean hasIncommingLinks = linksExistForRecordTypeUsingCurrentHandledId(recordType);
-		possiblyAddDeleteAction(dataRecord, hasIncommingLinks);
+		if (permissionUnitAccess) {
+			possiblyAddUpdateAction(dataRecord);
+			possiblyAddIndexAction(dataRecord);
+			possiblyAddDeleteAction(dataRecord, hasIncommingLinks);
+			possiblyAddUploadAction(dataRecord);
+		}
 		possiblyAddIncomingLinksAction(dataRecord, hasIncommingLinks);
-		possiblyAddUploadAction(dataRecord);
 		possiblyAddSearchActionWhenDataRepresentsASearch(dataRecord);
 		possiblyAddActionsWhenDataRepresentsARecordType(dataRecord);
+	}
+
+	private boolean ifPermissionUnitIsUsedUserHasPermissionUnit(DataRecord dataRecord) {
+		if (!recordTypeHandler.usePermissionUnit()) {
+			return true;
+		}
+		Optional<String> oPermissionUnit = dataRecord.getDataRecordGroup().getPermissionUnit();
+		if (oPermissionUnit.isEmpty()) {
+			return false;
+		}
+		return spiderAuthorizator.getUserIsAuthorizedForPemissionUnit(user, oPermissionUnit.get());
 	}
 
 	private void possiblyAddReadAction(DataRecord dataRecord) {

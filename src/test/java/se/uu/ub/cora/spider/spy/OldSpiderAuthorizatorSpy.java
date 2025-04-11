@@ -157,4 +157,10 @@ public class OldSpiderAuthorizatorSpy implements SpiderAuthorizator {
 		MCR.addCall("user", user, "recordPermissionUnit", recordPermissionUnit);
 	}
 
+	@Override
+	public boolean getUserIsAuthorizedForPemissionUnit(User user, String recordPermissionUnit) {
+		return (boolean) MCR.addCallAndReturnFromMRV("user", user, "recordPermissionUnit",
+				recordPermissionUnit);
+	}
+
 }

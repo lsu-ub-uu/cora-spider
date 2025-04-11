@@ -347,9 +347,8 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 	}
 
 	@Override
-	public void checkUserIsAuthorizedForPemissionUnit(User user,
-			String recordPermissionUnit) {
-		boolean isAuthorized = beefeaterAuthorizator.checkUserIsAuthorizedForPemissionUnit(user,
+	public void checkUserIsAuthorizedForPemissionUnit(User user, String recordPermissionUnit) {
+		boolean isAuthorized = beefeaterAuthorizator.getUserIsAuthorizedForPemissionUnit(user,
 				recordPermissionUnit);
 		if (!isAuthorized) {
 			throw new AuthorizationException(
@@ -358,8 +357,14 @@ public final class SpiderAuthorizatorImp implements SpiderAuthorizator {
 		}
 	}
 
-	List<Rule> getMatchedRules() {
-		// needed for test
+	@Override
+	public boolean getUserIsAuthorizedForPemissionUnit(User user, String recordPermissionUnit) {
+		return beefeaterAuthorizator.getUserIsAuthorizedForPemissionUnit(user,
+				recordPermissionUnit);
+	}
+
+	List<Rule> onlyForTestGetMatchedRules() {
 		return matchedRules;
 	}
+
 }

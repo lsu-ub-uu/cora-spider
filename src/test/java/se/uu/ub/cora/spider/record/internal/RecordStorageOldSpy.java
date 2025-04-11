@@ -57,7 +57,7 @@ public class RecordStorageOldSpy implements RecordStorage {
 
 	public RecordStorageOldSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("readList", () -> createSpiderReadResult());
+		MRV.setDefaultReturnValuesSupplier("readList", this::createSpiderReadResult);
 		MRV.setDefaultReturnValuesSupplier("read", DataRecordGroupSpy::new);
 	}
 

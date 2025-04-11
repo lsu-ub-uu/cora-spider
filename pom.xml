@@ -42,7 +42,7 @@
 		<initialize.version>1.6.0</initialize.version>
 		<search.version>6.0.0</search.version>
 		<bookkeeper.version>10.3.0</bookkeeper.version>
-		<beefeater.version>3.15.0</beefeater.version>
+		<beefeater.version>4.0.0</beefeater.version>
 		<contentanalyzer.version>2.0.0</contentanalyzer.version>
 		<password.version>1.8.0</password.version>
 		<testutils.version>1.14.0</testutils.version>

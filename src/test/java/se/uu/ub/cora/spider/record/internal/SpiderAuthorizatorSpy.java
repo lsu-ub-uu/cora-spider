@@ -40,6 +40,7 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 		MRV.setDefaultReturnValuesSupplier(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				Collections::emptySet);
+		MRV.setDefaultReturnValuesSupplier("getUserIsAuthorizedForPemissionUnit", () -> false);
 	}
 
 	@Override
@@ -82,5 +83,11 @@ public class SpiderAuthorizatorSpy implements SpiderAuthorizator {
 	@Override
 	public void checkUserIsAuthorizedForPemissionUnit(User user, String recordPermissionUnit) {
 		MCR.addCall("user", user, "recordPermissionUnit", recordPermissionUnit);
+	}
+
+	@Override
+	public boolean getUserIsAuthorizedForPemissionUnit(User user, String recordPermissionUnit) {
+		return (boolean) MCR.addCallAndReturnFromMRV("user", user, "recordPermissionUnit",
+				recordPermissionUnit);
 	}
 }

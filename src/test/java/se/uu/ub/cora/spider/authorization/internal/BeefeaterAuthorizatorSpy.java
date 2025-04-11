@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -35,7 +35,7 @@ public class BeefeaterAuthorizatorSpy implements Authorizator {
 
 	public BeefeaterAuthorizatorSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("checkUserIsAuthorizedForPemissionUnit", () -> false);
+		MRV.setDefaultReturnValuesSupplier("getUserIsAuthorizedForPemissionUnit", () -> false);
 	}
 
 	/**
@@ -72,7 +72,7 @@ public class BeefeaterAuthorizatorSpy implements Authorizator {
 	}
 
 	@Override
-	public boolean checkUserIsAuthorizedForPemissionUnit(User user, String recordPermissionUnit) {
+	public boolean getUserIsAuthorizedForPemissionUnit(User user, String recordPermissionUnit) {
 		return (boolean) MCR.addCallAndReturnFromMRV("user", user, "recordPermissionUnit",
 				recordPermissionUnit);
 	}

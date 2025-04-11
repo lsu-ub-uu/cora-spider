@@ -71,6 +71,7 @@ import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class DataGroupToRecordEnhancerTest {
+	private static final String SOME_PERMISSION_UNIT = "somePermissionUnit";
 	private static final String UPDATE = "update";
 	private static final String LIST = "list";
 	private static final String DATA_WITH_LINKS = "dataWithLinks";
@@ -310,10 +311,91 @@ public class DataGroupToRecordEnhancerTest {
 	public void testEnhanceIgnoreReadAccessUpdateActionPartOfEnhance() {
 		createRecordStorageSpy();
 
-		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
+		DataRecordSpy enhancedRecord = (DataRecordSpy) enhancer.enhanceIgnoringReadAccess(user,
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
-		assertUpdateActionPartOfEnhance(recordToEnhance);
+		assertUpdateActionPartOfEnhance(enhancedRecord);
+	}
+
+	@Test
+	public void testActionPartOfEnhance_recordDoesNotUsePermissionUnit() {
+		changeToModernSpies();
+
+		DataRecordSpy enhancedRecord = (DataRecordSpy) enhancer.enhance(user, BINARY_RECORD_TYPE,
+				someDataRecordGroup, dataRedactor);
+
+		enhancedRecord.MCR.assertCalledParameters("addAction", Action.READ);
+		enhancedRecord.MCR.assertCalledParameters("addAction", Action.UPDATE);
+		enhancedRecord.MCR.assertCalledParameters("addAction", Action.DELETE);
+		enhancedRecord.MCR.assertCalledParameters("addAction", Action.INDEX);
+		enhancedRecord.MCR.assertCalledParameters("addAction", Action.UPLOAD);
+		enhancedRecord.MCR.assertNumberOfCallsToMethod("addAction", 5);
+	}
+
+	@Test
+	public void testActionPartOfEnhance_recordUsesUsePermissionUnit_userHasPermissionUnit() {
+		changeToModernSpies();
+		setupRecordTypeToUsePermissionUnit();
+		setupSomeDataRecordGroupToHaveSomePermissionUnit();
+		setupDataRecordGroupInEnhancedRecordToHaveSomePermissionUnit();
+		setupAuthorizatorToReturnTrueForGetUserIsAuthorizedForPemissionUnit();
+
+		DataRecordSpy enhancedRecord = (DataRecordSpy) enhancer.enhance(user, BINARY_RECORD_TYPE,
+				someDataRecordGroup, dataRedactor);
+
+		enhancedRecord.MCR.assertCalledParameters("addAction", Action.READ);
+		enhancedRecord.MCR.assertCalledParameters("addAction", Action.UPDATE);
+		enhancedRecord.MCR.assertCalledParameters("addAction", Action.DELETE);
+		enhancedRecord.MCR.assertCalledParameters("addAction", Action.INDEX);
+		enhancedRecord.MCR.assertCalledParameters("addAction", Action.UPLOAD);
+		enhancedRecord.MCR.assertNumberOfCallsToMethod("addAction", 5);
+	}
+
+	@Test
+	public void testActionPartOfEnhance_recordUsesUsePermissionUnit_userDoesNotHavePermissionUnit() {
+		changeToModernSpies();
+		setupRecordTypeToUsePermissionUnit();
+		setupSomeDataRecordGroupToHaveSomePermissionUnit();
+		setupDataRecordGroupInEnhancedRecordToHaveSomePermissionUnit();
+		setupAuthorizatorToReturnFalseForGetUserIsAuthorizedForPemissionUnit();
+
+		DataRecordSpy enhancedRecord = (DataRecordSpy) enhancer.enhance(user, BINARY_RECORD_TYPE,
+				someDataRecordGroup, dataRedactor);
+
+		enhancedRecord.MCR.assertCalledParameters("addAction", Action.READ);
+		enhancedRecord.MCR.assertNumberOfCallsToMethod("addAction", 1);
+	}
+
+	private void setupRecordTypeToUsePermissionUnit() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+	}
+
+	private void setupSomeDataRecordGroupToHaveSomePermissionUnit() {
+		someDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				() -> Optional.of(SOME_PERMISSION_UNIT));
+	}
+
+	private void setupDataRecordGroupInEnhancedRecordToHaveSomePermissionUnit() {
+		DataRecordGroupSpy convertedDataRecordGroup = new DataRecordGroupSpy();
+		convertedDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				() -> Optional.of(SOME_PERMISSION_UNIT));
+
+		DataRecordSpy convertedDataRecord = new DataRecordSpy();
+		convertedDataRecord.MRV.setDefaultReturnValuesSupplier("getDataRecordGroup",
+				() -> convertedDataRecordGroup);
+
+		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorRecordUsingDataRecordGroup",
+				() -> convertedDataRecord);
+	}
+
+	private void setupAuthorizatorToReturnTrueForGetUserIsAuthorizedForPemissionUnit() {
+		authorizator.MRV.setDefaultReturnValuesSupplier("getUserIsAuthorizedForPemissionUnit",
+				() -> true);
+	}
+
+	private void setupAuthorizatorToReturnFalseForGetUserIsAuthorizedForPemissionUnit() {
+		authorizator.MRV.setDefaultReturnValuesSupplier("getUserIsAuthorizedForPemissionUnit",
+				() -> false);
 	}
 
 	@Test
@@ -2061,7 +2143,7 @@ public class DataGroupToRecordEnhancerTest {
 			+ "PermissionUnit is missing in the record.")
 	public void testIfPermissionUnitsUsedInRecordType_NoPermissionUnitInData_DoNotCheckUserAuthorization() {
 		changeToModernSpies();
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
+		setupRecordTypeToUsePermissionUnit();
 		someDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
 				Optional::empty);
 
@@ -2071,16 +2153,14 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testCallCheckUserIsAuthorizedForPermissionUnitsIfPermissionUnitsAreUsedInRecordType() {
 		changeToModernSpies();
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
-		String somePermissionUnit = "somePermissionUnit";
-		someDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
-				() -> Optional.of(somePermissionUnit));
+		setupRecordTypeToUsePermissionUnit();
+		setupSomeDataRecordGroupToHaveSomePermissionUnit();
 
 		enhancer.enhance(user, DATA_WITH_LINKS, someDataRecordGroup, dataRedactor);
 
 		recordTypeHandlerSpy.MCR.assertMethodWasCalled("usePermissionUnit");
 		authorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
-				somePermissionUnit);
+				SOME_PERMISSION_UNIT);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
@@ -2105,8 +2185,13 @@ public class DataGroupToRecordEnhancerTest {
 
 		recordTypeHandlerSpy.MCR.assertParameters("useVisibility", 0);
 		someDataRecordGroup.MCR.assertParameters("getVisibility", 0);
-		recordTypeHandlerSpy.MCR.assertParameters("usePermissionUnit", 0);
+		assertUsePermissionUnitsCalledFromGetRecordPartsAndAddActions();
 		assertCheckAuthorized(enhancedRecord);
+	}
+
+	private void assertUsePermissionUnitsCalledFromGetRecordPartsAndAddActions() {
+		recordTypeHandlerSpy.MCR.assertNumberOfCallsToMethod("usePermissionUnit", 2);
+		recordTypeHandlerSpy.MCR.assertMethodWasCalled("usePermissionUnit");
 	}
 
 	@Test
@@ -2122,9 +2207,11 @@ public class DataGroupToRecordEnhancerTest {
 		recordTypeHandlerSpy.MCR.assertParameters("useVisibility", 0);
 		someDataRecordGroup.MCR.assertParameters("getVisibility", 0);
 		assertCheckAuthorized(enhancedRecord);
+		assertUsePermissionUnitOnlyCalledFromAddActions();
+	}
 
-		recordTypeHandlerSpy.MCR.assertMethodNotCalled("usePermissionUnit");
-
+	private void assertUsePermissionUnitOnlyCalledFromAddActions() {
+		recordTypeHandlerSpy.MCR.assertNumberOfCallsToMethod("usePermissionUnit", 1);
 	}
 
 	@Test
@@ -2144,9 +2231,7 @@ public class DataGroupToRecordEnhancerTest {
 		someDataRecordGroup.MCR.assertParameters("getVisibility", 0);
 
 		assertCheckAuthorizedWhenRecordIsPublishedButNotAuthorized(enhancedRecord);
-
-		recordTypeHandlerSpy.MCR.assertMethodNotCalled("usePermissionUnit");
-
+		assertUsePermissionUnitOnlyCalledFromAddActions();
 	}
 
 	private void assertCheckAuthorizedWhenRecordIsPublishedButNotAuthorized(

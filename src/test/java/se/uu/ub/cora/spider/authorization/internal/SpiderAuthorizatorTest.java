@@ -667,7 +667,7 @@ public class SpiderAuthorizatorTest {
 				"requiredRules", ruleCalculator.MCR
 						.getReturnValue("calculateRulesForActionAndRecordTypeAndCollectedData", 0));
 
-		assertEquals(spiderAuthorizator.getMatchedRules(),
+		assertEquals(spiderAuthorizator.onlyForTestGetMatchedRules(),
 				beefeaterAuthorizator.MCR.getReturnValue("providedRulesMatchRequiredRules", 0));
 
 		assertTrue(usersReadRecordPartPermissions.isEmpty());
@@ -817,19 +817,45 @@ public class SpiderAuthorizatorTest {
 
 	@Test
 	public void testCheckUserIsAuthorizedForPemissionUnit_isCalledAndReturn() {
-		beefeaterAuthorizator.MRV.setDefaultReturnValuesSupplier(
-				"checkUserIsAuthorizedForPemissionUnit", () -> true);
+		beefeaterAuthorizator.MRV
+				.setDefaultReturnValuesSupplier("getUserIsAuthorizedForPemissionUnit", () -> true);
 		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, "somePermissionUnit");
 
-		beefeaterAuthorizator.MCR.assertParameters("checkUserIsAuthorizedForPemissionUnit", 0, user,
+		beefeaterAuthorizator.MCR.assertParameters("getUserIsAuthorizedForPemissionUnit", 0, user,
 				"somePermissionUnit");
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = "User someUserId is not authorized for permssionUnit: somePermissionUnit.")
 	public void testCheckUserIsNotAuthorizedForPemissionUnit_isCalledAndReturn() {
-		beefeaterAuthorizator.MRV.setDefaultReturnValuesSupplier(
-				"checkUserIsAuthorizedForPemissionUnit", () -> false);
+		beefeaterAuthorizator.MRV
+				.setDefaultReturnValuesSupplier("getUserIsAuthorizedForPemissionUnit", () -> false);
 
 		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, "somePermissionUnit");
+	}
+
+	@Test
+	public void testgetUserIsNotAuthorizedForPemissionUnit_isCalledAndReturn() {
+
+		boolean isAuthorized = spiderAuthorizator.getUserIsAuthorizedForPemissionUnit(user,
+				"somePermissionUnit");
+
+		beefeaterAuthorizator.MCR.assertParameters("getUserIsAuthorizedForPemissionUnit", 0, user,
+				"somePermissionUnit");
+		beefeaterAuthorizator.MCR.assertReturn("getUserIsAuthorizedForPemissionUnit", 0,
+				isAuthorized);
+	}
+
+	@Test
+	public void testgetUserIsAuthorizedForPemissionUnit_isCalledAndReturn() {
+		beefeaterAuthorizator.MRV
+				.setDefaultReturnValuesSupplier("getUserIsAuthorizedForPemissionUnit", () -> true);
+
+		boolean isAuthorized = spiderAuthorizator.getUserIsAuthorizedForPemissionUnit(user,
+				"somePermissionUnit");
+
+		beefeaterAuthorizator.MCR.assertParameters("getUserIsAuthorizedForPemissionUnit", 0, user,
+				"somePermissionUnit");
+		beefeaterAuthorizator.MCR.assertReturn("getUserIsAuthorizedForPemissionUnit", 0,
+				isAuthorized);
 	}
 }
