@@ -352,6 +352,21 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
+	public void testActionPartOfEnhance_recordUsesUsePermissionUnit_recordDoesNotHavePermissionUnit() {
+		changeToModernSpies();
+		setupRecordTypeToUsePermissionUnit();
+		setupSomeDataRecordGroupToHaveSomePermissionUnit();
+		setupDataRecordGroupInEnhancedRecordToEmptyPermissionUnit();
+		setupAuthorizatorToReturnFalseForGetUserIsAuthorizedForPemissionUnit();
+
+		DataRecordSpy enhancedRecord = (DataRecordSpy) enhancer.enhance(user, BINARY_RECORD_TYPE,
+				someDataRecordGroup, dataRedactor);
+
+		enhancedRecord.MCR.assertCalledParameters("addAction", Action.READ);
+		enhancedRecord.MCR.assertNumberOfCallsToMethod("addAction", 1);
+	}
+
+	@Test
 	public void testActionPartOfEnhance_recordUsesUsePermissionUnit_userDoesNotHavePermissionUnit() {
 		changeToModernSpies();
 		setupRecordTypeToUsePermissionUnit();
@@ -373,6 +388,19 @@ public class DataGroupToRecordEnhancerTest {
 	private void setupSomeDataRecordGroupToHaveSomePermissionUnit() {
 		someDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
 				() -> Optional.of(SOME_PERMISSION_UNIT));
+	}
+
+	private void setupDataRecordGroupInEnhancedRecordToEmptyPermissionUnit() {
+		DataRecordGroupSpy convertedDataRecordGroup = new DataRecordGroupSpy();
+		convertedDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				Optional::empty);
+
+		DataRecordSpy convertedDataRecord = new DataRecordSpy();
+		convertedDataRecord.MRV.setDefaultReturnValuesSupplier("getDataRecordGroup",
+				() -> convertedDataRecordGroup);
+
+		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorRecordUsingDataRecordGroup",
+				() -> convertedDataRecord);
 	}
 
 	private void setupDataRecordGroupInEnhancedRecordToHaveSomePermissionUnit() {

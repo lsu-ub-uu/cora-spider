@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2023 Uppsala University Library
+ * Copyright 2016, 2023, 2025 Uppsala University Library
  * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.binary.internal;
 
 import java.io.InputStream;
 import java.text.MessageFormat;
+import java.util.Optional;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.binary.BinaryProvider;
@@ -75,6 +76,7 @@ public final class UploaderImp implements Uploader {
 	private ResourceConvert resourceConvert;
 	private String dataDivider;
 	private MimeTypeToBinaryType mimeTypeToBinaryType;
+	private RecordTypeHandler recordTypeHandler;
 
 	private UploaderImp(SpiderDependencyProvider dependencyProvider,
 			ResourceConvert resourceConvert, MimeTypeToBinaryType mimeTypeToBinaryType) {
@@ -95,7 +97,9 @@ public final class UploaderImp implements Uploader {
 	}
 
 	// IF ANY UPDATE to binary record a SuperUser should be used, not the user sent throug the
-	// upload.
+	// upload. Possible solution might be to call recordUpdaterImp from a new method after normal
+	// security checks are done in recordUpdaterImp, and take advantage of storage, index, archive,
+	// enhance and ohter parts from recordUpdaterImp
 	// TODO: If the given user is not used to update the binary record, how do we log the
 	// uploading of the resource by that user?
 	@Override
@@ -111,6 +115,8 @@ public final class UploaderImp implements Uploader {
 		validateInputIsBinaryMasterAndHasStream();
 		DataRecordGroup dataRecordGroup = recordStorage.read(type, id);
 		dataDivider = dataRecordGroup.getDataDivider();
+		recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
 		tryToCheckUserIsAuthorisedToUploadData(dataRecordGroup);
 
 		return uploadAnalyzeStoreAndCallConvert(resourceStream, dataRecordGroup);
@@ -168,7 +174,8 @@ public final class UploaderImp implements Uploader {
 			String expectedData, String archiveData) {
 		resourceArchive.delete(dataDivider, type, id);
 		return ArchiveDataIntergrityException.withMessage(MessageFormat.format(
-				"The {0} verification of uploaded data failed: the actual value was: {1} but the expected value was: {2}.",
+				"The {0} verification of uploaded data failed: the actual value was: {1}"
+						+ " but the expected value was: {2}.",
 				expectType, archiveData, expectedData));
 	}
 
@@ -265,7 +272,8 @@ public final class UploaderImp implements Uploader {
 	private void ensureResourceStreamExists() {
 		if (null == resourceStream) {
 			throw new DataMissingException(MessageFormat.format(
-					"Uploading error: Nothing to upload, resource stream is missing for type {0} and id {1}.",
+					"Uploading error: Nothing to upload, resource stream is missing for type {0}"
+							+ " and id {1}.",
 					type, id));
 		}
 	}
@@ -274,22 +282,62 @@ public final class UploaderImp implements Uploader {
 		try {
 			user = authenticator.getUserForToken(authToken);
 		} catch (Exception e) {
-			throw new AuthenticationException(MessageFormat.format(
-					"Uploading error: Not possible to upload "
-							+ "resource due the user could not be authenticated, for type {0} and id {1}.",
-					type, id), e);
+			throw new AuthenticationException(
+					MessageFormat.format("Uploading error: Not possible to upload "
+							+ "resource due the user could not be authenticated, for type {0} "
+							+ "and id {1}.", type, id),
+					e);
 		}
 	}
 
 	private void tryToCheckUserIsAuthorisedToUploadData(DataRecordGroup dataRecord) {
+		checkUserIsAuthorizedIfRecorTypeUsesPermissionUnits(dataRecord);
 		try {
 			checkUserIsAuthorisedToUploadData(dataRecord);
 		} catch (Exception e) {
-			throw new AuthorizationException(MessageFormat.format(
-					"Uploading error: Not possible to upload "
-							+ "resource due the user could not be authorizated, for type {0} and id {1}.",
-					type, id), e);
+			throw new AuthorizationException(
+					MessageFormat.format("Uploading error: Not possible to upload "
+							+ "resource due the user could not be authorizated, for type {0} and"
+							+ " id {1}.", type, id),
+					e);
 		}
+	}
+
+	private void checkUserIsAuthorizedIfRecorTypeUsesPermissionUnits(
+			DataRecordGroup dataRecordGroup) {
+		if (recordTypeHandler.usePermissionUnit()) {
+			checkUserIsAuthorizedToUploadForPemissionUnit(dataRecordGroup);
+		}
+	}
+
+	private void checkUserIsAuthorizedToUploadForPemissionUnit(DataRecordGroup dataRecordGroup) {
+		Optional<String> oPermissionUnit = dataRecordGroup.getPermissionUnit();
+		if (oPermissionUnit.isEmpty()) {
+			throw notAuthorizedDueToMissingPermissionUnitInRecord();
+		}
+		tryToCheckUserIsAuthorizedForPemissionUnit(oPermissionUnit.get());
+	}
+
+	private AuthorizationException notAuthorizedDueToMissingPermissionUnitInRecord() {
+		return new AuthorizationException(
+				MessageFormat.format("Uploading error: Not possible to upload "
+						+ "resource due the binary not having any permission unit, for type {0} and"
+						+ " id {1}.", type, id));
+	}
+
+	private void tryToCheckUserIsAuthorizedForPemissionUnit(String permissionUnit) {
+		try {
+			spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, permissionUnit);
+		} catch (Exception e) {
+			throw notAuthorizedDueToUserDoNotMatchRecordsPermissionUnit();
+		}
+	}
+
+	private AuthorizationException notAuthorizedDueToUserDoNotMatchRecordsPermissionUnit() {
+		return new AuthorizationException(
+				MessageFormat.format("Uploading error: Not possible to upload "
+						+ "resource due the user not having required permission unit, for type {0} and"
+						+ " id {1}.", type, id));
 	}
 
 	private void checkUserIsAuthorisedToUploadData(DataRecordGroup dataRecord) {
@@ -299,8 +347,7 @@ public final class UploaderImp implements Uploader {
 	}
 
 	private CollectTerms getCollectedTermsForRecord(DataRecordGroup dataRecordGroup) {
-		RecordTypeHandler recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
+
 		String definitionId = recordTypeHandler.getDefinitionId();
 		return termCollector.collectTerms(definitionId, dataRecordGroup);
 	}
