@@ -44,7 +44,7 @@
 		<bookkeeper.version>10.3.0</bookkeeper.version>
 		<beefeater.version>4.0.0</beefeater.version>
 		<contentanalyzer.version>2.0.0</contentanalyzer.version>
-		<password.version>1.8.0</password.version>
+		<password.version>1.9.0</password.version>
 		<testutils.version>1.14.0</testutils.version>
 		<logger-spies.version>1.5.0</logger-spies.version>
 		<messaging.version>3.1.0</messaging.version>
