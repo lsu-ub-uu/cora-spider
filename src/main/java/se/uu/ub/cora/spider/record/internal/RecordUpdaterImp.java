@@ -28,6 +28,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -308,7 +309,8 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		recordGroup.setType(previouslyStoredRecord.getType());
 		recordGroup.setCreatedBy(previouslyStoredRecord.getCreatedBy());
 		recordGroup.setTsCreated(previouslyStoredRecord.getTsCreated());
-		recordGroup.setAllUpdated(previouslyStoredRecord.getAllUpdated());
+		recordGroup.setAllUpdated(Collections.emptyList());
+
 	}
 
 	private void possiblyReplaceRecordPartsUserIsNotAllowedToChange() {

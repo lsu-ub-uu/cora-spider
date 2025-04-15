@@ -32,6 +32,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -438,7 +439,7 @@ public class RecordUpdaterTest {
 		assertResultFromGetInPreviousSetInCurrent("setType", "getType");
 		assertResultFromGetInPreviousSetInCurrent("setCreatedBy", "getCreatedBy");
 		assertResultFromGetInPreviousSetInCurrent("setTsCreated", "getTsCreated");
-		assertResultFromGetInPreviousSetInCurrent("setAllUpdated", "getAllUpdated");
+		recordWithId.MCR.assertParameters("setAllUpdated", 0, Collections.emptyList());
 	}
 
 	@Test
