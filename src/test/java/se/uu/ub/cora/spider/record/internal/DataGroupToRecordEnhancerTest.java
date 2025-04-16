@@ -1516,6 +1516,22 @@ public class DataGroupToRecordEnhancerTest {
 		assertWritePermissionsAreAddedToRecord(recordToEnhance);
 	}
 
+	@Test
+	public void testEmptyWritePermissionsAreAddedToRecord_whenNoPermissionUnitAccess() {
+		changeToModernSpies();
+		setupRecordTypeToUsePermissionUnit();
+		setupSomeDataRecordGroupToHaveSomePermissionUnit();
+		setupDataRecordGroupInEnhancedRecordToEmptyPermissionUnit();
+		setupAuthorizatorToReturnFalseForGetUserIsAuthorizedForPemissionUnit();
+
+		DataRecordSpy recordToEnhance = (DataRecordSpy) enhancer.enhance(user, SOME_RECORD_TYPE,
+				someDataRecordGroup, dataRedactor);
+
+		Set<?> call1 = (Set<?>) recordToEnhance.MCR.getParameterForMethodAndCallNumberAndParameter(
+				"addWritePermissions", 0, "writePermissions");
+		assertEquals(call1, Collections.emptySet());
+	}
+
 	private void assertWritePermissionsAreAddedToRecord(DataRecordSpy recordToEnhance) {
 		oldAuthorizator.MCR.assertParameter(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,

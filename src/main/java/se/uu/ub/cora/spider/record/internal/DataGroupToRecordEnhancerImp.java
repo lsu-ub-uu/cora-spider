@@ -65,8 +65,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private CollectTerms collectedTerms;
 	private Map<String, RecordTypeHandler> cachedRecordTypeHandlers = new HashMap<>();
 	private Map<String, Boolean> cachedAuthorizedToReadRecordLink = new HashMap<>();
-	private Set<String> readRecordPartPermissions;
-	private Set<String> writeRecordPartPermissions;
+	private Set<String> readRecordPartPermissions = Collections.emptySet();
+	private Set<String> writeRecordPartPermissions = Collections.emptySet();
 	private boolean addActionRead = true;
 
 	public DataGroupToRecordEnhancerImp(SpiderDependencyProvider dependencyProvider) {
