@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.cache;
 import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolderProvider;
+import se.uu.ub.cora.bookkeeper.text.TextHolderProvider;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.MessageReceiver;
@@ -41,6 +42,9 @@ public class DataChangeMessageReceiver implements MessageReceiver {
 		}
 		if ("metadata".equals(type)) {
 			MetadataHolderProvider.dataChanged(id, action);
+		}
+		if ("text".equals(type)) {
+			TextHolderProvider.dataChanged(id, action);
 		}
 	}
 
