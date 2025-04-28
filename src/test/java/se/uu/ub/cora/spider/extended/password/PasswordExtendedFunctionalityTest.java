@@ -89,7 +89,7 @@ public class PasswordExtendedFunctionalityTest {
 		createExtendedFunctionalityData();
 
 		spiderInstanceFactory = new SpiderInstanceFactorySpy();
-		SpiderInstanceProvider.onlyForTestSetSpiderInstanceFactory(spiderInstanceFactory);
+		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
 
 		RecordStorageSpy recordStorage = (RecordStorageSpy) dependencyProvider.recordStorage;
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", DataGroupSpy::new);

@@ -42,7 +42,7 @@ public class DecoratedRecordReaderTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		instanceFactory = new SpiderInstanceFactorySpy();
-		SpiderInstanceProvider.onlyForTestSetSpiderInstanceFactory(instanceFactory);
+		SpiderInstanceProvider.setSpiderInstanceFactory(instanceFactory);
 		setUpDependencyProvider();
 	}
 

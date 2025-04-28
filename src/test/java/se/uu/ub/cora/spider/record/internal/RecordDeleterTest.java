@@ -119,7 +119,7 @@ public class RecordDeleterTest {
 
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
-		SpiderInstanceProvider.onlyForTestSetSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 
 		recordDeleter = RecordDeleterImp.usingDependencyProvider(dependencyProvider);
 	}

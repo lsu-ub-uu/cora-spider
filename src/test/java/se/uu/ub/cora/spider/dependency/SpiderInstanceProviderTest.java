@@ -48,7 +48,7 @@ public class SpiderInstanceProviderTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		factory = new SpiderInstanceFactorySpy();
-		SpiderInstanceProvider.onlyForTestSetSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 	}
 
 	@Test

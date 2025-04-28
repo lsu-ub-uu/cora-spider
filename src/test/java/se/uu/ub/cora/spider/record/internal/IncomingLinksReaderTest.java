@@ -106,7 +106,7 @@ public class IncomingLinksReaderTest {
 
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
-		SpiderInstanceProvider.onlyForTestSetSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 
 		return IncomingLinksReaderImp.usingDependencyProvider(dependencyProvider);
 	}

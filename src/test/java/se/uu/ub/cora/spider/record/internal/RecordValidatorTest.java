@@ -207,7 +207,7 @@ public class RecordValidatorTest {
 
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
-		SpiderInstanceProvider.onlyForTestSetSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 
 		recordValidator = RecordValidatorImp.usingDependencyProvider(dependencyProvider);
 	}

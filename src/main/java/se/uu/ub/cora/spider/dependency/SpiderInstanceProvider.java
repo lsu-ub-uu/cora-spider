@@ -40,7 +40,7 @@ public final class SpiderInstanceProvider {
 		throw new UnsupportedOperationException();
 	}
 
-	public static void onlyForTestSetSpiderInstanceFactory(SpiderInstanceFactory factory) {
+	public static void setSpiderInstanceFactory(SpiderInstanceFactory factory) {
 		SpiderInstanceProvider.factory = factory;
 	}
 
