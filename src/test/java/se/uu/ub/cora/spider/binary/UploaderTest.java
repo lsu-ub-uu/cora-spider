@@ -168,7 +168,7 @@ public class UploaderTest {
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
 				() -> termCollector);
 
-		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
+		SpiderInstanceProvider.onlyForTestSetSpiderInstanceFactory(spiderInstanceFactory);
 	}
 
 	@Test

@@ -124,7 +124,7 @@ public class RecordListIndexerTest {
 
 	private void setUpDataProviders() {
 		spiderInstanceFactory = new SpiderInstanceFactorySpy();
-		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
+		SpiderInstanceProvider.onlyForTestSetSpiderInstanceFactory(spiderInstanceFactory);
 	}
 
 	@Test

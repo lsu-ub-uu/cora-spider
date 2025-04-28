@@ -105,7 +105,7 @@ public class RecordReaderTest {
 
 		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
 				.usingDependencyProvider(dependencyProvider);
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.onlyForTestSetSpiderInstanceFactory(factory);
 
 		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		return recordReader = RecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(

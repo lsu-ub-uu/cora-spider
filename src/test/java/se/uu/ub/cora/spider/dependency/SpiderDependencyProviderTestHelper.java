@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.spider.dependency;
 
+import se.uu.ub.cora.bookkeeper.decorator.DataDecarator;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactory;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactory;
@@ -128,6 +129,12 @@ public class SpiderDependencyProviderTestHelper extends DependencyProviderAbstra
 	@Override
 	RecordTypeHandlerFactory createRecordTypeHandlerFactory() {
 		return recordTypeHandlerFactory;
+	}
+
+	@Override
+	public DataDecarator getDataDecorator() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

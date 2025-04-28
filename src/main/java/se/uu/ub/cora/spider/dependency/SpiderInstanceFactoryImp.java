@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019, 2021 Uppsala University Library
+ * Copyright 2015, 2016, 2019, 2021, 2025 Uppsala University Library
  * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
@@ -36,6 +36,7 @@ import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJo
 import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJobImp;
 import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
+import se.uu.ub.cora.spider.record.DecoratedRecordReader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -46,6 +47,7 @@ import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
+import se.uu.ub.cora.spider.record.internal.DecoratedRecordReaderImp;
 import se.uu.ub.cora.spider.record.internal.IncomingLinksReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordDeleterImp;
@@ -77,6 +79,11 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 				dependencyProvider);
 		return RecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
 				dependencyProvider, dataGroupToRecordEnhancer);
+	}
+
+	@Override
+	public DecoratedRecordReader factorDecoratedRecordReader() {
+		return DecoratedRecordReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2018, 2021, 2024 Uppsala University Library
+ * Copyright 2015, 2018, 2021, 2024, 2025 Uppsala University Library
  * Copyright 2017, 2019 Uppsala University Library
  *
  * This file is part of Cora.
@@ -48,7 +48,7 @@ public class SpiderInstanceProviderTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		factory = new SpiderInstanceFactorySpy();
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
+		SpiderInstanceProvider.onlyForTestSetSpiderInstanceFactory(factory);
 	}
 
 	@Test
@@ -81,6 +81,13 @@ public class SpiderInstanceProviderTest {
 		var recordReader = SpiderInstanceProvider.getRecordReader();
 
 		factory.MCR.assertReturn("factorRecordReader", 0, recordReader);
+	}
+
+	@Test
+	public void makeSureFactoryIsCalledForDecoratedRecordReader() {
+		var decorateRecordReader = SpiderInstanceProvider.getDecoratedRecordReader();
+
+		factory.MCR.assertReturn("factorDecoratedRecordReader", 0, decorateRecordReader);
 	}
 
 	@Test

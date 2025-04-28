@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2018, 2019, 2021, 2024 Uppsala University Library
+ * Copyright 2015, 2018, 2019, 2021, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -40,12 +40,16 @@ public final class SpiderInstanceProvider {
 		throw new UnsupportedOperationException();
 	}
 
-	public static void setSpiderInstanceFactory(SpiderInstanceFactory factory) {
+	public static void onlyForTestSetSpiderInstanceFactory(SpiderInstanceFactory factory) {
 		SpiderInstanceProvider.factory = factory;
 	}
 
 	public static RecordReader getRecordReader() {
 		return factory.factorRecordReader();
+	}
+
+	public static Object getDecoratedRecordReader() {
+		return factory.factorDecoratedRecordReader();
 	}
 
 	public static RecordListReader getRecordListReader() {
@@ -95,5 +99,4 @@ public final class SpiderInstanceProvider {
 	public static IiifReader getIiifReader() {
 		return factory.factorIiifReader();
 	}
-
 }
