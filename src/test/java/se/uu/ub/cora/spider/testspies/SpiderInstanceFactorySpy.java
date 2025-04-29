@@ -22,6 +22,7 @@ import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
 import se.uu.ub.cora.spider.binary.iiif.IiifReader;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
+import se.uu.ub.cora.spider.record.DecoratedRecordReader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -31,6 +32,7 @@ import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
+import se.uu.ub.cora.spider.spy.DecoratedRecordReaderSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -42,6 +44,8 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("getDependencyProviderClassName", String::new);
 		MRV.setDefaultReturnValuesSupplier("factorRecordReader", RecordReaderSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factorDecoratedRecordReader",
+				DecoratedRecordReaderSpy::new);
 		MRV.setDefaultReturnValuesSupplier("factorIncomingLinksReader",
 				IncomingLinksReaderSpy::new);
 		MRV.setDefaultReturnValuesSupplier("factorRecordListReader", RecordListReaderSpy::new);
@@ -64,6 +68,11 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	@Override
 	public RecordReader factorRecordReader() {
 		return (RecordReader) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public DecoratedRecordReader factorDecoratedRecordReader() {
+		return (DecoratedRecordReader) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
@@ -120,4 +129,5 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	public IiifReader factorIiifReader() {
 		return (IiifReader) MCR.addCallAndReturnFromMRV();
 	}
+
 }

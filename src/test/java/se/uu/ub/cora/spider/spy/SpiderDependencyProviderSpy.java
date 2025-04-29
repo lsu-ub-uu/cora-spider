@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.spider.spy;
 
+import se.uu.ub.cora.bookkeeper.decorator.DataDecarator;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
@@ -32,6 +33,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.dependency.spy.DataDecoratorSpy;
 import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
@@ -89,6 +91,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 				DataGroupToFilterSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getUniqueValidator", UniqueValidatorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataChangeSender", DataChangedSenderSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getDataDecorator", DataDecoratorSpy::new);
 	}
 
 	@Override
@@ -166,7 +169,6 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		return (RecordIndexer) MCR.addCallAndReturnFromMRV();
 	}
 
-	@Deprecated
 	@Override
 	public RecordTypeHandler getRecordTypeHandler(String recordTypeId) {
 		return (RecordTypeHandler) MCR.addCallAndReturnFromMRV("recordTypeId", recordTypeId);
@@ -196,5 +198,10 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	@Override
 	public DataChangedSender getDataChangeSender() {
 		return (DataChangedSender) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public DataDecarator getDataDecorator() {
+		return (DataDecarator) MCR.addCallAndReturnFromMRV();
 	}
 }

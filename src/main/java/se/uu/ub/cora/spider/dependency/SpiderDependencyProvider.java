@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.spider.dependency;
 
+import se.uu.ub.cora.bookkeeper.decorator.DataDecarator;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
@@ -97,6 +98,18 @@ public interface SpiderDependencyProvider {
 	 */
 	UniqueValidator getUniqueValidator(RecordStorage recordStorage);
 
+	/**
+	 * getDataChangeSender method returns a new instance of {@link DataChangedSender}
+	 * 
+	 * @return A new instance of {@link DataChangedSender}
+	 */
 	DataChangedSender getDataChangeSender();
+
+	/**
+	 * getDataDecorator method returns a new instance of {@link DataDecarator}
+	 * 
+	 * @return A new instance of {@link DataDecarator}
+	 */
+	DataDecarator getDataDecorator();
 
 }

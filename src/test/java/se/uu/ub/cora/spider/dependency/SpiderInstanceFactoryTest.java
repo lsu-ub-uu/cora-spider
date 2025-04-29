@@ -47,6 +47,7 @@ import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
 import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJob;
 import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
+import se.uu.ub.cora.spider.record.DecoratedRecordReader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -56,6 +57,7 @@ import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
+import se.uu.ub.cora.spider.record.internal.DecoratedRecordReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordListIndexerImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
@@ -105,6 +107,21 @@ public class SpiderInstanceFactoryTest {
 	}
 
 	@Test
+	public void makeSureWeGetMultipleInstancesOfDecoratorRecordReader() {
+		DecoratedRecordReader recordReader = factory.factorDecoratedRecordReader();
+		DecoratedRecordReader recordReader2 = factory.factorDecoratedRecordReader();
+		assertNotSame(recordReader, recordReader2);
+		assertDependencyProviderIsPassed(recordReader, recordReader2);
+	}
+
+	private void assertDependencyProviderIsPassed(DecoratedRecordReader... recordReaders) {
+		for (var decoratedRecordReader : recordReaders) {
+			assertEquals(((DecoratedRecordReaderImp) decoratedRecordReader)
+					.onlyForTestGetDependencyProvider(), dependencyProvider);
+		}
+	}
+
+	@Test
 	public void makeSureWeGetMultipleInstancesOfRecordIncomingLinksReader() {
 		IncomingLinksReader recordIncomingLInksReader = factory.factorIncomingLinksReader();
 		IncomingLinksReader recordIncomingLInksReader2 = factory.factorIncomingLinksReader();
@@ -150,7 +167,7 @@ public class SpiderInstanceFactoryTest {
 	}
 
 	@Test
-	public void testFactorUploader() throws Exception {
+	public void testFactorUploader() {
 
 		UploaderImp recordUploader = (UploaderImp) factory.factorUploader();
 
@@ -233,7 +250,8 @@ public class SpiderInstanceFactoryTest {
 		assertTrue(batchRunnerFactory instanceof BatchRunnerFactoryImp);
 		assertSame(batchRunnerFactory.getDependencyProvider(), dependencyProvider);
 
-		assertTrue(listIndexer.onlyForTestGetBatchJobConverter() instanceof DataRecordGroupHandlerForIndexBatchJob);
+		assertTrue(listIndexer
+				.onlyForTestGetBatchJobConverter() instanceof DataRecordGroupHandlerForIndexBatchJob);
 
 		RecordListIndexerImp listIndexer2 = (RecordListIndexerImp) factory
 				.factorRecordListIndexer();

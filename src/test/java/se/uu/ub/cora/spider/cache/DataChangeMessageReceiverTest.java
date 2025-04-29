@@ -29,11 +29,13 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.bookkeeper.metadata.MetadataHolderProvider;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageProvider;
+import se.uu.ub.cora.bookkeeper.text.TextHolderProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.logger.spies.LoggerSpy;
 import se.uu.ub.cora.messaging.MessageReceiver;
 import se.uu.ub.cora.messaging.MessagingProvider;
+import se.uu.ub.cora.spider.spy.TextHolderSpy;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.spies.RecordStorageInstanceProviderSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
@@ -48,6 +50,7 @@ public class DataChangeMessageReceiverTest {
 	private RecordStorageInstanceProviderSpy recordStorageProvider;
 	private LoggerFactorySpy loggerFactory;
 	private MetadataHolderSpy metadataHolder;
+	private TextHolderSpy textHolder;
 	private MetadataStorageViewInstanceProviderSpy metadataInstanceProvider;
 
 	@BeforeMethod
@@ -76,6 +79,9 @@ public class DataChangeMessageReceiverTest {
 
 		metadataHolder = new MetadataHolderSpy();
 		MetadataHolderProvider.onlyForTestSetHolder(metadataHolder);
+
+		textHolder = new TextHolderSpy();
+		TextHolderProvider.onlyForTestSetHolder(textHolder);
 	}
 
 	@Test
@@ -93,6 +99,7 @@ public class DataChangeMessageReceiverTest {
 		recordStorageProvider.MCR.assertParameters("dataChanged", 0, "someType", "someId",
 				"someAction");
 		metadataHolder.MCR.assertMethodNotCalled("addMetadataElement");
+		textHolder.MCR.assertMethodNotCalled("addMetadataElement");
 	}
 
 	@Test
@@ -104,6 +111,7 @@ public class DataChangeMessageReceiverTest {
 
 		recordStorageProvider.MCR.assertMethodNotCalled("dataChanged");
 		metadataHolder.MCR.assertMethodWasCalled("addMetadataElement");
+		textHolder.MCR.assertMethodNotCalled("addMetadataElement");
 	}
 
 	@Test
@@ -120,6 +128,7 @@ public class DataChangeMessageReceiverTest {
 		var metadataElement = storageView.MCR.assertCalledParametersReturn("getMetadataElement",
 				"someId");
 		metadataHolder.MCR.assertParameters("addMetadataElement", 0, metadataElement);
+		textHolder.MCR.assertMethodNotCalled("addMetadataElement");
 	}
 
 	@Test
@@ -132,6 +141,46 @@ public class DataChangeMessageReceiverTest {
 		recordStorageProvider.MCR.assertParameters("dataChanged", 0, "metadata", "someId",
 				"delete");
 		metadataHolder.MCR.assertParameters("deleteMetadataElement", 0, "someId");
+		textHolder.MCR.assertMethodNotCalled("addMetadataElement");
+	}
+
+	@Test
+	public void testReceiveMessage_forText_sameMessagingId() {
+		Map<String, String> headers = createHeadersForType("text", "someAction",
+				MessagingProvider.getMessagingId());
+
+		receiver.receiveMessage(headers, EMPTY_MESSAGE);
+
+		recordStorageProvider.MCR.assertMethodNotCalled("dataChanged");
+		textHolder.MCR.assertMethodWasCalled("addTextElement");
+	}
+
+	@Test
+	public void testReceiveMessageAndCallDataChanged_forText_textHolderUpdated() {
+		Map<String, String> headers = createHeadersForType("text", "someAction",
+				SOME_OTHER_MESSAGING_ID);
+
+		receiver.receiveMessage(headers, EMPTY_MESSAGE);
+
+		recordStorageProvider.MCR.assertParameters("dataChanged", 0, "text", "someId",
+				"someAction");
+		var storageView = (MetadataStorageViewSpy) metadataInstanceProvider.MCR
+				.getReturnValue("getStorageView", 0);
+		var textElement = storageView.MCR.assertCalledParametersReturn("getTextElement", "someId");
+		textHolder.MCR.assertParameters("addTextElement", 0, textElement);
+		metadataHolder.MCR.assertMethodNotCalled("addMetadataElement");
+	}
+
+	@Test
+	public void testReceiveMessageAndCallDataChanged_forText_textHolderDelete() {
+		Map<String, String> headers = createHeadersForType("text", "delete",
+				SOME_OTHER_MESSAGING_ID);
+
+		receiver.receiveMessage(headers, EMPTY_MESSAGE);
+
+		recordStorageProvider.MCR.assertParameters("dataChanged", 0, "text", "someId", "delete");
+		textHolder.MCR.assertParameters("deleteTextElement", 0, "someId");
+		metadataHolder.MCR.assertMethodNotCalled("deleteMetadataElement");
 	}
 
 	@Test

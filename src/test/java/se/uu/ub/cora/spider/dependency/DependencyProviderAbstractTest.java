@@ -33,6 +33,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
+import se.uu.ub.cora.bookkeeper.decorator.DataChildDecoratorFactoryImp;
+import se.uu.ub.cora.bookkeeper.decorator.DataDecoratorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactorFactoryImp;
@@ -342,6 +344,16 @@ public class DependencyProviderAbstractTest {
 		DataChangedSender sender = dependencyProvider.getDataChangeSender();
 
 		assertTrue(sender instanceof DataChangedSenderImp);
+	}
+
+	@Test
+	public void testGetDataDecorator() {
+		DataDecoratorImp dataDecorator = (DataDecoratorImp) dependencyProvider.getDataDecorator();
+
+		assertTrue(dataDecorator instanceof DataDecoratorImp);
+		assertTrue(dataDecorator
+				.onlyForTestGetDataChildDecoratorFactory() instanceof DataChildDecoratorFactoryImp);
+
 	}
 
 }

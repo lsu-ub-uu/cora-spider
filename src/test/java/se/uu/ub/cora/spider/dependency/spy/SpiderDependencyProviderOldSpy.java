@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.dependency.spy;
 import java.util.HashMap;
 import java.util.Map;
 
+import se.uu.ub.cora.bookkeeper.decorator.DataDecarator;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
@@ -229,6 +230,12 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 
 	@Override
 	public DataChangedSender getDataChangeSender() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataDecarator getDataDecorator() {
 		// TODO Auto-generated method stub
 		return null;
 	}

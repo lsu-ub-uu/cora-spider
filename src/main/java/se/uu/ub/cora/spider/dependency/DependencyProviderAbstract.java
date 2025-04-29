@@ -20,6 +20,9 @@
 package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.beefeater.AuthorizatorImp;
+import se.uu.ub.cora.bookkeeper.decorator.DataChildDecoratorFactoryImp;
+import se.uu.ub.cora.bookkeeper.decorator.DataDecarator;
+import se.uu.ub.cora.bookkeeper.decorator.DataDecoratorImp;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollectorImp;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
@@ -211,5 +214,11 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	@Override
 	public DataChangedSender getDataChangeSender() {
 		return DataChangedSenderImp.create();
+	}
+
+	@Override
+	public DataDecarator getDataDecorator() {
+
+		return new DataDecoratorImp(new DataChildDecoratorFactoryImp());
 	}
 }

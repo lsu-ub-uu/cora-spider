@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2018, 2019, 2021, 2024 Uppsala University Library
+ * Copyright 2015, 2018, 2019, 2021, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.dependency;
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
 import se.uu.ub.cora.spider.binary.iiif.IiifReader;
+import se.uu.ub.cora.spider.record.DecoratedRecordReader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -46,6 +47,10 @@ public final class SpiderInstanceProvider {
 
 	public static RecordReader getRecordReader() {
 		return factory.factorRecordReader();
+	}
+
+	public static DecoratedRecordReader getDecoratedRecordReader() {
+		return factory.factorDecoratedRecordReader();
 	}
 
 	public static RecordListReader getRecordListReader() {
@@ -95,5 +100,4 @@ public final class SpiderInstanceProvider {
 	public static IiifReader getIiifReader() {
 		return factory.factorIiifReader();
 	}
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, 2023 Uppsala University Library
+ * Copyright 2022, 2023, 2025 Uppsala University Library
  * Copyright 2025 Olov McKie
  *
  * This file is part of Cora.
@@ -21,14 +21,17 @@ package se.uu.ub.cora.spider.cache;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 import se.uu.ub.cora.bookkeeper.metadata.CollectTermHolder;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataElement;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageView;
+import se.uu.ub.cora.bookkeeper.text.TextElement;
 import se.uu.ub.cora.bookkeeper.validator.ValidationType;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.spider.spy.TextElementSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -49,6 +52,9 @@ public class MetadataStorageViewSpy implements MetadataStorageView {
 		MRV.setDefaultReturnValuesSupplier("getValidationType", Optional::empty);
 		MRV.setDefaultReturnValuesSupplier("getValidationTypes", ArrayList<ValidationType>::new);
 		MRV.setDefaultReturnValuesSupplier("getCollectTermHolder", CollectTermHolderSpy::new);
+
+		MRV.setDefaultReturnValuesSupplier("getTextElements", Collections::emptyList);
+		MRV.setDefaultReturnValuesSupplier("getTextElement", TextElementSpy::new);
 	}
 
 	@Override
@@ -94,6 +100,16 @@ public class MetadataStorageViewSpy implements MetadataStorageView {
 	@Override
 	public CollectTermHolder getCollectTermHolder() {
 		return (CollectTermHolder) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public Collection<TextElement> getTextElements() {
+		return (Collection<TextElement>) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public TextElement getTextElement(String elementId) {
+		return (TextElement) MCR.addCallAndReturnFromMRV("elementId", elementId);
 	}
 
 }
