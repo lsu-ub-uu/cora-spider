@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.dependency;
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
 import se.uu.ub.cora.spider.binary.iiif.IiifReader;
+import se.uu.ub.cora.spider.record.DecoratedRecordReader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -48,7 +49,7 @@ public final class SpiderInstanceProvider {
 		return factory.factorRecordReader();
 	}
 
-	public static Object getDecoratedRecordReader() {
+	public static DecoratedRecordReader getDecoratedRecordReader() {
 		return factory.factorDecoratedRecordReader();
 	}
 
