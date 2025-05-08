@@ -24,6 +24,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.DataDecoratorSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
@@ -38,6 +40,10 @@ public class DecoratedRecordReaderTest {
 	private static final String SOME_AUTH_TOKEN = "someAuthToken";
 	private SpiderInstanceFactorySpy instanceFactory;
 	private SpiderDependencyProviderSpy dependencyProvider;
+	private RecordReaderSpy customRecordReader;
+	private DataRecordSpy mainRecord;
+	private DataRecordSpy childRecord;
+	private DataRecordSpy grandChildRecord;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -60,7 +66,8 @@ public class DecoratedRecordReaderTest {
 
 	@Test
 	public void testInit() {
-		DecoratedRecordReader drr = DecoratedRecordReaderImp.usingDependencyProvider(dependencyProvider);
+		DecoratedRecordReader drr = DecoratedRecordReaderImp
+				.usingDependencyProvider(dependencyProvider);
 
 		DataRecord decoratedRecord = drr.readDecoratedRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
 
@@ -75,8 +82,36 @@ public class DecoratedRecordReaderTest {
 	}
 
 	@Test
+	public void testName() {
+		customRecordReader = new RecordReaderSpy();
+		instanceFactory.MRV.setDefaultReturnValuesSupplier("factorRecordReader",
+				() -> customRecordReader);
+
+		mainRecord = new DataRecordSpy();
+		addLinkToDataRecord();
+
+		setupRecordReaderWithMainAndRelativesRecords();
+
+	}
+
+	private void addLinkToDataRecord() {
+		DataRecordGroupSpy dataRecordGroup = new DataRecordGroupSpy();
+		mainRecord.MRV.setDefaultReturnValuesSupplier("getDataRecordGroup", () -> dataRecordGroup);
+	}
+
+	private void setupRecordReaderWithMainAndRelativesRecords() {
+		customRecordReader.MRV.setSpecificReturnValuesSupplier("readRecord", () -> mainRecord,
+				SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+		customRecordReader.MRV.setSpecificReturnValuesSupplier("readRecord", () -> childRecord,
+				SOME_AUTH_TOKEN, "someChildType", "someChildId");
+		customRecordReader.MRV.setSpecificReturnValuesSupplier("readRecord", () -> grandChildRecord,
+				SOME_AUTH_TOKEN, "someGrandChildType", "someGrandChildId");
+	}
+
+	@Test
 	public void testOnlyForTestGetDependencyProvider() {
-		DecoratedRecordReaderImp drr = DecoratedRecordReaderImp.usingDependencyProvider(dependencyProvider);
+		DecoratedRecordReaderImp drr = DecoratedRecordReaderImp
+				.usingDependencyProvider(dependencyProvider);
 
 		assertSame(drr.onlyForTestGetDependencyProvider(), dependencyProvider);
 	}

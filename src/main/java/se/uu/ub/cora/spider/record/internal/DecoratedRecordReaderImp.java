@@ -18,9 +18,13 @@
  */
 package se.uu.ub.cora.spider.record.internal;
 
+import java.util.List;
+
 import se.uu.ub.cora.bookkeeper.decorator.DataDecarator;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.DecoratedRecordReader;
@@ -28,12 +32,16 @@ import se.uu.ub.cora.spider.record.RecordReader;
 
 public class DecoratedRecordReaderImp implements DecoratedRecordReader {
 
+	private static final int MAX_DEPTH = 2;
+
 	public static DecoratedRecordReaderImp usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
 		return new DecoratedRecordReaderImp(dependencyProvider);
 	}
 
 	private SpiderDependencyProvider dependencyProvider;
+	private RecordReader recordReader;
+	private DataDecarator decorator;
 
 	private DecoratedRecordReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -41,15 +49,35 @@ public class DecoratedRecordReaderImp implements DecoratedRecordReader {
 
 	@Override
 	public DataRecord readDecoratedRecord(String authToken, String type, String id) {
+		recordReader = SpiderInstanceProvider.getRecordReader();
+		decorator = dependencyProvider.getDataDecorator();
+		return readDecoratedRecordRecursive(authToken, type, id, 0);
+	}
+
+	private DataRecord readDecoratedRecordRecursive(String authToken, String type, String id,
+			int depth) {
 		DataRecord recordToDecorate = readRecordFromStorage(authToken, type, id);
 		String definitionId = getDefinitionId(type);
-		DataDecarator decorator = dependencyProvider.getDataDecorator();
 		decorator.decorateRecord(definitionId, recordToDecorate);
+
+		// SPIKE
+		if (depth > MAX_DEPTH)
+			addLinksToChildrenSpike(authToken, recordToDecorate, depth);
+
 		return recordToDecorate;
 	}
 
+	private void addLinksToChildrenSpike(String authToken, DataRecord recordToDecorate, int depth) {
+		DataRecordGroup dataRecordGroup = recordToDecorate.getDataRecordGroup();
+		List<DataRecordLink> links = dataRecordGroup.getChildrenOfType(DataRecordLink.class);
+		for (DataRecordLink link : links) {
+			var linkedRecord = readDecoratedRecordRecursive(authToken, link.getLinkedRecordType(),
+					link.getLinkedRecordId(), depth++);
+			link.addLinkedRecord(linkedRecord);
+		}
+	}
+
 	private DataRecord readRecordFromStorage(String authToken, String type, String id) {
-		RecordReader recordReader = SpiderInstanceProvider.getRecordReader();
 		return recordReader.readRecord(authToken, type, id);
 	}
 
