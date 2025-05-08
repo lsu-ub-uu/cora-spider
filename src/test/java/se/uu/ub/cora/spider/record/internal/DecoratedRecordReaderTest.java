@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -91,6 +92,7 @@ public class DecoratedRecordReaderTest {
 		addLinkToDataRecord();
 
 		setupRecordReaderWithMainAndRelativesRecords();
+		fail();
 
 	}
 
