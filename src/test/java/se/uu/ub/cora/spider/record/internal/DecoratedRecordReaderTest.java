@@ -19,13 +19,21 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.data.spies.DataRecordSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.DataDecoratorSpy;
@@ -42,15 +50,26 @@ public class DecoratedRecordReaderTest {
 	private SpiderInstanceFactorySpy instanceFactory;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private RecordReaderSpy customRecordReader;
-	private DataRecordSpy mainRecord;
-	private DataRecordSpy childRecord;
-	private DataRecordSpy grandChildRecord;
+	private DecoratedRecordReader decoratedRecordReader;
+	private DataFactorySpy dataFactory;
+	private Pair mainRecord;
+	private Pair childRecord01;
+	private Pair childRecord02;
+	private Pair childRecord03;
+	private Pair grandChildRecord01;
+	private Pair grandChildRecord02;
+	private Pair grandChildRecord03;
+	private Pair grandGrandChildRecord01;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		instanceFactory = new SpiderInstanceFactorySpy();
 		SpiderInstanceProvider.setSpiderInstanceFactory(instanceFactory);
+		dataFactory = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactory);
 		setUpDependencyProvider();
+		decoratedRecordReader = DecoratedRecordReaderImp
+				.usingDependencyProvider(dependencyProvider);
 	}
 
 	private void setUpDependencyProvider() {
@@ -62,15 +81,13 @@ public class DecoratedRecordReaderTest {
 
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
 				() -> recordTypeHandler);
-
 	}
 
 	@Test
 	public void testInit() {
-		DecoratedRecordReader drr = DecoratedRecordReaderImp
-				.usingDependencyProvider(dependencyProvider);
 
-		DataRecord decoratedRecord = drr.readDecoratedRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+		DataRecord decoratedRecord = decoratedRecordReader.readDecoratedRecord(SOME_AUTH_TOKEN,
+				SOME_TYPE, SOME_ID);
 
 		var recordReader = (RecordReaderSpy) instanceFactory.MCR
 				.assertCalledParametersReturn("factorRecordReader");
@@ -83,31 +100,99 @@ public class DecoratedRecordReaderTest {
 	}
 
 	@Test
-	public void testName() {
+	public void testAddDecoratedOnlyReadToDepth2() {
 		customRecordReader = new RecordReaderSpy();
 		instanceFactory.MRV.setDefaultReturnValuesSupplier("factorRecordReader",
 				() -> customRecordReader);
 
-		mainRecord = new DataRecordSpy();
-		addLinkToDataRecord();
-
 		setupRecordReaderWithMainAndRelativesRecords();
-		fail();
 
+		decoratedRecordReader.readDecoratedRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+
+		customRecordReader.MCR.assertNumberOfCallsToMethod("readRecord", 8);
+		assertRecordReadFromStorage(0, SOME_ID);
+		assertRecordReadFromStorage(1, "someChildId01");
+		assertRecordReadFromStorage(2, "someGrandChildId01");
+		assertRecordReadFromStorage(3, "someGrandChildId02");
+		assertRecordReadFromStorage(4, "someChildId02");
+		assertRecordReadFromStorage(5, "someGrandChildId02");
+		assertRecordReadFromStorage(6, "someGrandChildId03");
+		assertRecordReadFromStorage(7, "someChildId03");
+
+		dataFactory.MCR.assertNumberOfCallsToMethod("factorGroupFromDataRecordGroup", 7);
+
+		assertLinkedRecordSetToLink(childRecord01);
+		assertLinkedRecordSetToLink(childRecord02);
+		assertLinkedRecordSetToLink(childRecord03);
+		assertLinkedRecordSetToLink(grandChildRecord01);
+		assertLinkedRecordSetToLink(grandChildRecord02);
+		assertLinkedRecordSetToLink(grandChildRecord03);
+		assertNotLinkedRecordSetToLink(grandGrandChildRecord01);
 	}
 
-	private void addLinkToDataRecord() {
-		DataRecordGroupSpy dataRecordGroup = new DataRecordGroupSpy();
-		mainRecord.MRV.setDefaultReturnValuesSupplier("getDataRecordGroup", () -> dataRecordGroup);
+	private void assertRecordReadFromStorage(int order, String id) {
+		customRecordReader.MCR.assertParameters("readRecord", order, SOME_AUTH_TOKEN, SOME_TYPE,
+				id);
+	}
+
+	private void assertLinkedRecordSetToLink(Pair linkedRecord) {
+		var linkedRecordAsGroup = dataFactory.MCR.assertCalledParametersReturn(
+				"factorGroupFromDataRecordGroup", linkedRecord.dataRecordGroup);
+		linkedRecord.dataRecordLink.MCR.assertParameters("setLinkedRecord", 0, linkedRecordAsGroup);
+	}
+
+	// TODO: It might be moved to MCR as assertNotCalledParameters
+	private void assertNotLinkedRecordSetToLink(Pair linkedRecord) {
+		try {
+			dataFactory.MCR.assertCalledParameters("factorGroupFromDataRecordGroup",
+					linkedRecord.dataRecordGroup);
+			fail();
+		} catch (AssertionError e) {
+			assertTrue(true);
+		}
 	}
 
 	private void setupRecordReaderWithMainAndRelativesRecords() {
-		customRecordReader.MRV.setSpecificReturnValuesSupplier("readRecord", () -> mainRecord,
-				SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
-		customRecordReader.MRV.setSpecificReturnValuesSupplier("readRecord", () -> childRecord,
-				SOME_AUTH_TOKEN, "someChildType", "someChildId");
-		customRecordReader.MRV.setSpecificReturnValuesSupplier("readRecord", () -> grandChildRecord,
-				SOME_AUTH_TOKEN, "someGrandChildType", "someGrandChildId");
+		mainRecord = addRecordToReaderAndReturnRecordGroup(SOME_ID);
+		childRecord01 = addRecordToReaderAndReturnRecordGroup("someChildId01");
+		childRecord02 = addRecordToReaderAndReturnRecordGroup("someChildId02");
+		childRecord03 = addRecordToReaderAndReturnRecordGroup("someChildId03");
+		grandChildRecord01 = addRecordToReaderAndReturnRecordGroup("someGrandChildId01");
+		grandChildRecord02 = addRecordToReaderAndReturnRecordGroup("someGrandChildId02");
+		grandChildRecord03 = addRecordToReaderAndReturnRecordGroup("someGrandChildId03");
+		grandGrandChildRecord01 = addRecordToReaderAndReturnRecordGroup("someGrandGrandChildId01");
+
+		addChildrenLinksToRecord(mainRecord, childRecord01, childRecord02, childRecord03);
+		addChildrenLinksToRecord(childRecord01, grandChildRecord01, grandChildRecord02);
+		addChildrenLinksToRecord(childRecord02, grandChildRecord02, grandChildRecord03);
+		addChildrenLinksToRecord(childRecord03);
+		addChildrenLinksToRecord(grandChildRecord01);
+		addChildrenLinksToRecord(grandChildRecord02);
+		addChildrenLinksToRecord(grandChildRecord03, grandGrandChildRecord01);
+	}
+
+	private void addChildrenLinksToRecord(Pair parentRecord, Pair... childRecords) {
+		List<DataRecordLink> childLinks = new ArrayList<>();
+		for (Pair childRecord : childRecords) {
+			childLinks.add(childRecord.dataRecordLink);
+		}
+		parentRecord.dataRecordGroup.MRV.setSpecificReturnValuesSupplier("getChildrenOfType",
+				() -> childLinks, DataRecordLink.class);
+		// TODO Auto-generated method stub
+
+	}
+
+	private Pair addRecordToReaderAndReturnRecordGroup(String recordId) {
+		DataRecordSpy dataRecordSpy = new DataRecordSpy();
+		customRecordReader.MRV.setSpecificReturnValuesSupplier("readRecord", () -> dataRecordSpy,
+				SOME_AUTH_TOKEN, SOME_TYPE, recordId);
+		DataRecordGroupSpy dataRecordGroup = new DataRecordGroupSpy();
+		dataRecordSpy.MRV.setDefaultReturnValuesSupplier("getDataRecordGroup",
+				() -> dataRecordGroup);
+		DataRecordLinkSpy link = new DataRecordLinkSpy();
+		link.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType", () -> SOME_TYPE);
+		link.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> recordId);
+		return new Pair(dataRecordGroup, link);
 	}
 
 	@Test
@@ -116,5 +201,9 @@ public class DecoratedRecordReaderTest {
 				.usingDependencyProvider(dependencyProvider);
 
 		assertSame(drr.onlyForTestGetDependencyProvider(), dependencyProvider);
+	}
+
+	record Pair(DataRecordGroupSpy dataRecordGroup, DataRecordLinkSpy dataRecordLink) {
+
 	}
 }

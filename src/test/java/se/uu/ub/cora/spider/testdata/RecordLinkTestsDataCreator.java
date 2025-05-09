@@ -23,9 +23,9 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
+import se.uu.ub.cora.data.spies.DataResourceLinkSpy;
 import se.uu.ub.cora.spider.data.DataAtomicOldSpy;
 import se.uu.ub.cora.spider.data.DataGroupOldSpy;
-import se.uu.ub.cora.spider.testspies.DataResourceLinkSpy;
 
 public class RecordLinkTestsDataCreator {
 
@@ -163,13 +163,7 @@ public class RecordLinkTestsDataCreator {
 	}
 
 	private static DataLink createDataResourceLink() {
-		DataResourceLinkSpy resourceLink = new DataResourceLinkSpy("link");
-
-		resourceLink.addChild(new DataAtomicOldSpy("streamId", "someStreamId"));
-		resourceLink.addChild(new DataAtomicOldSpy("filename", "aFileName"));
-		resourceLink.addChild(new DataAtomicOldSpy("filesize", "12345"));
-		resourceLink.addChild(new DataAtomicOldSpy("mimeType", "application/pdf"));
-		return resourceLink;
+		return new DataResourceLinkSpy();
 	}
 
 	public static DataGroup createDataDataGroupWithResourceLinkOneLevelDown() {

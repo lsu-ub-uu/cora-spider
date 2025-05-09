@@ -22,6 +22,7 @@ import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.decorator.DataDecarator;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
@@ -59,10 +60,9 @@ public class DecoratedRecordReaderImp implements DecoratedRecordReader {
 		DataRecord recordToDecorate = readRecordFromStorage(authToken, type, id);
 		String definitionId = getDefinitionId(type);
 		decorator.decorateRecord(definitionId, recordToDecorate);
-
-		// SPIKE
-		if (depth > MAX_DEPTH)
+		if (depth < MAX_DEPTH) {
 			addLinksToChildrenSpike(authToken, recordToDecorate, depth);
+		}
 
 		return recordToDecorate;
 	}
@@ -73,7 +73,9 @@ public class DecoratedRecordReaderImp implements DecoratedRecordReader {
 		for (DataRecordLink link : links) {
 			var linkedRecord = readDecoratedRecordRecursive(authToken, link.getLinkedRecordType(),
 					link.getLinkedRecordId(), depth++);
-			link.addLinkedRecord(linkedRecord);
+			var linkedRecordAsGroup = DataProvider
+					.createGroupFromRecordGroup(linkedRecord.getDataRecordGroup());
+			link.setLinkedRecord(linkedRecordAsGroup);
 		}
 	}
 
