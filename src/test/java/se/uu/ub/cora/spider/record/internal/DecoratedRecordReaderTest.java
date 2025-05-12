@@ -178,8 +178,6 @@ public class DecoratedRecordReaderTest {
 		}
 		parentRecord.dataRecordGroup.MRV.setSpecificReturnValuesSupplier("getChildrenOfType",
 				() -> childLinks, DataRecordLink.class);
-		// TODO Auto-generated method stub
-
 	}
 
 	private Pair addRecordToReaderAndReturnRecordGroup(String recordId) {
