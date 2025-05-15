@@ -22,7 +22,6 @@ import java.util.List;
 
 import se.uu.ub.cora.bookkeeper.decorator.DataDecarator;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
@@ -63,36 +62,43 @@ public class DecoratedRecordReaderImp implements DecoratedRecordReader {
 		decorator.decorateRecord(definitionId, recordToDecorate);
 		if (depth < MAX_DEPTH) {
 			DataRecordGroup dataRecordGroup = recordToDecorate.getDataRecordGroup();
-			DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
-			loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, dataGroup, depth);
+			// DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
+			// loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, dataGroup, depth);
+			loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, dataRecordGroup, depth);
 		}
 		return recordToDecorate;
 	}
 
-	private void loopChildrenAndAddLinkRecordIntoRecordLinks(String authToken, DataGroup dataGroup,
-			int depth) {
+	// private void loopChildrenAndAddLinkRecordIntoRecordLinks(String authToken, DataGroup
+	// dataGroup,
+	// int depth) {
+	private void loopChildrenAndAddLinkRecordIntoRecordLinks(String authToken,
+			DataRecordGroup dataRecordGroup, int depth) {
 		// Vi behöver hämta också grupper och run rekusriv
-		List<DataRecordLink> links = dataGroup.getChildrenOfType(DataRecordLink.class);
 		// ---SPIKE---
-		List<DataGroup> groups = dataGroup.getChildrenOfType(DataGroup.class);
-		for (DataGroup group : groups) {
-			if (!"recordInfo".equals(group.getNameInData())) {
-				loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, group, depth);
-			}
-		}
+		// List<DataGroup> groups = dataGroup.getChildrenOfType(DataGroup.class);
+		// for (DataGroup group : groups) {
+		// if (!"recordInfo".equals(group.getNameInData())) {
+		// loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, group, depth);
+		// }
+		// }
 		// ---SPIKE---
+		List<DataRecordLink> links = dataRecordGroup.getChildrenOfType(DataRecordLink.class);
 		for (DataRecordLink link : links) {
-			try {
+			// try {
+			if (link.hasReadAction()) {
 				var linkedRecord = readDecoratedRecordRecursive(authToken,
 						link.getLinkedRecordType(), link.getLinkedRecordId(), depth + 1);
 				var linkedRecordAsGroup = DataProvider
 						.createGroupFromRecordGroup(linkedRecord.getDataRecordGroup());
 				link.setLinkedRecord(linkedRecordAsGroup);
-			} // TODO: SPIKE
-			catch (Exception e) {
-				// TODO: handle exception
 			}
+			// } // TODO: SPIKE
+			// catch (Exception e) {
+			// // TODO: handle exception
+			// }
 		}
+
 	}
 
 	private DataRecord readRecordFromStorage(String authToken, String type, String id) {

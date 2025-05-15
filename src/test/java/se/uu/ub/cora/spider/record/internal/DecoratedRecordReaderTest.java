@@ -130,6 +130,39 @@ public class DecoratedRecordReaderTest {
 		assertNotLinkedRecordSetToLink(grandGrandChildRecord01);
 	}
 
+	@Test
+	public void testAddDecorated_OneChildLinkHasNoReadAction() {
+		customRecordReader = new RecordReaderSpy();
+		instanceFactory.MRV.setDefaultReturnValuesSupplier("factorRecordReader",
+				() -> customRecordReader);
+
+		setupRecordReaderWithMainAndRelativesRecords();
+		setChildLinkWithoutReadAction(childRecord01.dataRecordLink());
+
+		decoratedRecordReader.readDecoratedRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
+
+		customRecordReader.MCR.assertNumberOfCallsToMethod("readRecord", 5);
+		assertRecordReadFromStorage(0, SOME_ID);
+		assertRecordReadFromStorage(1, "someChildId02");
+		assertRecordReadFromStorage(2, "someGrandChildId02");
+		assertRecordReadFromStorage(3, "someGrandChildId03");
+		assertRecordReadFromStorage(4, "someChildId03");
+
+		dataFactory.MCR.assertNumberOfCallsToMethod("factorGroupFromDataRecordGroup", 4);
+
+		assertLinkedRecordSetToLink(childRecord02);
+		assertLinkedRecordSetToLink(grandChildRecord02);
+		assertLinkedRecordSetToLink(grandChildRecord03);
+		assertNotLinkedRecordSetToLink(childRecord01);
+		assertNotLinkedRecordSetToLink(childRecord03);
+		assertNotLinkedRecordSetToLink(grandChildRecord01);
+		assertNotLinkedRecordSetToLink(grandGrandChildRecord01);
+	}
+
+	private void setChildLinkWithoutReadAction(DataRecordLinkSpy dataRecordLink) {
+		dataRecordLink.MRV.setDefaultReturnValuesSupplier("hasReadAction", () -> false);
+	}
+
 	private void assertRecordReadFromStorage(int order, String id) {
 		customRecordReader.MCR.assertParameters("readRecord", order, SOME_AUTH_TOKEN, SOME_TYPE,
 				id);
@@ -190,6 +223,7 @@ public class DecoratedRecordReaderTest {
 		DataRecordLinkSpy link = new DataRecordLinkSpy();
 		link.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType", () -> SOME_TYPE);
 		link.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> recordId);
+		link.MRV.setDefaultReturnValuesSupplier("hasReadAction", () -> true);
 		return new Pair(dataRecordGroup, link);
 	}
 
