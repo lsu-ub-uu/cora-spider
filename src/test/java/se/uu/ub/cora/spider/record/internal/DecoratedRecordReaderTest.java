@@ -61,6 +61,7 @@ public class DecoratedRecordReaderTest {
 	private Pair grandChildRecord02;
 	private Pair grandChildRecord03;
 	private Pair grandGrandChildRecord01;
+	private Pair childRecordInfo;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -116,7 +117,6 @@ public class DecoratedRecordReaderTest {
 		assertRecordReadFromStorage(2, "someGrandChildId01");
 		assertRecordReadFromStorage(3, "someGrandChildId02");
 		assertRecordReadFromStorage(4, "someChildId02");
-		// assertRecordReadFromStorage(5, "someGrandChildId02");
 		assertRecordReadFromStorage(5, "someGrandChildId03");
 		assertRecordReadFromStorage(6, "someGrandChildId02");
 		assertRecordReadFromStorage(7, "someChildId03");
@@ -129,6 +129,7 @@ public class DecoratedRecordReaderTest {
 		assertLinkedRecordSetToLink(grandChildRecord01);
 		assertLinkedRecordSetToLink(grandChildRecord02);
 		assertLinkedRecordSetToLink(grandChildRecord03);
+		assertNotLinkedRecordSetToLink(childRecordInfo);
 		assertNotLinkedRecordSetToLink(grandGrandChildRecord01);
 	}
 
@@ -146,11 +147,11 @@ public class DecoratedRecordReaderTest {
 		customRecordReader.MCR.assertNumberOfCallsToMethod("readRecord", 5);
 		assertRecordReadFromStorage(0, SOME_ID);
 		assertRecordReadFromStorage(1, "someChildId02");
-		assertRecordReadFromStorage(2, "someGrandChildId02");
-		assertRecordReadFromStorage(3, "someGrandChildId03");
+		assertRecordReadFromStorage(2, "someGrandChildId03");
+		assertRecordReadFromStorage(3, "someGrandChildId02");
 		assertRecordReadFromStorage(4, "someChildId03");
 
-		dataFactory.MCR.assertNumberOfCallsToMethod("factorGroupFromDataRecordGroup", 4);
+		dataFactory.MCR.assertNumberOfCallsToMethod("factorGroupFromDataRecordGroup", 7);
 
 		assertLinkedRecordSetToLink(childRecord02);
 		assertLinkedRecordSetToLink(grandChildRecord02);
@@ -158,6 +159,7 @@ public class DecoratedRecordReaderTest {
 		assertNotLinkedRecordSetToLink(childRecord01);
 		assertNotLinkedRecordSetToLink(childRecord03);
 		assertNotLinkedRecordSetToLink(grandChildRecord01);
+		assertNotLinkedRecordSetToLink(childRecordInfo);
 		assertNotLinkedRecordSetToLink(grandGrandChildRecord01);
 	}
 
@@ -204,35 +206,43 @@ public class DecoratedRecordReaderTest {
 				"someGrandChildId03");
 		grandGrandChildRecord01 = createRecordToStorageAndReturnRelatedDataRecordAndDataRecordLinkUsingId(
 				"someGrandGrandChildId01");
+		childRecordInfo = createRecordToStorageAndReturnRelatedDataRecordAndDataRecordLinkUsingId(
+				"someChildId0RecordInfo");
 
 		DataGroupSpy mG0 = createGroup();
+		DataGroupSpy mG0RI = createRecorInfoGroup();
 		DataGroupSpy mG00 = createGroup();
 		DataGroupSpy mG01 = createGroup();
 		DataGroupSpy mG000 = createGroup();
 
 		setTopGroupToDataRecordGroup(mainRecord.dataRecordGroup, mG0);
-		setGroupAsChildAsGroup(mG0, mG00, mG01);
+		setGroupAsChildAsGroup(mG0, mG0RI, mG00, mG01);
 		setGroupAsChildAsGroup(mG00, mG000);
 
+		linkRecordGroupToLink(mG0RI, childRecordInfo.link);
 		linkRecordGroupToLink(mG00, childRecord01.link);
 		linkRecordGroupToLink(mG01, childRecord02.link);
 		linkRecordGroupToLink(mG0, childRecord03.link);
 
+		DataGroupSpy ch0GRI = createGroup();
 		DataGroupSpy ch1G0 = createGroup();
 		DataGroupSpy ch1G00 = createGroup();
 		DataGroupSpy ch2G0 = createGroup();
 		DataGroupSpy ch2G00 = createGroup();
-		DataGroupSpy ch2G000 = createGroup();
+		DataGroupSpy ch3G0 = createGroup();
+
+		setTopGroupToDataRecordGroup(childRecordInfo.dataRecordGroup, ch0GRI);
 
 		setTopGroupToDataRecordGroup(childRecord01.dataRecordGroup, ch1G0);
 		setGroupAsChildAsGroup(ch1G0, ch1G00);
 
 		setTopGroupToDataRecordGroup(childRecord02.dataRecordGroup, ch2G0);
 		setGroupAsChildAsGroup(ch2G0, ch2G00);
-		setGroupAsChildAsGroup(ch2G00, ch2G000);
 		linkRecordGroupToLink(ch1G00, grandChildRecord01.link, grandChildRecord02.link);
 		linkRecordGroupToLink(ch2G0, grandChildRecord02.link);
-		linkRecordGroupToLink(ch2G000, grandChildRecord03.link);
+		linkRecordGroupToLink(ch2G00, grandChildRecord03.link);
+
+		setTopGroupToDataRecordGroup(childRecord03.dataRecordGroup, ch3G0);
 
 		DataGroupSpy gc3G0 = createGroup();
 		setTopGroupToDataRecordGroup(grandChildRecord03.dataRecordGroup, gc3G0);
@@ -251,8 +261,12 @@ public class DecoratedRecordReaderTest {
 	}
 
 	private DataGroupSpy createGroup() {
-		// TODO Auto-generated method stub
+		return new DataGroupSpy();
+	}
+
+	private DataGroupSpy createRecorInfoGroup() {
 		DataGroupSpy dataGroupSpy = new DataGroupSpy();
+		dataGroupSpy.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> "recordInfo");
 		return dataGroupSpy;
 	}
 

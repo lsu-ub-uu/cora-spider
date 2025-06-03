@@ -61,45 +61,61 @@ public class DecoratedRecordReaderImp implements DecoratedRecordReader {
 		DataRecord recordToDecorate = readRecordFromStorage(authToken, type, id);
 		String definitionId = getDefinitionId(type);
 		decorator.decorateRecord(definitionId, recordToDecorate);
-		if (depth < MAX_DEPTH) {
-			DataRecordGroup dataRecordGroup = recordToDecorate.getDataRecordGroup();
-			DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
-			loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, dataGroup, depth);
-			// loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, dataRecordGroup, depth);
+		if (maxDepthNotReached(depth)) {
+			loopChildren(authToken, depth, recordToDecorate);
 		}
 		return recordToDecorate;
 	}
 
+	private void loopChildren(String authToken, int depth, DataRecord recordToDecorate) {
+		DataRecordGroup dataRecordGroup = recordToDecorate.getDataRecordGroup();
+		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
+		loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, dataGroup, depth);
+	}
+
+	private boolean maxDepthNotReached(int depth) {
+		return depth < MAX_DEPTH;
+	}
+
 	private void loopChildrenAndAddLinkRecordIntoRecordLinks(String authToken, DataGroup dataGroup,
 			int depth) {
-		// private void loopChildrenAndAddLinkRecordIntoRecordLinks(String authToken,
-		// DataRecordGroup dataRecordGroup, int depth) {
-		// Vi behöver hämta också grupper och run rekusriv
-		// ---SPIKE---
+		loopGroups(authToken, dataGroup, depth);
+		loopLinks(authToken, dataGroup, depth);
+	}
+
+	private void loopGroups(String authToken, DataGroup dataGroup, int depth) {
 		List<DataGroup> groups = dataGroup.getChildrenOfType(DataGroup.class);
 		for (DataGroup group : groups) {
-			if (!"recordInfo".equals(group.getNameInData())) {
-				loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, group, depth);
-			}
+			loopChildrenAndSkipRecordInfoGroup(authToken, depth, group);
 		}
-		// ---SPIKE---
-		// List<DataRecordLink> links = dataRecordGroup.getChildrenOfType(DataRecordLink.class);
+	}
+
+	private void loopChildrenAndSkipRecordInfoGroup(String authToken, int depth, DataGroup group) {
+		if (!"recordInfo".equals(group.getNameInData())) {
+			loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, group, depth);
+		}
+	}
+
+	private void loopLinks(String authToken, DataGroup dataGroup, int depth) {
 		List<DataRecordLink> links = dataGroup.getChildrenOfType(DataRecordLink.class);
 		for (DataRecordLink link : links) {
-			// try {
-			if (link.hasReadAction()) {
-				var linkedRecord = readDecoratedRecordRecursive(authToken,
-						link.getLinkedRecordType(), link.getLinkedRecordId(), depth + 1);
-				var linkedRecordAsGroup = DataProvider
-						.createGroupFromRecordGroup(linkedRecord.getDataRecordGroup());
-				link.setLinkedRecord(linkedRecordAsGroup);
-			}
-			// } // TODO: SPIKE
-			// catch (Exception e) {
-			// // TODO: handle exception
-			// }
+			possiblyReadLinksAndSetLinkedRecord(authToken, depth, link);
 		}
+	}
 
+	private void possiblyReadLinksAndSetLinkedRecord(String authToken, int depth,
+			DataRecordLink link) {
+		if (link.hasReadAction()) {
+			var linkedRecordAsGroup = readLinkedRecordAsDecoratedGroup(authToken, depth, link);
+			link.setLinkedRecord(linkedRecordAsGroup);
+		}
+	}
+
+	private DataGroup readLinkedRecordAsDecoratedGroup(String authToken, int depth,
+			DataRecordLink link) {
+		var linkedRecord = readDecoratedRecordRecursive(authToken, link.getLinkedRecordType(),
+				link.getLinkedRecordId(), depth + 1);
+		return DataProvider.createGroupFromRecordGroup(linkedRecord.getDataRecordGroup());
 	}
 
 	private DataRecord readRecordFromStorage(String authToken, String type, String id) {
