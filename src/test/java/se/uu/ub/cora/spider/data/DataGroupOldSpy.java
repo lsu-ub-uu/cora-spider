@@ -335,4 +335,10 @@ public class DataGroupOldSpy implements DataGroup {
 		return false;
 	}
 
+	@Override
+	public <T extends DataChild> List<T> getChildrenOfType(Class<T> arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
