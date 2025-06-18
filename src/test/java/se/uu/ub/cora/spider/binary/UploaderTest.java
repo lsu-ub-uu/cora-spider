@@ -448,7 +448,7 @@ public class UploaderTest {
 				.getReturnValue("getContentAnalyzer", 0);
 		var detectedMimeType = contentAnalyzer.MCR.getReturnValue("getMimeType", 0);
 		dataFactorySpy.MCR.assertParameters("factorResourceLinkUsingNameInDataAndMimeType", 0,
-				"master", detectedMimeType);
+				"master", "binary", "someRecordId", detectedMimeType);
 
 		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "fileSize",
 				"someFileSize");
