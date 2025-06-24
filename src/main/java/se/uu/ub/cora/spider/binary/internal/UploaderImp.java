@@ -381,7 +381,8 @@ public final class UploaderImp implements Uploader {
 		DataAtomic resourceId = DataProvider.createAtomicUsingNameInDataAndValue("resourceId",
 				id + "-master");
 		DataResourceLink resourceLink = DataProvider
-				.createResourceLinkUsingNameInDataAndMimeType(MASTER, detectedMimeType);
+				.createResourceLinkUsingNameInDataAndTypeAndIdAndMimeType(MASTER, type, id,
+						detectedMimeType);
 		DataAtomic fileSize = DataProvider.createAtomicUsingNameInDataAndValue("fileSize",
 				fetchedFileSize);
 		DataAtomic mimeType = DataProvider.createAtomicUsingNameInDataAndValue("mimeType",
