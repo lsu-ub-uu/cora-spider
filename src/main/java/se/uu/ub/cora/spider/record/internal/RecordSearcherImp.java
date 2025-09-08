@@ -66,22 +66,20 @@ public final class RecordSearcherImp implements RecordSearcher {
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private String authToken;
 
-	private RecordSearcherImp(SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+	private RecordSearcherImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
-		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.recordSearch = dependencyProvider.getRecordSearch();
+		this.dataGroupToRecordEnhancer = dependencyProvider.getDataGroupToRecordEnhancer();
 		extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
-	public static RecordSearcher usingDependencyProviderAndDataGroupToRecordEnhancer(
-			SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-		return new RecordSearcherImp(dependencyProvider, dataGroupToRecordEnhancer);
+	public static RecordSearcher usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new RecordSearcherImp(dependencyProvider);
 	}
 
 	@Override
@@ -202,7 +200,7 @@ public final class RecordSearcherImp implements RecordSearcher {
 			DataRecord enhancedRecord = dataGroupToRecordEnhancer.enhance(user, recordType,
 					recordAsDataRecordGroup, dataRedactor);
 			dataList.addData(enhancedRecord);
-		} catch (AuthorizationException noReadAuthorization) {
+		} catch (AuthorizationException _) {
 			// do nothing
 		}
 	}
@@ -219,5 +217,9 @@ public final class RecordSearcherImp implements RecordSearcher {
 			return Integer.parseInt(start);
 		}
 		return 1;
+	}
+
+	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {
+		return dependencyProvider;
 	}
 }

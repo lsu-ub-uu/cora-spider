@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.record.internal;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.SEARCH_AFTER_AUTHORIZATION;
@@ -40,6 +41,7 @@ import se.uu.ub.cora.data.spies.DataListSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.search.SearchResult;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
 import se.uu.ub.cora.spider.record.DataException;
@@ -89,10 +91,19 @@ public class RecordSearcherTest {
 				"searchUsingListOfRecordTypesToSearchInAndSearchData", () -> searchResult);
 
 		setUpDependencyProvider();
+
+		recordSearcher = RecordSearcherImp
+				.usingDependencyProvider(dependencyProvider);
+
 	}
 
 	private void setUpFactoriesAndProviders() {
 		dataFactorySpy = new DataFactorySpy();
+		dataListSpy = new DataListSpy();
+		setDataListValues(1);
+
+		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorListUsingNameOfDataType",
+				() -> dataListSpy);
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 	}
 
@@ -153,14 +164,8 @@ public class RecordSearcherTest {
 				() -> recordSearch);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataRedactor",
 				() -> dataRedactor);
-
-		recordSearcher = RecordSearcherImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProvider, dataGroupToRecordEnhancer);
-		dataListSpy = new DataListSpy();
-		setDataListValues(1);
-
-		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorListUsingNameOfDataType",
-				() -> dataListSpy);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataGroupToRecordEnhancer",
+				() -> dataGroupToRecordEnhancer);
 
 	}
 
@@ -173,7 +178,7 @@ public class RecordSearcherTest {
 	}
 
 	@Test
-	public void testRecordSearchReturnValue() throws Exception {
+	public void testRecordSearchReturnValue() {
 		DataList searchResult = recordSearcher.search(SOME_AUTH_TOKEN, SOME_SEARCH_ID,
 				someSearchData);
 
@@ -190,7 +195,7 @@ public class RecordSearcherTest {
 	}
 
 	@Test
-	public void testStartRowReadFromInput() throws Exception {
+	public void testStartRowReadFromInput() {
 		someSearchData.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
 				() -> true, "start");
 		someSearchData.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
@@ -222,7 +227,7 @@ public class RecordSearcherTest {
 	}
 
 	@Test
-	public void testValidatesSearchMetadata() throws Exception {
+	public void testValidatesSearchMetadata() {
 		recordSearcher.search(SOME_AUTH_TOKEN, SOME_SEARCH_ID, someSearchData);
 
 		dataRecordGroupSpy.MCR.assertParameters("getFirstGroupWithNameInData", 0, "metadataId");
@@ -392,7 +397,7 @@ public class RecordSearcherTest {
 	}
 
 	@Test
-	public void testEnsureExtendedFunctionalityPositionFor_AfterAuthorization() throws Exception {
+	public void testEnsureExtendedFunctionalityPositionFor_AfterAuthorization() {
 		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
 				dependencyProvider, SEARCH_AFTER_AUTHORIZATION, "search");
 
@@ -413,4 +418,13 @@ public class RecordSearcherTest {
 		} catch (Exception e) {
 		}
 	}
+
+	@Test
+	public void testOnlyForTestGetDataGroupToRecordEnhancer() {
+		RecordSearcherImp recordSearcherImp = (RecordSearcherImp) recordSearcher;
+		SpiderDependencyProvider dep = recordSearcherImp.onlyForTestGetDependencyProvider();
+
+		assertSame(dependencyProvider, dep);
+	}
+
 }

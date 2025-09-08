@@ -38,6 +38,7 @@ import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.record.RecordSearcher;
+import se.uu.ub.cora.spider.record.RecordSearcherDecorated;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
@@ -87,7 +88,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForDecoratedRecordReader() {
 		var decorateRecordReader = SpiderInstanceProvider.getDecoratedRecordReader();
 
-		factory.MCR.assertReturn("factorDecoratedRecordReader", 0, decorateRecordReader);
+		factory.MCR.assertReturn("factorRecordReaderDecorated", 0, decorateRecordReader);
 	}
 
 	@Test
@@ -144,6 +145,14 @@ public class SpiderInstanceProviderTest {
 		RecordSearcher recordSearcher = SpiderInstanceProvider.getRecordSearcher();
 
 		factory.MCR.assertReturn("factorRecordSearcher", 0, recordSearcher);
+	}
+
+	@Test
+	public void makeSureFactoryIsCalledForRecordSearcherDecorated() {
+		RecordSearcherDecorated recordSearcher = SpiderInstanceProvider
+				.getRecordSearcherDecorated();
+
+		factory.MCR.assertReturn("factorRecordSearcherDecorated", 0, recordSearcher);
 	}
 
 	@Test

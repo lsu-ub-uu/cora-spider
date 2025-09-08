@@ -29,23 +29,23 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.record.DecoratedRecordReader;
+import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 import se.uu.ub.cora.spider.record.RecordReader;
 
-public class DecoratedRecordReaderImp implements DecoratedRecordReader {
+public class RecordReaderDecoratedImp implements RecordReaderDecorated {
 
 	private static final int MAX_DEPTH = 2;
 
-	public static DecoratedRecordReaderImp usingDependencyProvider(
+	public static RecordReaderDecoratedImp usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
-		return new DecoratedRecordReaderImp(dependencyProvider);
+		return new RecordReaderDecoratedImp(dependencyProvider);
 	}
 
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordReader recordReader;
 	private DataDecarator decorator;
 
-	private DecoratedRecordReaderImp(SpiderDependencyProvider dependencyProvider) {
+	private RecordReaderDecoratedImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 	}
 

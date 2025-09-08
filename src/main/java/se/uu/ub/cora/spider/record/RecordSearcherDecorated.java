@@ -22,11 +22,11 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataRecord;
 
-public interface RecordSearcher {
+public interface RecordSearcherDecorated {
 
 	/**
 	 * Search returns a {@link DataList} with all the {@link DataRecord} that matches searchData
-	 * search criteria.
+	 * search criteria. The records returned are decorated.
 	 * 
 	 * @param authToken
 	 *            String with the authToken of the caller.
@@ -34,8 +34,8 @@ public interface RecordSearcher {
 	 *            String with the id of the specific search metadata
 	 * @param searchData
 	 *            {@link DataGroup} containing the criteria of the search
-	 * @return List of {@link DataRecord} matching searchData.
+	 * @return List of decorated {@link DataRecord} matching searchData.
 	 */
-	DataList search(String authToken, String searchId, DataGroup searchData);
+	DataList searchDecorated(String authToken, String searchId, DataGroup searchData);
 
 }

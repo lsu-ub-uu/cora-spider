@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Olov McKie
- * Copyright 2015, 2019 Uppsala University Library
+ * Copyright 2015, 2019, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -47,19 +47,21 @@ import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
 import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJob;
 import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
-import se.uu.ub.cora.spider.record.DecoratedRecordReader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 import se.uu.ub.cora.spider.record.RecordSearcher;
+import se.uu.ub.cora.spider.record.RecordSearcherDecorated;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.record.internal.DecoratedRecordReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordListIndexerImp;
+import se.uu.ub.cora.spider.record.internal.RecordReaderDecoratedImp;
+import se.uu.ub.cora.spider.record.internal.RecordSearcherImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
 import se.uu.ub.cora.spider.resourceconvert.ResourceConvertImp;
 
@@ -108,15 +110,15 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void makeSureWeGetMultipleInstancesOfDecoratorRecordReader() {
-		DecoratedRecordReader recordReader = factory.factorDecoratedRecordReader();
-		DecoratedRecordReader recordReader2 = factory.factorDecoratedRecordReader();
+		RecordReaderDecorated recordReader = factory.factorRecordReaderDecorated();
+		RecordReaderDecorated recordReader2 = factory.factorRecordReaderDecorated();
 		assertNotSame(recordReader, recordReader2);
 		assertDependencyProviderIsPassed(recordReader, recordReader2);
 	}
 
-	private void assertDependencyProviderIsPassed(DecoratedRecordReader... recordReaders) {
+	private void assertDependencyProviderIsPassed(RecordReaderDecorated... recordReaders) {
 		for (var decoratedRecordReader : recordReaders) {
-			assertEquals(((DecoratedRecordReaderImp) decoratedRecordReader)
+			assertEquals(((RecordReaderDecoratedImp) decoratedRecordReader)
 					.onlyForTestGetDependencyProvider(), dependencyProvider);
 		}
 	}
@@ -168,7 +170,6 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void testFactorUploader() {
-
 		UploaderImp recordUploader = (UploaderImp) factory.factorUploader();
 
 		SpiderDependencyProvider passedDependencyProvider = recordUploader
@@ -210,9 +211,35 @@ public class SpiderInstanceFactoryTest {
 	}
 
 	@Test
+	public void factorRecordSearchersDependencies() {
+		RecordSearcherImp recordSearcher = (RecordSearcherImp) factory.factorRecordSearcher();
+
+		var returnedDependencyProvided = recordSearcher.onlyForTestGetDependencyProvider();
+		assertSame(returnedDependencyProvided, dependencyProvider);
+	}
+
+	@Test
 	public void initMakeSureWeGetMultipleInstancesOfSearcher() {
 		RecordSearcher recordSearcher = factory.factorRecordSearcher();
 		RecordSearcher recordSearcher2 = factory.factorRecordSearcher();
+		assertNotNull(recordSearcher);
+		assertNotNull(recordSearcher2);
+		assertNotSame(recordSearcher, recordSearcher2);
+	}
+
+	@Test
+	public void factorRecordSearcherDecoratedsDependencies() {
+		RecordSearcherDecoratedImp recordSearcher = (RecordSearcherDecoratedImp) factory
+				.factorRecordSearcherDecorated();
+
+		var returnedDependencyProvided = recordSearcher.onlyForTestGetDependencyProvider();
+		assertSame(returnedDependencyProvided, dependencyProvider);
+	}
+
+	@Test
+	public void initMakeSureWeGetMultipleInstancesOfSearcherDecorated() {
+		RecordSearcherDecorated recordSearcher = factory.factorRecordSearcherDecorated();
+		RecordSearcherDecorated recordSearcher2 = factory.factorRecordSearcherDecorated();
 		assertNotNull(recordSearcher);
 		assertNotNull(recordSearcher2);
 		assertNotSame(recordSearcher, recordSearcher2);

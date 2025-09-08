@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Uppsala University Library
+ * Copyright 2022 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -16,27 +16,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.spy;
+package se.uu.ub.cora.spider.testspies;
 
-import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.data.spies.DataRecordSpy;
-import se.uu.ub.cora.spider.record.RecordReaderDecorated;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataList;
+import se.uu.ub.cora.data.spies.DataListSpy;
+import se.uu.ub.cora.spider.record.RecordSearcherDecorated;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class DecoratedRecordReaderSpy implements RecordReaderDecorated {
+public class RecordSearcherDecoratedSpy implements RecordSearcherDecorated {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public DecoratedRecordReaderSpy() {
+	public RecordSearcherDecoratedSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("readDecoratedRecord", DataRecordSpy::new);
+		MRV.setDefaultReturnValuesSupplier("search", DataListSpy::new);
 	}
 
 	@Override
-	public DataRecord readDecoratedRecord(String authToken, String type, String id) {
-		return (DataRecord) MCR.addCallAndReturnFromMRV("authToken", authToken, "type", type, "id",
-				id);
+	public DataList searchDecorated(String authToken, String searchId, DataGroup searchData) {
+		return (DataList) MCR.addCallAndReturnFromMRV("authToken", authToken, "searchId", searchId,
+				"searchData", searchData);
 	}
-
 }

@@ -39,19 +39,19 @@ import se.uu.ub.cora.data.spies.DataRecordSpy;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.DataDecoratorSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.record.DecoratedRecordReader;
+import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.testspies.RecordReaderSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
 
-public class DecoratedRecordReaderTest {
+public class RecordReaderDecoratedTest {
 	private static final String SOME_ID = "someId";
 	private static final String SOME_TYPE = "someType";
 	private static final String SOME_AUTH_TOKEN = "someAuthToken";
 	private SpiderInstanceFactorySpy instanceFactory;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private RecordReaderSpy customRecordReader;
-	private DecoratedRecordReader decoratedRecordReader;
+	private RecordReaderDecorated decoratedRecordReader;
 	private DataFactorySpy dataFactory;
 	private Pair mainRecord;
 	private Pair childRecord01;
@@ -70,7 +70,7 @@ public class DecoratedRecordReaderTest {
 		dataFactory = new DataFactorySpy();
 		DataProvider.onlyForTestSetDataFactory(dataFactory);
 		setUpDependencyProvider();
-		decoratedRecordReader = DecoratedRecordReaderImp
+		decoratedRecordReader = RecordReaderDecoratedImp
 				.usingDependencyProvider(dependencyProvider);
 	}
 
@@ -302,7 +302,7 @@ public class DecoratedRecordReaderTest {
 
 	@Test
 	public void testOnlyForTestGetDependencyProvider() {
-		DecoratedRecordReaderImp drr = DecoratedRecordReaderImp
+		RecordReaderDecoratedImp drr = RecordReaderDecoratedImp
 				.usingDependencyProvider(dependencyProvider);
 
 		assertSame(drr.onlyForTestGetDependencyProvider(), dependencyProvider);

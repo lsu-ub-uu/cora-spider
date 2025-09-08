@@ -36,23 +36,24 @@ import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJo
 import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJobImp;
 import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
-import se.uu.ub.cora.spider.record.DecoratedRecordReader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 import se.uu.ub.cora.spider.record.RecordSearcher;
+import se.uu.ub.cora.spider.record.RecordSearcherDecorated;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.record.internal.DecoratedRecordReaderImp;
 import se.uu.ub.cora.spider.record.internal.IncomingLinksReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordDeleterImp;
 import se.uu.ub.cora.spider.record.internal.RecordListIndexerImp;
 import se.uu.ub.cora.spider.record.internal.RecordListReaderImp;
+import se.uu.ub.cora.spider.record.internal.RecordReaderDecoratedImp;
 import se.uu.ub.cora.spider.record.internal.RecordReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordSearcherImp;
 import se.uu.ub.cora.spider.record.internal.RecordUpdaterImp;
@@ -82,8 +83,8 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public DecoratedRecordReader factorDecoratedRecordReader() {
-		return DecoratedRecordReaderImp.usingDependencyProvider(dependencyProvider);
+	public RecordReaderDecorated factorRecordReaderDecorated() {
+		return RecordReaderDecoratedImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
@@ -139,10 +140,12 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	@Override
 	public RecordSearcher factorRecordSearcher() {
-		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
-				dependencyProvider);
-		return RecordSearcherImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProvider, dataGroupToRecordEnhancer);
+		return RecordSearcherImp.usingDependencyProvider(dependencyProvider);
+	}
+
+	@Override
+	public RecordSearcherDecorated factorRecordSearcherDecorated() {
+		return new RecordSearcherDecoratedImp(dependencyProvider);
 	}
 
 	@Override

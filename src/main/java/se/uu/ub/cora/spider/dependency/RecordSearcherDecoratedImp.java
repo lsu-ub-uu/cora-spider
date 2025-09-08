@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2025 Uppsala University Library
+ * Copyright 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,26 +16,28 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
-import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.record.RecordSearcherDecorated;
 
-public interface RecordSearcher {
+public class RecordSearcherDecoratedImp implements RecordSearcherDecorated {
 
-	/**
-	 * Search returns a {@link DataList} with all the {@link DataRecord} that matches searchData
-	 * search criteria.
-	 * 
-	 * @param authToken
-	 *            String with the authToken of the caller.
-	 * @param searchId
-	 *            String with the id of the specific search metadata
-	 * @param searchData
-	 *            {@link DataGroup} containing the criteria of the search
-	 * @return List of {@link DataRecord} matching searchData.
-	 */
-	DataList search(String authToken, String searchId, DataGroup searchData);
+	private SpiderDependencyProvider dependencyProvider;
+
+	public RecordSearcherDecoratedImp(SpiderDependencyProvider dependencyProvider) {
+		this.dependencyProvider = dependencyProvider;
+	}
+
+	@Override
+	public DataList searchDecorated(String authToken, String searchId, DataGroup searchData) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object onlyForTestGetDependencyProvider() {
+		return dependencyProvider;
+	}
 
 }
