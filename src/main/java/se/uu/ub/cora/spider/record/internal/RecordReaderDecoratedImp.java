@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record.internal;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.record.RecordDecorator;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 
@@ -41,15 +42,9 @@ public class RecordReaderDecoratedImp implements RecordReaderDecorated {
 	public DataRecord readDecoratedRecord(String authToken, String type, String id) {
 		RecordReader recordReader = SpiderInstanceProvider.getRecordReader();
 		DataRecord recordToDecorate = recordReader.readRecord(authToken, type, id);
-		// TODO:
-		// RecordDecorator recordDecorator = dependencyProvider.getRecordDecorator();
-		// recordDecorator.decorateRecord(recordToDecorate, authToken);
-		// return recordToDecorate;
-
-		RecordDecoratorImp.usingDependencyProvider(dependencyProvider)
-				.decorateRecord(recordToDecorate, authToken);
+		RecordDecorator recordDecorator = dependencyProvider.getRecordDecorator();
+		recordDecorator.decorateRecord(recordToDecorate, authToken);
 		return recordToDecorate;
-
 	}
 
 	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {
