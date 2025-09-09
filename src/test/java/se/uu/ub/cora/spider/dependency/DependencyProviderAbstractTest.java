@@ -67,6 +67,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.extendedfunctionality.internal.FactorySorterImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
+import se.uu.ub.cora.spider.record.internal.RecordDecoratorImp;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactorySpy;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.spider.unique.UniqueValidatorImp;
@@ -121,13 +122,10 @@ public class DependencyProviderAbstractTest {
 
 	@Test
 	public void testGetExtendedFunctionalityProviderStartedOnCall() {
-		ExtendedFunctionalityProviderImp extendedFunctionalityProvider = (ExtendedFunctionalityProviderImp) dependencyProvider
-				.getExtendedFunctionalityProvider();
-
 		assertNull(dependencyProvider.getExtendedFunctionalityProvider());
 		dependencyProvider.initializeExtendedFunctionality();
 
-		extendedFunctionalityProvider = (ExtendedFunctionalityProviderImp) dependencyProvider
+		ExtendedFunctionalityProviderImp extendedFunctionalityProvider = (ExtendedFunctionalityProviderImp) dependencyProvider
 				.getExtendedFunctionalityProvider();
 		assertNotNull(dependencyProvider.getExtendedFunctionalityProvider());
 
@@ -353,7 +351,15 @@ public class DependencyProviderAbstractTest {
 		assertTrue(dataDecorator instanceof DataDecoratorImp);
 		assertTrue(dataDecorator
 				.onlyForTestGetDataChildDecoratorFactory() instanceof DataChildDecoratorFactoryImp);
+	}
 
+	@Test
+	public void testDataRecordDecorator() {
+		RecordDecoratorImp recordDecorator = (RecordDecoratorImp) dependencyProvider
+				.getRecordDecorator();
+
+		assertTrue(recordDecorator instanceof RecordDecoratorImp);
+		assertEquals(recordDecorator.onlyForTestGetDependencyProvider(), dependencyProvider);
 	}
 
 }

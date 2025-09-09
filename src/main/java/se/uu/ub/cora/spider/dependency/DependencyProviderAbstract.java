@@ -48,7 +48,9 @@ import se.uu.ub.cora.spider.data.internal.DataGroupToFilterImp;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityInitializer;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
+import se.uu.ub.cora.spider.record.RecordDecorator;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
+import se.uu.ub.cora.spider.record.internal.RecordDecoratorImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.spider.unique.UniqueValidatorImp;
@@ -220,5 +222,11 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	public DataDecarator getDataDecorator() {
 
 		return new DataDecoratorImp(new DataChildDecoratorFactoryImp());
+	}
+
+	@Override
+	public RecordDecorator getRecordDecorator() {
+
+		return RecordDecoratorImp.usingDependencyProvider(this);
 	}
 }

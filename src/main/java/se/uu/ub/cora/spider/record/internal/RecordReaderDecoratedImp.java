@@ -18,23 +18,13 @@
  */
 package se.uu.ub.cora.spider.record.internal;
 
-import java.util.List;
-
-import se.uu.ub.cora.bookkeeper.decorator.DataDecarator;
-import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 
 public class RecordReaderDecoratedImp implements RecordReaderDecorated {
-
-	private static final int MAX_DEPTH = 2;
 
 	public static RecordReaderDecoratedImp usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
@@ -42,8 +32,6 @@ public class RecordReaderDecoratedImp implements RecordReaderDecorated {
 	}
 
 	private SpiderDependencyProvider dependencyProvider;
-	private RecordReader recordReader;
-	private DataDecarator decorator;
 
 	private RecordReaderDecoratedImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -51,80 +39,17 @@ public class RecordReaderDecoratedImp implements RecordReaderDecorated {
 
 	@Override
 	public DataRecord readDecoratedRecord(String authToken, String type, String id) {
-		recordReader = SpiderInstanceProvider.getRecordReader();
-		decorator = dependencyProvider.getDataDecorator();
-		return readDecoratedRecordRecursive(authToken, type, id, 0);
-	}
+		RecordReader recordReader = SpiderInstanceProvider.getRecordReader();
+		DataRecord recordToDecorate = recordReader.readRecord(authToken, type, id);
+		// TODO:
+		// RecordDecorator recordDecorator = dependencyProvider.getRecordDecorator();
+		// recordDecorator.decorateRecord(recordToDecorate, authToken);
+		// return recordToDecorate;
 
-	private DataRecord readDecoratedRecordRecursive(String authToken, String type, String id,
-			int depth) {
-		DataRecord recordToDecorate = readRecordFromStorage(authToken, type, id);
-		String definitionId = getDefinitionId(type);
-		decorator.decorateRecord(definitionId, recordToDecorate);
-		if (maxDepthNotReached(depth)) {
-			loopChildren(authToken, depth, recordToDecorate);
-		}
+		RecordDecoratorImp.usingDependencyProvider(dependencyProvider)
+				.decorateRecord(recordToDecorate, authToken);
 		return recordToDecorate;
-	}
 
-	private void loopChildren(String authToken, int depth, DataRecord recordToDecorate) {
-		DataRecordGroup dataRecordGroup = recordToDecorate.getDataRecordGroup();
-		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
-		loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, dataGroup, depth);
-	}
-
-	private boolean maxDepthNotReached(int depth) {
-		return depth < MAX_DEPTH;
-	}
-
-	private void loopChildrenAndAddLinkRecordIntoRecordLinks(String authToken, DataGroup dataGroup,
-			int depth) {
-		loopGroups(authToken, dataGroup, depth);
-		loopLinks(authToken, dataGroup, depth);
-	}
-
-	private void loopGroups(String authToken, DataGroup dataGroup, int depth) {
-		List<DataGroup> groups = dataGroup.getChildrenOfType(DataGroup.class);
-		for (DataGroup group : groups) {
-			loopChildrenAndSkipRecordInfoGroup(authToken, depth, group);
-		}
-	}
-
-	private void loopChildrenAndSkipRecordInfoGroup(String authToken, int depth, DataGroup group) {
-		if (!"recordInfo".equals(group.getNameInData())) {
-			loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, group, depth);
-		}
-	}
-
-	private void loopLinks(String authToken, DataGroup dataGroup, int depth) {
-		List<DataRecordLink> links = dataGroup.getChildrenOfType(DataRecordLink.class);
-		for (DataRecordLink link : links) {
-			possiblyReadLinksAndSetLinkedRecord(authToken, depth, link);
-		}
-	}
-
-	private void possiblyReadLinksAndSetLinkedRecord(String authToken, int depth,
-			DataRecordLink link) {
-		if (link.hasReadAction()) {
-			var linkedRecordAsGroup = readLinkedRecordAsDecoratedGroup(authToken, depth, link);
-			link.setLinkedRecord(linkedRecordAsGroup);
-		}
-	}
-
-	private DataGroup readLinkedRecordAsDecoratedGroup(String authToken, int depth,
-			DataRecordLink link) {
-		var linkedRecord = readDecoratedRecordRecursive(authToken, link.getLinkedRecordType(),
-				link.getLinkedRecordId(), depth + 1);
-		return DataProvider.createGroupFromRecordGroup(linkedRecord.getDataRecordGroup());
-	}
-
-	private DataRecord readRecordFromStorage(String authToken, String type, String id) {
-		return recordReader.readRecord(authToken, type, id);
-	}
-
-	private String getDefinitionId(String type) {
-		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(type);
-		return recordTypeHandler.getDefinitionId();
 	}
 
 	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {

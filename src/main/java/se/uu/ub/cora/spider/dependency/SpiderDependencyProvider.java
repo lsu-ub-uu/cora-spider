@@ -34,6 +34,7 @@ import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
+import se.uu.ub.cora.spider.record.RecordDecorator;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
@@ -111,5 +112,12 @@ public interface SpiderDependencyProvider {
 	 * @return A new instance of {@link DataDecarator}
 	 */
 	DataDecarator getDataDecorator();
+
+	/**
+	 * getRecordDecorator method returns a new instance of {@link RecordDecorator}
+	 * 
+	 * @return A new instance of {@link RecordDecorator}
+	 */
+	RecordDecorator getRecordDecorator();
 
 }
