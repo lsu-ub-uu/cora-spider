@@ -25,12 +25,12 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.spider.dependency.RecordSearcherDecoratedImp;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.record.RecordSearcherDecorated;
+import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 
 public class RecordSearcherDecoratedTest {
 	private SpiderDependencyProvider dependencyProvider;
-	private RecordSearcherDecorated searcher;
+	private RecordSearcher searcher;
 
 	@BeforeMethod
 	private void beforeMethod() {

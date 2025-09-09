@@ -31,7 +31,6 @@ import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 import se.uu.ub.cora.spider.record.RecordSearcher;
-import se.uu.ub.cora.spider.record.RecordSearcherDecorated;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 
@@ -59,7 +58,7 @@ public interface SpiderInstanceFactory {
 
 	RecordSearcher factorRecordSearcher();
 
-	RecordSearcherDecorated factorRecordSearcherDecorated();
+	RecordSearcher factorRecordSearcherDecorated();
 
 	RecordValidator factorRecordValidator();
 

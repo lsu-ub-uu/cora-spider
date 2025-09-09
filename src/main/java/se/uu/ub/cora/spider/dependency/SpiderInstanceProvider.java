@@ -30,7 +30,6 @@ import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 import se.uu.ub.cora.spider.record.RecordSearcher;
-import se.uu.ub.cora.spider.record.RecordSearcherDecorated;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 
@@ -102,7 +101,7 @@ public final class SpiderInstanceProvider {
 		return factory.factorIiifReader();
 	}
 
-	public static RecordSearcherDecorated getRecordSearcherDecorated() {
+	public static RecordSearcher getRecordSearcherDecorated() {
 		return factory.factorRecordSearcherDecorated();
 	}
 }

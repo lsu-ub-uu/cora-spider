@@ -20,9 +20,9 @@ package se.uu.ub.cora.spider.dependency;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
-import se.uu.ub.cora.spider.record.RecordSearcherDecorated;
+import se.uu.ub.cora.spider.record.RecordSearcher;
 
-public class RecordSearcherDecoratedImp implements RecordSearcherDecorated {
+public class RecordSearcherDecoratedImp implements RecordSearcher {
 
 	private SpiderDependencyProvider dependencyProvider;
 
@@ -31,7 +31,7 @@ public class RecordSearcherDecoratedImp implements RecordSearcherDecorated {
 	}
 
 	@Override
-	public DataList searchDecorated(String authToken, String searchId, DataGroup searchData) {
+	public DataList search(String authToken, String searchId, DataGroup searchData) {
 		// TODO Auto-generated method stub
 		return null;
 	}

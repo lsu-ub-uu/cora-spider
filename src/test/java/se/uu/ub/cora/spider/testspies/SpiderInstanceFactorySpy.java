@@ -30,7 +30,6 @@ import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 import se.uu.ub.cora.spider.record.RecordSearcher;
-import se.uu.ub.cora.spider.record.RecordSearcherDecorated;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.spy.DecoratedRecordReaderSpy;
@@ -56,8 +55,7 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 		MRV.setDefaultReturnValuesSupplier("factorUploader", UploaderSpy::new);
 		MRV.setDefaultReturnValuesSupplier("factorDownloader", DownloaderSpy::new);
 		MRV.setDefaultReturnValuesSupplier("factorRecordSearcher", RecordSearcherSpy::new);
-		MRV.setDefaultReturnValuesSupplier("factorRecordSearcherDecorated",
-				RecordSearcherDecoratedSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factorRecordSearcherDecorated", RecordSearcherSpy::new);
 		MRV.setDefaultReturnValuesSupplier("factorRecordValidator", RecordValidatorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("factorRecordListIndexer", RecordListIndexerSpy::new);
 		MRV.setDefaultReturnValuesSupplier("factorIiifReader", IiifReaderSpy::new);
@@ -119,8 +117,8 @@ public class SpiderInstanceFactorySpy implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public RecordSearcherDecorated factorRecordSearcherDecorated() {
-		return (RecordSearcherDecorated) MCR.addCallAndReturnFromMRV();
+	public RecordSearcher factorRecordSearcherDecorated() {
+		return (RecordSearcher) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override

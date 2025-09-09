@@ -44,7 +44,6 @@ import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 import se.uu.ub.cora.spider.record.RecordSearcher;
-import se.uu.ub.cora.spider.record.RecordSearcherDecorated;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
@@ -144,7 +143,7 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 	}
 
 	@Override
-	public RecordSearcherDecorated factorRecordSearcherDecorated() {
+	public RecordSearcher factorRecordSearcherDecorated() {
 		return new RecordSearcherDecoratedImp(dependencyProvider);
 	}
 

@@ -54,7 +54,6 @@ import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 import se.uu.ub.cora.spider.record.RecordSearcher;
-import se.uu.ub.cora.spider.record.RecordSearcherDecorated;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
@@ -211,8 +210,9 @@ public class SpiderInstanceFactoryTest {
 	}
 
 	@Test
-	public void factorRecordSearchersDependencies() {
-		RecordSearcherImp recordSearcher = (RecordSearcherImp) factory.factorRecordSearcher();
+	public void factorRecordSearchersDecoratedDependencies() {
+		RecordSearcherDecoratedImp recordSearcher = (RecordSearcherDecoratedImp) factory
+				.factorRecordSearcherDecorated();
 
 		var returnedDependencyProvided = recordSearcher.onlyForTestGetDependencyProvider();
 		assertSame(returnedDependencyProvided, dependencyProvider);
@@ -228,9 +228,8 @@ public class SpiderInstanceFactoryTest {
 	}
 
 	@Test
-	public void factorRecordSearcherDecoratedsDependencies() {
-		RecordSearcherDecoratedImp recordSearcher = (RecordSearcherDecoratedImp) factory
-				.factorRecordSearcherDecorated();
+	public void factorRecordSearchersDependencies() {
+		RecordSearcherImp recordSearcher = (RecordSearcherImp) factory.factorRecordSearcher();
 
 		var returnedDependencyProvided = recordSearcher.onlyForTestGetDependencyProvider();
 		assertSame(returnedDependencyProvided, dependencyProvider);
@@ -238,8 +237,8 @@ public class SpiderInstanceFactoryTest {
 
 	@Test
 	public void initMakeSureWeGetMultipleInstancesOfSearcherDecorated() {
-		RecordSearcherDecorated recordSearcher = factory.factorRecordSearcherDecorated();
-		RecordSearcherDecorated recordSearcher2 = factory.factorRecordSearcherDecorated();
+		RecordSearcher recordSearcher = factory.factorRecordSearcher();
+		RecordSearcher recordSearcher2 = factory.factorRecordSearcher();
 		assertNotNull(recordSearcher);
 		assertNotNull(recordSearcher2);
 		assertNotSame(recordSearcher, recordSearcher2);

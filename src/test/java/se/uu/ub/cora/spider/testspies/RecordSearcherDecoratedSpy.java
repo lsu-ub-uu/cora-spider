@@ -21,11 +21,11 @@ package se.uu.ub.cora.spider.testspies;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.spies.DataListSpy;
-import se.uu.ub.cora.spider.record.RecordSearcherDecorated;
+import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class RecordSearcherDecoratedSpy implements RecordSearcherDecorated {
+public class RecordSearcherDecoratedSpy implements RecordSearcher {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
@@ -35,7 +35,7 @@ public class RecordSearcherDecoratedSpy implements RecordSearcherDecorated {
 	}
 
 	@Override
-	public DataList searchDecorated(String authToken, String searchId, DataGroup searchData) {
+	public DataList search(String authToken, String searchId, DataGroup searchData) {
 		return (DataList) MCR.addCallAndReturnFromMRV("authToken", authToken, "searchId", searchId,
 				"searchData", searchData);
 	}
