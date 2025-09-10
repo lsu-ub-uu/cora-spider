@@ -112,7 +112,7 @@ public class IncomingLinksReaderTest {
 	}
 
 	@Test
-	public void testInitialize() throws Exception {
+	public void testInitialize() {
 		dependencyProvider.MCR.assertMethodWasCalled("getAuthenticator");
 		dependencyProvider.MCR.assertMethodWasCalled("getSpiderAuthorizator");
 		dependencyProvider.MCR.assertMethodWasCalled("getRecordStorage");
@@ -141,7 +141,7 @@ public class IncomingLinksReaderTest {
 	}
 
 	@Test
-	public void testStorageIsCalledToGetLinksToReturn() throws Exception {
+	public void testStorageIsCalledToGetLinksToReturn() {
 		Set<Link> links = new LinkedHashSet<>();
 		links.add(new Link("type0", "id0"));
 		links.add(new Link("type1", "id1"));
@@ -182,7 +182,7 @@ public class IncomingLinksReaderTest {
 	}
 
 	@Test
-	public void testDependenciesAreConnectedCorrectly() throws Exception {
+	public void testDependenciesAreConnectedCorrectly() {
 		DataList linksPointingToRecord = incomingLinksReader.readIncomingLinks(SOME_AUTH_TOKEN,
 				SOME_TYPE, SOME_ID);
 
@@ -209,8 +209,7 @@ public class IncomingLinksReaderTest {
 
 	private Object assertAuthenticator() {
 		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_AUTH_TOKEN);
-		var user = authenticator.MCR.getReturnValue("getUserForToken", 0);
-		return user;
+		return authenticator.MCR.getReturnValue("getUserForToken", 0);
 	}
 
 	private CollectTerms assertCollectTerms() {
@@ -219,15 +218,12 @@ public class IncomingLinksReaderTest {
 		DataRecordGroup dataRecordGroup = getDataRecordGroupReadFromStorage(0);
 
 		termCollector.MCR.assertParameters("collectTerms", 0, metadataIdForType, dataRecordGroup);
-		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
-				0);
-		return collectTerms;
+		return (CollectTerms) termCollector.MCR.getReturnValue("collectTerms", 0);
 	}
 
 	private Object assertReadOnStorage() {
 		recordStorage.MCR.assertParameters("read", 0, SOME_TYPE, SOME_ID);
-		var recordRead = recordStorage.MCR.getReturnValue("read", 0);
-		return recordRead;
+		return recordStorage.MCR.getReturnValue("read", 0);
 	}
 
 	private DataRecordGroup getDataRecordGroupReadFromStorage(int callNumber) {
@@ -261,7 +257,7 @@ public class IncomingLinksReaderTest {
 	}
 
 	@Test
-	public void testEnsureExtendedFunctionalityPositionFor_AfterAuthorization() throws Exception {
+	public void testEnsureExtendedFunctionalityPositionFor_AfterAuthorization() {
 		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
 				dependencyProvider, INCOMING_LINKS_AFTER_AUTHORIZATION, SOME_TYPE);
 
@@ -279,7 +275,8 @@ public class IncomingLinksReaderTest {
 			fail("Should fail as we want to stop execution when the extended functionality is used,"
 					+ " to determin that the extended functionality is called in the correct place"
 					+ " in the code");
-		} catch (Exception e) {
+		} catch (Exception _) {
+			// Expected to stop execution when extended functionality is used
 		}
 	}
 }

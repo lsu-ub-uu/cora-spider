@@ -92,8 +92,7 @@ public class RecordSearcherTest {
 
 		setUpDependencyProvider();
 
-		recordSearcher = RecordSearcherImp
-				.usingDependencyProvider(dependencyProvider);
+		recordSearcher = RecordSearcherImp.usingDependencyProvider(dependencyProvider);
 
 	}
 

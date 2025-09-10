@@ -54,6 +54,7 @@ import se.uu.ub.cora.spider.record.internal.RecordListIndexerImp;
 import se.uu.ub.cora.spider.record.internal.RecordListReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordReaderDecoratedImp;
 import se.uu.ub.cora.spider.record.internal.RecordReaderImp;
+import se.uu.ub.cora.spider.record.internal.RecordSearcherDecoratedImp;
 import se.uu.ub.cora.spider.record.internal.RecordSearcherImp;
 import se.uu.ub.cora.spider.record.internal.RecordUpdaterImp;
 import se.uu.ub.cora.spider.record.internal.RecordValidatorImp;
