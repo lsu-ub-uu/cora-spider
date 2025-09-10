@@ -67,6 +67,7 @@ public class RecordDecoratorImp implements RecordDecorator {
 
 	private void loopChildren(String authToken, int depth, DataRecord recordToDecorate) {
 		DataRecordGroup dataRecordGroup = recordToDecorate.getDataRecordGroup();
+//		System.out.println("Storage ToGroup id:" + recordToDecorate.getId());
 		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
 		loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, dataGroup, depth);
 	}
@@ -104,6 +105,7 @@ public class RecordDecoratorImp implements RecordDecorator {
 	private void possiblyReadLinksAndSetLinkedRecord(String authToken, int depth,
 			DataRecordLink link) {
 		if (link.hasReadAction()) {
+			// cacheLinkedRecord((link, depth), linkedRecordAsGroup);
 			var linkedRecordAsGroup = readLinkedRecordAsDecoratedGroup(authToken, depth, link);
 			link.setLinkedRecord(linkedRecordAsGroup);
 		}
@@ -114,6 +116,7 @@ public class RecordDecoratorImp implements RecordDecorator {
 		DataRecord recordToDecorate = readRecordFromStorage(authToken, link.getLinkedRecordType(),
 				link.getLinkedRecordId());
 		readDecoratedRecordRecursive(recordToDecorate, authToken, depth + 1);
+//		System.out.println("Decorated ToGroup id:" + link.getLinkedRecordId());
 		return DataProvider.createGroupFromRecordGroup(recordToDecorate.getDataRecordGroup());
 	}
 

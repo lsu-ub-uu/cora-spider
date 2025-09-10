@@ -22,6 +22,7 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.testng.annotations.BeforeMethod;
@@ -44,6 +45,9 @@ import se.uu.ub.cora.spider.testspies.RecordReaderSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
 
 public class RecordDecoratorTest {
+	private static final String RECORD_B = "recordB";
+	private static final String RECORD_C = "recordC";
+	private static final String RECORD_D = "recordD";
 	private static final String SOME_ID = "someId";
 	private static final String SOME_TYPE = "someType";
 	private static final String SOME_AUTH_TOKEN = "someAuthToken";
@@ -63,6 +67,18 @@ public class RecordDecoratorTest {
 	private Pair childRecordInfo;
 	private DataRecordSpy someDataRecord;
 	private DataRecordSpy inputRecord;
+	private DataRecordGroupSpy dataRecordGroupB;
+	private DataRecordGroupSpy dataRecordGroupC;
+	private DataRecordGroupSpy dataRecordGroupD;
+	private DataRecordLinkSpy linkToRecordB;
+	private DataRecordLinkSpy linkToRecordC_0;
+	private DataRecordLinkSpy linkToRecordC_1;
+	private DataRecordLinkSpy linkToRecordC_2;
+	private DataRecordLinkSpy linkToRecordD;
+	private List<DataGroupSpy> groupsB;
+	private List<DataGroupSpy> groupsD;
+	private List<DataGroupSpy> groupsC;
+	private DataRecordGroupSpy dataRecordMainGroup;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -72,6 +88,9 @@ public class RecordDecoratorTest {
 		DataProvider.onlyForTestSetDataFactory(dataFactory);
 		setUpDependencyProvider();
 		someDataRecord = new DataRecordSpy();
+		customRecordReader = new RecordReaderSpy();
+		instanceFactory.MRV.setDefaultReturnValuesSupplier("factorRecordReader",
+				() -> customRecordReader);
 
 		recordDecorator = RecordDecoratorImp.usingDependencyProvider(dependencyProvider);
 	}
@@ -98,10 +117,6 @@ public class RecordDecoratorTest {
 
 	@Test
 	public void testAddDecoratedOnlyReadToDepth2() {
-		customRecordReader = new RecordReaderSpy();
-		instanceFactory.MRV.setDefaultReturnValuesSupplier("factorRecordReader",
-				() -> customRecordReader);
-
 		setupRecordReaderWithMainAndRelativesRecords();
 
 		recordDecorator.decorateRecord(inputRecord, SOME_AUTH_TOKEN);
@@ -129,10 +144,6 @@ public class RecordDecoratorTest {
 
 	@Test
 	public void testAddDecorated_OneChildLinkHasNoReadAction() {
-		customRecordReader = new RecordReaderSpy();
-		instanceFactory.MRV.setDefaultReturnValuesSupplier("factorRecordReader",
-				() -> customRecordReader);
-
 		setupRecordReaderWithMainAndRelativesRecords();
 		setChildLinkWithoutReadAction(childRecord01.link());
 
@@ -219,10 +230,10 @@ public class RecordDecoratorTest {
 		setGroupAsChildAsGroup(mG0, mG0RI, mG00, mG01);
 		setGroupAsChildAsGroup(mG00, mG000);
 
-		linkRecordGroupToLink(mG0RI, childRecordInfo.link);
-		linkRecordGroupToLink(mG00, childRecord01.link);
-		linkRecordGroupToLink(mG01, childRecord02.link);
-		linkRecordGroupToLink(mG0, childRecord03.link);
+		addLinksToDataGroup(mG0RI, childRecordInfo.link);
+		addLinksToDataGroup(mG00, childRecord01.link);
+		addLinksToDataGroup(mG01, childRecord02.link);
+		addLinksToDataGroup(mG0, childRecord03.link);
 
 		DataGroupSpy ch0GRI = createGroup();
 		DataGroupSpy ch1G0 = createGroup();
@@ -238,15 +249,15 @@ public class RecordDecoratorTest {
 
 		setTopGroupToDataRecordGroup(childRecord02.dataRecordGroup, ch2G0);
 		setGroupAsChildAsGroup(ch2G0, ch2G00);
-		linkRecordGroupToLink(ch1G00, grandChildRecord01.link, grandChildRecord02.link);
-		linkRecordGroupToLink(ch2G0, grandChildRecord02.link);
-		linkRecordGroupToLink(ch2G00, grandChildRecord03.link);
+		addLinksToDataGroup(ch1G00, grandChildRecord01.link, grandChildRecord02.link);
+		addLinksToDataGroup(ch2G0, grandChildRecord02.link);
+		addLinksToDataGroup(ch2G00, grandChildRecord03.link);
 
 		setTopGroupToDataRecordGroup(childRecord03.dataRecordGroup, ch3G0);
 
 		DataGroupSpy gc3G0 = createGroup();
 		setTopGroupToDataRecordGroup(grandChildRecord03.dataRecordGroup, gc3G0);
-		linkRecordGroupToLink(gc3G0, grandGrandChildRecord01.link);
+		addLinksToDataGroup(gc3G0, grandGrandChildRecord01.link);
 	}
 
 	private void setTopGroupToDataRecordGroup(DataRecordGroupSpy dataRecord,
@@ -270,7 +281,7 @@ public class RecordDecoratorTest {
 		return dataGroupSpy;
 	}
 
-	private void linkRecordGroupToLink(DataGroupSpy group, DataRecordLinkSpy... links) {
+	private void addLinksToDataGroup(DataGroupSpy group, DataRecordLinkSpy... links) {
 		group.MRV.setSpecificReturnValuesSupplier("getChildrenOfType", () -> List.of(links),
 				DataRecordLink.class);
 	}
@@ -292,12 +303,209 @@ public class RecordDecoratorTest {
 
 	private DataRecordGroupSpy createRecordInStorageAndReturnItsRecordGroup(String recordId) {
 		DataRecordSpy dataRecordSpy = new DataRecordSpy();
+
 		customRecordReader.MRV.setSpecificReturnValuesSupplier("readRecord", () -> dataRecordSpy,
 				SOME_AUTH_TOKEN, SOME_TYPE, recordId);
 		DataRecordGroupSpy dataRecordGroup = new DataRecordGroupSpy();
 		dataRecordSpy.MRV.setDefaultReturnValuesSupplier("getDataRecordGroup",
 				() -> dataRecordGroup);
+		dataRecordSpy.MRV.setDefaultReturnValuesSupplier("getId", () -> recordId);
 		return dataRecordGroup;
+	}
+
+	@Test
+	public void testAddDecorated_Cached() {
+		setupRecordDecoratorForCacheWithMainAndRelativesRecords();
+		// List<DataGroupSpy> dataGroupsFromB = setReturnValuesForDataRecordGroupToGroup(
+		// dataRecordGroupB);
+		// List<DataGroupSpy> dataGroupsFromC = setReturnValuesForDataRecordGroupToGroup(
+		// dataRecordGroupC);
+		// List<DataGroupSpy> dataGroupsFromD = setReturnValuesForDataRecordGroupToGroup(
+		// dataRecordGroupD);
+
+		recordDecorator.decorateRecord(inputRecord, SOME_AUTH_TOKEN);
+
+		customRecordReader.MCR.assertNumberOfCallsToMethod("readRecord", 5);
+		assertRecordReadFromStorage(0, RECORD_C);
+		assertRecordReadFromStorage(1, RECORD_D);
+		assertRecordReadFromStorage(2, RECORD_B);
+		assertRecordReadFromStorage(3, RECORD_C);// Fins i cache men felaktig djup
+		assertRecordReadFromStorage(4, RECORD_C);// Ska återanvändas från cache
+
+		dataFactory.MCR.assertNumberOfCallsToMethod("factorGroupFromDataRecordGroup", 8);
+		dataFactory.MCR.assertParameters("factorGroupFromDataRecordGroup", 0, dataRecordMainGroup);
+		dataFactory.MCR.assertParameters("factorGroupFromDataRecordGroup", 1, dataRecordGroupC);
+		dataFactory.MCR.assertParameters("factorGroupFromDataRecordGroup", 2, dataRecordGroupD);
+		dataFactory.MCR.assertParameters("factorGroupFromDataRecordGroup", 3, dataRecordGroupC);
+		dataFactory.MCR.assertParameters("factorGroupFromDataRecordGroup", 4, dataRecordGroupB);
+		dataFactory.MCR.assertParameters("factorGroupFromDataRecordGroup", 5, dataRecordGroupC);
+		dataFactory.MCR.assertParameters("factorGroupFromDataRecordGroup", 6, dataRecordGroupC);
+		dataFactory.MCR.assertParameters("factorGroupFromDataRecordGroup", 7, dataRecordGroupB);
+
+		linkToRecordC_0.MCR.assertCalledParameters("setLinkedRecord", groupsC.get(1));
+		linkToRecordC_1.MCR.assertCalledParameters("setLinkedRecord", groupsC.get(2));
+		linkToRecordC_2.MCR.assertCalledParameters("setLinkedRecord", groupsC.get(3));
+		linkToRecordB.MCR.assertCalledParameters("setLinkedRecord", groupsB.get(1));
+		linkToRecordD.MCR.assertCalledParameters("setLinkedRecord", groupsD.get(0));
+
+	}
+
+	private List<DataGroupSpy> setReturnValuesForDataRecordGroupToGroup(
+			DataRecordGroupSpy dataRecordGroup) {
+		List<Object> decoratedBList = List.of(new DataGroupSpy(), new DataGroupSpy(),
+				new DataGroupSpy(), new DataGroupSpy(), new DataGroupSpy(), new DataGroupSpy(),
+				new DataGroupSpy());
+		return setReturnValuesForDataRecordGroupAndRetunList(dataRecordGroup, decoratedBList);
+	}
+
+	private List<DataGroupSpy> setReturnValuesForDataRecordGroupAndRetunList(
+			DataRecordGroupSpy dataRecordGroup, List<Object> decoratedBList) {
+		dataFactory.MRV.setReturnValues("factorGroupFromDataRecordGroup", decoratedBList,
+				dataRecordGroup);
+		return decoratedBList.stream().map(o -> (DataGroupSpy) o).toList();
+	}
+
+	private void setupRecordDecoratorForCacheWithMainAndRelativesRecords() {
+		inputRecord = new DataRecordSpy();
+		inputRecord.MRV.setDefaultReturnValuesSupplier("getType", () -> SOME_TYPE);
+		dataRecordMainGroup = new DataRecordGroupSpy();
+		inputRecord.MRV.setDefaultReturnValuesSupplier("getDataRecordGroup",
+				() -> dataRecordMainGroup);
+		DataRecordGroupSpy dataRecordGroup = dataRecordMainGroup;
+		// DataRecordLinkSpy link = createRecordLinkToRecord(SOME_ID);
+
+		dataRecordGroupB = createRecordInStorageAndReturnItsRecordGroup(RECORD_B);
+		dataRecordGroupC = createRecordInStorageAndReturnItsRecordGroup(RECORD_C);
+		dataRecordGroupD = createRecordInStorageAndReturnItsRecordGroup(RECORD_D);
+
+		linkToRecordB = createRecordLinkToRecord(RECORD_B);
+		linkToRecordC_0 = createRecordLinkToRecord(RECORD_C);
+		linkToRecordC_1 = createRecordLinkToRecord(RECORD_C);
+		linkToRecordC_2 = createRecordLinkToRecord(RECORD_C);
+		linkToRecordD = createRecordLinkToRecord(RECORD_D);
+
+		DataGroupSpy mG0 = createGroup();
+		setTopGroupToDataRecordGroup(dataRecordGroup, mG0);
+		addLinksToDataGroup(mG0, linkToRecordC_0, linkToRecordB);
+
+		// DataGroupSpy bG0 = createGroup();
+		groupsB = setReturnValuesForDataRecordGroupToGroup(dataRecordGroupB);
+		addLinksToDataGroup(groupsB.get(0), linkToRecordC_1, linkToRecordC_2);
+
+		// DataGroupSpy cG0 = createGroup();
+		groupsC = setReturnValuesForDataRecordGroupToGroup(dataRecordGroupC);
+		addLinksToDataGroup(groupsC.get(0), linkToRecordD);
+		// addLinksToDataGroup(groupsC.get(1), linkToRecordD);
+		// addLinksToDataGroup(groupsC.get(2), linkToRecordD);
+		// addLinksToDataGroup(groupsC.get(3), linkToRecordD);
+		// addLinksToDataGroup(groupsC.get(4), linkToRecordD);
+
+		// DataGroupSpy dG0 = createGroup();
+		// setTopGroupToDataRecordGroup(dataRecordGroupD, dG0);
+		groupsD = setReturnValuesForDataRecordGroupToGroup(dataRecordGroupD);
+	}
+
+	@Test
+	public void testX_Cached() {
+		DataRecordSpy main = createRecordWithLinksToIds(RECORD_C, RECORD_B);
+		createAndSetupRecordWithIdAndLinkToIds(RECORD_B, RECORD_C, RECORD_C);
+		createAndSetupRecordWithIdAndLinkToIds(RECORD_C, RECORD_D);
+		createAndSetupRecordWithIdAndLinkToIds(RECORD_D);
+
+		recordDecorator.decorateRecord(main, SOME_AUTH_TOKEN);
+
+		assertRecordsReadFromStorageFiveTimes();
+		DataRecordSpy cReadFromMain = assertRecordReadFromStorageAndReturn(0, RECORD_C);
+		DataRecordSpy dReadFromC = assertRecordReadFromStorageAndReturn(1, RECORD_D);
+		DataRecordSpy bReadFromMain = assertRecordReadFromStorageAndReturn(2, RECORD_B);
+		// Fins i cache men felaktig djup
+		DataRecordSpy cReadFromB0 = assertRecordReadFromStorageAndReturn(3, RECORD_C);
+		// Ska återanvändas från cache
+		DataRecordSpy cReadFromB1 = assertRecordReadFromStorageAndReturn(4, RECORD_C);
+
+		// check main links have been decorated
+		assertLinkNo_FromRecord_HasDecoratedVersionOfDataRecord(0, main, cReadFromMain);
+		assertLinkNo_FromRecord_HasDecoratedVersionOfDataRecord(1, main, bReadFromMain);
+
+		// check cReadFromMain links have been decorated
+		assertLinkNo_FromRecord_HasDecoratedVersionOfDataRecord(0, cReadFromMain, dReadFromC);
+
+		// check cReadFromMain links have been decorated
+		assertLinkNo_FromRecord_HasDecoratedVersionOfDataRecord(0, bReadFromMain, cReadFromB0);
+		assertLinkNo_FromRecord_HasDecoratedVersionOfDataRecord(1, bReadFromMain, cReadFromB1);
+	}
+
+	private void assertRecordsReadFromStorageFiveTimes() {
+		customRecordReader.MCR.assertNumberOfCallsToMethod("readRecord", 5);
+	}
+
+	private DataRecordSpy createRecordWithLinksToIds(String... linkedRecordIds) {
+		DataRecordSpy dataRecordSpy = new DataRecordSpy();
+		DataRecordGroupSpy dataRecordGroup = new DataRecordGroupSpy();
+		dataRecordSpy.MRV.setDefaultReturnValuesSupplier("getDataRecordGroup",
+				() -> dataRecordGroup);
+		// group
+		DataGroupSpy groupToBeReturnedFromConverter = createAndReturnGroupToBeReturnedByConverterForRecordGroup(
+				dataRecordGroup);
+		// add links
+		addLinksToGroup(groupToBeReturnedFromConverter, linkedRecordIds);
+		return dataRecordSpy;
+	}
+
+	private DataGroupSpy createAndReturnGroupToBeReturnedByConverterForRecordGroup(
+			DataRecordGroupSpy dataRecordGroup) {
+		DataGroupSpy group = new DataGroupSpy();
+		dataFactory.MRV.setReturnValues("factorGroupFromDataRecordGroup", List.of(group, group),
+				dataRecordGroup);
+		return group;
+	}
+
+	private void addLinksToGroup(DataGroupSpy group, String... linkedRecordIds) {
+		DataRecordLinkSpy[] arrayOfLinks = turnLinkIdsIntoLinks(linkedRecordIds);
+		addLinksToDataGroup(group, arrayOfLinks);
+	}
+
+	private DataRecordLinkSpy[] turnLinkIdsIntoLinks(String... linkedRecordIds) {
+		List<DataRecordLinkSpy> list = new ArrayList<>();
+		for (String linkedRecordId : linkedRecordIds) {
+			list.add(createRecordLinkToRecord(linkedRecordId));
+		}
+		return list.toArray(new DataRecordLinkSpy[0]);
+	}
+
+	private void createAndSetupRecordWithIdAndLinkToIds(String recordId, String... linkToIds) {
+		customRecordReader.MRV.setSpecificReturnValuesSupplier("readRecord",
+				() -> createRecordWithLinksToIds(linkToIds), SOME_AUTH_TOKEN, SOME_TYPE, recordId);
+	}
+
+	private DataRecordSpy assertRecordReadFromStorageAndReturn(int order, String id) {
+		customRecordReader.MCR.assertParameters("readRecord", order, SOME_AUTH_TOKEN, SOME_TYPE,
+				id);
+		return (DataRecordSpy) customRecordReader.MCR.getReturnValue("readRecord", order);
+	}
+
+	private List<DataRecordLinkSpy> assertLinkNo_FromRecord_HasDecoratedVersionOfDataRecord(
+			int linkNo, DataRecordSpy main, DataRecordSpy cReadFromMain) {
+		List<DataRecordLinkSpy> mainLinks = getLinksForRecord(main);
+		DataRecordLinkSpy mainToC = mainLinks.get(linkNo);
+		DataGroupSpy cReadFromMainDecorated = getDecoratedVersionOfRecord(cReadFromMain);
+		mainToC.MCR.assertCalledParameters("setLinkedRecord", cReadFromMainDecorated);
+		return mainLinks;
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<DataRecordLinkSpy> getLinksForRecord(DataRecordSpy cReadFromMain) {
+		var mainDataRecordGroup = cReadFromMain.MCR.getReturnValue("getDataRecordGroup", 0);
+		DataGroupSpy mainDataGroup = (DataGroupSpy) dataFactory.MCR.assertCalledParametersReturn(
+				"factorGroupFromDataRecordGroup", mainDataRecordGroup);
+		return (List<DataRecordLinkSpy>) mainDataGroup.MCR
+				.assertCalledParametersReturn("getChildrenOfType", DataRecordLink.class);
+	}
+
+	private DataGroupSpy getDecoratedVersionOfRecord(DataRecordSpy cReadFromMain) {
+		var mainDataRecordGroup = cReadFromMain.MCR.getReturnValue("getDataRecordGroup", 0);
+		return (DataGroupSpy) dataFactory.MCR.assertCalledParametersReturn(
+				"factorGroupFromDataRecordGroup", mainDataRecordGroup);
 	}
 
 	@Test
