@@ -23,13 +23,13 @@ package se.uu.ub.cora.spider.dependency;
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.Uploader;
 import se.uu.ub.cora.spider.binary.iiif.IiifReader;
-import se.uu.ub.cora.spider.record.DecoratedRecordReader;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.spider.record.RecordListIndexer;
 import se.uu.ub.cora.spider.record.RecordListReader;
 import se.uu.ub.cora.spider.record.RecordReader;
+import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
@@ -40,7 +40,7 @@ public interface SpiderInstanceFactory {
 
 	RecordReader factorRecordReader();
 
-	DecoratedRecordReader factorDecoratedRecordReader();
+	RecordReaderDecorated factorRecordReaderDecorated();
 
 	IncomingLinksReader factorIncomingLinksReader();
 
@@ -57,6 +57,8 @@ public interface SpiderInstanceFactory {
 	Downloader factorDownloader();
 
 	RecordSearcher factorRecordSearcher();
+
+	RecordSearcher factorRecordSearcherDecorated();
 
 	RecordValidator factorRecordValidator();
 

@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.data.DataRecord;
 
-public interface DecoratedRecordReader {
+public interface RecordReaderDecorated {
 
 	/**
 	 * readDecoratedRecord is used to read a record using a recordType and recordId. The method

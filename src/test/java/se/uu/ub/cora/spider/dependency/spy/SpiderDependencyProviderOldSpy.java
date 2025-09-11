@@ -41,6 +41,7 @@ import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
+import se.uu.ub.cora.spider.record.RecordDecorator;
 import se.uu.ub.cora.spider.spy.UniqueValidatorSpy;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -236,6 +237,12 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 
 	@Override
 	public DataDecarator getDataDecorator() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public RecordDecorator getRecordDecorator() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -18,7 +18,9 @@
  */
 package se.uu.ub.cora.spider.record.internal;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.decorator.DataDecarator;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
@@ -29,42 +31,41 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.record.DecoratedRecordReader;
+import se.uu.ub.cora.spider.record.RecordDecorator;
 import se.uu.ub.cora.spider.record.RecordReader;
 
-public class DecoratedRecordReaderImp implements DecoratedRecordReader {
+public class RecordDecoratorImp implements RecordDecorator {
 
 	private static final int MAX_DEPTH = 2;
 
-	public static DecoratedRecordReaderImp usingDependencyProvider(
+	public static RecordDecoratorImp usingDependencyProvider(
 			SpiderDependencyProvider dependencyProvider) {
-		return new DecoratedRecordReaderImp(dependencyProvider);
+		return new RecordDecoratorImp(dependencyProvider);
 	}
 
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordReader recordReader;
 	private DataDecarator decorator;
+	private Map<String, DataGroup> cachedDecoratedRecordGroups = new HashMap<>();
 
-	private DecoratedRecordReaderImp(SpiderDependencyProvider dependencyProvider) {
+	private RecordDecoratorImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 	}
 
 	@Override
-	public DataRecord readDecoratedRecord(String authToken, String type, String id) {
+	public void decorateRecord(DataRecord recordToDecorate, String authToken) {
 		recordReader = SpiderInstanceProvider.getRecordReader();
 		decorator = dependencyProvider.getDataDecorator();
-		return readDecoratedRecordRecursive(authToken, type, id, 0);
+		readDecoratedRecordRecursive(recordToDecorate, authToken, 0);
 	}
 
-	private DataRecord readDecoratedRecordRecursive(String authToken, String type, String id,
+	private void readDecoratedRecordRecursive(DataRecord recordToDecorate, String authToken,
 			int depth) {
-		DataRecord recordToDecorate = readRecordFromStorage(authToken, type, id);
-		String definitionId = getDefinitionId(type);
+		String definitionId = getDefinitionId(recordToDecorate.getType());
 		decorator.decorateRecord(definitionId, recordToDecorate);
 		if (maxDepthNotReached(depth)) {
 			loopChildren(authToken, depth, recordToDecorate);
 		}
-		return recordToDecorate;
 	}
 
 	private void loopChildren(String authToken, int depth, DataRecord recordToDecorate) {
@@ -106,16 +107,31 @@ public class DecoratedRecordReaderImp implements DecoratedRecordReader {
 	private void possiblyReadLinksAndSetLinkedRecord(String authToken, int depth,
 			DataRecordLink link) {
 		if (link.hasReadAction()) {
+			setLinkedRecord(authToken, depth, link);
+		}
+	}
+
+	private void setLinkedRecord(String authToken, int depth, DataRecordLink link) {
+		String cacheKey = createCacheKey(depth, link);
+		if (cachedDecoratedRecordGroups.containsKey(cacheKey)) {
+			link.setLinkedRecord(cachedDecoratedRecordGroups.get(cacheKey));
+		} else {
 			var linkedRecordAsGroup = readLinkedRecordAsDecoratedGroup(authToken, depth, link);
+			cachedDecoratedRecordGroups.put(cacheKey, linkedRecordAsGroup);
 			link.setLinkedRecord(linkedRecordAsGroup);
 		}
 	}
 
+	private String createCacheKey(int depth, DataRecordLink link) {
+		return link.getLinkedRecordType() + link.getLinkedRecordId() + depth;
+	}
+
 	private DataGroup readLinkedRecordAsDecoratedGroup(String authToken, int depth,
 			DataRecordLink link) {
-		var linkedRecord = readDecoratedRecordRecursive(authToken, link.getLinkedRecordType(),
-				link.getLinkedRecordId(), depth + 1);
-		return DataProvider.createGroupFromRecordGroup(linkedRecord.getDataRecordGroup());
+		DataRecord recordToDecorate = readRecordFromStorage(authToken, link.getLinkedRecordType(),
+				link.getLinkedRecordId());
+		readDecoratedRecordRecursive(recordToDecorate, authToken, depth + 1);
+		return DataProvider.createGroupFromRecordGroup(recordToDecorate.getDataRecordGroup());
 	}
 
 	private DataRecord readRecordFromStorage(String authToken, String type, String id) {
@@ -130,4 +146,5 @@ public class DecoratedRecordReaderImp implements DecoratedRecordReader {
 	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {
 		return dependencyProvider;
 	}
+
 }

@@ -87,7 +87,7 @@ public class SpiderInstanceProviderTest {
 	public void makeSureFactoryIsCalledForDecoratedRecordReader() {
 		var decorateRecordReader = SpiderInstanceProvider.getDecoratedRecordReader();
 
-		factory.MCR.assertReturn("factorDecoratedRecordReader", 0, decorateRecordReader);
+		factory.MCR.assertReturn("factorRecordReaderDecorated", 0, decorateRecordReader);
 	}
 
 	@Test
@@ -144,6 +144,13 @@ public class SpiderInstanceProviderTest {
 		RecordSearcher recordSearcher = SpiderInstanceProvider.getRecordSearcher();
 
 		factory.MCR.assertReturn("factorRecordSearcher", 0, recordSearcher);
+	}
+
+	@Test
+	public void makeSureFactoryIsCalledForRecordSearcherDecorated() {
+		RecordSearcher recordSearcher = SpiderInstanceProvider.getRecordSearcherDecorated();
+
+		factory.MCR.assertReturn("factorRecordSearcherDecorated", 0, recordSearcher);
 	}
 
 	@Test

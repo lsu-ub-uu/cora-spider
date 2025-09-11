@@ -1,0 +1,64 @@
+/*
+ * Copyright 2025 Uppsala University Library
+ *
+ * This file is part of Cora.
+ *
+ *     Cora is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     Cora is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package se.uu.ub.cora.spider.record.internal;
+
+import java.util.List;
+
+import se.uu.ub.cora.data.Data;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataList;
+import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.record.RecordDecorator;
+import se.uu.ub.cora.spider.record.RecordSearcher;
+
+public class RecordSearcherDecoratedImp implements RecordSearcher {
+
+	private SpiderDependencyProvider dependencyProvider;
+
+	public RecordSearcherDecoratedImp(SpiderDependencyProvider dependencyProvider) {
+		this.dependencyProvider = dependencyProvider;
+	}
+
+	@Override
+	public DataList search(String authToken, String searchId, DataGroup searchData) {
+		DataList searchList = searchUsingStandardSearch(authToken, searchId, searchData);
+		decorateEachRecordInSearchResult(authToken, searchList);
+		return searchList;
+	}
+
+	private DataList searchUsingStandardSearch(String authToken, String searchId,
+			DataGroup searchData) {
+		RecordSearcher recordSearcher = SpiderInstanceProvider.getRecordSearcher();
+		return recordSearcher.search(authToken, searchId, searchData);
+	}
+
+	private void decorateEachRecordInSearchResult(String authToken, DataList searchList) {
+		RecordDecorator recordDecorator = dependencyProvider.getRecordDecorator();
+		List<Data> dataList = searchList.getDataList();
+		dataList.forEach(
+				dataRecord -> recordDecorator.decorateRecord((DataRecord) dataRecord, authToken));
+	}
+
+	public Object onlyForTestGetDependencyProvider() {
+		return dependencyProvider;
+	}
+
+}

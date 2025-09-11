@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2025 Uppsala University Library
+ * Copyright 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,26 +16,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataRecord;
 
-public interface RecordSearcher {
+public interface RecordDecorator {
 
 	/**
-	 * Search returns a {@link DataList} with all the {@link DataRecord} that matches searchData
-	 * search criteria.
+	 * decorateRecord returns a decorated record as a DataRecord. A decorated record means that the
+	 * definition (text) of the record fields are included as attributes in all the languages
+	 * defined in the metadata.
+	 * <p>
+	 * If user not authorized then it throws an {@link AuthenticationException}
 	 * 
+	 * @param recordToDecorate
+	 *            (In/Out parameter) A {@link DataRecord} to be decorated.
 	 * @param authToken
-	 *            String with the authToken of the caller.
-	 * @param searchId
-	 *            String with the id of the specific search metadata
-	 * @param searchData
-	 *            {@link DataGroup} containing the criteria of the search
-	 * @return List of {@link DataRecord} matching searchData.
+	 *            A String with the authToken of the user reading the record
 	 */
-	DataList search(String authToken, String searchId, DataGroup searchData);
 
+	void decorateRecord(DataRecord recordToDecorate, String authToken);
 }

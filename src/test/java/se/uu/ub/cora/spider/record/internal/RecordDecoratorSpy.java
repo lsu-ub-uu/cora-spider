@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2025 Uppsala University Library
+ * Copyright 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,26 +16,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.record;
+package se.uu.ub.cora.spider.record.internal;
 
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataRecord;
+import se.uu.ub.cora.spider.record.RecordDecorator;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public interface RecordSearcher {
+public class RecordDecoratorSpy implements RecordDecorator {
 
-	/**
-	 * Search returns a {@link DataList} with all the {@link DataRecord} that matches searchData
-	 * search criteria.
-	 * 
-	 * @param authToken
-	 *            String with the authToken of the caller.
-	 * @param searchId
-	 *            String with the id of the specific search metadata
-	 * @param searchData
-	 *            {@link DataGroup} containing the criteria of the search
-	 * @return List of {@link DataRecord} matching searchData.
-	 */
-	DataList search(String authToken, String searchId, DataGroup searchData);
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public RecordDecoratorSpy() {
+		MCR.useMRV(MRV);
+	}
+
+	@Override
+	public void decorateRecord(DataRecord recordToDecorate, String authToken) {
+		MCR.addCall("recordToDecorate", recordToDecorate, "authToken", authToken);
+	}
 
 }

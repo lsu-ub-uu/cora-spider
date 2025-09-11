@@ -42,7 +42,9 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.DataRedactorOldSpy;
+import se.uu.ub.cora.spider.record.RecordDecorator;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
+import se.uu.ub.cora.spider.record.internal.RecordDecoratorSpy;
 import se.uu.ub.cora.spider.record.internal.RecordSearchSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
@@ -92,6 +94,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MRV.setDefaultReturnValuesSupplier("getUniqueValidator", UniqueValidatorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataChangeSender", DataChangedSenderSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataDecorator", DataDecoratorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordDecorator", RecordDecoratorSpy::new);
 	}
 
 	@Override
@@ -203,5 +206,10 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	@Override
 	public DataDecarator getDataDecorator() {
 		return (DataDecarator) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public RecordDecorator getRecordDecorator() {
+		return (RecordDecorator) MCR.addCallAndReturnFromMRV();
 	}
 }
