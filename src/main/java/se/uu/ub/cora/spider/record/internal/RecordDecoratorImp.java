@@ -18,7 +18,9 @@
  */
 package se.uu.ub.cora.spider.record.internal;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.bookkeeper.decorator.DataDecarator;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
@@ -44,6 +46,7 @@ public class RecordDecoratorImp implements RecordDecorator {
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordReader recordReader;
 	private DataDecarator decorator;
+	private Map<String, DataGroup> cachedDecoratedRecordGroups = new HashMap<>();
 
 	private RecordDecoratorImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -67,7 +70,6 @@ public class RecordDecoratorImp implements RecordDecorator {
 
 	private void loopChildren(String authToken, int depth, DataRecord recordToDecorate) {
 		DataRecordGroup dataRecordGroup = recordToDecorate.getDataRecordGroup();
-//		System.out.println("Storage ToGroup id:" + recordToDecorate.getId());
 		DataGroup dataGroup = DataProvider.createGroupFromRecordGroup(dataRecordGroup);
 		loopChildrenAndAddLinkRecordIntoRecordLinks(authToken, dataGroup, depth);
 	}
@@ -105,10 +107,23 @@ public class RecordDecoratorImp implements RecordDecorator {
 	private void possiblyReadLinksAndSetLinkedRecord(String authToken, int depth,
 			DataRecordLink link) {
 		if (link.hasReadAction()) {
-			// cacheLinkedRecord((link, depth), linkedRecordAsGroup);
+			setLinkedRecord(authToken, depth, link);
+		}
+	}
+
+	private void setLinkedRecord(String authToken, int depth, DataRecordLink link) {
+		String cacheKey = createCacheKey(depth, link);
+		if (cachedDecoratedRecordGroups.containsKey(cacheKey)) {
+			link.setLinkedRecord(cachedDecoratedRecordGroups.get(cacheKey));
+		} else {
 			var linkedRecordAsGroup = readLinkedRecordAsDecoratedGroup(authToken, depth, link);
+			cachedDecoratedRecordGroups.put(cacheKey, linkedRecordAsGroup);
 			link.setLinkedRecord(linkedRecordAsGroup);
 		}
+	}
+
+	private String createCacheKey(int depth, DataRecordLink link) {
+		return link.getLinkedRecordType() + link.getLinkedRecordId() + depth;
 	}
 
 	private DataGroup readLinkedRecordAsDecoratedGroup(String authToken, int depth,
@@ -116,7 +131,6 @@ public class RecordDecoratorImp implements RecordDecorator {
 		DataRecord recordToDecorate = readRecordFromStorage(authToken, link.getLinkedRecordType(),
 				link.getLinkedRecordId());
 		readDecoratedRecordRecursive(recordToDecorate, authToken, depth + 1);
-//		System.out.println("Decorated ToGroup id:" + link.getLinkedRecordId());
 		return DataProvider.createGroupFromRecordGroup(recordToDecorate.getDataRecordGroup());
 	}
 
