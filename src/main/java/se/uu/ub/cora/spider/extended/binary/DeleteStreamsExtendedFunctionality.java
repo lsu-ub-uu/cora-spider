@@ -20,7 +20,6 @@ package se.uu.ub.cora.spider.extended.binary;
 
 import java.util.List;
 
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -49,6 +48,14 @@ public class DeleteStreamsExtendedFunctionality implements ExtendedFunctionality
 		deleteStreamsFromOtherRepresentations(binaryRecordGroup);
 	}
 
+	private void deleteStreamFromMasterRepresentation(DataRecordGroup binaryRecordGroup) {
+		if (binaryRecordGroup.containsChildWithNameInData("master")) {
+			ResourceArchive resourceArchive = dependencyProvider.getResourceArchive();
+			resourceArchive.delete(binaryRecordGroup.getDataDivider(), binaryRecordGroup.getType(),
+					binaryRecordGroup.getId());
+		}
+	}
+
 	private void deleteStreamsFromOtherRepresentations(DataRecordGroup binaryRecordGroup) {
 		List<String> representations = List.of("thumbnail", "medium", "large", "jp2");
 		for (String representation : representations) {
@@ -65,32 +72,11 @@ public class DeleteStreamsExtendedFunctionality implements ExtendedFunctionality
 
 	private void deleteStreamfromRepresentation(DataRecordGroup binaryRecordGroup,
 			String representation) {
-		String resourceId = getResourceId(binaryRecordGroup, representation);
-		String streamId = generateResourceId(binaryRecordGroup, resourceId);
-		deleteFromStreamStorage(streamId, binaryRecordGroup.getDataDivider());
-	}
-
-	private String getResourceId(DataRecordGroup binaryRecordGroup, String representation) {
-		DataGroup representationGroup = binaryRecordGroup
-				.getFirstGroupWithNameInData(representation);
-		return representationGroup.getFirstAtomicValueWithNameInData("resourceId");
-	}
-
-	private String generateResourceId(DataRecordGroup binaryRecordGroup, String resourceId) {
-		return binaryRecordGroup.getType() + ":" + resourceId;
-	}
-
-	private void deleteFromStreamStorage(String streamId, String dataDivider) {
 		StreamStorage streamStorage = dependencyProvider.getStreamStorage();
-		streamStorage.delete(dataDivider, type, streamId, representation);
-	}
-
-	private void deleteStreamFromMasterRepresentation(DataRecordGroup binaryRecordGroup) {
-		if (binaryRecordGroup.containsChildWithNameInData("master")) {
-			ResourceArchive resourceArchive = dependencyProvider.getResourceArchive();
-			resourceArchive.delete(binaryRecordGroup.getDataDivider(), binaryRecordGroup.getType(),
-					binaryRecordGroup.getId());
-		}
+		String dataDivider = binaryRecordGroup.getDataDivider();
+		String type = binaryRecordGroup.getType();
+		String id = binaryRecordGroup.getId();
+		streamStorage.delete(dataDivider, type, id, representation);
 	}
 
 	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {

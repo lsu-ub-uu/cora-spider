@@ -179,9 +179,8 @@ public final class DownloaderImp implements Downloader {
 
 	private ResourceInputStream readConvertedRepresentation(DataRecordGroup binaryRecordGroup,
 			String dataDivider) {
-		DataGroup resourceGroup = binaryRecordGroup.getFirstGroupWithNameInData(representation);
-		String resourceId = resourceGroup.getFirstAtomicValueWithNameInData("resourceId");
-		InputStream stream = streamStorage.retrieve(type + ":" + resourceId, dataDivider);
+		InputStream stream = streamStorage.retrieve(dataDivider, type, id, representation);
+
 		return prepareResponseForResourceInputStream(representation, binaryRecordGroup, stream);
 	}
 

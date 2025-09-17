@@ -35,20 +35,19 @@ public class DeleteStreamsExtendedFunctionalityTest {
 	private static final String DATA_DIVIDER = "someDataDivider";
 	private static final String RECORD_TYPE = "someRecordType";
 	private static final String RECORD_ID = "someId";
-	private static final String SOME_MIME_TYPE = "someMimeType";
+	private static final String MIME_TYPE = "someMimeType";
 	private static final String MASTER = "master";
 	private static final String THUMBNAIL = "thumbnail";
 	private static final String MEDIUM = "medium";
 	private static final String LARGE = "large";
 	private static final String JP2 = "jp2";
-	private static final String SOME_FILE_SIZE = "2123";
+	private static final String FILE_SIZE = "2123";
 	private static final String ORIGINAL_FILE_NAME = "someOriginalFilename";
 
 	private ExtendedFunctionalityData data;
 	private DeleteStreamsExtendedFunctionality extFunc;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private StreamStorageSpy streamStorage;
-	private DataGroupSpy resourceTypeDGS;
 	private DataGroupSpy masterResourceTypeDGS;
 	private DataGroupSpy thumbnailResourceTypeDGS;
 	private DataGroupSpy mediumResourceTypeDGS;
@@ -79,7 +78,6 @@ public class DeleteStreamsExtendedFunctionalityTest {
 	}
 
 	private void setupBinaryRecord() {
-		resourceTypeDGS = createResourceDataGroupForResourceId(MASTER);
 		masterResourceTypeDGS = createResourceDataGroupForResourceId(MASTER);
 		thumbnailResourceTypeDGS = createResourceDataGroupForResourceId(THUMBNAIL);
 		mediumResourceTypeDGS = createResourceDataGroupForResourceId(MEDIUM);
@@ -107,18 +105,18 @@ public class DeleteStreamsExtendedFunctionalityTest {
 	}
 
 	private DataGroupSpy createResourceDataGroupForResourceId(String representation) {
-		DataGroupSpy resourceTypeDGS = new DataGroupSpy();
-		resourceTypeDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> SOME_FILE_SIZE, "fileSize");
-		resourceTypeDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> SOME_MIME_TYPE, "mimeType");
-		resourceTypeDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+		DataGroupSpy resourceTypeDG = new DataGroupSpy();
+		resourceTypeDG.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> FILE_SIZE, "fileSize");
+		resourceTypeDG.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> MIME_TYPE, "mimeType");
+		resourceTypeDG.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> "someId-" + representation, "resourceId");
-		return resourceTypeDGS;
+		return resourceTypeDG;
 	}
 
 	@Test
-	public void testBinaryWithoutMaster() throws Exception {
+	public void testBinaryWithoutMaster() {
 		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
 				() -> false);
 
@@ -129,7 +127,7 @@ public class DeleteStreamsExtendedFunctionalityTest {
 	}
 
 	@Test
-	public void testBinaryWithoutAnyRepresentations() throws Exception {
+	public void testBinaryWithoutAnyRepresentations() {
 		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
 				() -> false);
 
@@ -143,75 +141,65 @@ public class DeleteStreamsExtendedFunctionalityTest {
 	}
 
 	@Test
-	public void testMasterRepresentationExists() throws Exception {
-		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
-				() -> false);
-		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
-				"master");
+	public void testMasterRepresentationExists() {
+		setUpBinaryDataGroupToOnlyHaveRepresentation("master");
 
 		extFunc.useExtendedFunctionality(data);
 
 		resourceArchive.MCR.assertParameters("delete", 0, DATA_DIVIDER, RECORD_TYPE, RECORD_ID);
 	}
 
-	@Test
-	public void testThumbnailRepresentationExists() throws Exception {
+	private void setUpBinaryDataGroupToOnlyHaveRepresentation(String representation) {
 		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
 				() -> false);
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
-				"thumbnail");
-
-		extFunc.useExtendedFunctionality(data);
-
-		String streamId = RECORD_TYPE + ":"
-				+ thumbnailResourceTypeDGS.getFirstAtomicValueWithNameInData("resourceId");
-		streamStorage.MCR.assertParameters("delete", 0, streamId, DATA_DIVIDER);
+				representation);
 	}
 
 	@Test
-	public void testMediumRepresentationExists() throws Exception {
-		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
-				() -> false);
-		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
-				"medium");
+	public void testThumbnailRepresentationExists() {
+		setUpBinaryDataGroupToOnlyHaveRepresentation(THUMBNAIL);
 
 		extFunc.useExtendedFunctionality(data);
 
-		String streamId = RECORD_TYPE + ":"
-				+ mediumResourceTypeDGS.getFirstAtomicValueWithNameInData("resourceId");
-		streamStorage.MCR.assertParameters("delete", 0, streamId, DATA_DIVIDER);
+		assertStreamStorageCalledForDeleteOf(THUMBNAIL);
+	}
+
+	private void assertStreamStorageCalledForDeleteOf(String representation) {
+		streamStorage.MCR.assertParameters("delete", 0, DATA_DIVIDER, RECORD_TYPE, RECORD_ID,
+				representation);
+		streamStorage.MCR.assertNumberOfCallsToMethod("delete", 1);
 	}
 
 	@Test
-	public void testLargeRepresentationExists() throws Exception {
-		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
-				() -> false);
-		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
-				"large");
+	public void testMediumRepresentationExists() {
+		setUpBinaryDataGroupToOnlyHaveRepresentation(MEDIUM);
 
 		extFunc.useExtendedFunctionality(data);
 
-		String streamId = RECORD_TYPE + ":"
-				+ largeResourceTypeDGS.getFirstAtomicValueWithNameInData("resourceId");
-		streamStorage.MCR.assertParameters("delete", 0, streamId, DATA_DIVIDER);
+		assertStreamStorageCalledForDeleteOf(MEDIUM);
 	}
 
 	@Test
-	public void testJp2RepresentationExists() throws Exception {
-		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("containsChildWithNameInData",
-				() -> false);
-		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData", () -> true,
-				"jp2");
+	public void testLargeRepresentationExists() {
+		setUpBinaryDataGroupToOnlyHaveRepresentation(LARGE);
 
 		extFunc.useExtendedFunctionality(data);
 
-		String streamId = RECORD_TYPE + ":"
-				+ jp2ResourceTypeDGS.getFirstAtomicValueWithNameInData("resourceId");
-		streamStorage.MCR.assertParameters("delete", 0, streamId, DATA_DIVIDER);
+		assertStreamStorageCalledForDeleteOf(LARGE);
 	}
 
 	@Test
-	public void testAllRepresentationExists() throws Exception {
+	public void testJp2RepresentationExists() {
+		setUpBinaryDataGroupToOnlyHaveRepresentation(JP2);
+
+		extFunc.useExtendedFunctionality(data);
+
+		assertStreamStorageCalledForDeleteOf(JP2);
+	}
+
+	@Test
+	public void testAllRepresentationExists() {
 		extFunc.useExtendedFunctionality(data);
 
 		resourceArchive.MCR.assertNumberOfCallsToMethod("delete", 1);
@@ -219,7 +207,7 @@ public class DeleteStreamsExtendedFunctionalityTest {
 	}
 
 	@Test
-	public void testOnlyForTestGetDependencyProvider() throws Exception {
+	public void testOnlyForTestGetDependencyProvider() {
 		assertEquals(extFunc.onlyForTestGetDependencyProvider(), dependencyProvider);
 
 	}
