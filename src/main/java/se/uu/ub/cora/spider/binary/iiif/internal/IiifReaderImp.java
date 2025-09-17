@@ -142,6 +142,9 @@ public class IiifReaderImp implements IiifReader {
 			Map<String, String> headersMap, String dataDivider) {
 		String identifier = "binary:" + recordId;
 		String uri = String.join("/", dataDivider, identifier, requestedUri);
+		// TODO: this needs to build uri using streamPathBuilder
+		// String uri = streamPathBuilder.buildPathToAFile(dataDivider, type, id,
+		// representation);
 		return new IiifParameters(uri, method, headersMap);
 	}
 
