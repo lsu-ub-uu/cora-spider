@@ -28,6 +28,12 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
 
+/**
+ * DeleteStreamsExtendedFunctionality remove stored datastreams from the archive and streamstorage,
+ * for the handled dataRecordGroup.
+ * <p>
+ * It is expected that this functionallity only is called for binary records.
+ */
 public class DeleteStreamsExtendedFunctionality implements ExtendedFunctionality {
 
 	private SpiderDependencyProvider dependencyProvider;
@@ -76,7 +82,7 @@ public class DeleteStreamsExtendedFunctionality implements ExtendedFunctionality
 
 	private void deleteFromStreamStorage(String streamId, String dataDivider) {
 		StreamStorage streamStorage = dependencyProvider.getStreamStorage();
-		streamStorage.delete(streamId, dataDivider);
+		streamStorage.delete(dataDivider, type, streamId, representation);
 	}
 
 	private void deleteStreamFromMasterRepresentation(DataRecordGroup binaryRecordGroup) {
