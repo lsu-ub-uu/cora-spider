@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Uppsala University Library
+ * Copyright 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -44,7 +44,7 @@ public class IiifReaderImp implements IiifReader {
 
 	private static final String AUTH_TOKEN = "authtoken";
 	private static final String ACTION_READ = "read";
-	private static final String JP2_REPRESENTATION = "binary.jp2";
+	private static final String JP2_PERMISSION = "binary.jp2";
 
 	private SpiderDependencyProvider dependencyProvider;
 	private Authenticator authenticator;
@@ -68,7 +68,7 @@ public class IiifReaderImp implements IiifReader {
 			Map<String, String> headersMap) {
 		try {
 			return tryToReadIiif(recordId, requestedUri, method, headersMap);
-		} catch (se.uu.ub.cora.storage.RecordNotFoundException e) {
+		} catch (se.uu.ub.cora.storage.RecordNotFoundException _) {
 			throw RecordNotFoundException.withMessage(
 					"Record not found for recordType: binary and recordId: " + recordId);
 		}
@@ -82,8 +82,8 @@ public class IiifReaderImp implements IiifReader {
 
 		throwNotFoundExceptionIfJP2DoesNotExist(binaryRecordGroup);
 
-		IiifParameters iiifParameters = createIiifParameters(recordId, requestedUri, method,
-				headersMap, binaryRecordGroup.getDataDivider());
+		IiifParameters iiifParameters = createIiifParameters(requestedUri, method, headersMap,
+				binaryRecordGroup);
 		return callIiifServer(iiifParameters);
 	}
 
@@ -127,7 +127,7 @@ public class IiifReaderImp implements IiifReader {
 
 	private void checkIfUserIsAuthorized(User user, List<PermissionTerm> permissionTerms) {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				ACTION_READ, JP2_REPRESENTATION, permissionTerms);
+				ACTION_READ, JP2_PERMISSION, permissionTerms);
 	}
 
 	private void throwNotFoundExceptionIfJP2DoesNotExist(DataRecordGroup binaryRecordGroup) {
@@ -138,14 +138,13 @@ public class IiifReaderImp implements IiifReader {
 		}
 	}
 
-	private IiifParameters createIiifParameters(String recordId, String requestedUri, String method,
-			Map<String, String> headersMap, String dataDivider) {
-		String identifier = "binary:" + recordId;
-		String uri = String.join("/", dataDivider, identifier, requestedUri);
-		// TODO: this needs to build uri using streamPathBuilder
-		// String uri = streamPathBuilder.buildPathToAFile(dataDivider, type, id,
-		// representation);
-		return new IiifParameters(uri, method, headersMap);
+	private IiifParameters createIiifParameters(String requestedUri, String method,
+			Map<String, String> headersMap, DataRecordGroup binaryRecordGroup) {
+		String dataDivider = binaryRecordGroup.getDataDivider();
+		String type = binaryRecordGroup.getType();
+		String id = binaryRecordGroup.getId();
+		return new IiifParameters(dataDivider, type, id, "jp2", requestedUri, method, headersMap);
+
 	}
 
 	private IiifResponse callIiifServer(IiifParameters iiifParameters) {
