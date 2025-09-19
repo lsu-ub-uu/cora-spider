@@ -25,6 +25,12 @@ import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
+/**
+ * BinaryProtocolsExtendedFunctionality add protocol iiif to the handled dataRecord, if there exists
+ * a resourceLink with readaction to a jp2 representation.
+ * <p>
+ * It is expected that this functionallity only is called for binary records.
+ */
 public class BinaryProtocolsExtendedFunctionality implements ExtendedFunctionality {
 
 	private static final String JP2 = "jp2";
