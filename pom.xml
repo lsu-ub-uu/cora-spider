@@ -37,13 +37,13 @@
 		<coradata.version>11.0.0</coradata.version>
 		<coradata-spies.version>3.0.0</coradata-spies.version>
 		<json.version>3.10.0</json.version>
-		<storage.version>9.9-SNAPSHOT</storage.version>
-		<storagespies.version>1.15-SNAPSHOT</storagespies.version>
+		<storage.version>9.9.0</storage.version>
+		<storagespies.version>1.15.0</storagespies.version>
 		<initialize.version>1.7.0</initialize.version>
 		<search.version>6.0.0</search.version>
 		<bookkeeper.version>10.4.0</bookkeeper.version>
 		<beefeater.version>4.0.0</beefeater.version>
-		<contentanalyzer.version>2.1-SNAPSHOT</contentanalyzer.version>
+		<contentanalyzer.version>2.1.0</contentanalyzer.version>
 		<password.version>1.9.0</password.version>
 		<testutils.version>1.14.0</testutils.version>
 		<logger-spies.version>1.5.0</logger-spies.version>
