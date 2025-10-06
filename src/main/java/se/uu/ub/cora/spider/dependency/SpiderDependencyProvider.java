@@ -50,6 +50,7 @@ public interface SpiderDependencyProvider {
 
 	StreamStorage getStreamStorage();
 
+	@Deprecated
 	RecordIdGenerator getRecordIdGenerator();
 
 	SpiderAuthorizator getSpiderAuthorizator();

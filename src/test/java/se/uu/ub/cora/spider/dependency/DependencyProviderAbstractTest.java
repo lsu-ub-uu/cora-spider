@@ -202,6 +202,16 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
+	public void testGetIdSource_UserSupplied() throws Exception {
+		// TODO: it must return an IdSource which returns "userSupplied" when getIdSourceType
+
+		DataRecordGroup recordTypeAsRecordGroup = new DataRecordGroupSpy();
+		IdSource idSource = dependencyProvider.getIdSource(recordTypeAsRecordGroup);
+		String idSourceType = idSource.getIdSourceType();
+		assertEquals(idSourceType, "userSupplied");
+	}
+
+	@Test
 	public void testExtendedFunctionalityProviderReturnsSame() {
 		ExtendedFunctionalityProvider extendedFunctionalityProvider1 = dependencyProvider
 				.getExtendedFunctionalityProvider();
