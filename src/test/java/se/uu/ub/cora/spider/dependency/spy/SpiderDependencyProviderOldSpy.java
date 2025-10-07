@@ -194,13 +194,6 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	}
 
 	@Override
-	public RecordIdGenerator getRecordIdGenerator() {
-		MCR.addCall();
-		MCR.addReturned(recordIdGenerator);
-		return recordIdGenerator;
-	}
-
-	@Override
 	public DataGroupToRecordEnhancer getDataGroupToRecordEnhancer() {
 		return null;
 	}

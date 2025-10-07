@@ -32,7 +32,7 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
-import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.extended.password.TextHasherSpy;
 import se.uu.ub.cora.spider.spy.DataChangedSenderSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
@@ -40,10 +40,10 @@ import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class SystemSecretOperationsTest {
 
-	private RecordIdGeneratorSpy recordIdGenerator;
 	private SystemSecretOperationsImp systemSecretOperations;
 	private DataFactorySpy dataFactory;
 	private SpiderDependencyProviderSpy dependencyProvider;
+	private RecordTypeHandlerSpy recordTypeHandler;
 
 	private static final String SYSTEM_SECRET_TYPE = "systemSecret";
 	private static final String SOME_SYSTEM_SECRET_ID = "someSystemSecretId";
@@ -53,27 +53,38 @@ public class SystemSecretOperationsTest {
 	private static final String SECRET = "secret";
 	private TextHasherSpy textHasher;
 	private RecordStorageSpy recordStorage;
+	private DataRecordGroupSpy createdRecordGroup;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		dataFactory = new DataFactorySpy();
-		DataProvider.onlyForTestSetDataFactory(dataFactory);
+		setupDataFactory();
 
 		textHasher = new TextHasherSpy();
 		recordStorage = new RecordStorageSpy();
-		recordIdGenerator = new RecordIdGeneratorSpy();
+		recordTypeHandler = new RecordTypeHandlerSpy();
 		createAndSetupDependencyProvider();
 
 		systemSecretOperations = SystemSecretOperationsImp
 				.usingDependencyProviderAndTextHasher(dependencyProvider, textHasher);
 	}
 
+	private void setupDataFactory() {
+		dataFactory = new DataFactorySpy();
+		DataProvider.onlyForTestSetDataFactory(dataFactory);
+
+		createdRecordGroup = new DataRecordGroupSpy();
+		createdRecordGroup.MRV.setDefaultReturnValuesSupplier("getId",
+				() -> "idSetOfRecorTypeHandler");
+		dataFactory.MRV.setDefaultReturnValuesSupplier("factorRecordGroupUsingNameInData",
+				() -> createdRecordGroup);
+	}
+
 	private void createAndSetupDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
-		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordIdGenerator",
-				() -> recordIdGenerator);
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandler);
 	}
 
 	@Test
@@ -88,20 +99,20 @@ public class SystemSecretOperationsTest {
 
 		textHasher.MCR.assertParameters("hashText", 0, "someSystemSecretValue");
 
-		recordIdGenerator.MCR.assertParameters("getIdForType", 0, SYSTEM_SECRET_TYPE);
-		String systemSecretId = (String) recordIdGenerator.MCR
-				.assertCalledParametersReturn("getIdForType", SYSTEM_SECRET_TYPE);
-
-		DataRecordGroupSpy systemSecretRecordGroup = assertAndReturnSystemSecretDataGroup(
-				systemSecretId);
+		DataRecordGroupSpy systemSecretRecordGroup = assertAndReturnSystemSecretDataGroup();
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
+				systemSecretRecordGroup);
+		String systemSecretId = (String) recordTypeHandler.MCR
+				.assertCalledParametersReturn("getNextId");
+		systemSecretRecordGroup.MCR.assertParameters("setId", 0, systemSecretId);
 
 		var systemSecretGroup = dataFactory.MCR.assertCalledParametersReturn(
 				"factorGroupFromDataRecordGroup", systemSecretRecordGroup);
 
-		recordStorage.MCR.assertParameters("create", 0, SYSTEM_SECRET_TYPE, systemSecretId,
-				systemSecretGroup, Collections.emptySet(), Collections.emptySet(),
-				SOME_DATA_DIVIDER);
-		assertEquals(createdSystemSecretId, systemSecretId);
+		recordStorage.MCR.assertParameters("create", 0, SYSTEM_SECRET_TYPE,
+				"idSetOfRecorTypeHandler", systemSecretGroup, Collections.emptySet(),
+				Collections.emptySet(), SOME_DATA_DIVIDER);
+		assertEquals(createdSystemSecretId, "idSetOfRecorTypeHandler");
 	}
 
 	@Test
@@ -132,13 +143,12 @@ public class SystemSecretOperationsTest {
 		}
 	}
 
-	private DataRecordGroupSpy assertAndReturnSystemSecretDataGroup(String systemSecretId) {
+	private DataRecordGroupSpy assertAndReturnSystemSecretDataGroup() {
 		DataRecordGroupSpy systemSecretRecordGroup = (DataRecordGroupSpy) dataFactory.MCR
 				.assertCalledParametersReturn("factorRecordGroupUsingNameInData",
 						SYSTEM_SECRET_NAME_IN_DATA);
 
 		systemSecretRecordGroup.MCR.assertParameters("setType", 0, SYSTEM_SECRET_TYPE);
-		systemSecretRecordGroup.MCR.assertParameters("setId", 0, systemSecretId);
 		systemSecretRecordGroup.MCR.assertParameters("setDataDivider", 0, SOME_DATA_DIVIDER);
 		systemSecretRecordGroup.MCR.assertParameters("setValidationType", 0,
 				SYSTEM_SECRET_VALIDATION_TYPE);

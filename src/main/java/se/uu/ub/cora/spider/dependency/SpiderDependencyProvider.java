@@ -40,7 +40,6 @@ import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
-import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 public interface SpiderDependencyProvider {
 
@@ -49,9 +48,6 @@ public interface SpiderDependencyProvider {
 	RecordArchive getRecordArchive();
 
 	StreamStorage getStreamStorage();
-
-	@Deprecated
-	RecordIdGenerator getRecordIdGenerator();
 
 	SpiderAuthorizator getSpiderAuthorizator();
 

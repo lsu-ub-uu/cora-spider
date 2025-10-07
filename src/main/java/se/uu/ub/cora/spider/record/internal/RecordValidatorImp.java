@@ -48,7 +48,6 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.RecordValidator;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
-import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 public final class RecordValidatorImp extends RecordHandler implements RecordValidator {
 	private static final String ERROR_MESSAGES = "errorMessages";
@@ -57,7 +56,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private SpiderAuthorizator authorizator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
-	private RecordIdGenerator idGenerator;
+	// private RecordIdGenerator idGenerator;
 	private RecordTypeHandler recordTypeHandlerForDataToValidate;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private String specifiedRecordTypeToValidate;
@@ -73,7 +72,7 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		this.idGenerator = dependencyProvider.getRecordIdGenerator();
+		// this.idGenerator = dependencyProvider.getRecordIdGenerator();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 

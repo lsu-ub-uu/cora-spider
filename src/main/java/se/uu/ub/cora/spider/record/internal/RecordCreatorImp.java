@@ -60,13 +60,12 @@ import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.archive.RecordArchive;
-import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 
 public final class RecordCreatorImp extends RecordHandler implements RecordCreator {
 	private static final String CREATE = "create";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
-	private RecordIdGenerator idGenerator;
+	// private RecordIdGenerator idGenerator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private String definitionId;
@@ -89,7 +88,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		dataValidator = dependencyProvider.getDataValidator();
 		recordStorage = dependencyProvider.getRecordStorage();
-		idGenerator = dependencyProvider.getRecordIdGenerator();
+		// idGenerator = dependencyProvider.getRecordIdGenerator();
 		linkCollector = dependencyProvider.getDataRecordLinkCollector();
 		dataGroupTermCollector = dependencyProvider.getDataGroupTermCollector();
 		recordIndexer = dependencyProvider.getRecordIndexer();
@@ -262,21 +261,21 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void ensureCompleteRecordInfo(String userId, String recordType) {
-		ensureIdExists(recordType);
+		ensureIdExists();
 		recordGroup.setType(recordType);
 		recordGroup.setCreatedBy(userId);
 		recordGroup.setTsCreatedToNow();
 		recordGroup.addUpdatedUsingUserIdAndTs(userId, recordGroup.getTsCreated());
 	}
 
-	private void ensureIdExists(String recordType) {
+	private void ensureIdExists() {
 		if (recordTypeHandler.shouldAutoGenerateId()) {
-			generateAndAddIdToRecordInfo(recordType);
+			generateAndAddIdToRecordInfo();
 		}
 	}
 
-	private void generateAndAddIdToRecordInfo(String recordType) {
-		recordGroup.setId(idGenerator.getIdForType(recordType));
+	private void generateAndAddIdToRecordInfo() {
+		recordGroup.setId(recordTypeHandler.getNextId());
 	}
 
 	private void collectInformationSpecifiedInMetadata() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019, 2020, 2023, 2024 Uppsala University Library
+ * Copyright 2015, 2016, 2019, 2020, 2023, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -62,7 +62,6 @@ import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.archive.RecordArchiveProvider;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
 import se.uu.ub.cora.storage.archive.ResourceArchiveProvider;
-import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 import se.uu.ub.cora.storage.idgenerator.RecordIdGeneratorProvider;
 
 public abstract class DependencyProviderAbstract implements SpiderDependencyProvider {
@@ -125,11 +124,6 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	public final void setRecordIdGeneratorProvider(
 			RecordIdGeneratorProvider recordIdGeneratorProvider) {
 		this.recordIdGeneratorProvider = recordIdGeneratorProvider;
-	}
-
-	@Override
-	public final RecordIdGenerator getRecordIdGenerator() {
-		return recordIdGeneratorProvider.getRecordIdGenerator();
 	}
 
 	@Override

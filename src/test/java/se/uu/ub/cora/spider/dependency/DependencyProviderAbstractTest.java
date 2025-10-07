@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, 2019, 2020, 2023, 2024 Uppsala University Library
+ * Copyright 2018, 2019, 2020, 2023, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -191,24 +191,6 @@ public class DependencyProviderAbstractTest {
 		dependencyProvider.setStreamStorageProvider(streamStorageProvider);
 		assertEquals(dependencyProvider.getStreamStorage(),
 				streamStorageProvider.getStreamStorage());
-	}
-
-	@Test
-	public void testSetGetRecordIdGenerator() {
-		RecordIdGeneratorProviderSpy recordIdGeneratorProvider = new RecordIdGeneratorProviderSpy();
-		dependencyProvider.setRecordIdGeneratorProvider(recordIdGeneratorProvider);
-		assertEquals(dependencyProvider.getRecordIdGenerator(),
-				recordIdGeneratorProvider.getRecordIdGenerator());
-	}
-
-	@Test
-	public void testGetIdSource_UserSupplied() throws Exception {
-		// TODO: it must return an IdSource which returns "userSupplied" when getIdSourceType
-
-		DataRecordGroup recordTypeAsRecordGroup = new DataRecordGroupSpy();
-		IdSource idSource = dependencyProvider.getIdSource(recordTypeAsRecordGroup);
-		String idSourceType = idSource.getIdSourceType();
-		assertEquals(idSourceType, "userSupplied");
 	}
 
 	@Test

@@ -52,7 +52,6 @@ import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
-import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.storage.spies.StreamStorageSpy;
 import se.uu.ub.cora.storage.spies.archive.RecordArchiveSpy;
@@ -115,11 +114,6 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	@Override
 	public StreamStorage getStreamStorage() {
 		return (StreamStorage) MCR.addCallAndReturnFromMRV();
-	}
-
-	@Override
-	public RecordIdGenerator getRecordIdGenerator() {
-		return (RecordIdGenerator) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override

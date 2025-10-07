@@ -66,6 +66,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
 		MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
 		MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> false);
+		MRV.setDefaultReturnValuesSupplier("getNextId", () -> "someNextId");
 	}
 
 	@Override
@@ -166,5 +167,10 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	@Override
 	public boolean usePermissionUnit() {
 		return (boolean) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public String getNextId() {
+		return (String) MCR.addCallAndReturnFromMRV();
 	}
 }
