@@ -52,7 +52,7 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
@@ -84,7 +84,6 @@ public class RecordValidatorTest {
 	private DataRecordLinkCollectorSpy linkCollector;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
-	private RecordIdGeneratorSpy idGenerator;
 	private LoggerFactorySpy loggerFactorySpy;
 	private DataFactorySpy dataFactorySpy;
 	private DataGroupTermCollectorSpy termCollector;
@@ -108,7 +107,6 @@ public class RecordValidatorTest {
 		recordStorage = new RecordStorageSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
-		idGenerator = new RecordIdGeneratorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		uniqueValidator = new UniqueValidatorSpy();
 		validAnswer = new ValidationAnswerSpy();
@@ -198,8 +196,6 @@ public class RecordValidatorTest {
 				() -> dataValidator);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataRecordLinkCollector",
 				() -> linkCollector);
-		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordIdGenerator",
-				() -> idGenerator);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
 				() -> termCollector);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getUniqueValidator",
@@ -306,9 +302,8 @@ public class RecordValidatorTest {
 				.assertCalledParametersReturn("getRecordTypeHandlerUsingDataRecordGroup",
 						validationOrderAsRecordGroup);
 
-		String validationOrderDefId = (String) recordTypeHandlerForValidationOrder.MCR
+		return (String) recordTypeHandlerForValidationOrder.MCR
 				.assertCalledParametersReturn("getCreateDefinitionId");
-		return validationOrderDefId;
 	}
 
 	@Test
@@ -803,8 +798,10 @@ public class RecordValidatorTest {
 	}
 
 	private void assertCorrectRecordInfo(DataRecordGroupSpy validationResult) {
-		validationResult.MCR.assertParameters("setId", 0,
-				idGenerator.MCR.getReturnValue("getIdForType", 0));
+		var recordTypeHandler = (RecordTypeHandlerOldSpy) dependencyProvider.MCR
+				.assertCalledParametersReturn("getRecordTypeHandler", VALIDATION_ORDER_TYPE);
+		var nextId = recordTypeHandler.MCR.assertCalledParametersReturn("getNextId");
+		validationResult.MCR.assertParameters("setId", 0, nextId);
 		validationResult.MCR.assertParameters("setType", 0, VALIDATION_ORDER_TYPE);
 		validationResult.MCR.assertParameters("setCreatedBy", 0, currentUser.id);
 		validationResult.MCR.methodWasCalled("setTsCreatedToNow");

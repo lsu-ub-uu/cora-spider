@@ -65,7 +65,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private static final String CREATE = "create";
 	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
-	// private RecordIdGenerator idGenerator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
 	private String definitionId;
@@ -88,7 +87,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		dataValidator = dependencyProvider.getDataValidator();
 		recordStorage = dependencyProvider.getRecordStorage();
-		// idGenerator = dependencyProvider.getRecordIdGenerator();
 		linkCollector = dependencyProvider.getDataRecordLinkCollector();
 		dataGroupTermCollector = dependencyProvider.getDataGroupTermCollector();
 		recordIndexer = dependencyProvider.getRecordIndexer();

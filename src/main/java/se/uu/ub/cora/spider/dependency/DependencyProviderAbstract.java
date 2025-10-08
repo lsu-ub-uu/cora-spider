@@ -62,12 +62,10 @@ import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.archive.RecordArchiveProvider;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
 import se.uu.ub.cora.storage.archive.ResourceArchiveProvider;
-import se.uu.ub.cora.storage.idgenerator.RecordIdGeneratorProvider;
 
 public abstract class DependencyProviderAbstract implements SpiderDependencyProvider {
 	protected RecordArchiveProvider recordArchiveProvider;
 	protected StreamStorageProvider streamStorageProvider;
-	protected RecordIdGeneratorProvider recordIdGeneratorProvider;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 
 	protected DependencyProviderAbstract() {
@@ -119,11 +117,6 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	public final void setStreamStorageProvider(StreamStorageProvider streamStorageProvider) {
 		this.streamStorageProvider = streamStorageProvider;
-	}
-
-	public final void setRecordIdGeneratorProvider(
-			RecordIdGeneratorProvider recordIdGeneratorProvider) {
-		this.recordIdGeneratorProvider = recordIdGeneratorProvider;
 	}
 
 	@Override

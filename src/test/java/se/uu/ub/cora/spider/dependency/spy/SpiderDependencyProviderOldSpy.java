@@ -48,7 +48,6 @@ import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
-import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
@@ -62,7 +61,6 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	public Uploader uploader;
 	public DataValidator dataValidator;
 	public DataRecordLinkCollector linkCollector;
-	public RecordIdGenerator idGenerator;
 	public StreamStorage streamStorage;
 	public ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	public Authenticator authenticator;
@@ -76,7 +74,6 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 	public Map<String, RecordTypeHandlerOldSpy> mapOfRecordTypeHandlerSpies = new HashMap<>();
 
 	public RecordStorage recordStorage = new RecordStorageSpy();
-	public RecordIdGenerator recordIdGenerator;
 	public RecordArchive recordArchive;
 
 	public SpiderDependencyProviderOldSpy() {

@@ -56,7 +56,6 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 	private SpiderAuthorizator authorizator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
-	// private RecordIdGenerator idGenerator;
 	private RecordTypeHandler recordTypeHandlerForDataToValidate;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private String specifiedRecordTypeToValidate;
@@ -72,7 +71,6 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		this.dataValidator = dependencyProvider.getDataValidator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.linkCollector = dependencyProvider.getDataRecordLinkCollector();
-		// this.idGenerator = dependencyProvider.getRecordIdGenerator();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
@@ -353,7 +351,9 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 
 	private DataRecordGroup createValidationRecordGroup() {
 		validationResult = DataProvider.createRecordGroupUsingNameInData("validationResult");
-		validationResult.setId(idGenerator.getIdForType(recordType));
+		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
+
+		validationResult.setId(recordTypeHandler.getNextId());
 		validationResult.setType(recordType);
 		validationResult.setCreatedBy(user.id);
 		validationResult.setTsCreatedToNow();

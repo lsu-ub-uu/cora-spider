@@ -78,7 +78,6 @@ public class RecordCreatorTest {
 	private static final String AUTH_TOKEN = "someToken";
 	private RecordStorageSpy recordStorage;
 	private SpiderAuthorizatorSpy spiderAuthorizator;
-	// private RecordIdGeneratorSpy idGenerator;
 	private RecordCreator recordCreator;
 	private DataValidatorSpy dataValidator;
 	private DataRecordLinkCollectorSpy linkCollector;
@@ -108,7 +107,6 @@ public class RecordCreatorTest {
 		spiderAuthorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = new RecordStorageSpy();
-		// idGenerator = new RecordIdGeneratorSpy();
 		linkCollector = new DataRecordLinkCollectorSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		recordIndexer = new RecordIndexerSpy();
@@ -152,8 +150,6 @@ public class RecordCreatorTest {
 				() -> uniqueValidator);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordIndexer",
 				() -> recordIndexer);
-		// dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordIdGenerators",
-		// () -> idGenerator);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataRecordLinkCollector",
 				() -> linkCollector);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataRedactor",
