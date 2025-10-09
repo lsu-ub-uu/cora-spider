@@ -35,7 +35,6 @@ import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.spy.DataDecoratorSpy;
 import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
-import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
@@ -52,7 +51,6 @@ import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 import se.uu.ub.cora.storage.archive.ResourceArchive;
-import se.uu.ub.cora.storage.idgenerator.RecordIdGenerator;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.storage.spies.StreamStorageSpy;
 import se.uu.ub.cora.storage.spies.archive.RecordArchiveSpy;
@@ -70,7 +68,6 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MRV.setDefaultReturnValuesSupplier("getRecordArchive", RecordArchiveSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getResourceArchive", ResourceArchiveSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getStreamStorage", StreamStorageSpy::new);
-		MRV.setDefaultReturnValuesSupplier("getRecordIdGenerator", RecordIdGeneratorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator", SpiderAuthorizatorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataValidator", DataValidatorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataRecordLinkCollector",
@@ -115,11 +112,6 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	@Override
 	public StreamStorage getStreamStorage() {
 		return (StreamStorage) MCR.addCallAndReturnFromMRV();
-	}
-
-	@Override
-	public RecordIdGenerator getRecordIdGenerator() {
-		return (RecordIdGenerator) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, 2019, 2020, 2023, 2024 Uppsala University Library
+ * Copyright 2018, 2019, 2020, 2023, 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -60,7 +60,6 @@ import se.uu.ub.cora.spider.data.internal.DataGroupToFilterImp;
 import se.uu.ub.cora.spider.dependency.spy.DataValidatorFactoySpy;
 import se.uu.ub.cora.spider.dependency.spy.MetadataStorageProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordArchiveProviderSpy;
-import se.uu.ub.cora.spider.dependency.spy.RecordIdGeneratorProviderSpy;
 import se.uu.ub.cora.spider.dependency.spy.StreamStorageProviderSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderImp;
@@ -74,7 +73,6 @@ import se.uu.ub.cora.spider.unique.UniqueValidatorImp;
 import se.uu.ub.cora.storage.RecordStorageProvider;
 import se.uu.ub.cora.storage.StreamStorageProvider;
 import se.uu.ub.cora.storage.archive.ResourceArchiveProvider;
-import se.uu.ub.cora.storage.idgenerator.RecordIdGeneratorProvider;
 import se.uu.ub.cora.storage.spies.RecordStorageInstanceProviderSpy;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 import se.uu.ub.cora.storage.spies.archive.ResourceArchiveInstanceProviderSpy;
@@ -113,8 +111,6 @@ public class DependencyProviderAbstractTest {
 
 		StreamStorageProvider streamStorageProvider = new StreamStorageProviderSpy();
 		dependencyProvider.setStreamStorageProvider(streamStorageProvider);
-		RecordIdGeneratorProvider recordIdGeneratorProvider = new RecordIdGeneratorProviderSpy();
-		dependencyProvider.setRecordIdGeneratorProvider(recordIdGeneratorProvider);
 		metadataStorageProvider = new MetadataStorageProviderSpy();
 		MetadataStorageProvider
 				.onlyForTestSetMetadataStorageViewInstanceProvider(metadataStorageProvider);
@@ -191,14 +187,6 @@ public class DependencyProviderAbstractTest {
 		dependencyProvider.setStreamStorageProvider(streamStorageProvider);
 		assertEquals(dependencyProvider.getStreamStorage(),
 				streamStorageProvider.getStreamStorage());
-	}
-
-	@Test
-	public void testSetGetRecordIdGenerator() {
-		RecordIdGeneratorProviderSpy recordIdGeneratorProvider = new RecordIdGeneratorProviderSpy();
-		dependencyProvider.setRecordIdGeneratorProvider(recordIdGeneratorProvider);
-		assertEquals(dependencyProvider.getRecordIdGenerator(),
-				recordIdGeneratorProvider.getRecordIdGenerator());
 	}
 
 	@Test

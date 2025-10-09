@@ -83,6 +83,7 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 		MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> false);
 		MRV.setDefaultReturnValuesSupplier("representsTheRecordTypeDefiningRecordTypes",
 				() -> false);
+		MRV.setDefaultReturnValuesSupplier("getNextId", () -> "someNextId");
 	}
 
 	@Override
@@ -220,5 +221,10 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 	@Override
 	public boolean usePermissionUnit() {
 		return (boolean) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public String getNextId() {
+		return (String) MCR.addCallAndReturnFromMRV();
 	}
 }
