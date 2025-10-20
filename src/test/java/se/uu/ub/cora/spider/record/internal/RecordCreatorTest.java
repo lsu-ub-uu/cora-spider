@@ -832,6 +832,7 @@ public class RecordCreatorTest {
 				recordPermissionUnit.get());
 	}
 
+	@SuppressWarnings("unchecked")
 	private Optional<String> assertAndReturnGetPermissionUnit() {
 		return (Optional<String>) recordWithoutId.MCR
 				.assertCalledParametersReturn("getPermissionUnit");
@@ -845,7 +846,7 @@ public class RecordCreatorTest {
 		try {
 			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 			fail();
-		} catch (Exception e) {
+		} catch (Exception _) {
 			spiderAuthorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForPemissionUnit");
 		}
 	}
@@ -858,7 +859,7 @@ public class RecordCreatorTest {
 		try {
 			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 			fail();
-		} catch (Exception e) {
+		} catch (Exception _) {
 			spiderAuthorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForPemissionUnit");
 		}
 	}
@@ -867,5 +868,34 @@ public class RecordCreatorTest {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> true);
 		recordWithoutId.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
 				() -> Optional.of("permissionUnit001"));
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "To use the trash bin function, you must first activate it on the record type.")
+	public void testTrashBin_NotUsed_But_RecordSetsInTrashBin() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> false);
+		recordWithoutId.MRV.setDefaultReturnValuesSupplier("isInTrashBin",
+				() -> Optional.of(Boolean.FALSE));
+
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "Setting a record as “in the trash bin” during creation is not allowed.")
+	public void testTrashBin_ShouldNotBeSetToInTrashBinOnCreation() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> true);
+		recordWithoutId.MRV.setDefaultReturnValuesSupplier("isInTrashBin",
+				() -> Optional.of(Boolean.TRUE));
+
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "The isInTrashBin field must be set when using the trash bin functionality.")
+	public void testTrashBin_UseTrashBinThenIsInTrashMustBeSet() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> true);
+		recordWithoutId.MRV.setDefaultReturnValuesSupplier("isInTrashBin", Optional::empty);
+
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 	}
 }

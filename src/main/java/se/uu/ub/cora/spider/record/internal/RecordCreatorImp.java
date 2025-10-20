@@ -201,6 +201,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private void validateRecord() {
 		checkRecordPartsUserIsNotAllowtoChange();
 		possiblyHandleVisibility();
+		possiblyUseTrashBin();
 		validateDataInRecordAsSpecifiedInMetadata();
 	}
 
@@ -229,6 +230,31 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		recordGroup = dataRedactor.removeChildrenForConstraintsWithoutPermissions(definitionId,
 				recordGroup, writeRecordPartConstraints, writePermissions);
+	}
+
+	// TODO: Clean the code!!!! :)
+	private void possiblyUseTrashBin() {
+		if (recordTypeNotUsingTrashBinButRecordSetsRecordToTrashBin()) {
+			throw new DataException(
+					"To use the trash bin function, you must first activate it on the record type.");
+		}
+		if (notAllowedToUseTrashBinAndSetRecordInTrashOnCreation()) {
+			throw new DataException(
+					"Setting a record as “in the trash bin” during creation is not allowed.");
+		}
+		if (recordTypeHandler.useTrashBin() && recordGroup.isInTrashBin().isEmpty()) {
+			throw new DataException(
+					"The isInTrashBin field must be set when using the trash bin functionality.");
+		}
+	}
+
+	private boolean notAllowedToUseTrashBinAndSetRecordInTrashOnCreation() {
+		return recordTypeHandler.useTrashBin() && recordGroup.isInTrashBin().isPresent()
+				&& recordGroup.isInTrashBin().get().booleanValue();
+	}
+
+	private boolean recordTypeNotUsingTrashBinButRecordSetsRecordToTrashBin() {
+		return !recordTypeHandler.useTrashBin() && recordGroup.isInTrashBin().isPresent();
 	}
 
 	private void possiblyHandleVisibility() {

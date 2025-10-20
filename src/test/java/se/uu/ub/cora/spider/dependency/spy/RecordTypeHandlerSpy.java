@@ -57,7 +57,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 				() -> "fakeUpdateSearchIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("hasRecordPartCreateConstraint", () -> false);
 		MRV.setDefaultReturnValuesSupplier("getCreateWriteRecordPartConstraints",
-				() -> Collections.emptySet());
+				Collections::emptySet);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "fakeRecordTypeIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("getCombinedIdForIndex",
