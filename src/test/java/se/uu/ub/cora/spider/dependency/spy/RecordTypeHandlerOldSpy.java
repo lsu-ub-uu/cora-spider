@@ -80,6 +80,7 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 		MRV.setDefaultReturnValuesSupplier("isPublicForRead", () -> isPublicForRead);
 		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
 		MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
+		MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> false);
 		MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> false);
 		MRV.setDefaultReturnValuesSupplier("representsTheRecordTypeDefiningRecordTypes",
 				() -> false);
@@ -219,6 +220,11 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 	}
 
 	@Override
+	public boolean useTrashBin() {
+		return (boolean) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
 	public boolean usePermissionUnit() {
 		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
@@ -227,4 +233,5 @@ public class RecordTypeHandlerOldSpy implements RecordTypeHandler {
 	public String getNextId() {
 		return (String) MCR.addCallAndReturnFromMRV();
 	}
+
 }
