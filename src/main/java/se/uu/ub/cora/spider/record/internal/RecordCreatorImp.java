@@ -27,6 +27,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -232,7 +233,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 				recordGroup, writeRecordPartConstraints, writePermissions);
 	}
 
-	// TODO: Clean the code!!!! :)
 	private void possiblyUseTrashBin() {
 		if (recordTypeNotUsingTrashBinButRecordSetsRecordToTrashBin()) {
 			throw new DataException(
@@ -242,15 +242,20 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 			throw new DataException(
 					"Setting a record as “in the trash bin” during creation is not allowed.");
 		}
-		if (recordTypeHandler.useTrashBin() && recordGroup.isInTrashBin().isEmpty()) {
+		if (ifUsingTrashBinButNoInTrashBinNotSet()) {
 			throw new DataException(
 					"The isInTrashBin field must be set when using the trash bin functionality.");
 		}
 	}
 
+	private boolean ifUsingTrashBinButNoInTrashBinNotSet() {
+		return recordTypeHandler.useTrashBin() && recordGroup.isInTrashBin().isEmpty();
+	}
+
 	private boolean notAllowedToUseTrashBinAndSetRecordInTrashOnCreation() {
-		return recordTypeHandler.useTrashBin() && recordGroup.isInTrashBin().isPresent()
-				&& recordGroup.isInTrashBin().get().booleanValue();
+		Optional<Boolean> optionalInTrashBin = recordGroup.isInTrashBin();
+		return recordTypeHandler.useTrashBin() && optionalInTrashBin.isPresent()
+				&& optionalInTrashBin.get().booleanValue();
 	}
 
 	private boolean recordTypeNotUsingTrashBinButRecordSetsRecordToTrashBin() {

@@ -144,6 +144,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		possiblyReplaceRecordPartsUserIsNotAllowedToChange();
 
 		possiblyHandleVisibility();
+		possiblyUseTrashBin();
 
 		validateIncomingDataAsSpecifiedInMetadata();
 		useExtendedFunctionalityForPosition(UPDATE_AFTER_METADATA_VALIDATION);
@@ -355,6 +356,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		if (recordTypeHandler.useVisibility()) {
 			possiblySetVisibilityToDefault();
 			possiblyUpdateVisibilityTimeStamp();
+
 		}
 	}
 
@@ -374,6 +376,41 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		Optional<String> previousVisibility = previouslyStoredRecord.getVisibility();
 		Optional<String> updatedVisibility = recordGroup.getVisibility();
 		return !previousVisibility.equals(updatedVisibility);
+	}
+
+	private void possiblyUseTrashBin() {
+		if (recordTypeNotUsingTrashBinButRecordSetsRecordToTrashBin()) {
+			throw new DataException(
+					"To use the trash bin function, you must first activate it on the record type.");
+		}
+		if (ifUsingTrashBinButNoInTrashBinNotSet()) {
+			throw new DataException(
+					"The isInTrashBin field must be set when using the trash bin functionality.");
+		}
+		if (useTrashBinAndVisibilityRecorSetToInTrash()) {
+			recordGroup.setVisibility("unpublished");
+		}
+	}
+
+	private boolean useTrashBinAndVisibilityRecorSetToInTrash() {
+		return usesTrashBinAndVisibility() && isInTrashBin();
+	}
+
+	private boolean isInTrashBin() {
+		Optional<Boolean> inTrashBin = recordGroup.isInTrashBin();
+		return inTrashBin.isPresent() && inTrashBin.get().booleanValue();
+	}
+
+	private boolean usesTrashBinAndVisibility() {
+		return recordTypeHandler.useVisibility() && recordTypeHandler.useTrashBin();
+	}
+
+	private boolean ifUsingTrashBinButNoInTrashBinNotSet() {
+		return recordTypeHandler.useTrashBin() && recordGroup.isInTrashBin().isEmpty();
+	}
+
+	private boolean recordTypeNotUsingTrashBinButRecordSetsRecordToTrashBin() {
+		return !recordTypeHandler.useTrashBin() && recordGroup.isInTrashBin().isPresent();
 	}
 
 	private void updateRecordInStorage(DataGroup recordAsDataGroupForStorage,

@@ -967,7 +967,7 @@ public class RecordUpdaterTest {
 		try {
 			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 			fail();
-		} catch (Exception e) {
+		} catch (Exception _) {
 			authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForPemissionUnit");
 		}
 	}
@@ -980,8 +980,51 @@ public class RecordUpdaterTest {
 		try {
 			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 			fail();
-		} catch (Exception e) {
+		} catch (Exception _) {
 			authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForPemissionUnit");
 		}
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "To use the trash bin function, you must first activate it on the record type.")
+	public void testTrashBin_NotUsed_But_RecordSetsInTrashBin() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> false);
+		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin",
+				() -> Optional.of(Boolean.FALSE));
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "The isInTrashBin field must be set when using the trash bin functionality.")
+	public void testTrashBin_UseTrashBinThenIsInTrashMustBeSet() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> true);
+		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin", Optional::empty);
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+	}
+
+	@Test
+	public void testUseTrashBin_SetToInTrashBin_NoVisibility() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> true);
+		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin",
+				() -> Optional.of(Boolean.TRUE));
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		recordWithId.MCR.assertMethodNotCalled("setVisibility");
+	}
+
+	@Test
+	public void testUseTrashBin_SetToNotInTrashBin_WithVisibility() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> true);
+		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin",
+				() -> Optional.of(Boolean.TRUE));
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		recordWithId.MCR.assertParameters("setVisibility", 0, "unpublished");
 	}
 }
