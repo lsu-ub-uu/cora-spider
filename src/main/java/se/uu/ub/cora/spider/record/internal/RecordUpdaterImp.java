@@ -433,7 +433,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private void storeInArchive(DataGroup recordAsDataGroupForStorage) {
 		try {
 			recordArchive.update(dataDivider, recordType, recordId, recordAsDataGroupForStorage);
-		} catch (RecordNotFoundException e) {
+		} catch (RecordNotFoundException _) {
 			recordArchive.create(dataDivider, recordType, recordId, recordAsDataGroupForStorage);
 		}
 	}
