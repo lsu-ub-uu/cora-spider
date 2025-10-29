@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, 2023 Uppsala University Library
+ * Copyright 2021, 2023, 2025 Uppsala University Library
  * Copyright 2024 Olov McKie
  *
  * This file is part of Cora.
@@ -142,7 +142,7 @@ public class DataRecordGroupHandlerForIndexBatchJobImp
 	}
 
 	private void addRecordInfo(DataRecordGroup dataRecordGroup) {
-		dataRecordGroup.setDataDivider("cora");
+		dataRecordGroup.setDataDivider("coraData");
 		dataRecordGroup.setValidationType("indexBatchJob");
 	}
 
