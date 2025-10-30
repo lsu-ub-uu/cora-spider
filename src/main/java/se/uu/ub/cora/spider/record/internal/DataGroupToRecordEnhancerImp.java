@@ -119,7 +119,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private DataRecord enhanceDataGroupToRecord(DataRecordGroup dataRecordGroup,
 			DataRedactor dataRedactor) {
-		readRecordPartPermissions = ensureReadAccessAndReturnReadRecordPartPemission(
+		readRecordPartPermissions = ensureReadAccessAndReturnReadRecordPartPermission(
 				dataRecordGroup);
 		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataRecordGroup,
 				dataRedactor);
@@ -137,14 +137,14 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return dataRecord;
 	}
 
-	Set<String> ensureReadAccessAndReturnReadRecordPartPemission(DataRecordGroup dataRecordGroup) {
+	Set<String> ensureReadAccessAndReturnReadRecordPartPermission(DataRecordGroup dataRecordGroup) {
 		if (recordTypeHandler.isPublicForRead()) {
 			return noRecordPartPermissions();
 		}
 		if (recordTypeUsesVisibilityAndRecordIsPublished(dataRecordGroup)) {
 			return tryToGetUsersRecordPartPermissions();
 		}
-		if (recordTypeHandler.usePermissionUnit()) {
+		if (recordTypeHandler.useVisibility() && recordTypeHandler.usePermissionUnit()) {
 			checkUserIsAuthorizedForPermissionUnit(dataRecordGroup);
 		}
 		return checkAndGetUserAuthorizationsForReadAction();
@@ -532,7 +532,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void setNoReadPermissionsIfUserHasNoReadAccess(DataRecordGroup dataRecordGroup) {
 		try {
-			readRecordPartPermissions = ensureReadAccessAndReturnReadRecordPartPemission(
+			readRecordPartPermissions = ensureReadAccessAndReturnReadRecordPartPermission(
 					dataRecordGroup);
 		} catch (Exception catchedException) {
 			addActionRead = false;

@@ -2188,6 +2188,8 @@ public class DataGroupToRecordEnhancerTest {
 	public void testIfPermissionUnitsUsedInRecordType_NoPermissionUnitInData_DoNotCheckUserAuthorization() {
 		changeToModernSpies();
 		setupRecordTypeToUsePermissionUnit();
+		setupRecordTypeToUseVisibility();
+		setupSomeDataRecordGroupToHaveVisibilityUnpublished();
 		someDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
 				Optional::empty);
 
@@ -2195,9 +2197,23 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testCallCheckUserIsAuthorizedForPermissionUnitsIfPermissionUnitsAreUsedInRecordType() {
+	public void testCallCheckUserIsAuthorizedForPermissionUnits_notCalledForOnlyPermissionUnit() {
 		changeToModernSpies();
 		setupRecordTypeToUsePermissionUnit();
+		setupSomeDataRecordGroupToHaveSomePermissionUnit();
+
+		enhancer.enhance(user, DATA_WITH_LINKS, someDataRecordGroup, dataRedactor);
+
+		recordTypeHandlerSpy.MCR.assertMethodWasCalled("usePermissionUnit");
+		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForPemissionUnit");
+	}
+
+	@Test
+	public void testCallCheckUserIsAuthorizedForPermissionUnits_IfPermissionUnitsAndVisibilityAreUsedInRecordType() {
+		changeToModernSpies();
+		setupRecordTypeToUsePermissionUnit();
+		setupRecordTypeToUseVisibility();
+		setupSomeDataRecordGroupToHaveVisibilityUnpublished();
 		setupSomeDataRecordGroupToHaveSomePermissionUnit();
 
 		enhancer.enhance(user, DATA_WITH_LINKS, someDataRecordGroup, dataRedactor);
@@ -2211,18 +2227,31 @@ public class DataGroupToRecordEnhancerTest {
 			+ "Visibility is missing in the record.")
 	public void testTypesUsesVisibilityButRecordHasEmptyVisibility() {
 		changeToModernSpies();
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+		setupRecordTypeToUseVisibility();
 		someDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility", Optional::empty);
 
 		enhancer.enhance(user, DATA_WITH_LINKS, someDataRecordGroup, dataRedactor);
 	}
 
-	@Test
-	public void testTypesUsesVisibilityButRecordNotpublished() {
-		changeToModernSpies();
+	private void setupRecordTypeToUseVisibility() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
+	}
+
+	private void setupSomeDataRecordGroupToHaveVisibilityUnpublished() {
 		someDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
 				() -> Optional.of("unpublished"));
+	}
+
+	private void setupSomeDataRecordGroupToHaveVisibilityPublished() {
+		someDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("published"));
+	}
+
+	@Test
+	public void testTypesUsesVisibilityButRecordNotPublished() {
+		changeToModernSpies();
+		setupRecordTypeToUseVisibility();
+		setupSomeDataRecordGroupToHaveVisibilityUnpublished();
 
 		DataRecordSpy enhancedRecord = (DataRecordSpy) enhancer.enhance(user, DATA_WITH_LINKS,
 				someDataRecordGroup, dataRedactor);
@@ -2241,9 +2270,8 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testTypesUsesVisibilityAndRecordIsPublished() {
 		changeToModernSpies();
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
-		someDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
-				() -> Optional.of("published"));
+		setupRecordTypeToUseVisibility();
+		setupSomeDataRecordGroupToHaveVisibilityPublished();
 
 		DataRecordSpy enhancedRecord = (DataRecordSpy) enhancer.enhance(user, DATA_WITH_LINKS,
 				someDataRecordGroup, dataRedactor);
@@ -2261,9 +2289,9 @@ public class DataGroupToRecordEnhancerTest {
 	@Test
 	public void testTypesUsesVisibilityAndRecordIsPublishedButUserNotAuthorized() {
 		changeToModernSpies();
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
-		someDataRecordGroup.MRV.setDefaultReturnValuesSupplier("getVisibility",
-				() -> Optional.of("published"));
+		setupRecordTypeToUseVisibility();
+		setupSomeDataRecordGroupToHaveVisibilityPublished();
+
 		authorizator.MRV.setAlwaysThrowException(
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				new RuntimeException("someException"));
@@ -2305,10 +2333,10 @@ public class DataGroupToRecordEnhancerTest {
 		var enhancedRecord = (DataRecordSpy) onlyForTestEnhancer.enhanceIgnoringReadAccess(user,
 				DATA_WITH_LINKS, someDataRecordGroup, dataRedactor);
 
-		onlyForTestEnhancer.MCR.assertParameters("ensureReadAccessAndReturnReadRecordPartPemission",
-				0, someDataRecordGroup);
+		onlyForTestEnhancer.MCR.assertParameters(
+				"ensureReadAccessAndReturnReadRecordPartPermission", 0, someDataRecordGroup);
 		var readRecordPartPermissions = onlyForTestEnhancer.MCR
-				.getReturnValue("ensureReadAccessAndReturnReadRecordPartPemission", 0);
+				.getReturnValue("ensureReadAccessAndReturnReadRecordPartPermission", 0);
 		enhancedRecord.MCR.assertParameters("addReadPermissions", 0, readRecordPartPermissions);
 	}
 
@@ -2320,13 +2348,13 @@ public class DataGroupToRecordEnhancerTest {
 				SpiderDependencyProvider dependencyProvider) {
 			super(dependencyProvider);
 			MCR.useMRV(MRV);
-			MRV.setDefaultReturnValuesSupplier("ensureReadAccessAndReturnReadRecordPartPemission",
+			MRV.setDefaultReturnValuesSupplier("ensureReadAccessAndReturnReadRecordPartPermission",
 					Collections::emptySet);
 		}
 
 		@SuppressWarnings("unchecked")
 		@Override
-		Set<String> ensureReadAccessAndReturnReadRecordPartPemission(
+		Set<String> ensureReadAccessAndReturnReadRecordPartPermission(
 				DataRecordGroup dataRecordGroup) {
 			return (Set<String>) MCR.addCallAndReturnFromMRV("dataRecordGroup", dataRecordGroup);
 		}
