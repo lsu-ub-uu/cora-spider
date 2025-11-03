@@ -132,7 +132,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		definitionId = recordTypeHandler.getDefinitionId();
 		updateDefinitionId = recordTypeHandler.getUpdateDefinitionId();
 
-		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
+		CollectTerms previouslyStoredCollectTerms = checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 
 		doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection();
 
@@ -150,7 +150,10 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
 		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup);
+		// TODO: new method in bookkeeper that changes collectPermissionTerm values to
+		// previouslyStored
 		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectTerms);
+		// TODO: new method in bookkeeper that changes collectPermissionTerm values back to current
 		validateDataForUniqueThrowErrorIfNot(collectTerms);
 
 		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
@@ -282,11 +285,12 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 				recordType, collectTerms.permissionTerms);
 	}
 
-	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
+	private CollectTerms checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
 		CollectTerms collectedTerms = dataGroupTermCollector.collectTerms(definitionId,
 				previouslyStoredRecord);
 
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
+		return collectedTerms;
 	}
 
 	private void checkUserIsAuthorisedToUpdateGivenCollectedData(CollectTerms collectedTerms) {
