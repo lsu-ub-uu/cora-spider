@@ -47,6 +47,7 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
@@ -152,8 +153,13 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup);
 		// TODO: new method in bookkeeper that changes collectPermissionTerm values to
 		// previouslyStored
+		List<PermissionTerm> previouslyStoredPermissionTerms = previouslyStoredCollectTerms.permissionTerms;
+		List<PermissionTerm> currentPermissionTerms = collectTerms.permissionTerms;
+
+		// List<PermissionTerm> mixedPermissionTerms =
+		// bookkeeper.permissionTermsForCheckOnUpdateData(
+		// previouslyStoredCollectTerms, currentPermissionTerms);
 		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectTerms);
-		// TODO: new method in bookkeeper that changes collectPermissionTerm values back to current
 		validateDataForUniqueThrowErrorIfNot(collectTerms);
 
 		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);

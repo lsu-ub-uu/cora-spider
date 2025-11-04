@@ -637,7 +637,7 @@ public class RecordUpdaterTest {
 		try {
 			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 			fail();
-		} catch (Exception e) {
+		} catch (Exception _) {
 			dependencyProviderSpy.MCR.assertMethodNotCalled("getDataChangeSender");
 		}
 	}
@@ -650,7 +650,7 @@ public class RecordUpdaterTest {
 		try {
 			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 			fail();
-		} catch (Exception e) {
+		} catch (Exception _) {
 			dependencyProviderSpy.MCR.assertMethodWasCalled("getDataChangeSender");
 		}
 	}
@@ -720,7 +720,7 @@ public class RecordUpdaterTest {
 			fail("Should fail as we want to stop execution when the extended functionality is used,"
 					+ " to determin that the extended functionality is called in the correct place"
 					+ " in the code");
-		} catch (Exception e) {
+		} catch (Exception _) {
 			authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 			dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
 		}
@@ -967,7 +967,7 @@ public class RecordUpdaterTest {
 		try {
 			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 			fail();
-		} catch (Exception e) {
+		} catch (Exception _) {
 			authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForPemissionUnit");
 		}
 	}
@@ -980,7 +980,7 @@ public class RecordUpdaterTest {
 		try {
 			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 			fail();
-		} catch (Exception e) {
+		} catch (Exception _) {
 			authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForPemissionUnit");
 		}
 	}
