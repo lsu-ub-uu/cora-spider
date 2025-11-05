@@ -153,7 +153,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup);
 
-		List<PermissionTerm> mixedPermissionTerms = getMixedPermissionTermValuesConsideringModeState(
+		var mixedPermissionTerms = getMixedPermissionTermValuesConsideringModeState(
 				previouslyStoredCollectTerms, collectTerms);
 
 		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType,
