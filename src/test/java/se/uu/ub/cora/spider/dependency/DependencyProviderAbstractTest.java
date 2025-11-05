@@ -43,6 +43,8 @@ import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactory;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactoryImp;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageProvider;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
+import se.uu.ub.cora.bookkeeper.termcollector.PermissionTermDataHandler;
+import se.uu.ub.cora.bookkeeper.termcollector.PermissionTermDataHandlerImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
@@ -348,6 +350,14 @@ public class DependencyProviderAbstractTest {
 
 		assertTrue(recordDecorator instanceof RecordDecoratorImp);
 		assertEquals(recordDecorator.onlyForTestGetDependencyProvider(), dependencyProvider);
+	}
+
+	@Test
+	public void testGetPermissionTermDataHandler() {
+		PermissionTermDataHandler permissionTermDataHandler = dependencyProvider
+				.getPermissionTermDataHandler();
+
+		assertTrue(permissionTermDataHandler instanceof PermissionTermDataHandlerImp);
 	}
 
 }

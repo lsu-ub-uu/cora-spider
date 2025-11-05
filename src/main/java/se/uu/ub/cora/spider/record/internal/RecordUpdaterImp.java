@@ -38,6 +38,7 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.bookkeeper.termcollector.PermissionTermDataHandler;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
@@ -151,15 +152,13 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
 		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup);
-		// TODO: new method in bookkeeper that changes collectPermissionTerm values to
-		// previouslyStored
-		List<PermissionTerm> previouslyStoredPermissionTerms = previouslyStoredCollectTerms.permissionTerms;
-		List<PermissionTerm> currentPermissionTerms = collectTerms.permissionTerms;
 
-		// List<PermissionTerm> mixedPermissionTerms =
-		// bookkeeper.permissionTermsForCheckOnUpdateData(
-		// previouslyStoredCollectTerms, currentPermissionTerms);
-		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectTerms);
+		List<PermissionTerm> mixedPermissionTerms = getMixedPermissionTermValuesConsideringModeState(
+				previouslyStoredCollectTerms, collectTerms);
+
+		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType,
+				mixedPermissionTerms);
+
 		validateDataForUniqueThrowErrorIfNot(collectTerms);
 
 		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
@@ -181,6 +180,17 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 				dataRedactor);
 		useExtendedFunctionalityBeforeReturn(dataRecord);
 		return dataRecord;
+	}
+
+	private List<PermissionTerm> getMixedPermissionTermValuesConsideringModeState(
+			CollectTerms previouslyStoredCollectTerms, CollectTerms collectTerms) {
+		List<PermissionTerm> previouslyStoredPermissionTerms = previouslyStoredCollectTerms.permissionTerms;
+		List<PermissionTerm> currentPermissionTerms = collectTerms.permissionTerms;
+
+		PermissionTermDataHandler permissionTermDataHandler = dependencyProvider
+				.getPermissionTermDataHandler();
+		return permissionTermDataHandler.getMixedPermissionTermValuesConsideringModeState(
+				previouslyStoredPermissionTerms, currentPermissionTerms);
 	}
 
 	private void validateDataForUniqueThrowErrorIfNot(CollectTerms collectedTerms) {
@@ -286,9 +296,9 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(String recordType,
-			CollectTerms collectTerms) {
+			List<PermissionTerm> permissionTerms) {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, UPDATE,
-				recordType, collectTerms.permissionTerms);
+				recordType, permissionTerms);
 	}
 
 	private CollectTerms checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
