@@ -176,8 +176,8 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		indexData(collectTerms);
 		useExtendedFunctionalityForPosition(UPDATE_AFTER_STORE);
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		DataRecord dataRecord = dataGroupToRecordEnhancer.enhance(user, recordType, recordGroup,
-				dataRedactor);
+		DataRecord dataRecord = dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user,
+				recordType, recordGroup, dataRedactor);
 		useExtendedFunctionalityBeforeReturn(dataRecord);
 		return dataRecord;
 	}

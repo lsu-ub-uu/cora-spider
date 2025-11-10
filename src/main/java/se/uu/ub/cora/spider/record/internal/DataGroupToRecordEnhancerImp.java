@@ -534,7 +534,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		try {
 			readRecordPartPermissions = ensureReadAccessAndReturnReadRecordPartPermission(
 					dataRecordGroup);
-		} catch (Exception catchedException) {
+		} catch (Exception _) {
 			addActionRead = false;
 			readRecordPartPermissions = Collections.emptySet();
 		}

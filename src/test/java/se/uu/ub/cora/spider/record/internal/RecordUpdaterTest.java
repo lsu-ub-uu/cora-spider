@@ -441,8 +441,8 @@ public class RecordUpdaterTest {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
 		var returnedUser = getAuthenticatedUser();
-		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, returnedUser, RECORD_TYPE,
-				recordWithId, dataRedactor);
+		dataGroupToRecordEnhancer.MCR.assertParameters("enhanceIgnoringReadAccess", 0, returnedUser,
+				RECORD_TYPE, recordWithId, dataRedactor);
 	}
 
 	@Test
@@ -715,7 +715,7 @@ public class RecordUpdaterTest {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
 		DataRecordOldSpy enhancedRecord = (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR
-				.getReturnValue("enhance", 0);
+				.getReturnValue("enhanceIgnoringReadAccess", 0);
 		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
 		expectedData.recordType = RECORD_TYPE;
 		expectedData.recordId = RECORD_ID;
