@@ -20,9 +20,9 @@ package se.uu.ub.cora.spider.extended.idsource;
 
 import java.text.MessageFormat;
 
-import se.uu.ub.cora.bookkeeper.metadata.DataMissingException;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 
