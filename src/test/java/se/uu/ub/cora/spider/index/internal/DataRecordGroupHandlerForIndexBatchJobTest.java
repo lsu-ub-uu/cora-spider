@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, 2023 Uppsala University Library
+ * Copyright 2021, 2023, 2025 Uppsala University Library
  * Copyright 2024 Olov McKie
  *
  * This file is part of Cora.
@@ -168,7 +168,7 @@ public class DataRecordGroupHandlerForIndexBatchJobTest {
 		DataAtomicSpy tsUpdated = (DataAtomicSpy) dataFactorySpy.MCR
 				.getReturnValue("factorAtomicUsingNameInDataAndValue", nfa);
 		String tsUpdatedValue = (String) dataFactorySpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName(
+				.getParameterForMethodAndCallNumberAndParameter(
 						"factorAtomicUsingNameInDataAndValue", nfa, "value");
 		nfa++;
 
@@ -208,9 +208,9 @@ public class DataRecordGroupHandlerForIndexBatchJobTest {
 	private IndexBatchJob createIndexBatchJob() {
 		Filter filter = new Filter();
 
-		IndexBatchJob indexBatchJob = new IndexBatchJob(SOME_RECORD_TYPE, 10, filter);
-		createAndAddErrors(indexBatchJob);
-		return indexBatchJob;
+		IndexBatchJob newIndexBatchJob = new IndexBatchJob(SOME_RECORD_TYPE, 10, filter);
+		createAndAddErrors(newIndexBatchJob);
+		return newIndexBatchJob;
 	}
 
 	private void createAndAddErrors(IndexBatchJob indexBatchJob) {
@@ -255,7 +255,7 @@ public class DataRecordGroupHandlerForIndexBatchJobTest {
 	}
 
 	private void assertCorrectRecordInfo(DataRecordGroupSpy createdRecordGroup) {
-		createdRecordGroup.MCR.assertParameters("setDataDivider", 0, "cora");
+		createdRecordGroup.MCR.assertParameters("setDataDivider", 0, "coraData");
 		createdRecordGroup.MCR.assertParameters("setValidationType", 0, "indexBatchJob");
 	}
 
@@ -311,7 +311,7 @@ public class DataRecordGroupHandlerForIndexBatchJobTest {
 	}
 
 	@Test
-	public void testCreateDataGroupFromIndexBatchJobNoFilterIfFilterIsEmpty() throws Exception {
+	public void testCreateDataGroupFromIndexBatchJobNoFilterIfFilterIsEmpty() {
 		DataGroupOldSpy filterAsData = new DataGroupOldSpy("filter");
 
 		DataRecordGroupSpy createdRecordGroup = (DataRecordGroupSpy) dataGroupHandler
@@ -321,10 +321,10 @@ public class DataRecordGroupHandlerForIndexBatchJobTest {
 
 	@Test
 	public void testCreateDataGroupFromIndexBatchJobEmptyErrors() {
-		IndexBatchJob indexBatchJob = new IndexBatchJob("place", 10, new Filter());
+		IndexBatchJob newIndexBatchJob = new IndexBatchJob("place", 10, new Filter());
 
 		DataRecordGroupSpy createdRecordGroup = (DataRecordGroupSpy) dataGroupHandler
-				.createDataRecordGroup(indexBatchJob, new DataGroupOldSpy("filter"));
+				.createDataRecordGroup(newIndexBatchJob, new DataGroupOldSpy("filter"));
 
 		createdRecordGroup.MCR.assertNumberOfCallsToMethod("addChild", 4);
 	}
