@@ -60,6 +60,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
+import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -162,6 +163,14 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		dataDivider = recordGroup.getDataDivider();
 		DataGroup recordAsDataGroupForStorage = DataProvider
 				.createGroupFromRecordGroup(recordGroup);
+
+		// TODO: isInTrashBin no collected links think of how to handle unique but still beeing able
+		// to filter, add extra check in unique?
+		// no collected links, DONE
+		// unique left to fix
+		if (isInTrashBin()) {
+			collectedLinks = Collections.emptySet();
+		}
 		updateRecordInStorage(recordAsDataGroupForStorage, collectTerms, collectedLinks);
 		sendDataChanged();
 		possiblyStoreInArchive(recordAsDataGroupForStorage);
@@ -379,6 +388,9 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private void possiblyUseTrashBin() {
+		if (isInTrashBin()) {
+			checkNoIncomingLinksExists();
+		}
 		if (recordTypeNotUsingTrashBinButRecordSetsRecordToTrashBin()) {
 			throw new DataException(
 					"To use the trash bin function, you must first activate it on the record type.");
@@ -389,6 +401,13 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		}
 		if (useTrashBinAndVisibilityRecorSetToInTrash()) {
 			recordGroup.setVisibility("unpublished");
+		}
+	}
+
+	private void checkNoIncomingLinksExists() {
+		if (recordStorage.linksExistForRecord(recordType, recordId)) {
+			throw new MisuseException("Record with type: " + recordType + " and id: " + recordId
+					+ " could not be put in trash bin since other records are linking to it");
 		}
 	}
 

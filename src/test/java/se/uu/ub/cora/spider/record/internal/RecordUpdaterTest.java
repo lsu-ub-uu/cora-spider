@@ -66,6 +66,7 @@ import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataCopierFactorySpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
+import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.spy.DataChangedSenderSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
@@ -524,7 +525,7 @@ public class RecordUpdaterTest {
 	private void assertExtendedFunctionalityCalledWithSameExDataInstanceSoThatSharedDataWorks(
 			Collection<Object> exFunctionalities) {
 		List<ExtendedFunctionalityData> totalExDataList = new ArrayList<>();
-		for (Object exFunctionality : exFunctionalities) {
+		for (var exFunctionality : exFunctionalities) {
 			var exFuncList = (List<ExtendedFunctionalitySpy>) exFunctionality;
 			for (ExtendedFunctionalitySpy exSpy : exFuncList) {
 				totalExDataList.add((ExtendedFunctionalityData) exSpy.MCR
@@ -637,7 +638,7 @@ public class RecordUpdaterTest {
 		try {
 			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 			fail();
-		} catch (Exception e) {
+		} catch (Exception _) {
 			dependencyProviderSpy.MCR.assertMethodNotCalled("getDataChangeSender");
 		}
 	}
@@ -650,7 +651,7 @@ public class RecordUpdaterTest {
 		try {
 			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 			fail();
-		} catch (Exception e) {
+		} catch (Exception _) {
 			dependencyProviderSpy.MCR.assertMethodWasCalled("getDataChangeSender");
 		}
 	}
@@ -720,7 +721,7 @@ public class RecordUpdaterTest {
 			fail("Should fail as we want to stop execution when the extended functionality is used,"
 					+ " to determin that the extended functionality is called in the correct place"
 					+ " in the code");
-		} catch (Exception e) {
+		} catch (Exception _) {
 			authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 			dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
 		}
@@ -985,12 +986,35 @@ public class RecordUpdaterTest {
 		}
 	}
 
+	@Test(expectedExceptions = MisuseException.class, expectedExceptionsMessageRegExp = ""
+			+ "Record with type: " + RECORD_TYPE + " and id: " + RECORD_ID
+			+ " could not be put in trash bin since other records are linking to it")
+	public void testTrashBin_UseTrashBinMustNotHaveAnyIncomingLinks() {
+		recordStorage.MRV.setDefaultReturnValuesSupplier("linksExistForRecord", () -> true);
+		setRecordTypesUseTrashBinTo(true);
+		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin", () -> Optional.of(true));
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+	}
+
+	@Test
+	public void testTrashBin_UseTrashBinNoCollectedLinksSentToStorage() {
+		recordStorage.MRV.setDefaultReturnValuesSupplier("recordExists", () -> true);
+		Link links = new Link("toType", "toId");
+		linkCollector.MRV.setDefaultReturnValuesSupplier("collectLinks", () -> Set.of(links));
+		setRecordTypesUseTrashBinTo(true);
+		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin", () -> Optional.of(true));
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		recordStorage.MCR.assertParameterAsEqual("update", 0, "links", Collections.emptySet());
+	}
+
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
 			+ "To use the trash bin function, you must first activate it on the record type.")
 	public void testTrashBin_NotUsed_But_RecordSetsInTrashBin() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> false);
-		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin",
-				() -> Optional.of(Boolean.FALSE));
+		setRecordTypesUseTrashBinTo(false);
+		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin", () -> Optional.of(false));
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 	}
@@ -998,7 +1022,7 @@ public class RecordUpdaterTest {
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
 			+ "The isInTrashBin field must be set when using the trash bin functionality.")
 	public void testTrashBin_UseTrashBinThenIsInTrashMustBeSet() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> true);
+		setRecordTypesUseTrashBinTo(true);
 		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin", Optional::empty);
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
@@ -1006,10 +1030,9 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testUseTrashBin_SetToInTrashBin_NoVisibility() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> true);
-		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin",
-				() -> Optional.of(Boolean.TRUE));
+		setRecordTypesUseVisibilityTo(false);
+		setRecordTypesUseTrashBinTo(true);
+		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin", () -> Optional.of(true));
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
@@ -1018,13 +1041,21 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testUseTrashBin_SetToNotInTrashBin_WithVisibility() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility", () -> true);
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> true);
-		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin",
-				() -> Optional.of(Boolean.TRUE));
+		setRecordTypesUseVisibilityTo(true);
+		setRecordTypesUseTrashBinTo(true);
+		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin", () -> Optional.of(true));
 
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
 		recordWithId.MCR.assertParameters("setVisibility", 0, "unpublished");
+	}
+
+	private void setRecordTypesUseTrashBinTo(boolean useTrash) {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> useTrash);
+	}
+
+	private void setRecordTypesUseVisibilityTo(boolean useVisibility) {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useVisibility",
+				() -> useVisibility);
 	}
 }
