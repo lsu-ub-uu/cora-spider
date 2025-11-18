@@ -61,6 +61,10 @@ public class UniqueValidatorImp implements UniqueValidator {
 		return checkUniqueRulesAndBuildAnswer(recordType, recordId, uniqueRules, storageTerms);
 	}
 
+	private boolean noNeedToRunValidation(List<Unique> uniques, Set<StorageTerm> storageTerms) {
+		return uniques.isEmpty() || storageTerms.isEmpty();
+	}
+
 	private ValidationAnswer noDuplicatesFound() {
 		return new ValidationAnswer();
 	}
@@ -152,10 +156,6 @@ public class UniqueValidatorImp implements UniqueValidator {
 			stringJoiner.add(conditionAsString);
 		}
 		return stringJoiner.toString();
-	}
-
-	private boolean noNeedToRunValidation(List<Unique> uniques, Set<StorageTerm> storageTerms) {
-		return uniques.isEmpty() || storageTerms.isEmpty();
 	}
 
 	private Optional<Filter> possiblyCreateFilter(Unique unique, Set<StorageTerm> storageTerms) {
