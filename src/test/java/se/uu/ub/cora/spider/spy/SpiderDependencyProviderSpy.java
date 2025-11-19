@@ -23,6 +23,7 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.bookkeeper.termcollector.PermissionTermDataHandler;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.search.RecordIndexer;
@@ -74,6 +75,8 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 				DataRecordLinkCollectorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
 				DataGroupTermCollectorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getPermissionTermDataHandler",
+				PermissionTermDataHandlerSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getPermissionRuleCalculator", RuleCalculatorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataRedactor", DataRedactorOldSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
@@ -203,5 +206,10 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	@Override
 	public RecordDecorator getRecordDecorator() {
 		return (RecordDecorator) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public PermissionTermDataHandler getPermissionTermDataHandler() {
+		return (PermissionTermDataHandler) MCR.addCallAndReturnFromMRV();
 	}
 }

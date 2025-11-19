@@ -38,6 +38,7 @@ import se.uu.ub.cora.bookkeeper.linkcollector.DataRecordLinkCollector;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.bookkeeper.termcollector.PermissionTermDataHandler;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
@@ -47,6 +48,7 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.search.RecordIndexer;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
@@ -132,7 +134,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		definitionId = recordTypeHandler.getDefinitionId();
 		updateDefinitionId = recordTypeHandler.getUpdateDefinitionId();
 
-		checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
+		CollectTerms previouslyStoredCollectTerms = checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
 
 		doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection();
 
@@ -150,7 +152,13 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		checkRecordTypeAndIdIsSameAsInEnteredRecord();
 
 		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup);
-		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType, collectTerms);
+
+		var mixedPermissionTerms = getMixedPermissionTermValuesConsideringModeState(
+				previouslyStoredCollectTerms, collectTerms);
+
+		checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType,
+				mixedPermissionTerms);
+
 		validateDataForUniqueThrowErrorIfNot(collectTerms);
 
 		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
@@ -168,10 +176,21 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		indexData(collectTerms);
 		useExtendedFunctionalityForPosition(UPDATE_AFTER_STORE);
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		DataRecord dataRecord = dataGroupToRecordEnhancer.enhance(user, recordType, recordGroup,
-				dataRedactor);
+		DataRecord dataRecord = dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user,
+				recordType, recordGroup, dataRedactor);
 		useExtendedFunctionalityBeforeReturn(dataRecord);
 		return dataRecord;
+	}
+
+	private List<PermissionTerm> getMixedPermissionTermValuesConsideringModeState(
+			CollectTerms previouslyStoredCollectTerms, CollectTerms collectTerms) {
+		List<PermissionTerm> previouslyStoredPermissionTerms = previouslyStoredCollectTerms.permissionTerms;
+		List<PermissionTerm> currentPermissionTerms = collectTerms.permissionTerms;
+
+		PermissionTermDataHandler permissionTermDataHandler = dependencyProvider
+				.getPermissionTermDataHandler();
+		return permissionTermDataHandler.getMixedPermissionTermValuesConsideringModeState(
+				previouslyStoredPermissionTerms, currentPermissionTerms);
 	}
 
 	private void validateDataForUniqueThrowErrorIfNot(CollectTerms collectedTerms) {
@@ -277,16 +296,17 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private void checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(String recordType,
-			CollectTerms collectTerms) {
+			List<PermissionTerm> permissionTerms) {
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user, UPDATE,
-				recordType, collectTerms.permissionTerms);
+				recordType, permissionTerms);
 	}
 
-	private void checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
+	private CollectTerms checkUserIsAuthorisedToUpdatePreviouslyStoredRecord() {
 		CollectTerms collectedTerms = dataGroupTermCollector.collectTerms(definitionId,
 				previouslyStoredRecord);
 
 		checkUserIsAuthorisedToUpdateGivenCollectedData(collectedTerms);
+		return collectedTerms;
 	}
 
 	private void checkUserIsAuthorisedToUpdateGivenCollectedData(CollectTerms collectedTerms) {
