@@ -27,7 +27,7 @@
 	</parent>
 
 	<artifactId>spider</artifactId>
-	<version>10.3-SNAPSHOT</version>
+	<version>10.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Spider</name>
@@ -41,7 +41,7 @@
 		<storagespies.version>1.15.0</storagespies.version>
 		<initialize.version>1.7.0</initialize.version>
 		<search.version>6.0.0</search.version>
-		<bookkeeper.version>11.1-SNAPSHOT</bookkeeper.version>
+		<bookkeeper.version>11.2-SNAPSHOT</bookkeeper.version>
 		<beefeater.version>4.0.0</beefeater.version>
 		<contentanalyzer.version>2.1.0</contentanalyzer.version>
 		<password.version>1.9.0</password.version>
