@@ -33,6 +33,8 @@ import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactory;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactoryImp;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
+import se.uu.ub.cora.bookkeeper.termcollector.PermissionTermDataHandler;
+import se.uu.ub.cora.bookkeeper.termcollector.PermissionTermDataHandlerImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
@@ -143,6 +145,11 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	@Override
 	public DataGroupTermCollector getDataGroupTermCollector() {
 		return new DataGroupTermCollectorImp();
+	}
+
+	@Override
+	public PermissionTermDataHandler getPermissionTermDataHandler() {
+		return new PermissionTermDataHandlerImp();
 	}
 
 	@Override

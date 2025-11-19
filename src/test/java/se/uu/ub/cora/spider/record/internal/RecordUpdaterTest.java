@@ -72,6 +72,7 @@ import se.uu.ub.cora.spider.spy.DataChangedSenderSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
+import se.uu.ub.cora.spider.spy.PermissionTermDataHandlerSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.spy.UniqueValidatorSpy;
@@ -107,6 +108,7 @@ public class RecordUpdaterTest {
 	private DataRecordGroupSpy recordWithId;
 	private DataRecordGroupSpy previouslyStoredRecordGroup;
 	private User currentUser;
+	private PermissionTermDataHandlerSpy permissionTermDataHandler;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -123,6 +125,7 @@ public class RecordUpdaterTest {
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		recordArchive = new RecordArchiveSpy();
 		uniqueValidator = new UniqueValidatorSpy();
+		permissionTermDataHandler = new PermissionTermDataHandlerSpy();
 		recordTypeHandlerSpy = new RecordTypeHandlerSpy();
 		currentUser = new User("someUserId");
 
@@ -160,6 +163,8 @@ public class RecordUpdaterTest {
 				() -> uniqueValidator);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
 				() -> termCollector);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getPermissionTermDataHandler",
+				() -> permissionTermDataHandler);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordArchive",
 				() -> recordArchive);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataValidator",
@@ -351,9 +356,14 @@ public class RecordUpdaterTest {
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
 				returnedUser, "update", RECORD_TYPE, getPermissionTermUsingCallNo(0), false);
 
+		var mixedPermissionTerms = permissionTermDataHandler.MCR.assertCalledParametersReturn(
+				"getMixedPermissionTermValuesConsideringModeState", getPermissionTermUsingCallNo(0),
+				getPermissionTermUsingCallNo(1));
+
 		authorizator.MCR.assertParameters(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, returnedUser,
-				"update", RECORD_TYPE, getPermissionTermUsingCallNo(1));
+				"update", RECORD_TYPE, mixedPermissionTerms);
+
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
 
@@ -394,9 +404,13 @@ public class RecordUpdaterTest {
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				1);
 
+		var mixedPermissionTerms = permissionTermDataHandler.MCR.assertCalledParametersReturn(
+				"getMixedPermissionTermValuesConsideringModeState", getPermissionTermUsingCallNo(0),
+				getPermissionTermUsingCallNo(1));
+
 		authorizator.MCR.assertParameters(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, returnedUser,
-				"update", RECORD_TYPE, getPermissionTermUsingCallNo(1));
+				"update", RECORD_TYPE, mixedPermissionTerms);
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
 
@@ -428,8 +442,8 @@ public class RecordUpdaterTest {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
 		var returnedUser = getAuthenticatedUser();
-		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, returnedUser, RECORD_TYPE,
-				recordWithId, dataRedactor);
+		dataGroupToRecordEnhancer.MCR.assertParameters("enhanceIgnoringReadAccess", 0, returnedUser,
+				RECORD_TYPE, recordWithId, dataRedactor);
 	}
 
 	@Test
@@ -467,9 +481,13 @@ public class RecordUpdaterTest {
 				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
 				1);
 
+		var mixedPermissionTerms = permissionTermDataHandler.MCR.assertCalledParametersReturn(
+				"getMixedPermissionTermValuesConsideringModeState", getPermissionTermUsingCallNo(0),
+				getPermissionTermUsingCallNo(1));
+
 		authorizator.MCR.assertParameters(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, currentUser,
-				"update", RECORD_TYPE, getPermissionTermUsingCallNo(1));
+				"update", RECORD_TYPE, mixedPermissionTerms);
 		authorizator.MCR.assertNumberOfCallsToMethod(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
 	}
@@ -698,7 +716,7 @@ public class RecordUpdaterTest {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
 		DataRecordOldSpy enhancedRecord = (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR
-				.getReturnValue("enhance", 0);
+				.getReturnValue("enhanceIgnoringReadAccess", 0);
 		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
 		expectedData.recordType = RECORD_TYPE;
 		expectedData.recordId = RECORD_ID;
