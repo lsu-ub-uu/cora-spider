@@ -164,10 +164,6 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		DataGroup recordAsDataGroupForStorage = DataProvider
 				.createGroupFromRecordGroup(recordGroup);
 
-		// TODO: isInTrashBin no collected links think of how to handle unique but still beeing able
-		// to filter, add extra check in unique?
-		// no collected links, DONE
-		// unique left to fix, somehow
 		if (isInTrashBin()) {
 			collectedLinks = Collections.emptySet();
 		}
