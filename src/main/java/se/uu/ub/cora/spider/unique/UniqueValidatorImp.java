@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Uppsala University Library
+ * Copyright 2024, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -118,24 +118,31 @@ public class UniqueValidatorImp implements UniqueValidator {
 
 	private boolean noDuplicatesFoundInStorage(Optional<String> recordId,
 			StorageReadResult readResult) {
-		return readResult.totalNumberOfMatches == 0
-				|| onlyMatchForDuplicatesIsOurCurrentRecord(recordId, readResult);
+		List<DataRecordGroup> duplicateList = filterResultsToNotIncludeCurrentOrRecordsInTrashBin(
+				recordId, readResult);
+		return duplicateList.isEmpty();
 	}
 
-	private boolean onlyMatchForDuplicatesIsOurCurrentRecord(Optional<String> recordId,
-			StorageReadResult readResult) {
-		return readResult.totalNumberOfMatches == 1 && recordId.isPresent()
-				&& (matchIsOurCurrentRecord(recordId.get(), readResult));
+	private List<DataRecordGroup> filterResultsToNotIncludeCurrentOrRecordsInTrashBin(
+			Optional<String> recordId, StorageReadResult readResult) {
+		return readResult.listOfDataRecordGroups.stream()
+				.filter(recordGroup -> notCurrentRecord(recordId, recordGroup))
+				.filter(this::notInTrash).toList();
 	}
 
-	private boolean matchIsOurCurrentRecord(String recordId, StorageReadResult readResult) {
-		String id = getFirstIdFromResult(readResult);
-		return id.equals(recordId);
+	private boolean notCurrentRecord(Optional<String> recordId, DataRecordGroup recordGroup) {
+		if (recordId.isEmpty()) {
+			return true;
+		}
+		return !recordGroup.getId().equals(recordId.get());
 	}
 
-	private String getFirstIdFromResult(StorageReadResult readResult) {
-		DataRecordGroup firstRecordGroup = readResult.listOfDataRecordGroups.get(0);
-		return firstRecordGroup.getId();
+	private boolean notInTrash(DataRecordGroup recordGroup) {
+		Optional<Boolean> oInTrashBin = recordGroup.isInTrashBin();
+		if (oInTrashBin.isEmpty()) {
+			return true;
+		}
+		return !oInTrashBin.get();
 	}
 
 	private List<Condition> getConditionsFromFilter(Filter filter) {
