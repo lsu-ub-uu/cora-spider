@@ -27,7 +27,7 @@
 	</parent>
 
 	<artifactId>spider</artifactId>
-	<version>10.4.0</version>
+	<version>10.4.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Spider</name>
@@ -54,7 +54,7 @@
 		<connection>scm:git:https://github.com/lsu-ub-uu/cora-spider.git</connection>
 		<developerConnection>scm:git:https://github.com/lsu-ub-uu/cora-spider.git</developerConnection>
 		<url>https://github.com/lsu-ub-uu/cora-spider.git</url>
-		<tag>spider-10.4.0</tag>
+		<tag>release/10.4</tag>
 	</scm>
 
 	<dependencies>
