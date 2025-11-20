@@ -57,7 +57,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 				() -> "fakeUpdateSearchIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("hasRecordPartCreateConstraint", () -> false);
 		MRV.setDefaultReturnValuesSupplier("getCreateWriteRecordPartConstraints",
-				() -> Collections.emptySet());
+				Collections::emptySet);
 		MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> "fakeRecordTypeIdFromRecordTypeHandlerSpy");
 		MRV.setDefaultReturnValuesSupplier("getCombinedIdForIndex",
@@ -65,6 +65,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions", Collections::emptyList);
 		MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
 		MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
+		MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> false);
 		MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> false);
 		MRV.setDefaultReturnValuesSupplier("getNextId", () -> "someNextId");
 	}
@@ -165,6 +166,11 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	}
 
 	@Override
+	public boolean useTrashBin() {
+		return (boolean) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
 	public boolean usePermissionUnit() {
 		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
@@ -173,4 +179,5 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 	public String getNextId() {
 		return (String) MCR.addCallAndReturnFromMRV();
 	}
+
 }

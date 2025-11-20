@@ -62,6 +62,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
+import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -146,6 +147,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		possiblyReplaceRecordPartsUserIsNotAllowedToChange();
 
 		possiblyHandleVisibility();
+		possiblyUseTrashBin();
 
 		validateIncomingDataAsSpecifiedInMetadata();
 		useExtendedFunctionalityForPosition(UPDATE_AFTER_METADATA_VALIDATION);
@@ -169,6 +171,10 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		dataDivider = recordGroup.getDataDivider();
 		DataGroup recordAsDataGroupForStorage = DataProvider
 				.createGroupFromRecordGroup(recordGroup);
+
+		if (isInTrashBin()) {
+			collectedLinks = Collections.emptySet();
+		}
 		updateRecordInStorage(recordAsDataGroupForStorage, collectTerms, collectedLinks);
 		sendDataChanged();
 		possiblyStoreInArchive(recordAsDataGroupForStorage);
@@ -375,6 +381,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		if (recordTypeHandler.useVisibility()) {
 			possiblySetVisibilityToDefault();
 			possiblyUpdateVisibilityTimeStamp();
+
 		}
 	}
 
@@ -394,6 +401,51 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		Optional<String> previousVisibility = previouslyStoredRecord.getVisibility();
 		Optional<String> updatedVisibility = recordGroup.getVisibility();
 		return !previousVisibility.equals(updatedVisibility);
+	}
+
+	private void possiblyUseTrashBin() {
+		if (isInTrashBin()) {
+			checkNoIncomingLinksExists();
+		}
+		if (recordTypeNotUsingTrashBinButRecordSetsRecordToTrashBin()) {
+			throw new DataException(
+					"To use the trash bin function, you must first activate it on the record type.");
+		}
+		if (ifUsingTrashBinButNoInTrashBinNotSet()) {
+			throw new DataException(
+					"The isInTrashBin field must be set when using the trash bin functionality.");
+		}
+		if (useTrashBinAndVisibilityRecorSetToInTrash()) {
+			recordGroup.setVisibility("unpublished");
+		}
+	}
+
+	private void checkNoIncomingLinksExists() {
+		if (recordStorage.linksExistForRecord(recordType, recordId)) {
+			throw new MisuseException("Record with type: " + recordType + " and id: " + recordId
+					+ " could not be put in trash bin since other records are linking to it");
+		}
+	}
+
+	private boolean useTrashBinAndVisibilityRecorSetToInTrash() {
+		return usesTrashBinAndVisibility() && isInTrashBin();
+	}
+
+	private boolean isInTrashBin() {
+		Optional<Boolean> inTrashBin = recordGroup.isInTrashBin();
+		return inTrashBin.isPresent() && inTrashBin.get().booleanValue();
+	}
+
+	private boolean usesTrashBinAndVisibility() {
+		return recordTypeHandler.useVisibility() && recordTypeHandler.useTrashBin();
+	}
+
+	private boolean ifUsingTrashBinButNoInTrashBinNotSet() {
+		return recordTypeHandler.useTrashBin() && recordGroup.isInTrashBin().isEmpty();
+	}
+
+	private boolean recordTypeNotUsingTrashBinButRecordSetsRecordToTrashBin() {
+		return !recordTypeHandler.useTrashBin() && recordGroup.isInTrashBin().isPresent();
 	}
 
 	private void updateRecordInStorage(DataGroup recordAsDataGroupForStorage,
@@ -416,7 +468,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private void storeInArchive(DataGroup recordAsDataGroupForStorage) {
 		try {
 			recordArchive.update(dataDivider, recordType, recordId, recordAsDataGroupForStorage);
-		} catch (RecordNotFoundException e) {
+		} catch (RecordNotFoundException _) {
 			recordArchive.create(dataDivider, recordType, recordId, recordAsDataGroupForStorage);
 		}
 	}
