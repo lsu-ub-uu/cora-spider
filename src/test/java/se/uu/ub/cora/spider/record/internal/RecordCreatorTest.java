@@ -880,22 +880,15 @@ public class RecordCreatorTest {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 	}
 
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
-			+ "Setting a record as “in the trash bin” during creation is not allowed.")
-	public void testTrashBin_ShouldNotBeSetToInTrashBinOnCreation() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> true);
-		recordWithoutId.MRV.setDefaultReturnValuesSupplier("isInTrashBin",
-				() -> Optional.of(Boolean.TRUE));
-
-		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
-	}
-
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
-			+ "The isInTrashBin field must be set when using the trash bin functionality.")
-	public void testTrashBin_UseTrashBinThenIsInTrashMustBeSet() {
+	@Test
+	public void testTrashBin_UseTrashBinAndIsInTrashNoSet_DefaultToNotInTrash() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> true);
 		recordWithoutId.MRV.setDefaultReturnValuesSupplier("isInTrashBin", Optional::empty);
 
-		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+		DataRecord createdRecord = recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE,
+				recordWithoutId);
+
+		recordWithoutId.MCR.assertParameters("setInTrashBin", 0, false);
+		assertEquals(createdRecord.getDataRecordGroup(), recordWithoutId);
 	}
 }
