@@ -27,7 +27,6 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -238,24 +237,13 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 			throw new DataException(
 					"To use the trash bin function, you must first activate it on the record type.");
 		}
-		if (notAllowedToUseTrashBinAndSetRecordInTrashOnCreation()) {
-			throw new DataException(
-					"Setting a record as “in the trash bin” during creation is not allowed.");
-		}
 		if (ifUsingTrashBinButNoInTrashBinNotSet()) {
-			throw new DataException(
-					"The isInTrashBin field must be set when using the trash bin functionality.");
+			recordGroup.setInTrashBin(false);
 		}
 	}
 
 	private boolean ifUsingTrashBinButNoInTrashBinNotSet() {
 		return recordTypeHandler.useTrashBin() && recordGroup.isInTrashBin().isEmpty();
-	}
-
-	private boolean notAllowedToUseTrashBinAndSetRecordInTrashOnCreation() {
-		Optional<Boolean> optionalInTrashBin = recordGroup.isInTrashBin();
-		return recordTypeHandler.useTrashBin() && optionalInTrashBin.isPresent()
-				&& optionalInTrashBin.get().booleanValue();
 	}
 
 	private boolean recordTypeNotUsingTrashBinButRecordSetsRecordToTrashBin() {
