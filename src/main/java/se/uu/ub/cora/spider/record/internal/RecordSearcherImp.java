@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2024 Uppsala University Library
+ * Copyright 2017, 2024, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,6 +19,7 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.SEARCH_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.SEARCH_BEFORE_ENHANCE_SINGLE;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,7 +33,6 @@ import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.search.SearchResult;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -89,7 +89,8 @@ public final class RecordSearcherImp implements RecordSearcher {
 		tryToGetActiveUser();
 		readSearchRecordFromStorageUsingSearchId(searchId);
 		checkUserHasSearchAccessOnAllRecordTypesToSearchIn(recordTypeToSearchInGroups);
-		useExtendedFunctionalityUsingPosition(SEARCH_AFTER_AUTHORIZATION);
+		ExtendedFunctionalityData data = createExtendedFunctionalityData();
+		useExtendedFunctionalityUsingPosition(SEARCH_AFTER_AUTHORIZATION, data);
 		validateSearchInputForUser();
 
 		SearchResult searchResult = callSearch();
@@ -104,6 +105,10 @@ public final class RecordSearcherImp implements RecordSearcher {
 	private void readSearchRecordFromStorageUsingSearchId(String searchId) {
 		searchMetadataAsRecord = recordStorage.read(SEARCH, searchId);
 		recordTypeToSearchInGroups = getRecordTypesToSearchInFromSearchGroup();
+	}
+
+	private List<DataGroup> getRecordTypesToSearchInFromSearchGroup() {
+		return searchMetadataAsRecord.getAllGroupsWithNameInData("recordTypeToSearchIn");
 	}
 
 	private void checkUserHasSearchAccessOnAllRecordTypesToSearchIn(
@@ -121,15 +126,16 @@ public final class RecordSearcherImp implements RecordSearcher {
 		return group.getFirstAtomicValueWithNameInData(LINKED_RECORD_ID);
 	}
 
-	private void useExtendedFunctionalityUsingPosition(ExtendedFunctionalityPosition position) {
+	private void useExtendedFunctionalityUsingPosition(ExtendedFunctionalityPosition position,
+			ExtendedFunctionalityData data) {
 		List<ExtendedFunctionality> extendedFunctionality = extendedFunctionalityProvider
 				.getFunctionalityForPositionAndRecordType(position, SEARCH);
-		useExtendedFunctionality(extendedFunctionality);
+		useExtendedFunctionality(extendedFunctionality, data);
 
 	}
 
-	protected void useExtendedFunctionality(List<ExtendedFunctionality> functionalityList) {
-		ExtendedFunctionalityData data = createExtendedFunctionalityData();
+	protected void useExtendedFunctionality(List<ExtendedFunctionality> functionalityList,
+			ExtendedFunctionalityData data) {
 		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
 			extendedFunctionality.useExtendedFunctionality(data);
 		}
@@ -160,10 +166,6 @@ public final class RecordSearcherImp implements RecordSearcher {
 		}
 	}
 
-	private List<DataGroup> getRecordTypesToSearchInFromSearchGroup() {
-		return searchMetadataAsRecord.getAllGroupsWithNameInData("recordTypeToSearchIn");
-	}
-
 	private SearchResult callSearch() {
 		List<String> list = recordTypeToSearchInGroups.stream().map(this::getLinkedRecordId)
 				.toList();
@@ -192,11 +194,11 @@ public final class RecordSearcherImp implements RecordSearcher {
 	}
 
 	private void filterEnhanceAndAddToList(DataGroup dataGroup, DataRedactor dataRedactor) {
-		String recordType = extractRecordTypeFromRecordInfo(dataGroup);
+		DataRecordGroup recordAsDataRecordGroup = DataProvider
+				.createRecordGroupFromDataGroup(dataGroup);
+		String recordType = recordAsDataRecordGroup.getType();
+		useExtendedFunctionalityBeforeReturn(SEARCH_BEFORE_ENHANCE_SINGLE, recordAsDataRecordGroup);
 		try {
-
-			DataRecordGroup recordAsDataRecordGroup = DataProvider
-					.createRecordGroupFromDataGroup(dataGroup);
 			DataRecord enhancedRecord = dataGroupToRecordEnhancer.enhance(user, recordType,
 					recordAsDataRecordGroup, dataRedactor);
 			dataList.addData(enhancedRecord);
@@ -205,10 +207,18 @@ public final class RecordSearcherImp implements RecordSearcher {
 		}
 	}
 
-	private String extractRecordTypeFromRecordInfo(DataGroup dataGroup) {
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData("recordInfo");
-		DataRecordLink typeGroup = (DataRecordLink) recordInfo.getFirstChildWithNameInData("type");
-		return typeGroup.getLinkedRecordId();
+	private void useExtendedFunctionalityBeforeReturn(ExtendedFunctionalityPosition position,
+			DataRecordGroup dataRecordGroup) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityDataUsingDataRecordGroup(
+				dataRecordGroup);
+		useExtendedFunctionalityUsingPosition(position, data);
+	}
+
+	private ExtendedFunctionalityData createExtendedFunctionalityDataUsingDataRecordGroup(
+			DataRecordGroup dataRecordGroup) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityData();
+		data.dataRecordGroup = dataRecordGroup;
+		return data;
 	}
 
 	private int getStartRow() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2019, 2020, 2022 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2019, 2020, 2022, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,10 +23,10 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.fail;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READLIST_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READLIST_BEFORE_ENHANCE_SINGLE;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -35,7 +35,6 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.Data;
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
@@ -66,8 +65,8 @@ import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class RecordListReaderTest {
 
-	private static final String SOME_USER_TOKEN = "someToken78678567";
-	private static final String SOME_RECORD_TYPE = "place";
+	private static final String USER_TOKEN = "someToken78678567";
+	private static final String RECORD_TYPE = "place";
 
 	private RecordStorageSpy recordStorage;
 	private OldAuthenticatorSpy authenticator;
@@ -88,7 +87,6 @@ public class RecordListReaderTest {
 	private ExtendedFunctionalityProviderSpy extendedFunctionalityProvider;
 
 	private int start = 0;
-	private int totalNumberOfMatches = 2;
 	private int numberToReturnForReadList = 2;
 	private List<DataRecordGroup> listOfDataRecordGroups = new ArrayList<>();
 	private StorageReadResult storageReadResult;
@@ -110,11 +108,10 @@ public class RecordListReaderTest {
 		setUpDependencyProvider();
 
 		dataList = new DataListSpy();
-		dataList.MRV.setDefaultReturnValuesSupplier("getTotalNumberOfTypeInStorage",
-				(Supplier<String>) () -> "2");
+		dataList.MRV.setDefaultReturnValuesSupplier("getTotalNumberOfTypeInStorage", () -> "2");
 
 		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorListUsingNameOfDataType",
-				(Supplier<DataList>) () -> dataList);
+				() -> dataList);
 
 		storageReadResult = createSpiderReadResult(0, 2, 2);
 		recordStorage.MRV.setDefaultReturnValuesSupplier("readList", () -> storageReadResult);
@@ -187,14 +184,14 @@ public class RecordListReaderTest {
 	public void testUserNotAuthenticated() {
 		authenticator.throwAuthenticationException = true;
 
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
 	}
 
 	@Test
-	public void testAuthTokenIsPassedOnToAuthenticator() throws Exception {
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+	public void testAuthTokenIsPassedOnToAuthenticator() {
+		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
 
-		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_USER_TOKEN);
+		authenticator.MCR.assertParameters("getUserForToken", 0, USER_TOKEN);
 		authenticator.MCR.assertNumberOfCallsToMethod("getUserForToken", 1);
 	}
 
@@ -204,29 +201,29 @@ public class RecordListReaderTest {
 		authorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForActionOnRecordType",
 				new AuthorizationException("Exception from SpiderAuthorizatorSpy"));
 
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
 	}
 
 	@Test
 	public void testUserIsAuthorizedForActionOnRecordTypeIncomingParameters() {
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
 
 		authorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0,
-				authenticator.returnedUser, "list", SOME_RECORD_TYPE);
+				authenticator.returnedUser, "list", RECORD_TYPE);
 	}
 
 	@Test
-	public void testUserAuthorizationForReadOnListNOTDoneForPublicRecordTypes() throws Exception {
+	public void testUserAuthorizationForReadOnListNOTDoneForPublicRecordTypes() {
 		recordTypeHandlerSpy.isPublicForRead = true;
 
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
 
 		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForActionOnRecordType");
 	}
 
 	@Test
-	public void testEmptyFilter() throws Exception {
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+	public void testEmptyFilter() {
+		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
 
 		emptyFilter.MCR.assertMethodWasCalled("hasChildren");
 		dataValidator.MCR.assertMethodNotCalled("validateListFilter");
@@ -234,26 +231,17 @@ public class RecordListReaderTest {
 
 	@Test
 	public void testNonEmptyFilterContainsPartGroupValidateListFilterIsCalled() {
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, nonEmptyFilter);
 
-		dataValidator.MCR.assertParameters("validateListFilter", 0, SOME_RECORD_TYPE,
-				nonEmptyFilter);
-	}
-
-	@Test
-	public void testNonEmptyFilterContainsStartGroupValidateListFilterIsCalled() {
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
-
-		dataValidator.MCR.assertParameters("validateListFilter", 0, SOME_RECORD_TYPE,
-				nonEmptyFilter);
+		dataValidator.MCR.assertParameters("validateListFilter", 0, RECORD_TYPE, nonEmptyFilter);
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
 			+ "Data is not valid: \\[Data for list filter not valid, DataValidatorSpy\\]")
-	public void testFilterNotValid() throws Exception {
+	public void testFilterNotValid() {
 		setUpDataValidatorToReturnValidationAnswerWithErrorForValidateListFilter();
 
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, nonEmptyFilter);
 	}
 
 	private void setUpDataValidatorToReturnValidationAnswerWithErrorForValidateListFilter() {
@@ -264,34 +252,34 @@ public class RecordListReaderTest {
 	}
 
 	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
-			+ "No filter exists for recordType: " + SOME_RECORD_TYPE)
-	public void testFilterNotPresentInRecordType() throws Exception {
+			+ "No filter exists for recordType: " + RECORD_TYPE)
+	public void testFilterNotPresentInRecordType() {
 		setUpDataValidatorToThrowErrorForValidateListFilter();
 
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, nonEmptyFilter);
 	}
 
 	private void setUpDataValidatorToThrowErrorForValidateListFilter() {
 		DataValidationException e = DataValidationException
-				.withMessage("No filter exists for recordType, " + SOME_RECORD_TYPE);
+				.withMessage("No filter exists for recordType, " + RECORD_TYPE);
 		dataValidator.MRV.setAlwaysThrowException("validateListFilter", e);
 	}
 
 	@Test
 	public void testReadingFromStorageCalled() {
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
 
 		DataGroupToFilterSpy converterToFilter = (DataGroupToFilterSpy) dependencyProviderSpy.MCR
 				.getReturnValue("getDataGroupToFilterConverter", 0);
 
 		converterToFilter.MCR.assertParameters("convert", 0, emptyFilter);
 		var filter = converterToFilter.MCR.getReturnValue("convert", 0);
-		recordStorage.MCR.assertParameters("readList", 0, SOME_RECORD_TYPE, filter);
+		recordStorage.MCR.assertParameters("readList", 0, RECORD_TYPE, filter);
 	}
 
 	@Test
 	public void testEnhanceIsCalledForRecordsReturnedFromStorage() {
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
 
 		recordStorage.MCR.assertNumberOfCallsToMethod("readList", 1);
 		recordEnhancer.MCR.assertNumberOfCallsToMethod("enhance", 2);
@@ -313,8 +301,8 @@ public class RecordListReaderTest {
 	}
 
 	@Test
-	public void testEnhancedDataIsReturnedInDataList() throws Exception {
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+	public void testEnhancedDataIsReturnedInDataList() {
+		DataList readRecordList = recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE,
 				emptyFilter);
 
 		DataListSpy dataListSpy = (DataListSpy) dataFactorySpy.MCR
@@ -328,11 +316,10 @@ public class RecordListReaderTest {
 	}
 
 	@Test
-	public void testOnlyRecordsWithReadActionFromEnhancerIsReturnedNoRecordHasReadAction()
-			throws Exception {
+	public void testOnlyRecordsWithReadActionFromEnhancerIsReturnedNoRecordHasReadAction() {
 		recordEnhancer.addReadAction = false;
 
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+		DataList readRecordList = recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE,
 				emptyFilter);
 
 		List<Data> dataList = readRecordList.getDataList();
@@ -340,11 +327,11 @@ public class RecordListReaderTest {
 	}
 
 	@Test
-	public void testOnlyRecordsWithReadActionFromEnhancerIsReturned() throws Exception {
+	public void testOnlyRecordsWithReadActionFromEnhancerIsReturned() {
 		storageReadResult = createSpiderReadResult(0, 3, 3);
 		recordEnhancer.addReadActionOnlyFirst = true;
 
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+		DataList readRecordList = recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE,
 				emptyFilter);
 
 		DataListSpy dataListSpy = (DataListSpy) dataFactorySpy.MCR
@@ -357,17 +344,16 @@ public class RecordListReaderTest {
 	}
 
 	@Test
-	public void testTotalNumberInDataListIsFromStorage() throws Exception {
+	public void testTotalNumberInDataListIsFromStorage() {
 		recordEnhancer.addReadActionOnlyFirst = false;
 		recordEnhancer.addReadAction = true;
 
 		storageReadResult = createSpiderReadResult(4, 25, 7);
 
 		dataList.MRV.setDefaultReturnValuesSupplier("getDataList",
-				(Supplier<List<DataGroup>>) () -> List.of(new DataGroupSpy(), new DataGroupSpy(),
-						new DataGroupSpy()));
+				() -> List.of(new DataGroupSpy(), new DataGroupSpy(), new DataGroupSpy()));
 
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+		DataList readRecordList = recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE,
 				emptyFilter);
 
 		assertSame(dataList, readRecordList);
@@ -377,23 +363,22 @@ public class RecordListReaderTest {
 	}
 
 	@Test(expectedExceptions = RuntimeException.class)
-	public void testCallsToEnhancerThatThrowsOtherExceptionsPassedOn() throws Exception {
+	public void testCallsToEnhancerThatThrowsOtherExceptionsPassedOn() {
 		recordEnhancer.throwOtherException = true;
 
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, emptyFilter);
+		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
 	}
 
 	@Test
-	public void testTotalNumberInDataListIsFromStorageOtherNumbers() throws Exception {
+	public void testTotalNumberInDataListIsFromStorageOtherNumbers() {
 		storageReadResult = createSpiderReadResult(1, 20, 10);
 
 		dataList.MRV.setDefaultReturnValuesSupplier("getDataList",
-				(Supplier<List<DataGroup>>) () -> List.of(new DataGroupSpy(), new DataGroupSpy(),
+				() -> List.of(new DataGroupSpy(), new DataGroupSpy(), new DataGroupSpy(),
 						new DataGroupSpy(), new DataGroupSpy(), new DataGroupSpy(),
-						new DataGroupSpy(), new DataGroupSpy(), new DataGroupSpy(),
-						new DataGroupSpy()));
+						new DataGroupSpy(), new DataGroupSpy(), new DataGroupSpy()));
 
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+		DataList readRecordList = recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE,
 				emptyFilter);
 
 		assertSame(dataList, readRecordList);
@@ -403,11 +388,11 @@ public class RecordListReaderTest {
 	}
 
 	@Test
-	public void testTotalNumberInDataListIsFromStorageNonHasReadAction() throws Exception {
+	public void testTotalNumberInDataListIsFromStorageNonHasReadAction() {
 		storageReadResult = createSpiderReadResult(1, 20, 10);
 		recordEnhancer.addReadAction = false;
 
-		DataList readRecordList = recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE,
+		DataList readRecordList = recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE,
 				emptyFilter);
 
 		assertSame(dataList, readRecordList);
@@ -417,31 +402,44 @@ public class RecordListReaderTest {
 	}
 
 	@Test
-	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() throws Exception {
-		recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() {
+		DataRecordGroupSpy dataRecordGroup1 = new DataRecordGroupSpy();
+		DataRecordGroupSpy dataRecordGroup2 = new DataRecordGroupSpy();
+		storageReadResult.listOfDataRecordGroups = List.of(dataRecordGroup1, dataRecordGroup2);
+
+		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, nonEmptyFilter);
 
 		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
-		expectedData.recordType = SOME_RECORD_TYPE;
-		expectedData.authToken = SOME_USER_TOKEN;
+		expectedData.recordType = RECORD_TYPE;
+		expectedData.authToken = USER_TOKEN;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				READLIST_AFTER_AUTHORIZATION, expectedData, 0);
+
+		expectedData.dataRecordGroup = dataRecordGroup1;
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				READLIST_BEFORE_ENHANCE_SINGLE, expectedData, 1);
+
+		expectedData.dataRecordGroup = dataRecordGroup2;
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				READLIST_BEFORE_ENHANCE_SINGLE, expectedData, 2);
 	}
 
 	@Test
-	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists2() throws Exception {
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists2() {
 		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
-				dependencyProviderSpy, READLIST_AFTER_AUTHORIZATION, SOME_RECORD_TYPE);
+				dependencyProviderSpy, READLIST_AFTER_AUTHORIZATION, RECORD_TYPE);
 		try {
-			recordListReader.readRecordList(SOME_USER_TOKEN, SOME_RECORD_TYPE, nonEmptyFilter);
+			recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, nonEmptyFilter);
 			fail("Should fail as we want to stop execution when the extended functionality is used,"
 					+ " to determin that the extended functionality is called in the correct place"
 					+ " in the code");
-		} catch (Exception e) {
+		} catch (Exception _) {
 
 		}
 
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 		dataFactorySpy.MCR.assertMethodNotCalled("factorListUsingNameOfDataType");
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019, 2020, 2024 Uppsala University Library
+ * Copyright 2015, 2016, 2019, 2020, 2024, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_ENHANCE;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
 
 import java.util.List;
@@ -84,9 +85,24 @@ public final class RecordReaderImp implements RecordReader {
 		useExtendedFunctionalityForPosition(READ_AFTER_AUTHORIZATION);
 
 		DataRecordGroup readRecordGroup = recordStorage.read(recordType, recordId);
+		useExtendedFunctionalityBeforeEnhance(READ_BEFORE_ENHANCE, readRecordGroup);
 		DataRecord enhancedRecord = tryToReadAndEnhanceRecord(readRecordGroup);
 		useExtendedFunctionalityBeforeReturn(READ_BEFORE_RETURN, enhancedRecord);
 		return enhancedRecord;
+	}
+
+	private void useExtendedFunctionalityBeforeEnhance(ExtendedFunctionalityPosition position,
+			DataRecordGroup dataRecordGroup) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityDataUsingDataRecordGroup(
+				dataRecordGroup);
+		useExtendedFunctionality(position, data);
+	}
+
+	private ExtendedFunctionalityData createExtendedFunctionalityDataUsingDataRecordGroup(
+			DataRecordGroup dataRecordGroup) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityData();
+		data.dataRecordGroup = dataRecordGroup;
+		return data;
 	}
 
 	private void tryToGetUserWithActiveToken() {

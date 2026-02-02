@@ -41,11 +41,11 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 	public ExtendedFunctionalityProviderSpy() {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("getFunctionalityBeforeDelete",
-				() -> createListWithTwoExtendedFunctionalitySpies());
+				this::createListWithTwoExtendedFunctionalitySpies);
 		MRV.setDefaultReturnValuesSupplier("getFunctionalityAfterDelete",
-				() -> createListWithTwoExtendedFunctionalitySpies());
+				this::createListWithTwoExtendedFunctionalitySpies);
 		MRV.setDefaultReturnValuesSupplier("getFunctionalityForPositionAndRecordType",
-				() -> createListWithTwoExtendedFunctionalitySpies());
+				this::createListWithTwoExtendedFunctionalitySpies);
 	}
 
 	private List<ExtendedFunctionality> createListWithTwoExtendedFunctionalitySpies() {
@@ -81,7 +81,7 @@ public class ExtendedFunctionalityProviderSpy implements ExtendedFunctionalityPr
 				position);
 		MCR.assertParameter("getFunctionalityForPositionAndRecordType", callNumber, "recordType",
 				expectedData.recordType);
-		List<ExtendedFunctionalitySpy> exSpyList = (List<ExtendedFunctionalitySpy>) MCR
+		var exSpyList = (List<ExtendedFunctionalitySpy>) MCR
 				.getReturnValue("getFunctionalityForPositionAndRecordType", callNumber);
 
 		assertExtendedFunctionalityIsCalledWithExpectedData(exSpyList.get(0), expectedData);
