@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017, 2019, 2020, 2024 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2019, 2020, 2024, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -22,6 +22,7 @@ package se.uu.ub.cora.spider.record.internal;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_ENHANCE;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READ_BEFORE_RETURN;
 
 import org.testng.annotations.BeforeMethod;
@@ -50,9 +51,9 @@ import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class RecordReaderTest {
-	private static final String SOME_RECORD_ID = "place:0001";
-	private static final String SOME_USER_TOKEN = "someToken78678567";
-	private static final String SOME_RECORD_TYPE = "someRecordType";
+	private static final String RECORD_ID = "place:0001";
+	private static final String USER_TOKEN = "someToken78678567";
+	private static final String RECORD_TYPE = "someRecordType";
 	private DataFactorySpy dataFactorySpy;
 	private RecordStorageSpy recordStorage;
 	private AuthenticatorSpy authenticator;
@@ -113,40 +114,39 @@ public class RecordReaderTest {
 	}
 
 	@Test
-	public void testAuthenticatorIsCalledCorrectly() throws Exception {
-		recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID);
+	public void testAuthenticatorIsCalledCorrectly() {
+		recordTypeHandler.isPublicForRead = false;
+		recordReader.readRecord(USER_TOKEN, RECORD_TYPE, RECORD_ID);
 
-		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_USER_TOKEN);
+		authenticator.MCR.assertParameters("getUserForToken", 0, USER_TOKEN);
 
-		recordStorage.MCR.assertParameters("read", 0, SOME_RECORD_TYPE, SOME_RECORD_ID);
+		recordStorage.MCR.assertParameters("read", 0, RECORD_TYPE, RECORD_ID);
 		recordStorage.MCR.getReturnValue("read", 0);
 
-		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, SOME_RECORD_TYPE);
+		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, RECORD_TYPE);
 
-		recordTypeHandler.MCR.assertMethodWasCalled("isPublicForRead");
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 
 		dataGroupToRecordEnhancer.MCR.assertMethodWasCalled("enhance");
 	}
 
 	@Test
-	public void testReadNotPublicAndNoAccessToRead() throws Exception {
+	public void testReadNotPublicAndNoAccessToRead() {
+		recordTypeHandler.isPublicForRead = false;
 		authorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForActionOnRecordType",
 				new AuthorizationException("someError"));
 
 		try {
-			recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID);
+			recordReader.readRecord(USER_TOKEN, RECORD_TYPE, RECORD_ID);
 			fail("it should throw exception");
 		} catch (Exception e) {
 			User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 			assertTrue(e instanceof AuthorizationException);
 			dependencyProvider.MCR.assertMethodWasCalled("getRecordTypeHandler");
-			recordTypeHandler.MCR.assertMethodWasCalled("isPublicForRead");
 
 			authorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0, user,
-					"read", SOME_RECORD_TYPE);
+					"read", RECORD_TYPE);
 
-			recordTypeHandler.MCR.assertReturn("isPublicForRead", 0, false);
 			authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 			dataGroupToRecordEnhancer.MCR.assertMethodNotCalled("enhance");
 		}
@@ -154,79 +154,87 @@ public class RecordReaderTest {
 	}
 
 	@Test
-	public void testReadIsPublicAuthorizationShouldNotBeChecked() throws Exception {
+	public void testReadIsPublicAuthorizationShouldNotBeChecked() {
 		recordTypeHandler.isPublicForRead = true;
 		authorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForActionOnRecordType",
 				new AuthorizationException("someError"));
 
-		recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID);
+		recordReader.readRecord(USER_TOKEN, RECORD_TYPE, RECORD_ID);
 
-		recordTypeHandler.MCR.assertReturn("isPublicForRead", 0, true);
 		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForActionOnRecordType");
 		recordStorage.MCR.assertMethodWasCalled("read");
 		dataGroupToRecordEnhancer.MCR.assertMethodWasCalled("enhance");
 	}
 
 	@Test
-	public void testReadNotPublicButAuthorized() throws Exception {
-		recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID);
+	public void testReadNotPublicButAuthorized() {
+		recordTypeHandler.isPublicForRead = false;
+		recordReader.readRecord(USER_TOKEN, RECORD_TYPE, RECORD_ID);
 
-		recordTypeHandler.MCR.assertReturn("isPublicForRead", 0, false);
 		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 		recordStorage.MCR.assertMethodWasCalled("read");
 		dataGroupToRecordEnhancer.MCR.assertMethodWasCalled("enhance");
 	}
 
 	@Test
-	public void testStorageIsCalledCorrectly() throws Exception {
-		recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID);
+	public void testStorageIsCalledCorrectly() {
+		recordReader.readRecord(USER_TOKEN, RECORD_TYPE, RECORD_ID);
 
-		recordStorage.MCR.assertParameters("read", 0, SOME_RECORD_TYPE, SOME_RECORD_ID);
+		recordStorage.MCR.assertParameters("read", 0, RECORD_TYPE, RECORD_ID);
 	}
 
 	@Test
-	public void testEnhancerCalledCorrectly() throws Exception {
-		recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID);
+	public void testEnhancerCalledCorrectly() {
+		recordReader.readRecord(USER_TOKEN, RECORD_TYPE, RECORD_ID);
 
 		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
-		DataRecordGroup dataGroupFromStorage = (DataRecordGroup) recordStorage.MCR
-				.getReturnValue("read", 0);
-		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, user, SOME_RECORD_TYPE,
+		DataRecordGroup dataGroupFromStorage = getDataRecordGroupFromStorage();
+		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, user, RECORD_TYPE,
 				dataGroupFromStorage, dataRedactor);
 	}
 
 	@Test
-	public void testAnswerFromEnhancerIsReturned() throws Exception {
-		DataRecord readRecord = recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE,
-				SOME_RECORD_ID);
+	public void testAnswerFromEnhancerIsReturned() {
+		DataRecord readRecord = recordReader.readRecord(USER_TOKEN, RECORD_TYPE, RECORD_ID);
 
 		dataGroupToRecordEnhancer.MCR.assertReturn("enhance", 0, readRecord);
 	}
 
 	@Test
-	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() throws Exception {
-		recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID);
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() {
+		recordReader.readRecord(USER_TOKEN, RECORD_TYPE, RECORD_ID);
 
 		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
-		expectedData.recordType = SOME_RECORD_TYPE;
-		expectedData.recordId = SOME_RECORD_ID;
-		expectedData.authToken = SOME_USER_TOKEN;
+		expectedData.recordType = RECORD_TYPE;
+		expectedData.recordId = RECORD_ID;
+		expectedData.authToken = USER_TOKEN;
 		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				READ_AFTER_AUTHORIZATION, expectedData, 0);
 
-		DataRecordOldSpy enhancedRecord = (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR
-				.getReturnValue("enhance", 0);
+		expectedData.dataRecordGroup = getDataRecordGroupFromStorage();
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				READ_BEFORE_ENHANCE, expectedData, 1);
+
+		DataRecordOldSpy enhancedRecord = getDataRecordFromEnhancer();
 		expectedData.dataRecordGroup = enhancedRecord.getDataRecordGroup();
 		expectedData.dataRecord = enhancedRecord;
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-				READ_BEFORE_RETURN, expectedData, 1);
+				READ_BEFORE_RETURN, expectedData, 2);
+	}
+
+	private DataRecordOldSpy getDataRecordFromEnhancer() {
+		return (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR.getReturnValue("enhance", 0);
+	}
+
+	private DataRecordGroup getDataRecordGroupFromStorage() {
+		return (DataRecordGroup) recordStorage.MCR.getReturnValue("read", 0);
 	}
 
 	@Test
-	public void testEnsureExtendedFunctionalityPosition_AfterAuthorizathion() throws Exception {
+	public void testEnsureExtendedFunctionalityPosition_AfterAuthorizathion() {
 		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
-				dependencyProvider, READ_AFTER_AUTHORIZATION, SOME_RECORD_TYPE);
+				dependencyProvider, READ_AFTER_AUTHORIZATION, RECORD_TYPE);
 
 		callReadRecordAndCatchStopExecution();
 
@@ -235,9 +243,9 @@ public class RecordReaderTest {
 	}
 
 	@Test
-	public void testEnsureExtendedFunctionalityPosition_BeforeReturn() throws Exception {
+	public void testEnsureExtendedFunctionalityPosition_BeforeReturn() {
 		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
-				dependencyProvider, READ_BEFORE_RETURN, SOME_RECORD_TYPE);
+				dependencyProvider, READ_BEFORE_RETURN, RECORD_TYPE);
 
 		callReadRecordAndCatchStopExecution();
 
@@ -246,7 +254,7 @@ public class RecordReaderTest {
 
 	private void callReadRecordAndCatchStopExecution() {
 		try {
-			recordReader.readRecord(SOME_USER_TOKEN, SOME_RECORD_TYPE, SOME_RECORD_ID);
+			recordReader.readRecord(USER_TOKEN, RECORD_TYPE, RECORD_ID);
 			fail("Should fail as we want to stop execution when the extended functionality is used,"
 					+ " to determin that the extended functionality is called in the correct place"
 					+ " in the code");

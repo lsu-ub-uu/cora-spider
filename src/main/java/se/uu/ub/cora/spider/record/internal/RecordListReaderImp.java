@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2019, 2020, 2022 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2019, 2020, 2022, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.record.internal;
 
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READLIST_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.READLIST_BEFORE_ENHANCE_SINGLE;
 
 import java.util.Collection;
 import java.util.List;
@@ -169,11 +170,26 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 
 	private void readAndAddToReadRecordList(Filter filter, DataRedactor dataRedactor) {
 		readResult = recordStorage.readList(recordType, filter);
-		Collection<DataRecordGroup> dataGroupList = readResult.listOfDataRecordGroups;
-		for (DataRecordGroup dataRecordGroup : dataGroupList) {
+		Collection<DataRecordGroup> dataRecordList = readResult.listOfDataRecordGroups;
+		for (DataRecordGroup dataRecordGroup : dataRecordList) {
+			useExtendedFunctionalityBeforeEnhanceSingle(READLIST_BEFORE_ENHANCE_SINGLE, dataRecordGroup);
 			enhanceDataGroupAndPossiblyAddToRecordList(dataRecordGroup, dataRecordGroup.getType(),
 					dataRedactor);
 		}
+	}
+
+	private void useExtendedFunctionalityBeforeEnhanceSingle(ExtendedFunctionalityPosition position,
+			DataRecordGroup dataRecordGroup) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityDataUsingDataRecordGroup(
+				dataRecordGroup);
+		useExtendedFunctionality(position, data);
+	}
+
+	private ExtendedFunctionalityData createExtendedFunctionalityDataUsingDataRecordGroup(
+			DataRecordGroup dataRecordGroup) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityData();
+		data.dataRecordGroup = dataRecordGroup;
+		return data;
 	}
 
 	private void enhanceDataGroupAndPossiblyAddToRecordList(DataRecordGroup dataRecordGroup,

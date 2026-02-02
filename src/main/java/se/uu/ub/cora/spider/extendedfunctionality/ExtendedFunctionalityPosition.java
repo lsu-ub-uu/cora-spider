@@ -79,6 +79,12 @@ public enum ExtendedFunctionalityPosition {
 	READ_AFTER_AUTHORIZATION,
 
 	/**
+	 * READ_BEFORE_ENHANCE, as the name suggests is the functionality plugged into a read operation,
+	 * before the record is enhanced.
+	 */
+	READ_BEFORE_ENHANCE,
+
+	/**
 	 * READ_BEFORE_RETURN, as the name suggests is the functionality plugged into a read operation,
 	 * before the method returns.
 	 */
@@ -90,6 +96,12 @@ public enum ExtendedFunctionalityPosition {
 	 * recordType.
 	 */
 	READLIST_AFTER_AUTHORIZATION,
+
+	/**
+	 * READLIST_BEFORE_ENHANCE_SINGLE, as the name suggests is the functionality plugged into a
+	 * readList operation, right before each record is enhanced.
+	 */
+	READLIST_BEFORE_ENHANCE_SINGLE,
 
 	/**
 	 * UPDATE_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a update
@@ -172,5 +184,11 @@ public enum ExtendedFunctionalityPosition {
 	 * SEARCH_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into search
 	 * operation, right after the user is authorized for the create action on the recordType.
 	 */
-	SEARCH_AFTER_AUTHORIZATION
+	SEARCH_AFTER_AUTHORIZATION,
+
+	/**
+	 * SEARCH_BEFORE_ENHANCE_SINGLE, as the name suggests is the functionality plugged into a search
+	 * operation, right before each record is enhanced.
+	 */
+	SEARCH_BEFORE_ENHANCE_SINGLE
 }

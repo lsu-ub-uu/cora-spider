@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2018, 2019, 2024 Uppsala University Library
+ * Copyright 2017, 2018, 2019, 2024, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -24,6 +24,7 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.SEARCH_AFTER_AUTHORIZATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.SEARCH_BEFORE_ENHANCE_SINGLE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,11 +36,11 @@ import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataListSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
-import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.search.SearchResult;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -76,6 +77,8 @@ public class RecordSearcherTest {
 	private DataGroupSpy dataGroupSpy2;
 	private DataListSpy dataListSpy;
 
+	private int factoredRecordGroupNo;
+
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
@@ -103,20 +106,37 @@ public class RecordSearcherTest {
 
 		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorListUsingNameOfDataType",
 				() -> dataListSpy);
+
+		factoredRecordGroupNo = 0;
+		dataFactorySpy.MRV.setDefaultReturnValuesSupplier("factorRecordGroupFromDataGroup",
+				this::getRecordGroup);
+
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
+	}
+
+	private DataRecordGroup getRecordGroup() {
+		factoredRecordGroupNo++;
+		return createDataRecordGroupUsingType("someType" + factoredRecordGroupNo);
+	}
+
+	private DataRecordGroupSpy createDataRecordGroupUsingType(String type) {
+		DataRecordGroupSpy dataRecordGroup = new DataRecordGroupSpy();
+		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getType", () -> type);
+		return dataRecordGroup;
+
 	}
 
 	private DataRecordGroupSpy setSearchRecordGroupWithSeveralRecordTypesToSearchIn() {
 		dataGroupSpy1 = new DataGroupSpy();
 		dataGroupSpy1.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> "someNameInData1");
+				() -> "someType1");
 		dataGroupSpy2 = new DataGroupSpy();
 		dataGroupSpy2.MRV.setDefaultReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> "someNameInData2");
-		DataRecordGroupSpy dataRecordGroupSpy = new DataRecordGroupSpy();
-		dataRecordGroupSpy.MRV.setDefaultReturnValuesSupplier("getAllGroupsWithNameInData",
+				() -> "someType2");
+		DataRecordGroupSpy dataRecordGroup = new DataRecordGroupSpy();
+		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getAllGroupsWithNameInData",
 				() -> List.of(dataGroupSpy1, dataGroupSpy2));
-		return dataRecordGroupSpy;
+		return dataRecordGroup;
 	}
 
 	private SearchResult setRecordStorage() {
@@ -125,26 +145,11 @@ public class RecordSearcherTest {
 		recordSearch = new RecordSearchSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 
-		DataGroupSpy foundDataGroup = createFoundDataGroupForSearch("someNameInData1");
 		SearchResult searchResult = new SearchResult();
-		searchResult.listOfDataGroups = List.of(foundDataGroup);
+		searchResult.listOfDataGroups = List.of(new DataGroupSpy());
 		searchResult.start = 1;
 		searchResult.totalNumberOfMatches = 1;
 		return searchResult;
-	}
-
-	private DataGroupSpy createFoundDataGroupForSearch(String recordType) {
-		DataRecordLinkSpy dataRecordLink = new DataRecordLinkSpy();
-		dataRecordLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> recordType);
-		DataGroupSpy foundDataGroupRecordInfo = new DataGroupSpy();
-		foundDataGroupRecordInfo.MRV.setSpecificReturnValuesSupplier("getFirstChildWithNameInData",
-				() -> dataRecordLink, "type");
-
-		DataGroupSpy foundDataGroup = new DataGroupSpy();
-		foundDataGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> foundDataGroupRecordInfo, "recordInfo");
-
-		return foundDataGroup;
 	}
 
 	private void setUpDependencyProvider() {
@@ -219,9 +224,9 @@ public class RecordSearcherTest {
 				"recordTypeToSearchIn");
 
 		authorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0,
-				authenticatedUser, "search", "someNameInData1");
+				authenticatedUser, "search", "someType1");
 		authorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 1,
-				authenticatedUser, "search", "someNameInData2");
+				authenticatedUser, "search", "someType2");
 
 	}
 
@@ -277,8 +282,8 @@ public class RecordSearcherTest {
 		List<String> recordTypeList = (List<String>) recordSearch.MCR
 				.getParameterForMethodAndCallNumberAndParameter(
 						"searchUsingListOfRecordTypesToSearchInAndSearchData", 0, "recordTypes");
-		assertEquals(recordTypeList.get(0), "someNameInData1");
-		assertEquals(recordTypeList.get(1), "someNameInData2");
+		assertEquals(recordTypeList.get(0), "someType1");
+		assertEquals(recordTypeList.get(1), "someType2");
 		assertEquals(recordTypeList.size(), 2);
 
 		recordSearch.MCR.assertParameter("searchUsingListOfRecordTypesToSearchInAndSearchData", 0,
@@ -294,14 +299,14 @@ public class RecordSearcherTest {
 				.getReturnValue("searchUsingListOfRecordTypesToSearchInAndSearchData", 0);
 
 		DataGroup firstDataGroupFromSearchResult = searchResult.listOfDataGroups.get(0);
-		assertEquals(dataGroupToRecordEnhancer.recordType, "someNameInData1");
+		assertEquals(dataGroupToRecordEnhancer.recordType, "someType1");
 
 		var recordAsDataRecordGroup = dataFactorySpy.MCR.assertCalledParametersReturn(
 				"factorRecordGroupFromDataGroup", firstDataGroupFromSearchResult);
 
 		dataGroupToRecordEnhancer.MCR.assertNumberOfCallsToMethod("enhance", 1);
 		dataGroupToRecordEnhancer.MCR.assertParameters("enhance", 0, getAuthenticatedUser(),
-				"someNameInData1", recordAsDataRecordGroup, dataRedactor);
+				"someType1", recordAsDataRecordGroup, dataRedactor);
 
 		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorListUsingNameOfDataType", 1);
 		dataFactorySpy.MCR.assertParameters("factorListUsingNameOfDataType", 0, "mix");
@@ -325,9 +330,7 @@ public class RecordSearcherTest {
 
 	@Test
 	public void testSearchResultIsFilteredAndEnhancedForEachResult() {
-		SearchResult searchResult = setSearchResultWithThreeHits();
-		recordSearch.MRV.setDefaultReturnValuesSupplier(
-				"searchUsingListOfRecordTypesToSearchInAndSearchData", () -> searchResult);
+		setSearchResultWithThreeHits();
 		setDataListValues(3);
 
 		recordSearcher.search(SOME_AUTH_TOKEN, ANOTHER_SEARCH_ID, someSearchData);
@@ -341,9 +344,7 @@ public class RecordSearcherTest {
 
 	@Test
 	public void testSearchResultOnlyFirstResultHasReadAccess() {
-		SearchResult searchResult = setSearchResultWithThreeHits();
-		recordSearch.MRV.setDefaultReturnValuesSupplier(
-				"searchUsingListOfRecordTypesToSearchInAndSearchData", () -> searchResult);
+		setSearchResultWithThreeHits();
 
 		dataGroupToRecordEnhancer.addReadActionOnlyFirst = true;
 
@@ -356,16 +357,17 @@ public class RecordSearcherTest {
 		dataListSpy.MCR.assertParameters("setTotalNo", 0, "3");
 	}
 
-	private SearchResult setSearchResultWithThreeHits() {
-		List<DataGroup> recordSearchList = List.of(createFoundDataGroupForSearch("someRecordType1"),
-				createFoundDataGroupForSearch("someRecordType2"),
-				createFoundDataGroupForSearch("someRecordType3"));
+	private void setSearchResultWithThreeHits() {
+		List<DataGroup> recordSearchList = List.of(new DataGroupSpy(), new DataGroupSpy(),
+				new DataGroupSpy());
 
 		SearchResult searchResult = new SearchResult();
 		searchResult.listOfDataGroups = recordSearchList;
 		searchResult.start = 1;
 		searchResult.totalNumberOfMatches = recordSearchList.size();
-		return searchResult;
+
+		recordSearch.MRV.setDefaultReturnValuesSupplier(
+				"searchUsingListOfRecordTypesToSearchInAndSearchData", () -> searchResult);
 	}
 
 	@Test
@@ -414,8 +416,40 @@ public class RecordSearcherTest {
 			fail("Should fail as we want to stop execution when the extended functionality is used,"
 					+ " to determin that the extended functionality is called in the correct place"
 					+ " in the code");
-		} catch (Exception e) {
+		} catch (Exception _) {
+			// Do nothing
 		}
+	}
+
+	@Test
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() {
+		setSearchResultWithThreeHits();
+
+		recordSearcher.search(SOME_AUTH_TOKEN, SOME_SEARCH_ID, someSearchData);
+
+		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
+		expectedData.recordType = "search";
+		expectedData.authToken = SOME_AUTH_TOKEN;
+		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.dataRecordGroup = (DataRecordGroup) recordStorage.MCR.getReturnValue("read",
+				0);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				SEARCH_AFTER_AUTHORIZATION, expectedData, 0);
+
+		expectedData.dataRecordGroup = (DataRecordGroup) dataFactorySpy.MCR
+				.getReturnValue("factorRecordGroupFromDataGroup", 0);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				SEARCH_BEFORE_ENHANCE_SINGLE, expectedData, 1);
+
+		expectedData.dataRecordGroup = (DataRecordGroup) dataFactorySpy.MCR
+				.getReturnValue("factorRecordGroupFromDataGroup", 1);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				SEARCH_BEFORE_ENHANCE_SINGLE, expectedData, 2);
+
+		expectedData.dataRecordGroup = (DataRecordGroup) dataFactorySpy.MCR
+				.getReturnValue("factorRecordGroupFromDataGroup", 2);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				SEARCH_BEFORE_ENHANCE_SINGLE, expectedData, 3);
 	}
 
 	@Test
