@@ -22,7 +22,7 @@ package se.uu.ub.cora.spider.unique;
 import java.util.List;
 import java.util.Set;
 
-import se.uu.ub.cora.bookkeeper.recordtype.Unique;
+import se.uu.ub.cora.bookkeeper.recordtype.UniqueStorageKeys;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.collected.StorageTerm;
 
@@ -40,14 +40,14 @@ public interface UniqueValidator {
 	 * @param recordId
 	 *            is the recordId of the specific record to validate.
 	 * @param uniques
-	 *            A List of Uniques, each {@link Unique} object defines a unique rule for a record.
+	 *            A List of Uniques, each {@link UniqueStorageKeys} object defines a unique rule for a record.
 	 * @param storageTerms
 	 *            A set of {@link StorageTerm}s to be checked for unique
 	 * 
 	 * @return A ValidationAnswer with the result of the unique validation.
 	 */
 	ValidationAnswer validateUniqueForExistingRecord(String recordType, String recordId,
-			List<Unique> uniques, Set<StorageTerm> storageTerms);
+			List<UniqueStorageKeys> uniques, Set<StorageTerm> storageTerms);
 
 	/**
 	 * validateUniqueForNewRecord verify the unique constrains set in the recordType.
@@ -59,12 +59,12 @@ public interface UniqueValidator {
 	 * @param recordType
 	 *            is the recordType related to the unique definition to validate.
 	 * @param uniques
-	 *            A List of Uniques, each {@link Unique} object defines a unique rule for a record.
+	 *            A List of Uniques, each {@link UniqueStorageKeys} object defines a unique rule for a record.
 	 * @param storageTerms
 	 *            A set of {@link StorageTerm}s to be checked for unique
 	 * 
 	 * @return A ValidationAnswer with the result of the unique validation.
 	 */
-	ValidationAnswer validateUniqueForNewRecord(String recordType, List<Unique> uniques,
+	ValidationAnswer validateUniqueForNewRecord(String recordType, List<UniqueStorageKeys> uniques,
 			Set<StorageTerm> storageTerms);
 }

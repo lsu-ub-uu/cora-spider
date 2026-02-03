@@ -26,6 +26,7 @@ import java.util.Optional;
 
 import se.uu.ub.cora.bookkeeper.metadata.CollectTermHolder;
 import se.uu.ub.cora.bookkeeper.metadata.MetadataElement;
+import se.uu.ub.cora.bookkeeper.recordtype.RecordType;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageView;
 import se.uu.ub.cora.bookkeeper.text.TextElement;
 import se.uu.ub.cora.bookkeeper.validator.ValidationType;
@@ -110,6 +111,11 @@ public class MetadataStorageViewSpy implements MetadataStorageView {
 	@Override
 	public TextElement getTextElement(String elementId) {
 		return (TextElement) MCR.addCallAndReturnFromMRV("elementId", elementId);
+	}
+
+	@Override
+	public RecordType getRecordType(String id) {
+		return (RecordType) MCR.addCallAndReturnFromMRV("id", id);
 	}
 
 }

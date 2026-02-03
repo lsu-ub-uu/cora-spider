@@ -40,7 +40,7 @@ import java.util.function.Supplier;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.bookkeeper.recordtype.Unique;
+import se.uu.ub.cora.bookkeeper.recordtype.UniqueStorageKeys;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.collected.StorageTerm;
@@ -63,7 +63,7 @@ public class UniqueValidatorTest {
 	private UniqueValidator uniqueValidator;
 	private RecordStorageSpy recordStorage;
 	private Set<StorageTerm> storageTerms;
-	private List<Unique> uniqueDefinitions;
+	private List<UniqueStorageKeys> uniqueDefinitions;
 	private Map<Integer, List<ConditionPair>> expectedConditionsMap;
 	private DataFactorySpy dataFactorySpy;
 	private StorageReadResult duplicateReadResult;
@@ -688,7 +688,7 @@ public class UniqueValidatorTest {
 		for (String combineKey : combineKeys) {
 			combineKeySet.add(combineKey);
 		}
-		uniqueDefinitions.add(new Unique(uniqueKey, combineKeySet));
+		uniqueDefinitions.add(new UniqueStorageKeys(uniqueKey, combineKeySet));
 	}
 
 	private void addStorageTerm(String key, String value) {
@@ -762,7 +762,7 @@ public class UniqueValidatorTest {
 
 		@Override
 		ValidationAnswer validateUnique(String recordType, Optional<String> recordId,
-				List<Unique> uniqueRules, Set<StorageTerm> storageTerms) {
+				List<UniqueStorageKeys> uniqueRules, Set<StorageTerm> storageTerms) {
 			return (ValidationAnswer) MCR.addCallAndReturnFromMRV("recordType", recordType,
 					"recordId", recordId, "uniqueRules", uniqueRules, "storageTerms", storageTerms);
 		}

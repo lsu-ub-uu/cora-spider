@@ -32,7 +32,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.recordtype.Unique;
+import se.uu.ub.cora.bookkeeper.recordtype.UniqueStorageKeys;
 import se.uu.ub.cora.data.Action;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
@@ -96,7 +96,7 @@ public class RecordValidatorTest {
 	private ValidationAnswerSpy validAnswer;
 	private ValidationAnswerSpy invalidAnswer;
 	private CollectTerms collectTerms;
-	private List<Unique> uniqueList;
+	private List<UniqueStorageKeys> uniqueList;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -137,7 +137,7 @@ public class RecordValidatorTest {
 	}
 
 	private void setUpAnswerGetUniqueDefinitions() {
-		uniqueList = List.of(new Unique("", Set.of("")));
+		uniqueList = List.of(new UniqueStorageKeys("", Set.of("")));
 		recordTypeHandlerForDataToValidate.MRV
 				.setDefaultReturnValuesSupplier("getUniqueDefinitions", () -> uniqueList);
 		recordTypeHandlerForDataToValidate.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",

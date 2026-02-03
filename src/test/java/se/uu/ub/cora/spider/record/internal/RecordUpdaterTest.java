@@ -41,7 +41,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.bookkeeper.recordtype.Unique;
+import se.uu.ub.cora.bookkeeper.recordtype.UniqueStorageKeys;
 import se.uu.ub.cora.bookkeeper.validator.DataValidationException;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
@@ -754,7 +754,7 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void uniqueValidatorCalledWithCorrectParameters() {
-		List<Unique> uniqueList = List.of(new Unique("", Set.of("")));
+		List<UniqueStorageKeys> uniqueList = List.of(new UniqueStorageKeys("", Set.of("")));
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getUniqueDefinitions",
 				() -> uniqueList);
 		CollectTerms collectTerms = new CollectTerms();

@@ -21,7 +21,7 @@ package se.uu.ub.cora.spider.spy;
 import java.util.List;
 import java.util.Set;
 
-import se.uu.ub.cora.bookkeeper.recordtype.Unique;
+import se.uu.ub.cora.bookkeeper.recordtype.UniqueStorageKeys;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
@@ -41,13 +41,13 @@ public class UniqueValidatorSpy implements UniqueValidator {
 
 	@Override
 	public ValidationAnswer validateUniqueForExistingRecord(String recordType, String recordId,
-			List<Unique> uniques, Set<StorageTerm> storageTerms) {
+			List<UniqueStorageKeys> uniques, Set<StorageTerm> storageTerms) {
 		return (ValidationAnswer) MCR.addCallAndReturnFromMRV("recordType", recordType, "recordId",
 				recordId, "uniques", uniques, "storageTerms", storageTerms);
 	}
 
 	@Override
-	public ValidationAnswer validateUniqueForNewRecord(String recordType, List<Unique> uniques,
+	public ValidationAnswer validateUniqueForNewRecord(String recordType, List<UniqueStorageKeys> uniques,
 			Set<StorageTerm> storageTerms) {
 		return (ValidationAnswer) MCR.addCallAndReturnFromMRV("recordType", recordType, "uniques",
 				uniques, "storageTerms", storageTerms);

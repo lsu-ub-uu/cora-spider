@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import se.uu.ub.cora.bookkeeper.recordtype.Unique;
+import se.uu.ub.cora.bookkeeper.recordtype.UniqueStorageKeys;
 import se.uu.ub.cora.bookkeeper.validator.ValidationAnswer;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.StorageTerm;
@@ -49,19 +49,19 @@ public class UniqueValidatorImp implements UniqueValidator {
 
 	@Override
 	public ValidationAnswer validateUniqueForExistingRecord(String recordType, String recordId,
-			List<Unique> uniqueRules, Set<StorageTerm> storageTerms) {
+			List<UniqueStorageKeys> uniqueRules, Set<StorageTerm> storageTerms) {
 		return validateUnique(recordType, Optional.of(recordId), uniqueRules, storageTerms);
 	}
 
 	ValidationAnswer validateUnique(String recordType, Optional<String> recordId,
-			List<Unique> uniqueRules, Set<StorageTerm> storageTerms) {
+			List<UniqueStorageKeys> uniqueRules, Set<StorageTerm> storageTerms) {
 		if (noNeedToRunValidation(uniqueRules, storageTerms)) {
 			return noDuplicatesFound();
 		}
 		return checkUniqueRulesAndBuildAnswer(recordType, recordId, uniqueRules, storageTerms);
 	}
 
-	private boolean noNeedToRunValidation(List<Unique> uniques, Set<StorageTerm> storageTerms) {
+	private boolean noNeedToRunValidation(List<UniqueStorageKeys> uniques, Set<StorageTerm> storageTerms) {
 		return uniques.isEmpty() || storageTerms.isEmpty();
 	}
 
@@ -70,7 +70,7 @@ public class UniqueValidatorImp implements UniqueValidator {
 	}
 
 	private ValidationAnswer checkUniqueRulesAndBuildAnswer(String recordType,
-			Optional<String> recordId, List<Unique> uniqueRules, Set<StorageTerm> storageTerms) {
+			Optional<String> recordId, List<UniqueStorageKeys> uniqueRules, Set<StorageTerm> storageTerms) {
 		List<String> errorMessages = checkuniqueRules(recordType, recordId, uniqueRules,
 				storageTerms);
 		return createValidationAnswer(errorMessages);
@@ -83,9 +83,9 @@ public class UniqueValidatorImp implements UniqueValidator {
 	}
 
 	private List<String> checkuniqueRules(String recordType, Optional<String> recordId,
-			List<Unique> uniqueRules, Set<StorageTerm> storageTerms) {
+			List<UniqueStorageKeys> uniqueRules, Set<StorageTerm> storageTerms) {
 		List<String> errorMessages = new ArrayList<>();
-		for (Unique uniqueRule : uniqueRules) {
+		for (UniqueStorageKeys uniqueRule : uniqueRules) {
 			Optional<String> errorMessage = checkUniqueRule(recordType, recordId, storageTerms,
 					uniqueRule);
 			if (errorMessage.isPresent()) {
@@ -96,7 +96,7 @@ public class UniqueValidatorImp implements UniqueValidator {
 	}
 
 	private Optional<String> checkUniqueRule(String recordType, Optional<String> recordId,
-			Set<StorageTerm> storageTerms, Unique unique) {
+			Set<StorageTerm> storageTerms, UniqueStorageKeys unique) {
 		Optional<Filter> filter = possiblyCreateFilter(unique, storageTerms);
 		if (filter.isPresent()) {
 			return checkUniqueInStorageUsingFilter(recordType, recordId, filter.get());
@@ -165,7 +165,7 @@ public class UniqueValidatorImp implements UniqueValidator {
 		return stringJoiner.toString();
 	}
 
-	private Optional<Filter> possiblyCreateFilter(Unique unique, Set<StorageTerm> storageTerms) {
+	private Optional<Filter> possiblyCreateFilter(UniqueStorageKeys unique, Set<StorageTerm> storageTerms) {
 		Optional<Condition> uniqueCondition = possiblyCreateCondition(storageTerms,
 				unique.uniqueTermStorageKey());
 		if (uniqueCondition.isEmpty()) {
@@ -221,7 +221,7 @@ public class UniqueValidatorImp implements UniqueValidator {
 	}
 
 	@Override
-	public ValidationAnswer validateUniqueForNewRecord(String recordType, List<Unique> uniques,
+	public ValidationAnswer validateUniqueForNewRecord(String recordType, List<UniqueStorageKeys> uniques,
 			Set<StorageTerm> storageTerms) {
 		return validateUnique(recordType, Optional.empty(), uniques, storageTerms);
 	}
