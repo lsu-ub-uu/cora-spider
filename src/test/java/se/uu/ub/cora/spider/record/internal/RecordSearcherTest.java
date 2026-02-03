@@ -436,16 +436,19 @@ public class RecordSearcherTest {
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				SEARCH_AFTER_AUTHORIZATION, expectedData, 0);
 
+		expectedData.recordType = "someType1";
 		expectedData.dataRecordGroup = (DataRecordGroup) dataFactorySpy.MCR
 				.getReturnValue("factorRecordGroupFromDataGroup", 0);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				SEARCH_BEFORE_ENHANCE_SINGLE, expectedData, 1);
 
+		expectedData.recordType = "someType2";
 		expectedData.dataRecordGroup = (DataRecordGroup) dataFactorySpy.MCR
 				.getReturnValue("factorRecordGroupFromDataGroup", 1);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				SEARCH_BEFORE_ENHANCE_SINGLE, expectedData, 2);
 
+		expectedData.recordType = "someType3";
 		expectedData.dataRecordGroup = (DataRecordGroup) dataFactorySpy.MCR
 				.getReturnValue("factorRecordGroupFromDataGroup", 2);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(

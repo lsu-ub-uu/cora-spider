@@ -211,12 +211,21 @@ public final class RecordSearcherImp implements RecordSearcher {
 			DataRecordGroup dataRecordGroup) {
 		ExtendedFunctionalityData data = createExtendedFunctionalityDataUsingDataRecordGroup(
 				dataRecordGroup);
-		useExtendedFunctionalityUsingPosition(position, data);
+		useExtendedFunctionalityUsingPositionAndType(position, data);
+	}
+
+	private void useExtendedFunctionalityUsingPositionAndType(
+			ExtendedFunctionalityPosition position, ExtendedFunctionalityData data) {
+		List<ExtendedFunctionality> extendedFunctionality = extendedFunctionalityProvider
+				.getFunctionalityForPositionAndRecordType(position, data.recordType);
+		useExtendedFunctionality(extendedFunctionality, data);
+
 	}
 
 	private ExtendedFunctionalityData createExtendedFunctionalityDataUsingDataRecordGroup(
 			DataRecordGroup dataRecordGroup) {
 		ExtendedFunctionalityData data = createExtendedFunctionalityData();
+		data.recordType = dataRecordGroup.getType();
 		data.dataRecordGroup = dataRecordGroup;
 		return data;
 	}
