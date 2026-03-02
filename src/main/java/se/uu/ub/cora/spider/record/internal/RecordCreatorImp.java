@@ -199,8 +199,10 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private void validateRecord() {
-		// TOD move checkRecordPartsUserIsNotAllowtoChange after
+		// TODO: move checkRecordPartsUserIsNotAllowtoChange after
 		// validateDataInRecordAsSpecifiedInMetadata
+		// TODO: Check order of following operations
+
 		// checkRecordPartsUserIsNotAllowtoChange();
 		possiblyHandleVisibility();
 		possiblyUseTrashBin();

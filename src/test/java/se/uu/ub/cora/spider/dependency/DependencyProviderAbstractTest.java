@@ -42,7 +42,7 @@ import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactory;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandlerFactoryImp;
 import se.uu.ub.cora.bookkeeper.storage.MetadataStorageProvider;
-import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollectorImp;
+import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.bookkeeper.termcollector.PermissionTermDataHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.PermissionTermDataHandlerImp;
 import se.uu.ub.cora.bookkeeper.validator.DataValidator;
@@ -239,10 +239,10 @@ public class DependencyProviderAbstractTest {
 
 	@Test
 	public void testGetDataGroupTermCollector() {
-		DataGroupTermCollectorImp dataGroupTermCollector = (DataGroupTermCollectorImp) dependencyProvider
+		DataGroupTermCollector dataGroupTermCollector = dependencyProvider
 				.getDataGroupTermCollector();
 
-		assertTrue(dataGroupTermCollector instanceof DataGroupTermCollectorImp);
+		assertTrue(dataGroupTermCollector instanceof DataGroupTermCollector);
 	}
 
 	@Test
