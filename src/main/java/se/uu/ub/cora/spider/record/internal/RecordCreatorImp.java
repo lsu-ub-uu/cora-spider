@@ -198,6 +198,17 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		throw new DataException("PermissionUnit is missing in the record.");
 	}
 
+	private void validateRecordOLD() {
+		// TODO: move checkRecordPartsUserIsNotAllowtoChange after
+		// validateDataInRecordAsSpecifiedInMetadata
+		// TODO: Check order of following operations
+
+		// checkRecordPartsUserIsNotAllowtoChange();
+		possiblyHandleVisibility();
+		possiblyUseTrashBin();
+		validateDataInRecordAsSpecifiedInMetadata();
+		checkRecordPartsUserIsNotAllowtoChange();
+	}
 	private void validateRecord() {
 		checkRecordPartsUserIsNotAllowtoChange();
 		possiblyHandleVisibility();

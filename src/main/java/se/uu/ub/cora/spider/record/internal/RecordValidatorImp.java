@@ -109,7 +109,9 @@ public final class RecordValidatorImp extends RecordHandler implements RecordVal
 		recordTypeHandlerForDataToValidate = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(recordToValidate);
 		validateRecord(recordToValidate);
-		validateUnique(recordToValidate);
+		if (errorList.isEmpty()) {
+			validateUnique(recordToValidate);
+		}
 		return createAnswerDataRecord();
 	}
 
