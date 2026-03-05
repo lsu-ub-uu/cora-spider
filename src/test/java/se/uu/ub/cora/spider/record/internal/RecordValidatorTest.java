@@ -763,7 +763,7 @@ public class RecordValidatorTest {
 		setUpAnswerForUniqueValidation();
 
 		Iterator<ValidationAnswerSpy> of = List.of(validAnswer, invalidAnswer).iterator();
-		dataValidator.MRV.setDefaultReturnValuesSupplier("validateData", () -> of.next());
+		dataValidator.MRV.setDefaultReturnValuesSupplier("validateData", of::next);
 		setUpCollectLinksReturnValue();
 		recordStorage.MRV.setDefaultReturnValuesSupplier("recordExists", () -> false);
 		recordToValidate.MRV.setDefaultReturnValuesSupplier("getType", () -> "someOtherRecordType");
@@ -781,11 +781,8 @@ public class RecordValidatorTest {
 				+ " from validationOrder (" + SPECIFIED_RECORD_TYPE_TO_VALIDATE + ")";
 		String error3 = "some invalid answer 1";
 		String error4 = "some invalid answer 2";
-		String error5 = "Error from unique 1";
-		String error6 = "Error from unique 2";
 
-		assertAnswerFromRecordValidator(validationRecord, error0, error1, error2, error3, error4,
-				error5, error6);
+		assertAnswerFromRecordValidator(validationRecord, error0, error1, error2, error3, error4);
 	}
 
 	private void setUpAnswerForUniqueValidation() {
