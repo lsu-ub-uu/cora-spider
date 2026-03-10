@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2023, 2024 Uppsala University Library
+ * Copyright 2016, 2023, 2024, 2026 Uppsala University Library
  * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
@@ -23,6 +23,7 @@ package se.uu.ub.cora.spider.binary.internal;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
@@ -108,7 +109,9 @@ public final class DownloaderImp implements Downloader {
 	private ResourceInputStream tryToReadRepresentation() {
 		try {
 			DataRecordGroup binaryRecordGroup = recordStorage.read(type, id);
-			authenticateAndAuthorizeUser(binaryRecordGroup);
+			if (isUnpublished(binaryRecordGroup)) {
+				authenticateAndAuthorizeUser(binaryRecordGroup);
+			}
 			return readRepresentation(binaryRecordGroup);
 		} catch (se.uu.ub.cora.storage.RecordNotFoundException e) {
 			throw throwRecordNotFoundException(e);
@@ -117,7 +120,25 @@ public final class DownloaderImp implements Downloader {
 		}
 	}
 
+	private boolean isUnpublished(DataRecordGroup binaryRecordGroup) {
+		return !isPublished(binaryRecordGroup);
+	}
+
+	private boolean isPublished(DataRecordGroup binaryRecordGroup) {
+		Optional<String> visibility = binaryRecordGroup.getVisibility();
+		return visibility.isPresent() && "published".equals(visibility.get());
+	}
+
 	private void authenticateAndAuthorizeUser(DataRecordGroup binaryRecordGroup) {
+		// TODO: skipp if published
+
+		// Optional<String> visibility = binaryRecordGroup.getVisibility();
+		// if (visibility.isPresent() && "published".equals(visibility.get())) {
+		// return;
+		// }
+		// Optional<DataRecordLink> hostRecord = binaryRecordGroup.getHostRecord();
+		// /////
+
 		User user = authenticator.getUserForToken(authToken);
 		List<PermissionTerm> permissionTerms = getPermissionTerms(binaryRecordGroup);
 

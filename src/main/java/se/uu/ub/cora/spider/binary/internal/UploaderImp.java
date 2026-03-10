@@ -328,7 +328,7 @@ public final class UploaderImp implements Uploader {
 	private void tryToCheckUserIsAuthorizedForPemissionUnit(String permissionUnit) {
 		try {
 			spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, permissionUnit);
-		} catch (Exception e) {
+		} catch (Exception _) {
 			throw notAuthorizedDueToUserDoNotMatchRecordsPermissionUnit();
 		}
 	}

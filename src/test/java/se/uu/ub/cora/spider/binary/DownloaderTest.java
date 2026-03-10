@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2017, 2019, 2023, 2024 Uppsala University Library
+ * Copyright 2016, 2017, 2019, 2023, 2024, 2026 Uppsala University Library
  * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
@@ -26,6 +26,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.text.MessageFormat;
+import java.util.Optional;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -302,9 +303,7 @@ public class DownloaderTest {
 	}
 
 	private void ensureNoDownloadLogicStarts() {
-		authenticator.MCR.assertMethodNotCalled("getUserForToken");
-		authorizator.MCR.assertMethodNotCalled(
-				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
+		assertIgnoreAuthenticationAndAuthorization();
 		recordStorage.MCR.assertMethodNotCalled("read");
 		resourceArchive.MCR.assertMethodNotCalled("create");
 	}
@@ -385,9 +384,14 @@ public class DownloaderTest {
 
 	private void assertRepresentationAllowed(ResourceInputStream resourceDownloaded,
 			String representation) {
-		streamStorage.MCR.assertParameters("retrieve", 0, DATA_DIVIDER, BINARY_RECORD_TYPE,
+		assertRepresentationAllowedUsingCallNo(resourceDownloaded, representation, 0);
+	}
+
+	private void assertRepresentationAllowedUsingCallNo(ResourceInputStream resourceDownloaded,
+			String representation, int callNo) {
+		streamStorage.MCR.assertParameters("retrieve", callNo, DATA_DIVIDER, BINARY_RECORD_TYPE,
 				RECORD_ID, representation);
-		streamStorage.MCR.assertReturn("retrieve", 0, resourceDownloaded.stream);
+		streamStorage.MCR.assertReturn("retrieve", callNo, resourceDownloaded.stream);
 
 		assertReturnedDataFromCorrectResourceType(representation, resourceDownloaded);
 	}
@@ -437,5 +441,26 @@ public class DownloaderTest {
 					MessageFormat.format(errorNotFoundMessage, BINARY_RECORD_TYPE, RECORD_ID, JP2));
 			assertEquals(e.getCause(), resourceNotFoundException);
 		}
+	}
+
+	@Test
+	public void testDownload_Published() {
+		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("published"));
+
+		resourceTypeDGS = jp2ResourceTypeDGS;
+
+		var resourceDownloaded = downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE, RECORD_ID,
+				JP2);
+
+		assertIgnoreAuthenticationAndAuthorization();
+		assertRepresentationAllowedUsingCallNo(resourceDownloaded, JP2, 0);
+
+	}
+
+	private void assertIgnoreAuthenticationAndAuthorization() {
+		authenticator.MCR.assertMethodNotCalled("getUserForToken");
+		authorizator.MCR.assertMethodNotCalled(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
 	}
 }
