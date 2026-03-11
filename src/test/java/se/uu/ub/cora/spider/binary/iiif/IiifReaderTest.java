@@ -42,7 +42,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.iiif.internal.IiifReaderImp;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
@@ -86,6 +86,7 @@ public class IiifReaderTest {
 	private DataGroupSpy adminInfo;
 	private IiifAdapterSpy iiifAdapterSpy;
 	Map<String, String> headersMap;
+	private RecordTypeHandlerSpy recordTypeHandler;
 
 	@BeforeMethod
 	private void beforeMethod() {
@@ -118,6 +119,10 @@ public class IiifReaderTest {
 		recordStorage = new RecordStorageSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
+
+		recordTypeHandler = new RecordTypeHandlerSpy();
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandler);
 	}
 
 	private void setupBinaryRecord() {
@@ -271,12 +276,10 @@ public class IiifReaderTest {
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
 				readBinaryDGS);
 
-		RecordTypeHandlerOldSpy recordTypeHandlerSpy = (RecordTypeHandlerOldSpy) dependencyProvider.MCR
-				.getReturnValue("getRecordTypeHandlerUsingDataRecordGroup", 0);
 		DataGroupTermCollectorSpy termCollectorSpy = (DataGroupTermCollectorSpy) dependencyProvider.MCR
 				.getReturnValue("getDataGroupTermCollector", 0);
 
-		var definitionId = recordTypeHandlerSpy.MCR.getReturnValue("getDefinitionId", 0);
+		var definitionId = recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0);
 
 		termCollectorSpy.MCR.assertParameters("collectTerms", 0, definitionId, readBinaryDGS);
 

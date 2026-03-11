@@ -36,10 +36,11 @@ import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.internal.DownloaderImp;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.ResourceNotFoundException;
@@ -79,7 +80,6 @@ public class DownloaderTest {
 	private DataFactorySpy dataFactorySpy;
 	private ResourceArchiveSpy resourceArchive;
 
-	private DataGroupSpy resourceTypeDGS;
 	private DataRecordGroupSpy readBinaryDGS;
 	private StreamStorageSpy streamStorage;
 	private DataGroupSpy thumbnailResourceTypeDGS;
@@ -87,6 +87,8 @@ public class DownloaderTest {
 	private DataGroupSpy largeResourceTypeDGS;
 	private DataGroupSpy jp2ResourceTypeDGS;
 	private DataGroupSpy masterResourceTypeDGS;
+	private DataRecordGroupSpy hostRecordDGS;
+	private RecordTypeHandlerSpy recordTypeHandler;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -120,10 +122,13 @@ public class DownloaderTest {
 		streamStorage = new StreamStorageSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getStreamStorage",
 				() -> streamStorage);
+
+		recordTypeHandler = new RecordTypeHandlerSpy();
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier(
+				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandler);
 	}
 
 	private void setupBinaryRecord() {
-		resourceTypeDGS = createResourceDataGroupForResourceId(MASTER);
 		masterResourceTypeDGS = createResourceDataGroupForResourceId(MASTER);
 		thumbnailResourceTypeDGS = createResourceDataGroupForResourceId(THUMBNAIL);
 		mediumResourceTypeDGS = createResourceDataGroupForResourceId(MEDIUM);
@@ -131,6 +136,8 @@ public class DownloaderTest {
 		jp2ResourceTypeDGS = createResourceDataGroupForResourceId(JP2);
 
 		readBinaryDGS = new DataRecordGroupSpy();
+		setHostRecord();
+
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
 				() -> masterResourceTypeDGS, MASTER);
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
@@ -146,8 +153,22 @@ public class DownloaderTest {
 		readBinaryDGS.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> ORIGINAL_FILE_NAME, "originalFileName");
 		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getDataDivider", () -> DATA_DIVIDER);
-
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> readBinaryDGS);
+
+		hostRecordDGS = new DataRecordGroupSpy();
+		hostRecordDGS.MRV.setDefaultReturnValuesSupplier("getType", () -> "someHostType");
+
+		recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> hostRecordDGS,
+				"someHostType", "someHostId");
+	}
+
+	private void setHostRecord() {
+		DataRecordLinkSpy hostLink = new DataRecordLinkSpy();
+		hostLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType", () -> "someHostType");
+		hostLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> "someHostId");
+
+		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getHostRecord",
+				() -> Optional.of(hostLink));
 	}
 
 	private DataGroupSpy createResourceDataGroupForResourceId(String resourceId) {
@@ -225,6 +246,25 @@ public class DownloaderTest {
 	}
 
 	@Test
+	public void testDownload_Published() {
+		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getVisibility",
+				() -> Optional.of("published"));
+
+		var resourceDownloaded = downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE, RECORD_ID,
+				JP2);
+
+		assertIgnoreAuthenticationAndAuthorization();
+		assertRepresentationAllowedUsingCallNo(resourceDownloaded, JP2, 0, jp2ResourceTypeDGS);
+
+	}
+
+	private void assertIgnoreAuthenticationAndAuthorization() {
+		authenticator.MCR.assertMethodNotCalled("getUserForToken");
+		authorizator.MCR.assertMethodNotCalled(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
+	}
+
+	@Test
 	public void testDownloadAuthenticate() {
 		downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE, RECORD_ID, MASTER);
 
@@ -233,7 +273,7 @@ public class DownloaderTest {
 	}
 
 	@Test
-	public void testUploadUserNotAuthenticated() {
+	public void testDownloadUserNotAuthenticated() {
 		authenticator.MRV.setAlwaysThrowException("getUserForToken",
 				new AuthenticationException(EXCEPTION_MESSAGE));
 		try {
@@ -247,7 +287,7 @@ public class DownloaderTest {
 	}
 
 	@Test
-	public void testUploadUserNotAuthorizated() {
+	public void testDownloadUserNotAuthorizated() {
 		authorizator.MRV.setAlwaysThrowException(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData",
 				new AuthorizationException(EXCEPTION_MESSAGE));
@@ -262,32 +302,30 @@ public class DownloaderTest {
 	}
 
 	@Test
-	public void testUploadUserAuthorized() {
+	public void testDownloadUserAuthorized() {
 		downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE, RECORD_ID, MASTER);
 
+		assertCheckAuthorizedUsingHostRecordCollectedTerms();
+	}
+
+	private void assertCheckAuthorizedUsingHostRecordCollectedTerms() {
+		CollectTerms collectedTerms = assertAndReturnUsedCollectedValuesFromHostRecord();
+
 		var user = authenticator.MCR.getReturnValue("getUserForToken", 0);
-
-		dependencyProvider.MCR.assertParameters("getSpiderAuthorizator", 0);
-		dependencyProvider.MCR.assertMethodWasCalled("getDataGroupTermCollector");
-
-		DataRecordGroupSpy binaryRecordGroup = (DataRecordGroupSpy) recordStorage.MCR
-				.getReturnValue("read", 0);
-		dependencyProvider.MCR.assertParameters("getRecordTypeHandlerUsingDataRecordGroup", 0,
-				binaryRecordGroup);
-		RecordTypeHandlerOldSpy recordTypeHandlerSpy = (RecordTypeHandlerOldSpy) dependencyProvider.MCR
-				.getReturnValue("getRecordTypeHandlerUsingDataRecordGroup", 0);
-		var definitionId = recordTypeHandlerSpy.MCR.getReturnValue("getDefinitionId", 0);
-
-		DataGroupTermCollectorSpy termCollector = (DataGroupTermCollectorSpy) dependencyProvider.MCR
-				.getReturnValue("getDataGroupTermCollector", 0);
-
-		termCollector.MCR.assertParameters("collectTerms", 0, definitionId, binaryRecordGroup);
-		CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
-				.getReturnValue("collectTerms", 0);
-
 		authorizator.MCR.assertParameters(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, user, ACTION_READ,
-				BINARY_RECORD_TYPE + "." + MASTER, collectedTerms.permissionTerms);
+				"someHostType." + BINARY_RECORD_TYPE + "." + MASTER,
+				collectedTerms.permissionTerms);
+	}
+
+	private CollectTerms assertAndReturnUsedCollectedValuesFromHostRecord() {
+		var definitionId = recordTypeHandler.MCR.getReturnValue("getDefinitionId", 0);
+
+		DataGroupTermCollectorSpy termCollector = (DataGroupTermCollectorSpy) dependencyProvider.MCR
+				.assertCalledParametersReturn("getDataGroupTermCollector");
+
+		return (CollectTerms) termCollector.MCR.assertCalledParametersReturn("collectTerms",
+				definitionId, hostRecordDGS);
 	}
 
 	@Test
@@ -309,7 +347,7 @@ public class DownloaderTest {
 	}
 
 	@Test
-	public void testUploadExceptionTypeDifferentThanBinary() {
+	public void testDownloadExceptionTypeDifferentThanBinary() {
 		try {
 			downloader.download(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, MASTER);
 			fail("It should throw exception");
@@ -324,23 +362,16 @@ public class DownloaderTest {
 
 	@Test
 	public void testReturnCorrectInfoForMaster() {
-		resourceTypeDGS = masterResourceTypeDGS;
-
 		ResourceInputStream resourceDownloaded = downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE,
 				RECORD_ID, MASTER);
 		readBinaryDGS.MCR.assertParameters("getFirstGroupWithNameInData", 0, MASTER);
-		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "resourceId");
-		var fileName = resourceTypeDGS.MCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
-		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 1, "fileSize");
-		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 2, "mimeType");
 
-		assertEquals(resourceDownloaded.name, fileName);
-		assertEquals(String.valueOf(resourceDownloaded.size), FILE_SIZE);
-		assertEquals(resourceDownloaded.mimeType, MIME_TYPE);
+		assertReturnedDataFromCorrectResourceType(MASTER, resourceDownloaded,
+				masterResourceTypeDGS);
 	}
 
 	private void assertReturnedDataFromCorrectResourceType(String resourceType,
-			ResourceInputStream resourceDownloaded) {
+			ResourceInputStream resourceDownloaded, DataGroupSpy resourceTypeDGS) {
 		readBinaryDGS.MCR.assertParameters("getFirstGroupWithNameInData", 0, resourceType);
 		resourceTypeDGS.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "resourceId");
 		var fileName = resourceTypeDGS.MCR.getReturnValue("getFirstAtomicValueWithNameInData", 0);
@@ -374,55 +405,50 @@ public class DownloaderTest {
 
 	@Test
 	public void testDownloadAThumbnail() {
-		resourceTypeDGS = thumbnailResourceTypeDGS;
-
 		var resourceDownloaded = downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE, RECORD_ID,
 				THUMBNAIL);
 
-		assertRepresentationAllowed(resourceDownloaded, THUMBNAIL);
+		assertRepresentationAllowed(resourceDownloaded, THUMBNAIL, thumbnailResourceTypeDGS);
 	}
 
 	private void assertRepresentationAllowed(ResourceInputStream resourceDownloaded,
-			String representation) {
-		assertRepresentationAllowedUsingCallNo(resourceDownloaded, representation, 0);
+			String representation, DataGroupSpy resourceTypeDGS) {
+		assertRepresentationAllowedUsingCallNo(resourceDownloaded, representation, 0,
+				resourceTypeDGS);
 	}
 
 	private void assertRepresentationAllowedUsingCallNo(ResourceInputStream resourceDownloaded,
-			String representation, int callNo) {
+			String representation, int callNo, DataGroupSpy resourceTypeDGS) {
 		streamStorage.MCR.assertParameters("retrieve", callNo, DATA_DIVIDER, BINARY_RECORD_TYPE,
 				RECORD_ID, representation);
 		streamStorage.MCR.assertReturn("retrieve", callNo, resourceDownloaded.stream);
 
-		assertReturnedDataFromCorrectResourceType(representation, resourceDownloaded);
+		assertReturnedDataFromCorrectResourceType(representation, resourceDownloaded,
+				resourceTypeDGS);
 	}
 
 	@Test
 	public void testDownloadAMedium() {
-		resourceTypeDGS = mediumResourceTypeDGS;
 		var resourceDownloaded = downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE, RECORD_ID,
 				MEDIUM);
 
-		assertRepresentationAllowed(resourceDownloaded, MEDIUM);
+		assertRepresentationAllowed(resourceDownloaded, MEDIUM, mediumResourceTypeDGS);
 	}
 
 	@Test
 	public void testDownloadALarge() {
-		resourceTypeDGS = largeResourceTypeDGS;
-
 		var resourceDownloaded = downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE, RECORD_ID,
 				LARGE);
 
-		assertRepresentationAllowed(resourceDownloaded, LARGE);
+		assertRepresentationAllowed(resourceDownloaded, LARGE, largeResourceTypeDGS);
 	}
 
 	@Test
 	public void testDownloadJp2() {
-		resourceTypeDGS = jp2ResourceTypeDGS;
-
 		var resourceDownloaded = downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE, RECORD_ID,
 				JP2);
 
-		assertRepresentationAllowed(resourceDownloaded, JP2);
+		assertRepresentationAllowed(resourceDownloaded, JP2, jp2ResourceTypeDGS);
 	}
 
 	@Test
@@ -443,24 +469,4 @@ public class DownloaderTest {
 		}
 	}
 
-	@Test
-	public void testDownload_Published() {
-		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getVisibility",
-				() -> Optional.of("published"));
-
-		resourceTypeDGS = jp2ResourceTypeDGS;
-
-		var resourceDownloaded = downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE, RECORD_ID,
-				JP2);
-
-		assertIgnoreAuthenticationAndAuthorization();
-		assertRepresentationAllowedUsingCallNo(resourceDownloaded, JP2, 0);
-
-	}
-
-	private void assertIgnoreAuthenticationAndAuthorization() {
-		authenticator.MCR.assertMethodNotCalled("getUserForToken");
-		authorizator.MCR.assertMethodNotCalled(
-				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
-	}
 }

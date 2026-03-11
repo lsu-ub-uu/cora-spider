@@ -30,6 +30,7 @@ import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -130,31 +131,36 @@ public final class DownloaderImp implements Downloader {
 	}
 
 	private void authenticateAndAuthorizeUser(DataRecordGroup binaryRecordGroup) {
-		// TODO: skipp if published
-
-		// Optional<String> visibility = binaryRecordGroup.getVisibility();
-		// if (visibility.isPresent() && "published".equals(visibility.get())) {
-		// return;
-		// }
-		// Optional<DataRecordLink> hostRecord = binaryRecordGroup.getHostRecord();
-		// /////
-
 		User user = authenticator.getUserForToken(authToken);
-		List<PermissionTerm> permissionTerms = getPermissionTerms(binaryRecordGroup);
-
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				ACTION_READ, type + "." + representation, permissionTerms);
+		authorizedUsingHostRecord(user, binaryRecordGroup);
 	}
 
-	private List<PermissionTerm> getPermissionTerms(DataRecordGroup binaryRecordGroup) {
-		String definitionId = getDefinitionId(binaryRecordGroup);
-		CollectTerms collectTerms = termCollector.collectTerms(definitionId, binaryRecordGroup);
+	private void authorizedUsingHostRecord(User user, DataRecordGroup binaryRecordGroup) {
+		DataRecordGroup hostRecordGroup = readHostRecordFromBinary(binaryRecordGroup);
+		List<PermissionTerm> hostPermissionTerms = getHostRecordPermissionTerms(hostRecordGroup);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
+				ACTION_READ, hostRecordGroup.getType() + "." + type + "." + representation,
+				hostPermissionTerms);
+	}
+
+	private DataRecordGroup readHostRecordFromBinary(DataRecordGroup binaryRecordGroup) {
+		Optional<DataRecordLink> hostRecord = binaryRecordGroup.getHostRecord();
+		DataRecordLink hostLink = hostRecord.get();
+		String hostType = hostLink.getLinkedRecordType();
+		String hostId = hostLink.getLinkedRecordId();
+		return recordStorage.read(hostType, hostId);
+	}
+
+	private List<PermissionTerm> getHostRecordPermissionTerms(DataRecordGroup hostRecordGroup) {
+		String hostRecordDefinitionId = getDefinitionId(hostRecordGroup);
+		CollectTerms collectTerms = termCollector.collectTerms(hostRecordDefinitionId,
+				hostRecordGroup);
 		return collectTerms.permissionTerms;
 	}
 
-	private String getDefinitionId(DataRecordGroup binaryRecordGroup) {
+	private String getDefinitionId(DataRecordGroup recordGroup) {
 		RecordTypeHandler recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(binaryRecordGroup);
+				.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
 		return recordTypeHandler.getDefinitionId();
 	}
 
