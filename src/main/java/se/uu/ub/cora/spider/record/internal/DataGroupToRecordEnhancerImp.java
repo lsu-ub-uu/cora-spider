@@ -68,8 +68,8 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	private Set<String> readRecordPartPermissions = Collections.emptySet();
 	private Set<String> writeRecordPartPermissions = Collections.emptySet();
 	private boolean addActionRead = true;
-
 	private List<PermissionTerm> permissionTerms;
+	private DataRecordGroup hostRecord;
 
 	public DataGroupToRecordEnhancerImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
@@ -81,17 +81,30 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	@Override
 	public DataRecord enhance(User user, String recordType, DataRecordGroup dataRecordGroup,
 			DataRedactor dataRedactor) {
-		commonSetupForEnhance(user, recordType, dataRecordGroup);
-		return enhanceDataGroupToRecord(dataRecordGroup, dataRedactor);
-	}
-
-	private void commonSetupForEnhance(User user, String recordType,
-			DataRecordGroup dataRecordGroup) {
 		this.user = user;
 		this.recordType = recordType;
 		handledRecordId = dataRecordGroup.getId();
 		recordTypeHandler = getRecordTypeHandlerForRecordType(recordType);
-		permissionTerms = getCollectedTermsForRecordTypeAndRecord(recordType, dataRecordGroup);
+
+		if (recordTypeHandler.isPublicForRead()) {
+			return addActionsToRecord(dataRecordGroup);
+		}
+
+		permissionTerms = getPermissionTerms(user, recordType, dataRecordGroup);
+		readRecordPartPermissions = ensureReadAccessAndReturnReadRecordPartPermission(
+				dataRecordGroup);
+		DataRecordGroup redactedDataRecordGroup = redact(dataRecordGroup, dataRedactor);
+		return addActionsToRecord(redactedDataRecordGroup);
+	}
+
+	private List<PermissionTerm> getPermissionTerms(User user, String recordType,
+			DataRecordGroup dataRecordGroup) {
+		if (recordTypeHandler.useHostRecord()) {
+			hostRecord = readHostRecord(dataRecordGroup);
+			return getCollectedTermsForRecordTypeAndRecord(hostRecord.getType(), hostRecord);
+		}
+		return getCollectedTermsForRecordTypeAndRecord(recordType, dataRecordGroup);
+
 	}
 
 	private RecordTypeHandler getRecordTypeHandlerForRecordType(String recordType) {
@@ -111,6 +124,14 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		cachedRecordTypeHandlers.put(recordType, recordTypeHandlerToLoad);
 	}
 
+	private DataRecordGroup readHostRecord(DataRecordGroup recordGroup) {
+		Optional<DataRecordLink> hostRecord = recordGroup.getHostRecord();
+		DataRecordLink hostLink = hostRecord.get();
+		String hostType = hostLink.getLinkedRecordType();
+		String hostId = hostLink.getLinkedRecordId();
+		return recordStorage.read(hostType, hostId);
+	}
+
 	private List<PermissionTerm> getCollectedTermsForRecordTypeAndRecord(String recordType,
 			DataRecordGroup dataRecordGroup) {
 		RecordTypeHandler recordTypeHandlerForRecordType = getRecordTypeHandlerForRecordType(
@@ -120,19 +141,27 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return collectedTerms.permissionTerms;
 	}
 
-	private DataRecord enhanceDataGroupToRecord(DataRecordGroup dataRecordGroup,
-			DataRedactor dataRedactor) {
-		readRecordPartPermissions = ensureReadAccessAndReturnReadRecordPartPermission(
-				dataRecordGroup);
-		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataRecordGroup,
-				dataRedactor);
+	Set<String> ensureReadAccessAndReturnReadRecordPartPermission(DataRecordGroup dataRecordGroup) {
+		if (isPublished(dataRecordGroup)) {
+			return tryToGetUsersRecordPartPermissions();
+		}
+		if (isUnpublishedAndUsesPermissionUnits()) {
+			checkUserIsAuthorizedForPermissionUnit(dataRecordGroup);
+			return checkAndGetUserAuthorizationsForReadAction();
+		}
+		return checkAndGetUserAuthorizationsForReadAction();
 	}
 
-	private DataRecord enhanceDataGroupToRecordUsingReadRecordPartPermissions(
-			DataRecordGroup dataRecordGroup, DataRedactor dataRedactor) {
-		DataRecordGroup redactedDataRecordGroup = redact(dataRecordGroup, dataRedactor);
-		addReadActionToAllRecordLinks(redactedDataRecordGroup);
+	private boolean isUnpublishedAndUsesPermissionUnits() {
+		return recordTypeHandler.useVisibility() && recordTypeHandler.usePermissionUnit();
+	}
 
+	private Set<String> noRecordPartPermissions() {
+		return Collections.emptySet();
+	}
+
+	private DataRecord addActionsToRecord(DataRecordGroup redactedDataRecordGroup) {
+		addReadActionToAllRecordLinks(redactedDataRecordGroup);
 		DataRecord dataRecord = DataProvider
 				.createRecordWithDataRecordGroup(redactedDataRecordGroup);
 		addActions(dataRecord);
@@ -140,34 +169,15 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return dataRecord;
 	}
 
-	Set<String> ensureReadAccessAndReturnReadRecordPartPermission(DataRecordGroup dataRecordGroup) {
-		if (recordTypeHandler.isPublicForRead()) {
-			return noRecordPartPermissions();
-		}
-		if (recordTypeUsesVisibilityAndRecordIsPublished(dataRecordGroup)) {
-			return tryToGetUsersRecordPartPermissions();
-		}
-		if (recordTypeHandler.useVisibility() && recordTypeHandler.usePermissionUnit()) {
-			checkUserIsAuthorizedForPermissionUnit(dataRecordGroup);
-		}
-		return checkAndGetUserAuthorizationsForReadAction();
-	}
-
-	private Set<String> noRecordPartPermissions() {
-		return Collections.emptySet();
-	}
-
 	private Set<String> tryToGetUsersRecordPartPermissions() {
 		try {
-			return spiderAuthorizator
-					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-							user, "read", recordType, permissionTerms, true);
+			return checkAndGetUserAuthorizationsForReadAction();
 		} catch (Exception _) {
 			return noRecordPartPermissions();
 		}
 	}
 
-	private boolean recordTypeUsesVisibilityAndRecordIsPublished(DataRecordGroup dataRecordGroup) {
+	private boolean isPublished(DataRecordGroup dataRecordGroup) {
 		return recordTypeHandler.useVisibility() && recordIsPublished(dataRecordGroup);
 	}
 
@@ -184,8 +194,17 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private void checkUserIsAuthorizedForPermissionUnit(DataRecordGroup dataRecordGroup) {
-		Optional<String> permissionUnit = getPermissionUnitFromRecord(dataRecordGroup);
+		Optional<String> permissionUnit;
+		permissionUnit = getPermissionUnit(dataRecordGroup);
 		spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, permissionUnit.get());
+	}
+
+	private Optional<String> getPermissionUnit(DataRecordGroup dataRecordGroup) {
+		if (recordTypeHandler.useHostRecord()) {
+			return getPermissionUnitFromRecord(hostRecord);
+		}
+		return getPermissionUnitFromRecord(dataRecordGroup);
+
 	}
 
 	private Optional<String> getPermissionUnitFromRecord(DataRecordGroup dataRecordGroup) {
@@ -201,9 +220,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private Set<String> checkAndGetUserAuthorizationsForReadAction() {
+		String recordTypeForAuthorization = getRecordTypeForAuthorizationCheck();
 		return spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-						user, "read", recordType, permissionTerms, true);
+						user, "read", recordTypeForAuthorization, permissionTerms, true);
 	}
 
 	private void addActions(DataRecord dataRecord) {
@@ -240,14 +260,29 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private void possiblyAddUpdateAction(DataRecord dataRecord) {
 		try {
+			String recordTypeForAuthorization = getRecordTypeForAuthorizationCheck();
 			writeRecordPartPermissions = spiderAuthorizator
 					.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
-							user, "update", recordType, permissionTerms, true);
+							user, "update", recordTypeForAuthorization, permissionTerms, true);
 
 			dataRecord.addAction(Action.UPDATE);
 		} catch (Exception _) {
 			writeRecordPartPermissions = Collections.emptySet();
 		}
+	}
+
+	private String getRecordTypeForAuthorizationCheck() {
+		if (recordTypeHandler.useHostRecord()) {
+			return hostRecord.getType() + "." + recordType;
+		}
+		return recordType;
+	}
+
+	private String getRecordTypeForAuthorizationCheckUsingRecordType(String recordTypeIn) {
+		if (recordTypeHandler.useHostRecord()) {
+			return hostRecord.getType() + "." + recordTypeIn;
+		}
+		return recordTypeIn;
 	}
 
 	private void possiblyAddIndexAction(DataRecord dataRecord) {
@@ -258,8 +293,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 
 	private boolean userIsAuthorizedForActionOnRecordTypeAndCollectedTerms(String action,
 			String recordType) {
+		String recordTypeForAuthorization = getRecordTypeForAuthorizationCheckUsingRecordType(
+				recordType);
 		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				action, recordType, permissionTerms);
+				action, recordTypeForAuthorization, permissionTerms);
 	}
 
 	private boolean linksExistForRecordTypeUsingCurrentHandledId(String recordTypeId) {
@@ -478,12 +515,14 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return cachedAuthorizedToReadRecordLink.containsKey(key);
 	}
 
+	// TODO: maybe we are missing case: Unpublished&&usesPermissionUnit
+	// and case for hostrecords
 	private boolean readRecordLinkAuthorization(String linkedRecordType, String linkedRecordId) {
 		try {
 			DataRecordGroup linkedRecord = readRecordFromStorageByTypeAndId(linkedRecordType,
 					linkedRecordId);
 
-			if (recordTypeUsesVisibilityAndRecordIsPublished2(linkedRecord)) {
+			if (recordTypeUsesVisibilityAndRecordIsPublished(linkedRecord)) {
 				return true;
 			}
 			return userIsAuthorizedForActionOnRecordLinkAndData("read", linkedRecordType,
@@ -493,7 +532,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		}
 	}
 
-	private boolean recordTypeUsesVisibilityAndRecordIsPublished2(DataRecordGroup dataRecordGroup) {
+	private boolean recordTypeUsesVisibilityAndRecordIsPublished(DataRecordGroup dataRecordGroup) {
 		RecordTypeHandler recordTypeHandlerForRecordType = getRecordTypeHandlerForRecordType(
 				dataRecordGroup.getType());
 		return recordTypeHandlerForRecordType.useVisibility() && recordIsPublished(dataRecordGroup);
@@ -512,9 +551,10 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		return dataChild instanceof DataGroup;
 	}
 
+	// TODO: Comment on propouse to break the code since it seems there is no test testing this
 	private boolean isAuthorizedToReadResourceLink(DataResourceLink dataResourceLink) {
 		String resourceLinkNameInData = dataResourceLink.getNameInData();
-		String actionForResourceLink = "binary." + resourceLinkNameInData;
+		// String actionForResourceLink = "binary." + resourceLinkNameInData;
 		return userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read",
 				actionForResourceLink);
 	}
@@ -522,15 +562,18 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	@Override
 	public DataRecord enhanceIgnoringReadAccess(User user, String recordType,
 			DataRecordGroup dataRecordGroup, DataRedactor dataRedactor) {
-		commonSetupForEnhance(user, recordType, dataRecordGroup);
-		return enhanceDataGroupToRecordIgnoringReadAccess(dataRecordGroup, dataRedactor);
-	}
+		this.user = user;
+		this.recordType = recordType;
+		handledRecordId = dataRecordGroup.getId();
+		recordTypeHandler = getRecordTypeHandlerForRecordType(recordType);
 
-	private DataRecord enhanceDataGroupToRecordIgnoringReadAccess(DataRecordGroup dataRecordGroup,
-			DataRedactor dataRedactor) {
+		if (recordTypeHandler.isPublicForRead()) {
+			return addActionsToRecord(dataRecordGroup);
+		}
+		permissionTerms = getPermissionTerms(user, recordType, dataRecordGroup);
 		setNoReadPermissionsIfUserHasNoReadAccess(dataRecordGroup);
-		return enhanceDataGroupToRecordUsingReadRecordPartPermissions(dataRecordGroup,
-				dataRedactor);
+		DataRecordGroup redactedDataRecordGroup = redact(dataRecordGroup, dataRedactor);
+		return addActionsToRecord(redactedDataRecordGroup);
 	}
 
 	private void setNoReadPermissionsIfUserHasNoReadAccess(DataRecordGroup dataRecordGroup) {
@@ -543,8 +586,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 		}
 	}
 
-	public SpiderDependencyProvider getDependencyProvider() {
-		// needed for test
+	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {
 		return dependencyProvider;
 	}
 }

@@ -303,7 +303,7 @@ public class DependencyProviderAbstractTest {
 	public void testGetDataGroupToRecordEnhancer() {
 		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) dependencyProvider
 				.getDataGroupToRecordEnhancer();
-		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
+		assertSame(enhancer.onlyForTestGetDependencyProvider(), dependencyProvider);
 	}
 
 	@Test

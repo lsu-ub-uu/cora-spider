@@ -261,7 +261,7 @@ public class SpiderInstanceFactoryTest {
 		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) spiderRecordCreator
 				.onlyForTestGetDataGroupToRecordEnhancer();
 
-		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
+		assertSame(enhancer.onlyForTestGetDependencyProvider(), dependencyProvider);
 	}
 
 	@Test
