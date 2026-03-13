@@ -79,8 +79,9 @@ public final class RecordReaderImp implements RecordReader {
 	}
 
 	private DataRecord tryToReadRecord() {
+		tryToGetUserWithActiveToken();
+
 		if (isNotPublicForRead()) {
-			tryToGetUserWithActiveToken();
 			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
 		}
 

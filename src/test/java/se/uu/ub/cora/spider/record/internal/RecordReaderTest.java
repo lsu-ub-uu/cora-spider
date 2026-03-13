@@ -173,9 +173,14 @@ public class RecordReaderTest {
 
 		recordReader.readRecord(USER_TOKEN, RECORD_TYPE, RECORD_ID);
 
+		User user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+
 		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForActionOnRecordType");
-		recordStorage.MCR.assertMethodWasCalled("read");
-		dataGroupToRecordEnhancer.MCR.assertMethodWasCalled("enhance");
+		var readRecord = recordStorage.MCR.assertCalledParametersReturn("read", RECORD_TYPE,
+				RECORD_ID);
+		var redactor = dependencyProvider.MCR.assertCalledParametersReturn("getDataRedactor");
+		dataGroupToRecordEnhancer.MCR.assertCalledParameters("enhance", user, RECORD_TYPE,
+				readRecord, redactor);
 	}
 
 	@Test

@@ -22,7 +22,6 @@ package se.uu.ub.cora.spider.authorization;
 import java.util.List;
 import java.util.Set;
 
-import se.uu.ub.cora.beefeater.Authorizator;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.collected.PermissionTerm;
@@ -171,9 +170,8 @@ public interface SpiderAuthorizator {
 			boolean calculateRecordPartPermissions);
 
 	/**
-	 * checkUserIsAuthorizedForPemissionUnit is supposed to wrap the method:
-	 * {@link Authorizator#getUserIsAuthorizedForPemissionUnit(User, String)} The implementation
-	 * must ensure that the user is authorized to handle records of an specific permisssionUnit.
+	 * checkUserIsAuthorizedForPemissionUnit must ensure that the user is authorized to handle
+	 * records of an specific permisssionUnit.
 	 * <p>
 	 * If the user is not authorized MUST implementations throw an {@link AuthorizationException}
 	 * 
@@ -185,9 +183,8 @@ public interface SpiderAuthorizator {
 	void checkUserIsAuthorizedForPemissionUnit(User user, String recordPermissionUnit);
 
 	/**
-	 * getUserIsAuthorizedForPemissionUnit is supposed to wrap the method:
-	 * {@link Authorizator#getUserIsAuthorizedForPemissionUnit(User, String)} The implementation
-	 * must ensure that the user is authorized to handle records of an specific permisssionUnit.
+	 * getUserIsAuthorizedForPemissionUnit must ensure that the user is authorized to handle records
+	 * of an specific permisssionUnit.
 	 * 
 	 * @param user
 	 *            The {@link User} to check if is authorized.

@@ -293,6 +293,15 @@ public class DataGroupToRecordEnhancerTest {
 				someDataRecordGroup, dataRedactor);
 
 		assertReadActionPartOfEnhanceNotAuthorizedButPublicData(recordToEnhance);
+		oldAuthorizator.MCR.assertNumberOfCallsToMethod(
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", 2);
+		// INDEX,DELETE
+		oldAuthorizator.MCR.assertParameters(
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, user, "index",
+				"someRecordType", Collections.emptyList());
+		oldAuthorizator.MCR.assertParameters(
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", 1, user, "delete",
+				"someRecordType", Collections.emptyList());
 	}
 
 	private void setupForNoReadAccessButPublicData() {
@@ -318,6 +327,15 @@ public class DataGroupToRecordEnhancerTest {
 				SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
 
 		assertReadActionPartOfEnhanceNotAuthorizedButPublicData(recordToEnhance);
+		oldAuthorizator.MCR.assertNumberOfCallsToMethod(
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", 2);
+		// INDEX,DELETE
+		oldAuthorizator.MCR.assertParameters(
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, user, "index",
+				"someRecordType", Collections.emptyList());
+		oldAuthorizator.MCR.assertParameters(
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", 1, user, "delete",
+				"someRecordType", Collections.emptyList());
 	}
 
 	@Test
@@ -935,14 +953,6 @@ public class DataGroupToRecordEnhancerTest {
 			String linkedRecordId) {
 		DataRecordLinkSpy linkSpy = new DataRecordLinkSpy();
 		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType", () -> linkedRecordType);
-		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> linkedRecordId);
-		return linkSpy;
-	}
-
-	private DataResourceLinkSpy createResoureLinkSpyUsingId(String linkedRecordId) {
-		DataResourceLinkSpy linkSpy = new DataResourceLinkSpy();
-		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
-				() -> "someResourceLinkType");
 		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> linkedRecordId);
 		return linkSpy;
 	}
@@ -1717,11 +1727,6 @@ public class DataGroupToRecordEnhancerTest {
 		linkSpy1.MCR.assertNumberOfCallsToMethod("addAction", 1);
 	}
 
-	private void assertResourceLinkOnlyHasReadAction(DataResourceLinkSpy linkSpy1) {
-		linkSpy1.MCR.assertParameters("addAction", 0, Action.READ);
-		linkSpy1.MCR.assertNumberOfCallsToMethod("addAction", 1);
-	}
-
 	private void setupLinksToDataRecordGroup(DataRecordGroupSpy dataRecordGroup,
 			DataLink... links) {
 		List<DataLink> linkList = Arrays.asList(links);
@@ -1901,6 +1906,78 @@ public class DataGroupToRecordEnhancerTest {
 
 		assertResourceLinkOnlyHasReadAction(linkSpy1);
 		assertResourceLinkOnlyHasReadAction(linkSpy2);
+
+		var collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms", 0);
+		authorizator.MCR.assertNumberOfCallsToMethod(
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", 4);
+		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
+				0, user, "read", SOME_RECORD_TYPE + ".linkedSearchId1",
+				collectTerms.permissionTerms);
+		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
+				1, user, "read", SOME_RECORD_TYPE + ".linkedSearchId2",
+				collectTerms.permissionTerms);
+		authorizator.MCR.assertParameters(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
+				user, "read", SOME_RECORD_TYPE, collectTerms.permissionTerms);
+		authorizator.MCR.assertParameters(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
+				user, "update", SOME_RECORD_TYPE, collectTerms.permissionTerms);
+
+		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
+				2, user, "index", SOME_RECORD_TYPE, collectTerms.permissionTerms);
+		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
+				3, user, "delete", SOME_RECORD_TYPE, collectTerms.permissionTerms);
+	}
+
+	@Test
+	public void testReadRecordWithDataResourceLinkHasReadActionTopLevel_hostRecord() {
+		changeToModernSpies();
+		DataResourceLinkSpy linkSpy1 = createResoureLinkSpyUsingId("linkedSearchId1");
+		DataResourceLinkSpy linkSpy2 = createResoureLinkSpyUsingId("linkedSearchId2");
+		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
+		recordTypeHandlerOldSpy.MRV.setDefaultReturnValuesSupplier("useHostRecord", () -> true);
+		createAndAddHostRecordLinkToRecordGroup(someDataRecordGroup);
+		setRecordHostInStorage();
+
+		enhancer.enhance(user, SOME_RECORD_TYPE, someDataRecordGroup, dataRedactor);
+
+		assertResourceLinkOnlyHasReadAction(linkSpy1);
+		assertResourceLinkOnlyHasReadAction(linkSpy2);
+
+		var collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms", 0);
+		authorizator.MCR.assertNumberOfCallsToMethod(
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", 4);
+		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
+				0, user, "read", "hostLinkedType.someRecordType.linkedSearchId1",
+				collectTerms.permissionTerms);
+		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
+				1, user, "read", "hostLinkedType.someRecordType.linkedSearchId2",
+				collectTerms.permissionTerms);
+		authorizator.MCR.assertParameters(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
+				user, "read", "hostLinkedType.someRecordType", collectTerms.permissionTerms);
+		authorizator.MCR.assertParameters(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 1,
+				user, "update", "hostLinkedType.someRecordType", collectTerms.permissionTerms);
+
+		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
+				2, user, "index", "hostLinkedType.someRecordType", collectTerms.permissionTerms);
+		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
+				3, user, "delete", "hostLinkedType.someRecordType", collectTerms.permissionTerms);
+	}
+
+	private DataResourceLinkSpy createResoureLinkSpyUsingId(String linkedRecordId) {
+		DataResourceLinkSpy linkSpy = new DataResourceLinkSpy();
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getNameInData", () -> linkedRecordId);
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
+				() -> "someResourceLinkType");
+		linkSpy.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> linkedRecordId);
+		return linkSpy;
+	}
+
+	private void assertResourceLinkOnlyHasReadAction(DataResourceLinkSpy linkSpy1) {
+		linkSpy1.MCR.assertParameters("addAction", 0, Action.READ);
+		linkSpy1.MCR.assertNumberOfCallsToMethod("addAction", 1);
 	}
 
 	@Test
@@ -2000,7 +2077,7 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessLinkIsNotReadWhenRecordIsPublic() {
+	public void testEnhanceIgnoreReadAccess_LinkIsNotReadWhenRecordIsPublic() {
 		DataRecordLinkSpy linkSpy1 = createRecordLinkSpyUsingId("linkedSearchId1");
 		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId2");
 		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
@@ -2033,7 +2110,70 @@ public class DataGroupToRecordEnhancerTest {
 	}
 
 	@Test
-	public void testEnhanceIgnoreReadAccessLinkIsNotReadWhenRecordIsPublicOnlyCalculatedOnce() {
+	public void testEnhanceIgnoreReadAccess_LinkIsNotReadWhenRecordIsPublic_UsesPermissionUnit_OK() {
+		DataRecordLinkSpy linkSpy1 = createRecordLinkSpyUsingId("linkedSearchId1");
+		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId2");
+		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
+		changeToModernSpies();
+
+		RecordTypeHandlerOldSpy toRecordTypeRecordTypeHandler = new RecordTypeHandlerOldSpy();
+		toRecordTypeRecordTypeHandler.MRV.setDefaultReturnValuesSupplier("isPublicForRead",
+				() -> false);
+		toRecordTypeRecordTypeHandler.MRV.setDefaultReturnValuesSupplier("useVisibility",
+				() -> true);
+		toRecordTypeRecordTypeHandler.MRV.setDefaultReturnValuesSupplier("usePermissionUnit",
+				() -> true);
+		dependencyProviderOldSpy.mapOfRecordTypeHandlerSpies.put("someRecordLinkType",
+				toRecordTypeRecordTypeHandler);
+
+		setUpRecordStorageToReturnRecordsWithPermissionUnitsForLinkedData();
+		authorizator.MRV.setDefaultReturnValuesSupplier("getUserIsAuthorizedForPemissionUnit",
+				() -> true);
+
+		enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE, someDataRecordGroup,
+				dataRedactor);
+
+		authorizator.MCR.assertParameters("getUserIsAuthorizedForPemissionUnit", 0, user,
+				"permissionUnitForLink2");
+
+		assertLinkOnlyHasReadAction(linkSpy1);
+		assertLinkOnlyHasReadAction(linkSpy2);
+	}
+
+	@Test
+	public void testEnhanceIgnoreReadAccess_LinkIsNotReadWhenRecordIsPublic_UsesPermissionUnit_NOK() {
+		DataRecordLinkSpy linkSpy1 = createRecordLinkSpyUsingId("linkedSearchId1");
+		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId2");
+		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
+		changeToModernSpies();
+
+		RecordTypeHandlerOldSpy toRecordTypeRecordTypeHandler = new RecordTypeHandlerOldSpy();
+		toRecordTypeRecordTypeHandler.MRV.setDefaultReturnValuesSupplier("isPublicForRead",
+				() -> false);
+		toRecordTypeRecordTypeHandler.MRV.setDefaultReturnValuesSupplier("useVisibility",
+				() -> true);
+		toRecordTypeRecordTypeHandler.MRV.setDefaultReturnValuesSupplier("usePermissionUnit",
+				() -> true);
+		dependencyProviderOldSpy.mapOfRecordTypeHandlerSpies.put("someRecordLinkType",
+				toRecordTypeRecordTypeHandler);
+
+		setUpRecordStorageToReturnRecordsWithPermissionUnitsForLinkedData();
+		authorizator.MRV.setDefaultReturnValuesSupplier("getUserIsAuthorizedForPemissionUnit",
+				() -> false);
+
+		enhancer.enhanceIgnoringReadAccess(user, SOME_RECORD_TYPE, someDataRecordGroup,
+				dataRedactor);
+
+		authorizator.MCR.assertParameters("getUserIsAuthorizedForPemissionUnit", 0, user,
+				"permissionUnitForLink2");
+		authorizator.MCR.assertNumberOfCallsToMethod("getUserIsAuthorizedForPemissionUnit", 1);
+
+		assertLinkOnlyHasReadAction(linkSpy1);
+		assertLinkHasNoAction(linkSpy2);
+	}
+
+	@Test
+	public void testEnhanceIgnoreReadAccess_LinkIsNotReadWhenRecordIsPublicOnlyCalculatedOnce() {
 		DataRecordLinkSpy linkSpy1 = createRecordLinkSpyUsingId("linkedSearchId1");
 		DataRecordLinkSpy linkSpy2 = createRecordLinkSpyUsingId("linkedSearchId1");
 		setupReturnedDataGroupOnDataRedactorSpy(linkSpy1, linkSpy2);
@@ -2058,18 +2198,35 @@ public class DataGroupToRecordEnhancerTest {
 		dependencyProviderOldSpy.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
 	}
 
-	private void setUpRecordStorageToReturnRecordsForLinkedData() {
-		DataRecordGroupSpy link1Record = new DataRecordGroupSpy();
-		link1Record.MRV.setDefaultReturnValuesSupplier("getVisibility",
-				() -> Optional.of("published"));
-		link1Record.MRV.setDefaultReturnValuesSupplier("getType", () -> "someRecordLinkType");
+	private void setUpRecordStorageToReturnRecordsWithPermissionUnitsForLinkedData() {
+		DataRecordGroupSpy link1Record = createDataRecordGroupWithVisibility("published");
+		link1Record.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				() -> Optional.of("permissionUnitForLink1"));
 
+		DataRecordGroupSpy link2Record = createDataRecordGroupWithVisibility("unpublished");
+		link2Record.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
+				() -> Optional.of("permissionUnitForLink2"));
+
+		addDataRecordGroupsToStorge(link1Record, link2Record);
+	}
+
+	private void setUpRecordStorageToReturnRecordsForLinkedData() {
+		DataRecordGroupSpy link1Record = createDataRecordGroupWithVisibility("published");
+		DataRecordGroupSpy link2Record = createDataRecordGroupWithVisibility("unpublished");
+
+		addDataRecordGroupsToStorge(link1Record, link2Record);
+	}
+
+	private DataRecordGroupSpy createDataRecordGroupWithVisibility(String visibility) {
 		DataRecordGroupSpy link2Record = new DataRecordGroupSpy();
 		link2Record.MRV.setDefaultReturnValuesSupplier("getVisibility",
-				() -> Optional.of("unpublished"));
+				() -> Optional.of(visibility));
 		link2Record.MRV.setDefaultReturnValuesSupplier("getType", () -> "someRecordLinkType");
+		return link2Record;
+	}
 
-		List<DataRecordGroupSpy> records = List.of(link1Record, link2Record);
+	private void addDataRecordGroupsToStorge(DataRecordGroupSpy... linkRecords) {
+		List<DataRecordGroupSpy> records = Arrays.asList(linkRecords);
 		Iterator<DataRecordGroupSpy> it = records.iterator();
 		Supplier<DataRecordGroupSpy> supplier = () -> it.hasNext() ? it.next()
 				: new DataRecordGroupSpy();
@@ -2145,12 +2302,7 @@ public class DataGroupToRecordEnhancerTest {
 				() -> Optional.of("unpublished"));
 		link2Record.MRV.setDefaultReturnValuesSupplier("getType", () -> "toOtherRecordType");
 
-		List<DataRecordGroupSpy> records = List.of(link1Record, link2Record);
-		Iterator<DataRecordGroupSpy> it = records.iterator();
-		Supplier<DataRecordGroupSpy> supplier = () -> it.hasNext() ? it.next()
-				: new DataRecordGroupSpy();
-
-		recordStorage.MRV.setDefaultReturnValuesSupplier("read", supplier);
+		addDataRecordGroupsToStorge(link1Record, link2Record);
 	}
 
 	@Test
