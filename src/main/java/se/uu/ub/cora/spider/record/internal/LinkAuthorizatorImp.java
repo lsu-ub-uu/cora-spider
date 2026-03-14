@@ -95,33 +95,6 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 	// return addActionsToRecord(redactedDataRecordGroup);
 	// }
 
-	private List<PermissionTerm> getPermissionTerms(String recordType,
-			DataRecordGroup dataRecordGroup) {
-		if (recordTypeHandler.useHostRecord()) {
-			hostRecord = readHostRecord(dataRecordGroup);
-			return getCollectedTermsForRecordTypeAndRecord(hostRecord.getType(), hostRecord);
-		}
-		return getCollectedTermsForRecordTypeAndRecord(recordType, dataRecordGroup);
-
-	}
-
-	private DataRecordGroup readHostRecord(DataRecordGroup recordGroup) {
-		Optional<DataRecordLink> hostRecord = recordGroup.getHostRecord();
-		DataRecordLink hostLink = hostRecord.get();
-		String hostType = hostLink.getLinkedRecordType();
-		String hostId = hostLink.getLinkedRecordId();
-		return recordStorage.read(hostType, hostId);
-	}
-
-	private List<PermissionTerm> getCollectedTermsForRecordTypeAndRecord(String recordType,
-			DataRecordGroup dataRecordGroup) {
-		RecordTypeHandler recordTypeHandlerForRecordType = getRecordTypeHandlerForRecordType(
-				recordType);
-		String definitionId = recordTypeHandlerForRecordType.getDefinitionId();
-		CollectTerms collectedTerms = termCollector.collectTerms(definitionId, dataRecordGroup);
-		return collectedTerms.permissionTerms;
-	}
-
 	Set<String> ensureReadAccessAndReturnReadRecordPartPermission(DataRecordGroup dataRecordGroup) {
 		if (isPublished(dataRecordGroup)) {
 			return tryToGetUsersRecordPartPermissions();
@@ -490,6 +463,7 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 		String linkedRecordId = dataChild.getLinkedRecordId();
 
 		if (isRecordLinksTypePublic()) {
+			recordStorage.recordExists(null, linkedRecordId);
 			return true;
 		}
 		return isAuthorizedToReadNonPublicRecordLink(linkedRecordType, linkedRecordId);
@@ -525,8 +499,6 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 					linkedRecord)) {
 				return true;
 			}
-			boolean a = recordTypeHandlerForLink.useVisibility();
-			boolean b = recordTypeHandlerForLink.usePermissionUnit();
 
 			if (recordTypeHandlerForLink.useVisibility()
 					&& recordTypeHandlerForLink.usePermissionUnit()) {
@@ -553,14 +525,38 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 
 	private boolean userIsAuthorizedForActionOnRecordLinkAndData(String action, String recordType,
 			DataRecordGroup linkedRecord) {
-		// List<PermissionTerm> linkedRecordPermissionTerms =
-		// getCollectedTermsForRecordTypeAndRecord(
-		// recordType, linkedRecord);
+		List<PermissionTerm> linkedRecordPermissionTerms = getCollectedTermsForRecordTypeAndRecord(
+				recordType, linkedRecord);
 
-		// return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-		// action, recordType, linkedRecordPermissionTerms);
 		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				action, null, null);
+				action, recordType, linkedRecordPermissionTerms);
+	}
+
+	private List<PermissionTerm> getCollectedTermsForRecordTypeAndRecord(String recordType,
+			DataRecordGroup dataRecordGroup) {
+		RecordTypeHandler recordTypeHandlerForRecordType = getRecordTypeHandlerForRecordType(
+				recordType);
+		String definitionId = recordTypeHandlerForRecordType.getDefinitionId();
+		CollectTerms collectedTerms = termCollector.collectTerms(definitionId, dataRecordGroup);
+		return collectedTerms.permissionTerms;
+	}
+
+	private List<PermissionTerm> getPermissionTerms(String recordType,
+			DataRecordGroup dataRecordGroup) {
+		if (recordTypeHandler.useHostRecord()) {
+			hostRecord = readHostRecord(dataRecordGroup);
+			return getCollectedTermsForRecordTypeAndRecord(hostRecord.getType(), hostRecord);
+		}
+		return getCollectedTermsForRecordTypeAndRecord(recordType, dataRecordGroup);
+
+	}
+
+	private DataRecordGroup readHostRecord(DataRecordGroup recordGroup) {
+		Optional<DataRecordLink> hostRecord = recordGroup.getHostRecord();
+		DataRecordLink hostLink = hostRecord.get();
+		String hostType = hostLink.getLinkedRecordType();
+		String hostId = hostLink.getLinkedRecordId();
+		return recordStorage.read(hostType, hostId);
 	}
 
 	// private boolean isGroup(DataChild dataChild) {

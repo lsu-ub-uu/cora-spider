@@ -52,9 +52,7 @@ import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.data.spies.DataRecordSpy;
 import se.uu.ub.cora.data.spies.DataResourceLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
-import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
@@ -65,7 +63,6 @@ import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordEnhancerTestsRecordStorage;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.OldSpiderAuthorizatorSpy;
-import se.uu.ub.cora.spider.spy.RuleCalculatorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.spies.RecordStorageSpy;
@@ -83,10 +80,8 @@ public class DataGroupToRecordEnhancerTest {
 	private static final String SOME_RECORD_TYPE = "someRecordType";
 	private static final String BINARY_RECORD_TYPE = "binary";
 	private RecordEnhancerTestsRecordStorage oldRecordStorage;
-	private OldAuthenticatorSpy oldAuthenticator;
 	private OldSpiderAuthorizatorSpy oldAuthorizator;
 	private SpiderAuthorizatorSpy authorizator;
-	private PermissionRuleCalculator ruleCalculator;
 	private SpiderDependencyProviderOldSpy dependencyProviderOldSpy;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private User user;
@@ -100,7 +95,6 @@ public class DataGroupToRecordEnhancerTest {
 	private DataRecordGroupSpy someDataRecordGroup;
 	private RecordStorageSpy recordStorage;
 	private RecordTypeHandlerSpy recordTypeHandler;
-	private AuthenticatorSpy authenticator;
 
 	@BeforeMethod
 	public void setUp() {
@@ -110,11 +104,8 @@ public class DataGroupToRecordEnhancerTest {
 		user = new User("987654321");
 		recordStorage = new RecordStorageSpy();
 		oldRecordStorage = new RecordEnhancerTestsRecordStorage();
-		oldAuthenticator = new OldAuthenticatorSpy();
-		authenticator = new AuthenticatorSpy();
 		oldAuthorizator = new OldSpiderAuthorizatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
-		ruleCalculator = new RuleCalculatorSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		dataRedactor = new DataRedactorSpy();
 		setUpDependencyProviderOld();
@@ -131,20 +122,14 @@ public class DataGroupToRecordEnhancerTest {
 
 	private void setUpDependencyProviderOld() {
 		dependencyProviderOldSpy = new SpiderDependencyProviderOldSpy();
-		dependencyProviderOldSpy.authenticator = oldAuthenticator;
 		dependencyProviderOldSpy.spiderAuthorizator = oldAuthorizator;
 		dependencyProviderOldSpy.recordStorage = oldRecordStorage;
-		dependencyProviderOldSpy.ruleCalculator = ruleCalculator;
 		dependencyProviderOldSpy.termCollector = termCollector;
 		recordTypeHandlerOldSpy = dependencyProviderOldSpy.recordTypeHandlerSpy;
 	}
 
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy();
-
-		// authenticator = new AuthenticatorSpy();
-		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
-				() -> authenticator);
 
 		// authorizator = new SpiderAuthorizatorSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
@@ -155,8 +140,8 @@ public class DataGroupToRecordEnhancerTest {
 				() -> recordStorage);
 
 		// termCollector = new DataGroupTermCollectorSpy();
-		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getPermissionRuleCalculator",
-				() -> ruleCalculator);
+		// dependencyProvider.MRV.setDefaultReturnValuesSupplier("getPermissionRuleCalculator",
+		// () -> ruleCalculator);
 
 		// termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",

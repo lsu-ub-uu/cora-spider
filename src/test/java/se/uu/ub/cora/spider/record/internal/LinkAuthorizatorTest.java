@@ -22,6 +22,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,7 +30,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
@@ -65,10 +69,6 @@ public class LinkAuthorizatorTest {
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy();
 
-		// authenticator = new AuthenticatorSpy();
-		// dependencyProvider.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
-		// () -> authenticator);
-
 		authorizator = new SpiderAuthorizatorSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
 				() -> authorizator);
@@ -77,92 +77,111 @@ public class LinkAuthorizatorTest {
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
 
-		// termCollector = new DataGroupTermCollectorSpy();
-		// dependencyProvider.MRV.setDefaultReturnValuesSupplier("getPermissionRuleCalculator",
-		// () -> ruleCalculator);
-
 		termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
 				() -> termCollector);
 	}
 
 	@Test
-	public void testRecordLink_RecordNotFound() {
-		recordTypeIsPublicForLinksType(false, recordLink1);
+	public void testRecordNotFound() {
+		recordTypeIsPublic(false, recordLink1);
 		recordTypeUseVisibility(true, recordLink1);
-		recordTypeUsePermissionUnit(true, recordLink1);
+		recordTypeUsePermissionUnit(false, recordLink1);
 		linkedRecordVisibilityIsForLink("published", recordLink1);
 		setAuthorizedForPermissionUnit(false, recordLink1);
+		setAuthorizedForActionRecordTypePermissionTerms(false, recordLink1);
 
 		recordStorage.MRV.setAlwaysThrowException("read",
 				RecordNotFoundException.withMessage("someException"));
 
-		boolean isAuthorized = linkAuthorizator.isAuthorizedToReadLink(NO_NEEDED_USER, recordLink1);
-
-		assertFalse(isAuthorized);
+		assertFalse(linkAuthorizator.isAuthorizedToReadLink(NO_NEEDED_USER, recordLink1));
 	}
 
 	@Test
-	public void testRecordLink_IsPublicForRead() {
-		recordTypeIsPublicForLinksType(true, recordLink1);
+	public void testIsPublicForRead_notPublic() {
+		recordTypeIsPublic(false, recordLink1);
+		recordTypeUseVisibility(false, recordLink1);
+		recordTypeUsePermissionUnit(false, recordLink1);
+		linkedRecordVisibilityIsForLink("unpublished", recordLink1);
+		setAuthorizedForPermissionUnit(false, recordLink1);
+		setAuthorizedForActionRecordTypePermissionTerms(false, recordLink1);
+
+		assertFalse(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+	}
+
+	@Test
+	public void testIsPublicForRead_public() {
+		recordTypeIsPublic(true, recordLink1);
+		recordTypeUseVisibility(false, recordLink1);
+		recordTypeUsePermissionUnit(false, recordLink1);
+		linkedRecordVisibilityIsForLink("unpublished", recordLink1);
+		setAuthorizedForPermissionUnit(false, recordLink1);
+		setAuthorizedForActionRecordTypePermissionTerms(false, recordLink1);
+
+		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+	}
+
+	@Test
+	public void testPublished_visibilityTrue_unpublished_permissionUnitFalse() {
+		recordTypeIsPublic(false, recordLink1);
 		recordTypeUseVisibility(true, recordLink1);
-		recordTypeUsePermissionUnit(true, recordLink1);
+		recordTypeUsePermissionUnit(false, recordLink1);
+		linkedRecordVisibilityIsForLink("unpublished", recordLink1);
+		setAuthorizedForPermissionUnit(false, recordLink1);
+		setAuthorizedForActionRecordTypePermissionTerms(false, recordLink1);
+
+		assertFalse(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+	}
+
+	@Test
+	public void testPublished_visibilityFalse_published_permissionUnitFalse() {
+		recordTypeIsPublic(false, recordLink1);
+		recordTypeUseVisibility(false, recordLink1);
+		recordTypeUsePermissionUnit(false, recordLink1);
 		linkedRecordVisibilityIsForLink("published", recordLink1);
 		setAuthorizedForPermissionUnit(false, recordLink1);
+		setAuthorizedForActionRecordTypePermissionTerms(false, recordLink1);
 
-		boolean isAuthorized = linkAuthorizator.isAuthorizedToReadLink(NO_NEEDED_USER, recordLink1);
-
-		assertTrue(isAuthorized);
+		assertFalse(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
 	}
 
 	@Test
-	public void testRecordLink_Published() {
-		recordTypeIsPublicForLinksType(false, recordLink1);
+	public void testPublished_visibilityTrue_published_permissionUnitFalse() {
+		recordTypeIsPublic(false, recordLink1);
 		recordTypeUseVisibility(true, recordLink1);
-		recordTypeUsePermissionUnit(true, recordLink1);
+		recordTypeUsePermissionUnit(false, recordLink1);
 		linkedRecordVisibilityIsForLink("published", recordLink1);
 		setAuthorizedForPermissionUnit(false, recordLink1);
+		setAuthorizedForActionRecordTypePermissionTerms(false, recordLink1);
 
-		boolean isAuthorized = linkAuthorizator.isAuthorizedToReadLink(NO_NEEDED_USER, recordLink1);
-
-		assertTrue(isAuthorized);
+		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
 	}
 
 	@Test
-	public void testRecordLink_Unpublished_UsesPermissionUnitBut_NotOk() {
-		recordTypeIsPublicForLinksType(false, recordLink1);
+	public void testPublished_visibilityTrue_unpublished_permissionUnitTrue_noUnit() {
+		recordTypeIsPublic(false, recordLink1);
 		recordTypeUseVisibility(true, recordLink1);
 		recordTypeUsePermissionUnit(true, recordLink1);
 		linkedRecordVisibilityIsForLink("unpublished", recordLink1);
 		setAuthorizedForPermissionUnit(false, recordLink1);
+		setAuthorizedForActionRecordTypePermissionTerms(true, recordLink1);
 
-		boolean isAuthorized = linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1);
-
-		authorizator.MCR.assertParameters("getUserIsAuthorizedForPemissionUnit", 0, USER,
-				createKey(recordLink1));
-		authorizator.MCR
-				.assertMethodNotCalled("userIsAuthorizedForActionOnRecordTypeAndCollectedData");
-
-		assertFalse(isAuthorized);
+		assertFalse(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
 	}
 
 	@Test
-	public void testRecordLink_UnPublished_UsesPermissionUnitBut_Ok() {
-		recordTypeIsPublicForLinksType(false, recordLink1);
+	public void testPublished_visibilityTrue_unpublished_permissionUnitTrue_hasUnit() {
+		recordTypeIsPublic(false, recordLink1);
 		recordTypeUseVisibility(true, recordLink1);
 		recordTypeUsePermissionUnit(true, recordLink1);
 		linkedRecordVisibilityIsForLink("unpublished", recordLink1);
 		setAuthorizedForPermissionUnit(true, recordLink1);
+		setAuthorizedForActionRecordTypePermissionTerms(true, recordLink1);
 
-		boolean isAuthorized = linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1);
-
-		authorizator.MCR.assertParameters("getUserIsAuthorizedForPemissionUnit", 0, USER,
-				createKey(recordLink1));
-		authorizator.MCR.assertParameters("userIsAuthorizedForActionOnRecordTypeAndCollectedData",
-				0, USER, "read");
-
-		assertTrue(isAuthorized);
+		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
 	}
+	// TODO: make sure ALL calls are cached, so same link is only work on ONCE
+	// TODO: tests for hostRecord
 
 	private DataRecordLinkSpy creatRecordLink(String type, String id) {
 		DataRecordLinkSpy recordLink = new DataRecordLinkSpy();
@@ -192,8 +211,7 @@ public class LinkAuthorizatorTest {
 		return recordLink.getLinkedRecordType() + recordLink.getLinkedRecordId();
 	}
 
-	private void recordTypeIsPublicForLinksType(boolean isPublicForRead,
-			DataRecordLink recordLink) {
+	private void recordTypeIsPublic(boolean isPublicForRead, DataRecordLink recordLink) {
 		RecordTypeHandlerSpy recordTypeHandler = recordTypeHandlers
 				.get(recordLink.getLinkedRecordType());
 		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("isPublicForRead",
@@ -226,6 +244,7 @@ public class LinkAuthorizatorTest {
 				recordLink::getLinkedRecordType);
 		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
 				recordLink::getLinkedRecordId);
+
 		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getPermissionUnit",
 				() -> Optional.of(createKey(recordLink)));
 
@@ -237,5 +256,24 @@ public class LinkAuthorizatorTest {
 	private void setAuthorizedForPermissionUnit(boolean isAuthorized, DataRecordLink recordLink) {
 		authorizator.MRV.setSpecificReturnValuesSupplier("getUserIsAuthorizedForPemissionUnit",
 				() -> isAuthorized, USER, createKey(recordLink));
+	}
+
+	private void setAuthorizedForActionRecordTypePermissionTerms(boolean isAuthorized,
+			DataRecordLink recordLink) {
+		String key = createKey(recordLink);
+
+		String definitionId = "someDefintion_" + recordLink.getLinkedRecordType();
+		PermissionTerm permissionTerm = new PermissionTerm("id", key, key);
+		CollectTerms collectTerms = new CollectTerms();
+		collectTerms.addPermissionTerm(permissionTerm);
+
+		DataRecordGroup dataRecordGroup = recordStorage.read(recordLink.getLinkedRecordType(),
+				recordLink.getLinkedRecordId());
+		termCollector.MRV.setSpecificReturnValuesSupplier("collectTerms", () -> collectTerms,
+				definitionId, dataRecordGroup);
+
+		authorizator.MRV.setSpecificReturnValuesSupplier(
+				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", () -> isAuthorized, USER,
+				"read", recordLink.getLinkedRecordType(), List.of(permissionTerm));
 	}
 }
