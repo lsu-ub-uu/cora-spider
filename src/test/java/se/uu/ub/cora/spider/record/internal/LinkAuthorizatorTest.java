@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.spider.record.internal;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
@@ -36,7 +37,9 @@ import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
+import se.uu.ub.cora.data.spies.DataResourceLinkSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -95,7 +98,7 @@ public class LinkAuthorizatorTest {
 		recordStorage.MRV.setAlwaysThrowException("read",
 				RecordNotFoundException.withMessage("someException"));
 
-		assertFalse(linkAuthorizator.isAuthorizedToReadLink(NO_NEEDED_USER, recordLink1));
+		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(NO_NEEDED_USER, recordLink1));
 	}
 
 	@Test
@@ -108,7 +111,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForPermissionUnit(false, recordLink1);
 		setAuthorizedForActionRecordTypePermissionTerms(false, recordLink1);
 
-		assertFalse(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -121,7 +124,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForPermissionUnit(false, recordLink1);
 		setAuthorizedForActionRecordTypePermissionTerms(false, recordLink1);
 
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -134,7 +137,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForPermissionUnit(false, recordLink1);
 		setAuthorizedForActionRecordTypePermissionTerms(false, recordLink1);
 
-		assertFalse(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -147,7 +150,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForPermissionUnit(false, recordLink1);
 		setAuthorizedForActionRecordTypePermissionTerms(true, recordLink1);
 
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -160,7 +163,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForPermissionUnit(false, recordLink1);
 		setAuthorizedForActionRecordTypePermissionTerms(false, recordLink1);
 
-		assertFalse(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -173,7 +176,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForPermissionUnit(false, recordLink1);
 		setAuthorizedForActionRecordTypePermissionTerms(false, recordLink1);
 
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -186,7 +189,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForPermissionUnit(false, recordLink1);
 		setAuthorizedForActionRecordTypePermissionTerms(true, recordLink1);
 
-		assertFalse(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -199,7 +202,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForPermissionUnit(true, recordLink1);
 		setAuthorizedForActionRecordTypePermissionTerms(true, recordLink1);
 
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -212,7 +215,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForPermissionUnit(true, recordLink1);
 		setAuthorizedForActionRecordTypePermissionTerms(false, recordLink1);
 
-		assertFalse(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -227,7 +230,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForHostPermissionUnit(false, recordLink1);
 		setAuthorizedForHostActionRecordTypePermissionTerms(false, recordLink1);
 
-		assertFalse(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -242,7 +245,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForHostPermissionUnit(false, recordLink1);
 		setAuthorizedForHostActionRecordTypePermissionTerms(true, recordLink1);
 
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -254,7 +257,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForHostPermissionUnit(false, recordLink1);
 		setAuthorizedForHostActionRecordTypePermissionTerms(true, recordLink1);
 
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -266,7 +269,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForHostPermissionUnit(false, recordLink1);
 		setAuthorizedForHostActionRecordTypePermissionTerms(false, recordLink1);
 
-		assertFalse(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -278,7 +281,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForHostPermissionUnit(false, recordLink1);
 		setAuthorizedForHostActionRecordTypePermissionTerms(true, recordLink1);
 
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -290,7 +293,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForHostPermissionUnit(false, recordLink1);
 		setAuthorizedForHostActionRecordTypePermissionTerms(true, recordLink1);
 
-		assertFalse(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -302,7 +305,7 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForHostPermissionUnit(true, recordLink1);
 		setAuthorizedForHostActionRecordTypePermissionTerms(false, recordLink1);
 
-		assertFalse(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	@Test
@@ -314,8 +317,8 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForHostPermissionUnit(true, recordLink1);
 		setAuthorizedForHostActionRecordTypePermissionTerms(true, recordLink1);
 
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 
 	}
 
@@ -328,9 +331,9 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForHostPermissionUnit(true, recordLink1);
 		setAuthorizedForHostActionRecordTypePermissionTerms(true, recordLink1);
 
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 
 		dependencyProvider.MCR.assertNumberOfCallsToMethod("getRecordTypeHandler", 2);
 		dependencyProvider.MCR.assertParameters("getRecordTypeHandler", 0, "someType");
@@ -347,12 +350,45 @@ public class LinkAuthorizatorTest {
 		setAuthorizedForHostPermissionUnit(true, recordLink1);
 		setAuthorizedForHostActionRecordTypePermissionTerms(true, recordLink1);
 
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
-		assertTrue(linkAuthorizator.isAuthorizedToReadLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
+		assertTrue(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 
 		RecordTypeHandlerSpy recordTypeHandlerSpy = recordTypeHandlers.get("someType");
 		recordTypeHandlerSpy.MCR.assertNumberOfCallsToMethod("isPublicForRead", 1);
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "Visibility is missing in the record.")
+	public void testMissingVisibility() {
+		recordTypeUseVisibility(true, recordLink1);
+
+		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "PermissionUnit is missing in the record.")
+	public void testMissingPermissionUnit() {
+		recordTypeUseVisibility(true, recordLink1);
+		recordTypeUsePermissionUnit(true, recordLink1);
+		linkedRecordVisibilityIsForLink("unpublished", recordLink1);
+		DataRecordGroupSpy dataRecordGroupSpy = dataRecordGroups.get(createKey(recordLink1));
+		dataRecordGroupSpy.MRV.setDefaultReturnValuesSupplier("getPermissionUnit", Optional::empty);
+
+		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
+	}
+
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "HostRecord is missing in the record.")
+	public void testMissingHostRecord() {
+		recordTypeUseVisibility(true, recordLink1);
+		recordTypeUseHostRecord(true, recordLink1);
+		linkedRecordVisibilityIsForLink("unpublished", recordLink1);
+		hostRecordTypeUsePermissionUnit(true, recordLink1);
+		DataRecordGroupSpy dataRecordGroupSpy = dataRecordGroups.get(createKey(recordLink1));
+		dataRecordGroupSpy.MRV.setDefaultReturnValuesSupplier("getHostRecord", Optional::empty);
+
+		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
 	String x = """
@@ -370,6 +406,14 @@ public class LinkAuthorizatorTest {
 			permissionUnit --> possible no (if no match permissionUnit)
 			roles rules (READ, system.alvin-record.binary, collectTerms)
 			""";
+
+	@Test
+	public void testResourceLink() {
+		DataResourceLinkSpy resourceLink = new DataResourceLinkSpy();
+		DataRecordGroupSpy recordGroup = new DataRecordGroupSpy();
+
+		linkAuthorizator.isAuthorizedToReadResourceLink(USER, resourceLink, recordGroup);
+	}
 
 	// TODO: make sure ALL calls are cached, so same link is only work on ONCE
 	// TODO: tests for hostRecord
@@ -548,5 +592,10 @@ public class LinkAuthorizatorTest {
 		authorizator.MRV.setSpecificReturnValuesSupplier(
 				"userIsAuthorizedForActionOnRecordTypeAndCollectedData", () -> isAuthorized, USER,
 				"read", recordLink.getLinkedRecordType(), List.of(permissionTerm));
+	}
+
+	@Test
+	public void testOnlyForTest() {
+		assertEquals(linkAuthorizator.onlyForTestGetDependencyProvider(), dependencyProvider);
 	}
 }

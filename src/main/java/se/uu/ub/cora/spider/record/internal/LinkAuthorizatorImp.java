@@ -27,9 +27,9 @@ import java.util.Optional;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
-import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
+import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -57,14 +57,13 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 	}
 
 	@Override
-	public boolean isAuthorizedToReadLink(User user, DataLink dataLink) {
+	public boolean isAuthorizedToReadRecordLink(User user, DataRecordLink recordLink) {
 		this.user = user;
-		// if (isRecordLink(dataChild)) {
-
-		return isAuthorizedToReadRecordLink((DataRecordLink) dataLink);
-		// }
-		// return isAuthorizedToReadResourceLink((DataResourceLink) dataChild);
-		// return true;
+		String linkedRecordType = recordLink.getLinkedRecordType();
+		String linkedRecordId = recordLink.getLinkedRecordId();
+		String recordLinksKey = linkedRecordType + linkedRecordId;
+		return recordLinksHolder.computeIfAbsent(recordLinksKey,
+				_ -> isAuthorizedToReadUnkownRecordLink(linkedRecordType, linkedRecordId));
 	}
 
 	// private boolean isAuthorizedToReadResourceLink(DataResourceLink dataResourceLink) {
@@ -81,14 +80,6 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 	// return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
 	// action, recordType, permissionTerms);
 	// }
-
-	private boolean isAuthorizedToReadRecordLink(DataRecordLink dataLink) {
-		String linkedRecordType = dataLink.getLinkedRecordType();
-		String linkedRecordId = dataLink.getLinkedRecordId();
-		String recordLinksKey = linkedRecordType + linkedRecordId;
-		return recordLinksHolder.computeIfAbsent(recordLinksKey,
-				_ -> isAuthorizedToReadUnkownRecordLink(linkedRecordType, linkedRecordId));
-	}
 
 	private boolean isAuthorizedToReadUnkownRecordLink(String linkedRecordType,
 			String linkedRecordId) {
@@ -177,8 +168,7 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 
 	private boolean userIsNotAuthorizedForPemissionUnit(DataRecordGroup linkedRecord) {
 		Optional<String> permissionUnit = getPermissionUnit(linkedRecord);
-		return !spiderAuthorizator
-				.getUserIsAuthorizedForPemissionUnit(user, permissionUnit.get());
+		return !spiderAuthorizator.getUserIsAuthorizedForPemissionUnit(user, permissionUnit.get());
 	}
 
 	private boolean authorizedToReadLinkUsingRulesAndCollectedData(DataRecordGroup dataRecordGroup,
@@ -209,34 +199,50 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 
 	private Optional<String> getPermissionUnitFromRecord(DataRecordGroup dataRecordGroup) {
 		Optional<String> permissionUnit = dataRecordGroup.getPermissionUnit();
-		if (permissionUnit.isEmpty()) {
-			throwDataExceptionPermissionUnitMissing();
-		}
+		throwExceptionIfPermissionUnitIsMissing(permissionUnit);
 		return permissionUnit;
 	}
 
-	private void throwDataExceptionPermissionUnitMissing() {
-		throw new DataException("PermissionUnit is missing in the record.");
+	private void throwExceptionIfPermissionUnitIsMissing(Optional<String> permissionUnit) {
+		if (permissionUnit.isEmpty()) {
+			throw new DataException("PermissionUnit is missing in the record.");
+		}
 	}
 
 	private List<PermissionTerm> getCollectedTermsForRecordTypeAndRecord(String recordType,
 			DataRecordGroup dataRecordGroup) {
-		RecordTypeHandler recordTypeHandlerForRecordType = getRecordTypeHandlerForRecordType(
-				recordType);
+		var recordTypeHandlerForRecordType = getRecordTypeHandlerForRecordType(recordType);
 		String definitionId = recordTypeHandlerForRecordType.getDefinitionId();
 		CollectTerms collectedTerms = termCollector.collectTerms(definitionId, dataRecordGroup);
 		return collectedTerms.permissionTerms;
 	}
 
 	private DataRecordGroup readHostRecord(DataRecordGroup recordGroup) {
-		Optional<DataRecordLink> hostRecord = recordGroup.getHostRecord();
-		DataRecordLink hostLink = hostRecord.get();
+		var hostRecord = recordGroup.getHostRecord();
+		throwExceptionIfHostRecordIsMissing(hostRecord);
+		return readRecordForLink(hostRecord.get());
+	}
+
+	private DataRecordGroup readRecordForLink(DataRecordLink hostLink) {
 		String hostType = hostLink.getLinkedRecordType();
 		String hostId = hostLink.getLinkedRecordId();
 		return recordStorage.read(hostType, hostId);
 	}
 
+	private void throwExceptionIfHostRecordIsMissing(Optional<DataRecordLink> hostRecord) {
+		if (hostRecord.isEmpty()) {
+			throw new DataException("HostRecord is missing in the record.");
+		}
+	}
+
 	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {
 		return dependencyProvider;
+	}
+
+	@Override
+	public boolean isAuthorizedToReadResourceLink(User user, DataResourceLink resourceLink,
+			DataRecordGroup recordGroup) {
+
+		return false;
 	}
 }
