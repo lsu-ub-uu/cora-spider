@@ -356,21 +356,19 @@ public class LinkAuthorizatorTest {
 	}
 
 	String x = """
-
-			for READ på en länk binary
-			public (false)
-			published --> possible yes
-			hostRecord --> *1
+			for READ on a recordLink ex. binary, alvin-record, diva-output
+			recordTypeIsPublic --> possible yes
+			recordIsPublished --> possible yes
+			recordTypeUsesHostRecord --> *1
 			permissionUnit --> possible no (if no match permissionUnit)
 			roles rules (recordtype+colletterms+action)
 
 			*1
-			public (ignore)
-			published (ignore)
-			hostRecord (ignore for now)
+			recordTypeIsPublic (ignore)
+			recordIsPublished (ignore)
+			recordTypeUsesHostRecord (ignore for now)
 			permissionUnit --> possible no (if no match permissionUnit)
 			roles rules (READ, system.alvin-record.binary, collectTerms)
-
 			""";
 
 	// TODO: make sure ALL calls are cached, so same link is only work on ONCE

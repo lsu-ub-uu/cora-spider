@@ -21,9 +21,38 @@ package se.uu.ub.cora.spider.record.internal;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataLink;
+import se.uu.ub.cora.data.DataRecord;
 
+/**
+ * LinkAuthorizator checks if a {@link User} has READ access to a linked {@link DataRecord}.
+ * 
+ */
 public interface LinkAuthorizator {
-
-	boolean isAuthorizedToReadLink(User user, DataLink dataChild);
+	/**
+	 * isAuthorizedToReadLink checks if the user has READ access to the record linked through the
+	 * dataLink.
+	 * </p>
+	 * for READ on a recordLink ex. binary, alvin-record, diva-output</br>
+	 * </br>
+	 * recordTypeIsPublic --> possible yes</br>
+	 * recordIsPublished --> possible yes</br>
+	 * recordTypeUsesHostRecord --> *1</br>
+	 * permissionUnit --> possible no (if no match permissionUnit)</br>
+	 * roles rules (recordtype+colletterms+action)</br>
+	 * </br>
+	 * *1</br>
+	 * recordTypeIsPublic (ignore)</br>
+	 * recordIsPublished (ignore)</br>
+	 * recordTypeUsesHostRecord (ignore for now)</br>
+	 * permissionUnit --> possible no (if no match permissionUnit)</br>
+	 * roles rules (READ, system.alvin-record.binary, collectTerms)</br>
+	 * 
+	 * @param user
+	 *            a {@link User} to check if it has READ access
+	 * @param dataLink
+	 *            A {@link DataLink} to the record to check access for
+	 * @return A boolean true if the User has READ access else false
+	 */
+	boolean isAuthorizedToReadLink(User user, DataLink dataLink);
 
 }

@@ -30,7 +30,6 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataLink;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -68,20 +67,20 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 		// return true;
 	}
 
-	private boolean isAuthorizedToReadResourceLink(DataResourceLink dataResourceLink) {
-		String resourceLinkNameInData = dataResourceLink.getNameInData();
-		String recordTypeForResourceLink = recordType + "." + resourceLinkNameInData;
-		return userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read",
-				recordTypeForResourceLink);
-	}
-
-	private boolean userIsAuthorizedForActionOnRecordTypeAndCollectedTerms(String action,
-			String recordType) {
-		// String recordTypeForAuthorization = getRecordTypeForAuthorizationCheckUsingRecordType(
-		// recordType);
-		return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				action, recordType, permissionTerms);
-	}
+	// private boolean isAuthorizedToReadResourceLink(DataResourceLink dataResourceLink) {
+	// String resourceLinkNameInData = dataResourceLink.getNameInData();
+	// String recordTypeForResourceLink = recordType + "." + resourceLinkNameInData;
+	// return userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read",
+	// recordTypeForResourceLink);
+	// }
+	//
+	// private boolean userIsAuthorizedForActionOnRecordTypeAndCollectedTerms(String action,
+	// String recordType) {
+	// // String recordTypeForAuthorization = getRecordTypeForAuthorizationCheckUsingRecordType(
+	// // recordType);
+	// return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
+	// action, recordType, permissionTerms);
+	// }
 
 	private boolean isAuthorizedToReadRecordLink(DataRecordLink dataLink) {
 		String linkedRecordType = dataLink.getLinkedRecordType();
@@ -128,7 +127,7 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 			return authorizedToReadLinkUsingHostRecord(linkedRecordType, linkedRecord);
 		}
 
-		if (isUnpublishedAndUsesPermissionUnit()) {
+		if (usesVisibilityAndPermissionUnit()) {
 			return authorizedToReadWhenUnpublishedAndUsesPermissionUnits(linkedRecord,
 					linkedRecordType);
 		}
@@ -148,7 +147,7 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 		DataRecordGroup hostRecord = readHostRecord(linkedRecord);
 		RecordTypeHandler recordTypeHandlerForHostRecord = getRecordTypeHandlerForRecordType(
 				hostRecord.getType());
-		String recordTypeForRule = getRecordTypeForRuleCheckUsingHostRecord(linkedRecordType,
+		String recordTypeForRule = constructRecordTypeForRuleUsingHostRecord(linkedRecordType,
 				hostRecord);
 
 		if (recordTypeHandlerForHostRecord.usePermissionUnit()) {
@@ -158,25 +157,28 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 		return authorizedToReadLinkUsingRulesAndCollectedData(hostRecord, recordTypeForRule);
 	}
 
-	private String getRecordTypeForRuleCheckUsingHostRecord(String linkedRecordType,
+	private String constructRecordTypeForRuleUsingHostRecord(String linkedRecordType,
 			DataRecordGroup hostRecord) {
 		return hostRecord.getType() + "." + linkedRecordType;
 	}
 
-	private boolean isUnpublishedAndUsesPermissionUnit() {
+	private boolean usesVisibilityAndPermissionUnit() {
 		return recordTypeHandlerForLink.useVisibility()
 				&& recordTypeHandlerForLink.usePermissionUnit();
 	}
 
 	private boolean authorizedToReadWhenUnpublishedAndUsesPermissionUnits(
-			DataRecordGroup linkedRecord, String linkedRecordType2) {
-		Optional<String> permissionUnit = getPermissionUnit(linkedRecord);
-		boolean userIsAuthorizedForPemissionUnit = spiderAuthorizator
-				.getUserIsAuthorizedForPemissionUnit(user, permissionUnit.get());
-		if (!userIsAuthorizedForPemissionUnit) {
+			DataRecordGroup linkedRecord, String recordTypeForRule) {
+		if (userIsNotAuthorizedForPemissionUnit(linkedRecord)) {
 			return false;
 		}
-		return authorizedToReadLinkUsingRulesAndCollectedData(linkedRecord, linkedRecordType2);
+		return authorizedToReadLinkUsingRulesAndCollectedData(linkedRecord, recordTypeForRule);
+	}
+
+	private boolean userIsNotAuthorizedForPemissionUnit(DataRecordGroup linkedRecord) {
+		Optional<String> permissionUnit = getPermissionUnit(linkedRecord);
+		return !spiderAuthorizator
+				.getUserIsAuthorizedForPemissionUnit(user, permissionUnit.get());
 	}
 
 	private boolean authorizedToReadLinkUsingRulesAndCollectedData(DataRecordGroup dataRecordGroup,
