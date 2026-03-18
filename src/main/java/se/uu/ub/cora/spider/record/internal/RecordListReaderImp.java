@@ -60,10 +60,9 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 	private RecordTypeHandler recordTypeHandler;
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 
-	private RecordListReaderImp(SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+	private RecordListReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
-		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
+		this.dataGroupToRecordEnhancer = dependencyProvider.getDataGroupToRecordEnhancer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
@@ -71,10 +70,9 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		dataValidator = dependencyProvider.getDataValidator();
 	}
 
-	public static RecordListReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
-			SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-		return new RecordListReaderImp(dependencyProvider, dataGroupToRecordEnhancer);
+	public static RecordListReaderImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new RecordListReaderImp(dependencyProvider);
 	}
 
 	@Override
@@ -172,7 +170,8 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		readResult = recordStorage.readList(recordType, filter);
 		Collection<DataRecordGroup> dataRecordList = readResult.listOfDataRecordGroups;
 		for (DataRecordGroup dataRecordGroup : dataRecordList) {
-			useExtendedFunctionalityBeforeEnhanceSingle(READLIST_BEFORE_ENHANCE_SINGLE, dataRecordGroup);
+			useExtendedFunctionalityBeforeEnhanceSingle(READLIST_BEFORE_ENHANCE_SINGLE,
+					dataRecordGroup);
 			enhanceDataGroupAndPossiblyAddToRecordList(dataRecordGroup, dataRecordGroup.getType(),
 					dataRedactor);
 		}

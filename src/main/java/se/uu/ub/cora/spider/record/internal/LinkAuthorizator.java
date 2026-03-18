@@ -21,9 +21,7 @@ package se.uu.ub.cora.spider.record.internal;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.data.DataResourceLink;
 
 /**
  * LinkAuthorizator checks if a {@link User} has READ access to a linked {@link DataRecord}.
@@ -56,17 +54,4 @@ public interface LinkAuthorizator {
 	 * @return A boolean true if the User has READ access else false
 	 */
 	boolean isAuthorizedToReadRecordLink(User user, DataRecordLink dataRecordLink);
-
-	/**
-	 * isAuthorizedToReadResourceLink checks if the user has READ access to the resource link.
-	 * 
-	 * @param user
-	 *            a {@link User} to check if it has READ access
-	 * @param resourceLink
-	 *            A {@link DataResourceLink} to the resourceLink to check access for
-	 * @return A boolean true if the User has READ access else false
-	 */
-	boolean isAuthorizedToReadResourceLink(User user2, DataResourceLink resourceLink,
-			DataRecordGroup recordGroup);
-
 }

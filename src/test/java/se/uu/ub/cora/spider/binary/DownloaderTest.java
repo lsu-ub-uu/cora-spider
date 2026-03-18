@@ -41,6 +41,7 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.internal.DownloaderImp;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
+import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.ResourceNotFoundException;
@@ -301,6 +302,16 @@ public class DownloaderTest {
 		}
 	}
 
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "HostRecord is missing in the record, for record with type: binary and id: someId.")
+	public void testHostRecordMissing() {
+		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getHostRecord", Optional::empty);
+
+		downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE, RECORD_ID, MASTER);
+
+		assertCheckAuthorizedUsingHostRecordCollectedTerms();
+	}
+
 	@Test
 	public void testDownloadUserAuthorized() {
 		downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE, RECORD_ID, MASTER);
@@ -314,8 +325,7 @@ public class DownloaderTest {
 		var user = authenticator.MCR.getReturnValue("getUserForToken", 0);
 		authorizator.MCR.assertParameters(
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, user, ACTION_READ,
-				"someHostType." + BINARY_RECORD_TYPE + "." + MASTER,
-				collectedTerms.permissionTerms);
+				"someHostType." + BINARY_RECORD_TYPE, collectedTerms.permissionTerms);
 	}
 
 	private CollectTerms assertAndReturnUsedCollectedValuesFromHostRecord() {

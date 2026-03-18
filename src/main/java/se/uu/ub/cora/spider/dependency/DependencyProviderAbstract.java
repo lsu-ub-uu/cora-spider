@@ -52,6 +52,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordDecorator;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
+import se.uu.ub.cora.spider.record.internal.LinkAuthorizatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordDecoratorImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
@@ -194,7 +195,9 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	@Override
 	public DataGroupToRecordEnhancer getDataGroupToRecordEnhancer() {
-		return new DataGroupToRecordEnhancerImp(this);
+		LinkAuthorizatorImp linkAuthorizator = new LinkAuthorizatorImp(this);
+		return DataGroupToRecordEnhancerImp.usingDependencyProviderAndLinkAuthorizator(this,
+				linkAuthorizator);
 	}
 
 	@Override

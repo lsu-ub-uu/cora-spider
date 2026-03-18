@@ -1,6 +1,5 @@
 /*
- * Copyright 2022 Olov McKie
- * Copyright 2022 Uppsala University Library
+ * Copyright 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,33 +16,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.testspies;
+package se.uu.ub.cora.spider.record.internal;
 
-import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.data.spies.DataRecordSpy;
-import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class RecordUpdaterSpy implements RecordUpdater {
+public class LinkAuthorizatorSpy implements LinkAuthorizator {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public RecordUpdaterSpy() {
+	public LinkAuthorizatorSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("updateRecord", DataRecordSpy::new);
+		MRV.setDefaultReturnValuesSupplier("isAuthorizedToReadRecordLink", () -> false);
 	}
 
 	@Override
-	public DataRecord updateRecord(String authToken, String type, String id,
-			DataRecordGroup record) {
-		return (DataRecord) MCR.addCallAndReturnFromMRV("authToken", authToken, "type", type, "id",
-				id, "record", record);
+	public boolean isAuthorizedToReadRecordLink(User user, DataRecordLink dataRecordLink) {
+		return (boolean) MCR.addCallAndReturnFromMRV("user", user, "dataRecordLink",
+				dataRecordLink);
 	}
 
-	@Override
-	public void useUploadAsActionInSecurityChecks() {
-		MCR.addCall();
-	}
 }

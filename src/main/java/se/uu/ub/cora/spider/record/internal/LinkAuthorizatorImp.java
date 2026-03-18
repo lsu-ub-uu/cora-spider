@@ -29,7 +29,6 @@ import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -65,21 +64,6 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 		return recordLinksHolder.computeIfAbsent(recordLinksKey,
 				_ -> isAuthorizedToReadUnkownRecordLink(linkedRecordType, linkedRecordId));
 	}
-
-	// private boolean isAuthorizedToReadResourceLink(DataResourceLink dataResourceLink) {
-	// String resourceLinkNameInData = dataResourceLink.getNameInData();
-	// String recordTypeForResourceLink = recordType + "." + resourceLinkNameInData;
-	// return userIsAuthorizedForActionOnRecordTypeAndCollectedTerms("read",
-	// recordTypeForResourceLink);
-	// }
-	//
-	// private boolean userIsAuthorizedForActionOnRecordTypeAndCollectedTerms(String action,
-	// String recordType) {
-	// // String recordTypeForAuthorization = getRecordTypeForAuthorizationCheckUsingRecordType(
-	// // recordType);
-	// return spiderAuthorizator.userIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-	// action, recordType, permissionTerms);
-	// }
 
 	private boolean isAuthorizedToReadUnkownRecordLink(String linkedRecordType,
 			String linkedRecordId) {
@@ -239,10 +223,4 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 		return dependencyProvider;
 	}
 
-	@Override
-	public boolean isAuthorizedToReadResourceLink(User user, DataResourceLink resourceLink,
-			DataRecordGroup recordGroup) {
-
-		return false;
-	}
 }

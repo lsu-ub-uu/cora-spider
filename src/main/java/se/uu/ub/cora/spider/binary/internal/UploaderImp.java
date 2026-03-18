@@ -247,6 +247,7 @@ public final class UploaderImp implements Uploader {
 
 	private DataRecord updateRecord(DataRecordGroup dataRecordGroup) {
 		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
+		recordUpdater.useUploadAsActionInSecurityChecks();
 		return recordUpdater.updateRecord(authToken, type, id, dataRecordGroup);
 	}
 

@@ -174,9 +174,10 @@ public class RecordListReaderTest {
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
 				() -> recordTypeHandlerSpy);
 
-		recordEnhancer = new DataGroupToRecordEnhancerSpy();
-		recordListReader = RecordListReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProviderSpy, recordEnhancer);
+		recordListReader = RecordListReaderImp.usingDependencyProvider(dependencyProviderSpy);
+		recordEnhancer = (DataGroupToRecordEnhancerSpy) dependencyProviderSpy.MCR
+				.getReturnValue("getDataGroupToRecordEnhancer", 0);
+
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class, expectedExceptionsMessageRegExp = ""

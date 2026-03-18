@@ -79,10 +79,9 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private RecordArchive recordArchive;
 	private DataRecordGroup recordGroup;
 
-	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
-		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
+		this.dataGroupToRecordEnhancer = dependencyProvider.getDataGroupToRecordEnhancer();
 		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		dataValidator = dependencyProvider.getDataValidator();
@@ -94,10 +93,9 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		recordArchive = dependencyProvider.getRecordArchive();
 	}
 
-	public static RecordCreatorImp usingDependencyProviderAndDataGroupToRecordEnhancer(
-			SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-		return new RecordCreatorImp(dependencyProvider, dataGroupToRecordEnhancer);
+	public static RecordCreatorImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new RecordCreatorImp(dependencyProvider);
 	}
 
 	@Override
@@ -115,6 +113,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private DataRecord tryToValidateAndStoreRecord() {
+		// recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		checkActionAuthorizationForUser();
 		useExtendedFunctionalityForPosition(CREATE_AFTER_AUTHORIZATION);
 		recordTypeHandler = createRecordTypeHandler();

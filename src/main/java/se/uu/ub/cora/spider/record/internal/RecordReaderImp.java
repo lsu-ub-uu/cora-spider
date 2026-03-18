@@ -54,20 +54,18 @@ public final class RecordReaderImp implements RecordReader {
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private String recordId;
 
-	private RecordReaderImp(SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+	private RecordReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
-		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
+		this.dataGroupToRecordEnhancer = dependencyProvider.getDataGroupToRecordEnhancer();
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
-	public static RecordReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
-			SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-		return new RecordReaderImp(dependencyProvider, dataGroupToRecordEnhancer);
+	public static RecordReaderImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new RecordReaderImp(dependencyProvider);
 	}
 
 	@Override

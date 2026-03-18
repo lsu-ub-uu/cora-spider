@@ -113,7 +113,6 @@ public class RecordCreatorTest {
 		recordArchive = new RecordArchiveSpy();
 		dataRedactor = new DataRedactorSpy();
 		recordTypeHandlerSpy = new RecordTypeHandlerSpy();
-		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		uniqueValidator = new UniqueValidatorSpy();
 
@@ -161,8 +160,9 @@ public class RecordCreatorTest {
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataRedactor",
 				() -> dataRedactor);
 
-		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProviderSpy, dataGroupToRecordEnhancer);
+		recordCreator = RecordCreatorImp.usingDependencyProvider(dependencyProviderSpy);
+		dataGroupToRecordEnhancer = (DataGroupToRecordEnhancerSpy) dependencyProviderSpy.MCR
+				.getReturnValue("getDataGroupToRecordEnhancer", 0);
 	}
 
 	private DataRecordGroupSpy createRecordExampleRecordWithoutId() {
@@ -337,8 +337,7 @@ public class RecordCreatorTest {
 	public void testExtendedFunctionalityAfterAuthorizationCalledBeforeRecordTypeHandlerCreatedSoWeDoNotNeedToHaveARecordInfoForSomeTypes() {
 		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
 				dependencyProviderSpy, CREATE_AFTER_AUTHORIZATION, RECORD_TYPE);
-		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProviderSpy, dataGroupToRecordEnhancer);
+		recordCreator = RecordCreatorImp.usingDependencyProvider(dependencyProviderSpy);
 		try {
 			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
@@ -393,8 +392,7 @@ public class RecordCreatorTest {
 			+ "Data is not valid: \\[Error1, Error2\\]")
 	public void testX() {
 		setUpDataValidatorToReturnInvalidWithErrors();
-		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProviderSpy, dataGroupToRecordEnhancer);
+		recordCreator = RecordCreatorImp.usingDependencyProvider(dependencyProviderSpy);
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 	}

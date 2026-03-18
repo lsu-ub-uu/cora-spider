@@ -37,7 +37,6 @@ import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
-import se.uu.ub.cora.data.spies.DataResourceLinkSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
@@ -390,33 +389,22 @@ public class LinkAuthorizatorTest {
 
 		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
-
-	String x = """
-			for READ on a recordLink ex. binary, alvin-record, diva-output
-			recordTypeIsPublic --> possible yes
-			recordIsPublished --> possible yes
-			recordTypeUsesHostRecord --> *1
-			permissionUnit --> possible no (if no match permissionUnit)
-			roles rules (recordtype+colletterms+action)
-
-			*1
-			recordTypeIsPublic (ignore)
-			recordIsPublished (ignore)
-			recordTypeUsesHostRecord (ignore for now)
-			permissionUnit --> possible no (if no match permissionUnit)
-			roles rules (READ, system.alvin-record.binary, collectTerms)
-			""";
-
-	@Test
-	public void testResourceLink() {
-		DataResourceLinkSpy resourceLink = new DataResourceLinkSpy();
-		DataRecordGroupSpy recordGroup = new DataRecordGroupSpy();
-
-		linkAuthorizator.isAuthorizedToReadResourceLink(USER, resourceLink, recordGroup);
-	}
-
-	// TODO: make sure ALL calls are cached, so same link is only work on ONCE
-	// TODO: tests for hostRecord
+	//
+	// String x = """
+	// for READ on a recordLink ex. binary, alvin-record, diva-output
+	// recordTypeIsPublic --> possible yes
+	// recordIsPublished --> possible yes
+	// recordTypeUsesHostRecord --> *1
+	// permissionUnit --> possible no (if no match permissionUnit)
+	// roles rules (recordtype+colletterms+action)
+	//
+	// *1
+	// recordTypeIsPublic (ignore)
+	// recordIsPublished (ignore)
+	// recordTypeUsesHostRecord (ignore for now)
+	// permissionUnit --> possible no (if no match permissionUnit)
+	// roles rules (READ, system.alvin-record.binary, collectTerms)
+	// """;
 
 	private DataRecordLinkSpy creatRecordLinkAndRecords(String type, String id) {
 		DataRecordLinkSpy recordLink = new DataRecordLinkSpy();

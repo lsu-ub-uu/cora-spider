@@ -68,6 +68,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.extendedfunctionality.internal.FactorySorterImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
+import se.uu.ub.cora.spider.record.internal.LinkAuthorizatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordDecoratorImp;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactorySpy;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
@@ -304,6 +305,13 @@ public class DependencyProviderAbstractTest {
 		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) dependencyProvider
 				.getDataGroupToRecordEnhancer();
 		assertSame(enhancer.onlyForTestGetDependencyProvider(), dependencyProvider);
+		LinkAuthorizatorImp authorizator = (LinkAuthorizatorImp) enhancer
+				.onlyForTestGetLinkAuthorizator();
+		assertTrue(authorizator instanceof LinkAuthorizatorImp);
+		SpiderDependencyProvider dependencyProviderInLink = authorizator
+				.onlyForTestGetDependencyProvider();
+		assertSame(dependencyProvider, dependencyProviderInLink);
+
 	}
 
 	@Test

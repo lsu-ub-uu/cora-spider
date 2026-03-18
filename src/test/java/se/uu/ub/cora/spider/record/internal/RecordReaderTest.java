@@ -37,9 +37,6 @@ import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.data.DataRecordOldSpy;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceFactory;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceFactoryImp;
-import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionalityProviderSpy;
@@ -115,16 +112,13 @@ public class RecordReaderTest {
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandler);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
 				() -> recordTypeHandler);
-
-		SpiderInstanceFactory factory = SpiderInstanceFactoryImp
-				.usingDependencyProvider(dependencyProvider);
-		SpiderInstanceProvider.setSpiderInstanceFactory(factory);
 	}
 
 	private RecordReader createRecordReader() {
-		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
-		return recordReader = RecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProvider, dataGroupToRecordEnhancer);
+		var createdRecordReader = RecordReaderImp.usingDependencyProvider(dependencyProvider);
+		dataGroupToRecordEnhancer = (DataGroupToRecordEnhancerSpy) dependencyProvider.MCR
+				.getReturnValue("getDataGroupToRecordEnhancer", 0);
+		return createdRecordReader;
 	}
 
 	@Test

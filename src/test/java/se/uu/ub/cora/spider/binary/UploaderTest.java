@@ -181,6 +181,7 @@ public class UploaderTest {
 		testCreateInArchive(dataDivider);
 		testUpdateRecord();
 
+		recordUpdater.MCR.assertMethodWasCalled("useUploadAsActionInSecurityChecks");
 		recordUpdater.MCR.assertReturn("updateRecord", 0, binaryRecord);
 		assertTrue(binaryRecord instanceof DataRecord);
 	}
@@ -200,6 +201,7 @@ public class UploaderTest {
 	private void testUpdateRecord() {
 		spiderInstanceFactory.MCR.assertParameters("factorRecordUpdater", 0);
 		spiderInstanceFactory.MCR.assertReturn("factorRecordUpdater", 0, recordUpdater);
+		recordUpdater.MCR.assertMethodWasCalled("useUploadAsActionInSecurityChecks");
 		recordUpdater.MCR.assertParameters("updateRecord", 0, SOME_AUTH_TOKEN, BINARY_RECORD_TYPE,
 				SOME_RECORD_ID);
 	}
@@ -368,6 +370,7 @@ public class UploaderTest {
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
 		recordStorage.MCR.assertMethodNotCalled("read");
 		resourceArchive.MCR.assertMethodNotCalled("create");
+		recordUpdater.MCR.assertMethodNotCalled("useUploadAsActionInSecurityChecks");
 		recordUpdater.MCR.assertMethodNotCalled("updateRecord");
 	}
 
@@ -410,6 +413,7 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
+		recordUpdater.MCR.assertMethodWasCalled("useUploadAsActionInSecurityChecks");
 		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", readBinarySpy);
 
 		assertMasterIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
@@ -432,6 +436,7 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
+		recordUpdater.MCR.assertMethodWasCalled("useUploadAsActionInSecurityChecks");
 		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", readBinarySpy);
 
 		assertMasterIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);

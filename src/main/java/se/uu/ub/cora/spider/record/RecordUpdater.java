@@ -21,9 +21,18 @@ package se.uu.ub.cora.spider.record;
 
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.spider.binary.Uploader;
 
 public interface RecordUpdater {
 
 	DataRecord updateRecord(String authToken, String type, String id, DataRecordGroup record);
+
+	/**
+	 * useUploadAsActionInSecurityChecks is used to change action when doing security checks to use
+	 * "upload" instead of the standard "update". This makes it possible to resuse updateRecord from
+	 * {@link Uploader} and allow that code to change the recordparts about master, without having
+	 * to give those permissions to a normal user.
+	 */
+	void useUploadAsActionInSecurityChecks();
 
 }

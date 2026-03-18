@@ -38,6 +38,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.ResourceInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.ResourceNotFoundException;
@@ -139,16 +140,31 @@ public final class DownloaderImp implements Downloader {
 		DataRecordGroup hostRecordGroup = readHostRecordFromBinary(binaryRecordGroup);
 		List<PermissionTerm> hostPermissionTerms = getHostRecordPermissionTerms(hostRecordGroup);
 		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				ACTION_READ, hostRecordGroup.getType() + "." + type + "." + representation,
-				hostPermissionTerms);
+				ACTION_READ, hostRecordGroup.getType() + "." + type, hostPermissionTerms);
 	}
 
 	private DataRecordGroup readHostRecordFromBinary(DataRecordGroup binaryRecordGroup) {
 		Optional<DataRecordLink> hostRecord = binaryRecordGroup.getHostRecord();
-		DataRecordLink hostLink = hostRecord.get();
+		throwExceptionIfHostRecordIsMissing(hostRecord);
+		return readRecord(hostRecord.get());
+	}
+
+	private DataRecordGroup readRecord(DataRecordLink hostLink) {
 		String hostType = hostLink.getLinkedRecordType();
 		String hostId = hostLink.getLinkedRecordId();
 		return recordStorage.read(hostType, hostId);
+	}
+
+	private void throwExceptionIfHostRecordIsMissing(Optional<DataRecordLink> hostRecord) {
+		if (hostRecord.isEmpty()) {
+			throw new DataException(createErrorMessageForHostRecordMissing());
+		}
+	}
+
+	private String createErrorMessageForHostRecordMissing() {
+		String errorMessageTemplate = "HostRecord is missing in the record, for record with "
+				+ "type: {0} and id: {1}.";
+		return MessageFormat.format(errorMessageTemplate, type, id);
 	}
 
 	private List<PermissionTerm> getHostRecordPermissionTerms(DataRecordGroup hostRecordGroup) {
