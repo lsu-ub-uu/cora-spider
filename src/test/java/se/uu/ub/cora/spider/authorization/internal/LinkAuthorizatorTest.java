@@ -42,7 +42,7 @@ import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.authorization.internal.LinkAuthorizatorImp;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.DataException;
-import se.uu.ub.cora.spider.record.InternalDataMissmatchException;
+import se.uu.ub.cora.spider.record.InternalDataMismatchException;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
@@ -402,7 +402,7 @@ public class LinkAuthorizatorTest {
 	}
 
 	private void assertIntenalDataMissmatch(Exception e, Exception expectedException) {
-		assertTrue(e instanceof InternalDataMissmatchException);
+		assertTrue(e instanceof InternalDataMismatchException);
 		assertEquals(e.getMessage(), "Could not read link because of missing data. "
 				+ "Type: someType and id: someId, due to: someError");
 		assertEquals(e.getCause(), expectedException);
@@ -484,7 +484,8 @@ public class LinkAuthorizatorTest {
 				() -> "host" + recordLink.getLinkedRecordType());
 		hostRecord.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
 				() -> "host" + recordLink.getLinkedRecordId());
-		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getHostRecord", () -> hostRecord);
+		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getHostRecord",
+				() -> Optional.of(hostRecord));
 
 		recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> dataRecordGroup,
 				recordLink.getLinkedRecordType(), recordLink.getLinkedRecordId());

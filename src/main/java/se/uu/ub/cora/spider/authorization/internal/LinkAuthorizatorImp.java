@@ -36,7 +36,7 @@ import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataException;
-import se.uu.ub.cora.spider.record.InternalDataMissmatchException;
+import se.uu.ub.cora.spider.record.InternalDataMismatchException;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -63,7 +63,7 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 		try {
 			return tryIsAuthorizedToReadRecordLink(user, recordLink);
 		} catch (DataMissingException e) {
-			throw newInternalDataMissmatchException(recordLink, e);
+			throw newInternalDataMismatchException(recordLink, e);
 		}
 	}
 
@@ -226,14 +226,14 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 		return dependencyProvider;
 	}
 
-	private InternalDataMissmatchException newInternalDataMissmatchException(
+	private InternalDataMismatchException newInternalDataMismatchException(
 			DataRecordLink recordLink, DataMissingException e) {
 		String messageTemplate = "Could not read link because of missing data. "
 				+ "Type: {0} and id: {1}, due to: {2}";
 		String type = recordLink.getLinkedRecordType();
 		String id = recordLink.getLinkedRecordId();
 		String originalError = e.getMessage();
-		return InternalDataMissmatchException.withMessageAndException(
+		return InternalDataMismatchException.withMessageAndException(
 				MessageFormat.format(messageTemplate, type, id, originalError), e);
 	}
 

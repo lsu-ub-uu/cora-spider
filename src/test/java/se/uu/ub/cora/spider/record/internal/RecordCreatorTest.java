@@ -223,7 +223,8 @@ public class RecordCreatorTest {
 		hostRecordLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
 				() -> "someHostType");
 		hostRecordLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> "someHostId");
-		recordWithoutId.MRV.setDefaultReturnValuesSupplier("getHostRecord", () -> hostRecordLink);
+		recordWithoutId.MRV.setDefaultReturnValuesSupplier("getHostRecord",
+				() -> Optional.of(hostRecordLink));
 	}
 
 	private User getAuthenticatedUser() {

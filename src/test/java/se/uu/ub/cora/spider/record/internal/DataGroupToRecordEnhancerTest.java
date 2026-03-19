@@ -1960,7 +1960,8 @@ public class DataGroupToRecordEnhancerTest {
 				() -> "hostLinkedType");
 		hostRecordLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
 				() -> "hostLinkedId");
-		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getHostRecord", () -> hostRecordLink);
+		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getHostRecord",
+				() -> Optional.of(hostRecordLink));
 	}
 
 	private DataRecordGroupSpy setRecordHostInStorage() {

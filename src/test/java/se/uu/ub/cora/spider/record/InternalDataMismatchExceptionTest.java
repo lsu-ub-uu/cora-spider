@@ -22,11 +22,11 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-public class InternalDataMissingExceptionTest {
+public class InternalDataMismatchExceptionTest {
 	@Test
 	public void testInit() {
 		String message = "message";
-		InternalDataMissmatchException exception = InternalDataMissmatchException
+		InternalDataMismatchException exception = InternalDataMismatchException
 				.withMessage(message);
 		assertEquals(exception.getMessage(), "message");
 	}
@@ -35,7 +35,7 @@ public class InternalDataMissingExceptionTest {
 	public void testMessageAndError() {
 		String message = "message";
 		Exception exception = new RuntimeException();
-		InternalDataMissmatchException storageException = InternalDataMissmatchException
+		InternalDataMismatchException storageException = InternalDataMismatchException
 				.withMessageAndException(message, exception);
 		assertEquals(storageException.getMessage(), "message");
 		assertEquals(storageException.getCause(), exception);

@@ -41,7 +41,7 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.internal.DownloaderImp;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.record.InternalDataMissmatchException;
+import se.uu.ub.cora.spider.record.InternalDataMismatchException;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.ResourceNotFoundException;
@@ -168,7 +168,8 @@ public class DownloaderTest {
 		hostLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType", () -> "someHostType");
 		hostLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> "someHostId");
 
-		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getHostRecord", () -> hostLink);
+		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getHostRecord",
+				() -> Optional.of(hostLink));
 	}
 
 	private DataGroupSpy createResourceDataGroupForResourceId(String resourceId) {
@@ -314,7 +315,7 @@ public class DownloaderTest {
 	}
 
 	private void assertIntenalDataMissmatch(Exception e, Exception expectedException) {
-		assertTrue(e instanceof InternalDataMissmatchException);
+		assertTrue(e instanceof InternalDataMismatchException);
 		assertEquals(e.getMessage(), "Could not download the stream because of missing data. "
 				+ "Type: binary, id: someId and representation: master, due to: someError");
 		assertEquals(e.getCause(), expectedException);

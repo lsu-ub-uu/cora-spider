@@ -18,24 +18,24 @@
  */
 package se.uu.ub.cora.spider.record;
 
-public class InternalDataMissmatchException extends RuntimeException {
+public class InternalDataMismatchException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
-	public static InternalDataMissmatchException withMessage(String message) {
-		return new InternalDataMissmatchException(message);
+	public static InternalDataMismatchException withMessage(String message) {
+		return new InternalDataMismatchException(message);
 	}
 
-	public static InternalDataMissmatchException withMessageAndException(String message,
+	public static InternalDataMismatchException withMessageAndException(String message,
 			Exception exception) {
-		return new InternalDataMissmatchException(message, exception);
+		return new InternalDataMismatchException(message, exception);
 	}
 
-	private InternalDataMissmatchException(String message) {
+	private InternalDataMismatchException(String message) {
 		super(message);
 	}
 
-	private InternalDataMissmatchException(String message, Exception exception) {
+	private InternalDataMismatchException(String message, Exception exception) {
 		super(message, exception);
 	}
 

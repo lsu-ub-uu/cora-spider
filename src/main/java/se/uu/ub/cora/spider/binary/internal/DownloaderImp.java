@@ -38,7 +38,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.ResourceInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.record.InternalDataMissmatchException;
+import se.uu.ub.cora.spider.record.InternalDataMismatchException;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.ResourceNotFoundException;
@@ -120,7 +120,7 @@ public final class DownloaderImp implements Downloader {
 		} catch (se.uu.ub.cora.storage.ResourceNotFoundException e) {
 			throw throwResourceNotFoundException(e);
 		} catch (se.uu.ub.cora.data.DataMissingException e) {
-			throw throwInternalDataMissmatchException(e);
+			throw throwInternalDataMismatchException(e);
 		}
 	}
 
@@ -185,11 +185,11 @@ public final class DownloaderImp implements Downloader {
 		return ResourceNotFoundException.withMessageAndException(errorMessage, e);
 	}
 
-	private InternalDataMissmatchException throwInternalDataMissmatchException(
+	private InternalDataMismatchException throwInternalDataMismatchException(
 			se.uu.ub.cora.data.DataMissingException e) {
 		String messageTemplate = "Could not download the stream because of missing data. "
 				+ "Type: {0}, id: {1} and representation: {2}, due to: {3}";
-		return InternalDataMissmatchException.withMessageAndException(
+		return InternalDataMismatchException.withMessageAndException(
 				MessageFormat.format(messageTemplate, type, id, representation, e.getMessage()), e);
 	}
 
