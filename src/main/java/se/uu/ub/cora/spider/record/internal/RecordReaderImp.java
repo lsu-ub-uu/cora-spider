@@ -54,20 +54,18 @@ public final class RecordReaderImp implements RecordReader {
 	private ExtendedFunctionalityProvider extendedFunctionalityProvider;
 	private String recordId;
 
-	private RecordReaderImp(SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+	private RecordReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
-		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
+		this.dataGroupToRecordEnhancer = dependencyProvider.getDataGroupToRecordEnhancer();
 		this.authenticator = dependencyProvider.getAuthenticator();
 		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
 
-	public static RecordReaderImp usingDependencyProviderAndDataGroupToRecordEnhancer(
-			SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-		return new RecordReaderImp(dependencyProvider, dataGroupToRecordEnhancer);
+	public static RecordReaderImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new RecordReaderImp(dependencyProvider);
 	}
 
 	@Override
@@ -81,14 +79,51 @@ public final class RecordReaderImp implements RecordReader {
 	private DataRecord tryToReadRecord() {
 		tryToGetUserWithActiveToken();
 
-		checkUserIsAuthorizedForActionOnRecordType();
+		if (isNotPublicForRead()) {
+			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
+		}
+
 		useExtendedFunctionalityForPosition(READ_AFTER_AUTHORIZATION);
 
 		DataRecordGroup readRecordGroup = recordStorage.read(recordType, recordId);
+
 		useExtendedFunctionalityBeforeEnhance(READ_BEFORE_ENHANCE, readRecordGroup);
 		DataRecord enhancedRecord = tryToReadAndEnhanceRecord(readRecordGroup);
 		useExtendedFunctionalityBeforeReturn(READ_BEFORE_RETURN, enhancedRecord);
+
 		return enhancedRecord;
+	}
+
+	private boolean isNotPublicForRead() {
+		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
+		return !recordTypeHandler.isPublicForRead();
+	}
+
+	private void tryToGetUserWithActiveToken() {
+		user = authenticator.getUserForToken(authToken);
+	}
+
+	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityData();
+		useExtendedFunctionality(position, data);
+	}
+
+	protected ExtendedFunctionalityData createExtendedFunctionalityData() {
+		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
+		data.recordType = recordType;
+		data.recordId = recordId;
+		data.authToken = authToken;
+		data.user = user;
+		return data;
+	}
+
+	protected void useExtendedFunctionality(ExtendedFunctionalityPosition position,
+			ExtendedFunctionalityData data) {
+		List<ExtendedFunctionality> functionalityList = extendedFunctionalityProvider
+				.getFunctionalityForPositionAndRecordType(position, recordType);
+		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
+			extendedFunctionality.useExtendedFunctionality(data);
+		}
 	}
 
 	private void useExtendedFunctionalityBeforeEnhance(ExtendedFunctionalityPosition position,
@@ -103,35 +138,6 @@ public final class RecordReaderImp implements RecordReader {
 		ExtendedFunctionalityData data = createExtendedFunctionalityData();
 		data.dataRecordGroup = dataRecordGroup;
 		return data;
-	}
-
-	private void tryToGetUserWithActiveToken() {
-		user = authenticator.getUserForToken(authToken);
-	}
-
-	private void checkUserIsAuthorizedForActionOnRecordType() {
-		if (isNotPublicForRead()) {
-			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
-		}
-	}
-
-	private boolean isNotPublicForRead() {
-		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		return !recordTypeHandler.isPublicForRead();
-	}
-
-	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
-		ExtendedFunctionalityData data = createExtendedFunctionalityData();
-		useExtendedFunctionality(position, data);
-	}
-
-	protected void useExtendedFunctionality(ExtendedFunctionalityPosition position,
-			ExtendedFunctionalityData data) {
-		List<ExtendedFunctionality> functionalityList = extendedFunctionalityProvider
-				.getFunctionalityForPositionAndRecordType(position, recordType);
-		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
-			extendedFunctionality.useExtendedFunctionality(data);
-		}
 	}
 
 	private DataRecord tryToReadAndEnhanceRecord(DataRecordGroup dataRecordGroup) {
@@ -153,12 +159,4 @@ public final class RecordReaderImp implements RecordReader {
 		return data;
 	}
 
-	protected ExtendedFunctionalityData createExtendedFunctionalityData() {
-		ExtendedFunctionalityData data = new ExtendedFunctionalityData();
-		data.recordType = recordType;
-		data.recordId = recordId;
-		data.authToken = authToken;
-		data.user = user;
-		return data;
-	}
 }

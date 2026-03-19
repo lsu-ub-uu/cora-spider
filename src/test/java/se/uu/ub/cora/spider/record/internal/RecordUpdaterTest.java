@@ -121,7 +121,6 @@ public class RecordUpdaterTest {
 		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
 		dataRedactor = new DataRedactorSpy();
-		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		recordArchive = new RecordArchiveSpy();
 		uniqueValidator = new UniqueValidatorSpy();
@@ -180,8 +179,10 @@ public class RecordUpdaterTest {
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataRedactor",
 				() -> dataRedactor);
 
-		recordUpdater = RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProviderSpy, dataGroupToRecordEnhancer);
+		recordUpdater = RecordUpdaterImp.usingDependencyProvider(dependencyProviderSpy);
+
+		dataGroupToRecordEnhancer = (DataGroupToRecordEnhancerSpy) dependencyProviderSpy.MCR
+				.getReturnValue("getDataGroupToRecordEnhancer", 0);
 	}
 
 	private void setUpToReturnFakeDataForUpdatedTS() {
@@ -201,6 +202,91 @@ public class RecordUpdaterTest {
 		recordSpy.MRV.setDefaultReturnValuesSupplier("overwriteProtectionShouldBeEnforced",
 				() -> true);
 		return recordSpy;
+	}
+
+	@Test
+	public void testUseUploadAsActionInSecurityChecks_CorrectSpiderAuthorizatorForNoRecordPartConstraints2() {
+		recordUpdater.useUploadAsActionInSecurityChecks();
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		var returnedUser = getAuthenticatedUser();
+		authorizator.MCR.assertParameters(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
+				returnedUser, "upload", RECORD_TYPE, getPermissionTermUsingCallNo(0), false);
+
+		var mixedPermissionTerms = permissionTermDataHandler.MCR.assertCalledParametersReturn(
+				"getMixedPermissionTermValuesConsideringModeState", getPermissionTermUsingCallNo(0),
+				getPermissionTermUsingCallNo(1));
+
+		authorizator.MCR.assertParameters(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, returnedUser,
+				"upload", RECORD_TYPE, mixedPermissionTerms);
+
+		authorizator.MCR.assertNumberOfCallsToMethod(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
+
+		dataRedactor.MCR.assertMethodNotCalled("replaceChildrenForConstraintsWithoutPermissions");
+		dataRedactor.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
+
+		var recordGroupAsDataGroup = dataFactorySpy.MCR
+				.assertCalledParametersReturn("factorGroupFromDataRecordGroup", recordWithId);
+		dataValidator.MCR.assertParameter("validateData", 0, "dataGroup", recordGroupAsDataGroup);
+	}
+
+	@Test
+	public void testUseUploadAsActionInSecurityChecks_CorrectSpiderAuthorizatorForWriteRecordPartConstraints2() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("hasRecordPartWriteConstraint",
+				() -> true);
+		Set<String> writeConstraints = Set.of("someConstraint");
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier(
+				"getUpdateWriteRecordPartConstraints", () -> writeConstraints);
+		dataRedactor.MRV.setDefaultReturnValuesSupplier(
+				"replaceChildrenForConstraintsWithoutPermissions", () -> recordWithId);
+
+		recordUpdater.useUploadAsActionInSecurityChecks();
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		var returnedUser = getAuthenticatedUser();
+		authorizator.MCR.assertParameters(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
+				returnedUser, "upload", RECORD_TYPE, getPermissionTermUsingCallNo(0), true);
+		authorizator.MCR.assertNumberOfCallsToMethod(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
+				1);
+
+		var mixedPermissionTerms = permissionTermDataHandler.MCR.assertCalledParametersReturn(
+				"getMixedPermissionTermValuesConsideringModeState", getPermissionTermUsingCallNo(0),
+				getPermissionTermUsingCallNo(1));
+
+		authorizator.MCR.assertParameters(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, returnedUser,
+				"upload", RECORD_TYPE, mixedPermissionTerms);
+		authorizator.MCR.assertNumberOfCallsToMethod(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
+
+		dataRedactor.MCR.assertMethodWasCalled("replaceChildrenForConstraintsWithoutPermissions");
+
+		Set<?> expectedPermissions = (Set<?>) authorizator.MCR.getReturnValue(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
+				0);
+		dataRedactor.MCR.assertParameters("replaceChildrenForConstraintsWithoutPermissions", 0,
+				"fakeDefMetadataIdFromRecordTypeHandlerSpy",
+				recordStorage.MCR.getReturnValue("read", 0), recordWithId, writeConstraints,
+				expectedPermissions);
+
+		DataRecordGroup returnedRedactedDataGroup = (DataRecordGroup) dataRedactor.MCR
+				.getReturnValue("replaceChildrenForConstraintsWithoutPermissions", 0);
+
+		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0,
+				returnedRedactedDataGroup);
+		var recordGroupAsDataGroup = dataFactorySpy.MCR
+				.getReturnValue("factorGroupFromDataRecordGroup", 0);
+		dataValidator.MCR.assertParameter("validateData", 0, "dataGroup", recordGroupAsDataGroup);
+
+		// reading updated data
+		dataRedactor.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
 	}
 
 	@Test

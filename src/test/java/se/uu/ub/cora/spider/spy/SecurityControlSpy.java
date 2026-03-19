@@ -1,6 +1,5 @@
 /*
- * Copyright 2022 Olov McKie
- * Copyright 2022 Uppsala University Library
+ * Copyright 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -17,33 +16,28 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.testspies;
 
-import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.data.spies.DataRecordSpy;
-import se.uu.ub.cora.spider.record.RecordUpdater;
+package se.uu.ub.cora.spider.spy;
+
+import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class RecordUpdaterSpy implements RecordUpdater {
+public class SecurityControlSpy implements SecurityControl {
+
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public RecordUpdaterSpy() {
+	public SecurityControlSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("updateRecord", DataRecordSpy::new);
+		MRV.setDefaultReturnValuesSupplier("checkActionAuthorizationForUser",
+				() -> new User("userSpy"));
 	}
 
 	@Override
-	public DataRecord updateRecord(String authToken, String type, String id,
-			DataRecordGroup record) {
-		return (DataRecord) MCR.addCallAndReturnFromMRV("authToken", authToken, "type", type, "id",
-				id, "record", record);
-	}
-
-	@Override
-	public void useUploadAsActionInSecurityChecks() {
-		MCR.addCall();
+	public User checkActionAuthorizationForUser(String authToken, String type, String action) {
+		return (User) MCR.addCallAndReturnFromMRV("authToken", authToken, "type", type, "action",
+				action);
 	}
 }

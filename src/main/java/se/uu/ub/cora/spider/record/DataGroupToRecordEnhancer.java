@@ -85,7 +85,7 @@ public interface DataGroupToRecordEnhancer {
 	 *            A DataRecordGroup with data to turn into a DataRecord
 	 * @param dataRedactor
 	 *            A DataRedactor to use when enhancing
-	 * @return A newly created DataRecord constructed as discussed above
+	 * @return A newly created DataRecord constructed as described above
 	 */
 	DataRecord enhance(User user, String recordType, DataRecordGroup dataRecordGroup,
 			DataRedactor dataRedactor);
@@ -133,7 +133,7 @@ public interface DataGroupToRecordEnhancer {
 	 *            A DataRecordGroup with data to turn into a DataRecord
 	 * @param dataRedactor
 	 *            A DataRedactor to use when enhancing
-	 * @return A newly created DataRecord constructed as discussed above
+	 * @return A newly created DataRecord constructed as described above
 	 */
 	DataRecord enhanceIgnoringReadAccess(User user, String recordType,
 			DataRecordGroup dataRecordGroup, DataRedactor dataRedactor);

@@ -67,6 +67,7 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 		MRV.setDefaultReturnValuesSupplier("useVisibility", () -> false);
 		MRV.setDefaultReturnValuesSupplier("useTrashBin", () -> false);
 		MRV.setDefaultReturnValuesSupplier("usePermissionUnit", () -> false);
+		MRV.setDefaultReturnValuesSupplier("useHostRecord", () -> false);
 		MRV.setDefaultReturnValuesSupplier("getNextId", () -> "someNextId");
 	}
 
@@ -172,6 +173,11 @@ public class RecordTypeHandlerSpy implements RecordTypeHandler {
 
 	@Override
 	public boolean usePermissionUnit() {
+		return (boolean) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public boolean useHostRecord() {
 		return (boolean) MCR.addCallAndReturnFromMRV();
 	}
 

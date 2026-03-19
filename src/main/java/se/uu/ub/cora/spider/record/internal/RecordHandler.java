@@ -19,19 +19,13 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -72,53 +66,6 @@ public class RecordHandler {
 					"Data is not valid: linkedRecord does not exists in storage for recordType: "
 							+ recordType + " and recordId: " + recordId);
 		}
-	}
-
-	protected String extractDataDividerFromData(DataGroup dataGroup) {
-		DataGroup recordInfo = dataGroup.getFirstGroupWithNameInData(RECORD_INFO);
-		DataRecordLink dataDivider = (DataRecordLink) recordInfo
-				.getFirstChildWithNameInData("dataDivider");
-		return dataDivider.getLinkedRecordId();
-	}
-
-	protected String getCurrentTimestampAsString() {
-		return formatInstantKeepingTrailingZeros(Instant.now());
-	}
-
-	protected String formatInstantKeepingTrailingZeros(Instant instant) {
-		DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendInstant(6).toFormatter();
-		return formatter.format(instant);
-	}
-
-	protected void addUpdatedInfoToRecordInfoUsingUserId(DataGroup recordInfo, String userId) {
-		DataGroup updatedGroup = createUpdatedGroup();
-		addUserInfoToUpdatedGroup(userId, updatedGroup);
-		addTimestampToUpdateGroup(recordInfo, updatedGroup);
-		recordInfo.addChild(updatedGroup);
-	}
-
-	private DataGroup createUpdatedGroup() {
-		DataGroup updatedGroup = DataProvider.createGroupUsingNameInData("updated");
-		updatedGroup.setRepeatId("0");
-		return updatedGroup;
-	}
-
-	private void addUserInfoToUpdatedGroup(String userId, DataGroup updatedGroup) {
-		DataRecordLink updatedByLink = createLinkToUserUsingNameInDataAndUserId("updatedBy",
-				userId);
-		updatedGroup.addChild(updatedByLink);
-	}
-
-	private void addTimestampToUpdateGroup(DataGroup recordInfo, DataGroup updatedGroup) {
-		String tsCreatedUsedAsFirstTsUpdate = recordInfo
-				.getFirstAtomicValueWithNameInData(TS_CREATED);
-		updatedGroup.addChild(DataProvider.createAtomicUsingNameInDataAndValue("tsUpdated",
-				tsCreatedUsedAsFirstTsUpdate));
-	}
-
-	protected DataRecordLink createLinkToUserUsingNameInDataAndUserId(String nameInData,
-			String userId) {
-		return DataProvider.createRecordLinkUsingNameInDataAndTypeAndId(nameInData, "user", userId);
 	}
 
 	protected void useExtendedFunctionality(DataRecordGroup dataRecordGroup,

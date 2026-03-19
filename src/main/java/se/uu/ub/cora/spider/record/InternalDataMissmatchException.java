@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2019 Uppsala University Library
+ * Copyright 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,23 +16,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.spider.record;
 
-import se.uu.ub.cora.data.DataRecord;
-import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.spider.binary.Uploader;
+public class InternalDataMissmatchException extends RuntimeException {
 
-public interface RecordUpdater {
+	private static final long serialVersionUID = 1L;
 
-	DataRecord updateRecord(String authToken, String type, String id, DataRecordGroup record);
+	public static InternalDataMissmatchException withMessage(String message) {
+		return new InternalDataMissmatchException(message);
+	}
 
-	/**
-	 * useUploadAsActionInSecurityChecks is used to change action when doing security checks to use
-	 * "upload" instead of the standard "update". This makes it possible to resuse updateRecord from
-	 * {@link Uploader} and allow that code to change the recordparts about master, without having
-	 * to give those permissions to a normal user.
-	 */
-	void useUploadAsActionInSecurityChecks();
+	public static InternalDataMissmatchException withMessageAndException(String message,
+			Exception exception) {
+		return new InternalDataMissmatchException(message, exception);
+	}
+
+	private InternalDataMissmatchException(String message) {
+		super(message);
+	}
+
+	private InternalDataMissmatchException(String message, Exception exception) {
+		super(message, exception);
+	}
 
 }

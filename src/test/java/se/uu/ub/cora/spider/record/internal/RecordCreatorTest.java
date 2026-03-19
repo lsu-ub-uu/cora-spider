@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017, 2023, 2024, 2025 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2023, 2024, 2025, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -49,6 +49,7 @@ import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
@@ -66,6 +67,7 @@ import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
+import se.uu.ub.cora.spider.spy.SecurityControlSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.spider.spy.UniqueValidatorSpy;
 import se.uu.ub.cora.spider.spy.ValidationAnswerSpy;
@@ -93,17 +95,19 @@ public class RecordCreatorTest {
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private DataRedactorSpy dataRedactor;
 	private RecordArchiveSpy recordArchive;
-	private AuthenticatorSpy authenticator;
+	// private AuthenticatorSpy authenticator;
 
 	private DataRecordGroupSpy recordWithoutId;
 	private DataRecordGroupSpy recordWithId;
 	private DataGroupSpy recordInfoWithoutId;
+	private SecurityControlSpy securityControl;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
 
-		authenticator = new AuthenticatorSpy();
+		// authenticator = new AuthenticatorSpy();
+		securityControl = new SecurityControlSpy();
 		spiderAuthorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = new RecordStorageSpy();
@@ -113,7 +117,6 @@ public class RecordCreatorTest {
 		recordArchive = new RecordArchiveSpy();
 		dataRedactor = new DataRedactorSpy();
 		recordTypeHandlerSpy = new RecordTypeHandlerSpy();
-		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		termCollector = new DataGroupTermCollectorSpy();
 		uniqueValidator = new UniqueValidatorSpy();
 
@@ -140,10 +143,12 @@ public class RecordCreatorTest {
 				() -> recordArchive);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataValidator",
 				() -> dataValidator);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getSecurityControl",
+				() -> securityControl);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
 				() -> spiderAuthorizator);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
-				() -> authenticator);
+		// dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
+		// () -> authenticator);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
 				() -> termCollector);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getUniqueValidator",
@@ -156,13 +161,16 @@ public class RecordCreatorTest {
 				() -> dataRedactor);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier(
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
+				() -> recordTypeHandlerSpy);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getExtendedFunctionalityProvider",
 				() -> extendedFunctionalityProvider);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataRedactor",
 				() -> dataRedactor);
 
-		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProviderSpy, dataGroupToRecordEnhancer);
+		recordCreator = RecordCreatorImp.usingDependencyProvider(dependencyProviderSpy);
+		dataGroupToRecordEnhancer = (DataGroupToRecordEnhancerSpy) dependencyProviderSpy.MCR
+				.getReturnValue("getDataGroupToRecordEnhancer", 0);
 	}
 
 	private DataRecordGroupSpy createRecordExampleRecordWithoutId() {
@@ -182,6 +190,44 @@ public class RecordCreatorTest {
 		recordSpy.MRV.setDefaultReturnValuesSupplier("getId", () -> "someRecordId");
 		recordSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider", () -> "someDataDivider");
 		return recordSpy;
+	}
+
+	// @Test(expectedExceptions = DataMissingException.class, expectedExceptionsMessageRegExp = ""
+	// + "Could not create the record because of missing data. Type: someType, due to: x not found")
+	// public void testHandleDataMissingException() {
+	//
+	// setUpToUseHostRecord();
+	// securityControl.MRV.setAlwaysThrowException("checkActionAuthorizationForUser",
+	// new se.uu.ub.cora.data.DataMissingException("x not found"));
+	//
+	// recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+	//
+	// securityControl.MCR.assertParameters("checkActionAuthorizationForUser", 0, AUTH_TOKEN,
+	// RECORD_TYPE, "create");
+	// }
+
+	@Test
+	public void testSecurityControlIsCalled() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
+				() -> RECORD_TYPE);
+
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
+
+		securityControl.MCR.assertParameters("checkActionAuthorizationForUser", 0, AUTH_TOKEN,
+				RECORD_TYPE, "create");
+	}
+
+	private void setUpToUseHostRecord() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("useHostRecord", () -> true);
+		DataRecordLinkSpy hostRecordLink = new DataRecordLinkSpy();
+		hostRecordLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
+				() -> "someHostType");
+		hostRecordLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> "someHostId");
+		recordWithoutId.MRV.setDefaultReturnValuesSupplier("getHostRecord", () -> hostRecordLink);
+	}
+
+	private User getAuthenticatedUser() {
+		return (User) securityControl.MCR.getReturnValue("checkActionAuthorizationForUser", 0);
 	}
 
 	@Test
@@ -221,29 +267,6 @@ public class RecordCreatorTest {
 				"getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandlerSpy);
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
-	}
-
-	@Test
-	public void testAuthenticatorIsCalled() {
-		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
-				() -> RECORD_TYPE);
-
-		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
-
-		authenticator.MCR.assertParameters("getUserForToken", 0, AUTH_TOKEN);
-	}
-
-	@Test
-	public void testAuthorizatorIsCalled() {
-		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
-
-		User user = getAuthenticatedUser();
-		spiderAuthorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0,
-				user, "create", RECORD_TYPE);
-	}
-
-	private User getAuthenticatedUser() {
-		return (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
 	}
 
 	@Test
@@ -337,17 +360,16 @@ public class RecordCreatorTest {
 	public void testExtendedFunctionalityAfterAuthorizationCalledBeforeRecordTypeHandlerCreatedSoWeDoNotNeedToHaveARecordInfoForSomeTypes() {
 		extendedFunctionalityProvider.setUpExtendedFunctionalityToThrowExceptionOnPosition(
 				dependencyProviderSpy, CREATE_AFTER_AUTHORIZATION, RECORD_TYPE);
-		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProviderSpy, dataGroupToRecordEnhancer);
+		recordCreator = RecordCreatorImp.usingDependencyProvider(dependencyProviderSpy);
 		try {
 			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 			fail("Should fail as we want to stop execution when the extended functionality is used,"
 					+ " to determin that the extended functionality is called in the correct place"
 					+ " in the code");
-		} catch (Exception e) {
-			SpiderAuthorizatorSpy authorizator = getCorrectAuthorizator();
-			authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+		} catch (Exception _) {
+			// SpiderAuthorizatorSpy authorizator = getCorrectAuthorizator();
+			securityControl.MCR.assertMethodWasCalled("checkActionAuthorizationForUser");
 			dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
 			dependencyProviderSpy.MCR
 					.assertMethodNotCalled("getRecordTypeHandlerUsingDataRecordGroup");
@@ -373,7 +395,7 @@ public class RecordCreatorTest {
 	@Test(expectedExceptions = AuthenticationException.class, expectedExceptionsMessageRegExp = ""
 			+ "someMessage")
 	public void testGetActiveUserFails() {
-		authenticator.MRV.setAlwaysThrowException("getUserForToken",
+		securityControl.MRV.setAlwaysThrowException("checkActionAuthorizationForUser",
 				new AuthenticationException("someMessage"));
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
@@ -393,8 +415,7 @@ public class RecordCreatorTest {
 			+ "Data is not valid: \\[Error1, Error2\\]")
 	public void testX() {
 		setUpDataValidatorToReturnInvalidWithErrors();
-		recordCreator = RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProviderSpy, dataGroupToRecordEnhancer);
+		recordCreator = RecordCreatorImp.usingDependencyProvider(dependencyProviderSpy);
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 	}
@@ -484,7 +505,7 @@ public class RecordCreatorTest {
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void testCreateRecordUnauthorizedForActionCreate() {
-		spiderAuthorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForActionOnRecordType",
+		securityControl.MRV.setAlwaysThrowException("checkActionAuthorizationForUser",
 				new AuthorizationException("message"));
 
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
@@ -529,7 +550,7 @@ public class RecordCreatorTest {
 		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				0);
-		var returnedUser = authenticator.MCR.getReturnValue("getUserForToken", 0);
+		var returnedUser = securityControl.MCR.getReturnValue("checkActionAuthorizationForUser", 0);
 		spiderAuthorizator.MCR.assertParameters(methodName, 0, returnedUser, "create", RECORD_TYPE,
 				collectTerms.permissionTerms);
 	}
@@ -841,7 +862,9 @@ public class RecordCreatorTest {
 	@Test
 	public void testPermissionUnitAuthorizationCheck_positionAfter() {
 		setUpRecordTypeUsesPermissionUnits();
-		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getRecordTypeId", new RuntimeException());
+		// recordTypeHandlerSpy.MRV.setAlwaysThrowException("getRecordTypeId", new
+		// RuntimeException());
+		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getDefinitionId", new RuntimeException());
 
 		try {
 			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
@@ -854,7 +877,9 @@ public class RecordCreatorTest {
 	@Test
 	public void testPermissionUnitAuthorizationCheck_positionBefore() {
 		setUpRecordTypeUsesPermissionUnits();
-		recordTypeHandlerSpy.MRV.setAlwaysThrowException("getDefinitionId", new RuntimeException());
+		spiderAuthorizator.MRV.setAlwaysThrowException(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
+				new RuntimeException());
 
 		try {
 			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);

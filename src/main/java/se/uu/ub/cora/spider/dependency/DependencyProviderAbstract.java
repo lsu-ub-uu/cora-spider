@@ -42,6 +42,9 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.authorization.internal.LinkAuthorizatorImp;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControlImp;
 import se.uu.ub.cora.spider.authorization.internal.SpiderAuthorizatorImp;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.cache.DataChangedSenderImp;
@@ -122,6 +125,11 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	}
 
 	@Override
+	public SecurityControl getSecurityControl() {
+		return SecurityControlImp.usingDependencyProvider(this);
+	}
+
+	@Override
 	public SpiderAuthorizator getSpiderAuthorizator() {
 		return SpiderAuthorizatorImp.usingSpiderDependencyProviderAndAuthorizatorAndRulesProvider(
 				this, new AuthorizatorImp(), new RulesProviderImp(getRecordStorage()));
@@ -194,7 +202,9 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	@Override
 	public DataGroupToRecordEnhancer getDataGroupToRecordEnhancer() {
-		return new DataGroupToRecordEnhancerImp(this);
+		LinkAuthorizatorImp linkAuthorizator = new LinkAuthorizatorImp(this);
+		return DataGroupToRecordEnhancerImp.usingDependencyProviderAndLinkAuthorizator(this,
+				linkAuthorizator);
 	}
 
 	@Override
