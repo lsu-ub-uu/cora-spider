@@ -29,7 +29,7 @@ public interface RecordUpdater {
 
 	/**
 	 * useUploadAsActionInSecurityChecks is used to change action when doing security checks to use
-	 * "upload" instead of the standard "update". This makes it possible to resuse updateRecord from
+	 * "upload" instead of the standard "update". This makes it possible to reuse updateRecord from
 	 * {@link Uploader} and allow that code to change the recordparts about master, without having
 	 * to give those permissions to a normal user.
 	 */
