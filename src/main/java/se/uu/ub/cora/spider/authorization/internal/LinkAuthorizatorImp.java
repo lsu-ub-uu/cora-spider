@@ -17,8 +17,9 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.authorization.internal;
 
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Optional;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.data.DataMissingException;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
@@ -34,6 +36,7 @@ import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataException;
+import se.uu.ub.cora.spider.record.InternalDataMissmatchException;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -57,6 +60,14 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 
 	@Override
 	public boolean isAuthorizedToReadRecordLink(User user, DataRecordLink recordLink) {
+		try {
+			return tryIsAuthorizedToReadRecordLink(user, recordLink);
+		} catch (DataMissingException e) {
+			throw newInternalDataMissmatchException(recordLink, e);
+		}
+	}
+
+	private boolean tryIsAuthorizedToReadRecordLink(User user, DataRecordLink recordLink) {
 		this.user = user;
 		String linkedRecordType = recordLink.getLinkedRecordType();
 		String linkedRecordId = recordLink.getLinkedRecordId();
@@ -202,9 +213,7 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 	}
 
 	private DataRecordGroup readHostRecord(DataRecordGroup recordGroup) {
-		var hostRecord = recordGroup.getHostRecord();
-		throwExceptionIfHostRecordIsMissing(hostRecord);
-		return readRecordForLink(hostRecord.get());
+		return readRecordForLink(recordGroup.getHostRecord());
 	}
 
 	private DataRecordGroup readRecordForLink(DataRecordLink hostLink) {
@@ -213,14 +222,19 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 		return recordStorage.read(hostType, hostId);
 	}
 
-	private void throwExceptionIfHostRecordIsMissing(Optional<DataRecordLink> hostRecord) {
-		if (hostRecord.isEmpty()) {
-			throw new DataException("HostRecord is missing in the record.");
-		}
-	}
-
 	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {
 		return dependencyProvider;
+	}
+
+	private InternalDataMissmatchException newInternalDataMissmatchException(
+			DataRecordLink recordLink, DataMissingException e) {
+		String messageTemplate = "Could not read link because of missing data. "
+				+ "Type: {0} and id: {1}, due to: {2}";
+		String type = recordLink.getLinkedRecordType();
+		String id = recordLink.getLinkedRecordId();
+		String originalError = e.getMessage();
+		return InternalDataMissmatchException.withMessageAndException(
+				MessageFormat.format(messageTemplate, type, id, originalError), e);
 	}
 
 }

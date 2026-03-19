@@ -54,6 +54,9 @@ import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
+import se.uu.ub.cora.spider.authorization.internal.LinkAuthorizatorImp;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControlImp;
 import se.uu.ub.cora.spider.authorization.internal.SpiderAuthorizatorImp;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.cache.DataChangedSenderImp;
@@ -68,7 +71,6 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.extendedfunctionality.internal.FactorySorterImp;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.record.internal.LinkAuthorizatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordDecoratorImp;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactorySpy;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
@@ -199,6 +201,15 @@ public class DependencyProviderAbstractTest {
 		ExtendedFunctionalityProvider extendedFunctionalityProvider2 = dependencyProvider
 				.getExtendedFunctionalityProvider();
 		assertSame(extendedFunctionalityProvider1, extendedFunctionalityProvider2);
+	}
+
+	@Test
+	public void testGetSecurityControl() {
+		SecurityControlImp securityControl = (SecurityControlImp) dependencyProvider
+				.getSecurityControl();
+		assertTrue(securityControl instanceof SecurityControl);
+		assertSame(securityControl.onlyForTestGetDependencyProvider(), dependencyProvider);
+
 	}
 
 	@Test

@@ -16,26 +16,12 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.authorization.internal;
 
 import se.uu.ub.cora.beefeater.authentication.User;
-import se.uu.ub.cora.data.DataRecordLink;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class LinkAuthorizatorSpy implements LinkAuthorizator {
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
+public interface SecurityControl {
 
-	public LinkAuthorizatorSpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("isAuthorizedToReadRecordLink", () -> false);
-	}
-
-	@Override
-	public boolean isAuthorizedToReadRecordLink(User user, DataRecordLink dataRecordLink) {
-		return (boolean) MCR.addCallAndReturnFromMRV("user", user, "dataRecordLink",
-				dataRecordLink);
-	}
+	User checkActionAuthorizationForUser(String authToken, String type, String action);
 
 }

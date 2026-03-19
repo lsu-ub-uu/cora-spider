@@ -16,11 +16,12 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.spider.record.internal;
+package se.uu.ub.cora.spider.authorization.internal;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,14 +32,18 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.data.DataMissingException;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
+import se.uu.ub.cora.spider.authorization.internal.LinkAuthorizatorImp;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.DataException;
+import se.uu.ub.cora.spider.record.InternalDataMissmatchException;
+import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -377,34 +382,31 @@ public class LinkAuthorizatorTest {
 		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
 	}
 
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
-			+ "HostRecord is missing in the record.")
+	@Test
 	public void testMissingHostRecord() {
 		recordTypeUseVisibility(true, recordLink1);
 		recordTypeUseHostRecord(true, recordLink1);
 		linkedRecordVisibilityIsForLink("unpublished", recordLink1);
 		hostRecordTypeUsePermissionUnit(true, recordLink1);
 		DataRecordGroupSpy dataRecordGroupSpy = dataRecordGroups.get(createKey(recordLink1));
-		dataRecordGroupSpy.MRV.setDefaultReturnValuesSupplier("getHostRecord", Optional::empty);
 
-		assertFalse(linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1));
+		var originalError = new DataMissingException("someError");
+		dataRecordGroupSpy.MRV.setAlwaysThrowException("getHostRecord", originalError);
+
+		try {
+			linkAuthorizator.isAuthorizedToReadRecordLink(USER, recordLink1);
+			fail();
+		} catch (Exception e) {
+			assertIntenalDataMissmatch(e, originalError);
+		}
 	}
-	//
-	// String x = """
-	// for READ on a recordLink ex. binary, alvin-record, diva-output
-	// recordTypeIsPublic --> possible yes
-	// recordIsPublished --> possible yes
-	// recordTypeUsesHostRecord --> *1
-	// permissionUnit --> possible no (if no match permissionUnit)
-	// roles rules (recordtype+colletterms+action)
-	//
-	// *1
-	// recordTypeIsPublic (ignore)
-	// recordIsPublished (ignore)
-	// recordTypeUsesHostRecord (ignore for now)
-	// permissionUnit --> possible no (if no match permissionUnit)
-	// roles rules (READ, system.alvin-record.binary, collectTerms)
-	// """;
+
+	private void assertIntenalDataMissmatch(Exception e, Exception expectedException) {
+		assertTrue(e instanceof InternalDataMissmatchException);
+		assertEquals(e.getMessage(), "Could not read link because of missing data. "
+				+ "Type: someType and id: someId, due to: someError");
+		assertEquals(e.getCause(), expectedException);
+	}
 
 	private DataRecordLinkSpy creatRecordLinkAndRecords(String type, String id) {
 		DataRecordLinkSpy recordLink = new DataRecordLinkSpy();
@@ -482,8 +484,7 @@ public class LinkAuthorizatorTest {
 				() -> "host" + recordLink.getLinkedRecordType());
 		hostRecord.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
 				() -> "host" + recordLink.getLinkedRecordId());
-		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getHostRecord",
-				() -> Optional.of(hostRecord));
+		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getHostRecord", () -> hostRecord);
 
 		recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> dataRecordGroup,
 				recordLink.getLinkedRecordType(), recordLink.getLinkedRecordId());

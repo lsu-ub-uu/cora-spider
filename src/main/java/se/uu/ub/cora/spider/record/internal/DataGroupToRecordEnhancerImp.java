@@ -19,7 +19,6 @@
 
 package se.uu.ub.cora.spider.record.internal;
 
-import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +44,7 @@ import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.authorization.internal.LinkAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
@@ -139,21 +139,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private DataRecordGroup readHostRecord(DataRecordGroup recordGroup) {
-		Optional<DataRecordLink> hostRecordLink = recordGroup.getHostRecord();
-		throwExceptionIfHostRecordIsMissing(hostRecordLink);
-		return readRecord(hostRecordLink.get());
-	}
-
-	private void throwExceptionIfHostRecordIsMissing(Optional<DataRecordLink> hostRecord) {
-		if (hostRecord.isEmpty()) {
-			throw new DataException(createErrorMessageForHostRecordMissing());
-		}
-	}
-
-	private String createErrorMessageForHostRecordMissing() {
-		String errorMessageTemplate = "HostRecord is missing in the record, for record with "
-				+ "type: {0} and id: {1}.";
-		return MessageFormat.format(errorMessageTemplate, recordType, handledRecordId);
+		return readRecord(recordGroup.getHostRecord());
 	}
 
 	private DataRecordGroup readRecord(DataRecordLink hostLink) {

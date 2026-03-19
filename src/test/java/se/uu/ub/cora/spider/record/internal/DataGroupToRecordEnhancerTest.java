@@ -51,6 +51,8 @@ import se.uu.ub.cora.data.spies.DataRecordSpy;
 import se.uu.ub.cora.data.spies.DataResourceLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
+import se.uu.ub.cora.spider.authorization.internal.LinkAuthorizator;
+import se.uu.ub.cora.spider.authorization.internal.LinkAuthorizatorSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.SpiderDependencyProviderOldSpy;
@@ -123,35 +125,6 @@ public class DataGroupToRecordEnhancerTest {
 		dependencyProviderOldSpy.termCollector = termCollector;
 		recordTypeHandlerOldSpy = dependencyProviderOldSpy.recordTypeHandlerSpy;
 	}
-
-	// private void setUpDependencyProvider() {
-	// dependencyProvider = new SpiderDependencyProviderSpy();
-	//
-	// // authorizator = new SpiderAuthorizatorSpy();
-	// dependencyProvider.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
-	// () -> authorizator);
-	//
-	// // recordStorage = new RecordStorageSpy();
-	// dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
-	// () -> recordStorage);
-	//
-	// // termCollector = new DataGroupTermCollectorSpy();
-	// // dependencyProvider.MRV.setDefaultReturnValuesSupplier("getPermissionRuleCalculator",
-	// // () -> ruleCalculator);
-	//
-	// // termCollector = new DataGroupTermCollectorSpy();
-	// dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
-	// () -> termCollector);
-	//
-	// recordTypeHandler = new RecordTypeHandlerSpy();
-	// recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
-	// () -> "someDefintion");
-	// dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
-	// () -> recordTypeHandler);
-	// dependencyProvider.MRV.setDefaultReturnValuesSupplier(
-	// "getRecordTypeHandlerUsingDataRecordGroup", () -> recordTypeHandler);
-	//
-	// }
 
 	@Test
 	public void testReadActionPartOfEnhance() {
@@ -1912,16 +1885,6 @@ public class DataGroupToRecordEnhancerTest {
 
 	}
 
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
-			+ "HostRecord is missing in the record, for record with type: binary and id: someId.")
-	public void test_UsesHostRecords_HostRecordEmpty() {
-		changeToModernSpies();
-		setupRecordTypeToIsPublicForRead(false);
-		setupRecordTypeToUseHostRecord(true);
-
-		enhancer.enhance(user, BINARY_RECORD_TYPE, someDataRecordGroup, dataRedactor);
-	}
-
 	@Test
 	public void testCallHostRecords_UsesHostRecords_NoPublic_NoPermissionUnits() {
 		changeToModernSpies();
@@ -1997,8 +1960,7 @@ public class DataGroupToRecordEnhancerTest {
 				() -> "hostLinkedType");
 		hostRecordLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId",
 				() -> "hostLinkedId");
-		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getHostRecord",
-				() -> Optional.of(hostRecordLink));
+		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getHostRecord", () -> hostRecordLink);
 	}
 
 	private DataRecordGroupSpy setRecordHostInStorage() {
@@ -2171,3 +2133,4 @@ public class DataGroupToRecordEnhancerTest {
 
 	}
 }
+

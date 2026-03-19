@@ -42,6 +42,9 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.authorization.internal.LinkAuthorizatorImp;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControlImp;
 import se.uu.ub.cora.spider.authorization.internal.SpiderAuthorizatorImp;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.cache.DataChangedSenderImp;
@@ -52,7 +55,6 @@ import se.uu.ub.cora.spider.extendedfunctionality.internal.ExtendedFunctionality
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordDecorator;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.record.internal.LinkAuthorizatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordDecoratorImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
@@ -120,6 +122,11 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	public final void setStreamStorageProvider(StreamStorageProvider streamStorageProvider) {
 		this.streamStorageProvider = streamStorageProvider;
+	}
+
+	@Override
+	public SecurityControl getSecurityControl() {
+		return SecurityControlImp.usingDependencyProvider(this);
 	}
 
 	@Override

@@ -41,7 +41,7 @@ import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.internal.DownloaderImp;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
-import se.uu.ub.cora.spider.record.DataException;
+import se.uu.ub.cora.spider.record.InternalDataMissmatchException;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.ResourceNotFoundException;
@@ -168,8 +168,7 @@ public class DownloaderTest {
 		hostLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType", () -> "someHostType");
 		hostLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> "someHostId");
 
-		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getHostRecord",
-				() -> Optional.of(hostLink));
+		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getHostRecord", () -> hostLink);
 	}
 
 	private DataGroupSpy createResourceDataGroupForResourceId(String resourceId) {
@@ -302,14 +301,23 @@ public class DownloaderTest {
 		}
 	}
 
-	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
-			+ "HostRecord is missing in the record, for record with type: binary and id: someId.")
+	@Test
 	public void testHostRecordMissing() {
-		readBinaryDGS.MRV.setDefaultReturnValuesSupplier("getHostRecord", Optional::empty);
+		var originalError = new se.uu.ub.cora.data.DataMissingException("someError");
+		readBinaryDGS.MRV.setAlwaysThrowException("getHostRecord", originalError);
+		try {
+			downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE, RECORD_ID, MASTER);
+			fail();
+		} catch (Exception e) {
+			assertIntenalDataMissmatch(e, originalError);
+		}
+	}
 
-		downloader.download(AUTH_TOKEN, BINARY_RECORD_TYPE, RECORD_ID, MASTER);
-
-		assertCheckAuthorizedUsingHostRecordCollectedTerms();
+	private void assertIntenalDataMissmatch(Exception e, Exception expectedException) {
+		assertTrue(e instanceof InternalDataMissmatchException);
+		assertEquals(e.getMessage(), "Could not download the stream because of missing data. "
+				+ "Type: binary, id: someId and representation: master, due to: someError");
+		assertEquals(e.getCause(), expectedException);
 	}
 
 	@Test

@@ -35,6 +35,7 @@ import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
 import se.uu.ub.cora.spider.binary.Uploader;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
@@ -240,6 +241,12 @@ public class SpiderDependencyProviderOldSpy implements SpiderDependencyProvider 
 
 	@Override
 	public PermissionTermDataHandler getPermissionTermDataHandler() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SecurityControl getSecurityControl() {
 		// TODO Auto-generated method stub
 		return null;
 	}
