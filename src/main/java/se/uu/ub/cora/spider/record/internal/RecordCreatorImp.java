@@ -175,7 +175,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 
 	private String getSecurityCheckRecordType() {
 		if (recordTypeHandler.useHostRecord()) {
-			DataRecordLink hostRecordLink = recordGroup.getHostRecord();
+			DataRecordLink hostRecordLink = recordGroup.getHostRecord().orElseThrow();
 			return hostRecordLink.getLinkedRecordType() + "." + recordType;
 		}
 		return recordType;

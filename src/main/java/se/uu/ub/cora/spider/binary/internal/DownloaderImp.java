@@ -146,7 +146,7 @@ public final class DownloaderImp implements Downloader {
 	}
 
 	private DataRecordGroup readHostRecordFromBinary(DataRecordGroup binaryRecordGroup) {
-		DataRecordLink hostRecordLink = binaryRecordGroup.getHostRecord();
+		DataRecordLink hostRecordLink = binaryRecordGroup.getHostRecord().orElseThrow();
 		return readRecordUsingLink(hostRecordLink);
 	}
 

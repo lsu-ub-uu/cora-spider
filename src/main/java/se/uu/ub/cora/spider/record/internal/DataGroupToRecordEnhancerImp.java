@@ -139,7 +139,7 @@ public class DataGroupToRecordEnhancerImp implements DataGroupToRecordEnhancer {
 	}
 
 	private DataRecordGroup readHostRecord(DataRecordGroup recordGroup) {
-		return readRecord(recordGroup.getHostRecord());
+		return readRecord(recordGroup.getHostRecord().orElseThrow());
 	}
 
 	private DataRecordGroup readRecord(DataRecordLink hostLink) {

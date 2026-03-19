@@ -213,7 +213,7 @@ public class LinkAuthorizatorImp implements LinkAuthorizator {
 	}
 
 	private DataRecordGroup readHostRecord(DataRecordGroup recordGroup) {
-		return readRecordForLink(recordGroup.getHostRecord());
+		return readRecordForLink(recordGroup.getHostRecord().orElseThrow());
 	}
 
 	private DataRecordGroup readRecordForLink(DataRecordLink hostLink) {
