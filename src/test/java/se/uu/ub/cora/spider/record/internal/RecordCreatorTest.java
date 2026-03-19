@@ -214,7 +214,7 @@ public class RecordCreatorTest {
 		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithoutId);
 
 		securityControl.MCR.assertParameters("checkActionAuthorizationForUser", 0, AUTH_TOKEN,
-				RECORD_TYPE, "create");
+				RECORD_TYPE, "create", recordWithoutId);
 	}
 
 	private void setUpToUseHostRecord() {

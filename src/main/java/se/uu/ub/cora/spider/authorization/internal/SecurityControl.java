@@ -19,9 +19,30 @@
 package se.uu.ub.cora.spider.authorization.internal;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.data.DataRecordGroup;
 
 public interface SecurityControl {
 
 	User checkActionAuthorizationForUser(String authToken, String type, String action);
+
+	/**
+	 * checkActionAuthorizationForUser authenticates the user and checks that the user is
+	 * authorized to perform the given action on the given type, considering host record if
+	 * applicable. When the record type uses a host record the security check will use
+	 * "hostType.type" as the record type for the authorization check, where "hostType" is the
+	 * linked record type of the host record link found in the provided dataRecordGroup.
+	 * 
+	 * @param authToken
+	 *            the auth token to authenticate the user
+	 * @param type
+	 *            the record type to check authorization for
+	 * @param action
+	 *            the action to check authorization for
+	 * @param dataRecordGroup
+	 *            the {@link DataRecordGroup} containing the host record link if applicable
+	 * @return the authenticated {@link User}
+	 */
+	User checkActionAuthorizationForUser(String authToken, String type, String action,
+			DataRecordGroup dataRecordGroup);
 
 }

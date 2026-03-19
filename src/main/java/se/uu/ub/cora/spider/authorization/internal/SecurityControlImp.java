@@ -21,17 +21,20 @@ package se.uu.ub.cora.spider.authorization.internal;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
+import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 
 public class SecurityControlImp implements SecurityControl {
 	private static final String ACTION_READ = "read";
+	private static final String ACTION_LIST = "list";
 	private User user;
 	private Authenticator authenticator;
 	private String recordType;
 	private SpiderAuthorizator spiderAuthorizator;
-	// private DataRecordGroup recordGroup;
+	private DataRecordGroup dataRecordGroup;
 	private SpiderDependencyProvider dependencyProvider;
 	private RecordTypeHandler recordTypeHandler;
 
@@ -49,8 +52,20 @@ public class SecurityControlImp implements SecurityControl {
 	@Override
 	public User checkActionAuthorizationForUser(String authToken, String recordType,
 			String action) {
-		this.recordType = recordType;
+		dataRecordGroup = null;
+		return doCheckActionAuthorizationForUser(authToken, recordType, action);
+	}
 
+	@Override
+	public User checkActionAuthorizationForUser(String authToken, String recordType, String action,
+			DataRecordGroup dataRecordGroup) {
+		this.dataRecordGroup = dataRecordGroup;
+		return doCheckActionAuthorizationForUser(authToken, recordType, action);
+	}
+
+	private User doCheckActionAuthorizationForUser(String authToken, String recordType,
+			String action) {
+		this.recordType = recordType;
 		tryToGetActiveUser(authToken);
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		possiblyCheckUserIsAuthorizedForActionOnRecordType(action);
@@ -62,28 +77,26 @@ public class SecurityControlImp implements SecurityControl {
 	}
 
 	private void possiblyCheckUserIsAuthorizedForActionOnRecordType(String action) {
-		if (recordTypeIsPublicForRead(action)) {
+		if (recordTypeIsPublicForReadOrList(action)) {
 			return;
 		}
-		checkUserIsAuthorizedForActionOnRecordType(action);
+		String securityCheckRecordType = getSecurityCheckRecordType();
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, action,
+				securityCheckRecordType);
 	}
 
-	private boolean recordTypeIsPublicForRead(String action) {
-		return (ACTION_READ.equals(action) && recordTypeHandler.isPublicForRead());
+	private boolean recordTypeIsPublicForReadOrList(String action) {
+		return (ACTION_READ.equals(action) || ACTION_LIST.equals(action))
+				&& recordTypeHandler.isPublicForRead();
 	}
 
-	private void checkUserIsAuthorizedForActionOnRecordType(String action) {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, action, recordType);
+	private String getSecurityCheckRecordType() {
+		if (dataRecordGroup != null && recordTypeHandler.useHostRecord()) {
+			DataRecordLink hostRecordLink = dataRecordGroup.getHostRecord().orElseThrow();
+			return hostRecordLink.getLinkedRecordType() + "." + recordType;
+		}
+		return recordType;
 	}
-	// String securityCheckRecordType = getSecurityCheckRecordType();
-	//
-	// private String getSecurityCheckRecordType() {
-	// if (recordTypeHandler.useHostRecord()) {
-	// DataRecordLink hostRecordLink = recordGroup.getHostRecord();
-	// return hostRecordLink.getLinkedRecordType() + "." + recordType;
-	// }
-	// return recordType;
-	// }
 
 	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {
 		return dependencyProvider;

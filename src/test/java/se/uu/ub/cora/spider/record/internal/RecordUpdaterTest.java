@@ -69,6 +69,7 @@ import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.spy.DataChangedSenderSpy;
+import se.uu.ub.cora.spider.spy.SecurityControlSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
@@ -100,7 +101,7 @@ public class RecordUpdaterTest {
 	private DataCopierFactory dataCopierFactory;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private UniqueValidatorSpy uniqueValidator;
-	private AuthenticatorSpy authenticator;
+	private SecurityControlSpy securityControl;
 	private SpiderAuthorizatorSpy authorizator;
 	private DataValidatorSpy dataValidator;
 	private DataRedactorSpy dataRedactor;
@@ -113,7 +114,6 @@ public class RecordUpdaterTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
-		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = new RecordStorageSpy();
@@ -132,7 +132,6 @@ public class RecordUpdaterTest {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> RECORD_TYPE);
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> previouslyStoredRecordGroup);
-		authenticator.MRV.setDefaultReturnValuesSupplier("getUserForToken", () -> currentUser);
 
 		setUpToReturnFakeDataForUpdatedTS();
 
@@ -170,8 +169,11 @@ public class RecordUpdaterTest {
 				() -> dataValidator);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
 				() -> authorizator);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
-				() -> authenticator);
+		securityControl = new SecurityControlSpy();
+		securityControl.MRV.setDefaultReturnValuesSupplier("checkActionAuthorizationForUser",
+				() -> currentUser);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getSecurityControl",
+				() -> securityControl);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordIndexer",
 				() -> recordIndexer);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataRecordLinkCollector",
@@ -293,7 +295,7 @@ public class RecordUpdaterTest {
 	public void testExternalDependenciesAreCalled() {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
-		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+		securityControl.MCR.assertMethodWasCalled("checkActionAuthorizationForUser");
 
 		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorGroupFromDataRecordGroup", 3);
 		var recordAsDataGroup = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup",
@@ -462,7 +464,7 @@ public class RecordUpdaterTest {
 	}
 
 	private Object getAuthenticatedUser() {
-		return authenticator.MCR.getReturnValue("getUserForToken", 0);
+		return securityControl.MCR.getReturnValue("checkActionAuthorizationForUser", 0);
 	}
 
 	private List<PermissionTerm> getPermissionTermUsingCallNo(int callNumber) {
@@ -580,7 +582,7 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testUnauthorizedForUpdateOnRecordTypeShouldNotAccessStorage() {
-		authorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForActionOnRecordType",
+		securityControl.MRV.setAlwaysThrowException("checkActionAuthorizationForUser",
 				new AuthorizationException("someMessage"));
 		try {
 			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
@@ -826,7 +828,7 @@ public class RecordUpdaterTest {
 					+ " to determin that the extended functionality is called in the correct place"
 					+ " in the code");
 		} catch (Exception _) {
-			authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+			securityControl.MCR.assertMethodWasCalled("checkActionAuthorizationForUser");
 			dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
 		}
 	}

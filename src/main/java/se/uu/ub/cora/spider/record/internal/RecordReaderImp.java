@@ -27,11 +27,9 @@ import java.util.List;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordpart.DataRedactor;
-import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.spider.authentication.Authenticator;
-import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
@@ -44,8 +42,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 public final class RecordReaderImp implements RecordReader {
 	private static final String READ = "read";
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
-	private Authenticator authenticator;
-	private SpiderAuthorizator spiderAuthorizator;
+	private SecurityControl securityControl;
 	private User user;
 	private String authToken;
 	private SpiderDependencyProvider dependencyProvider;
@@ -57,8 +54,7 @@ public final class RecordReaderImp implements RecordReader {
 	private RecordReaderImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dependencyProvider.getDataGroupToRecordEnhancer();
-		this.authenticator = dependencyProvider.getAuthenticator();
-		this.spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
+		this.securityControl = dependencyProvider.getSecurityControl();
 		this.recordStorage = dependencyProvider.getRecordStorage();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 	}
@@ -77,11 +73,7 @@ public final class RecordReaderImp implements RecordReader {
 	}
 
 	private DataRecord tryToReadRecord() {
-		tryToGetUserWithActiveToken();
-
-		if (isNotPublicForRead()) {
-			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, READ, recordType);
-		}
+		user = securityControl.checkActionAuthorizationForUser(authToken, recordType, READ);
 
 		useExtendedFunctionalityForPosition(READ_AFTER_AUTHORIZATION);
 
@@ -92,15 +84,6 @@ public final class RecordReaderImp implements RecordReader {
 		useExtendedFunctionalityBeforeReturn(READ_BEFORE_RETURN, enhancedRecord);
 
 		return enhancedRecord;
-	}
-
-	private boolean isNotPublicForRead() {
-		RecordTypeHandler recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		return !recordTypeHandler.isPublicForRead();
-	}
-
-	private void tryToGetUserWithActiveToken() {
-		user = authenticator.getUserForToken(authToken);
 	}
 
 	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {

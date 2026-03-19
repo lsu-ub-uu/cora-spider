@@ -50,9 +50,9 @@ import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.search.RecordIndexer;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -69,7 +69,7 @@ import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordUpdaterImp extends RecordHandler implements RecordUpdater {
-	private Authenticator authenticator;
+	private SecurityControl securityControl;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
@@ -90,7 +90,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private RecordUpdaterImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 		dataGroupToRecordEnhancer = dependencyProvider.getDataGroupToRecordEnhancer();
-		authenticator = dependencyProvider.getAuthenticator();
+		securityControl = dependencyProvider.getSecurityControl();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		dataValidator = dependencyProvider.getDataValidator();
 		recordStorage = dependencyProvider.getRecordStorage();
@@ -128,8 +128,8 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	private DataRecord tryToUpdateAndStoreRecord() {
-		tryToGetActiveUser();
-		checkUserIsAuthorizedForActionOnRecordType();
+		user = securityControl.checkActionAuthorizationForUser(authToken, recordType, action,
+				recordGroup);
 		useExtendedFunctionalityForPosition(UPDATE_AFTER_AUTHORIZATION);
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
@@ -219,14 +219,6 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		String errorMessage = MessageFormat.format(errorMessageTemplate, errorMessages.size(),
 				errorMessages);
 		throw ConflictException.withMessage(errorMessage);
-	}
-
-	private void tryToGetActiveUser() {
-		user = authenticator.getUserForToken(authToken);
-	}
-
-	private void checkUserIsAuthorizedForActionOnRecordType() {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, action, recordType);
 	}
 
 	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {

@@ -35,9 +35,8 @@ import se.uu.ub.cora.data.DataList;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
-import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -51,8 +50,7 @@ import se.uu.ub.cora.storage.Filter;
 import se.uu.ub.cora.storage.StorageReadResult;
 
 public final class RecordListReaderImp extends RecordHandler implements RecordListReader {
-	private Authenticator authenticator;
-	private SpiderAuthorizator spiderAuthorizator;
+	private SecurityControl securityControl;
 	private DataList dataList;
 	private DataGroupToRecordEnhancer dataGroupToRecordEnhancer;
 	private DataValidator dataValidator;
@@ -64,8 +62,7 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dependencyProvider.getDataGroupToRecordEnhancer();
 		this.extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
-		authenticator = dependencyProvider.getAuthenticator();
-		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
+		securityControl = dependencyProvider.getSecurityControl();
 		recordStorage = dependencyProvider.getRecordStorage();
 		dataValidator = dependencyProvider.getDataValidator();
 	}
@@ -80,7 +77,7 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		this.recordType = recordType;
 		this.authToken = authToken;
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		ensureActiveUserHasListPermissionUsingAuthToken();
+		user = securityControl.checkActionAuthorizationForUser(authToken, recordType, "list");
 		useExtendedFunctionalityForPosition(READLIST_AFTER_AUTHORIZATION);
 
 		dataList = DataProvider.createListWithNameOfDataType(recordType);
@@ -90,21 +87,6 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		setFromToInReadRecordList();
 
 		return dataList;
-	}
-
-	private void ensureActiveUserHasListPermissionUsingAuthToken() {
-		tryToGetActiveUser();
-		checkUserIsAuthorizedForActionOnRecordType();
-	}
-
-	private void tryToGetActiveUser() {
-		user = authenticator.getUserForToken(authToken);
-	}
-
-	private void checkUserIsAuthorizedForActionOnRecordType() {
-		if (listedRecordTypeIsNotPublicRead()) {
-			spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, "list", recordType);
-		}
 	}
 
 	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
@@ -127,10 +109,6 @@ public final class RecordListReaderImp extends RecordHandler implements RecordLi
 		for (ExtendedFunctionality extendedFunctionality : functionalityList) {
 			extendedFunctionality.useExtendedFunctionality(data);
 		}
-	}
-
-	private boolean listedRecordTypeIsNotPublicRead() {
-		return !recordTypeHandler.isPublicForRead();
 	}
 
 	private void validateFilterIfNotEmpty(DataGroup filter, String recordType) {

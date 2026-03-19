@@ -20,6 +20,7 @@
 package se.uu.ub.cora.spider.spy;
 
 import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
@@ -39,5 +40,12 @@ public class SecurityControlSpy implements SecurityControl {
 	public User checkActionAuthorizationForUser(String authToken, String type, String action) {
 		return (User) MCR.addCallAndReturnFromMRV("authToken", authToken, "type", type, "action",
 				action);
+	}
+
+	@Override
+	public User checkActionAuthorizationForUser(String authToken, String type, String action,
+			DataRecordGroup dataRecordGroup) {
+		return (User) MCR.addCallAndReturnFromMRV("authToken", authToken, "type", type, "action",
+				action, "dataRecordGroup", dataRecordGroup);
 	}
 }

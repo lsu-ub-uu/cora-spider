@@ -32,9 +32,9 @@ import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.search.RecordIndexer;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
@@ -48,7 +48,7 @@ import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordDeleterImp extends RecordHandler implements RecordDeleter {
 	private static final String DELETE = "delete";
-	private Authenticator authenticator;
+	private SecurityControl securityControl;
 	private SpiderAuthorizator authorizator;
 	private RecordIndexer recordIndexer;
 	private DataGroupTermCollector termCollector;
@@ -59,7 +59,7 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 
 	private RecordDeleterImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
-		authenticator = dependencyProvider.getAuthenticator();
+		securityControl = dependencyProvider.getSecurityControl();
 		authorizator = dependencyProvider.getSpiderAuthorizator();
 		recordStorage = dependencyProvider.getRecordStorage();
 		recordArchive = dependencyProvider.getRecordArchive();
@@ -88,13 +88,13 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 	}
 
 	private void tryToDelete() {
-		tryToGetActiveUser();
-		checkUserIsAuthorizedForActionOnRecordType();
-
-		useExtendedFunctionalityUsingPosition(DELETE_AFTER_AUTHORIZATION);
-
 		dataRecordGroup = readRecordFromStorage();
 		recordTypeHandler = getRecordTypeHandler();
+
+		user = securityControl.checkActionAuthorizationForUser(authToken, recordType, DELETE,
+				dataRecordGroup);
+
+		useExtendedFunctionalityUsingPosition(DELETE_AFTER_AUTHORIZATION);
 
 		checkUserIsAuthorizedForPermissionUnit();
 		checkUserIsAuthorizedToDeleteStoredRecord(dataRecordGroup);
@@ -116,14 +116,6 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 
 	private RecordTypeHandler getRecordTypeHandler() {
 		return dependencyProvider.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
-	}
-
-	private void tryToGetActiveUser() {
-		user = authenticator.getUserForToken(authToken);
-	}
-
-	private void checkUserIsAuthorizedForActionOnRecordType() {
-		authorizator.checkUserIsAuthorizedForActionOnRecordType(user, DELETE, recordType);
 	}
 
 	private void useExtendedFunctionalityUsingPosition(ExtendedFunctionalityPosition position) {

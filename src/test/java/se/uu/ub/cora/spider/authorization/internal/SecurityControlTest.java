@@ -18,11 +18,14 @@
  */
 package se.uu.ub.cora.spider.authorization.internal;
 
+import java.util.Optional;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
+import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
@@ -35,6 +38,7 @@ public class SecurityControlTest {
 	private static final String RECORD_TYPE = "someRecordType";
 	private static final String AUTH_TOKEN = "someAuthToken";
 	private static final String ACTION_READ = "read";
+	private static final String ACTION_LIST = "list";
 	private AuthenticatorSpy authenticator;
 	private SpiderAuthorizatorSpy authorizator;
 	private RecordStorageSpy recordStorage;
@@ -90,37 +94,43 @@ public class SecurityControlTest {
 	public void testAuthorizatorIsCalled() {
 		User user = securityControl.checkActionAuthorizationForUser(AUTH_TOKEN, RECORD_TYPE, ACTION);
 
-		assertCheckUserIsAuthorizedForAction(user, ACTION);
+		assertCheckUserIsAuthorizedForAction(user, ACTION, RECORD_TYPE);
 	}
 
-	private void assertCheckUserIsAuthorizedForAction(User user, String action) {
+	private void assertCheckUserIsAuthorizedForAction(User user, String action, String type) {
 		authorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0, user,
-				action, RECORD_TYPE);
+				action, type);
 	}
 
-	// @Test
-	// public void testAuthorizatorIsCalled_hostRecord() {
-	// setUpToUseHostRecord();
-	//
-	// User user = securityControl.checkActionAuthorizationForUser(AUTH_TOKEN, RECORD_TYPE, ACTION,
-	// dataRecordGroup);
-	//
-	// assertCheckUserIsAuthorizedForAction_HostRecord(user, ACTION);
-	// }
+	@Test
+	public void testAuthorizatorIsCalled_withDataRecordGroup() {
+		User user = securityControl.checkActionAuthorizationForUser(AUTH_TOKEN, RECORD_TYPE, ACTION,
+				dataRecordGroup);
 
-	// private void assertCheckUserIsAuthorizedForAction_HostRecord(User user, String action) {
-	// authorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0, user,
-	// action, "someHostType." + RECORD_TYPE);
-	// }
+		assertAuthenticatorCalled(user);
+		assertCheckUserIsAuthorizedForAction(user, ACTION, RECORD_TYPE);
+	}
 
-	// private void setUpToUseHostRecord() {
-	// recordTypeHandler.MRV.setDefaultReturnValuesSupplier("useHostRecord", () -> true);
-	// DataRecordLinkSpy hostRecordLink = new DataRecordLinkSpy();
-	// hostRecordLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
-	// () -> "someHostType");
-	// hostRecordLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> "someHostId");
-	// dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getHostRecord", () -> hostRecordLink);
-	// }
+	@Test
+	public void testAuthorizatorIsCalled_hostRecord() {
+		setUpToUseHostRecord();
+
+		User user = securityControl.checkActionAuthorizationForUser(AUTH_TOKEN, RECORD_TYPE, ACTION,
+				dataRecordGroup);
+
+		assertAuthenticatorCalled(user);
+		assertCheckUserIsAuthorizedForAction(user, ACTION, "someHostType." + RECORD_TYPE);
+	}
+
+	private void setUpToUseHostRecord() {
+		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("useHostRecord", () -> true);
+		DataRecordLinkSpy hostRecordLink = new DataRecordLinkSpy();
+		hostRecordLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordType",
+				() -> "someHostType");
+		hostRecordLink.MRV.setDefaultReturnValuesSupplier("getLinkedRecordId", () -> "someHostId");
+		dataRecordGroup.MRV.setDefaultReturnValuesSupplier("getHostRecord",
+				() -> Optional.of(hostRecordLink));
+	}
 
 	@Test
 	public void testAuthorizatorIsCalled_IsNotPublicForRead() {
@@ -129,7 +139,7 @@ public class SecurityControlTest {
 				ACTION_READ);
 
 		assertAuthenticatorCalled(user);
-		assertCheckUserIsAuthorizedForAction(user, ACTION_READ);
+		assertCheckUserIsAuthorizedForAction(user, ACTION_READ, RECORD_TYPE);
 	}
 
 	@Test
@@ -141,6 +151,28 @@ public class SecurityControlTest {
 
 		assertAuthenticatorCalled(user);
 		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForActionOnRecordType");
+	}
+
+	@Test
+	public void testAuthorizatorIsNotCalled_isPublicForList() {
+		setUpToIsPublicForRead(true);
+
+		User user = securityControl.checkActionAuthorizationForUser(AUTH_TOKEN, RECORD_TYPE,
+				ACTION_LIST);
+
+		assertAuthenticatorCalled(user);
+		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForActionOnRecordType");
+	}
+
+	@Test
+	public void testAuthorizatorIsCalled_isNotPublicForList() {
+		setUpToIsPublicForRead(false);
+
+		User user = securityControl.checkActionAuthorizationForUser(AUTH_TOKEN, RECORD_TYPE,
+				ACTION_LIST);
+
+		assertAuthenticatorCalled(user);
+		assertCheckUserIsAuthorizedForAction(user, ACTION_LIST, RECORD_TYPE);
 	}
 
 	private void setUpToIsPublicForRead(boolean value) {

@@ -42,13 +42,11 @@ import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.IndexTerm;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.search.RecordIndexer;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
@@ -66,7 +64,6 @@ import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordCreatorImp extends RecordHandler implements RecordCreator {
 	private static final String CREATE = "create";
-	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
@@ -86,7 +83,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
 		this.dataGroupToRecordEnhancer = dependencyProvider.getDataGroupToRecordEnhancer();
-		authenticator = dependencyProvider.getAuthenticator();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		dataValidator = dependencyProvider.getDataValidator();
 		recordStorage = dependencyProvider.getRecordStorage();
@@ -128,9 +124,9 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	}
 
 	private DataRecord tryToValidateAndStoreRecord() {
-		user = securityControl.checkActionAuthorizationForUser(authToken, recordType, CREATE);
+		user = securityControl.checkActionAuthorizationForUser(authToken, recordType, CREATE,
+				recordGroup);
 		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
-		// checkActionAuthorizationForUser();
 		useExtendedFunctionalityForPosition(CREATE_AFTER_AUTHORIZATION);
 		recordTypeHandler = createRecordTypeHandler();
 		validateRecordTypeInDataIsSameAsSpecified(recordType);
@@ -155,30 +151,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		indexRecord(collectedTerms.indexTerms);
 		useExtendedFunctionalityForPosition(CREATE_BEFORE_ENHANCE);
 		return enhanceDataGroupToRecord();
-	}
-
-	private void checkActionAuthorizationForUser() {
-		tryToGetActiveUser();
-		checkUserIsAuthorizedForActionOnRecordType();
-
-	}
-
-	private void tryToGetActiveUser() {
-		user = authenticator.getUserForToken(authToken);
-	}
-
-	private void checkUserIsAuthorizedForActionOnRecordType() {
-		String securityCheckRecordType = getSecurityCheckRecordType();
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, CREATE,
-				securityCheckRecordType);
-	}
-
-	private String getSecurityCheckRecordType() {
-		if (recordTypeHandler.useHostRecord()) {
-			DataRecordLink hostRecordLink = recordGroup.getHostRecord().orElseThrow();
-			return hostRecordLink.getLinkedRecordType() + "." + recordType;
-		}
-		return recordType;
 	}
 
 	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
