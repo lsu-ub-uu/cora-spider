@@ -69,6 +69,7 @@ import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.spy.DataChangedSenderSpy;
+import se.uu.ub.cora.spider.spy.SecurityControlSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataValidatorSpy;
@@ -100,7 +101,7 @@ public class RecordUpdaterTest {
 	private DataCopierFactory dataCopierFactory;
 	private RecordTypeHandlerSpy recordTypeHandlerSpy;
 	private UniqueValidatorSpy uniqueValidator;
-	private AuthenticatorSpy authenticator;
+	private SecurityControlSpy securityControl;
 	private SpiderAuthorizatorSpy authorizator;
 	private DataValidatorSpy dataValidator;
 	private DataRedactorSpy dataRedactor;
@@ -113,7 +114,6 @@ public class RecordUpdaterTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
-		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		dataValidator = new DataValidatorSpy();
 		recordStorage = new RecordStorageSpy();
@@ -121,7 +121,6 @@ public class RecordUpdaterTest {
 		termCollector = new DataGroupTermCollectorSpy();
 		recordIndexer = new RecordIndexerSpy();
 		dataRedactor = new DataRedactorSpy();
-		dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerSpy();
 		extendedFunctionalityProvider = new ExtendedFunctionalityProviderSpy();
 		recordArchive = new RecordArchiveSpy();
 		uniqueValidator = new UniqueValidatorSpy();
@@ -133,7 +132,6 @@ public class RecordUpdaterTest {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> RECORD_TYPE);
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> previouslyStoredRecordGroup);
-		authenticator.MRV.setDefaultReturnValuesSupplier("getUserForToken", () -> currentUser);
 
 		setUpToReturnFakeDataForUpdatedTS();
 
@@ -171,8 +169,11 @@ public class RecordUpdaterTest {
 				() -> dataValidator);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
 				() -> authorizator);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
-				() -> authenticator);
+		securityControl = new SecurityControlSpy();
+		securityControl.MRV.setDefaultReturnValuesSupplier("checkActionAuthorizationForUser",
+				() -> currentUser);
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getSecurityControl",
+				() -> securityControl);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordIndexer",
 				() -> recordIndexer);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataRecordLinkCollector",
@@ -180,8 +181,10 @@ public class RecordUpdaterTest {
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getDataRedactor",
 				() -> dataRedactor);
 
-		recordUpdater = RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProviderSpy, dataGroupToRecordEnhancer);
+		recordUpdater = RecordUpdaterImp.usingDependencyProvider(dependencyProviderSpy);
+
+		dataGroupToRecordEnhancer = (DataGroupToRecordEnhancerSpy) dependencyProviderSpy.MCR
+				.getReturnValue("getDataGroupToRecordEnhancer", 0);
 	}
 
 	private void setUpToReturnFakeDataForUpdatedTS() {
@@ -204,10 +207,95 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
+	public void testUseUploadAsActionInSecurityChecks_CorrectSpiderAuthorizatorForNoRecordPartConstraints2() {
+		recordUpdater.useUploadAsActionInSecurityChecks();
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		var returnedUser = getAuthenticatedUser();
+		authorizator.MCR.assertParameters(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
+				returnedUser, "upload", RECORD_TYPE, getPermissionTermUsingCallNo(0), false);
+
+		var mixedPermissionTerms = permissionTermDataHandler.MCR.assertCalledParametersReturn(
+				"getMixedPermissionTermValuesConsideringModeState", getPermissionTermUsingCallNo(0),
+				getPermissionTermUsingCallNo(1));
+
+		authorizator.MCR.assertParameters(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, returnedUser,
+				"upload", RECORD_TYPE, mixedPermissionTerms);
+
+		authorizator.MCR.assertNumberOfCallsToMethod(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
+
+		dataRedactor.MCR.assertMethodNotCalled("replaceChildrenForConstraintsWithoutPermissions");
+		dataRedactor.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
+
+		var recordGroupAsDataGroup = dataFactorySpy.MCR
+				.assertCalledParametersReturn("factorGroupFromDataRecordGroup", recordWithId);
+		dataValidator.MCR.assertParameter("validateData", 0, "dataGroup", recordGroupAsDataGroup);
+	}
+
+	@Test
+	public void testUseUploadAsActionInSecurityChecks_CorrectSpiderAuthorizatorForWriteRecordPartConstraints2() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("hasRecordPartWriteConstraint",
+				() -> true);
+		Set<String> writeConstraints = Set.of("someConstraint");
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier(
+				"getUpdateWriteRecordPartConstraints", () -> writeConstraints);
+		dataRedactor.MRV.setDefaultReturnValuesSupplier(
+				"replaceChildrenForConstraintsWithoutPermissions", () -> recordWithId);
+
+		recordUpdater.useUploadAsActionInSecurityChecks();
+
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		var returnedUser = getAuthenticatedUser();
+		authorizator.MCR.assertParameters(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData", 0,
+				returnedUser, "upload", RECORD_TYPE, getPermissionTermUsingCallNo(0), true);
+		authorizator.MCR.assertNumberOfCallsToMethod(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
+				1);
+
+		var mixedPermissionTerms = permissionTermDataHandler.MCR.assertCalledParametersReturn(
+				"getMixedPermissionTermValuesConsideringModeState", getPermissionTermUsingCallNo(0),
+				getPermissionTermUsingCallNo(1));
+
+		authorizator.MCR.assertParameters(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 0, returnedUser,
+				"upload", RECORD_TYPE, mixedPermissionTerms);
+		authorizator.MCR.assertNumberOfCallsToMethod(
+				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData", 1);
+
+		dataRedactor.MCR.assertMethodWasCalled("replaceChildrenForConstraintsWithoutPermissions");
+
+		Set<?> expectedPermissions = (Set<?>) authorizator.MCR.getReturnValue(
+				"checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData",
+				0);
+		dataRedactor.MCR.assertParameters("replaceChildrenForConstraintsWithoutPermissions", 0,
+				"fakeDefMetadataIdFromRecordTypeHandlerSpy",
+				recordStorage.MCR.getReturnValue("read", 0), recordWithId, writeConstraints,
+				expectedPermissions);
+
+		DataRecordGroup returnedRedactedDataGroup = (DataRecordGroup) dataRedactor.MCR
+				.getReturnValue("replaceChildrenForConstraintsWithoutPermissions", 0);
+
+		dataFactorySpy.MCR.assertParameters("factorGroupFromDataRecordGroup", 0,
+				returnedRedactedDataGroup);
+		var recordGroupAsDataGroup = dataFactorySpy.MCR
+				.getReturnValue("factorGroupFromDataRecordGroup", 0);
+		dataValidator.MCR.assertParameter("validateData", 0, "dataGroup", recordGroupAsDataGroup);
+
+		// reading updated data
+		dataRedactor.MCR.assertMethodNotCalled("removeChildrenForConstraintsWithoutPermissions");
+	}
+
+	@Test
 	public void testExternalDependenciesAreCalled() {
 		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
 
-		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+		securityControl.MCR.assertMethodWasCalled("checkActionAuthorizationForUser");
 
 		dataFactorySpy.MCR.assertNumberOfCallsToMethod("factorGroupFromDataRecordGroup", 3);
 		var recordAsDataGroup = dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup",
@@ -376,7 +464,7 @@ public class RecordUpdaterTest {
 	}
 
 	private Object getAuthenticatedUser() {
-		return authenticator.MCR.getReturnValue("getUserForToken", 0);
+		return securityControl.MCR.getReturnValue("checkActionAuthorizationForUser", 0);
 	}
 
 	private List<PermissionTerm> getPermissionTermUsingCallNo(int callNumber) {
@@ -494,7 +582,7 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testUnauthorizedForUpdateOnRecordTypeShouldNotAccessStorage() {
-		authorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForActionOnRecordType",
+		securityControl.MRV.setAlwaysThrowException("checkActionAuthorizationForUser",
 				new AuthorizationException("someMessage"));
 		try {
 			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
@@ -740,7 +828,7 @@ public class RecordUpdaterTest {
 					+ " to determin that the extended functionality is called in the correct place"
 					+ " in the code");
 		} catch (Exception _) {
-			authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+			securityControl.MCR.assertMethodWasCalled("checkActionAuthorizationForUser");
 			dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
 		}
 	}

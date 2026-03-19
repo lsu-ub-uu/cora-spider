@@ -31,6 +31,7 @@ import se.uu.ub.cora.search.RecordSearch;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
@@ -95,6 +96,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MRV.setDefaultReturnValuesSupplier("getDataChangeSender", DataChangedSenderSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataDecorator", DataDecoratorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordDecorator", RecordDecoratorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getSecurityControl", SecurityControlSpy::new);
 	}
 
 	@Override
@@ -211,5 +213,10 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	@Override
 	public PermissionTermDataHandler getPermissionTermDataHandler() {
 		return (PermissionTermDataHandler) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public SecurityControl getSecurityControl() {
+		return (SecurityControl) MCR.addCallAndReturnFromMRV();
 	}
 }

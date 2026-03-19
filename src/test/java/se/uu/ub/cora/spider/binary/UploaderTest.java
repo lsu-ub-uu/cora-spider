@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019, 2023, 2025 Uppsala University Library
+ * Copyright 2015, 2016, 2019, 2023, 2025, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -46,7 +46,7 @@ import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.internal.UploaderImp;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
+import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
@@ -97,7 +97,7 @@ public class UploaderTest {
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private SpiderInstanceFactorySpy spiderInstanceFactory;
 	private DataFactorySpy dataFactorySpy;
-	private RecordTypeHandlerOldSpy recordTypeHandler;
+	private RecordTypeHandlerSpy recordTypeHandler;
 	private LoggerFactory loggerFactory;
 	private ContentAnalyzerInstanceProviderSpy contentAnalyzeInstanceProviderSpy;
 	private ResourceConvertSpy resourceConvert;
@@ -158,7 +158,7 @@ public class UploaderTest {
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getResourceArchive",
 				() -> resourceArchive);
 
-		recordTypeHandler = new RecordTypeHandlerOldSpy();
+		recordTypeHandler = new RecordTypeHandlerSpy();
 		recordTypeHandler.MRV.setDefaultReturnValuesSupplier("getDefinitionId",
 				() -> "someDefintion");
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier(
@@ -181,6 +181,7 @@ public class UploaderTest {
 		testCreateInArchive(dataDivider);
 		testUpdateRecord();
 
+		recordUpdater.MCR.assertMethodWasCalled("useUploadAsActionInSecurityChecks");
 		recordUpdater.MCR.assertReturn("updateRecord", 0, binaryRecord);
 		assertTrue(binaryRecord instanceof DataRecord);
 	}
@@ -200,6 +201,7 @@ public class UploaderTest {
 	private void testUpdateRecord() {
 		spiderInstanceFactory.MCR.assertParameters("factorRecordUpdater", 0);
 		spiderInstanceFactory.MCR.assertReturn("factorRecordUpdater", 0, recordUpdater);
+		recordUpdater.MCR.assertMethodWasCalled("useUploadAsActionInSecurityChecks");
 		recordUpdater.MCR.assertParameters("updateRecord", 0, SOME_AUTH_TOKEN, BINARY_RECORD_TYPE,
 				SOME_RECORD_ID);
 	}
@@ -368,6 +370,7 @@ public class UploaderTest {
 				"checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData");
 		recordStorage.MCR.assertMethodNotCalled("read");
 		resourceArchive.MCR.assertMethodNotCalled("create");
+		recordUpdater.MCR.assertMethodNotCalled("useUploadAsActionInSecurityChecks");
 		recordUpdater.MCR.assertMethodNotCalled("updateRecord");
 	}
 
@@ -410,6 +413,7 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
+		recordUpdater.MCR.assertMethodWasCalled("useUploadAsActionInSecurityChecks");
 		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", readBinarySpy);
 
 		assertMasterIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
@@ -432,6 +436,7 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
+		recordUpdater.MCR.assertMethodWasCalled("useUploadAsActionInSecurityChecks");
 		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", readBinarySpy);
 
 		assertMasterIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);

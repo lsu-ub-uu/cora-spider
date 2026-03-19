@@ -45,7 +45,7 @@ import se.uu.ub.cora.data.spies.DataListSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
-import se.uu.ub.cora.spider.authentication.OldAuthenticatorSpy;
+import se.uu.ub.cora.spider.spy.SecurityControlSpy;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
@@ -69,8 +69,7 @@ public class RecordListReaderTest {
 	private static final String RECORD_TYPE = "place";
 
 	private RecordStorageSpy recordStorage;
-	private OldAuthenticatorSpy authenticator;
-	private SpiderAuthorizatorSpy authorizator;
+	private SecurityControlSpy securityControl;
 	private PermissionRuleCalculator ruleCalculator;
 	private RecordListReader recordListReader;
 	private DataGroupToRecordEnhancerSpy recordEnhancer;
@@ -96,8 +95,6 @@ public class RecordListReaderTest {
 		setUpFactoriesAndProviders();
 		emptyFilter = createEmptyFilter();
 		nonEmptyFilter = new DataGroupSpy();
-		authenticator = new OldAuthenticatorSpy();
-		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageSpy();
 		ruleCalculator = new RuleCalculatorSpy();
 		dataValidator = new DataValidatorSpy();
@@ -157,10 +154,9 @@ public class RecordListReaderTest {
 
 	private void setUpDependencyProvider() {
 		dependencyProviderSpy = new SpiderDependencyProviderSpy();
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
-				() -> authenticator);
-		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
-				() -> authorizator);
+		securityControl = new SecurityControlSpy();
+		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getSecurityControl",
+				() -> securityControl);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRuleCalculator",
@@ -174,15 +170,17 @@ public class RecordListReaderTest {
 		dependencyProviderSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeHandler",
 				() -> recordTypeHandlerSpy);
 
-		recordEnhancer = new DataGroupToRecordEnhancerSpy();
-		recordListReader = RecordListReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProviderSpy, recordEnhancer);
+		recordListReader = RecordListReaderImp.usingDependencyProvider(dependencyProviderSpy);
+		recordEnhancer = (DataGroupToRecordEnhancerSpy) dependencyProviderSpy.MCR
+				.getReturnValue("getDataGroupToRecordEnhancer", 0);
+
 	}
 
 	@Test(expectedExceptions = AuthenticationException.class, expectedExceptionsMessageRegExp = ""
 			+ "Error from AuthenticatorSpy")
 	public void testUserNotAuthenticated() {
-		authenticator.throwAuthenticationException = true;
+		securityControl.MRV.setAlwaysThrowException("checkActionAuthorizationForUser",
+				new AuthenticationException("Error from AuthenticatorSpy"));
 
 		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
 	}
@@ -191,14 +189,15 @@ public class RecordListReaderTest {
 	public void testAuthTokenIsPassedOnToAuthenticator() {
 		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
 
-		authenticator.MCR.assertParameters("getUserForToken", 0, USER_TOKEN);
-		authenticator.MCR.assertNumberOfCallsToMethod("getUserForToken", 1);
+		securityControl.MCR.assertParameters("checkActionAuthorizationForUser", 0, USER_TOKEN,
+				RECORD_TYPE, "list");
+		securityControl.MCR.assertNumberOfCallsToMethod("checkActionAuthorizationForUser", 1);
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class, expectedExceptionsMessageRegExp = ""
 			+ "Exception from SpiderAuthorizatorSpy")
 	public void testUserIsNotAuthorizedForActionOnRecordType() {
-		authorizator.MRV.setAlwaysThrowException("checkUserIsAuthorizedForActionOnRecordType",
+		securityControl.MRV.setAlwaysThrowException("checkActionAuthorizationForUser",
 				new AuthorizationException("Exception from SpiderAuthorizatorSpy"));
 
 		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
@@ -208,8 +207,8 @@ public class RecordListReaderTest {
 	public void testUserIsAuthorizedForActionOnRecordTypeIncomingParameters() {
 		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
 
-		authorizator.MCR.assertParameters("checkUserIsAuthorizedForActionOnRecordType", 0,
-				authenticator.returnedUser, "list", RECORD_TYPE);
+		securityControl.MCR.assertParameters("checkActionAuthorizationForUser", 0, USER_TOKEN,
+				RECORD_TYPE, "list");
 	}
 
 	@Test
@@ -218,7 +217,8 @@ public class RecordListReaderTest {
 
 		recordListReader.readRecordList(USER_TOKEN, RECORD_TYPE, emptyFilter);
 
-		authorizator.MCR.assertMethodNotCalled("checkUserIsAuthorizedForActionOnRecordType");
+		securityControl.MCR.assertParameters("checkActionAuthorizationForUser", 0, USER_TOKEN,
+				RECORD_TYPE, "list");
 	}
 
 	@Test
@@ -286,7 +286,7 @@ public class RecordListReaderTest {
 
 		StorageReadResult storageReadResult = (StorageReadResult) recordStorage.MCR
 				.getReturnValue("readList", 0);
-		User returnedUser = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		User returnedUser = (User) securityControl.MCR.getReturnValue("checkActionAuthorizationForUser", 0);
 		List<DataRecordGroup> listOfReturnedDataGroupsFromStorage = storageReadResult.listOfDataRecordGroups;
 		DataRecordGroup returnedDataGroup1 = listOfReturnedDataGroupsFromStorage.get(0);
 		String returnedRecordType1 = returnedDataGroup1.getType();
@@ -412,7 +412,7 @@ public class RecordListReaderTest {
 		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
 		expectedData.recordType = RECORD_TYPE;
 		expectedData.authToken = USER_TOKEN;
-		expectedData.user = (User) authenticator.MCR.getReturnValue("getUserForToken", 0);
+		expectedData.user = (User) securityControl.MCR.getReturnValue("checkActionAuthorizationForUser", 0);
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				READLIST_AFTER_AUTHORIZATION, expectedData, 0);
 
@@ -438,7 +438,7 @@ public class RecordListReaderTest {
 
 		}
 
-		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+		securityControl.MCR.assertMethodWasCalled("checkActionAuthorizationForUser");
 		dataFactorySpy.MCR.assertMethodNotCalled("factorListUsingNameOfDataType");
 	}
 

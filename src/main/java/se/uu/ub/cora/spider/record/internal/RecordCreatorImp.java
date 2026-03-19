@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017, 2022, 2023, 2024, 2025 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2022, 2023, 2024, 2025, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -47,9 +47,10 @@ import se.uu.ub.cora.data.collected.IndexTerm;
 import se.uu.ub.cora.data.collected.Link;
 import se.uu.ub.cora.data.collected.StorageTerm;
 import se.uu.ub.cora.search.RecordIndexer;
-import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
+import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
@@ -63,7 +64,6 @@ import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordCreatorImp extends RecordHandler implements RecordCreator {
 	private static final String CREATE = "create";
-	private Authenticator authenticator;
 	private SpiderAuthorizator spiderAuthorizator;
 	private DataValidator dataValidator;
 	private DataRecordLinkCollector linkCollector;
@@ -78,12 +78,11 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private Set<Link> collectedLinks;
 	private RecordArchive recordArchive;
 	private DataRecordGroup recordGroup;
+	private SecurityControl securityControl;
 
-	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
+	private RecordCreatorImp(SpiderDependencyProvider dependencyProvider) {
 		this.dependencyProvider = dependencyProvider;
-		this.dataGroupToRecordEnhancer = dataGroupToRecordEnhancer;
-		authenticator = dependencyProvider.getAuthenticator();
+		this.dataGroupToRecordEnhancer = dependencyProvider.getDataGroupToRecordEnhancer();
 		spiderAuthorizator = dependencyProvider.getSpiderAuthorizator();
 		dataValidator = dependencyProvider.getDataValidator();
 		recordStorage = dependencyProvider.getRecordStorage();
@@ -92,12 +91,12 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		recordIndexer = dependencyProvider.getRecordIndexer();
 		extendedFunctionalityProvider = dependencyProvider.getExtendedFunctionalityProvider();
 		recordArchive = dependencyProvider.getRecordArchive();
+		securityControl = dependencyProvider.getSecurityControl();
 	}
 
-	public static RecordCreatorImp usingDependencyProviderAndDataGroupToRecordEnhancer(
-			SpiderDependencyProvider dependencyProvider,
-			DataGroupToRecordEnhancer dataGroupToRecordEnhancer) {
-		return new RecordCreatorImp(dependencyProvider, dataGroupToRecordEnhancer);
+	public static RecordCreatorImp usingDependencyProvider(
+			SpiderDependencyProvider dependencyProvider) {
+		return new RecordCreatorImp(dependencyProvider);
 	}
 
 	@Override
@@ -111,16 +110,32 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 			return tryToValidateAndStoreRecord();
 		} catch (DataValidationException exception) {
 			throw new DataException("Data is not valid: " + exception.getMessage());
+		} catch (se.uu.ub.cora.data.DataMissingException exception) {
+			throw createSpiderDataMissingException(exception);
 		}
 	}
 
+	private DataMissingException createSpiderDataMissingException(
+			se.uu.ub.cora.data.DataMissingException e) {
+		String messageTemplate = "Could not create the record because of missing data. "
+				+ "Type: {0}, due to: {1}";
+		return new DataMissingException(
+				MessageFormat.format(messageTemplate, recordType, e.getMessage()));
+	}
+
 	private DataRecord tryToValidateAndStoreRecord() {
-		checkActionAuthorizationForUser();
+		user = securityControl.checkActionAuthorizationForUser(authToken, recordType, CREATE,
+				recordGroup);
+		recordTypeHandler = dependencyProvider.getRecordTypeHandler(recordType);
 		useExtendedFunctionalityForPosition(CREATE_AFTER_AUTHORIZATION);
 		recordTypeHandler = createRecordTypeHandler();
 		validateRecordTypeInDataIsSameAsSpecified(recordType);
-		checkUserIsAuthorizedForPermissionUnit();
 		definitionId = recordTypeHandler.getDefinitionId();
+
+		checkUserIsAuthorisedToCreateIncomingData(recordType);
+
+		possiblyRemoveRecordPartsUserIsNotAllowedToChange();
+
 		validateRecord();
 		useExtendedFunctionalityForPosition(CREATE_AFTER_METADATA_VALIDATION);
 		ensureCompleteRecordInfo(user.id, recordType);
@@ -136,20 +151,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		indexRecord(collectedTerms.indexTerms);
 		useExtendedFunctionalityForPosition(CREATE_BEFORE_ENHANCE);
 		return enhanceDataGroupToRecord();
-	}
-
-	private void checkActionAuthorizationForUser() {
-		tryToGetActiveUser();
-		checkUserIsAuthorizedForActionOnRecordType();
-
-	}
-
-	private void tryToGetActiveUser() {
-		user = authenticator.getUserForToken(authToken);
-	}
-
-	private void checkUserIsAuthorizedForActionOnRecordType() {
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordType(user, CREATE, recordType);
 	}
 
 	private void useExtendedFunctionalityForPosition(ExtendedFunctionalityPosition position) {
@@ -198,19 +199,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		throw new DataException("PermissionUnit is missing in the record.");
 	}
 
-	private void validateRecordOLD() {
-		// TODO: move checkRecordPartsUserIsNotAllowtoChange after
-		// validateDataInRecordAsSpecifiedInMetadata
-		// TODO: Check order of following operations
-
-		// checkRecordPartsUserIsNotAllowtoChange();
-		possiblyHandleVisibility();
-		possiblyUseTrashBin();
-		validateDataInRecordAsSpecifiedInMetadata();
-		checkRecordPartsUserIsNotAllowtoChange();
-	}
 	private void validateRecord() {
-		checkRecordPartsUserIsNotAllowtoChange();
 		possiblyHandleVisibility();
 		possiblyUseTrashBin();
 		validateDataInRecordAsSpecifiedInMetadata();
@@ -224,6 +213,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 	private void checkUserIsAuthorisedToCreateIncomingData(String recordType) {
 		CollectTerms uncheckedCollectedTerms = dataGroupTermCollector.collectTerms(definitionId,
 				recordGroup);
+		checkUserIsAuthorizedForPermissionUnit();
 		writePermissions = spiderAuthorizator
 				.checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData(
 						user, CREATE, recordType, uncheckedCollectedTerms.permissionTerms, true);

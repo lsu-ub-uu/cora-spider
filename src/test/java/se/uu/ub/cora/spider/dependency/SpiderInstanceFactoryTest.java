@@ -56,8 +56,6 @@ import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
-import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
-import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordListIndexerImp;
 import se.uu.ub.cora.spider.record.internal.RecordReaderDecoratedImp;
 import se.uu.ub.cora.spider.record.internal.RecordSearcherDecoratedImp;
@@ -253,15 +251,6 @@ public class SpiderInstanceFactoryTest {
 		assertNotNull(recordValidator2);
 		assertNotSame(recordValidator, recordValidator2);
 		assertTrue(recordValidator instanceof RecordValidatorImp);
-	}
-
-	@Test
-	public void testCreatorImplementation() {
-		RecordCreatorImp spiderRecordCreator = (RecordCreatorImp) factory.factorRecordCreator();
-		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) spiderRecordCreator
-				.onlyForTestGetDataGroupToRecordEnhancer();
-
-		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
 	}
 
 	@Test

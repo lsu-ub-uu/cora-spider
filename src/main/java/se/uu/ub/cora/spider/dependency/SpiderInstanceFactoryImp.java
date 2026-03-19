@@ -35,7 +35,6 @@ import se.uu.ub.cora.spider.index.internal.BatchRunnerFactoryImp;
 import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJob;
 import se.uu.ub.cora.spider.index.internal.DataRecordGroupHandlerForIndexBatchJobImp;
 import se.uu.ub.cora.spider.index.internal.IndexBatchHandlerImp;
-import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.IncomingLinksReader;
 import se.uu.ub.cora.spider.record.RecordCreator;
 import se.uu.ub.cora.spider.record.RecordDeleter;
@@ -46,7 +45,6 @@ import se.uu.ub.cora.spider.record.RecordReaderDecorated;
 import se.uu.ub.cora.spider.record.RecordSearcher;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.record.RecordValidator;
-import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.internal.IncomingLinksReaderImp;
 import se.uu.ub.cora.spider.record.internal.RecordCreatorImp;
 import se.uu.ub.cora.spider.record.internal.RecordDeleterImp;
@@ -76,10 +74,7 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	@Override
 	public RecordReader factorRecordReader() {
-		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
-				dependencyProvider);
-		return RecordReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProvider, dataGroupToRecordEnhancer);
+		return RecordReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
@@ -89,26 +84,17 @@ public final class SpiderInstanceFactoryImp implements SpiderInstanceFactory {
 
 	@Override
 	public RecordListReader factorRecordListReader() {
-		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
-				dependencyProvider);
-		return RecordListReaderImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProvider, dataGroupToRecordEnhancer);
+		return RecordListReaderImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
 	public RecordCreator factorRecordCreator() {
-		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
-				dependencyProvider);
-		return RecordCreatorImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProvider, dataGroupToRecordEnhancer);
+		return RecordCreatorImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override
 	public RecordUpdater factorRecordUpdater() {
-		DataGroupToRecordEnhancer dataGroupToRecordEnhancer = new DataGroupToRecordEnhancerImp(
-				dependencyProvider);
-		return RecordUpdaterImp.usingDependencyProviderAndDataGroupToRecordEnhancer(
-				dependencyProvider, dataGroupToRecordEnhancer);
+		return RecordUpdaterImp.usingDependencyProvider(dependencyProvider);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2023, 2024 Uppsala University Library
+ * Copyright 2016, 2023, 2024, 2026 Uppsala University Library
  * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
@@ -23,12 +23,14 @@ package se.uu.ub.cora.spider.binary.internal;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
 
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.collected.PermissionTerm;
 import se.uu.ub.cora.spider.authentication.Authenticator;
@@ -36,6 +38,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.binary.Downloader;
 import se.uu.ub.cora.spider.binary.ResourceInputStream;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
+import se.uu.ub.cora.spider.record.InternalDataMismatchException;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.record.ResourceNotFoundException;
@@ -108,32 +111,61 @@ public final class DownloaderImp implements Downloader {
 	private ResourceInputStream tryToReadRepresentation() {
 		try {
 			DataRecordGroup binaryRecordGroup = recordStorage.read(type, id);
-			authenticateAndAuthorizeUser(binaryRecordGroup);
+			if (isUnpublished(binaryRecordGroup)) {
+				authenticateAndAuthorizeUser(binaryRecordGroup);
+			}
 			return readRepresentation(binaryRecordGroup);
 		} catch (se.uu.ub.cora.storage.RecordNotFoundException e) {
 			throw throwRecordNotFoundException(e);
 		} catch (se.uu.ub.cora.storage.ResourceNotFoundException e) {
 			throw throwResourceNotFoundException(e);
+		} catch (se.uu.ub.cora.data.DataMissingException e) {
+			throw throwInternalDataMismatchException(e);
 		}
+	}
+
+	private boolean isUnpublished(DataRecordGroup binaryRecordGroup) {
+		return !isPublished(binaryRecordGroup);
+	}
+
+	private boolean isPublished(DataRecordGroup binaryRecordGroup) {
+		Optional<String> visibility = binaryRecordGroup.getVisibility();
+		return visibility.isPresent() && "published".equals(visibility.get());
 	}
 
 	private void authenticateAndAuthorizeUser(DataRecordGroup binaryRecordGroup) {
 		User user = authenticator.getUserForToken(authToken);
-		List<PermissionTerm> permissionTerms = getPermissionTerms(binaryRecordGroup);
-
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				ACTION_READ, type + "." + representation, permissionTerms);
+		authorizedUsingHostRecord(user, binaryRecordGroup);
 	}
 
-	private List<PermissionTerm> getPermissionTerms(DataRecordGroup binaryRecordGroup) {
-		String definitionId = getDefinitionId(binaryRecordGroup);
-		CollectTerms collectTerms = termCollector.collectTerms(definitionId, binaryRecordGroup);
+	private void authorizedUsingHostRecord(User user, DataRecordGroup binaryRecordGroup) {
+		DataRecordGroup hostRecordGroup = readHostRecordFromBinary(binaryRecordGroup);
+		List<PermissionTerm> hostPermissionTerms = getHostRecordPermissionTerms(hostRecordGroup);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
+				ACTION_READ, hostRecordGroup.getType() + "." + type, hostPermissionTerms);
+	}
+
+	private DataRecordGroup readHostRecordFromBinary(DataRecordGroup binaryRecordGroup) {
+		DataRecordLink hostRecordLink = binaryRecordGroup.getHostRecord().orElseThrow();
+		return readRecordUsingLink(hostRecordLink);
+	}
+
+	private DataRecordGroup readRecordUsingLink(DataRecordLink hostLink) {
+		String hostType = hostLink.getLinkedRecordType();
+		String hostId = hostLink.getLinkedRecordId();
+		return recordStorage.read(hostType, hostId);
+	}
+
+	private List<PermissionTerm> getHostRecordPermissionTerms(DataRecordGroup hostRecordGroup) {
+		String hostRecordDefinitionId = getDefinitionId(hostRecordGroup);
+		CollectTerms collectTerms = termCollector.collectTerms(hostRecordDefinitionId,
+				hostRecordGroup);
 		return collectTerms.permissionTerms;
 	}
 
-	private String getDefinitionId(DataRecordGroup binaryRecordGroup) {
+	private String getDefinitionId(DataRecordGroup recordGroup) {
 		RecordTypeHandler recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(binaryRecordGroup);
+				.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
 		return recordTypeHandler.getDefinitionId();
 	}
 
@@ -151,6 +183,14 @@ public final class DownloaderImp implements Downloader {
 						+ "found in storage. Type: {0}, id: {1} and representation: {2}",
 				type, id, representation);
 		return ResourceNotFoundException.withMessageAndException(errorMessage, e);
+	}
+
+	private InternalDataMismatchException throwInternalDataMismatchException(
+			se.uu.ub.cora.data.DataMissingException e) {
+		String messageTemplate = "Could not download the stream because of missing data. "
+				+ "Type: {0}, id: {1} and representation: {2}, due to: {3}";
+		return InternalDataMismatchException.withMessageAndException(
+				MessageFormat.format(messageTemplate, type, id, representation, e.getMessage()), e);
 	}
 
 	private ResourceInputStream readRepresentation(DataRecordGroup binaryRecordGroup) {

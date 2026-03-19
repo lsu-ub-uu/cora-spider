@@ -50,6 +50,7 @@ import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
 import se.uu.ub.cora.spider.spy.DataChangedSenderSpy;
+import se.uu.ub.cora.spider.spy.SecurityControlSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
@@ -66,7 +67,7 @@ public class RecordDeleterTest {
 	private DataFactorySpy dataFactorySpy;
 	private RecordStorageSpy recordStorage;
 	private RecordArchiveSpy recordArchive;
-	private AuthenticatorSpy authenticator;
+	private SecurityControlSpy securityControl;
 	private SpiderAuthorizatorSpy authorizator;
 	private SpiderDependencyProviderSpy dependencyProvider;
 	private RecordIndexerSpy recordIndexer;
@@ -78,7 +79,6 @@ public class RecordDeleterTest {
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpFactoriesAndProviders();
-		authenticator = new AuthenticatorSpy();
 		authorizator = new SpiderAuthorizatorSpy();
 		recordStorage = new RecordStorageSpy();
 		recordArchive = new RecordArchiveSpy();
@@ -100,8 +100,9 @@ public class RecordDeleterTest {
 
 	private void setUpDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy();
-		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getAuthenticator",
-				() -> authenticator);
+		securityControl = new SecurityControlSpy();
+		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getSecurityControl",
+				() -> securityControl);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getSpiderAuthorizator",
 				() -> authorizator);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
@@ -138,7 +139,8 @@ public class RecordDeleterTest {
 	public void testAuthenticatorCalled() {
 		recordDeleter.deleteRecord(SOME_AUTH_TOKEN, SOME_TYPE, SOME_ID);
 
-		authenticator.MCR.assertParameters("getUserForToken", 0, SOME_AUTH_TOKEN);
+		securityControl.MCR.assertParameters("checkActionAuthorizationForUser", 0, SOME_AUTH_TOKEN,
+				SOME_TYPE, "delete", recordToDelete);
 	}
 
 	@Test
@@ -154,7 +156,7 @@ public class RecordDeleterTest {
 	}
 
 	private Object getAuthenticatedUser() {
-		return authenticator.MCR.getReturnValue("getUserForToken", 0);
+		return securityControl.MCR.getReturnValue("checkActionAuthorizationForUser", 0);
 	}
 
 	@Test
@@ -228,10 +230,10 @@ public class RecordDeleterTest {
 
 		callDeleteRecordAndCatchStopExecution();
 
-		authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
+		securityControl.MCR.assertMethodWasCalled("checkActionAuthorizationForUser");
 		extendedFunctionalityProvider.MCR
 				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 1);
-		recordStorage.MCR.assertMethodNotCalled("read");
+		recordStorage.MCR.assertMethodWasCalled("read");
 	}
 
 	private void callDeleteRecordAndCatchStopExecution() {

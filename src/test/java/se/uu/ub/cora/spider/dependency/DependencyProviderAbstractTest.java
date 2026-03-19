@@ -54,6 +54,9 @@ import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
+import se.uu.ub.cora.spider.authorization.internal.LinkAuthorizatorImp;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControl;
+import se.uu.ub.cora.spider.authorization.internal.SecurityControlImp;
 import se.uu.ub.cora.spider.authorization.internal.SpiderAuthorizatorImp;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.cache.DataChangedSenderImp;
@@ -201,6 +204,15 @@ public class DependencyProviderAbstractTest {
 	}
 
 	@Test
+	public void testGetSecurityControl() {
+		SecurityControlImp securityControl = (SecurityControlImp) dependencyProvider
+				.getSecurityControl();
+		assertTrue(securityControl instanceof SecurityControl);
+		assertSame(securityControl.onlyForTestGetDependencyProvider(), dependencyProvider);
+
+	}
+
+	@Test
 	public void testGetSpiderAuthorizator() {
 		SpiderAuthorizatorImp spiderAuthorizator = (SpiderAuthorizatorImp) dependencyProvider
 				.getSpiderAuthorizator();
@@ -303,7 +315,14 @@ public class DependencyProviderAbstractTest {
 	public void testGetDataGroupToRecordEnhancer() {
 		DataGroupToRecordEnhancerImp enhancer = (DataGroupToRecordEnhancerImp) dependencyProvider
 				.getDataGroupToRecordEnhancer();
-		assertSame(enhancer.getDependencyProvider(), dependencyProvider);
+		assertSame(enhancer.onlyForTestGetDependencyProvider(), dependencyProvider);
+		LinkAuthorizatorImp authorizator = (LinkAuthorizatorImp) enhancer
+				.onlyForTestGetLinkAuthorizator();
+		assertTrue(authorizator instanceof LinkAuthorizatorImp);
+		SpiderDependencyProvider dependencyProviderInLink = authorizator
+				.onlyForTestGetDependencyProvider();
+		assertSame(dependencyProvider, dependencyProviderInLink);
+
 	}
 
 	@Test
