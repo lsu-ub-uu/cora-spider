@@ -207,7 +207,7 @@ public class RecordCreatorTest {
 	// }
 
 	@Test
-	public void testSecurityControlIsCalled() {
+	public void testSecurityControlIsCalledWithCorrectParameters() {
 		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("getRecordTypeId",
 				() -> RECORD_TYPE);
 
@@ -550,7 +550,7 @@ public class RecordCreatorTest {
 		String methodName = "checkGetUsersMatchedRecordPartPermissionsForActionOnRecordTypeAndCollectedData";
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.getReturnValue("collectTerms",
 				0);
-		var returnedUser = securityControl.MCR.getReturnValue("checkActionAuthorizationForUser", 0);
+		var returnedUser = getAuthenticatedUser();
 		spiderAuthorizator.MCR.assertParameters(methodName, 0, returnedUser, "create", RECORD_TYPE,
 				collectTerms.permissionTerms);
 	}

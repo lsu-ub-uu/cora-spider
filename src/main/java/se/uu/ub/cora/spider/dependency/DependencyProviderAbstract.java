@@ -224,13 +224,11 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 
 	@Override
 	public DataDecarator getDataDecorator() {
-
 		return new DataDecoratorImp(new DataChildDecoratorFactoryImp());
 	}
 
 	@Override
 	public RecordDecorator getRecordDecorator() {
-
 		return RecordDecoratorImp.usingDependencyProvider(this);
 	}
 }
