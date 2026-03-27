@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017, 2023, 2024, 2025 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2023, 2024, 2025, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -25,6 +25,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_COLLECT_DATA;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_STORE;
 
@@ -281,12 +282,66 @@ public class RecordCreatorTest {
 		expectedData.recordId = "someRecordId";
 
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-				CREATE_BEFORE_STORE, expectedData, 2);
+				CREATE_BEFORE_COLLECT_DATA, expectedData, 2);
 
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
-				CREATE_BEFORE_ENHANCE, expectedData, 3);
+				CREATE_BEFORE_STORE, expectedData, 3);
+
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				CREATE_BEFORE_ENHANCE, expectedData, 4);
 		extendedFunctionalityProvider.MCR
-				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 4);
+				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 5);
+	}
+
+	@Test
+	public void testCreateBeforeCollectDataPositionAfterEnsureIdExists() {
+		recordWithId.MRV.setAlwaysThrowException("getId", new RuntimeException("someError"));
+
+		try {
+			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
+		} catch (Exception _) {
+			assertNumberOfCallsAndExtFuncPositionWasNotCalled(2, CREATE_BEFORE_COLLECT_DATA);
+		}
+	}
+
+	@Test
+	public void testCreateBeforeCollectDataPosition_CalledBeforeCollectTerms() {
+		termCollector.MRV.setDefaultReturnValuesSupplier("collectTerms",
+				this::throwErrorOnSecondCall);
+
+		try {
+			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
+			fail();
+		} catch (Exception _) {
+			extendedFunctionalityProvider.MCR
+					.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 3);
+			extendedFunctionalityProvider.MCR.assertParameter(
+					"getFunctionalityForPositionAndRecordType", 2, "position",
+					CREATE_BEFORE_COLLECT_DATA);
+		}
+	}
+
+	private int errorOnSecond = 0;
+
+	private CollectTerms throwErrorOnSecondCall() {
+		if (errorOnSecond > 0) {
+			throw new RuntimeException("someError");
+		}
+		errorOnSecond++;
+		return new CollectTerms();
+	}
+
+	@Test
+	public void testCreateBeforeStorePositionAfterValidateUnique() {
+		uniqueValidator.MRV.setAlwaysThrowException("validateUniqueForNewRecord",
+				new RuntimeException("someError"));
+
+		try {
+			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
+		} catch (Exception e) {
+			assertEquals(e.getMessage(), "someError");
+			assertNumberOfCallsAndExtFuncPositionWasNotCalled(3, CREATE_BEFORE_STORE);
+		}
 	}
 
 	@Test
@@ -300,21 +355,8 @@ public class RecordCreatorTest {
 
 			uniqueValidator.MCR.assertMethodWasCalled("validateUniqueForNewRecord");
 			extendedFunctionalityProvider.MCR.assertParameter(
-					"getFunctionalityForPositionAndRecordType", 2, "position", CREATE_BEFORE_STORE);
+					"getFunctionalityForPositionAndRecordType", 3, "position", CREATE_BEFORE_STORE);
 			recordTypeHandlerSpy.MCR.assertMethodNotCalled("storeInArchive");
-		}
-	}
-
-	@Test
-	public void testCreateBeforeStorePositionAfterValidateUnique() {
-		uniqueValidator.MRV.setAlwaysThrowException("validateUniqueForNewRecord",
-				new RuntimeException("someError"));
-
-		try {
-			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
-		} catch (Exception e) {
-			assertEquals(e.getMessage(), "someError");
-			assertNumberOfCallsAndExtFuncPositionWasNotCalled(2, CREATE_BEFORE_STORE);
 		}
 	}
 
@@ -345,7 +387,7 @@ public class RecordCreatorTest {
 			fail("Should fail as we want to stop execution when the extended functionality is used,"
 					+ " to determin that the extended functionality is called in the correct place"
 					+ " in the code");
-		} catch (Exception e) {
+		} catch (Exception _) {
 			SpiderAuthorizatorSpy authorizator = getCorrectAuthorizator();
 			authorizator.MCR.assertMethodWasCalled("checkUserIsAuthorizedForActionOnRecordType");
 			dataFactorySpy.MCR.assertMethodNotCalled("factorRecordGroupFromDataGroup");
@@ -670,7 +712,7 @@ public class RecordCreatorTest {
 		try {
 			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
 			fail();
-		} catch (Exception e) {
+		} catch (Exception _) {
 			dependencyProviderSpy.MCR.assertMethodNotCalled("getDataChangeSender");
 		}
 	}
@@ -683,7 +725,7 @@ public class RecordCreatorTest {
 		try {
 			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
 			fail();
-		} catch (Exception e) {
+		} catch (Exception _) {
 			dependencyProviderSpy.MCR.assertMethodWasCalled("getDataChangeSender");
 		}
 	}

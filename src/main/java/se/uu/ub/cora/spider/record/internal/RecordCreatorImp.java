@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2017, 2022, 2023, 2024, 2025 Uppsala University Library
+ * Copyright 2015, 2016, 2017, 2022, 2023, 2024, 2025, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,6 +21,7 @@ package se.uu.ub.cora.spider.record.internal;
 
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_COLLECT_DATA;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_STORE;
 
@@ -125,6 +126,7 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		useExtendedFunctionalityForPosition(CREATE_AFTER_METADATA_VALIDATION);
 		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = recordGroup.getId();
+		useExtendedFunctionalityForPosition(CREATE_BEFORE_COLLECT_DATA);
 		collectInformationSpecifiedInMetadata();
 		ensureNoDuplicateForTypeAndId();
 		validateDataForUniqueThrowErrorIfNot();
@@ -198,17 +200,6 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		throw new DataException("PermissionUnit is missing in the record.");
 	}
 
-	private void validateRecordOLD() {
-		// TODO: move checkRecordPartsUserIsNotAllowtoChange after
-		// validateDataInRecordAsSpecifiedInMetadata
-		// TODO: Check order of following operations
-
-		// checkRecordPartsUserIsNotAllowtoChange();
-		possiblyHandleVisibility();
-		possiblyUseTrashBin();
-		validateDataInRecordAsSpecifiedInMetadata();
-		checkRecordPartsUserIsNotAllowtoChange();
-	}
 	private void validateRecord() {
 		checkRecordPartsUserIsNotAllowtoChange();
 		possiblyHandleVisibility();
