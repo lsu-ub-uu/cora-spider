@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2023, 2025 Uppsala University Library
+ * Copyright 2016, 2023, 2025, 2026 Uppsala University Library
  * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
@@ -55,6 +55,7 @@ import se.uu.ub.cora.storage.archive.ResourceMetadata;
 import se.uu.ub.cora.storage.archive.record.ResourceMetadataToUpdate;
 
 public final class UploaderImp implements Uploader {
+	private static final String STATUS = "status";
 	private static final String ORIGINAL_FILE_NAME = "originalFileName";
 	private static final String EXPECTED_CHECKSUM = "expectedChecksum";
 	private static final String EXPECTED_FILE_SIZE = "expectedFileSize";
@@ -122,11 +123,113 @@ public final class UploaderImp implements Uploader {
 		return uploadAnalyzeStoreAndCallConvert(resourceStream, dataRecordGroup);
 	}
 
+	protected void tryToGetUserForToken() {
+		try {
+			user = authenticator.getUserForToken(authToken);
+		} catch (Exception e) {
+			throw new AuthenticationException(
+					MessageFormat.format("Uploading error: Not possible to upload "
+							+ "resource due the user could not be authenticated, for type {0} "
+							+ "and id {1}.", type, id),
+					e);
+		}
+	}
+
+	private void validateInputIsBinaryMasterAndHasStream() {
+		ensureBinaryType();
+		ensureResourceTypeIsMaster();
+		ensureResourceStreamExists();
+	}
+
+	private void ensureBinaryType() {
+		if (!BINARY_RECORD_TYPE.equals(type)) {
+			throw new MisuseException(MessageFormat.format("Uploading error: Invalid record type, "
+					+ "for type {0} and {1}, must be (binary).", type, id));
+		}
+	}
+
+	private void ensureResourceTypeIsMaster() {
+		if (!MASTER.equals(resourceType)) {
+			throw new MisuseException("Only master can be uploaded.");
+		}
+	}
+
+	private void ensureResourceStreamExists() {
+		if (null == resourceStream) {
+			throw new DataMissingException(MessageFormat.format(
+					"Uploading error: Nothing to upload, resource stream is missing for type {0}"
+							+ " and id {1}.",
+					type, id));
+		}
+	}
+
+	private void tryToCheckUserIsAuthorisedToUploadData(DataRecordGroup dataRecord) {
+		checkUserIsAuthorizedIfRecorTypeUsesPermissionUnits(dataRecord);
+		try {
+			checkUserIsAuthorisedToUploadData(dataRecord);
+		} catch (Exception e) {
+			throw new AuthorizationException(
+					MessageFormat.format("Uploading error: Not possible to upload "
+							+ "resource due the user could not be authorizated, for type {0} and"
+							+ " id {1}.", type, id),
+					e);
+		}
+	}
+
+	private void checkUserIsAuthorizedIfRecorTypeUsesPermissionUnits(
+			DataRecordGroup dataRecordGroup) {
+		if (recordTypeHandler.usePermissionUnit()) {
+			checkUserIsAuthorizedToUploadForPemissionUnit(dataRecordGroup);
+		}
+	}
+
+	private void checkUserIsAuthorizedToUploadForPemissionUnit(DataRecordGroup dataRecordGroup) {
+		Optional<String> oPermissionUnit = dataRecordGroup.getPermissionUnit();
+		if (oPermissionUnit.isEmpty()) {
+			throw notAuthorizedDueToMissingPermissionUnitInRecord();
+		}
+		tryToCheckUserIsAuthorizedForPemissionUnit(oPermissionUnit.get());
+	}
+
+	private AuthorizationException notAuthorizedDueToMissingPermissionUnitInRecord() {
+		return new AuthorizationException(
+				MessageFormat.format("Uploading error: Not possible to upload "
+						+ "resource due the binary not having any permission unit, for type {0} and"
+						+ " id {1}.", type, id));
+	}
+
+	private void tryToCheckUserIsAuthorizedForPemissionUnit(String permissionUnit) {
+		try {
+			spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, permissionUnit);
+		} catch (Exception e) {
+			throw notAuthorizedDueToUserDoNotMatchRecordsPermissionUnit();
+		}
+	}
+
+	private AuthorizationException notAuthorizedDueToUserDoNotMatchRecordsPermissionUnit() {
+		return new AuthorizationException(
+				MessageFormat.format("Uploading error: Not possible to upload "
+						+ "resource due the user not having required permission unit, for type {0} and"
+						+ " id {1}.", type, id));
+	}
+
+	private void checkUserIsAuthorisedToUploadData(DataRecordGroup dataRecord) {
+		CollectTerms collectedTerms = getCollectedTermsForRecord(dataRecord);
+		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
+				"upload", type, collectedTerms.permissionTerms);
+	}
+
+	private CollectTerms getCollectedTermsForRecord(DataRecordGroup dataRecordGroup) {
+		String definitionId = recordTypeHandler.getDefinitionId();
+		return termCollector.collectTerms(definitionId, dataRecordGroup);
+	}
+
 	private DataRecord uploadAnalyzeStoreAndCallConvert(InputStream resourceStream,
 			DataRecordGroup dataRecordGroup) {
 		storeResourceStreamInArchive(resourceStream);
 
 		verifyArchiveDataIntegrity(dataRecordGroup);
+		removeExpectedAtomicsFromBinaryRecord(dataRecordGroup);
 
 		String detectedMimeType = detectMimeTypeFromResourceInArchive(dataDivider);
 
@@ -143,6 +246,11 @@ public final class UploaderImp implements Uploader {
 		// send message for "Read metadata and convert to small formats"
 		possiblySendToConvert(detectedMimeType);
 		return updatedRecord;
+	}
+
+	private void storeResourceStreamInArchive(InputStream resourceStream) {
+		resourceArchive.createMasterResource(dataDivider, type, id, resourceStream,
+				MIME_TYPE_GENERIC);
 	}
 
 	private void verifyArchiveDataIntegrity(DataRecordGroup dataRecordGroup) {
@@ -214,11 +322,6 @@ public final class UploaderImp implements Uploader {
 		return detectedMimeType.startsWith("image/");
 	}
 
-	private void storeResourceStreamInArchive(InputStream resourceStream) {
-		resourceArchive.createMasterResource(dataDivider, type, id, resourceStream,
-				MIME_TYPE_GENERIC);
-	}
-
 	private void updateOriginalFileNameAndMimeTypeInArchive(String originalFileName,
 			String detectedMimeType) {
 		ResourceMetadataToUpdate resourceMetadataToUpdate = new ResourceMetadataToUpdate(
@@ -227,22 +330,21 @@ public final class UploaderImp implements Uploader {
 				resourceMetadataToUpdate);
 	}
 
-	private void validateInputIsBinaryMasterAndHasStream() {
-		ensureBinaryType();
-		ensureResourceTypeIsMaster();
-		ensureResourceStreamExists();
-	}
-
 	private DataRecord updateRecordInStorageUsingCalculatedAndInfoFromArchive(
 			DataRecordGroup dataRecordGroup, String detectedMimeType) {
-		ResourceMetadata resourceMetadata = resourceArchive.readMasterResourceMetadata(dataDivider,
-				type, id);
-		createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(dataRecordGroup, resourceMetadata,
+		setStatusToUploaded(dataRecordGroup);
+		createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(dataRecordGroup,
 				detectedMimeType);
-
-		removeExpectedAtomicsFromBinaryRecord(dataRecordGroup);
-
 		return updateRecord(dataRecordGroup);
+	}
+
+	private void setStatusToUploaded(DataRecordGroup dataRecordGroup) {
+		DataGroup recordInfo = dataRecordGroup.getFirstChildOfTypeAndName(DataGroup.class,
+				"recordInfo");
+		recordInfo.removeFirstChildWithTypeAndName(DataAtomic.class, STATUS);
+		DataAtomic statusUploaded = DataProvider.createAtomicUsingNameInDataAndValue(STATUS,
+				"uploaded");
+		recordInfo.addChild(statusUploaded);
 	}
 
 	private DataRecord updateRecord(DataRecordGroup dataRecordGroup) {
@@ -256,105 +358,10 @@ public final class UploaderImp implements Uploader {
 		return contentAnalyzer.getMimeType(resourceFromArchive);
 	}
 
-	private void ensureBinaryType() {
-		if (!BINARY_RECORD_TYPE.equals(type)) {
-			throw new MisuseException(MessageFormat.format("Uploading error: Invalid record type, "
-					+ "for type {0} and {1}, must be (binary).", type, id));
-		}
-	}
-
-	private void ensureResourceTypeIsMaster() {
-		if (!MASTER.equals(resourceType)) {
-			throw new MisuseException("Only master can be uploaded.");
-		}
-	}
-
-	private void ensureResourceStreamExists() {
-		if (null == resourceStream) {
-			throw new DataMissingException(MessageFormat.format(
-					"Uploading error: Nothing to upload, resource stream is missing for type {0}"
-							+ " and id {1}.",
-					type, id));
-		}
-	}
-
-	protected void tryToGetUserForToken() {
-		try {
-			user = authenticator.getUserForToken(authToken);
-		} catch (Exception e) {
-			throw new AuthenticationException(
-					MessageFormat.format("Uploading error: Not possible to upload "
-							+ "resource due the user could not be authenticated, for type {0} "
-							+ "and id {1}.", type, id),
-					e);
-		}
-	}
-
-	private void tryToCheckUserIsAuthorisedToUploadData(DataRecordGroup dataRecord) {
-		checkUserIsAuthorizedIfRecorTypeUsesPermissionUnits(dataRecord);
-		try {
-			checkUserIsAuthorisedToUploadData(dataRecord);
-		} catch (Exception e) {
-			throw new AuthorizationException(
-					MessageFormat.format("Uploading error: Not possible to upload "
-							+ "resource due the user could not be authorizated, for type {0} and"
-							+ " id {1}.", type, id),
-					e);
-		}
-	}
-
-	private void checkUserIsAuthorizedIfRecorTypeUsesPermissionUnits(
-			DataRecordGroup dataRecordGroup) {
-		if (recordTypeHandler.usePermissionUnit()) {
-			checkUserIsAuthorizedToUploadForPemissionUnit(dataRecordGroup);
-		}
-	}
-
-	private void checkUserIsAuthorizedToUploadForPemissionUnit(DataRecordGroup dataRecordGroup) {
-		Optional<String> oPermissionUnit = dataRecordGroup.getPermissionUnit();
-		if (oPermissionUnit.isEmpty()) {
-			throw notAuthorizedDueToMissingPermissionUnitInRecord();
-		}
-		tryToCheckUserIsAuthorizedForPemissionUnit(oPermissionUnit.get());
-	}
-
-	private AuthorizationException notAuthorizedDueToMissingPermissionUnitInRecord() {
-		return new AuthorizationException(
-				MessageFormat.format("Uploading error: Not possible to upload "
-						+ "resource due the binary not having any permission unit, for type {0} and"
-						+ " id {1}.", type, id));
-	}
-
-	private void tryToCheckUserIsAuthorizedForPemissionUnit(String permissionUnit) {
-		try {
-			spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, permissionUnit);
-		} catch (Exception e) {
-			throw notAuthorizedDueToUserDoNotMatchRecordsPermissionUnit();
-		}
-	}
-
-	private AuthorizationException notAuthorizedDueToUserDoNotMatchRecordsPermissionUnit() {
-		return new AuthorizationException(
-				MessageFormat.format("Uploading error: Not possible to upload "
-						+ "resource due the user not having required permission unit, for type {0} and"
-						+ " id {1}.", type, id));
-	}
-
-	private void checkUserIsAuthorisedToUploadData(DataRecordGroup dataRecord) {
-		CollectTerms collectedTerms = getCollectedTermsForRecord(dataRecord);
-		spiderAuthorizator.checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(user,
-				"upload", type, collectedTerms.permissionTerms);
-	}
-
-	private CollectTerms getCollectedTermsForRecord(DataRecordGroup dataRecordGroup) {
-
-		String definitionId = recordTypeHandler.getDefinitionId();
-		return termCollector.collectTerms(definitionId, dataRecordGroup);
-	}
-
 	private void createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(
-			DataRecordGroup dataRecordGroup, ResourceMetadata resourceMetadata,
-			String detectedMimeType) {
+			DataRecordGroup dataRecordGroup, String detectedMimeType) {
+		ResourceMetadata resourceMetadata = resourceArchive.readMasterResourceMetadata(dataDivider,
+				type, id);
 		DataGroup masterGroup = createMasterGroup(resourceMetadata.fileSize(), detectedMimeType);
 
 		dataRecordGroup.addChild(masterGroup);
@@ -411,5 +418,4 @@ public final class UploaderImp implements Uploader {
 	public MimeTypeToBinaryType onlyForTestGetMimeTypeToBinaryTypeConvert() {
 		return mimeTypeToBinaryType;
 	}
-
 }
