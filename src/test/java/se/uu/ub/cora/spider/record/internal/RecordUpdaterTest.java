@@ -233,6 +233,44 @@ public class RecordUpdaterTest {
 		assertCorrectSearchTermCollectorAndIndexer();
 	}
 
+	@Test
+	public void testInternalUpdate_ExternalDependenciesAreCalled() {
+		recordUpdater.internallUpdateAndStoreRecord(recordWithId, "someUserId");
+
+		RecordTypeHandlerSpy recordTypeHandler = (RecordTypeHandlerSpy) dependencyProviderSpy.MCR
+				.assertCalledParametersReturn("getRecordTypeHandlerUsingDataRecordGroup",
+						recordWithId);
+		String definitionId = (String) recordTypeHandler.MCR
+				.assertCalledParametersReturn("getDefinitionId");
+		String updateDefinitionId = (String) recordTypeHandler.MCR
+				.assertCalledParametersReturn("getUpdateDefinitionId");
+
+		recordWithId.MCR.assertCalledParameters("addUpdatedUsingUserIdAndTsNow", "someUserId");
+
+		CollectTerms collectTerms = (CollectTerms) termCollector.MCR
+				.assertCalledParametersReturn("collectTerms", definitionId, recordWithId);
+
+		var recordAsDataGroup2 = dataFactorySpy.MCR
+				.assertCalledParametersReturn("factorGroupFromDataRecordGroup", recordWithId);
+
+		// linkCollector.MCR.assertParameters("collectLinks", 0,
+		// "fakeDefMetadataIdFromRecordTypeHandlerSpy", recordAsDataGroup2);
+		//
+		// CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
+		// .getReturnValue("collectTerms", 1);
+		//
+		// var links = linkCollector.MCR.getReturnValue("collectLinks", 0);
+		//
+		// var recordAsDataGroup3 =
+		// dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup",
+		// 2);
+		// recordStorage.MCR.assertParameters("update", 0, RECORD_TYPE, RECORD_ID,
+		// recordAsDataGroup3,
+		// collectedTerms.storageTerms, links);
+		//
+		// assertCorrectSearchTermCollectorAndIndexer();
+	}
+
 	private void assertCorrectSearchTermCollectorAndIndexer() {
 		termCollector.MCR.assertParameter("collectTerms", 1, "metadataId",
 				"fakeDefMetadataIdFromRecordTypeHandlerSpy");

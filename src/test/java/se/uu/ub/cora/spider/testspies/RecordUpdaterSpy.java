@@ -1,6 +1,6 @@
 /*
  * Copyright 2022 Olov McKie
- * Copyright 2022 Uppsala University Library
+ * Copyright 2022, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -36,8 +36,14 @@ public class RecordUpdaterSpy implements RecordUpdater {
 	}
 
 	@Override
-	public DataRecord updateRecord(String authToken, String type, String id, DataRecordGroup record) {
+	public DataRecord updateRecord(String authToken, String type, String id,
+			DataRecordGroup record) {
 		return (DataRecord) MCR.addCallAndReturnFromMRV("authToken", authToken, "type", type, "id",
 				id, "record", record);
+	}
+
+	@Override
+	public void internallUpdateAndStoreRecord(DataRecordGroup recordGroup, String userId) {
+		MCR.addCall("recordGroup", recordGroup, "userId", userId);
 	}
 }

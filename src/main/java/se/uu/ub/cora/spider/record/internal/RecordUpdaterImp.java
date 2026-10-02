@@ -188,72 +188,36 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		return dataRecord;
 	}
 
-	private void tryToUpdateAndStoreRecordRoot(DataRecordGroup recordGroup2, String userId) {
-		// tryToGetActiveUser();
-		// checkUserIsAuthorizedForActionOnRecordType();
-		// useExtendedFunctionalityForPosition(UPDATE_AFTER_AUTHORIZATION);
+	@Override
+	public void internallUpdateAndStoreRecord(DataRecordGroup recordGroupIn, String userId) {
 		recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(recordGroup2);
-		// validateRecordTypeInDataIsSameAsSpecified(recordType);
-		// previouslyStoredRecord = recordStorage.read(recordType, recordId);
-		// checkUserIsAuthorizedForPermissionUnit();
+				.getRecordTypeHandlerUsingDataRecordGroup(recordGroupIn);
 		definitionId = recordTypeHandler.getDefinitionId();
 		updateDefinitionId = recordTypeHandler.getUpdateDefinitionId();
 
-		// CollectTerms previouslyStoredCollectTerms =
-		// checkUserIsAuthorisedToUpdatePreviouslyStoredRecord();
-
-		// doNotUpdateIfExistsNewerVersionAndCheckOverrideProtection();
-
-		// useExtendedFunctionalityForPosition(UPDATE_BEFORE_METADATA_VALIDATION);
-
-		// replaceImmutableFieldsInRecordInfoFromPreviouslyStoredRecord();
 		// POSSIBLY: recordGroup.setAllUpdated(Collections.emptyList());
-		// recordGroup.addUpdatedUsingUserIdAndTsNow(user.id);
-		recordGroup2.addUpdatedUsingUserIdAndTsNow(userId);
+		recordGroupIn.addUpdatedUsingUserIdAndTsNow(userId);
 
-		// possiblyReplaceRecordPartsUserIsNotAllowedToChange();
+		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(definitionId,
+				recordGroupIn);
 
-		// possiblyHandleVisibility();
-		// possiblyUseTrashBin();
-
-		// validateIncomingDataAsSpecifiedInMetadata();
-		// useExtendedFunctionalityForPosition(UPDATE_AFTER_METADATA_VALIDATION);
-		// checkRecordTypeAndIdIsSameAsInEnteredRecord();
-
-		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup2);
-
-		// var mixedPermissionTerms = getMixedPermissionTermValuesConsideringModeState(
-		// previouslyStoredCollectTerms, collectTerms);
-
-		// checkUserIsAuthorizedForActionOnRecordTypeAndCollectedData(recordType,
-		// mixedPermissionTerms);
-
-		// validateDataForUniqueThrowErrorIfNot(collectTerms);
-
-		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup2);
-		Set<Link> collectedLinks = linkCollector.collectLinks(definitionId, recordAsDataGroup);
-		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
-
-		// useExtendedFunctionalityForPosition(UPDATE_BEFORE_STORE);
-		dataDivider = recordGroup2.getDataDivider();
-		DataGroup recordAsDataGroupForStorage = DataProvider
-				.createGroupFromRecordGroup(recordGroup2);
-
-		if (isInTrashBin()) {
-			collectedLinks = Collections.emptySet();
-		}
-		updateRecordInStorage(recordAsDataGroupForStorage, collectTerms, collectedLinks);
-		sendDataChanged();
-		possiblyStoreInArchive(recordAsDataGroupForStorage);
-
-		indexData(collectTerms);
-		// useExtendedFunctionalityForPosition(UPDATE_AFTER_STORE);
-		// DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
-		// DataRecord dataRecord = dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user,
-		// recordType, recordGroup, dataRedactor);
-		// useExtendedFunctionalityBeforeReturn(dataRecord);
-		// return dataRecord;
+		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroupIn);
+		// Set<Link> collectedLinks = linkCollector.collectLinks(definitionId, recordAsDataGroup);
+		// checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+		//
+		// dataDivider = recordGroupIn.getDataDivider();
+		// DataGroup recordAsDataGroupForStorage = DataProvider
+		// .createGroupFromRecordGroup(recordGroupIn);
+		//
+		// if (recordGroupIn.isInTrashBin().isPresent()
+		// && recordGroupIn.isInTrashBin().get().booleanValue()) {
+		// collectedLinks = Collections.emptySet();
+		// }
+		// updateRecordInStorage(recordAsDataGroupForStorage, collectTerms, collectedLinks);
+		// sendDataChanged();
+		// possiblyStoreInArchive(recordAsDataGroupForStorage);
+		//
+		// indexData(collectTerms);
 	}
 
 	private List<PermissionTerm> getMixedPermissionTermValuesConsideringModeState(

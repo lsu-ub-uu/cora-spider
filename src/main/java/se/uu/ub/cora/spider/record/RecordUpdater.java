@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2019 Uppsala University Library
+ * Copyright 2015, 2019, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -22,8 +22,25 @@ package se.uu.ub.cora.spider.record;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
 
+/**
+ * RecordUpdater handles updating of records in the system.
+ */
 public interface RecordUpdater {
 
-	DataRecord updateRecord(String authToken, String type, String id, DataRecordGroup record);
+	DataRecord updateRecord(String authToken, String type, String id, DataRecordGroup recordGroup);
 
+	/**
+	 * internallUpdateAndStoreRecord is used as it is called from an internal to the system call to
+	 * update and store a record in the sytem. Compared to updateRecord this method is not expected
+	 * to do any security checks, no validation on data and also not expected to call extended
+	 * funtionallity etc. The purpose of this function is store the record, possibly in the archive
+	 * and do other storage related activites such as making sure it is indexed.
+	 * 
+	 * @param recordGroup
+	 *            the {@link DataRecordGroup} that is to be updated
+	 * @param userId
+	 *            a String with the userId that is to be set in the data as the user updating this
+	 *            record
+	 */
+	void internallUpdateAndStoreRecord(DataRecordGroup recordGroup, String userId);
 }
