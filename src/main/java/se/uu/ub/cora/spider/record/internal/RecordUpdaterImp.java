@@ -202,18 +202,21 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 				recordGroupIn);
 
 		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroupIn);
-		// Set<Link> collectedLinks = linkCollector.collectLinks(definitionId, recordAsDataGroup);
-		// checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+		Set<Link> collectedLinks = linkCollector.collectLinks(definitionId, recordAsDataGroup);
+		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
 		//
-		// dataDivider = recordGroupIn.getDataDivider();
-		// DataGroup recordAsDataGroupForStorage = DataProvider
-		// .createGroupFromRecordGroup(recordGroupIn);
+		dataDivider = recordGroupIn.getDataDivider();
+		DataGroup recordAsDataGroupForStorage = DataProvider
+				.createGroupFromRecordGroup(recordGroupIn);
 		//
 		// if (recordGroupIn.isInTrashBin().isPresent()
 		// && recordGroupIn.isInTrashBin().get().booleanValue()) {
 		// collectedLinks = Collections.emptySet();
 		// }
 		// updateRecordInStorage(recordAsDataGroupForStorage, collectTerms, collectedLinks);
+		// recordStorage.update(recordType, recordId, recordAsDataGroupForStorage,
+		// collectTerms.storageTerms, collectedLinks, dataDivider);
+
 		// sendDataChanged();
 		// possiblyStoreInArchive(recordAsDataGroupForStorage);
 		//

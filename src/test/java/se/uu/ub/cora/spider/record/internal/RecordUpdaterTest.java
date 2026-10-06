@@ -33,6 +33,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -234,7 +235,9 @@ public class RecordUpdaterTest {
 	}
 
 	@Test
-	public void testInternalUpdate_ExternalDependenciesAreCalled() {
+	public void testInternalUpdate_NormalUpdate() {
+		setupForInternal();
+
 		recordUpdater.internallUpdateAndStoreRecord(recordWithId, "someUserId");
 
 		RecordTypeHandlerSpy recordTypeHandler = (RecordTypeHandlerSpy) dependencyProviderSpy.MCR
@@ -253,9 +256,19 @@ public class RecordUpdaterTest {
 		var recordAsDataGroup2 = dataFactorySpy.MCR
 				.assertCalledParametersReturn("factorGroupFromDataRecordGroup", recordWithId);
 
-		// linkCollector.MCR.assertParameters("collectLinks", 0,
-		// "fakeDefMetadataIdFromRecordTypeHandlerSpy", recordAsDataGroup2);
-		//
+		var collectedLinks = linkCollector.MCR.assertCalledParametersReturn("collectLinks",
+				definitionId, recordAsDataGroup2);
+		recordStorage.MCR.assertParameterAsEqual("recordExists", 0, "types", List.of("toType"));
+		recordStorage.MCR.assertParameterAsEqual("recordExists", 0, "id", "toId");
+		recordStorage.MCR.assertParameterAsEqual("recordExists", 1, "types", List.of("toType2"));
+		recordStorage.MCR.assertParameterAsEqual("recordExists", 1, "id", "toId2");
+		recordStorage.MCR.assertNumberOfCallsToMethod("recordExists", 2);
+
+		var dataDivider = recordWithId.MCR.assertCalledParametersReturn("getDataDivider");
+
+		var recordAsDAtaGroupForStorage = dataFactorySpy.MCR
+				.assertCalledParametersReturn("factorGroupFromDataRecordGroup", recordWithId);
+
 		// CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
 		// .getReturnValue("collectTerms", 1);
 		//
@@ -269,6 +282,23 @@ public class RecordUpdaterTest {
 		// collectedTerms.storageTerms, links);
 		//
 		// assertCorrectSearchTermCollectorAndIndexer();
+	}
+
+	// TODO: new test where we throw exception as link does not exist..
+	// TODO: new test where inTrash true, collectedLinks is empty set
+
+	private void setupForInternal() {
+		setUpLinkCollectorToReturnTwoLinks();
+		recordStorage.MRV.setDefaultReturnValuesSupplier("recordExists", () -> true);
+	}
+
+	private void setUpLinkCollectorToReturnTwoLinks() {
+		Link link = new Link("toType", "toId");
+		Link link2 = new Link("toType2", "toId2");
+		LinkedHashSet<Link> links = new LinkedHashSet<Link>();
+		links.add(link);
+		links.add(link2);
+		linkCollector.MRV.setDefaultReturnValuesSupplier("collectLinks", () -> links);
 	}
 
 	private void assertCorrectSearchTermCollectorAndIndexer() {
