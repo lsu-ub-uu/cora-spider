@@ -448,12 +448,12 @@ public class UploaderTest {
 
 		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", readBinarySpy);
 
-		assertStatusSetToCreated();
+		assertStatusSetToUploaded();
 		assertMasterIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
 		assertRemoveExpectedFieldsFromBinaryRecord(readBinarySpy);
 	}
 
-	private void assertStatusSetToCreated() {
+	private void assertStatusSetToUploaded() {
 		recordInfo.MCR.assertCalledParameters("removeFirstChildWithTypeAndName", DataAtomic.class,
 				"status");
 		DataAtomicSpy statusUploaded = (DataAtomicSpy) dataFactorySpy.MCR
