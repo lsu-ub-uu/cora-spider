@@ -169,6 +169,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 		useExtendedFunctionalityForPosition(UPDATE_BEFORE_STORE);
 		dataDivider = recordGroup.getDataDivider();
+		// TODO: is this second one really needed? why not use recordAsDataGroup from above?
 		DataGroup recordAsDataGroupForStorage = DataProvider
 				.createGroupFromRecordGroup(recordGroup);
 
@@ -189,38 +190,35 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	}
 
 	@Override
-	public void internallUpdateAndStoreRecord(DataRecordGroup recordGroupIn, String userId) {
+	public void internalUpdateRecord(DataRecordGroup recordGroup, String userId) {
+		this.recordGroup = recordGroup;
+		recordType = recordGroup.getType();
+		recordId = recordGroup.getId();
+		dataDivider = recordGroup.getDataDivider();
 		recordTypeHandler = dependencyProvider
-				.getRecordTypeHandlerUsingDataRecordGroup(recordGroupIn);
+				.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
 		definitionId = recordTypeHandler.getDefinitionId();
-		updateDefinitionId = recordTypeHandler.getUpdateDefinitionId();
 
-		// POSSIBLY: recordGroup.setAllUpdated(Collections.emptyList());
-		recordGroupIn.addUpdatedUsingUserIdAndTsNow(userId);
+		recordGroup.setAllUpdated(Collections.emptyList());
+		recordGroup.addUpdatedUsingUserIdAndTsNow(userId);
 
-		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(definitionId,
-				recordGroupIn);
+		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup);
 
-		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroupIn);
+		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
 		Set<Link> collectedLinks = linkCollector.collectLinks(definitionId, recordAsDataGroup);
 		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
-		//
-		dataDivider = recordGroupIn.getDataDivider();
-		DataGroup recordAsDataGroupForStorage = DataProvider
-				.createGroupFromRecordGroup(recordGroupIn);
-		//
-		// if (recordGroupIn.isInTrashBin().isPresent()
-		// && recordGroupIn.isInTrashBin().get().booleanValue()) {
-		// collectedLinks = Collections.emptySet();
-		// }
-		// updateRecordInStorage(recordAsDataGroupForStorage, collectTerms, collectedLinks);
-		// recordStorage.update(recordType, recordId, recordAsDataGroupForStorage,
-		// collectTerms.storageTerms, collectedLinks, dataDivider);
 
-		// sendDataChanged();
-		// possiblyStoreInArchive(recordAsDataGroupForStorage);
-		//
-		// indexData(collectTerms);
+		if (isInTrashBin()) {
+			collectedLinks = Collections.emptySet();
+		}
+		updateRecordInStorage(recordAsDataGroup, collectTerms, collectedLinks);
+
+		DataChangedSender dataChangedSender = dependencyProvider.getDataChangeSender();
+		dataChangedSender.sendDataChanged(recordType, recordId, UPDATE);
+
+		possiblyStoreInArchive(recordAsDataGroup);
+
+		indexData(collectTerms);
 	}
 
 	private List<PermissionTerm> getMixedPermissionTermValuesConsideringModeState(

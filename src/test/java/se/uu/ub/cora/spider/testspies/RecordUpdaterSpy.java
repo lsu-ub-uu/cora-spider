@@ -43,7 +43,7 @@ public class RecordUpdaterSpy implements RecordUpdater {
 	}
 
 	@Override
-	public void internallUpdateAndStoreRecord(DataRecordGroup recordGroup, String userId) {
+	public void internalUpdateRecord(DataRecordGroup recordGroup, String userId) {
 		MCR.addCall("recordGroup", recordGroup, "userId", userId);
 	}
 }

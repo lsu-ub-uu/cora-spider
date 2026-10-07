@@ -30,7 +30,7 @@ public interface RecordUpdater {
 	DataRecord updateRecord(String authToken, String type, String id, DataRecordGroup recordGroup);
 
 	/**
-	 * internallUpdateAndStoreRecord is used as it is called from an internal to the system call to
+	 * internalUpdateAndStoreRecord is used as it is called from an internal to the system call to
 	 * update and store a record in the sytem. Compared to updateRecord this method is not expected
 	 * to do any security checks, no validation on data and also not expected to call extended
 	 * funtionallity etc. The purpose of this function is store the record, possibly in the archive
@@ -42,5 +42,5 @@ public interface RecordUpdater {
 	 *            a String with the userId that is to be set in the data as the user updating this
 	 *            record
 	 */
-	void internallUpdateAndStoreRecord(DataRecordGroup recordGroup, String userId);
+	void internalUpdateRecord(DataRecordGroup recordGroup, String userId);
 }

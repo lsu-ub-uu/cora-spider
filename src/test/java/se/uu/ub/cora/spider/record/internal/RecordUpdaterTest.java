@@ -236,60 +236,101 @@ public class RecordUpdaterTest {
 
 	@Test
 	public void testInternalUpdate_NormalUpdate() {
-		setupForInternal();
+		setUpLinkCollectorToReturnTwoLinks();
+		recordStorage.MRV.setDefaultReturnValuesSupplier("recordExists", () -> true);
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
 
-		recordUpdater.internallUpdateAndStoreRecord(recordWithId, "someUserId");
+		recordUpdater.internalUpdateRecord(recordWithId, "someUserId");
 
 		RecordTypeHandlerSpy recordTypeHandler = (RecordTypeHandlerSpy) dependencyProviderSpy.MCR
 				.assertCalledParametersReturn("getRecordTypeHandlerUsingDataRecordGroup",
 						recordWithId);
 		String definitionId = (String) recordTypeHandler.MCR
 				.assertCalledParametersReturn("getDefinitionId");
-		String updateDefinitionId = (String) recordTypeHandler.MCR
-				.assertCalledParametersReturn("getUpdateDefinitionId");
 
+		recordWithId.MCR.assertParameters("setAllUpdated", 0, Collections.emptyList());
 		recordWithId.MCR.assertCalledParameters("addUpdatedUsingUserIdAndTsNow", "someUserId");
 
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR
 				.assertCalledParametersReturn("collectTerms", definitionId, recordWithId);
 
-		var recordAsDataGroup2 = dataFactorySpy.MCR
+		var recordAsDataGroup = dataFactorySpy.MCR
 				.assertCalledParametersReturn("factorGroupFromDataRecordGroup", recordWithId);
 
 		var collectedLinks = linkCollector.MCR.assertCalledParametersReturn("collectLinks",
-				definitionId, recordAsDataGroup2);
+				definitionId, recordAsDataGroup);
 		recordStorage.MCR.assertParameterAsEqual("recordExists", 0, "types", List.of("toType"));
 		recordStorage.MCR.assertParameterAsEqual("recordExists", 0, "id", "toId");
 		recordStorage.MCR.assertParameterAsEqual("recordExists", 1, "types", List.of("toType2"));
 		recordStorage.MCR.assertParameterAsEqual("recordExists", 1, "id", "toId2");
 		recordStorage.MCR.assertNumberOfCallsToMethod("recordExists", 2);
 
+		var recordType = recordWithId.MCR.assertCalledParametersReturn("getType");
+		var recordId = recordWithId.MCR.assertCalledParametersReturn("getId");
 		var dataDivider = recordWithId.MCR.assertCalledParametersReturn("getDataDivider");
 
-		var recordAsDAtaGroupForStorage = dataFactorySpy.MCR
-				.assertCalledParametersReturn("factorGroupFromDataRecordGroup", recordWithId);
+		recordStorage.MCR.assertCalledParameters("update", recordType, recordId, recordAsDataGroup,
+				collectTerms.storageTerms, collectedLinks, dataDivider);
 
-		// CollectTerms collectedTerms = (CollectTerms) termCollector.MCR
-		// .getReturnValue("collectTerms", 1);
-		//
-		// var links = linkCollector.MCR.getReturnValue("collectLinks", 0);
-		//
-		// var recordAsDataGroup3 =
-		// dataFactorySpy.MCR.getReturnValue("factorGroupFromDataRecordGroup",
-		// 2);
-		// recordStorage.MCR.assertParameters("update", 0, RECORD_TYPE, RECORD_ID,
-		// recordAsDataGroup3,
-		// collectedTerms.storageTerms, links);
-		//
-		// assertCorrectSearchTermCollectorAndIndexer();
+		var sender = getDataChangedSender();
+		sender.MCR.assertCalledParameters("sendDataChanged", recordType, recordId, "update");
+
+		recordArchive.MCR.assertCalledParameters("update", dataDivider, recordType, recordId,
+				recordAsDataGroup);
+		recordArchive.MCR.assertMethodNotCalled("create");
+
+		recordIndexer.MCR.assertCalledParameters("indexData", recordType, recordId,
+				collectTerms.indexTerms, recordWithId);
 	}
 
-	// TODO: new test where we throw exception as link does not exist..
-	// TODO: new test where inTrash true, collectedLinks is empty set
-
-	private void setupForInternal() {
+	@Test(expectedExceptions = DataException.class, expectedExceptionsMessageRegExp = ""
+			+ "Data is not valid: linkedRecord does not exists in storage for recordType: toType "
+			+ "and recordId: toId")
+	public void testInternalUpdate_ExceptionForMissingLinkTarget() {
 		setUpLinkCollectorToReturnTwoLinks();
-		recordStorage.MRV.setDefaultReturnValuesSupplier("recordExists", () -> true);
+		recordStorage.MRV.setDefaultReturnValuesSupplier("recordExists", () -> false);
+
+		recordUpdater.internalUpdateRecord(recordWithId, "someUserId");
+	}
+
+	@Test
+	public void testInternalUpdate_isInTrashBinNoCollectedLinksToStorage() {
+		recordWithId.MRV.setDefaultReturnValuesSupplier("isInTrashBin", () -> Optional.of(true));
+
+		recordUpdater.internalUpdateRecord(recordWithId, "someUserId");
+
+		recordStorage.MCR.assertParameterAsEqual("update", 0, "links", Collections.emptySet());
+	}
+
+	@Test
+	public void testInternalUpdate_storeInArchiveFalseNoStoreInArchive() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> false);
+
+		recordUpdater.internalUpdateRecord(recordWithId, "someUserId");
+
+		recordArchive.MCR.assertMethodNotCalled("update");
+		recordArchive.MCR.assertMethodNotCalled("create");
+	}
+
+	@Test
+	public void testInternalUpdate_storeInArchiveRecordNotFoundCreateCalled() {
+		recordTypeHandlerSpy.MRV.setDefaultReturnValuesSupplier("storeInArchive", () -> true);
+		recordArchive.MRV.setAlwaysThrowException("update",
+				RecordNotFoundException.withMessage("sorry not found"));
+
+		recordUpdater.internalUpdateRecord(recordWithId, "someUserId");
+
+		var recordAsDataGroup = dataFactorySpy.MCR
+				.assertCalledParametersReturn("factorGroupFromDataRecordGroup", recordWithId);
+
+		var recordType = recordWithId.MCR.assertCalledParametersReturn("getType");
+		var recordId = recordWithId.MCR.assertCalledParametersReturn("getId");
+		var dataDivider = recordWithId.MCR.assertCalledParametersReturn("getDataDivider");
+
+		recordArchive.MCR.assertCalledParameters("update", dataDivider, recordType, recordId,
+				recordAsDataGroup);
+		recordArchive.MCR.assertCalledParameters("create", dataDivider, recordType, recordId,
+				recordAsDataGroup);
 	}
 
 	private void setUpLinkCollectorToReturnTwoLinks() {
