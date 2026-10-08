@@ -46,7 +46,9 @@ import se.uu.ub.cora.spider.binary.Uploader;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
+import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.MisuseException;
+import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.resourceconvert.ResourceConvert;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -97,12 +99,6 @@ public final class UploaderImp implements Uploader {
 		return new UploaderImp(dependencyProvider, resourceConvert, mimeTypeToBinaryType);
 	}
 
-	// IF ANY UPDATE to binary record a SuperUser should be used, not the user sent throug the
-	// upload. Possible solution might be to call recordUpdaterImp from a new method after normal
-	// security checks are done in recordUpdaterImp, and take advantage of storage, index, archive,
-	// enhance and ohter parts from recordUpdaterImp
-	// TODO: If the given user is not used to update the binary record, how do we log the
-	// uploading of the resource by that user?
 	@Override
 	public DataRecord upload(String authToken, String type, String id, InputStream resourceStream,
 			String resourceType) {
@@ -118,9 +114,11 @@ public final class UploaderImp implements Uploader {
 		dataDivider = dataRecordGroup.getDataDivider();
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
-		tryToCheckUserIsAuthorisedToUploadData(dataRecordGroup);
 
-		return uploadAnalyzeStoreAndCallConvert(resourceStream, dataRecordGroup);
+		tryToCheckUserIsAuthorisedToUploadData(dataRecordGroup);
+		storeBinaryToArchive(resourceStream);
+
+		return tryToAnalyzeAndProcessBinary(resourceStream, dataRecordGroup);
 	}
 
 	protected void tryToGetUserForToken() {
@@ -201,7 +199,7 @@ public final class UploaderImp implements Uploader {
 	private void tryToCheckUserIsAuthorizedForPemissionUnit(String permissionUnit) {
 		try {
 			spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, permissionUnit);
-		} catch (Exception e) {
+		} catch (Exception _) {
 			throw notAuthorizedDueToUserDoNotMatchRecordsPermissionUnit();
 		}
 	}
@@ -224,31 +222,35 @@ public final class UploaderImp implements Uploader {
 		return termCollector.collectTerms(definitionId, dataRecordGroup);
 	}
 
-	private DataRecord uploadAnalyzeStoreAndCallConvert(InputStream resourceStream,
+	private DataRecord tryToAnalyzeAndProcessBinary(InputStream resourceStream,
 			DataRecordGroup dataRecordGroup) {
-		storeResourceStreamInArchive(resourceStream);
-
-		verifyArchiveDataIntegrity(dataRecordGroup);
-		removeExpectedAtomicsFromBinaryRecord(dataRecordGroup);
-
-		String detectedMimeType = detectMimeTypeFromResourceInArchive(dataDivider);
-
-		String originalFileName = dataRecordGroup
-				.getFirstAtomicValueWithNameInData(ORIGINAL_FILE_NAME);
-		updateOriginalFileNameAndMimeTypeInArchive(originalFileName, detectedMimeType);
-
-		// uppdatera posten i storage
-		// skicka till analys och konvertering
-
-		DataRecord updatedRecord = updateRecordInStorageUsingCalculatedAndInfoFromArchive(
-				dataRecordGroup, detectedMimeType);
-
-		// send message for "Read metadata and convert to small formats"
-		possiblySendToConvert(detectedMimeType);
-		return updatedRecord;
+		try {
+			return analyzeAndProcessBinary(dataRecordGroup);
+		} catch (Throwable t) {
+			setFailedStatusAndAddProcessingMessageToRecordAndStore(dataRecordGroup, t.getMessage());
+			throw t;
+		}
 	}
 
-	private void storeResourceStreamInArchive(InputStream resourceStream) {
+	private DataRecord analyzeAndProcessBinary(DataRecordGroup dataRecordGroup) {
+		verifyArchiveDataIntegrity(dataRecordGroup);
+		try {
+			String detectedMimeType = detectMimeTypeFromResourceInArchive(dataDivider);
+			updateRecordAccordingUploadedBinary(dataRecordGroup, detectedMimeType);
+			possiblySendToConvert(detectedMimeType);
+			return readRecord();
+		} catch (Exception e) {
+			throw new DataException("Something went wrong while processing the binary.", e);
+		}
+	}
+
+	private void updateRecordAccordingUploadedBinary(DataRecordGroup dataRecordGroup,
+			String detectedMimeType) {
+		updateOriginalFileNameAndMimeTypeInArchive(dataRecordGroup, detectedMimeType);
+		updateRecordInStorageUsingCalculatedAndInfoFromArchive(dataRecordGroup, detectedMimeType);
+	}
+
+	private void storeBinaryToArchive(InputStream resourceStream) {
 		resourceArchive.createMasterResource(dataDivider, type, id, resourceStream,
 				MIME_TYPE_GENERIC);
 	}
@@ -273,18 +275,23 @@ public final class UploaderImp implements Uploader {
 				.getFirstAtomicValueWithNameInData(EXPECTED_FILE_SIZE);
 		String archiveFileSize = resourceMetadata.fileSize();
 		if (!expectedFileSize.equals(archiveFileSize)) {
-			throw deleteArchiveDataAndThrowException("file size", expectedFileSize,
-					archiveFileSize);
+			setFailedStatusAndRemoveUploadedBinary("file size", expectedFileSize, archiveFileSize);
 		}
 	}
 
-	private ArchiveDataIntergrityException deleteArchiveDataAndThrowException(String expectType,
-			String expectedData, String archiveData) {
-		resourceArchive.delete(dataDivider, type, id);
-		return ArchiveDataIntergrityException.withMessage(MessageFormat.format(
+	private void setFailedStatusAndRemoveUploadedBinary(String verificationType,
+			String expectedVaule, String actualValue) {
+		String verificationMessage = MessageFormat.format(
 				"The {0} verification of uploaded data failed: the actual value was: {1}"
 						+ " but the expected value was: {2}.",
-				expectType, archiveData, expectedData));
+				verificationType, actualValue, expectedVaule);
+		throw deleteArchiveDataAndThrowException(verificationMessage);
+	}
+
+	private ArchiveDataIntergrityException deleteArchiveDataAndThrowException(
+			String verificationMessage) {
+		resourceArchive.delete(dataDivider, type, id);
+		return ArchiveDataIntergrityException.withMessage(verificationMessage);
 	}
 
 	private void possiblyVerifyExpectedChecksum(DataRecordGroup dataRecordGroup,
@@ -300,8 +307,15 @@ public final class UploaderImp implements Uploader {
 				.getFirstAtomicValueWithNameInData(EXPECTED_CHECKSUM);
 		String archiveChecksum = resourceMetadata.checksumSHA512();
 		if (!expectedChecksum.equals(archiveChecksum)) {
-			throw deleteArchiveDataAndThrowException("checksum", expectedChecksum, archiveChecksum);
+			setFailedStatusAndRemoveUploadedBinary("checksum", expectedChecksum, archiveChecksum);
 		}
+	}
+
+	private void setFailedStatusAndAddProcessingMessageToRecordAndStore(
+			DataRecordGroup dataRecordGroup, String verificationMessage) {
+		setStatus(dataRecordGroup, "failed");
+		addProcessingMessage(dataRecordGroup, verificationMessage);
+		updateRecord(dataRecordGroup);
 	}
 
 	private void possiblySendToConvert(String detectedMimeType) {
@@ -322,39 +336,58 @@ public final class UploaderImp implements Uploader {
 		return detectedMimeType.startsWith("image/");
 	}
 
-	private void updateOriginalFileNameAndMimeTypeInArchive(String originalFileName,
+	private void updateOriginalFileNameAndMimeTypeInArchive(DataRecordGroup dataRecordGroup,
 			String detectedMimeType) {
-		ResourceMetadataToUpdate resourceMetadataToUpdate = new ResourceMetadataToUpdate(
-				originalFileName, detectedMimeType);
+		String originalFileName = dataRecordGroup
+				.getFirstAtomicValueWithNameInData(ORIGINAL_FILE_NAME);
+
 		resourceArchive.updateMasterResourceMetadata(dataDivider, type, id,
-				resourceMetadataToUpdate);
+				new ResourceMetadataToUpdate(originalFileName, detectedMimeType));
 	}
 
-	private DataRecord updateRecordInStorageUsingCalculatedAndInfoFromArchive(
+	private void updateRecordInStorageUsingCalculatedAndInfoFromArchive(
 			DataRecordGroup dataRecordGroup, String detectedMimeType) {
-		setStatusToUploaded(dataRecordGroup);
+		removeExpectedAtomicsFromBinaryRecord(dataRecordGroup);
+		setCorrectStatusForMediaType(dataRecordGroup, detectedMimeType);
 		createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(dataRecordGroup,
 				detectedMimeType);
-		return updateRecord(dataRecordGroup);
+		updateRecord(dataRecordGroup);
 	}
 
-	private void setStatusToUploaded(DataRecordGroup dataRecordGroup) {
+	private void setCorrectStatusForMediaType(DataRecordGroup dataRecordGroup,
+			String detectedMimeType) {
+		if (isImage(detectedMimeType) || isPdf(detectedMimeType)) {
+			setStatus(dataRecordGroup, "uploaded");
+		} else {
+			setStatus(dataRecordGroup, "done");
+		}
+	}
+
+	private void setStatus(DataRecordGroup dataRecordGroup, String status) {
 		DataGroup recordInfo = dataRecordGroup.getFirstChildOfTypeAndName(DataGroup.class,
 				"recordInfo");
 		recordInfo.removeFirstChildWithTypeAndName(DataAtomic.class, STATUS);
 		DataAtomic statusUploaded = DataProvider.createAtomicUsingNameInDataAndValue(STATUS,
-				"uploaded");
+				status);
 		recordInfo.addChild(statusUploaded);
 	}
 
-	private DataRecord updateRecord(DataRecordGroup dataRecordGroup) {
+	private void addProcessingMessage(DataRecordGroup dataRecordGroup, String message) {
+		DataGroup recordInfo = dataRecordGroup.getFirstChildOfTypeAndName(DataGroup.class,
+				"recordInfo");
+		DataAtomic processingMessage = DataProvider
+				.createAtomicUsingNameInDataAndValue("processingMessage", message);
+		recordInfo.addChild(processingMessage);
+	}
+
+	private void updateRecord(DataRecordGroup dataRecordGroup) {
 		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
-		// TODO: spike
-		// return recordUpdater.updateRecord(authToken, type, id, dataRecordGroup);
-		// recordUpdater.internalUpdateRecord(dataRecordGroup, user.id);
-		// RecordReader recordReader = SpiderInstanceProvider.getRecordReader();
-		// return recordReader.readRecord(authToken, BINARY_RECORD_TYPE, id);
-		// TODO: end spike
+		recordUpdater.internalUpdateRecord(dataRecordGroup, user.id);
+	}
+
+	private DataRecord readRecord() {
+		RecordReader recordReader = SpiderInstanceProvider.getRecordReader();
+		return recordReader.readRecord(authToken, BINARY_RECORD_TYPE, id);
 	}
 
 	private String detectMimeTypeFromResourceInArchive(String dataDivider) {
