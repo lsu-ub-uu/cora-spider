@@ -116,6 +116,7 @@ public final class UploaderImp implements Uploader {
 				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
 
 		tryToCheckUserIsAuthorisedToUploadData(dataRecordGroup);
+		// TODO: Surround with Cora exception
 		storeBinaryToArchive(resourceStream);
 
 		return tryToAnalyzeAndProcessBinary(resourceStream, dataRecordGroup);
@@ -233,12 +234,14 @@ public final class UploaderImp implements Uploader {
 	}
 
 	private DataRecord analyzeAndProcessBinary(DataRecordGroup dataRecordGroup) {
-		verifyArchiveDataIntegrity(dataRecordGroup);
+		verifyArchiveDataIntegrity(dataRecordGroup); // Move out to higher level. Not in the try
+														// /catch
 		try {
 			String detectedMimeType = detectMimeTypeFromResourceInArchive(dataDivider);
 			updateRecordAccordingUploadedBinary(dataRecordGroup, detectedMimeType);
-			possiblySendToConvert(detectedMimeType);
-			return readRecord();
+			// Until here, remove stream if failed
+			possiblySendToConvert(detectedMimeType); // -> Failed
+			return readRecord(); //
 		} catch (Exception e) {
 			throw new DataException("Something went wrong while processing the binary.", e);
 		}
