@@ -200,6 +200,11 @@ public class UploaderTest {
 	}
 
 	@Test
+	public void testLoggerStarted() {
+		loggerFactory.MCR.assertParameters("factorForClass", 0, UploaderImp.class);
+	}
+
+	@Test
 	public void testUploadStoreResourceIntoArchive() {
 		DataRecord binaryRecord = uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE,
 				SOME_RECORD_ID, someStream, RESOURCE_TYPE_MASTER);

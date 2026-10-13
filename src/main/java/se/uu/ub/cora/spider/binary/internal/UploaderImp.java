@@ -81,7 +81,7 @@ public final class UploaderImp implements Uploader {
 	private String dataDivider;
 	private MimeTypeToBinaryType mimeTypeToBinaryType;
 	private RecordTypeHandler recordTypeHandler;
-	private Logger logger = LoggerProvider.getLoggerForClass(null);
+	private Logger logger = LoggerProvider.getLoggerForClass(UploaderImp.class);
 
 	private UploaderImp(SpiderDependencyProvider dependencyProvider,
 			ResourceConvert resourceConvert, MimeTypeToBinaryType mimeTypeToBinaryType) {
