@@ -51,7 +51,6 @@ import se.uu.ub.cora.spider.binary.internal.UploaderImp;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerOldSpy;
-import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
@@ -114,6 +113,7 @@ public class UploaderTest {
 	private MimeTypeToBinaryTypeSpy mimeTypeToBinaryType;
 	private ContentAnalyzerSpy contentAnalyzer;
 	private LoggerSpy logger;
+	private RecordReaderSpy recordReader;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -140,6 +140,8 @@ public class UploaderTest {
 		spiderInstanceFactory = new SpiderInstanceFactorySpy();
 		spiderInstanceFactory.MRV.setDefaultReturnValuesSupplier("factorRecordUpdater",
 				() -> recordUpdater);
+
+		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
 	}
 
 	private void setUpDependencyProvider() {
@@ -152,11 +154,10 @@ public class UploaderTest {
 				() -> authorizator);
 
 		recordStorage = new RecordStorageSpy();
+		dataRecordGroupSpy = createDataRecordGroupSpy();
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> dataRecordGroupSpy);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
-		createDataRecordGroupSpy();
-
-		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> dataRecordGroupSpy);
 
 		resourceArchive = new ResourceArchiveSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getResourceArchive",
@@ -171,16 +172,15 @@ public class UploaderTest {
 		termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
 				() -> termCollector);
-
-		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
 	}
 
-	private void createDataRecordGroupSpy() {
-		dataRecordGroupSpy = new DataRecordGroupSpy();
-		dataRecordGroupSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider",
+	private DataRecordGroupSpy createDataRecordGroupSpy() {
+		DataRecordGroupSpy localDataRecordGroupSpy = new DataRecordGroupSpy();
+		localDataRecordGroupSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider",
 				() -> "someDataDivider");
-		dataRecordGroupSpy.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
+		localDataRecordGroupSpy.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
 				() -> recordInfo, DataGroup.class, "recordInfo");
+		return localDataRecordGroupSpy;
 	}
 
 	private void setLogger() {
@@ -488,7 +488,7 @@ public class UploaderTest {
 		assertMasterIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
 		assertRemoveExpectedFieldsFromBinaryRecord(readBinarySpy);
 
-		assertStoreToStorageUsingInternalMethod(readBinarySpy);
+		assertStoreToStorageUsingInternalMethod(readBinarySpy, 0);
 	}
 
 	@Test
@@ -507,10 +507,12 @@ public class UploaderTest {
 		recordReader.MCR.assertReturn("readRecord", 0, returnedRecord);
 	}
 
-	private void assertStoreToStorageUsingInternalMethod(DataRecordGroupSpy readBinarySpy) {
+	private void assertStoreToStorageUsingInternalMethod(DataRecordGroupSpy readBinarySpy,
+			int callNumber) {
 		User user = (User) authenticator.MCR.assertCalledParametersReturn("getUserForToken",
 				SOME_AUTH_TOKEN);
-		recordUpdater.MCR.assertParameters("internalUpdateRecord", 0, readBinarySpy, user.id);
+		recordUpdater.MCR.assertParameters("internalUpdateRecord", callNumber, readBinarySpy,
+				user.id);
 	}
 
 	private void assertSetStatus(String status) {
@@ -524,7 +526,7 @@ public class UploaderTest {
 
 	private void assertAddProccessingMessage(String message) {
 		DataAtomicSpy messageAtomic = (DataAtomicSpy) dataFactorySpy.MCR
-				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValue",
+				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValueAndRepeatId",
 						"processingMessage", message);
 		recordInfo.MCR.assertCalledParameters("addChild", messageAtomic);
 	}
@@ -778,14 +780,6 @@ public class UploaderTest {
 		}
 	}
 
-	private void assertSetFailedStatusAndAddProcessingMessages(DataRecordGroupSpy readBinarySpy,
-			String verificationMessage) {
-
-		assertSetStatus("failed");
-		assertAddProccessingMessage(verificationMessage);
-		assertStoreToStorageUsingInternalMethod(readBinarySpy);
-	}
-
 	@Test
 	public void testContentAnalyzerFailsThenRemoveUploadedFile() {
 		var originialException = BinaryException.withMessage("someError");
@@ -797,6 +791,7 @@ public class UploaderTest {
 			fail("An exception should have been thrown");
 		} catch (Exception e) {
 
+			// TODO: Should throw 415 Unsupported Media Type
 			assertTrue(e instanceof ArchiveDataIntergrityException);
 			assertEquals(e.getMessage(), "The mimeType of the file could not determined. Make sure "
 					+ "the file is readable and has a known mimeType, and try to upload again.");
@@ -859,7 +854,7 @@ public class UploaderTest {
 	}
 
 	@Test
-	public void testFailerToSendToConverters() {
+	public void testFailedToSendToConverters() {
 		setContentAnalyzerUsingMediaTypeToReturn("image/whatever");
 		RuntimeException originException = new RuntimeException();
 		resourceConvert.MRV.setAlwaysThrowException("sendMessageForAnalyzingAndConvertingImages",
@@ -870,15 +865,19 @@ public class UploaderTest {
 					RESOURCE_TYPE_MASTER);
 			fail("An exception should have been thrown");
 		} catch (Exception e) {
-			assertTrue(e instanceof DataException);
+			assertTrue(e instanceof RuntimeException);
 
-			String errorMessage = "Something went wrong while processing the binary.";
+			String message = "Could not send file to converters due to an error. Try to resend it again "
+					+ "later. If problem persists contact support.";
 
-			assertEquals(e.getMessage(), errorMessage);
-			assertEquals(e.getCause(), originException);
+			assertEquals(e.getMessage(), message);
+			logger.MCR.assertParameters("logErrorUsingMessageAndException", 0, message,
+					originException);
 
 			DataRecordGroupSpy readBinarySpy = getReadRecordFromStorage();
-			assertSetFailedStatusAndAddProcessingMessages(readBinarySpy, errorMessage);
+			assertSetStatus("failed");
+			assertAddProccessingMessage(message);
+			assertStoreToStorageUsingInternalMethod(readBinarySpy, 1);
 		}
 	}
 

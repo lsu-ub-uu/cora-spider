@@ -48,7 +48,6 @@ import se.uu.ub.cora.spider.binary.Uploader;
 import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
-import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordUpdater;
@@ -119,7 +118,6 @@ public final class UploaderImp implements Uploader {
 				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
 
 		tryToCheckUserIsAuthorisedToUploadData(dataRecordGroup);
-		// TODO: Surround with Cora exception
 		storeBinaryToArchive(resourceStream);
 
 		return analyzeAndProcessBinary(dataRecordGroup);
@@ -230,20 +228,22 @@ public final class UploaderImp implements Uploader {
 		verifyArchiveDataIntegrity(dataRecordGroup);
 		String detectedMimeType = tryToDetectMimeType();
 		tryToUpdateRecordAccordingUploadedBinary(dataRecordGroup, detectedMimeType);
+		tryToSendToConverters(dataRecordGroup, detectedMimeType);
+		return readRecord();
+	}
 
+	private void tryToSendToConverters(DataRecordGroup dataRecordGroup, String detectedMimeType) {
 		try {
 			possiblySendToConvert(detectedMimeType); // -> Failed
-		} catch (Exception t) {
-			// setStatus(dataRecordGroup, "failed");
-			// addProcessingMessage(dataRecordGroup, t.getMessage());
-			// updateRecord(dataRecordGroup);
-			// throw something
-		}
-
-		try {
-			return readRecord(); // Do not know what to do.
 		} catch (Exception e) {
-			throw new DataException("Something went wrong while processing the binary.", e);
+			String message = "Could not send file to converters due to an error. Try to resend it again "
+					+ "later. If problem persists contact support.";
+			logger.logErrorUsingMessageAndException(message, e);
+
+			setStatus(dataRecordGroup, "failed");
+			addProcessingMessage(dataRecordGroup, message);
+			updateRecord(dataRecordGroup);
+			throw new RuntimeException(message);
 		}
 	}
 
@@ -347,13 +347,6 @@ public final class UploaderImp implements Uploader {
 		return ArchiveDataIntergrityException.withMessageAndException(message, e);
 	}
 
-	private void setFailedStatusAndAddProcessingMessageToRecordAndStore(
-			DataRecordGroup dataRecordGroup, String verificationMessage) {
-		setStatus(dataRecordGroup, "failed");
-		addProcessingMessage(dataRecordGroup, verificationMessage);
-		updateRecord(dataRecordGroup);
-	}
-
 	private void possiblySendToConvert(String detectedMimeType) {
 		if (isImage(detectedMimeType)) {
 			resourceConvert.sendMessageForAnalyzingAndConvertingImages(dataDivider, type, id,
@@ -412,7 +405,7 @@ public final class UploaderImp implements Uploader {
 		DataGroup recordInfo = dataRecordGroup.getFirstChildOfTypeAndName(DataGroup.class,
 				"recordInfo");
 		DataAtomic processingMessage = DataProvider
-				.createAtomicUsingNameInDataAndValue("processingMessage", message);
+				.createAtomicUsingNameInDataAndValueAndRepeatId("processingMessage", message, null);
 		recordInfo.addChild(processingMessage);
 	}
 
