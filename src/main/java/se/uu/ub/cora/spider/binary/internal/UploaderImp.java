@@ -37,6 +37,8 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.logger.Logger;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
@@ -80,6 +82,7 @@ public final class UploaderImp implements Uploader {
 	private String dataDivider;
 	private MimeTypeToBinaryType mimeTypeToBinaryType;
 	private RecordTypeHandler recordTypeHandler;
+	private Logger logger = LoggerProvider.getLoggerForClass(null);
 
 	private UploaderImp(SpiderDependencyProvider dependencyProvider,
 			ResourceConvert resourceConvert, MimeTypeToBinaryType mimeTypeToBinaryType) {
@@ -119,7 +122,7 @@ public final class UploaderImp implements Uploader {
 		// TODO: Surround with Cora exception
 		storeBinaryToArchive(resourceStream);
 
-		return tryToAnalyzeAndProcessBinary(resourceStream, dataRecordGroup);
+		return analyzeAndProcessBinary(dataRecordGroup);
 	}
 
 	protected void tryToGetUserForToken() {
@@ -223,39 +226,25 @@ public final class UploaderImp implements Uploader {
 		return termCollector.collectTerms(definitionId, dataRecordGroup);
 	}
 
-	private DataRecord tryToAnalyzeAndProcessBinary(InputStream resourceStream,
-			DataRecordGroup dataRecordGroup) {
-		try {
-			return analyzeAndProcessBinary(dataRecordGroup);
-		} catch (Throwable t) {
-			setFailedStatusAndAddProcessingMessageToRecordAndStore(dataRecordGroup, t.getMessage());
-			throw t;
-		}
-	}
-
 	private DataRecord analyzeAndProcessBinary(DataRecordGroup dataRecordGroup) {
-		verifyArchiveDataIntegrity(dataRecordGroup); // Move out to higher level. Not in the try
-														// /catch
+		verifyArchiveDataIntegrity(dataRecordGroup);
+		String detectedMimeType = tryToDetectMimeType();
+		tryToUpdateRecordAccordingUploadedBinary(dataRecordGroup, detectedMimeType);
+
 		try {
-			String detectedMimeType = detectMimeTypeFromResourceInArchive(dataDivider);
-			updateRecordAccordingUploadedBinary(dataRecordGroup, detectedMimeType);
-			// Until here, remove stream if failed
 			possiblySendToConvert(detectedMimeType); // -> Failed
-			return readRecord(); //
+		} catch (Exception t) {
+			// setStatus(dataRecordGroup, "failed");
+			// addProcessingMessage(dataRecordGroup, t.getMessage());
+			// updateRecord(dataRecordGroup);
+			// throw something
+		}
+
+		try {
+			return readRecord(); // Do not know what to do.
 		} catch (Exception e) {
 			throw new DataException("Something went wrong while processing the binary.", e);
 		}
-	}
-
-	private void updateRecordAccordingUploadedBinary(DataRecordGroup dataRecordGroup,
-			String detectedMimeType) {
-		updateOriginalFileNameAndMimeTypeInArchive(dataRecordGroup, detectedMimeType);
-		updateRecordInStorageUsingCalculatedAndInfoFromArchive(dataRecordGroup, detectedMimeType);
-	}
-
-	private void storeBinaryToArchive(InputStream resourceStream) {
-		resourceArchive.createMasterResource(dataDivider, type, id, resourceStream,
-				MIME_TYPE_GENERIC);
 	}
 
 	private void verifyArchiveDataIntegrity(DataRecordGroup dataRecordGroup) {
@@ -278,23 +267,18 @@ public final class UploaderImp implements Uploader {
 				.getFirstAtomicValueWithNameInData(EXPECTED_FILE_SIZE);
 		String archiveFileSize = resourceMetadata.fileSize();
 		if (!expectedFileSize.equals(archiveFileSize)) {
-			setFailedStatusAndRemoveUploadedBinary("file size", expectedFileSize, archiveFileSize);
+			removeUploadedBinaryAndThowException("file size", expectedFileSize, archiveFileSize);
 		}
 	}
 
-	private void setFailedStatusAndRemoveUploadedBinary(String verificationType,
-			String expectedVaule, String actualValue) {
+	private void removeUploadedBinaryAndThowException(String verificationType, String expectedVaule,
+			String actualValue) {
+		resourceArchive.delete(dataDivider, type, id);
 		String verificationMessage = MessageFormat.format(
 				"The {0} verification of uploaded data failed: the actual value was: {1}"
 						+ " but the expected value was: {2}.",
 				verificationType, actualValue, expectedVaule);
-		throw deleteArchiveDataAndThrowException(verificationMessage);
-	}
-
-	private ArchiveDataIntergrityException deleteArchiveDataAndThrowException(
-			String verificationMessage) {
-		resourceArchive.delete(dataDivider, type, id);
-		return ArchiveDataIntergrityException.withMessage(verificationMessage);
+		throw ArchiveDataIntergrityException.withMessage(verificationMessage);
 	}
 
 	private void possiblyVerifyExpectedChecksum(DataRecordGroup dataRecordGroup,
@@ -310,8 +294,57 @@ public final class UploaderImp implements Uploader {
 				.getFirstAtomicValueWithNameInData(EXPECTED_CHECKSUM);
 		String archiveChecksum = resourceMetadata.checksumSHA512();
 		if (!expectedChecksum.equals(archiveChecksum)) {
-			setFailedStatusAndRemoveUploadedBinary("checksum", expectedChecksum, archiveChecksum);
+			removeUploadedBinaryAndThowException("checksum", expectedChecksum, archiveChecksum);
 		}
+	}
+
+	private void tryToUpdateRecordAccordingUploadedBinary(DataRecordGroup dataRecordGroup,
+			String detectedMimeType) {
+		try {
+			updateRecordAccordingUploadedBinary(dataRecordGroup, detectedMimeType);
+		} catch (Exception e) {
+			resourceArchive.delete(dataDivider, type, id);
+
+			logErrorWithMessageToFormat("Metadata could not be updated for binary record, with "
+					+ "dataDivider: %s, type: %s and id: %s.", e);
+
+			String exceptionMessage = "The metadata for the updated file could not be stored in the system. "
+					+ "Please try again later. If the problem persists, contact support.";
+			throw ArchiveDataIntergrityException.withMessage(exceptionMessage);
+		}
+	}
+
+	private void logErrorWithMessageToFormat(String internalMessage, Exception e) {
+		String formattedInternalMessage = String.format(internalMessage, dataDivider, type, id);
+		logger.logErrorUsingMessageAndException(formattedInternalMessage, e);
+	}
+
+	private void updateRecordAccordingUploadedBinary(DataRecordGroup dataRecordGroup,
+			String detectedMimeType) {
+		updateOriginalFileNameAndMimeTypeInArchive(dataRecordGroup, detectedMimeType);
+		updateRecordInStorageUsingCalculatedAndInfoFromArchive(dataRecordGroup, detectedMimeType);
+	}
+
+	private void storeBinaryToArchive(InputStream resourceStream) {
+		resourceArchive.createMasterResource(dataDivider, type, id, resourceStream,
+				MIME_TYPE_GENERIC);
+	}
+
+	private String tryToDetectMimeType() {
+		try {
+			return detectMimeTypeFromResourceInArchive(dataDivider);
+		} catch (Exception e) {
+			resourceArchive.delete(dataDivider, type, id);
+			logErrorWithMessageToFormat("Could not determine the mimeType of the file for "
+					+ "binary record, with dataDivider: %s, type: %s and id: %s.", e);
+			throw throwExceptionForFailedMimeTypeDetection(e);
+		}
+	}
+
+	private ArchiveDataIntergrityException throwExceptionForFailedMimeTypeDetection(Exception e) {
+		String message = "The mimeType of the file could not determined. Make sure the file is"
+				+ " readable and has a known mimeType, and try to upload again.";
+		return ArchiveDataIntergrityException.withMessageAndException(message, e);
 	}
 
 	private void setFailedStatusAndAddProcessingMessageToRecordAndStore(
