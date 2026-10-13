@@ -404,8 +404,8 @@ public final class UploaderImp implements Uploader {
 	private void addProcessingMessage(DataRecordGroup dataRecordGroup, String message) {
 		DataGroup recordInfo = dataRecordGroup.getFirstChildOfTypeAndName(DataGroup.class,
 				"recordInfo");
-		DataAtomic processingMessage = DataProvider
-				.createAtomicUsingNameInDataAndValueAndRepeatId("processingMessage", message, null);
+		DataAtomic processingMessage = DataProvider.createAtomicUsingNameInDataAndValueAndRepeatId(
+				"processingMessage", message, String.valueOf(System.currentTimeMillis()));
 		recordInfo.addChild(processingMessage);
 	}
 

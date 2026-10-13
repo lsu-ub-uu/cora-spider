@@ -525,6 +525,11 @@ public class UploaderTest {
 	}
 
 	private void assertAddProccessingMessage(String message) {
+		String repeatId = (String) dataFactorySpy.MCR
+				.getParameterForMethodAndCallNumberAndParameter(
+						"factorAtomicUsingNameInDataAndValueAndRepeatId", 0, "repeatId");
+		assertEquals(repeatId.length(), 13);
+
 		DataAtomicSpy messageAtomic = (DataAtomicSpy) dataFactorySpy.MCR
 				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValueAndRepeatId",
 						"processingMessage", message);
