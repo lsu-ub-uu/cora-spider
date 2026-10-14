@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2019, 2023, 2025 Uppsala University Library
+ * Copyright 2015, 2016, 2019, 2023, 2025, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -28,8 +28,12 @@ import java.util.Optional;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.beefeater.authentication.User;
+import se.uu.ub.cora.binary.BinaryException;
 import se.uu.ub.cora.binary.BinaryProvider;
+import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataChild;
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.collected.CollectTerms;
@@ -38,9 +42,9 @@ import se.uu.ub.cora.data.spies.DataFactorySpy;
 import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataResourceLinkSpy;
-import se.uu.ub.cora.logger.LoggerFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
+import se.uu.ub.cora.logger.spies.LoggerSpy;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
 import se.uu.ub.cora.spider.binary.internal.UploaderImp;
@@ -56,6 +60,7 @@ import se.uu.ub.cora.spider.spy.ContentAnalyzerSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.MimeTypeToBinaryTypeSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
+import se.uu.ub.cora.spider.testspies.RecordReaderSpy;
 import se.uu.ub.cora.spider.testspies.RecordUpdaterSpy;
 import se.uu.ub.cora.spider.testspies.SpiderInstanceFactorySpy;
 import se.uu.ub.cora.storage.archive.record.ResourceMetadataToUpdate;
@@ -64,6 +69,8 @@ import se.uu.ub.cora.storage.spies.archive.InputStreamSpy;
 import se.uu.ub.cora.storage.spies.archive.ResourceArchiveSpy;
 
 public class UploaderTest {
+	private static final String DONE = "done";
+	private static final String UPLOADED = "uploaded";
 	private static final String SHA512 = "SHA-512";
 	private static final String EXPECTED_ORIGINAL_FILE_NAME = "expectedOriginalFileName";
 	private static final String EXPECTED_FILE_SIZE = "expectedFileSize";
@@ -98,11 +105,15 @@ public class UploaderTest {
 	private SpiderInstanceFactorySpy spiderInstanceFactory;
 	private DataFactorySpy dataFactorySpy;
 	private RecordTypeHandlerOldSpy recordTypeHandler;
-	private LoggerFactory loggerFactory;
+	private LoggerFactorySpy loggerFactory;
 	private ContentAnalyzerInstanceProviderSpy contentAnalyzeInstanceProviderSpy;
 	private ResourceConvertSpy resourceConvert;
 	private DataRecordGroupSpy dataRecordGroupSpy;
+	private DataGroupSpy recordInfo = new DataGroupSpy();
 	private MimeTypeToBinaryTypeSpy mimeTypeToBinaryType;
+	private ContentAnalyzerSpy contentAnalyzer;
+	private LoggerSpy logger;
+	private RecordReaderSpy recordReader;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -114,13 +125,8 @@ public class UploaderTest {
 		DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		setUpSpiderInstanceProvider();
 		setUpDependencyProvider();
-
-		loggerFactory = new LoggerFactorySpy();
-		LoggerProvider.setLoggerFactory(loggerFactory);
-
-		contentAnalyzeInstanceProviderSpy = new ContentAnalyzerInstanceProviderSpy();
-		BinaryProvider
-				.onlyForTestSetContentAnalyzerInstanceProvider(contentAnalyzeInstanceProviderSpy);
+		setLogger();
+		setContentAnalyzer();
 
 		someStream = new InputStreamSpy();
 		resourceConvert = new ResourceConvertSpy();
@@ -134,6 +140,8 @@ public class UploaderTest {
 		spiderInstanceFactory = new SpiderInstanceFactorySpy();
 		spiderInstanceFactory.MRV.setDefaultReturnValuesSupplier("factorRecordUpdater",
 				() -> recordUpdater);
+
+		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
 	}
 
 	private void setUpDependencyProvider() {
@@ -146,13 +154,10 @@ public class UploaderTest {
 				() -> authorizator);
 
 		recordStorage = new RecordStorageSpy();
+		dataRecordGroupSpy = createDataRecordGroupSpy();
+		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> dataRecordGroupSpy);
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
-		dataRecordGroupSpy = new DataRecordGroupSpy();
-		dataRecordGroupSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider",
-				() -> "someDataDivider");
-
-		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> dataRecordGroupSpy);
 
 		resourceArchive = new ResourceArchiveSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getResourceArchive",
@@ -167,8 +172,36 @@ public class UploaderTest {
 		termCollector = new DataGroupTermCollectorSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataGroupTermCollector",
 				() -> termCollector);
+	}
 
-		SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactory);
+	private DataRecordGroupSpy createDataRecordGroupSpy() {
+		DataRecordGroupSpy localDataRecordGroupSpy = new DataRecordGroupSpy();
+		localDataRecordGroupSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider",
+				() -> "someDataDivider");
+		localDataRecordGroupSpy.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
+				() -> recordInfo, DataGroup.class, "recordInfo");
+		return localDataRecordGroupSpy;
+	}
+
+	private void setLogger() {
+		loggerFactory = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactory);
+		loggerFactory.MRV.setDefaultReturnValuesSupplier("factorForClass", () -> logger);
+		logger = new LoggerSpy();
+	}
+
+	private void setContentAnalyzer() {
+		contentAnalyzeInstanceProviderSpy = new ContentAnalyzerInstanceProviderSpy();
+		BinaryProvider
+				.onlyForTestSetContentAnalyzerInstanceProvider(contentAnalyzeInstanceProviderSpy);
+		contentAnalyzer = new ContentAnalyzerSpy();
+		contentAnalyzeInstanceProviderSpy.MRV.setDefaultReturnValuesSupplier("getContentAnalyzer",
+				() -> contentAnalyzer);
+	}
+
+	@Test
+	public void testLoggerStarted() {
+		loggerFactory.MCR.assertParameters("factorForClass", 0, UploaderImp.class);
 	}
 
 	@Test
@@ -179,15 +212,11 @@ public class UploaderTest {
 		DataRecordGroupSpy readDataRecordGroup = testReadRecord();
 		var dataDivider = testGetDataDivider(readDataRecordGroup);
 		testCreateInArchive(dataDivider);
-		testUpdateRecord();
-
-		recordUpdater.MCR.assertReturn("updateRecord", 0, binaryRecord);
 		assertTrue(binaryRecord instanceof DataRecord);
 	}
 
 	private Object testGetDataDivider(DataRecordGroupSpy readDataRecordGroup) {
-		readDataRecordGroup.MCR.assertParameters("getDataDivider", 0);
-		return readDataRecordGroup.MCR.getReturnValue("getDataDivider", 0);
+		return readDataRecordGroup.MCR.assertCalledParametersReturn("getDataDivider");
 	}
 
 	private DataRecordGroupSpy testReadRecord() {
@@ -195,13 +224,6 @@ public class UploaderTest {
 		dependencyProvider.MCR.assertReturn("getRecordStorage", 0, recordStorage);
 		recordStorage.MCR.assertParameters("read", 0, BINARY_RECORD_TYPE, SOME_RECORD_ID);
 		return (DataRecordGroupSpy) recordStorage.MCR.getReturnValue("read", 0);
-	}
-
-	private void testUpdateRecord() {
-		spiderInstanceFactory.MCR.assertParameters("factorRecordUpdater", 0);
-		spiderInstanceFactory.MCR.assertReturn("factorRecordUpdater", 0, recordUpdater);
-		recordUpdater.MCR.assertParameters("updateRecord", 0, SOME_AUTH_TOKEN, BINARY_RECORD_TYPE,
-				SOME_RECORD_ID);
 	}
 
 	private void testCreateInArchive(Object dataDivider) {
@@ -401,6 +423,9 @@ public class UploaderTest {
 	@Test
 	public void testUploadStoreResourceDataintoStorageWithoutChecksum() {
 		DataRecordGroupSpy readBinarySpy = new DataRecordGroupSpy();
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
+				() -> recordInfo, DataGroup.class, "recordInfo");
+
 		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> EXPECTED_ORIGINAL_FILE_NAME, "originalFileName");
 		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
@@ -410,15 +435,48 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
-		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", readBinarySpy);
+		recordUpdater.MCR.assertParameter("internalUpdateRecord", 0, "recordGroup", readBinarySpy);
 
 		assertMasterIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
 		assertRemoveExpectedFieldsFromBinaryRecord(readBinarySpy);
 	}
 
 	@Test
-	public void testUploadStoreResourceDataintoStorage() {
+	public void testUploadStatusUploadedForPdf() {
+		setContentAnalyzerUsingMediaTypeToReturn("application/pdf");
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+
+		assertSetStatus(UPLOADED);
+	}
+
+	@Test
+	public void testUploadStatusUploadedForImage() {
+		setContentAnalyzerUsingMediaTypeToReturn("image/whatever");
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+
+		assertSetStatus(UPLOADED);
+	}
+
+	@Test
+	public void testUploadStatusDoneForOtherMimeTypes() {
+		setContentAnalyzerUsingMediaTypeToReturn("other/whatever");
+
+		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+				RESOURCE_TYPE_MASTER);
+
+		assertSetStatus(DONE);
+	}
+
+	@Test
+	public void testUploadStoreResourceDataIntoStorage() {
 		DataRecordGroupSpy readBinarySpy = new DataRecordGroupSpy();
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
+				() -> recordInfo, DataGroup.class, "recordInfo");
+
 		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> EXPECTED_ORIGINAL_FILE_NAME, "originalFileName");
 		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
@@ -432,53 +490,84 @@ public class UploaderTest {
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
 
-		recordUpdater.MCR.assertParameter("updateRecord", 0, "record", readBinarySpy);
-
 		assertMasterIsCorrect(readBinarySpy, RESOURCE_TYPE_MASTER);
 		assertRemoveExpectedFieldsFromBinaryRecord(readBinarySpy);
+
+		assertStoreToStorageUsingInternalMethod(readBinarySpy, 0);
+	}
+
+	@Test
+	public void testUploadReturnsReadRecordFromStorage() {
+		DataRecord returnedRecord = uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE,
+				SOME_RECORD_ID, someStream, RESOURCE_TYPE_MASTER);
+
+		assertUploadReturnsReadRecordFromStorage(returnedRecord);
+	}
+
+	private void assertUploadReturnsReadRecordFromStorage(DataRecord returnedRecord) {
+		RecordReaderSpy recordReader = (RecordReaderSpy) spiderInstanceFactory.MCR
+				.getReturnValue("factorRecordReader", 0);
+		recordReader.MCR.assertParameters("readRecord", 0, SOME_AUTH_TOKEN, BINARY_RECORD_TYPE,
+				SOME_RECORD_ID);
+		recordReader.MCR.assertReturn("readRecord", 0, returnedRecord);
+	}
+
+	private void assertStoreToStorageUsingInternalMethod(DataRecordGroupSpy readBinarySpy,
+			int callNumber) {
+		User user = (User) authenticator.MCR.assertCalledParametersReturn("getUserForToken",
+				SOME_AUTH_TOKEN);
+		recordUpdater.MCR.assertParameters("internalUpdateRecord", callNumber, readBinarySpy,
+				user.id);
+	}
+
+	private void assertSetStatus(String status) {
+		recordInfo.MCR.assertCalledParameters("removeFirstChildWithTypeAndName", DataAtomic.class,
+				"status");
+		DataAtomicSpy statusAtomic = (DataAtomicSpy) dataFactorySpy.MCR
+				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValue", "status",
+						status);
+		recordInfo.MCR.assertCalledParameters("addChild", statusAtomic);
+	}
+
+	private void assertAddProccessingMessage(String message) {
+		String repeatId = (String) dataFactorySpy.MCR
+				.getParameterForMethodAndCallNumberAndParameter(
+						"factorAtomicUsingNameInDataAndValueAndRepeatId", 0, "repeatId");
+		assertEquals(repeatId.length(), 13);
+
+		DataAtomicSpy messageAtomic = (DataAtomicSpy) dataFactorySpy.MCR
+				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValueAndRepeatId",
+						"processingMessage", message);
+		recordInfo.MCR.assertCalledParameters("addChild", messageAtomic);
 	}
 
 	private void assertMasterIsCorrect(DataRecordGroupSpy readBinarySpy,
 			String resourceTypeMaster) {
-		dataFactorySpy.MCR.assertParameters("factorGroupUsingNameInData", 0, resourceTypeMaster);
-
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "resourceId",
-				SOME_RECORD_ID + "-master");
-		ContentAnalyzerSpy contentAnalyzer = (ContentAnalyzerSpy) contentAnalyzeInstanceProviderSpy.MCR
-				.getReturnValue("getContentAnalyzer", 0);
-		var detectedMimeType = contentAnalyzer.MCR.getReturnValue("getMimeType", 0);
-		dataFactorySpy.MCR.assertParameters(
-				"factorResourceLinkUsingNameInDataAndTypeAndIdAndMimeType", 0, "master", "binary",
-				"someRecordId", detectedMimeType);
-
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "fileSize",
-				"someFileSize");
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2, "mimeType",
-				"someMimeType");
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3, "checksum",
-				"someChecksumSHA512");
-		dataFactorySpy.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4,
-				"checksumType", SHA512);
-
 		DataGroupSpy master = (DataGroupSpy) dataFactorySpy.MCR
-				.getReturnValue("factorGroupUsingNameInData", 0);
+				.assertCalledParametersReturn("factorGroupUsingNameInData", resourceTypeMaster);
 
-		DataAtomicSpy resourceId = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
+		DataAtomicSpy resourceId = (DataAtomicSpy) dataFactorySpy.MCR.assertCalledParametersReturn(
+				"factorAtomicUsingNameInDataAndValue", "resourceId", SOME_RECORD_ID + "-master");
+
+		var detectedMimeType = contentAnalyzer.MCR.getReturnValue("getMimeType", 0);
 
 		DataResourceLinkSpy resourceLink = (DataResourceLinkSpy) dataFactorySpy.MCR
-				.getReturnValue("factorResourceLinkUsingNameInDataAndTypeAndIdAndMimeType", 0);
+				.assertCalledParametersReturn(
+						"factorResourceLinkUsingNameInDataAndTypeAndIdAndMimeType", "master",
+						"binary", "someRecordId", detectedMimeType);
 
-		DataAtomicSpy fileSize = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
-		DataAtomicSpy mimeType = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 2);
-		DataAtomicSpy checksum = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 3);
+		DataAtomicSpy fileSize = (DataAtomicSpy) dataFactorySpy.MCR.assertCalledParametersReturn(
+				"factorAtomicUsingNameInDataAndValue", "fileSize", "someFileSize");
+		DataAtomicSpy mimeType = (DataAtomicSpy) dataFactorySpy.MCR.assertCalledParametersReturn(
+				"factorAtomicUsingNameInDataAndValue", "mimeType", "someMimeType");
+		DataAtomicSpy checksum = (DataAtomicSpy) dataFactorySpy.MCR.assertCalledParametersReturn(
+				"factorAtomicUsingNameInDataAndValue", "checksum", "someChecksumSHA512");
 		DataAtomicSpy checksumType = (DataAtomicSpy) dataFactorySpy.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 4);
+				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValue", "checksumType",
+						SHA512);
+
 		DataChild originalFileName = (DataChild) readBinarySpy.MCR
-				.getReturnValue("getFirstChildWithNameInData", 0);
+				.assertCalledParametersReturn("getFirstChildWithNameInData", "originalFileName");
 
 		readBinarySpy.MCR.assertParameters("addChild", 0, master);
 		master.MCR.assertParameters("addChild", 0, resourceId);
@@ -491,9 +580,12 @@ public class UploaderTest {
 	}
 
 	private void assertRemoveExpectedFieldsFromBinaryRecord(DataRecordGroupSpy readBinarySpy) {
-		readBinarySpy.MCR.assertParameters("removeFirstChildWithNameInData", 0, "originalFileName");
-		readBinarySpy.MCR.assertParameters("removeFirstChildWithNameInData", 1, "expectedFileSize");
-		readBinarySpy.MCR.assertParameters("removeFirstChildWithNameInData", 2, "expectedChecksum");
+		readBinarySpy.MCR.assertCalledParameters("removeFirstChildWithNameInData",
+				"originalFileName");
+		readBinarySpy.MCR.assertCalledParameters("removeFirstChildWithNameInData",
+				"expectedFileSize");
+		readBinarySpy.MCR.assertCalledParameters("removeFirstChildWithNameInData",
+				"expectedChecksum");
 	}
 
 	@Test
@@ -517,25 +609,23 @@ public class UploaderTest {
 		var resourceFromArchive = resourceArchive.MCR.getReturnValue("readMasterResource", 0);
 
 		contentAnalyzeInstanceProviderSpy.MCR.assertParameters("getContentAnalyzer", 0);
-		ContentAnalyzerSpy contentAnalyzer = (ContentAnalyzerSpy) contentAnalyzeInstanceProviderSpy.MCR
-				.getReturnValue("getContentAnalyzer", 0);
-
 		contentAnalyzer.MCR.assertParameters("getMimeType", 0, resourceFromArchive);
 	}
 
-	@Test
-	public void testReadResourceMetadataCalled() {
-		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
-				RESOURCE_TYPE_MASTER);
-
-		DataRecordGroupSpy readDataRecordGroup = (DataRecordGroupSpy) recordStorage.MCR
-				.getReturnValue("read", 0);
-
-		var dataDivider = testGetDataDivider(readDataRecordGroup);
-
-		resourceArchive.MCR.assertParameters("readMasterResourceMetadata", 0, dataDivider,
-				BINARY_RECORD_TYPE, SOME_RECORD_ID);
-	}
+	// Duplicerar testResourceReadFromArchive
+	// @Test
+	// public void testReadResourceMetadataCalled() {
+	// uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+	// RESOURCE_TYPE_MASTER);
+	//
+	// DataRecordGroupSpy readDataRecordGroup = (DataRecordGroupSpy) recordStorage.MCR
+	// .getReturnValue("read", 0);
+	//
+	// var dataDivider = testGetDataDivider(readDataRecordGroup);
+	//
+	// resourceArchive.MCR.assertParameters("readMasterResourceMetadata", 0, dataDivider,
+	// BINARY_RECORD_TYPE, SOME_RECORD_ID);
+	// }
 
 	@Test
 	public void testCallUpdateResourceArchiveMetadata() {
@@ -557,8 +647,6 @@ public class UploaderTest {
 						"resourceMetadataToUpdate");
 
 		contentAnalyzeInstanceProviderSpy.MCR.assertParameters("getContentAnalyzer", 0);
-		ContentAnalyzerSpy contentAnalyzer = (ContentAnalyzerSpy) contentAnalyzeInstanceProviderSpy.MCR
-				.getReturnValue("getContentAnalyzer", 0);
 
 		contentAnalyzer.MCR.assertReturn("getMimeType", 0, resourceMetadata.mimeType());
 
@@ -570,7 +658,7 @@ public class UploaderTest {
 
 	@Test
 	public void testCallUpdateSendsMessageForReadMetadataAndConvertSmallFormats() {
-		createContentAnalyzerUsingMediaTypeToReturn("image/whatever");
+		setContentAnalyzerUsingMediaTypeToReturn("image/whatever");
 
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
@@ -583,7 +671,7 @@ public class UploaderTest {
 		resourceConvert.MCR.assertMethodNotCalled("sendMessageToConvertPdfToThumbnails");
 	}
 
-	private void createContentAnalyzerUsingMediaTypeToReturn(String mediaType) {
+	private void setContentAnalyzerUsingMediaTypeToReturn(String mediaType) {
 		ContentAnalyzerSpy contentAnalyzerSpy = new ContentAnalyzerSpy();
 
 		contentAnalyzerSpy.MRV.setDefaultReturnValuesSupplier("getMimeType", () -> mediaType);
@@ -593,7 +681,7 @@ public class UploaderTest {
 
 	@Test
 	public void testCallUpdateSendsMessageToConvertPdf() {
-		createContentAnalyzerUsingMediaTypeToReturn("application/pdf");
+		setContentAnalyzerUsingMediaTypeToReturn("application/pdf");
 
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
@@ -617,7 +705,7 @@ public class UploaderTest {
 
 	@Test
 	public void testSetBinaryTypeToCorrectType() {
-		createContentAnalyzerUsingMediaTypeToReturn("image/whatever");
+		setContentAnalyzerUsingMediaTypeToReturn("image/whatever");
 
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
@@ -640,19 +728,25 @@ public class UploaderTest {
 			fail("An exception should have been thrown");
 		} catch (Exception e) {
 			assertTrue(e instanceof ArchiveDataIntergrityException);
-			assertEquals(e.getMessage(), "The file size verification of uploaded data failed: the "
-					+ "actual value was: someFileSize but the expected value was: expectedFileSize.");
+			String verificationMessage = "The file size verification of uploaded data failed: the "
+					+ "actual value was: someFileSize but the expected value was: expectedFileSize.";
+			assertEquals(e.getMessage(), verificationMessage);
 			resourceArchive.MCR.assertMethodWasCalled("delete");
 			resourceArchive.MCR.assertMethodNotCalled("readMasterResource");
+
 		}
 	}
 
 	private DataRecordGroupSpy setupReadSpyForIntegrityCheck() {
 		DataRecordGroupSpy readBinarySpy = new DataRecordGroupSpy();
+		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
+				() -> recordInfo, DataGroup.class, "recordInfo");
+
 		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> EXPECTED_ORIGINAL_FILE_NAME, "originalFileName");
 		readBinarySpy.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> EXPECTED_CHECKSUM, "expectedChecksum");
+		readBinarySpy.MRV.setDefaultReturnValuesSupplier("getDataDivider", () -> "someDataDivider");
 		recordStorage.MRV.setDefaultReturnValuesSupplier("read", () -> readBinarySpy);
 		return readBinarySpy;
 	}
@@ -685,10 +779,72 @@ public class UploaderTest {
 			fail("An exception should have been thrown");
 		} catch (Exception e) {
 			assertTrue(e instanceof ArchiveDataIntergrityException);
-			assertEquals(e.getMessage(), "The checksum verification of uploaded data failed: the "
-					+ "actual value was: someChecksumSHA512 but the expected value was: expectedChecksum.");
+
+			String verificationMessage = "The checksum verification of uploaded data failed: the "
+					+ "actual value was: someChecksumSHA512 but the expected value was: expectedChecksum.";
+
+			assertEquals(e.getMessage(), verificationMessage);
 			resourceArchive.MCR.assertMethodWasCalled("delete");
 			resourceArchive.MCR.assertMethodNotCalled("readMasterResource");
+
+		}
+	}
+
+	@Test
+	public void testContentAnalyzerFailsThenRemoveUploadedFile() {
+		var originialException = BinaryException.withMessage("someError");
+		contentAnalyzer.MRV.setAlwaysThrowException("getMimeType", originialException);
+
+		try {
+			uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+					RESOURCE_TYPE_MASTER);
+			fail("An exception should have been thrown");
+		} catch (Exception e) {
+
+			// TODO: Should throw 415 Unsupported Media Type
+			assertTrue(e instanceof ArchiveDataIntergrityException);
+			assertEquals(e.getMessage(), "The mimeType of the file could not determined. Make sure "
+					+ "the file is readable and has a known mimeType, and try to upload again.");
+			assertEquals(e.getCause(), originialException);
+			resourceArchive.MCR.assertParameters("delete", 0, "someDataDivider", BINARY_RECORD_TYPE,
+					SOME_RECORD_ID);
+
+			logger.MCR.assertParameters("logErrorUsingMessageAndException", 0,
+					"Could not determine the mimeType of the file for binary record, with "
+							+ "dataDivider: someDataDivider, type: binary and id: someRecordId.",
+					originialException);
+
+			resourceArchive.MCR.assertMethodNotCalled("updateMasterResourceMetadata");
+		}
+	}
+
+	@Test
+	public void testRecordCouldNotBeUpdatedThenRemoveUploadedFile() {
+		var originialException = new RuntimeException("someError");
+		resourceArchive.MRV.setAlwaysThrowException("updateMasterResourceMetadata",
+				originialException);
+
+		try {
+			uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+					RESOURCE_TYPE_MASTER);
+			fail("An exception should have been thrown");
+		} catch (Exception e) {
+
+			assertTrue(e instanceof ArchiveDataIntergrityException);
+			assertEquals(e.getMessage(),
+					"The metadata for the updated file could not be stored in the system. "
+							+ "Please try again later. If the problem persists, contact support.");
+
+			resourceArchive.MCR.assertParameters("delete", 0, "someDataDivider", BINARY_RECORD_TYPE,
+					SOME_RECORD_ID);
+
+			logger.MCR.assertParameters("logErrorUsingMessageAndException", 0,
+					"Metadata could not be updated for binary record, with "
+							+ "dataDivider: someDataDivider, type: binary and id: someRecordId.",
+					originialException);
+
+			resourceConvert.MCR.assertMethodNotCalled("sendMessageForAnalyzingAndConvertingImages");
+			resourceConvert.MCR.assertMethodNotCalled("sendMessageToConvertPdfToThumbnails");
 		}
 	}
 
@@ -702,8 +858,41 @@ public class UploaderTest {
 
 		uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
 				RESOURCE_TYPE_MASTER);
+
 		resourceArchive.MCR.assertMethodNotCalled("delete");
 		resourceArchive.MCR.assertMethodWasCalled("readMasterResource");
+	}
+
+	@Test
+	public void testFailedToSendToConverters() {
+		setContentAnalyzerUsingMediaTypeToReturn("image/whatever");
+		RuntimeException originException = new RuntimeException();
+		resourceConvert.MRV.setAlwaysThrowException("sendMessageForAnalyzingAndConvertingImages",
+				originException);
+
+		try {
+			uploader.upload(SOME_AUTH_TOKEN, BINARY_RECORD_TYPE, SOME_RECORD_ID, someStream,
+					RESOURCE_TYPE_MASTER);
+			fail("An exception should have been thrown");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+
+			String message = "Could not send file to converters due to an error. Try to resend it again "
+					+ "later. If problem persists contact support.";
+
+			assertEquals(e.getMessage(), message);
+			logger.MCR.assertParameters("logErrorUsingMessageAndException", 0, message,
+					originException);
+
+			DataRecordGroupSpy readBinarySpy = getReadRecordFromStorage();
+			assertSetStatus("failed");
+			assertAddProccessingMessage(message);
+			assertStoreToStorageUsingInternalMethod(readBinarySpy, 1);
+		}
+	}
+
+	private DataRecordGroupSpy getReadRecordFromStorage() {
+		return (DataRecordGroupSpy) recordStorage.MCR.getReturnValue("read", 0);
 	}
 
 	@Test

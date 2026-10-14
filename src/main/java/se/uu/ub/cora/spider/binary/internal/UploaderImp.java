@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2023, 2025 Uppsala University Library
+ * Copyright 2016, 2023, 2025, 2026 Uppsala University Library
  * Copyright 2016 Olov McKie
  *
  * This file is part of Cora.
@@ -37,6 +37,8 @@ import se.uu.ub.cora.data.DataRecord;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataResourceLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
+import se.uu.ub.cora.logger.Logger;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authentication.Authenticator;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
@@ -47,6 +49,7 @@ import se.uu.ub.cora.spider.data.DataMissingException;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.SpiderInstanceProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
+import se.uu.ub.cora.spider.record.RecordReader;
 import se.uu.ub.cora.spider.record.RecordUpdater;
 import se.uu.ub.cora.spider.resourceconvert.ResourceConvert;
 import se.uu.ub.cora.storage.RecordStorage;
@@ -55,6 +58,7 @@ import se.uu.ub.cora.storage.archive.ResourceMetadata;
 import se.uu.ub.cora.storage.archive.record.ResourceMetadataToUpdate;
 
 public final class UploaderImp implements Uploader {
+	private static final String STATUS = "status";
 	private static final String ORIGINAL_FILE_NAME = "originalFileName";
 	private static final String EXPECTED_CHECKSUM = "expectedChecksum";
 	private static final String EXPECTED_FILE_SIZE = "expectedFileSize";
@@ -77,6 +81,7 @@ public final class UploaderImp implements Uploader {
 	private String dataDivider;
 	private MimeTypeToBinaryType mimeTypeToBinaryType;
 	private RecordTypeHandler recordTypeHandler;
+	private Logger logger = LoggerProvider.getLoggerForClass(UploaderImp.class);
 
 	private UploaderImp(SpiderDependencyProvider dependencyProvider,
 			ResourceConvert resourceConvert, MimeTypeToBinaryType mimeTypeToBinaryType) {
@@ -96,12 +101,6 @@ public final class UploaderImp implements Uploader {
 		return new UploaderImp(dependencyProvider, resourceConvert, mimeTypeToBinaryType);
 	}
 
-	// IF ANY UPDATE to binary record a SuperUser should be used, not the user sent throug the
-	// upload. Possible solution might be to call recordUpdaterImp from a new method after normal
-	// security checks are done in recordUpdaterImp, and take advantage of storage, index, archive,
-	// enhance and ohter parts from recordUpdaterImp
-	// TODO: If the given user is not used to update the binary record, how do we log the
-	// uploading of the resource by that user?
 	@Override
 	public DataRecord upload(String authToken, String type, String id, InputStream resourceStream,
 			String resourceType) {
@@ -117,143 +116,29 @@ public final class UploaderImp implements Uploader {
 		dataDivider = dataRecordGroup.getDataDivider();
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
+
 		tryToCheckUserIsAuthorisedToUploadData(dataRecordGroup);
+		storeBinaryToArchive(resourceStream);
 
-		return uploadAnalyzeStoreAndCallConvert(resourceStream, dataRecordGroup);
+		return analyzeAndProcessBinary(dataRecordGroup);
 	}
 
-	private DataRecord uploadAnalyzeStoreAndCallConvert(InputStream resourceStream,
-			DataRecordGroup dataRecordGroup) {
-		storeResourceStreamInArchive(resourceStream);
-
-		verifyArchiveDataIntegrity(dataRecordGroup);
-
-		String detectedMimeType = detectMimeTypeFromResourceInArchive(dataDivider);
-
-		String originalFileName = dataRecordGroup
-				.getFirstAtomicValueWithNameInData(ORIGINAL_FILE_NAME);
-		updateOriginalFileNameAndMimeTypeInArchive(originalFileName, detectedMimeType);
-
-		// uppdatera posten i storage
-		// skicka till analys och konvertering
-
-		DataRecord updatedRecord = updateRecordInStorageUsingCalculatedAndInfoFromArchive(
-				dataRecordGroup, detectedMimeType);
-
-		// send message for "Read metadata and convert to small formats"
-		possiblySendToConvert(detectedMimeType);
-		return updatedRecord;
-	}
-
-	private void verifyArchiveDataIntegrity(DataRecordGroup dataRecordGroup) {
-		ResourceMetadata resourceMetadata = resourceArchive.readMasterResourceMetadata(dataDivider,
-				type, id);
-		possiblyVerifyExpectedFileSize(dataRecordGroup, resourceMetadata);
-		possiblyVerifyExpectedChecksum(dataRecordGroup, resourceMetadata);
-	}
-
-	private void possiblyVerifyExpectedFileSize(DataRecordGroup dataRecordGroup,
-			ResourceMetadata resourceMetadata) {
-		if (dataRecordGroup.containsChildWithNameInData(EXPECTED_FILE_SIZE)) {
-			verifyExpectedFileSize(dataRecordGroup, resourceMetadata);
+	protected void tryToGetUserForToken() {
+		try {
+			user = authenticator.getUserForToken(authToken);
+		} catch (Exception e) {
+			throw new AuthenticationException(
+					MessageFormat.format("Uploading error: Not possible to upload "
+							+ "resource due the user could not be authenticated, for type {0} "
+							+ "and id {1}.", type, id),
+					e);
 		}
-	}
-
-	private void verifyExpectedFileSize(DataRecordGroup dataRecordGroup,
-			ResourceMetadata resourceMetadata) {
-		String expectedFileSize = dataRecordGroup
-				.getFirstAtomicValueWithNameInData(EXPECTED_FILE_SIZE);
-		String archiveFileSize = resourceMetadata.fileSize();
-		if (!expectedFileSize.equals(archiveFileSize)) {
-			throw deleteArchiveDataAndThrowException("file size", expectedFileSize,
-					archiveFileSize);
-		}
-	}
-
-	private ArchiveDataIntergrityException deleteArchiveDataAndThrowException(String expectType,
-			String expectedData, String archiveData) {
-		resourceArchive.delete(dataDivider, type, id);
-		return ArchiveDataIntergrityException.withMessage(MessageFormat.format(
-				"The {0} verification of uploaded data failed: the actual value was: {1}"
-						+ " but the expected value was: {2}.",
-				expectType, archiveData, expectedData));
-	}
-
-	private void possiblyVerifyExpectedChecksum(DataRecordGroup dataRecordGroup,
-			ResourceMetadata resourceMetadata) {
-		if (dataRecordGroup.containsChildWithNameInData(EXPECTED_CHECKSUM)) {
-			verifyExpectedChecksum(dataRecordGroup, resourceMetadata);
-		}
-	}
-
-	private void verifyExpectedChecksum(DataRecordGroup dataRecordGroup,
-			ResourceMetadata resourceMetadata) {
-		String expectedChecksum = dataRecordGroup
-				.getFirstAtomicValueWithNameInData(EXPECTED_CHECKSUM);
-		String archiveChecksum = resourceMetadata.checksumSHA512();
-		if (!expectedChecksum.equals(archiveChecksum)) {
-			throw deleteArchiveDataAndThrowException("checksum", expectedChecksum, archiveChecksum);
-		}
-	}
-
-	private void possiblySendToConvert(String detectedMimeType) {
-		if (isImage(detectedMimeType)) {
-			resourceConvert.sendMessageForAnalyzingAndConvertingImages(dataDivider, type, id,
-					detectedMimeType);
-		}
-		if (isPdf(detectedMimeType)) {
-			resourceConvert.sendMessageToConvertPdfToThumbnails(dataDivider, type, id);
-		}
-	}
-
-	private boolean isPdf(String detectedMimeType) {
-		return "application/pdf".equals(detectedMimeType);
-	}
-
-	private boolean isImage(String detectedMimeType) {
-		return detectedMimeType.startsWith("image/");
-	}
-
-	private void storeResourceStreamInArchive(InputStream resourceStream) {
-		resourceArchive.createMasterResource(dataDivider, type, id, resourceStream,
-				MIME_TYPE_GENERIC);
-	}
-
-	private void updateOriginalFileNameAndMimeTypeInArchive(String originalFileName,
-			String detectedMimeType) {
-		ResourceMetadataToUpdate resourceMetadataToUpdate = new ResourceMetadataToUpdate(
-				originalFileName, detectedMimeType);
-		resourceArchive.updateMasterResourceMetadata(dataDivider, type, id,
-				resourceMetadataToUpdate);
 	}
 
 	private void validateInputIsBinaryMasterAndHasStream() {
 		ensureBinaryType();
 		ensureResourceTypeIsMaster();
 		ensureResourceStreamExists();
-	}
-
-	private DataRecord updateRecordInStorageUsingCalculatedAndInfoFromArchive(
-			DataRecordGroup dataRecordGroup, String detectedMimeType) {
-		ResourceMetadata resourceMetadata = resourceArchive.readMasterResourceMetadata(dataDivider,
-				type, id);
-		createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(dataRecordGroup, resourceMetadata,
-				detectedMimeType);
-
-		removeExpectedAtomicsFromBinaryRecord(dataRecordGroup);
-
-		return updateRecord(dataRecordGroup);
-	}
-
-	private DataRecord updateRecord(DataRecordGroup dataRecordGroup) {
-		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
-		return recordUpdater.updateRecord(authToken, type, id, dataRecordGroup);
-	}
-
-	private String detectMimeTypeFromResourceInArchive(String dataDivider) {
-		InputStream resourceFromArchive = resourceArchive.readMasterResource(dataDivider, type, id);
-		ContentAnalyzer contentAnalyzer = BinaryProvider.getContentAnalyzer();
-		return contentAnalyzer.getMimeType(resourceFromArchive);
 	}
 
 	private void ensureBinaryType() {
@@ -275,18 +160,6 @@ public final class UploaderImp implements Uploader {
 					"Uploading error: Nothing to upload, resource stream is missing for type {0}"
 							+ " and id {1}.",
 					type, id));
-		}
-	}
-
-	protected void tryToGetUserForToken() {
-		try {
-			user = authenticator.getUserForToken(authToken);
-		} catch (Exception e) {
-			throw new AuthenticationException(
-					MessageFormat.format("Uploading error: Not possible to upload "
-							+ "resource due the user could not be authenticated, for type {0} "
-							+ "and id {1}.", type, id),
-					e);
 		}
 	}
 
@@ -328,7 +201,7 @@ public final class UploaderImp implements Uploader {
 	private void tryToCheckUserIsAuthorizedForPemissionUnit(String permissionUnit) {
 		try {
 			spiderAuthorizator.checkUserIsAuthorizedForPemissionUnit(user, permissionUnit);
-		} catch (Exception e) {
+		} catch (Exception _) {
 			throw notAuthorizedDueToUserDoNotMatchRecordsPermissionUnit();
 		}
 	}
@@ -347,14 +220,215 @@ public final class UploaderImp implements Uploader {
 	}
 
 	private CollectTerms getCollectedTermsForRecord(DataRecordGroup dataRecordGroup) {
-
 		String definitionId = recordTypeHandler.getDefinitionId();
 		return termCollector.collectTerms(definitionId, dataRecordGroup);
 	}
 
-	private void createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(
-			DataRecordGroup dataRecordGroup, ResourceMetadata resourceMetadata,
+	private DataRecord analyzeAndProcessBinary(DataRecordGroup dataRecordGroup) {
+		verifyArchiveDataIntegrity(dataRecordGroup);
+		String detectedMimeType = tryToDetectMimeType();
+		tryToUpdateRecordAccordingUploadedBinary(dataRecordGroup, detectedMimeType);
+		tryToSendToConverters(dataRecordGroup, detectedMimeType);
+		return readRecord();
+	}
+
+	private void tryToSendToConverters(DataRecordGroup dataRecordGroup, String detectedMimeType) {
+		try {
+			possiblySendToConvert(detectedMimeType); // -> Failed
+		} catch (Exception e) {
+			String message = "Could not send file to converters due to an error. Try to resend it again "
+					+ "later. If problem persists contact support.";
+			logger.logErrorUsingMessageAndException(message, e);
+
+			setStatus(dataRecordGroup, "failed");
+			addProcessingMessage(dataRecordGroup, message);
+			updateRecord(dataRecordGroup);
+			throw new RuntimeException(message);
+		}
+	}
+
+	private void verifyArchiveDataIntegrity(DataRecordGroup dataRecordGroup) {
+		ResourceMetadata resourceMetadata = resourceArchive.readMasterResourceMetadata(dataDivider,
+				type, id);
+		possiblyVerifyExpectedFileSize(dataRecordGroup, resourceMetadata);
+		possiblyVerifyExpectedChecksum(dataRecordGroup, resourceMetadata);
+	}
+
+	private void possiblyVerifyExpectedFileSize(DataRecordGroup dataRecordGroup,
+			ResourceMetadata resourceMetadata) {
+		if (dataRecordGroup.containsChildWithNameInData(EXPECTED_FILE_SIZE)) {
+			verifyExpectedFileSize(dataRecordGroup, resourceMetadata);
+		}
+	}
+
+	private void verifyExpectedFileSize(DataRecordGroup dataRecordGroup,
+			ResourceMetadata resourceMetadata) {
+		String expectedFileSize = dataRecordGroup
+				.getFirstAtomicValueWithNameInData(EXPECTED_FILE_SIZE);
+		String archiveFileSize = resourceMetadata.fileSize();
+		if (!expectedFileSize.equals(archiveFileSize)) {
+			removeUploadedBinaryAndThowException("file size", expectedFileSize, archiveFileSize);
+		}
+	}
+
+	private void removeUploadedBinaryAndThowException(String verificationType, String expectedVaule,
+			String actualValue) {
+		resourceArchive.delete(dataDivider, type, id);
+		String verificationMessage = MessageFormat.format(
+				"The {0} verification of uploaded data failed: the actual value was: {1}"
+						+ " but the expected value was: {2}.",
+				verificationType, actualValue, expectedVaule);
+		throw ArchiveDataIntergrityException.withMessage(verificationMessage);
+	}
+
+	private void possiblyVerifyExpectedChecksum(DataRecordGroup dataRecordGroup,
+			ResourceMetadata resourceMetadata) {
+		if (dataRecordGroup.containsChildWithNameInData(EXPECTED_CHECKSUM)) {
+			verifyExpectedChecksum(dataRecordGroup, resourceMetadata);
+		}
+	}
+
+	private void verifyExpectedChecksum(DataRecordGroup dataRecordGroup,
+			ResourceMetadata resourceMetadata) {
+		String expectedChecksum = dataRecordGroup
+				.getFirstAtomicValueWithNameInData(EXPECTED_CHECKSUM);
+		String archiveChecksum = resourceMetadata.checksumSHA512();
+		if (!expectedChecksum.equals(archiveChecksum)) {
+			removeUploadedBinaryAndThowException("checksum", expectedChecksum, archiveChecksum);
+		}
+	}
+
+	private void tryToUpdateRecordAccordingUploadedBinary(DataRecordGroup dataRecordGroup,
 			String detectedMimeType) {
+		try {
+			updateRecordAccordingUploadedBinary(dataRecordGroup, detectedMimeType);
+		} catch (Exception e) {
+			resourceArchive.delete(dataDivider, type, id);
+
+			logErrorWithMessageToFormat("Metadata could not be updated for binary record, with "
+					+ "dataDivider: %s, type: %s and id: %s.", e);
+
+			String exceptionMessage = "The metadata for the updated file could not be stored in the system. "
+					+ "Please try again later. If the problem persists, contact support.";
+			throw ArchiveDataIntergrityException.withMessage(exceptionMessage);
+		}
+	}
+
+	private void logErrorWithMessageToFormat(String internalMessage, Exception e) {
+		String formattedInternalMessage = String.format(internalMessage, dataDivider, type, id);
+		logger.logErrorUsingMessageAndException(formattedInternalMessage, e);
+	}
+
+	private void updateRecordAccordingUploadedBinary(DataRecordGroup dataRecordGroup,
+			String detectedMimeType) {
+		updateOriginalFileNameAndMimeTypeInArchive(dataRecordGroup, detectedMimeType);
+		updateRecordInStorageUsingCalculatedAndInfoFromArchive(dataRecordGroup, detectedMimeType);
+	}
+
+	private void storeBinaryToArchive(InputStream resourceStream) {
+		resourceArchive.createMasterResource(dataDivider, type, id, resourceStream,
+				MIME_TYPE_GENERIC);
+	}
+
+	private String tryToDetectMimeType() {
+		try {
+			return detectMimeTypeFromResourceInArchive(dataDivider);
+		} catch (Exception e) {
+			resourceArchive.delete(dataDivider, type, id);
+			logErrorWithMessageToFormat("Could not determine the mimeType of the file for "
+					+ "binary record, with dataDivider: %s, type: %s and id: %s.", e);
+			throw throwExceptionForFailedMimeTypeDetection(e);
+		}
+	}
+
+	private ArchiveDataIntergrityException throwExceptionForFailedMimeTypeDetection(Exception e) {
+		String message = "The mimeType of the file could not determined. Make sure the file is"
+				+ " readable and has a known mimeType, and try to upload again.";
+		return ArchiveDataIntergrityException.withMessageAndException(message, e);
+	}
+
+	private void possiblySendToConvert(String detectedMimeType) {
+		if (isImage(detectedMimeType)) {
+			resourceConvert.sendMessageForAnalyzingAndConvertingImages(dataDivider, type, id,
+					detectedMimeType);
+		}
+		if (isPdf(detectedMimeType)) {
+			resourceConvert.sendMessageToConvertPdfToThumbnails(dataDivider, type, id);
+		}
+	}
+
+	private boolean isPdf(String detectedMimeType) {
+		return "application/pdf".equals(detectedMimeType);
+	}
+
+	private boolean isImage(String detectedMimeType) {
+		return detectedMimeType.startsWith("image/");
+	}
+
+	private void updateOriginalFileNameAndMimeTypeInArchive(DataRecordGroup dataRecordGroup,
+			String detectedMimeType) {
+		String originalFileName = dataRecordGroup
+				.getFirstAtomicValueWithNameInData(ORIGINAL_FILE_NAME);
+
+		resourceArchive.updateMasterResourceMetadata(dataDivider, type, id,
+				new ResourceMetadataToUpdate(originalFileName, detectedMimeType));
+	}
+
+	private void updateRecordInStorageUsingCalculatedAndInfoFromArchive(
+			DataRecordGroup dataRecordGroup, String detectedMimeType) {
+		removeExpectedAtomicsFromBinaryRecord(dataRecordGroup);
+		setCorrectStatusForMediaType(dataRecordGroup, detectedMimeType);
+		createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(dataRecordGroup,
+				detectedMimeType);
+		updateRecord(dataRecordGroup);
+	}
+
+	private void setCorrectStatusForMediaType(DataRecordGroup dataRecordGroup,
+			String detectedMimeType) {
+		if (isImage(detectedMimeType) || isPdf(detectedMimeType)) {
+			setStatus(dataRecordGroup, "uploaded");
+		} else {
+			setStatus(dataRecordGroup, "done");
+		}
+	}
+
+	private void setStatus(DataRecordGroup dataRecordGroup, String status) {
+		DataGroup recordInfo = dataRecordGroup.getFirstChildOfTypeAndName(DataGroup.class,
+				"recordInfo");
+		recordInfo.removeFirstChildWithTypeAndName(DataAtomic.class, STATUS);
+		DataAtomic statusUploaded = DataProvider.createAtomicUsingNameInDataAndValue(STATUS,
+				status);
+		recordInfo.addChild(statusUploaded);
+	}
+
+	private void addProcessingMessage(DataRecordGroup dataRecordGroup, String message) {
+		DataGroup recordInfo = dataRecordGroup.getFirstChildOfTypeAndName(DataGroup.class,
+				"recordInfo");
+		DataAtomic processingMessage = DataProvider.createAtomicUsingNameInDataAndValueAndRepeatId(
+				"processingMessage", message, String.valueOf(System.currentTimeMillis()));
+		recordInfo.addChild(processingMessage);
+	}
+
+	private void updateRecord(DataRecordGroup dataRecordGroup) {
+		RecordUpdater recordUpdater = SpiderInstanceProvider.getRecordUpdater();
+		recordUpdater.internalUpdateRecord(dataRecordGroup, user.id);
+	}
+
+	private DataRecord readRecord() {
+		RecordReader recordReader = SpiderInstanceProvider.getRecordReader();
+		return recordReader.readRecord(authToken, BINARY_RECORD_TYPE, id);
+	}
+
+	private String detectMimeTypeFromResourceInArchive(String dataDivider) {
+		InputStream resourceFromArchive = resourceArchive.readMasterResource(dataDivider, type, id);
+		ContentAnalyzer contentAnalyzer = BinaryProvider.getContentAnalyzer();
+		return contentAnalyzer.getMimeType(resourceFromArchive);
+	}
+
+	private void createMasterGroupMoveOriginalFileNameAndAddToBinaryRecord(
+			DataRecordGroup dataRecordGroup, String detectedMimeType) {
+		ResourceMetadata resourceMetadata = resourceArchive.readMasterResourceMetadata(dataDivider,
+				type, id);
 		DataGroup masterGroup = createMasterGroup(resourceMetadata.fileSize(), detectedMimeType);
 
 		dataRecordGroup.addChild(masterGroup);
@@ -411,5 +485,4 @@ public final class UploaderImp implements Uploader {
 	public MimeTypeToBinaryType onlyForTestGetMimeTypeToBinaryTypeConvert() {
 		return mimeTypeToBinaryType;
 	}
-
 }

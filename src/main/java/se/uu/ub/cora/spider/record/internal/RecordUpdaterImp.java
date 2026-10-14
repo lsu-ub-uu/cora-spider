@@ -169,6 +169,7 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 
 		useExtendedFunctionalityForPosition(UPDATE_BEFORE_STORE);
 		dataDivider = recordGroup.getDataDivider();
+		// TODO: is this second one really needed? why not use recordAsDataGroup from above?
 		DataGroup recordAsDataGroupForStorage = DataProvider
 				.createGroupFromRecordGroup(recordGroup);
 
@@ -186,6 +187,38 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 				recordType, recordGroup, dataRedactor);
 		useExtendedFunctionalityBeforeReturn(dataRecord);
 		return dataRecord;
+	}
+
+	@Override
+	public void internalUpdateRecord(DataRecordGroup recordGroup, String userId) {
+		this.recordGroup = recordGroup;
+		recordType = recordGroup.getType();
+		recordId = recordGroup.getId();
+		dataDivider = recordGroup.getDataDivider();
+		recordTypeHandler = dependencyProvider
+				.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
+		definitionId = recordTypeHandler.getDefinitionId();
+
+		recordGroup.setAllUpdated(Collections.emptyList());
+		recordGroup.addUpdatedUsingUserIdAndTsNow(userId);
+
+		CollectTerms collectTerms = dataGroupTermCollector.collectTerms(definitionId, recordGroup);
+
+		DataGroup recordAsDataGroup = DataProvider.createGroupFromRecordGroup(recordGroup);
+		Set<Link> collectedLinks = linkCollector.collectLinks(definitionId, recordAsDataGroup);
+		checkToPartOfLinkedDataExistsInStorage(collectedLinks);
+
+		if (isInTrashBin()) {
+			collectedLinks = Collections.emptySet();
+		}
+		updateRecordInStorage(recordAsDataGroup, collectTerms, collectedLinks);
+
+		DataChangedSender dataChangedSender = dependencyProvider.getDataChangeSender();
+		dataChangedSender.sendDataChanged(recordType, recordId, UPDATE);
+
+		possiblyStoreInArchive(recordAsDataGroup);
+
+		indexData(collectTerms);
 	}
 
 	private List<PermissionTerm> getMixedPermissionTermValuesConsideringModeState(
