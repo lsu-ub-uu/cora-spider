@@ -126,6 +126,14 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		useExtendedFunctionalityForPosition(CREATE_AFTER_METADATA_VALIDATION);
 		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = recordGroup.getId();
+
+		// try (RecordLock recordLock = RecordLockProvider.getRecordLock();) {
+		//
+		// recordLock.release(recordType, recordId);
+		// } finally {
+		//
+		// }
+
 		useExtendedFunctionalityForPosition(CREATE_BEFORE_COLLECT_DATA);
 		collectInformationSpecifiedInMetadata();
 		ensureNoDuplicateForTypeAndId();
