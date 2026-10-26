@@ -19,15 +19,14 @@
 package se.uu.ub.cora.spider.recordlock;
 
 /**
- * RecordLock acquires and releases locks on records, identified by type and id, stored in the
- * recordlock table in the database.
+ * RecordLock acquires and releases locks on records, identified by type and id.
  * <p>
  * A lock is held from a successful call to {@link #acquire(String, String)} until
  * {@link #release(String, String)} is called for the same type and id. Callers SHOULD release the
  * lock in a finally block to make sure it is released even if an error occurs.
  * <p>
- * <em>RecordLock uses the AutoClosable structure to close used database resources. Clients MUST use
- * a try-with-resources block or manually call the {@link #close()} method.</em>
+ * <em>RecordLock uses the AutoClosable structure to close used resources. Clients MUST use a
+ * try-with-resources block or manually call the {@link #close()} method.</em>
  * <p>
  * Implementations of RecordLock are generally not threadsafe.
  */
@@ -45,8 +44,6 @@ public interface RecordLock extends AutoCloseable {
 	 * @throws RecordLockException
 	 *             if the lock could not be acquired within the maximum waiting time, or if the
 	 *             thread is interrupted while waiting to retry
-	 * @throws SqlDatabaseException
-	 *             if any other error occurs while interacting with the database
 	 */
 	void acquire(String type, String id);
 
@@ -58,16 +55,14 @@ public interface RecordLock extends AutoCloseable {
 	 *            A String with the type of the locked record
 	 * @param id
 	 *            A String with the id of the locked record
-	 * @throws SqlDatabaseException
-	 *             if an error occurs while interacting with the database
 	 */
 	void release(String type, String id);
 
 	/**
-	 * close closes the underlying database resources.
+	 * close closes the underlying resources.
 	 * <p>
-	 * If an exception occurs while interacting with the database MUST an
-	 * {@link SqlDatabaseException} be thrown.
+	 * If an exception occurs while interacting with the underlying resources MUST an
+	 * {@link RecordLockException} be thrown.
 	 */
 	@Override
 	void close();
