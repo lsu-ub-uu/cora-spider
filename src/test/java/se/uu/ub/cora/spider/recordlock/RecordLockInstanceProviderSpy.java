@@ -42,7 +42,7 @@ public class RecordLockInstanceProviderSpy implements RecordLockInstanceProvider
 	}
 
 	@Override
-	public RecordLock getRecordLock() {
+	public RecordLock getRecordLock(String recordType, String recordId) {
 		return (RecordLock) MCR.addCallAndReturnFromMRV();
 	}
 }

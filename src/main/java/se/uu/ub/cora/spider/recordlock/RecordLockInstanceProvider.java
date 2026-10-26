@@ -26,13 +26,17 @@ import se.uu.ub.cora.initialize.SelectOrder;
 public interface RecordLockInstanceProvider extends SelectOrder {
 
 	/**
-	 * getRecordLock should be implemented in such a way that it returns a RecordLock that can be
-	 * used by anything that needs access to records. Multiple calls to getRecordLock should return
-	 * new instances or the same instance, depending on the implementation. It must be possible to
-	 * use the currently returned instance without considering if other calls has been made to this
-	 * method.
+	 * getRecordLock returns an acquired lock for the record with the specified type and id. If the
+	 * lock cannot be acquired according to the implementation's timeout and conflict policy, this
+	 * method MUST throw a {@link RecordLockException} and MUST NOT return a lock.
 	 * 
-	 * @return A RecordLock that gives access to lock for records
+	 * @param recordType
+	 *            the type of the record to lock
+	 * @param recordId
+	 *            the id of the record to lock
+	 * @return an acquired lock for the specified record
+	 * @throws RecordLockException
+	 *             if the lock cannot be acquired
 	 */
-	RecordLock getRecordLock();
+	RecordLock getRecordLock(String recordType, String recordId);
 }

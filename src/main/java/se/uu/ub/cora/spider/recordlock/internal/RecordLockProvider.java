@@ -22,6 +22,7 @@ import se.uu.ub.cora.initialize.ModuleInitializer;
 import se.uu.ub.cora.initialize.ModuleInitializerImp;
 import se.uu.ub.cora.initialize.SelectOrder;
 import se.uu.ub.cora.spider.recordlock.RecordLock;
+import se.uu.ub.cora.spider.recordlock.RecordLockException;
 import se.uu.ub.cora.spider.recordlock.RecordLockInstanceProvider;
 
 /**
@@ -41,20 +42,27 @@ public class RecordLockProvider {
 	}
 
 	/**
-	 * getRecordLock returns a RecordLock that can be used by anything that needs access to record
-	 * locks.
+	 * getRecordLock returns an acquired lock for the record with the specified type and id.
 	 * </p>
-	 * Code using the returned {@link RecordLock} instance MUST consider the returned instance as
-	 * NOT thread safe.
+	 * If the lock cannot be acquired according to the provider's timeout and conflict policy, an
+	 * exception is thrown and no lock is returned. Code using the returned {@link RecordLock}
+	 * instance MUST consider the returned instance as NOT thread safe and close it to release the
+	 * lock.
 	 * 
-	 * @return A RecordLock that gives access to lock for records
+	 * @param recordType
+	 *            the type of the record to lock
+	 * @param recordId
+	 *            the id of the record to lock
+	 * @return an acquired lock for the specified record
+	 * @throws RecordLockException
+	 *             if the lock cannot be acquired
 	 */
-	public static synchronized RecordLock getRecordLock() {
+	public static RecordLock getRecordLock(String recordType, String recordId) {
 		locateAndChooseRecordLockInstanceProvider();
-		return recordLockInstanceProvider.getRecordLock();
+		return recordLockInstanceProvider.getRecordLock(recordType, recordId);
 	}
 
-	private static void locateAndChooseRecordLockInstanceProvider() {
+	private static synchronized void locateAndChooseRecordLockInstanceProvider() {
 		if (recordLockInstanceProvider == null) {
 			recordLockInstanceProvider = moduleInitializer
 					.loadOneImplementationBySelectOrder(RecordLockInstanceProvider.class);
@@ -63,9 +71,9 @@ public class RecordLockProvider {
 
 	/**
 	 * onlyForTestSetRecordLockInstanceProvider sets a RecordLockInstanceProvider that will be used
-	 * to return instances for the {@link #getRecordLock()} method. This possibility to set a
-	 * RecordLockInstanceProvider is provided to enable testing of getting a record lock in other
-	 * classes and is not intented to be used in production.
+	 * to return instances for the {@link #getRecordLock(String, String)} method. This possibility
+	 * to set a RecordLockInstanceProvider is provided to enable testing of getting a record lock in
+	 * other classes and is not intented to be used in production.
 	 * <p>
 	 * The RecordLockInstanceProvider to use in production should be provided through an
 	 * implementation of {@link RecordLockInstanceProvider} in a seperate java module.

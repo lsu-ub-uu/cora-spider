@@ -19,13 +19,12 @@
 package se.uu.ub.cora.spider.recordlock;
 
 /**
- * RecordLock acquires and releases locks on records, identified by type and id.
+ * RecordLock represents an acquired lock for a single record.
  * <p>
- * A lock is held from a successful call to {@link #acquire(String, String)} until
- * {@link #release(String, String)} is called for the same type and id. Callers SHOULD release the
- * lock in a finally block to make sure it is released even if an error occurs.
+ * The lock is acquired before an instance is returned by a
+ * {@link RecordLockInstanceProvider}. Closing the lock releases it and cleans up its resources.
  * <p>
- * <em>RecordLock uses the AutoClosable structure to close used resources. Clients MUST use a
+ * <em>RecordLock uses the AutoCloseable structure to close used resources. Clients MUST use a
  * try-with-resources block or manually call the {@link #close()} method.</em>
  * <p>
  * Implementations of RecordLock are generally not threadsafe.
@@ -33,33 +32,7 @@ package se.uu.ub.cora.spider.recordlock;
 public interface RecordLock extends AutoCloseable {
 
 	/**
-	 * acquire acquires a lock for the record with the specified type and id. If the lock is held by
-	 * someone else, acquire MUST wait and retry until the lock is acquired or the maximum waiting
-	 * time is reached.
-	 *
-	 * @param type
-	 *            A String with the type of the record to lock
-	 * @param id
-	 *            A String with the id of the record to lock
-	 * @throws RecordLockException
-	 *             if the lock could not be acquired within the maximum waiting time, or if the
-	 *             thread is interrupted while waiting to retry
-	 */
-	void acquire(String type, String id);
-
-	/**
-	 * release releases the lock for the record with the specified type and id. Releasing a lock
-	 * that is not held MUST NOT throw an exception.
-	 *
-	 * @param type
-	 *            A String with the type of the locked record
-	 * @param id
-	 *            A String with the id of the locked record
-	 */
-	void release(String type, String id);
-
-	/**
-	 * close closes the underlying resources.
+	 * close releases the acquired record lock and closes its underlying resources.
 	 * <p>
 	 * If an exception occurs while interacting with the underlying resources MUST an
 	 * {@link RecordLockException} be thrown.

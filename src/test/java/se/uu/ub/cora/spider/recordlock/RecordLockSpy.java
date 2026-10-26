@@ -18,24 +18,20 @@
  */
 package se.uu.ub.cora.spider.recordlock;
 
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+
 public class RecordLockSpy implements RecordLock {
 
-	@Override
-	public void acquire(String type, String id) {
-		// TODO Auto-generated method stub
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
-	}
-
-	@Override
-	public void release(String type, String id) {
-		// TODO Auto-generated method stub
-
+	public RecordLockSpy() {
+		MCR.useMRV(MRV);
 	}
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
-
+		MCR.addCallAndReturnFromMRV();
 	}
-
 }

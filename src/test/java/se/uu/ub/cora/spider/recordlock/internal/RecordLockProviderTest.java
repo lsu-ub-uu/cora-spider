@@ -18,6 +18,8 @@
  */
 package se.uu.ub.cora.spider.recordlock.internal;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
@@ -37,10 +39,14 @@ import se.uu.ub.cora.logger.LoggerFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.spider.recordlock.RecordLock;
+import se.uu.ub.cora.spider.recordlock.RecordLockException;
 import se.uu.ub.cora.spider.recordlock.RecordLockInstanceProvider;
 import se.uu.ub.cora.spider.recordlock.RecordLockInstanceProviderSpy;
 
 public class RecordLockProviderTest {
+	private static final String RECORD_TYPE = "someRecordType";
+	private static final String RECORD_ID = "someRecordId";
+
 	private LoggerFactory loggerFactory = new LoggerFactorySpy();
 	private ModuleInitializerSpy moduleInitializerSpy;
 	private RecordLockInstanceProviderSpy instanceProviderSpy;
@@ -87,20 +93,63 @@ public class RecordLockProviderTest {
 	}
 
 	@Test
-	public void testGetRecordLockIsSynchronized_toPreventProblemsWithFindingImplementations()
+	public void testGetRecordLockDoesNotSynchronizeLockAcquisition()
 			throws Exception {
-		Method getRecordLock = RecordLockProvider.class.getMethod("getRecordLock");
-		assertTrue(Modifier.isSynchronized(getRecordLock.getModifiers()));
+		Method getRecordLock = RecordLockProvider.class.getMethod("getRecordLock", String.class,
+				String.class);
+		assertFalse(Modifier.isSynchronized(getRecordLock.getModifiers()));
+	}
+
+	@Test
+	public void testProviderSelectionIsSynchronized() throws Exception {
+		Method locateAndChooseProvider = RecordLockProvider.class
+				.getDeclaredMethod("locateAndChooseRecordLockInstanceProvider");
+		assertTrue(Modifier.isSynchronized(locateAndChooseProvider.getModifiers()));
+	}
+
+	@Test
+	public void testGetRecordLockAcceptsRecordIdentity() throws Exception {
+		Method getRecordLock = RecordLockProvider.class.getMethod("getRecordLock", String.class,
+				String.class);
+
+		assertEquals(getRecordLock.getParameterCount(), 2);
+	}
+
+	@Test
+	public void testGetRecordLockPassesRecordIdentityToInstanceProvider() {
+		setupModuleInstanceProviderToReturnRecordLockFactorySpy();
+
+		RecordLockProvider.getRecordLock(RECORD_TYPE, RECORD_ID);
+
+		instanceProviderSpy.MCR.assertParameters("getRecordLock", 0, RECORD_TYPE, RECORD_ID);
+	}
+
+	@Test(expectedExceptions = RecordLockException.class)
+	public void testGetRecordLockPropagatesAcquisitionFailure() {
+		setupModuleInstanceProviderToReturnRecordLockFactorySpy();
+		instanceProviderSpy.MRV.setAlwaysThrowException("getRecordLock",
+				RecordLockException.withMessage("could not acquire lock"));
+
+		RecordLockProvider.getRecordLock(RECORD_TYPE, RECORD_ID);
+	}
+
+	@Test
+	public void testRecordLockOnlyExposesClose() {
+		Method[] recordLockMethods = RecordLock.class.getDeclaredMethods();
+
+		assertEquals(recordLockMethods.length, 1);
+		assertEquals(recordLockMethods[0].getName(), "close");
 	}
 
 	@Test
 	public void testGetRecordLockUsesModuleInitializerToGetFactory() {
 		setupModuleInstanceProviderToReturnRecordLockFactorySpy();
 
-		RecordLock recordLock = RecordLockProvider.getRecordLock();
+		RecordLock recordLock = RecordLockProvider.getRecordLock(RECORD_TYPE, RECORD_ID);
 
 		moduleInitializerSpy.MCR.assertParameters("loadOneImplementationBySelectOrder", 0,
 				RecordLockInstanceProvider.class);
+		instanceProviderSpy.MCR.assertParameters("getRecordLock", 0, RECORD_TYPE, RECORD_ID);
 		instanceProviderSpy.MCR.assertReturn("getRecordLock", 0, recordLock);
 	}
 
@@ -109,8 +158,9 @@ public class RecordLockProviderTest {
 		RecordLockInstanceProviderSpy instanceProviderSpy2 = new RecordLockInstanceProviderSpy();
 		RecordLockProvider.onlyForTestSetRecordLockInstanceProvider(instanceProviderSpy2);
 
-		RecordLock recordLock = RecordLockProvider.getRecordLock();
+		RecordLock recordLock = RecordLockProvider.getRecordLock(RECORD_TYPE, RECORD_ID);
 
+		instanceProviderSpy2.MCR.assertParameters("getRecordLock", 0, RECORD_TYPE, RECORD_ID);
 		instanceProviderSpy2.MCR.assertReturn("getRecordLock", 0, recordLock);
 	}
 
@@ -118,10 +168,10 @@ public class RecordLockProviderTest {
 	public void testMultipleCallsToGetRecordLockOnlyLoadsImplementationsOnce() {
 		setupModuleInstanceProviderToReturnRecordLockFactorySpy();
 
-		RecordLockProvider.getRecordLock();
-		RecordLockProvider.getRecordLock();
-		RecordLockProvider.getRecordLock();
-		RecordLockProvider.getRecordLock();
+		RecordLockProvider.getRecordLock(RECORD_TYPE, RECORD_ID);
+		RecordLockProvider.getRecordLock(RECORD_TYPE, RECORD_ID);
+		RecordLockProvider.getRecordLock(RECORD_TYPE, RECORD_ID);
+		RecordLockProvider.getRecordLock(RECORD_TYPE, RECORD_ID);
 
 		moduleInitializerSpy.MCR.assertNumberOfCallsToMethod("loadOneImplementationBySelectOrder",
 				1);
