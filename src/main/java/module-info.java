@@ -31,6 +31,7 @@ module se.uu.ub.cora.spider {
 	exports se.uu.ub.cora.spider.binary;
 	exports se.uu.ub.cora.spider.binary.iiif;
 	exports se.uu.ub.cora.spider.unique;
+	exports se.uu.ub.cora.spider.recordlock;
 
 	provides ExtendedFunctionalityFactory with WorkOrderExtendedFunctionalityFactory,
 			ApptokenExtendedFunctionalityFactory, MetadataValidatorExtendedFunctionalityFactory;
