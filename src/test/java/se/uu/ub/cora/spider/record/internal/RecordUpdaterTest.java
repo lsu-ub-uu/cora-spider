@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023, 2024, 2025 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023, 2024, 2025, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -69,6 +69,9 @@ import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.recordlock.RecordLockInstanceProviderSpy;
+import se.uu.ub.cora.spider.recordlock.RecordLockSpy;
+import se.uu.ub.cora.spider.recordlock.internal.RecordLockProvider;
 import se.uu.ub.cora.spider.spy.DataChangedSenderSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
@@ -110,6 +113,8 @@ public class RecordUpdaterTest {
 	private DataRecordGroupSpy previouslyStoredRecordGroup;
 	private User currentUser;
 	private PermissionTermDataHandlerSpy permissionTermDataHandler;
+	private RecordLockInstanceProviderSpy recordLockInstanceSpy;
+	private RecordLockSpy recordLock;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -140,6 +145,15 @@ public class RecordUpdaterTest {
 
 		recordWithId = createDataGroupForUpdate();
 		previouslyStoredRecordGroup = new DataRecordGroupSpy();
+
+		setUpRecordLock();
+	}
+
+	private void setUpRecordLock() {
+		recordLockInstanceSpy = new RecordLockInstanceProviderSpy();
+		recordLock = new RecordLockSpy();
+		recordLockInstanceSpy.MRV.setDefaultReturnValuesSupplier("getRecordLock", () -> recordLock);
+		RecordLockProvider.onlyForTestSetRecordLockInstanceProvider(recordLockInstanceSpy);
 	}
 
 	private void setUpFactoriesAndProviders() {
@@ -202,6 +216,51 @@ public class RecordUpdaterTest {
 		recordSpy.MRV.setDefaultReturnValuesSupplier("overwriteProtectionShouldBeEnforced",
 				() -> true);
 		return recordSpy;
+	}
+
+	@Test
+	public void testRecordLockIsAquiredAndReleased() {
+		recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+
+		recordLockInstanceSpy.MCR.assertNumberOfCallsToMethod("getRecordLock", 1);
+		recordLockInstanceSpy.MCR.assertParameter("getRecordLock", 0, "recordType", "spyType");
+		recordLockInstanceSpy.MCR.assertParameter("getRecordLock", 0, "recordId", "someRecordId");
+		recordLock.MCR.assertNumberOfCallsToMethod("close", 1);
+		extendedFunctionalityProvider.MCR
+				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 6);
+	}
+
+	@Test
+	public void testRecordLockIsAquiredAroundExpectedFunctionallityStart() {
+		recordLockInstanceSpy.MRV.setAlwaysThrowException("getRecordLock", new RuntimeException());
+
+		try {
+			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+			fail("should have thrown error");
+		} catch (Exception _) {
+			recordLock.MCR.assertNumberOfCallsToMethod("close", 0);
+
+			authorizator.MCR
+					.assertNumberOfCallsToMethod("checkUserIsAuthorizedForActionOnRecordType", 1);
+			extendedFunctionalityProvider.MCR
+					.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 0);
+		}
+	}
+
+	@Test
+	public void testRecordLockIsAquiredAroundExpectedFunctionallityEnd() {
+		recordLock.MRV.setAlwaysThrowException("close", new RuntimeException());
+
+		try {
+			recordUpdater.updateRecord(AUTH_TOKEN, RECORD_TYPE, RECORD_ID, recordWithId);
+			fail("should have thrown error");
+		} catch (Exception _) {
+			recordLock.MCR.assertNumberOfCallsToMethod("close", 1);
+			authorizator.MCR
+					.assertNumberOfCallsToMethod("checkUserIsAuthorizedForActionOnRecordType", 1);
+			extendedFunctionalityProvider.MCR
+					.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 6);
+		}
 	}
 
 	@Test

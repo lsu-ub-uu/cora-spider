@@ -62,6 +62,9 @@ import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancerSpy;
 import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.recordlock.RecordLockInstanceProviderSpy;
+import se.uu.ub.cora.spider.recordlock.RecordLockSpy;
+import se.uu.ub.cora.spider.recordlock.internal.RecordLockProvider;
 import se.uu.ub.cora.spider.spy.DataChangedSenderSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.DataRecordLinkCollectorSpy;
@@ -124,6 +127,15 @@ public class RecordCreatorTest {
 				() -> RECORD_TYPE);
 		recordWithoutId = createRecordExampleRecordWithoutId();
 		recordWithId = createDataGroupForCreate();
+
+		setUpRecordLock();
+	}
+
+	private void setUpRecordLock() {
+		recordLockInstanceSpy = new RecordLockInstanceProviderSpy();
+		recordLock = new RecordLockSpy();
+		recordLockInstanceSpy.MRV.setDefaultReturnValuesSupplier("getRecordLock", () -> recordLock);
+		RecordLockProvider.onlyForTestSetRecordLockInstanceProvider(recordLockInstanceSpy);
 	}
 
 	private void setUpFactoriesAndProviders() {
@@ -183,6 +195,50 @@ public class RecordCreatorTest {
 		recordSpy.MRV.setDefaultReturnValuesSupplier("getId", () -> "someRecordId");
 		recordSpy.MRV.setDefaultReturnValuesSupplier("getDataDivider", () -> "someDataDivider");
 		return recordSpy;
+	}
+
+	@Test
+	public void testRecordLockIsAquiredAndReleased() {
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
+
+		recordLockInstanceSpy.MCR.assertNumberOfCallsToMethod("getRecordLock", 1);
+		recordLockInstanceSpy.MCR.assertParameter("getRecordLock", 0, "recordType", "someType");
+		recordLockInstanceSpy.MCR.assertParameter("getRecordLock", 0, "recordId", "someRecordId");
+		recordLock.MCR.assertNumberOfCallsToMethod("close", 1);
+	}
+
+	@Test
+	public void testRecordLockIsAquiredAroundExpectedFunctionallityStart() {
+		recordLockInstanceSpy.MRV.setAlwaysThrowException("getRecordLock", new RuntimeException());
+
+		try {
+			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
+			fail("should have thrown error");
+		} catch (Exception _) {
+			recordLock.MCR.assertNumberOfCallsToMethod("close", 0);
+			recordTypeHandlerSpy.MCR.assertNumberOfCallsToMethod("shouldAutoGenerateId", 1);
+			extendedFunctionalityProvider.MCR
+					.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 2);
+			dataGroupToRecordEnhancer.MCR.assertNumberOfCallsToMethod("enhanceIgnoringReadAccess",
+					0);
+		}
+	}
+
+	@Test
+	public void testRecordLockIsAquiredAroundExpectedFunctionallityEnd() {
+		recordLock.MRV.setAlwaysThrowException("close", new RuntimeException());
+
+		try {
+			recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
+			fail("should have thrown error");
+		} catch (Exception _) {
+			recordLock.MCR.assertNumberOfCallsToMethod("close", 1);
+			recordTypeHandlerSpy.MCR.assertNumberOfCallsToMethod("shouldAutoGenerateId", 1);
+			extendedFunctionalityProvider.MCR
+					.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 5);
+			dataGroupToRecordEnhancer.MCR.assertNumberOfCallsToMethod("enhanceIgnoringReadAccess",
+					1);
+		}
 	}
 
 	@Test
@@ -322,6 +378,8 @@ public class RecordCreatorTest {
 	}
 
 	private int errorOnSecond = 0;
+	private RecordLockInstanceProviderSpy recordLockInstanceSpy;
+	private RecordLockSpy recordLock;
 
 	private CollectTerms throwErrorOnSecondCall() {
 		if (errorOnSecond > 0) {

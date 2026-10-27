@@ -32,6 +32,6 @@ public class RecordLockSpy implements RecordLock {
 
 	@Override
 	public void close() {
-		MCR.addCallAndReturnFromMRV();
+		MCR.addCall();
 	}
 }

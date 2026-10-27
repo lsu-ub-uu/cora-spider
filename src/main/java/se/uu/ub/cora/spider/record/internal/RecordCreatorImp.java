@@ -59,6 +59,7 @@ import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.recordlock.internal.RecordLockProvider;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 
@@ -127,13 +128,12 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = recordGroup.getId();
 
-		// try (RecordLock recordLock = RecordLockProvider.getRecordLock();) {
-		//
-		// recordLock.release(recordType, recordId);
-		// } finally {
-		//
-		// }
+		try (var _ = RecordLockProvider.getRecordLock(recordType, recordId)) {
+			return createUnderRecordLock();
+		}
+	}
 
+	private DataRecord createUnderRecordLock() {
 		useExtendedFunctionalityForPosition(CREATE_BEFORE_COLLECT_DATA);
 		collectInformationSpecifiedInMetadata();
 		ensureNoDuplicateForTypeAndId();
