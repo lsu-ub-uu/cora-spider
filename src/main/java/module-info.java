@@ -2,6 +2,7 @@ import se.uu.ub.cora.spider.extended.apptoken.ApptokenExtendedFunctionalityFacto
 import se.uu.ub.cora.spider.extended.consistency.MetadataValidatorExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extended.workorder.WorkOrderExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
+import se.uu.ub.cora.spider.recordlock.RecordLockInstanceProvider;
 
 /**
  * The spider module sits in the center of a Cora based system, managing data flow to and from other
@@ -20,6 +21,7 @@ module se.uu.ub.cora.spider {
 	requires se.uu.ub.cora.initialize;
 
 	uses ExtendedFunctionalityFactory;
+	uses RecordLockInstanceProvider;
 
 	exports se.uu.ub.cora.spider.authentication;
 	exports se.uu.ub.cora.spider.authorization;
