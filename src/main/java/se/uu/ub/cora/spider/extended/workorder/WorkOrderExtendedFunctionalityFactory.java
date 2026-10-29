@@ -20,7 +20,7 @@ package se.uu.ub.cora.spider.extended.workorder;
 
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,7 +48,7 @@ public class WorkOrderExtendedFunctionalityFactory implements ExtendedFunctional
 	private void createListOfContexts() {
 		createContext(CREATE_AFTER_AUTHORIZATION);
 		createContext(CREATE_AFTER_METADATA_VALIDATION);
-		createContext(CREATE_BEFORE_ENHANCE);
+		createContext(CREATE_BEFORE_RETURN);
 	}
 
 	private void createContext(ExtendedFunctionalityPosition position) {
@@ -66,7 +66,7 @@ public class WorkOrderExtendedFunctionalityFactory implements ExtendedFunctional
 		if (CREATE_AFTER_METADATA_VALIDATION == position) {
 			return Collections.singletonList(factorExecutor());
 		}
-		if (CREATE_BEFORE_ENHANCE == position) {
+		if (CREATE_BEFORE_RETURN == position) {
 			return Collections.singletonList(factorDeleter());
 		}
 		return Collections.singletonList(factorEnhancer());

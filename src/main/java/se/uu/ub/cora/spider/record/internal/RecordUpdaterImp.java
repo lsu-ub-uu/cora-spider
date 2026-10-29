@@ -127,9 +127,12 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private DataRecord tryToUpdateAndStoreRecord() {
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
+		DataRecord dataRecord;
 		try (var _ = RecordLockProvider.getRecordLock(recordType, recordId)) {
-			return updateUnderRecordLock();
+			dataRecord = updateUnderRecordLock();
 		}
+		useExtendedFunctionalityBeforeReturn(dataRecord);
+		return dataRecord;
 	}
 
 	private DataRecord updateUnderRecordLock() {
@@ -192,7 +195,6 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		DataRecord dataRecord = dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user,
 				recordType, recordGroup, dataRedactor);
-		useExtendedFunctionalityBeforeReturn(dataRecord);
 		return dataRecord;
 	}
 

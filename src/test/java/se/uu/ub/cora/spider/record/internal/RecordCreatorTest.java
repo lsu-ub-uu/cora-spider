@@ -27,6 +27,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_COLLECT_DATA;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_STORE;
 
 import java.util.List;
@@ -53,6 +54,7 @@ import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.spider.authentication.AuthenticationException;
 import se.uu.ub.cora.spider.authorization.AuthorizationException;
+import se.uu.ub.cora.spider.data.DataRecordOldSpy;
 import se.uu.ub.cora.spider.dependency.spy.RecordTypeHandlerSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
@@ -345,8 +347,28 @@ public class RecordCreatorTest {
 
 		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
 				CREATE_BEFORE_ENHANCE, expectedData, 4);
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				CREATE_BEFORE_RETURN, expectedData, 5);
 		extendedFunctionalityProvider.MCR
-				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 5);
+				.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 6);
+	}
+
+	@Test
+	public void testUseExtendedFunctionalityExtendedFunctionalitiesExists() {
+		recordCreator.createAndStoreRecord(AUTH_TOKEN, RECORD_TYPE, recordWithId);
+
+		DataRecordOldSpy enhancedRecord = (DataRecordOldSpy) dataGroupToRecordEnhancer.MCR
+				.getReturnValue("enhanceIgnoringReadAccess", 0);
+		ExtendedFunctionalityData expectedData = new ExtendedFunctionalityData();
+		expectedData.recordType = RECORD_TYPE;
+		expectedData.recordId = "someRecordId";
+		expectedData.authToken = AUTH_TOKEN;
+		expectedData.user = getAuthenticatedUser();
+		expectedData.previouslyStoredDataRecordGroup = null;
+		expectedData.dataRecordGroup = enhancedRecord.getDataRecordGroup();
+		expectedData.dataRecord = enhancedRecord;
+		extendedFunctionalityProvider.assertCallToPositionAndFunctionalityCalledWithData(
+				CREATE_BEFORE_RETURN, expectedData, 5);
 	}
 
 	@Test

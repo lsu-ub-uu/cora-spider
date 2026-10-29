@@ -31,6 +31,7 @@ import se.uu.ub.cora.storage.RecordStorage;
  * CREATE_AFTER_AUTHORIZATION<br>
  * CREATE_AFTER_METADATA_VALIDATION<br>
  * CREATE_BEFORE_ENHANCE<br>
+ * CREATE_BEFORE_RETURN,<br>
  * <br>
  * For read are the positions ordered as follows:<br>
  * READ_BEFORE_RETURN<br>
@@ -74,9 +75,16 @@ public enum ExtendedFunctionalityPosition {
 
 	/**
 	 * CREATE_BEFORE_ENHANCE, as the name suggests is the functionality plugged into a create
-	 * operation, before the method returns.
+	 * operation, before the data is enhanced to a record.
 	 */
 	CREATE_BEFORE_ENHANCE,
+
+	/**
+	 * CREATE_BEFORE_RETURN, as the name suggests is the functionality plugged into a create
+	 * operation, before the method returns.</br>
+	 * Note! This method is outside of recordLock for the record being created.
+	 */
+	CREATE_BEFORE_RETURN,
 
 	/**
 	 * READ_AFTER_AUTHORIZATION, as the name suggests is the functionality plugged into a read
@@ -143,7 +151,8 @@ public enum ExtendedFunctionalityPosition {
 
 	/**
 	 * UPDATE_BEFORE_RETURN, as the name suggests is the functionality plugged into a update
-	 * operation, before the method returns.
+	 * operation, before the method returns.</br>
+	 * Note! This method is outside of recordLock for the record being updated.
 	 */
 	UPDATE_BEFORE_RETURN,
 

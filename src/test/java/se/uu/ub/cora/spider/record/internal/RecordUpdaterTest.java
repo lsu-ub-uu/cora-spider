@@ -259,7 +259,7 @@ public class RecordUpdaterTest {
 			authorizator.MCR
 					.assertNumberOfCallsToMethod("checkUserIsAuthorizedForActionOnRecordType", 1);
 			extendedFunctionalityProvider.MCR
-					.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 6);
+					.assertNumberOfCallsToMethod("getFunctionalityForPositionAndRecordType", 5);
 		}
 	}
 

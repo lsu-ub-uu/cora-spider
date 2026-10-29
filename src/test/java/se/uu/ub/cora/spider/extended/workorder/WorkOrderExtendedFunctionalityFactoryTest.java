@@ -23,7 +23,7 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_AUTHORIZATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
-import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN;
 
 import java.util.List;
 
@@ -60,7 +60,7 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 		assertEquals(factory.getExtendedFunctionalityContexts().size(), 3);
 		assertCorrectContextUsingIndexNumberAndPosition(0, 0, CREATE_AFTER_AUTHORIZATION);
 		assertCorrectContextUsingIndexNumberAndPosition(1, 0, CREATE_AFTER_METADATA_VALIDATION);
-		assertCorrectContextUsingIndexNumberAndPosition(2, 0, CREATE_BEFORE_ENHANCE);
+		assertCorrectContextUsingIndexNumberAndPosition(2, 0, CREATE_BEFORE_RETURN);
 	}
 
 	private void assertCorrectContextUsingIndexNumberAndPosition(int index, int runAsNumber,
@@ -90,7 +90,7 @@ public class WorkOrderExtendedFunctionalityFactoryTest {
 
 	@Test
 	public void testWorkOrderCreateBeforeReturn() {
-		List<ExtendedFunctionality> functionalities = factory.factor(CREATE_BEFORE_ENHANCE,
+		List<ExtendedFunctionality> functionalities = factory.factor(CREATE_BEFORE_RETURN,
 				"workOrder");
 		WorkOrderDeleter functionality = (WorkOrderDeleter) functionalities.get(0);
 		RecordDeleterImp recordDeleter = (RecordDeleterImp) functionality.getRecordDeleter();

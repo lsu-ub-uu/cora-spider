@@ -49,7 +49,7 @@ public final class WorkOrderDeleter implements ExtendedFunctionality {
 	private void tryToDeleteRecord(String authToken, String recordType, String recordId) {
 		try {
 			recordDeleter.deleteRecord(authToken, recordType, recordId);
-		} catch (AuthorizationException | RecordNotFoundException e) {
+		} catch (AuthorizationException | RecordNotFoundException _) {
 			// do nothing
 		}
 	}
