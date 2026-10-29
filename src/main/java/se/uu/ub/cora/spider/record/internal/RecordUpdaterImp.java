@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023, 2024, 2025 Uppsala University Library
+ * Copyright 2015, 2016, 2018, 2020, 2021, 2022, 2023, 2024, 2025, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -64,6 +64,7 @@ import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordUpdater;
+import se.uu.ub.cora.spider.recordlock.internal.RecordLockProvider;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.archive.RecordArchive;
@@ -126,6 +127,15 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 	private DataRecord tryToUpdateAndStoreRecord() {
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
+		DataRecord dataRecord;
+		try (var _ = RecordLockProvider.getRecordLock(recordType, recordId)) {
+			dataRecord = updateUnderRecordLock();
+		}
+		useExtendedFunctionalityBeforeReturn(dataRecord);
+		return dataRecord;
+	}
+
+	private DataRecord updateUnderRecordLock() {
 		useExtendedFunctionalityForPosition(UPDATE_AFTER_AUTHORIZATION);
 		recordTypeHandler = dependencyProvider
 				.getRecordTypeHandlerUsingDataRecordGroup(recordGroup);
@@ -185,7 +195,6 @@ public final class RecordUpdaterImp extends RecordHandler implements RecordUpdat
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		DataRecord dataRecord = dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user,
 				recordType, recordGroup, dataRedactor);
-		useExtendedFunctionalityBeforeReturn(dataRecord);
 		return dataRecord;
 	}
 

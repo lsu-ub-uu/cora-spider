@@ -23,6 +23,7 @@ import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPo
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_COLLECT_DATA;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_RETURN;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_STORE;
 
 import java.text.MessageFormat;
@@ -53,12 +54,14 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.cache.DataChangedSender;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
+import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.ConflictException;
 import se.uu.ub.cora.spider.record.DataException;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordCreator;
+import se.uu.ub.cora.spider.recordlock.internal.RecordLockProvider;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 
@@ -126,6 +129,15 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		useExtendedFunctionalityForPosition(CREATE_AFTER_METADATA_VALIDATION);
 		ensureCompleteRecordInfo(user.id, recordType);
 		recordId = recordGroup.getId();
+		DataRecord dataRecord;
+		try (var _ = RecordLockProvider.getRecordLock(recordType, recordId)) {
+			dataRecord = createUnderRecordLock();
+		}
+		useExtendedFunctionalityBeforeReturn(dataRecord);
+		return dataRecord;
+	}
+
+	private DataRecord createUnderRecordLock() {
 		useExtendedFunctionalityForPosition(CREATE_BEFORE_COLLECT_DATA);
 		collectInformationSpecifiedInMetadata();
 		ensureNoDuplicateForTypeAndId();
@@ -362,6 +374,24 @@ public final class RecordCreatorImp extends RecordHandler implements RecordCreat
 		DataRedactor dataRedactor = dependencyProvider.getDataRedactor();
 		return dataGroupToRecordEnhancer.enhanceIgnoringReadAccess(user, recordType, recordGroup,
 				dataRedactor);
+	}
+
+	private void useExtendedFunctionalityBeforeReturn(DataRecord dataRecord) {
+		List<ExtendedFunctionality> extendedFunctionalityList = extendedFunctionalityProvider
+				.getFunctionalityForPositionAndRecordType(CREATE_BEFORE_RETURN, recordType);
+		for (ExtendedFunctionality extendedFunctionality : extendedFunctionalityList) {
+			ExtendedFunctionalityData data = createExtendedFunctionalityDataUsingDataRecord(
+					dataRecord);
+			extendedFunctionality.useExtendedFunctionality(data);
+		}
+	}
+
+	private ExtendedFunctionalityData createExtendedFunctionalityDataUsingDataRecord(
+			DataRecord dataRecord) {
+		ExtendedFunctionalityData data = createExtendedFunctionalityData(
+				dataRecord.getDataRecordGroup());
+		data.dataRecord = dataRecord;
+		return data;
 	}
 
 	public DataGroupToRecordEnhancer onlyForTestGetDataGroupToRecordEnhancer() {

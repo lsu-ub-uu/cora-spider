@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2022, 2024, 2025 Uppsala University Library
+ * Copyright 2015, 2022, 2024, 2025, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -44,6 +44,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.MisuseException;
 import se.uu.ub.cora.spider.record.RecordDeleter;
 import se.uu.ub.cora.spider.record.RecordNotFoundException;
+import se.uu.ub.cora.spider.recordlock.internal.RecordLockProvider;
 import se.uu.ub.cora.storage.archive.RecordArchive;
 
 public final class RecordDeleterImp extends RecordHandler implements RecordDeleter {
@@ -90,7 +91,12 @@ public final class RecordDeleterImp extends RecordHandler implements RecordDelet
 	private void tryToDelete() {
 		tryToGetActiveUser();
 		checkUserIsAuthorizedForActionOnRecordType();
+		try (var _ = RecordLockProvider.getRecordLock(recordType, recordId)) {
+			deleteUnderRecordLock();
+		}
+	}
 
+	private void deleteUnderRecordLock() {
 		useExtendedFunctionalityUsingPosition(DELETE_AFTER_AUTHORIZATION);
 
 		dataRecordGroup = readRecordFromStorage();
