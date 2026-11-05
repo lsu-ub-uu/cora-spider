@@ -204,30 +204,40 @@ public class WorkOrderExecutorTest {
 	public void testCallReconvertIfWorkOrderIndexesABinary() {
 		setUpIndexActionForWorkOrder("index");
 		createWorkOrderWithTypeAndId("binary", "someId");
-		DataGroupSpy masterGroup = new DataGroupSpy();
-
-		masterGroup.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> "someMimeType", "mimeType");
-		DataRecordGroupSpy binaryRecordGroup = new DataRecordGroupSpy();
-		binaryRecordGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> masterGroup, "master");
-
-		recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> binaryRecordGroup, "binary",
-				"someId");
+		setMimeTypeToBinaryRecordGroupFromStorage("image/some");
 
 		callExtendedFunctionalityWithGroup(workOrder);
 
-		recordStorage.MCR.assertCalledParameters("read", "binary", "someId");
+		assertBinaryIsSentToReconvert("sendMessageForAnalyzingAndConvertingImages", "image/some");
+	}
+
+	private void assertBinaryIsSentToReconvert(String methodNameSendToThumbnailsQueue,
+			String mediaType) {
+
+		DataRecordGroupSpy binaryRecordGroup = (DataRecordGroupSpy) recordStorage.MCR
+				.assertCalledParametersReturn("read", "binary", "someId");
 		ResourceConvertSpy resourceConverter = (ResourceConvertSpy) dependencyProviderSpy.MCR
 				.assertCalledParametersReturn("getResourceConvert");
 		String datadivider = (String) binaryRecordGroup.MCR
 				.assertCalledParametersReturn("getDataDivider");
-		resourceConverter.MCR.assertParameters("sendMessageForAnalyzingAndConvertingImages", 0,
-				datadivider, "binary", "someId", "someMimeType");
+		resourceConverter.MCR.assertParameters(methodNameSendToThumbnailsQueue, 0, datadivider,
+				"binary", "someId", mediaType);
+	}
+
+	private void setMimeTypeToBinaryRecordGroupFromStorage(String expectedMimeType) {
+		DataGroupSpy masterGroup = new DataGroupSpy();
+		masterGroup.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> expectedMimeType, "mimeType");
+		DataRecordGroupSpy binaryRecordGroup = new DataRecordGroupSpy();
+		binaryRecordGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> masterGroup, "master");
+		recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> binaryRecordGroup, "binary",
+				"someId");
 	}
 
 	// TODO: next,
 	// .. - UploaderImp must get ResourceConvert from SpiderDependencyProvider
 	// 1 - create a test to check that Non binary records do not send to Rabbit
 	// 2- if pdf send to pdf queue.
+	// 3- if binary but neither pdf nor image do not sent to queue.
 }

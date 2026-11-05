@@ -115,6 +115,7 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 		if (userIsAuthorizedToIndex(authToken)) {
 			DataRecordGroup dataToIndex = readRecordToIndexFromStorage();
 			indexData(dataToIndex, performCommit);
+			// Bara om det är binary
 			String dataDivider = dataToIndex.getDataDivider();
 			DataGroup masterGroup = dataToIndex.getFirstGroupWithNameInData("master");
 			String mimeType = masterGroup.getFirstAtomicValueWithNameInData("mimeType");
