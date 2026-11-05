@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2022, 2024 Uppsala University Library
+ * Copyright 2017, 2022, 2024, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,6 +23,7 @@ import java.util.List;
 import se.uu.ub.cora.beefeater.authentication.User;
 import se.uu.ub.cora.bookkeeper.recordtype.RecordTypeHandler;
 import se.uu.ub.cora.bookkeeper.termcollector.DataGroupTermCollector;
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
@@ -33,6 +34,7 @@ import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
+import se.uu.ub.cora.spider.resourceconvert.ResourceConvert;
 import se.uu.ub.cora.storage.RecordStorage;
 
 public class WorkOrderExecutor implements ExtendedFunctionality {
@@ -111,7 +113,14 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 
 	private void indexDataIfUserIsAuthorized(String authToken, boolean performCommit) {
 		if (userIsAuthorizedToIndex(authToken)) {
-			indexData(performCommit);
+			DataRecordGroup dataToIndex = readRecordToIndexFromStorage();
+			indexData(dataToIndex, performCommit);
+			String dataDivider = dataToIndex.getDataDivider();
+			DataGroup masterGroup = dataToIndex.getFirstGroupWithNameInData("master");
+			String mimeType = masterGroup.getFirstAtomicValueWithNameInData("mimeType");
+			ResourceConvert resourceConvert = dependencyProvider.getResourceConvert();
+			resourceConvert.sendMessageForAnalyzingAndConvertingImages(dataDivider,
+					recordTypeToIndex, recordIdToIndex, mimeType);
 		}
 	}
 
@@ -121,8 +130,7 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 				recordTypeToIndex);
 	}
 
-	private void indexData(boolean performCommit) {
-		DataRecordGroup dataToIndex = readRecordToIndexFromStorage();
+	private void indexData(DataRecordGroup dataToIndex, boolean performCommit) {
 		CollectTerms collectedTerms = getCollectedTerms(dataToIndex);
 		sendToIndex(collectedTerms, dataToIndex, performCommit);
 	}

@@ -70,6 +70,7 @@ import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.internal.RecordDecoratorImp;
 import se.uu.ub.cora.spider.recordtype.internal.RecordTypeHandlerFactorySpy;
+import se.uu.ub.cora.spider.resourceconvert.ResourceConvertImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.spider.unique.UniqueValidatorImp;
 import se.uu.ub.cora.storage.RecordStorageProvider;
@@ -358,6 +359,29 @@ public class DependencyProviderAbstractTest {
 				.getPermissionTermDataHandler();
 
 		assertTrue(permissionTermDataHandler instanceof PermissionTermDataHandlerImp);
+	}
+
+	@Test
+	public void testGerResourceConvert() {
+
+		Map<String, String> settingsMap = new HashMap<>();
+		SettingsProvider.setSettings(settingsMap);
+		settingsMap.put("rabbitMqHostname", "someRabbitHostname");
+		settingsMap.put("rabbitMqPort", "1234");
+		settingsMap.put("rabbitMqVirtualHost", "someVHost");
+		settingsMap.put("rabbitMqImageExchange", "someImageExchange");
+		settingsMap.put("rabbitMqPdfExchange", "somePdfExchange");
+		settingsMap.put("rabbitMqRoutingKey", "someRoutingKey");
+
+		ResourceConvertImp converter = (ResourceConvertImp) dependencyProvider.getResourceConvert();
+
+		assertEquals(converter.onlyForTestGetHostName(), "someRabbitHostname");
+		assertEquals(converter.onlyForTestGetPort(), 1234);
+		assertEquals(converter.onlyForTestGetVirtualHost(), "someVHost");
+		assertEquals(converter.onlyForTestGetImageExchange(), "someImageExchange");
+		assertEquals(converter.onlyForTestGetPdfExchange(), "somePdfExchange");
+		assertEquals(converter.onlyForTestGetRoutingKey(), "someRoutingKey");
+
 	}
 
 }

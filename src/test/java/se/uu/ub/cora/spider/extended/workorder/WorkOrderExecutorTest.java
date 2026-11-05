@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, 2019, 2022, 2024 Uppsala University Library
+ * Copyright 2017, 2019, 2022, 2024, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -26,6 +26,7 @@ import se.uu.ub.cora.data.DataRecordGroup;
 import se.uu.ub.cora.data.DataRecordLink;
 import se.uu.ub.cora.data.collected.CollectTerms;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
+import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordLinkSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
@@ -33,6 +34,7 @@ import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.log.LoggerFactorySpy;
 import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.resourceconvert.spy.ResourceConvertSpy;
 import se.uu.ub.cora.spider.spy.DataGroupTermCollectorSpy;
 import se.uu.ub.cora.spider.spy.RecordIndexerSpy;
 import se.uu.ub.cora.spider.spy.SpiderDependencyProviderSpy;
@@ -197,4 +199,35 @@ public class WorkOrderExecutorTest {
 		recordIndexer.MCR.assertParameters("indexData", 0, "book", "book1", collectTerms.indexTerms,
 				dataToIndex);
 	}
+
+	@Test
+	public void testCallReconvertIfWorkOrderIndexesABinary() {
+		setUpIndexActionForWorkOrder("index");
+		createWorkOrderWithTypeAndId("binary", "someId");
+		DataGroupSpy masterGroup = new DataGroupSpy();
+
+		masterGroup.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "someMimeType", "mimeType");
+		DataRecordGroupSpy binaryRecordGroup = new DataRecordGroupSpy();
+		binaryRecordGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> masterGroup, "master");
+
+		recordStorage.MRV.setSpecificReturnValuesSupplier("read", () -> binaryRecordGroup, "binary",
+				"someId");
+
+		callExtendedFunctionalityWithGroup(workOrder);
+
+		recordStorage.MCR.assertCalledParameters("read", "binary", "someId");
+		ResourceConvertSpy resourceConverter = (ResourceConvertSpy) dependencyProviderSpy.MCR
+				.assertCalledParametersReturn("getResourceConvert");
+		String datadivider = (String) binaryRecordGroup.MCR
+				.assertCalledParametersReturn("getDataDivider");
+		resourceConverter.MCR.assertParameters("sendMessageForAnalyzingAndConvertingImages", 0,
+				datadivider, "binary", "someId", "someMimeType");
+	}
+
+	// TODO: next,
+	// .. - UploaderImp must get ResourceConvert from SpiderDependencyProvider
+	// 1 - create a test to check that Non binary records do not send to Rabbit
+	// 2- if pdf send to pdf queue.
 }

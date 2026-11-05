@@ -39,6 +39,7 @@ import se.uu.ub.cora.bookkeeper.validator.DataValidator;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactory;
 import se.uu.ub.cora.bookkeeper.validator.DataValidatorFactoryImp;
 import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.spider.authorization.BasePermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.PermissionRuleCalculator;
 import se.uu.ub.cora.spider.authorization.SpiderAuthorizator;
@@ -53,6 +54,8 @@ import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordDecorator;
 import se.uu.ub.cora.spider.record.internal.DataGroupToRecordEnhancerImp;
 import se.uu.ub.cora.spider.record.internal.RecordDecoratorImp;
+import se.uu.ub.cora.spider.resourceconvert.ResourceConvert;
+import se.uu.ub.cora.spider.resourceconvert.ResourceConvertImp;
 import se.uu.ub.cora.spider.role.RulesProviderImp;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.spider.unique.UniqueValidatorImp;
@@ -222,5 +225,18 @@ public abstract class DependencyProviderAbstract implements SpiderDependencyProv
 	public RecordDecorator getRecordDecorator() {
 
 		return RecordDecoratorImp.usingDependencyProvider(this);
+	}
+
+	@Override
+	public ResourceConvert getResourceConvert() {
+		String hostName = SettingsProvider.getSetting("rabbitMqHostname");
+		int port = Integer.parseInt(SettingsProvider.getSetting("rabbitMqPort"));
+		String vHost = SettingsProvider.getSetting("rabbitMqVirtualHost");
+		String imageExchange = SettingsProvider.getSetting("rabbitMqImageExchange");
+		String pdfExchange = SettingsProvider.getSetting("rabbitMqPdfExchange");
+		String routingKey = SettingsProvider.getSetting("rabbitMqRoutingKey");
+
+		return ResourceConvertImp.usingHostnamePortVHostExchangeRoutingKey(hostName, port, vHost,
+				imageExchange, pdfExchange, routingKey);
 	}
 }

@@ -47,6 +47,8 @@ import se.uu.ub.cora.spider.record.internal.AuthenticatorSpy;
 import se.uu.ub.cora.spider.record.internal.RecordDecoratorSpy;
 import se.uu.ub.cora.spider.record.internal.RecordSearchSpy;
 import se.uu.ub.cora.spider.record.internal.SpiderAuthorizatorSpy;
+import se.uu.ub.cora.spider.resourceconvert.ResourceConvert;
+import se.uu.ub.cora.spider.resourceconvert.spy.ResourceConvertSpy;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
@@ -95,6 +97,7 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 		MRV.setDefaultReturnValuesSupplier("getDataChangeSender", DataChangedSenderSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getDataDecorator", DataDecoratorSpy::new);
 		MRV.setDefaultReturnValuesSupplier("getRecordDecorator", RecordDecoratorSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getResourceConvert", ResourceConvertSpy::new);
 	}
 
 	@Override
@@ -211,5 +214,10 @@ public class SpiderDependencyProviderSpy implements SpiderDependencyProvider {
 	@Override
 	public PermissionTermDataHandler getPermissionTermDataHandler() {
 		return (PermissionTermDataHandler) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public ResourceConvert getResourceConvert() {
+		return (ResourceConvert) MCR.addCallAndReturnFromMRV();
 	}
 }
