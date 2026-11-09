@@ -98,22 +98,17 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 	}
 
 	private void regenerateMetadataAndPossiblyConvert(DataRecordGroup workOrder) {
-		boolean performExplicitCommit = getPerformExplicitCommit(workOrder);
 		DataRecordGroup dataToIndex = readRecordToIndexFromStorage();
 		if (standardRecord(dataToIndex)) {
+			boolean performExplicitCommit = getPerformExplicitCommit(workOrder);
 			reIndex(dataToIndex, performExplicitCommit);
 		} else {
 			tryToSendToConvert(dataToIndex);
 		}
 	}
 
-	private boolean getPerformExplicitCommit(DataRecordGroup workOrder) {
-		boolean performCommit = true;
-		if (workOrder.containsChildWithNameInData("performCommit")
-				&& performExplicitCommitIsFalse(workOrder)) {
-			performCommit = false;
-		}
-		return performCommit;
+	private DataRecordGroup readRecordToIndexFromStorage() {
+		return recordStorage.read(recordType, recordId);
 	}
 
 	private boolean standardRecord(DataRecordGroup dataToIndex) {
@@ -131,6 +126,15 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 
 	private boolean isPdf(String detectedMimeType) {
 		return "application/pdf".equals(detectedMimeType);
+	}
+
+	private boolean getPerformExplicitCommit(DataRecordGroup workOrder) {
+		boolean performCommit = true;
+		if (workOrder.containsChildWithNameInData("performCommit")
+				&& performExplicitCommitIsFalse(workOrder)) {
+			performCommit = false;
+		}
+		return performCommit;
 	}
 
 	private boolean performExplicitCommitIsFalse(DataRecordGroup workOrder) {
@@ -204,10 +208,8 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 	private void reIndex(DataRecordGroup dataToIndex, boolean performCommit) {
 		CollectTerms collectedTerms = getCollectedTerms(dataToIndex);
 		sendToIndex(collectedTerms, dataToIndex, performCommit);
-	}
-
-	private DataRecordGroup readRecordToIndexFromStorage() {
-		return recordStorage.read(recordType, recordId);
+		//TODO: 
+		updateCollectedData
 	}
 
 	private CollectTerms getCollectedTerms(DataRecordGroup dataToIndex) {
