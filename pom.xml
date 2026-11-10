@@ -38,7 +38,7 @@
 		<coradata-spies.version>3.2.0</coradata-spies.version>
 		<json.version>3.11.0</json.version>
 		<storage.version>10.1-SNAPSHOT</storage.version>
-		<storagespies.version>1.15.0</storagespies.version>
+		<storagespies.version>1.16-SNAPSHOT</storagespies.version>
 		<initialize.version>1.8.0</initialize.version>
 		<initialize-spies.version>1.7.0</initialize-spies.version>
 		<search.version>6.0.0</search.version>

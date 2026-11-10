@@ -131,19 +131,24 @@ public class WorkOrderExecutorTest {
 
 	@Test
 	public void testIndexData() {
+		String type = "book";
+		String id = "book1";
 		setUpIndexActionForWorkOrder("NotRemoveFromIndex");
 
 		callExtendedFunctionalityWithGroup(workOrder);
 
 		DataRecordGroupSpy dataToIndex = (DataRecordGroupSpy) recordStorage.MCR
-				.assertCalledParametersReturn("read", "book", "book1");
+				.assertCalledParametersReturn("read", "book", id);
 		dependencyProviderSpy.MCR.assertCalledParameters("getRecordTypeHandlerUsingDataRecordGroup",
 				dataToIndex);
 		CollectTerms collectTerms = (CollectTerms) termCollector.MCR.assertCalledParametersReturn(
 				"collectTerms", "fakeDefMetadataIdFromRecordTypeHandlerSpy", dataToIndex);
 		recordIndexer.MCR.assertMethodWasCalled("indexData");
-		recordIndexer.MCR.assertParameters("indexData", 0, "book", "book1", collectTerms.indexTerms,
+		recordIndexer.MCR.assertParameters("indexData", 0, type, id, collectTerms.indexTerms,
 				dataToIndex);
+
+		recordStorage.MCR.assertCalledParameters("updateCollectedData", type, id,
+				collectTerms.storageTerms, dataToIndex.getDataDivider());
 	}
 
 	private void callExtendedFunctionalityWithGroup(DataRecordGroup workOrder) {
