@@ -153,4 +153,11 @@ public class RecordLinkTestsRecordStorage implements RecordStorage {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public void updateCollectedData(String type, String id, Set<StorageTerm> storageTerms,
+			String dataDivider) {
+		// TODO Auto-generated method stub
+
+	}
 }

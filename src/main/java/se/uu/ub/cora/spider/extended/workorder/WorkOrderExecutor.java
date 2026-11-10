@@ -208,8 +208,8 @@ public class WorkOrderExecutor implements ExtendedFunctionality {
 	private void reIndex(DataRecordGroup dataToIndex, boolean performCommit) {
 		CollectTerms collectedTerms = getCollectedTerms(dataToIndex);
 		sendToIndex(collectedTerms, dataToIndex, performCommit);
-		//TODO: 
-		updateCollectedData
+		// TODO:
+		recordStorage.updateCollectedData(type, id, storageTerms, dataDivider);
 	}
 
 	private CollectTerms getCollectedTerms(DataRecordGroup dataToIndex) {
