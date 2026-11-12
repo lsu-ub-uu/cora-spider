@@ -36,6 +36,7 @@ import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityProvider;
 import se.uu.ub.cora.spider.record.DataGroupToRecordEnhancer;
 import se.uu.ub.cora.spider.record.RecordDecorator;
+import se.uu.ub.cora.spider.resourceconvert.ResourceConvert;
 import se.uu.ub.cora.spider.unique.UniqueValidator;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StreamStorage;
@@ -87,6 +88,11 @@ public interface SpiderDependencyProvider {
 	DataGroupToFilter getDataGroupToFilterConverter();
 
 	ResourceArchive getResourceArchive();
+
+	/**
+	 * getResourceConvert method returns a new {@link ResourceConvert}
+	 */
+	ResourceConvert getResourceConvert();
 
 	/**
 	 * getUniqueValidator method returns a new instance of {@link UniqueValidator}. It needs a
