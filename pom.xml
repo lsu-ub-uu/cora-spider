@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>se.uu.ub.cora</groupId>
 		<artifactId>cora-parent</artifactId>
-		<version>3.2.0</version>
+		<version>3.3.0</version>
 	</parent>
 
 	<artifactId>spider</artifactId>
@@ -37,8 +37,8 @@
 		<coradata.version>11.2.0</coradata.version>
 		<coradata-spies.version>3.2.0</coradata-spies.version>
 		<json.version>3.11.0</json.version>
-		<storage.version>10.1-SNAPSHOT</storage.version>
-		<storagespies.version>1.16-SNAPSHOT</storagespies.version>
+		<storage.version>10.1.0</storage.version>
+		<storagespies.version>1.16.0</storagespies.version>
 		<initialize.version>1.8.0</initialize.version>
 		<initialize-spies.version>1.7.0</initialize-spies.version>
 		<search.version>6.0.0</search.version>
